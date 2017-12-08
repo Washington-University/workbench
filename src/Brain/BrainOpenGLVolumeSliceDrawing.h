@@ -41,6 +41,7 @@ namespace caret {
     class PaletteFile;
     class Plane;
     class VolumeMappableInterface;
+    class VolumeSurfaceOutlineSetModel;
     
     class BrainOpenGLVolumeSliceDrawing : public CaretObject {
         
@@ -238,7 +239,9 @@ namespace caret {
                         const Plane& slicePlane,
                         const float sliceCoordinates[3]);
         
-        void drawSurfaceOutline(const Plane& plane);
+        static void drawSurfaceOutline(const Plane& plane,
+                                       VolumeSurfaceOutlineSetModel* outlineSet,
+                                       BrainOpenGLFixedPipeline* fixedPipelineDrawing);
         
         void drawVolumeSliceFoci(const Plane& plane);
         
@@ -359,6 +362,8 @@ namespace caret {
         bool m_identificationModeFlag;
         
         static const int32_t IDENTIFICATION_INDICES_PER_VOXEL;
+        
+        friend class BrainOpenGLVolumeObliqueSliceDrawing;
         
         // ADD_NEW_MEMBERS_HERE
     };

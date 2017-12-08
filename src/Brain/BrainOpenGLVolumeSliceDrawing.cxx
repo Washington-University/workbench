@@ -51,6 +51,7 @@
 #include "GiftiLabelTable.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fC4f.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
 #include "IdentificationWithColor.h"
@@ -3488,7 +3489,9 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
             glPolygonOffset(0.0, 1.0);
             
             if (drawOutlineFlag) {
-                drawSurfaceOutline(slicePlane);
+                drawSurfaceOutline(slicePlane,
+                                   m_browserTabContent->getVolumeSurfaceOutlineSet(),
+                                   m_fixedPipelineDrawing);
             }
             
             if (drawFibersFlag) {
@@ -3545,16 +3548,20 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
  * Draw surface outlines on the volume slices
  *
  * @param plane
- *   Plane of the volume slice on which surface outlines are drawn.
+ *    Plane of the volume slice on which surface outlines are drawn.
+ * @param outlineSet
+ *    The surface outline set.
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing.
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
+BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane,
+                                                  VolumeSurfaceOutlineSetModel* outlineSet,
+                                                  BrainOpenGLFixedPipeline* fixedPipelineDrawing)
 {
     glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
-    
-    VolumeSurfaceOutlineSetModel* outlineSet = m_browserTabContent->getVolumeSurfaceOutlineSet();
     
     /*
      * Process each surface outline
@@ -3590,16 +3597,17 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                 
                 float* nodeColoringRGBA = NULL;
                 if (surfaceColorFlag) {
-                    nodeColoringRGBA = m_fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL,
+                    nodeColoringRGBA = fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL,
                                                                                                       surface,
                                                                                                       colorSourceBrowserTabIndex);
                 }
                 
+                const float thicknessPercentage = GraphicsUtilitiesOpenGL::getPercentageOfViewportHeightFromMillimeters(thickness);
                 SurfacePlaneIntersectionToContour contour(surface,
                                                           plane,
                                                           outlineColor,
                                                           nodeColoringRGBA,
-                                                          thickness);
+                                                          thicknessPercentage); // thickness);
                 AString errorMessage;
                 if ( ! contour.createContours(contourPrimitives,
                                               errorMessage)) {
@@ -3607,6 +3615,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                 }
             }
         }
+        
         /**
          * Draw the contours.
          */
@@ -3616,15 +3625,14 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
             
             GraphicsEngineDataOpenGL::draw(primitive);
             delete primitive;
-
+            
             glDisable(GL_POLYGON_OFFSET_FILL);
         }
     }
     
-    
     glPopAttrib();
 }
-
+                        
 /**
  * Draw foci on volume slice.
  *

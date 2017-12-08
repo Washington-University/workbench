@@ -261,7 +261,7 @@ namespace caret {
                         const Plane& slicePlane,
                         const float sliceCoordinates[3]);
         
-        void drawSurfaceOutline(const Plane& plane);
+//        void drawSurfaceOutline(const Plane& plane);
         
         void drawVolumeSliceFoci(const Plane& plane);
         

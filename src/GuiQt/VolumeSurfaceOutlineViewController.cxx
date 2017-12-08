@@ -79,11 +79,11 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
                                                               "If tab, coloring assigned to selected surface\n"
                                                               "in the selected tab is used.\n");
     this->thicknessSpinBox = new WuQDoubleSpinBox(this);
-    this->thicknessSpinBox->setRangePercentage(0.0, 100.0);
+    this->thicknessSpinBox->setRange(0.0, 100.0);
+    this->thicknessSpinBox->setSingleStep(0.10);
+    this->thicknessSpinBox->setSuffix("mm");
     QObject::connect(this->thicknessSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &VolumeSurfaceOutlineViewController::thicknessSpinBoxValueChanged);
-//    QObject::connect(this->thicknessSpinBox, SIGNAL(valueChanged(double)),
-//                     this, SLOT(thicknessSpinBoxValueChanged(double)));
     this->thicknessSpinBox->setToolTip("Thickness of surface outline as percentage of viewport height");
     
     
