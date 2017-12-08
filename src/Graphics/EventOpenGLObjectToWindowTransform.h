@@ -54,6 +54,9 @@ namespace caret {
         
         bool isValid() const;
         
+        bool inverseTransformPoint(const float windowXYZ[3],
+                                   float objectXYZOut[3]) const;
+        
         bool transformPoint(const float objectXYZ[3],
                             float windowXYZOut[3]) const;
 
@@ -62,6 +65,8 @@ namespace caret {
                    const std::array<int32_t, 4>& viewport,
                    const std::array<double, 2>& depthRange,
                    const double centerToEyeDistance);
+        
+        std::array<int32_t, 4> getViewport() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -73,6 +78,8 @@ namespace caret {
         const SpaceType m_spaceType;
         
         Matrix4x4 m_transformMatrix;
+        
+        mutable std::unique_ptr<Matrix4x4> m_inverseTransformMatrix;
         
         std::array<double, 16> m_projectionMatrixArray;
         

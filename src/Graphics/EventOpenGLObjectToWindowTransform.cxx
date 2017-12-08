@@ -83,6 +83,55 @@ EventOpenGLObjectToWindowTransform::isValid() const
 }
 
 /**
+ * Transform a window coordinate to an object coordinate.
+ *
+ * @param windowXYZ
+ *     The window coordinate.
+ * @param objectXYZOut
+ *     Output containing the computed object coordinate.
+ * @return
+ *     True if output coordinate is valid, else false.
+ */
+bool
+EventOpenGLObjectToWindowTransform::inverseTransformPoint(const float windowXYZ[3],
+                           float objectXYZOut[3]) const
+{
+    if ( ! m_validFlag) {
+        CaretAssert(0);
+        CaretLogSevere("Program Error: EventOpenGLObjectToWindowTransform is not valid");
+        return false;
+    }
+    
+    /*
+     * If needed, create the inverse matrix
+     */
+    if ( ! m_inverseTransformMatrix) {
+        m_inverseTransformMatrix.reset(new Matrix4x4(m_transformMatrix));
+        
+        if ( ! m_inverseTransformMatrix->invert()) {
+            CaretAssert(0);
+            CaretLogSevere("Program Error: EventOpenGLObjectToWindowTransform unable to invert matrix");
+            return false;
+        }
+    }
+    
+    float xyzw[4] {
+        (2.0f * (windowXYZ[0] - m_viewport[0]) / m_viewport[2]) - 1.0f,
+        (2.0f * (windowXYZ[1] - m_viewport[1]) / m_viewport[3]) - 1.0f,
+        (2.0f * windowXYZ[2]) - 1.0f,
+        1.0f
+    };
+    
+    m_inverseTransformMatrix->multiplyPoint4(xyzw);
+    
+    objectXYZOut[0] = xyzw[0];
+    objectXYZOut[1] = xyzw[1];
+    objectXYZOut[2] = xyzw[2];
+    
+    return true;
+}
+
+/**
  * Transform an object coordinate to a window coordinate.
  *
  * @param objectXYZ
@@ -228,3 +277,14 @@ EventOpenGLObjectToWindowTransform::setup(const std::array<double, 16>& modelvie
     
     m_validFlag = true;
 }
+
+/**
+ * @return The viewport.
+ */
+std::array<int32_t, 4>
+EventOpenGLObjectToWindowTransform::getViewport() const
+{
+    return m_viewport;
+}
+
+
