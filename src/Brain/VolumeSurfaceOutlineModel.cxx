@@ -52,13 +52,13 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
     
     m_displayed = false;
-    m_thickness = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS;
+    m_thicknessPixelsObsolete = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE;
     m_surfaceSelectionModel = new SurfaceSelectionModel(validSurfaceTypes);
     m_colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_displayed", &m_displayed);
-    m_sceneAssistant->add("m_thickness", &m_thickness);
+    m_sceneAssistant->add("m_thickness", &m_thicknessPixelsObsolete); // NOTE: "m_thickness" is OLD name
     m_sceneAssistant->add("m_surfaceSelectionModel", "SurfaceSelectionModel", m_surfaceSelectionModel);
     m_sceneAssistant->add("m_colorOrTabModel", "VolumeSurfaceOutlineColorOrTabModel", m_colorOrTabModel);
     
@@ -84,7 +84,7 @@ void
 VolumeSurfaceOutlineModel::copyVolumeSurfaceOutlineModel(VolumeSurfaceOutlineModel* modelToCopy)
 {
     m_displayed = modelToCopy->m_displayed;
-    m_thickness = modelToCopy->m_thickness;
+    m_thicknessPixelsObsolete = modelToCopy->m_thicknessPixelsObsolete;
     m_surfaceSelectionModel->setSurface(modelToCopy->getSurface());
     
     VolumeSurfaceOutlineColorOrTabModel* colorTabToCopy = modelToCopy->getColorOrTabModel();
@@ -122,23 +122,23 @@ VolumeSurfaceOutlineModel::setDisplayed(const bool displayed)
 }
 
 /**
- * @return Thickness for drawing surface.
+ * @return Thickness for drawing surface (OBSOLETE)
  */
 float 
-VolumeSurfaceOutlineModel::getThickness() const
+VolumeSurfaceOutlineModel::getThicknessPixelsObsolete() const
 {
-    return m_thickness;
+    return m_thicknessPixelsObsolete;
 }
 
 /**
- * Set the thickness for drawing the surface.
+ * Set the thickness for drawing the surface (OBSOLETE)
  * @param thickness
  *    New value for thickness.
  */
 void 
-VolumeSurfaceOutlineModel::setThickness(const float thickness)
+VolumeSurfaceOutlineModel::setThicknessPixelsObsolete(const float thickness)
 {
-    m_thickness = thickness;
+    m_thicknessPixelsObsolete = thickness;
 }
 
 /**

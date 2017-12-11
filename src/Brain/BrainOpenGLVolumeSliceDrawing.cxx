@@ -3577,7 +3577,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane,
         if (outline->isDisplayed()) {
             Surface* surface = outline->getSurface();
             if (surface != NULL) {
-                const float thickness = outline->getThickness();
+                const float thickness = outline->getThicknessPixelsObsolete();
                 
                 CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
                 int32_t colorSourceBrowserTabIndex = -1;
@@ -3602,7 +3602,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane,
                                                                                                       colorSourceBrowserTabIndex);
                 }
                 
-                const float thicknessPercentage = GraphicsUtilitiesOpenGL::getPercentageOfViewportHeightFromMillimeters(thickness);
+                const float thicknessPercentage = GraphicsUtilitiesOpenGL::convertMillimetersToPercentageOfViewportHeight(thickness);
                 SurfacePlaneIntersectionToContour contour(surface,
                                                           plane,
                                                           outlineColor,

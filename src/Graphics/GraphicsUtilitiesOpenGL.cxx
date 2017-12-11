@@ -66,7 +66,7 @@ GraphicsUtilitiesOpenGL::~GraphicsUtilitiesOpenGL()
        The percentage of height [0.0, 100.0] for the given number of millimeters.
  */
 float
-GraphicsUtilitiesOpenGL::getPercentageOfViewportHeightFromMillimeters(const float millimeters)
+GraphicsUtilitiesOpenGL::convertMillimetersToPercentageOfViewportHeight(const float millimeters)
 {
     float percentageOfViewportHeight = -1.0f;
     

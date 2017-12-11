@@ -33,8 +33,8 @@ namespace caret {
         
     public:
         
-        static float getPercentageOfViewportHeightFromMillimeters(const float millimeters);
-
+        static float convertMillimetersToPercentageOfViewportHeight(const float millimeters);
+        
     private:
         GraphicsUtilitiesOpenGL();
         

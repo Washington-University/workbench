@@ -233,40 +233,40 @@ VolumeSurfaceOutlineSetModel::selectSurfacesAfterSpecFileLoaded(Brain* brain,
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
         m_outlineModels[i]->getColorOrTabModel()->setColor(CaretColorEnum::BLACK);
-        m_outlineModels[i]->setThickness(VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS);
+        m_outlineModels[i]->setThicknessPixelsObsolete(VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE);
     }
     
     int nextOutlineIndex = 0;
     
     addSurfaceOutline(leftMidThickSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       leftTabIndex,
                       CaretColorEnum::BLACK,
                       nextOutlineIndex);
     addSurfaceOutline(rightMidThickSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       rightTabIndex,
                       CaretColorEnum::BLACK,
                       nextOutlineIndex);
     
     addSurfaceOutline(leftWhiteSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       -1,
                       CaretColorEnum::LIME,
                       nextOutlineIndex);
     addSurfaceOutline(rightWhiteSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       -1,
                       CaretColorEnum::LIME,
                       nextOutlineIndex);
     
     addSurfaceOutline(leftPialSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       -1,
                       CaretColorEnum::BLUE,
                       nextOutlineIndex);
     addSurfaceOutline(rightPialSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       -1,
                       CaretColorEnum::BLUE,
                       nextOutlineIndex);
@@ -304,7 +304,7 @@ VolumeSurfaceOutlineSetModel::addSurfaceOutline(Surface* surface,
             if (outlineIndex < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES) {
                 VolumeSurfaceOutlineModel* vsos = m_outlineModels[outlineIndex];
                 vsos->getSurfaceSelectionModel()->setSurface(surface);
-                vsos->setThickness(thickness);
+                vsos->setThicknessPixelsObsolete(thickness);
                 if (browserTabIndex >= 0) {
                     vsos->getColorOrTabModel()->setBrowserTabIndex(browserTabIndex);
                 }

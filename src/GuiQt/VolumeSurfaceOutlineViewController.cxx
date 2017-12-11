@@ -181,7 +181,7 @@ void
 VolumeSurfaceOutlineViewController::thicknessSpinBoxValueChanged(double value)
 {
     if (this->outlineModel != NULL) {
-        this->outlineModel->setThickness(value);
+        this->outlineModel->setThicknessPixelsObsolete(value);
     }
     this->updateGraphics();
 }
@@ -204,7 +204,7 @@ VolumeSurfaceOutlineViewController::updateViewController(VolumeSurfaceOutlineMod
         this->enabledCheckBox->setCheckState(state);
         
         this->thicknessSpinBox->blockSignals(true);
-        this->thicknessSpinBox->setValue(outlineModel->getThickness());
+        this->thicknessSpinBox->setValue(outlineModel->getThicknessPixelsObsolete());
         this->thicknessSpinBox->blockSignals(false);
         this->surfaceSelectionViewController->updateControl(outlineModel->getSurfaceSelectionModel());
         //this->surfaceSelectionViewController->setSurface(outlineModel->getSurface());
