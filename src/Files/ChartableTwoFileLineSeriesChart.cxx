@@ -129,7 +129,7 @@ m_lineSeriesContentType(lineSeriesContentType)
         }            break;
     }
 
-    m_lineChartHistory = std::unique_ptr<ChartTwoLineSeriesHistory>(new ChartTwoLineSeriesHistory());
+    m_lineChartHistory = std::unique_ptr<ChartTwoLineSeriesHistory>(new ChartTwoLineSeriesHistory(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN));
     m_sceneAssistant->add("m_lineChartHistory",
                            "ChartTwoLineSeriesHistory",
                             m_lineChartHistory.get());
@@ -266,7 +266,7 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSerie
             ChartTwoDataCartesian* cartesianData = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                                                              xUnits,
                                                                              CaretUnitsTypeEnum::NONE,
-                                                                             GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN);
+                                                                             m_lineChartHistory->getDefaultGraphicsPrimitiveType());
             cartesianData->setMapFileDataSelector(mapFileDataSelector);
             
             float x = 0.0f;

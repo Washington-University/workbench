@@ -26,7 +26,7 @@
 #include "BrainConstants.h"
 #include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
-
+#include "GraphicsPrimitive.h"
 #include "SceneableInterface.h"
 
 
@@ -38,7 +38,7 @@ namespace caret {
     class ChartTwoLineSeriesHistory : public CaretObjectTracksModification, public SceneableInterface {
         
     public:
-        ChartTwoLineSeriesHistory();
+        ChartTwoLineSeriesHistory(const GraphicsPrimitive::PrimitiveType defaultGraphicsPrimitiveType);
         
         virtual ~ChartTwoLineSeriesHistory();
         
@@ -46,6 +46,8 @@ namespace caret {
 
         ChartTwoLineSeriesHistory& operator=(const ChartTwoLineSeriesHistory& obj);
 
+        GraphicsPrimitive::PrimitiveType getDefaultGraphicsPrimitiveType() const;
+        
         bool isLoadingEnabled() const;
         
         void setLoadingEnabled(const bool enabled);
@@ -116,6 +118,8 @@ namespace caret {
         
         void validateDefaultColor();
 
+        const GraphicsPrimitive::PrimitiveType m_defaultGraphicsPrimitiveType;
+        
         bool m_loadingEnabled = false;
         
         SceneClassAssistant* m_sceneAssistant = NULL;

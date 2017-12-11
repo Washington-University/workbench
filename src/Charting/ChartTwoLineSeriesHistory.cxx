@@ -44,9 +44,10 @@ using namespace caret;
 /**
  * Constructor.
  */
-ChartTwoLineSeriesHistory::ChartTwoLineSeriesHistory()
+ChartTwoLineSeriesHistory::ChartTwoLineSeriesHistory(const GraphicsPrimitive::PrimitiveType defaultGraphicsPrimitiveType)
 : CaretObjectTracksModification(),
-SceneableInterface()
+SceneableInterface(),
+m_defaultGraphicsPrimitiveType(defaultGraphicsPrimitiveType)
 {
     initializeInstance();
 }
@@ -67,7 +68,8 @@ ChartTwoLineSeriesHistory::~ChartTwoLineSeriesHistory()
  */
 ChartTwoLineSeriesHistory::ChartTwoLineSeriesHistory(const ChartTwoLineSeriesHistory& obj)
 : CaretObjectTracksModification(obj),
-SceneableInterface(obj)
+SceneableInterface(obj),
+m_defaultGraphicsPrimitiveType(obj.m_defaultGraphicsPrimitiveType)
 {
     initializeInstance();
     this->copyHelperChartTwoLineSeriesHistory(obj);
@@ -94,6 +96,15 @@ bool
 ChartTwoLineSeriesHistory::isLoadingEnabled() const
 {
     return m_loadingEnabled;
+}
+
+/**
+ * @return Default type of graphics primitive for this line-series history.
+ */
+GraphicsPrimitive::PrimitiveType
+ChartTwoLineSeriesHistory::getDefaultGraphicsPrimitiveType() const
+{
+    return m_defaultGraphicsPrimitiveType;
 }
 
 /**
@@ -589,7 +600,7 @@ ChartTwoLineSeriesHistory::restoreFromScene(const SceneAttributes* sceneAttribut
             ChartTwoDataCartesian* historyItem = new ChartTwoDataCartesian(ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES,
                                                                            CaretUnitsTypeEnum::NONE,
                                                                            CaretUnitsTypeEnum::NONE,
-                                                                           GraphicsPrimitive::PrimitiveType::OPENGL_LINES);
+                                                                           m_defaultGraphicsPrimitiveType);
             historyItem->restoreFromScene(sceneAttributes,
                                           historyClass);
             
