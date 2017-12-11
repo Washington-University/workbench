@@ -104,6 +104,8 @@ namespace caret {
          */
         class PolylineInfo {
         public:
+            PolylineInfo() { }
+            
             PolylineInfo(const int32_t windowVertexOneIndex,
                          const int32_t windowVertexTwoIndex,
                          const int32_t triangleOnePrimitiveIndices[3],
@@ -116,12 +118,14 @@ namespace caret {
                 m_triangleTwoPrimitiveIndices[0] = triangleTwoPrimitiveIndices[0];
                 m_triangleTwoPrimitiveIndices[1] = triangleTwoPrimitiveIndices[1];
                 m_triangleTwoPrimitiveIndices[2] = triangleTwoPrimitiveIndices[2];
+                  m_valid = true;
             }
             
             int32_t m_windowVertexOneIndex;
             int32_t m_windowVertexTwoIndex;
             int32_t m_triangleOnePrimitiveIndices[3];
             int32_t m_triangleTwoPrimitiveIndices[3];
+            bool m_valid = false;
         };
         
         /**
@@ -181,9 +185,10 @@ namespace caret {
         void performMiterJoin(const PolylineInfo& polyOne,
                               const PolylineInfo& polyTwo);
         
-        void joinTriangles();
+        void joinTwoPolyLines(const PolylineInfo& polyOne,
+                              const PolylineInfo& polyTwo);
         
-        void addMiterJoinTriangles();
+        void addJoinTriangles();
         
         void createMiterJoinVertex(const float v1[3],
                                    const float v2[3],
@@ -192,6 +197,14 @@ namespace caret {
         
         TurnDirection getTurnDirection(const PolylineInfo& polyOne,
                               const PolylineInfo& polyTwo) const;
+        
+        void getAverageColorRGBA(const int32_t primitiveVertexOneIndex,
+                                 const int32_t primitiveVertexTwoIndex,
+                                 float rgbaOut[4]) const;
+        
+        void getAverageColorRGBA(const int32_t primitiveVertexOneIndex,
+                                 const int32_t primitiveVertexTwoIndex,
+                                 uint8_t rgbaOut[4]) const;
         
         const std::vector<float>& m_inputXYZ;
         
@@ -233,7 +246,7 @@ namespace caret {
         
         std::unique_ptr<GraphicsPrimitiveV3fC4ub> m_primitiveByteColor;
         
-        std::vector<PolylineInfo> m_polyLineInfo;
+        PolylineInfo m_lastPolyLineInfo;
         
         std::vector<TriangleJoin> m_triangleJoins;
         

@@ -303,10 +303,6 @@ GraphicsOpenGLPolylineTriangles::convertLinesToPolygons(AString& errorMessageOut
     const int32_t numWindowPoints = static_cast<int32_t>(m_vertexWindowXYZ.size() / 3);
     if (numWindowPoints >= 2) {
         convertLineSegmentsToTriangles();
-        
-        joinTriangles();
-        
-        CaretAssert(m_primitive);
     }
     
     restoreOpenGLState();
@@ -718,7 +714,7 @@ GraphicsOpenGLPolylineTriangles::createTrianglesFromWindowVertices(const int32_t
                 m_primitiveByteColor->addVertex(p4, rgbaP34);
            }
             else {
-                std::cout << "Flipped Quad" << std::endl;
+                if (m_debugFlag) std::cout << "Flipped Quad" << std::endl;
                 m_primitiveByteColor->addVertex(p2, rgbaP12);
                 m_primitiveByteColor->addVertex(p1, rgbaP12);
                 m_primitiveByteColor->addVertex(p3, rgbaP34);
@@ -749,7 +745,7 @@ GraphicsOpenGLPolylineTriangles::createTrianglesFromWindowVertices(const int32_t
                 
             }
             else {
-                std::cout << "Flipped Quad" << std::endl;
+                if (m_debugFlag) std::cout << "Flipped Quad" << std::endl;
                 m_primitiveFloatColor->addVertex(p2, rgbaP12);
                 m_primitiveFloatColor->addVertex(p1, rgbaP12);
                 m_primitiveFloatColor->addVertex(p3, rgbaP34);
@@ -774,21 +770,33 @@ GraphicsOpenGLPolylineTriangles::createTrianglesFromWindowVertices(const int32_t
         numVertices - 1
     };
 
-    m_polyLineInfo.push_back(PolylineInfo(windowVertexOneIndex,
-                                          windowVertexTwoIndex,
-                                          triangleOneIndices,
-                                          triangleTwoIndices));
+    PolylineInfo polyLine(windowVertexOneIndex,
+                          windowVertexTwoIndex,
+                          triangleOneIndices,
+                          triangleTwoIndices);
+
+    if (m_lastPolyLineInfo.m_valid) {
+        joinTwoPolyLines(m_lastPolyLineInfo, polyLine);
+    }
+    
+    m_lastPolyLineInfo = polyLine;
 }
 
 /**
- * Join triangles to create connected line segments
- * without cracks where the triangles join together.
+ * Join two polylines by filling in the gaps where the 
+ * polylines meet.
+ *
+ * @param polyOne
+ *     The first polyline.
+ * @param polyTwo
+ *     The two polyline.
  */
 void
-GraphicsOpenGLPolylineTriangles::joinTriangles()
+GraphicsOpenGLPolylineTriangles::joinTwoPolyLines(const PolylineInfo& polyOne,
+                                                  const PolylineInfo& polyTwo)
 {
     CaretAssert(m_primitive);
-
+    
     switch (m_joinType) {
         case JoinType::BEVEL:
             break;
@@ -799,53 +807,35 @@ GraphicsOpenGLPolylineTriangles::joinTriangles()
             break;
     }
     
-    const int32_t numPolylines = static_cast<int32_t>(m_polyLineInfo.size());
-    const int32_t numPolylinesMinusOne = numPolylines - 1;
-    
-    int32_t numPolylinesToConnect = 0;
     switch (m_lineType) {
         case LineType::LINES:
-            numPolylinesToConnect = 0;
+            return;
             break;
         case LineType::LINE_LOOP:
-            numPolylinesToConnect = numPolylinesMinusOne; //numPolylines;
             break;
         case LineType::LINE_STRIP:
-            numPolylinesToConnect = numPolylinesMinusOne;
             break;
     }
     
     /*
-     * Perform joins of connected polylines
+     * Does triangle "i" connect to triangle "i+1" ?
      */
-    for (int32_t i = 0; i < numPolylinesToConnect; i++) {
-        CaretAssertVectorIndex(m_polyLineInfo, i);
-        const PolylineInfo& poly = m_polyLineInfo[i];
-        
-        const int32_t nextPolyIndex = ((i < numPolylinesMinusOne) ? (i + 1) : 0);
-        CaretAssertVectorIndex(m_polyLineInfo, nextPolyIndex);
-        const PolylineInfo& nextPoly = m_polyLineInfo[nextPolyIndex];
-        
-        /*
-         * Does triangle "i" connect to triangle "i+1" ?
-         */
-        if (poly.m_windowVertexTwoIndex == nextPoly.m_windowVertexOneIndex) {
-            switch (m_joinType) {
-                case JoinType::BEVEL:
-                    performBevelJoin(poly,
-                                     nextPoly);
-                    break;
-                case JoinType::MITER:
-                    performMiterJoin(poly,
-                                     nextPoly);
-                    break;
-                case JoinType::NONE:
-                    break;
-            }
+    if (polyOne.m_windowVertexTwoIndex == polyTwo.m_windowVertexOneIndex) {
+        switch (m_joinType) {
+            case JoinType::BEVEL:
+                performBevelJoin(polyOne,
+                                 polyTwo);
+                break;
+            case JoinType::MITER:
+                performMiterJoin(polyOne,
+                                 polyTwo);
+                break;
+            case JoinType::NONE:
+                break;
         }
     }
     
-    addMiterJoinTriangles();
+    addJoinTriangles();
 }
 
 /**
@@ -860,7 +850,7 @@ GraphicsOpenGLPolylineTriangles::joinTriangles()
  */
 GraphicsOpenGLPolylineTriangles::TurnDirection
 GraphicsOpenGLPolylineTriangles::getTurnDirection(const PolylineInfo& polyOne,
-                               const PolylineInfo& polyTwo) const
+                                                  const PolylineInfo& polyTwo) const
 {
     TurnDirection turnDirection = TurnDirection::PARALLEL;
     
@@ -1141,9 +1131,9 @@ GraphicsOpenGLPolylineTriangles::performMiterJoin(const PolylineInfo& polyOne,
  */
 void
 GraphicsOpenGLPolylineTriangles::createMiterJoinVertex(const float v1[3],
-                                                 const float v2[3],
-                                                 const float miterLength,
-                                                 float xyzOut[3])
+                                                       const float v2[3],
+                                                       const float miterLength,
+                                                       float xyzOut[3])
 {
     float n2[3];
     MathFunctions::subtractVectors(v2, v1, n2);
@@ -1157,10 +1147,75 @@ GraphicsOpenGLPolylineTriangles::createMiterJoinVertex(const float v1[3],
 }
 
 /**
- * Add triangles to fill in the gaps at limited miter joins.
+ * Get the average color from two vertices.
+ *
+ * @param primitiveVertexOneIndex
+ *     The first primitive vertex index.
+ * @param primitiveVertexTwoIndex
+ *     The second primitive vertex index.
+ * @param rgbaOut
+ *     Output with average RGBA.
  */
 void
-GraphicsOpenGLPolylineTriangles::addMiterJoinTriangles()
+GraphicsOpenGLPolylineTriangles::getAverageColorRGBA(const int32_t primitiveVertexOneIndex,
+                                                     const int32_t primitiveVertexTwoIndex,
+                                                     float rgbaOut[4]) const
+{
+    CaretAssert(m_primitiveFloatColor);
+    
+    float rgbaOne[4];
+    m_primitiveFloatColor->getVertexFloatRGBA(primitiveVertexOneIndex, rgbaOne);
+    float rgbaTwo[4];
+    m_primitiveFloatColor->getVertexFloatRGBA(primitiveVertexTwoIndex, rgbaTwo);
+    
+    rgbaOut[0] = (rgbaOne[0] + rgbaTwo[0]) / 2.0f;
+    rgbaOut[1] = (rgbaOne[1] + rgbaTwo[1]) / 2.0f;
+    rgbaOut[2] = (rgbaOne[2] + rgbaTwo[2]) / 2.0f;
+    rgbaOut[3] = (rgbaOne[3] + rgbaTwo[3]) / 2.0f;
+}
+
+/**
+ * Get the average color from two vertices.
+ *
+ * @param primitiveVertexOneIndex
+ *     The first primitive vertex index.
+ * @param primitiveVertexTwoIndex
+ *     The second primitive vertex index.
+ * @param rgbaOut
+ *     Output with average RGBA.
+ */
+void
+GraphicsOpenGLPolylineTriangles::getAverageColorRGBA(const int32_t primitiveVertexOneIndex,
+                                                     const int32_t primitiveVertexTwoIndex,
+                                                     uint8_t rgbaOut[4]) const
+{
+    CaretAssert(m_primitiveByteColor);
+    
+    /*
+     * Since byte colors range [0, 255], adding two bytes could
+     * cause an overflow of the byte.  So average using floats
+     * and then assign to the byte output.
+     */
+    uint8_t rgbaOneByte[4];
+    m_primitiveByteColor->getVertexByteRGBA(primitiveVertexOneIndex, rgbaOneByte);
+    float rgbaOne[4] = { rgbaOneByte[0], rgbaOneByte[1], rgbaOneByte[2], rgbaOneByte[3] };
+    
+    uint8_t rgbaTwoByte[4];
+    m_primitiveByteColor->getVertexByteRGBA(primitiveVertexTwoIndex, rgbaTwoByte);
+    float rgbaTwo[4] = { rgbaTwoByte[0], rgbaTwoByte[1], rgbaTwoByte[2], rgbaTwoByte[3] };
+    
+    rgbaOut[0] = static_cast<uint8_t>((rgbaOne[0] + rgbaTwo[0]) / 2.0f);
+    rgbaOut[1] = static_cast<uint8_t>((rgbaOne[1] + rgbaTwo[1]) / 2.0f);
+    rgbaOut[2] = static_cast<uint8_t>((rgbaOne[2] + rgbaTwo[2]) / 2.0f);
+    rgbaOut[3] = static_cast<uint8_t>((rgbaOne[3] + rgbaTwo[3]) / 2.0f);
+}
+
+/**
+ * Add triangles creating by joins to fill gaps
+ * at the junctions of the line segments
+ */
+void
+GraphicsOpenGLPolylineTriangles::addJoinTriangles()
 {
     for (const auto tj : m_triangleJoins) {
         CaretAssertVectorIndex(m_vertexWindowXYZ, tj.m_windowVertexIndex * 3 + 2);
@@ -1191,7 +1246,7 @@ GraphicsOpenGLPolylineTriangles::addMiterJoinTriangles()
             case GraphicsPrimitive::ColorType::FLOAT_RGBA:
             {
                 float rgba[4];
-                m_primitiveFloatColor->getVertexFloatRGBA(tj.m_primitiveVertexOneIndex, rgba);
+                getAverageColorRGBA(tj.m_primitiveVertexOneIndex, tj.m_primitiveVertexTwoIndex, rgba);
                 m_primitiveFloatColor->addVertex(v1, rgba);
                 m_primitiveFloatColor->addVertex(tv2, rgba);
                 m_primitiveFloatColor->addVertex(tv3, rgba);
@@ -1200,7 +1255,7 @@ GraphicsOpenGLPolylineTriangles::addMiterJoinTriangles()
             case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
             {
                 uint8_t rgba[4];
-                m_primitiveByteColor->getVertexByteRGBA(tj.m_primitiveVertexOneIndex, rgba);
+                getAverageColorRGBA(tj.m_primitiveVertexOneIndex, tj.m_primitiveVertexTwoIndex, rgba);
                 m_primitiveByteColor->addVertex(v1, rgba);
                 m_primitiveByteColor->addVertex(tv2, rgba);
                 m_primitiveByteColor->addVertex(tv3, rgba);
@@ -1208,6 +1263,8 @@ GraphicsOpenGLPolylineTriangles::addMiterJoinTriangles()
                 break;
         }
     }
+    
+    m_triangleJoins.clear();
 }
 
 /**
@@ -1219,7 +1276,6 @@ GraphicsOpenGLPolylineTriangles::addMiterJoinTriangles()
 void
 GraphicsOpenGLPolylineTriangles::convertLineSegmentsToTriangles()
 {
-    
     const int32_t numVertices = static_cast<int32_t>(m_vertexWindowXYZ.size() / 3);
     
     /*
