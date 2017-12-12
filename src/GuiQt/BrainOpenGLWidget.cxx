@@ -459,6 +459,8 @@ QImage
 BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
                                                 const int32_t imageHeight)
 {
+    makeCurrent();
+    
     QImage image;
     
     OffScreenOpenGLRenderer offscreen(this,
@@ -1659,8 +1661,8 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
     const int captureOffsetY    = imageCaptureEvent->getCaptureOffsetY();
     const int captureWidth      = imageCaptureEvent->getCaptureWidth();
     const int captureHeight     = imageCaptureEvent->getCaptureHeight();
-    const int outputImageWidth  = imageCaptureEvent->getOutputWidth();
-    const int outputImageHeight = imageCaptureEvent->getOutputHeight();
+    int outputImageWidth  = imageCaptureEvent->getOutputWidth();
+    int outputImageHeight = imageCaptureEvent->getOutputHeight();
     
     /*
      * Force immediate mode since problems with display lists
@@ -1743,8 +1745,21 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
         }
             break;
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_OFFSCREEN_FRAME_BUFFER:
+        {
+            /*
+             * If width/height invalid, capture in size of graphics region
+             * (Qt's renderPixmap() and grabFrameBuffer() methods accept
+             * width/height of zero and interpret that as size of graphics
+             * region (widget)
+             */
+            if ((outputImageWidth < 1)
+                || (outputImageHeight < 1)) {
+                outputImageWidth  = width();
+                outputImageHeight = height();
+            }
             image = performOffScreenImageCapture(outputImageWidth,
                                                  outputImageHeight);
+        }
             break;
     }
     
