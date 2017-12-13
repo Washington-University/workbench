@@ -464,6 +464,13 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
 {
     CaretAssert(primitive);
     
+    if (primitive->getNumberOfVertices() <= 0) {
+        return;
+    }
+    if ( ! primitive->isValid()) {
+        CaretLogWarning("Attempting to draw invalid Graphics Primitive");
+    }
+    
     GraphicsPrimitive* primitiveToDraw = primitive;
     
     /* Conversion to window space creates a new primitive that must be deleted */
