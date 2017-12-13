@@ -1657,12 +1657,30 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
      * Note that a size of zero indicates capture graphics in its
      * current size.
      */
-    const int captureOffsetX    = imageCaptureEvent->getCaptureOffsetX();
-    const int captureOffsetY    = imageCaptureEvent->getCaptureOffsetY();
-    const int captureWidth      = imageCaptureEvent->getCaptureWidth();
-    const int captureHeight     = imageCaptureEvent->getCaptureHeight();
+    int captureOffsetX    = imageCaptureEvent->getCaptureOffsetX();
+    int captureOffsetY    = imageCaptureEvent->getCaptureOffsetY();
+    int captureWidth      = imageCaptureEvent->getCaptureWidth();
+    int captureHeight     = imageCaptureEvent->getCaptureHeight();
     int outputImageWidth  = imageCaptureEvent->getOutputWidth();
     int outputImageHeight = imageCaptureEvent->getOutputHeight();
+    
+    if ((outputImageWidth <= 0)
+        || (outputImageHeight <= 0)) {
+        BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
+        
+        if (browserWindow != NULL) {
+            int32_t widgetWidth(0), widgetHeight(0);
+            browserWindow->getGraphicsWidgetSize(captureOffsetX,
+                                                 captureOffsetY,
+                                                 captureWidth,
+                                                 captureHeight,
+                                                 widgetWidth,
+                                                 widgetHeight,
+                                                 true); // true => apply lock aspect ratio
+            outputImageWidth  = captureWidth;
+            outputImageHeight = captureHeight;
+        }
+    }
     
     /*
      * Force immediate mode since problems with display lists
@@ -1690,36 +1708,22 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
 #else
             image = grabFrameBuffer();
 #endif
-            
-            if ((captureOffsetX > 0)
-                || (captureOffsetY > 0)) {
-                if ((captureWidth > 0)
-                    && (captureHeight > 0)) {
-                    image = image.copy(captureOffsetX,
-                                       captureOffsetY,
-                                       captureWidth,
-                                       captureHeight);
-                }
+            if ((captureWidth > 0)
+                && (captureHeight > 0)) {
+                image = image.copy(captureOffsetX,
+                                   captureOffsetY,
+                                   captureWidth,
+                                   captureHeight);
             }
             
-            /*
-             * If image was captured successfully and the caller has 
-             * requested that the image be a specific size, scale
-             * the image to the requested size.
-             */
-            if ((image.width() > 0)
-                && (image.height() > 0)) {
-                if ((outputImageWidth > 0)
-                    && (outputImageHeight > 0)) {
-                    if ((image.width() != outputImageWidth)
-                        || (image.height() != outputImageHeight)) {
-                        image = image.scaled(outputImageWidth,
-                                             outputImageHeight,
-                                             Qt::IgnoreAspectRatio,
-                                             Qt::SmoothTransformation);
-                    }
-                }
+            if ((outputImageWidth != image.width())
+                || (outputImageHeight != image.height())) {
+                image = image.scaled(outputImageWidth,
+                                     outputImageHeight,
+                                     Qt::IgnoreAspectRatio,
+                                     Qt::SmoothTransformation);
             }
+            
         }
             break;
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP:
@@ -1746,17 +1750,6 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
             break;
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_OFFSCREEN_FRAME_BUFFER:
         {
-            /*
-             * If width/height invalid, capture in size of graphics region
-             * (Qt's renderPixmap() and grabFrameBuffer() methods accept
-             * width/height of zero and interpret that as size of graphics
-             * region (widget)
-             */
-            if ((outputImageWidth < 1)
-                || (outputImageHeight < 1)) {
-                outputImageWidth  = width();
-                outputImageHeight = height();
-            }
             image = performOffScreenImageCapture(outputImageWidth,
                                                  outputImageHeight);
         }

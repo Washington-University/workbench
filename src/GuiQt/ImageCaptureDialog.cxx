@@ -134,16 +134,6 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
     updateBrowserWindowWidthAndHeightLabel();
     
-    /*
-     * Initialize the custom image size
-     */
-//    m_imageDimensionsModel->setPixelWidthAndHeight(512,
-//                                                   512);
-//    updateDialogWithImageDimensionsModel();
-
-//    m_scaleProportionallyCheckBox->setChecked(true);
-//    scaleProportionallyCheckBoxClicked(m_scaleProportionallyCheckBox->isChecked());
-    
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
 
@@ -186,8 +176,6 @@ ImageCaptureDialog::createImageSourceSection()
     
     QGroupBox* groupBox = new QGroupBox("Source");
     QGridLayout* gridLayout = new QGridLayout(groupBox);
-//    gridLayout->setColumnStretch(0, 0);
-//    gridLayout->setColumnStretch(1, 0);
     gridLayout->addWidget(windowLabel, 0, 0);
     gridLayout->addWidget(m_windowSelectionSpinBox, 0, 1, Qt::AlignLeft);
     gridLayout->addWidget(m_windowCropToLockAspectRegionCheckBox, 1, 0, 1, 2, Qt::AlignLeft);
@@ -391,9 +379,6 @@ ImageCaptureDialog::createImageDimensionsSection()
     layout->addWidget(m_customDimensionsWidget, 0, Qt::AlignLeft);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(imageBytesWidget);
-//    
-//    m_imageSizeWindowRadioButton->setChecked(true);
-//    sizeRadioButtonClicked(sizeButtonGroup->checkedButton());
 
     return groupBox;
 }
@@ -416,8 +401,6 @@ ImageCaptureDialog::sizeRadioButtonClicked(QAbstractButton* /*button*/)
     }
     
     updateDimensionsSection();
-//    updateDialogWithImageDimensionsModel();
-//    updateImageNumberOfBytesLabel();
 }
 
 /**
@@ -582,32 +565,6 @@ ImageCaptureDialog::updateDestinationSection()
     m_saveImageToFileCheckBox->setChecked(imageCaptureSettings->isSaveToFileEnabled());
     m_imageFileNameLineEdit->setText(imageCaptureSettings->getImageFileName());
 }
-
-
-///**
-// * Update the dialog with data from the image dimensions model.
-// */
-//void
-//ImageCaptureDialog::updateDialogWithImageDimensionsModel()
-//{
-//    ImageCaptureSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
-//    const ImageCaptureDimensionsModeEnum::Enum captureMode = imageCaptureSettings->getImageCaptureDimensionsMode();
-//    switch (captureMode) {
-//        case ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_CUSTOM:
-//            m_imageSizeCustomRadioButton->setChecked(true);
-//            m_customDimensionsWidget->setEnabled(true);
-//            break;
-//        case ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_WINDOW_SIZE:
-//            m_imageSizeWindowRadioButton->setChecked(true);
-//            m_customDimensionsWidget->setEnabled(false);
-//            break;
-//    }
-//    
-//    m_scaleProportionallyCheckBox->setChecked(imageCaptureSettings->isScaleProportionately());
-//    
-//    
-//    updateImageNumberOfBytesLabel();
-//}
 
 /**
  * Update the image number of bytes label.
@@ -981,22 +938,6 @@ ImageCaptureDialog::getSelectedWindowWidthAndHeight(int32_t& widthOut,
                                                  graphicsWidth,
                                                  graphicsHeight,
                                                  aspectRatioOut);
-    
-//    const int selectedBrowserWindowIndex = m_windowSelectionSpinBox->value() - 1;
-//    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(selectedBrowserWindowIndex);
-//    
-//    if (browserWindow != NULL) {
-//        browserWindow->getGraphicsWidgetSize(widthOut,
-//                                             heightOut,
-//                                             m_windowCropToLockAspectRegionCheckBox->isChecked());
-//        if ((widthOut > 0)
-//            && (heightOut > 0)) {
-//            aspectRatioOut = (static_cast<float>(heightOut)
-//                              / static_cast<float>(widthOut));
-//            return true;
-//        }
-//    }
-//    return false;
 }
 
 

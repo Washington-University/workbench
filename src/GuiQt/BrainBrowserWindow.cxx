@@ -518,43 +518,45 @@ BrainBrowserWindow::setGraphicsWidgetFixedSize(const int32_t width,
 /**
  * Get the graphics widget size.
  *
- * @param xOut
- *     X-coord of graphics region (may be non-zero when lock aspect applied)
- * @param yOut
- *     Y-coord of graphics region (may be non-zero when lock aspect applied)
- * @param widthOut
- *     Width of the graphics widget.
- * @param heightOut
- *     Height of the graphics widget.
- * @param graphicsWidthOut
- *     True width of graphics region as if no aspect ratio was applied.
- * @param graphicsHeightOut
- *     True height of graphics region as if no aspect ratio was applied.
+ * @param viewportXOut
+ *     X-coord of viewport in graphics region (may be non-zero when lock aspect applied)
+ * @param viewportYOut
+ *     Y-coord of viewport in graphics region (may be non-zero when lock aspect applied)
+ * @param viewportWidthOut
+ *     Width of the viewport into which graphics are drawn (may be less than
+ *     graphicsWidthOut when lock aspect is applied)
+ * @param viewportHeightOut
+ *     Height of the viewport into which graphics are drawn (may be less than
+ *     graphicsHeightOut when lock aspect is applied)
+ * @param openGLWidgetWidthOut
+ *     True width of the OpenGL Widget.
+ * @param openGLWidgetHeightOut
+ *     True height of the OpenGL Widget.
  * @param applyLockedAspectRatiosFlag
  *     True if locked tab or window aspect ratio should be applied for
- *     graphics region size.
+ *     viewport but only if lock aspect is enabled by the user.
  */
 void
-BrainBrowserWindow::getGraphicsWidgetSize(int32_t& xOut,
-                                          int32_t& yOut,
-                                          int32_t& widthOut,
-                                          int32_t& heightOut,
-                                          int32_t& graphicsWidthOut,
-                                          int32_t& graphicsHeightOut,
+BrainBrowserWindow::getGraphicsWidgetSize(int32_t& viewportXOut,
+                                          int32_t& viewportYOut,
+                                          int32_t& viewportWidthOut,
+                                          int32_t& viewportHeightOut,
+                                          int32_t& openGLWidgetWidthOut,
+                                          int32_t& openGLWidgetHeightOut,
                                           const bool applyLockedAspectRatiosFlag) const
 {
-    xOut = 0;
-    yOut = 0;
-    graphicsWidthOut  = m_openGLWidget->width();
-    graphicsHeightOut = m_openGLWidget->height();
-    widthOut  = m_openGLWidget->width();
-    heightOut = m_openGLWidget->height();
+    viewportXOut = 0;
+    viewportYOut = 0;
+    openGLWidgetWidthOut  = m_openGLWidget->width();
+    openGLWidgetHeightOut = m_openGLWidget->height();
+    viewportWidthOut  = m_openGLWidget->width();
+    viewportHeightOut = m_openGLWidget->height();
     
     int aspectViewport[4] = {
         0,
         0,
-        widthOut,
-        heightOut
+        openGLWidgetWidthOut,
+        openGLWidgetHeightOut
     };
     
     if (isTileTabsSelected()) {
@@ -589,12 +591,12 @@ BrainBrowserWindow::getGraphicsWidgetSize(int32_t& xOut,
             
             if ((windowWidth > 0)
                 && (windowHeight > 0)) {
-                if ((windowWidth != widthOut)
-                    || (windowHeight != heightOut)) {
-                    xOut      = windowViewport[0];
-                    yOut      = windowViewport[1];
-                    widthOut  = windowWidth;
-                    heightOut = windowHeight;
+                if ((windowWidth != viewportWidthOut)
+                    || (windowHeight != viewportHeightOut)) {
+                    viewportXOut      = windowViewport[0];
+                    viewportYOut      = windowViewport[1];
+                    viewportWidthOut  = windowWidth;
+                    viewportHeightOut = windowHeight;
                 }
             }
         }

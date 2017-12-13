@@ -30,6 +30,8 @@ namespace caret {
     class EventImageCapture : public Event {
         
     public:
+        EventImageCapture(const int32_t browserWindowIndex);
+        
         EventImageCapture(const int32_t browserWindowIndex,
                           const int32_t captureOffsetX,
                           const int32_t captureOffsetY,
@@ -37,8 +39,6 @@ namespace caret {
                           const int32_t captureHeight,
                           const int32_t outputWidth,
                           const int32_t outputHeight);
-        
-        EventImageCapture(const int32_t browserWindowIndex);
         
         virtual ~EventImageCapture();
         

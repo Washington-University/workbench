@@ -37,7 +37,8 @@ using namespace caret;
  */
 
 /**
- * Constructor for capturing image of window without any resizing.
+ * Constructor for capturing image of window with the image
+ * dimensions identical to the dimensions of the window.
  *
  * @param browserWindowIndex
  *    The browser window index.

@@ -117,8 +117,6 @@ namespace caret {
                                              int32_t& heightOut,
                                              float& aspectRatioOut) const;
         
-        //void updateDialogWithImageDimensionsModel();
-        
         void updateImageNumberOfBytesLabel();
         
         QCheckBox* m_saveImageToFileCheckBox;
