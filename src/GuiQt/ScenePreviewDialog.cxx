@@ -121,7 +121,7 @@ ScenePreviewDialog::ScenePreviewDialog(const Scene* scene,
         layout->addWidget(descriptionLabel);
     }
     
-    setCentralWidget(widget, SCROLL_AREA_AS_NEEDED);
+    setCentralWidget(widget, SCROLL_AREA_ALWAYS);
 }
 
 /**
