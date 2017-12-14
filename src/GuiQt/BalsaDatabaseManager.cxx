@@ -58,7 +58,7 @@ using namespace caret;
 BalsaDatabaseManager::BalsaDatabaseManager()
 : CaretObject()
 {
-    m_debugFlag = true;
+    m_debugFlag = false;
     logout();
     //EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
@@ -1250,14 +1250,11 @@ BalsaDatabaseManager::getAllStudyInformation(std::vector<BalsaStudyInformation>&
             }
         }
     }
-    
-    if (studyInformationOut.empty()) {
-        errorMessageOut = "No study information was found.";
-        return false;
+
+    if ( ! studyInformationOut.empty()) {
+        std::sort(studyInformationOut.begin(),
+                  studyInformationOut.end());
     }
-    
-    std::sort(studyInformationOut.begin(),
-              studyInformationOut.end());
     
     return true;
 }
