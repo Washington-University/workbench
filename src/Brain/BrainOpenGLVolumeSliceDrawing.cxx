@@ -3577,7 +3577,21 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane,
         if (outline->isDisplayed()) {
             Surface* surface = outline->getSurface();
             if (surface != NULL) {
-                const float thickness = outline->getThicknessPixelsObsolete();
+                float thicknessMillimeters = outline->getThicknessMillimeters();
+                const float thicknessPixels = outline->getThicknessPixelsObsolete();
+                
+                /*
+                 * Thickness was changed from pixels to millimeters in December 2017
+                 * If thickness millimeters is negative, it was not present in an old
+                 * scene so convert pixels to millimeters using viewports dimensions
+                 */
+                if (thicknessMillimeters < 0.0f) {
+                    thicknessMillimeters = GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(thicknessPixels);
+                    if (thicknessMillimeters > 0.0f) {
+                        std::cout << "Converted pixel thickness=" << thicknessPixels << " to millimeters=" << thicknessMillimeters << std::endl;
+                        outline->setThicknessMillimeters(thicknessMillimeters);
+                    }
+                }
                 
                 CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
                 int32_t colorSourceBrowserTabIndex = -1;
@@ -3602,7 +3616,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane,
                                                                                                       colorSourceBrowserTabIndex);
                 }
                 
-                const float thicknessPercentage = GraphicsUtilitiesOpenGL::convertMillimetersToPercentageOfViewportHeight(thickness);
+                const float thicknessPercentage = GraphicsUtilitiesOpenGL::convertMillimetersToPercentageOfViewportHeight(thicknessMillimeters);
                 SurfacePlaneIntersectionToContour contour(surface,
                                                           plane,
                                                           outlineColor,

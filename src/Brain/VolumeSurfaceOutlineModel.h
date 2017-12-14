@@ -45,6 +45,10 @@ namespace caret {
         
         void setDisplayed(const bool displayed);
         
+        float getThicknessMillimeters() const;
+        
+        void setThicknessMillimeters(const float thickness);
+        
         float getThicknessPixelsObsolete() const;
         
         void setThicknessPixelsObsolete(const float thickness);
@@ -66,6 +70,7 @@ namespace caret {
                                       const SceneClass* sceneClass);
         
         static const int32_t DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE;
+        static const int32_t DEFAULT_LINE_THICKNESS_MILLIMETERS;
         
     private:
         VolumeSurfaceOutlineModel(const VolumeSurfaceOutlineModel&);
@@ -80,6 +85,8 @@ namespace caret {
         
         float m_thicknessPixelsObsolete;
         
+        float m_thicknessMillimeters;
+        
         SurfaceSelectionModel* m_surfaceSelectionModel;
         
         VolumeSurfaceOutlineColorOrTabModel* m_colorOrTabModel;
@@ -89,7 +96,7 @@ namespace caret {
     
 #ifdef __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__
     const int32_t VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE = 2.0;
-    
+    const int32_t VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_MILLIMETERS = 0.5;
 #endif // __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__
 
 } // namespace

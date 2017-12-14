@@ -181,7 +181,7 @@ void
 VolumeSurfaceOutlineViewController::thicknessSpinBoxValueChanged(double value)
 {
     if (this->outlineModel != NULL) {
-        this->outlineModel->setThicknessPixelsObsolete(value);
+        this->outlineModel->setThicknessMillimeters(value);
     }
     this->updateGraphics();
 }
@@ -204,7 +204,12 @@ VolumeSurfaceOutlineViewController::updateViewController(VolumeSurfaceOutlineMod
         this->enabledCheckBox->setCheckState(state);
         
         this->thicknessSpinBox->blockSignals(true);
-        this->thicknessSpinBox->setValue(outlineModel->getThicknessPixelsObsolete());
+        float thickness = outlineModel->getThicknessMillimeters();
+        if (thickness < 0.0f) {
+            /* old scenes will have negative for mm thickness */
+            thickness = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_MILLIMETERS;
+        }
+        this->thicknessSpinBox->setValue(thickness);
         this->thicknessSpinBox->blockSignals(false);
         this->surfaceSelectionViewController->updateControl(outlineModel->getSurfaceSelectionModel());
         //this->surfaceSelectionViewController->setSurface(outlineModel->getSurface());

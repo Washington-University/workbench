@@ -65,7 +65,6 @@ namespace caret {
         VolumeSurfaceOutlineSetModel& operator=(const VolumeSurfaceOutlineSetModel&);
         
         void addSurfaceOutline(Surface* surface,
-                               const float thickness,
                                const int32_t browserTabIndex,
                                const CaretColorEnum::Enum color,
                                int32_t& outlineIndex);

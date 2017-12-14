@@ -239,34 +239,28 @@ VolumeSurfaceOutlineSetModel::selectSurfacesAfterSpecFileLoaded(Brain* brain,
     int nextOutlineIndex = 0;
     
     addSurfaceOutline(leftMidThickSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       leftTabIndex,
                       CaretColorEnum::BLACK,
                       nextOutlineIndex);
     addSurfaceOutline(rightMidThickSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       rightTabIndex,
                       CaretColorEnum::BLACK,
                       nextOutlineIndex);
     
     addSurfaceOutline(leftWhiteSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       -1,
                       CaretColorEnum::LIME,
                       nextOutlineIndex);
     addSurfaceOutline(rightWhiteSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       -1,
                       CaretColorEnum::LIME,
                       nextOutlineIndex);
     
     addSurfaceOutline(leftPialSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       -1,
                       CaretColorEnum::BLUE,
                       nextOutlineIndex);
     addSurfaceOutline(rightPialSurface,
-                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE,
                       -1,
                       CaretColorEnum::BLUE,
                       nextOutlineIndex);
@@ -278,8 +272,6 @@ VolumeSurfaceOutlineSetModel::selectSurfacesAfterSpecFileLoaded(Brain* brain,
  *
  * @param surface
  *    Surface that is added.  If NULL, no action is taken.
- * @param thickness
- *    Thickness for surface outline.
  * @param browserTabIndex
  *    If greater than or equal to zero, the color source
  *    is set to this tab index.
@@ -294,7 +286,6 @@ VolumeSurfaceOutlineSetModel::selectSurfacesAfterSpecFileLoaded(Brain* brain,
  */
 void 
 VolumeSurfaceOutlineSetModel::addSurfaceOutline(Surface* surface,
-                                           const float thickness,
                                            const int32_t browserTabIndex,
                                            const CaretColorEnum::Enum color,
                                            int32_t& outlineIndex)
@@ -304,7 +295,8 @@ VolumeSurfaceOutlineSetModel::addSurfaceOutline(Surface* surface,
             if (outlineIndex < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES) {
                 VolumeSurfaceOutlineModel* vsos = m_outlineModels[outlineIndex];
                 vsos->getSurfaceSelectionModel()->setSurface(surface);
-                vsos->setThicknessPixelsObsolete(thickness);
+                vsos->setThicknessPixelsObsolete(VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE);
+                vsos->setThicknessMillimeters(VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_MILLIMETERS);
                 if (browserTabIndex >= 0) {
                     vsos->getColorOrTabModel()->setBrowserTabIndex(browserTabIndex);
                 }

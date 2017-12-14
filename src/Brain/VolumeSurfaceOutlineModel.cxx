@@ -62,6 +62,17 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     m_sceneAssistant->add("m_surfaceSelectionModel", "SurfaceSelectionModel", m_surfaceSelectionModel);
     m_sceneAssistant->add("m_colorOrTabModel", "VolumeSurfaceOutlineColorOrTabModel", m_colorOrTabModel);
     
+    /*
+     * Millimeter thickness was added in December 2017.
+     * So, we set the millimeter thickness to -1.0f so that when an older
+     * scene is restored, the value will be -1.0f.  The code that draws
+     * the volume surface outline see this negative value and convert
+     * the old pixel thickness to this new millimeter thickness.
+     * After adding to the scene assistant, default the millimeter thickness.
+     */
+    m_thicknessMillimeters = -1.0f;
+    m_sceneAssistant->add("m_thicknessMillimeters", &m_thicknessMillimeters);
+    m_thicknessMillimeters = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_MILLIMETERS;
 }
 
 /**
@@ -85,6 +96,7 @@ VolumeSurfaceOutlineModel::copyVolumeSurfaceOutlineModel(VolumeSurfaceOutlineMod
 {
     m_displayed = modelToCopy->m_displayed;
     m_thicknessPixelsObsolete = modelToCopy->m_thicknessPixelsObsolete;
+    m_thicknessMillimeters = modelToCopy->m_thicknessMillimeters;
     m_surfaceSelectionModel->setSurface(modelToCopy->getSurface());
     
     VolumeSurfaceOutlineColorOrTabModel* colorTabToCopy = modelToCopy->getColorOrTabModel();
@@ -119,6 +131,24 @@ void
 VolumeSurfaceOutlineModel::setDisplayed(const bool displayed)
 {
     m_displayed = displayed;
+}
+
+/**
+ * @return Thickness for drawing surface outline
+ */
+float
+VolumeSurfaceOutlineModel::getThicknessMillimeters() const
+{
+    return m_thicknessMillimeters;
+}
+
+/**
+ * Set the thickness for drawing surface outline
+ */
+void
+VolumeSurfaceOutlineModel::setThicknessMillimeters(const float thickness)
+{
+    m_thicknessMillimeters = thickness;
 }
 
 /**
