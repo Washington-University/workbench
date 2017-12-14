@@ -55,6 +55,8 @@ namespace caret {
     private slots:
         void browseButtonClicked();
         
+        void copyAutoBasePathToClipboard();
+        
         void basePathTypeButtonGroupClicked(QAbstractButton* button);
         
     private:
@@ -69,6 +71,8 @@ namespace caret {
         QRadioButton* m_automaticRadioButton;
         
         QRadioButton* m_customRadioButton;
+        
+        QLineEdit* m_automaticBasePathLineEdit;
         
         // ADD_NEW_MEMBERS_HERE
 

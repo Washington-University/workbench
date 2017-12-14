@@ -19,9 +19,12 @@
  */
 /*LICENSE_END*/
 
+#include <QApplication>
 #include <QButtonGroup>
+#include <QClipboard>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QRadioButton>
@@ -55,7 +58,16 @@ using namespace caret;
 SceneBasePathWidget::SceneBasePathWidget(QWidget* widget)
 : QWidget(widget)
 {
+    QLabel* basePathInfoLabel = new QLabel("The Base Path is the \"lowest level\" path that contains the Scene File and "
+                                           "all data files referenced by the Scene File.  It is typically used when creating a "
+                                           "ZIP file.  A ZIP file may never reference files in a directory \"above\" the "
+                                           "ZIP file's location.");
+    basePathInfoLabel->setWordWrap(true);
+    
     m_automaticRadioButton = new QRadioButton("Automatic");
+    m_automaticBasePathLineEdit = new QLineEdit;
+    m_automaticBasePathLineEdit->setReadOnly(true);
+    
     m_customRadioButton    = new QRadioButton("Custom");
     
     QButtonGroup* buttGroup = new QButtonGroup(this);
@@ -66,6 +78,11 @@ SceneBasePathWidget::SceneBasePathWidget(QWidget* widget)
     
     m_basePathLineEdit = new QLineEdit;
     m_basePathLineEdit->setReadOnly(true);
+    
+    QPushButton* copyAutoBasePathPushButton = new QPushButton("Copy");
+    copyAutoBasePathPushButton->setToolTip("Copy automatic base path to clipboard");
+    QObject::connect(copyAutoBasePathPushButton, &QPushButton::clicked,
+                     this, &SceneBasePathWidget::copyAutoBasePathToClipboard);
     
     QPushButton* browsePushButton = new QPushButton("Browse...");
     QObject::connect(browsePushButton, &QPushButton::clicked,
@@ -78,8 +95,18 @@ SceneBasePathWidget::SceneBasePathWidget(QWidget* widget)
     gridLayout->setColumnStretch(1, 100);
     gridLayout->setColumnStretch(2, 0);
     int row = 0;
+    gridLayout->addWidget(basePathInfoLabel,
+                          row, 0, 1, 3);
+    row++;
+    gridLayout->addWidget(new QLabel(" "),
+                          row, 0);
+    row++;
     gridLayout->addWidget(m_automaticRadioButton,
-                          row, 0, 1, 2, Qt::AlignLeft);
+                          row, 0);
+    gridLayout->addWidget(m_automaticBasePathLineEdit,
+                          row, 1);
+    gridLayout->addWidget(copyAutoBasePathPushButton,
+                          row, 2);
     row++;
     gridLayout->addWidget(m_customRadioButton,
                           row, 0);
@@ -114,6 +141,8 @@ SceneBasePathWidget::updateWithSceneFile(SceneFile* sceneFile)
 {
     m_sceneFile = sceneFile;
     
+    m_automaticBasePathLineEdit->clear();
+    
     if (m_sceneFile != NULL) {
         m_basePathLineEdit->setText(m_sceneFile->getBalsaBaseDirectory());
         switch (m_sceneFile->getBasePathType()) {
@@ -126,11 +155,26 @@ SceneBasePathWidget::updateWithSceneFile(SceneFile* sceneFile)
                 m_basePathLineEdit->setEnabled(true);
                 break;
         }
+        
+        m_automaticBasePathLineEdit->setText(m_sceneFile->findBaseDirectoryForDataFiles());
         setEnabled(true);
     }
     else {
         m_basePathLineEdit->setText("");
         setEnabled(false);
+    }
+}
+
+/**
+ * Copy the automatic base path to the clipboard
+ */
+void
+SceneBasePathWidget::copyAutoBasePathToClipboard()
+{
+    const QString txt = m_automaticBasePathLineEdit->text().trimmed();
+    if ( ! txt.isEmpty()) {
+        QApplication::clipboard()->setText(txt,
+                                           QClipboard::Clipboard);
     }
 }
 

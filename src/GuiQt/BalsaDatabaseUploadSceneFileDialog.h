@@ -72,6 +72,8 @@ namespace caret {
         
         void zipFileDirectoryRadioButtonClicked(int);
         
+        void copyAutomaticDirectoryPushButtonClicked();
+        
         void browseZipFileCustomDirectoryPushButtonClicked();
         
         void testButtonClicked();
@@ -142,6 +144,8 @@ namespace caret {
         
         QRadioButton* m_zipFileTemporaryDirectoryRadioButton;
         QRadioButton* m_zipFileCustomDirectoryRadioButton;
+        
+        QLineEdit* m_zipFileAutomaticDirectoryLineEdit;
         QLineEdit* m_zipFileCustomDirectoryLineEdit;
         
         QLabel* m_extractDirectoryNameLabel;
