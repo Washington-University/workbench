@@ -425,7 +425,10 @@ GraphicsShape::drawLineStripMiterJoinByteColor(const std::vector<float>& xyz,
 }
 
 /**
- * Draw a sphere at the given XYZ coordinate
+ * Draw one sphere at the given XYZ coordinate.
+ * NOTE: if you have multiple spheres to draw 
+ * with the same color and diameter the method
+ * "drawSpheresByteColor() is much more efficient.
  *
  * @param xyz
  *     XYZ-coordinate of sphere
@@ -438,6 +441,68 @@ void
 GraphicsShape::drawSphereByteColor(const float xyz[3],
                                    const uint8_t rgba[4],
                                    const float diameter)
+{
+    drawSpheresByteColor(xyz,
+                         1,
+                         rgba,
+                         diameter);
+    
+//    const int32_t numLatLonDivisions = 10;
+//    
+//    GraphicsPrimitive* spherePrimitive = NULL;
+//    for (const auto iter : s_byteSpherePrimitives) {
+//        const auto& key = iter.first;
+//        if ((key  == numLatLonDivisions)) {
+//            spherePrimitive = iter.second;
+//            CaretAssert(spherePrimitive);
+//            break;
+//        }
+//    }
+//    
+//    if (spherePrimitive == NULL) {
+//        const bool useStripsFlag = true;
+//        if (useStripsFlag) {
+//            spherePrimitive = createSpherePrimitiveTriangleStrips(numLatLonDivisions);
+//        }
+//        else {
+//            spherePrimitive = createSpherePrimitiveTriangles(numLatLonDivisions);
+//        }
+//        /* colors may change but not coordinates/normals */
+//        spherePrimitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_MANY_TIMES);
+//        spherePrimitive->setUsageTypeColors(GraphicsPrimitive::UsageType::MODIFIED_MANY_DRAWN_MANY_TIMES);
+//        s_byteSpherePrimitives.insert(std::make_pair(numLatLonDivisions,
+//                                                     spherePrimitive));
+//    }
+//
+//    CaretAssert(spherePrimitive);
+//    
+//    spherePrimitive->replaceAllVertexSolidByteRGBA(rgba);
+//    
+//    glPushMatrix();
+//    glTranslatef(xyz[0], xyz[1], xyz[2]);
+//    glScalef(diameter, diameter, diameter);
+//    GraphicsEngineDataOpenGL::draw(spherePrimitive);
+//    glPopMatrix();
+}
+
+/**
+ * Draw a spheres at the given XYZ coordinates
+ *
+ * @param xyz
+ *     XYZ-coordinates of spheres (must be allocated for
+ *     "numberOfSpheres"
+ * @param numberOfSpheres
+ *     Number of spheres
+ * @param rgba
+ *    Color for drawing.
+ * @param diameter
+ *    Diameter of the spheres.
+ */
+void
+GraphicsShape::drawSpheresByteColor(const float xyz[],
+                                    const int32_t numberOfSpheres,
+                                    const uint8_t rgba[4],
+                                    const float diameter)
 {
     const int32_t numLatLonDivisions = 10;
     
@@ -465,17 +530,21 @@ GraphicsShape::drawSphereByteColor(const float xyz[3],
         s_byteSpherePrimitives.insert(std::make_pair(numLatLonDivisions,
                                                      spherePrimitive));
     }
-
+    
     CaretAssert(spherePrimitive);
     
     spherePrimitive->replaceAllVertexSolidByteRGBA(rgba);
     
-    glPushMatrix();
-    glTranslatef(xyz[0], xyz[1], xyz[2]);
-    glScalef(diameter, diameter, diameter);
-    GraphicsEngineDataOpenGL::draw(spherePrimitive);
-    glPopMatrix();
+    for (int32_t i = 0; i < numberOfSpheres; i++) {
+        const int32_t i3 = i * 3;
+        glPushMatrix();
+        glTranslatef(xyz[i3], xyz[i3+1], xyz[i3+2]);
+        glScalef(diameter, diameter, diameter);
+        GraphicsEngineDataOpenGL::draw(spherePrimitive);
+        glPopMatrix();
+    }
 }
+
 
 /**
  * Draw a filled circle at the given XYZ coordinate
@@ -526,6 +595,77 @@ GraphicsShape::drawCircleFilled(const float xyz[3],
 }
 
 /**
+ * Draw a squares at the given XYZ coordinates
+ *
+ * @param xyz
+ *     XYZ-coordinates of squares
+ * @param numberOfSquares
+ *     Number of squares to draw
+ * @param rgba
+ *    Color for drawing.
+ * @param diameter
+ *    Diameter of the squares.
+ */
+void
+GraphicsShape::drawSquares(const float xyz[],
+                           const int32_t numberOfSquares,
+                           const uint8_t rgba[4],
+                           const float diameter)
+{
+    if (numberOfSquares <= 0) {
+        return;
+    }
+    CaretAssert(xyz);
+    
+    if ( ! s_byteSquarePrimitive) {
+        s_byteSquarePrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
+                                                                       rgba));
+        /*
+         * The square is made up of four triangles
+         * with two triangles for the 'front' and
+         * two triangles for the 'back' so that it is
+         * never culled.
+         */
+        
+        const float radius = 0.5f;
+        
+        /* counter clockwise triangle */
+        s_byteSquarePrimitive->addVertex(-radius, -radius);
+        s_byteSquarePrimitive->addVertex( radius, -radius);
+        s_byteSquarePrimitive->addVertex( radius,  radius);
+        
+        /* counter clockwise triangle */
+        s_byteSquarePrimitive->addVertex(-radius, -radius);
+        s_byteSquarePrimitive->addVertex( radius,  radius);
+        s_byteSquarePrimitive->addVertex(-radius,  radius);
+        
+        /* clockwise triangle */
+        s_byteSquarePrimitive->addVertex(-radius, -radius);
+        s_byteSquarePrimitive->addVertex(-radius,  radius);
+        s_byteSquarePrimitive->addVertex( radius,  radius);
+        
+        /* clockwise triangle */
+        s_byteSquarePrimitive->addVertex(-radius, -radius);
+        s_byteSquarePrimitive->addVertex( radius,  radius);
+        s_byteSquarePrimitive->addVertex( radius, -radius);
+    }
+    
+    CaretAssert(s_byteSquarePrimitive.get());
+    
+    s_byteSquarePrimitive->replaceAllVertexSolidByteRGBA(rgba);
+    
+    for (int32_t i = 0; i < numberOfSquares; i++) {
+        const int32_t i3 = i * 3;
+        glPushMatrix();
+        glTranslatef(xyz[i3], xyz[i3+1], xyz[i3+2]);
+        updateModelMatrixToFaceViewer();
+        glScalef(diameter, diameter, 1.0f);
+        GraphicsEngineDataOpenGL::draw(s_byteSquarePrimitive.get());
+        glPopMatrix();
+    }
+}
+
+/**
  * Draw a square at the given XYZ coordinate
  *
  * @param xyz
@@ -535,7 +675,6 @@ GraphicsShape::drawCircleFilled(const float xyz[3],
  * @param diameter
  *    Diameter of the square.
  */
-
 void
 GraphicsShape::drawSquare(const float xyz[3],
                           const uint8_t rgba[4],

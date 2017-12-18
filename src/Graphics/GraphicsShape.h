@@ -97,6 +97,11 @@ namespace caret {
                                         const uint8_t rgba[4],
                                         const float diameter);
         
+        static void drawSpheresByteColor(const float xyz[],
+                                         const int32_t numberOfSpheres,
+                                         const uint8_t rgba[4],
+                                         const float diameter);
+        
         static void drawCircleFilled(const float xyz[3],
                                      const uint8_t rgba[4],
                                      const float diameter);
@@ -104,6 +109,11 @@ namespace caret {
         static void drawSquare(const float xyz[3],
                                const uint8_t rgba[4],
                                const float diameter);
+        
+        static void drawSquares(const float xyz[],
+                                const int32_t numberOfSquares,
+                                const uint8_t rgba[4],
+                                const float diameter);
         
         static void drawRing(const float xyz[3],
                              const uint8_t rgba[4],
