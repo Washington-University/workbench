@@ -964,6 +964,18 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
     
     this->mode = mode;
     
+    glPushAttrib(GL_MULTISAMPLE_BIT);
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            glDisable(GL_MULTISAMPLE);
+            break;
+        case MODE_PROJECTION:
+            glDisable(GL_MULTISAMPLE);
+            break;
+    }
+    
     if (this->browserTabContent != NULL) {
         m_clippingPlaneGroup = const_cast<ClippingPlaneGroup*>(this->browserTabContent->getClippingPlaneGroup());
         CaretAssert(m_clippingPlaneGroup);
@@ -1018,6 +1030,8 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
     }
     
     drawBackgroundImage(viewportContent);
+    
+    glPopAttrib();
     
     glFlush();
     
