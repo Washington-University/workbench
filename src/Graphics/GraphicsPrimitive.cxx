@@ -48,28 +48,32 @@ using namespace caret;
 /**
  * Constructs an instance with the given vertex, normal vector, and color type.
  *
- * @param vertexType
- *     Type of the vertices.
- * @param normalVectorType
- *     Type of the normal vectors.
- * @param colorType
- *     Type of the colors.
- * @param textureType
- *     Type of texture coordinates.
+ * @param vertexDataType
+ *     Data type of the vertices.
+ * @param normalVectorDataType
+ *     Data type of the normal vectors.
+ * @param colorDataType
+ *     Data type of the colors.
+ * @param vertexColorType
+ *     Type of vertex coloring
+ * @param textureDataType
+ *     Data type of texture coordinates.
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
  */
-GraphicsPrimitive::GraphicsPrimitive(const VertexType       vertexType,
-                                     const NormalVectorType normalVectorType,
-                                     const ColorType        colorType,
-                                     const TextureType      textureType,
-                                     const PrimitiveType    primitiveType)
+GraphicsPrimitive::GraphicsPrimitive(const VertexDataType       vertexDataType,
+                                     const NormalVectorDataType normalVectorDataType,
+                                     const ColorDataType        colorDataType,
+                                     const VertexColorType      vertexColorType,
+                                     const TextureDataType      textureDataType,
+                                     const PrimitiveType        primitiveType)
 : CaretObject(),
  EventListenerInterface(),
- m_vertexType(vertexType),
- m_normalVectorType(normalVectorType),
- m_colorType(colorType),
- m_textureType(textureType),
+ m_vertexDataType(vertexDataType),
+ m_normalVectorDataType(normalVectorDataType),
+ m_colorDataType(colorDataType),
+ m_vertexColorType(vertexColorType),
+ m_textureDataType(textureDataType),
  m_primitiveType(primitiveType),
  m_boundingBoxValid(false)
 {
@@ -92,10 +96,11 @@ GraphicsPrimitive::~GraphicsPrimitive()
 GraphicsPrimitive::GraphicsPrimitive(const GraphicsPrimitive& obj)
 : CaretObject(obj),
  EventListenerInterface(),
- m_vertexType(obj.m_vertexType),
- m_normalVectorType(obj.m_normalVectorType),
- m_colorType(obj.m_colorType),
- m_textureType(obj.m_textureType),
+ m_vertexDataType(obj.m_vertexDataType),
+ m_normalVectorDataType(obj.m_normalVectorDataType),
+ m_colorDataType(obj.m_colorDataType),
+ m_vertexColorType(obj.m_vertexColorType),
+ m_textureDataType(obj.m_textureDataType),
  m_primitiveType(obj.m_primitiveType),
  m_boundingBoxValid(false)
 {
@@ -143,35 +148,35 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
 void
 GraphicsPrimitive::reserveForNumberOfVertices(const int32_t numberOfVertices)
 {
-    switch (m_vertexType) {
-        case VertexType::FLOAT_XYZ:
+    switch (m_vertexDataType) {
+        case VertexDataType::FLOAT_XYZ:
             m_xyz.reserve(numberOfVertices * 3);
             break;
     }
     
-    switch (m_normalVectorType) {
-        case NormalVectorType::FLOAT_XYZ:
+    switch (m_normalVectorDataType) {
+        case NormalVectorDataType::FLOAT_XYZ:
             m_floatNormalVectorXYZ.reserve(numberOfVertices * 3);
             break;
-        case NormalVectorType::NONE:
+        case NormalVectorDataType::NONE:
             break;
     }
     
-    switch (m_colorType) {
-        case GraphicsPrimitive::ColorType::NONE:
+    switch (m_colorDataType) {
+        case ColorDataType::NONE:
             break;
-        case ColorType::FLOAT_RGBA:
+        case ColorDataType::FLOAT_RGBA:
             m_floatRGBA.reserve(numberOfVertices * 4);
             break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
+        case ColorDataType::UNSIGNED_BYTE_RGBA:
             m_unsignedByteRGBA.reserve(numberOfVertices * 4);
             break;
     }
     
-    switch (m_textureType) {
-        case GraphicsPrimitive::TextureType::NONE:
+    switch (m_textureDataType) {
+        case GraphicsPrimitive::TextureDataType::NONE:
             break;
-        case GraphicsPrimitive::TextureType::FLOAT_STR:
+        case GraphicsPrimitive::TextureDataType::FLOAT_STR:
             m_floatTextureSTR.reserve(numberOfVertices * 3);
             break;
     }
@@ -288,17 +293,17 @@ GraphicsPrimitive::setUsageTypeTextureCoordinates(const UsageType usageType)
 bool
 GraphicsPrimitive::isValid() const
 {
-    switch (m_vertexType) {
-        case VertexType::FLOAT_XYZ:
+    switch (m_vertexDataType) {
+        case VertexDataType::FLOAT_XYZ:
             break;
     }
     
     const uint32_t numXYZ = m_xyz.size();
     if (numXYZ > 0) {
-        switch (m_normalVectorType) {
-            case NormalVectorType::NONE:
+        switch (m_normalVectorDataType) {
+            case NormalVectorDataType::NONE:
                 break;
-            case NormalVectorType::FLOAT_XYZ:
+            case NormalVectorDataType::FLOAT_XYZ:
             {
                 const uint32_t numNormalXYZ = m_floatNormalVectorXYZ.size();
                 if (numNormalXYZ > 0) {
@@ -313,15 +318,15 @@ GraphicsPrimitive::isValid() const
         
         bool haveRgbaFlag = false;
         uint32_t numColorRGBA = 0;
-        switch (m_colorType) {
-            case GraphicsPrimitive::ColorType::NONE:
+        switch (m_colorDataType) {
+            case ColorDataType::NONE:
                 haveRgbaFlag = false;
                 break;
-            case ColorType::FLOAT_RGBA:
+            case ColorDataType::FLOAT_RGBA:
                 numColorRGBA = m_floatRGBA.size();
                 haveRgbaFlag = true;
                 break;
-            case ColorType::UNSIGNED_BYTE_RGBA:
+            case ColorDataType::UNSIGNED_BYTE_RGBA:
                 numColorRGBA = m_unsignedByteRGBA.size();
                 haveRgbaFlag = true;
                 break;
@@ -333,12 +338,26 @@ GraphicsPrimitive::isValid() const
             }
         }
         
+        switch (m_vertexColorType) {
+            case VertexColorType::NONE:
+                if (haveRgbaFlag) {
+                    CaretLogWarning("ERROR: GraphicsPrimitive VertexColorType is NONE but have RGBA ColorDataType");
+                }
+                break;
+            case VertexColorType::PER_VERTEX_RGBA:
+            case VertexColorType::SOLID_RGBA:
+                if ( ! haveRgbaFlag) {
+                    CaretLogWarning("ERROR: GraphicsPrimitive VertexColorType is RGBA but have NONE ColorDataType");
+                }
+                break;
+        }
+        
         bool haveTextureFlag = false;
         uint32_t numTextureSTR = 0;
-        switch (m_textureType) {
-            case TextureType::NONE:
+        switch (m_textureDataType) {
+            case TextureDataType::NONE:
                 break;
-            case TextureType::FLOAT_STR:
+            case TextureDataType::FLOAT_STR:
                 numTextureSTR = m_floatTextureSTR.size();
                 haveTextureFlag = true;
                 break;
@@ -510,6 +529,32 @@ GraphicsPrimitive::getSphereSizeTypeAsText(const SphereSizeType sizeType) const
 }
 
 /**
+ * @return Vertex color type as text for the given vertex color type.
+ *
+ * @param vertexColorType
+ *     The vertex color type.
+ */
+AString
+GraphicsPrimitive::getVertexColorTypeAsText(const VertexColorType vertexColorType) const
+{
+    AString s;
+    
+    switch (vertexColorType) {
+        case VertexColorType::NONE:
+            s = "None";
+            break;
+        case VertexColorType::PER_VERTEX_RGBA:
+            s = "Per Vertex RGBA";
+            break;
+        case VertexColorType::SOLID_RGBA:
+            s = "Solid RGBA";
+            break;
+    }
+    
+    return s;
+}
+
+/**
  * @return Point size type as text for the given size type.
  *
  * @param sizeType
@@ -571,10 +616,10 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
     const int32_t numVertices = getNumberOfVertices();
     s.appendWithNewLine("Number of Vertices: " + AString::number(numVertices) + "\n");
     
-    switch (m_textureType) {
-        case TextureType::NONE:
+    switch (m_textureDataType) {
+        case TextureDataType::NONE:
             break;
-        case TextureType::FLOAT_STR:
+        case TextureDataType::FLOAT_STR:
             s.appendWithNewLine("Texture: " + AString::number(m_floatTextureSTR.size()) + " Float Texture 0.0 to 1.0.  ");
             s.appendWithNewLine("   Width: " + AString::number(m_textureImageWidth)
                                 + " Height: " + AString::number(m_textureImageHeight));
@@ -650,13 +695,16 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
                             + AString::number(m_sphereDiameterValue, 'f', 3));
     }
     
+    s.appendWithNewLine("Vertex Color Type: "
+                        + getVertexColorTypeAsText(m_vertexColorType));
+    
     s.append("\n");
     if (includeAllDataFlag) {
         for (int32_t i = 0; i < numVertices; i++) {
             s.append(AString("%1: ").arg(i, 5));
             
-            switch (m_vertexType) {
-                case VertexType::FLOAT_XYZ:
+            switch (m_vertexDataType) {
+                case VertexDataType::FLOAT_XYZ:
                 {
                     CaretAssertVectorIndex(m_xyz, i*3 + 2);
                     const float* xyz = &m_xyz[i * 3];
@@ -665,28 +713,28 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
                     break;
             }
             
-            switch (m_normalVectorType) {
-                case NormalVectorType::FLOAT_XYZ:
+            switch (m_normalVectorDataType) {
+                case NormalVectorDataType::FLOAT_XYZ:
                 {
                     CaretAssertVectorIndex(m_floatNormalVectorXYZ, i*3 + 2);
                     const float* xyz = &m_floatNormalVectorXYZ[i * 3];
                     s.append(AString("   N:%1, %2, %3").arg(xyz[0], 7, 'f', 5).arg(xyz[1], 7, 'f', 5).arg(xyz[2], 7, 'f', 5));
                 }
-                case NormalVectorType::NONE:
+                case NormalVectorDataType::NONE:
                     break;
             }
             
-            switch (m_colorType) {
-                case GraphicsPrimitive::ColorType::NONE:
+            switch (m_colorDataType) {
+                case ColorDataType::NONE:
                     break;
-                case ColorType::FLOAT_RGBA:
+                case ColorDataType::FLOAT_RGBA:
                 {
                     CaretAssertVectorIndex(m_floatRGBA, i*4 + 3);
                     const float* rgba = &m_floatRGBA[i * 4];
                     s.append(AString("   RGBAf: %1, %2, %3, %4").arg(rgba[0], 5, 'f', 3).arg(rgba[1], 5, 'f', 3).arg(rgba[2], 5, 'f', 3).arg(rgba[3], 5, 'f', 3));
                 }
                     break;
-                case ColorType::UNSIGNED_BYTE_RGBA:
+                case ColorDataType::UNSIGNED_BYTE_RGBA:
                 {
                     CaretAssertVectorIndex(m_unsignedByteRGBA, i*4 + 3);
                     const uint8_t* rgba = &m_unsignedByteRGBA[i * 4];
@@ -694,10 +742,10 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
                 }
             }
             
-            switch (m_textureType) {
-                case TextureType::NONE:
+            switch (m_textureDataType) {
+                case TextureDataType::NONE:
                     break;
-                case TextureType::FLOAT_STR:
+                case TextureDataType::FLOAT_STR:
                 {
                     CaretAssertVectorIndex(m_floatTextureSTR, i*3 + 2);
                     const float* str = &m_floatTextureSTR[i * 3];
@@ -734,27 +782,27 @@ GraphicsPrimitive::addVertexProtected(const float xyz[3],
     m_xyz.insert(m_xyz.end(),
                  xyz, xyz + 3);
     
-    switch (m_normalVectorType) {
-        case NormalVectorType::FLOAT_XYZ:
+    switch (m_normalVectorDataType) {
+        case NormalVectorDataType::FLOAT_XYZ:
             CaretAssert(normalVector);
             m_floatNormalVectorXYZ.insert(m_floatNormalVectorXYZ.end(),
                                           normalVector,
                                           normalVector + 3);
             break;
-        case NormalVectorType::NONE:
+        case NormalVectorDataType::NONE:
             break;
     }
     
-    switch (m_colorType) {
-        case ColorType::NONE:
+    switch (m_colorDataType) {
+        case ColorDataType::NONE:
             break;
-        case ColorType::FLOAT_RGBA:
+        case ColorDataType::FLOAT_RGBA:
             CaretAssert(rgbaFloat);
             m_floatRGBA.insert(m_floatRGBA.end(),
                                rgbaFloat,
                                rgbaFloat + 4);
             break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
+        case ColorDataType::UNSIGNED_BYTE_RGBA:
             CaretAssert(rgbaByte);
             m_unsignedByteRGBA.insert(m_unsignedByteRGBA.end(),
                                       rgbaByte,
@@ -762,10 +810,10 @@ GraphicsPrimitive::addVertexProtected(const float xyz[3],
             break;
     }
     
-    switch (m_textureType) {
-        case TextureType::NONE:
+    switch (m_textureDataType) {
+        case TextureDataType::NONE:
             break;
-        case TextureType::FLOAT_STR:
+        case TextureDataType::FLOAT_STR:
             CaretAssert(textureSTR);
             m_floatTextureSTR.insert(m_floatTextureSTR.end(),
                                      textureSTR,
@@ -848,18 +896,18 @@ GraphicsPrimitive::getVertexFloatRGBA(const int32_t vertexIndex,
                                       float rgbaOut[4]) const
 {
     const int32_t i4 = vertexIndex * 4;
-    switch (m_colorType) {
-        case ColorType::NONE:
+    switch (m_colorDataType) {
+        case ColorDataType::NONE:
             CaretAssert(0);
             break;
-        case ColorType::FLOAT_RGBA:
+        case ColorDataType::FLOAT_RGBA:
             CaretAssertVectorIndex(m_floatRGBA, i4 + 3);
             rgbaOut[0] = m_floatRGBA[i4];
             rgbaOut[1] = m_floatRGBA[i4 + 1];
             rgbaOut[2] = m_floatRGBA[i4 + 2];
             rgbaOut[3] = m_floatRGBA[i4 + 3];
             break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
+        case ColorDataType::UNSIGNED_BYTE_RGBA:
             CaretAssertMessage(0, "Getting float RGBA from primitive but coloring type is Byte");
             CaretLogWarning("Getting float RGBA from primitive but coloring type is Byte");
             break;
@@ -879,18 +927,18 @@ GraphicsPrimitive::replaceVertexFloatRGBA(const int32_t vertexIndex,
                                           const float rgba[4])
 {
     const int32_t i4 = vertexIndex * 4;
-    switch (m_colorType) {
-        case ColorType::NONE:
+    switch (m_colorDataType) {
+        case ColorDataType::NONE:
             CaretAssert(0);
             break;
-        case ColorType::FLOAT_RGBA:
+        case ColorDataType::FLOAT_RGBA:
             CaretAssertVectorIndex(m_floatRGBA, i4 + 3);
             m_floatRGBA[i4]     = rgba[0];
             m_floatRGBA[i4 + 1] = rgba[1];
             m_floatRGBA[i4 + 2] = rgba[2];
             m_floatRGBA[i4 + 3] = rgba[3];
             break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
+        case ColorDataType::UNSIGNED_BYTE_RGBA:
             CaretAssertMessage(0, "Replacing float RGBA in primitive but coloring type is Byte");
             CaretLogWarning("Replacing float RGBA in primitive but coloring type is Byte");
             break;
@@ -914,15 +962,15 @@ GraphicsPrimitive::getVertexByteRGBA(const int32_t vertexIndex,
                                      uint8_t rgbaOut[4]) const
 {
     const int32_t i4 = vertexIndex * 4;
-    switch (m_colorType) {
-        case ColorType::NONE:
+    switch (m_colorDataType) {
+        case ColorDataType::NONE:
             CaretAssert(0);
             break;
-        case ColorType::FLOAT_RGBA:
+        case ColorDataType::FLOAT_RGBA:
             CaretAssertMessage(0, "Getting Byte RGBA in primitive but coloring type is Float");
             CaretLogWarning("Getting Byte RGBA in primitive but coloring type is Float");
             break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
+        case ColorDataType::UNSIGNED_BYTE_RGBA:
             CaretAssertVectorIndex(m_unsignedByteRGBA, i4 + 3);
             rgbaOut[0] = m_unsignedByteRGBA[i4];
             rgbaOut[1] = m_unsignedByteRGBA[i4 + 1];
@@ -945,15 +993,15 @@ GraphicsPrimitive::replaceVertexByteRGBA(const int32_t vertexIndex,
                                          const uint8_t rgba[4])
 {
     const int32_t i4 = vertexIndex * 4;
-    switch (m_colorType) {
-        case ColorType::NONE:
+    switch (m_colorDataType) {
+        case ColorDataType::NONE:
             CaretAssert(0);
             break;
-        case ColorType::FLOAT_RGBA:
+        case ColorDataType::FLOAT_RGBA:
             CaretAssertMessage(0, "Replacing Byte RGBA in primitive but coloring type is Float");
             CaretLogWarning("Replacing Byte RGBA in primitive but coloring type is Float");
             break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
+        case ColorDataType::UNSIGNED_BYTE_RGBA:
             CaretAssertVectorIndex(m_unsignedByteRGBA, i4 + 3);
             m_unsignedByteRGBA[i4]     = rgba[0];
             m_unsignedByteRGBA[i4 + 1] = rgba[1];
@@ -976,15 +1024,15 @@ GraphicsPrimitive::replaceVertexByteRGBA(const int32_t vertexIndex,
 void
 GraphicsPrimitive::replaceAllVertexSolidByteRGBA(const uint8_t rgba[4])
 {
-    switch (m_colorType) {
-        case ColorType::NONE:
+    switch (m_colorDataType) {
+        case ColorDataType::NONE:
             CaretAssert(0);
             break;
-        case ColorType::FLOAT_RGBA:
+        case ColorDataType::FLOAT_RGBA:
             CaretAssertMessage(0, "Replacing Byte RGBA in primitive but coloring type is Float");
             CaretLogWarning("Replacing Byte RGBA in primitive but coloring type is Float");
             break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
+        case ColorDataType::UNSIGNED_BYTE_RGBA:
         {
             const int32_t numRGBA = static_cast<int32_t>(m_unsignedByteRGBA.size() / 4);
             for (int32_t i = 0; i < numRGBA; i++) {
@@ -1012,11 +1060,11 @@ GraphicsPrimitive::replaceAllVertexSolidByteRGBA(const uint8_t rgba[4])
 void
 GraphicsPrimitive::replaceAllVertexSolidFloatRGBA(const float rgba[4])
 {
-    switch (m_colorType) {
-        case ColorType::NONE:
+    switch (m_colorDataType) {
+        case ColorDataType::NONE:
             CaretAssert(0);
             break;
-        case ColorType::FLOAT_RGBA:
+        case ColorDataType::FLOAT_RGBA:
         {
             const int32_t numRGBA = static_cast<int32_t>(m_floatRGBA.size() / 4);
             for (int32_t i = 0; i < numRGBA; i++) {
@@ -1029,7 +1077,7 @@ GraphicsPrimitive::replaceAllVertexSolidFloatRGBA(const float rgba[4])
             }
         }
             break;
-        case ColorType::UNSIGNED_BYTE_RGBA:
+        case ColorDataType::UNSIGNED_BYTE_RGBA:
             CaretAssertMessage(0, "Replacing Byte RGBA in primitive but coloring type is Float");
             CaretLogWarning("Replacing Byte RGBA in primitive but coloring type is Float");
             break;
@@ -1180,20 +1228,20 @@ GraphicsPrimitive::copyVertex(const int32_t copyFromIndex,
         CaretAssertVectorIndex(m_xyz, to3 + i);
         m_xyz[to3 + i] = m_xyz[from3 + i];
         
-        switch (m_normalVectorType) {
-            case NormalVectorType::FLOAT_XYZ:
+        switch (m_normalVectorDataType) {
+            case NormalVectorDataType::FLOAT_XYZ:
                 CaretAssertVectorIndex(m_floatNormalVectorXYZ, from3 + i);
                 CaretAssertVectorIndex(m_floatNormalVectorXYZ, to3 + i);
                 m_floatNormalVectorXYZ[to3 + i] = m_floatNormalVectorXYZ[from3 + i];
                 break;
-            case NormalVectorType::NONE:
+            case NormalVectorDataType::NONE:
                 break;
         }
         
-        switch (m_textureType) {
-            case TextureType::NONE:
+        switch (m_textureDataType) {
+            case TextureDataType::NONE:
                 break;
-            case TextureType::FLOAT_STR:
+            case TextureDataType::FLOAT_STR:
                 CaretAssertVectorIndex(m_floatTextureSTR, from3 + i);
                 CaretAssertVectorIndex(m_floatTextureSTR, to3 + i);
                 m_floatTextureSTR[to3 + i] = m_floatTextureSTR[from3 + i];
@@ -1205,15 +1253,15 @@ GraphicsPrimitive::copyVertex(const int32_t copyFromIndex,
     const int32_t to4   = copyToIndex * 4;
     
     for (int32_t i = 0; i < 4; i++) {
-        switch (m_colorType) {
-            case ColorType::NONE:
+        switch (m_colorDataType) {
+            case ColorDataType::NONE:
                 break;
-            case ColorType::FLOAT_RGBA:
+            case ColorDataType::FLOAT_RGBA:
                 CaretAssertVectorIndex(m_floatRGBA, from4 + i);
                 CaretAssertVectorIndex(m_floatRGBA, to4 + i);
                 m_floatRGBA[to4 + i] = m_floatRGBA[from4 + i];
                 break;
-            case ColorType::UNSIGNED_BYTE_RGBA:
+            case ColorDataType::UNSIGNED_BYTE_RGBA:
                 CaretAssertVectorIndex(m_unsignedByteRGBA, from4 + i);
                 CaretAssertVectorIndex(m_unsignedByteRGBA, to4 + i);
                 m_unsignedByteRGBA[to4 + i] = m_unsignedByteRGBA[from4 + i];

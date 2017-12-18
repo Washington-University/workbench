@@ -139,8 +139,8 @@ GraphicsEngineDataOpenGL::loadCoordinateBuffer(GraphicsPrimitive* primitive)
     
     
     GLsizei coordinateCount = 0;
-    switch (primitive->m_vertexType) {
-        case GraphicsPrimitive::VertexType::FLOAT_XYZ:
+    switch (primitive->m_vertexDataType) {
+        case GraphicsPrimitive::VertexDataType::FLOAT_XYZ:
             m_coordinateDataType = GL_FLOAT;
             m_coordinatesPerVertex = 3; // X, Y, Z
             
@@ -195,10 +195,10 @@ GraphicsEngineDataOpenGL::loadNormalVectorBuffer(GraphicsPrimitive* primitive)
     GLenum usageHint = getOpenGLBufferUsageHint(primitive->getUsageTypeNormals());
     
     
-    switch (primitive->m_normalVectorType) {
-        case GraphicsPrimitive::NormalVectorType::NONE:
+    switch (primitive->m_normalVectorDataType) {
+        case GraphicsPrimitive::NormalVectorDataType::NONE:
             break;
-        case GraphicsPrimitive::NormalVectorType::FLOAT_XYZ:
+        case GraphicsPrimitive::NormalVectorDataType::FLOAT_XYZ:
         {
             m_normalVectorDataType = GL_FLOAT;
             const GLuint normalSizeBytes = primitive->m_floatNormalVectorXYZ.size() * sizeof(float);
@@ -233,10 +233,10 @@ GraphicsEngineDataOpenGL::loadColorBuffer(GraphicsPrimitive* primitive)
     
     GLenum usageHint = getOpenGLBufferUsageHint(primitive->getUsageTypeColors());
     
-    switch (primitive->m_colorType) {
-        case GraphicsPrimitive::ColorType::NONE:
+    switch (primitive->m_colorDataType) {
+        case GraphicsPrimitive::ColorDataType::NONE:
             break;
-        case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+        case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
         {
             EventGraphicsOpenGLCreateBufferObject createEvent;
             EventManager::get()->sendEvent(createEvent.getPointer());
@@ -258,7 +258,7 @@ GraphicsEngineDataOpenGL::loadColorBuffer(GraphicsPrimitive* primitive)
                          usageHint);
         }
             break;
-        case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+        case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
         {
             EventGraphicsOpenGLCreateBufferObject createEvent;
             EventManager::get()->sendEvent(createEvent.getPointer());
@@ -297,8 +297,8 @@ GraphicsEngineDataOpenGL::loadTextureCoordinateBuffer(GraphicsPrimitive* primiti
     
     GLenum usageHint = getOpenGLBufferUsageHint(primitive->getUsageTypeTextureCoordinates());
     
-    switch (primitive->m_textureType) {
-        case GraphicsPrimitive::TextureType::FLOAT_STR:
+    switch (primitive->m_textureDataType) {
+        case GraphicsPrimitive::TextureDataType::FLOAT_STR:
         {
             EventGraphicsOpenGLCreateBufferObject createEvent;
             EventManager::get()->sendEvent(createEvent.getPointer());
@@ -319,7 +319,7 @@ GraphicsEngineDataOpenGL::loadTextureCoordinateBuffer(GraphicsPrimitive* primiti
             
         }
             break;
-        case GraphicsPrimitive::TextureType::NONE:
+        case GraphicsPrimitive::TextureDataType::NONE:
             break;
     }    
 }
@@ -356,8 +356,8 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
         return;
     }
     
-    switch (primitive->m_textureType) {
-        case GraphicsPrimitive::TextureType::FLOAT_STR:
+    switch (primitive->m_textureDataType) {
+        case GraphicsPrimitive::TextureDataType::FLOAT_STR:
         {
             const int32_t imageWidth  = primitive->m_textureImageWidth;
             const int32_t imageHeight = primitive->m_textureImageHeight;
@@ -448,7 +448,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
             glPopClientAttrib();
         }
             break;
-        case GraphicsPrimitive::TextureType::NONE:
+        case GraphicsPrimitive::TextureDataType::NONE:
             break;
     }
 }
@@ -611,15 +611,15 @@ GraphicsEngineDataOpenGL::drawPointsPrimitiveMillimeters(const GraphicsPrimitive
                 const int32_t i4 = i * 4;
                 
                 uint8_t* rgba = NULL;
-                switch (primitive->m_colorType) {
-                    case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+                switch (primitive->m_colorDataType) {
+                    case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
                         CaretAssert(0);
                         break;
-                    case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+                    case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
                         CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);
                         rgba = const_cast<uint8_t*>(&primitive->m_unsignedByteRGBA[i4]);
                         break;
-                    case GraphicsPrimitive::ColorType::NONE:
+                    case GraphicsPrimitive::ColorDataType::NONE:
                         CaretAssert(0);
                         break;
                 }
@@ -658,17 +658,17 @@ GraphicsEngineDataOpenGL::drawSpheresPrimitive(const GraphicsPrimitive* primitiv
         CaretAssertVectorIndex(primitive->m_xyz, i3 + 2);
         const int32_t i4 = i * 4;
 
-        switch (primitive->m_colorType) {
-            case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+        switch (primitive->m_colorDataType) {
+            case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
                 CaretAssert(0);
                 break;
-            case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+            case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
                 CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);
                 GraphicsShape::drawSphereByteColor(&primitive->m_xyz[i3],
                                                    &primitive->m_unsignedByteRGBA[i4],
                                                    sizeValue);
                 break;
-            case GraphicsPrimitive::ColorType::NONE:
+            case GraphicsPrimitive::ColorDataType::NONE:
                 CaretAssert(0);
                 break;
         }
@@ -954,13 +954,13 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     }
     
     bool hasColorFlag = false;
-    switch (primitive->getColorType()) {
-        case GraphicsPrimitive::ColorType::NONE:
+    switch (primitive->getColorDataType()) {
+        case GraphicsPrimitive::ColorDataType::NONE:
             break;
-        case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+        case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
             hasColorFlag = true;
             break;
-        case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+        case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
             hasColorFlag = true;
             break;
     }
@@ -1008,10 +1008,10 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     }
     
     bool hasTextureFlag = false;
-    switch (primitive->getTextureType()) {
-        case GraphicsPrimitive::TextureType::NONE:
+    switch (primitive->getTextureDataType()) {
+        case GraphicsPrimitive::TextureDataType::NONE:
             break;
-        case GraphicsPrimitive::TextureType::FLOAT_STR:
+        case GraphicsPrimitive::TextureDataType::FLOAT_STR:
             hasTextureFlag = true;
             break;
     }

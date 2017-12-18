@@ -41,10 +41,11 @@ using namespace caret;
  *     Type of primitive drawn (triangles, lines, etc.)
  */
 GraphicsPrimitiveV3fC4ub::GraphicsPrimitiveV3fC4ub(const PrimitiveType primitiveType)
-: GraphicsPrimitive(VertexType::FLOAT_XYZ,
-                    NormalVectorType::NONE,
-                    ColorType::UNSIGNED_BYTE_RGBA,
-                    TextureType::NONE,
+: GraphicsPrimitive(VertexDataType::FLOAT_XYZ,
+                    NormalVectorDataType::NONE,
+                    ColorDataType::UNSIGNED_BYTE_RGBA,
+                    VertexColorType::PER_VERTEX_RGBA,
+                    TextureDataType::NONE,
                     primitiveType)
 {
     

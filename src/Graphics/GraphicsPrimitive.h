@@ -44,17 +44,17 @@ namespace caret {
         
     public:
         /**
-         * Type of vertices
+         * Data type of vertices
          */
-        enum class VertexType {
+        enum class VertexDataType {
             /** Vertices are three float values per vertex containing X, Y, Z */
             FLOAT_XYZ
         };
         
         /**
-         * Type of normal vectors
+         * Data type of normal vectors
          */
-        enum class NormalVectorType {
+        enum class NormalVectorDataType {
             /** No normal vectors */
             NONE,
             /** Normal vectors are three float values per vertex contain X, Y, Z ranging 0.0 to 1.0 */
@@ -62,9 +62,9 @@ namespace caret {
         };
         
         /**
-         * Type of colors
+         * Data type of colors
          */
-        enum class ColorType {
+        enum class ColorDataType {
             /** No color components */
             NONE,
             /** Four float values per vertex containing Red, Green, Blue, Alpha ranging 0.0 to 1.0 */
@@ -72,11 +72,23 @@ namespace caret {
             /** Four unsigned byte values per vertex containing Red, Green, Blue, Alpha ranging 0 to 255 */
             UNSIGNED_BYTE_RGBA
         };
+       
+        /**
+         * Coloring for each vertex thype
+         */
+        enum class VertexColorType {
+            /** No color components */
+            NONE,
+            /** One RGBA for all vertices */
+            SOLID_RGBA,
+            /** Unique RGBA for each vertex */
+            PER_VERTEX_RGBA
+        };
         
         /**
-         * Type of texture components
+         * Data type of texture components
          */
-        enum class TextureType {
+        enum class TextureDataType {
             /** No texture coordinates */
             NONE,
             /** Three float values per vertex contains S, T, and R texture coordinates */
@@ -231,11 +243,12 @@ namespace caret {
         };
         
     protected:
-        GraphicsPrimitive(const VertexType       vertexType,
-                          const NormalVectorType normalVectorType,
-                          const ColorType        colorType,
-                          const TextureType      textureType,
-                          const PrimitiveType    primitiveType);
+        GraphicsPrimitive(const VertexDataType       vertexDataType,
+                          const NormalVectorDataType normalVectorDataType,
+                          const ColorDataType        colorDataType,
+                          const VertexColorType      vertexColorType,
+                          const TextureDataType      textureDataType,
+                          const PrimitiveType        primitiveType);
         
         GraphicsPrimitive(const GraphicsPrimitive& obj);
         
@@ -288,19 +301,24 @@ namespace caret {
         bool isValid() const;
         
         /**
-         * @return Type of the vertices.
+         * @return Data type of the vertices.
          */
-        inline VertexType  getVertexType() const { return m_vertexType; }
+        inline VertexDataType  getVertexDataType() const { return m_vertexDataType; }
         
         /**
-         * @return Type of the normal vectors.
+         * @return Data type of the normal vectors.
          */
-        inline NormalVectorType getNormalVectorType () const { return m_normalVectorType; }
+        inline NormalVectorDataType getNormalVectorDataType () const { return m_normalVectorDataType; }
         
         /**
-         * @return Type of the colors.
+         * @return Data type of the colors.
          */
-        inline ColorType  getColorType() const { return m_colorType; }
+        inline ColorDataType  getColorDataType() const { return m_colorDataType; }
+        
+        /**
+         * @return Type of vertex colors
+         */
+        inline VertexColorType getVertexColorType() const { return m_vertexColorType; }
         
         /**
          * @return Type of primitive.
@@ -308,9 +326,9 @@ namespace caret {
         inline PrimitiveType getPrimitiveType() const { return m_primitiveType; }
         
         /**
-         * @return Type of texture.
+         * @return Data type of texture.
          */
-        inline TextureType getTextureType() const { return m_textureType; }
+        inline TextureDataType getTextureDataType() const { return m_textureDataType; }
         
         /**
          * @return The float coordinates.
@@ -399,13 +417,17 @@ namespace caret {
         
         AString getSphereSizeTypeAsText(const SphereSizeType sizeType) const;
         
-        const VertexType  m_vertexType;
+        AString getVertexColorTypeAsText(const VertexColorType vertexColorType) const;
         
-        const NormalVectorType m_normalVectorType;
+        const VertexDataType  m_vertexDataType;
         
-        const ColorType  m_colorType;
+        const NormalVectorDataType m_normalVectorDataType;
         
-        const TextureType m_textureType;
+        const ColorDataType  m_colorDataType;
+        
+        const VertexColorType m_vertexColorType;
+        
+        const TextureDataType m_textureDataType;
         
         const PrimitiveType m_primitiveType;
 

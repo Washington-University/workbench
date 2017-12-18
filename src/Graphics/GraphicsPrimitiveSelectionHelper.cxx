@@ -63,8 +63,8 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
 {
     int32_t numberOfVertices = 0;
     
-    switch (m_parentGraphicsPrimitive->getVertexType()) {
-        case GraphicsPrimitive::VertexType::FLOAT_XYZ:
+    switch (m_parentGraphicsPrimitive->getVertexDataType()) {
+        case GraphicsPrimitive::VertexDataType::FLOAT_XYZ:
             numberOfVertices = m_parentGraphicsPrimitive->getFloatXYZ().size() / 3;
             break;
     }
@@ -133,7 +133,7 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
             const int32_t selectionRgbaSize = numberOfVertices * 4;
             
             if (selectionRgbaSize != static_cast<int32_t>(m_selectionEncodedRGBA.size())) {
-                const GraphicsPrimitive::ColorType colorType = m_parentGraphicsPrimitive->getColorType();
+                const GraphicsPrimitive::ColorDataType colorType = m_parentGraphicsPrimitive->getColorDataType();
                 
                 m_selectionEncodedRGBA.resize(selectionRgbaSize);
                 
@@ -160,15 +160,15 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
                         uint8_t vertexAlpha = 0;
                         const int32_t vertexAlphaIndex = indexRGBA + 3;
                         switch (colorType) {
-                            case GraphicsPrimitive::ColorType::NONE:
+                            case GraphicsPrimitive::ColorDataType::NONE:
                                 vertexAlpha = 255;
                                 break;
-                            case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+                            case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
                                 CaretAssertVectorIndex(m_parentGraphicsPrimitive->m_floatRGBA,
                                                        vertexAlphaIndex);
                                 vertexAlpha = static_cast<uint8_t>(m_parentGraphicsPrimitive->m_floatRGBA[vertexAlphaIndex] * 255);
                                 break;
-                            case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+                            case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
                                 CaretAssertVectorIndex(m_parentGraphicsPrimitive->m_unsignedByteRGBA,
                                                        vertexAlphaIndex);
                                 vertexAlpha = m_parentGraphicsPrimitive->m_unsignedByteRGBA[vertexAlphaIndex];

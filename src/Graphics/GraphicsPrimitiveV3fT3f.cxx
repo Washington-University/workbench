@@ -50,10 +50,11 @@ GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveTy
                                                  const uint8_t* imageBytesRGBA,
                                                  const int32_t imageWidth,
                                                  const int32_t imageHeight)
-: GraphicsPrimitive(VertexType::FLOAT_XYZ,
-                    NormalVectorType::NONE,
-                    ColorType::NONE,
-                    TextureType::FLOAT_STR,
+: GraphicsPrimitive(VertexDataType::FLOAT_XYZ,
+                    NormalVectorDataType::NONE,
+                    ColorDataType::NONE,
+                    VertexColorType::NONE,
+                    TextureDataType::FLOAT_STR,
                     primitiveType)
 {
     setTextureImage(imageBytesRGBA,

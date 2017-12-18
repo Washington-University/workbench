@@ -145,15 +145,15 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
     }
     
     ColorType colorType = ColorType::FLOAT_RGBA_PER_VERTEX;
-    switch (primitive->m_colorType) {
-        case GraphicsPrimitive::ColorType::NONE:
+    switch (primitive->m_colorDataType) {
+        case GraphicsPrimitive::ColorDataType::NONE:
             errorMessageOut = "INVALID color type NONE for graphics primitive";
             return NULL;
             break;
-        case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+        case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
             colorType = ColorType::FLOAT_RGBA_PER_VERTEX;
             break;
-        case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+        case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
             colorType = ColorType::BYTE_RGBA_PER_VERTEX;
             break;
     }
@@ -1239,11 +1239,11 @@ GraphicsOpenGLPolylineTriangles::addJoinTriangles()
         const float* tv2 = (normalOutFlag ? v2 : v3);
         const float* tv3 = (normalOutFlag ? v3 : v2);
         
-        switch (m_primitive->getColorType()) {
-            case GraphicsPrimitive::ColorType::NONE:
+        switch (m_primitive->getColorDataType()) {
+            case GraphicsPrimitive::ColorDataType::NONE:
                 CaretAssert(0);
                 break;
-            case GraphicsPrimitive::ColorType::FLOAT_RGBA:
+            case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
             {
                 float rgba[4];
                 getAverageColorRGBA(tj.m_primitiveVertexOneIndex, tj.m_primitiveVertexTwoIndex, rgba);
@@ -1252,7 +1252,7 @@ GraphicsOpenGLPolylineTriangles::addJoinTriangles()
                 m_primitiveFloatColor->addVertex(tv3, rgba);
             }
                 break;
-            case GraphicsPrimitive::ColorType::UNSIGNED_BYTE_RGBA:
+            case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
             {
                 uint8_t rgba[4];
                 getAverageColorRGBA(tj.m_primitiveVertexOneIndex, tj.m_primitiveVertexTwoIndex, rgba);

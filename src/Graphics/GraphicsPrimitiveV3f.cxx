@@ -50,10 +50,11 @@ using namespace caret;
  */
 GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
                                            const float rgba[4])
-: GraphicsPrimitive(VertexType::FLOAT_XYZ,
-                    NormalVectorType::NONE,
-                    ColorType::FLOAT_RGBA,
-                    TextureType::NONE,
+: GraphicsPrimitive(VertexDataType::FLOAT_XYZ,
+                    NormalVectorDataType::NONE,
+                    ColorDataType::FLOAT_RGBA,
+                    VertexColorType::SOLID_RGBA,
+                    TextureDataType::NONE,
                     primitiveType)
 {
     m_floatSolidRGBA[0] = rgba[0];
@@ -72,10 +73,11 @@ GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
  */
 GraphicsPrimitiveV3f::GraphicsPrimitiveV3f(const PrimitiveType primitiveType,
                                            const uint8_t rgba[4])
-: GraphicsPrimitive(VertexType::FLOAT_XYZ,
-                    NormalVectorType::NONE,
-                    ColorType::UNSIGNED_BYTE_RGBA,
-                    TextureType::NONE,
+: GraphicsPrimitive(VertexDataType::FLOAT_XYZ,
+                    NormalVectorDataType::NONE,
+                    ColorDataType::UNSIGNED_BYTE_RGBA,
+                    VertexColorType::SOLID_RGBA,
+                    TextureDataType::NONE,
                     primitiveType)
 {
     m_unsignedByteSolidRGBA[0] = rgba[0];
