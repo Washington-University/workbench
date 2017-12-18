@@ -604,27 +604,48 @@ GraphicsEngineDataOpenGL::drawPointsPrimitiveMillimeters(const GraphicsPrimitive
     switch (primitive->m_pointSizeType) {
         case GraphicsPrimitive::PointSizeType::MILLIMETERS:
         {
-            for (int32_t i = 0; i < numberOfVertices; i++) {
-                const int32_t i3 = i * 3;
-                CaretAssertVectorIndex(primitive->m_xyz, i3 + 2);
-                const float* xyz = &primitive->m_xyz[i3];
-                const int32_t i4 = i * 4;
-                
-                uint8_t* rgba = NULL;
-                switch (primitive->m_colorDataType) {
-                    case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
-                        CaretAssert(0);
-                        break;
-                    case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
-                        CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);
-                        rgba = const_cast<uint8_t*>(&primitive->m_unsignedByteRGBA[i4]);
-                        break;
-                    case GraphicsPrimitive::ColorDataType::NONE:
-                        CaretAssert(0);
-                        break;
+            switch (primitive->m_vertexColorType) {
+                case GraphicsPrimitive::VertexColorType::NONE:
+                    CaretAssert(0);
+                    CaretLogSevere("NONE vertex color type, should never occur when drawing points in millimeters");
+                    return;
+                    break;
+                case GraphicsPrimitive::VertexColorType::PER_VERTEX_RGBA:
+                {
+                    for (int32_t i = 0; i < numberOfVertices; i++) {
+                        const int32_t i3 = i * 3;
+                        CaretAssertVectorIndex(primitive->m_xyz, i3 + 2);
+                        const float* xyz = &primitive->m_xyz[i3];
+                        const int32_t i4 = i * 4;
+                        
+                        uint8_t* rgba = NULL;
+                        switch (primitive->m_colorDataType) {
+                            case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
+                                CaretAssert(0);
+                                break;
+                            case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
+                                CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);
+                                rgba = const_cast<uint8_t*>(&primitive->m_unsignedByteRGBA[i4]);
+                                break;
+                            case GraphicsPrimitive::ColorDataType::NONE:
+                                CaretAssert(0);
+                                break;
+                        }
+                        
+                        GraphicsShape::drawSquare(xyz, rgba, sizeValue);
+                    }
                 }
-                
-                GraphicsShape::drawSquare(xyz, rgba, sizeValue);
+                    break;
+                case GraphicsPrimitive::VertexColorType::SOLID_RGBA:
+                {
+                    const int32_t numberOfVertices = primitive->getNumberOfVertices();
+                    CaretAssertVectorIndex(primitive->m_xyz, (numberOfVertices - 1) * 3 + 1);
+                    GraphicsShape::drawSquares(&primitive->m_xyz[0],
+                                               numberOfVertices,
+                                               &primitive->m_unsignedByteRGBA[0],
+                                               sizeValue);
+                }
+                    break;
             }
         }
             break;
@@ -652,26 +673,47 @@ GraphicsEngineDataOpenGL::drawSpheresPrimitive(const GraphicsPrimitive* primitiv
     primitive->getSphereDiameter(sizeType,
                                  sizeValue);
     
-    const int32_t numberOfVertices = primitive->getNumberOfVertices();
-    for (int32_t i = 0; i < numberOfVertices; i++) {
-        const int32_t i3 = i * 3;
-        CaretAssertVectorIndex(primitive->m_xyz, i3 + 2);
-        const int32_t i4 = i * 4;
-
-        switch (primitive->m_colorDataType) {
-            case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
-                CaretAssert(0);
-                break;
-            case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
-                CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);
-                GraphicsShape::drawSphereByteColor(&primitive->m_xyz[i3],
-                                                   &primitive->m_unsignedByteRGBA[i4],
-                                                   sizeValue);
-                break;
-            case GraphicsPrimitive::ColorDataType::NONE:
-                CaretAssert(0);
-                break;
+    switch (primitive->m_vertexColorType) {
+        case GraphicsPrimitive::VertexColorType::NONE:
+            CaretAssert(0);
+            CaretLogSevere("NONE vertex color type, should never occur when drawing spheres");
+            return;
+            break;
+        case GraphicsPrimitive::VertexColorType::PER_VERTEX_RGBA:
+        {
+            const int32_t numberOfVertices = primitive->getNumberOfVertices();
+            for (int32_t i = 0; i < numberOfVertices; i++) {
+                const int32_t i3 = i * 3;
+                CaretAssertVectorIndex(primitive->m_xyz, i3 + 2);
+                const int32_t i4 = i * 4;
+                
+                switch (primitive->m_colorDataType) {
+                    case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
+                        CaretAssert(0);
+                        break;
+                    case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
+                        CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);
+                        GraphicsShape::drawSphereByteColor(&primitive->m_xyz[i3],
+                                                           &primitive->m_unsignedByteRGBA[i4],
+                                                           sizeValue);
+                        break;
+                    case GraphicsPrimitive::ColorDataType::NONE:
+                        CaretAssert(0);
+                        break;
+                }
+            }
         }
+            break;
+        case GraphicsPrimitive::VertexColorType::SOLID_RGBA:
+        {
+            const int32_t numberOfVertices = primitive->getNumberOfVertices();
+            CaretAssertVectorIndex(primitive->m_xyz, (numberOfVertices - 1) * 3 + 1);
+            GraphicsShape::drawSpheresByteColor(&primitive->m_xyz[0],
+                                                numberOfVertices,
+                                                &primitive->m_unsignedByteRGBA[0],
+                                                sizeValue);
+        }
+            break;
     }
 }
 

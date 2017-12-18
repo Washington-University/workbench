@@ -103,6 +103,7 @@
 #include "GiftiLabelTable.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
+#include "GraphicsPrimitiveV3f.h"
 #include "GraphicsShape.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemNode.h"
@@ -2693,20 +2694,6 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     const std::vector<int32_t>& nodesBoundaryEdgeCount = th->getNumberOfBoundaryEdgesForAllNodes();
     CaretAssert(static_cast<int32_t>(nodesBoundaryEdgeCount.size()) == borderDrawInfo.surface->getNumberOfNodes());
     
-    std::unique_ptr<GraphicsPrimitiveV3fC4ub> pointsPrimitive;
-    if (drawSquarePoints) {
-        pointsPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS));
-    }
-    if (drawSphericalPoints) {
-        pointsPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
-    }
-    std::unique_ptr<GraphicsPrimitiveV3fC4ub> linesPrimitive;
-    if (drawLines) {
-        linesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN));
-    }
-    
-    const bool featureClippingFlag = isFeatureClippingEnabled();
-    
     const uint8_t highlightFirstPointRGBA[4] = { 0, 255, 0, 1 };
     const uint8_t highlightLastPointRGBA[4]  = { 0, 192, 0, 1 };
     
@@ -2716,6 +2703,51 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
         borderDrawInfo.rgba[2] * 255.0f,
         borderDrawInfo.rgba[3] * 255.0f
     };
+    
+    std::unique_ptr<GraphicsPrimitiveV3f> pointsPrimitive;
+    std::unique_ptr<GraphicsPrimitiveV3fC4ub> pointsIdentificationPrimitive;
+    std::unique_ptr<GraphicsPrimitiveV3f> firstPointPrimitive;
+    std::unique_ptr<GraphicsPrimitiveV3f> lastPointPrimitive;
+    if (drawSquarePoints) {
+        if (borderDrawInfo.isSelect) {
+            pointsIdentificationPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS));
+        }
+        else {
+            pointsPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS,
+                                                                     solidColorRGBA));
+            firstPointPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS,
+                                                                         highlightFirstPointRGBA));
+            lastPointPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS,
+                                                                        highlightLastPointRGBA));
+        }
+    }
+    if (drawSphericalPoints) {
+        if (borderDrawInfo.isSelect) {
+            pointsIdentificationPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
+        }
+        else {
+            pointsPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::SPHERES,
+                                                                     solidColorRGBA));
+            firstPointPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::SPHERES,
+                                                                         highlightFirstPointRGBA));
+            lastPointPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::SPHERES,
+                                                                        highlightLastPointRGBA));
+        }
+    }
+    
+    std::unique_ptr<GraphicsPrimitiveV3f> linesPrimitive;
+    std::unique_ptr<GraphicsPrimitiveV3fC4ub> linesIdentificationPrimitive;
+    if (drawLines) {
+        if (borderDrawInfo.isSelect) {
+            linesIdentificationPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN));
+        }
+        else {
+            linesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN,
+                                                                    solidColorRGBA));
+        }
+    }
+    
+    const bool featureClippingFlag = isFeatureClippingEnabled();
     
     bool lastPointForLineValidFlag = false;
     float lastPointForLineXYZ[3] = { 0.0f, 0.0f, 0.0f };
@@ -2731,6 +2763,9 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             if ( ! lastPointForLineValidFlag) {
                 if (linesPrimitive) {
                     linesPrimitive->addPrimitiveRestart();
+                }
+                if (linesIdentificationPrimitive) {
+                    linesIdentificationPrimitive->addPrimitiveRestart();
                 }
             }
         }
@@ -2825,12 +2860,13 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                             if (linesPrimitive) {
                                 linesPrimitive->addPrimitiveRestart();
                             }
+                            if (linesIdentificationPrimitive) {
+                                linesIdentificationPrimitive->addPrimitiveRestart();
+                            }
                         }
                     }
                 }
-                
             }
-            
         }
         
         /*
@@ -2851,32 +2887,32 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                                                i);
             pointRGBA[3] = 255;
             
-            if (pointsPrimitive) {
-                pointsPrimitive->addVertex(xyz, idRGBA);
+            if (pointsIdentificationPrimitive) {
+                pointsIdentificationPrimitive->addVertex(xyz, idRGBA);
             }
-            if (linesPrimitive) {
-                linesPrimitive->addVertex(xyz, idRGBA);
+            if (linesIdentificationPrimitive) {
+                linesIdentificationPrimitive->addVertex(xyz, idRGBA);
             }
         }
         else {
             if (pointsPrimitive) {
                 if (isHighlightEndPoints) {
                     if (i == 0) {
-                        pointsPrimitive->addVertex(xyz, highlightFirstPointRGBA);
+                        firstPointPrimitive->addVertex(xyz);
                     }
                     else if (i == (numBorderPoints - 1)) {
-                        pointsPrimitive->addVertex(xyz, highlightLastPointRGBA);
+                        lastPointPrimitive->addVertex(xyz);
                     }
                     else {
-                        pointsPrimitive->addVertex(xyz, solidColorRGBA);
+                        pointsPrimitive->addVertex(xyz);
                     }
                 }
                 else {
-                    pointsPrimitive->addVertex(xyz, solidColorRGBA);
+                    pointsPrimitive->addVertex(xyz);
                 }
             }
             if (linesPrimitive) {
-                linesPrimitive->addVertex(xyz, solidColorRGBA);
+                linesPrimitive->addVertex(xyz);
             }
         }
         
@@ -2893,19 +2929,36 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_LIGHTING);
     
-    if (pointsPrimitive) {
+    if (pointsIdentificationPrimitive) {
+        pointsIdentificationPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::MILLIMETERS,
+                                                        pointDiameter);
+        pointsIdentificationPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
+                                                         pointDiameter);
+        GraphicsEngineDataOpenGL::draw(pointsIdentificationPrimitive.get());
+    }
+    else if (pointsPrimitive) {
         pointsPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::MILLIMETERS,
                                           pointDiameter);
         pointsPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
                                            pointDiameter);
         if (pointsPrimitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::SPHERES) {
-            if ( ! borderDrawInfo.isSelect) {
-                glEnable(GL_LIGHTING);
-            }
+            glEnable(GL_LIGHTING);
         }
         GraphicsEngineDataOpenGL::draw(pointsPrimitive.get());
+        if (firstPointPrimitive->isValid()) {
+            GraphicsEngineDataOpenGL::draw(firstPointPrimitive.get());
+        }
+        if (lastPointPrimitive->isValid()) {
+            GraphicsEngineDataOpenGL::draw(lastPointPrimitive.get());
+        }
     }
-    if (linesPrimitive) {
+    if (linesIdentificationPrimitive) {
+        glDisable(GL_LIGHTING);
+        linesIdentificationPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
+                                                   lineWidth);
+        GraphicsEngineDataOpenGL::draw(linesIdentificationPrimitive.get());
+    }
+    else if (linesPrimitive) {
         glDisable(GL_LIGHTING);
         linesPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
                                      lineWidth);
