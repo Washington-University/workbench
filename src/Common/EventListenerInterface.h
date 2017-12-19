@@ -37,12 +37,12 @@ namespace caret {
         /**
          * Constructor.
          */
-        EventListenerInterface() { }
+        EventListenerInterface();
         
         /**
          * Destructor.
          */
-        virtual ~EventListenerInterface() { }
+        virtual ~EventListenerInterface();
         
     private:
         EventListenerInterface(const EventListenerInterface&) { }

@@ -362,6 +362,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
  */
 BrainBrowserWindowToolBarChartTwoAxes::~BrainBrowserWindowToolBarChartTwoAxes()
 {
+    EventManager::get()->removeEventFromListener(this,
+                                                 EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
 }
 
 /**

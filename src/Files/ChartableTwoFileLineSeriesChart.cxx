@@ -155,6 +155,8 @@ m_lineSeriesContentType(lineSeriesContentType)
  */
 ChartableTwoFileLineSeriesChart::~ChartableTwoFileLineSeriesChart()
 {
+    EventManager::get()->removeEventFromListener(this,
+                                                 EventTypeEnum::EVENT_CHART_TWO_LOAD_LINE_SERIES_DATA);
 }
 
 /**

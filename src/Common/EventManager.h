@@ -99,6 +99,8 @@ namespace caret {
         
         virtual ~EventManager();
         
+        void verifyAllListenersRemoved(EventListenerInterface* eventListener);
+        
         /**
          * Define the container
          */
@@ -136,6 +138,8 @@ namespace caret {
         std::vector<int64_t> m_eventBlockingCounter;
         
         static EventManager* s_singletonEventManager;
+        
+        friend EventListenerInterface;
         
     };
     

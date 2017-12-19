@@ -201,6 +201,7 @@ EventBrowserTabDelete.cxx
 EventBrowserTabIndicesGetAll.cxx
 EventCaretPreferencesGet.cxx
 EventGetViewportSize.cxx
+EventListenerInterface.cxx
 EventManager.cxx
 EventPaletteGetByName.cxx
 EventProgressUpdate.cxx

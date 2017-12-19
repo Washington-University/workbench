@@ -34,6 +34,7 @@
 #include "CaretLogger.h"
 #include "EventAlertUser.h"
 #include "EventListenerInterface.h"
+#include "SystemUtilities.h"
 
 using namespace caret;
 /**
@@ -175,12 +176,6 @@ EventManager::addEventListener(EventListenerInterface* eventListener,
 #else
     INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
 #endif
-    
-    //std::cout << "Adding listener from class "
-    //<< typeid(*eventListener).name()
-    //<< " for "
-    //<< EventTypeEnum::toName(listenForEventType)
-    //<< std::endl;
 }
 
 /**
@@ -205,12 +200,6 @@ EventManager::addProcessedEventListener(EventListenerInterface* eventListener,
 #else
     INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
 #endif
-    
-    //std::cout << "Adding listener from class "
-    //<< typeid(*eventListener).name()
-    //<< " for "
-    //<< EventTypeEnum::toName(listenForEventType)
-    //<< std::endl;
 }
 
 /**
@@ -248,59 +237,6 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
     if (processedEventIter != processedListeners.end()) {
         processedListeners.erase(processedEventIter);
     }
-    
-//    EVENT_LISTENER_CONTAINER listeners = m_eventListeners[listenForEventType];
-//    
-//    /*
-//     * Remove the listener by creating a new container
-//     * of non-matching listeners.
-//     */
-//    EVENT_LISTENER_CONTAINER updatedListeners;
-//    for (EVENT_LISTENER_CONTAINER_ITERATOR iter = listeners.begin();
-//         iter != listeners.end();
-//         iter++) {
-//        if (*iter == eventListener) {
-//            //std::cout << "Removing listener from class "
-//            //<< typeid(*eventListener).name()
-//            //<< " for "
-//            //<< EventTypeEnum::toName(listenForEventType)
-//            //<< std::endl;
-//        }
-//        else {
-//            updatedListeners.push_back(*iter);
-//        }
-//    }
-//    
-//    if (updatedListeners.size() != listeners.size()) {
-//        m_eventListeners[listenForEventType] = updatedListeners;
-//    }
-//    
-//    
-//    EVENT_LISTENER_CONTAINER processedListeners = m_eventProcessedListeners[listenForEventType];
-//    
-//    /*
-//     * Remove the listener by creating a new container
-//     * of non-matching listeners.
-//     */
-//    EVENT_LISTENER_CONTAINER updatedProcessedListeners;
-//    for (EVENT_LISTENER_CONTAINER_ITERATOR iter = processedListeners.begin();
-//         iter != processedListeners.end();
-//         iter++) {
-//        if (*iter == eventListener) {
-//            //std::cout << "Removing listener from class "
-//            //<< typeid(*eventListener).name()
-//            //<< " for "
-//            //<< EventTypeEnum::toName(listenForEventType)
-//            //<< std::endl;
-//        }
-//        else {
-//            updatedProcessedListeners.push_back(*iter);
-//        }
-//    }
-//    
-//    if (updatedProcessedListeners.size() != processedListeners.size()) {
-//        m_eventProcessedListeners[listenForEventType] = updatedProcessedListeners;
-//    }
 #elif CONTAINER_HASH_SET
     m_eventListeners[listenForEventType].erase(eventListener);
     m_eventProcessedListeners[listenForEventType].erase(eventListener);
@@ -374,11 +310,6 @@ EventManager::sendEvent(Event* event)
         
         const AString eventNumberString = AString::number(m_eventIssuedCounter);
         
-        // Too many prints (JWH)
-        //AString msg = (eventMessagePrefix + " SENT.");
-        //CaretLogFiner(msg);
-        //std::cout << msg << std::endl;
-        
         /*
          * Send event to each of the listeners.
          */
@@ -386,14 +317,7 @@ EventManager::sendEvent(Event* event)
              iter != listeners.end();
              iter++) {
             EventListenerInterface* listener = *iter;
-            
-            //std::cout << "Sending event from class "
-            //<< typeid(*listener).name()
-            //<< " for "
-            //<< EventTypeEnum::toName(eventType)
-            //<< std::endl;
-            
-            
+
             listener->receiveEvent(event);
             
             if (event->isError()) {
@@ -414,14 +338,6 @@ EventManager::sendEvent(Event* event)
                  iter != processedListeners.end();
                  iter++) {
                 EventListenerInterface* listener = *iter;
-                
-                //std::cout << "Sending event from class "
-                //<< typeid(*listener).name()
-                //<< " for "
-                //<< EventTypeEnum::toName(eventType)
-                //<< std::endl;
-                
-                
                 listener->receiveEvent(event);
                 
                 if (event->isError()) {
@@ -431,7 +347,6 @@ EventManager::sendEvent(Event* event)
             }
         }
         else {
-            // Too many prints (JWH) CaretLogFine("Event " + eventNumberString + " not processed: " + event->toString());
         }
 
         m_eventIssuedCounter++;
@@ -609,6 +524,37 @@ int64_t
 EventManager::getEventIssuedCounter() const
 {
     return m_eventIssuedCounter;
+}
+
+/**
+ * Verify that all listeners have been removed from the given event listener.
+ *
+ * @param eventListener
+ *     The event listener.
+ */
+void
+EventManager::verifyAllListenersRemoved(EventListenerInterface* eventListener)
+{
+    AString eventNames;
+    
+    for (int32_t i = 0; i < EventTypeEnum::EVENT_COUNT; i++) {
+        const EventTypeEnum::Enum eventType = static_cast<EventTypeEnum::Enum>(i);
+        if ((m_eventListeners[eventType].find(eventListener) != m_eventListeners[eventType].end())
+            || (m_eventProcessedListeners[eventType].find(eventListener) != m_eventProcessedListeners[eventType].end())) {
+            eventNames.appendWithNewLine("    "
+                                  + EventTypeEnum::toName(eventType));
+        }
+    }
+    
+    if ( ! eventNames.isEmpty()) {
+        SystemBacktrace myBacktrace;
+        SystemUtilities::getBackTrace(myBacktrace);
+        
+        CaretLogSevere("Failed to remove events from class instance.  Event names:\n"
+                       + eventNames
+                       + ":\n"
+                       + myBacktrace.toSymbolString());
+    }
 }
 
 
