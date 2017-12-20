@@ -1327,7 +1327,14 @@ GraphicsOpenGLPolylineTriangles::convertLineSegmentsToTriangles()
 
     std::vector<bool> restartVertexFlags(numVertices, false);
     for (auto index : m_vertexPrimitiveRestartIndices) {
-        restartVertexFlags[index] = true;
+        /*
+         * The caller may add a primtive restart at the last vertex
+         * which may be equal to numVertices.
+         */
+        if (index < numVertices) {
+            CaretAssertVectorIndex(restartVertexFlags, index);
+            restartVertexFlags[index] = true;
+        }
     }
     
     const bool restartEnabledFlag = true;
