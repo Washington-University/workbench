@@ -34,6 +34,7 @@ namespace caret {
 
     class Annotation;
     class AnnotationPercentSizeText;
+    class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class CaretPreferences;
     class ChartTwoCartesianAxis;
@@ -52,12 +53,11 @@ namespace caret {
     class BrainOpenGLChartTwoDrawingFixedPipeline : public BrainOpenGLChartTwoDrawingInterface {
         
     public:
-        BrainOpenGLChartTwoDrawingFixedPipeline();
+        BrainOpenGLChartTwoDrawingFixedPipeline(const BrainOpenGLViewportContent* viewportContent);
         
         virtual ~BrainOpenGLChartTwoDrawingFixedPipeline();
         
         virtual void drawChartOverlaySet(Brain* brain,
-                                         BrainOpenGLViewportContent* viewportContent,
                                          ModelChartTwo* chartTwoModel,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          const SelectionItemDataTypeEnum::Enum selectionItemDataType,
@@ -274,7 +274,7 @@ namespace caret {
         
         Brain* m_brain;
         
-        BrainOpenGLViewportContent* m_viewportContent;
+        const BrainOpenGLViewportContent* m_viewportContent;
         
         BrowserTabContent* m_browserTabContent;
         

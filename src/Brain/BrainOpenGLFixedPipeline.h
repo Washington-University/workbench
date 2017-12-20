@@ -117,18 +117,18 @@ namespace caret {
     protected:
         void drawModelsImplementation(const int32_t windowIndex,
                                       Brain* brain,
-                                      std::vector<BrainOpenGLViewportContent*>& viewportContents) override;
+                                      const std::vector<const BrainOpenGLViewportContent*>& viewportContents) override;
         
         void selectModelImplementation(const int32_t windowIndex,
                                        Brain* brain,
-                                       BrainOpenGLViewportContent* viewportContent,
+                                       const BrainOpenGLViewportContent* viewportContent,
                                        const int32_t mouseX,
                                        const int32_t mouseY,
                                        const bool applySelectionBackgroundFiltering) override;
         
         void projectToModelImplementation(const int32_t windowIndex,
                                           Brain* brain,
-                                          BrainOpenGLViewportContent* viewportContent,
+                                          const BrainOpenGLViewportContent* viewportContent,
                                           const int32_t mouseX,
                                           const int32_t mouseY,
                                           SurfaceProjectedItem& projectionOut) override;
@@ -181,7 +181,7 @@ namespace caret {
                                             FiberOrientationDisplayInfo& dispInfo);
 
         void drawModelInternal(Mode mode,
-                               BrainOpenGLViewportContent* viewportContent);
+                               const BrainOpenGLViewportContent* viewportContent);
         
         void initializeMembersBrainOpenGL();
         
@@ -189,7 +189,7 @@ namespace caret {
                               ModelChart* chartData,
                               const int32_t viewport[4]);
         
-        void drawChartTwoData(BrainOpenGLViewportContent* viewportContent,
+        void drawChartTwoData(const BrainOpenGLViewportContent* viewportContent,
                               ModelChartTwo* chartData,
                               const int32_t viewport[4]);
         
@@ -448,13 +448,13 @@ namespace caret {
         
         void drawWindowAnnotations(const int windowViewport[4]);
         
-        void drawTabAnnotations(BrainOpenGLViewportContent* tabContent);
+        void drawTabAnnotations(const BrainOpenGLViewportContent* tabContent);
         
-        void drawChartCoordinateSpaceAnnotations(BrainOpenGLViewportContent* viewportContent);
+        void drawChartCoordinateSpaceAnnotations(const BrainOpenGLViewportContent* viewportContent);
         
-        void drawBackgroundImage(BrainOpenGLViewportContent* vpContent);
+        void drawBackgroundImage(const BrainOpenGLViewportContent* vpContent);
         
-        void drawImage(BrainOpenGLViewportContent* vpContent,
+        void drawImage(const BrainOpenGLViewportContent* vpContent,
                        ImageFile* imageFile,
                        const float windowZ,
                        const float frontZ,
@@ -496,11 +496,11 @@ namespace caret {
                                           const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                           const int64_t sliceIndex) const;
         
-        void updateForegroundAndBackgroundColors(BrainOpenGLViewportContent* vpContent);
+        void updateForegroundAndBackgroundColors(const BrainOpenGLViewportContent* vpContent);
         
         void setTabViewport(const BrainOpenGLViewportContent* vpContent);
         
-        void setAnnotationColorBarsForDrawing(std::vector<BrainOpenGLViewportContent*>& viewportContents);
+        void setAnnotationColorBarsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents);
 
         void drawTabHighlighting(const float width,
                                  const float height,

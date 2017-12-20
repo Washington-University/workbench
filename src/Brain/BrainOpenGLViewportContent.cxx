@@ -343,7 +343,7 @@ BrainOpenGLViewportContent::getChartDataMatricesAndViewport(Matrix4x4& chartData
 void
 BrainOpenGLViewportContent::setChartDataMatricesAndViewport(const Matrix4x4& chartDataProjectionMatrix,
                                                          const Matrix4x4& chartDataModelViewMatrix,
-                                                         const int chartViewport[4])
+                                                         const int chartViewport[4]) const
 {
     m_chartDataProjectionMatrix = chartDataProjectionMatrix;
     m_chartDataModelViewMatrix  = chartDataModelViewMatrix;

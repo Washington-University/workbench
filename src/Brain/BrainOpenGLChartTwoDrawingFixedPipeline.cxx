@@ -82,9 +82,13 @@ static bool debugFlag = false;
 
 /**
  * Constructor.
+ *
+ * @param viewportContent
+ *     The content of the viewport.
  */
-BrainOpenGLChartTwoDrawingFixedPipeline::BrainOpenGLChartTwoDrawingFixedPipeline()
-: BrainOpenGLChartTwoDrawingInterface()
+BrainOpenGLChartTwoDrawingFixedPipeline::BrainOpenGLChartTwoDrawingFixedPipeline(const BrainOpenGLViewportContent* viewportContent)
+: BrainOpenGLChartTwoDrawingInterface(),
+m_viewportContent(viewportContent)
 {
     m_preferences = SessionManager::get()->getCaretPreferences();
     
@@ -104,8 +108,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  *
  * @param brain
  *     Brain.
- * @param viewportContent
- *     Content of the viewport
  * @param chartTwoModel
  *     The chart two model.
  * @param fixedPipelineDrawing
@@ -119,7 +121,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::~BrainOpenGLChartTwoDrawingFixedPipelin
  */
 void
 BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
-                                                             BrainOpenGLViewportContent* viewportContent,
                                                              ModelChartTwo* chartTwoModel,
                                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                              const SelectionItemDataTypeEnum::Enum selectionItemDataType,
@@ -129,7 +130,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     annotationsOut.clear();
     m_annotationsForDrawingOutput.clear();
     
-    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    CaretAssert(m_viewportContent);
+    BrowserTabContent* browserTabContent = m_viewportContent->getBrowserTabContent();
     CaretAssert(browserTabContent);
     CaretAssert(brain);
     CaretAssert(browserTabContent);
@@ -137,7 +139,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
     CaretAssert(fixedPipelineDrawing);
     
     m_brain = brain;
-    m_viewportContent = viewportContent;
     m_chartTwoModel = chartTwoModel;
     m_fixedPipelineDrawing = fixedPipelineDrawing;
     m_textRenderer = fixedPipelineDrawing->getTextRenderer();

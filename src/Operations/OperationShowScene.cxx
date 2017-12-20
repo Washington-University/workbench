@@ -37,6 +37,7 @@
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLViewportContent.h"
+#include "BrainOpenGLWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DataFileException.h"
@@ -482,10 +483,12 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                                                                      windowViewport,
                                                                                                      tabIndexToHighlight);
                         
+                        std::vector<const BrainOpenGLViewportContent*> constViewports(viewports.begin(),
+                                                                                      viewports.end());
                         brainOpenGL->drawModels(windowIndex,
                                                 brain,
                                                 mesaContext,
-                                                viewports);
+                                                constViewports);
                         
                         const int32_t outputImageIndex = ((numBrowserClasses > 1)
                                                           ? i
@@ -537,7 +540,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                                                            gapsAndMargins,
                                                                                            windowIndex,
                                                                                            windowViewport));
-                    std::vector<BrainOpenGLViewportContent*> viewportContents;
+                    std::vector<const BrainOpenGLViewportContent*> viewportContents;
                     viewportContents.push_back(content);
                     
                     brainOpenGL->drawModels(windowIndex,

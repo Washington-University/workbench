@@ -22,6 +22,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 #include <set>
 
 /*
@@ -41,6 +42,7 @@
 
 #include <stdint.h>
 #include "BrainConstants.h"
+#include "BrainOpenGLWindowContent.h"
 #include "CaretPointer.h"
 #include "EventListenerInterface.h"
 
@@ -145,11 +147,14 @@ namespace caret {
         
     private:
         
-        std::vector<BrainOpenGLViewportContent*> getDrawingViewportContent(int32_t windowViewport[4]) const;
+        std::vector<BrainOpenGLViewportContent*> getDrawingViewportContent(const int32_t windowViewportIn[4]) const;
+        
+        void getDrawingWindowContent(const int32_t windowViewportIn[4],
+                                     BrainOpenGLWindowContent& windowContent) const;
         
         void clearDrawingViewportContents();
         
-        BrainOpenGLViewportContent* getViewportContentAtXY(const int x,
+        const BrainOpenGLViewportContent* getViewportContentAtXY(const int x,
                                                            const int y);
         
         void checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
@@ -161,7 +166,8 @@ namespace caret {
         
         const int32_t windowIndex;
         
-        std::vector<BrainOpenGLViewportContent*> drawingViewportContents;
+        //std::vector<BrainOpenGLViewportContent*> tabsViewportContent;
+        BrainOpenGLWindowContent m_windowContent;
         
         int32_t windowWidth[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         int32_t windowHeight[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];

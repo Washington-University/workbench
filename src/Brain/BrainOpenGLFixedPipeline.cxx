@@ -245,7 +245,7 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
 void 
 BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
                                                     Brain* brain,
-                                      BrainOpenGLViewportContent* viewportContent,
+                                      const BrainOpenGLViewportContent* viewportContent,
                                       const int32_t mouseX,
                                       const int32_t mouseY,
                                       const bool applySelectionBackgroundFiltering)
@@ -260,7 +260,7 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
     
     m_specialCaseGraphicsAnnotations.clear();
     
-    std::vector<BrainOpenGLViewportContent*> viewportContentsVector;
+    std::vector<const BrainOpenGLViewportContent*> viewportContentsVector;
     viewportContentsVector.push_back(viewportContent);
     setAnnotationColorBarsForDrawing(viewportContentsVector);
     
@@ -323,7 +323,7 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
 void 
 BrainOpenGLFixedPipeline::projectToModelImplementation(const int32_t windowIndex,
                                                        Brain* brain,
-                                         BrainOpenGLViewportContent* viewportContent,
+                                         const BrainOpenGLViewportContent* viewportContent,
                                          const int32_t mouseX,
                                          const int32_t mouseY,
                                          SurfaceProjectedItem& projectionOut)
@@ -404,7 +404,7 @@ BrainOpenGLFixedPipeline::loadObjectToWindowTransform(EventOpenGLObjectToWindowT
  * the given viewport content.
  */
 void
-BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(BrainOpenGLViewportContent* vpContent)
+BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(const BrainOpenGLViewportContent* vpContent)
 {
     /*
      * Default to colors for surface
@@ -490,7 +490,7 @@ BrainOpenGLFixedPipeline::setTabViewport(const BrainOpenGLViewportContent* vpCon
  *     Output with window color bars in the viewports.
  */
 void
-BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(std::vector<BrainOpenGLViewportContent*>& /*viewportContents*/)
+BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& /*viewportContents*/)
 {
     m_annotationColorBarsForDrawing.clear();
     
@@ -518,7 +518,7 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(std::vector<BrainOpen
 void 
 BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
                                                    Brain* brain,
-                                     std::vector<BrainOpenGLViewportContent*>& viewportContents)
+                                     const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
 {
     m_brain = brain;
     m_windowIndex = windowIndex;
@@ -575,7 +575,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
         /*
          * Viewport of window.
          */
-        BrainOpenGLViewportContent* vpContent = viewportContents[i];
+        const BrainOpenGLViewportContent* vpContent = viewportContents[i];
         setTabViewport(vpContent);
         glViewport(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
         
@@ -644,7 +644,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
             /*
              * Viewport of window.
              */
-            BrainOpenGLViewportContent* vpContent = viewportContents[i];
+            const BrainOpenGLViewportContent* vpContent = viewportContents[i];
             setTabViewport(vpContent);
             
             /*
@@ -761,7 +761,7 @@ BrainOpenGLFixedPipeline::drawTabHighlighting(const float width,
  *    Viewport content
  */
 void
-BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(BrainOpenGLViewportContent* viewportContent)
+BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLViewportContent* viewportContent)
 {
     glPushAttrib(GL_VIEWPORT_BIT);
     
@@ -826,7 +826,7 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(BrainOpenGLViewpor
  *    Viewport content
  */
 void
-BrainOpenGLFixedPipeline::drawTabAnnotations(BrainOpenGLViewportContent* tabContent)
+BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* tabContent)
 {
     if (tabContent->getBrowserTabContent() == NULL) {
         return;
@@ -949,7 +949,7 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
  */
 void 
 BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
-                               BrainOpenGLViewportContent* viewportContent)
+                               const BrainOpenGLViewportContent* viewportContent)
 {
     ElapsedTimer et;
     et.start();
@@ -5337,7 +5337,7 @@ BrainOpenGLFixedPipeline::drawChartOneData(BrowserTabContent* browserTabContent,
  *    The viewport (x, y, width, height)
  */
 void
-BrainOpenGLFixedPipeline::drawChartTwoData(BrainOpenGLViewportContent* viewportContent,
+BrainOpenGLFixedPipeline::drawChartTwoData(const BrainOpenGLViewportContent* viewportContent,
                                            ModelChartTwo* chartModel,
                                            const int32_t viewport[4])
 {
@@ -5346,9 +5346,8 @@ BrainOpenGLFixedPipeline::drawChartTwoData(BrainOpenGLViewportContent* viewportC
     CaretAssert(chartModel);
 
     std::vector<Annotation*> annotationFromChartDrawing;
-    BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing;
+    BrainOpenGLChartTwoDrawingFixedPipeline chartDrawing(viewportContent);
     chartDrawing.drawChartOverlaySet(m_brain,
-                                     viewportContent,
                                      chartModel,
                                      this,
                                      SelectionItemDataTypeEnum::CHART_DATA_SERIES,
@@ -6196,7 +6195,7 @@ BrainOpenGLFixedPipeline::drawSquare(const uint8_t rgba[4],
  *    Viewport content which image is displayed.
  */
 void
-BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpContent)
+BrainOpenGLFixedPipeline::drawBackgroundImage(const BrainOpenGLViewportContent* vpContent)
 {
     BrowserTabContent* btc = vpContent->getBrowserTabContent();
     if (btc == NULL) {
@@ -6245,9 +6244,9 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
 /**
  * Draw the given image in the given viewport.
  *
- * @param viewport
- *    The viewport dimensions.
- * @param image
+ * @param vpContent
+ *    The viewport content.
+ * @param imageFile
  *    The QImage that is drawn.
  * @param windowZ
  *    Z-position for image.
@@ -6261,7 +6260,7 @@ BrainOpenGLFixedPipeline::drawBackgroundImage(BrainOpenGLViewportContent* vpCont
  *    Opacity.
  */
 void
-BrainOpenGLFixedPipeline::drawImage(BrainOpenGLViewportContent* vpContent,
+BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
                                     ImageFile* imageFile,
                                     const float windowZ,
                                     const float frontZ,

@@ -105,12 +105,12 @@ namespace caret {
         void drawModels(const int32_t windowIndex,
                         Brain* brain,
                         void* contextSharingGroupPointer,
-                        std::vector<BrainOpenGLViewportContent*>& viewportContents);
+                        const std::vector<const BrainOpenGLViewportContent*>& viewportContents);
         
         void selectModel(const int32_t windowIndex,
                          Brain* brain,
                          void* contextSharingGroupPointer,
-                         BrainOpenGLViewportContent* viewportContent,
+                         const BrainOpenGLViewportContent* viewportContent,
                          const int32_t mouseX,
                          const int32_t mouseY,
                          const bool applySelectionBackgroundFiltering);
@@ -118,7 +118,7 @@ namespace caret {
         void projectToModel(const int32_t windowIndex,
                             Brain* brain,
                             void* contextSharingGroupPointer,
-                            BrainOpenGLViewportContent* viewportContent,
+                            const BrainOpenGLViewportContent* viewportContent,
                             const int32_t mouseX,
                             const int32_t mouseY,
                             SurfaceProjectedItem& projectionOut);
@@ -238,7 +238,7 @@ namespace caret {
          */
         virtual void drawModelsImplementation(const int32_t windowIndex,
                                               Brain* brain,
-                                std::vector<BrainOpenGLViewportContent*>& viewportContents) = 0;
+                                const std::vector<const BrainOpenGLViewportContent*>& viewportContents) = 0;
         
         /**
          * Selection on a model.
@@ -263,7 +263,7 @@ namespace caret {
          */
         virtual void selectModelImplementation(const int32_t windowIndex,
                                                Brain* brain,
-                                 BrainOpenGLViewportContent* viewportContent,
+                                 const BrainOpenGLViewportContent* viewportContent,
                                  const int32_t mouseX,
                                  const int32_t mouseY,
                                  const bool applySelectionBackgroundFiltering) = 0;
@@ -289,7 +289,7 @@ namespace caret {
          */
         virtual void projectToModelImplementation(const int32_t windowIndex,
                                                   Brain* brain,
-                                    BrainOpenGLViewportContent* viewportContent,
+                                    const BrainOpenGLViewportContent* viewportContent,
                                     const int32_t mouseX,
                                     const int32_t mouseY,
                                     SurfaceProjectedItem& projectionOut) = 0;

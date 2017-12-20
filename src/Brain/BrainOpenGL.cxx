@@ -208,13 +208,20 @@ BrainOpenGL::receiveEvent(Event* event)
 void BrainOpenGL::drawModels(const int32_t windowIndex,
                              Brain* brain,
                              void* contextSharingGroupPointer,
-                             std::vector<BrainOpenGLViewportContent*>& viewportContents)
+                             const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
 {
     m_contextSharingGroupPointer = contextSharingGroupPointer;
     
+    const std::vector<const BrainOpenGLViewportContent*> vpContents(viewportContents.begin(),
+                                                                    viewportContents.end());
+//    for (const auto& vp : viewportContents) {
+//        vpContents.push_back(vp);
+//    }
+    
+    
     drawModelsImplementation(windowIndex,
                              brain,
-                             viewportContents);
+                             vpContents);
     
     deleteUnusedOpenGLNames();
     
@@ -247,7 +254,7 @@ void BrainOpenGL::drawModels(const int32_t windowIndex,
 void BrainOpenGL::selectModel(const int32_t windowIndex,
                               Brain* brain,
                               void* contextSharingGroupPointer,
-                              BrainOpenGLViewportContent* viewportContent,
+                              const BrainOpenGLViewportContent* viewportContent,
                               const int32_t mouseX,
                               const int32_t mouseY,
                               const bool applySelectionBackgroundFiltering)
@@ -290,7 +297,7 @@ void BrainOpenGL::selectModel(const int32_t windowIndex,
 void BrainOpenGL::projectToModel(const int32_t windowIndex,
                                  Brain* brain,
                     void* contextSharingGroupPointer,
-                    BrainOpenGLViewportContent* viewportContent,
+                    const BrainOpenGLViewportContent* viewportContent,
                     const int32_t mouseX,
                     const int32_t mouseY,
                     SurfaceProjectedItem& projectionOut)

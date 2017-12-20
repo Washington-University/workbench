@@ -430,11 +430,7 @@ BrainOpenGLWidget::getBorderBeingDrawn()
 void 
 BrainOpenGLWidget::clearDrawingViewportContents()
 {
-    const int32_t num = static_cast<int32_t>(this->drawingViewportContents.size());
-    for (int32_t i = 0; i < num; i++) {
-        delete this->drawingViewportContents[i];
-    }
-    this->drawingViewportContents.clear();
+    m_windowContent.clear();
 }
 
 /**
@@ -473,13 +469,18 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
         return image;
     }
 
-    int32_t viewport[4] = { 0, 0, imageWidth, imageHeight };
+    const int32_t viewport[4] = { 0, 0, imageWidth, imageHeight };
     std::vector<BrainOpenGLViewportContent*> viewportContent = getDrawingViewportContent(viewport);
+    
+    BrainOpenGLWindowContent windowContent;
+    getDrawingWindowContent(viewport,
+                            windowContent);
     
     s_singletonOpenGL->drawModels(this->windowIndex,
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
-                                  viewportContent);
+                                  windowContent.getAllTabViewports());
+                                 // viewportContent);
     
     for (auto vp : viewportContent) {
         delete vp;
@@ -503,7 +504,7 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
  *    Viewport for drawing
  */
 std::vector<BrainOpenGLViewportContent*>
-BrainOpenGLWidget::getDrawingViewportContent(int32_t windowViewport[4]) const
+BrainOpenGLWidget::getDrawingViewportContent(const int32_t windowViewportIn[4]) const
 {
     std::vector<BrainOpenGLViewportContent*> viewportContent;
     
@@ -515,6 +516,13 @@ BrainOpenGLWidget::getDrawingViewportContent(int32_t windowViewport[4]) const
     if (getModelEvent.isError()) {
         return viewportContent;
     }
+    
+    int32_t windowViewport[4] = {
+        windowViewportIn[0],
+        windowViewportIn[1],
+        windowViewportIn[2],
+        windowViewportIn[3]
+    };
     
     if (bbw->isAspectRatioLocked()) {
         const float aspectRatio = bbw->getAspectRatio();
@@ -586,6 +594,115 @@ BrainOpenGLWidget::getDrawingViewportContent(int32_t windowViewport[4]) const
 }
 
 /**
+ * Get the content for drawing the window.
+ * 
+ * @param windowViewport
+ *     Viewport of the window.
+ * @param windowContent
+ *     Window content that is updated with window and its tabs.
+ */
+void
+BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
+                                           BrainOpenGLWindowContent& windowContent) const
+{
+    windowContent.clear();
+    
+    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
+    
+    EventBrowserWindowContentGet getModelEvent(this->windowIndex);
+    EventManager::get()->sendEvent(getModelEvent.getPointer());
+    
+    if (getModelEvent.isError()) {
+        return;
+    }
+    
+    int32_t windowViewport[4] = {
+        windowViewportIn[0],
+        windowViewportIn[1],
+        windowViewportIn[2],
+        windowViewportIn[3]
+    };
+    
+    if (bbw->isAspectRatioLocked()) {
+        const float aspectRatio = bbw->getAspectRatio();
+        if (aspectRatio > 0.0) {
+            BrainOpenGLViewportContent::adjustViewportForAspectRatio(windowViewport,
+                                                                     aspectRatio);
+        }
+    }
+    
+    /*
+     * Highlighting of border points
+     */
+    s_singletonOpenGL->setDrawHighlightedEndPoints(false);
+    if (this->selectedUserInputProcessor == this->userInputBordersModeProcessor) {
+        s_singletonOpenGL->setDrawHighlightedEndPoints(this->userInputBordersModeProcessor->isHighlightBorderEndPoints());
+    }
+    
+    const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
+    
+    const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
+    if (numToDraw == 1) {
+        BrainOpenGLViewportContent* vc = BrainOpenGLViewportContent::createViewportForSingleTab(getModelEvent.getTabContentToDraw(0),
+                                                                                                gapsAndMargins,
+                                                                                                this->windowIndex,
+                                                                                                windowViewport);
+        windowContent.addTabViewport(vc);
+    }
+    else if (numToDraw > 1) {
+        const int32_t windowWidth  = windowViewport[2];
+        const int32_t windowHeight = windowViewport[3];
+        
+        std::vector<int32_t> rowHeights;
+        std::vector<int32_t> columnsWidths;
+        
+        /*
+         * Determine if default configuration for tiles
+         */
+        TileTabsConfiguration* tileTabsConfiguration = getModelEvent.getTileTabsConfiguration();
+        CaretAssert(tileTabsConfiguration);
+        
+        /*
+         * Get the sizes of the tab tiles from the tile tabs configuration
+         */
+        if (tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
+                                                                                windowHeight,
+                                                                                numToDraw,
+                                                                                rowHeights,
+                                                                                columnsWidths)) {
+        
+            /*
+             * Create the viewport drawing contents for all tabs
+             */
+            std::vector<BrowserTabContent*> allTabs;
+            for (int32_t i = 0; i < getModelEvent.getNumberOfItemsToDraw(); i++) {
+                allTabs.push_back(getModelEvent.getTabContentToDraw(i));
+            }
+            
+            std::vector<BrainOpenGLViewportContent*> tabViewportContent = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
+                                                                                                                                       tileTabsConfiguration,
+                                                                                                                                       gapsAndMargins,
+                                                                                                                                       windowIndex,
+                                                                                                                                       windowViewport,
+                                                                                                                                       getModelEvent.getTabIndexForTileTabsHighlighting());
+            for (auto tabvp : tabViewportContent) {
+                windowContent.addTabViewport(tabvp);
+            }
+        }
+        else {
+            CaretLogSevere("Tile Tabs Row/Column sizing failed !!!");
+        }
+    }
+    
+    BrainOpenGLViewportContent* windowViewportContent = BrainOpenGLViewportContent::createViewportForSingleTab(NULL,
+                                                                                                               gapsAndMargins,
+                                                                                                               windowIndex,
+                                                                                                               windowViewport);
+    windowContent.setWindowViewport(windowViewportContent);
+}
+
+
+/**
  * Paints the graphics.
  */
 void
@@ -602,14 +719,15 @@ BrainOpenGLWidget::paintGL()
     
     this->clearDrawingViewportContents();
     
-    int windowViewport[4] = {
+    const int windowViewport[4] = {
         0,
         0,
         this->windowWidth[this->windowIndex],
         this->windowHeight[this->windowIndex]
     };
     
-    this->drawingViewportContents = getDrawingViewportContent(windowViewport);
+    getDrawingWindowContent(windowViewport,
+                            m_windowContent);
     
     if (this->selectedUserInputProcessor == userInputBordersModeProcessor) {
         s_singletonOpenGL->setBorderBeingDrawn(this->borderBeingDrawn);
@@ -618,9 +736,9 @@ BrainOpenGLWidget::paintGL()
         s_singletonOpenGL->setBorderBeingDrawn(NULL);
     }
     s_singletonOpenGL->drawModels(this->windowIndex,
-                             GuiManager::get()->getBrain(),
-                             m_contextShareGroupPointer,
-                             this->drawingViewportContents);
+                                  GuiManager::get()->getBrain(),
+                                  m_contextShareGroupPointer,
+                                  m_windowContent.getAllTabViewports());
     
     /*
      * Issue browser window redrawn event
@@ -688,7 +806,7 @@ BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
     const int mouseX = contextMenuEvent->x();
     const int mouseY = this->height() - contextMenuEvent->y();
     
-    BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+    const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                mouseY);
     if (viewportContent != NULL) {
         MouseEvent mouseEvent(viewportContent,
@@ -730,7 +848,7 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
      * out of its viewport without releasing the mouse
      * button.
      */
-    BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
+    const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
                                                                                wheelY);
     if (viewportContent != NULL) {
         MouseEvent mouseEvent(viewportContent,
@@ -881,7 +999,7 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
             this->isMousePressedNearToolBox = true;
         }
 
-        BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+        const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                    mouseY);
         if (viewportContent != NULL) {
             MouseEvent mouseEvent(viewportContent,
@@ -946,7 +1064,7 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
             /*
              * Mouse button RELEASE event
              */
-            BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+            const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                        mouseY);
             if (viewportContent != NULL) {
                 MouseEvent mouseEvent(viewportContent,
@@ -969,7 +1087,7 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
          * out of its viewport without releasing the mouse
          * button.
          */
-        BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(this->mousePressX,
+        const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(this->mousePressX,
                                                                                    this->mousePressY);
         if (viewportContent != NULL) {
             if ((absDX <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)
@@ -1034,7 +1152,7 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
              * out of its viewport without releasing the mouse
              * button.
              */
-            BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+            const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                        mouseY);
             if (viewportContent != NULL) {
                 MouseEvent mouseEvent(viewportContent,
@@ -1081,23 +1199,12 @@ BrainOpenGLWidget::leaveEvent(QEvent* /*e*/)
  * @param y
  *    Y-coordinate.
  */
-BrainOpenGLViewportContent* 
+const BrainOpenGLViewportContent*
 BrainOpenGLWidget::getViewportContentAtXY(const int x,
                                           const int y)
 {
-    BrainOpenGLViewportContent* viewportContent = NULL;
-    const int32_t num = static_cast<int32_t>(this->drawingViewportContents.size());
-    for (int32_t i = 0; i < num; i++) {
-        int viewport[4];
-        this->drawingViewportContents[i]->getTabViewportBeforeApplyingMargins(viewport);
-        if ((x >= viewport[0])
-            && (x < (viewport[0] + viewport[2]))
-            && (y >= viewport[1])
-            && (y < (viewport[1] + viewport[3]))) {
-            viewportContent = this->drawingViewportContents[i];
-            break;
-        }
-    }
+    const BrainOpenGLViewportContent* viewportContent = m_windowContent.getTabViewportWithLockAspectXY(x, y);
+    
     return viewportContent;
 }
 
@@ -1111,8 +1218,7 @@ BrainOpenGLWidget::getViewportContentAtXY(const int x,
 std::vector<const BrainOpenGLViewportContent*>
 BrainOpenGLWidget::getViewportContent() const
 {
-    std::vector<const BrainOpenGLViewportContent*> contentOut(this->drawingViewportContents.begin(),
-                                                              this->drawingViewportContents.end());
+    std::vector<const BrainOpenGLViewportContent*> contentOut = m_windowContent.getAllTabViewports();
     
     return contentOut;
 }
@@ -1139,7 +1245,7 @@ BrainOpenGLWidget::performIdentification(const int x,
                                          const int y,
                                          const bool applySelectionBackgroundFiltering)
 {
-    BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
+    const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
 
     this->makeCurrent();
     CaretLogFine("Performing selection");
@@ -1194,7 +1300,7 @@ SelectionItemAnnotation*
 BrainOpenGLWidget::performIdentificationAnnotations(const int x,
                                                     const int y)
 {
-    BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
+    const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
     
     this->makeCurrent();
     CaretLogFine("Performing selection");
@@ -1261,7 +1367,7 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
                                                      const int x,
                                                      const int y)
 {
-    BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
+    const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
     
     this->makeCurrent();
     CaretLogFine("Performing selection");
@@ -1324,7 +1430,7 @@ BrainOpenGLWidget::performProjection(const int x,
                                      const int y,
                                      SurfaceProjectedItem& projectionOut)
 {
-    BrainOpenGLViewportContent* projectionViewport = this->getViewportContentAtXY(x, y);
+    const BrainOpenGLViewportContent* projectionViewport = this->getViewportContentAtXY(x, y);
     
     this->makeCurrent();
     CaretLogFine("Performing projection");
@@ -1404,7 +1510,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                  * out of its viewport without releasing the mouse
                  * button.
                  */
-                BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(this->mousePressX,
+                const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(this->mousePressX,
                                                                                            this->mousePressY);
                 if (viewportContent != NULL) {
                     MouseEvent mouseEvent(viewportContent,
@@ -1443,7 +1549,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             this->lastMouseY = mouseY;
         }
         else if (mouseButtons == Qt::NoButton) {
-            BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+            const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                        mouseY);
             if (viewportContent != NULL) {
                 MouseEvent mouseEvent(viewportContent,
@@ -1468,7 +1574,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
         }
     }
     
-    BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+    const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                mouseY);
     if (viewportContent != NULL) {
         m_mousePositionEvent.grabNew(new MouseEvent(viewportContent,

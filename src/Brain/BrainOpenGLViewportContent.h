@@ -47,7 +47,7 @@ namespace caret {
         
         void setChartDataMatricesAndViewport(const Matrix4x4& chartDataProjectionMatrix,
                                           const Matrix4x4& chartDataModelViewMatrix,
-                                          const int chartViewport[4]);
+                                             const int chartViewport[4]) const;
         
         void getModelViewport(int modelViewportOut[4]) const;
         
@@ -156,19 +156,19 @@ namespace caret {
         int m_tabHeight;
         
         /** Chart data viewport's X-coordinate */
-        int m_chartDataX;
+        mutable int m_chartDataX;
         /** Chart data viewport's Y-coordinate */
-        int m_chartDataY;
+        mutable int m_chartDataY;
         /** Chart data viewport's Width */
-        int m_chartDataWidth;
+        mutable int m_chartDataWidth;
         /** Chart data viewport's Height */
-        int m_chartDataHeight;
+        mutable int m_chartDataHeight;
         /** Chart data viewport's validity */
-        bool m_chartDataViewportValidFlag = false;
+        mutable bool m_chartDataViewportValidFlag = false;
         /** Chart data transformation matrix */
-        Matrix4x4 m_chartDataModelViewMatrix;
+        mutable Matrix4x4 m_chartDataModelViewMatrix;
         /** Chart data transformation matrix */
-        Matrix4x4 m_chartDataProjectionMatrix;
+        mutable Matrix4x4 m_chartDataProjectionMatrix;
         
         /** Model viewport's X-coordinate */
         int m_modelX;
