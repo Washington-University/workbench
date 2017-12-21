@@ -507,7 +507,13 @@ BalsaDatabaseManager::zipSceneAndDataFiles(const SceneFile* sceneFile,
         successFlag = true;
     }
     catch (const CaretException& e) {
-        errorMessageOut = e.whatString();
+        AString moreInfo("If there was an error creating the ZIP file, "
+                         "it may caused by incorrect permissions or insufficient space in the "
+                         "temporary directory used for creating the ZIP file.  Use the ZIP File Directory Custom option "
+                         "in the Advanced Tab to choose an alternative directory.");
+        errorMessageOut = (moreInfo
+                           + "\n\n"
+                           + e.whatString());
     }
     
     return successFlag;

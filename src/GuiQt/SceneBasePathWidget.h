@@ -59,6 +59,8 @@ namespace caret {
         
         void basePathTypeButtonGroupClicked(QAbstractButton* button);
         
+        void whatsThisBasePath();
+        
     private:
         SceneBasePathWidget(const SceneBasePathWidget&);
 

@@ -22,6 +22,7 @@
 #include <QApplication>
 #include <QButtonGroup>
 #include <QClipboard>
+#include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -38,6 +39,7 @@
 #include "CaretFileDialog.h"
 #include "FileInformation.h"
 #include "SceneFile.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
@@ -58,12 +60,6 @@ using namespace caret;
 SceneBasePathWidget::SceneBasePathWidget(QWidget* widget)
 : QWidget(widget)
 {
-    QLabel* basePathInfoLabel = new QLabel("The Base Path is the \"lowest level\" path that contains the Scene File and "
-                                           "all data files referenced by the Scene File.  It is typically used when creating a "
-                                           "ZIP file.  A ZIP file may never reference files in a directory \"above\" the "
-                                           "ZIP file's location.");
-    basePathInfoLabel->setWordWrap(true);
-    
     m_automaticRadioButton = new QRadioButton("Automatic");
     m_automaticBasePathLineEdit = new QLineEdit;
     m_automaticBasePathLineEdit->setReadOnly(true);
@@ -88,6 +84,11 @@ SceneBasePathWidget::SceneBasePathWidget(QWidget* widget)
     QObject::connect(browsePushButton, &QPushButton::clicked,
                      this, &SceneBasePathWidget::browseButtonClicked);
     
+    QPushButton* whatsThisPushButton = new QPushButton("What's this?");
+    whatsThisPushButton->setSizePolicy(QSizePolicy::Fixed, whatsThisPushButton->sizePolicy().verticalPolicy());
+    QObject::connect(whatsThisPushButton, &QPushButton::clicked,
+                     this, &SceneBasePathWidget::whatsThisBasePath);
+    
     QGroupBox* groupBox = new QGroupBox("Base Path");
     QGridLayout* gridLayout = new QGridLayout(groupBox);
     gridLayout->setSpacing(2);
@@ -95,11 +96,8 @@ SceneBasePathWidget::SceneBasePathWidget(QWidget* widget)
     gridLayout->setColumnStretch(1, 100);
     gridLayout->setColumnStretch(2, 0);
     int row = 0;
-    gridLayout->addWidget(basePathInfoLabel,
-                          row, 0, 1, 3);
-    row++;
-    gridLayout->addWidget(new QLabel(" "),
-                          row, 0);
+    gridLayout->addWidget(whatsThisPushButton,
+                          row, 0, 1, 3, Qt::AlignLeft);
     row++;
     gridLayout->addWidget(m_automaticRadioButton,
                           row, 0);
@@ -270,5 +268,23 @@ SceneBasePathWidget::isValid(AString& errorMessageOut) const
     
     return (errorMessageOut.isEmpty());
 }
+
+/**
+ * Displays a dialog explaining base path options
+ */
+void
+SceneBasePathWidget::whatsThisBasePath()
+{
+    const AString text("The Automatic Base Path is the \"lowest level\" path that contains the Scene File and "
+                       "all data files referenced by the Scene File.  "
+                       "The directory structure of all files contained in the Scene File relative (at or below) "
+                       "the Base Path will be preserved in your dataset when it is downloaded from BALSA and "
+                       "unzipped by other users.  You may set a Custom path above the Automatic Base Path, but "
+                       "it will add additional, unnecessary path layers to the unzipped dataset.");
+    WuQMessageBox::informationOk(this,
+                                 text);
+    
+}
+
 
 

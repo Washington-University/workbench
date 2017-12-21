@@ -1069,6 +1069,29 @@ CaretPreferences::setRemoteFileUserNameAndPassword(const AString& userName,
 }
 
 /**
+ * @return The BALSA username
+ */
+AString
+CaretPreferences::getBalsaUserName() const
+{
+    return this->balsaUserName;
+}
+
+/**
+ * Set the BALSA username
+ *
+ * @param userName
+ *     New value for BALSA username.
+ */
+void
+CaretPreferences::setBalsaUserName(const AString& userName)
+{
+    this->balsaUserName = userName;
+    this->setString(NAME_BALSA_USER_NAME,
+                    userName);
+}
+
+/**
  * @return  Are axes crosshairs displayed?
  */
 bool 
@@ -1496,6 +1519,8 @@ CaretPreferences::readPreferences()
     this->remoteFilePassword = this->getString(NAME_REMOTE_FILE_PASSWORD);
     this->remoteFileLoginSaved = this->getBoolean(NAME_REMOTE_FILE_LOGIN_SAVED,
                                                   false);
+    
+    this->balsaUserName = this->getString(NAME_BALSA_USER_NAME);
     
     this->showSurfaceIdentificationSymbols = this->getBoolean(NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS,
                                                               true);

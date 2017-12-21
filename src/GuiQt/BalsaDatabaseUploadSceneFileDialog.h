@@ -82,6 +82,10 @@ namespace caret {
 
         virtual void cancelButtonClicked();
 
+        void whatsThisZipFileDirectory();
+        
+        void whatsThisDatabase();
+        
     protected:
         
     private:
@@ -105,6 +109,10 @@ namespace caret {
         QWidget* createUploadTab();
         
         QWidget* createAdvancedTab();
+        
+        QWidget* createBalsaDatabaseSelectionWidget();
+        
+        QWidget* creatZipFileDirectoryWidget();
         
         void loadSceneFileMetaDataWidgets();
         
