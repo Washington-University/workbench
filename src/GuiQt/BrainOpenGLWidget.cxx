@@ -470,7 +470,6 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
     }
 
     const int32_t viewport[4] = { 0, 0, imageWidth, imageHeight };
-    std::vector<BrainOpenGLViewportContent*> viewportContent = getDrawingViewportContent(viewport);
     
     BrainOpenGLWindowContent windowContent;
     getDrawingWindowContent(viewport,
@@ -480,12 +479,6 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   windowContent.getAllTabViewports());
-                                 // viewportContent);
-    
-    for (auto vp : viewportContent) {
-        delete vp;
-    }
-    viewportContent.clear();
     
     if (offscreen.isError()) {
         WuQMessageBox::errorOk(this,
@@ -495,102 +488,6 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
     }
     
     return offscreen.getImage();
-}
-
-/**
- * @return Content of viewport for drawing.
- *
- * @param windowViewport
- *    Viewport for drawing
- */
-std::vector<BrainOpenGLViewportContent*>
-BrainOpenGLWidget::getDrawingViewportContent(const int32_t windowViewportIn[4]) const
-{
-    std::vector<BrainOpenGLViewportContent*> viewportContent;
-    
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
-    
-    EventBrowserWindowContentGet getModelEvent(this->windowIndex);
-    EventManager::get()->sendEvent(getModelEvent.getPointer());
-    
-    if (getModelEvent.isError()) {
-        return viewportContent;
-    }
-    
-    int32_t windowViewport[4] = {
-        windowViewportIn[0],
-        windowViewportIn[1],
-        windowViewportIn[2],
-        windowViewportIn[3]
-    };
-    
-    if (bbw->isAspectRatioLocked()) {
-        const float aspectRatio = bbw->getAspectRatio();
-        if (aspectRatio > 0.0) {
-            BrainOpenGLViewportContent::adjustViewportForAspectRatio(windowViewport,
-                                                                     aspectRatio);
-        }
-    }
-    
-    /*
-     * Highlighting of border points
-     */
-    s_singletonOpenGL->setDrawHighlightedEndPoints(false);
-    if (this->selectedUserInputProcessor == this->userInputBordersModeProcessor) {
-        s_singletonOpenGL->setDrawHighlightedEndPoints(this->userInputBordersModeProcessor->isHighlightBorderEndPoints());
-    }
-    
-    const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
-    
-    const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
-    if (numToDraw == 1) {
-        BrainOpenGLViewportContent* vc = BrainOpenGLViewportContent::createViewportForSingleTab(getModelEvent.getTabContentToDraw(0),
-                                                                                                gapsAndMargins,
-                                                                                                this->windowIndex,
-                                                                                                windowViewport);
-        viewportContent.push_back(vc);
-    }
-    else if (numToDraw > 1) {
-        const int32_t windowWidth  = windowViewport[2];
-        const int32_t windowHeight = windowViewport[3];
-        
-        std::vector<int32_t> rowHeights;
-        std::vector<int32_t> columnsWidths;
-        
-        /*
-         * Determine if default configuration for tiles
-         */
-        TileTabsConfiguration* tileTabsConfiguration = getModelEvent.getTileTabsConfiguration();
-        CaretAssert(tileTabsConfiguration);
-        
-        /*
-         * Get the sizes of the tab tiles from the tile tabs configuration
-         */
-        if ( ! tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
-                                                                                windowHeight,
-                                                                                numToDraw,
-                                                                                rowHeights,
-                                                                                columnsWidths)) {
-            CaretLogSevere("Tile Tabs Row/Column sizing failed !!!");
-            return viewportContent;
-        }
-        
-        /*
-         * Create the viewport drawing contents for all tabs
-         */
-        std::vector<BrowserTabContent*> allTabs;
-        for (int32_t i = 0; i < getModelEvent.getNumberOfItemsToDraw(); i++) {
-            allTabs.push_back(getModelEvent.getTabContentToDraw(i));
-        }
-        
-        viewportContent = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
-                                                                                       tileTabsConfiguration,
-                                                                                       gapsAndMargins,
-                                                                                       windowIndex,
-                                                                                       windowViewport,
-                                                                                       getModelEvent.getTabIndexForTileTabsHighlighting());
-    }
-    return viewportContent;
 }
 
 /**
@@ -1436,14 +1333,6 @@ BrainOpenGLWidget::performProjection(const int x,
     CaretLogFine("Performing projection");
     
     if (projectionViewport != NULL) {
-        /*
-         * ID coordinate needs to be relative to the viewport
-         *
-         int vp[4];
-         idViewport->getViewport(vp);
-         const int idX = x - vp[0];
-         const int idY = y - vp[1];
-         */
         s_singletonOpenGL->projectToModel(this->windowIndex,
                                      GuiManager::get()->getBrain(),
                                      m_contextShareGroupPointer,
