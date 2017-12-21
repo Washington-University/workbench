@@ -1100,9 +1100,17 @@ const BrainOpenGLViewportContent*
 BrainOpenGLWidget::getViewportContentAtXY(const int x,
                                           const int y)
 {
-    const BrainOpenGLViewportContent* viewportContent = m_windowContent.getTabViewportWithLockAspectXY(x, y);
+    const BrainOpenGLViewportContent* tabViewportContent = m_windowContent.getTabViewportWithLockAspectXY(x, y);
+    if (tabViewportContent != NULL) {
+        return tabViewportContent;
+    }
     
-    return viewportContent;
+    /*
+     * If not in a tab, then use the window viewport information.
+     * This allows selection of annotations in window space that are not
+     * within a tab (tab may be small in height due to lock aspect).
+     */
+    return m_windowContent.getWindowViewport();
 }
 
 /**
