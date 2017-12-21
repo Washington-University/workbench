@@ -935,17 +935,17 @@ SceneFile::getDefaultZipFileName() const
 }
 
 /**
- * @return The default extract to directory name (directory containing the scene file, EXCLUDING THE PATH)
+ * @return The default extract to directory name (end of default base directory)
  */
 AString
 SceneFile::getDefaultExtractToDirectoryName() const
 {
     AString directoryName;
     
-    FileInformation fileInfo(getFileName());
-    AString sceneFileDirectory = fileInfo.getAbsolutePath();
-    if ( ! sceneFileDirectory.isEmpty()) {
-        QDir dir(sceneFileDirectory);
+    FileInformation fileInfo(findBaseDirectoryForDataFiles());
+    AString baseDirectory = fileInfo.getAbsoluteFilePath();
+    if ( ! baseDirectory.isEmpty()) {
+        QDir dir(baseDirectory);
         directoryName = dir.dirName();
     }
     
