@@ -28,6 +28,7 @@
 #include <QWidget>
 
 class QAbstractButton;
+class QComboBox;
 class QLineEdit;
 class QRadioButton;
 
@@ -53,7 +54,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void browseButtonClicked();
+        void customBrowseButtonClicked();
+        
+        void customPathComboBoxActivated(int index);
         
         void copyAutoBasePathToClipboard();
         
@@ -68,7 +71,7 @@ namespace caret {
         
         SceneFile* m_sceneFile = NULL;
         
-        QLineEdit* m_basePathLineEdit;
+        QComboBox* m_customBasePathComboBox;
         
         QRadioButton* m_automaticRadioButton;
         
@@ -76,12 +79,14 @@ namespace caret {
         
         QLineEdit* m_automaticBasePathLineEdit;
         
+        static std::vector<AString> s_userCustomBasePaths;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __SCENE_BASE_PATH_WIDGET_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::vector<AString> SceneBasePathWidget::s_userCustomBasePaths;
 #endif // __SCENE_BASE_PATH_WIDGET_DECLARE__
 
 } // namespace

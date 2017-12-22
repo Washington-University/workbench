@@ -39,6 +39,7 @@
 #include "CaretFileDialog.h"
 #include "FileInformation.h"
 #include "SceneFile.h"
+#include "WuQFactory.h"
 #include "WuQMessageBox.h"
 
 using namespace caret;
@@ -72,17 +73,19 @@ SceneBasePathWidget::SceneBasePathWidget(QWidget* widget)
     QObject::connect(buttGroup, static_cast<void(QButtonGroup::*)(QAbstractButton*)>(&QButtonGroup::buttonClicked),
                      this, [=](QAbstractButton* button){ this->basePathTypeButtonGroupClicked(button); });
     
-    m_basePathLineEdit = new QLineEdit;
-    m_basePathLineEdit->setReadOnly(true);
+    m_customBasePathComboBox = WuQFactory::newComboBox();
+    m_customBasePathComboBox->setEditable(false);
+    QObject::connect(m_customBasePathComboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
+                     this, [=](int index){ this->customPathComboBoxActivated(index); });
     
     QPushButton* copyAutoBasePathPushButton = new QPushButton("Copy");
     copyAutoBasePathPushButton->setToolTip("Copy automatic base path to clipboard");
     QObject::connect(copyAutoBasePathPushButton, &QPushButton::clicked,
                      this, &SceneBasePathWidget::copyAutoBasePathToClipboard);
     
-    QPushButton* browsePushButton = new QPushButton("Browse...");
-    QObject::connect(browsePushButton, &QPushButton::clicked,
-                     this, &SceneBasePathWidget::browseButtonClicked);
+    QPushButton* customBrowsePushButton = new QPushButton("Browse...");
+    QObject::connect(customBrowsePushButton, &QPushButton::clicked,
+                     this, &SceneBasePathWidget::customBrowseButtonClicked);
     
     QPushButton* whatsThisPushButton = new QPushButton("What's this?");
     whatsThisPushButton->setSizePolicy(QSizePolicy::Fixed, whatsThisPushButton->sizePolicy().verticalPolicy());
@@ -108,9 +111,9 @@ SceneBasePathWidget::SceneBasePathWidget(QWidget* widget)
     row++;
     gridLayout->addWidget(m_customRadioButton,
                           row, 0);
-    gridLayout->addWidget(m_basePathLineEdit,
+    gridLayout->addWidget(m_customBasePathComboBox,
                           row, 1);
-    gridLayout->addWidget(browsePushButton,
+    gridLayout->addWidget(customBrowsePushButton,
                           row, 2);
     
     QVBoxLayout* widgetLayout = new QVBoxLayout(this);
@@ -141,16 +144,48 @@ SceneBasePathWidget::updateWithSceneFile(SceneFile* sceneFile)
     
     m_automaticBasePathLineEdit->clear();
     
+    QSignalBlocker customPathSignalBlocker(m_customBasePathComboBox);
+    
     if (m_sceneFile != NULL) {
-        m_basePathLineEdit->setText(m_sceneFile->getBalsaBaseDirectory());
+        AString baseDirectoryName = m_sceneFile->getBalsaBaseDirectory();
+        m_customBasePathComboBox->clear();
+        
+        const std::vector<AString> dirNames = m_sceneFile->getBaseDirectoryHierarchyForDataFiles();
+        if ( ! baseDirectoryName.isEmpty()) {
+            /*
+             * If the base directory is in neither the base path hierarchy
+             * nor the user custom paths, add it to the user custom paths
+             * so that it appears in the combo box and is selected.
+             */
+            if (std::find(dirNames.begin(),
+                          dirNames.end(),
+                          baseDirectoryName) == dirNames.end()) {
+                if (std::find(s_userCustomBasePaths.begin(),
+                              s_userCustomBasePaths.end(),
+                              baseDirectoryName) == s_userCustomBasePaths.end()) {
+                    s_userCustomBasePaths.push_back(baseDirectoryName);
+                }
+            }
+        }
+        for (auto name : s_userCustomBasePaths) {
+            m_customBasePathComboBox->addItem(name);
+        }
+        for (auto name : dirNames) {
+            m_customBasePathComboBox->addItem(name);
+        }
+
+        if ( ! baseDirectoryName.isEmpty()) {
+            m_customBasePathComboBox->setCurrentText(baseDirectoryName);
+        }
+
         switch (m_sceneFile->getBasePathType()) {
             case SceneFileBasePathTypeEnum::AUTOMATIC:
                 m_automaticRadioButton->setChecked(true);
-                m_basePathLineEdit->setEnabled(false);
+                m_customBasePathComboBox->setEnabled(false);
                 break;
             case SceneFileBasePathTypeEnum::CUSTOM:
                 m_customRadioButton->setChecked(true);
-                m_basePathLineEdit->setEnabled(true);
+                m_customBasePathComboBox->setEnabled(true);
                 break;
         }
         
@@ -158,7 +193,7 @@ SceneBasePathWidget::updateWithSceneFile(SceneFile* sceneFile)
         setEnabled(true);
     }
     else {
-        m_basePathLineEdit->setText("");
+        m_customBasePathComboBox->clear();
         setEnabled(false);
     }
 }
@@ -177,35 +212,66 @@ SceneBasePathWidget::copyAutoBasePathToClipboard()
 }
 
 /**
- * Gets called when the browse button is clicked.
+ * Called when the user selects and item in the custom
+ * path combo box.
+ *
+ * @param index
+ *     Index of the item selected.
  */
 void
-SceneBasePathWidget::browseButtonClicked()
+SceneBasePathWidget::customPathComboBoxActivated(int index)
 {
+    const AString text = m_customBasePathComboBox->itemText(index);
+    if ( ! text.isEmpty()) {
+        m_sceneFile->setBalsaBaseDirectory(text);
+    }
+}
+
+
+/**
+ * Gets called when the custom browse button is clicked.
+ */
+void
+SceneBasePathWidget::customBrowseButtonClicked()
+{
+    const AString msg("The only reason to use this Browse button is when the Automatic mode fails.  "
+                      "If you select a base path that is a not a parent directory of the "
+                      "scene file and its data files, zipping of the scene file and its "
+                      "data files will fail.\n\n"
+                      "Do you want to continue?");
+    if ( ! WuQMessageBox::warningOkCancel(this, msg)) {
+        return;
+    }
+    
     CaretAssert(m_sceneFile);
     
     /*
      * Let user choose directory path
      */
     QString directoryName;
-    FileInformation fileInfo(m_basePathLineEdit->text().trimmed());
+    FileInformation fileInfo(m_customBasePathComboBox->currentText().trimmed());
     if (fileInfo.exists()) {
         if (fileInfo.isDirectory()) {
             directoryName = fileInfo.getAbsoluteFilePath();
         }
     }
-    AString newDirectoryName = CaretFileDialog::getExistingDirectoryDialog(this,
-                                                                           "Choose Base Path",
-                                                                           directoryName);
+    const AString newDirectoryName = CaretFileDialog::getExistingDirectoryDialog(this,
+                                                                                 "Choose Base Path",
+                                                                                 directoryName);
     /*
      * If user cancels,  return
      */
     if (newDirectoryName.isEmpty()) {
         return;
     }
-    
-    m_sceneFile->setBalsaBaseDirectory(newDirectoryName);
+
+    if (std::find(s_userCustomBasePaths.begin(),
+                  s_userCustomBasePaths.end(),
+                  newDirectoryName) == s_userCustomBasePaths.end()) {
+        s_userCustomBasePaths.push_back(newDirectoryName);
+    }
     m_sceneFile->setBasePathType(SceneFileBasePathTypeEnum::CUSTOM);
+    m_sceneFile->setBalsaBaseDirectory(newDirectoryName);
     updateWithSceneFile(m_sceneFile);
 }
 
@@ -246,7 +312,7 @@ SceneBasePathWidget::isValid(AString& errorMessageOut) const
         /* valid */
     }
     else if (m_customRadioButton->isChecked()) {
-        const AString basePath = m_basePathLineEdit->text().trimmed();
+        const AString basePath = m_customBasePathComboBox->currentText().trimmed();
         if (basePath.isEmpty()) {
             errorMessageOut = "CUSTOM base path is empty.";
         }
