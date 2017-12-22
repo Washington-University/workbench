@@ -926,6 +926,41 @@ SceneFile::findBaseDirectoryForDataFiles() const
 }
 
 /**
+ * @return The base directory for all data files and all of 
+ *         the base directorys ancestors (parent directory
+ *         up to root directory).
+ *
+ * @param maximumAncestorCount
+ *         Maximum number of ancestor directories for output
+ */
+std::vector<AString>
+SceneFile::getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCount)
+{
+    std::vector<AString> names;
+    
+    AString baseDirectoryName = findBaseDirectoryForDataFiles();
+    if ( ! baseDirectoryName.isEmpty()) {
+        QDir dir(baseDirectoryName);
+        
+        for (int32_t i = 0; i < maximumAncestorCount; i++) {
+            names.push_back(dir.absolutePath());
+            
+            if (dir.isRoot()) {
+                break;
+            }
+            else {
+                if ( ! dir.cdUp()) {
+                    break;
+                }
+            }
+        }
+    }
+    
+    return names;
+}
+
+
+/**
  * @return Default name for a ZIP file containing the scene file and its data files.
  */
 AString
