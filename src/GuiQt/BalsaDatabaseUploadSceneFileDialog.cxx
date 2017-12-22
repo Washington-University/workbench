@@ -155,20 +155,6 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
      */
     m_balsaDatabaseManager = std::unique_ptr<BalsaDatabaseManager>(new BalsaDatabaseManager());
     
-    /*
-     * Database selection
-     */
-//    m_databaseLabel = new QLabel("");
-//    m_databaseComboBox = new QComboBox();
-//    m_databaseComboBox->setEditable(true);
-//    m_databaseComboBox->addItem("https://balsa.wustl.edu");
-//    m_databaseComboBox->addItem("http://johnsdev.wustl.edu:8080");
-//    m_databaseComboBox->addItem("https://johnsdev.wustl.edu:8080");
-//    QObject::connect(m_databaseComboBox, static_cast<void(QComboBox::*)(const QString&)>(&QComboBox::activated),
-//                     this, [=] { this->loginInformationChanged(); });
-//    QObject::connect(m_databaseComboBox, &QComboBox::editTextChanged,
-//                     this, [=] { this->loginInformationChanged(); });
-    
     const int minimumLineEditWidth = 250;
     
     /*
@@ -251,10 +237,7 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
     gridLayout->setColumnStretch(COLUMN_DATA_WIDGET_ONE, 0);
     gridLayout->setColumnStretch(COLUMN_DATA_WIDGET_TWO, 100);
     gridLayout->setColumnStretch(COLUMN_BUTTON_ONE, 0);
-    //gridLayout->setColumnStretch(COLUMN_BUTTON_TWO, 0);
     int row = 0;
-//    gridLayout->addWidget(m_databaseLabel, row, COLUMN_LABEL, Qt::AlignRight);
-//    gridLayout->addWidget(m_databaseComboBox, row, COLUMN_DATA_WIDGET_ONE, 1, 2);
     gridLayout->addWidget(m_usernameLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_usernameLineEdit, row, COLUMN_DATA_WIDGET_ONE, 1, 2);
     gridLayout->addWidget(registerLabel, row, COLUMN_BUTTON_ONE);
@@ -428,6 +411,9 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
 QWidget*
 BalsaDatabaseUploadSceneFileDialog::createBalsaDatabaseSelectionWidget()
 {
+    QString hostName = SystemUtilities::getLocalHostName();
+    const bool isWustlDomainFlag = hostName.endsWith(".wustl.edu");
+    
     /*
      * Database selection
      */
@@ -435,8 +421,10 @@ BalsaDatabaseUploadSceneFileDialog::createBalsaDatabaseSelectionWidget()
     m_databaseComboBox = new QComboBox();
     m_databaseComboBox->setEditable(true);
     m_databaseComboBox->addItem("https://balsa.wustl.edu");
-    m_databaseComboBox->addItem("http://johnsdev.wustl.edu:8080");
-    m_databaseComboBox->addItem("https://johnsdev.wustl.edu:8080");
+    if (isWustlDomainFlag) {
+        m_databaseComboBox->addItem("http://johnsdev.wustl.edu:8080");
+        m_databaseComboBox->addItem("https://johnsdev.wustl.edu:8080");
+    }
     QObject::connect(m_databaseComboBox, static_cast<void(QComboBox::*)(const QString&)>(&QComboBox::activated),
                      this, [=] { this->loginInformationChanged(); });
     QObject::connect(m_databaseComboBox, &QComboBox::editTextChanged,
@@ -529,64 +517,11 @@ BalsaDatabaseUploadSceneFileDialog::creatZipFileDirectoryWidget()
 QWidget*
 BalsaDatabaseUploadSceneFileDialog::createAdvancedTab()
 {
-//    QLabel* zipInfoLabel = new QLabel("When the Scene File is uploaded to BALSA, the Scene File and all data files that it "
-//                                        "references are placed into a ZIP file and the ZIP file is then uploaded to BALSA.  "
-//                                        "While unlikely, creation of the ZIP file in the system temporary directory could "
-//                                        "fail if there is insuffient space.  If this should happend, set a CUSTOM directory "
-//                                        "on a disk with adequate space other than the disk containing the system temporary directory.");
-//    zipInfoLabel->setWordWrap(true);
-//    
-//    m_zipFileTemporaryDirectoryRadioButton = new QRadioButton("System Temporary");
-//    m_zipFileCustomDirectoryRadioButton = new QRadioButton("Custom: ");
-//    
-//    QButtonGroup* buttGroup = new QButtonGroup(this);
-//    buttGroup->addButton(m_zipFileTemporaryDirectoryRadioButton);
-//    buttGroup->addButton(m_zipFileCustomDirectoryRadioButton);
-//    m_zipFileTemporaryDirectoryRadioButton->setChecked(true); // do before signal
-//    QObject::connect(buttGroup, static_cast<void(QButtonGroup::*)(int)>(&QButtonGroup::buttonClicked),
-//                     [=](int id){ this->zipFileDirectoryRadioButtonClicked(id); });
-//    
-//    m_zipFileAutomaticDirectoryLineEdit = new QLineEdit();
-//    m_zipFileAutomaticDirectoryLineEdit->setReadOnly(true);
-//    m_zipFileAutomaticDirectoryLineEdit->setText(SystemUtilities::getTempDirectory());
-//    
-//    m_zipFileCustomDirectoryLineEdit = new QLineEdit();
-//
-//    QPushButton* copyAutomaticDirectoryPushButton = new QPushButton("Copy");
-//    QObject::connect(copyAutomaticDirectoryPushButton, &QPushButton::clicked,
-//                     this, &BalsaDatabaseUploadSceneFileDialog::copyAutomaticDirectoryPushButtonClicked);
-//    copyAutomaticDirectoryPushButton->setToolTip("Copy system temporary directory to clipboard");
-//    
-//    QPushButton* browseCustomDirectoryPushButton = new QPushButton("Browse...");
-//    QObject::connect(browseCustomDirectoryPushButton, &QPushButton::clicked,
-//                     this, &BalsaDatabaseUploadSceneFileDialog::browseZipFileCustomDirectoryPushButtonClicked);
-//    
-//    QGroupBox* zipDirectoryGroupBox = new QGroupBox("Zip File Directory");
-//    QGridLayout* gridLayout = new QGridLayout(zipDirectoryGroupBox);
-//    gridLayout->setSpacing(2);
-//    gridLayout->setColumnStretch(0, 0);
-//    gridLayout->setColumnStretch(1, 100);
-//    gridLayout->setColumnStretch(2, 0);
-//    int row = 0;
-//    gridLayout->addWidget(zipInfoLabel, row, 0, 1, 3);
-//    row++;
-//    gridLayout->addWidget(new QLabel(" "), row, 0, 1, 3);
-//    row++;
-//    gridLayout->addWidget(m_zipFileTemporaryDirectoryRadioButton, row, 0);
-//    gridLayout->addWidget(m_zipFileAutomaticDirectoryLineEdit, row, 1);
-//    gridLayout->addWidget(copyAutomaticDirectoryPushButton, row, 2);
-//    row++;
-//    gridLayout->addWidget(m_zipFileCustomDirectoryRadioButton, row, 0);
-//    gridLayout->addWidget(m_zipFileCustomDirectoryLineEdit, row, 1);
-//    gridLayout->addWidget(browseCustomDirectoryPushButton, row, 2);
-//    row++;
-    
     QWidget* databaseSelectionWidget = createBalsaDatabaseSelectionWidget();
     QWidget* zipDirectoryWidget = creatZipFileDirectoryWidget();
     m_basePathWidget = new SceneBasePathWidget();
 
-    QLabel* infoLabel = new QLabel("NOTE: In most instances, the default selections (System Temporary for Zip File Directory and "
-                                   "Automatic for Base Path) should be used.");
+    QLabel* infoLabel = new QLabel("NOTE: In most instances, the default selections should be used.");
     infoLabel->setWordWrap(true);
     
     QWidget* widget = new QWidget;
@@ -1287,7 +1222,8 @@ BalsaDatabaseUploadSceneFileDialog::whatsThisDatabase()
 {
     const AString text("This option is provided for developers of "
                        "Workbench (wb_view and wb_command) and BALSA Database software. "
-                       "It allows the selection of develpment versions of the BALSA Database.");
+                       "It allows the selection of develpment versions of the BALSA Database.  "
+                       "To add a database, type the new name into the combo box.");
     WuQMessageBox::informationOk(this,
                                  text);
 }
