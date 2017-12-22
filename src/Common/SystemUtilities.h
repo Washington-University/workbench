@@ -100,6 +100,9 @@ public:
     static void sleepSeconds(const float numberOfSeconds);
 
     static AString getWorkbenchHome();
+    
+    static AString getLocalHostName();
+    
 };
 
 } // namespace
