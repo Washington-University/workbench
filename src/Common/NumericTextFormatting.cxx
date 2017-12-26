@@ -295,6 +295,145 @@ NumericTextFormatting::getFormatAndPrecision(const float valueIn,
 }
 
 /**
+ * Format the negative and positive values by using the value of the range (min to max)
+ * to set format and precision for all values.
+ *
+ * @param numericFormatIn
+ *    How to format the numbers when converted to text.
+ * @param numericFormatPrecisionIn
+ *    Precision used the numeric format is not automatic.
+ * @param negativeValuesIn
+ *    The negative input values array.  Must be at least two elements and
+ *    the values must be sorted from smallest to largest.
+ * @param negativeFormattedValuesOut
+ *    Output containing negativevalues formatted as text.
+ * @param negativeBumberOfValues
+ *    Number of negativevalues in the arrays and both the input and output
+ *    arrays must sized to this value.
+ * @param positiveValuesIn
+ *    The positive input values array.  Must be at least two elements and
+ *    the values must be sorted from smallest to largest.
+ * @param positiveFormattedValuesOut
+ *    Output containing positive values formatted as text.
+ * @param positiveNumberOfValues
+ *    Number of positive values in the arrays and both the input and output
+ *    arrays must sized to this value.
+ */
+void
+NumericTextFormatting::formatValueRangeNegPos(const NumericFormatModeEnum::Enum numericFormatIn,
+                                              const int32_t numericFormatPrecisionIn,
+                                              const float negativeValuesIn[],
+                                              AString negativeFormattedValuesOut[],
+                                              const int32_t negativeNumberOfValues,
+                                              const float positiveValuesIn[],
+                                              AString positiveFormattedValuesOut[],
+                                              const int32_t positiveNumberOfValues)
+{
+    NumericFormatModeEnum::Enum numericFormat = numericFormatIn;
+    int32_t numericFormatPrecision = numericFormatPrecisionIn;
+    
+    
+    if (negativeNumberOfValues > 0) {
+        formatValueRange(numericFormat,
+                         numericFormatPrecision,
+                         negativeValuesIn,
+                         negativeFormattedValuesOut,
+                         negativeNumberOfValues);
+    }
+
+    if (positiveNumberOfValues > 0) {
+        formatValueRange(numericFormat,
+                         numericFormatPrecision,
+                         positiveValuesIn,
+                         positiveFormattedValuesOut,
+                         positiveNumberOfValues);
+    }
+    
+    switch (numericFormat) {
+        case NumericFormatModeEnum::AUTO:
+            removeDotZeroIfAllIntegers(negativeFormattedValuesOut,
+                                       negativeNumberOfValues,
+                                       positiveFormattedValuesOut,
+                                       positiveNumberOfValues);
+            break;
+        case NumericFormatModeEnum::DECIMAL:
+            break;
+        case NumericFormatModeEnum::SCIENTIFIC:
+            break;
+    }
+}
+
+/**
+ * If all of the positive and negative text values represent integers
+ * (contain no decimal or end with decimal followed by zeros),
+ * strip off decimal and trailing zeros.
+ *
+ * @param negativeFormattedValues
+ *    Negative values formatted as text.
+ * @param negativeBumberOfValues
+ *    Number of negative values.
+ * @param positiveFormattedValues
+ *    Positive values formatted as text.
+ * @param positiveNumberOfValues
+ *    Number of positive values.
+ */
+void
+NumericTextFormatting::removeDotZeroIfAllIntegers(AString negativeFormattedValues[],
+                                                  const int32_t negativeNumberOfValues,
+                                                  AString positiveFormattedValues[],
+                                                  const int32_t positiveNumberOfValues)
+{
+    std::vector<AString> allValues(negativeFormattedValues,
+                                   negativeFormattedValues + negativeNumberOfValues);
+    allValues.insert(allValues.end(),
+                     positiveFormattedValues,
+                     positiveFormattedValues + positiveNumberOfValues);
+    
+    for (auto& text: allValues) {
+        const int32_t len = text.length();
+        
+        /*
+         * Does this text end with a decimal followed by all zeros
+         */
+        const int32_t decimalIndex = text.indexOf('.');
+        if (decimalIndex >= 0) {
+            for (int32_t j = decimalIndex + 1; j < len; j++) {
+                if (text[j] != '0') {
+                    /*
+                     * Non-zero trailing value so not integer value
+                     */
+                    return;
+                }
+            }
+            
+            if (decimalIndex >= 0) {
+                /*
+                 * Chop off decimal and zeros 
+                 * "text" is a reference so changes value in allValues vector
+                 */
+                text.resize(decimalIndex);
+            }
+            else {
+                /* if no decimal found, then value is already integer */
+            }
+        }
+    }
+    
+    for (int32_t i = 0; i < negativeNumberOfValues; i++) {
+        CaretAssertArrayIndex(negativeFormattedValues, negativeNumberOfValues, i);
+        CaretAssertVectorIndex(allValues, i);
+        negativeFormattedValues[i] = allValues[i];
+    }
+    
+    for (int32_t i = 0; i < positiveNumberOfValues; i++) {
+        CaretAssertArrayIndex(positiveFormattedValues, positiveNumberOfValues, i);
+        const int32_t j = i + negativeNumberOfValues;
+        CaretAssertVectorIndex(allValues, j);
+        positiveFormattedValues[i] = allValues[j];
+    }
+}
+
+/**
  * Format the values by using the value of the range (min to max)
  * to set format and precision for all values.
  *

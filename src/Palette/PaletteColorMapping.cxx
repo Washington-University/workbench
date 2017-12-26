@@ -1841,34 +1841,44 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
     }
     
     /*
+     * Types of values for display
+     */
+    const bool positiveDataDisplayedFlag = isDisplayPositiveDataFlag();
+    const bool negativeDataDisplayedFlag = isDisplayNegativeDataFlag();
+    
+    /*
      * numeric values displayed for negative data
      */
     std::vector<float> negativeValues;
-    negativeValues.push_back(negMax);
-    if (this->colorBarNumericSubdivisionCount > 0) {
-        const float range    = negMin - negMax;
-        const float interval = range / (this->colorBarNumericSubdivisionCount + 1);
-        for (int32_t i = 0; i < this->colorBarNumericSubdivisionCount; i++) {
-            negativeValues.push_back(negMax
-                                     + (interval * (i + 1)));
+    if (negativeDataDisplayedFlag) {
+        negativeValues.push_back(negMax);
+        if (this->colorBarNumericSubdivisionCount > 0) {
+            const float range    = negMin - negMax;
+            const float interval = range / (this->colorBarNumericSubdivisionCount + 1);
+            for (int32_t i = 0; i < this->colorBarNumericSubdivisionCount; i++) {
+                negativeValues.push_back(negMax
+                                         + (interval * (i + 1)));
+            }
         }
+        negativeValues.push_back(negMin);
     }
-    negativeValues.push_back(negMin);
     
     /*
      * numeric values displayed for positive data
      */
     std::vector<float> positiveValues;
-    positiveValues.push_back(posMin);
-    if (this->colorBarNumericSubdivisionCount > 0) {
-        const float range    = posMax - posMin;
-        const float interval = range / (this->colorBarNumericSubdivisionCount + 1);
-        for (int32_t i = 0; i < this->colorBarNumericSubdivisionCount; i++) {
-            positiveValues.push_back(posMin
-                                     + (interval * (i + 1)));
+    if (positiveDataDisplayedFlag) {
+        positiveValues.push_back(posMin);
+        if (this->colorBarNumericSubdivisionCount > 0) {
+            const float range    = posMax - posMin;
+            const float interval = range / (this->colorBarNumericSubdivisionCount + 1);
+            for (int32_t i = 0; i < this->colorBarNumericSubdivisionCount; i++) {
+                positiveValues.push_back(posMin
+                                         + (interval * (i + 1)));
+            }
         }
+        positiveValues.push_back(posMax);
     }
-    positiveValues.push_back(posMax);
     
     /*
      * Will need to override these values when percentile
@@ -1907,31 +1917,24 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
      */
     const int32_t numberOfNegValues = static_cast<int32_t>(negativeValues.size());
     std::vector<AString> negativeValuesText(numberOfNegValues);
-    NumericTextFormatting::formatValueRange(numericFormatModeForTextFormatting,
-                                            precisionDigitsForTextFormatting,
-                                            &negativeValues[0],
-                                            &negativeValuesText[0],
-                                            numberOfNegValues);
     
     /*
      * Create text representations for positive values
      */
     const int32_t numberOfPosValues = static_cast<int32_t>(positiveValues.size());
     std::vector<AString> positiveValuesText(numberOfPosValues);
-    NumericTextFormatting::formatValueRange(numericFormatModeForTextFormatting,
-                                            precisionDigitsForTextFormatting,
-                                            &positiveValues[0],
-                                            &positiveValuesText[0],
-                                            numberOfPosValues);
+    
+    NumericTextFormatting::formatValueRangeNegPos(numericFormatModeForTextFormatting,
+                                                  precisionDigitsForTextFormatting,
+                                                  &negativeValues[0],
+                                                  &negativeValuesText[0],
+                                                  numberOfNegValues,
+                                                  &positiveValues[0],
+                                                  &positiveValuesText[0],
+                                                  numberOfPosValues);
     
     CaretAssert(negativeValues.size() == negativeValuesText.size());
     CaretAssert(positiveValues.size() == positiveValuesText.size());
-    
-    /*
-     * Types of values for display
-     */
-    const bool positiveDataDisplayedFlag = isDisplayPositiveDataFlag();
-    const bool negativeDataDisplayedFlag = isDisplayNegativeDataFlag();
     
     /*
      * Are both negative and positive values displayed?

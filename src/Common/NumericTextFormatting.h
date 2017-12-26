@@ -44,6 +44,15 @@ namespace caret {
                                      AString formattedValuesOut[],
                                      const int32_t numberOfValues);
         
+        static void formatValueRangeNegPos(const NumericFormatModeEnum::Enum numericFormat,
+                                           const int32_t numericFormatPrecision,
+                                           const float negativeValuesIn[],
+                                           AString negativeFormattedValuesOut[],
+                                           const int32_t negativeNumberOfValues,
+                                           const float positiveValuesIn[],
+                                           AString positiveFormattedValuesOut[],
+                                           const int32_t positiveNumberOfValues);
+        
         static AString formatValue(const float valueIn);
         
         static void formatValuesIndividually(const float valuesIn[],
@@ -75,6 +84,11 @@ namespace caret {
         static void getFormatAndPrecision(const float valueIn,
                                           char& formatOut,
                                           int& precisionOut);
+        
+        static void removeDotZeroIfAllIntegers(AString negativeFormattedValues[],
+                                               const int32_t negativeNumberOfValues,
+                                               AString positiveFormattedValues[],
+                                               const int32_t positiveNumberOfValues);
         // ADD_NEW_MEMBERS_HERE
         
     };
