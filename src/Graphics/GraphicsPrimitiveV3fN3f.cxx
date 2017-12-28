@@ -161,8 +161,10 @@ GraphicsPrimitiveV3fN3f::addVertex(const float x,
                                    const float normalY,
                                    const float normalZ)
 {
-    addVertexProtected(std::move((float[]){ x, y, z }),
-                       std::move((float[]){ normalX, normalY, normalZ }),
+    const float xyz[] { x, y, z };
+    const float normalXYZ[] { normalX, normalY, normalZ };
+    addVertexProtected(xyz,
+                       normalXYZ,
                        m_floatSolidRGBA,
                        m_unsignedByteSolidRGBA,
                        NULL);
@@ -186,8 +188,10 @@ GraphicsPrimitiveV3fN3f::addVertex(const float x,
                                    const float normalX,
                                    const float normalY)
 {
-    addVertexProtected(std::move((float[]){ x, y, 0.0f }),
-                       std::move((float[]){ normalX, normalY, 0.0f }),
+    const float xyz[] { x, y, 0.0f };
+    const float normalXYZ[] { normalX, normalY, 1.0f };
+    addVertexProtected(xyz,
+                       normalXYZ,
                        m_floatSolidRGBA,
                        m_unsignedByteSolidRGBA,
                        NULL);

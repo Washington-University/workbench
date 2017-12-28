@@ -117,7 +117,8 @@ GraphicsPrimitiveV3fC4ub::addVertex(const float x,
                                    const float z,
                                    const uint8_t rgba[4])
 {
-    addVertex(std::move((float[]){x, y, z}),
+    const float xyz[] { x, y, z };
+    addVertex(xyz,
               rgba);
 }
 

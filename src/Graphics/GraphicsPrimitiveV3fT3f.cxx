@@ -103,11 +103,12 @@ void
 GraphicsPrimitiveV3fT3f::addVertex(const float xyz[3],
                                    const float st[2])
 {
+    const float str[] { st[0], st[1], 0.0f } ;
     addVertexProtected(xyz,
                        NULL,
                        NULL,
                        NULL,
-                       std::move((float[]){ st[0], st[1], 0.0f }));
+                       str);
 }
 
 /**
@@ -131,8 +132,10 @@ GraphicsPrimitiveV3fT3f::addVertex(const float x,
                                    const float s,
                                    const float t)
 {
-    addVertex(std::move((float[]){ x, y, z }),
-              std::move((float[]){ s, t }));
+    const float xyz[] { x, y, z };
+    const float str[] { s, t, 0.0f };
+    addVertex(xyz,
+              str);
 }
 
 /**
@@ -153,8 +156,7 @@ GraphicsPrimitiveV3fT3f::addVertex(const float x,
                                    const float s,
                                    const float t)
 {
-    addVertex(std::move((float[]){ x, y, 0.0f }),
-              std::move((float[]){ s, t }));
+    addVertex(x, y, 0.0f, s, t);
 }
 
 /**

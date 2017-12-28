@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include "CaretOpenGLInclude.h"
+
 #define __OFF_SCREEN_OPEN_G_L_RENDERER_DECLARE__
 #include "OffScreenOpenGLRenderer.h"
 #undef __OFF_SCREEN_OPEN_G_L_RENDERER_DECLARE__
