@@ -906,10 +906,15 @@ SceneFile::findBaseDirectoryForDataFiles() const
                     if (useNameFlag) {
                         const AString pathName = scenePathName->stringValue().trimmed();
                         if ( ! pathName.isEmpty()) {
-                            FileInformation fileInfo(pathName);
-                            const AString dirName = fileInfo.getAbsolutePath().trimmed();
-                            if ( ! dirName.isEmpty()) {
-                                directoryNames.insert(dirName);
+                            /*
+                             * Need to ignore file on the network
+                             */
+                            if ( ! DataFile::isFileOnNetwork(pathName)) {
+                                FileInformation fileInfo(pathName);
+                                const AString dirName = fileInfo.getAbsolutePath().trimmed();
+                                if ( ! dirName.isEmpty()) {
+                                    directoryNames.insert(dirName);
+                                }
                             }
                         }
                     }
@@ -920,7 +925,12 @@ SceneFile::findBaseDirectoryForDataFiles() const
     
     const std::vector<AString> stringVector(directoryNames.begin(),
                                             directoryNames.end());
-    const AString baseDirectoryName = AString::findLongestCommonPrefix(stringVector);
+    AString baseDirectoryName = AString::findLongestCommonPrefix(stringVector);
+    
+    if (baseDirectoryName.isEmpty()) {
+        FileInformation fileInfo(getFileName());
+        baseDirectoryName = fileInfo.getAbsolutePath();
+    }
     
     return baseDirectoryName;
 }

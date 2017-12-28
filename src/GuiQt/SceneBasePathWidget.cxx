@@ -343,7 +343,7 @@ SceneBasePathWidget::whatsThisBasePath()
 {
     const AString text("The Automatic Base Path is the \"lowest level\" path that contains the Scene File and "
                        "all data files referenced by the Scene File.  "
-                       "The directory structure of all files contained in the Scene File relative (at or below) "
+                       "The directory structure of all files contained in the Scene File relative to (at or below) "
                        "the Base Path will be preserved in your dataset when it is downloaded from BALSA and "
                        "unzipped by other users.  You may set a Custom path above the Automatic Base Path, but "
                        "it will add additional, unnecessary path layers to the unzipped dataset.");
