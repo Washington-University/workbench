@@ -177,9 +177,15 @@ CiftiConnectivityMatrixViewController::updateViewController()
                                  "an identification operation");
             m_fileEnableCheckBoxes.push_back(checkBox);
             
+            const AString dynToolTip("This option is enabled only for .dynconn.nii (dynamic connectivity) files.  "
+                                     "When checked, this dynamic connectivity file will appear in the Overlay Layers' File selection combo box.  "
+                                     "Dynamic connectivity files do not explicitly exist but allow dynamic "
+                                     "computation of connectivity from a dense data series (.dtseries) file.  "
+                                     "Dynamic connectivity allows one to view connectivity for a brainordinate without creation of an "
+                                     "extremely large dense connectivity (.dconn.nii) file.  "
+                                     "In Preferences, one may set the default to show/hide .dynconn.nii files.");
             layerCheckBox = new QCheckBox("");
-            layerCheckBox->setToolTip("When selected, allow selection of this\n"
-                                      "file as an overlay in the Layers tab");
+            WuQtUtilities::setWordWrappedToolTip(layerCheckBox, dynToolTip);
             m_layerCheckBoxes.push_back(layerCheckBox);
             
             lineEdit = new QLineEdit();

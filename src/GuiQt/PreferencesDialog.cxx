@@ -341,6 +341,8 @@ PreferencesDialog::createMiscellaneousWidget()
     QObject::connect(m_dynamicConnectivityComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(miscDynamicConnectivityComboBoxChanged(bool)));
     m_allWidgets->add(m_dynamicConnectivityComboBox);
+    m_dynamicConnectivityComboBox->setToolTip("Sets default (checked or unchecked) for dynamic connectivity files "
+                                              "on the Overlay ToolBox --> Connectivity tab.");
     
     /*
      * Logging Level
@@ -400,7 +402,7 @@ PreferencesDialog::createMiscellaneousWidget()
     
     QGridLayout* gridLayout = new QGridLayout();
     addWidgetToLayout(gridLayout,
-                      "Show Dynconn By Default: ",
+                      "Dynconn As Layer Default: ",
                       m_dynamicConnectivityComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       "Logging Level: ",
