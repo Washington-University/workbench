@@ -2658,6 +2658,18 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                                         this->windowTabIndex);
     }
     
+    if (borderDrawInfo.border == this->borderBeingDrawn) {
+        if (borderDrawInfo.surface != NULL) {
+            const BoundingBox* bb = borderDrawInfo.surface->getBoundingBox();
+            const float maxSize = std::max(bb->getDifferenceX(),
+                                           std::max(bb->getDifferenceY(), bb->getDifferenceZ()));
+            if (maxSize > 0.0f) {
+                const float percentSize = 0.03f;
+                pointDiameter = maxSize * percentSize;
+            }
+        }
+    }
+    
     bool drawSphericalPoints = false;
     bool drawSquarePoints = false;
     bool drawLines  = false;
