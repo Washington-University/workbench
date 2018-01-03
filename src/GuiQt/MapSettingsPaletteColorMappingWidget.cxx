@@ -2055,33 +2055,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
             }
         }
         
-        //            if (histogramColor != CaretColorEnum::CUSTOM) {
-        //                /*
-        //                 * DO NOT override RGBA
-        //                 */
-        //                float colorRGBA[4];
-        //                CaretColorEnum::toRGBAFloat(histogramColor,
-        //                                           colorRGBA);
-        //                for (int64_t i = 0; i < numDataValues; i++) {
-        //                    const int64_t i4 = i * 4;
-        //                    dataRGBA[i4]   = colorRGBA[0];
-        //                    dataRGBA[i4+1] = colorRGBA[1];
-        //                    dataRGBA[i4+2] = colorRGBA[2];
-        //                }
-        //            }
     }
-    
-    //        const bool drawBarsFlag = this->paletteColorMapping->isHistogramBarsVisible();
-    //        bool drawEnvelopeFlag = false;
-    //        const bool allowEnvelopeChartTypeFlag = true;
-    //        if (allowEnvelopeChartTypeFlag) {
-    //            drawEnvelopeFlag = this->paletteColorMapping->isHistogramEnvelopeVisible();
-    //        }
-    
-    //        const QPalette palette = this->thresholdPlot->palette();
-    //        const QPalette::ColorRole foregroundRole = this->thresholdPlot->foregroundRole();
-    //        const QBrush foregroundBrush = palette.brush(foregroundRole);
-    //        const QColor foregroundColor = foregroundBrush.color();
     
     float z = 0.0;
     float maxDataFrequency = 0.0;
@@ -2149,13 +2123,17 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                  * set its frequncey value to a small value so that the plot
                  * retains its shape and color is still slightly visible
                  */
-                //Qt::BrushStyle brushStyle = Qt::SolidPattern;
                 if (dataRGBA[ix4+3] <= 0.0) {
                     displayIt = false;
                 }
                 
-                if (displayIt == false) {
-                    color.setAlpha(0);
+                if ( ! displayIt) {
+                    if (drawBarsFlag) {
+                        color.setAlpha(0);
+                    }
+                    if (drawEnvelopeFlag) {
+                        dataFrequency = 0.0f;
+                    }
                 }
                 
                 QVector<QPointF> samples;
@@ -2174,7 +2152,9 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                 }
                 if (drawEnvelopeFlag) {
                     curve->setStyle(QwtPlotCurve::Lines);
-                    //curve->setBrush(QBrush(color));
+                    
+                    static float lastX = 0.0f;
+                    static float lastY = 0.0f;
                     
                     /*
                      * Left side
@@ -2182,21 +2162,20 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                     if (ix == 0) {
                         samples.push_back(QPointF(startValue, 0.0));
                         samples.push_back(QPointF(startValue, dataFrequency));
+                        lastX = startValue;
+                        lastY = dataFrequency;
                     }
                     else {
                         CaretAssertVectorIndex(displayData, ix - 1);
-                        const float lastFrequency = displayData[ix - 1];
-                        if (dataFrequency > lastFrequency) {
-                            samples.push_back(QPointF(startValue, lastFrequency));
-                            samples.push_back(QPointF(startValue, dataFrequency));
-                        }
+                        const float lastValue = dataValues[ix - 1];
+                        const float halfX = (startValue - lastValue) / 2.0f;
+                        const float x = startValue + halfX;
+                        const float y = dataFrequency;
+                        samples.push_back(QPointF(lastX, lastY));
+                        samples.push_back(QPointF(x, y));
+                        lastX = x;
+                        lastY = y;
                     }
-                    
-                    /*
-                     * Horizontal Bar
-                     */
-                    samples.push_back(QPointF(startValue, dataFrequency));
-                    samples.push_back(QPointF(stopValue, dataFrequency));
                     
                     /*
                      * Right side
@@ -2204,26 +2183,18 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                     if (ix == lastIndex) {
                         samples.push_back(QPointF(stopValue, dataFrequency));
                         samples.push_back(QPointF(stopValue, 0.0));
-                    }
-                    else {
-                        CaretAssertVectorIndex(displayData, ix + 1);
-                        const float nextFrequency = displayData[ix + 1];
-                        if (dataFrequency > nextFrequency) {
-                            samples.push_back(QPointF(stopValue, dataFrequency));
-                            samples.push_back(QPointF(stopValue, nextFrequency));
-                        }
+                        lastX = stopValue;
+                        lastY = 0.0f;
                     }
                 }
                 
                 curve->setSamples(samples);
-                
                 curve->attach(this->thresholdPlot);
                 
                 if (ix == 0) {
                     z = curve->z();
                 }
             }
-            
         }
         
         z--;
