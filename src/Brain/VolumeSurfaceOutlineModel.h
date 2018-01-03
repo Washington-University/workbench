@@ -96,7 +96,7 @@ namespace caret {
     
 #ifdef __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__
     const float VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE = 2.0;
-    const float VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_MILLIMETERS = 0.5;
+    const float VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_MILLIMETERS = 1.0;
 #endif // __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__
 
 } // namespace
