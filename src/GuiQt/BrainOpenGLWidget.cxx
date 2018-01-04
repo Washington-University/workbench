@@ -1247,7 +1247,7 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
     this->doneCurrent();
 #else
     //updateCursor();
-    //this->repaint();
+    this->repaint();
     //updateGL();
 #endif
     
