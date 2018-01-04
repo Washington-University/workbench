@@ -293,6 +293,31 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSerie
 }
 
 /**
+ * Load data for the given row or column.
+ *
+ * @param tabIndex
+ *     Index of tab.
+ * @param rowOrColumnIndex
+ *     Index of row/column for loading.
+ */
+void
+ChartableTwoFileLineSeriesChart::loadDataForRowOrColumn(const int32_t tabIndex,
+                                                        const int32_t rowOrColumnIndex)
+{
+    std::vector<int32_t> tabIndices;
+    tabIndices.push_back(tabIndex);
+
+    MapFileDataSelector mapFileSelector;
+    mapFileSelector.setRowIndex(getCaretMappableDataFile(),
+                                "",
+                                rowOrColumnIndex);
+
+    EventChartTwoLoadLineSeriesData lineSeriesDataEvent(tabIndices,
+                                    mapFileSelector);
+    loadLineCharts(&lineSeriesDataEvent);
+}
+
+/**
  * Find tab indices for which user has loading of data enabled in the given valid tab indices.
  *
  * @param validTabIndices

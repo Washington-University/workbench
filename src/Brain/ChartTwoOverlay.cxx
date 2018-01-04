@@ -793,6 +793,8 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
     if (m_selectedMapFile != NULL) {
         int32_t numMaps = 0;
         
+        ChartableTwoFileMatrixChart* matrixChart = NULL;
+        
         switch (m_chartDataType) {
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
@@ -815,57 +817,123 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
             }
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-                break;
-            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
             {
-                ChartableTwoFileDelegate* chartDelegate        = m_selectedMapFile->getChartingDelegate();
-                const ChartableTwoFileMatrixChart* matrixChart = chartDelegate->getMatrixCharting();
-                CaretAssert(matrixChart);
-                int32_t numRows = 0;
-                int32_t numCols = 0;
-                matrixChart->getMatrixDimensions(numRows, numCols);
+                /*
+                 * Row/Column Scalar files use the matrix for line chart tracking
+                 */
+                ChartableTwoFileDelegate* chartDelegate = m_selectedMapFile->getChartingDelegate();
+                ChartableTwoFileLineSeriesChart* lineChart = chartDelegate->getLineSeriesCharting();
+                CaretAssert(lineChart);
                 
-                ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension;
-                std::vector<int32_t> columnIndices;
-                std::vector<int32_t> rowIndices;
-                matrixChart->getSelectedRowColumnIndices(m_parentChartTwoOverlaySet->m_tabIndex,
-                                                         rowColumnDimension,
-                                                         rowIndices,
-                                                         columnIndices);
-                
-                switch (rowColumnDimension) {
-                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
-                        numMaps = numCols;
-                        if ( ! columnIndices.empty()) {
-                            selectedIndexTypeOut = SelectedIndexType::COLUMN;
-                            selectedIndexOut     = columnIndices[0];
-                        }
-                        if (matrixChart->hasColumnSelection()) {
-                            if (selectedFileMapNamesOut != NULL) {
-                                for (int32_t i = 0; i < numMaps; i++) {
-                                    selectedFileMapNamesOut->push_back(matrixChart->getColumnName(i));
-                                }
-                            }
-                        }
+                switch (lineChart->getLineSeriesContentType()) {
+                    case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED:
                         break;
-                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
-                        numMaps = numRows;
-                        if ( ! rowIndices.empty()) {
-                            selectedIndexTypeOut = SelectedIndexType::ROW;
-                            selectedIndexOut     = rowIndices[0];
-                        }
-                        if (matrixChart->hasRowSelection()) {
-                            if (selectedFileMapNamesOut != NULL) {
-                                for (int32_t i = 0; i < numMaps; i++) {
-                                    selectedFileMapNamesOut->push_back(matrixChart->getRowName(i));
-                                }
-                            }
-                        }
+                    case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA:
+                        break;
+                    case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_ROW_SCALAR_DATA:
+                        matrixChart = chartDelegate->getMatrixCharting();
                         break;
                 }
             }
                 break;
+            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            {
+                ChartableTwoFileDelegate* chartDelegate = m_selectedMapFile->getChartingDelegate();
+                matrixChart = chartDelegate->getMatrixCharting();
+//                const ChartableTwoFileMatrixChart* matrixChart = chartDelegate->getMatrixCharting();
+//                CaretAssert(matrixChart);
+//                int32_t numRows = 0;
+//                int32_t numCols = 0;
+//                matrixChart->getMatrixDimensions(numRows, numCols);
+//                
+//                ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension;
+//                std::vector<int32_t> columnIndices;
+//                std::vector<int32_t> rowIndices;
+//                matrixChart->getSelectedRowColumnIndices(m_parentChartTwoOverlaySet->m_tabIndex,
+//                                                         rowColumnDimension,
+//                                                         rowIndices,
+//                                                         columnIndices);
+//                
+//                switch (rowColumnDimension) {
+//                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+//                        numMaps = numCols;
+//                        if ( ! columnIndices.empty()) {
+//                            selectedIndexTypeOut = SelectedIndexType::COLUMN;
+//                            selectedIndexOut     = columnIndices[0];
+//                        }
+//                        if (matrixChart->hasColumnSelection()) {
+//                            if (selectedFileMapNamesOut != NULL) {
+//                                for (int32_t i = 0; i < numMaps; i++) {
+//                                    selectedFileMapNamesOut->push_back(matrixChart->getColumnName(i));
+//                                }
+//                            }
+//                        }
+//                        break;
+//                    case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+//                        numMaps = numRows;
+//                        if ( ! rowIndices.empty()) {
+//                            selectedIndexTypeOut = SelectedIndexType::ROW;
+//                            selectedIndexOut     = rowIndices[0];
+//                        }
+//                        if (matrixChart->hasRowSelection()) {
+//                            if (selectedFileMapNamesOut != NULL) {
+//                                for (int32_t i = 0; i < numMaps; i++) {
+//                                    selectedFileMapNamesOut->push_back(matrixChart->getRowName(i));
+//                                }
+//                            }
+//                        }
+//                        break;
+//                }
+            }
+                break;
         }
+        
+        if (matrixChart != NULL) {
+            CaretAssert(matrixChart);
+            int32_t numRows = 0;
+            int32_t numCols = 0;
+            matrixChart->getMatrixDimensions(numRows, numCols);
+            
+            ChartTwoMatrixLoadingDimensionEnum::Enum rowColumnDimension;
+            std::vector<int32_t> columnIndices;
+            std::vector<int32_t> rowIndices;
+            matrixChart->getSelectedRowColumnIndices(m_parentChartTwoOverlaySet->m_tabIndex,
+                                                     rowColumnDimension,
+                                                     rowIndices,
+                                                     columnIndices);
+            
+            switch (rowColumnDimension) {
+                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
+                    numMaps = numCols;
+                    if ( ! columnIndices.empty()) {
+                        selectedIndexTypeOut = SelectedIndexType::COLUMN;
+                        selectedIndexOut     = columnIndices[0];
+                    }
+                    if (matrixChart->hasColumnSelection()) {
+                        if (selectedFileMapNamesOut != NULL) {
+                            for (int32_t i = 0; i < numMaps; i++) {
+                                selectedFileMapNamesOut->push_back(matrixChart->getColumnName(i));
+                            }
+                        }
+                    }
+                    break;
+                case ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
+                    numMaps = numRows;
+                    if ( ! rowIndices.empty()) {
+                        selectedIndexTypeOut = SelectedIndexType::ROW;
+                        selectedIndexOut     = rowIndices[0];
+                    }
+                    if (matrixChart->hasRowSelection()) {
+                        if (selectedFileMapNamesOut != NULL) {
+                            for (int32_t i = 0; i < numMaps; i++) {
+                                selectedFileMapNamesOut->push_back(matrixChart->getRowName(i));
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+        
     }
 
     selectedMapFileOut = m_selectedMapFile;
@@ -905,6 +973,9 @@ ChartTwoOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
 {
     m_selectedMapFile = selectedMapFile;
     if (m_selectedMapFile != NULL) {
+        ChartableTwoFileLineSeriesChart* lineSeriesChart = NULL;
+        ChartableTwoFileMatrixChart* matrixChart = NULL;
+        
         switch (m_chartDataType) {
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
@@ -914,17 +985,46 @@ ChartTwoOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
                 }
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+            {
+                /*
+                 * Row/Column Scalar files use the matrix for line chart tracking
+                 */
+                ChartableTwoFileDelegate* chartDelegate = m_selectedMapFile->getChartingDelegate();
+                ChartableTwoFileLineSeriesChart* lineChart = chartDelegate->getLineSeriesCharting();
+                CaretAssert(lineChart);
+                
+                switch (lineChart->getLineSeriesContentType()) {
+                    case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED:
+                        break;
+                    case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA:
+                        break;
+                    case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_ROW_SCALAR_DATA:
+                        lineSeriesChart = lineChart;
+                        matrixChart     = chartDelegate->getMatrixCharting();
+                        break;
+                }
+            }
                 break;
             case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
             {
                 ChartableTwoFileDelegate* chartDelegate = m_selectedMapFile->getChartingDelegate();
                 CaretAssert(chartDelegate);
-                ChartableTwoFileMatrixChart* matrixChart   = chartDelegate->getMatrixCharting();
-                CaretAssert(matrixChart);
-                matrixChart->setSelectedRowColumnIndex(m_parentChartTwoOverlaySet->m_tabIndex,
-                                                       selectedMapIndex);
+                matrixChart   = chartDelegate->getMatrixCharting();
+//                ChartableTwoFileMatrixChart* matrixChart   = chartDelegate->getMatrixCharting();
+//                CaretAssert(matrixChart);
+//                matrixChart->setSelectedRowColumnIndex(m_parentChartTwoOverlaySet->m_tabIndex,
+//                                                       selectedMapIndex);
             }
                 break;
+        }
+        
+        if (matrixChart != NULL) {
+            matrixChart->setSelectedRowColumnIndex(m_parentChartTwoOverlaySet->m_tabIndex,
+                                                   selectedMapIndex);
+            if (lineSeriesChart) {
+                lineSeriesChart->loadDataForRowOrColumn(m_tabIndex,
+                                                        selectedMapIndex);
+            }
         }
         
         if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {

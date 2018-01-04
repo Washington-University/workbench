@@ -53,6 +53,8 @@ namespace caret {
         
         virtual void receiveEvent(Event* event) override;
         
+        void loadDataForRowOrColumn(const int32_t tabIndex,
+                                    const int32_t rowOrColumnIndex);
 
         // ADD_NEW_METHODS_HERE
 
