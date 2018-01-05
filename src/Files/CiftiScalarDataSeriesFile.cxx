@@ -200,11 +200,16 @@ CiftiScalarDataSeriesFile::getSelectedMapIndex(const int32_t tabIndex) const
  *    New value for selected map index.
  */
 void
-CiftiScalarDataSeriesFile::setSelectedMapIndex(const int32_t tabIndex,
+CiftiScalarDataSeriesFile::setSelectedMapIndex(const int32_t /*tabIndex*/,
                                  const int32_t mapIndex)
 {
-    CaretAssertArrayIndex(m_selectedMapIndices, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-    m_selectedMapIndices[tabIndex] = mapIndex;
+    /*
+     * One map selection for all tabs
+     */
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        CaretAssertArrayIndex(m_selectedMapIndices, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, i);
+        m_selectedMapIndices[i] = mapIndex;
+    }
 }
 
 

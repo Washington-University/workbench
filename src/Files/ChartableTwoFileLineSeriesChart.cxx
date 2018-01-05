@@ -27,6 +27,7 @@
 #include "ChartTwoDataCartesian.h"
 #include "ChartTwoLineSeriesHistory.h"
 #include "CiftiMappableDataFile.h"
+#include "CiftiScalarDataSeriesFile.h"
 #include "EventChartTwoLoadLineSeriesData.h"
 #include "EventManager.h"
 #include "SceneClass.h"
@@ -198,6 +199,7 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSerie
 {
     const MapFileDataSelector mapFileDataSelector = lineSeriesDataEvent->getMapFileDataSelector();
     
+    int32_t scalarRowIndex = -1;
     bool loadDataFlag = false;
     switch (m_lineSeriesContentType) {
         case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED:
@@ -246,6 +248,7 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSerie
                     if (mapFile == getCaretMappableDataFile()) {
                         loadDataFlag = true;
                     }
+                    scalarRowIndex = rowIndex;
                 }
                     break;
                 case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
@@ -288,6 +291,17 @@ ChartableTwoFileLineSeriesChart::loadLineCharts(const EventChartTwoLoadLineSerie
             }
             
             m_lineChartHistory->addHistoryItem(cartesianData);
+            
+            if (scalarRowIndex >= 0) {
+                CaretMappableDataFile* mapFile = getCaretMappableDataFile();
+                CaretAssert(mapFile);
+                CiftiScalarDataSeriesFile* scalarFile = dynamic_cast<CiftiScalarDataSeriesFile*>(mapFile);
+                if (scalarFile != NULL) {
+                    for (auto tabIndex : lineSeriesDataEvent->getValidTabIndices()) {
+                        scalarFile->setSelectedMapIndex(tabIndex, scalarRowIndex);
+                    }
+                }
+            }
         }
     }
 }
