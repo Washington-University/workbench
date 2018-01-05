@@ -2831,9 +2831,11 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 BrowserTabContent* tabContent = eventBrowserTab.getBrowserTab();
                 if (tabContent != NULL) {
                     ModelChartTwo* chartTwoModel = tabContent->getDisplayedChartTwoModel();
-                    if (chartTwoModel->getSelectedChartTwoDataType(tabIndex) == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
-                        ChartTwoOverlaySet* chartOverlaySet = tabContent->getChartTwoOverlaySet();
-                        chartOverlayContainingDataFile = chartOverlaySet->getDisplayedOverlayContainingDataFile(cmdf);
+                    if (chartTwoModel != NULL) {
+                        if (chartTwoModel->getSelectedChartTwoDataType(tabIndex) == ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
+                            ChartTwoOverlaySet* chartOverlaySet = tabContent->getChartTwoOverlaySet();
+                            chartOverlayContainingDataFile = chartOverlaySet->getDisplayedOverlayContainingDataFile(cmdf);
+                        }
                     }
                 }
                 
