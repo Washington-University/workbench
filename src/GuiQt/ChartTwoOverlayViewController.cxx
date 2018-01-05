@@ -330,6 +330,9 @@ ChartTwoOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indxIn
         //TSC: not sure how to put the displayed integer back to 0 where it starts when opening without data files
         return;
     }
+
+    const bool focusFlag = m_mapRowOrColumnIndexSpinBox->hasFocus();
+    
     /*
      * Get the file that is selected from the file combo box
      */
@@ -366,6 +369,13 @@ ChartTwoOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indxIn
     this->updateUserInterfaceAndGraphicsWindow();
     
     updateOverlaySettingsEditor();
+    
+    /* 
+     * User interface update may cause loss of focus so restore it
+     */
+    if (focusFlag) {
+        m_mapRowOrColumnIndexSpinBox->setFocus();
+    }
 }
 
 /**
@@ -411,6 +421,11 @@ ChartTwoOverlayViewController::mapRowOrColumnNameComboBoxSelected(int indx)
     this->updateUserInterfaceAndGraphicsWindow();
     
     updateOverlaySettingsEditor();
+    
+    /*
+     * User interface update may cause loss of focus so restore it
+     */
+    m_mapRowOrColumnNameComboBox->setFocus();
 }
 
 /**
