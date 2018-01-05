@@ -96,6 +96,14 @@ FTTextureGlyphImpl::FTTextureGlyphImpl(FT_GlyphSlot glyph, int id, int xOffset,
         glBindTexture(GL_TEXTURE_2D, glTextureID);
         glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, destWidth, destHeight, GL_ALPHA, GL_UNSIGNED_BYTE, bitmap.buffer);
 
+        /*
+         * When the font is too small, the above call to glTexSubImage2D() may 
+         * cause an OpenGL "invalid value" error.  These error messages may
+         * be frequent so just ignore them.  Calling "glGetError()" will
+         * clear any error has been triggered.
+         */
+        glGetError();
+        
         glPopClientAttrib();
     }
 
