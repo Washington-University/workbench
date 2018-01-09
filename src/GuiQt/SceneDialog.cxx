@@ -970,6 +970,60 @@ SceneDialog::warnIfSceneFileIsModified(const ModifiedWarningType warningType)
     return successFlag;
 }
 
+/**
+ * Display a message if there are missing files in the Scene File.
+ * 
+ * @param missingFilesMode
+ *      The missing file mode.
+ * @return
+ *      True if there are no missing files, else false.
+ */
+bool
+SceneDialog::warnIfMissingFilesInSceneFile(SceneFile* sceneFile,
+                                           const MissingFilesMode missingFilesMode)
+{
+    CaretAssert(sceneFile);
+    
+    std::vector<AString> filenames;
+    (void)sceneFile->findBaseDirectoryForDataFiles(filenames);
+
+    if (filenames.empty()) {
+        return true;
+    }
+    
+    AString messageText;
+    AString acceptButtonText;
+    switch (missingFilesMode) {
+        case MissingFilesMode::UPLOAD:
+            acceptButtonText = "Upload";
+            messageText      = "uploading to BALSA";
+            break;
+        case MissingFilesMode::ZIP:
+            acceptButtonText = "Zip";
+            messageText      = "zipping the scene file";
+            break;
+    }
+    
+    AString text("<html>"
+                     "Do you want to continue "
+                     + messageText
+                     + "?"
+                     "<p>"
+                     "These files are in the scene file but do not exist:");
+    for (auto name : filenames) {
+        text.append("<br>    " + name);
+    }
+    text.append("<p>Use the Test All button to find scenes with invalid files");
+    text.append("<html>");
+
+    const bool result = WuQMessageBox::warningAcceptReject(this,
+                                                           text,
+                                                           acceptButtonText,
+                                                           "Cancel");
+    
+    return result;
+}
+
 
 /**
  * Called when upload scene file is selected.
@@ -982,6 +1036,11 @@ SceneDialog::uploadSceneFileButtonClicked()
     }
     
     SceneFile* sceneFile = getSelectedSceneFile();
+    
+    if ( ! warnIfMissingFilesInSceneFile(sceneFile,
+                                         MissingFilesMode::UPLOAD)) {
+        return;
+    }
     
     BalsaDatabaseUploadSceneFileDialog uploadDialog(sceneFile,
                                                     this);
@@ -1006,6 +1065,11 @@ SceneDialog::zipSceneFileButtonClicked()
     
     SceneFile* sceneFile = getSelectedSceneFile();
 
+    if ( ! warnIfMissingFilesInSceneFile(sceneFile,
+                                         MissingFilesMode::ZIP)) {
+        return;
+    }
+    
     ZipSceneFileDialog zipDialog(sceneFile,
                                  this);
     zipDialog.exec();

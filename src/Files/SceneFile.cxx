@@ -867,13 +867,20 @@ SceneFile::setBalsaExtractToDirectoryName(const AString& extractToDirectoryName)
 }
 
 /**
- * return Base directory for data files.
- * The base directory is a directory that is parent to all loaded data files.
+ * Find the base directory that is a directory that is parent to all loaded data files.
+ *
+ * @param missingFileNamesOut
+ *    Will contain data files that are in scenes but do not exist.
+ * @return
+ *    Base directory for data files.
  */
 AString
-SceneFile::findBaseDirectoryForDataFiles() const
+SceneFile::findBaseDirectoryForDataFiles(std::vector<AString>& missingFileNamesOut) const
 {
+    missingFileNamesOut.clear();
+    
     std::set<AString> directoryNames;
+    std::set<AString> missingFileNames;
     
     const bool includeSpecFileFlag = false;
     
@@ -909,11 +916,19 @@ SceneFile::findBaseDirectoryForDataFiles() const
                             /*
                              * Need to ignore file on the network
                              */
-                            if ( ! DataFile::isFileOnNetwork(pathName)) {
+                            if (DataFile::isFileOnNetwork(pathName)) {
+                                /* assume file on network are valid */
+                            }
+                            else {
                                 FileInformation fileInfo(pathName);
-                                const AString dirName = fileInfo.getAbsolutePath().trimmed();
-                                if ( ! dirName.isEmpty()) {
-                                    directoryNames.insert(dirName);
+                                if (fileInfo.exists()) {
+                                    const AString dirName = fileInfo.getAbsolutePath().trimmed();
+                                    if ( ! dirName.isEmpty()) {
+                                        directoryNames.insert(dirName);
+                                    }
+                                }
+                                else {
+                                    missingFileNames.insert(pathName);
                                 }
                             }
                         }
@@ -932,6 +947,11 @@ SceneFile::findBaseDirectoryForDataFiles() const
         baseDirectoryName = fileInfo.getAbsolutePath();
     }
     
+    missingFileNamesOut.clear();
+    missingFileNamesOut.insert(missingFileNamesOut.end(),
+                               missingFileNames.begin(),
+                               missingFileNames.end());
+    
     return baseDirectoryName;
 }
 
@@ -948,7 +968,8 @@ SceneFile::getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCo
 {
     std::vector<AString> names;
     
-    AString baseDirectoryName = findBaseDirectoryForDataFiles();
+    std::vector<AString> missingFileNames;
+    AString baseDirectoryName = findBaseDirectoryForDataFiles(missingFileNames);
     if ( ! baseDirectoryName.isEmpty()) {
         QDir dir(baseDirectoryName);
         
@@ -986,8 +1007,9 @@ AString
 SceneFile::getDefaultExtractToDirectoryName() const
 {
     AString directoryName;
-    
-    FileInformation fileInfo(findBaseDirectoryForDataFiles());
+
+    std::vector<AString> missingFileNames;
+    FileInformation fileInfo(findBaseDirectoryForDataFiles(missingFileNames));
     AString baseDirectory = fileInfo.getAbsoluteFilePath();
     if ( ! baseDirectory.isEmpty()) {
         QDir dir(baseDirectory);

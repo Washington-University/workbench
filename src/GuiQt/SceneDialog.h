@@ -176,11 +176,19 @@ namespace caret {
             ZIP_FILE_BUTTON
         };
         
+        enum class MissingFilesMode {
+            UPLOAD,
+            ZIP
+        };
+        
         bool warnIfSceneFileIsModified(const ModifiedWarningType warningType);
         
         bool saveSelectedSceneFile();
         
         bool saveAsSelectedSceneFile();
+        
+        bool warnIfMissingFilesInSceneFile(SceneFile* sceneFile,
+                                           const MissingFilesMode missingFilesMode);
         
         // ADD_NEW_MEMBERS_HERE
 

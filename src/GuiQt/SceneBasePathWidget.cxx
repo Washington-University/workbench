@@ -189,7 +189,8 @@ SceneBasePathWidget::updateWithSceneFile(SceneFile* sceneFile)
                 break;
         }
         
-        m_automaticBasePathLineEdit->setText(m_sceneFile->findBaseDirectoryForDataFiles());
+        std::vector<AString> missingFileNames;
+        m_automaticBasePathLineEdit->setText(m_sceneFile->findBaseDirectoryForDataFiles(missingFileNames));
         setEnabled(true);
     }
     else {
