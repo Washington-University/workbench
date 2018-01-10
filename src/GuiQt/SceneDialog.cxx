@@ -991,37 +991,38 @@ SceneDialog::warnIfMissingFilesInSceneFile(SceneFile* sceneFile,
         return true;
     }
     
-    AString messageText;
+    AString verbText;
     AString acceptButtonText;
     switch (missingFilesMode) {
         case MissingFilesMode::UPLOAD:
             acceptButtonText = "Upload";
-            messageText      = "uploading to BALSA";
+            verbText      = "uploading to BALSA";
             break;
         case MissingFilesMode::ZIP:
             acceptButtonText = "Zip";
-            messageText      = "zipping the scene file";
+            verbText      = "zipping the scene file";
             break;
     }
     
-    AString text("<html>"
-                     "Do you want to continue "
-                     + messageText
-                     + "?"
-                     "<p>"
-                     "These files are in the scene file but do not exist:");
+    const AString labelText("Do you want to continue " + verbText + " ?");
+    AString text;
     for (auto name : filenames) {
-        text.append("<br>    " + name);
+        text.append(name + "\n");
     }
-    text.append("<p>Use the Test All button to find scenes with invalid files");
-    text.append("<html>");
 
-    const bool result = WuQMessageBox::warningAcceptReject(this,
-                                                           text,
-                                                           acceptButtonText,
-                                                           "Cancel");
+    WuQDataEntryDialog dialog("Data Files Not Found",
+                              this,
+                              false);
+    dialog.setTextAtTop("These data files were not found but are used by scenes in the scene file.  Scenes may not display correctly.  "
+                        + labelText,
+                        true);
+    dialog.addTextEdit("", text, true);
+    dialog.setMinimumWidth(500);
     
-    return result;
+    if (dialog.exec() == WuQDataEntryDialog::Accepted) {
+        return true;
+    }
+    return false;
 }
 
 
