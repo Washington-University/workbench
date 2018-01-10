@@ -1817,14 +1817,43 @@ SceneDialog::showFileStructure()
         return;
     }
     
+    const AString sceneFileName = sceneFile->getFileName();
     AString text;
+    
+    std::vector<AString> missingFiles;
+    text.appendWithNewLine("Automatic Base Path: "
+                           + sceneFile->findBaseDirectoryForDataFiles(missingFiles));
+    text.appendWithNewLine("Scene File: "
+                            + sceneFileName);
+    text.append("\n");
+    text.appendWithNewLine("Data File paths relative to Scene File:");
+    
+    
     for (auto name : filenames) {
         FileInformation fileInfo(name);
         AString missingText;
         if ( ! fileInfo.exists()) {
             missingText = "MISSING: ";
         }
-        text.appendWithNewLine(missingText
+        
+        if (fileInfo.isAbsolute()) {
+            FileInformation specFileInfo(sceneFileName);
+            if (specFileInfo.isAbsolute()) {
+                const AString newPath = SystemUtilities::relativePath(fileInfo.getPathName(),
+                                                                      specFileInfo.getPathName());
+                if (newPath.isEmpty()) {
+                    name = fileInfo.getFileName();
+                }
+                else {
+                    name = (newPath
+                            + "/"
+                            + fileInfo.getFileName());
+                }
+            }
+        }
+
+        text.appendWithNewLine("    "
+                               + missingText
                                + name);
     }
     
