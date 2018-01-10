@@ -124,14 +124,14 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
         return NULL;
     }
     
-    float lineWidth = primitive->m_lineWidthValue;
+    float lineWidthPixels = primitive->m_lineWidthValue;
     
     switch (primitive->m_lineWidthType) {
         case GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT:
         {
             GLint viewport[4];
             glGetIntegerv(GL_VIEWPORT, viewport);
-            lineWidth = (lineWidth / 100.0) * viewport[3];
+            lineWidthPixels = (lineWidthPixels / 100.0) * viewport[3];
         }
             break;
         case GraphicsPrimitive::LineWidthType::PIXELS:
@@ -139,9 +139,9 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
     }
     
     /* enforce a minimum line width */
-    const float minimumLineWidth = 1.0f;
-    if (lineWidth < minimumLineWidth) {
-        lineWidth = minimumLineWidth;
+    const float minimumLineWidthPixels = 0.001f;
+    if (lineWidthPixels < minimumLineWidthPixels) {
+        lineWidthPixels = minimumLineWidthPixels;
     }
     
     ColorType colorType = ColorType::FLOAT_RGBA_PER_VERTEX;
@@ -214,7 +214,7 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
                                                    primitive->m_floatRGBA,
                                                    primitive->m_unsignedByteRGBA,
                                                    primitive->m_polygonalLinePrimitiveRestartIndices,
-                                                   lineWidth,
+                                                   lineWidthPixels,
                                                    colorType,
                                                    lineType,
                                                    joinType);
