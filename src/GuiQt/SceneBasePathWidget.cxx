@@ -147,11 +147,11 @@ SceneBasePathWidget::updateWithSceneFile(SceneFile* sceneFile)
     QSignalBlocker customPathSignalBlocker(m_customBasePathComboBox);
     
     if (m_sceneFile != NULL) {
-        AString baseDirectoryName = m_sceneFile->getBalsaBaseDirectory();
+        AString customBaseDirectoryName = m_sceneFile->getBalsaCustomBaseDirectory();
         m_customBasePathComboBox->clear();
         
         const std::vector<AString> dirNames = m_sceneFile->getBaseDirectoryHierarchyForDataFiles();
-        if ( ! baseDirectoryName.isEmpty()) {
+        if ( ! customBaseDirectoryName.isEmpty()) {
             /*
              * If the base directory is in neither the base path hierarchy
              * nor the user custom paths, add it to the user custom paths
@@ -159,11 +159,11 @@ SceneBasePathWidget::updateWithSceneFile(SceneFile* sceneFile)
              */
             if (std::find(dirNames.begin(),
                           dirNames.end(),
-                          baseDirectoryName) == dirNames.end()) {
+                          customBaseDirectoryName) == dirNames.end()) {
                 if (std::find(s_userCustomBasePaths.begin(),
                               s_userCustomBasePaths.end(),
-                              baseDirectoryName) == s_userCustomBasePaths.end()) {
-                    s_userCustomBasePaths.push_back(baseDirectoryName);
+                              customBaseDirectoryName) == s_userCustomBasePaths.end()) {
+                    s_userCustomBasePaths.push_back(customBaseDirectoryName);
                 }
             }
         }
@@ -174,8 +174,8 @@ SceneBasePathWidget::updateWithSceneFile(SceneFile* sceneFile)
             m_customBasePathComboBox->addItem(name);
         }
 
-        if ( ! baseDirectoryName.isEmpty()) {
-            m_customBasePathComboBox->setCurrentText(baseDirectoryName);
+        if ( ! customBaseDirectoryName.isEmpty()) {
+            m_customBasePathComboBox->setCurrentText(customBaseDirectoryName);
         }
 
         switch (m_sceneFile->getBasePathType()) {
@@ -224,7 +224,7 @@ SceneBasePathWidget::customPathComboBoxActivated(int index)
 {
     const AString text = m_customBasePathComboBox->itemText(index);
     if ( ! text.isEmpty()) {
-        m_sceneFile->setBalsaBaseDirectory(text);
+        m_sceneFile->setBalsaCustomBaseDirectory(text);
     }
 }
 
@@ -272,7 +272,7 @@ SceneBasePathWidget::customBrowseButtonClicked()
         s_userCustomBasePaths.push_back(newDirectoryName);
     }
     m_sceneFile->setBasePathType(SceneFileBasePathTypeEnum::CUSTOM);
-    m_sceneFile->setBalsaBaseDirectory(newDirectoryName);
+    m_sceneFile->setBalsaCustomBaseDirectory(newDirectoryName);
     updateWithSceneFile(m_sceneFile);
 }
 

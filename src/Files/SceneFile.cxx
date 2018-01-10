@@ -68,7 +68,7 @@ SceneFile::SceneFile()
 {
     m_balsaStudyID = "";
     m_balsaStudyTitle = "";
-    m_balsaBaseDirectory = "";
+    m_balsaCustomBaseDirectory = "";
     m_balsaExtractToDirectoryName = "";
     m_basePathType = SceneFileBasePathTypeEnum::AUTOMATIC;
     m_metadata = new GiftiMetaData();
@@ -101,7 +101,7 @@ SceneFile::clear()
     
     m_balsaStudyID = "";
     m_balsaStudyTitle = "";
-    m_balsaBaseDirectory = "";
+    m_balsaCustomBaseDirectory = "";
     m_balsaExtractToDirectoryName = "";
     m_basePathType = SceneFileBasePathTypeEnum::AUTOMATIC;
     
@@ -524,25 +524,25 @@ SceneFile::setBalsaStudyTitle(const AString& balsaStudyTitle)
 }
 
 /**
- * @return The Base Directory
+ * @return The Custom Base Directory
  */
 AString
-SceneFile::getBalsaBaseDirectory() const
+SceneFile::getBalsaCustomBaseDirectory() const
 {
-    return m_balsaBaseDirectory;
+    return m_balsaCustomBaseDirectory;
 }
 
 /**
- * Set the Base Directory.
+ * Set the Custom Base Directory.
  *
  * @param baseDirectory
  *     New value for Base Directory.
  */
 void
-SceneFile::setBalsaBaseDirectory(const AString& balsaBaseDirectory)
+SceneFile::setBalsaCustomBaseDirectory(const AString& balsaBaseDirectory)
 {
-    if (balsaBaseDirectory != m_balsaBaseDirectory) {
-        m_balsaBaseDirectory = balsaBaseDirectory;
+    if (balsaBaseDirectory != m_balsaCustomBaseDirectory) {
+        m_balsaCustomBaseDirectory = balsaBaseDirectory;
         setModified();
     }
 }
@@ -721,8 +721,8 @@ SceneFile::writeFile(const AString& filename)
                  * and this may occur since the file may be new and has not
                  * been closed.
                  */
-                if ( ! getBalsaBaseDirectory().isEmpty()) {
-                    const AString baseDirAbsPath = FileInformation(getBalsaBaseDirectory()).getAbsoluteFilePath();
+                if ( ! getBalsaCustomBaseDirectory().isEmpty()) {
+                    const AString baseDirAbsPath = FileInformation(getBalsaCustomBaseDirectory()).getAbsoluteFilePath();
                     const AString sceneFileAbsPath = FileInformation(filename).getAbsoluteFilePath();
                     ScenePathName basePathName("basePathName",
                                                baseDirAbsPath);
@@ -940,11 +940,32 @@ SceneFile::findBaseDirectoryForDataFiles(std::vector<AString>& missingFileNamesO
     
     const std::vector<AString> stringVector(directoryNames.begin(),
                                             directoryNames.end());
+    
+    /*
+     * AString::findLongestCommonPrefix finds the longest common prefix of strings (not directories).  
+     * If there are sub-directories beginning with the same characters, the result is not a valid
+     * directory.
+     *
+     * Consider these two files for example:
+     *  /Users/joe/data_workbench/volume_surface_outline_testing/SUB_DIR_SURFACES/Q1-Q6_R440.R.midthickness.32k_fs_LR.surf.gii
+     *  /Users/joe/data_workbench/volume_surface_outline_testing/SUB_DIR_VOLUME/Q1-Q6_R440_AverageT1w_restore.nii.gz
+     *  
+     *  The longest common prefix is: /Users/joe/data_workbench/volume_surface_outline_testing/SUB_DIR_
+     *  but it is not a valid directory as the two right-most sub-directories begin with the same text (SUB_DIR_).
+     *  Taking the parent of this directory results in a valid directory and valid base path:
+     *  /Users/joe/data_workbench/volume_surface_outline_testing
+     */
     AString baseDirectoryName = AString::findLongestCommonPrefix(stringVector);
     
     if (baseDirectoryName.isEmpty()) {
         FileInformation fileInfo(getFileName());
         baseDirectoryName = fileInfo.getAbsolutePath();
+    }
+    else {
+        FileInformation fileInfo(baseDirectoryName);
+        if ( ! fileInfo.exists()) {
+            baseDirectoryName = fileInfo.getAbsolutePath().trimmed();
+        }
     }
     
     missingFileNamesOut.clear();

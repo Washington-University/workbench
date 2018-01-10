@@ -253,7 +253,7 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
             m_sceneFile->setBalsaStudyTitle(m_elementText);
             break;
         case STATE_SCENE_INFO_BALSA_BASE_DIRECTORY:
-            m_sceneFile->setBalsaBaseDirectory(m_elementText);
+            m_sceneFile->setBalsaCustomBaseDirectory(m_elementText);
             break;
         case STATE_SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY:
             m_sceneFile->setBalsaExtractToDirectoryName(m_elementText);
@@ -314,11 +314,11 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
             if (m_baseBathTypeWasFoundFlag) {
                 switch (m_sceneFile->getBasePathType()) {
                     case SceneFileBasePathTypeEnum::AUTOMATIC:
-                        m_sceneFile->setBalsaBaseDirectory("");
+                        m_sceneFile->setBalsaCustomBaseDirectory("");
                         break;
                     case SceneFileBasePathTypeEnum::CUSTOM:
                     {
-                        AString basePath = m_sceneFile->getBalsaBaseDirectory();
+                        AString basePath = m_sceneFile->getBalsaCustomBaseDirectory();
                         if ( ! basePath.isEmpty()) {
                             FileInformation basePathInfo(basePath);
                             if (basePathInfo.isRelative()) {
@@ -331,7 +331,7 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
                                 basePath = basePathName.stringValue();
                             }
                         }
-                        m_sceneFile->setBalsaBaseDirectory(basePath);
+                        m_sceneFile->setBalsaCustomBaseDirectory(basePath);
                     }
                         break;
                 }
@@ -344,7 +344,7 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
                  * use AUTOMATIC mode.  If there is a base path assume it is valid
                  * and use CUSTOM mode.
                  */
-                if (m_sceneFile->getBalsaBaseDirectory().isEmpty()) {
+                if (m_sceneFile->getBalsaCustomBaseDirectory().isEmpty()) {
                     m_sceneFile->setBasePathType(SceneFileBasePathTypeEnum::AUTOMATIC);
                 }
                 else {

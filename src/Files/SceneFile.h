@@ -96,13 +96,13 @@ namespace caret {
         
         void setBasePathType(const SceneFileBasePathTypeEnum::Enum basePathType);
         
-        AString getBalsaBaseDirectory() const;
+        AString getBalsaCustomBaseDirectory() const;
         
-        void setBalsaBaseDirectory(const AString& balsaBaseDirectory);
+        void setBalsaCustomBaseDirectory(const AString& balsaBaseDirectory);
         
         AString findBaseDirectoryForDataFiles(std::vector<AString>& missingFileNamesOut) const;
         
-        std::vector<AString> getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCount = 15);
+        std::vector<AString> getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCount = 25);
         
         void reorderScenes(std::vector<Scene*>& orderedScenes);
         
@@ -155,8 +155,8 @@ namespace caret {
         /** the Base Path Type */
         SceneFileBasePathTypeEnum::Enum m_basePathType;
         
-        /** the Base Directory */
-        AString m_balsaBaseDirectory;
+        /** the Custom Base Directory */
+        AString m_balsaCustomBaseDirectory;
         
         /** The "extract to" directory name */
         AString m_balsaExtractToDirectoryName;

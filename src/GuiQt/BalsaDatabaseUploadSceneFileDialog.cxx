@@ -766,12 +766,12 @@ BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked()
                 break;
             case SceneFileBasePathTypeEnum::CUSTOM:
             {
-                if (m_sceneFile->getBalsaBaseDirectory().isEmpty()) {
+                if (m_sceneFile->getBalsaCustomBaseDirectory().isEmpty()) {
                     msg.appendWithNewLine("CUSTOM Base Path (on Advanced Tab) is invalid.  "
                                           "Select Base Path or use AUTOMATIC.<p>");
                 }
                 else {
-                    if ( ! FileInformation(m_sceneFile->getBalsaBaseDirectory()).exists()) {
+                    if ( ! FileInformation(m_sceneFile->getBalsaCustomBaseDirectory()).exists()) {
                         msg.appendWithNewLine("CUSTOM Base Directory (on Advanced Tab) is not a valid directory on this computer.  "
                                               "Select a valid Base Path or use AUTOMATIC.<p>");
                     }

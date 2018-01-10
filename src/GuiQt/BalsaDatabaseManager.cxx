@@ -470,7 +470,7 @@ BalsaDatabaseManager::zipSceneAndDataFiles(const SceneFile* sceneFile,
         return false;
     }
     
-    AString basePathName = sceneFile->getBalsaBaseDirectory();
+    AString basePathName;
     
     switch (sceneFile->getBasePathType()) {
         case SceneFileBasePathTypeEnum::AUTOMATIC:
@@ -486,6 +486,7 @@ BalsaDatabaseManager::zipSceneAndDataFiles(const SceneFile* sceneFile,
         }
             break;
         case SceneFileBasePathTypeEnum::CUSTOM:
+            basePathName = sceneFile->getBalsaCustomBaseDirectory();
             if (basePathName.isEmpty()) {
                 errorMessageOut = ("CUSTOM base path is empty");
                 return false;
