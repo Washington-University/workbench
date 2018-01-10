@@ -1801,6 +1801,44 @@ SceneDialog::checkForModifiedFiles(const GuiManager::TestModifiedMode testMode,
 }
 
 /**
+ * Show the data file structure in a dialog.
+ */
+void
+SceneDialog::showFileStructure()
+{
+    SceneFile* sceneFile = getSelectedSceneFile();
+    CaretAssert(sceneFile);
+    
+    std::vector<AString> filenames = sceneFile->getAllDataFileNamesFromAllScenes();
+    
+    if (filenames.empty()) {
+        WuQMessageBox::errorOk(m_showFileStructurePushButton,
+                               "Scene file is empty.");
+        return;
+    }
+    
+    AString text;
+    for (auto name : filenames) {
+        FileInformation fileInfo(name);
+        AString missingText;
+        if ( ! fileInfo.exists()) {
+            missingText = "MISSING: ";
+        }
+        text.appendWithNewLine(missingText
+                               + name);
+    }
+    
+    WuQDataEntryDialog dialog("All Data Files in Scene File",
+                              this,
+                              false);
+    dialog.addTextEdit("", text, true);
+    dialog.setMinimumWidth(500);
+    
+    dialog.setCancelButtonText("");
+    dialog.exec();
+}
+
+/**
  * @return The Scenes widget.
  */
 QWidget* 
@@ -2032,6 +2070,14 @@ SceneDialog::createSceneFileWidget()
     m_sceneFileModifiedStatusLabel = new QLabel("");
     
     /*
+     * File structure buttons
+     */
+    m_showFileStructurePushButton = new QPushButton("List Files...");
+    m_showFileStructurePushButton->setToolTip("In a dialog, show data files from all scenes");
+    QObject::connect(m_showFileStructurePushButton, &QPushButton::clicked,
+                     this, &SceneDialog::showFileStructure);
+    
+    /*
      * New File button
      */
     m_newSceneFilePushButton = new QPushButton("New");
@@ -2103,18 +2149,20 @@ SceneDialog::createSceneFileWidget()
     gridLayout->setColumnStretch(2,   0);
     gridLayout->setColumnStretch(3,   0);
     gridLayout->setColumnStretch(4,   0);
+    gridLayout->setColumnStretch(5,   0);
     int row = 0;
     gridLayout->addWidget(sceneFileLabel,                 row, 0, Qt::AlignRight);
-    gridLayout->addWidget(m_sceneFileSelectionComboBox,   row, 1);
-    gridLayout->addWidget(m_newSceneFilePushButton,       row, 2);
-    gridLayout->addWidget(m_saveSceneFilePushButton,      row, 3);
-    gridLayout->addWidget(m_zipSceneFilePushButton,       row, 4);
+    gridLayout->addWidget(m_sceneFileSelectionComboBox,   row, 1, 1, 2);
+    gridLayout->addWidget(m_newSceneFilePushButton,       row, 3);
+    gridLayout->addWidget(m_saveSceneFilePushButton,      row, 4);
+    gridLayout->addWidget(m_zipSceneFilePushButton,       row, 5);
     row++;
     gridLayout->addWidget(modifiedLabel,                  row, 0, Qt::AlignRight);
     gridLayout->addWidget(m_sceneFileModifiedStatusLabel, row, 1, Qt::AlignLeft);
-    gridLayout->addWidget(m_openSceneFilePushButton,      row, 2);
-    gridLayout->addWidget(m_saveAsSceneFilePushButton,    row, 3);
-    gridLayout->addWidget(m_uploadSceneFilePushButton,    row, 4);
+    gridLayout->addWidget(m_showFileStructurePushButton,  row, 2);
+    gridLayout->addWidget(m_openSceneFilePushButton,      row, 3);
+    gridLayout->addWidget(m_saveAsSceneFilePushButton,    row, 4);
+    gridLayout->addWidget(m_uploadSceneFilePushButton,    row, 5);
     row++;
     
     return widget;

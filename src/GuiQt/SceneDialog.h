@@ -120,6 +120,8 @@ namespace caret {
         
         void replaceAllScenesPushButtonClicked();
         
+        void showFileStructure();
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -195,6 +197,8 @@ namespace caret {
         QLabel*    m_sceneFileModifiedStatusLabel;
         
         QComboBox* m_sceneFileSelectionComboBox;
+        
+        QPushButton* m_showFileStructurePushButton;
         
         QPushButton* m_newSceneFilePushButton;
         

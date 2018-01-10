@@ -879,64 +879,31 @@ SceneFile::findBaseDirectoryForDataFiles(std::vector<AString>& missingFileNamesO
 {
     missingFileNamesOut.clear();
     
+    const std::vector<AString> allFileNames = getAllDataFileNamesFromAllScenes();
+    
     std::set<AString> directoryNames;
     std::set<AString> missingFileNames;
-    
-    const bool includeSpecFileFlag = false;
-    
-    /**
-     * Find all 'path name' elements from ALL scenes
-     */
-    for (Scene* scene: m_scenes) {
-        CaretAssert(scene);
-        std::vector<SceneObject*> children = scene->getDescendants();
-        for (SceneObject* sceneObject : children) {
-            CaretAssert(sceneObject);
-            if (sceneObject->getDataType() == SceneObjectDataTypeEnum::SCENE_PATH_NAME) {
-                const ScenePathName* scenePathName = dynamic_cast<ScenePathName*>(sceneObject);
-                /*
-                 * Will be NULL for 'path name arrays' which we ignore
-                 */
-                if (scenePathName != NULL) {
-                    /*
-                     * files in spec file are named "fileName" in the scene
-                     * specFile is named "specFileName"
-                     * and these names are unique to name of files in the spec file
-                     */
-                    bool useNameFlag = false;
-                    if (sceneObject->getName() == "fileName") {
-                        useNameFlag = true;
-                    }
-                    else if (sceneObject->getName() == "specFileName") {
-                        useNameFlag = includeSpecFileFlag;
-                    }
-                    if (useNameFlag) {
-                        const AString pathName = scenePathName->stringValue().trimmed();
-                        if ( ! pathName.isEmpty()) {
-                            /*
-                             * Need to ignore file on the network
-                             */
-                            if (DataFile::isFileOnNetwork(pathName)) {
-                                /* assume file on network are valid */
-                            }
-                            else {
-                                FileInformation fileInfo(pathName);
-                                if (fileInfo.exists()) {
-                                    const AString dirName = fileInfo.getAbsolutePath().trimmed();
-                                    if ( ! dirName.isEmpty()) {
-                                        directoryNames.insert(dirName);
-                                    }
-                                }
-                                else {
-                                    missingFileNames.insert(pathName);
-                                }
-                            }
-                        }
-                    }
+    for (auto name : allFileNames) {
+        if (DataFile::isFileOnNetwork(name)) {
+            /* assume file on network are valid */
+        }
+        else {
+            FileInformation fileInfo(name);
+            if (fileInfo.exists()) {
+                const AString dirName = fileInfo.getAbsolutePath().trimmed();
+                if ( ! dirName.isEmpty()) {
+                    directoryNames.insert(dirName);
                 }
+            }
+            else {
+                missingFileNames.insert(name);
             }
         }
     }
+    
+    missingFileNamesOut.insert(missingFileNamesOut.end(),
+                               missingFileNames.begin(),
+                               missingFileNames.end());
     
     const std::vector<AString> stringVector(directoryNames.begin(),
                                             directoryNames.end());
@@ -1011,6 +978,58 @@ SceneFile::getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCo
     return names;
 }
 
+/**
+ * @return A vector containing the names of all data files from all scenes.
+ */
+std::vector<AString>
+SceneFile::getAllDataFileNamesFromAllScenes() const
+{
+    const bool includeSpecFileFlag = false;
+    
+    std::set<AString> filenamesSet;
+    
+    /**
+     * Find all 'path name' elements from ALL scenes
+     */
+    for (Scene* scene: m_scenes) {
+        CaretAssert(scene);
+        std::vector<SceneObject*> children = scene->getDescendants();
+        for (SceneObject* sceneObject : children) {
+            CaretAssert(sceneObject);
+            if (sceneObject->getDataType() == SceneObjectDataTypeEnum::SCENE_PATH_NAME) {
+                const ScenePathName* scenePathName = dynamic_cast<ScenePathName*>(sceneObject);
+                /*
+                 * Will be NULL for 'path name arrays' which we ignore
+                 */
+                if (scenePathName != NULL) {
+                    /*
+                     * files in spec file are named "fileName" in the scene
+                     * specFile is named "specFileName"
+                     * and these names are unique to name of files in the spec file
+                     */
+                    bool useNameFlag = false;
+                    if (sceneObject->getName() == "fileName") {
+                        useNameFlag = true;
+                    }
+                    else if (sceneObject->getName() == "specFileName") {
+                        useNameFlag = includeSpecFileFlag;
+                    }
+                    if (useNameFlag) {
+                        const AString pathName = scenePathName->stringValue().trimmed();
+                        if ( ! pathName.isEmpty()) {
+                            filenamesSet.insert(pathName);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    std::vector<AString> filenamesOut(filenamesSet.begin(),
+                                      filenamesSet.end());
+    
+    return filenamesOut;
+}
 
 /**
  * @return Default name for a ZIP file containing the scene file and its data files.

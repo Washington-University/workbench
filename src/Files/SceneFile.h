@@ -104,6 +104,8 @@ namespace caret {
         
         std::vector<AString> getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCount = 25);
         
+        std::vector<AString> getAllDataFileNamesFromAllScenes() const;
+        
         void reorderScenes(std::vector<Scene*>& orderedScenes);
         
         int32_t getSceneIndexFromNumberOrName(const AString& numberOrName);
