@@ -137,6 +137,8 @@ namespace caret {
         
         float getOpenGLWidgetAspectRatio() const;
         
+        bool changeInputModeToAnnotationsWarningDialog(QWidget* parent);
+        
         bool isAspectRatioLocked() const;
         
         void setAspectRatioLocked(const bool locked);

@@ -77,6 +77,7 @@
 #include "FociProjectionDialog.h"
 #include "GapsAndMargins.h"
 #include "GuiManager.h"
+#include "LockAspectWarningDialog.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelWholeBrain.h"
@@ -783,6 +784,41 @@ BrainBrowserWindow::createActionsUsedByToolBar()
         QObject::connect(m_editTabAndWindowAspectRatiosAction, &QAction::triggered,
                          this, &BrainBrowserWindow::processEditTabAndWindowAspectRatiosTriggered);
     }
+}
+
+/**
+ * Is called by toolbar when the user changes input mode to annotations.
+ * 
+ * @param parent
+ *     The parent widget.
+ * @return
+ *     True if it is okay to change to annotations mode, else false.
+ */
+bool
+BrainBrowserWindow::changeInputModeToAnnotationsWarningDialog(QWidget* parent)
+{
+    LockAspectWarningDialog::Result result =
+    LockAspectWarningDialog::runDialog(m_browserWindowIndex,
+                                       parent);
+    
+    bool okFlag = true;
+    
+    switch (result) {
+        case LockAspectWarningDialog::Result::CANCEL:
+            okFlag = false;
+            break;
+        case  LockAspectWarningDialog::Result::LOCK_WINDOW_ASPECT:
+            processWindowAspectRatioLockedToggled(true);
+            break;
+        case LockAspectWarningDialog::Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS:
+            processWindowAspectRatioLockedToggled(true);
+            processLockAllTabsAspectRatioTriggered();
+            break;
+        case LockAspectWarningDialog::Result::NO_CHANGES:
+            break;
+    }
+    
+    return okFlag;
 }
 
 /**

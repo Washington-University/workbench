@@ -133,6 +133,7 @@ ELSE()
         InformationDisplayDialog.h
         InformationDisplayPropertiesDialog.h
         LabelSelectionViewController.h
+	LockAspectWarningDialog.h
         MacApplication.h
         MacDockMenu.h
         MapSettingsChartTwoLineHistoryWidget.h
@@ -355,6 +356,7 @@ InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
 KeyEvent.h
 LabelSelectionViewController.h
+LockAspectWarningDialog.h
 MacApplication.h
 MacDockMenu.h
 MapSettingsChartTwoLineHistoryWidget.h
@@ -574,6 +576,7 @@ InformationDisplayDialog.cxx
 InformationDisplayPropertiesDialog.cxx
 KeyEvent.cxx
 LabelSelectionViewController.cxx
+LockAspectWarningDialog.cxx
 MacApplication.cxx
 MacDockMenu.cxx
 MapSettingsChartTwoLineHistoryWidget.cxx
