@@ -877,11 +877,17 @@ SceneFile::setBalsaExtractToDirectoryName(const AString& extractToDirectoryName)
 AString
 SceneFile::findBaseDirectoryForDataFiles(std::vector<AString>& missingFileNamesOut) const
 {
+    const AString directorySeparator("/");
+    
     missingFileNamesOut.clear();
     
     const std::vector<AString> allFileNames = getAllDataFileNamesFromAllScenes();
     
-    std::set<AString> directoryNames;
+    /*
+     * Find a unique set of directory names used by the data files and
+     * also verify that all files exist.
+     */
+    std::set<AString> directoryNamesUniqueSet;
     std::set<AString> missingFileNames;
     for (auto name : allFileNames) {
         if (DataFile::isFileOnNetwork(name)) {
@@ -890,9 +896,17 @@ SceneFile::findBaseDirectoryForDataFiles(std::vector<AString>& missingFileNamesO
         else {
             FileInformation fileInfo(name);
             if (fileInfo.exists()) {
-                const AString dirName = fileInfo.getAbsolutePath().trimmed();
+                AString dirName = fileInfo.getAbsolutePath().trimmed();
                 if ( ! dirName.isEmpty()) {
-                    directoryNames.insert(dirName);
+                    /*
+                     * QDir::cleanPath() removes multiple separators and resolves "." or ".."
+                     * QDir::fromNativeSeparators() ensures "/" is used for the directory separator.
+                     */
+                    dirName = QDir::cleanPath(dirName);
+                    dirName = QDir::fromNativeSeparators(dirName);
+                    if ( ! dirName.isEmpty()) {
+                        directoryNamesUniqueSet.insert(dirName);
+                    }
                 }
             }
             else {
@@ -901,45 +915,50 @@ SceneFile::findBaseDirectoryForDataFiles(std::vector<AString>& missingFileNamesO
         }
     }
     
+    const FileInformation fileInfo(getFileName());
+    const AString sceneFilePath = fileInfo.getAbsolutePath().trimmed();
+    
     missingFileNamesOut.insert(missingFileNamesOut.end(),
                                missingFileNames.begin(),
                                missingFileNames.end());
     
-    const std::vector<AString> stringVector(directoryNames.begin(),
-                                            directoryNames.end());
+    const int32_t numDirs = static_cast<int32_t>(directoryNamesUniqueSet.size());
+    if (numDirs <= 0) {
+        /*
+         * if no valid files in scene, user path of scene file.
+         */
+        return sceneFilePath;
+    }
     
     /*
-     * AString::findLongestCommonPrefix finds the longest common prefix of strings (not directories).  
-     * If there are sub-directories beginning with the same characters, the result is not a valid
-     * directory.
-     *
-     * Consider these two files for example:
-     *  /Users/joe/data_workbench/volume_surface_outline_testing/SUB_DIR_SURFACES/Q1-Q6_R440.R.midthickness.32k_fs_LR.surf.gii
-     *  /Users/joe/data_workbench/volume_surface_outline_testing/SUB_DIR_VOLUME/Q1-Q6_R440_AverageT1w_restore.nii.gz
-     *  
-     *  The longest common prefix is: /Users/joe/data_workbench/volume_surface_outline_testing/SUB_DIR_
-     *  but it is not a valid directory as the two right-most sub-directories begin with the same text (SUB_DIR_).
-     *  Taking the parent of this directory results in a valid directory and valid base path:
-     *  /Users/joe/data_workbench/volume_surface_outline_testing
+     * Compare the first directory with all other directories
+     * to find longest common directory path.
+     * Each directory is split into its path components and they
+     * are compared.
      */
-    AString baseDirectoryName = AString::findLongestCommonPrefix(stringVector);
-    
-    if (baseDirectoryName.isEmpty()) {
-        FileInformation fileInfo(getFileName());
-        baseDirectoryName = fileInfo.getAbsolutePath();
-    }
-    else {
-        FileInformation fileInfo(baseDirectoryName);
-        if ( ! fileInfo.exists()) {
-            baseDirectoryName = fileInfo.getAbsolutePath().trimmed();
+    bool firstFlag = true;
+    std::vector<AString> longestPathMatch;
+    for (const auto dirName : directoryNamesUniqueSet) {
+        if (firstFlag) {
+            firstFlag = false;
+            longestPathMatch = AString::stringListToVector(dirName.split(directorySeparator));
+        }
+        else {
+            const std::vector<AString> otherPath = AString::stringListToVector(dirName.split(directorySeparator));
+            const int32_t matchCount = AString::matchingCount(longestPathMatch,
+                                                              otherPath);
+            longestPathMatch.resize(matchCount);
         }
     }
     
-    missingFileNamesOut.clear();
-    missingFileNamesOut.insert(missingFileNamesOut.end(),
-                               missingFileNames.begin(),
-                               missingFileNames.end());
-    
+    AString baseDirectoryName = sceneFilePath;
+    if ( ! longestPathMatch.empty()) {
+        /*
+         * Assemble the path components into a directory.
+         */
+        baseDirectoryName = AString::join(longestPathMatch,
+                                          directorySeparator);
+    }
     return baseDirectoryName;
 }
 
@@ -1015,8 +1034,13 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                         useNameFlag = includeSpecFileFlag;
                     }
                     if (useNameFlag) {
-                        const AString pathName = scenePathName->stringValue().trimmed();
+                        AString pathName = scenePathName->stringValue().trimmed();
                         if ( ! pathName.isEmpty()) {
+                            QFileInfo fileInfo(pathName);
+                            const QString absPathName = fileInfo.absoluteFilePath();
+                            if ( ! absPathName.isEmpty()) {
+                                pathName = absPathName;
+                            }
                             filenamesSet.insert(pathName);
                         }
                     }
@@ -1093,4 +1117,3 @@ SceneFile::clearModified()
         scene->clearModified();
     }
 }
-
