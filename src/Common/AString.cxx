@@ -989,3 +989,83 @@ AString::findLongestCommonPrefix(const std::vector<AString>& stringVector)
     return longestPrefix;
 }
 
+/**
+ * Convert a QStringList to an std::vector of AStrings.
+ *
+ * @param stringList
+ *     The QStringList
+ * @return
+ *     Vector with elements copied from the string list.
+ */
+std::vector<AString>
+AString::stringListToVector(const QStringList& stringList)
+{
+    std::vector<AString> sv(stringList.begin(),
+                            stringList.end());
+    return sv;
+}
+
+/**
+ * Join the elements from the string vector adding 'separator'
+ * between each of the elements.
+ *
+ * @param elements
+ *     Elements joined to form a string.
+ * @param separtor
+ *     Characters added between each pair of elements.
+ */
+AString
+AString::join(const std::vector<AString>& elements,
+              const AString& separator)
+{
+    AString joinedString;
+    
+    const int32_t numElements = static_cast<int32_t>(elements.size());
+    for (int32_t i = 0; i < numElements; i++) {
+        if (i > 0) {
+            joinedString.append(separator);
+        }
+        CaretAssertVectorIndex(elements, i);
+        joinedString.append(elements[i]);
+    }
+    
+    return joinedString;
+}
+
+/**
+ * Count the number of corresponding matching elements from the two vectors.
+ * Compares first element in each, second element in each, etc and stops
+ * when the elements at the same index are different or no more
+ * elements in one of the vectors.
+ *
+ * @param v1
+ *     The first vector.
+ * @param v2
+ *     The second vector.
+ * @return
+ *     Number of matching elements.
+ */
+int32_t
+AString::matchingCount(const std::vector<AString>& v1,
+                       const std::vector<AString>& v2)
+{
+    const int32_t count = std::min(v1.size(),
+                                   v2.size());
+    if (count <= 0) {
+        return 0;
+    }
+    
+    int32_t matchCount = count;
+
+    for (int32_t i = 0; i < count; i++) {
+        CaretAssertVectorIndex(v1, i);
+        CaretAssertVectorIndex(v2, i);
+        if (v1[i] != v2[i]) {
+            matchCount = i;
+            break;
+        }
+    }
+    
+    return matchCount;
+}
+

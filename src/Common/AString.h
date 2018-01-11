@@ -134,6 +134,14 @@ namespace caret {
         
         static AString findLongestCommonPrefix(const std::vector<AString>& v);
         
+        static std::vector<AString> stringListToVector(const QStringList& stringList);
+        
+        static AString join(const std::vector<AString>& elements,
+                            const AString& separator);
+        
+        static int32_t matchingCount(const std::vector<AString>& v1,
+                                     const std::vector<AString>& v2);
+        
     };
 }
 
