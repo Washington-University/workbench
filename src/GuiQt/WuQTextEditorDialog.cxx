@@ -71,6 +71,12 @@ WuQTextEditorDialog::runNonModal(const QString& dialogTitle,
                                                           textMode,
                                                           wrapMode,
                                                           parent);
+    
+    /*
+     * Since dialog is non-modal, setting this attribute
+     * will destroy the dialog when the dialog is closed
+     * and prevent a memory leak.
+     */
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     
     dialog->show();

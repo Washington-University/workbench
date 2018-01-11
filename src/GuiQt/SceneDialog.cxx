@@ -1855,14 +1855,14 @@ SceneDialog::showFileStructure()
                 }
             }
         }
-
+        
         text.append("<li>"
-                               + missingText
-                               + name);
+                    + missingText
+                    + name);
     }
     text.append("</ul>");
     text.append("</html>");
-
+    
     WuQTextEditorDialog::runNonModal("Scene File Paths",
                                      text,
                                      WuQTextEditorDialog::TextMode::HTML,
