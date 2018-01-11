@@ -202,6 +202,7 @@ ELSE()
         WuQSpinBoxGroup.h
         WuQSpinBoxOddValue.h
         WuQTabWidget.h
+	WuQTextEditorDialog.h
         WuQTimedMessageDisplay.h
         WuQTreeWidget.h
         WuQTrueFalseComboBox.h
@@ -437,6 +438,7 @@ WuQSpecialIncrementDoubleSpinBox.h
 WuQSpinBoxGroup.h
 WuQSpinBoxOddValue.h
 WuQTabWidget.h
+WuQTextEditorDialog.h
 WuQTimedMessageDisplay.h
 WuQTreeWidget.h
 WuQTrueFalseComboBox.h
@@ -657,6 +659,7 @@ WuQSpecialIncrementDoubleSpinBox.cxx
 WuQSpinBoxGroup.cxx
 WuQSpinBoxOddValue.cxx
 WuQTabWidget.cxx
+WuQTextEditorDialog.cxx
 WuQTimedMessageDisplay.cxx
 WuQTreeWidget.cxx
 WuQTrueFalseComboBox.cxx
