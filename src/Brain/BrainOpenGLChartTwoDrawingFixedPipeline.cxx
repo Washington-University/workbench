@@ -945,26 +945,26 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineSeriesChart(const Ch
                 if (applyTransformationsFlag) {
                     glTranslatef(m_translation[0],
                                  m_translation[1],
-                                 0.0);
+                                 0.0f);
                     
                     const float chartWidth  = chartGraphicsDrawingViewport[2];
                     const float chartHeight = chartGraphicsDrawingViewport[3];
-                    const float halfWidth   = chartWidth  / 2.0;
-                    const float halfHeight  = chartHeight / 2.0;
+                    const float halfWidth   = chartWidth  / 2.0f;
+                    const float halfHeight  = chartHeight / 2.0f;
                     glTranslatef(halfWidth,
                                  halfHeight,
-                                 0.0);
+                                 0.0f);
                     glScalef(m_zooming,
                              m_zooming,
-                             1.0);
+                             1.0f);
                     glTranslatef(-halfWidth,
                                  -halfHeight,
-                                 0.0);
+                                 0.0f);
                 }
                 
                 if (m_identificationModeFlag) {
                     int32_t primitiveIndex = -1;
-                    float   primitiveDepth = 0.0;
+                    float   primitiveDepth = 0.0f;
                     
                     GraphicsEngineDataOpenGL::drawWithSelection(lineChart.m_chartTwoCartesianData->getGraphicsPrimitive(),
                                                                 m_fixedPipelineDrawing->mouseX,

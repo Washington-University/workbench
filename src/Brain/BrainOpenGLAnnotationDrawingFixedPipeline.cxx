@@ -1137,12 +1137,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     }
     
     const float selectionCenterXYZ[3] = {
-        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
-        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
-        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
+        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0f,
+        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0f,
+        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0f
     };
     
-    if (box->getLineWidthPercentage() <= 0.0) {
+    if (box->getLineWidthPercentage() <= 0.0f) {
         convertObsoleteLineWidthPixelsToPercentageWidth(box);
     }
     
@@ -1154,8 +1154,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     uint8_t foregroundRGBA[4];
     box->getLineColorRGBA(foregroundRGBA);
 
-    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
-    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0);
     const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
     
     bool drawnFlag = false;
@@ -1267,9 +1267,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
     }
     
     const float selectionCenterXYZ[3] = {
-        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
-        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
-        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
+        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0f,
+        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0f,
+        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0f
     };
     
     const bool depthTestFlag = isDrawnWithDepthTesting(colorBar);
@@ -1280,7 +1280,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
     float foregroundRGBA[4];
     colorBar->getLineColorRGBA(foregroundRGBA);
     
-    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0f);
     
     if (m_selectionModeFlag) {
         uint8_t selectionColorRGBA[4];
@@ -1330,8 +1330,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
         float ticksMarksHeightPercent  = totalHeightPercent * 0.10;
         float sectionsHeightPercent    = totalHeightPercent - (ticksMarksHeightPercent - textHeightPercent);
         
-        if (sectionsHeightPercent <= 0.0) {
-            sectionsHeightPercent    = totalHeightPercent * 0.10;
+        if (sectionsHeightPercent <= 0.0f) {
+            sectionsHeightPercent    = totalHeightPercent * 0.10f;
             textHeightPercent = totalHeightPercent - sectionsHeightPercent;
         }
         
@@ -1341,12 +1341,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
          * Text is aligned at the top of the characters
          */
         const float totalHeightPixels = (viewportHeight
-                                         * (totalHeightPercent / 100.0));
+                                         * (totalHeightPercent / 100.0f));
         const float textOffsetFromTopPixels = 2;
         const float textHeightPixels = (viewportHeight
-                                        * (textHeightPercent / 100.0));
+                                        * (textHeightPercent / 100.0f));
         const float tickMarksHeightPixels = (viewportHeight
-                                             * (ticksMarksHeightPercent / 100.0));
+                                             * (ticksMarksHeightPercent / 100.0f));
         const float sectionsHeightPixels = (totalHeightPixels
                                             - (textHeightPixels
                                                + textOffsetFromTopPixels
@@ -1570,8 +1570,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
     const float xBottomLeft = bottomLeft[0];
     const float yBottomLeft = bottomLeft[1];
 
-    float minScalar = 0.0;
-    float maxScalar = 0.0;
+    float minScalar = 0.0f;
+    float maxScalar = 0.0f;
     colorBar->getScalarMinimumAndMaximumValues(minScalar,
                                                maxScalar);
     const float dScalar = maxScalar - minScalar;
@@ -1581,7 +1581,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarSections(const Annotation
         std::cout << qPrintable(QString("minScalar %1, maxScalar %2, dScalar %3").arg(minScalar).arg(maxScalar).arg(dScalar)) << std::endl;
     }
     
-    const float z = 0.0;
+    const float z = 0.0f;
 
     std::unique_ptr<GraphicsPrimitiveV3fC4f> linesPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
     linesPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 1.0f);
@@ -1784,8 +1784,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
         return false;
     }
     
-    const float majorAxis     = ((oval->getWidth()  / 100.0) * (m_modelSpaceViewport[2] / 2.0));
-    const float minorAxis     = ((oval->getHeight() / 100.0) * (m_modelSpaceViewport[3] / 2.0));
+    const float majorAxis     = ((oval->getWidth()  / 100.0f) * (m_modelSpaceViewport[2] / 2.0f));
+    const float minorAxis     = ((oval->getHeight() / 100.0f) * (m_modelSpaceViewport[3] / 2.0f));
     const float rotationAngle = oval->getRotationAngle();
     
     if (oval->getLineWidthPercentage() <= 0.0) {
@@ -1793,9 +1793,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     }
     
     const float selectionCenterXYZ[3] = {
-        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
-        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
-        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
+        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0f,
+        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0f,
+        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0f
     };
     
     const bool depthTestFlag = isDrawnWithDepthTesting(oval);
@@ -1806,8 +1806,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
     uint8_t foregroundRGBA[4];
     oval->getLineColorRGBA(foregroundRGBA);
     
-    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
-    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0);
     const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
     
     bool drawnFlag = false;
@@ -1816,7 +1816,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
         glPushMatrix();
         glTranslatef(annXYZ[0], annXYZ[1], annXYZ[2]);
         if (rotationAngle != 0.0) {
-            glRotatef(-rotationAngle, 0.0, 0.0, 1.0);
+            glRotatef(-rotationAngle, 0.0f, 0.0f, 1.0f);
         }
         
         if (m_selectionModeFlag) {
@@ -2143,9 +2143,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                                                     bottomLeft, bottomRight, topRight, topLeft);
 
     const float selectionCenterXYZ[3] = {
-        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
-        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
-        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
+        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0f,
+        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0f,
+        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0f
     };
 
     const bool depthTestFlag = isDrawnWithDepthTesting(text);
@@ -2158,8 +2158,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     uint8_t textColorRGBA[4];
     text->getTextColorRGBA(textColorRGBA);
     
-    const bool drawTextFlag       = (textColorRGBA[3] > 0.0);
-    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0);
+    const bool drawTextFlag       = (textColorRGBA[3] > 0);
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0f);
     const bool drawAnnotationFlag = (drawBackgroundFlag || drawTextFlag);
     
     bool drawnFlag = false;
@@ -2270,7 +2270,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
              */
             const bool drawCrossFlag = false;
             if (drawCrossFlag) {
-                const float redRGBA[4] = { 1.0f, 0.0, 0.0, 1.0f };
+                const float redRGBA[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
                 std::unique_ptr<GraphicsPrimitiveV3f> crossShape = std::unique_ptr<GraphicsPrimitiveV3f>(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES,
                                                                                                                                             redRGBA));
                 crossShape->addVertex(annXYZ[0],
@@ -2288,7 +2288,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     }
 
     if (percentSizeText != NULL) {
-        if (savedFontPercentViewportHeight > 0.0) {
+        if (savedFontPercentViewportHeight > 0.0f) {
             percentSizeText->setFontPercentViewportSize(savedFontPercentViewportHeight);
             if ( ! modifiedStatus) {
                 percentSizeText->clearModified();
@@ -2350,9 +2350,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
     }
     
     const float selectionCenterXYZ[3] = {
-        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0,
-        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0,
-        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0
+        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0f,
+        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0f,
+        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0f
     };
     
     const bool depthTestFlag = isDrawnWithDepthTesting(image);
@@ -2402,7 +2402,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
             }
 
             if (drawForegroundFlag) {
-                if (image->getLineWidthPercentage() <= 0.0) {
+                if (image->getLineWidthPercentage() <= 0.0f) {
                     convertObsoleteLineWidthPixelsToPercentageWidth(image);
                 }
                 GraphicsShape::drawBoxOutlineFloatColor(bottomLeft, bottomRight, topRight, topLeft,
@@ -2598,9 +2598,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     const float lineWidth = getLineWidthFromPercentageHeight(line->getLineWidthPercentage());
     
     const float selectionCenterXYZ[3] = {
-        (lineHeadXYZ[0] + lineTailXYZ[0]) / 2.0,
-        (lineHeadXYZ[1] + lineTailXYZ[1]) / 2.0,
-        (lineHeadXYZ[2] + lineTailXYZ[2]) / 2.0
+        (lineHeadXYZ[0] + lineTailXYZ[0]) / 2.0f,
+        (lineHeadXYZ[1] + lineTailXYZ[1]) / 2.0f,
+        (lineHeadXYZ[2] + lineTailXYZ[2]) / 2.0f
     };
     
     const bool depthTestFlag = isDrawnWithDepthTesting(line);
@@ -2621,7 +2621,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     uint8_t foregroundRGBA[4];
     line->getLineColorRGBA(foregroundRGBA);
     
-    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0f);
     
     bool drawnFlag = false;
     
@@ -2794,11 +2794,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
         else if (drawOutlineCircleFlag) {
             const float diameter = halfWidthHeight;
             glPushMatrix();
-            glScaled(diameter, diameter, 1.0);
+            glScaled(diameter, diameter, 1.0f);
             GraphicsShape::drawRing(NULL,
                                     m_selectionBoxRGBA,
-                                    0.7,
-                                    1.0);
+                                    0.7f,
+                                    1.0f);
             glPopMatrix();
         }
     }
@@ -2882,9 +2882,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(Ann
     
     if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
         const float midPointXYZ[3] = {
-            (firstPoint[0] + secondPoint[0]) / 2.0,
-            (firstPoint[1] + secondPoint[1]) / 2.0,
-            (firstPoint[2] + secondPoint[2]) / 2.0
+            (firstPoint[0] + secondPoint[0]) / 2.0f,
+            (firstPoint[1] + secondPoint[1]) / 2.0f,
+            (firstPoint[2] + secondPoint[2]) / 2.0f
         };
         drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION,
                          annotationFile,
@@ -2981,7 +2981,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
     MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
     MathFunctions::normalizeVector(heightVector);
 
-    const float innerSpacing = 2.0 + (lineThickness / 2.0);
+    const float innerSpacing = 2.0f + (lineThickness / 2.0f);
         float handleTopLeft[3];
         float handleTopRight[3];
         float handleBottomRight[3];
@@ -3000,27 +3000,27 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
     }
     
     const float handleLeft[3] = {
-        (handleBottomLeft[0] + handleTopLeft[0]) / 2.0,
-        (handleBottomLeft[1] + handleTopLeft[1]) / 2.0,
-        (handleBottomLeft[2] + handleTopLeft[2]) / 2.0,
+        (handleBottomLeft[0] + handleTopLeft[0]) / 2.0f,
+        (handleBottomLeft[1] + handleTopLeft[1]) / 2.0f,
+        (handleBottomLeft[2] + handleTopLeft[2]) / 2.0f,
     };
     
     const float handleRight[3] = {
-        (handleBottomRight[0] + handleTopRight[0]) / 2.0,
-        (handleBottomRight[1] + handleTopRight[1]) / 2.0,
-        (handleBottomRight[2] + handleTopRight[2]) / 2.0,
+        (handleBottomRight[0] + handleTopRight[0]) / 2.0f,
+        (handleBottomRight[1] + handleTopRight[1]) / 2.0f,
+        (handleBottomRight[2] + handleTopRight[2]) / 2.0f,
     };
     
     const float handleBottom[3] = {
-        (handleBottomLeft[0] + handleBottomRight[0]) / 2.0,
-        (handleBottomLeft[1] + handleBottomRight[1]) / 2.0,
-        (handleBottomLeft[2] + handleBottomRight[2]) / 2.0,
+        (handleBottomLeft[0] + handleBottomRight[0]) / 2.0f,
+        (handleBottomLeft[1] + handleBottomRight[1]) / 2.0f,
+        (handleBottomLeft[2] + handleBottomRight[2]) / 2.0f,
     };
     
     const float handleTop[3] = {
-        (handleTopLeft[0] + handleTopRight[0]) / 2.0,
-        (handleTopLeft[1] + handleTopRight[1]) / 2.0,
-        (handleTopLeft[2] + handleTopRight[2]) / 2.0,
+        (handleTopLeft[0] + handleTopRight[0]) / 2.0f,
+        (handleTopLeft[1] + handleTopRight[1]) / 2.0f,
+        (handleTopLeft[2] + handleTopRight[2]) / 2.0f,
     };
     
     const float sizeHandleSize = 5.0;
@@ -3201,7 +3201,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor()
  *     True if the annotation is drawn with depth testing, else false.
  */
 bool
-BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* annotation)
+BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* /*annotation*/)
 {
     return true;
 /*

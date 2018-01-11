@@ -2206,8 +2206,8 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                              * Determine position in triangle using barycentric coordinates
                              */
                             double displayXYZ[3] = { 
-                                this->mouseX,
-                                this->mouseY, 
+                                (double)this->mouseX,
+                                (double)this->mouseY,
                                 0.0 
                             };
                             
@@ -2229,15 +2229,15 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                                  * Convert to surface coordinates
                                  */
                                 const float projectedXYZ[3] = {
-                                    (dc1[0]*areaU + dc2[0]*areaV + dc3[0]*areaW) / totalArea,
-                                    (dc1[1]*areaU + dc2[1]*areaV + dc3[1]*areaW) / totalArea,
-                                    (dc1[2]*areaU + dc2[2]*areaV + dc3[2]*areaW) / totalArea
+                                    (float)((dc1[0]*areaU + dc2[0]*areaV + dc3[0]*areaW) / totalArea),
+                                    (float)((dc1[1]*areaU + dc2[1]*areaV + dc3[1]*areaW) / totalArea),
+                                    (float)((dc1[2]*areaU + dc2[2]*areaV + dc3[2]*areaW) / totalArea)
                                 };
                                 
                                 const float barycentricAreas[3] = {
-                                    areaU,
-                                    areaV,
-                                    areaW
+                                    (float)areaU,
+                                    (float)areaV,
+                                    (float)areaW
                                 };
                                 
                                 const int32_t barycentricNodes[3] = {
@@ -2710,10 +2710,10 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     const uint8_t highlightLastPointRGBA[4]  = { 0, 192, 0, 1 };
     
     const uint8_t solidColorRGBA[4] = {
-        borderDrawInfo.rgba[0] * 255.0f,
-        borderDrawInfo.rgba[1] * 255.0f,
-        borderDrawInfo.rgba[2] * 255.0f,
-        borderDrawInfo.rgba[3] * 255.0f
+        static_cast<uint8_t>(borderDrawInfo.rgba[0] * 255.0f),
+        static_cast<uint8_t>(borderDrawInfo.rgba[1] * 255.0f),
+        static_cast<uint8_t>(borderDrawInfo.rgba[2] * 255.0f),
+        static_cast<uint8_t>(borderDrawInfo.rgba[3] * 255.0f)
     };
     
     std::unique_ptr<GraphicsPrimitiveV3f> pointsPrimitive;
@@ -3210,10 +3210,10 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                         }
                         else {
                             const uint8_t rgbaByte[4] = {
-                                rgbaFloat[0] * 255,
-                                rgbaFloat[1] * 255,
-                                rgbaFloat[2] * 255,
-                                rgbaFloat[3] * 255,
+                                static_cast<uint8_t>(rgbaFloat[0] * 255),
+                                static_cast<uint8_t>(rgbaFloat[1] * 255),
+                                static_cast<uint8_t>(rgbaFloat[2] * 255),
+                                static_cast<uint8_t>(rgbaFloat[3] * 255)
                             };
                             fociPrimitive->addVertex(xyz, rgbaByte);
                         }
@@ -4206,9 +4206,9 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                 };
                 
                 const float halfMagnitudeVector[3] = {
-                    magnitudeVector[0] * 0.5,
-                    magnitudeVector[1] * 0.5,
-                    magnitudeVector[2] * 0.5,
+                    magnitudeVector[0] * 0.5f,
+                    magnitudeVector[1] * 0.5f,
+                    magnitudeVector[2] * 0.5f,
                 };
                 
                 /*

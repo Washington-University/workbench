@@ -1458,7 +1458,7 @@ ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
     transformationMatrix->multiplyPoint3(firstPixel);
     std::cout << "First pixel coord: " << AString::fromNumbers(firstPixel, 3, ",") << std::endl;
     
-    float lastPixel[3] = { width - 1, height - 1, 0 };
+    float lastPixel[3] = { (float)(width - 1), (float)(height - 1), 0.0f };
     transformationMatrix->multiplyPoint3(lastPixel);
     std::cout << "Last pixel coord: " << AString::fromNumbers(lastPixel, 3, ",") << std::endl;
     
@@ -1467,13 +1467,13 @@ ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
         transformationMatrix->multiplyPoint3(bl);
         ControlPoint3D bottomLeft(0, 0, 0, bl[0], bl[1], bl[2]);
         
-        float br[3] = { width - 1.0, 0.0, 0.0 };
+        float br[3] = { (float)(width - 1.0), 0.0, 0.0 };
         transformationMatrix->multiplyPoint3(br);
         ControlPoint3D bottomRight(width - 1.0, 0.0, 0.0, br[0], br[1], br[2]);
         
-        float tr[3] = { width - 1.0, height - 1.0, 0.0 };
+        float tr[3] = { (float)(width - 1.0), (float)(height - 1.0), 0.0 };
         transformationMatrix->multiplyPoint3(tr);
-        ControlPoint3D topRight(width - 1.0, height - 1.0, 0.0, tr[0], tr[1], tr[2]);
+        ControlPoint3D topRight((float)(width - 1.0), (float)(height - 1.0), 0.0, tr[0], tr[1], tr[2]);
         
         ControlPointFile volumeControlPointFile;
         volumeControlPointFile.addControlPoint(bottomLeft);

@@ -373,7 +373,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                          + QString::number(imageHeight));
             }
             
-            int windowViewport[4] = { 0.0, 0.0, imageWidth, imageHeight };
+            int windowViewport[4] = { 0, 0, imageWidth, imageHeight };
             
             float aspectRatio = -1.0;
             const bool windowAspectRatioLocked = browserClass->getBooleanValue("m_aspectRatioLockedStatus");

@@ -2386,20 +2386,20 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                          * Need to account for the quadrants!!!!
                          */
                         const float viewportCenter[3] = {
-                            sliceViewport[0] + sliceViewport[2] / 2,
-                            sliceViewport[1] + sliceViewport[3] / 2,
+                            (float)(sliceViewport[0] + sliceViewport[2] / 2),
+                            ((float)sliceViewport[1] + sliceViewport[3] / 2),
                             0.0
                         };
                         
                         const float oldPos[3] = {
-                            previousMouseX,
-                            previousMouseY,
+                            (float)previousMouseX,
+                            (float)previousMouseY,
                             0.0
                         };
                         
                         const float newPos[3] = {
-                            mouseX,
-                            mouseY,
+                            (float)mouseX,
+                            (float)mouseY,
                             0.0
                         };
                         

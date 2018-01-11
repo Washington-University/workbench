@@ -290,14 +290,14 @@ AnnotationOneDimensionalShape::setRotationAngle(const float viewportWidth,
     getEndCoordinate()->getViewportXY(viewportWidth, viewportHeight, annTwoX, annTwoY);
     
     const float midPointXYZ[3] = {
-        (annOneX + annTwoX) / 2.0,
-        (annOneY + annTwoY) / 2.0,
-        0.0
+        (annOneX + annTwoX) / 2.0f,
+        (annOneY + annTwoY) / 2.0f,
+        0.0f
     };
     
-    const float vpOneXYZ[3] = { annOneX, annOneY, 0.0 };
+    const float vpOneXYZ[3] = { annOneX, annOneY, 0.0f };
     const float lengthMidToOne = MathFunctions::distance3D(midPointXYZ, vpOneXYZ);
-    const float newRotationAngle = 180.0 - rotationAngle;
+    const float newRotationAngle = 180.0f - rotationAngle;
     
     const float angleRadians = MathFunctions::toRadians(newRotationAngle);
     const float dy = lengthMidToOne * std::sin(angleRadians);
@@ -496,12 +496,12 @@ AnnotationOneDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
     float newX2 = xyz2[0];
     float newY2 = xyz2[1];
     
-    const float spaceDX = 100.0 * ((spatialModification.m_viewportWidth != 0.0)
+    const float spaceDX = 100.0f * ((spatialModification.m_viewportWidth != 0.0f)
                                    ? (spatialModification.m_mouseDX / spatialModification.m_viewportWidth)
-                                   : 0.0);
-    const float spaceDY = 100.0 * ((spatialModification.m_viewportHeight != 0.0)
+                                   : 0.0f);
+    const float spaceDY = 100.0f * ((spatialModification.m_viewportHeight != 0.0f)
                                    ? (spatialModification.m_mouseDY / spatialModification.m_viewportHeight)
-                                   : 0.0);
+                                   : 0.0f);
     bool validFlag = false;
     switch (spatialModification.m_sizingHandleType) {
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
