@@ -325,25 +325,19 @@ AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
 {
     bool chartFlag       = false;
     bool tabWindowFlag   = false;
-    bool stereotaxicFlag = false;
-    bool surfaceFlag     = false;
-    bool viewportFlag    = false;
     
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             chartFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            stereotaxicFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            surfaceFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             tabWindowFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            viewportFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             tabWindowFlag = true;
@@ -551,9 +545,9 @@ AnnotationOneDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
                                      vpTwoXYZ);
             
             float vpXYZ[3] = {
-                (vpOneXYZ[0] + vpTwoXYZ[0]) / 2.0,
-                (vpOneXYZ[1] + vpTwoXYZ[1]) / 2.0,
-                (vpOneXYZ[2] + vpTwoXYZ[2]) / 2.0
+                (vpOneXYZ[0] + vpTwoXYZ[0]) / 2.0f,
+                (vpOneXYZ[1] + vpTwoXYZ[1]) / 2.0f,
+                (vpOneXYZ[2] + vpTwoXYZ[2]) / 2.0f
             };
             
             /*

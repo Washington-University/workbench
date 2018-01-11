@@ -3130,9 +3130,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
         };
         
         const float handleRotationLineEnd[3] = {
-            handleOffset[0] + (rotationOffset * 0.75 * heightVector[0] ),
-            handleOffset[1] + (rotationOffset * 0.75 * heightVector[1]),
-            handleOffset[2] + (rotationOffset * 0.75 * heightVector[2])
+            handleOffset[0] + (rotationOffset * 0.75f * heightVector[0] ),
+            handleOffset[1] + (rotationOffset * 0.75f * heightVector[1]),
+            handleOffset[2] + (rotationOffset * 0.75f * heightVector[2])
         };
         
         /*
