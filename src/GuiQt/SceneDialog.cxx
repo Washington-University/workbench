@@ -35,6 +35,8 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QTabWidget>
+#include <QTextDocument>
+#include <QTextEdit>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -82,6 +84,7 @@
 #include "WuQDataEntryDialog.h"
 #include "WuQDialogNonModal.h"
 #include "WuQMessageBox.h"
+#include "WuQTextEditorDialog.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 #include "ZipSceneFileDialog.h"
@@ -1818,16 +1821,17 @@ SceneDialog::showFileStructure()
     }
     
     const AString sceneFileName = sceneFile->getFileName();
-    AString text;
+    AString text("<html>");
     
     std::vector<AString> missingFiles;
-    text.appendWithNewLine("Automatic Base Path: "
-                           + sceneFile->findBaseDirectoryForDataFiles(missingFiles));
-    text.appendWithNewLine("Scene File: "
-                            + sceneFileName);
-    text.append("\n");
-    text.appendWithNewLine("Data File paths relative to Scene File:");
-    
+    text.appendWithNewLine("<b>Automatic Base Path</b>: "
+                           + sceneFile->findBaseDirectoryForDataFiles(missingFiles)
+                           + "<p>");
+    text.appendWithNewLine("<b>Scene File</b>: "
+                           + sceneFileName
+                           + "<p>");
+    text.append("<b>Data File paths relative to Scene File</b>:");
+    text.append("<ul>");
     
     for (auto name : filenames) {
         FileInformation fileInfo(name);
@@ -1852,19 +1856,18 @@ SceneDialog::showFileStructure()
             }
         }
 
-        text.appendWithNewLine("    "
+        text.append("<li>"
                                + missingText
                                + name);
     }
-    
-    WuQDataEntryDialog dialog("All Data Files in Scene File",
-                              this,
-                              false);
-    dialog.addTextEdit("", text, true);
-    dialog.setMinimumWidth(500);
-    
-    dialog.setCancelButtonText("");
-    dialog.exec();
+    text.append("</ul>");
+    text.append("</html>");
+
+    WuQTextEditorDialog::runNonModal("Scene File Paths",
+                                     text,
+                                     WuQTextEditorDialog::TextMode::HTML,
+                                     WuQTextEditorDialog::WrapMode::NO,
+                                     this);
 }
 
 /**
@@ -2102,7 +2105,8 @@ SceneDialog::createSceneFileWidget()
      * File structure buttons
      */
     m_showFileStructurePushButton = new QPushButton("List Files...");
-    m_showFileStructurePushButton->setToolTip("In a dialog, show data files from all scenes");
+    WuQtUtilities::setWordWrappedToolTip(m_showFileStructurePushButton,
+                                         "In a dialog, show data files from all scenes with paths relative to the scene file");
     QObject::connect(m_showFileStructurePushButton, &QPushButton::clicked,
                      this, &SceneDialog::showFileStructure);
     
