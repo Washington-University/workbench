@@ -1343,9 +1343,9 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                 };
                 
                 const float voxelCenter[3] = {
-                    (bottomLeftVoxelCoord[0] + topRightVoxelCoord[0]) * 0.5,
-                    (bottomLeftVoxelCoord[1] + topRightVoxelCoord[1]) * 0.5,
-                    (bottomLeftVoxelCoord[2] + topRightVoxelCoord[2]) * 0.5
+                    (float)((bottomLeftVoxelCoord[0] + topRightVoxelCoord[0]) * 0.5),
+                    (float)((bottomLeftVoxelCoord[1] + topRightVoxelCoord[1]) * 0.5),
+                    (float)((bottomLeftVoxelCoord[2] + topRightVoxelCoord[2]) * 0.5)
                 };
                 
                 
@@ -1990,21 +1990,21 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice_LPI_ONLY(const VolumeSliceVie
          * Setup for drawing the voxels in the slice.
          */
         float startCoordinate[3] = {
-            originX - (voxelStepX / 2.0),
-            originY - (voxelStepY / 2.0),
-            originZ - (voxelStepZ / 2.0)
+            originX - (voxelStepX / 2.0f),
+            originY - (voxelStepY / 2.0f),
+            originZ - (voxelStepZ / 2.0f)
         };
         
         float rowStep[3] = {
-            0.0,
-            0.0,
-            0.0
+            0.0f,
+            0.0f,
+            0.0f
         };
         
         float columnStep[3] = {
-            0.0,
-            0.0,
-            0.0
+            0.0f,
+            0.0f,
+            0.0f
         };
         
         
@@ -3112,9 +3112,9 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
          * Setup for drawing the voxels in the slice.
          */
         float startCoordinate[3] = {
-            firstVoxelXYZ[0] - (voxelStepX / 2.0),
-            firstVoxelXYZ[1] - (voxelStepY / 2.0),
-            firstVoxelXYZ[2] - (voxelStepZ / 2.0)
+            firstVoxelXYZ[0] - (voxelStepX / 2.0f),
+            firstVoxelXYZ[1] - (voxelStepY / 2.0f),
+            firstVoxelXYZ[2] - (voxelStepZ / 2.0f)
         };
         
         float rowStep[3] = {
@@ -4144,7 +4144,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
         xhairPrimitive->addVertex(horizontalAxisEndXYZ, horizontalAxisRGBA);
         xhairPrimitive->addVertex(verticalAxisStartXYZ, verticalAxisRGBA);
         xhairPrimitive->addVertex(verticalAxisEndXYZ, verticalAxisRGBA);
-        xhairPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
+        xhairPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
         GraphicsEngineDataOpenGL::draw(xhairPrimitive.get());
     }
     
@@ -4426,22 +4426,22 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
         const double textMinCoord = -textMaxCoord;
         
         
-        const float axialPlaneMin[3] = { 0.0, 0.0, axisMinCoord };
-        const float axialPlaneMax[3] = { 0.0, 0.0, axisMaxCoord };
-        const double axialTextMin[3]  = { 0.0, 0.0, textMinCoord };
-        const double axialTextMax[3]  = { 0.0, 0.0, textMaxCoord };
+        const float axialPlaneMin[3] = { 0.0, 0.0, (float)axisMinCoord };
+        const float axialPlaneMax[3] = { 0.0, 0.0, (float)axisMaxCoord };
+        const double axialTextMin[3]  = { 0.0, 0.0, (float)textMinCoord };
+        const double axialTextMax[3]  = { 0.0, 0.0, (float)textMaxCoord };
         
-        const float coronalPlaneMin[3] = { axisMinCoord, 0.0, 0.0 };
-        const float coronalPlaneMax[3] = { axisMaxCoord, 0.0, 0.0 };
-        const double coronalTextMin[3]  = { textMinCoord, 0.0, 0.0 };
-        const double coronalTextMax[3]  = { textMaxCoord, 0.0, 0.0 };
+        const float coronalPlaneMin[3] = { (float)axisMinCoord, 0.0, 0.0 };
+        const float coronalPlaneMax[3] = { (float)axisMaxCoord, 0.0, 0.0 };
+        const double coronalTextMin[3]  = { (float)textMinCoord, 0.0, 0.0 };
+        const double coronalTextMax[3]  = { (float)textMaxCoord, 0.0, 0.0 };
         
-        const float paraPlaneMin[3] = { 0.0, axisMinCoord, 0.0 };
-        const float paraPlaneMax[3] = { 0.0, axisMaxCoord, 0.0 };
-        const double paraTextMin[3]  = { 0.0, textMinCoord, 0.0 };
-        const double paraTextMax[3]  = { 0.0, textMaxCoord, 0.0 };
+        const float paraPlaneMin[3] = { 0.0, (float)axisMinCoord, 0.0 };
+        const float paraPlaneMax[3] = { 0.0, (float)axisMaxCoord, 0.0 };
+        const double paraTextMin[3]  = { 0.0, (float)textMinCoord, 0.0 };
+        const double paraTextMax[3]  = { 0.0, (float)textMaxCoord, 0.0 };
         
-        const float axesCrosshairRadius = 1.0;
+        const float axesCrosshairRadius = 1.0f;
         
         if (drawCylindersFlag) {
             m_fixedPipelineDrawing->drawCylinder(blue,

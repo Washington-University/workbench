@@ -1329,9 +1329,9 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
                 };
                 
                 const float voxelCenter[3] = {
-                    (bottomLeftVoxelCoord[0] + topRightVoxelCoord[0]) * 0.5,
-                    (bottomLeftVoxelCoord[1] + topRightVoxelCoord[1]) * 0.5,
-                    (bottomLeftVoxelCoord[2] + topRightVoxelCoord[2]) * 0.5
+                    (float)((bottomLeftVoxelCoord[0] + topRightVoxelCoord[0]) * 0.5),
+                    (float)((bottomLeftVoxelCoord[1] + topRightVoxelCoord[1]) * 0.5),
+                    (float)((bottomLeftVoxelCoord[2] + topRightVoxelCoord[2]) * 0.5)
                 };
                 
                 
@@ -2095,9 +2095,9 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewP
          * Setup for drawing the voxels in the slice.
          */
         float startCoordinate[3] = {
-            originX - (voxelStepX / 2.0),
-            originY - (voxelStepY / 2.0),
-            originZ - (voxelStepZ / 2.0)
+            originX - (voxelStepX / 2.0f),
+            originY - (voxelStepY / 2.0f),
+            originZ - (voxelStepZ / 2.0f)
         };
         
         float rowStep[3] = {
@@ -2402,9 +2402,9 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrthogonalSliceWithCulling(const Volum
          * Setup for drawing the voxels in the slice.
          */
         float startCoordinate[3] = {
-            firstVoxelXYZ[0] - (voxelStepX / 2.0),
-            firstVoxelXYZ[1] - (voxelStepY / 2.0),
-            firstVoxelXYZ[2] - (voxelStepZ / 2.0)
+            firstVoxelXYZ[0] - (voxelStepX / 2.0f),
+            firstVoxelXYZ[1] - (voxelStepY / 2.0f),
+            firstVoxelXYZ[2] - (voxelStepZ / 2.0f)
         };
         
         float rowStep[3] = {
@@ -3295,7 +3295,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         std::unique_ptr<GraphicsPrimitiveV3fC4f> horizHairPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
         horizHairPrimitive->addVertex(horizontalAxisStartXYZ, horizontalAxisRGBA);
         horizHairPrimitive->addVertex(horizontalAxisEndXYZ, horizontalAxisRGBA);
-        horizHairPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
+        horizHairPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
         GraphicsEngineDataOpenGL::draw(horizHairPrimitive.get());
         glPopMatrix();
         
@@ -3304,7 +3304,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         std::unique_ptr<GraphicsPrimitiveV3fC4f> vertHairPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
         vertHairPrimitive->addVertex(verticalAxisStartXYZ, verticalAxisRGBA);
         vertHairPrimitive->addVertex(verticalAxisEndXYZ, verticalAxisRGBA);
-        vertHairPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT, 1.0f);
+        vertHairPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
         GraphicsEngineDataOpenGL::draw(vertHairPrimitive.get());
         glPopMatrix();
     }
@@ -3691,20 +3691,20 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
         const double textMinCoord = -textMaxCoord;
         
         
-        const float axialPlaneMin[3] = { 0.0, 0.0, axisMinCoord };
-        const float axialPlaneMax[3] = { 0.0, 0.0, axisMaxCoord };
-        const double axialTextMin[3]  = { 0.0, 0.0, textMinCoord };
-        const double axialTextMax[3]  = { 0.0, 0.0, textMaxCoord };
+        const float axialPlaneMin[3] = { 0.0, 0.0, (float)axisMinCoord };
+        const float axialPlaneMax[3] = { 0.0, 0.0, (float)axisMaxCoord };
+        const double axialTextMin[3]  = { 0.0, 0.0, (float)textMinCoord };
+        const double axialTextMax[3]  = { 0.0, 0.0, (float)textMaxCoord };
         
-        const float coronalPlaneMin[3] = { axisMinCoord, 0.0, 0.0 };
-        const float coronalPlaneMax[3] = { axisMaxCoord, 0.0, 0.0 };
-        const double coronalTextMin[3]  = { textMinCoord, 0.0, 0.0 };
-        const double coronalTextMax[3]  = { textMaxCoord, 0.0, 0.0 };
+        const float coronalPlaneMin[3] = { (float)axisMinCoord, 0.0, 0.0 };
+        const float coronalPlaneMax[3] = { (float)axisMaxCoord, 0.0, 0.0 };
+        const double coronalTextMin[3]  = { (float)textMinCoord, 0.0, 0.0 };
+        const double coronalTextMax[3]  = { (float)textMaxCoord, 0.0, 0.0 };
         
-        const float paraPlaneMin[3] = { 0.0, axisMinCoord, 0.0 };
-        const float paraPlaneMax[3] = { 0.0, axisMaxCoord, 0.0 };
-        const double paraTextMin[3]  = { 0.0, textMinCoord, 0.0 };
-        const double paraTextMax[3]  = { 0.0, textMaxCoord, 0.0 };
+        const float paraPlaneMin[3] = { 0.0, (float)axisMinCoord, 0.0 };
+        const float paraPlaneMax[3] = { 0.0, (float)axisMaxCoord, 0.0 };
+        const double paraTextMin[3]  = { 0.0, (float)textMinCoord, 0.0 };
+        const double paraTextMax[3]  = { 0.0, (float)textMaxCoord, 0.0 };
         
         /*
          * Set radius as percentage of viewport height
