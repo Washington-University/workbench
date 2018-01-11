@@ -153,6 +153,8 @@ namespace caret {
         int32_t m_parcelScalarFileSelectedColumn[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         int32_t m_parcelSeriesFileSelectedColumn[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
+        static const int32_t ROW_COLUMN_INDEX_BASE_OFFSET = 1;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

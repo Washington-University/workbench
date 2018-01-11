@@ -198,7 +198,7 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                     CaretAssert(numRowParcels == m_numberOfRows);
                     for (int32_t i = 0; i < numRowParcels; i++) {
                         m_rowNames.push_back(rowParcelsMap->getIndexName(i));
-                        m_rowNumberAndNames.push_back("Row " + AString::number(i + 1) + ": " + rowParcelsMap->getIndexName(i));
+                        m_rowNumberAndNames.push_back("Row " + AString::number(i + ROW_COLUMN_INDEX_BASE_OFFSET) + ": " + rowParcelsMap->getIndexName(i));
                     }
                 }
                 else {
@@ -218,7 +218,7 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
             else if (hasRowNumbersFlag) {
                 for (int32_t i = 0; i < m_numberOfRows; i++) {
                     m_rowNames.push_back(AString::number(i));
-                    m_rowNumberAndNames.push_back("Row " + AString::number(i + 1) + ": " + AString::number(i + 1));
+                    m_rowNumberAndNames.push_back("Row " + AString::number(i + ROW_COLUMN_INDEX_BASE_OFFSET) + ": " + AString::number(i + 1));
                 }
             }
         }
@@ -231,7 +231,7 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                     CaretAssert(numColParcels == m_numberOfColumns);
                     for (int32_t i = 0; i < numColParcels; i++) {
                         m_columnNames.push_back(colParcelsMap->getIndexName(i));
-                        m_columnNumberAndNames.push_back("Column " + AString::number(i + 1) + ": " + colParcelsMap->getIndexName(i));
+                        m_columnNumberAndNames.push_back("Column " + AString::number(i + ROW_COLUMN_INDEX_BASE_OFFSET) + ": " + colParcelsMap->getIndexName(i));
                     }
                 }
                 else {
@@ -253,7 +253,7 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 CaretAssert(m_numberOfColumns == numMaps);
                 for (int32_t i = 0; i < numMaps; i++) {
                     m_columnNames.push_back(ciftiMapFile->getMapName(i));
-                    m_columnNumberAndNames.push_back("Column " + AString::number(i + 1) + ": " + ciftiMapFile->getMapName(i));
+                    m_columnNumberAndNames.push_back("Column " + AString::number(i + ROW_COLUMN_INDEX_BASE_OFFSET) + ": " + ciftiMapFile->getMapName(i));
                 }
             }
             
@@ -766,7 +766,7 @@ ChartableTwoFileMatrixChart::getRowName(const int32_t rowIndex) const
             CaretAssertVectorIndex(m_rowNames, rowIndex);
             return m_rowNames[rowIndex];
         }
-        return ("Row: " + AString::number(rowIndex));
+        return ("Row: " + AString::number(rowIndex + ROW_COLUMN_INDEX_BASE_OFFSET));
     }
     
     return "";
@@ -787,7 +787,7 @@ ChartableTwoFileMatrixChart::getColumnName(const int32_t columnIndex) const
             CaretAssertVectorIndex(m_columnNames, columnIndex);
             return m_columnNames[columnIndex];
         }
-        return ("Column: " + AString::number(columnIndex));
+        return ("Column: " + AString::number(columnIndex + ROW_COLUMN_INDEX_BASE_OFFSET));
     }
     
     return "";
@@ -808,7 +808,7 @@ ChartableTwoFileMatrixChart::getRowNumberAndName(const int32_t rowIndex) const
             CaretAssertVectorIndex(m_rowNumberAndNames, rowIndex);
             return m_rowNumberAndNames[rowIndex];
         }
-        return ("Row: " + AString::number(rowIndex));
+        return ("Row: " + AString::number(rowIndex + ROW_COLUMN_INDEX_BASE_OFFSET));
     }
     
     return "";
@@ -829,7 +829,7 @@ ChartableTwoFileMatrixChart::getColumnNumberAndName(const int32_t columnIndex) c
             CaretAssertVectorIndex(m_columnNumberAndNames, columnIndex);
             return m_columnNumberAndNames[columnIndex];
         }
-        return ("Column: " + AString::number(columnIndex));
+        return ("Column: " + AString::number(columnIndex + ROW_COLUMN_INDEX_BASE_OFFSET));
     }
     
     return "";
