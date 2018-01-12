@@ -202,12 +202,12 @@ SurfacePlaneIntersectionToContour::prepareVertices()
             if (signedDistanceToPlane >= 0) {
                 xyz[0] = projectedXYZ[0] + abovePlaneOffset[0];
                 xyz[1] = projectedXYZ[1] + abovePlaneOffset[1];
-                xyz[2] = projectedXYZ[1] + abovePlaneOffset[2];
+                xyz[2] = projectedXYZ[2] + abovePlaneOffset[2];
             }
             else {
                 xyz[0] = projectedXYZ[0] - abovePlaneOffset[0];
                 xyz[1] = projectedXYZ[1] - abovePlaneOffset[1];
-                xyz[2] = projectedXYZ[1] - abovePlaneOffset[2];
+                xyz[2] = projectedXYZ[2] - abovePlaneOffset[2];
             }
         }
         
