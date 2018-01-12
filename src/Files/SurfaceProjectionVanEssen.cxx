@@ -236,9 +236,9 @@ SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
             const float* normalJ = surfaceFile.getNormalVector(pjs);
             
             float avgNormal[3] = {
-                ((normalI[0] + normalJ[0]) / 2.0),
-                ((normalI[1] + normalJ[1]) / 2.0),
-                ((normalI[2] + normalJ[2]) / 2.0),
+                ((normalI[0] + normalJ[0]) / 2.0f),
+                ((normalI[1] + normalJ[1]) / 2.0f),
+                ((normalI[2] + normalJ[2]) / 2.0f),
             };
             MathFunctions::normalizeVector(avgNormal);
             

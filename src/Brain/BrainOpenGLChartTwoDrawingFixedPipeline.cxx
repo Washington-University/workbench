@@ -1240,7 +1240,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawMatrixChartContent(const ChartableT
                                                                 const ChartTwoMatrixTriangularViewingModeEnum::Enum chartViewingType,
                                                                 const float cellWidth,
                                                                 const float cellHeight,
-                                                                const float zooming,
+                                                                const float /*zooming*/,
                                                                 std::vector<MatrixRowColumnHighight*>& rowColumnHighlightingOut)
 {
     GraphicsPrimitiveV3fC4f* matrixPrimitive = matrixChart->getMatrixChartingGraphicsPrimitive(chartViewingType,

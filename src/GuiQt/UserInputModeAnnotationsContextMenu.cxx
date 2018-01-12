@@ -138,13 +138,11 @@ m_newAnnotationCreatedByContextMenu(NULL)
     }
     const bool haveThreeDimCoordAnnotationsFlag = ( ! m_threeDimCoordAnnotations.empty());
 
-    bool oneAnnotationSelectedFlag = false;
     bool oneDeletableAnnotationSelectedFlag = false;
     if (selectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(selectedAnnotations, 0);
         m_annotationFile = selectedAnnotations[0].second;
         m_annotation     = selectedAnnotations[0].first;
-        oneAnnotationSelectedFlag = true;
         if (m_annotation->testProperty(Annotation::Property::DELETION)) {
             oneDeletableAnnotationSelectedFlag = true;
         }

@@ -372,7 +372,7 @@ namespace caret {
                               const float pointDiameter) const;
         
         void getLineWidth(LineWidthType& widthTypeOut,
-                          float lineWidthOut) const;
+                          float& lineWidthOut) const;
         
         void setLineWidth(const LineWidthType widthType,
                           const float lineWidth) const;

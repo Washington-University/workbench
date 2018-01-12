@@ -376,8 +376,7 @@ void
 BrainBrowserWindowToolBarChartTwoAxes::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN) {
-        EventBrowserWindowGraphicsRedrawn* redrawEvent = dynamic_cast<EventBrowserWindowGraphicsRedrawn*>(event);
-        CaretAssert(redrawEvent);
+        CaretAssert(dynamic_cast<EventBrowserWindowGraphicsRedrawn*>(event));
         updateContent(getTabContentFromSelectedTab());
     }
     else {

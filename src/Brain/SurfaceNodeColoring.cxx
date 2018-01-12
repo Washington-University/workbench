@@ -253,7 +253,7 @@ SurfaceNodeColoring::showBrainordinateHighlightRegionOfInterest(const Brain* bra
     const float foregroundColor[4] = {
         static_cast<float>(foregroundColorByte[0]) / 255.0f,
         static_cast<float>(foregroundColorByte[1]) / 255.0f,
-        static_cast<float>(foregroundColorByte[2]) / 255.0,
+        static_cast<float>(foregroundColorByte[2]) / 255.0f,
         1.0f
     };
     

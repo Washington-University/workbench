@@ -1479,10 +1479,10 @@ MathFunctions::vectorIntersection2D(
                    const float p2[2],
                    const float q1[2],
                    const float q2[2],
-                   const float tolerance,
+                   const float /*tolerance*/,
                    float intersectionOut[2])
 {
-    double tol = tolerance;
+//    double tol = tolerance;
     double x1 = p1[0];
     double y1 = p1[1];
     double x2 = p2[0];
@@ -1501,22 +1501,9 @@ MathFunctions::vectorIntersection2D(
         double x = ((a * (x3 - x4)) - (c * (x1 - x2))) / denom;
         double y = ((a * (y3 - y4)) - (c * (y1 - y2))) / denom;
         
-//        double pxMax = std::max(x1, x2) + tol;
-//        double pxMin = std::min(x1, x2) - tol;
-//        double pyMax = std::max(y1, y2) + tol;
-//        double pyMin = std::min(y1, y2) - tol;
-//        
-//        double qxMax = std::max(x3, x4) + tol;
-//        double qxMin = std::min(x3, x4) - tol;
-//        double qyMax = std::max(y3, y4) + tol;
-//        double qyMin = std::min(y3, y4) - tol;
-        
         intersectionOut[0] = (float)x;
         intersectionOut[1] = (float)y;
-//        if ((x >= pxMin) && (x <= pxMax) && (x >= qxMin) && (x <= qxMax) &&
-//            (y >= pyMin) && (y <= pyMax) && (y >= qyMin) && (y <= qyMax)) {
-            return true;
-//        }
+        return true;
     }
     
     return false;

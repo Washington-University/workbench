@@ -662,9 +662,9 @@ BrainBrowserWindowToolBarSliceSelection::readVolumeSliceCoordinatesAndUpdateSlic
     
     if (underlayVolumeFile != NULL) {
         float sliceCoords[3] = {
-            m_volumeIndicesXcoordSpinBox->value(),
-            m_volumeIndicesYcoordSpinBox->value(),
-            m_volumeIndicesZcoordSpinBox->value()
+            (float)m_volumeIndicesXcoordSpinBox->value(),
+            (float)m_volumeIndicesYcoordSpinBox->value(),
+            (float)m_volumeIndicesZcoordSpinBox->value()
         };
         
         btc->selectSlicesAtCoordinate(sliceCoords);

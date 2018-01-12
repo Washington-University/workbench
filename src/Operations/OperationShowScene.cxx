@@ -375,11 +375,11 @@ OperationShowScene::useParameters(OperationParameters* myParams,
             
             int windowViewport[4] = { 0, 0, imageWidth, imageHeight };
             
-            float aspectRatio = -1.0;
-            const bool windowAspectRatioLocked = browserClass->getBooleanValue("m_aspectRatioLockedStatus");
-            if (windowAspectRatioLocked) {
-                aspectRatio = browserClass->getFloatValue("m_aspectRatio", -1.0);
-            }
+//            float aspectRatio = -1.0;
+//            const bool windowAspectRatioLocked = browserClass->getBooleanValue("m_aspectRatioLockedStatus");
+//            if (windowAspectRatioLocked) {
+//                aspectRatio = browserClass->getFloatValue("m_aspectRatio", -1.0);
+//            }
             
             const int windowWidth  = windowViewport[2];
             const int windowHeight = windowViewport[3];

@@ -2763,7 +2763,6 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     
     bool lastPointForLineValidFlag = false;
     float lastPointForLineXYZ[3] = { 0.0f, 0.0f, 0.0f };
-    int32_t lastPointIndex = -1;
     /*
      * Find points valid for this surface
      */
@@ -2881,15 +2880,6 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             }
         }
         
-        /*
-         * Color for point
-         */
-        uint8_t pointRGBA[4] = {
-            solidColorRGBA[0],
-            solidColorRGBA[1],
-            solidColorRGBA[2],
-            solidColorRGBA[3],
-        };
         if (borderDrawInfo.isSelect) {
             uint8_t idRGBA[4];
             this->colorIdentification->addItem(idRGBA,
@@ -2897,7 +2887,6 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                                                borderDrawInfo.borderFileIndex,
                                                borderDrawInfo.borderIndex,
                                                i);
-            pointRGBA[3] = 255;
             
             if (pointsIdentificationPrimitive) {
                 pointsIdentificationPrimitive->addVertex(xyz, idRGBA);
@@ -2934,7 +2923,6 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
         lastPointForLineXYZ[0] = xyz[0];
         lastPointForLineXYZ[1] = xyz[1];
         lastPointForLineXYZ[2] = xyz[2];
-        lastPointIndex = i;
         lastPointForLineValidFlag = true;
     }
     

@@ -162,7 +162,7 @@ CommandClassAddMember::executeOperation(ProgramParameters& parameters)
              * is a class and use a pointer for the class.  However,
              * treat AString and QString as primitive types.
              */
-            bool isEnum   = false;
+            //bool isEnum   = false;
             bool isString = false;
             bool isClass = false;
             const QChar firstDataTypeChar = dataType[0];
@@ -172,7 +172,7 @@ CommandClassAddMember::executeOperation(ProgramParameters& parameters)
                     isString = true;
                 }
                 else if (dataType.endsWith("Enum")) {
-                    isEnum = true;
+                    //isEnum = true;
                 }
                 else {
                     isClass = true;

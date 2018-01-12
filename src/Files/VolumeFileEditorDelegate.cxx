@@ -605,7 +605,7 @@ VolumeFileEditorDelegate::performTurnOnOrOffOblique(const EditInfo& editInfo,
                 
                 float ijkFloat[3];
                 m_volumeFile->spaceToIndex(brushXYZ, ijkFloat);
-                int64_t ijk[3] = { ijkFloat[0], ijkFloat[1], ijkFloat[2] };
+                int64_t ijk[3] = { (int64_t)ijkFloat[0], (int64_t)ijkFloat[1], (int64_t)ijkFloat[2] };
                 modifiedVoxels->addVoxelRedoUndo(ijk,
                                                  redoVoxelValue,
                                                  m_volumeFile->getValue(ijk, editInfo.m_mapIndex));

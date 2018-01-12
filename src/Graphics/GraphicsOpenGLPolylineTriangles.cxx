@@ -923,10 +923,8 @@ GraphicsOpenGLPolylineTriangles::performBevelJoin(const PolylineInfo& polyOne,
     
     int32_t quadOneSideEndVertexIndex = -1;
     int32_t quadTwoSideBeginVertexIndex = -1;
-    bool leftTurnFlag = false;
     switch (turnDirection) {
         case TurnDirection::LEFT:
-            leftTurnFlag = true;
             if (m_debugFlag) std::cout << "   Left Turn" << std::endl;
             
             /*
@@ -940,7 +938,6 @@ GraphicsOpenGLPolylineTriangles::performBevelJoin(const PolylineInfo& polyOne,
             return;
             break;
         case TurnDirection::RIGHT:
-            leftTurnFlag = false;
             if (m_debugFlag) std::cout << "   Right Turn" << std::endl;
             
             /*
@@ -1198,11 +1195,11 @@ GraphicsOpenGLPolylineTriangles::getAverageColorRGBA(const int32_t primitiveVert
      */
     uint8_t rgbaOneByte[4];
     m_primitiveByteColor->getVertexByteRGBA(primitiveVertexOneIndex, rgbaOneByte);
-    float rgbaOne[4] = { rgbaOneByte[0], rgbaOneByte[1], rgbaOneByte[2], rgbaOneByte[3] };
+    float rgbaOne[4] = { (float)rgbaOneByte[0], (float)rgbaOneByte[1], (float)rgbaOneByte[2], (float)rgbaOneByte[3] };
     
     uint8_t rgbaTwoByte[4];
     m_primitiveByteColor->getVertexByteRGBA(primitiveVertexTwoIndex, rgbaTwoByte);
-    float rgbaTwo[4] = { rgbaTwoByte[0], rgbaTwoByte[1], rgbaTwoByte[2], rgbaTwoByte[3] };
+    float rgbaTwo[4] = { (float)rgbaTwoByte[0], (float)rgbaTwoByte[1], (float)rgbaTwoByte[2], (float)rgbaTwoByte[3] };
     
     rgbaOut[0] = static_cast<uint8_t>((rgbaOne[0] + rgbaTwo[0]) / 2.0f);
     rgbaOut[1] = static_cast<uint8_t>((rgbaOne[1] + rgbaTwo[1]) / 2.0f);

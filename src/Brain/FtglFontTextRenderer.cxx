@@ -576,10 +576,10 @@ FtglFontTextRenderer::drawOutline(const double minX,
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     
-    float bottomLeft[3]  = { minX, minY, z };
-    float bottomRight[3] = { maxX, minY, z };
-    float topRight[3]    = { maxX, maxY, z };
-    float topLeft[3]     = { minX, maxY, z };
+    float bottomLeft[3]  = { (float)minX, (float)minY, (float)z };
+    float bottomRight[3] = { (float)maxX, (float)minY, (float)z };
+    float topRight[3]    = { (float)maxX, (float)maxY, (float)z };
+    float topLeft[3]     = { (float)minX, (float)maxY, (float)z };
     expandBox(bottomLeft, bottomRight, topRight, topLeft,
               outlineThickness, outlineThickness);
     

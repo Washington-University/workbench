@@ -1241,6 +1241,17 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
                 }
             }
             
+            if ( ! allValidFlag) {
+                for (std::vector<QSharedPointer<Annotation> >::iterator annPtrIter = movedAnnotations.begin();
+                     annPtrIter != movedAnnotations.end();
+                     annPtrIter++) {
+                    spaceGroup->addAnnotationPrivateSharedPointer(*annPtrIter);
+                }
+                
+                groupingEvent->setErrorMessage("PROGRAM ERROR: Failed to remove an anntotation from its space group.");
+                return;
+            }
+            
             for (std::vector<QSharedPointer<Annotation> >::iterator annPtrIter = movedAnnotations.begin();
                  annPtrIter != movedAnnotations.end();
                  annPtrIter++) {

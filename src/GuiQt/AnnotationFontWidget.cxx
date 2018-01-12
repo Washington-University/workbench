@@ -293,7 +293,7 @@ AnnotationFontWidget::updateFontNameControls()
 {
     if ( ! m_annotationsFontName.empty()) {
         AnnotationTextFontNameEnum::Enum fontName = AnnotationTextFontNameEnum::VERA;
-        bool fontNameValid = true;
+        //bool fontNameValid = true;
         
         const int32_t numAnn = static_cast<int32_t>(m_annotationsFontName.size());
         for (int32_t i = 0; i < numAnn; i++) {
@@ -306,7 +306,7 @@ AnnotationFontWidget::updateFontNameControls()
             }
             else {
                 if (annText->getFont() != fontName) {
-                    fontNameValid = false;
+                    //fontNameValid = false;
                 }
             }
         }

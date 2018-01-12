@@ -364,10 +364,6 @@ DisplayPropertiesAnnotation::restoreVersionOne(const SceneClass* sceneClass)
         surfaceStatusInTab[i] = true;
         tabStatusInTab[i]     = true;
     }
-    bool windowStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
-        windowStatusInTab[i] = true;
-    }
     
     /*
      * Look for version one selections in the scene

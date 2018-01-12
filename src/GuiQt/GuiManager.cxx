@@ -2635,9 +2635,9 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 double doubleXYZ[3];
                 idVoxel->getModelXYZ(doubleXYZ);
                 const float voxelXYZ[3] = {
-                    doubleXYZ[0],
-                    doubleXYZ[1],
-                    doubleXYZ[2]
+                    (float)doubleXYZ[0],
+                    (float)doubleXYZ[1],
+                    (float)doubleXYZ[2]
                 };
                 Surface* surface = brain->getPrimaryAnatomicalSurfaceNearestCoordinate(voxelXYZ,
                                                                                        3.0);

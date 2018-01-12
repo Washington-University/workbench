@@ -262,8 +262,7 @@ DataFileContentCopyMoveDialog::okButtonClicked()
                 if (m_newDestinationFileName.isEmpty()) {
                     throw DataFileException("New file name is empty.");
                 }
-                const CaretDataFile* caretDataFile = dynamic_cast<const CaretDataFile*>(m_sourceDataFileInterface);
-                CaretAssert(caretDataFile);
+                CaretAssert(dynamic_cast<const CaretDataFile*>(m_sourceDataFileInterface));
                 destinationFile = m_sourceDataFileInterface->newInstanceOfDataFile();
                 if (destinationFile == NULL) {
                     throw DataFileException("Failed to created new file.");

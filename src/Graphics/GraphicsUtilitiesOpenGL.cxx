@@ -76,8 +76,8 @@ GraphicsUtilitiesOpenGL::convertMillimetersToPercentageOfViewportHeight(const fl
         const std::array<int32_t, 4> viewport = xform.getViewport();
         
         const float windowZ = 0.0f;
-        float bottomWindowXYZ[3] = { viewport[0], viewport[1], windowZ };
-        float topWindowXYZ[3]    = { viewport[0], viewport[1] + viewport[3], windowZ };
+        float bottomWindowXYZ[3] = { (float)viewport[0], (float)viewport[1], (float)windowZ };
+        float topWindowXYZ[3]    = { (float)viewport[0], (float)(viewport[1] + viewport[3]), (float)windowZ };
         
         float bottomModelXYZ[3];
         float topModelXYZ[3];
@@ -118,8 +118,8 @@ GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(const float pixels)
         const std::array<int32_t, 4> viewport = xform.getViewport();
         
         const float windowZ = 0.0f;
-        float bottomWindowXYZ[3] = { viewport[0], viewport[1], windowZ };
-        float topWindowXYZ[3]    = { viewport[0], viewport[1] + viewport[3], windowZ };
+        float bottomWindowXYZ[3] = { (float)viewport[0], (float)viewport[1], (float)windowZ };
+        float topWindowXYZ[3]    = { (float)viewport[0], (float)(viewport[1] + viewport[3]), (float)windowZ };
         
         float bottomModelXYZ[3];
         float topModelXYZ[3];

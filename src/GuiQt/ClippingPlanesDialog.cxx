@@ -367,21 +367,21 @@ void
 ClippingPlanesDialog::clippingValueChanged()
 {
     const float panning[3] = {
-        m_xPanDoubleSpinBox->value(),
-        m_yPanDoubleSpinBox->value(),
-        m_zPanDoubleSpinBox->value()
+        (float)m_xPanDoubleSpinBox->value(),
+        (float)m_yPanDoubleSpinBox->value(),
+        (float)m_zPanDoubleSpinBox->value()
     };
     
     const float rotation[3] = {
-        m_xRotateDoubleSpinBox->value(),
-        m_yRotateDoubleSpinBox->value(),
-        m_zRotateDoubleSpinBox->value()
+        (float)m_xRotateDoubleSpinBox->value(),
+        (float)m_yRotateDoubleSpinBox->value(),
+        (float)m_zRotateDoubleSpinBox->value()
     };
     
     const float thickness[3] ={
-        m_xThicknessDoubleSpinBox->value(),
-        m_yThicknessDoubleSpinBox->value(),
-        m_zThicknessDoubleSpinBox->value()
+        (float)m_xThicknessDoubleSpinBox->value(),
+        (float)m_yThicknessDoubleSpinBox->value(),
+        (float)m_zThicknessDoubleSpinBox->value()
     };
     
     /*

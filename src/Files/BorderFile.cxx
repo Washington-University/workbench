@@ -888,8 +888,7 @@ BorderFile::findBordersInsideRegionOfInterest(const DisplayGroupEnum::Enum displ
                                               std::vector<pair<int32_t, Border*> >& insideCountAndBorderOut) const
 {
     CaretAssert(surfaceFile);
-    const int32_t surfaceNumberOfNodes = surfaceFile->getNumberOfNodes();
-    CaretAssert(surfaceNumberOfNodes == static_cast<int32_t>(nodesInROI.size()));
+    CaretAssert(surfaceFile->getNumberOfNodes() == static_cast<int32_t>(nodesInROI.size()));
     
     insideCountAndBorderOut.clear();
     

@@ -785,8 +785,8 @@ ChartTwoOverlaySet::receiveEvent(Event* event)
          * The events intended for overlays are received here so that
          * only DISPLAYED overlays are updated.
          */
-        EventAnnotationChartLabelGet* chartLabelEvent = dynamic_cast<EventAnnotationChartLabelGet*>(event);
-        CaretAssert(chartLabelEvent);
+        //EventAnnotationChartLabelGet* chartLabelEvent = dynamic_cast<EventAnnotationChartLabelGet*>(event);
+        //CaretAssert(chartLabelEvent);
         
         //chartLabelEvent->addAnnotationChartLabel(m_chartTitle.get());
     }

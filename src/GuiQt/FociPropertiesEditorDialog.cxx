@@ -652,9 +652,9 @@ FociPropertiesEditorDialog::loadFromDialogIntoFocusData(Focus* focus) const
     focus->setName(m_nameComboBox->getSelectedLabelName());
     focus->setClassName(m_classComboBox->getSelectedLabelName());
     const float xyz[3] = {
-        m_xCoordSpinBox->value(),
-        m_yCoordSpinBox->value(),
-        m_zCoordSpinBox->value()
+        (float)m_xCoordSpinBox->value(),
+        (float)m_yCoordSpinBox->value(),
+        (float)m_zCoordSpinBox->value()
     };
     CaretAssert(focus->getNumberOfProjections() > 0);
     focus->getProjection(0)->setStereotaxicXYZ(xyz);

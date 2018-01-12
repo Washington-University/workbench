@@ -943,9 +943,9 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
     uint8_t highlightRGBByte[3];
     prefs->getBackgroundAndForegroundColors()->getColorForegroundChartView(highlightRGBByte);
     const float highlightRGB[3] = {
-        highlightRGBByte[0] / 255.0,
-        highlightRGBByte[1] / 255.0,
-        highlightRGBByte[2] / 255.0
+        highlightRGBByte[0] / 255.0f,
+        highlightRGBByte[1] / 255.0f,
+        highlightRGBByte[2] / 255.0f
     };
     
     int32_t numberOfRows = 0;

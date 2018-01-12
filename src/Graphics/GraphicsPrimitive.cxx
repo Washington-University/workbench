@@ -1376,7 +1376,7 @@ GraphicsPrimitive::setPointDiameter(const PointSizeType sizeType,
  */
 void
 GraphicsPrimitive::getLineWidth(LineWidthType& widthTypeOut,
-                                float lineWidthOut) const
+                                float& lineWidthOut) const
 {
     widthTypeOut = m_lineWidthType;
     lineWidthOut = m_lineWidthValue;

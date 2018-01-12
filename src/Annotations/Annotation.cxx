@@ -1144,8 +1144,7 @@ Annotation::initializeProperties()
     /*
      * Initialize all properties on/supported
      */
-    const int32_t propertyCount = static_cast<std::underlying_type<Property>::type>(Property::COUNT_FOR_BITSET);
-    CaretAssert(m_properties.size() >= propertyCount);
+    CaretAssert(m_properties.size() >= static_cast<std::underlying_type<Property>::type>(Property::COUNT_FOR_BITSET));
     m_properties.set();
     
     bool colorBarFlag = false;

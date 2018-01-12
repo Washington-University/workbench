@@ -121,11 +121,6 @@ AnnotationLineArrowTipsWidget::updateContent(std::vector<AnnotationLine*>& annot
         }
     }
     
-    AnnotationLine* line = NULL;
-    if ( ! annotationLines.empty()) {
-        line = annotationLines[0];
-    }
-
     bool allStartOnFlag = true;
     bool allEndOnFlag   = true;
     
