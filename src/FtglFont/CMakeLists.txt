@@ -6,6 +6,9 @@ PROJECT (Ftgl)
 #
 # Add QT for includes
 #
+if(Qt5_FOUND)
+    include_directories(${Qt5Core_INCLUDE_DIRS})
+endif()
 IF (QT4_FOUND)
     SET(QT_DONT_USE_QTGUI)
     INCLUDE(${QT_USE_FILE})
@@ -106,6 +109,7 @@ FTVectoriser.cpp
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Common
+${CMAKE_SOURCE_DIR}/Graphics
 ${FREETYPE_INCLUDE_DIR_ft2build}
 ${FREETYPE_INCLUDE_DIR_freetype2}
 ${CMAKE_SOURCE_DIR}/FtglFont

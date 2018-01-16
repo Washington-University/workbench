@@ -29,6 +29,8 @@
 
 namespace caret {
 
+    class GraphicsOpenGLError;
+    
     class GraphicsUtilitiesOpenGL : public CaretObject {
         
     public:
@@ -36,6 +38,10 @@ namespace caret {
         static float convertMillimetersToPercentageOfViewportHeight(const float millimeters);
         
         static float convertPixelsToMillimeters(const float pixels);
+        
+        static void resetOpenGLError();
+        
+        static std::unique_ptr<GraphicsOpenGLError> getOpenGLError(const AString& message = "");
         
     private:
         GraphicsUtilitiesOpenGL();

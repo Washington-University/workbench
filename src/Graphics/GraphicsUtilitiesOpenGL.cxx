@@ -27,6 +27,8 @@
 #include <cmath>
 
 #include "CaretAssert.h"
+#include "CaretOpenGLInclude.h"
+#include "GraphicsOpenGLError.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "MathFunctions.h"
@@ -138,6 +140,43 @@ GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(const float pixels)
     }
 
     return mm;
+}
+
+/**
+ * Reset and ignore any OpenGL errors.
+ */
+void
+GraphicsUtilitiesOpenGL::resetOpenGLError()
+{
+    GLenum errorCode = glGetError();
+    while (errorCode != GL_NO_ERROR) {
+        errorCode = glGetError();
+    }
+}
+
+/**
+ * @return Pointer to OpenGL Error Information.
+ * If the pointer is not valid, there is no error.
+ *
+ * @param message
+ *    Optional message added to the OpenGL error
+ */
+std::unique_ptr<GraphicsOpenGLError>
+GraphicsUtilitiesOpenGL::getOpenGLError(const AString& message)
+{
+    std::unique_ptr<GraphicsOpenGLError> errorInfo;
+    
+    GLenum errorCode = glGetError();
+    while (errorCode != GL_NO_ERROR) {
+        if ( ! errorInfo) {
+            errorInfo.reset(new GraphicsOpenGLError(message));
+        }
+        errorInfo->addError(errorCode);
+        
+        errorCode = glGetError();
+    }
+    
+    return errorInfo;
 }
 
 

@@ -16,6 +16,7 @@ EventOpenGLObjectToWindowTransform.h
 GraphicsEngineData.h
 GraphicsEngineDataOpenGL.h
 GraphicsOpenGLBufferObject.h
+GraphicsOpenGLError.h
 GraphicsOpenGLPolylineTriangles.h
 GraphicsOpenGLTextureName.h
 GraphicsPrimitive.h
@@ -36,6 +37,7 @@ EventOpenGLObjectToWindowTransform.cxx
 GraphicsEngineData.cxx
 GraphicsEngineDataOpenGL.cxx
 GraphicsOpenGLBufferObject.cxx
+GraphicsOpenGLError.cxx
 GraphicsOpenGLPolylineTriangles.cxx
 GraphicsOpenGLTextureName.cxx
 GraphicsPrimitive.cxx

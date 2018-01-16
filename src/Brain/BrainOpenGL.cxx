@@ -40,7 +40,9 @@
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "EventManager.h"
 #include "GraphicsOpenGLBufferObject.h"
+#include "GraphicsOpenGLError.h"
 #include "GraphicsOpenGLTextureName.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "Model.h"
 #include "SessionManager.h"
 
@@ -1225,7 +1227,7 @@ AString BrainOpenGL::getOpenGLEnabledEnumAsText(const AString& enumName,
     /*
      * Reset error status
      */
-    glGetError();
+    GraphicsUtilitiesOpenGL::resetOpenGLError();
     
     GLboolean boolValue= glIsEnabled(enumValue);
     
@@ -1234,7 +1236,7 @@ AString BrainOpenGL::getOpenGLEnabledEnumAsText(const AString& enumName,
     if (errorCode != GL_NO_ERROR) {
         const GLubyte* errorChars = gluErrorString(errorCode);
         if (errorChars != NULL) {
-            errorText = ("ERROR = "
+            errorText = ("ERROR failed to glIsEnabled() value.  Reason: "
                          + AString((char*)errorChars));
         }
     }
@@ -1264,7 +1266,7 @@ AString BrainOpenGL::getOpenGLBooleanAsText(const AString& enumName,
     /*
      * Reset error status
      */
-    glGetError();
+    GraphicsUtilitiesOpenGL::resetOpenGLError();
     
     GLboolean boolValue = GL_FALSE;
     glGetBooleanv(enumValue, &boolValue);
@@ -1274,7 +1276,7 @@ AString BrainOpenGL::getOpenGLBooleanAsText(const AString& enumName,
     if (errorCode != GL_NO_ERROR) {
         const GLubyte* errorChars = gluErrorString(errorCode);
         if (errorChars != NULL) {
-            errorText = ("ERROR = "
+            errorText = ("ERROR failed to glGetBooleanv() value.  Reason: "
                          + AString((char*)errorChars));
         }
     }
@@ -1307,7 +1309,7 @@ AString BrainOpenGL::getOpenGLFloatAsText(const AString& enumName,
     /*
      * Reset error status
      */
-    glGetError();
+    GraphicsUtilitiesOpenGL::resetOpenGLError();
     
     AString valuesString;
     
@@ -1321,7 +1323,7 @@ AString BrainOpenGL::getOpenGLFloatAsText(const AString& enumName,
         if (errorCode != GL_NO_ERROR) {
             const GLubyte* errorChars = gluErrorString(errorCode);
             if (errorChars != NULL) {
-                valuesString = ("ERROR = "
+                valuesString = ("ERROR failed to glGetFloatv() value.  Reason: "
                              + AString((char*)errorChars));
             }
         }
@@ -1361,7 +1363,7 @@ AString BrainOpenGL::getOpenGLLightAsText(const AString& enumName,
     /*
      * Reset error status
      */
-    glGetError();
+    GraphicsUtilitiesOpenGL::resetOpenGLError();
     
     AString valuesString;
     
@@ -1377,7 +1379,7 @@ AString BrainOpenGL::getOpenGLLightAsText(const AString& enumName,
         if (errorCode != GL_NO_ERROR) {
             const GLubyte* errorChars = gluErrorString(errorCode);
             if (errorChars != NULL) {
-                valuesString = ("ERROR = "
+                valuesString = ("ERROR failed to get glGetLightfv() value.  Reason "
                                 + AString((char*)errorChars));
             }
         }
@@ -1438,61 +1440,24 @@ BrainOpenGL::testForOpenGLError(const AString& message,
                                 const int32_t windowIndex,
                                 const int32_t tabIndex)
 {
-    GLenum errorCode = glGetError();
-    if (errorCode != GL_NO_ERROR) {
+    std::unique_ptr<GraphicsOpenGLError> openglError = GraphicsUtilitiesOpenGL::getOpenGLError();
+    if (openglError) {
         AString msg;
         if ( ! message.isEmpty()) {
             msg.appendWithNewLine(message);
         }
-        msg += ("OpenGL Error: " + AString((char*)gluErrorString(errorCode)) + "\n");
-        msg += ("OpenGL Version: " + AString((char*)glGetString(GL_VERSION)) + "\n");
-        msg += ("OpenGL Vendor:  " + AString((char*)glGetString(GL_VENDOR)) + "\n");
         if (model != NULL) {
-            msg += ("While drawing brain model " + model->getNameForGUI(true) + "\n");
+            msg.appendWithNewLine("While drawing brain model " + model->getNameForGUI(true));
         }
         if (windowIndex >= 0) {
-            msg += ("In window number " + AString::number(windowIndex) + "\n");
+            msg.appendWithNewLine("In window number " + AString::number(windowIndex));
         }
         if (tabIndex >= 0) {
-            msg += ("In tab number " + AString::number(tabIndex) + "\n");
+            msg.appendWithNewLine("In tab number " + AString::number(tabIndex));
         }
         
-        GLint maxNameStackDepth, maxModelStackDepth, maxProjStackDepth;
-        glGetIntegerv(GL_MAX_PROJECTION_STACK_DEPTH,
-                      &maxProjStackDepth);
-        glGetIntegerv(GL_MAX_MODELVIEW_STACK_DEPTH,
-                      &maxModelStackDepth);
-        glGetIntegerv(GL_MAX_NAME_STACK_DEPTH,
-                      &maxNameStackDepth);
+        msg.appendWithNewLine(openglError->getVerboseDescription());
         
-        GLint nameStackDepth, modelStackDepth, projStackDepth;
-        glGetIntegerv(GL_PROJECTION_STACK_DEPTH,
-                      &projStackDepth);
-        glGetIntegerv(GL_MODELVIEW_STACK_DEPTH,
-                      &modelStackDepth);
-        glGetIntegerv(GL_NAME_STACK_DEPTH,
-                      &nameStackDepth);
-        
-        msg += ("Projection Matrix Stack Depth "
-                + AString::number(projStackDepth)
-                + "  Max Depth "
-                + AString::number(maxProjStackDepth)
-                + "\n");
-        msg += ("Model Matrix Stack Depth "
-                + AString::number(modelStackDepth)
-                + "  Max Depth "
-                + AString::number(maxModelStackDepth)
-                + "\n");
-        msg += ("Name Matrix Stack Depth "
-                + AString::number(nameStackDepth)
-                + "  Max Depth "
-                + AString::number(maxNameStackDepth)
-                + "\n");
-        SystemBacktrace myBacktrace;
-        SystemUtilities::getBackTrace(myBacktrace);
-        msg += ("Backtrace:\n"
-                + myBacktrace.toSymbolString()
-                + "\n");
         CaretLogSevere(msg);
     }
 }

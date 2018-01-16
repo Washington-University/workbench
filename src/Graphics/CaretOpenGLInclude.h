@@ -24,7 +24,7 @@
 /**
  * \file CaretOpenGLInclude.h
  * \brief Contains OpenGL include declarations that work for all operating systems.
- * \ingroup Brain
+ * \ingroup Common
  */
 
 /*

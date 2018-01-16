@@ -80,7 +80,9 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
+#include "GraphicsOpenGLError.h"
 #include "GraphicsShape.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 
@@ -801,11 +803,8 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
         return;
     }
     
-    GLenum errorCode = glGetError();
-    if (errorCode != GL_NO_ERROR) {
-        CaretLogWarning("OpenGL Error at begininng of FtglFontTextRenderer::getBoundsForTextAtViewportCoords(): "
-                        + AString((char*)gluErrorString(errorCode)));
-    }
+    BrainOpenGL::testForOpenGLError("At begininng of FtglFontTextRenderer::getBoundsForTextAtViewportCoords() while "
+                                    "drawing text " + annotationText.getText());
     
     if (annotationText.getLineWidthPercentage() <= 0.0f) {
         annotationText.convertObsoleteLineWidthPixelsToPercentageWidth(m_viewportHeight);
@@ -828,15 +827,20 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
                                       topLeftOut,
                                       rotationPointXYZ);
     
-    errorCode = glGetError();
-    if (errorCode != GL_NO_ERROR) {
+    std::unique_ptr<GraphicsOpenGLError> openglError = GraphicsUtilitiesOpenGL::getOpenGLError();
+    if (openglError) {
         AString sizeMessage;
+        sizeMessage.appendWithNewLine("At end of FtglFontTextRenderer::getBoundsForTextAtViewportCoords().");
+        sizeMessage.appendWithNewLine("    Error may be caused by font size that is too small.");
+        sizeMessage.appendWithNewLine("    Error may also occur with particular characters in a font.");
+        sizeMessage.appendWithNewLine("    Text that caused error: \"" + annotationText.getText() + "\"");
+        
         switch (annotationText.getFontSizeType()) {
             case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
             {
                 const float percentSize = annotationText.getFontPercentViewportSize();
                 const float fontHeight  = (percentSize / 100.0f) * viewportHeight;
-                sizeMessage = ("Percent of viewport height="
+                sizeMessage.appendWithNewLine("    Percent of viewport height="
                                + AString::number(percentSize, 'f', 2)
                                + "%, viewport height=" + AString::number(viewportHeight)
                                + " approximage font height=" + AString::number(fontHeight, 'f', 2));
@@ -846,24 +850,21 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
             {
                 const float percentSize = annotationText.getFontPercentViewportSize();
                 const float fontHeight  = (percentSize / 100.0f) * viewportWidth;
-                sizeMessage = ("Percent of viewport width="
+                sizeMessage.appendWithNewLine("    Percent of viewport width="
                                + AString::number(percentSize, 'f', 2)
                                + "%, viewport width=" + AString::number(viewportWidth)
                                + " approximage font height=" + AString::number(fontHeight, 'f', 2));
             }
                 break;
             case AnnotationTextFontSizeTypeEnum::POINTS:
-                sizeMessage = ("Font Size="
+                sizeMessage.appendWithNewLine("    Font Size="
                                + AnnotationTextFontNameEnum::toGuiName(annotationText.getFont()));
                 break;
         }
         
-        CaretLogWarning("OpenGL error at end of FtglFontTextRenderer::getBoundsForTextAtViewportCoords(), "
-                        "error may be caused by font size that is too small.  Error may also occur with "
-                        "particular characters in a font.\n"
-                        "   Rendering text: " + annotationText.getText() + "\n"
-                        "   " + sizeMessage + "\n"
-                        "   OpenGL Error=" + AString((char*)gluErrorString(errorCode)));
+        sizeMessage.appendWithNewLine(openglError->getVerboseDescription());
+        
+        CaretLogWarning(sizeMessage);
     }
 }
 
