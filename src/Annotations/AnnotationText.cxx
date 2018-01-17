@@ -879,6 +879,24 @@ AnnotationText::setFontPercentViewportSizeProtected(const float fontPercentViewp
 }
 
 /**
+ * @return Is the font too small when it is last drawn
+ * that may cause an OpenGL error and, as a result,
+ * the text is not seen by the user.
+ */
+bool
+AnnotationText::isFontTooSmallWhenLastDrawn() const
+{
+    return m_fontTooSmallWhenLastDrawnFlag;
+}
+
+void
+AnnotationText::setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const
+{
+    m_fontTooSmallWhenLastDrawnFlag = tooSmallFontFlag;
+}
+
+
+/**
  * Apply a spatial modification to an annotation.
  *
  * @param spatialModification

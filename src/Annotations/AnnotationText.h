@@ -36,6 +36,14 @@ namespace caret {
     class AnnotationText : public AnnotationTwoDimensionalShape, public AnnotationFontAttributesInterface {
         
     public:
+        /**
+         * @return The "too small" text size.
+         *
+         * When the text is smaller than this font height, either all of the
+         * text string may not be drawn or just particular characters
+         */
+        static uint32_t getTooSmallTextHeight() { return 8; }
+        
         virtual ~AnnotationText();
         
         AnnotationText(const AnnotationText& obj);
@@ -71,6 +79,10 @@ namespace caret {
         
         int32_t getFontSizeForDrawing(const int32_t drawingViewportWidth,
                                       const int32_t drawingViewportHeight) const;
+
+        bool isFontTooSmallWhenLastDrawn() const;
+        
+        void setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const;
         
         AnnotationTextFontSizeTypeEnum::Enum getFontSizeType() const;
         
@@ -210,6 +222,8 @@ namespace caret {
         bool m_italicEnabled;
         
         bool m_underlineEnabled;
+        
+        mutable bool m_fontTooSmallWhenLastDrawnFlag = false;
         
         // Defaults
         static AnnotationTextAlignHorizontalEnum::Enum  s_userDefaultAlignmentHorizontal;

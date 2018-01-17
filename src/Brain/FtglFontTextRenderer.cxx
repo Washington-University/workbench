@@ -217,6 +217,13 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
     if (fontIter != m_fontNameToFontMap.end()) {
         FontData* fontData = fontIter->second;
         CaretAssert(fontData);
+        
+        /*
+         * Set font "too small" status
+         */
+        const bool tooSmallFlag = (fontData->m_font->FaceSize() <= AnnotationText::getTooSmallTextHeight());
+        annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag);
+        
         return fontData->m_font;
     }
     
@@ -234,6 +241,13 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
                                                   fontData));
         CaretLogFine("Created font with encoded name "
                      + fontName);
+        
+        /*
+         * Set font "too small" status
+         */
+        const bool tooSmallFlag = (fontData->m_font->FaceSize() <= AnnotationText::getTooSmallTextHeight());
+        annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag);
+
         return fontData->m_font;
     }
     else {
@@ -266,6 +280,7 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
     /*
      * Failed so use the default font.
      */
+    annotationText.setFontTooSmallWhenLastDrawn(false);
     return m_defaultFont;
     
 #else  // HAVE_FREETYPE
@@ -316,6 +331,9 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
     if (! font) {
         return;
     }
+
+//    const bool tooSmallFlag = (font->FaceSize() <= s_tooSmallFontSize);
+//    annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag);
     
     if (annotationText.getText().isEmpty()) {
         return;
@@ -733,6 +751,9 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
     if ( ! font) {
         return;
     }
+    
+//    const bool tooSmallFlag = (font->FaceSize() < s_tooSmallFontSize);
+//    annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag);
     
     m_depthTestingStatus = depthTesting;
     

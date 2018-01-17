@@ -74,7 +74,8 @@ namespace caret {
         AnnotationFontWidget& operator=(const AnnotationFontWidget&);
         
         void updateFontSizeSpinBox(const float value,
-                                   const bool haveMultipleValuesFlag);
+                                   const bool haveMultipleValuesFlag,
+                                   const bool tooSmallFontFlag);
         
         void updateTextColorButton();
         
@@ -95,6 +96,10 @@ namespace caret {
         EnumComboBoxTemplate* m_fontNameComboBox;
 
         WuQDoubleSpinBox* m_fontSizeSpinBox;
+        
+        QPalette m_fontSizeSpinBoxDefaultPalette;
+        
+        QPalette m_fontSizeSpinBoxRedTextPalette;
         
         QToolButton* m_textColorToolButton;
         

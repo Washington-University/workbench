@@ -93,12 +93,37 @@ m_browserWindowIndex(browserWindowIndex)
     /*
      * Combo box for font size
      */
+    const AString fontSizeToolTop("<html>"
+                                  "Adjusts font height (size), as a percentage of the viewport height, that is  "
+                                  "converted to a pixel height when the text is drawn.  "
+                                  "<p>"
+                                  "The numeric value in this control will be <font color=\"red\">RED</font> "
+                                  "when the pixel height is estimated to be <i>too small</i> and some or all "
+                                  "characters may not be drawn.  "
+                                  "Reducing the height of the text and/or the height of the window may cause "
+                                  "<i>too small</i> text.  "
+                                  "</html>");
     m_fontSizeSpinBox = new WuQDoubleSpinBox(this);
     m_fontSizeSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_fontSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(fontSizeChanged()));
     WuQtUtilities::setToolTipAndStatusTip(m_fontSizeSpinBox->getWidget(),
-                                          "Change font size (height) as percentage, zero to one-hundred, of viewport height");
+                                          fontSizeToolTop);
+    
+    /*
+     * Default palette for size spin box
+     */
+    m_fontSizeSpinBoxDefaultPalette = m_fontSizeSpinBox->getWidget()->palette();
+    
+    /*
+     * Palette for spin box that colors text in red when the font height is "too small"
+     */
+    m_fontSizeSpinBoxRedTextPalette = m_fontSizeSpinBoxDefaultPalette;
+    QBrush brush = m_fontSizeSpinBoxRedTextPalette.brush(QPalette::Active, QPalette::Text);
+    brush.setColor(Qt::red);
+    m_fontSizeSpinBoxRedTextPalette.setBrush(QPalette::Active, QPalette::Text, brush);
+    m_fontSizeSpinBoxRedTextPalette.setBrush(QPalette::Active, QPalette::WindowText, brush);
+    m_fontSizeSpinBoxRedTextPalette.setBrush(QPalette::Active, QPalette::HighlightedText, brush);
 
     /*
      * Text color menu
@@ -329,6 +354,7 @@ AnnotationFontWidget::updateFontSizeControls()
         
         const float surfaceMontageRowCount = getSurfaceMontageRowCount();
         
+        bool tooSmallFlag = false;
         const int32_t numAnn = static_cast<int32_t>(m_annotationsFontSize.size());
         for (int32_t i = 0; i < numAnn; i++) {
             CaretAssertVectorIndex(m_annotationsFontSize, i);
@@ -366,10 +392,18 @@ AnnotationFontWidget::updateFontSizeControls()
                                              sizeValue);
                 }
             }
+            
+            const AnnotationText* textAnnotation = dynamic_cast<AnnotationText*>(annText);
+            if (textAnnotation != NULL) {
+                if (textAnnotation->isFontTooSmallWhenLastDrawn()) {
+                    tooSmallFlag = true;
+                }
+            }
         }
         
         updateFontSizeSpinBox(fontSizeValue,
-                              haveMultipleFontSizeValues);
+                              haveMultipleFontSizeValues,
+                              tooSmallFlag);
         
         AnnotationText::setUserDefaultFontPercentViewportSize(fontSizeValue);
     }
@@ -442,16 +476,39 @@ AnnotationFontWidget::updateFontStyleControls()
  * @param haveMultipleValuesFlag
  *     If true, there are multiple font size values so indicate
  *     this with a '+' sign as a suffix
+ * @param tooSmallFontFlag
+ *     If true, the font may be too small as detected by the
+ *     graphics drawing code.
  */
 void
 AnnotationFontWidget::updateFontSizeSpinBox(const float value,
-                                            const bool haveMultipleValuesFlag)
+                                            const bool haveMultipleValuesFlag,
+                                            const bool tooSmallFontFlag)
 {
+    QSignalBlocker blocker(m_fontSizeSpinBox->getWidget());
     m_fontSizeSpinBox->setValue(value);
+
+    if (tooSmallFontFlag) {
+        m_fontSizeSpinBox->getWidget()->setPalette(m_fontSizeSpinBoxRedTextPalette);
+    }
+    else {
+        m_fontSizeSpinBox->getWidget()->setPalette(m_fontSizeSpinBoxDefaultPalette);
+    }
+
     QString fontSizeSuffix("%");
     if (haveMultipleValuesFlag) {
         fontSizeSuffix = "%+";
     }
+    m_fontSizeSpinBox->setValue(value);
+    m_fontSizeSpinBox->setSuffix(fontSizeSuffix);
+    
+//    if (tooSmallFontFlag) {
+//        m_fontSizeSpinBox->getWidget()->setPalette(m_fontSizeSpinBoxRedTextPalette);
+//    }
+//    else {
+//        m_fontSizeSpinBox->getWidget()->setPalette(m_fontSizeSpinBoxDefaultPalette);
+//    }
+//    m_fontSizeSpinBox->setValue(value);
 }
 
 /**
@@ -729,6 +786,12 @@ AnnotationFontWidget::fontSizeChanged()
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+    /*
+     * "Font too small" status is set while drawing so need
+     * to update the size spin box AFTER the graphics update
+     */
+    updateFontSizeControls();
 }
 
 /**
