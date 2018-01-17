@@ -28,6 +28,7 @@
 
 #include "AnnotationWidgetParentEnum.h"
 #include "CaretColorEnum.h"
+#include "EventListenerInterface.h"
 
 class QToolButton;
 
@@ -40,7 +41,7 @@ namespace caret {
     class EnumComboBoxTemplate;
     class WuQDoubleSpinBox;
     
-    class AnnotationFontWidget : public QWidget {
+    class AnnotationFontWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -53,6 +54,8 @@ namespace caret {
 
         void updateContent(std::vector<AnnotationFontAttributesInterface*>& annotations);
 
+        virtual void receiveEvent(Event* event) override;
+        
         // ADD_NEW_METHODS_HERE
         
     private slots:

@@ -42,6 +42,7 @@
 #include "CaretAssert.h"
 #include "CaretColorEnumMenu.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -256,6 +257,8 @@ m_browserWindowIndex(browserWindowIndex)
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
+
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
 }
 
 /**
@@ -263,6 +266,28 @@ m_browserWindowIndex(browserWindowIndex)
  */
 AnnotationFontWidget::~AnnotationFontWidget()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+AnnotationFontWidget::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN) {
+        EventBrowserWindowGraphicsRedrawn* redrawEvent = dynamic_cast<EventBrowserWindowGraphicsRedrawn*>(event);
+        CaretAssert(redrawEvent);
+        
+        if (m_browserWindowIndex == redrawEvent->getBrowserWindowIndex()) {
+            if (isVisible()) {
+                updateFontSizeControls();
+            }
+        }
+    }
 }
 
 /**
