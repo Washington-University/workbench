@@ -208,7 +208,6 @@ ELSE()
         WuQTrueFalseComboBox.h
         #WuQWebView.h
         WuQWidget.h
-        WuQWidgetDisabler.h
         WuQWidgetObjectGroup.h
         ZipSceneFileDialog.h
     )

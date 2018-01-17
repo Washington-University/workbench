@@ -65,7 +65,7 @@ namespace caret {
                                             const int64_t sliceIndex,
                                             const int64_t firstCornerVoxelIndex[3],
                                             const int64_t lastCornerVoxelIndex[3],
-                                            const int64_t voxelCountIJK[3],
+                                            const int64_t* voxelCountIJK,
                                             const DisplayGroupEnum::Enum displayGroup,
                                             const int32_t tabIndex,
                                             uint8_t* rgbaOut) const;

@@ -74,7 +74,7 @@ Logger::getLogger(const AString& name)
     }
     
     Logger* logger = new Logger(name);
-    bool exists = LogManager::getLogManager()->addLogger(logger);
+    CaretAssertDebugCompileOnly(bool exists = LogManager::getLogManager()->addLogger(logger));
     CaretAssertMessage(exists, "Trying to add logger and logger with name exists.");
     return logger;
 }

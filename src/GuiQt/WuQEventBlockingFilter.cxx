@@ -69,10 +69,10 @@ WuQEventBlockingFilter::WuQEventBlockingFilter(QObject* parent)
  * @param comboBox
  *    Combo box that has its wheel event blocked.
  */
+#ifdef CARET_OS_MACOSX
 void
 WuQEventBlockingFilter::blockMouseWheelEventInMacComboBox(QComboBox* comboBox)
 {
-#ifdef CARET_OS_MACOSX
     /*
      * Attach an event filter that blocks wheel events in the combo box if Mac
      */
@@ -80,8 +80,10 @@ WuQEventBlockingFilter::blockMouseWheelEventInMacComboBox(QComboBox* comboBox)
     comboBoxWheelEventBlockingFilter->setEventBlocked(QEvent::Wheel,
                                                       true);
     comboBox->installEventFilter(comboBoxWheelEventBlockingFilter);
-#endif // CARET_OS_MACOSX
 }
+#else
+    void WuQEventBlockingFilter::blockMouseWheelEventInMacComboBox(QComboBox*) { }
+#endif // CARET_OS_MACOSX
 
 /**
  * Destructor.

@@ -120,13 +120,18 @@ CaretObject::className() const
     return name;    
 }
 
+#ifdef NDEBUG
+    /** 
+     * Do not print objects not deleted if NOT debug
+     */
+    void CaretObject::printListOfObjectsNotDeleted(const bool) { }
+#else
 /**
  * Print a list of CaretObjects that were not deleted.
  */
-void 
+void
 CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
 {
-#ifndef NDEBUG
     int count = 0;
     
     if (CaretObject::allocatedObjects.empty() == false) {
@@ -152,8 +157,8 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
     if (count > 0) {
         std::cout << std::dec << count << " objects were not deleted." << std::endl;
     }
-#endif
 }
+#endif
 
 /**
  * Constructor.

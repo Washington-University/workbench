@@ -1472,11 +1472,11 @@ WuQtUtilities::createPixmapWidgetPainter(const QWidget* widget,
  * @param toolButton
  *     toolButton ToolButton that needs style updated.
  */
+#ifdef CARET_OS_MACOSX
+#if QT_VERSION >= 0x050000
 void
 WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
 {
-#ifdef CARET_OS_MACOSX
-#if QT_VERSION >= 0x050000
     CaretAssert(toolButton);
     
     bool hasMenuFlag = false;
@@ -1545,11 +1545,13 @@ WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
     }
     
     toolButton->setStyleSheet(toolButtonStyleSheet);
-    
-    //std::cout << qPrintable(toolButton->text() + "   " + toolButtonStyleSheet + "\n\n");
-#endif
-#endif
 }
+#else
+    void WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton*) { }
+#endif
+#else
+    void WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton*) { }
+#endif
 
 
 

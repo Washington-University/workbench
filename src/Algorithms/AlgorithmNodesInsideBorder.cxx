@@ -763,9 +763,9 @@ AlgorithmNodesInsideBorder::findNodeFurthestFromConnectedPathCenterOfGravity(con
     
     if (sumCount >= 1.0) {
         const float cog[3] = {
-            sumX / sumCount,
-            sumY / sumCount,
-            sumZ / sumCount
+            (float)(sumX / sumCount),
+            (float)(sumY / sumCount),
+            (float)(sumZ / sumCount)
         };
         
         /*

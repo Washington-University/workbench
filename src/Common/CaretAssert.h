@@ -34,7 +34,48 @@
     #define CaretAssertArrayIndex(a, n, i) ((void) 0)
     #define CaretAssertVectorIndex(v, i) ((void) 0)
 
+    #define CaretAssertDebugCompileOnly(e) ((void) 0)
+    #define CaretAssertParameterDebugCompileOnly(e)
 #else // NDEBUG
+
+
+    /**
+     * \def CaretAssertDebugCompileOnly
+     *
+     * The code within the expression is compiled ONLY
+     * if the compiler's "debug" option is enabled.  It
+     * can be used to eliminate "unused" compilation warnings
+     * when debug is off for variables that are only
+     * used in one of the CaretAssert() macros.
+     *
+     * Example:
+     *    std::vector<int> v;
+     *    CaretAssertDebugCompileOnly(const int index = 5 * x + y);
+     *    CaretAssertVectorIndex(v, index);
+     *
+     * @param e
+     *    Expression that is only present if compiled with debug on.
+     */
+    #define CaretAssertDebugCompileOnly(e) e
+
+    /**
+     * \def CaretAssertParameterDebugCompileOnly
+     *
+     * The code within the expression is compiled ONLY
+     * if the compiler's "debug" option is enabled. It
+     * is used when a function parameter is only used 
+     * within a CaretAssert() macro.
+     *
+     * Example:
+     *    void function(const float a,
+     *                  const int CaretAssertParameterDebugCompileOnly(index)) {
+     *       CaretAssertVectorIndex(v, index);
+     *    }
+     *
+     * @param e
+     *    Expression that is only present if compiled with debug on.
+     */
+    #define CaretAssertParameterDebugCompileOnly(e) e
 
     /**
      * \def CaretAssert
