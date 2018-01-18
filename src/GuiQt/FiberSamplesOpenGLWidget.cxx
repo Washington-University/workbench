@@ -307,10 +307,10 @@ FiberSamplesOpenGLWidget::paintGL()
 //              0.7);
 
     const float rgba[4] = {
-        0.7,
-        0.7,
-        0.7,
-        1.0
+        0.7f,
+        0.7f,
+        0.7f,
+        1.0f
     };
     m_sphereBig->draw(rgba);
     

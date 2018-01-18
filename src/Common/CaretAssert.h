@@ -34,13 +34,13 @@
     #define CaretAssertArrayIndex(a, n, i) ((void) 0)
     #define CaretAssertVectorIndex(v, i) ((void) 0)
 
-    #define CaretAssertDebugCompileOnly(e) ((void) 0)
-    #define CaretAssertParameterDebugCompileOnly(e)
+    #define CaretUsedInDebugCompileOnly(e) ((void) 0)
+    #define CaretParameterUsedInDebugCompileOnly(e)
 #else // NDEBUG
 
 
     /**
-     * \def CaretAssertDebugCompileOnly
+     * \def CaretUsedInDebugCompileOnly
      *
      * The code within the expression is compiled ONLY
      * if the compiler's "debug" option is enabled.  It
@@ -50,16 +50,16 @@
      *
      * Example:
      *    std::vector<int> v;
-     *    CaretAssertDebugCompileOnly(const int index = 5 * x + y);
+     *    CaretUsedInDebugCompileOnly(const int index = 5 * x + y);
      *    CaretAssertVectorIndex(v, index);
      *
      * @param e
      *    Expression that is only present if compiled with debug on.
      */
-    #define CaretAssertDebugCompileOnly(e) e
+    #define CaretUsedInDebugCompileOnly(e) e
 
     /**
-     * \def CaretAssertParameterDebugCompileOnly
+     * \def CaretParameterUsedInDebugCompileOnly
      *
      * The code within the expression is compiled ONLY
      * if the compiler's "debug" option is enabled. It
@@ -68,14 +68,14 @@
      *
      * Example:
      *    void function(const float a,
-     *                  const int CaretAssertParameterDebugCompileOnly(index)) {
+     *                  const int CaretParameterUsedInDebugCompileOnly(index)) {
      *       CaretAssertVectorIndex(v, index);
      *    }
      *
      * @param e
      *    Expression that is only present if compiled with debug on.
      */
-    #define CaretAssertParameterDebugCompileOnly(e) e
+    #define CaretParameterUsedInDebugCompileOnly(e) e
 
     /**
      * \def CaretAssert

@@ -512,8 +512,8 @@ SceneCreateReplaceDialog::createSceneImage(QImage& imageOut,
             imageOut = *compositeImageFile.getAsQImage();
             validImageFlag = true;
         }
-        catch (const DataFileException& dfe) {
-            errorMessageOut.appendWithNewLine("Even though image failed, scene was created.");
+        catch (const DataFileException&) {
+            errorMessageOut.appendWithNewLine("Even though image generation failed, scene was created.");
         }
     }
     

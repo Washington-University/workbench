@@ -25,6 +25,8 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "CaretOpenGLInclude.h"  // Must be here to prevent GLEW error on Windows
+
 #include "FtglConfig.h"
 
 #include <math.h>

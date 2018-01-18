@@ -239,7 +239,7 @@ CaretDataFileHelper::readCaretDataFile(CaretDataFile* caretDataFile,
         try {
             caretDataFile->readFile(filename);
         }
-        catch (const std::bad_alloc& badAlloc) {
+        catch (const std::bad_alloc&) {
             /*
              * This DataFileException will be caught
              * in the outer try/catch and it will
@@ -465,7 +465,7 @@ CaretDataFileHelper::getDataFileTypeFromFileContent(const AString& filename)
                     break;
             }
         }
-        catch (const DataFileException& dfe) {
+        catch (const DataFileException&) {
             CaretLogInfo(filename
                          + " could not be read as a CIFTI file");
         }

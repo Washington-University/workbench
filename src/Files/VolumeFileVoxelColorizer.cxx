@@ -486,7 +486,7 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                                          const int64_t sliceIndex,
                                                          const int64_t firstCornerVoxelIndex[3],
                                                          const int64_t lastCornerVoxelIndex[3],
-                                                         const int64_t* CaretAssertParameterDebugCompileOnly(voxelCountIJK),
+                                                         const int64_t* CaretParameterUsedInDebugCompileOnly(voxelCountIJK),
                                                          const DisplayGroupEnum::Enum displayGroup,
                                                          const int32_t tabIndex,
                                                          uint8_t* rgbaOut) const
@@ -544,8 +544,8 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
             CaretAssert(false);
     }
     
-    CaretAssertDebugCompileOnly(const int64_t voxelCount = (voxelCountIJK[0] * voxelCountIJK[1] * voxelCountIJK[2]));
-    CaretAssertDebugCompileOnly(const int64_t rgbaCount = voxelCount * 4);
+    CaretUsedInDebugCompileOnly(const int64_t voxelCount = (voxelCountIJK[0] * voxelCountIJK[1] * voxelCountIJK[2]));
+    CaretUsedInDebugCompileOnly(const int64_t rgbaCount = voxelCount * 4);
     
     /*
      * Pointer to maps RGBA values
@@ -561,7 +561,7 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
     
     int64_t validVoxelCount = 0;
     
-    CaretAssertDebugCompileOnly(int64_t innerCount = std::abs(lastCornerVoxelIndex[innerLoop] - firstCornerVoxelIndex[innerLoop]) + 1);//to check validity of index
+    CaretUsedInDebugCompileOnly(int64_t innerCount = std::abs(lastCornerVoxelIndex[innerLoop] - firstCornerVoxelIndex[innerLoop]) + 1);//to check validity of index
     
     int64_t rgbaOutIndex = 0;
     for (iterijk[outerLoop] = firstCornerVoxelIndex[outerLoop];

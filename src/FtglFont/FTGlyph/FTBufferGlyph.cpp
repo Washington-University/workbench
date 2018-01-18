@@ -98,12 +98,12 @@ const FTPoint& FTBufferGlyphImpl::RenderImpl(const FTPoint& pen, int /*renderMod
         int dy = buffer->Height() - (int)(pos.Yf() + 0.5f);
         unsigned char * dest = buffer->Pixels() + dx + dy * buffer->Width();
 
-        for(int y = 0; y < bitmap.rows; y++)
+        for(int y = 0; y < ((int)bitmap.rows); y++)
         {
             // FIXME: change the loop bounds instead of doing this test
             if(y + dy < 0 || y + dy >= buffer->Height()) continue;
 
-            for(int x = 0; x < bitmap.width; x++)
+            for(int x = 0; x < ((int)bitmap.width); x++)
             {
                 if(x + dx < 0 || x + dx >= buffer->Width()) continue;
 
