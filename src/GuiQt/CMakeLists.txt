@@ -331,6 +331,7 @@ EventMacDockMenuUpdate.h
 EventOperatingSystemRequestOpenDataFile.h
 EventOverlaySettingsEditorDialogRequest.h
 EventPaletteColorMappingEditorDialogRequest.h
+EventShowDataFileReadWarningsDialog.h
 EventUpdateInformationWindows.h
 EventUpdateVolumeEditingToolBar.h
 EventUpdateYokedWindows.h
@@ -552,6 +553,7 @@ EventMacDockMenuUpdate.cxx
 EventOperatingSystemRequestOpenDataFile.cxx
 EventOverlaySettingsEditorDialogRequest.cxx
 EventPaletteColorMappingEditorDialogRequest.cxx
+EventShowDataFileReadWarningsDialog.cxx
 EventUpdateInformationWindows.cxx
 EventUpdateVolumeEditingToolBar.cxx
 EventUpdateYokedWindows.cxx

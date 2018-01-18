@@ -102,6 +102,7 @@
 #include "WuQDoubleSpinBox.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
+#include "WuQTextEditorDialog.h"
 #include "VtkFileExporter.h"
 
 using namespace caret;
@@ -3119,6 +3120,8 @@ BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
                              + "\" found in scene file.");
         WuQMessageBox::errorOk(this, msg);
     }
+    
+    /* NOTE: File warning dialog is performed by scene dialog */
 }
 
 
@@ -3462,6 +3465,8 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
     }
     
     EventManager::get()->sendEvent(EventMacDockMenuUpdate().getPointer());
+    
+    showDataFileReadWarningsDialog();
     
     return successFlag;
 }
@@ -4553,4 +4558,45 @@ BrainBrowserWindow::hasValidOpenGL()
 {
     return m_openGLWidget->isValid();
 }
+
+/**
+ * Show the data file read warnings dialog but only
+ * if warnings are found in any files.
+ */
+void
+BrainBrowserWindow::showDataFileReadWarningsDialog()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    if (brain == NULL) {
+        return;
+    }
+    
+    std::vector<CaretDataFile*> dataFiles;
+    brain->getAllDataFiles(dataFiles);
+    
+    AString messages;
+    for (auto file : dataFiles) {
+        const AString msg = file->getFileReadWarnings();
+        if ( ! msg.isEmpty()) {
+            messages.append("<LI>"
+                            + file->getFileName()
+                            + "<br>"
+                            + msg
+                            + "</LI>");
+        }
+    }
+    
+    if ( ! messages.isEmpty()) {
+        messages.insert(0,
+                        "<html><ul>");
+        messages.append("</ul></html>");
+        
+        WuQTextEditorDialog::runNonModal("Data File Warnings",
+                                         messages,
+                                         WuQTextEditorDialog::TextMode::HTML,
+                                         WuQTextEditorDialog::WrapMode::NO,
+                                         this);
+    }
+}
+
 

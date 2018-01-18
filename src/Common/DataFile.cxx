@@ -79,6 +79,7 @@ void
 DataFile::copyHelperDataFile(const DataFile& df)
 {
     m_filename = df.m_filename;
+    m_fileReadWarnings = df.m_fileReadWarnings;
     m_modifiedFlag = false;
 }
 
@@ -89,6 +90,7 @@ void
 DataFile::initializeMembersDataFile()
 {
     m_filename = "";
+    m_fileReadWarnings.clear();
     m_modifiedFlag = false;
 }
 
@@ -289,4 +291,31 @@ DataFile::checkFileWritability(const AString& filename)
         }
     }
 }
+
+/**
+ * Add a warning (non-fatal) message about some issue while reading file file.
+ *
+ * @param warning
+ *     Warning message about some issue.
+ */
+void
+DataFile::addFileReadWarning(const AString& warning)
+{
+    m_fileReadWarnings.appendWithNewLine(warning);
+}
+
+/**
+ * @return Any warning message from reading the data file.
+ *
+ * NOTE: When this method is called, the warning message
+ * is cleared for this file.
+ */
+AString
+DataFile::getFileReadWarnings() const
+{
+    const AString warningMessage = m_fileReadWarnings;
+    m_fileReadWarnings.clear();
+    return warningMessage;
+}
+
 

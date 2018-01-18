@@ -170,6 +170,8 @@ public:
         EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW,
         /** Get a palette by name from a palette file */
         EVENT_PALETTE_GET_BY_NAME,
+        /** Show a dialog containing warnings encountered when reading data files */
+        EVENT_SHOW_FILE_DATA_READ_WARNING_DIALOG,
         /** Read the selected files in a spec file */
         EVENT_SPEC_FILE_READ_DATA_FILES,
         /** Invalidate surface coloring */

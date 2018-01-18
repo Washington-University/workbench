@@ -94,6 +94,10 @@ namespace caret {
         
         bool exists() const;
         
+        void addFileReadWarning(const AString& warning);
+        
+        AString getFileReadWarnings() const;
+        
     private:
         void copyHelperDataFile(const DataFile& df);
         
@@ -101,6 +105,9 @@ namespace caret {
         
         /** name of data file */
         AString m_filename;
+        
+        /** warnings set when file was read */
+        mutable AString m_fileReadWarnings;
         
         /** modification status */
         bool m_modifiedFlag;

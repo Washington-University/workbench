@@ -67,6 +67,7 @@
 #include "EventManager.h"
 #include "EventModelGetAll.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventShowDataFileReadWarningsDialog.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
@@ -639,6 +640,8 @@ SceneDialog::openSceneFileButtonClicked()
     EventDataFileRead dataFileEvent(GuiManager::get()->getBrain());
     dataFileEvent.addDataFile(DataFileTypeEnum::SCENE, openSceneFileName);
     EventManager::get()->sendEvent(dataFileEvent.getPointer());
+    
+    EventManager::get()->sendEvent(EventShowDataFileReadWarningsDialog().getPointer());
 }
 
 
@@ -2532,6 +2535,8 @@ SceneDialog::displayScenePrivateWithErrorMessageDialog(SceneFile* sceneFile,
         WuQMessageBox::errorOk(this,
                                errorMessage);
     }
+    
+    EventManager::get()->sendEvent(EventShowDataFileReadWarningsDialog().getPointer());
     
     return successFlag;
 }

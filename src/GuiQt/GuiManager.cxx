@@ -63,6 +63,7 @@
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowNew.h"
+#include "EventShowDataFileReadWarningsDialog.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventHelpViewerDisplay.h"
@@ -293,6 +294,7 @@ GuiManager::initializeGuiManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SHOW_FILE_DATA_READ_WARNING_DIALOG);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
@@ -542,7 +544,8 @@ GuiManager::getActiveBrowserWindow() const
 BrainBrowserWindow* 
 GuiManager::getBrowserWindowByWindowIndex(const int32_t browserWindowIndex)
 {
-    if (browserWindowIndex < static_cast<int32_t>(m_brainBrowserWindows.size())) {
+    if ((browserWindowIndex >= 0)
+        && (browserWindowIndex < static_cast<int32_t>(m_brainBrowserWindows.size()))) {
         return m_brainBrowserWindows[browserWindowIndex];
     }
     return NULL;
@@ -1456,6 +1459,21 @@ GuiManager::receiveEvent(Event* event)
         showHideHelpDialog(true,
                            helpEvent->getBrainBrowserWindow());
         m_helpViewerDialog->showHelpPageWithName(helpEvent->getHelpPageName());
+        
+        helpEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_SHOW_FILE_DATA_READ_WARNING_DIALOG) {
+        EventShowDataFileReadWarningsDialog* warningEvent = dynamic_cast<EventShowDataFileReadWarningsDialog*>(event);
+        CaretAssert(warningEvent);
+        
+        BrainBrowserWindow* bbw = getBrowserWindowByWindowIndex(warningEvent->getBrowserWindowIndex());
+        if (bbw == NULL) {
+            bbw = getActiveBrowserWindow();
+        }
+        CaretAssert(bbw);
+        bbw->showDataFileReadWarningsDialog();
+        
+        warningEvent->setEventProcessed();
     }
 }
 

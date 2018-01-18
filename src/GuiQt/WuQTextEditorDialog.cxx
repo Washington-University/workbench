@@ -79,7 +79,9 @@ WuQTextEditorDialog::runNonModal(const QString& dialogTitle,
      */
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     
+    dialog->setVisible(true);
     dialog->show();
+    dialog->activateWindow();
     dialog->raise();
 }
 

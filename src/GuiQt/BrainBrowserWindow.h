@@ -307,6 +307,8 @@ namespace caret {
         
         bool isMacOptionKeyDown() const;
         
+        void showDataFileReadWarningsDialog();
+        
         /** Index of this window */
         int32_t m_browserWindowIndex;
         

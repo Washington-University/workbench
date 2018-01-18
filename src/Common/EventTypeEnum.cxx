@@ -326,6 +326,10 @@ EventTypeEnum::initialize()
                                      "EVENT_PALETTE_GET_BY_NAME",
                                      "Read the selected files in a spec file"));
     
+    enumData.push_back(EventTypeEnum(EVENT_SHOW_FILE_DATA_READ_WARNING_DIALOG,
+                                     "EVENT_SHOW_FILE_DATA_READ_WARNING_DIALOG",
+                                     "Show a dialog with warnings encountered reading data files"));
+    
     enumData.push_back(EventTypeEnum(EVENT_SPEC_FILE_READ_DATA_FILES,
                                      "EVENT_SPEC_FILE_READ_DATA_FILES",
                                      "Read the selected data files in a spec file"));

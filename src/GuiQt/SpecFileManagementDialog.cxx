@@ -62,6 +62,7 @@
 #include "EventGetDisplayedDataFiles.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventShowDataFileReadWarningsDialog.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
@@ -2169,6 +2170,8 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
         WuQMessageBox::errorOk(toolButtonWidget,
                                errorMessage);
     }
+    
+    EventManager::get()->sendEvent(EventShowDataFileReadWarningsDialog().getPointer());
 }
 
 /**
