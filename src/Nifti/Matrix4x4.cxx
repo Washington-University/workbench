@@ -895,11 +895,9 @@ Matrix4x4::rotate(
     m.matrix[0][2] = (xz + wy)*2;
     m.matrix[1][2] = (yz - wx)*2;
     m.matrix[2][2] = zz*2.0 + s;
-    m.fixNumericalError();
     
     postmultiply(m);
     
-    this->fixNumericalError();
     this->setModified();
 }
 
@@ -1206,7 +1204,6 @@ Matrix4x4::premultiply(const Matrix4x4& tm)
                 + matrix[row][3] * tm.matrix[3][3];
     }
     setMatrix(matrixOut);
-    this->fixNumericalError();
     this->setModified();
 }
 
@@ -1239,7 +1236,6 @@ Matrix4x4::postmultiply(const Matrix4x4& tm)
                 + tm.matrix[row][3] * matrix[3][3];
     }
     setMatrix(matrixOut);
-    this->fixNumericalError();
     this->setModified();
 }
 
