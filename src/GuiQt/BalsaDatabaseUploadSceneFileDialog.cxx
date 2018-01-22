@@ -111,7 +111,7 @@ m_sceneFile(sceneFile)
     setSizePolicy(sizePolicy().horizontalPolicy(),
                   QSizePolicy::Fixed);
     
-    setOkButtonText("");
+    setOkButtonText("Upload");
     setCancelButtonText("Close");
     
     m_basePathWidget->updateWithSceneFile(m_sceneFile);
@@ -262,7 +262,7 @@ void
 BalsaDatabaseUploadSceneFileDialog::loginInformationChanged()
 {
     m_balsaDatabaseManager->logout();
-    m_uploadPushButton->setEnabled(false);
+    setOkButtonEnabled(false);
     m_selectStudyTitlePushButton->setEnabled(false);
     m_userRoles->resetToAllInvalid();
     updateAllLabels();
@@ -349,15 +349,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_autoSaveSceneFileCheckBox->setChecked(true);
     QObject::connect(m_autoSaveSceneFileCheckBox, &QCheckBox::clicked,
                      this, &BalsaDatabaseUploadSceneFileDialog::autoSaveCheckBoxClicked);
-    
-    /*
-     * Upload push button
-     */
-    m_uploadPushButton = new QPushButton("Upload");
-    QObject::connect(m_uploadPushButton, &QPushButton::clicked,
-                     this, &BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked);
-    
-    
+        
     int columnCounter = 0;
     const int COLUMN_LABEL = columnCounter++;
     const int COLUMN_DATA_WIDGET = columnCounter++;
@@ -386,8 +378,6 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     gridLayout->addWidget(m_autoSaveSceneFileCheckBox, row, COLUMN_DATA_WIDGET, 1, 3, Qt::AlignLeft);
     row++;
     gridLayout->setRowMinimumHeight(row, 15); // empty row
-    row++;
-    gridLayout->addWidget(m_uploadPushButton, row, COLUMN_DATA_WIDGET, 1, 1, Qt::AlignHCenter);
     row++;
     
     m_balsaStudyIDLineEdit->setText(m_sceneFile->getBalsaStudyID());
@@ -623,9 +613,19 @@ void
 BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
 {
     const AString username = m_usernameLineEdit->text().trimmed();
+    if (username.isEmpty()) {
+        WuQMessageBox::errorOk(this,
+                               "Username is empty");
+        return;
+    }
     const AString password = m_passwordLineEdit->text().trimmed();
+    if (password.isEmpty()) {
+        WuQMessageBox::errorOk(this,
+                               "Password is empty");
+        return;
+    }
     
-    m_uploadPushButton->setEnabled(false);
+    setOkButtonEnabled(false);
     m_selectStudyTitlePushButton->setEnabled(false);
     m_userRoles->resetToAllInvalid();
     updateUserRolesLabel();
@@ -680,7 +680,7 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
     
     updateUserRolesLabel();
     
-    m_uploadPushButton->setEnabled(true);
+    setOkButtonEnabled(true);
     m_selectStudyTitlePushButton->setEnabled(true);
     
     SessionManager::get()->getCaretPreferences()->setBalsaUserName(username);
@@ -724,10 +724,10 @@ BalsaDatabaseUploadSceneFileDialog::returnPressedUsernameOrPassword()
 
 
 /**
- * Gets called when the upload button is clicked.
+ * Gets called when the Upload button is clicked.
  */
 void
-BalsaDatabaseUploadSceneFileDialog::uploadButtonClicked()
+BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
 {
     CaretAssert(m_sceneFile);
     

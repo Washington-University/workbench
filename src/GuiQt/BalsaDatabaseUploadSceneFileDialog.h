@@ -62,8 +62,6 @@ namespace caret {
         
         void returnPressedUsernameOrPassword();
         
-        void uploadButtonClicked();
-        
         void labelHtmlLinkClicked(const QString&);
 
         void validateUploadData();
@@ -87,6 +85,7 @@ namespace caret {
         void whatsThisDatabase();
         
     protected:
+        virtual void okButtonClicked();
         
     private:
         enum class LabelName {
@@ -167,7 +166,6 @@ namespace caret {
         QPushButton* m_selectStudyTitlePushButton;
         
         QCheckBox* m_autoSaveSceneFileCheckBox;
-        QPushButton* m_uploadPushButton;
         
         SceneBasePathWidget* m_basePathWidget;
         
