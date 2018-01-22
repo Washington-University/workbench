@@ -43,6 +43,8 @@ namespace caret {
     
         void setOkButtonText(const AString& text);
         
+        void setOkButtonEnabled(const bool enabled);
+        
         void setCancelButtonText(const AString& text);
 
         void setSaveWindowPositionForNextTime(const AString& savePositionName = "");

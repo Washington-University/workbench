@@ -131,6 +131,19 @@ WuQDialogModal::setOkButtonText(const AString& text)
 }
 
 /**
+ * Set the enabled status for the OK button.
+ *
+ * @param enabled
+ *    New enabled status for the button.
+ */
+void
+WuQDialogModal::setOkButtonEnabled(const bool enabled)
+{
+    this->setStandardButtonEnabled(QDialogButtonBox::Ok,
+                                   enabled);
+}
+
+/**
  * Set the Cancel button to the given text.  If the text
  * is zero length, the Cancel button is removed.
  *

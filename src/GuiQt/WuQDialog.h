@@ -83,6 +83,9 @@ namespace caret  {
         void setStandardButtonText(QDialogButtonBox::StandardButton button,
                                    const AString& text);
         
+        void setStandardButtonEnabled(QDialogButtonBox::StandardButton button,
+                                      const bool enabled);
+        
         QPushButton* addUserPushButton(const AString& text,
                                        const QDialogButtonBox::ButtonRole buttonRole);
         

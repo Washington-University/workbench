@@ -232,6 +232,29 @@ WuQDialog::setStandardButtonText(QDialogButtonBox::StandardButton button,
 }
 
 /**
+ * Set the enabled status of a standard button.
+ * If the button is invalid, a sever message is logged.
+ *
+ * @param button
+ *    Standard button enum identifying button.
+ * @param enabled
+ *    New enabled status for button.
+ */
+void
+WuQDialog::setStandardButtonEnabled(QDialogButtonBox::StandardButton button,
+                                    const bool enabled)
+{
+    QPushButton* pushButton = this->buttonBox->button(button);
+    if (pushButton != NULL) {
+        pushButton->setEnabled(enabled);
+    }
+    else {
+        CaretLogSevere("PROGRAM ERROR: Attempted to set enabled status for an invalid Dialog Standard Button, id="
+                       + AString::number((int)button));
+    }
+}
+
+/**
  * called to capture image after timeout so nothing obscures window.
  */
 void 
