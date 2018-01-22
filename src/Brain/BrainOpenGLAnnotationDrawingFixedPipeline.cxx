@@ -1146,7 +1146,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
         convertObsoleteLineWidthPixelsToPercentageWidth(box);
     }
     
-    const bool depthTestFlag = isDrawnWithDepthTesting(box);
+    const bool depthTestFlag = isDrawnWithDepthTesting(box,
+                                                       surfaceDisplayed);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
 
     uint8_t backgroundRGBA[4];
@@ -1272,7 +1273,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
         (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0f
     };
     
-    const bool depthTestFlag = isDrawnWithDepthTesting(colorBar);
+    const bool depthTestFlag = isDrawnWithDepthTesting(colorBar,
+                                                       NULL);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
     float backgroundRGBA[4];
@@ -1798,7 +1800,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
         (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0f
     };
     
-    const bool depthTestFlag = isDrawnWithDepthTesting(oval);
+    const bool depthTestFlag = isDrawnWithDepthTesting(oval,
+                                                       surfaceDisplayed);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
     uint8_t backgroundRGBA[4];
@@ -2148,7 +2151,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
         (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0f
     };
 
-    const bool depthTestFlag = isDrawnWithDepthTesting(text);
+    const bool depthTestFlag = isDrawnWithDepthTesting(text,
+                                                       surfaceDisplayed);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
     float backgroundRGBA[4];
@@ -2355,7 +2359,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
         (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0f
     };
     
-    const bool depthTestFlag = isDrawnWithDepthTesting(image);
+    const bool depthTestFlag = isDrawnWithDepthTesting(image,
+                                                       surfaceDisplayed);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
     const bool drawAnnotationFlag = true;
@@ -2603,7 +2608,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
         (lineHeadXYZ[2] + lineTailXYZ[2]) / 2.0f
     };
     
-    const bool depthTestFlag = isDrawnWithDepthTesting(line);
+    const bool depthTestFlag = isDrawnWithDepthTesting(line,
+                                                       surfaceDisplayed);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
     std::vector<float> lineCoordinates;
@@ -3197,31 +3203,44 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor()
  *
  * @param annotation
  *     Annotation that will be drawn.
+ * @param surface
+ *     Surface that is being drawn.
  * @return 
  *     True if the annotation is drawn with depth testing, else false.
  */
 bool
-BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* /*annotation*/)
+BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotation* annotation,
+                                                                   const Surface* surface)
 {
-    return true;
-/*
-    bool depthTestFlag = false;
-    
+    bool testFlatSurfaceFlag = false;
     switch (annotation->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            depthTestFlag = true;
+            testFlatSurfaceFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            depthTestFlag = true;
+            testFlatSurfaceFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
             break;
     }
 
+    bool depthTestFlag = true;
+    
+    if (testFlatSurfaceFlag) {
+        if (surface != NULL) {
+            if (surface->getSurfaceType() == SurfaceTypeEnum::FLAT) {
+                depthTestFlag = false;
+            }
+        }
+    }
+    
     return depthTestFlag;
-*/
 }
 
 /**

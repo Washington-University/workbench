@@ -253,7 +253,8 @@ namespace caret {
                                                const float secondPoint[3],
                                                const float lineThickness);
         
-        bool isDrawnWithDepthTesting(const Annotation* annotation);
+        bool isDrawnWithDepthTesting(const Annotation* annotation,
+                                     const Surface* surface);
         
         bool setDepthTestingStatus(const bool newDepthTestingStatus);
         
