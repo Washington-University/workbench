@@ -1730,6 +1730,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
     
     const float windowZ = (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0;
     const int32_t numText = colorBar->getNumberOfNumericText();
+    bool fontTooSmallFlag = false;
     for (int32_t i = 0; i < numText; i++) {
         const AnnotationColorBarNumericText* numericText = colorBar->getNumericText(i);
         const float scalar = numericText->getScalar();
@@ -1744,7 +1745,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
                                                                                 windowY,
                                                                                 windowZ,
                                                                                 annText);
+        
+        if (annText.isFontTooSmallWhenLastDrawn()) {
+            fontTooSmallFlag = true;
+        }
     }
+
+    colorBar->setFontTooSmallWhenLastDrawn(fontTooSmallFlag);
 }
 
 

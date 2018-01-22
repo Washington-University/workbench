@@ -80,9 +80,9 @@ namespace caret {
         int32_t getFontSizeForDrawing(const int32_t drawingViewportWidth,
                                       const int32_t drawingViewportHeight) const;
 
-        bool isFontTooSmallWhenLastDrawn() const;
+        bool isFontTooSmallWhenLastDrawn() const override;
         
-        void setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const;
+        void setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const override;
         
         AnnotationTextFontSizeTypeEnum::Enum getFontSizeType() const;
         

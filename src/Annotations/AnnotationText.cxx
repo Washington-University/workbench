@@ -807,6 +807,7 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
     m_underlineEnabled    = obj.m_underlineEnabled;
     m_connectToBrainordinate = obj.m_connectToBrainordinate;
     m_fontPercentViewportSize = obj.m_fontPercentViewportSize;
+    m_fontTooSmallWhenLastDrawnFlag = obj.m_fontTooSmallWhenLastDrawnFlag;
 }
 
 /**

@@ -418,12 +418,15 @@ AnnotationFontWidget::updateFontSizeControls()
                 }
             }
             
-            const AnnotationText* textAnnotation = dynamic_cast<AnnotationText*>(annText);
-            if (textAnnotation != NULL) {
-                if (textAnnotation->isFontTooSmallWhenLastDrawn()) {
-                    tooSmallFlag = true;
-                }
+            if (annText->isFontTooSmallWhenLastDrawn()) {
+                tooSmallFlag = true;
             }
+//            const AnnotationText* textAnnotation = dynamic_cast<AnnotationText*>(annText);
+//            if (textAnnotation != NULL) {
+//                if (textAnnotation->isFontTooSmallWhenLastDrawn()) {
+//                    tooSmallFlag = true;
+//                }
+//            }
         }
         
         updateFontSizeSpinBox(fontSizeValue,

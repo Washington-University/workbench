@@ -138,6 +138,7 @@ AnnotationColorBar::copyHelperAnnotationColorBar(const AnnotationColorBar& obj)
     m_customColorText[1]  = obj.m_customColorText[1];
     m_customColorText[2]  = obj.m_customColorText[2];
     m_customColorText[3]  = obj.m_customColorText[3];
+    m_fontTooSmallWhenLastDrawnFlag = obj.m_fontTooSmallWhenLastDrawnFlag;
 }
 
 /**
@@ -165,6 +166,8 @@ AnnotationColorBar::reset()
     
     clearSections();
     clearNumericText();
+    
+    m_fontTooSmallWhenLastDrawnFlag = false;
 }
 
 /**
@@ -757,6 +760,23 @@ AnnotationColorBar::getScalarMinimumAndMaximumValues(float& minimumScalarOut,
         maximumScalarOut = std::max(maximumScalarOut,
                                     section->getEndScalar());
     }
+}
+
+/**
+ * @return Is the font too small when it is last drawn
+ * that may cause an OpenGL error and, as a result,
+ * the text is not seen by the user.
+ */
+bool
+AnnotationColorBar::isFontTooSmallWhenLastDrawn() const
+{
+    return m_fontTooSmallWhenLastDrawnFlag;
+}
+
+void
+AnnotationColorBar::setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const
+{
+    m_fontTooSmallWhenLastDrawnFlag = tooSmallFontFlag;
 }
 
 

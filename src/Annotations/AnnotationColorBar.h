@@ -123,6 +123,10 @@ namespace caret {
         
         void setShowTickMarksSelected(const bool selected);
         
+        bool isFontTooSmallWhenLastDrawn() const override;
+        
+        void setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const override;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:
@@ -156,6 +160,8 @@ namespace caret {
         std::vector<const AnnotationColorBarNumericText*> m_numericText;
         
         bool m_showTickMarksSelected;
+        
+        mutable bool m_fontTooSmallWhenLastDrawnFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 
