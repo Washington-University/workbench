@@ -2801,6 +2801,7 @@ SceneDialog::updateSceneFileModifiedStatusLabel()
      *   (1) The scene file is modified
      *   (2) The filename is not the untitled file name
      */
+    bool haveScenesFlag = false;
     bool saveButtonEnabledFlag = false;
     SceneFile* sceneFile = getSelectedSceneFile();
     if (sceneFile != NULL) {
@@ -2813,10 +2814,18 @@ SceneDialog::updateSceneFileModifiedStatusLabel()
         else {
             statusText = "NO";
         }
+        
+        if (sceneFile->getNumberOfScenes() > 0) {
+            haveScenesFlag = true;
+        }
     }
     
     m_sceneFileModifiedStatusLabel->setText(statusText);
     m_saveSceneFilePushButton->setEnabled(saveButtonEnabledFlag);
+    
+    m_showFileStructurePushButton->setEnabled(haveScenesFlag);
+    m_zipSceneFilePushButton->setEnabled(haveScenesFlag);
+    m_uploadSceneFilePushButton->setEnabled(haveScenesFlag);
 }
 
 
