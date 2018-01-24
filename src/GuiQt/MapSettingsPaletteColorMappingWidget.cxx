@@ -2672,21 +2672,29 @@ MapSettingsPaletteColorMappingWidget::applyToMultipleFilesPushbuttonClicked()
          iter != mappableFiles.end();
          iter++) {
         CaretMappableDataFile* cmdf = *iter;
-        if (cmdf->isMappedWithPalette()) {
-            QCheckBox* cb = ded.addCheckBox(cmdf->getFileNameNoPath());
-            cb->setProperty(filePointerPropertyName.toLatin1().constData(),
-                            qVariantFromValue((void*)cmdf));
-            mapFileCheckBoxes.push_back(cb);
-            
-            if (previousApplyPaletteToMapFilesSelected.find(cmdf) != previousApplyPaletteToMapFilesSelected.end()) {
-                cb->setChecked(true);
+        if (cmdf != this->caretMappableDataFile) {
+            if (cmdf->isMappedWithPalette()) {
+                QCheckBox* cb = ded.addCheckBox(cmdf->getFileNameNoPath());
+                cb->setProperty(filePointerPropertyName.toLatin1().constData(),
+                                qVariantFromValue((void*)cmdf));
+                mapFileCheckBoxes.push_back(cb);
+                
+                if (previousApplyPaletteToMapFilesSelected.find(cmdf) != previousApplyPaletteToMapFilesSelected.end()) {
+                    cb->setChecked(true);
+                }
             }
         }
+    }
+    
+    if (mapFileCheckBoxes.empty()) {
+        WuQMessageBox::errorOk(this, "There are no other files loaded that accept application of palette settings");
+        return;
     }
     
     previousApplyPaletteToMapFilesSelected.clear();
     
     if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        
         PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
         
         for (std::vector<QCheckBox*>::iterator iter = mapFileCheckBoxes.begin();
@@ -2696,6 +2704,14 @@ MapSettingsPaletteColorMappingWidget::applyToMultipleFilesPushbuttonClicked()
             if (cb->isChecked()) {
                 void* pointer = cb->property(filePointerPropertyName.toLatin1().constData()).value<void*>();
                 CaretMappableDataFile* cmdf = (CaretMappableDataFile*)pointer;
+
+                /*
+                 * Copy the palette normalization mode from the file active in the dialog
+                 * to the 'apply to file'
+                 */
+                if (this->caretMappableDataFile != NULL) {
+                    cmdf->setPaletteNormalizationMode(this->caretMappableDataFile->getPaletteNormalizationMode());
+                }
                 
                 const int32_t numMaps = cmdf->getNumberOfMaps();
                 for (int32_t iMap = 0; iMap < numMaps; iMap++) {
