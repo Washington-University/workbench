@@ -224,6 +224,132 @@ SurfaceProjectionBarycentric::setTriangleAreas(const float triangleAreas[3])
 
 /**
  * Unproject to the surface using 'this' projection.
+ *
+ * @param surfaceFile
+ *    Surface file used for unprojecting.
+ * @param topologyHelperIn
+ *    Topology helper.  If NULL, topology helper from surfaceFile
+ *    will be used but frequent calls to get the topology helper
+ *    may be slow.
+ * @param xyzOut
+ *    Output containing coordinate created by unprojecting.
+ * @param offsetFromSurface
+ *    If 'unprojectWithOffsetFromSurface' is true, unprojected
+ *    position will be this distance above (negative=below)
+ *    the surface.
+ * @param unprojectWithOffsetFromSurface
+ *    If true, ouput coordinate will be offset 'offsetFromSurface'
+ *    distance from the surface.
+ * @return
+ *    True if unprojection was successful.
+ */
+bool
+SurfaceProjectionBarycentric::unprojectToSurface(const SurfaceFile& surfaceFile,
+                                                 const TopologyHelper* topologyHelperIn,
+                                                 float xyzOut[3],
+                                                 const float offsetFromSurface,
+                                                 const bool unprojectWithOffsetFromSurface) const
+{
+    /*
+     * Make sure projection surface number of nodes matches surface.
+     */
+    if (this->projectionSurfaceNumberOfNodes > 0) {
+        if (surfaceFile.getNumberOfNodes() != this->projectionSurfaceNumberOfNodes) {
+            return false;
+        }
+    }
+    
+    const int32_t n1 = this->triangleNodes[0];
+    const int32_t n2 = this->triangleNodes[1];
+    const int32_t n3 = this->triangleNodes[2];
+    
+    CaretAssert(n1 < surfaceFile.getNumberOfNodes());
+    CaretAssert(n2 < surfaceFile.getNumberOfNodes());
+    CaretAssert(n3 < surfaceFile.getNumberOfNodes());
+    
+    /*
+     * All nodes MUST have neighbors (connected)
+     */
+    const TopologyHelper* topologyHelper = ((topologyHelperIn != NULL)
+                                            ? topologyHelperIn
+                                            : surfaceFile.getTopologyHelper().getPointer());
+    if ((topologyHelper->getNodeHasNeighbors(n1) == false)
+        || (topologyHelper->getNodeHasNeighbors(n2) == false)
+        || (topologyHelper->getNodeHasNeighbors(n3) == false)) {
+        return false;
+    }
+    
+    const float* c1 = surfaceFile.getCoordinate(n1);
+    const float* c2 = surfaceFile.getCoordinate(n2);
+    const float* c3 = surfaceFile.getCoordinate(n3);
+    
+    float barycentricXYZ[3];
+    float barycentricNormal[3];
+    
+    /*
+     * If all the nodes are the same (object projects to a single node, not triangle)
+     */
+    if ((n1 == n2) &&
+        (n2 == n3)) {
+        /*
+         * Use node's normal vector and position
+         */
+        barycentricXYZ[0] = c1[0];
+        barycentricXYZ[1] = c1[1];
+        barycentricXYZ[2] = c1[2];
+        const float* nodeNormal = surfaceFile.getNormalVector(n1);
+        barycentricNormal[0] = nodeNormal[0];
+        barycentricNormal[1] = nodeNormal[1];
+        barycentricNormal[2] = nodeNormal[2];
+    }
+    else {
+        /*
+         * Compute position using barycentric coordinates
+         */
+        float t1[3];
+        float t2[3];
+        float t3[3];
+        for (int i = 0; i < 3; i++) {
+            t1[i] = triangleAreas[0] * c1[i];
+            t2[i] = triangleAreas[1] * c2[i];
+            t3[i] = triangleAreas[2] * c3[i];
+        }
+        float area = (triangleAreas[0]
+                      + triangleAreas[1]
+                      + triangleAreas[2]);
+        if (area != 0) {
+            for (int i = 0; i < 3; i++) {
+                barycentricXYZ[i] = (t1[i] + t2[i] + t3[i]) / area;
+            }
+        }
+        else {
+            return false;
+        }
+        
+        if (MathFunctions::normalVector(c1, c2, c3, barycentricNormal) == false) {
+            return false;
+        }
+    }
+    
+    /*
+     * Set output coordinate, possibly offsetting from surface.
+     */
+    for (int j = 0; j < 3; j++) {
+        if (unprojectWithOffsetFromSurface) {
+            xyzOut[j] = (barycentricXYZ[j]
+                         + (barycentricNormal[j] * offsetFromSurface));
+        }
+        else {
+            xyzOut[j] = (barycentricXYZ[j]
+                         + (barycentricNormal[j] * signedDistanceAboveSurface));
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * Unproject to the surface using 'this' projection.
  * 
  * @param surfaceFile
  *    Surface file used for unprojecting.

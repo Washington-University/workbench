@@ -162,9 +162,41 @@ SurfaceProjectionVanEssen::copyHelperSurfaceProjectionVanEssen(const SurfaceProj
 
 /**
  * Unproject to the surface using 'this' projection.
+ *
+ * @param surfaceFile
+ *    Surface file used for unprojecting.
+ * @param xyzOut
+ *    Output containing coordinate created by unprojecting.
+ * @param offsetFromSurface
+ *    If 'unprojectWithOffsetFromSurface' is true, unprojected
+ *    position will be this distance above (negative=below)
+ *    the surface.
+ * @param unprojectWithOffsetFromSurface
+ *    If true, ouput coordinate will be offset 'offsetFromSurface'
+ *    distance from the surface.
+ */
+bool
+SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
+                                              float xyzOut[3],
+                                              const float offsetFromSurface,
+                                              const bool unprojectWithOffsetFromSurface) const
+{
+    return unprojectToSurface(surfaceFile,
+                              NULL,
+                              xyzOut,
+                              offsetFromSurface,
+                              unprojectWithOffsetFromSurface);
+}
+
+/**
+ * Unproject to the surface using 'this' projection.
  * 
  * @param surfaceFile
  *    Surface file used for unprojecting.
+ * @param topologyHelperIn
+ *    Topology helper.  If NULL, topology helper from surfaceFile
+ *    will be used but frequent calls to get the topology helper
+ *    may be slow.
  * @param xyzOut
  *    Output containing coordinate created by unprojecting.
  * @param offsetFromSurface
@@ -177,6 +209,7 @@ SurfaceProjectionVanEssen::copyHelperSurfaceProjectionVanEssen(const SurfaceProj
  */
 bool 
 SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
+                                              const TopologyHelper* topologyHelperIn,
                                               float xyzOut[3],
                                               const float offsetFromSurface,
                                               const bool unprojectWithOffsetFromSurface) const
@@ -202,8 +235,10 @@ SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
     /*
      * All nodes MUST have neighbors (connected)
      */
-    const TopologyHelper* topologyHelper = surfaceFile.getTopologyHelper().getPointer();
-    if ((topologyHelper->getNodeHasNeighbors(n1) == false) 
+    const TopologyHelper* topologyHelper = ((topologyHelperIn != NULL)
+                                            ? topologyHelperIn
+                                            : surfaceFile.getTopologyHelper().getPointer());
+    if ((topologyHelper->getNodeHasNeighbors(n1) == false)
         || (topologyHelper->getNodeHasNeighbors(n2) == false)) {
         return false;
     }

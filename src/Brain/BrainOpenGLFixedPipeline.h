@@ -218,6 +218,7 @@ namespace caret {
         struct BorderDrawInfo {
             Surface* anatomicalSurface;
             Surface* surface;
+            TopologyHelper* topologyHelper;
             Border* border;
             int32_t borderFileIndex;
             int32_t borderIndex;

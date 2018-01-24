@@ -2635,6 +2635,7 @@ void
 BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
 {
     CaretAssert(borderDrawInfo.surface);
+    CaretAssert(borderDrawInfo.topologyHelper);
     CaretAssert(borderDrawInfo.border);
     
     const StructureEnum::Enum surfaceStructure = borderDrawInfo.surface->getStructure();
@@ -2672,11 +2673,11 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     
     bool drawSphericalPoints = false;
     bool drawSquarePoints = false;
-    bool drawLines  = false;
+    bool drawLineSegments  = false;
     bool drawPolylines    = false;
     switch (drawType) {
         case BorderDrawingTypeEnum::DRAW_AS_LINES:
-            drawLines = true;
+            drawLineSegments = true;
             break;
         case BorderDrawingTypeEnum::DRAW_AS_POLYLINES:
             drawPolylines = true;
@@ -2688,7 +2689,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             drawSquarePoints = true;
             break;
         case BorderDrawingTypeEnum::DRAW_AS_POINTS_AND_LINES:
-            drawLines = true;
+            drawLineSegments = true;
             drawSphericalPoints = true;
             break;
     }
@@ -2706,8 +2707,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     
     const float drawAtDistanceAboveSurface = 0.0;
     
-    const CaretPointer<TopologyHelper> th = borderDrawInfo.surface->getTopologyHelper();
-    const std::vector<int32_t>& nodesBoundaryEdgeCount = th->getNumberOfBoundaryEdgesForAllNodes();
+    const std::vector<int32_t>& nodesBoundaryEdgeCount = borderDrawInfo.topologyHelper->getNumberOfBoundaryEdgesForAllNodes();
     CaretAssert(static_cast<int32_t>(nodesBoundaryEdgeCount.size()) == borderDrawInfo.surface->getNumberOfNodes());
     
     const uint8_t highlightFirstPointRGBA[4] = { 0, 255, 0, 1 };
@@ -2751,7 +2751,12 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
         }
     }
     
-    GraphicsPrimitive::PrimitiveType lineType = GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP;
+    /*
+     * Due to the possibility of 'unstretched lines' not being drawn
+     * must OPENGL_LINES must be used since there is no way to skip
+     * a line segment in a line strip
+     */
+    GraphicsPrimitive::PrimitiveType lineType = GraphicsPrimitive::PrimitiveType::OPENGL_LINES;
     bool allowPrimitiveRestartFlag = false;
     if (drawPolylines) {
         lineType = GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN;
@@ -2759,7 +2764,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     }
     std::unique_ptr<GraphicsPrimitiveV3f> linesPrimitive;
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> linesIdentificationPrimitive;
-    if (drawLines
+    if (drawLineSegments
         || drawPolylines) {
         if (borderDrawInfo.isSelect) {
             linesIdentificationPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(lineType));
@@ -2819,8 +2824,9 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
          */
         float xyz[3];
         bool projectionValidFlag = p->getProjectedPositionAboveSurface(*borderDrawInfo.surface,
-                                                              xyz,
-                                                              drawAtDistanceAboveSurface);
+                                                                       borderDrawInfo.topologyHelper,
+                                                                       xyz,
+                                                                       drawAtDistanceAboveSurface);
         if ( ! projectionValidFlag) {
             lastPointForLineValidFlag = false;
             continue;
@@ -2868,13 +2874,15 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                 if (lastPointForLineValidFlag) {
                     float anatXYZ[3];
                     const bool anatXyzValid = p->getProjectedPositionAboveSurface(*borderDrawInfo.anatomicalSurface,
-                                                                                    anatXYZ,
-                                                                                    drawAtDistanceAboveSurface);
+                                                                                  borderDrawInfo.topologyHelper,
+                                                                                  anatXYZ,
+                                                                                  drawAtDistanceAboveSurface);
                     const SurfaceProjectedItem* lastP = borderDrawInfo.border->getPoint(i - 1);
                     float lastAnatXYZ[3];
                     const bool lastAnatXyzValid = lastP->getProjectedPositionAboveSurface(*borderDrawInfo.anatomicalSurface,
-                                                                                    lastAnatXYZ,
-                                                                                    drawAtDistanceAboveSurface);
+                                                                                          borderDrawInfo.topologyHelper,
+                                                                                          lastAnatXYZ,
+                                                                                          drawAtDistanceAboveSurface);
                     if (anatXyzValid && lastAnatXyzValid) {
                         if (unstretchedBorderLineTest(xyz,
                                                       lastPointForLineXYZ,
@@ -2907,7 +2915,15 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                 pointsIdentificationPrimitive->addVertex(xyz, idRGBA);
             }
             if (linesIdentificationPrimitive) {
-                linesIdentificationPrimitive->addVertex(xyz, idRGBA);
+                if (drawLineSegments) {
+                    if (lastPointForLineValidFlag) {
+                        linesIdentificationPrimitive->addVertex(lastPointForLineXYZ, idRGBA);
+                        linesIdentificationPrimitive->addVertex(xyz, idRGBA);
+                    }
+                }
+                else {
+                    linesIdentificationPrimitive->addVertex(xyz, idRGBA);
+                }
             }
         }
         else {
@@ -2928,7 +2944,15 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                 }
             }
             if (linesPrimitive) {
-                linesPrimitive->addVertex(xyz);
+                if (drawLineSegments) {
+                    if (lastPointForLineValidFlag) {
+                        linesPrimitive->addVertex(lastPointForLineXYZ);
+                        linesPrimitive->addVertex(xyz);
+                    }
+                }
+                else {
+                    linesPrimitive->addVertex(xyz);
+                }
             }
         }
         
@@ -3281,6 +3305,8 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
 void 
 BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
 {
+    CaretAssert(surface);
+    
     SelectionItemBorderSurface* idBorder = m_brain->getSelectionManager()->getSurfaceBorderIdentification();
     
     /*
@@ -3328,6 +3354,10 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     CaretColorEnum::toRGBAFloat(caretColor, caretColorRGBA);
     const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed(displayGroup,
                                                                                           this->windowTabIndex);
+    BorderDrawInfo borderDrawInfo;
+    borderDrawInfo.surface = surface;
+    borderDrawInfo.topologyHelper = surface->getTopologyHelper().getPointer();
+    
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
@@ -3387,8 +3417,6 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
             }
             glColor3fv(rgba);
             
-            BorderDrawInfo borderDrawInfo;
-            borderDrawInfo.surface = surface;
             borderDrawInfo.border = border;
             borderDrawInfo.rgba[0] = rgba[0];
             borderDrawInfo.rgba[1] = rgba[1];
@@ -3459,6 +3487,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
     if (this->borderBeingDrawn != NULL) {
         BorderDrawInfo borderDrawInfo;
         borderDrawInfo.surface = const_cast<Surface*>(surface);
+        borderDrawInfo.topologyHelper = surface->getTopologyHelper().getPointer();
         borderDrawInfo.border = this->borderBeingDrawn;
         borderDrawInfo.rgba[0] = 1.0;
         borderDrawInfo.rgba[1] = 0.0;

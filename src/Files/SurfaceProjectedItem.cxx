@@ -226,7 +226,7 @@ SurfaceProjectedItem::getProjectedPosition(const SurfaceFile& surfaceFile,
     
     if (valid == false) {
         if (this->vanEssenProjection->isValid()) {
-            valid = this->vanEssenProjection->unprojectToSurface(surfaceFile, 
+            valid = this->vanEssenProjection->unprojectToSurface(surfaceFile,
                                                                  xyzOut, 
                                                                  0.0,
                                                                  isUnprojectedOntoSurface);
@@ -253,6 +253,8 @@ SurfaceProjectedItem::getProjectedPosition(const SurfaceFile& surfaceFile,
  * 
  * @param surfaceFile  
  *     Surface File for positioning.
+ * @param topologyHelper
+ *     The topology helper.  This value
  * @param xyzOut
  *     Output containing the projected position.
  * @param distanceAboveSurface   
@@ -262,6 +264,7 @@ SurfaceProjectedItem::getProjectedPosition(const SurfaceFile& surfaceFile,
  */
 bool 
 SurfaceProjectedItem::getProjectedPositionAboveSurface(const SurfaceFile& surfaceFile,
+                                                       const TopologyHelper* topologyHelper,
                                                        float xyzOut[3],
                                                        const float distanceAboveSurface) const
 {
@@ -269,7 +272,8 @@ SurfaceProjectedItem::getProjectedPositionAboveSurface(const SurfaceFile& surfac
     
     if (valid == false) {
         if (this->barycentricProjection->isValid()) {
-            valid = this->barycentricProjection->unprojectToSurface(surfaceFile, 
+            valid = this->barycentricProjection->unprojectToSurface(surfaceFile,
+                                                                    topologyHelper,
                                                                     xyzOut, 
                                                                     distanceAboveSurface,
                                                                     true);
@@ -278,7 +282,8 @@ SurfaceProjectedItem::getProjectedPositionAboveSurface(const SurfaceFile& surfac
     
     if (valid == false) {
         if (this->vanEssenProjection->isValid()) {
-            valid = this->vanEssenProjection->unprojectToSurface(surfaceFile, 
+            valid = this->vanEssenProjection->unprojectToSurface(surfaceFile,
+                                                                 topologyHelper,
                                                                  xyzOut, 
                                                                  distanceAboveSurface,
                                                                  true);

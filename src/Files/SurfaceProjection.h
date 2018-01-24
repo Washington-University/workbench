@@ -28,6 +28,7 @@
 namespace caret {
 
     class SurfaceFile;
+    class TopologyHelper;
     class XmlWriter;
     
     class SurfaceProjection : public CaretObjectTracksModification {
@@ -76,6 +77,33 @@ namespace caret {
          *    True if unprojection is successful, else false.
          */
         virtual bool unprojectToSurface(const SurfaceFile& surfaceFile,
+                                        float xyzOut[3],
+                                        const float offsetFromSurface,
+                                        const bool unprojectWithOffsetFromSurface) const = 0;
+        
+        /**
+         * Unproject to the surface using 'this' projection.
+         *
+         * @param surfaceFile
+         *    Surface file used for unprojecting.
+         * @param topologyHelperIn
+         *    Topology helper.  If NULL, topology helper from surfaceFile
+         *    will be used but frequent calls to get the topology helper
+         *    may be slow.
+         * @param xyzOut
+         *    Output containing coordinate created by unprojecting.
+         * @param offsetFromSurface
+         *    If 'unprojectWithOffsetFromSurface' is true, unprojected
+         *    position will be this distance above (negative=below)
+         *    the surface.
+         * @param unprojectWithOffsetFromSurface
+         *    If true, ouput coordinate will be offset 'offsetFromSurface'
+         *    distance from the surface.
+         * @return
+         *    True if unprojection is successful, else false.
+         */
+        virtual bool unprojectToSurface(const SurfaceFile& surfaceFile,
+                                        const TopologyHelper* topologyHelperIn,
                                         float xyzOut[3],
                                         const float offsetFromSurface,
                                         const bool unprojectWithOffsetFromSurface) const = 0;

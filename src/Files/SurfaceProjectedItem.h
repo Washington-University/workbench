@@ -33,6 +33,7 @@ namespace caret {
     class SurfaceFile;
     class SurfaceProjectionBarycentric;
     class SurfaceProjectionVanEssen;
+    class TopologyHelper;
     class XmlWriter;
     
     class SurfaceProjectedItem : public CaretObjectTracksModification {
@@ -67,6 +68,7 @@ namespace caret {
                                   const bool isUnprojectedOntoSurface) const;
         
         bool getProjectedPositionAboveSurface(const SurfaceFile& sf,
+                                              const TopologyHelper* th,
                                               float xyzOut[3],
                                               const float distanceAboveSurface) const;
         

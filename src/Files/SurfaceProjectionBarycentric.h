@@ -28,6 +28,7 @@ class QXmlStreamReader;
 
 namespace caret {
 
+    class TopologyHelper;
     class SurfaceProjectionBarycentric : public SurfaceProjection {
         
     public:
@@ -60,6 +61,12 @@ namespace caret {
         int32_t getNodeWithLargestWeight() const;
                 
         bool unprojectToSurface(const SurfaceFile& surfaceFile,
+                                float xyzOut[3],
+                                const float offsetFromSurface,
+                                const bool unprojectWithOffsetFromSurface) const;
+        
+        bool unprojectToSurface(const SurfaceFile& surfaceFile,
+                                const TopologyHelper* topologyHelper,
                                 float xyzOut[3],
                                 const float offsetFromSurface,
                                 const bool unprojectWithOffsetFromSurface) const;
