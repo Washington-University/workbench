@@ -31,10 +31,9 @@ using namespace caret;
     
 /**
  * \class caret::BorderDrawingTypeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \brief Enumerated type for border drawing
  */
+
 /**
  * Constructor.
  *
@@ -78,7 +77,11 @@ BorderDrawingTypeEnum::initialize()
                                     "DRAW_AS_LINES", 
                                     "Lines"));
     
-    enumData.push_back(BorderDrawingTypeEnum(DRAW_AS_POINTS_SPHERES, 
+    enumData.push_back(BorderDrawingTypeEnum(DRAW_AS_POLYLINES,
+                                             "DRAW_AS_POLYLINES",
+                                             "Polylines"));
+    
+    enumData.push_back(BorderDrawingTypeEnum(DRAW_AS_POINTS_SPHERES,
                                     "DRAW_AS_POINTS_SPHERES", 
                                     "Spheres"));
     

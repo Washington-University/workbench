@@ -2673,9 +2673,13 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     bool drawSphericalPoints = false;
     bool drawSquarePoints = false;
     bool drawLines  = false;
+    bool drawPolylines    = false;
     switch (drawType) {
         case BorderDrawingTypeEnum::DRAW_AS_LINES:
             drawLines = true;
+            break;
+        case BorderDrawingTypeEnum::DRAW_AS_POLYLINES:
+            drawPolylines = true;
             break;
         case BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES:
             drawSphericalPoints = true;
@@ -2747,14 +2751,21 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
         }
     }
     
+    GraphicsPrimitive::PrimitiveType lineType = GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP;
+    bool allowPrimitiveRestartFlag = false;
+    if (drawPolylines) {
+        lineType = GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN;
+        allowPrimitiveRestartFlag = true;
+    }
     std::unique_ptr<GraphicsPrimitiveV3f> linesPrimitive;
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> linesIdentificationPrimitive;
-    if (drawLines) {
+    if (drawLines
+        || drawPolylines) {
         if (borderDrawInfo.isSelect) {
-            linesIdentificationPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN));
+            linesIdentificationPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(lineType));
         }
         else {
-            linesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN,
+            linesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(lineType,
                                                                     solidColorRGBA));
         }
     }
@@ -2772,11 +2783,13 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
          */
         if (i > 0) {
             if ( ! lastPointForLineValidFlag) {
-                if (linesPrimitive) {
-                    linesPrimitive->addPrimitiveRestart();
-                }
-                if (linesIdentificationPrimitive) {
-                    linesIdentificationPrimitive->addPrimitiveRestart();
+                if (allowPrimitiveRestartFlag) {
+                    if (linesPrimitive) {
+                        linesPrimitive->addPrimitiveRestart();
+                    }
+                    if (linesIdentificationPrimitive) {
+                        linesIdentificationPrimitive->addPrimitiveRestart();
+                    }
                 }
             }
         }
@@ -2868,11 +2881,13 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                                                       anatXYZ,
                                                       lastAnatXYZ,
                                                       unstretchedLinesLength)) {
-                            if (linesPrimitive) {
-                                linesPrimitive->addPrimitiveRestart();
-                            }
-                            if (linesIdentificationPrimitive) {
-                                linesIdentificationPrimitive->addPrimitiveRestart();
+                            if (allowPrimitiveRestartFlag) {
+                                if (linesPrimitive) {
+                                    linesPrimitive->addPrimitiveRestart();
+                                }
+                                if (linesIdentificationPrimitive) {
+                                    linesIdentificationPrimitive->addPrimitiveRestart();
+                                }
                             }
                         }
                     }
@@ -2966,7 +2981,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     }
     
     glPopAttrib();
-}
+}//p->
 
 
 /**
@@ -5530,6 +5545,10 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithHeight(const int32_t view
                     this->orthographicFar, this->orthographicNear);
             break;
     }
+    
+//    std::cout << "Viewport: " << AString::fromNumbers(viewport, 4, ",") << std::endl;
+//    std::cout << "    Ortho Left/Bottom: " << this->orthographicLeft  << ", " << this->orthographicBottom << std::endl;
+//    std::cout << "    Ortho Right/Top:   " << this->orthographicRight << ", " << this->orthographicTop << std::endl;
 }
 
 /**

@@ -37,6 +37,8 @@ public:
     enum Enum {
         /** draw as lines */
         DRAW_AS_LINES,
+        /** draw as lines but thicker and slower */
+        DRAW_AS_POLYLINES,
         /** draw as spherical points */
         DRAW_AS_POINTS_SPHERES,
         /** draw as square points */
