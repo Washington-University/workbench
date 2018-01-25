@@ -79,7 +79,7 @@ m_overlayIndex(overlayIndex)
     m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
     
     m_colorBar = std::unique_ptr<AnnotationColorBar>(new AnnotationColorBar(AnnotationAttributesDefaultTypeEnum::NORMAL));
-    m_colorBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
+    m_colorBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
     
     m_matrixTriangularViewingMode = ChartTwoMatrixTriangularViewingModeEnum::MATRIX_VIEW_FULL;
     m_cartesianVerticalAxisLocation = ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT;
