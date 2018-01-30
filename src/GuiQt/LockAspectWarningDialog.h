@@ -27,6 +27,7 @@
 
 #include <QDialog>
 
+class QCheckBox;
 
 
 namespace caret {
@@ -52,6 +53,7 @@ namespace caret {
                                 QWidget* parent);
 
         LockAspectWarningDialog(const TabMode tabMode,
+                                const bool tileTabsEnabled,
                                 const bool browserWindowAspectLocked,
                                 const int32_t tabAspectLockedCount,
                                 const int32_t tabCount,
@@ -61,16 +63,12 @@ namespace caret {
         
         Result getResult() const;
         
+        bool isDoNotShowAgainChecked() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void lockWindowAndTabsClicked();
-        
-        void lockWindowClicked();
-        
-        void noChangesClicked();
-        
-        void cancelClicked();
+        void buttonClicked(const Result buttonClicked);
         
     private:
         LockAspectWarningDialog(const LockAspectWarningDialog&);
@@ -89,13 +87,16 @@ namespace caret {
         
         Result m_result = Result::CANCEL;
         
+        QCheckBox* m_doNotShowAgainCheckBox;
+        
+        static bool s_doNotShowAgainStatusFlag;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __LOCK_ASPECT_WARNING_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    bool LockAspectWarningDialog::s_doNotShowAgainStatusFlag = false;
 #endif // __LOCK_ASPECT_WARNING_DIALOG_DECLARE__
 
 } // namespace

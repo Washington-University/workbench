@@ -33,7 +33,9 @@
 #include "GuiManager.h"
 #undef __GUI_MANAGER_DEFINE__
 
+#include "Annotation.h"
 #include "AnnotationFile.h"
+#include "AnnotationManager.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGL.h"
@@ -77,6 +79,7 @@
 #include "EventPaletteColorMappingEditorDialogRequest.h"
 #include "EventProgressUpdate.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventTabAndWindowLockAspectRatioStatus.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
@@ -295,6 +298,7 @@ GuiManager::initializeGuiManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SHOW_FILE_DATA_READ_WARNING_DIALOG);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TAB_AND_WINDOW_LOCK_ASPECT_RATIO_STATUS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
@@ -1475,7 +1479,41 @@ GuiManager::receiveEvent(Event* event)
         
         warningEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_TAB_AND_WINDOW_LOCK_ASPECT_RATIO_STATUS) {
+        EventTabAndWindowLockAspectRatioStatus* lockStatusEvent = dynamic_cast<EventTabAndWindowLockAspectRatioStatus*>(event);
+        CaretAssert(lockStatusEvent);
+        
+        loadLockStatusEvent(lockStatusEvent);
+        
+        lockStatusEvent->setEventProcessed();
+    }
 }
+
+/**
+ * Load the lock aspect status event.
+ *
+ * @param lockStatusEvent
+ *    The lock status event.
+ */
+void
+GuiManager::loadLockStatusEvent(EventTabAndWindowLockAspectRatioStatus* lockStatusEvent)
+{
+    CaretAssert(lockStatusEvent);
+    
+    const std::vector<Annotation*> annotations = getBrain()->getAnnotationManager()->getAllAnnotations();
+    
+    std::vector<BrainBrowserWindow*> openWindows;
+    for (const auto bbw : m_brainBrowserWindows) {
+        if (bbw != NULL) {
+            openWindows.push_back(bbw);
+        }
+    }
+    
+    lockStatusEvent->setup(openWindows,
+                           annotations);
+}
+
+
 
 /**
  * Remove the tab content from all browser windows except for the given

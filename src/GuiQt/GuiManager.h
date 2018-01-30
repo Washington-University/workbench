@@ -49,6 +49,7 @@ namespace caret {
     class ClippingPlanesDialog;
     class CursorManager;
     class CustomViewDialog;
+    class EventTabAndWindowLockAspectRatioStatus;
     class GapsAndMarginsDialog;
     class HelpViewerDialog;
     class IdentifyBrainordinateDialog;
@@ -229,6 +230,8 @@ namespace caret {
         void addNonModalDialog(QWidget* dialog);
         
         void addParentLessNonModalDialog(QWidget* dialog);
+        
+        void loadLockStatusEvent(EventTabAndWindowLockAspectRatioStatus* lockStatusEvent);
         
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;

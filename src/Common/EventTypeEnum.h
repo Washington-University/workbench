@@ -180,6 +180,8 @@ public:
         EVENT_SURFACES_GET,
         /** Get valid surface strucutures and their number of nodes */
         EVENT_SURFACE_STRUCTURES_VALID_GET,
+        /** Get the lock aspect and related information for tabs and windows */
+        EVENT_TAB_AND_WINDOW_LOCK_ASPECT_RATIO_STATUS,
         /** Display/Hide the selection toolbox */
         EVENT_TOOLBOX_SELECTION_DISPLAY,
         /** Update the User-Interface */

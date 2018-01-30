@@ -30,12 +30,13 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QCheckBox>
-#include <QDoubleSpinBox>
 #include <QVBoxLayout>
 
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventManager.h"
+#include "EventTabAndWindowLockAspectRatioStatus.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
 
@@ -73,46 +74,35 @@ LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex,
         return Result::NO_CHANGES;
     }
     
+    if (s_doNotShowAgainStatusFlag) {
+        return Result::NO_CHANGES;
+    }
+    
+    EventTabAndWindowLockAspectRatioStatus lockEvent;
+    EventManager::get()->sendEvent(lockEvent.getPointer());
+    CaretAssert(lockEvent.getEventProcessCount() > 0);
+    
     /*
      * Determine lock status for window and tabs in the window
      */
-    const bool selectedTabLockedFlag = selectedTab->isAspectRatioLocked();
+    const bool tileTabsEnabledFlag    = lockEvent.getWindowStatus(browserWindowIndex)->isTileTabsEnabled();
+    const bool windowAspectLockedFlag = lockEvent.getWindowStatus(browserWindowIndex)->isAspectRatioLocked();
+    const bool selectedTabLockedFlag = lockEvent.getTabStatus(selectedTab->getTabNumber())->isAspectRatioLocked();
     
-    std::vector<BrowserTabContent*> allTabs;
-    bbw->getAllTabContent(allTabs);
-    const int32_t tabCount = static_cast<int32_t>(allTabs.size());
-    const int32_t tabLockedCount = std::count_if(allTabs.begin(),
-                                                 allTabs.end(),
-                                                 [](BrowserTabContent* btc) { return btc->isAspectRatioLocked(); });
-    const bool allTabsLockedFlag = (tabCount == tabLockedCount);
-    
-    
-    /*
-     * Check either selected tab for lock status or all tabs
-     */
-    bool tabLockStatus = false;
-    switch (tabMode) {
-        case LockAspectWarningDialog::TabMode::ALL_TABS:
-            tabLockStatus = allTabsLockedFlag;
-            break;
-        case LockAspectWarningDialog::TabMode::SELECTED_TAB:
-            tabLockStatus = selectedTabLockedFlag;
-            break;
-    }
-    
-    const bool windowApectLockedFlag = bbw->isAspectRatioLocked();
-    if (windowApectLockedFlag
-        || tabLockStatus) {
+    if (windowAspectLockedFlag
+        || selectedTabLockedFlag) {
         return Result::NO_CHANGES;
     }
 
     LockAspectWarningDialog dialog(tabMode,
-                                   windowApectLockedFlag,
-                                   tabLockedCount,
-                                   tabCount,
+                                   tileTabsEnabledFlag,
+                                   windowAspectLockedFlag,
+                                   lockEvent.getWindowStatus(browserWindowIndex)->getTabLockedCount(),
+                                   lockEvent.getWindowStatus(browserWindowIndex)->getTabCount(),
                                    parent);
     
     if (dialog.exec() == LockAspectWarningDialog::Accepted) {
+        s_doNotShowAgainStatusFlag = dialog.isDoNotShowAgainChecked();
         return dialog.getResult();
     }
     
@@ -124,6 +114,8 @@ LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex,
  *
  * @param tabMode
  *     The mode for tabs (selected or all)
+ * @param tileTabsEnabled
+ *     True if tile tabs is enabled.
  * @param browserWindowAspectLocked
  *     True if window aspect is locked.
  * @param tabAspectLockedCount
@@ -134,6 +126,7 @@ LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex,
  *     The parent widget.
  */
 LockAspectWarningDialog::LockAspectWarningDialog(const TabMode tabMode,
+                                                 const bool tileTabsEnabled,
                                                  const bool browserWindowAspectLocked,
                                                  const int32_t tabAspectLockedCount,
                                                  const int32_t tabCount,
@@ -171,26 +164,26 @@ m_tabCount(tabCount)
     QLabel* warningLabel = new QLabel(msg);
     warningLabel->setWordWrap(true);
     
-    //QLabel* lockedStatusLabel = new QLabel(getLockedStatusText());
-    
     QLabel* buttonsLabel = new QLabel("Continue to Annotations Mode?");
     
     QPushButton* lockWindowAndTabButton = new QPushButton("OK - Lock Window and All Tab Aspects");
     QObject::connect(lockWindowAndTabButton, &QPushButton::clicked,
-                     this, &LockAspectWarningDialog::lockWindowAndTabsClicked);
+                     [=] { this->buttonClicked(Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS); });
     
     QPushButton* lockWindowButton = new QPushButton("OK - Lock Window Aspect");
     QObject::connect(lockWindowButton, &QPushButton::clicked,
-                     this, &LockAspectWarningDialog::lockWindowClicked);
+                     [=] { this->buttonClicked(Result::LOCK_WINDOW_ASPECT); });
     
     QPushButton* noChangesButton = new QPushButton("OK - No Lock Aspect Changes");
     QObject::connect(noChangesButton, &QPushButton::clicked,
-                     this, &LockAspectWarningDialog::noChangesClicked);
+                     [=] { this->buttonClicked(Result::NO_CHANGES); });
     
     QPushButton* cancelButton = new QPushButton("Cancel");
     QObject::connect(cancelButton, &QPushButton::clicked,
-                     this, &LockAspectWarningDialog::cancelClicked);
+                     [=] { this->buttonClicked(Result::CANCEL); });
     
+    m_doNotShowAgainCheckBox = new QCheckBox("Do not show again and user will be\n"
+                                              "responsible for aspect locking/unlocking");
     
     QVBoxLayout* labelLayout = new QVBoxLayout();
     labelLayout->addWidget(warningLabel);
@@ -209,10 +202,21 @@ m_tabCount(tabCount)
     buttonLayout->addWidget(lockWindowButton);
     buttonLayout->addWidget(noChangesButton);
     buttonLayout->addWidget(cancelButton);
+    buttonLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    buttonLayout->addWidget(m_doNotShowAgainCheckBox);
     buttonLayout->addStretch();
     
     dialogLayout->addLayout(labelLayout);
     dialogLayout->addLayout(buttonLayout);
+    
+    /*
+     * Highlighted button
+     */
+    QPushButton* defaultPushButton = (tileTabsEnabled
+                                      ? lockWindowAndTabButton
+                                      : lockWindowButton);
+    defaultPushButton->setAutoDefault(true);
+    defaultPushButton->setDefault(true);
 }
 
 /**
@@ -261,32 +265,43 @@ LockAspectWarningDialog::getLockedStatusText() const
     return lockedMessage;
 }
 
-
+/**
+ * Called when one of the buttons is clicked.
+ *
+ * @param buttonClicked
+ *     Button that was clicked.
+ */
 void
-LockAspectWarningDialog::lockWindowAndTabsClicked()
+LockAspectWarningDialog::buttonClicked(const Result buttonClicked)
 {
-    m_result = Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS;
-    accept();
+    switch (buttonClicked) {
+        case Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS:
+            m_result = Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS;
+            accept();
+            break;
+        case Result::LOCK_WINDOW_ASPECT:
+            m_result = Result::LOCK_WINDOW_ASPECT;
+            accept();
+            break;
+        case Result::NO_CHANGES:
+            m_result = Result::NO_CHANGES;
+            accept();
+            break;
+        case Result::CANCEL:
+            m_result = Result::CANCEL;
+            reject();
+            break;
+    }
 }
 
-void
-LockAspectWarningDialog::lockWindowClicked()
+
+/**
+ * @return True if the "do not show again" checkbox is checked.
+ */
+bool
+LockAspectWarningDialog::isDoNotShowAgainChecked() const
 {
-    m_result = Result::LOCK_WINDOW_ASPECT;
-    accept();
+    return m_doNotShowAgainCheckBox->isChecked();
 }
 
-void
-LockAspectWarningDialog::noChangesClicked()
-{
-    m_result = Result::NO_CHANGES;
-    accept();
-}
-
-void
-LockAspectWarningDialog::cancelClicked()
-{
-    m_result = Result::CANCEL;
-    reject();
-}
 
