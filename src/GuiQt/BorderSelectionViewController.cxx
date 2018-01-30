@@ -151,7 +151,9 @@ BorderSelectionViewController::createAttributesWidget()
         m_drawTypeComboBox->addItem(BorderDrawingTypeEnum::toGuiName(drawType),
                                     (int)drawType);
     }
-    m_drawTypeComboBox->setToolTip("Select the drawing style of borders");
+    m_drawTypeComboBox->setToolTip("Select the drawing style of borders\n"
+                                   "Lines are faster but have limited width\n"
+                                   "Polylines are slower but have unlimited width");
     QObject::connect(m_drawTypeComboBox, SIGNAL(activated(int)),
                      this, SLOT(processAttributesChanges()));
     
