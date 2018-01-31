@@ -146,19 +146,22 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
     m_brain           = NULL;
     m_modelVolume     = NULL;
     m_modelWholeBrain = NULL;
+    m_modelType       = ModelTypeEnum::MODEL_TYPE_INVALID;
     if (m_browserTabContent->getDisplayedVolumeModel() != NULL) {
         m_modelVolume = m_browserTabContent->getDisplayedVolumeModel();
         m_brain = m_modelVolume->getBrain();
+        m_modelType = m_modelVolume->getModelType();
     }
     else if (m_browserTabContent->getDisplayedWholeBrainModel() != NULL) {
         m_modelWholeBrain = m_browserTabContent->getDisplayedWholeBrainModel();
         m_brain = m_modelWholeBrain->getBrain();
+        m_modelType = m_modelWholeBrain->getModelType();
     }
     else {
         CaretAssertMessage(0, "Invalid model for volume slice drawing.");
     }
     CaretAssert(m_brain);
-    
+    CaretAssert(m_modelType != ModelTypeEnum::MODEL_TYPE_INVALID);
     
     m_volumeDrawInfo = volumeDrawInfo;
     if (m_volumeDrawInfo.empty()) {
@@ -2721,7 +2724,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnu
             glPolygonOffset(0.0, 1.0);
             
             if (drawOutlineFlag) {
-                BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(slicePlane,
+                BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(m_modelType,
+                                                                  slicePlane,
                                                                   m_browserTabContent->getVolumeSurfaceOutlineSet(),
                                                                   m_fixedPipelineDrawing);
             }

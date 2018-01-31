@@ -147,18 +147,22 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
     m_brain           = NULL;
     m_modelVolume     = NULL;
     m_modelWholeBrain = NULL;
+    m_modelType       = ModelTypeEnum::MODEL_TYPE_INVALID;
     if (m_browserTabContent->getDisplayedVolumeModel() != NULL) {
         m_modelVolume = m_browserTabContent->getDisplayedVolumeModel();
         m_brain = m_modelVolume->getBrain();
+        m_modelType = m_modelVolume->getModelType();
     }
     else if (m_browserTabContent->getDisplayedWholeBrainModel() != NULL) {
         m_modelWholeBrain = m_browserTabContent->getDisplayedWholeBrainModel();
         m_brain = m_modelWholeBrain->getBrain();
+        m_modelType = m_modelWholeBrain->getModelType();
     }
     else {
         CaretAssertMessage(0, "Invalid model for volume slice drawing.");
     }
     CaretAssert(m_brain);
+    CaretAssert(m_modelType != ModelTypeEnum::MODEL_TYPE_INVALID);
     
     m_volumeDrawInfo = volumeDrawInfo;
     if (m_volumeDrawInfo.empty()) {
@@ -3489,7 +3493,8 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
             glPolygonOffset(0.0, 1.0);
             
             if (drawOutlineFlag) {
-                drawSurfaceOutline(slicePlane,
+                drawSurfaceOutline(m_modelType,
+                                   slicePlane,
                                    m_browserTabContent->getVolumeSurfaceOutlineSet(),
                                    m_fixedPipelineDrawing);
             }
@@ -3547,6 +3552,8 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
 /**
  * Draw surface outlines on the volume slices
  *
+ * @param modelType
+ *    Type of model being drawn.
  * @param plane
  *    Plane of the volume slice on which surface outlines are drawn.
  * @param outlineSet
@@ -3555,14 +3562,39 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
  *    The fixed pipeline drawing.
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane,
+BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum modelType,
+                                                  const Plane& plane,
                                                   VolumeSurfaceOutlineSetModel* outlineSet,
                                                   BrainOpenGLFixedPipeline* fixedPipelineDrawing)
 {
     glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
-    
+
+    switch (modelType) {
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            /*
+             * Enable depth so outlines in front or in back
+             * of the slices.  Without this the volume surface
+             * outlines "behind" the slices are visible and
+             * it looks weird
+             */
+            glEnable(GL_DEPTH_TEST);
+            break;
+    }
+
     /*
      * Process each surface outline
      * As of 24 May, "zero" is on top so draw in reverse order

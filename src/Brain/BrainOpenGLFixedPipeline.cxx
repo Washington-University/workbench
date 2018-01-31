@@ -5181,13 +5181,32 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
                 VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
                 VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
                 
-                BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-                volumeSliceDrawing.draw(this,
-                                        browserTabContent,
-                                        twoDimSliceDrawVolumeDrawInfo,
-                                        sliceDrawingType,
-                                        sliceProjectionType,
-                                        viewport);
+                switch (sliceProjectionType) {
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                    {
+                        VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueMaskType = browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType();
+                        BrainOpenGLVolumeObliqueSliceDrawing volumeSliceDrawing;
+                        volumeSliceDrawing.draw(this,
+                                                browserTabContent,
+                                                twoDimSliceDrawVolumeDrawInfo,
+                                                sliceDrawingType,
+                                                sliceProjectionType,
+                                                obliqueMaskType,
+                                                viewport);
+                    }
+                        break;
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                    {
+                        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+                        volumeSliceDrawing.draw(this,
+                                                browserTabContent,
+                                                twoDimSliceDrawVolumeDrawInfo,
+                                                sliceDrawingType,
+                                                sliceProjectionType,
+                                                viewport);
+                    }
+                        break;
+                }
             }
         }
     }

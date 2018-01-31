@@ -24,6 +24,7 @@
 #include "BrainOpenGLFixedPipeline.h"
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
+#include "ModelTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
@@ -239,7 +240,8 @@ namespace caret {
                         const Plane& slicePlane,
                         const float sliceCoordinates[3]);
         
-        static void drawSurfaceOutline(const Plane& plane,
+        static void drawSurfaceOutline(const ModelTypeEnum::Enum modelType,
+                                       const Plane& plane,
                                        VolumeSurfaceOutlineSetModel* outlineSet,
                                        BrainOpenGLFixedPipeline* fixedPipelineDrawing);
         
@@ -328,6 +330,8 @@ namespace caret {
         void processIdentification();
         
         void resetIdentification();
+        
+        ModelTypeEnum::Enum m_modelType;
         
         ModelVolume* m_modelVolume;
         

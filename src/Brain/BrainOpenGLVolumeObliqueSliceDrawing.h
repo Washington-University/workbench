@@ -24,6 +24,7 @@
 #include "BrainOpenGLFixedPipeline.h"
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
+#include "ModelTypeEnum.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
@@ -346,6 +347,8 @@ namespace caret {
         ModelVolume* m_modelVolume;
         
         ModelWholeBrain* m_modelWholeBrain;
+        
+        ModelTypeEnum::Enum m_modelType;
         
         VolumeMappableInterface* m_underlayVolume;
         
