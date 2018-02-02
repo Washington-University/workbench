@@ -911,56 +911,61 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     ModelVolume* volumeModel = NULL;
     ModelWholeBrain* wholeBrainModel = NULL;
     
+    const bool includeSingleSurfacesFlag = false;
+    const bool includeOldChartFlag = false;
+    
     for (std::vector<Model*>::const_iterator iter = allModels.begin();
          iter != allModels.end();
          iter++) {
         ModelSurface* surfaceModel =
             dynamic_cast<ModelSurface*>(*iter);
         if (surfaceModel != NULL) {
-            Surface* surface = surfaceModel->getSurface();
-            StructureEnum::Enum structure = surface->getStructure();
-            SurfaceTypeEnum::Enum surfaceType = surface->getSurfaceType();
-            const int32_t surfaceTypeCode = SurfaceTypeEnum::toIntegerCode(surfaceType);
-            
-            switch (structure) {
-                case StructureEnum::CEREBELLUM:
-                    if (surfaceTypeCode < cerebellumSurfaceTypeCode) {
-                        cerebellumSurfaceModel = surfaceModel;
-                        cerebellumSurfaceTypeCode = surfaceTypeCode;
-                    }
-                    if (surfaceType == SurfaceTypeEnum::INFLATED) {
-                        cerebellumSurfaceInflated = surfaceModel;
-                    }
-                    else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
-                        cerebellumSurfaceVeryInflated = surfaceModel;
-                    }
-                    break;
-                case StructureEnum::CORTEX_LEFT:
-                    if (surfaceTypeCode < leftSurfaceTypeCode) {
-                        leftSurfaceModel = surfaceModel;
-                        leftSurfaceTypeCode = surfaceTypeCode;
-                    }
-                    if (surfaceType == SurfaceTypeEnum::INFLATED) {
-                        leftSurfaceInflated = surfaceModel;
-                    }
-                    else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
-                        leftSurfaceVeryInflated = surfaceModel;
-                    }
-                    break;
-                case StructureEnum::CORTEX_RIGHT:
-                    if (surfaceTypeCode < rightSurfaceTypeCode) {
-                        rightSurfaceModel = surfaceModel;
-                        rightSurfaceTypeCode = surfaceTypeCode;
-                    }
-                    if (surfaceType == SurfaceTypeEnum::INFLATED) {
-                        rightSurfaceInflated = surfaceModel;
-                    }
-                    else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
-                        rightSurfaceVeryInflated = surfaceModel;
-                    }
-                    break;
-                default:
-                    break;
+            if (includeSingleSurfacesFlag) {
+                Surface* surface = surfaceModel->getSurface();
+                StructureEnum::Enum structure = surface->getStructure();
+                SurfaceTypeEnum::Enum surfaceType = surface->getSurfaceType();
+                const int32_t surfaceTypeCode = SurfaceTypeEnum::toIntegerCode(surfaceType);
+                
+                switch (structure) {
+                    case StructureEnum::CEREBELLUM:
+                        if (surfaceTypeCode < cerebellumSurfaceTypeCode) {
+                            cerebellumSurfaceModel = surfaceModel;
+                            cerebellumSurfaceTypeCode = surfaceTypeCode;
+                        }
+                        if (surfaceType == SurfaceTypeEnum::INFLATED) {
+                            cerebellumSurfaceInflated = surfaceModel;
+                        }
+                        else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
+                            cerebellumSurfaceVeryInflated = surfaceModel;
+                        }
+                        break;
+                    case StructureEnum::CORTEX_LEFT:
+                        if (surfaceTypeCode < leftSurfaceTypeCode) {
+                            leftSurfaceModel = surfaceModel;
+                            leftSurfaceTypeCode = surfaceTypeCode;
+                        }
+                        if (surfaceType == SurfaceTypeEnum::INFLATED) {
+                            leftSurfaceInflated = surfaceModel;
+                        }
+                        else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
+                            leftSurfaceVeryInflated = surfaceModel;
+                        }
+                        break;
+                    case StructureEnum::CORTEX_RIGHT:
+                        if (surfaceTypeCode < rightSurfaceTypeCode) {
+                            rightSurfaceModel = surfaceModel;
+                            rightSurfaceTypeCode = surfaceTypeCode;
+                        }
+                        if (surfaceType == SurfaceTypeEnum::INFLATED) {
+                            rightSurfaceInflated = surfaceModel;
+                        }
+                        else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
+                            rightSurfaceVeryInflated = surfaceModel;
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         else if (dynamic_cast<ModelSurfaceMontage*>(*iter) != NULL) {
@@ -973,7 +978,9 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
             wholeBrainModel = dynamic_cast<ModelWholeBrain*>(*iter);
         }
         else if (dynamic_cast<ModelChart*>(*iter)) {
-            chartModel = dynamic_cast<ModelChart*>(*iter);
+            if (includeOldChartFlag) {
+                chartModel = dynamic_cast<ModelChart*>(*iter);
+            }
         }
         else if (dynamic_cast<ModelChartTwo*>(*iter)) {
             chartTwoModel = dynamic_cast<ModelChartTwo*>(*iter);
