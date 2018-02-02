@@ -63,16 +63,16 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     m_sceneAssistant->add("m_colorOrTabModel", "VolumeSurfaceOutlineColorOrTabModel", m_colorOrTabModel);
     
     /*
-     * Millimeter thickness was added in December 2017.
-     * So, we set the millimeter thickness to -1.0f so that when an older
+     * Percentage viewport height thickness was added in Feb 2, 2017.
+     * So, we set the perentage thickness to -1.0f so that when an older
      * scene is restored, the value will be -1.0f.  The code that draws
      * the volume surface outline see this negative value and convert
-     * the old pixel thickness to this new millimeter thickness.
-     * After adding to the scene assistant, default the millimeter thickness.
+     * the old pixel thickness to this new percentage thickness.
+     * After adding to the scene assistant, default the percentage thickness.
      */
-    m_thicknessMillimeters = -1.0f;
-    m_sceneAssistant->add("m_thicknessMillimeters", &m_thicknessMillimeters);
-    m_thicknessMillimeters = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_MILLIMETERS;
+    m_thicknessPercentageViewportHeight = -1.0f;
+    m_sceneAssistant->add("m_thicknessPercentageViewportHeight", &m_thicknessPercentageViewportHeight);
+    m_thicknessPercentageViewportHeight = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PERCENTAGE_VIEWPORT_HEIGHT;
 }
 
 /**
@@ -96,7 +96,7 @@ VolumeSurfaceOutlineModel::copyVolumeSurfaceOutlineModel(VolumeSurfaceOutlineMod
 {
     m_displayed = modelToCopy->m_displayed;
     m_thicknessPixelsObsolete = modelToCopy->m_thicknessPixelsObsolete;
-    m_thicknessMillimeters = modelToCopy->m_thicknessMillimeters;
+    m_thicknessPercentageViewportHeight = modelToCopy->m_thicknessPercentageViewportHeight;
     m_surfaceSelectionModel->setSurface(modelToCopy->getSurface());
     
     VolumeSurfaceOutlineColorOrTabModel* colorTabToCopy = modelToCopy->getColorOrTabModel();
@@ -137,18 +137,18 @@ VolumeSurfaceOutlineModel::setDisplayed(const bool displayed)
  * @return Thickness for drawing surface outline
  */
 float
-VolumeSurfaceOutlineModel::getThicknessMillimeters() const
+VolumeSurfaceOutlineModel::getThicknessPercentageViewportHeight() const
 {
-    return m_thicknessMillimeters;
+    return m_thicknessPercentageViewportHeight;
 }
 
 /**
  * Set the thickness for drawing surface outline
  */
 void
-VolumeSurfaceOutlineModel::setThicknessMillimeters(const float thickness)
+VolumeSurfaceOutlineModel::setThicknessPercentageViewportHeight(const float thickness)
 {
-    m_thicknessMillimeters = thickness;
+    m_thicknessPercentageViewportHeight = thickness;
 }
 
 /**

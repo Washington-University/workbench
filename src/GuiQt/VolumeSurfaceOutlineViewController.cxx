@@ -81,7 +81,7 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     this->thicknessSpinBox = new WuQDoubleSpinBox(this);
     this->thicknessSpinBox->setRange(0.0, 100.0);
     this->thicknessSpinBox->setSingleStep(0.10);
-    this->thicknessSpinBox->setSuffix("mm");
+    this->thicknessSpinBox->setSuffix("%");
     QObject::connect(this->thicknessSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &VolumeSurfaceOutlineViewController::thicknessSpinBoxValueChanged);
     this->thicknessSpinBox->setToolTip("Thickness of surface outline as percentage of viewport height");
@@ -181,7 +181,7 @@ void
 VolumeSurfaceOutlineViewController::thicknessSpinBoxValueChanged(double value)
 {
     if (this->outlineModel != NULL) {
-        this->outlineModel->setThicknessMillimeters(value);
+        this->outlineModel->setThicknessPercentageViewportHeight(value);
     }
     this->updateGraphics();
 }
@@ -204,15 +204,14 @@ VolumeSurfaceOutlineViewController::updateViewController(VolumeSurfaceOutlineMod
         this->enabledCheckBox->setCheckState(state);
         
         this->thicknessSpinBox->blockSignals(true);
-        float thickness = outlineModel->getThicknessMillimeters();
+        float thickness = outlineModel->getThicknessPercentageViewportHeight();
         if (thickness < 0.0f) {
             /* old scenes will have negative for mm thickness */
-            thickness = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_MILLIMETERS;
+            thickness = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PERCENTAGE_VIEWPORT_HEIGHT;
         }
         this->thicknessSpinBox->setValue(thickness);
         this->thicknessSpinBox->blockSignals(false);
         this->surfaceSelectionViewController->updateControl(outlineModel->getSurfaceSelectionModel());
-        //this->surfaceSelectionViewController->setSurface(outlineModel->getSurface());
         this->colorOrTabSelectionControl->updateViewController(outlineModel->getColorOrTabModel());
     }
 }

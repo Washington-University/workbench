@@ -64,7 +64,7 @@ VolumeSurfaceOutlineSetModel::VolumeSurfaceOutlineSetModel()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
         m_outlineModels[i] = new VolumeSurfaceOutlineModel();
     }
-    m_numberOfDisplayedVolumeSurfaceOutlines = 6; //BrainConstants::MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES;
+    m_numberOfDisplayedVolumeSurfaceOutlines = 6; 
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_numberOfDisplayedVolumeSurfaceOutlines",
@@ -296,7 +296,7 @@ VolumeSurfaceOutlineSetModel::addSurfaceOutline(Surface* surface,
                 VolumeSurfaceOutlineModel* vsos = m_outlineModels[outlineIndex];
                 vsos->getSurfaceSelectionModel()->setSurface(surface);
                 vsos->setThicknessPixelsObsolete(VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE);
-                vsos->setThicknessMillimeters(VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_MILLIMETERS);
+                vsos->setThicknessPercentageViewportHeight(VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PERCENTAGE_VIEWPORT_HEIGHT);
                 if (browserTabIndex >= 0) {
                     vsos->getColorOrTabModel()->setBrowserTabIndex(browserTabIndex);
                 }

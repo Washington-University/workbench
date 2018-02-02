@@ -58,6 +58,36 @@ GraphicsUtilitiesOpenGL::~GraphicsUtilitiesOpenGL()
 {
 }
 
+
+/**
+ * Converts pixels to a percentage of the viewport height.
+ *
+ * @param pixels
+ *     The value in pixels.
+ * @return
+ The percentage of height [0.0, 100.0] for the given number of millimeters.
+ */
+float
+GraphicsUtilitiesOpenGL::convertPixelsToPercentageOfViewportHeight(const float pixels)
+{
+    float percentageOfViewportHeight = 1.0f;
+    
+    EventOpenGLObjectToWindowTransform xform(EventOpenGLObjectToWindowTransform::SpaceType::VOLUME_SLICE_MODEL);
+    EventManager::get()->sendEvent(xform.getPointer());
+    if (xform.isValid()) {
+        const std::array<int32_t, 4> viewport = xform.getViewport();
+        
+        const float rangePixels = viewport[3];
+        if ((rangePixels > 0)
+            && (pixels > 0)) {
+            percentageOfViewportHeight = (pixels / rangePixels) * 100.0f;
+        }
+    }
+    
+    return percentageOfViewportHeight ;
+    
+}
+
 /**
  * Converts millimeters to a percentage of the viewport height.
  * The current transformations must be for drawing in millimeters.
@@ -97,7 +127,6 @@ GraphicsUtilitiesOpenGL::convertMillimetersToPercentageOfViewportHeight(const fl
     }
 
     return percentageOfViewportHeight ;
-
 }
 
 /**

@@ -3609,19 +3609,19 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum mode
         if (outline->isDisplayed()) {
             Surface* surface = outline->getSurface();
             if (surface != NULL) {
-                float thicknessMillimeters = outline->getThicknessMillimeters();
+                float thicknessPercentage = outline->getThicknessPercentageViewportHeight();
                 const float thicknessPixels = outline->getThicknessPixelsObsolete();
                 
                 /*
-                 * Thickness was changed from pixels to millimeters in December 2017
-                 * If thickness millimeters is negative, it was not present in an old
-                 * scene so convert pixels to millimeters using viewports dimensions
+                 * Thickness was changed from pixels to percentage viewport height on Feb 02, 2018
+                 * If thickness percentage is negative, it was not present in an old
+                 * scene so convert pixels to percentage using viewports dimensions
                  */
-                if (thicknessMillimeters < 0.0f) {
-                    thicknessMillimeters = GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(thicknessPixels);
-                    if (thicknessMillimeters > 0.0f) {
-                        std::cout << "Converted pixel thickness=" << thicknessPixels << " to millimeters=" << thicknessMillimeters << std::endl;
-                        outline->setThicknessMillimeters(thicknessMillimeters);
+                if (thicknessPercentage < 0.0f) {
+                    thicknessPercentage = GraphicsUtilitiesOpenGL::convertPixelsToPercentageOfViewportHeight(thicknessPixels);
+                    if (thicknessPercentage > 0.0f) {
+                        //std::cout << "Converted pixel thickness=" << thicknessPixels << " to millimeters=" << thicknessMillimeters << std::endl;
+                        outline->setThicknessPercentageViewportHeight(thicknessPercentage);
                     }
                 }
                 
@@ -3648,12 +3648,12 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum mode
                                                                                                       colorSourceBrowserTabIndex);
                 }
                 
-                const float thicknessPercentage = GraphicsUtilitiesOpenGL::convertMillimetersToPercentageOfViewportHeight(thicknessMillimeters);
+                //const float thicknessPercentage = GraphicsUtilitiesOpenGL::convertPixelsToPercentageOfViewportHeight(thicknessMillimeters);
                 SurfacePlaneIntersectionToContour contour(surface,
                                                           plane,
                                                           outlineColor,
                                                           nodeColoringRGBA,
-                                                          thicknessPercentage); // thickness);
+                                                          thicknessPercentage);
                 AString errorMessage;
                 if ( ! contour.createContours(contourPrimitives,
                                               errorMessage)) {
