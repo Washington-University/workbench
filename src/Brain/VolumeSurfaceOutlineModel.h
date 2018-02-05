@@ -95,8 +95,8 @@ namespace caret {
     };
     
 #ifdef __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__
-    const float VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE = 2.0;
-    const float VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PERCENTAGE_VIEWPORT_HEIGHT = 1.0;
+    const float VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE = 2.0f;
+    const float VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PERCENTAGE_VIEWPORT_HEIGHT = 0.4f;
 #endif // __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__
 
 } // namespace
