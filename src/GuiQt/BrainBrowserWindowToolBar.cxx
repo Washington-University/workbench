@@ -1839,12 +1839,12 @@ BrainBrowserWindowToolBar::createViewWidget()
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
-    layout->addWidget(this->viewModeChartOneRadioButton);
-    layout->addWidget(this->viewModeChartTwoRadioButton);
     layout->addWidget(this->viewModeSurfaceMontageRadioButton);
     layout->addWidget(this->viewModeVolumeRadioButton);
     layout->addWidget(this->viewModeWholeBrainRadioButton);
+    layout->addWidget(this->viewModeChartTwoRadioButton);
     layout->addWidget(this->viewModeSurfaceRadioButton);
+    layout->addWidget(this->viewModeChartOneRadioButton);
     layout->addStretch();
 
     QButtonGroup* viewModeRadioButtonGroup = new QButtonGroup(this);
