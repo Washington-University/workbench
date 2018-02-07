@@ -42,6 +42,7 @@ namespace caret {
     class BrainBrowserWindowToolBar;
     class BrainBrowserWindowOrientedToolBox;
     class BrainOpenGLWidget;
+    class BrowserWindowContent;
     class BrowserTabContent;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
@@ -310,7 +311,9 @@ namespace caret {
         void showDataFileReadWarningsDialog();
         
         /** Index of this window */
-        int32_t m_browserWindowIndex;
+        const int32_t m_browserWindowIndex;
+        
+        BrowserWindowContent* m_browserWindowContent = NULL;
         
         BrainOpenGLWidget* m_openGLWidget;
         
@@ -354,7 +357,6 @@ namespace caret {
         
         QAction* m_viewFullScreenAction;
         QAction* m_viewTileTabsAction;
-        bool m_viewTileTabsSelected;
         
         QMenu* m_tileTabsMenu;
         QAction* m_createAndEditTileTabsAction;

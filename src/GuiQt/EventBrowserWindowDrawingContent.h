@@ -1,5 +1,5 @@
-#ifndef __EVENT_BROWSER_WINDOW_CONTENT_GET_H__
-#define __EVENT_BROWSER_WINDOW_CONTENT_GET_H__
+#ifndef __EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET_H__
+#define __EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET_H__
 
 /*LICENSE_START*/
 /*
@@ -31,12 +31,12 @@ namespace caret {
     class TileTabsConfiguration;
     
     /// Get the content of a browser window
-    class EventBrowserWindowContentGet : public Event {
+    class EventBrowserWindowDrawingContent : public Event {
         
     public:
-        EventBrowserWindowContentGet(const int32_t browserWindowIndex);
+        EventBrowserWindowDrawingContent(const int32_t browserWindowIndex);
         
-        virtual ~EventBrowserWindowContentGet();
+        virtual ~EventBrowserWindowDrawingContent();
         
         int32_t getBrowserWindowIndex() const;
         
@@ -59,9 +59,9 @@ namespace caret {
         void setSelectedBrowserTabContent(BrowserTabContent* browserTabContent);
         
     private:
-        EventBrowserWindowContentGet(const EventBrowserWindowContentGet&);
+        EventBrowserWindowDrawingContent(const EventBrowserWindowDrawingContent&);
         
-        EventBrowserWindowContentGet& operator=(const EventBrowserWindowContentGet&);
+        EventBrowserWindowDrawingContent& operator=(const EventBrowserWindowDrawingContent&);
         
         BrowserTabContent* m_selectedBrowserTabContent;
         
@@ -80,4 +80,4 @@ namespace caret {
 
 } // namespace
 
-#endif // __EVENT_BROWSER_WINDOW_CONTENT_GET_H__
+#endif // __EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET_H__

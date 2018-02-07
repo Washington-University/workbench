@@ -49,6 +49,7 @@
 #include "BrainOpenGLWidget.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CaretFileRemoteDialog.h"
@@ -63,6 +64,7 @@
 #include "ElapsedTimer.h"
 #include "EventGetViewportSize.h"
 #include "EventBrowserWindowCreateTabs.h"
+#include "EventBrowserWindowContent.h"
 #include "EventDataFileRead.h"
 #include "EventMacDockMenuUpdate.h"
 #include "EventManager.h"
@@ -125,14 +127,20 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                        const CreateDefaultTabsMode createDefaultTabsMode,
                                        QWidget* parent,
                                        Qt::WindowFlags flags)
-: QMainWindow(parent, flags)
+: QMainWindow(parent, flags),
+m_browserWindowIndex(browserWindowIndex)
 {
     m_developMenuAction = NULL;
+    
+    std::unique_ptr<EventBrowserWindowContent> bwc = EventBrowserWindowContent::newWindowContent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(bwc->getPointer());
+    
+    m_browserWindowContent = bwc->getBrowserWindowContent();
+    CaretAssert(m_browserWindowContent);
     
     if (BrainBrowserWindow::s_firstWindowFlag) {
         BrainBrowserWindow::s_firstWindowFlag = false;
     }
-    m_viewTileTabsSelected = false;
     
     m_aspectRatio = 1.0;
     
@@ -146,8 +154,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
     
     setAttribute(Qt::WA_DeleteOnClose);
-    
-    m_browserWindowIndex = browserWindowIndex;
     
     setWindowTitle(ApplicationInformation().getName()
                          + " "
@@ -290,6 +296,10 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
  */
 BrainBrowserWindow::~BrainBrowserWindow()
 {
+    std::unique_ptr<EventBrowserWindowContent> bwc = EventBrowserWindowContent::deleteWindowContent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(bwc->getPointer());
+    m_browserWindowContent = NULL;
+    
     EventManager::get()->removeAllEventsFromListener(this);
     
     s_brainBrowserWindows.erase(this);
@@ -613,7 +623,7 @@ BrainBrowserWindow::getGraphicsWidgetSize(int32_t& viewportXOut,
 bool
 BrainBrowserWindow::isTileTabsSelected() const
 {
-    return m_viewTileTabsSelected;
+    return m_browserWindowContent->isTileTabsEnabled();
 }
 
 /**
@@ -3552,7 +3562,7 @@ BrainBrowserWindow::processViewFullScreenSelected()
 void
 BrainBrowserWindow::processViewTileTabs()
 {
-    const bool toggledStatus = (! m_viewTileTabsSelected);
+    const bool toggledStatus = (! isTileTabsSelected());
     
     setViewTileTabs(toggledStatus);
 }
@@ -3563,7 +3573,7 @@ BrainBrowserWindow::processViewTileTabs()
 void
 BrainBrowserWindow::setViewTileTabs(const bool newStatus)
 {
-    m_viewTileTabsSelected = newStatus;
+    m_browserWindowContent->setTileTabsEnabled(newStatus);
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBar().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
@@ -4124,11 +4134,14 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrainBrowserWindow",
-                                            1);
+                                            2); // Version 2: 07 feb 2018
     
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
 
+    m_browserWindowContent->saveToScene(sceneAttributes,
+                                        "m_browserWindowContent");
+    
     /* m_browserWindowIndex used with wb_command -show-scene */
     sceneClass->addInteger("m_browserWindowIndex",
                            m_browserWindowIndex);
@@ -4138,7 +4151,7 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
     /*
      * Save the selected tile tabs configuration as the scene configuration
      */
-    if (m_viewTileTabsSelected) {
+    if (isTileTabsSelected()) {
         /*
          * Note: The number of rows and columns in the default tile tabs
          * configuration is updated each time the graphics region of the 
@@ -4223,8 +4236,6 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
                            isFullScreen());
     sceneClass->addBoolean("isMaximized",
                            isMaximized());
-    sceneClass->addBoolean("m_viewTileTabsAction",
-                           m_viewTileTabsSelected);
     
     /*
      * Graphics position and size, used with wb_command -show-scene
@@ -4255,6 +4266,8 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    const int32_t sceneVersion = sceneClass->getVersionNumber();
+    
     /*
      * Restore toolbar
      */
@@ -4266,6 +4279,18 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    if (sceneVersion >= 2) {
+        m_browserWindowContent->restoreFromScene(sceneAttributes,
+                                                 sceneClass->getClass("m_browserWindowContent"));
+    }
+    else {
+        /*
+         * Some members of this class were moved to BrowserWindowContent
+         */
+        m_browserWindowContent->restoreFromOldBrainBrowserWindowScene(sceneAttributes,
+                                                                      sceneClass);
+    }
     
     const bool aspectRatioLocked = sceneClass->getBooleanValue("m_windowAspectRatioLockedAction",
                                                                false);

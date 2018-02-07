@@ -33,6 +33,7 @@
     #define CaretAssertMessage(e, m) ((void)0)
     #define CaretAssertArrayIndex(a, n, i) ((void) 0)
     #define CaretAssertVectorIndex(v, i) ((void) 0)
+    #define CaretAssertStdArrayIndex(v, i) ((void) 0)
 
     #define CaretUsedInDebugCompileOnly(e) ((void) 0)
     #define CaretParameterUsedInDebugCompileOnly(e)
@@ -177,6 +178,26 @@
     ((((i) < 0) || ((i) >= (static_cast<int64_t>(v.size())))) \
         ? caret::CaretAssertion::assertVectorIndexFailed(#v, (static_cast<int64_t>(v.size())), i, __FILE__, __LINE__) \
         : (void)0)
+
+/**
+ * \def CaretAssertStdArrayIndex
+ *
+ * If the std array index is out of bounds, a message is printed
+ * listing the std array name, the std array's number of elements, the
+ * invalid std array index, the name of the file, and the line
+ * number in the file.  A call stack may also
+ * be printed.   Lastly, abort() is called.
+ * @param a
+ *    The vector.
+ * @param i
+ *    The index into the vector.
+ */
+#define CaretAssertStdArrayIndex(a, i) \
+((((i) < 0) || ((i) >= (static_cast<int64_t>(a.size())))) \
+? caret::CaretAssertion::assertStdArrayIndexFailed(#a, (static_cast<int64_t>(a.size())), i, __FILE__, __LINE__) \
+: (void)0)
+
+
 
 #endif // NDEBUG
 

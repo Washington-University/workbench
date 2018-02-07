@@ -72,6 +72,12 @@ public:
                                         const char* filename,
                                         const int64_t lineNumber);
     
+    static void assertStdArrayIndexFailed(const char* arrayName,
+                                          const int64_t arrayNumberOfElements,
+                                          const int64_t arrayIndex,
+                                          const char* filename,
+                                          const int64_t lineNumber);
+    
     static void unitTest(std::ostream& stream,
                          const bool isVerbose);
     

@@ -82,7 +82,7 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabGetAllViewed.h"
 #include "EventBrowserTabNew.h"
-#include "EventBrowserWindowContentGet.h"
+#include "EventBrowserWindowDrawingContent.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowNew.h"
 #include "EventBrowserWindowTileTabOperation.h"
@@ -463,7 +463,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     m_tileTabsHighlightingTimerEnabledFlag = true;
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -3997,9 +3997,9 @@ BrainBrowserWindowToolBar::surfaceSelectionControlChanged(
 void 
 BrainBrowserWindowToolBar::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET) {
-        EventBrowserWindowContentGet* getModelEvent =
-            dynamic_cast<EventBrowserWindowContentGet*>(event);
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET) {
+        EventBrowserWindowDrawingContent* getModelEvent =
+            dynamic_cast<EventBrowserWindowDrawingContent*>(event);
         CaretAssert(getModelEvent);
         
         if (getModelEvent->getBrowserWindowIndex() == this->browserWindowIndex) {

@@ -116,6 +116,23 @@ ScenePrimitiveArray::booleanValues(std::vector<bool>& valuesOut,
 }
 
 /**
+ * Load the vector with the boolean values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The size of the vector
+ *     will be resized to the number of elements from the scene array.
+ */
+void
+ScenePrimitiveArray::booleanVectorValues(std::vector<bool>& valuesOut) const
+{
+    const int32_t numElem = getNumberOfArrayElements();
+    valuesOut.resize(numElem);
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = booleanValue(i);
+    }
+}
+
+/**
  * Load the array with float values.
  * @param valuesOut
  *    Array into which boolean values are loaded.
@@ -170,6 +187,24 @@ ScenePrimitiveArray::floatValues(std::vector<float>& valuesOut,
 }
 
 /**
+ * Load the vector with the float values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The size of the vector
+ *     will be resized to the number of elements from the scene array.
+ */
+void
+ScenePrimitiveArray::floatVectorValues(std::vector<float>& valuesOut) const
+{
+    const int32_t numElem = getNumberOfArrayElements();
+    valuesOut.resize(numElem);
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = floatValue(i);
+    }
+}
+
+
+/**
  * Load the array with integer values.
  * @param valuesOut
  *    Array into which boolean values are loaded.
@@ -220,6 +255,23 @@ ScenePrimitiveArray::integerValues(std::vector<int32_t>& valuesOut,
     }
     for (int32_t i = numElem; i < valuesOutNumberOfElements; i++) {
         valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the vector with the integer values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The size of the vector
+ *     will be resized to the number of elements from the scene array.
+ */
+void
+ScenePrimitiveArray::integerVectorValues(std::vector<int32_t>& valuesOut) const
+{
+    const int32_t numElem = getNumberOfArrayElements();
+    valuesOut.resize(numElem);
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = integerValue(i);
     }
 }
 
@@ -278,6 +330,23 @@ ScenePrimitiveArray::stringValues(std::vector<AString>& valuesOut,
 }
 
 /**
+ * Load the vector with the string values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The size of the vector
+ *     will be resized to the number of elements from the scene array.
+ */
+void
+ScenePrimitiveArray::stringVectorValues(std::vector<AString>& valuesOut) const
+{
+    const int32_t numElem = getNumberOfArrayElements();
+    valuesOut.resize(numElem);
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = stringValue(i);
+    }
+}
+
+/**
  * Load the array with unsigned byte values.
  * @param valuesOut
  *    Array into which unsigned byte values are loaded.
@@ -328,6 +397,23 @@ ScenePrimitiveArray::unsignedByteValues(std::vector<uint8_t>& valuesOut,
     }
     for (int32_t i = numElem; i < valuesOutNumberOfElements; i++) {
         valuesOut[i] = defaultValue;
+    }
+}
+
+/**
+ * Load the vector with the unsigned byte values from the scene.
+ * @param valuesOut
+ *     Vector into which values are loaded.  The size of the vector
+ *     will be resized to the number of elements from the scene array.
+ */
+void
+ScenePrimitiveArray::unsignedByteVectorValues(std::vector<uint8_t>& valuesOut) const
+{
+    const int32_t numElem = getNumberOfArrayElements();
+    valuesOut.resize(numElem);
+    
+    for (int32_t i = 0; i < numElem; i++) {
+        valuesOut[i] = unsignedByteValue(i);
     }
 }
 

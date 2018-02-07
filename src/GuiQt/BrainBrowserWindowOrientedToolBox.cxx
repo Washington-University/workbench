@@ -43,7 +43,7 @@
 #include "ChartToolBoxViewController.h"
 #include "CiftiConnectivityMatrixViewController.h"
 #include "DeveloperFlagsEnum.h"
-#include "EventBrowserWindowContentGet.h"
+#include "EventBrowserWindowDrawingContent.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FiberOrientationSelectionViewController.h"
@@ -652,7 +652,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         bool enableVolumeSurfaceOutline = false;
         bool enableChartOne = false;
         bool enableChartTwo = false;
-        EventBrowserWindowContentGet browserContentEvent(m_browserWindowIndex);
+        EventBrowserWindowDrawingContent browserContentEvent(m_browserWindowIndex);
         EventManager::get()->sendEvent(browserContentEvent.getPointer());
         BrowserTabContent* windowContent = browserContentEvent.getSelectedBrowserTabContent();
             if (windowContent != NULL) {

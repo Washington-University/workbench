@@ -91,12 +91,16 @@ namespace caret {
         virtual void booleanValues(std::vector<bool>& valuesOut,
                                    const bool defaultValue) const;
         
+        virtual void booleanVectorValues(std::vector<bool>& valuesOut) const;
+        
         virtual void floatValues(float valuesOut[],
                            const int32_t arrayNumberOfElements,
                            const float defaultValue) const;
         
         virtual void floatValues(std::vector<float>& valuesOut,
                                    const float defaultValue) const;
+        
+        virtual void floatVectorValues(std::vector<float>& valuesOut) const;
         
         virtual void integerValues(int32_t valuesOut[],
                                  const int32_t arrayNumberOfElements,
@@ -105,6 +109,8 @@ namespace caret {
         virtual void integerValues(std::vector<int32_t>& valuesOut,
                                  const int32_t defaultValue) const;
         
+        virtual void integerVectorValues(std::vector<int32_t>& valuesOut) const;
+        
         virtual void stringValues(AString valuesOut[],
                                    const int32_t arrayNumberOfElements,
                                    const AString& defaultValue) const;
@@ -112,12 +118,16 @@ namespace caret {
         virtual void stringValues(std::vector<AString>& valuesOut,
                                    const AString& defaultValue) const;
         
+        virtual void stringVectorValues(std::vector<AString>& valuesOut) const;
+        
         virtual void unsignedByteValues(uint8_t valuesOut[],
                                    const int32_t arrayNumberOfElements,
                                    const uint8_t defaultValue) const;
         
         virtual void unsignedByteValues(std::vector<uint8_t>& valuesOut,
                                    const uint8_t defaultValue) const;
+        
+        virtual void unsignedByteVectorValues(std::vector<uint8_t>& valuesOut) const;
         
         
     private:

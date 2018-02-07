@@ -52,6 +52,7 @@ BrainOpenGLWindowContent.h
 BrainStructure.h
 BrainStructureNodeAttributes.h
 BrowserTabContent.h
+BrowserWindowContent.h
 CaretDataFileSelectionModel.h
 CaretMappableDataFileAndMapSelectionModel.h
 ChartTwoOverlay.h
@@ -81,6 +82,7 @@ EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabGetAllViewed.h
 EventBrowserTabNew.h
+EventBrowserWindowContent.h
 EventChartOverlayValidate.h
 EventDataFileAdd.h
 EventDataFileDelete.h
@@ -200,6 +202,7 @@ BrainOpenGLWindowContent.cxx
 BrainStructure.cxx
 BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
+BrowserWindowContent.cxx
 CaretDataFileSelectionModel.cxx
 CaretMappableDataFileAndMapSelectionModel.cxx
 ChartTwoOverlay.cxx
@@ -228,6 +231,7 @@ EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
 EventBrowserTabGetAllViewed.cxx
 EventBrowserTabNew.cxx
+EventBrowserWindowContent.cxx
 EventChartOverlayValidate.cxx
 EventDataFileAdd.cxx
 EventDataFileDelete.cxx

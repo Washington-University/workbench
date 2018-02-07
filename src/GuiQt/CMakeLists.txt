@@ -316,7 +316,7 @@ DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 EventAnnotationCreateNewType.h
 EventAnnotationGetDrawnInWindow.h
-EventBrowserWindowContentGet.h
+EventBrowserWindowDrawingContent.h
 EventBrowserWindowCreateTabs.h
 EventBrowserWindowGraphicsRedrawn.h
 EventBrowserWindowNew.h
@@ -539,7 +539,7 @@ DisplayGroupAndTabItemViewController.cxx
 DisplayGroupEnumComboBox.cxx
 EventAnnotationCreateNewType.cxx
 EventAnnotationGetDrawnInWindow.cxx
-EventBrowserWindowContentGet.cxx
+EventBrowserWindowDrawingContent.cxx
 EventBrowserWindowCreateTabs.cxx
 EventBrowserWindowGraphicsRedrawn.cxx
 EventBrowserWindowNew.cxx

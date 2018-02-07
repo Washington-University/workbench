@@ -51,7 +51,7 @@
 #include "EventImageCapture.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
-#include "EventBrowserWindowContentGet.h"
+#include "EventBrowserWindowDrawingContent.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -506,7 +506,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
     
     BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
     
-    EventBrowserWindowContentGet getModelEvent(this->windowIndex);
+    EventBrowserWindowDrawingContent getModelEvent(this->windowIndex);
     EventManager::get()->sendEvent(getModelEvent.getPointer());
     
     if (getModelEvent.isError()) {
@@ -1548,7 +1548,7 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             /*
              * If a window is yoked, update its graphics.
              */
-            EventBrowserWindowContentGet getModelEvent(this->windowIndex);
+            EventBrowserWindowDrawingContent getModelEvent(this->windowIndex);
             EventManager::get()->sendEvent(getModelEvent.getPointer());
             
             if (getModelEvent.isError()) {

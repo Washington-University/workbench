@@ -33,7 +33,7 @@
 #include "ControlPoint3D.h"
 #include "ControlPointFile.h"
 #include "DisplayPropertiesImages.h"
-#include "EventBrowserWindowContentGet.h"
+#include "EventBrowserWindowDrawingContent.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
@@ -297,7 +297,7 @@ UserInputModeImage::deleteAllControlPoints()
 ImageFile*
 UserInputModeImage::getImageFile() const
 {
-    EventBrowserWindowContentGet windowGet(m_windowIndex);
+    EventBrowserWindowDrawingContent windowGet(m_windowIndex);
     EventManager::get()->sendEvent(windowGet.getPointer());
     
     DisplayPropertiesImages* dpi = GuiManager::get()->getBrain()->getDisplayPropertiesImages();
@@ -322,7 +322,7 @@ UserInputModeImage::getTabIndex() const
 {
     int32_t tabIndex = -1;
     
-    EventBrowserWindowContentGet windowGet(m_windowIndex);
+    EventBrowserWindowDrawingContent windowGet(m_windowIndex);
     EventManager::get()->sendEvent(windowGet.getPointer());
     
     //DisplayPropertiesImages* dpi = GuiManager::get()->getBrain()->getDisplayPropertiesImages();

@@ -29,6 +29,7 @@
 #include "BackgroundAndForegroundColorsSceneHelper.h"
 #include "Brain.h"
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
@@ -41,6 +42,7 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabIndicesGetAll.h"
 #include "EventBrowserTabNew.h"
+#include "EventBrowserWindowContent.h"
 #include "EventCaretPreferencesGet.h"
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
@@ -78,11 +80,14 @@ SessionManager::SessionManager()
         m_browserTabs[i] = NULL;
     }
     
+    m_browserWindowContent.fill(NULL);
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_PREFERENCES_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_ADD);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DELETE);
@@ -109,6 +114,10 @@ SessionManager::~SessionManager()
             m_browserTabs[i] = NULL;
         }
     }
+    
+    std::for_each(m_browserWindowContent.begin(),
+                  m_browserWindowContent.end(),
+                  [](BrowserWindowContent* bwc) { if (bwc != NULL) delete bwc; } );
     
     int32_t numberOfBrains = getNumberOfBrains();
     for (int32_t i = (numberOfBrains - 1); i >= 0; i--) {
@@ -341,6 +350,33 @@ SessionManager::receiveEvent(Event* event)
             if (m_browserTabs[i] != NULL) {
                 tabEvent->addBrowserTabIndex(m_browserTabs[i]->getTabNumber());
             }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT) {
+        EventBrowserWindowContent* windowEvent =
+        dynamic_cast<EventBrowserWindowContent*>(event);
+        CaretAssert(windowEvent);
+        
+        windowEvent->setEventProcessed();
+        
+        const int32_t windowIndex = windowEvent->getBrowserWindowIndex();
+        CaretAssertStdArrayIndex(m_browserWindowContent, windowIndex);
+        
+        switch (windowEvent->getMode()) {
+            case EventBrowserWindowContent::Mode::DELETE:
+                CaretAssert(m_browserWindowContent[windowIndex]);
+                delete m_browserWindowContent[windowIndex];
+                m_browserWindowContent[windowIndex] = NULL;
+                break;
+            case EventBrowserWindowContent::Mode::GET:
+                CaretAssert(m_browserWindowContent[windowIndex]);
+                windowEvent->setBrowserWindowContent(m_browserWindowContent[windowIndex]);
+                break;
+            case EventBrowserWindowContent::Mode::NEW:
+                CaretAssert(m_browserWindowContent[windowIndex] == NULL);
+                m_browserWindowContent[windowIndex] = new BrowserWindowContent(windowIndex);
+                windowEvent->setBrowserWindowContent(m_browserWindowContent[windowIndex]);
+                break;
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_CARET_PREFERENCES_GET) {

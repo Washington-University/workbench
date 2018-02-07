@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <array>
+
 #include "ApplicationTypeEnum.h"
 #include "BrainConstants.h"
 #include "CaretObject.h"
@@ -31,6 +33,7 @@ namespace caret {
     
     class Brain;
     class BrowserTabContent;
+    class BrowserWindowContent;
     class CaretPreferences;
     class CiftiConnectivityMatrixDataFileManager;
     class CiftiFiberTrajectoryManager;
@@ -96,6 +99,9 @@ namespace caret {
         
         /** The browser tabs */
         BrowserTabContent* m_browserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];  
+        
+        /** The browser window content */
+        std::array<BrowserWindowContent*, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_browserWindowContent;
         
         /** Holds valid models */
         std::vector<Model*> m_models;

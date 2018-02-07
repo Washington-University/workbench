@@ -72,8 +72,10 @@ public:
         EVENT_BROWSER_TAB_GET_ALL_VIEWED,
         /** Create a new browser tab */
         EVENT_BROWSER_TAB_NEW,
+        /** Event for browser window content */
+        EVENT_BROWSER_WINDOW_CONTENT,
         /** Get the content of a browser window */
-        EVENT_BROWSER_WINDOW_CONTENT_GET,
+        EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET,
         /** Create tabs after loading a file */
         EVENT_BROWSER_WINDOW_CREATE_TABS,
         /** Issued after a browser window's graphicshave been redrawn */

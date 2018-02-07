@@ -18,14 +18,14 @@
  */
 /*LICENSE_END*/
 
-#include "EventBrowserWindowContentGet.h"
+#include "EventBrowserWindowDrawingContent.h"
 
 using namespace caret;
 
 #include "CaretAssert.h"
 /** 
- * \class caret::DisplayGroupEnumComboBox 
- * \brief Combo box for selection of a display group.
+ * \class caret::EventBrowserWindowDrawingContent
+ * \brief Event to get content for drawing browser window.
  * \ingroup GuiQt
  */
 
@@ -34,8 +34,8 @@ using namespace caret;
  * @param browserWindowIndex
  *    Index of browser window.
  */
-EventBrowserWindowContentGet::EventBrowserWindowContentGet(const int32_t browserWindowIndex)
-: Event(EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET)
+EventBrowserWindowDrawingContent::EventBrowserWindowDrawingContent(const int32_t browserWindowIndex)
+: Event(EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET)
 {
     m_browserWindowIndex = browserWindowIndex;
     m_tabIndexForTileTabsHighlighting = -1;
@@ -46,7 +46,7 @@ EventBrowserWindowContentGet::EventBrowserWindowContentGet(const int32_t browser
 /*
  * Destructor.
  */
-EventBrowserWindowContentGet::~EventBrowserWindowContentGet()
+EventBrowserWindowDrawingContent::~EventBrowserWindowDrawingContent()
 {
     
 }
@@ -55,7 +55,7 @@ EventBrowserWindowContentGet::~EventBrowserWindowContentGet()
  * @return Get the browser window index.
  */
 int32_t 
-EventBrowserWindowContentGet::getBrowserWindowIndex() const 
+EventBrowserWindowDrawingContent::getBrowserWindowIndex() const 
 { 
     return m_browserWindowIndex; 
 }
@@ -64,7 +64,7 @@ EventBrowserWindowContentGet::getBrowserWindowIndex() const
  * @return The number of items to draw.
  */
 int32_t 
-EventBrowserWindowContentGet::getNumberOfItemsToDraw() const
+EventBrowserWindowDrawingContent::getNumberOfItemsToDraw() const
 {
     return this->browserTabContents.size();
 }
@@ -73,7 +73,7 @@ EventBrowserWindowContentGet::getNumberOfItemsToDraw() const
  * Add tab content for drawing in a window.
  */
 void 
-EventBrowserWindowContentGet::addTabContentToDraw(BrowserTabContent* browserTabContent)
+EventBrowserWindowDrawingContent::addTabContentToDraw(BrowserTabContent* browserTabContent)
 {
     this->browserTabContents.push_back(browserTabContent);
 }
@@ -87,7 +87,7 @@ EventBrowserWindowContentGet::addTabContentToDraw(BrowserTabContent* browserTabC
  *    Pointer to tab contents for the item index.
  */
 BrowserTabContent*
-EventBrowserWindowContentGet::getTabContentToDraw(const int32_t itemIndex)
+EventBrowserWindowDrawingContent::getTabContentToDraw(const int32_t itemIndex)
 {
     CaretAssertVectorIndex(this->browserTabContents, itemIndex);
     return this->browserTabContents[itemIndex];
@@ -100,7 +100,7 @@ EventBrowserWindowContentGet::getTabContentToDraw(const int32_t itemIndex)
  *    Index of tab for highlighting.
  */
 void
-EventBrowserWindowContentGet::setTabIndexForTileTabsHighlighting(const int32_t tabIndex)
+EventBrowserWindowDrawingContent::setTabIndexForTileTabsHighlighting(const int32_t tabIndex)
 {
     m_tabIndexForTileTabsHighlighting = tabIndex;
 }
@@ -109,7 +109,7 @@ EventBrowserWindowContentGet::setTabIndexForTileTabsHighlighting(const int32_t t
  * @return Index of tab for highlighting in Tile Tabs mode.
  */
 int32_t
-EventBrowserWindowContentGet::getTabIndexForTileTabsHighlighting() const
+EventBrowserWindowDrawingContent::getTabIndexForTileTabsHighlighting() const
 {
     return m_tabIndexForTileTabsHighlighting;
 }
@@ -119,7 +119,7 @@ EventBrowserWindowContentGet::getTabIndexForTileTabsHighlighting() const
  *         May be NULL.
  */
 TileTabsConfiguration*
-EventBrowserWindowContentGet::getTileTabsConfiguration() const
+EventBrowserWindowDrawingContent::getTileTabsConfiguration() const
 {
     return m_tileTabsConfiguration;
 }
@@ -131,7 +131,7 @@ EventBrowserWindowContentGet::getTileTabsConfiguration() const
  *    New selected tile tabs configuration.
  */
 void
-EventBrowserWindowContentGet::setTileTabsConfiguration(TileTabsConfiguration* tileTabsConfiguration)
+EventBrowserWindowDrawingContent::setTileTabsConfiguration(TileTabsConfiguration* tileTabsConfiguration)
 {
     m_tileTabsConfiguration = tileTabsConfiguration;
 }
@@ -140,7 +140,7 @@ EventBrowserWindowContentGet::setTileTabsConfiguration(TileTabsConfiguration* ti
  * @return The selected browser tab content.  May be NULL.
  */
 BrowserTabContent*
-EventBrowserWindowContentGet::getSelectedBrowserTabContent()
+EventBrowserWindowDrawingContent::getSelectedBrowserTabContent()
 {
     return m_selectedBrowserTabContent;
 }
@@ -152,7 +152,7 @@ EventBrowserWindowContentGet::getSelectedBrowserTabContent()
  *     The selected browser tab content.
  */
 void
-EventBrowserWindowContentGet::setSelectedBrowserTabContent(BrowserTabContent* browserTabContent)
+EventBrowserWindowDrawingContent::setSelectedBrowserTabContent(BrowserTabContent* browserTabContent)
 {
     m_selectedBrowserTabContent = browserTabContent;
 }

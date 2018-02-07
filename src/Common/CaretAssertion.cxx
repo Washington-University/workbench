@@ -321,6 +321,65 @@ CaretAssertion::assertVectorIndexFailed(const char* vectorName,
 }
 
 /**
+ * Called when a std array index assertion has failed.
+ * The following events will occur:
+ * Prints the name of the array, the number of
+ * elements in the array, the invalid array index,
+ * the name of the file where the assertion failed,
+ * the line number in the file.  If
+ * a callstack (backtrace) is available, it will
+ * also be printed.  Lastly, abort() is called.
+ *
+ *
+ * @param arrayName
+ *    Name of the array.
+ * @param arrayNumberOfElements
+ *    Number of elements in the array.
+ * @param arrayIndex
+ *    Invalid array index.
+ * @param filename
+ *    Name of file in which assertion failed.
+ * @param lineNumber
+ *    Line number where assertion failed.
+ */
+void
+CaretAssertion::assertStdArrayIndexFailed(const char* arrayName,
+                                          const int64_t arrayNumberOfElements,
+                                          const int64_t arrayIndex,
+                                          const char* filename,
+                                          const int64_t lineNumber)
+{
+    std::cerr \
+    << "Assertion of Std Array Bounds failed for array: "
+    << arrayName
+    << std::endl
+    << "File: "
+    << filename
+    << std::endl
+    << "Line number: "
+    << lineNumber
+    << std::endl;
+    
+    std::cerr
+    << "Index: "
+    << arrayIndex
+    << std::endl
+    << "Number of elements in array: "
+    << arrayNumberOfElements
+    << std::endl
+    << std::endl;
+    
+    const AString s = SystemUtilities::getBackTrace();
+    if (s.isEmpty() == false) {
+        std::cerr << s << std::endl << std::endl;
+    }
+    
+    if (CaretAssertion::unitTestFlag == false) {
+        std::abort();
+    }
+}
+
+/**
  * Unit testing of assertions.
  * 
  * @param stream
