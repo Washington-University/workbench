@@ -166,7 +166,6 @@ namespace caret {
         
         const int32_t windowIndex;
         
-        //std::vector<BrainOpenGLViewportContent*> tabsViewportContent;
         BrainOpenGLWindowContent m_windowContent;
         
         int32_t windowWidth[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
@@ -218,7 +217,7 @@ namespace caret {
     };
     
 #ifdef __BRAIN_OPENGL_WIDGET_DEFINE__
-        const int32_t BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE = 0; //10;
+        const int32_t BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE = 0;
         bool BrainOpenGLWidget::s_defaultGLFormatInitialized = false;
         std::set<BrainOpenGLWidget*> BrainOpenGLWidget::s_brainOpenGLWidgets;
         BrainOpenGL* BrainOpenGLWidget::s_singletonOpenGL = NULL;

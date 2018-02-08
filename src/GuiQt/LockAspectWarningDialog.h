@@ -39,7 +39,6 @@ namespace caret {
     public:
         enum class Result {
             LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS,
-            LOCK_WINDOW_ASPECT,
             NO_CHANGES,
             CANCEL
         };

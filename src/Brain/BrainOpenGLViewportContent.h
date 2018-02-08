@@ -81,7 +81,8 @@ namespace caret {
                                                                                          const int32_t windowViewport[4],
                                                                                          const int32_t highlightTabIndex);
         
-        static BrainOpenGLViewportContent* createViewportForSingleTab(BrowserTabContent* browserTabContent,
+        static BrainOpenGLViewportContent* createViewportForSingleTab(std::vector<BrowserTabContent*>& allTabContents,
+                                                                      BrowserTabContent* selectedTabContent,
                                                                       const GapsAndMargins* gapsAndMargins,
                                                                       const int32_t windowIndex,
                                                                       const int32_t windowViewport[4]);
@@ -142,6 +143,9 @@ namespace caret {
                                         const GapsAndMargins* gapsAndMargins,
                                         int modelViewportOut[4]);
         
+        void updateTabLockedAspectRatios(const int32_t windowIndex,
+                                         const int32_t windowViewport[4]);
+
         const int m_windowIndex;
         
         const bool m_highlightTab;

@@ -141,10 +141,8 @@ using namespace caret;
  *    Action to show overlay tool box.
  * @param layersToolBoxAction
  *    Action to show layers tool box.
- * @param windowAspectRatioLockedAction
- *    Action to lock window's aspect ratio.
- * @param tabAspectRatioLockedAction
- *    Action to lock tab's aspect ratio.
+ * @param toolBarLockWindowAndAllTabAspectRatioButton
+ *    Button to lock window's aspect ratio and aspect ratio of all tabs.
  * @param parent
  *    Parent for this toolbar.
  */
@@ -152,16 +150,12 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                                      BrowserTabContent* initialBrowserTabContent,
                                                      QAction* overlayToolBoxAction,
                                                      QAction* layersToolBoxAction,
-                                                     QAction* windowAspectRatioLockedAction,
-                                                     QAction* tabAspectRatioLockedAction,
+                                                     QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
                                                      BrainBrowserWindow* parentBrainBrowserWindow)
 : QToolBar(parentBrainBrowserWindow)
 {
     this->browserWindowIndex = browserWindowIndex;
     m_tabIndexForTileTabsHighlighting = -1;
-    
-    m_windowAspectRatioLockedAction = windowAspectRatioLockedAction;
-    m_tabAspectRatioLockedAction = tabAspectRatioLockedAction;
     
     this->isContructorFinished = false;
     this->isDestructionInProgress = false;
@@ -362,8 +356,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
     this->modeWidget = this->createModeWidget();
-    this->windowWidget = this->createTabOptionsWidget(m_windowAspectRatioLockedAction,
-                                                      m_tabAspectRatioLockedAction);
+    this->windowWidget = this->createTabOptionsWidget(toolBarLockWindowAndAllTabAspectRatioButton);
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     m_clippingOptionsWidget = createClippingOptionsWidget();
@@ -2879,20 +2872,16 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
 /**
  * Create the tab options widget.
  *
- * @param windowAspectRatioLockedAction
- *    Action for locking the window's aspect ratio.
- * @param tabAspectRatioLockedAction
- *    Action for locking the tab's aspect ratio.
+ * @param lockWindowAndAllTabAspectAction
+ *    Action for locking the window's aspect ratio and the aspect ratio of all tabs
  *
- * @return  The tab options widget.
+ * @return  Button to lock window and tab's aspect ratios.
  */
 QWidget* 
-BrainBrowserWindowToolBar::createTabOptionsWidget(QAction* windowAspectRatioLockedAction,
-                                                  QAction* tabAspectRatioLockedAction)
+BrainBrowserWindowToolBar::createTabOptionsWidget(QToolButton* toolBarLockWindowAndAllTabAspectRatioButton)
 {
     m_tabOptionsComponent = new BrainBrowserWindowToolBarTab(this->browserWindowIndex,
-                                                             windowAspectRatioLockedAction,
-                                                             tabAspectRatioLockedAction,
+                                                             toolBarLockWindowAndAllTabAspectRatioButton,
                                                              this);
     
     QWidget* w = this->createToolWidget("Tab",
@@ -4004,14 +3993,17 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         
         if (getModelEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
             BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
+
             if (browserWindow != NULL) {
+                const int32_t numTabs = this->tabBar->count();
+                for (int32_t i = 0; i < numTabs; i++) {
+                    BrowserTabContent* btc = this->getTabContentFromTab(i);
+                    getModelEvent->addBrowserTab(btc);
+                }
+                
+                getModelEvent->setTileTabsSelected(browserWindow->isTileTabsSelected());
+                
                 if (browserWindow->isTileTabsSelected()) {
-                    const int32_t numTabs = this->tabBar->count();
-                    for (int32_t i = 0; i < numTabs; i++) {
-                        BrowserTabContent* btc = this->getTabContentFromTab(i);
-                        getModelEvent->addTabContentToDraw(btc);
-                    }
-                    
                     /*
                      * Tab that is highlighted so user knows which tab
                      * any changes in toolbar/toolboxes apply to.
@@ -4019,10 +4011,6 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
                     getModelEvent->setTabIndexForTileTabsHighlighting(m_tabIndexForTileTabsHighlighting);
                     
                     getModelEvent->setTileTabsConfiguration(browserWindow->getSelectedTileTabsConfiguration());
-                }
-                else {
-                    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-                    getModelEvent->addTabContentToDraw(btc);
                 }
                 
                 getModelEvent->setSelectedBrowserTabContent(this->getTabContentFromSelectedTab());

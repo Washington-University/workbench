@@ -29,8 +29,11 @@
 #include <numeric>
 
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "EventBrowserWindowContent.h"
+#include "EventManager.h"
 #include "GapsAndMargins.h"
 #include "MathFunctions.h"
 #include "ModelSurfaceMontage.h"
@@ -481,10 +484,11 @@ BrainOpenGLViewportContent::toString() const
  *     Viewport content for the single tab.
  */
 BrainOpenGLViewportContent*
-BrainOpenGLViewportContent::createViewportForSingleTab(BrowserTabContent* browserTabContent,
-                                                              const GapsAndMargins* gapsAndMargins,
-                                                              const int32_t windowIndex,
-                                                              const int32_t windowViewport[4])
+BrainOpenGLViewportContent::createViewportForSingleTab(std::vector<BrowserTabContent*>& allTabContents,
+                                                       BrowserTabContent* selectedTabContent,
+                                                       const GapsAndMargins* gapsAndMargins,
+                                                       const int32_t windowIndex,
+                                                       const int32_t windowViewport[4])
 {
     int tabViewport[4] = {
         windowViewport[0],
@@ -500,14 +504,40 @@ BrainOpenGLViewportContent::createViewportForSingleTab(BrowserTabContent* browse
         tabViewport[3]
     };
     
-    if (browserTabContent != NULL) {
-        if (browserTabContent->isAspectRatioLocked()) {
-            const float aspectRatio = browserTabContent->getAspectRatio();
+    std::unique_ptr<EventBrowserWindowContent> eventContent = EventBrowserWindowContent::getWindowContent(windowIndex);
+    EventManager::get()->sendEvent(eventContent->getPointer());
+    
+    const BrowserWindowContent* browserWindowContent = eventContent->getBrowserWindowContent();
+    CaretAssert(browserWindowContent);
+    if (browserWindowContent->isAllTabsInWindowAspectRatioLocked()) {
+        /**
+         * Update aspect locking for any tabs that have not bee locked
+         * Locking is done here so that it will work for new tabs and
+         * for tabs from old scenes before "lock all".
+         * Aspect locking is also performed here so that it works 
+         * with both GUI and Command Line Show Scene
+         */
+        for (auto btc : allTabContents) {
+            if ( ! btc->isAspectRatioLocked()) {
+                if (tabViewport[2] > 0) {
+                    const float aspectRatio = (static_cast<float>(tabViewport[3])
+                                   / static_cast<float>(tabViewport[2]));
+                    
+                    btc->setAspectRatio(aspectRatio);
+                    btc->setAspectRatioLocked(true);
+                }
+            }
+        }
+    }
+    
+    if (selectedTabContent != NULL) {
+        if (selectedTabContent->isAspectRatioLocked()) {
+            const float aspectRatio = selectedTabContent->getAspectRatio();
             BrainOpenGLViewportContent::adjustViewportForAspectRatio(tabViewport,
                                                                      aspectRatio);
         }
         
-        const int32_t tabIndex = browserTabContent->getTabNumber();
+        const int32_t tabIndex = selectedTabContent->getTabNumber();
         createModelViewport(tabViewport,
                             tabIndex,
                             gapsAndMargins,
@@ -521,7 +551,7 @@ BrainOpenGLViewportContent::createViewportForSingleTab(BrowserTabContent* browse
                                                                            modelViewport,
                                                                            windowIndex,
                                                                            false,
-                                                                           browserTabContent);
+                                                                           selectedTabContent);
     
     return vpContent;
 }
@@ -596,6 +626,13 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
     std::vector<int32_t> rowHeights(numRows, 0);
     std::vector<int32_t> columnWidths(numColumns, 0);
     
+    
+    std::unique_ptr<EventBrowserWindowContent> eventContent = EventBrowserWindowContent::getWindowContent(windowIndex);
+    EventManager::get()->sendEvent(eventContent->getPointer());
+    const BrowserWindowContent* browserWindowContent = eventContent->getBrowserWindowContent();
+    CaretAssert(browserWindowContent);
+    const bool allTabsAspectLockedFlag = browserWindowContent->isAllTabsInWindowAspectRatioLocked();
+    
     /*
      * Create the sizes for the tabs before and after application
      * of aspect ratio.
@@ -609,6 +646,28 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
             if (iTab < numberOfTabs) {
                 CaretAssertVectorIndex(tabContents,
                                        iTab);
+                
+                /*
+                 * Is aspect ratio locked for all tabs ?
+                 */
+                if (allTabsAspectLockedFlag) {
+                    /**
+                     * Update aspect locking for any tabs that have not been locked
+                     * Locking is done here so that it will work for new tabs and
+                     * for tabs from old scenes before "lock all"
+                     * Aspect locking is also performed here so that it works
+                     * with both GUI and Command Line Show Scene
+                     */
+                    if ( ! tabContents[iTab]->isAspectRatioLocked()) {
+                        if (vpWidth > 0) {
+                            const float aspectRatio = (static_cast<float>(vpHeight)
+                                                       / static_cast<float>(vpWidth));
+                            
+                            tabContents[iTab]->setAspectRatio(aspectRatio);
+                            tabContents[iTab]->setAspectRatioLocked(true);
+                        }
+                    }
+                }
                 
                 /*
                  * Note: the constructor will adjust the width and
@@ -867,7 +926,6 @@ BrainOpenGLViewportContent::getSurfaceMontageModelViewport(const int32_t montage
         }
     }
 }
-
 
 /* =================================================================================================== */
 

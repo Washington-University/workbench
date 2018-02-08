@@ -85,8 +85,7 @@ namespace caret {
                                   BrowserTabContent* initialBrowserTabContent,
                                   QAction* overlayToolBoxAction,
                                   QAction* layersToolBoxAction,
-                                  QAction* windowAspectRatioLockedAction,
-                                  QAction* tabAspectRatioLockedAction,
+                                  QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
                                   BrainBrowserWindow* parentBrainBrowserWindow);
         
         ~BrainBrowserWindowToolBar();
@@ -145,8 +144,7 @@ namespace caret {
         QWidget* createWholeBrainSurfaceOptionsWidget();
         QWidget* createVolumeIndicesWidget();
         QWidget* createModeWidget();
-        QWidget* createTabOptionsWidget(QAction* windowAspectRatioLockedAction,
-                                        QAction* tabAspectRatioLockedAction);
+        QWidget* createTabOptionsWidget(QToolButton* toolBarLockWindowAndAllTabAspectRatioButton);
         QWidget* createChartAxesWidget();
         QWidget* createChartAttributesWidget();
         QWidget* createChartTwoOrientationWidget();
@@ -228,9 +226,6 @@ namespace caret {
 
         /** Is set to the user input widget provided by the user input processor */
         QWidget* userInputControlsWidgetActiveInputWidget;
-        
-        QAction* m_windowAspectRatioLockedAction;
-        QAction* m_tabAspectRatioLockedAction;
         
         void removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent);
         

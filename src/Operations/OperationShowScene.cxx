@@ -375,12 +375,6 @@ OperationShowScene::useParameters(OperationParameters* myParams,
             
             int windowViewport[4] = { 0, 0, imageWidth, imageHeight };
             
-//            float aspectRatio = -1.0;
-//            const bool windowAspectRatioLocked = browserClass->getBooleanValue("m_aspectRatioLockedStatus");
-//            if (windowAspectRatioLocked) {
-//                aspectRatio = browserClass->getFloatValue("m_aspectRatio", -1.0);
-//            }
-            
             const int windowWidth  = windowViewport[2];
             const int windowHeight = windowViewport[3];
             
@@ -536,7 +530,10 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     }
                     
                     CaretPointer<BrainOpenGLViewportContent> content(NULL);
-                    content.grabNew(BrainOpenGLViewportContent::createViewportForSingleTab(tabContent,
+                    std::vector<BrowserTabContent*> allTabs;
+                    allTabs.push_back(tabContent);
+                    content.grabNew(BrainOpenGLViewportContent::createViewportForSingleTab(allTabs,
+                                                                                           tabContent,
                                                                                            gapsAndMargins,
                                                                                            windowIndex,
                                                                                            windowViewport));
@@ -799,7 +796,6 @@ OperationShowScene::writeImage(const AString& imageFileName,
     }
     
     try {
-        //ImageFile imageFile(image);
         ImageFile imageFile(imageContent,
                             imageWidth,
                             imageHeight,

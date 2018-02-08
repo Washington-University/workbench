@@ -41,6 +41,7 @@ EventBrowserWindowDrawingContent::EventBrowserWindowDrawingContent(const int32_t
     m_tabIndexForTileTabsHighlighting = -1;
     m_tileTabsConfiguration = NULL;
     m_selectedBrowserTabContent = NULL;
+    m_tileTabsSelectedFlag = false;
 }
 
 /*
@@ -61,33 +62,33 @@ EventBrowserWindowDrawingContent::getBrowserWindowIndex() const
 }
 
 /**
- * @return The number of items to draw.
+ * @return The number of browser tabs in window
  */
 int32_t 
-EventBrowserWindowDrawingContent::getNumberOfItemsToDraw() const
+EventBrowserWindowDrawingContent::getNumberOfBrowserTabs() const
 {
     return this->browserTabContents.size();
 }
 
 /**
- * Add tab content for drawing in a window.
+ * Add browser tab
  */
 void 
-EventBrowserWindowDrawingContent::addTabContentToDraw(BrowserTabContent* browserTabContent)
+EventBrowserWindowDrawingContent::addBrowserTab(BrowserTabContent* browserTabContent)
 {
     this->browserTabContents.push_back(browserTabContent);
 }
 
 /**
- * Get the tab content for drawing in a window.
+ * Get the browser tab at the given index
  * 
  * @param itemIndex
- *    Index of the item to draw.
+ *    Index of the item to browser tab.
  * @return
  *    Pointer to tab contents for the item index.
  */
 BrowserTabContent*
-EventBrowserWindowDrawingContent::getTabContentToDraw(const int32_t itemIndex)
+EventBrowserWindowDrawingContent::getBrowserTab(const int32_t itemIndex)
 {
     CaretAssertVectorIndex(this->browserTabContents, itemIndex);
     return this->browserTabContents[itemIndex];
@@ -138,6 +139,7 @@ EventBrowserWindowDrawingContent::setTileTabsConfiguration(TileTabsConfiguration
 
 /**
  * @return The selected browser tab content.  May be NULL.
+ * In single tab mode, this is the tab to draw.
  */
 BrowserTabContent*
 EventBrowserWindowDrawingContent::getSelectedBrowserTabContent()
@@ -155,6 +157,27 @@ void
 EventBrowserWindowDrawingContent::setSelectedBrowserTabContent(BrowserTabContent* browserTabContent)
 {
     m_selectedBrowserTabContent = browserTabContent;
+}
+
+/**
+ * @return Is tile tabs selected.
+ */
+bool
+EventBrowserWindowDrawingContent::isTileTabsSelected() const
+{
+    return m_tileTabsSelectedFlag;
+}
+
+/**
+ * Set tile tabs selected.
+ *
+ * @param tileTabsSelected
+ *    New status of tile tabs.
+ */
+void
+EventBrowserWindowDrawingContent::setTileTabsSelected(const bool tileTabsSelected)
+{
+    m_tileTabsSelectedFlag = tileTabsSelected;
 }
 
 

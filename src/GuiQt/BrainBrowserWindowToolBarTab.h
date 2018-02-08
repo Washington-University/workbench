@@ -37,8 +37,7 @@ namespace caret {
         
     public:
         BrainBrowserWindowToolBarTab(const int32_t browserWindowIndex,
-                                     QAction* windowAspectRatioLockedAction,
-                                     QAction* tabAspectRatioLockedAction,
+                                     QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
                                      BrainBrowserWindowToolBar* parentToolBar);
         
         virtual ~BrainBrowserWindowToolBarTab();
@@ -51,18 +50,10 @@ namespace caret {
     private slots:
         void yokeToGroupComboBoxIndexChanged();
         
-        void tabAspectCustomContextMenuRequested(const QPoint& pos);
-        
-        void windowAspectCustomContextMenuRequested(const QPoint& pos);
-        
     private:
         BrainBrowserWindowToolBarTab(const BrainBrowserWindowToolBarTab&);
 
         BrainBrowserWindowToolBarTab& operator=(const BrainBrowserWindowToolBarTab&);
-        
-        float getAspectRatioFromDialog(const QString& title,
-                                       const float aspectRatio,
-                                       QWidget* parent) const;
         
         QLabel* m_yokeToLabel;
         
@@ -72,11 +63,7 @@ namespace caret {
         
         BrainBrowserWindowToolBar* m_parentToolBar;
         
-        QAction* m_tabAspectRatioLockedAction;
-        
-        QToolButton* m_tabAspectRatioLockedToolButton;
-        
-        QToolButton* m_windowAspectRatioLockedToolButton;
+        QToolButton* m_lockWindowAndAllTabAspectButton;
         
         // ADD_NEW_MEMBERS_HERE
 

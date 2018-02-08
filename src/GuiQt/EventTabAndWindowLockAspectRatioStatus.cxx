@@ -132,7 +132,7 @@ EventTabAndWindowLockAspectRatioStatus::setup(const std::vector<BrainBrowserWind
     for (const auto bbw : windows) {
         if (bbw != NULL) {
             const int32_t windowIndex = bbw->getBrowserWindowIndex();
-            const bool windowAspectLocked = bbw->isAspectRatioLocked();
+            const bool windowAspectLocked = bbw->isWindowAspectRatioLocked();
             const bool tileTabsEnabled = bbw->isTileTabsSelected();
             CaretAssertVectorIndex(windowAnnotationFlag, windowIndex);
             WindowStatus* windowStatus = getWindowStatus(windowIndex);

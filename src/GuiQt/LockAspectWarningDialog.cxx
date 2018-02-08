@@ -170,10 +170,6 @@ m_tabCount(tabCount)
     QObject::connect(lockWindowAndTabButton, &QPushButton::clicked,
                      [=] { this->buttonClicked(Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS); });
     
-    QPushButton* lockWindowButton = new QPushButton("OK - Lock Window Aspect");
-    QObject::connect(lockWindowButton, &QPushButton::clicked,
-                     [=] { this->buttonClicked(Result::LOCK_WINDOW_ASPECT); });
-    
     QPushButton* noChangesButton = new QPushButton("OK - No Lock Aspect Changes");
     QObject::connect(noChangesButton, &QPushButton::clicked,
                      [=] { this->buttonClicked(Result::NO_CHANGES); });
@@ -192,14 +188,12 @@ m_tabCount(tabCount)
     QBoxLayout* dialogLayout = new QHBoxLayout(this);
     
     WuQtUtilities::matchWidgetWidths(lockWindowAndTabButton,
-                                     lockWindowButton,
                                      noChangesButton,
                                      cancelButton);
     
     QBoxLayout* buttonLayout = new QVBoxLayout();
     buttonLayout->addWidget(buttonsLabel);
     buttonLayout->addWidget(lockWindowAndTabButton);
-    buttonLayout->addWidget(lockWindowButton);
     buttonLayout->addWidget(noChangesButton);
     buttonLayout->addWidget(cancelButton);
     buttonLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
@@ -212,9 +206,7 @@ m_tabCount(tabCount)
     /*
      * Highlighted button
      */
-    QPushButton* defaultPushButton = (tileTabsEnabled
-                                      ? lockWindowAndTabButton
-                                      : lockWindowButton);
+    QPushButton* defaultPushButton = lockWindowAndTabButton;
     defaultPushButton->setAutoDefault(true);
     defaultPushButton->setDefault(true);
 }
@@ -277,10 +269,6 @@ LockAspectWarningDialog::buttonClicked(const Result buttonClicked)
     switch (buttonClicked) {
         case Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS:
             m_result = Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS;
-            accept();
-            break;
-        case Result::LOCK_WINDOW_ASPECT:
-            m_result = Result::LOCK_WINDOW_ASPECT;
             accept();
             break;
         case Result::NO_CHANGES:

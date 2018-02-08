@@ -40,11 +40,11 @@ namespace caret {
         
         int32_t getBrowserWindowIndex() const;
         
-        int32_t getNumberOfItemsToDraw() const;
+        int32_t getNumberOfBrowserTabs() const;
         
-        void addTabContentToDraw(BrowserTabContent* browserTabContent);
+        void addBrowserTab(BrowserTabContent* browserTabContent);
         
-        BrowserTabContent* getTabContentToDraw(const int32_t itemIndex);
+        BrowserTabContent* getBrowserTab(const int32_t itemIndex);
         
         void setTabIndexForTileTabsHighlighting(const int32_t tabIndex);
         
@@ -58,6 +58,10 @@ namespace caret {
         
         void setSelectedBrowserTabContent(BrowserTabContent* browserTabContent);
         
+        bool isTileTabsSelected() const;
+        
+        void setTileTabsSelected(const bool tileTabsSelected);
+        
     private:
         EventBrowserWindowDrawingContent(const EventBrowserWindowDrawingContent&);
         
@@ -68,7 +72,7 @@ namespace caret {
         /** index of browswer window */
         int32_t m_browserWindowIndex;
         
-        /** Tab content that are to be drawn in the window */
+        /** all browser tabs in the window */
         std::vector<BrowserTabContent*> browserTabContents;
         
         /** Index of tab that is highlighted in Tile Tabs mode */
@@ -76,6 +80,8 @@ namespace caret {
         
         /** Selected tile tabs configuration when more than one item to draw */
         TileTabsConfiguration* m_tileTabsConfiguration;
+        
+        bool m_tileTabsSelectedFlag;
     };
 
 } // namespace

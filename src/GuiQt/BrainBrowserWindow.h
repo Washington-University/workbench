@@ -37,6 +37,7 @@ class QAction;
 class QActionGroup;
 class QDockWidget;
 class QMenu;
+class QToolButton;
 
 namespace caret {
     class BrainBrowserWindowToolBar;
@@ -140,19 +141,9 @@ namespace caret {
         
         bool changeInputModeToAnnotationsWarningDialog(QWidget* parent);
         
-        bool isAspectRatioLocked() const;
-        
-        void setAspectRatioLocked(const bool locked);
+        bool isWindowAspectRatioLocked() const;
         
         float getAspectRatio() const;
-        
-        void setAspectRatio(const float aspectRatio);
-        
-        void setLockTabAspectStatusAndRatio(const bool lockStatus,
-                                            const float aspectRatio);
-        
-        void setLockWindowAspectStatusAndRatio(const bool lockStatus,
-                                               const float aspectRatio);
         
         bool hasValidOpenGL();
         
@@ -235,12 +226,12 @@ namespace caret {
         
         void processProjectFoci();
         void processSplitBorderFiles();
-        void processTabAspectRatioLockedToggled(bool checked);
-        void processWindowAspectRatioLockedToggled(bool checked);
-        void processLockAllTabsAspectRatioTriggered();
-        void processUnlockAllTabsAspectRatioTriggered();
-        void processEditTabAndWindowAspectRatiosTriggered();
         
+        void processWindowMenuLockWindowAspectRatioTriggered(bool checked);
+        void processWindowMenuLockAllTabAspectRatioTriggered(bool checked);
+        void processToolBarLockWindowAndAllTabAspectTriggered(bool checked);
+        void processToolBarLockWindowAndAllTabAspectMenu(const QPoint& pos);
+
         void processEditMenuItemTriggered(QAction* action);
         void processEditMenuAboutToShow();
         
@@ -309,6 +300,14 @@ namespace caret {
         bool isMacOptionKeyDown() const;
         
         void showDataFileReadWarningsDialog();
+        
+        void lockWindowAspectRatio(const bool checked);
+        void lockAllTabAspectRatios(const bool checked);
+        void updateActionsForLockingAspectRatios();
+        
+        float getAspectRatioFromDialog(const QString& title,
+                                       const float aspectRatio,
+                                       QWidget* parent) const;
         
         /** Index of this window */
         const int32_t m_browserWindowIndex;
@@ -392,11 +391,10 @@ namespace caret {
         
         QAction* m_overlayToolBoxAction;
         
-        QAction* m_lockAllTabsAspectRatioAction;
-        QAction* m_unlockAllTabsAspectRatioAction;
-        QAction* m_tabAspectRatioLockedAction;
-        QAction* m_windowAspectRatioLockedAction;
-        QAction* m_editTabAndWindowAspectRatiosAction;
+        QAction* m_windowMenuLockWindowAspectRatioAction;
+        QAction* m_windowMenuLockAllTabAspectRatioAction;
+        QAction* m_toolBarLockWindowAndAllTabAspectRatioAction;
+        QToolButton* m_toolBarLockWindowAndAllTabAspectRatioButton;
         
         QAction* m_featuresToolBoxAction;
         
@@ -431,8 +429,6 @@ namespace caret {
         
         WindowComponentStatus m_defaultWindowComponentStatus;
         WindowComponentStatus m_normalWindowComponentStatus;
-        
-        float m_aspectRatio;
         
         static bool s_firstWindowFlag;
         

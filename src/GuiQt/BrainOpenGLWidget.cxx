@@ -203,7 +203,7 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
     delete this->userInputFociModeProcessor;
     delete this->userInputImageModeProcessor;
     delete this->userInputVolumeEditModeProcessor;
-    this->selectedUserInputProcessor = NULL; // DO NOT DELETE since it does not own the object to which it points
+    this->selectedUserInputProcessor = NULL; /* DO NOT DELETE since it does not own the object to which it points */
     
     delete this->borderBeingDrawn;
     
@@ -309,21 +309,13 @@ BrainOpenGLWidget::getOpenGLInformation()
     }
 
     info += ("QOpenGLWidget Context:"
-//             "\n   Accum: " + AString::fromBool(format.accum())
-//             + "\n   Accum size: " + AString::number(format.accumBufferSize())
              "\n   Alpha: " + AString::fromBool(format.hasAlpha())
              + "\n   Alpha size: " + AString::number(format.alphaBufferSize())
-//             + "\n   Depth: " + AString::fromBool(format.depth())
              + "\n   Depth size: " + AString::number(format.depthBufferSize())
-//             + "\n   Direct Rendering: " + AString::fromBool(format.directRendering())
              + "\n   Red size: " + AString::number(format.redBufferSize())
              + "\n   Green size: " + AString::number(format.greenBufferSize())
              + "\n   Blue size: " + AString::number(format.blueBufferSize())
-//             + "\n   Double Buffer: " + AString::fromBool(format.doubleBuffer())
-//             + "\n   RGBA: " + AString::fromBool(format.rgba())
-//             + "\n   Samples: " + AString::fromBool(format.sampleBuffers())
              + "\n   Samples size: " + AString::number(format.samples())
-//             + "\n   Stencil: " + AString::fromBool(format.stencil())
              + "\n   Stencil size: " + AString::number(format.stencilBufferSize())
              + "\n   " + swapInfo
              + "\n   Swap Interval: " + AString::number(format.swapInterval())
@@ -381,25 +373,6 @@ BrainOpenGLWidget::getOpenGLInformation()
              + AString::number(numDisplayLists)
              + " display lists are allocated in first OpenGL context.");
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
-    
-// Disable check of vertex buffers until OpenGL
-// version is fixed on windows (finds 1.1)
-//#ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-//    int32_t numVertexBuffers = 0;
-//#ifdef GL_VERSION_2_0
-//    /*
-//     * Note: glIsBuffer() was added to OpenGL 2.0
-//     */
-//    for (GLuint iBuff = 1; iBuff < 1000; iBuff++) {
-//        if (glIsBuffer(iBuff)) {
-//            numVertexBuffers++;
-//        }
-//    }
-//#endif // GL_VERSION_2_0
-//    info += ("\nAt least "
-//             + AString::number(numVertexBuffers)
-//             + " vertex buffers are allocated");
-//#endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
     info += "\n";
     
     return info;
@@ -520,7 +493,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
         windowViewportIn[3]
     };
     
-    if (bbw->isAspectRatioLocked()) {
+    if (bbw->isWindowAspectRatioLocked()) {
         const float aspectRatio = bbw->getAspectRatio();
         if (aspectRatio > 0.0) {
             BrainOpenGLViewportContent::adjustViewportForAspectRatio(windowViewport,
@@ -538,15 +511,13 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
     
     const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
     
-    const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
-    if (numToDraw == 1) {
-        BrainOpenGLViewportContent* vc = BrainOpenGLViewportContent::createViewportForSingleTab(getModelEvent.getTabContentToDraw(0),
-                                                                                                gapsAndMargins,
-                                                                                                this->windowIndex,
-                                                                                                windowViewport);
-        windowContent.addTabViewport(vc);
+    const int32_t numberOfTabs = getModelEvent.getNumberOfBrowserTabs();
+    std::vector<BrowserTabContent*> allTabs;
+    for (int32_t i = 0; i < numberOfTabs; i++) {
+        allTabs.push_back(getModelEvent.getBrowserTab(i));
     }
-    else if (numToDraw > 1) {
+    
+    if (getModelEvent.isTileTabsSelected()) {
         const int32_t windowWidth  = windowViewport[2];
         const int32_t windowHeight = windowViewport[3];
         
@@ -563,18 +534,14 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
          * Get the sizes of the tab tiles from the tile tabs configuration
          */
         if (tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
-                                                                                windowHeight,
-                                                                                numToDraw,
-                                                                                rowHeights,
-                                                                                columnsWidths)) {
-        
+                                                                             windowHeight,
+                                                                             numberOfTabs,
+                                                                             rowHeights,
+                                                                             columnsWidths)) {
+            
             /*
              * Create the viewport drawing contents for all tabs
              */
-            std::vector<BrowserTabContent*> allTabs;
-            for (int32_t i = 0; i < getModelEvent.getNumberOfItemsToDraw(); i++) {
-                allTabs.push_back(getModelEvent.getTabContentToDraw(i));
-            }
             
             std::vector<BrainOpenGLViewportContent*> tabViewportContent = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
                                                                                                                                        tileTabsConfiguration,
@@ -590,8 +557,18 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
             CaretLogSevere("Tile Tabs Row/Column sizing failed !!!");
         }
     }
+    else {
+        BrainOpenGLViewportContent* vc = BrainOpenGLViewportContent::createViewportForSingleTab(allTabs,
+                                                                                                getModelEvent.getSelectedBrowserTabContent(),
+                                                                                                gapsAndMargins,
+                                                                                                this->windowIndex,
+                                                                                                windowViewport);
+        windowContent.addTabViewport(vc);
+    }
     
-    BrainOpenGLViewportContent* windowViewportContent = BrainOpenGLViewportContent::createViewportForSingleTab(NULL,
+    std::vector<BrowserTabContent*> emptyTabVector;
+    BrainOpenGLViewportContent* windowViewportContent = BrainOpenGLViewportContent::createViewportForSingleTab(emptyTabVector,
+                                                                                                               NULL,
                                                                                                                gapsAndMargins,
                                                                                                                windowIndex,
                                                                                                                windowViewport);
@@ -914,7 +891,7 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
                 this->selectedUserInputProcessor->mouseLeftPress(mouseEvent);
             }
             else if (keyModifiers == Qt::ShiftModifier) {
-                // not implemented  this->selectedUserInputProcessor->mouseLeftPressWithShift(mouseEvent);
+                /* not implemented  this->selectedUserInputProcessor->mouseLeftPressWithShift(mouseEvent); */
             }
         }
     }
@@ -1246,9 +1223,7 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
     this->repaint();
     this->doneCurrent();
 #else
-    //updateCursor();
     this->repaint();
-    //updateGL();
 #endif
     
     return annotationID;
@@ -1679,7 +1654,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
                                                  captureHeight,
                                                  widgetWidth,
                                                  widgetHeight,
-                                                 true); // true => apply lock aspect ratio
+                                                 true); /* true => apply lock aspect ratio */
             outputImageWidth  = captureWidth;
             outputImageHeight = captureHeight;
         }
@@ -1787,25 +1762,16 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
 {
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     QSurfaceFormat glfmt;
-    //glfmt.setAccum(false);
-    //glfmt.setAlpha(true);
     glfmt.setAlphaBufferSize(8);
     glfmt.setBlueBufferSize(8);
-    //glfmt.setDepth(true);
     glfmt.setDepthBufferSize(24);
-    //glfmt.setDirectRendering(true);
-    //glfmt.setDoubleBuffer(true);
     glfmt.setGreenBufferSize(8);
-    //glfmt.setOverlay(false);
     glfmt.setProfile(QSurfaceFormat::CompatibilityProfile);
     glfmt.setRedBufferSize(8);
     glfmt.setRenderableType(QSurfaceFormat::OpenGL);
-    //glfmt.setSampleBuffers(true);
-    glfmt.setSamples(6); //2);
-    //glfmt.setStencil(false);
+    glfmt.setSamples(6);
     glfmt.setStereo(false);
     glfmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
-    //glfmt.setRgba(true);
     
     glfmt.setMajorVersion(2);
     glfmt.setMinorVersion(1);
