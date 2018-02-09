@@ -856,9 +856,9 @@ GiftiFile::readFile(const AString& filename)
         int colNum  = e.getColumnNumber();
         
         std::ostringstream str;
-        str << "Parse error while reading";
+        str << "File is not a valid GIFTI file";
         if ((lineNum >= 0) && (colNum >= 0)) {
-            str << ", line/col ("
+            str << ", error parsing at line/col ("
             << e.getLineNumber()
             << "/"
             << e.getColumnNumber()

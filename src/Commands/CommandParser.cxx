@@ -123,7 +123,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
     for (int i = 0; i < (int)myComponent->m_paramList.size(); ++i)
     {
         bool hyphenReplaced = false;
-        //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+        //TSC: until someone complains, I say non-ascii dashes don't belong on the command line, EVER
         AString rawArg = parameters.nextString(myComponent->m_paramList[i]->m_shortName);
         AString nextArg = rawArg.fixUnicodeHyphens(&hyphenReplaced);
         if (hyphenReplaced)
@@ -404,7 +404,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
     for (int i = 0; i < (int)myComponent->m_outputList.size(); ++i)
     {//parse the output options of this component
         bool hyphenReplaced = false;
-        //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+        //TSC: until someone complains, I say non-ascii dashes don't belong on the command line, EVER
         AString rawArg = parameters.nextString(myComponent->m_outputList[i]->m_shortName);
         AString nextArg = rawArg.fixUnicodeHyphens(&hyphenReplaced);
         if (hyphenReplaced)
@@ -530,7 +530,7 @@ void CommandParser::parseRemainingOptions(ParameterComponent* myComponent, Progr
     while (parameters.hasNext())
     {
         bool hyphenReplaced = false;
-        //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+        //TSC: until someone complains, I say non-ascii dashes don't belong on the command line, EVER
         AString rawArg = parameters.nextString("option");
         AString nextArg = rawArg.fixUnicodeHyphens(&hyphenReplaced);
         if (hyphenReplaced)
@@ -573,7 +573,7 @@ CommandParser::CompletionInfo CommandParser::completionComponent(ParameterCompon
         // if parameters remain after the option is completed, restart the iteration in order to be able take another option immediately
         if (parameters.hasNext())
         {
-            //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+            //TSC: until someone complains, I say non-ascii dashes don't belong on the command line, EVER
             AString rawArg = parameters.nextString(myComponent->m_paramList[i]->m_shortName);
             AString nextArg = rawArg.fixUnicodeHyphens();
             if (!nextArg.isEmpty() && nextArg[0] == '-')
@@ -685,7 +685,7 @@ CommandParser::CompletionInfo CommandParser::completionComponent(ParameterCompon
     {//parse the output options of this component
         if (parameters.hasNext())
         {
-            //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+            //TSC: until someone complains, I say non-ascii dashes don't belong on the command line, EVER
             AString rawArg = parameters.nextString(myComponent->m_outputList[i]->m_shortName);
             AString nextArg = rawArg.fixUnicodeHyphens();
             if (!nextArg.isEmpty() && nextArg[0] == '-')
@@ -805,7 +805,7 @@ CommandParser::CompletionInfo CommandParser::completionRemainingOptions(Paramete
     CompletionInfo prev;
     while (parameters.hasNext())
     {
-        //TSC: until someone complains, I say non-unicode dashes don't belong on the command line, EVER
+        //TSC: until someone complains, I say non-ascii dashes don't belong on the command line, EVER
         AString rawArg = parameters.nextString("option");
         AString nextArg = rawArg.fixUnicodeHyphens();
         if (!nextArg.isEmpty() && nextArg[0] == '-')

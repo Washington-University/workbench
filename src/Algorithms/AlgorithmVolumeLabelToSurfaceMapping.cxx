@@ -65,7 +65,7 @@ OperationParameters* AlgorithmVolumeLabelToSurfaceMapping::getParameters()
     subvolumeSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->setHelpText(
-        AString("Map label volume data to a surface.  If -ribbon-constrained is not specified, uses the enclosing voxel method.") +
+        AString("Map label volume data to a surface.  If -ribbon-constrained is not specified, uses the enclosing voxel method.  ") +
         "The ribbon mapping method constructs a polyhedron from the vertex's neighbors on each " +
         "surface, and estimates the amount of this polyhedron's volume that falls inside any nearby voxels, to use as the weights for a popularity comparison.  " +
         "If -thin-columns is specified, the polyhedron uses the edge midpoints and triangle centroids, so that neighboring vertices do not have overlapping polyhedra.  " +

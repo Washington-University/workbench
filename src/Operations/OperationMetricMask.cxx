@@ -45,7 +45,7 @@ OperationParameters* OperationMetricMask::getParameters()
     OptionalParameter* columnSelect = ret->createOptionalParameter(4, "-column", "select a single column");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     ret->setHelpText(
-        AString("By default, the output metric is a copy of the input metric, but with zeros wherever the mask metric is not positive.  ") +
+        AString("By default, the output metric is a copy of the input metric, but with zeros wherever the mask metric is zero or negative.  ") +
         "if -column is specified, the output contains only one column, the masked version of the specified input column."
     );
     return ret;

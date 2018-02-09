@@ -483,10 +483,9 @@ namespace
         double mult, offset;
         Scaling(const double& minval, const double& maxval)
         {
-            std::numeric_limits<T> mylimits;
-            double mymin = mylimits.min();
-            if (!mylimits.is_integer) mymin = -mylimits.max();//again, c++11 can use lowest() instead of these lines
-            mult = (maxval - minval) / ((double)mylimits.max() - mymin);//multiplying is the first step of decoding (after byteswap), so start with the range
+            typedef std::numeric_limits<T> mylimits;
+            double mymin = mylimits::lowest();
+            mult = (maxval - minval) / ((double)mylimits::max() - mymin);//multiplying is the first step of decoding (after byteswap), so start with the range
             offset = minval - mymin * mult;//offset is added after multiplying the encoded value by mult
         }
     };

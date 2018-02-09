@@ -525,8 +525,8 @@ namespace
         switch (intent_code)
         {
             default:
-                CaretAssert(0);
                 CaretLogWarning("unhandled cifti type in extension warning check, tell the developers what you just tried to do");
+                CaretAssert(0);//yes, let it fall through to "unknown" in release so that it at least looks for .nii
             case 3000://unknown
                 if (!filename.contains(QRegExp("\\.[^.]*\\.nii$")))
                 {

@@ -3,11 +3,11 @@ Upstream-Name: Connectome Workbench
 Source: http://www.humanconnectome.org/software/get-connectome-workbench.html
 
 Files: *
-Copyright: 2014-2016 Washington University School of Medicine
+Copyright: 2014-2018 Washington University School of Medicine
 License: GPL-2+
 
 Files: src/Files/SurfaceResamplingHelper.cxx src/Cifti/examples/* src/CommandLine/wb_shortcuts src/CommandLine/wb_command_completion
-Copyright: 2014-2015 Washington University School of Medicine
+Copyright: 2014-2017 Washington University School of Medicine
 License: Expat
 
 Files: src/kloewe/*
@@ -51,11 +51,11 @@ Copyright: 2014 Washington University School of Medicine
            1970-2003, Wm. Randolph Franklin
 License: GPL-2+ and PNPOLY-BSD-3-Clause
 
-Files: src/Resources/FtglFonts/Vera*.ttf
+Files: src/Resources/General/Fonts/FtglFonts/Vera*.ttf src/Resources/General/Fonts/VeraFonts/Vera*.ttf
 Copyright: 2003 Bitstream, Inc.
 License: Bitstream-Vera
 
-Files: src/Resources/Fonts/LinuxLibertine/*ttf
+Files: src/Resources/General/Fonts/LinuxLibertine/*.ttf
 Copyright: 2003-2009 Philipp H. Poll <philthelion@users.sourceforge.net>
 License: GPL-2+ with Font exception and OFL-1.1
 
@@ -251,6 +251,8 @@ License: Expat
  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 License: Bitstream-Vera
+ Bitstream Vera is a trademark of Bitstream, Inc.
+ .
  Permission is hereby granted, free of charge, to any person obtaining a
  copy of the fonts accompanying this license ("Fonts") and associated
  documentation files (the "Font Software"), to reproduce and distribute
@@ -301,7 +303,6 @@ License: Qt-commercial
  a written agreement between you and Digia.  For licensing terms and
  conditions see http://qt.digia.com/licensing.  For further information
  use the contact form at http://qt.digia.com/contact-us.
-
 
 License: GPL-2+ with Font exception
  The linux-libertine fonts are dual-licensed under the GNU General Public
