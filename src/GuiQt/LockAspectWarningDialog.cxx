@@ -32,11 +32,11 @@
 #include <QCheckBox>
 #include <QVBoxLayout>
 
+#include "BestPracticesDialog.h"
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
-#include "EventManager.h"
-#include "EventTabAndWindowLockAspectRatioStatus.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
 
@@ -64,12 +64,18 @@ LockAspectWarningDialog::Result
 LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex,
                                    QWidget* parent)
 {
-    const LockAspectWarningDialog::TabMode tabMode = LockAspectWarningDialog::TabMode::SELECTED_TAB;
-    
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
+    const BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
     CaretAssert(bbw);
+    const BrowserWindowContent* browserWindowContent = bbw->getBrowerWindowContent();
+    CaretAssert(browserWindowContent);
     
-    BrowserTabContent* selectedTab = bbw->getBrowserTabContent();
+    const bool aspectLockedFlag = (browserWindowContent->isWindowAspectLocked()
+                                   && browserWindowContent->isAllTabsInWindowAspectRatioLocked());
+    if (aspectLockedFlag) {
+        return Result::NO_CHANGES;
+    }
+    
+    const BrowserTabContent* selectedTab = bbw->getBrowserTabContent();
     if (selectedTab == NULL) {
         return Result::NO_CHANGES;
     }
@@ -78,28 +84,7 @@ LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex,
         return Result::NO_CHANGES;
     }
     
-    EventTabAndWindowLockAspectRatioStatus lockEvent;
-    EventManager::get()->sendEvent(lockEvent.getPointer());
-    CaretAssert(lockEvent.getEventProcessCount() > 0);
-    
-    /*
-     * Determine lock status for window and tabs in the window
-     */
-    const bool tileTabsEnabledFlag    = lockEvent.getWindowStatus(browserWindowIndex)->isTileTabsEnabled();
-    const bool windowAspectLockedFlag = lockEvent.getWindowStatus(browserWindowIndex)->isAspectRatioLocked();
-    const bool selectedTabLockedFlag = lockEvent.getTabStatus(selectedTab->getTabNumber())->isAspectRatioLocked();
-    
-    if (windowAspectLockedFlag
-        || selectedTabLockedFlag) {
-        return Result::NO_CHANGES;
-    }
-
-    LockAspectWarningDialog dialog(tabMode,
-                                   tileTabsEnabledFlag,
-                                   windowAspectLockedFlag,
-                                   lockEvent.getWindowStatus(browserWindowIndex)->getTabLockedCount(),
-                                   lockEvent.getWindowStatus(browserWindowIndex)->getTabCount(),
-                                   parent);
+    LockAspectWarningDialog dialog(parent);
     
     if (dialog.exec() == LockAspectWarningDialog::Accepted) {
         s_doNotShowAgainStatusFlag = dialog.isDoNotShowAgainChecked();
@@ -125,52 +110,52 @@ LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex,
  * @param parent
  *     The parent widget.
  */
-LockAspectWarningDialog::LockAspectWarningDialog(const TabMode tabMode,
-                                                 const bool tileTabsEnabled,
-                                                 const bool browserWindowAspectLocked,
-                                                 const int32_t tabAspectLockedCount,
-                                                 const int32_t tabCount,
-                                                 QWidget* parent)
-: QDialog(parent),
-  m_tabMode(tabMode),
-  m_browserWindowAspectLocked(browserWindowAspectLocked),
-m_tabAspectLockedCount(tabAspectLockedCount),
-m_tabCount(tabCount)
+LockAspectWarningDialog::LockAspectWarningDialog(QWidget* parent)
+: QDialog(parent)
 {
-    AString tabText;
-    switch (m_tabMode) {
-        case TabMode::ALL_TABS:
-            tabText = "all Tab Aspect Ratios";
-            break;
-        case TabMode::SELECTED_TAB:
-            tabText = "the Selected Tab Aspect Ratio";
-            break;
-    }
+    setWindowTitle("Warning: Aspect Unlocked");
     
-    const AString msg("<html>"
-                      "Neither the Window Aspect Ratio nor " + tabText + " are locked.  "
-                      "Prior to entering Annotations Mode and creating annotations, "
-                      "it is recommended that the user adjust the window "
-                      "to the desired size, enter Tile Tabs (if desired), "
-                      "and then lock the aspect ratio for the Window and All Tabs.  "
-                      "<P>"
-                      "Tab and Window annotations are displayed "
-                      "in <B>percentage coordinates</B> of the tab/window "
-                      "width and height (0% is at bottom/left and 100% "
-                      "is at top/right).  Locking the aspect ratio ensures that these "
-                      "annotations remain in the correct location when the window "
-                      "size changes.  "
-                      "</html>");
+    const QString helpButtonText("More Info");
+    
+    const AString msg = BestPracticesDialog::getTextForInfoMode(BestPracticesDialog::InfoMode::LOCK_ASPECT_BEST_PRACTICES,
+                                                                BestPracticesDialog::TextMode::BRIEF);
+//    const AString msg("<html>"
+//                      "Aspect is unlocked and it is <b>strongly recommended</b> that aspect is locked and is never unlocked "
+//                      "when annotations are present.  Failing to lock aspect or unlocking the aspect may "
+//                      "cause annotations to move from their original locations."
+//                      "<p>"
+//                      "When creating annotations and scenes, follow these best practices:"
+//                      "<ol>"
+//                      "<li> If desired, enter Tile Tabs for a multi-tab Scene (View Menu->Enter Tile Tabs)"
+//                      "<li> Adjust size of window"
+//                      "<li> Setup view of the model(s) (pan/rotate/zoom)"
+//                      "<li> Lock Aspect Ratio (click Lock Aspect button in right side of Toolbar)"
+//                      "<li> Enter Annotations Mode (click Annotate button in Toolbar)"
+//                      "<li> Add Annotations"
+//                      "<li> Display the Scene Dialog (click Clapboard icon in Toolbar or select Window Menu->Scenes)"
+//                      "<li> Add a Scene (click Add button on Scene Dialog)"
+//                      "<li> Save the Scene File (click Save button (or Save As if Save is disabled) at top of Scene Dialog)"
+//                      "<li> Repeat last few steps as needed"
+//                      "</ol>"
+//                      "</html>");
     QLabel* warningLabel = new QLabel(msg);
     warningLabel->setWordWrap(true);
     
+    QLabel* moreLabel = new QLabel("<html>"
+                                   "For a more detailed explanation, click the <b>" + helpButtonText + "</b> button below.  "
+                                   "Note: This dialog will close if the <b> " + helpButtonText + " </b>  is clicked."
+                                   "</html>");
+    QPushButton* helpButton = new QPushButton(helpButtonText + "...");
+    QObject::connect(helpButton, &QPushButton::clicked,
+                     this, &LockAspectWarningDialog::helpButtonClicked);
+    
     QLabel* buttonsLabel = new QLabel("Continue to Annotations Mode?");
     
-    QPushButton* lockWindowAndTabButton = new QPushButton("OK - Lock Window and All Tab Aspects");
+    QPushButton* lockWindowAndTabButton = new QPushButton("OK - Lock Aspect");
     QObject::connect(lockWindowAndTabButton, &QPushButton::clicked,
-                     [=] { this->buttonClicked(Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS); });
+                     [=] { this->buttonClicked(Result::LOCK_ASPECT); });
     
-    QPushButton* noChangesButton = new QPushButton("OK - No Lock Aspect Changes");
+    QPushButton* noChangesButton = new QPushButton("OK - Aspect Remains Unlocked");
     QObject::connect(noChangesButton, &QPushButton::clicked,
                      [=] { this->buttonClicked(Result::NO_CHANGES); });
     
@@ -181,17 +166,7 @@ m_tabCount(tabCount)
     m_doNotShowAgainCheckBox = new QCheckBox("Do not show again and user will be\n"
                                               "responsible for aspect locking/unlocking");
     
-    QVBoxLayout* labelLayout = new QVBoxLayout();
-    labelLayout->addWidget(warningLabel);
-    labelLayout->addStretch();
-    
-    QBoxLayout* dialogLayout = new QHBoxLayout(this);
-    
-    WuQtUtilities::matchWidgetWidths(lockWindowAndTabButton,
-                                     noChangesButton,
-                                     cancelButton);
-    
-    QBoxLayout* buttonLayout = new QVBoxLayout();
+    QVBoxLayout* buttonLayout = new QVBoxLayout();
     buttonLayout->addWidget(buttonsLabel);
     buttonLayout->addWidget(lockWindowAndTabButton);
     buttonLayout->addWidget(noChangesButton);
@@ -199,8 +174,19 @@ m_tabCount(tabCount)
     buttonLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     buttonLayout->addWidget(m_doNotShowAgainCheckBox);
     buttonLayout->addStretch();
+
+    QVBoxLayout* helpLayout = new QVBoxLayout();
+    helpLayout->addWidget(warningLabel);
+    helpLayout->addWidget(moreLabel);
+    helpLayout->addWidget(helpButton, 0, Qt::AlignHCenter);
+    helpLayout->addStretch();
     
-    dialogLayout->addLayout(labelLayout);
+    WuQtUtilities::matchWidgetWidths(lockWindowAndTabButton,
+                                     noChangesButton,
+                                     cancelButton);
+    
+    QHBoxLayout* dialogLayout = new QHBoxLayout(this);
+    dialogLayout->addLayout(helpLayout);
     dialogLayout->addLayout(buttonLayout);
     
     /*
@@ -228,33 +214,21 @@ LockAspectWarningDialog::getResult() const
 }
 
 /**
- * @return Message with current locked status
+ * Called when help button is clicked.
  */
-QString
-LockAspectWarningDialog::getLockedStatusText() const
+void
+LockAspectWarningDialog::helpButtonClicked()
 {
-    AString windowMessage("Window Aspect: "
-                          + AString((m_browserWindowAspectLocked ? "Locked" : "Unlocked")));
+    /*
+     * Best practices dialog will destroy itself when closed.
+     * Use parent widget so that user may close this dialog but allow
+     * best practices dialog to remain open.
+     */
+    BestPracticesDialog* dialog = new BestPracticesDialog(BestPracticesDialog::InfoMode::LOCK_ASPECT_BEST_PRACTICES,
+                                                          parentWidget());
+    dialog->showDialog();
     
-    AString tabMessage("Tab Aspect: ");
-    if (m_tabAspectLockedCount == 0) {
-        tabMessage.append("All Unlocked");
-    }
-    else if (m_tabAspectLockedCount == m_tabCount) {
-        tabMessage.append("All Locked");
-    }
-    else  {
-        tabMessage.append(AString::number(m_tabAspectLockedCount)
-                          + " of "
-                          + AString::number(m_tabCount)
-                          + " Locked");
-    }
-    
-    AString lockedMessage(windowMessage
-                          + "\n"
-                          + tabMessage);
-    
-    return lockedMessage;
+    buttonClicked(Result::CANCEL);
 }
 
 /**
@@ -266,17 +240,15 @@ LockAspectWarningDialog::getLockedStatusText() const
 void
 LockAspectWarningDialog::buttonClicked(const Result buttonClicked)
 {
-    switch (buttonClicked) {
-        case Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS:
-            m_result = Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS;
+    m_result = buttonClicked;
+    switch (m_result) {
+        case Result::LOCK_ASPECT:
             accept();
             break;
         case Result::NO_CHANGES:
-            m_result = Result::NO_CHANGES;
             accept();
             break;
         case Result::CANCEL:
-            m_result = Result::CANCEL;
             reject();
             break;
     }

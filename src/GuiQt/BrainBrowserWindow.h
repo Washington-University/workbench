@@ -69,6 +69,9 @@ namespace caret {
         
         BrowserTabContent* getBrowserTabContent(int tabIndex);
 
+        BrowserWindowContent* getBrowerWindowContent();
+        
+        const BrowserWindowContent* getBrowerWindowContent() const;
         
         QMenu* createPopupMenu();
         

@@ -38,25 +38,15 @@ namespace caret {
 
     public:
         enum class Result {
-            LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS,
+            LOCK_ASPECT,
             NO_CHANGES,
             CANCEL
-        };
-        
-        enum class TabMode {
-            ALL_TABS,
-            SELECTED_TAB
         };
         
         static Result runDialog(const int32_t browserWindowIndex,
                                 QWidget* parent);
 
-        LockAspectWarningDialog(const TabMode tabMode,
-                                const bool tileTabsEnabled,
-                                const bool browserWindowAspectLocked,
-                                const int32_t tabAspectLockedCount,
-                                const int32_t tabCount,
-                                QWidget* parent = 0);
+        LockAspectWarningDialog(QWidget* parent = 0);
         
         virtual ~LockAspectWarningDialog();
         
@@ -67,22 +57,14 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
+        void helpButtonClicked();
+        
         void buttonClicked(const Result buttonClicked);
         
     private:
         LockAspectWarningDialog(const LockAspectWarningDialog&);
 
         LockAspectWarningDialog& operator=(const LockAspectWarningDialog&);
-        
-        QString getLockedStatusText() const;
-        
-        const TabMode m_tabMode;
-        
-        const bool m_browserWindowAspectLocked;
-        
-        const int32_t m_tabAspectLockedCount;
-        
-        const int32_t m_tabCount;
         
         Result m_result = Result::CANCEL;
         

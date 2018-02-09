@@ -811,7 +811,7 @@ BrainBrowserWindow::changeInputModeToAnnotationsWarningDialog(QWidget* parent)
         case LockAspectWarningDialog::Result::CANCEL:
             okFlag = false;
             break;
-        case LockAspectWarningDialog::Result::LOCK_WINDOW_ASPECT_AND_ALL_TAB_ASPECTS:
+        case LockAspectWarningDialog::Result::LOCK_ASPECT:
             processToolBarLockWindowAndAllTabAspectTriggered(true);
             break;
         case LockAspectWarningDialog::Result::NO_CHANGES:
@@ -3934,6 +3934,23 @@ BrainBrowserWindow::getAllTabContentIndices(std::vector<int32_t>& allTabContentI
     }
 }
 
+/**
+ * @return Browser window's content.
+ */
+BrowserWindowContent*
+BrainBrowserWindow::getBrowerWindowContent()
+{
+    return m_browserWindowContent;
+}
+
+/**
+ * @return Browser window's content (const method).
+ */
+const BrowserWindowContent*
+BrainBrowserWindow::getBrowerWindowContent() const
+{
+    return m_browserWindowContent;
+}
 
 /**
  * Returns a popup menu for the main window.
