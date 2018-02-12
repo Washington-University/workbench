@@ -423,8 +423,7 @@ namespace caret {
         
         AString m_selectedTileTabsConfigurationUniqueIdentifier;
         TileTabsConfiguration* m_defaultTileTabsConfiguration;
-        TileTabsConfiguration* m_sceneTileTabsConfiguration;
-        AString m_sceneTileTabsConfigurationText;
+        //AString m_sceneTileTabsConfigurationText;
         
         static AString s_previousOpenFileNameFilter;
         static AString s_previousOpenFileDirectory;

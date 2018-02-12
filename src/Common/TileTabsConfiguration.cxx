@@ -68,6 +68,7 @@ TileTabsConfiguration::~TileTabsConfiguration()
 TileTabsConfiguration::TileTabsConfiguration(const TileTabsConfiguration& obj)
 : CaretObject(obj)
 {
+    initialize();
     this->copyHelperTileTabsConfiguration(obj);
 }
 

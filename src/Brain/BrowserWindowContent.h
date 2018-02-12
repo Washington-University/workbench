@@ -28,12 +28,11 @@
 #include "CaretObject.h"
 
 #include "SceneableInterface.h"
-#include "TileTabsConfiguration.h"
-
 
 namespace caret {
     class SceneClassAssistant;
-
+    class TileTabsConfiguration;
+    
     class BrowserWindowContent : public CaretObject, public SceneableInterface {
         
     public:
@@ -73,9 +72,10 @@ namespace caret {
         
         void setSceneWindowHeight(const int32_t width);
         
-        TileTabsConfiguration getSceneTileTabsConfiguration() const;
+        TileTabsConfiguration* getSceneTileTabsConfiguration() const;
         
-        void setSceneTileTabsConfiguration(const TileTabsConfiguration& tileTabsConfiguration);
+//        void setSceneTileTabsConfiguration(const TileTabsConfiguration& tileTabsConfiguration);
+        void copyTileTabsConfigurationForSavingScene(const TileTabsConfiguration* tileTabsConfiguration);
         
         int32_t getSceneSelectedTabIndex() const;
         
@@ -134,12 +134,18 @@ namespace caret {
         
         int32_t m_sceneWindowHeight = 0;
         
-        TileTabsConfiguration m_sceneTileTabsConfiguration;
+        std::unique_ptr<TileTabsConfiguration> m_sceneTileTabsConfiguration;
+        
+        std::unique_ptr<TileTabsConfiguration> m_tileTabsConfigurationForSavingScene;
         
         int32_t m_sceneSelectedTabIndex = 0;
         
         std::vector<int32_t> m_sceneTabIndices;
         
+        friend class BrainBrowserWindow;
+        
+        static const AString s_sceneTileTabsConfigurationText;
+
         //        /** Each tab has its own aspect ratio */
         //        std::array<float, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_tabAspectRatio;
         // ADD_NEW_MEMBERS_HERE
@@ -147,7 +153,7 @@ namespace caret {
     };
     
 #ifdef __BROWSER_WINDOW_CONTENT_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const AString BrowserWindowContent::s_sceneTileTabsConfigurationText = "From Scene: ";
 #endif // __BROWSER_WINDOW_CONTENT_DECLARE__
 
 } // namespace

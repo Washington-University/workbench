@@ -516,8 +516,9 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
     for (int32_t i = 0; i < numberOfTabs; i++) {
         allTabs.push_back(getModelEvent.getBrowserTab(i));
     }
-    
-    if (getModelEvent.isTileTabsSelected()) {
+
+    if (getModelEvent.isTileTabsSelected()
+        && (numberOfTabs > 1)) {
         const int32_t windowWidth  = windowViewport[2];
         const int32_t windowHeight = windowViewport[3];
         
@@ -557,7 +558,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
             CaretLogSevere("Tile Tabs Row/Column sizing failed !!!");
         }
     }
-    else {
+    else if (numberOfTabs >= 1) {
         BrainOpenGLViewportContent* vc = BrainOpenGLViewportContent::createViewportForSingleTab(allTabs,
                                                                                                 getModelEvent.getSelectedBrowserTabContent(),
                                                                                                 gapsAndMargins,
