@@ -1252,15 +1252,47 @@ SceneDialog::replaceAllScenesPushButtonClicked()
     
     showWaitCursor();
     
+    ProgressReportingDialog progressDialog("Replace All Scenes",
+                                           "Starting...",
+                                           m_testScenesPushButton);
+    progressDialog.setEventReceivingEnabled(false);
+    progressDialog.setMinimumDuration(0);
+    progressDialog.setMinimum(0);
+    progressDialog.setMaximum(numScenes);
+    progressDialog.setValue(1);
+    progressDialog.setLabelText("Starting replacement...");
+    progressDialog.repaint();
+    progressDialog.setCursor(Qt::ArrowCursor);
+    progressDialog.show();
+    QApplication::processEvents();
+    
     const int IMAGE_DISPLAY_WIDTH = 400;
     std::vector<AString> sceneNames;
     std::vector<AString> sceneErrors;
     std::vector<QImage> oldImages;
     std::vector<QImage> newImages;
     
+    bool canceledFlag = false;
     for (int32_t i = 0; i < numScenes; i++) {
+        if (progressDialog.wasCanceled()) {
+            canceledFlag = true;
+            break;
+        }
+        
         Scene* origScene = sceneFile->getSceneAtIndex(i);
         if (origScene != NULL) {
+            progressDialog.setValue(i+1);
+            progressDialog.setLabelText("Replacing "
+                                        + AString::number(i + 1)
+                                        + " of "
+                                        + AString::number(numScenes)
+                                        + ": "
+                                        + origScene->getName()
+                                        + "\n\nPressing the Cancel button will stop replacement after the next scene finishes loading.");
+            progressDialog.repaint();
+            progressDialog.show();
+            QApplication::processEvents();
+            
             if (origScene->hasFilesWithRemotePaths()) {
                 CaretDataFile::setFileReadingUsernameAndPassword(username,
                                                                  password);
@@ -1341,11 +1373,20 @@ SceneDialog::replaceAllScenesPushButtonClicked()
         }
     }
     
+    progressDialog.close();
+    
     CaretAssert(sceneNames.size() == sceneErrors.size());
     CaretAssert(sceneNames.size() == oldImages.size());
     CaretAssert(sceneNames.size() == newImages.size());
     
     showNormalCursor();
+    
+    if (canceledFlag) {
+        WuQMessageBox::warningOk(m_replaceAllScenesPushButton,
+                                 "Replacment of scenes was canceled so scene file may contain both original and "
+                                 "replaced scenes.  It may be best to reload the scene file or exit without saving "
+                                 "the scene file.");
+    }
     
     const int32_t numValidScenes = static_cast<int32_t>(sceneNames.size());
     if (numValidScenes <= 0) {
@@ -1500,6 +1541,7 @@ SceneDialog::testScenesPushButtonClicked()
     progressDialog.setValue(1);
     progressDialog.setLabelText("Starting testing...");
     progressDialog.repaint();
+    progressDialog.setCursor(Qt::ArrowCursor);
     progressDialog.show();
     QApplication::processEvents();
     
@@ -1517,7 +1559,12 @@ SceneDialog::testScenesPushButtonClicked()
         Scene* origScene = sceneFile->getSceneAtIndex(i);
         if (origScene != NULL) {
             progressDialog.setValue(i+1);
-            progressDialog.setLabelText("Testing: " + origScene->getName()
+            progressDialog.setLabelText("Testing "
+                                        + AString::number(i + 1)
+                                        + " of "
+                                        + AString::number(numScenes)
+                                        + ": "
+                                        + origScene->getName()
                                         + "\n\nPressing the Cancel button will stop testing after the next scene finishes loading.");
             progressDialog.repaint();
             progressDialog.show();
