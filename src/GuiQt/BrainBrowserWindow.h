@@ -312,6 +312,8 @@ namespace caret {
                                        const float aspectRatio,
                                        QWidget* parent) const;
         
+        void saveBrowserWindowContentForScene();
+        
         /** Index of this window */
         const int32_t m_browserWindowIndex;
         

@@ -143,11 +143,6 @@ m_browserWindowIndex(browserWindowIndex)
         BrainBrowserWindow::s_firstWindowFlag = false;
     }
     
-    //m_sceneTileTabsConfigurationText = "From Scene: ";
-    //m_sceneTileTabsConfiguration = new TileTabsConfiguration();
-    //m_sceneTileTabsConfiguration->setName(m_sceneTileTabsConfigurationText);
-    //m_browserWindowContent->getSceneTileTabsConfiguration()->setName(m_sceneTileTabsConfigurationText);
-    
     m_defaultTileTabsConfiguration = new TileTabsConfiguration();
     m_defaultTileTabsConfiguration->setDefaultConfiguration(true);
     m_defaultTileTabsConfiguration->setName("All Tabs (Default)");
@@ -303,7 +298,6 @@ BrainBrowserWindow::~BrainBrowserWindow()
     }
     
     delete m_defaultTileTabsConfiguration;
-    //delete m_sceneTileTabsConfiguration;
     delete m_sceneAssistant;
 }
 
@@ -775,7 +769,7 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     m_toolBarLockWindowAndAllTabAspectRatioAction = new QAction();
     m_toolBarLockWindowAndAllTabAspectRatioAction->setCheckable(true);
     m_toolBarLockWindowAndAllTabAspectRatioAction->setChecked(false);
-    m_toolBarLockWindowAndAllTabAspectRatioAction->setText("Lock Window Aspect");
+    m_toolBarLockWindowAndAllTabAspectRatioAction->setText("Lock Aspect");
     m_toolBarLockWindowAndAllTabAspectRatioAction->setToolTip(aspectButtonToolTipText);
     QObject::connect(m_toolBarLockWindowAndAllTabAspectRatioAction, &QAction::triggered,
                      this, &BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectTriggered);
@@ -932,6 +926,7 @@ BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectMenu(const QPoint& po
                                                          getAspectRatio(),
                                                          this);
             if (aspectRatio > 0.0f) {
+                lockWindowAspectRatio(true);
                 m_browserWindowContent->setWindowAspectLockedRatio(aspectRatio);
             }
         }
@@ -942,10 +937,13 @@ BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectMenu(const QPoint& po
                                                          tabContent->getAspectRatio(),
                                                          this);
             if (aspectRatio > 0.0f) {
+                lockAllTabAspectRatios(true);
                 tabContent->setAspectRatio(aspectRatio);
+                tabContent->setAspectRatioLocked(true);
             }
         }
         
+        updateActionsForLockingAspectRatios();
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
     }
 }
@@ -4028,6 +4026,36 @@ BrainBrowserWindow::getOpenGLWidgetAspectRatio() const
 }
 
 /**
+ * BrowserWindowContent is owned and saved to and restored from
+ * Scenes by SessionManager.  Since SessionManager is save to 
+ * Scene before instances of this class, update content
+ * of BrowserWindowContent.
+ */
+void
+BrainBrowserWindow::saveBrowserWindowContentForScene()
+{
+    std::vector<int32_t> allTabIndices;
+    getAllTabContentIndices(allTabIndices);
+    m_browserWindowContent->setSceneWindowTabIndices(allTabIndices);
+    
+    const BrowserTabContent* activeTabContent = getBrowserTabContent();
+    if (activeTabContent != NULL) {
+        m_browserWindowContent->setSceneSelectedTabIndex(activeTabContent->getTabNumber());
+    }
+    
+    if (isTileTabsSelected()) {
+        const TileTabsConfiguration* tileTabsConfig = getSelectedTileTabsConfiguration();
+        if (tileTabsConfig != NULL) {
+            m_browserWindowContent->copyTileTabsConfigurationForSavingScene(tileTabsConfig);
+        }
+    }
+    
+    m_browserWindowContent->setSceneGraphicsWidth(m_openGLWidget->width());
+    m_browserWindowContent->setSceneGraphicsHeight(m_openGLWidget->height());
+}
+
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes
@@ -4050,52 +4078,10 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
     
-    std::vector<int32_t> allTabIndices;
-    getAllTabContentIndices(allTabIndices);
-    m_browserWindowContent->setSceneWindowTabIndices(allTabIndices);
-    const BrowserTabContent* activeTabContent = getBrowserTabContent();
-    if (activeTabContent != NULL) {
-        m_browserWindowContent->setSceneSelectedTabIndex(activeTabContent->getTabNumber());
-    }
-    m_browserWindowContent->setSceneWindowWidth(width());
-    m_browserWindowContent->setSceneWindowHeight(height());
-//    if (isTileTabsSelected()) {
-//        const TileTabsConfiguration* tileTabs = getSelectedTileTabsConfiguration();
-//        if (tileTabs != NULL) {
-//            m_browserWindowContent->setSceneTileTabsConfiguration(*tileTabs);
-//        }
-//    }
-    if (isTileTabsSelected()) {
-        const TileTabsConfiguration* tileTabsConfig = getSelectedTileTabsConfiguration();
-        if (tileTabsConfig != NULL) {
-            m_browserWindowContent->copyTileTabsConfigurationForSavingScene(tileTabsConfig);
-        }
-    }
-    sceneClass->addClass(m_browserWindowContent->saveToScene(sceneAttributes,
-                                                             "m_browserWindowContent"));
-    
     /* m_browserWindowIndex used with wb_command -show-scene */
     sceneClass->addInteger("m_browserWindowIndex",
                            m_browserWindowIndex);
 
-//    /*
-//     * Save the selected tile tabs configuration as the scene configuration
-//     */
-//    if (isTileTabsSelected()) {
-//        /*
-//         * Note: The number of rows and columns in the default tile tabs
-//         * configuration is updated each time the graphics region of the 
-//         * window is drawn in BrainOpenGLWidget::paintGL().
-//         */
-//        const TileTabsConfiguration* tileTabs = getSelectedTileTabsConfiguration();
-//        if (tileTabs != NULL) {
-//            TileTabsConfiguration writeConfig(*tileTabs);
-//            writeConfig.setName(QUuid::createUuid().toString());
-//            sceneClass->addString("m_sceneTileTabsConfiguration",
-//                                  writeConfig.encodeInXML());
-//        }
-//    }
-    
     /*
      * Save toolbar
      */
@@ -4207,17 +4193,10 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
-    if (sceneVersion >= 2) {
-        const SceneClass* browserContentClass = sceneClass->getClass("m_browserWindowContent");
-        m_browserWindowContent->restoreFromScene(sceneAttributes,
-                                                 browserContentClass);
-    }
-    else {
-        /*
-         * Some members of this class were moved to BrowserWindowContent
-         */
-        m_browserWindowContent->restoreFromOldBrainBrowserWindowScene(sceneAttributes,
-                                                                      sceneClass);
+    if ( ! m_browserWindowContent->isValid()) {
+        sceneAttributes->addToErrorMessage("Scene Error: Browser window content is invalid for window "
+                                           + AString::number(m_browserWindowIndex + 1));
+        return;
     }
     
     /*
@@ -4283,27 +4262,13 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
          * If tile tabs was saved to the scene, restore it as the scenes tile tabs configuration
          */
         if (restoreToTabTiles) {
-//            const AString tileTabsConfigString = sceneClass->getStringValue("m_sceneTileTabsConfiguration");
-//            if ( ! tileTabsConfigString.isEmpty()) {
-//                m_sceneTileTabsConfiguration->decodeFromXML(tileTabsConfigString);
-//                m_sceneTileTabsConfiguration->setName(m_sceneTileTabsConfigurationText
-//                                                      + " "
-//                                                      + sceneAttributes->getSceneName());
                 m_selectedTileTabsConfigurationUniqueIdentifier = m_browserWindowContent->getSceneTileTabsConfiguration()->getUniqueIdentifier();
-//            }
         }
     }
 
     m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
     processViewFullScreen(restoreToFullScreen,
                           false);
-    
-//    if (sceneVersion >= 2) {
-//        setViewTileTabs(m_browserWindowContent->isTileTabsEnabled());
-//    }
-//    else {
-//        setViewTileTabs(restoreToTabTiles);
-//    }
     
     /*
      * Position and size

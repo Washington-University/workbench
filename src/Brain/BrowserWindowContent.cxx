@@ -46,6 +46,7 @@ BrowserWindowContent::BrowserWindowContent(const int32_t windowIndex)
 : CaretObject(),
 m_windowIndex(windowIndex)
 {
+    m_validFlag = false;
     reset();
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
@@ -54,8 +55,8 @@ m_windowIndex(windowIndex)
     m_sceneAssistant->add("m_windowAspectLockedRatio", &m_windowAspectLockedRatio);
     m_sceneAssistant->add("m_allTabsInWindowAspectRatioLocked", &m_allTabsInWindowAspectRatioLocked);
     m_sceneAssistant->add("m_tileTabsEnabled", &m_tileTabsEnabled);
-    m_sceneAssistant->add("m_sceneWindowWidth", &m_sceneWindowWidth);
-    m_sceneAssistant->add("m_sceneWindowHeight", &m_sceneWindowHeight);
+    m_sceneAssistant->add("m_sceneGraphicsWidth", &m_sceneGraphicsWidth);
+    m_sceneAssistant->add("m_sceneGraphicsHeight", &m_sceneGraphicsHeight);
     m_sceneAssistant->add("m_sceneSelectedTabIndex", &m_sceneSelectedTabIndex);
 }
 
@@ -94,13 +95,14 @@ BrowserWindowContent::setValid(const bool valid)
 void
 BrowserWindowContent::reset()
 {
-    m_validFlag = false;
+    /* Note: do not change m_validFlag */
+    
     m_windowAspectRatioLocked = false;
     m_windowAspectLockedRatio = 1.0f;
     m_allTabsInWindowAspectRatioLocked = false;
     m_tileTabsEnabled = false;
-    m_sceneWindowHeight = 0;
-    m_sceneWindowWidth  = 0;
+    m_sceneGraphicsHeight = 0;
+    m_sceneGraphicsWidth  = 0;
     m_sceneTileTabsConfiguration.reset(new TileTabsConfiguration());
     m_sceneTileTabsConfiguration->setName(s_sceneTileTabsConfigurationText);
     m_sceneSelectedTabIndex = 0;
@@ -203,45 +205,45 @@ BrowserWindowContent::setTileTabsEnabled(const bool tileTabsEnabled)
 }
 
 /**
- * @return Width of the window from scene.
+ * @return Width of the graphics region from scene.
  */
 int32_t
-BrowserWindowContent::getSceneWindowWidth() const
+BrowserWindowContent::getSceneGraphicsWidth() const
 {
-    return m_sceneWindowWidth;
+    return m_sceneGraphicsWidth;
 }
 
 /**
- * Set the width of the window for scene.
+ * Set the width of the graphics region for scene.
  *
  * @param width
  *     New value for width.
  */
 void
-BrowserWindowContent::setSceneWindowWidth(const int32_t width)
+BrowserWindowContent::setSceneGraphicsWidth(const int32_t width)
 {
-    m_sceneWindowWidth = width;
+    m_sceneGraphicsWidth = width;
 }
 
 /**
- * @return Height of the window from scene.
+ * @return Height of the graphics region from scene.
  */
 int32_t
-BrowserWindowContent::getSceneWindowHeight() const
+BrowserWindowContent::getSceneGraphicsHeight() const
 {
-    return m_sceneWindowHeight;
+    return m_sceneGraphicsHeight;
 }
 
 /**
- * Set the height of the window for scene.
+ * Set the height of the graphics region for scene.
  *
  * @param height
  *     New value for height.
  */
 void
-BrowserWindowContent::setSceneWindowHeight(const int32_t height)
+BrowserWindowContent::setSceneGraphicsHeight(const int32_t height)
 {
-    m_sceneWindowHeight = height;
+    m_sceneGraphicsHeight = height;
 }
 
 /**
@@ -298,18 +300,6 @@ BrowserWindowContent::setSceneWindowTabIndices(const std::vector<int32_t>& scene
 {
     m_sceneTabIndices = sceneTabIndices;
 }
-
-///**
-// * Set the tile tabs configuration for the scene.
-// *
-// * @param tileTabsConfiguration
-// *     Tile tabs configuration for scene.
-// */
-//void
-//BrowserWindowContent::setSceneTileTabsConfiguration(const TileTabsConfiguration& tileTabsConfiguration)
-//{
-//    m_sceneTileTabsConfiguration = tileTabsConfiguration;
-//}
 
 /**
  * Copy the tile tabs configuration for writing to the scene.
@@ -462,8 +452,8 @@ BrowserWindowContent::restoreFromOldBrainBrowserWindowScene(const SceneAttribute
     
     const SceneClass* graphicsGeometry = browserClass->getClass("openGLWidgetGeometry");
     if (graphicsGeometry != NULL) {
-        m_sceneWindowWidth  = graphicsGeometry->getIntegerValue("geometryWidth", -1);
-        m_sceneWindowHeight = graphicsGeometry->getIntegerValue("geometryHeight", -1);
+        m_sceneGraphicsWidth  = graphicsGeometry->getIntegerValue("geometryWidth", -1);
+        m_sceneGraphicsHeight = graphicsGeometry->getIntegerValue("geometryHeight", -1);
     }
     
     const AString tileTabsConfigString = browserClass->getStringValue("m_sceneTileTabsConfiguration");

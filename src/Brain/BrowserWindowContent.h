@@ -64,17 +64,16 @@ namespace caret {
         
         void setTileTabsEnabled(const bool tileTabsEnabled);
 
-        int32_t getSceneWindowWidth() const;
+        int32_t getSceneGraphicsWidth() const;
         
-        void setSceneWindowWidth(const int32_t width);
+        void setSceneGraphicsWidth(const int32_t width);
         
-        int32_t getSceneWindowHeight() const;
+        int32_t getSceneGraphicsHeight() const;
         
-        void setSceneWindowHeight(const int32_t width);
+        void setSceneGraphicsHeight(const int32_t width);
         
         TileTabsConfiguration* getSceneTileTabsConfiguration() const;
         
-//        void setSceneTileTabsConfiguration(const TileTabsConfiguration& tileTabsConfiguration);
         void copyTileTabsConfigurationForSavingScene(const TileTabsConfiguration* tileTabsConfiguration);
         
         int32_t getSceneSelectedTabIndex() const;
@@ -130,9 +129,9 @@ namespace caret {
         
         bool m_tileTabsEnabled = false;
         
-        int32_t m_sceneWindowWidth = 0;
+        int32_t m_sceneGraphicsWidth = 0;
         
-        int32_t m_sceneWindowHeight = 0;
+        int32_t m_sceneGraphicsHeight = 0;
         
         std::unique_ptr<TileTabsConfiguration> m_sceneTileTabsConfiguration;
         
@@ -146,8 +145,6 @@ namespace caret {
         
         static const AString s_sceneTileTabsConfigurationText;
 
-        //        /** Each tab has its own aspect ratio */
-        //        std::array<float, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_tabAspectRatio;
         // ADD_NEW_MEMBERS_HERE
 
     };

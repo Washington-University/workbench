@@ -53,6 +53,7 @@
 #include "LogManager.h"
 #include "MapYokingGroupEnum.h"
 #include "ModelWholeBrain.h"
+#include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -80,7 +81,10 @@ SessionManager::SessionManager()
         m_browserTabs[i] = NULL;
     }
     
-    m_browserWindowContent.fill(NULL);
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
+        CaretAssertStdArrayIndex(m_browserWindowContent, i);
+        m_browserWindowContent[i] = new BrowserWindowContent(i);
+    }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET);
@@ -362,19 +366,17 @@ SessionManager::receiveEvent(Event* event)
         const int32_t windowIndex = windowEvent->getBrowserWindowIndex();
         CaretAssertStdArrayIndex(m_browserWindowContent, windowIndex);
         
+        CaretAssert(m_browserWindowContent[windowIndex]);
+        
         switch (windowEvent->getMode()) {
             case EventBrowserWindowContent::Mode::DELETE:
-                CaretAssert(m_browserWindowContent[windowIndex]);
-                delete m_browserWindowContent[windowIndex];
-                m_browserWindowContent[windowIndex] = NULL;
+                m_browserWindowContent[windowIndex]->setValid(false);
                 break;
             case EventBrowserWindowContent::Mode::GET:
-                CaretAssert(m_browserWindowContent[windowIndex]);
                 windowEvent->setBrowserWindowContent(m_browserWindowContent[windowIndex]);
                 break;
             case EventBrowserWindowContent::Mode::NEW:
-                CaretAssert(m_browserWindowContent[windowIndex] == NULL);
-                m_browserWindowContent[windowIndex] = new BrowserWindowContent(windowIndex);
+                m_browserWindowContent[windowIndex]->setValid(true);
                 windowEvent->setBrowserWindowContent(m_browserWindowContent[windowIndex]);
                 break;
         }
@@ -560,6 +562,19 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
     }
     sceneClass->addChild(new SceneClassArray("m_browserTabs",
                                              browserTabSceneClasses));
+    
+    /*
+     * Save browser windows
+     */
+    SceneObjectMapIntegerKey* browserClassMap = new SceneObjectMapIntegerKey("browserWindowContentMap",
+                                                                             SceneObjectDataTypeEnum::SCENE_CLASS);
+    for (auto bw : m_browserWindowContent) {
+        if (bw->isValid()) {
+            browserClassMap->addClass(bw->getWindowIndex(),
+                                      bw->saveToScene(sceneAttributes, "m_browserWindowContent"));
+        }
+    }
+    sceneClass->addChild(browserClassMap);
     
     sceneClass->addChild(m_imageCaptureDialogSettings->saveToScene(sceneAttributes,
                                                                    "m_imageCaptureDialogSettings"));
@@ -802,6 +817,65 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         const int32_t tabIndex = tab->getTabNumber();
         CaretAssert(tabIndex >= 0);
         m_browserTabs[tabIndex] = tab;
+    }
+    
+    /*
+     * Restore windows
+     */
+    const SceneObjectMapIntegerKey* browserClassMap = sceneClass->getMapIntegerKey("browserWindowContentMap");
+    if (browserClassMap != NULL) {
+        /*
+         * m_browserWindowContent was added in Feb 2018 at which time the
+         * aspect locking buttons for window and tab were consolidated into
+         * one button.
+         */
+        const std::vector<int32_t> windowIndices = browserClassMap->getKeys();
+        for (const auto windowIndex : windowIndices) {
+            const SceneClass* windowClass = browserClassMap->classValue(windowIndex);
+            CaretAssert(windowClass);
+            CaretAssertStdArrayIndex(m_browserWindowContent, windowIndex);
+            m_browserWindowContent[windowIndex]->restoreFromScene(sceneAttributes,
+                                                                  windowClass);
+            m_browserWindowContent[windowIndex]->setValid(true);
+        }
+    }
+    else {
+        /*
+         * For scenes before Feb 2018, need to restore from the GUI's browser window
+         * to the browser window content.
+         */
+        const Scene* scene = sceneAttributes->getScene();
+        CaretAssert(scene);
+        
+        const SceneClass* guiManagerClass = scene->getClassWithName("guiManager");
+        if (guiManagerClass->getName() != "guiManager") {
+            sceneAttributes->addToErrorMessage("Top level scene class should be guiManager but it is: "
+                                               + guiManagerClass->getName());
+            return;
+        }
+        
+        const SceneClassArray* browserWindowArray = guiManagerClass->getClassArray("m_brainBrowserWindows");
+        if (browserWindowArray != NULL) {
+            const int32_t numBrowserClasses = browserWindowArray->getNumberOfArrayElements();
+            for (int32_t i = 0; i < numBrowserClasses; i++) {
+                const SceneClass* browserClass = browserWindowArray->getClassAtIndex(i);
+                CaretAssert(browserClass);
+                const int32_t windowIndex = browserClass->getIntegerValue("m_browserWindowIndex", -1);
+                CaretAssert(windowIndex >= 0);
+                CaretAssertStdArrayIndex(m_browserWindowContent, windowIndex);
+                m_browserWindowContent[windowIndex]->restoreFromOldBrainBrowserWindowScene(sceneAttributes,
+                                                                                           browserClass);
+                m_browserWindowContent[windowIndex]->setValid(true);
+            }
+        }
+    }
+    
+    const int32_t numValidBrowserWindows = std::count_if(m_browserWindowContent.begin(),
+                                                         m_browserWindowContent.end(),
+                                                         [](BrowserWindowContent* bwc) { return bwc->isValid(); });
+    if (numValidBrowserWindows <= 0) {
+        sceneAttributes->addToErrorMessage("Scene error, no browser window content was restored");
+        return;
     }
     
     for (auto brainPtr : m_brains) {

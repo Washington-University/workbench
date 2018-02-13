@@ -101,7 +101,7 @@ namespace caret {
         BrowserTabContent* m_browserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];  
         
         /** The browser window content */
-        std::array<BrowserWindowContent*, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_browserWindowContent;
+        std::array<BrowserWindowContent*, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS> m_browserWindowContent;
         
         /** Holds valid models */
         std::vector<Model*> m_models;

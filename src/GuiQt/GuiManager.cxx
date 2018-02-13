@@ -314,7 +314,7 @@ GuiManager::~GuiManager()
     
     if (this->connectomeDatabaseWebView != NULL) {
         CaretAssertMessage(0, "Need to uncomment out line below if webkit is renabled");
-        //delete this->connectomeDatabaseWebView;
+        /* delete this->connectomeDatabaseWebView; */
     }
     
     FociPropertiesEditorDialog::deleteStaticMembers();
@@ -2207,7 +2207,6 @@ GuiManager::processShowGapsAndMarginsDialog(BrainBrowserWindow* browserWindow)
         this->addNonModalDialog(m_gapsAndMarginsDialog);
     }
     m_gapsAndMarginsDialog->updateDialog();
-    //m_tabMarginsDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
     m_gapsAndMarginsDialog->showDialog();
 }
 
@@ -2223,8 +2222,6 @@ GuiManager::processShowMovieDialog(BrainBrowserWindow* browserWindow)
         this->movieDialog = new MovieDialog(browserWindow);
         this->addNonModalDialog(this->movieDialog);
     }
-    //this->movieDialog->updateDialog();
-    //this->movieDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
     this->movieDialog->setVisible(true);
     this->movieDialog->show();
     this->movieDialog->activateWindow();
@@ -2316,6 +2313,19 @@ GuiManager::saveToScene(const SceneAttributes* sceneAttributes,
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "GuiManager",
                                             1);
+    
+    /*
+     * BrowserWindowContent is saved and restored by SessionManager.
+     * Some of the data in BrowserWindowContent needs to be updated
+     * by BrainBrowserWindow which is not saved until AFTER SessionManager
+     * so direct each window to update its BrowserWindowContent so that
+     * BrowserWindowContent can be saved by the SessionManager.
+     */
+    for (auto browserWindow : m_brainBrowserWindows) {
+        if (browserWindow != NULL) {
+            browserWindow->saveBrowserWindowContentForScene();
+        }
+    }
     
     /*
      * Save session manager (brain, etc)
@@ -3022,20 +3032,6 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                 }
                                 matrixChart->setSelectedRowColumnIndex(tabIndex,
                                                                        rowColumnIndex);
-                                //                            const MapYokingGroupEnum::Enum mapYoking = matrixChart->getMatrixRowColumnMapYokingGroup(tabIndex);
-                                //
-                                //                            if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-                                //                                EventMapYokingSelectMap selectMapEvent(mapYoking,
-                                //                                                                       scalarDataSeriesFile,
-                                //                                                                       rowIndex,
-                                //                                                                       true);
-                                //                                EventManager::get()->sendEvent(selectMapEvent.getPointer());
-                                //                            }
-                                //                            else {
-                                //                                chartingDataManager->loadChartForCiftiMappableFileRow(scalarDataSeriesFile,
-                                //                                                                                      rowIndex);
-                                //                            }
-                                
                                 updateGraphicsFlag = true;
                             }
                         }
@@ -3167,7 +3163,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().addToolBox().getPointer());
     }
-} // tabIndex
+}
 
 
 
