@@ -37,9 +37,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param sceneType
+ *     Type of scene.
+ * @param scene
+ *     The scene.
  */
-SceneAttributes::SceneAttributes(const SceneTypeEnum::Enum sceneType)
-: CaretObject(), m_sceneType(sceneType)
+SceneAttributes::SceneAttributes(const SceneTypeEnum::Enum sceneType,
+                                 const Scene* scene)
+: CaretObject(), m_sceneType(sceneType), m_scene(scene)
 {
     m_restoreWindowBehaviorInSceneDisplay = RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES;
     m_specFileNameSavedToScene   = true;
@@ -77,6 +83,16 @@ SceneAttributes::getSceneType() const
 {
     return m_sceneType;
 }
+
+/**
+ * @return The scene using these attributes.
+ */
+const Scene*
+SceneAttributes::getScene() const
+{
+    return m_scene;
+}
+
 
 /**
  * Set the indices of the tabs that are to be saved to the scene.

@@ -27,6 +27,8 @@
 
 namespace caret {
     
+    class Scene;
+    
     class SceneAttributes : public CaretObject {
         
     public:
@@ -36,13 +38,16 @@ namespace caret {
             RESTORE_WINDOW_IGNORE_ALL_POSITIONS_AND_SIZES
         };
         
-        SceneAttributes(const SceneTypeEnum::Enum sceneType);
+        SceneAttributes(const SceneTypeEnum::Enum sceneType,
+                        const Scene* scene);
         
         SceneAttributes(const SceneAttributes& rhs);
 
         virtual ~SceneAttributes();
         
         SceneTypeEnum::Enum getSceneType() const;
+        
+        const Scene* getScene() const;
         
         void setIndicesOfTabsAndWindowsForSavingToScene(const std::vector<int32_t>& tabIndices,
                                                         const std::vector<int32_t>& windowIndices);
@@ -99,6 +104,8 @@ namespace caret {
     private:
 
         const SceneTypeEnum::Enum m_sceneType;
+        
+        const Scene* m_scene;
         
         std::vector<int32_t> m_indicesOfTabsForSavingToScene;
         

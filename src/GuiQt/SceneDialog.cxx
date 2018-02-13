@@ -1453,7 +1453,7 @@ SceneDialog::replaceAllScenesPushButtonClicked()
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
     dialogLayout->addLayout(gridLayout);
     
-    WuQDialogNonModal* dialog = new WuQDialogNonModal("Scene Results",
+    WuQDialogNonModal* dialog = new WuQDialogNonModal("Replace All Scenes Comparison",
                                                       m_replaceAllScenesPushButton);
     dialog->setDeleteWhenClosed(true);
     dialog->setApplyButtonText("");
@@ -1687,7 +1687,7 @@ SceneDialog::testScenesPushButtonClicked()
     dialogLayout->addLayout(gridLayout);
     dialogLayout->addStretch();
 
-    WuQDialogNonModal* dialog = new WuQDialogNonModal("Scene Comparisons",
+    WuQDialogNonModal* dialog = new WuQDialogNonModal("Test All Scene Comparisons",
                                                       m_testScenesPushButton);
     dialog->setDeleteWhenClosed(true);
     dialog->setApplyButtonText("");

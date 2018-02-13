@@ -233,7 +233,8 @@ SomeClass::restoreFromScene(const SceneAttributes* sceneAttributes,
 Scene::Scene(const SceneTypeEnum::Enum sceneType)
 :CaretObjectTracksModification()
 {
-    m_sceneAttributes = new SceneAttributes(sceneType);
+    m_sceneAttributes = new SceneAttributes(sceneType,
+                                            this);
     m_hasFilesWithRemotePaths = false;
     m_sceneInfo = new SceneInfo();
 }
