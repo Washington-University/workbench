@@ -350,10 +350,6 @@ EventTypeEnum::initialize()
                                      "EVENT_SURFACE_STRUCTURES_VALID_GET",
                                      "GGet valid surface strucutures and their number of node"));
 
-    enumData.push_back(EventTypeEnum(EVENT_TAB_AND_WINDOW_LOCK_ASPECT_RATIO_STATUS,
-                                     "EVENT_TAB_AND_WINDOW_LOCK_ASPECT_RATIO_STATUS",
-                                     "Get lock aspect and related information for all tabs and windows"));
-    
     enumData.push_back(EventTypeEnum(EVENT_TOOLBOX_SELECTION_DISPLAY,
                                      "EVENT_TOOLBOX_SELECTION_DISPLAY", 
                                      "Display or hide the selection toolbox"));
