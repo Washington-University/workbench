@@ -1107,6 +1107,7 @@ BorderOptimizeExecutor::printInputs(const InputData& inputData)
         std::cout << "    Strength: " << dfi.m_weight << std::endl;
         std::cout << "    Smoothing: " << dfi.m_smoothing << std::endl;
         std::cout << "    Invert Gradient: " << AString::fromBool(dfi.m_invertGradientFlag) << std::endl;
+        std::cout << "    Skip Gradient: " << AString::fromBool(dfi.m_skipGradient) << std::endl;
     }
     std::cout << "Vertex Areas Metric File: " << ((inputData.m_vertexAreasMetricFile != NULL)
                                                   ? qPrintable(inputData.m_vertexAreasMetricFile->getFileNameNoPath())
