@@ -162,8 +162,7 @@ BrainBrowserWindowToolBarVolumeMontage::montageEnabledActionToggled(bool)
     
     btc->setSliceDrawingType(drawingType);
     
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 
@@ -177,8 +176,7 @@ BrainBrowserWindowToolBarVolumeMontage::montageRowsSpinBoxValueChanged(int /*i*/
     
     btc->setMontageNumberOfRows(m_montageRowsSpinBox->value());
     
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -190,8 +188,7 @@ BrainBrowserWindowToolBarVolumeMontage::montageColumnsSpinBoxValueChanged(int /*
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->setMontageNumberOfColumns(m_montageColumnsSpinBox->value());
     
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -204,7 +201,6 @@ BrainBrowserWindowToolBarVolumeMontage::montageSpacingSpinBoxValueChanged(int /*
     
     btc->setMontageSliceSpacing(m_montageSpacingSpinBox->value());
     
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 

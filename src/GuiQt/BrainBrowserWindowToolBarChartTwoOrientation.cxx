@@ -113,8 +113,7 @@ BrainBrowserWindowToolBarChartTwoOrientation::orientationResetToolButtonTriggere
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->resetView();
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -124,42 +123,5 @@ void
 BrainBrowserWindowToolBarChartTwoOrientation::customViewActionTriggered()
 {
     m_parentToolBar->customViewActionTriggered();
-//    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-//    prefs->readCustomViews();
-//    const std::vector<std::pair<AString, AString> > customViewNameAndComments = prefs->getCustomViewNamesAndComments();
-//    
-//    QMenu menu;
-//    
-//    QAction* editAction = menu.addAction("Create and Edit...");
-//    editAction->setToolTip("Add and delete Custom Views.\n"
-//                           "Edit model transformations.");
-//    
-//    const int32_t numViews = static_cast<int32_t>(customViewNameAndComments.size());
-//    if (numViews > 0) {
-//        menu.addSeparator();
-//    }
-//    for (int32_t i = 0; i < numViews; i++) {
-//        QAction* action = menu.addAction(customViewNameAndComments[i].first);
-//        action->setToolTip(WuQtUtilities::createWordWrappedToolTipText(customViewNameAndComments[i].second));
-//    }
-//    
-//    QAction* selectedAction = menu.exec(QCursor::pos());
-//    if (selectedAction != NULL) {
-//        if (selectedAction == editAction) {
-//            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
-//            GuiManager::get()->processShowCustomViewDialog(bbw);
-//        }
-//        else {
-//            const AString customViewName = selectedAction->text();
-//            
-//            ModelTransform modelTransform;
-//            if (prefs->getCustomView(customViewName, modelTransform)) {
-//                BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-//                btc->setTransformationsFromModelTransform(modelTransform);
-//                this->updateGraphicsWindow();
-//                this->updateOtherYokedWindows();
-//            }
-//        }
-//    }
 }
 

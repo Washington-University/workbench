@@ -440,8 +440,7 @@ BrainBrowserWindowToolBarSliceSelection::volumeIndicesOriginActionTriggered()
     btc->setSlicesToOrigin();
     
     updateContent(btc);
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -452,8 +451,7 @@ BrainBrowserWindowToolBarSliceSelection::volumeIndicesParasagittalCheckBoxStateC
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->setSliceParasagittalEnabled(m_volumeIndicesParasagittalCheckBox->isChecked());
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -464,8 +462,7 @@ BrainBrowserWindowToolBarSliceSelection::volumeIndicesCoronalCheckBoxStateChange
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->setSliceCoronalEnabled(m_volumeIndicesCoronalCheckBox->isChecked());
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -476,8 +473,7 @@ BrainBrowserWindowToolBarSliceSelection::volumeIndicesAxialCheckBoxStateChanged(
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->setSliceAxialEnabled(m_volumeIndicesAxialCheckBox->isChecked());
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -631,8 +627,7 @@ BrainBrowserWindowToolBarSliceSelection::readVolumeSliceIndicesAndUpdateSliceCoo
     
     this->updateSliceIndicesAndCoordinatesRanges();
     
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -672,8 +667,7 @@ BrainBrowserWindowToolBarSliceSelection::readVolumeSliceCoordinatesAndUpdateSlic
     
     this->updateSliceIndicesAndCoordinatesRanges();
     
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -685,8 +679,7 @@ BrainBrowserWindowToolBarSliceSelection::volumeSliceProjectionTypeEnumComboBoxIt
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = m_volumeSliceProjectionTypeEnumComboBox->getSelectedItem<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>();
     btc->setSliceProjectionType(sliceProjectionType);
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
     updateObliqueMaskingButton();
     EventManager::get()->sendEvent(EventUpdateVolumeEditingToolBar().getPointer());
 }
@@ -746,8 +739,7 @@ BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered(bool)
         CaretAssert(validFlag);
         browserTabContent->setVolumeSliceInterpolationEdgeEffectsMaskingType(maskType);
         
-        this->updateGraphicsWindow();
-        this->updateOtherYokedWindows();
+        this->updateGraphicsWindowAndYokedWindows();
         EventManager::get()->sendEvent(EventUpdateVolumeEditingToolBar().getPointer());
     }
     

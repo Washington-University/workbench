@@ -137,12 +137,13 @@ BrainBrowserWindowToolBarComponent::updateGraphicsWindow()
 }
 
 /**
- * Update toolbars in other yoked windows.
+ * If this window is yoked, update all windows since they may
+ * be yoked to this window.  If NOT yoked, just update this window.
  */
 void
-BrainBrowserWindowToolBarComponent::updateOtherYokedWindows()
+BrainBrowserWindowToolBarComponent::updateGraphicsWindowAndYokedWindows()
 {
-    m_parentToolBar->updateOtherYokedWindows();
+    m_parentToolBar->updateGraphicsWindowAndYokedWindows();
 }
 
 /**

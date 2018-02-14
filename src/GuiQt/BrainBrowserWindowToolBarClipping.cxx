@@ -180,8 +180,7 @@ BrainBrowserWindowToolBarClipping::clippingCheckBoxCheckStatusChanged()
                                                    m_volumeClippingEnabledCheckBox->isChecked(),
                                                    m_featuresClippingEnabledCheckBox->isChecked());
         
-        this->updateGraphicsWindow();
-        this->updateOtherYokedWindows();
+        this->updateGraphicsWindowAndYokedWindows();
     }
 }
 

@@ -253,8 +253,7 @@ BrainBrowserWindowToolBarSlicePlane::viewAllSliceLayoutMenuTriggered(QAction* ac
         btc->setSlicePlanesAllViewLayout(layout);
         
         m_parentToolBar->updateVolumeIndicesWidget(btc);
-        updateGraphicsWindow();
-        updateOtherYokedWindows();
+        updateGraphicsWindowAndYokedWindows();
     }
     else {
         CaretLogSevere("Invalid layout in menu item: "
@@ -310,8 +309,7 @@ BrainBrowserWindowToolBarSlicePlane::volumePlaneActionGroupTriggered(QAction* ac
     btc->setSliceViewPlane(plane);
     
     m_parentToolBar->updateVolumeIndicesWidget(btc);
-    updateGraphicsWindow();
-    updateOtherYokedWindows();
+    updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -324,7 +322,6 @@ BrainBrowserWindowToolBarSlicePlane::volumePlaneResetToolButtonTriggered(bool /*
     btc->resetView();
     
     m_parentToolBar->updateVolumeIndicesWidget(btc);
-    updateGraphicsWindow();
-    updateOtherYokedWindows();
+    updateGraphicsWindowAndYokedWindows();
 }
 

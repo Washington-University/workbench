@@ -51,7 +51,7 @@ namespace caret {
         
         void updateGraphicsWindow();
         
-        void updateOtherYokedWindows();
+        void updateGraphicsWindowAndYokedWindows();
         
         void updateUserInterface();
         

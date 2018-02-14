@@ -3530,7 +3530,7 @@ BrainBrowserWindowToolBar::orientationLeftOrLateralToolButtonTriggered(bool /*ch
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
         btc->leftView();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3541,7 +3541,7 @@ BrainBrowserWindowToolBar::orientationRightOrMedialToolButtonTriggered(bool /*ch
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
         btc->rightView();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3552,7 +3552,7 @@ BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool /*checked
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->anteriorView();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3563,7 +3563,7 @@ BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool /*checke
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->posteriorView();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3574,7 +3574,7 @@ BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool /*checked*/
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->dorsalView();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3585,7 +3585,7 @@ BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool /*checked*
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->ventralView();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3600,7 +3600,7 @@ BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool /*checked*/)
     Model* mdc = btc->getModelForDisplay();
     if (mdc != NULL) {
         this->updateVolumeIndicesWidget(btc);
-        this->updateOtherYokedWindows();
+        this->updateGraphicsWindowAndYokedWindows();
     }
 }
 
@@ -3612,7 +3612,7 @@ BrainBrowserWindowToolBar::orientationLateralMedialToolButtonTriggered(bool /*ch
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->leftView();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3623,7 +3623,7 @@ BrainBrowserWindowToolBar::orientationDorsalVentralToolButtonTriggered(bool /*ch
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->dorsalView();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3634,7 +3634,7 @@ BrainBrowserWindowToolBar::orientationAnteriorPosteriorToolButtonTriggered(bool 
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->anteriorView();
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3675,7 +3675,7 @@ BrainBrowserWindowToolBar::customViewActionTriggered()
             if (prefs->getCustomView(customViewName, modelTransform)) {
                 BrowserTabContent* btc = this->getTabContentFromSelectedTab();
                 btc->setTransformationsFromModelTransform(modelTransform);
-                this->updateOtherYokedWindows();
+                this->updateGraphicsWindowAndYokedWindows();
             }
         }
     }
@@ -3703,7 +3703,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int /*indx*
         if (isValid) {
             wholeBrainModel->setSelectedSurfaceType(tabIndex, surfaceType);
             this->updateVolumeIndicesWidget(btc); /* slices may get deselected */
-            this->updateOtherYokedWindows();
+            this->updateGraphicsWindowAndYokedWindows();
         }
     }
 }
@@ -3722,7 +3722,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftCheckBoxStateChanged(int /*state
     }
     
     btc->setWholeBrainLeftEnabled(this->wholeBrainSurfaceLeftCheckBox->isChecked());
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3769,7 +3769,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftToolButtonTriggered(bool /*check
                         wholeBrainModel->setSelectedSurface(StructureEnum::CORTEX_LEFT,
                                                                  tabIndex, 
                                                                  surfaces[i]);
-                        this->updateOtherYokedWindows();
+                        this->updateGraphicsWindowAndYokedWindows();
                         break;
                     }
                 }
@@ -3822,7 +3822,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightToolButtonTriggered(bool /*chec
                         wholeBrainModel->setSelectedSurface(StructureEnum::CORTEX_RIGHT,
                                                                  tabIndex, 
                                                                  surfaces[i]);
-                        this->updateOtherYokedWindows();
+                        this->updateGraphicsWindowAndYokedWindows();
                         break;
                     }
                 }
@@ -3875,7 +3875,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumToolButtonTriggered(bool /
                         wholeBrainModel->setSelectedSurface(StructureEnum::CEREBELLUM,
                                                                  tabIndex, 
                                                                  surfaces[i]);
-                        this->updateOtherYokedWindows();
+                        this->updateGraphicsWindowAndYokedWindows();
                         break;
                     }
                 }
@@ -3898,7 +3898,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightCheckBoxStateChanged(int /*stat
     }
     
     btc->setWholeBrainRightEnabled(this->wholeBrainSurfaceRightCheckBox->isChecked());
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3915,7 +3915,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumCheckBoxStateChanged(int /
     }
     
     btc->setWholeBrainCerebellumEnabled(this->wholeBrainSurfaceCerebellumCheckBox->isChecked());
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3932,7 +3932,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationLeftRightSpinBoxValueChang
     }
     
     btc->setWholeBrainLeftRightSeparation(this->wholeBrainSurfaceSeparationLeftRightSpinBox->value());
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -3949,7 +3949,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(
     }
     
     btc->setWholeBrainCerebellumSeparation(this->wholeBrainSurfaceSeparationCerebellumSpinBox->value());
-    this->updateOtherYokedWindows();
+    this->updateGraphicsWindowAndYokedWindows();
 }
 
 /**
@@ -4158,11 +4158,11 @@ BrainBrowserWindowToolBar::getTabBarIndexWithBrowserTabIndex(const int32_t brows
 }
 
 /**
- * If this windows is yoked, issue an event to update other
- * windows that are using the same yoking.
+ * If this window is yoked, update all windows since they may
+ * be yoked to this window.  If NOT yoked, just update this window.
  */
 void
-BrainBrowserWindowToolBar::updateOtherYokedWindows()
+BrainBrowserWindowToolBar::updateGraphicsWindowAndYokedWindows()
 {
     BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
     if (browserTabContent != NULL) {

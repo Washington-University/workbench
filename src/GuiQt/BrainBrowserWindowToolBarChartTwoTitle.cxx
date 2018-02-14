@@ -219,6 +219,5 @@ BrainBrowserWindowToolBarChartTwoTitle::performUpdating()
         EventManager::get()->sendEvent(attributesEvent.getPointer());
     }
     
-    this->updateOtherYokedWindows();
-    this->updateGraphicsWindow();
+    this->updateGraphicsWindowAndYokedWindows();
 }

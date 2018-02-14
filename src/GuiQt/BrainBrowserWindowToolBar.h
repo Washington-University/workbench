@@ -133,11 +133,11 @@ namespace caret {
                             Model* controller);
 
         void updateGraphicsWindow();
+        void updateGraphicsWindowAndYokedWindows();
         void updateUserInterface();
         void updateToolBox();
         void updateAllTabNames();
         void updateTabName(const int32_t tabIndex);
-        void updateOtherYokedWindows();
         
         QWidget* createViewWidget();
         QWidget* createOrientationWidget();
