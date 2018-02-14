@@ -137,6 +137,10 @@ AlgorithmVolumeAffineResample::AlgorithmVolumeAffineResample(ProgressObject* myP
             *(outVol->getMapLabelTable(i)) = *(inVol->getMapLabelTable(i));
         }
     }
+    for (int64_t i = 0; i < numMaps; ++i)
+    {
+        outVol->setMapName(i, inVol->getMapName(i));
+    }
     for (int64_t c = 0; c < numComponents; ++c)
     {
         for (int64_t b = 0; b < numMaps; ++b)
