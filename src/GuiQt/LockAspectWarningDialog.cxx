@@ -119,25 +119,6 @@ LockAspectWarningDialog::LockAspectWarningDialog(QWidget* parent)
     
     const AString msg = BestPracticesDialog::getTextForInfoMode(BestPracticesDialog::InfoMode::LOCK_ASPECT_BEST_PRACTICES,
                                                                 BestPracticesDialog::TextMode::BRIEF);
-//    const AString msg("<html>"
-//                      "Aspect is unlocked and it is <b>strongly recommended</b> that aspect is locked and is never unlocked "
-//                      "when annotations are present.  Failing to lock aspect or unlocking the aspect may "
-//                      "cause annotations to move from their original locations."
-//                      "<p>"
-//                      "When creating annotations and scenes, follow these best practices:"
-//                      "<ol>"
-//                      "<li> If desired, enter Tile Tabs for a multi-tab Scene (View Menu->Enter Tile Tabs)"
-//                      "<li> Adjust size of window"
-//                      "<li> Setup view of the model(s) (pan/rotate/zoom)"
-//                      "<li> Lock Aspect Ratio (click Lock Aspect button in right side of Toolbar)"
-//                      "<li> Enter Annotations Mode (click Annotate button in Toolbar)"
-//                      "<li> Add Annotations"
-//                      "<li> Display the Scene Dialog (click Clapboard icon in Toolbar or select Window Menu->Scenes)"
-//                      "<li> Add a Scene (click Add button on Scene Dialog)"
-//                      "<li> Save the Scene File (click Save button (or Save As if Save is disabled) at top of Scene Dialog)"
-//                      "<li> Repeat last few steps as needed"
-//                      "</ol>"
-//                      "</html>");
     QLabel* warningLabel = new QLabel(msg);
     warningLabel->setWordWrap(true);
     

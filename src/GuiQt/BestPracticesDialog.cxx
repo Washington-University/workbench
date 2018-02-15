@@ -27,6 +27,8 @@
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
+#include "WuQtUtilities.h"
+
 using namespace caret;
 
 
@@ -64,9 +66,12 @@ m_textMode(TextMode::FULL)
     QWidget* widget = new QWidget;
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(label);
-    widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    
+//    widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
     setCentralWidget(widget, WuQDialog::SCROLL_AREA_AS_NEEDED_VERT_NO_HORIZ);
+
+    WuQtUtilities::limitWindowSizePercentageOfMaximum(this, 90.0, 80.0);
 }
 
 /**
@@ -105,9 +110,9 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
     {
         switch (textMode) {
             case BRIEF:
-                introText = ("Aspect is unlocked and it is <b>strongly recommended</b> that aspect is locked and is never unlocked "
+                introText = ("Aspect is unlocked and it is <b>strongly recommended</b> that aspect is locked and remains locked "
                              "when annotations are present.  Failing to lock aspect or unlocking the aspect may "
-                             "cause annotations to move from their original locations."
+                             "cause annotations to move from their original locations when the graphics region size changes."
                              "<p>"
                              "When creating annotations and scenes, follow these best practices:");
                 break;
@@ -116,10 +121,10 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
                              "PowerPoint allows one to create a presentation consisting of slides saved into a PowerPoint file.  "
                              "These slides are annotated with text and various shapes.  In wb_view, a scene is analogous "
                              "to a PowerPoint slide and a Scene File contains multiple scenes just like a PowerPoint "
-                             "file contains multiple slides.  In wb_view, one annotates a scene just like one "
-                             "annotates a slide in PowerPoint.  A wb_view Scene saves ‘the state’ so that when "
-                             "the scene is loaded at a later time, by either  the creator of the scene or another "
-                             "user, the user-interface and brain models replicate ‘the state’ at the time the "
+                             "file contains multiple slides.  In wb_view, one annotates a scene similar to the way one "
+                             "annotates a slide in PowerPoint.  A Scene saves ‘the state’ of wb_view so that when "
+                             "the scene is loaded at a later time, by either the creator of the scene or another "
+                             "user, the user-interface and the orientation of the brain models replicates ‘the state’ at the time the "
                              "scene was created."
                              "<p>"
                              "When creating scenes and annotations, following a set of “best practices” ensures "
@@ -132,15 +137,15 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
     std::vector<AString> bulletLines;
     
     {
-        AString text("If desired, enter Tile Tabs for a multi-tab Scene (View Menu->Enter Tile Tabs).  ");
+        AString text("If a multi-tab scene will be created, enter Tile Tabs (View Menu->Enter Tile Tabs).  ");
         switch (textMode) {
             case BRIEF:
                 break;
             case FULL:
-                text.append("Tile Tabs displays all of the windows tabs in a grid pattern.  "
+                text.append("Tile Tabs displays all of the window's tabs in a grid pattern.  "
                             "The number of row and columns in the Tile Tabs view is edited on the "
-                            "Tile Tabs Configuration Dialog (View Menu->Tile Tabs Configuration->Create and Edit.  "
-                            "Advanced parameters are available for “stretch factors” that allow one to increase the "
+                            "Tile Tabs Configuration Dialog (View Menu->Tile Tabs Configuration->Create and Edit).  "
+                            "Advanced parameters include “stretch factors” that allow one to increase the "
                             "size of a row or column relative to other rows and columns.  One may also save the "
                             "configuration for future use.  If a scene is created, the configuration is added to the scene "
                             "so that the configuration is available when the scene is displayed.");
@@ -168,10 +173,10 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
         AString text;
         switch (textMode) {
             case BRIEF:
-                text = ("Setup view of the model(s) (pan/rotate/zoom).  ");
+                text = ("Setup view of the models (pan/rotate/zoom).  ");
                 break;
             case FULL:
-                text = ("Setup view(s) of the model(s).  "
+                text = ("Setup viewa of the models.  "
                         "Pan (drag mouse with SHIFT key down), "
                         "Rotate (drag mouse), "
                         "Zoom (drag mouse with Control Key.  Use the Command Key on Mac.");
@@ -186,38 +191,18 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
             case BRIEF:
                 break;
             case FULL:
-                text.append("As a general rule, one should never disable aspect locking once the "
-                            "aspect has been locked.  By following this rule, tab and window annotations "
-                            "will remain in the desired location. When a window is resized, the window may "
-                            "change in size that is a different proportion (ratio of height to width) "
-                            "compared to the model that is viewed.  Annotations in tab and window spaces "
+                text.append("As a general rule, once the aspect ratio is locked, it should remain locked.  "
+                            "The aspect ratio is the ratio of height divided by width.  "
+                            "Annotations in tab and window spaces "
                             "are positioned using percentage coordinates that range from 0% to 100% with "
                             "0% at the left (x) and bottom (y) and 100% at the right (x) and top (y).  "
-                            "When the window size changes, annotations in tab/window space may no longer "
+                            "If the window is resized with the aspect ratio unlocked and there is a change "
+                            "in the aspect ratio, annotations in tab/window space may no longer "
                             "appear in the correct location (such as over an anatomical feature).  Locking "
-                            "the tab or window’s aspect ratio adds padding to the left and right or bottom "
+                            "the aspect ratio adds padding to the left and right or bottom "
                             "and top of the graphics region so that the model’s region maintains the same "
-                            "aspect ratio (ratio of height to width).  Locking the aspect ratio ensures that "
+                            "aspect ratio (ratio of height to width).  This ensures that "
                             "annotations remain in the correct location relative to the viewed brain model. ");
-                break;
-        }
-        bulletLines.push_back(text);
-    }
-    
-    {
-        AString text("Display the Scene Dialog (click Clapboard icon in Toolbar or select Window Menu->Scenes) and set "
-                     "the name and path of the new Scene File.  ");
-        switch (textMode) {
-            case BRIEF:
-                break;
-            case FULL:
-                text.append("To set the name of the New Scene File, click the Save As button.  "
-                            "In the file selection dialog, choose the directory, and enter a descriptive "
-                            "name for the Scene File.  It is best for the Scene File to be in the same "
-                            "directory or the parent directory of the directory containing your data files.  "
-                            "If the data files are scattered about many directories, it may cause problems "
-                            "if the Scene File and its data files are zipped for distribution to others "
-                            "or when uploading the BALSA Database");
                 break;
         }
         bulletLines.push_back(text);
@@ -241,7 +226,7 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
                 text = ("Add Annotations.");
                 break;
             case FULL:
-                text = ("To add annotations, click the Space and/or Type icons in the Insert New section "
+                text = ("To add annotations, click any of the Space and/or Type icons in the Insert New section "
                         "of the Annotation Toolbar and then click in graphics region to create the annotation.  "
                         "A new annotation is automatically selected so that it can be moved/resized with "
                         "the mouse or its attributes changed using controls in the toolbar.");
@@ -251,19 +236,37 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
     }
     
     {
-        AString text("Add a Scene (click Add button on Scene Dialog).  ");
+        AString text("Display the Scene Dialog (click Clapboard icon in Toolbar or select Window Menu->Scenes) and "
+                     "add a Scene (click Add button on Scene Dialog).  ");
         switch (textMode) {
             case BRIEF:
                 break;
             case FULL:
-                text.append("In the Create New Scene Dialog, edit the name and description and then "
-                            "press the OK button.  If a Scene File was created as described in a "
-                            "previous step, click the Save button at the top of the Scene Dialog to "
-                            "save the Scene File.  Note that by default new annotations are added to "
-                            "the current scene.  If one wants to place annotations into a disk file, "
+                text.append("In the Create New Scene Dialog, edit the name and description for the new scene and then "
+                            "press the OK button.  Note that by default, new annotations are added to "
+                            "the current scene and stored in the scene file.  If one wants to place annotations into a disk file, "
                             "click the small arrow to the right of the Scene button in the Insert New "
                             "section of the Toolbar.  When the arrow is clicked, a menu is displayed "
                             "for creating and/or selecting a disk annotation file.");
+                break;
+        }
+        bulletLines.push_back(text);
+    }
+    
+    {
+        AString text("Save the Scene File.  Click Save As button the first time to set the path and name of the scene file.  "
+                     "Once path and name of scene file has been set, use the Save button.");
+        switch (textMode) {
+            case BRIEF:
+                break;
+            case FULL:
+                text.append("To set the name of the New Scene File, click the Save As button.  "
+                            "In the file selection dialog, choose the directory, and enter a descriptive "
+                            "name for the Scene File.  It is best for the Scene File to be in the same "
+                            "directory or the parent directory of the directory containing your data files.  "
+                            "If the data files are scattered about many directories, it may cause problems "
+                            "if the Scene File and its data files are zipped for distribution to others "
+                            "or when uploading the BALSA Database");
                 break;
         }
         bulletLines.push_back(text);
@@ -284,7 +287,7 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
         AString text;
         switch (textMode) {
             case BRIEF:
-                text = ("Save the Scene File (click Save button (or Save As if Save is disabled) at top of Scene Dialog).");
+                text = ("Be sure to save the Scene File (click Save button or Save As if Save is disabled at top of Scene Dialog).");
                 break;
             case FULL:
                 text = ("If the Save button at the top of the Scene Dialog is enabled, the Scene File is in a "
@@ -350,7 +353,7 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
                             "the correct location.  To correct this problem, wb_view supports “locking "
                             "of the aspect ratio”.  When the aspect ratio is locked, the window (and "
                             "each tab within the window) are fixed to the aspect ratio at the time "
-                            "aspect locking is enabled just like PowerPoint.  If the size of the window changes while "
+                            "aspect locking is enabled.  If the size of the window changes while "
                             "the aspect is locked, the contents of window and each tab will expand or "
                             "contract in size but maintain a fixed aspect by adding space to sides "
                             "of the model when needed.");
@@ -368,7 +371,7 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
                             "save the annotations to the scene instead of creating a disk annotation file.  ");
                 break;
         }
-        bulletLines.push_back(text);
+        msg.append(text);
     }
     
     msg.appendWithNewLine("</html>");
