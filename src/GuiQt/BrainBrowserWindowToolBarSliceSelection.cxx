@@ -361,12 +361,41 @@ BrainBrowserWindowToolBarSliceSelection::updateSliceIndicesAndCoordinatesRanges(
         int maxCoronalDim = (dimensions[1] > 0) ? (dimensions[1] - 1) : 0;
         int maxParasagittalDim = (dimensions[0] > 0) ? (dimensions[0] - 1) : 0;
         
-        m_volumeIndicesAxialSpinBox->setRange(minAxialDim,
-                                                  maxAxialDim);
-        m_volumeIndicesCoronalSpinBox->setRange(minCoronalDim,
-                                                    maxCoronalDim);
-        m_volumeIndicesParasagittalSpinBox->setRange(minParasagittalDim,
-                                                         maxParasagittalDim);
+        /*
+         * BUG NOTE:
+         * On Linux, if the user hold down an arrow key in a spin box
+         * and the time to process the signal is "slow", qt will emit 
+         * a second signal (QTBUG-14259).  In addition, calling any of
+         * the setMinimum(), setMaximum(), or setRange() methods seems
+         * to also cause emission of a signal.  The result when the 
+         * user releases the arrow key, there are many backlogged signals
+         * and it may take a while for them to process and the user 
+         * sees the slices scrolling for a while after the arrow key
+         * is released.
+         *
+         * So, do not update range min/max unless the new range
+         * is different than the range in the spin box.
+         */
+        if (m_volumeIndicesAxialSpinBox->minimum() != minAxialDim) {
+            m_volumeIndicesAxialSpinBox->setMinimum(minAxialDim);
+        }
+        if (m_volumeIndicesAxialSpinBox->maximum() != maxAxialDim) {
+            m_volumeIndicesAxialSpinBox->setMaximum(maxAxialDim);
+        }
+        
+        if (m_volumeIndicesCoronalSpinBox->minimum() != minCoronalDim) {
+            m_volumeIndicesCoronalSpinBox->setMinimum(minCoronalDim);
+        }
+        if (m_volumeIndicesCoronalSpinBox->maximum() != maxCoronalDim) {
+            m_volumeIndicesCoronalSpinBox->setMaximum(maxCoronalDim);
+        }
+        
+        if (m_volumeIndicesParasagittalSpinBox->minimum() != minParasagittalDim) {
+            m_volumeIndicesParasagittalSpinBox->setMinimum(minParasagittalDim);
+        }
+        if (m_volumeIndicesParasagittalSpinBox->maximum() != maxParasagittalDim) {
+            m_volumeIndicesParasagittalSpinBox->setMaximum(maxParasagittalDim);
+        }
         
         
         /*
@@ -382,19 +411,40 @@ BrainBrowserWindowToolBarSliceSelection::updateSliceIndicesAndCoordinatesRanges(
         vf->indexToSpace(slicesMax,
                          sliceMaxCoords);
         
-        m_volumeIndicesXcoordSpinBox->setMinimum(std::min(sliceZeroCoords[0],
-                                                              sliceMaxCoords[0]));
-        m_volumeIndicesYcoordSpinBox->setMinimum(std::min(sliceZeroCoords[1],
-                                                              sliceMaxCoords[1]));
-        m_volumeIndicesZcoordSpinBox->setMinimum(std::min(sliceZeroCoords[2],
-                                                              sliceMaxCoords[2]));
+        const double minX = std::min(sliceZeroCoords[0],
+                                    sliceMaxCoords[0]);
+        const double maxX = std::max(sliceZeroCoords[0],
+                                    sliceMaxCoords[0]);
+        const double minY = std::min(sliceZeroCoords[1],
+                                    sliceMaxCoords[1]);
+        const double maxY = std::max(sliceZeroCoords[1],
+                                    sliceMaxCoords[1]);
+        const double minZ = std::min(sliceZeroCoords[2],
+                                    sliceMaxCoords[2]);
+        const double maxZ = std::max(sliceZeroCoords[2],
+                                    sliceMaxCoords[2]);
         
-        m_volumeIndicesXcoordSpinBox->setMaximum(std::max(sliceZeroCoords[0],
-                                                              sliceMaxCoords[0]));
-        m_volumeIndicesYcoordSpinBox->setMaximum(std::max(sliceZeroCoords[1],
-                                                              sliceMaxCoords[1]));
-        m_volumeIndicesZcoordSpinBox->setMaximum(std::max(sliceZeroCoords[2],
-                                                              sliceMaxCoords[2]));
+        /*
+         * See BUG NOTE above.
+         */
+        if (m_volumeIndicesXcoordSpinBox->minimum() != minX) {
+            m_volumeIndicesXcoordSpinBox->setMinimum(minX);
+        }
+        if (m_volumeIndicesXcoordSpinBox->maximum() != maxX) {
+            m_volumeIndicesXcoordSpinBox->setMaximum(maxX);
+        }
+        if (m_volumeIndicesYcoordSpinBox->minimum() != minY) {
+            m_volumeIndicesYcoordSpinBox->setMinimum(minY);
+        }
+        if (m_volumeIndicesYcoordSpinBox->maximum() != maxY) {
+            m_volumeIndicesYcoordSpinBox->setMaximum(maxY);
+        }
+        if (m_volumeIndicesZcoordSpinBox->minimum() != minZ) {
+            m_volumeIndicesZcoordSpinBox->setMinimum(minZ);
+        }
+        if (m_volumeIndicesZcoordSpinBox->maximum() != maxZ) {
+            m_volumeIndicesZcoordSpinBox->setMaximum(maxZ);
+        }
         
         int64_t slicesOne[3] = { 1, 1, 1 };
         float slicesOneCoords[3];
@@ -424,7 +474,6 @@ BrainBrowserWindowToolBarSliceSelection::updateSliceIndicesAndCoordinatesRanges(
         m_volumeIndicesXcoordSpinBox->setValue(btc->getSliceCoordinateParasagittal());
         m_volumeIndicesYcoordSpinBox->setValue(btc->getSliceCoordinateCoronal());
         m_volumeIndicesZcoordSpinBox->setValue(btc->getSliceCoordinateAxial());
-        
     }
     
     m_volumeIndicesWidgetGroup->blockAllSignals(blockedStatus);
