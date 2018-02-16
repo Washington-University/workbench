@@ -40,6 +40,7 @@
 #include "BrainOpenGLWindowContent.h"
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
+#include "CaretPreferences.h"
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "EventBrowserTabGet.h"
@@ -119,6 +120,10 @@ OperationShowScene::getParameters()
     mapYokeOpt->addStringParameter(1, "Map Yoking Roman Numeral", "Roman numeral identifying the map yoking group (I, II, III, IV, V, VI, VII, VIII, IX, X)");
     mapYokeOpt->addIntegerParameter(2, "Map Index", "Map index for yoking group.  Indices start at 1 (one)");
     
+    OptionalParameter* connDbOpt = ret->createOptionalParameter(9, "-conn-db-login", "Login for scenes with files in Connectome Database");
+    connDbOpt->addStringParameter(1, "Username", "Connectome DB Username");
+    connDbOpt->addStringParameter(2, "Password", "Connectome DB Password");
+    
     AString helpText("Render content of browser windows displayed in a scene "
                      "into image file(s).  The image file name should be "
                      "similar to \"capture.png\".  If there is only one image "
@@ -127,9 +132,16 @@ OperationShowScene::getParameters()
                      "into the image name: \"capture_01.png\", \"capture_02.png\" "
                      "etc.\n"
                      "\n"
+                     "If the scene references files in the Connectome Database,\n"
+                     "the \"-conn-db-login\" option is available for providing the \n"
+                     "username and password.  If this options is not specified, \n"
+                     "the username and password stored in the user's preferences\n"
+                     "is used.\n"
+                     "\n"
                      "The image format is determined by the image file extension.\n"
                      "The available image formats may vary by operating system.\n"
-                     "Image formats available on this system are:\n");
+                     "Image formats available on this system are:\n"
+                     );
     std::vector<AString> imageFileExtensions;
     AString defaultExtension;
     ImageFile::getImageFileExtensions(imageFileExtensions,
@@ -223,7 +235,25 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                      + QString::number(userImageHeight));
         }
     }
-    
+
+    /*
+     * Need to set username/password for files in ConnectomeDB
+     */
+    AString username;
+    AString password;
+    OptionalParameter* connDbOpt = myParams->getOptionalParameter(9);
+    if (connDbOpt->m_present) {
+        username = connDbOpt->getString(1);
+        password = connDbOpt->getString(2);
+    }
+    else {
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        prefs->getRemoteFileUserNameAndPassword(username,
+                                                password);
+    }
+    CaretDataFile::setFileReadingUsernameAndPassword(username,
+                                                     password);
+
     /*
      * Read the scene file and load the scene
      */
