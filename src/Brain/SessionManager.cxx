@@ -856,11 +856,20 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         
         const SceneClassArray* browserWindowArray = guiManagerClass->getClassArray("m_brainBrowserWindows");
         if (browserWindowArray != NULL) {
+            {
+                const int32_t numValidBrowserWindows = std::count_if(m_browserWindowContent.begin(),
+                                                                     m_browserWindowContent.end(),
+                                                                     [](BrowserWindowContent* bwc) { return bwc->isValid(); });
+                std::cout << "RESTORING OLD SCENE NUM WINDOWS: " << numValidBrowserWindows << std::endl;
+            }
             const int32_t numBrowserClasses = browserWindowArray->getNumberOfArrayElements();
             for (int32_t i = 0; i < numBrowserClasses; i++) {
                 const SceneClass* browserClass = browserWindowArray->getClassAtIndex(i);
                 CaretAssert(browserClass);
-                const int32_t windowIndex = browserClass->getIntegerValue("m_browserWindowIndex", -1);
+                int32_t windowIndex = browserClass->getIntegerValue("m_browserWindowIndex", -1);
+                if (windowIndex < 0) {
+                    windowIndex = i;
+                }
                 CaretAssert(windowIndex >= 0);
                 CaretAssertStdArrayIndex(m_browserWindowContent, windowIndex);
                 m_browserWindowContent[windowIndex]->restoreFromOldBrainBrowserWindowScene(sceneAttributes,

@@ -183,6 +183,11 @@ GuiManager::initializeGuiManager()
     this->cursorManager = new CursorManager();
     
     /*
+     * Windows vector never changes size
+     */
+    m_brainBrowserWindows.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, NULL);
+    
+    /*
      * Information window.
      */
     QIcon infoDisplayIcon;
@@ -557,6 +562,8 @@ GuiManager::getBrowserWindowByWindowIndex(const int32_t browserWindowIndex)
  * Create a new BrainBrowser Window.
  * @param parent
  *    Optional parent that is used only for window placement.
+ * @param useWindowIndex
+ *    Create the new window in this index if this index is valid
  * @param browserTabContent
  *    Optional tab for initial windwo tab.
  * @param createDefaultTabs
@@ -568,6 +575,7 @@ GuiManager::getBrowserWindowByWindowIndex(const int32_t browserWindowIndex)
  */
 BrainBrowserWindow*
 GuiManager::newBrainBrowserWindow(QWidget* parent,
+                                  const int32_t useWindowIndex,
                                   BrowserTabContent* browserTabContent,
                                   const bool createDefaultTabs,
                                   AString& errorMessageOut)
@@ -589,33 +597,44 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     
     int32_t windowIndex = -1;
     
+    /*
+     * Is window required to be at a specific index?
+     */
     int32_t numWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
-    for (int32_t i = 0; i < numWindows; i++) {
-        if (m_brainBrowserWindows[i] == NULL) {
-            windowIndex = i;
-            break;
+    if (useWindowIndex >= 0) {
+        CaretAssertVectorIndex(m_brainBrowserWindows, useWindowIndex);
+        windowIndex = useWindowIndex;
+    }
+    else {
+        /*
+         * Use first available window
+         */
+        for (int32_t i = 0; i < numWindows; i++) {
+            if (m_brainBrowserWindows[i] == NULL) {
+                windowIndex = i;
+                break;
+            }
         }
     }
     
     if (windowIndex < 0) {
-        if (numWindows >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS) {
-            errorMessageOut = ("Unable to create a new window as the maximum number of windows ("
-                               + AString::number(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)
-                               + ") are currently open.");
-            return NULL;
-        }
+        /*
+         * No windows are available
+         */
+        errorMessageOut = ("Unable to create a new window as the maximum number of windows ("
+                           + AString::number(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)
+                           + ") are currently open.");
+        return NULL;
     }
     
-    BrainBrowserWindow* bbw = NULL; 
+    BrainBrowserWindow* bbw = NULL;
     
     BrainBrowserWindow::CreateDefaultTabsMode tabsMode = (createDefaultTabs
                                                           ? BrainBrowserWindow::CREATE_DEFAULT_TABS_YES
                                                           : BrainBrowserWindow::CREATE_DEFAULT_TABS_NO);
     
-    if (windowIndex < 0) {
-        windowIndex = m_brainBrowserWindows.size();
-        bbw = new BrainBrowserWindow(windowIndex, browserTabContent, tabsMode);
-        m_brainBrowserWindows.push_back(bbw);
+    if (m_brainBrowserWindows[windowIndex] != NULL) {
+        bbw = m_brainBrowserWindows[windowIndex];
     }
     else {
         bbw = new BrainBrowserWindow(windowIndex, browserTabContent, tabsMode);
@@ -1248,7 +1267,8 @@ GuiManager::receiveEvent(Event* event)
         CaretAssert(eventNewBrowser);
         
         AString errorMessage;
-        BrainBrowserWindow* bbw = this->newBrainBrowserWindow(eventNewBrowser->getParent(), 
+        BrainBrowserWindow* bbw = this->newBrainBrowserWindow(eventNewBrowser->getParent(),
+                                                              -1, /* allow any window index */
                                                               eventNewBrowser->getBrowserTabContent(),
                                                               true,
                                                               errorMessage);
@@ -2464,17 +2484,34 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         EventManager::get()->sendEvent(progressEvent.getPointer());
         const SceneClassArray* browserWindowArray = sceneClass->getClassArray("m_brainBrowserWindows");
         if (browserWindowArray != NULL) {
+            bool windowWasRestoredFlag = false;
             const int32_t numBrowserClasses = browserWindowArray->getNumberOfArrayElements();
             for (int32_t i = 0; i < numBrowserClasses; i++) {
                 const SceneClass* browserClass = browserWindowArray->getClassAtIndex(i);
+                CaretAssert(browserClass);
+                const int32_t windowIndex = browserClass->getIntegerValue("m_browserWindowIndex", -1);
+                
                 BrainBrowserWindow* bbw = NULL;
                 AString errorMessage;
                 if ( ! availableWindows.empty()) {
                     bbw = availableWindows.front();
-                    availableWindows.pop_front();
+
+                    if (windowIndex >= 0) {
+                        /*
+                         * Use window only if it has same index as window being restored.
+                         */
+                        if (bbw->getBrowserWindowIndex() != windowIndex) {
+                            bbw = NULL;
+                        }
+                    }
+                    
+                    if (bbw != NULL) {
+                        availableWindows.pop_front();
+                    }
                 }
-                else {
+                if (bbw == NULL) {
                     bbw = newBrainBrowserWindow(NULL,
+                                                windowIndex,
                                                 NULL,
                                                 false,
                                                 errorMessage);
@@ -2482,9 +2519,17 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                 if (bbw != NULL) {
                     bbw->restoreFromScene(sceneAttributes,
                                           browserClass);
+                    windowWasRestoredFlag = true;
                 }
                 else {
                     sceneAttributes->addToErrorMessage("\n" + errorMessage);
+                }
+            }
+            
+            if (windowWasRestoredFlag) {
+                if ( ! availableWindows.empty()) {
+                    BrainBrowserWindow* bbw = availableWindows.front();
+                    bbw->close();
                 }
             }
         }

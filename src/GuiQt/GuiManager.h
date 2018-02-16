@@ -214,6 +214,7 @@ namespace caret {
         void initializeGuiManager();
         
         BrainBrowserWindow* newBrainBrowserWindow(QWidget* parent,
+                                                  const int32_t useWindowIndex,
                                                   BrowserTabContent* browserTabContent,
                                                   const bool createDefaultTabs,
                                                   AString& errorMessageOut);
@@ -233,11 +234,7 @@ namespace caret {
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;
         
-        /** 
-         * Contains pointers to Brain Browser windows
-         * As BrainBrowser windows are closed, some of
-         * the elements may be NULL.
-         */
+        /** Contains pointers to Brain Browser windows */
         std::vector<BrainBrowserWindow*> m_brainBrowserWindows;
         
         /** Skips confirmation of browser window closing when all tabs are moved to one window */
