@@ -18,6 +18,8 @@
  */
 /*LICENSE_END*/
 
+#include <QFileInfo>
+
 #include "DataFile.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
@@ -81,6 +83,7 @@ DataFile::copyHelperDataFile(const DataFile& df)
     m_filename = df.m_filename;
     m_fileReadWarnings = df.m_fileReadWarnings;
     m_modifiedFlag = false;
+    m_timeOfLastReadOrWrite = QDateTime();
 }
 
 /**
@@ -92,6 +95,7 @@ DataFile::initializeMembersDataFile()
     m_filename = "";
     m_fileReadWarnings.clear();
     m_modifiedFlag = false;
+    m_timeOfLastReadOrWrite = QDateTime();
 }
 
 /**
@@ -181,6 +185,12 @@ void
 DataFile::clearModified()
 {
     m_modifiedFlag = false;
+    
+    /*
+     * This method, clearModified(), is called by all file
+     * types at the conclusion of readFile() and writeFile().
+     */
+    setTimeOfLastReadOrWrite();
 }
 
 /**
@@ -316,6 +326,82 @@ DataFile::getFileReadWarnings() const
     const AString warningMessage = m_fileReadWarnings;
     m_fileReadWarnings.clear();
     return warningMessage;
+}
+
+/**
+ * Set the time this file was last read or written to the current time.
+ */
+void
+DataFile::setTimeOfLastReadOrWrite()
+{
+    m_timeOfLastReadOrWrite = getLastModifiedTime();
+}
+
+/**
+ * @return True if this file been modified since it was last read or written.
+ * (modified by an external program)?
+ *
+ * If any of these conditions are met, false is returned:
+ * (1) The name is empty; (2) The file is on the network;
+ * (3) The file does not exist; (4) The modified time
+ * from the file system is invalid; (5) The last time this
+ * file was read or written is invalid.
+ */
+bool
+DataFile::isModifiedSinceTimeOfLastReadOrWrite() const
+{
+    const QDateTime lastModTime = getLastModifiedTime();
+    
+    if (lastModTime.isNull()) {
+        return false;
+    }
+    
+    if (m_timeOfLastReadOrWrite.isNull()) {
+        return false;
+    }
+    
+    /*
+     * If last modified time is newer than
+     * time of file read or written
+     */
+    if (lastModTime > m_timeOfLastReadOrWrite) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * @return True if this file been modified since it was last read or written.
+ * (modified by an external program)?
+ *
+ * If any of these conditions are met, a null (.isNull()) is returned:
+ * (1) The name is empty; (2) The file is on the network;
+ * (3) The file does not exist; (4) The modified time
+ * from the file system is invalid.
+ */
+QDateTime
+DataFile::getLastModifiedTime() const
+{
+    QDateTime lastModTime;
+    
+    const AString name = getFileName();
+    if (name.isEmpty()) {
+        return lastModTime;
+    }
+    
+    if (isFileOnNetwork(name)) {
+        return lastModTime;
+    }
+    
+    QFileInfo fileInfo(name);
+    if ( ! fileInfo.exists()) {
+        return lastModTime;
+    }
+    
+    lastModTime = fileInfo.lastModified();
+    
+    return lastModTime;
 }
 
 

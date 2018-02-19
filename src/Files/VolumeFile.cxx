@@ -360,6 +360,7 @@ VolumeFile::writeFile(const AString& filename)
     
     m_volumeFileEditorDelegate->clear();
     m_volumeFileEditorDelegate->updateIfVolumeFileChangedNumberOfMaps();
+    clearModified();
 }
 
 bool VolumeFile::hasGoodSpatialInformation() const

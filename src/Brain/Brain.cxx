@@ -732,6 +732,9 @@ Brain::resetBrainKeepSceneFiles()
         if (caretDataFile->isModified()) {
             continue;
         }
+        if (caretDataFile->isModifiedSinceTimeOfLastReadOrWrite()) {
+            continue;
+        }
         
         const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
         
