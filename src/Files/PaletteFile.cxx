@@ -817,6 +817,26 @@ PaletteFile::addDefaultPalettes()
         addPalette(fslYellow);
     }
     
+    //
+    // Create a palette with red (positive), white (zero),
+    // and blue (negative) for Alan A.
+    //
+    if (this->getPaletteByName("RedWhiteBlue") == NULL) {
+        Palette redWhiteBlue;
+        redWhiteBlue.setName("RedWhiteBlue");
+        this->addColor("rwbBlue", 0, 0, 255);
+        this->addColor("rwbBlueMiddle", 127, 127, 255);
+        this->addColor("rwbWhite", 255, 255, 255);
+        this->addColor("rwbRedMiddle", 255, 127, 127);
+        this->addColor("rwbRed", 255, 0, 0);
+        redWhiteBlue.addScalarAndColor( 1.0f, "rwbRed");
+        redWhiteBlue.addScalarAndColor( 0.5f, "rwbRedMiddle");
+        redWhiteBlue.addScalarAndColor( 0.0f, "rwbWhite");
+        redWhiteBlue.addScalarAndColor(-0.5f, "rwbBlueMiddle");
+        redWhiteBlue.addScalarAndColor(-1.0f, "rwbBlue");
+        addPalette(redWhiteBlue);
+    }
+
     if (this->getPaletteByName("JET256") == NULL) {
         Palette JET256;
         JET256.setName("JET256");
