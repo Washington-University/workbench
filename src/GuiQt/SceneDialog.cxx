@@ -2352,12 +2352,10 @@ SceneDialog::deleteSceneButtonClicked()
 void 
 SceneDialog::showSceneButtonClicked()
 {
-// At this time, do not test for modified files
-// since a scene previously loaded may contain
-// modified palette status.
-//    if ( ! checkForModifiedFiles(false)) {
-//        return;
-//    }
+    if ( ! checkForModifiedFiles(GuiManager::TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW,
+                                 this)) {
+        return;
+    }
     
     AString sceneFileName;
     SceneFile* sceneFile = getSelectedSceneFile();

@@ -738,7 +738,27 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
         
         switch (testModifiedMode) {
             case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
-                modifiedDataFiles.push_back(file);
+            case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW:
+            {
+                /*
+                 * Show both data modified and palette modified
+                 */
+                CaretMappableDataFile* mappableDataFile = dynamic_cast<CaretMappableDataFile*>(file);
+                bool paletteOnlyModFlag = false;
+                if (mappableDataFile != NULL) {
+                    if (mappableDataFile->isModifiedPaletteColorMapping()) {
+                        if ( ! mappableDataFile->isModifiedExcludingPaletteColorMapping()) {
+                            paletteOnlyModFlag = true;
+                        }
+                    }
+                }
+                if (paletteOnlyModFlag) {
+                    paletteModifiedDataFiles.push_back(file);
+                }
+                else {
+                    modifiedDataFiles.push_back(file);
+                }
+            }
                 break;
             case TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD:
             {
@@ -775,11 +795,7 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
                 if (paletteOnlyModFlag) {
                     paletteModifiedDataFiles.push_back(file);
                 }
-                
             }
-                break;
-            case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW:
-                modifiedDataFiles.push_back(file);
                 break;
         }
     }
@@ -814,6 +830,7 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
          * Display dialog allowing user to save files (goes to Save/Manage
          * Files dialog), exit without saving, or cancel.
          */
+        AString paletteModifiedMessage("These file(s) contain modified palette color mapping: ");
         switch (testModifiedMode) {
             case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
                 textMessageOut = "Do you want to save changes you made to these files?";
@@ -821,41 +838,52 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
             case TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD:
             case TEST_FOR_MODIFIED_FILES_PALETTE_ONLY_MODE_FOR_SCENE_ADD:
                 textMessageOut = "Do you want to continue creating the scene?";
+                paletteModifiedMessage = ("These file(s) contain modified palette color mapping "
+                                          "AND \"Add modified palette color mapping to scene\" "
+                                          "is NOT checked on the Create New Scene Dialog:");
                 break;
             case TEST_FOR_MODIFIED_FILES_MODE_FOR_SCENE_SHOW:
                 textMessageOut = "Do you want to continue showing the scene?";
                 break;
         }
         
-        AString infoTextMsg;
-        if (modFileCount > 0) {
-            infoTextMsg.appendWithNewLine("Changes to these files will be lost if you don't save them:\n");
-            for (std::vector<CaretDataFile*>::iterator iter = modifiedDataFiles.begin();
-                 iter != modifiedDataFiles.end();
-                 iter++) {
-                const CaretDataFile* cdf = *iter;
-                infoTextMsg.appendWithNewLine("   "
-                                              + cdf->getFileNameNoPath());
+        AString infoTextMsg("<html>");
+        
+        if (sceneAnnotationsModifiedFlag
+            || (modFileCount > 0)) {
+            infoTextMsg.appendWithNewLine("These file(s) contain modified data:\n");
+            infoTextMsg.appendWithNewLine("<ul>");
+            
+            if (sceneAnnotationsModifiedFlag) {
+                infoTextMsg.appendWithNewLine("<li> Scene Annotations (must be saved to a scene)");
             }
-            infoTextMsg.append("\n");
+            
+            if (modFileCount > 0) {
+                for (std::vector<CaretDataFile*>::iterator iter = modifiedDataFiles.begin();
+                     iter != modifiedDataFiles.end();
+                     iter++) {
+                    const CaretDataFile* cdf = *iter;
+                    infoTextMsg.appendWithNewLine("<li> "
+                                                  + cdf->getFileNameNoPath());
+                }
+            }
+            
+            infoTextMsg.appendWithNewLine("</ul>");
         }
         if (paletteModFileCount > 0) {
-            infoTextMsg.appendWithNewLine("These file(s) contain modified palette color mapping "
-                                          "AND \"Add modified palette color mapping to scene\" "
-                                          "is NOT checked on the Create New Scene Dialog.\n");
+            infoTextMsg.appendWithNewLine(paletteModifiedMessage);
+            infoTextMsg.appendWithNewLine("<ul>");
             for (std::vector<CaretDataFile*>::iterator iter = paletteModifiedDataFiles.begin();
                  iter != paletteModifiedDataFiles.end();
                  iter++) {
                 const CaretDataFile* cdf = *iter;
-                infoTextMsg.appendWithNewLine("   "
+                infoTextMsg.appendWithNewLine("<li> "
                                               + cdf->getFileNameNoPath());
             }
-            infoTextMsg.append("\n");
+            infoTextMsg.appendWithNewLine("</ul>");
         }
         
-        if (sceneAnnotationsModifiedFlag) {
-            infoTextMsg.appendWithNewLine("Scene annotations are modified.");
-        }
+        infoTextMsg.appendWithNewLine("</html>");
         
         modifiedFilesMessageOut = infoTextMsg;
         return true;
