@@ -1456,19 +1456,24 @@ SurfaceNodeColoring::assignCiftiParcelSeriesColoring(const BrainStructure* brain
  *    True if coloring is valid, else false.
  */
 bool 
-SurfaceNodeColoring::assignRgbaColoring(const BrainStructure* /*brainStructure*/, 
-                                        const RgbaFile* /*rgbaFile*/,
+SurfaceNodeColoring::assignRgbaColoring(const BrainStructure* brainStructure,
+                                        const RgbaFile* rgbaFile,
                                         const int32_t /*mapIndex*/,
                                         const int32_t numberOfNodes,
                                         float* rgbv)
 {
-    CaretAssertMessage(0, "Add implementation.");
+    if ( ! rgbaFile->isMappableToSurfaceStructure(brainStructure->getStructure())) {
+        return false;
+    }
+    
+    if (rgbaFile->isEmpty()) {
+        return false;
+    }
+    
     for (int32_t i = 0; i < numberOfNodes; i++) {
         const int32_t i4 = i * 4;
-        rgbv[i4]   = 0.0;
-        rgbv[i4+1] = 0.0;
-        rgbv[i4+2] = 1.0;
-        rgbv[i4+3] = 1.0;
+        
+        rgbaFile->getVertexRGBA(i, &rgbv[i4]);
     }
     
     return true;

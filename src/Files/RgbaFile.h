@@ -51,6 +51,9 @@ namespace caret {
         
         virtual int32_t getNumberOfColumns() const;
         
+        void getVertexRGBA(const int32_t vertexIndex,
+                           float* rgbaOut) const;
+        
     protected:
         /**
          * Validate the contents of the file after it
@@ -64,6 +67,13 @@ namespace caret {
         void initializeMembersRgbaFile();
         
     private:
+        
+        GiftiDataArray* m_dataArray = 0;
+        
+        int32_t m_numberOfVertices = 0;
+        
+        int32_t m_numberOfComponents = 0;
+        
     };
 
 } // namespace

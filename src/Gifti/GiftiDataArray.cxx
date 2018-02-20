@@ -222,7 +222,7 @@ GiftiDataArray::getDataTypeAppropriateForIntent(const NiftiIntentEnum::Enum inte
    }
    else if ((intent == NiftiIntentEnum::NIFTI_INTENT_RGB_VECTOR) ||
             (intent == NiftiIntentEnum::NIFTI_INTENT_RGBA_VECTOR)) {
-      dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_UINT8;
+      dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    }
    else if (intent == NiftiIntentEnum::NIFTI_INTENT_SHAPE) {
       dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;

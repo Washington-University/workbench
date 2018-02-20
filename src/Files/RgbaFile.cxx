@@ -20,6 +20,7 @@
 
 #include "CaretAssert.h"
 
+#include "DataFileException.h"
 #include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
 #include "MathFunctions.h"
@@ -95,7 +96,53 @@ RgbaFile::validateDataArraysAfterReading()
 {
     this->initializeMembersRgbaFile();
     
+    const int32_t numberOfDataArrays = this->giftiFile->getNumberOfDataArrays();
+    if (numberOfDataArrays != 1) {
+        throw DataFileException(getFileName(),
+                                "GIFTI RGBA files must have one GIFTI Data Array");
+    }
+    
+    const GiftiDataArray* gda = this->giftiFile->getDataArray(0);
+    if (gda->getNumberOfRows() <= 0) {
+        throw DataFileException(getFileName(),
+                                "GIFTI RGBA file is empty (number of rows is zero)");
+    }
+
+    m_numberOfComponents = gda->getNumberOfComponents();
+    if ((m_numberOfComponents < 3)
+        || (m_numberOfComponents > 4)) {
+        throw DataFileException(getFileName(),
+                                "GIFTI RGBA file must have four components but contains "
+                                + AString::number(m_numberOfComponents)
+                                + " components.");
+    }
+    if (gda->getDataType() != NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
+        throw DataFileException("GIFTI RGBA files must be FLOAT data type.  "
+                                "Type of data array is: "
+                                + NiftiDataTypeEnum::toName(gda->getDataType()));
+    }
+    
     this->verifyDataArraysHaveSameNumberOfRows(3, 4);
+    
+    m_dataArray          = this->giftiFile->getDataArray(0);
+    m_numberOfVertices   = gda->getNumberOfRows();
+    
+    bool rescaleZeroToOneFlag = false;
+    const int32_t numValues = m_numberOfComponents * m_numberOfVertices;
+    float* floatData = m_dataArray->getDataPointerFloat();
+    for (int32_t i = 0; i < numValues; i++) {
+        if (floatData[i] > 1.1f) {
+            rescaleZeroToOneFlag = true;
+            break;
+        }
+    }
+
+    if (rescaleZeroToOneFlag) {
+        for (int32_t i = 0; i < numValues; i++) {
+            floatData[i] /= 255.0;
+        }
+    }
+    
 }
 
 /**
@@ -107,12 +154,7 @@ RgbaFile::validateDataArraysAfterReading()
 int32_t
 RgbaFile::getNumberOfNodes() const
 {
-    int32_t numNodes = 0;
-    int32_t numDataArrays = this->giftiFile->getNumberOfDataArrays();
-    if (numDataArrays > 0) {
-        numNodes = this->giftiFile->getDataArray(0)->getNumberOfRows();
-    }
-    return numNodes;
+    return m_numberOfVertices;
 }
 
 /**
@@ -135,6 +177,9 @@ RgbaFile::getNumberOfColumns() const
 void 
 RgbaFile::initializeMembersRgbaFile()
 {
+    m_dataArray = 0;
+    m_numberOfVertices   = 0;
+    m_numberOfComponents = 0;
 }
 
 /**
@@ -148,5 +193,44 @@ RgbaFile::copyHelperRgbaFile(const RgbaFile& /*sf*/)
 {
     this->validateDataArraysAfterReading();
 }
+
+/**
+ * Get the RGBA data for the given vertex.
+ *
+ * @param vertexIndex
+ *     Index of the vertex.
+ * @param rgbaOut
+ *     Output containing RGBA values for vertex.
+ */
+void
+RgbaFile::getVertexRGBA(const int32_t vertexIndex,
+                        float* rgbaOut) const
+{
+    CaretAssert((vertexIndex >= 0)
+                && (vertexIndex < m_numberOfVertices));
+    
+    const float* floatData = m_dataArray->getDataPointerFloat();
+    
+    if (m_numberOfComponents == 4) {
+        const int32_t v4 = vertexIndex * 4;
+        CaretAssertArrayIndex(floatData, m_numberOfVertices * m_numberOfComponents, v4 + 3);
+        rgbaOut[0] = floatData[v4];
+        rgbaOut[1] = floatData[v4+1];
+        rgbaOut[2] = floatData[v4+2];
+        rgbaOut[3] = floatData[v4+3];
+    }
+    else if (m_numberOfComponents == 3) {
+        const int32_t v3 = vertexIndex * 3;
+        CaretAssertArrayIndex(floatData, m_numberOfVertices * m_numberOfComponents, v3 + 2);
+        rgbaOut[0] = floatData[v3];
+        rgbaOut[1] = floatData[v3+1];
+        rgbaOut[2] = floatData[v3+2];
+        rgbaOut[3] = 1.0f;
+    }
+    else {
+        CaretAssert(0);
+    }
+}
+
 
 
