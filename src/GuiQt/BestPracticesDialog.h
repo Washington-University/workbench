@@ -27,7 +27,7 @@
 
 #include "WuQDialogNonModal.h"
 
-
+class QPushButton;
 
 namespace caret {
 
@@ -55,6 +55,9 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        virtual DialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
+        
     private:
         BestPracticesDialog(const BestPracticesDialog&);
 
@@ -65,6 +68,10 @@ namespace caret {
         const InfoMode m_infoMode;
         
         const TextMode m_textMode;
+        
+        AString m_labelText;
+        
+        QPushButton* m_printPushButton;
         
         // ADD_NEW_MEMBERS_HERE
 

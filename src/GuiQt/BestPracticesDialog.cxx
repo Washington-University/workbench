@@ -23,8 +23,13 @@
 #include "BestPracticesDialog.h"
 #undef __BEST_PRACTICES_DIALOG_DECLARE__
 
+#include <QDialogButtonBox>
 #include <QLabel>
+#include <QTextDocument>
 #include <QVBoxLayout>
+#include <QPushButton>
+#include <QtPrintSupport/QPrinter>
+#include <QtPrintSupport/QPrintDialog>
 
 #include "CaretAssert.h"
 #include "WuQtUtilities.h"
@@ -59,17 +64,25 @@ m_textMode(TextMode::FULL)
     setApplyButtonText("");
     setDeleteWhenClosed(true);
     
-    QLabel* label = new QLabel(getTextForInfoMode(infoMode,
-                                                  m_textMode));
+    m_printPushButton = addUserPushButton("Print...",
+                                          QDialogButtonBox::NoRole);
+    m_labelText = getTextForInfoMode(infoMode,
+                                     m_textMode);
+
+    QPushButton* closeButton = getDialogButtonBox()->button(QDialogButtonBox::Close);
+    CaretAssert(closeButton);
+    closeButton->setAutoDefault(true);
+    closeButton->setDefault(true);
+
+    QLabel* label = new QLabel(m_labelText);
     label->setWordWrap(true);
     
     QWidget* widget = new QWidget;
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(label);
     
-//    widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    
-    setCentralWidget(widget, WuQDialog::SCROLL_AREA_AS_NEEDED_VERT_NO_HORIZ);
+    setCentralWidget(widget,
+                     WuQDialog::SCROLL_AREA_AS_NEEDED_VERT_NO_HORIZ);
 
     WuQtUtilities::limitWindowSizePercentageOfMaximum(this, 90.0, 80.0);
 }
@@ -79,6 +92,34 @@ m_textMode(TextMode::FULL)
  */
 BestPracticesDialog::~BestPracticesDialog()
 {
+}
+
+/**
+ * Gets called when a user pushbutton is pressed.
+ *
+ * @param userPushButton
+ *     User push button that was pressed.
+ * @return
+ *     Action dialog should take in response to push button being pressed.
+ */
+WuQDialog::DialogUserButtonResult
+BestPracticesDialog::userButtonPressed(QPushButton* userPushButton)
+{
+    if (userPushButton == m_printPushButton) {
+        QPrinter printer;
+        QPrintDialog printDialog(&printer, this);
+        if (printDialog.exec() == QPrintDialog::Accepted) {
+            QTextDocument textDocument;
+            textDocument.setHtml(m_labelText);
+            textDocument.print(&printer);
+//            m_helpBrowser->document()->print(&printer);
+        }
+    }
+    else {
+        CaretAssert(0);
+    }
+    
+    return DialogUserButtonResult::RESULT_NONE;
 }
 
 /**
@@ -176,7 +217,7 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
                 text = ("Setup view of the models (pan/rotate/zoom).  ");
                 break;
             case FULL:
-                text = ("Setup viewa of the models.  "
+                text = ("Setup view of the models.  "
                         "Pan (drag mouse with SHIFT key down), "
                         "Rotate (drag mouse), "
                         "Zoom (drag mouse with Control Key.  Use the Command Key on Mac.");

@@ -124,7 +124,8 @@ LockAspectWarningDialog::LockAspectWarningDialog(QWidget* parent)
     
     QLabel* moreLabel = new QLabel("<html>"
                                    "For a more detailed explanation, click the <b>" + helpButtonText + "</b> button below.  "
-                                   "Note: This dialog will close if the <b> " + helpButtonText + " </b>  is clicked."
+                                   "Note: This dialog will close if " + helpButtonText + " is clicked "
+                                   "and the aspect will remain unlocked."
                                    "</html>");
     QPushButton* helpButton = new QPushButton(helpButtonText + "...");
     QObject::connect(helpButton, &QPushButton::clicked,
