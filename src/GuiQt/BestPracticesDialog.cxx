@@ -171,6 +171,19 @@ BestPracticesDialog::getLockAspectText(const TextMode textMode)
     std::vector<std::pair<AString,AString>> summaryDetails;
     
     {
+        const AString summary("Verify data files are in a common directory tree and file names are reasonable.  ");
+        const AString details(summary
+                              + "Scenes contain the directory path and filename for each data file that is loaded "
+                              "at the time the scene is created.  Once a scene has been created, moving or "
+                              "renaming a data file referenced by the scene will cause an error when the scene is displayed.  "
+                              "In addition, if data files are scattered about many directories, this may cause "
+                              "problems when zipping a scene file and its data files or uploading a scene file "
+                              "to the BALSA database.");
+        
+        summaryDetails.push_back(std::make_pair(summary, details));
+    }
+    
+    {
         const AString summary("If a multi-tab scene will be created, enter Tile Tabs (View Menu->Enter Tile Tabs).  ");
         const AString details(summary
                               + "Tile Tabs displays all of the window's tabs in a grid pattern.  "
