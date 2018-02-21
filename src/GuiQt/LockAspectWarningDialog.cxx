@@ -25,11 +25,12 @@
 
 #include <algorithm>
 
+#include <QButtonGroup>
+#include <QCheckBox>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QPushButton>
-#include <QCheckBox>
+#include <QRadioButton>
 #include <QVBoxLayout>
 
 #include "BestPracticesDialog.h"
@@ -88,7 +89,7 @@ LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex,
     
     if (dialog.exec() == LockAspectWarningDialog::Accepted) {
         s_doNotShowAgainStatusFlag = dialog.isDoNotShowAgainChecked();
-        return dialog.getResult();
+        return dialog.getOkResult();
     }
     
     return Result::CANCEL;
@@ -111,72 +112,97 @@ LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex,
  *     The parent widget.
  */
 LockAspectWarningDialog::LockAspectWarningDialog(QWidget* parent)
-: QDialog(parent)
+: WuQDialogModal("Enter Annotations Mode",
+                 parent)
 {
-    setWindowTitle("Warning: Aspect Unlocked");
+    const QString mainInstructions("Do you want to lock the aspect ratio while entering annotations mode?");
     
-    const QString helpButtonText("More Info");
+    const QString supplementalInstructions("<html>"
+                                           "Prior to locking the aspect ratio, the user should adjust the size "
+                                           "of the window and optionally enable Tile Tabs for a multi-tab view.  "
+                                           "If this has not been done, click the <i>Cancel</i> button, make those "
+                                           "adjustments, and then click the <i>Toolbar's Annotate Mode</i> button."
+                                           "<P>"
+                                           "View the <a href=\"Link\">Best Practices Guide</a> (this dialog "
+                                           "will close).  This guide explains the importance of aspect "
+                                           "locking and documents procedures for successful creation of annotations "
+                                           "and scenes."
+                                           "</html>");
     
-    const AString msg = BestPracticesDialog::getTextForInfoMode(BestPracticesDialog::InfoMode::LOCK_ASPECT_BEST_PRACTICES,
-                                                                BestPracticesDialog::TextMode::BRIEF);
-    QLabel* warningLabel = new QLabel(msg);
-    warningLabel->setWordWrap(true);
+    const QString lockAspectInstructions("Locking the aspect ratio, and never unlocking the aspect "
+                                         "ratio, ensures annotations stay in the correct location.");
+    const QString leaveUnlockedInstructions("Advanced users may choose to lock and unlock the aspect ratio");
     
-    QLabel* moreLabel = new QLabel("<html>"
-                                   "For a more detailed explanation, click the <b>" + helpButtonText + "</b> button below.  "
-                                   "Note: This dialog will close if " + helpButtonText + " is clicked "
-                                   "and the aspect will remain unlocked."
-                                   "</html>");
-    QPushButton* helpButton = new QPushButton(helpButtonText + "...");
-    QObject::connect(helpButton, &QPushButton::clicked,
-                     this, &LockAspectWarningDialog::helpButtonClicked);
+    QLabel* mainInstructionsLabel = new QLabel(mainInstructions);
+    QFont font = mainInstructionsLabel->font();
+    font.setPointSize(font.pointSize() * 1.4);
+    font.setBold(true);
+    mainInstructionsLabel->setFont(font);
     
-    QLabel* buttonsLabel = new QLabel("Continue to Annotations Mode?");
+    QLabel* supplementalInstructionLabel = new QLabel(supplementalInstructions);
+    supplementalInstructionLabel->setWordWrap(true);
+    QObject::connect(supplementalInstructionLabel, &QLabel::linkActivated,
+                     this, &LockAspectWarningDialog::detailsLabelLinkActivated);
     
-    QPushButton* lockWindowAndTabButton = new QPushButton("OK - Lock Aspect");
-    QObject::connect(lockWindowAndTabButton, &QPushButton::clicked,
-                     [=] { this->buttonClicked(Result::LOCK_ASPECT); });
+    QLabel* lockAspectLabel = new QLabel(lockAspectInstructions);
+    lockAspectLabel->setWordWrap(true);
+    QLabel* lockAspectRadioButtonLabel = new QLabel("Lock Aspect Ratio (Recommended)");
+    m_lockAspectRadioButton = new QRadioButton();
     
-    QPushButton* noChangesButton = new QPushButton("OK - Aspect Remains Unlocked");
-    QObject::connect(noChangesButton, &QPushButton::clicked,
-                     [=] { this->buttonClicked(Result::NO_CHANGES); });
+    QLabel* leaveUnlockedAspectRadioButtonLabel = new QLabel("Leave Aspect Ratio Unlocked");
+    m_leaveUnlockedAspectRadioButton = new QRadioButton();
+    QLabel* leaveUnlockedLabel = new QLabel(leaveUnlockedInstructions);
     
-    QPushButton* cancelButton = new QPushButton("Cancel");
-    QObject::connect(cancelButton, &QPushButton::clicked,
-                     [=] { this->buttonClicked(Result::CANCEL); });
+    QButtonGroup* buttGroup = new QButtonGroup(this);
+    buttGroup->addButton(m_lockAspectRadioButton);
+    buttGroup->addButton(m_leaveUnlockedAspectRadioButton);
+    m_lockAspectRadioButton->setChecked(true);
     
-    m_doNotShowAgainCheckBox = new QCheckBox("Do not show again and user will be\n"
-                                              "responsible for aspect locking/unlocking");
-    
-    QVBoxLayout* buttonLayout = new QVBoxLayout();
-    buttonLayout->addWidget(buttonsLabel);
-    buttonLayout->addWidget(lockWindowAndTabButton);
-    buttonLayout->addWidget(noChangesButton);
-    buttonLayout->addWidget(cancelButton);
-    buttonLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    buttonLayout->addWidget(m_doNotShowAgainCheckBox);
-    buttonLayout->addStretch();
-
-    QVBoxLayout* helpLayout = new QVBoxLayout();
-    helpLayout->addWidget(warningLabel);
-    helpLayout->addWidget(moreLabel);
-    helpLayout->addWidget(helpButton, 0, Qt::AlignHCenter);
-    helpLayout->addStretch();
-    
-    WuQtUtilities::matchWidgetWidths(lockWindowAndTabButton,
-                                     noChangesButton,
-                                     cancelButton);
-    
-    QHBoxLayout* dialogLayout = new QHBoxLayout(this);
-    dialogLayout->addLayout(helpLayout);
-    dialogLayout->addLayout(buttonLayout);
+    m_doNotShowAgainCheckBox = new QCheckBox("Do not show again.  User will not be warned about "
+                                             "aspect locking and unlocking.");
     
     /*
-     * Highlighted button
+     * No text is added to readio buttons since 
+     * radio buttons and labels seem to get a different
+     * height in a grid layout.
      */
-    QPushButton* defaultPushButton = lockWindowAndTabButton;
-    defaultPushButton->setAutoDefault(true);
-    defaultPushButton->setDefault(true);
+    const int COL_RADIO_EMPTY  = 0;
+    const int COL_RADIO_BUTTON = 1;
+    const int COL_RADIO_LABEL  = 2;
+    const int COL_RADIO_INFO   = 3;
+    const int COL_RADIO_STRETCH = 4;
+    QGridLayout* buttonGridLayout = new QGridLayout();
+    buttonGridLayout->setVerticalSpacing(4);
+    buttonGridLayout->setColumnMinimumWidth(COL_RADIO_EMPTY, 20);
+    buttonGridLayout->setColumnMinimumWidth(COL_RADIO_LABEL, 20);
+    buttonGridLayout->setColumnStretch(COL_RADIO_EMPTY, 0);
+    buttonGridLayout->setColumnStretch(COL_RADIO_BUTTON, 0);
+    buttonGridLayout->setColumnStretch(COL_RADIO_STRETCH, 100);
+    int row = 0;
+    buttonGridLayout->addWidget(m_lockAspectRadioButton, row, COL_RADIO_BUTTON);
+    buttonGridLayout->addWidget(lockAspectRadioButtonLabel, row, COL_RADIO_LABEL, 1, 2);
+    row++;
+    buttonGridLayout->addWidget(lockAspectLabel, row, COL_RADIO_INFO);
+    row++;
+    buttonGridLayout->addWidget(m_leaveUnlockedAspectRadioButton, row, COL_RADIO_BUTTON);
+    buttonGridLayout->addWidget(leaveUnlockedAspectRadioButtonLabel, row, COL_RADIO_LABEL, 1, 2);
+    row++;
+    buttonGridLayout->addWidget(leaveUnlockedLabel, row, COL_RADIO_INFO);
+    
+    QWidget* dialogWidget = new QWidget;
+    QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
+    dialogLayout->addWidget(mainInstructionsLabel);
+    dialogLayout->addLayout(buttonGridLayout);
+    dialogLayout->addSpacing(10);
+    dialogLayout->addWidget(supplementalInstructionLabel);
+    dialogLayout->addSpacing(10);
+    dialogLayout->addWidget(m_doNotShowAgainCheckBox);
+    
+    setCentralWidget(dialogWidget,
+                     WuQDialogModal::SCROLL_AREA_NEVER);
+    
+    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    
 }
 
 /**
@@ -187,19 +213,31 @@ LockAspectWarningDialog::~LockAspectWarningDialog()
 }
 
 /**
- * @return The selected lock status
+ * @return The result if the user clicked the OK button.
  */
 LockAspectWarningDialog::Result
-LockAspectWarningDialog::getResult() const
+LockAspectWarningDialog::getOkResult() const
 {
+    if (m_lockAspectRadioButton->isChecked()) {
+        return Result::LOCK_ASPECT;
+    }
+    else if (m_leaveUnlockedAspectRadioButton->isChecked()) {
+        return Result::NO_CHANGES;
+    }
+    else {
+        CaretAssert(0);
+    }
+    
     return m_result;
 }
 
 /**
- * Called when help button is clicked.
+ * Called when link in details label is clicked
+ *
+ * @param text of the link.
  */
 void
-LockAspectWarningDialog::helpButtonClicked()
+LockAspectWarningDialog::detailsLabelLinkActivated(const QString& /*link*/)
 {
     /*
      * Best practices dialog will destroy itself when closed.
@@ -210,30 +248,7 @@ LockAspectWarningDialog::helpButtonClicked()
                                                           parentWidget());
     dialog->showDialog();
     
-    buttonClicked(Result::CANCEL);
-}
-
-/**
- * Called when one of the buttons is clicked.
- *
- * @param buttonClicked
- *     Button that was clicked.
- */
-void
-LockAspectWarningDialog::buttonClicked(const Result buttonClicked)
-{
-    m_result = buttonClicked;
-    switch (m_result) {
-        case Result::LOCK_ASPECT:
-            accept();
-            break;
-        case Result::NO_CHANGES:
-            accept();
-            break;
-        case Result::CANCEL:
-            reject();
-            break;
-    }
+    reject();
 }
 
 

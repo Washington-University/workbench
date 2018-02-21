@@ -25,14 +25,14 @@
 
 #include <memory>
 
-#include <QDialog>
+#include "WuQDialogModal.h"
 
 class QCheckBox;
-
+class QRadioButton;
 
 namespace caret {
 
-    class LockAspectWarningDialog : public QDialog {
+    class LockAspectWarningDialog : public WuQDialogModal {
         
         Q_OBJECT
 
@@ -50,16 +50,14 @@ namespace caret {
         
         virtual ~LockAspectWarningDialog();
         
-        Result getResult() const;
+        Result getOkResult() const;
         
         bool isDoNotShowAgainChecked() const;
         
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void helpButtonClicked();
-        
-        void buttonClicked(const Result buttonClicked);
+        void detailsLabelLinkActivated(const QString& link);
         
     private:
         LockAspectWarningDialog(const LockAspectWarningDialog&);
@@ -69,6 +67,10 @@ namespace caret {
         Result m_result = Result::CANCEL;
         
         QCheckBox* m_doNotShowAgainCheckBox;
+        
+        QRadioButton* m_lockAspectRadioButton;
+        
+        QRadioButton* m_leaveUnlockedAspectRadioButton;
         
         static bool s_doNotShowAgainStatusFlag;
         

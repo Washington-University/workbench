@@ -27,6 +27,7 @@
 
 #include "WuQDialogNonModal.h"
 
+class QLabel;
 class QPushButton;
 
 namespace caret {
@@ -41,6 +42,7 @@ namespace caret {
         };
         
         enum TextMode {
+            BRIEF_AND_FULL,
             BRIEF,
             FULL
         };
@@ -67,9 +69,7 @@ namespace caret {
         
         const InfoMode m_infoMode;
         
-        const TextMode m_textMode;
-        
-        AString m_labelText;
+        AString m_text;
         
         QPushButton* m_printPushButton;
         
