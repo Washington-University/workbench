@@ -86,7 +86,7 @@ EventBrowserWindowContent::newWindowContent(const int32_t windowIndex)
 std::unique_ptr<EventBrowserWindowContent>
 EventBrowserWindowContent::deleteWindowContent(const int32_t windowIndex)
 {
-    EventBrowserWindowContent* event = new EventBrowserWindowContent(Mode::DELETE,
+    EventBrowserWindowContent* event = new EventBrowserWindowContent(Mode::DELETER,
                                                                      windowIndex);
     std::unique_ptr<EventBrowserWindowContent> pointer(event);
     return pointer;

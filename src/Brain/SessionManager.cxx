@@ -369,7 +369,7 @@ SessionManager::receiveEvent(Event* event)
         CaretAssert(m_browserWindowContent[windowIndex]);
         
         switch (windowEvent->getMode()) {
-            case EventBrowserWindowContent::Mode::DELETE:
+            case EventBrowserWindowContent::Mode::DELETER:
                 m_browserWindowContent[windowIndex]->setValid(false);
                 break;
             case EventBrowserWindowContent::Mode::GET:

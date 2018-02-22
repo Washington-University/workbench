@@ -37,7 +37,7 @@ namespace caret {
         
     public:
         enum class Mode {
-            DELETE,
+            DELETER, /* DELETE is reserved word in MS Visual Studio C++ */
             GET,
             NEW
         };
