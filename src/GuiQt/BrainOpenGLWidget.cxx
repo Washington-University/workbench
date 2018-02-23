@@ -479,6 +479,21 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
     
     BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
     
+    /*
+     * When restoring scene, the first browser window may get closed.
+     * This occurs when the user creates a scene that does not contain
+     * the first browser window.  The close() method in QWindow may not execute
+     * destruction of the window so this widget may still be valid but
+     * GuiManager no longer has a pointer to the window since it is being closed.
+     * In this case, the window will be NULL.
+     *
+     * This problem is related to the moving window properties to the SessionManager,
+     * in Feb 2018.
+     */
+    if (bbw == NULL) {
+        return;
+    }
+    
     EventBrowserWindowDrawingContent getModelEvent(this->windowIndex);
     EventManager::get()->sendEvent(getModelEvent.getPointer());
     
