@@ -87,3 +87,9 @@ rewritten for different argument types, modified
 Resources/FtglFonts/Vera*.ttf
 Copyright (c) 2003 Bitstream, Inc.
 licensed under Bitstream-Vera (basically, modification of fonts requires calling them something else), see debian/copyright file
+
+Files/PaletteFile.cxx
+copied some palette definitions from matplotlib and its original sources
+Copyright (c) 2012-2016 Matplotlib Development Team
+Copyright (c) 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University
+licensed apache-2 and MDT (bsd-like)

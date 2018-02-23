@@ -836,6 +836,113 @@ PaletteFile::addDefaultPalettes()
         redWhiteBlue.addScalarAndColor(-1.0f, "rwbBlue");
         addPalette(redWhiteBlue);
     }
+    
+    //coolwarm, http://www.kennethmoreland.com/color-maps/
+    //"Diverging Color Maps for Scientific Visualization." Kenneth Moreland. In Proceedings of the 5th International Symposium on Visual Computing, December 2009. DOI 10.1007/978-3-642-10520-3_9.
+    //this palette was interpolated in CIELAB space, and then translated to sRGB, so we need to keep a substantial number of points
+    //use the 33 csv file
+    if (this->getPaletteByName("cool-warm") == NULL) {
+        Palette coolwarm;
+        coolwarm.setName("cool-warm");
+        this->addColor("cool-warm-0", 59,76,192);
+        this->addColor("cool-warm-1", 68,90,204);
+        this->addColor("cool-warm-2", 77,104,215);
+        this->addColor("cool-warm-3", 87,117,225);
+        this->addColor("cool-warm-4", 98,130,234);
+        this->addColor("cool-warm-5", 108,142,241);
+        this->addColor("cool-warm-6", 119,154,247);
+        this->addColor("cool-warm-7", 130,165,251);
+        this->addColor("cool-warm-8", 141,176,254);
+        this->addColor("cool-warm-9", 152,185,255);
+        this->addColor("cool-warm-10", 163,194,255);
+        this->addColor("cool-warm-11", 174,201,253);
+        this->addColor("cool-warm-12", 184,208,249);
+        this->addColor("cool-warm-13", 194,213,244);
+        this->addColor("cool-warm-14", 204,217,238);
+        this->addColor("cool-warm-15", 213,219,230);
+        this->addColor("cool-warm-16", 221,221,221);
+        this->addColor("cool-warm-17", 229,216,209);
+        this->addColor("cool-warm-18", 236,211,197);
+        this->addColor("cool-warm-19", 241,204,185);
+        this->addColor("cool-warm-20", 245,196,173);
+        this->addColor("cool-warm-21", 247,187,160);
+        this->addColor("cool-warm-22", 247,177,148);
+        this->addColor("cool-warm-23", 247,166,135);
+        this->addColor("cool-warm-24", 244,154,123);
+        this->addColor("cool-warm-25", 241,141,111);
+        this->addColor("cool-warm-26", 236,127,99);
+        this->addColor("cool-warm-27", 229,112,88);
+        this->addColor("cool-warm-28", 222,96,77);
+        this->addColor("cool-warm-29", 213,80,66);
+        this->addColor("cool-warm-30", 203,62,56);
+        this->addColor("cool-warm-31", 192,40,47);
+        this->addColor("cool-warm-32", 180,4,38);
+        coolwarm.addScalarAndColor(16.0f / 16.0f, "cool-warm-32");
+        coolwarm.addScalarAndColor(15.0f / 16.0f, "cool-warm-31");
+        coolwarm.addScalarAndColor(14.0f / 16.0f, "cool-warm-30");
+        coolwarm.addScalarAndColor(13.0f / 16.0f, "cool-warm-29");
+        coolwarm.addScalarAndColor(12.0f / 16.0f, "cool-warm-28");
+        coolwarm.addScalarAndColor(11.0f / 16.0f, "cool-warm-27");
+        coolwarm.addScalarAndColor(10.0f / 16.0f, "cool-warm-26");
+        coolwarm.addScalarAndColor(9.0f / 16.0f, "cool-warm-25");
+        coolwarm.addScalarAndColor(8.0f / 16.0f, "cool-warm-24");
+        coolwarm.addScalarAndColor(7.0f / 16.0f, "cool-warm-23");
+        coolwarm.addScalarAndColor(6.0f / 16.0f, "cool-warm-22");
+        coolwarm.addScalarAndColor(5.0f / 16.0f, "cool-warm-21");
+        coolwarm.addScalarAndColor(4.0f / 16.0f, "cool-warm-20");
+        coolwarm.addScalarAndColor(3.0f / 16.0f, "cool-warm-19");
+        coolwarm.addScalarAndColor(2.0f / 16.0f, "cool-warm-18");
+        coolwarm.addScalarAndColor(1.0f / 16.0f, "cool-warm-17");
+        coolwarm.addScalarAndColor(0.0f / 16.0f, "cool-warm-16");
+        coolwarm.addScalarAndColor(-1.0f / 16.0f, "cool-warm-15");
+        coolwarm.addScalarAndColor(-2.0f / 16.0f, "cool-warm-14");
+        coolwarm.addScalarAndColor(-3.0f / 16.0f, "cool-warm-13");
+        coolwarm.addScalarAndColor(-4.0f / 16.0f, "cool-warm-12");
+        coolwarm.addScalarAndColor(-5.0f / 16.0f, "cool-warm-11");
+        coolwarm.addScalarAndColor(-6.0f / 16.0f, "cool-warm-10");
+        coolwarm.addScalarAndColor(-7.0f / 16.0f, "cool-warm-9");
+        coolwarm.addScalarAndColor(-8.0f / 16.0f, "cool-warm-8");
+        coolwarm.addScalarAndColor(-9.0f / 16.0f, "cool-warm-7");
+        coolwarm.addScalarAndColor(-10.0f / 16.0f, "cool-warm-6");
+        coolwarm.addScalarAndColor(-11.0f / 16.0f, "cool-warm-5");
+        coolwarm.addScalarAndColor(-12.0f / 16.0f, "cool-warm-4");
+        coolwarm.addScalarAndColor(-13.0f / 16.0f, "cool-warm-3");
+        coolwarm.addScalarAndColor(-14.0f / 16.0f, "cool-warm-2");
+        coolwarm.addScalarAndColor(-15.0f / 16.0f, "cool-warm-1");
+        coolwarm.addScalarAndColor(-16.0f / 16.0f, "cool-warm-0");
+        addPalette(coolwarm);
+    }
+    
+    //matplotlib's spectral is from colorbrewer
+    //Colors from www.ColorBrewer.org by Cynthia A. Brewer, Geography, Pennsylvania State University.
+    //Copyright (c) 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University.
+    if (this->getPaletteByName("spectral") == NULL) {
+        Palette spectral;
+        spectral.setName("spectral");
+        this->addColor("spectral-0", 158,1,66);
+        this->addColor("spectral-1", 213,62,79);
+        this->addColor("spectral-2", 244,109,67);
+        this->addColor("spectral-3", 253,174,97);
+        this->addColor("spectral-4", 254,224,139);
+        this->addColor("spectral-5", 255,255,191);
+        this->addColor("spectral-6", 230,245,152);
+        this->addColor("spectral-7", 171,221,164);
+        this->addColor("spectral-8", 102,194,165);
+        this->addColor("spectral-9", 50,136,189);
+        this->addColor("spectral-10", 94,79,162);
+        spectral.addScalarAndColor(5.0f / 5.0f, "spectral-0");
+        spectral.addScalarAndColor(4.0f / 5.0f, "spectral-1");
+        spectral.addScalarAndColor(3.0f / 5.0f, "spectral-2");
+        spectral.addScalarAndColor(2.0f / 5.0f, "spectral-3");
+        spectral.addScalarAndColor(1.0f / 5.0f, "spectral-4");
+        spectral.addScalarAndColor(0.0f / 5.0f, "spectral-5");
+        spectral.addScalarAndColor(-1.0f / 5.0f, "spectral-6");
+        spectral.addScalarAndColor(-2.0f / 5.0f, "spectral-7");
+        spectral.addScalarAndColor(-3.0f / 5.0f, "spectral-8");
+        spectral.addScalarAndColor(-4.0f / 5.0f, "spectral-9");
+        spectral.addScalarAndColor(-5.0f / 5.0f, "spectral-10");
+        addPalette(spectral);
+    }
 
     if (this->getPaletteByName("JET256") == NULL) {
         Palette JET256;
