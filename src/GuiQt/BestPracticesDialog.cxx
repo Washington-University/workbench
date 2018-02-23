@@ -86,7 +86,7 @@ m_infoMode(infoMode)
     layout->addWidget(browser);
     
     setCentralWidget(widget,
-                     WuQDialog::SCROLL_AREA_AS_NEEDED_VERT_NO_HORIZ);
+                     WuQDialog::SCROLL_AREA_NEVER);
 
     WuQtUtilities::limitWindowSizePercentageOfMaximum(this, 90.0, 80.0);
 }
