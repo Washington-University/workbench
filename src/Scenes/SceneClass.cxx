@@ -1229,7 +1229,7 @@ SceneClass::logMissing(const AString& missingInfo) const
     }
     
     if (s_debugLoggingEnabledFlag) {
-        CaretLogFine(missingInfo);
+        CaretLogFiner(missingInfo);
     }
 }
 
