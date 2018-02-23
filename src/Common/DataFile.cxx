@@ -20,6 +20,7 @@
 
 #include <QFileInfo>
 
+#include "CaretLogger.h"
 #include "DataFile.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
@@ -360,11 +361,19 @@ DataFile::isModifiedSinceTimeOfLastReadOrWrite() const
         return false;
     }
     
+    CaretLogFine("Testing reload of "
+                 + getFileNameNoPath()
+                 + " last read/write: "
+                 + m_timeOfLastReadOrWrite.toString(Qt::ISODate)
+                 + " last modified: "
+                 + lastModTime.toString(Qt::ISODate)
+                 + ((m_timeOfLastReadOrWrite == lastModTime) ? " EQUAL" : " NOT EQUAL"));
+    
     /*
      * If last modified time is newer than
      * time of file read or written
      */
-    if (lastModTime > m_timeOfLastReadOrWrite) {
+    if (lastModTime != m_timeOfLastReadOrWrite) {
         return true;
     }
     
