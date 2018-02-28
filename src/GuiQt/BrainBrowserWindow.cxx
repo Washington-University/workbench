@@ -759,11 +759,14 @@ BrainBrowserWindow::createActionsUsedByToolBar()
                      this, &BrainBrowserWindow::processWindowMenuLockAllTabAspectRatioTriggered);
     
     const QString aspectButtonToolTipText("<html>"
-                                          "Right-Click (Control-Click on Mac) to display a dialog "
-                                          "for manual entry of the aspect ratio for either the window "
-                                          "or the tab.  The value displayed "
-                                          "is the value from the last time aspect was locked.  If a "
-                                          "value is entered, the lock status is set to ON."
+                                          "Lock the aspect ratio of the window and all tabs.  "
+                                          "Aspect ratios should be locked prior to creating "
+                                          "annotations and remain locked while annotations are "
+                                          "present."
+                                          "<p>"
+                                          "Advanced users can right-click (control-click on Mac) "
+                                          "to manually adjust the aspect "
+                                          "ratio for the selected tab or the window."
                                           "</html>");
     
     m_toolBarLockWindowAndAllTabAspectRatioAction = new QAction();
@@ -920,58 +923,97 @@ BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectMenu(const QPoint& po
         QAction* selectedAction = menu.exec(m_toolBarLockWindowAndAllTabAspectRatioButton->parentWidget()->mapToGlobal(pos));
         
         if (selectedAction == windowAspectAction) {
-            float aspectRatio = getAspectRatioFromDialog(("Set Window "
+            float aspectRatio = getAspectRatioFromDialog(AspectRatioMode::WINDOW,
+                                                         ("Window "
                                                           + AString::number(m_browserWindowIndex + 1)
-                                                          + " Aspect Ratio..."),
+                                                          + " Aspect Ratio"),
                                                          getAspectRatio(),
                                                          this);
             if (aspectRatio > 0.0f) {
-                lockWindowAspectRatio(true);
-                m_browserWindowContent->setWindowAspectLockedRatio(aspectRatio);
+                aspectRatioDialogUpdateForWindow(aspectRatio);
             }
         }
         else if (selectedAction == tabAspectAction) {
-            float aspectRatio = getAspectRatioFromDialog(("Set Tab "
-                                                          + tabContent->getName()
-                                                          + " Aspect Ratio..."),
-                                                         tabContent->getAspectRatio(),
-                                                         this);
+            float aspectRatio = tabContent->getAspectRatio();
+            
+            if ( ! tabContent->isAspectRatioLocked()) {
+                /*
+                 * When aspect is NOT locked, need to get current aspect ratio
+                 */
+                aspectRatio = getOpenGLWidgetAspectRatio();
+                
+                if (isTileTabsSelected()) {
+                    /*
+                     * When tile tabs is enabled, find the tab to get its aspect ratio
+                     */
+                    std::vector<const BrainOpenGLViewportContent*> allViewportContent = m_openGLWidget->getViewportContent();
+                    for (auto vc : allViewportContent) {
+                        if (vc->getTabIndex() == tabContent->getTabNumber()) {
+                            int viewport[4];
+                            vc->getModelViewport(viewport);
+                            if (viewport[3] > 0) {
+                                aspectRatio = (static_cast<float>(viewport[3])
+                                               / static_cast<float>(viewport[2]));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            aspectRatio = getAspectRatioFromDialog(AspectRatioMode::TAB,
+                                                   ("Tab "
+                                                    + tabContent->getName()
+                                                    + " Aspect Ratio"),
+                                                   aspectRatio,
+                                                   this);
             if (aspectRatio > 0.0f) {
-                lockAllTabAspectRatios(true);
-                tabContent->setAspectRatio(aspectRatio);
-                tabContent->setAspectRatioLocked(true);
+                aspectRatioDialogUpdateForTab(aspectRatio);
             }
         }
-        
-        updateActionsForLockingAspectRatios();
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
     }
 }
 
 /**
  * Get the new aspect ratio using a dialog.
  *
+ * @param aspectRatioMode
+ *     Mode (tab or window)
  * @param title
  *     Title for dialog.
- * @param aspectRatio
+ * @param originalAspectRatio
  *     Default value for aspect ratio
  * @param parent
  *     Parent for the dialog.
  */
 float
-BrainBrowserWindow::getAspectRatioFromDialog(const QString& title,
-                                                       const float aspectRatio,
-                                                       QWidget* parent) const
+BrainBrowserWindow::getAspectRatioFromDialog(const AspectRatioMode aspectRatioMode,
+                                             const QString& title,
+                                             const float aspectRatio,
+                                             QWidget* parent) const
 {
     float aspectRatioOut = -1.0;
     
-    WuQDataEntryDialog ded("Aspect Ratio",
+    WuQDataEntryDialog ded("Set Aspect Ratio",
                            parent);
+    ded.setCancelButtonText("");
     QDoubleSpinBox* ratioSpinBox = ded.addDoubleSpinBox(title,
                                                         aspectRatio);
     ratioSpinBox->setSingleStep(0.01);
     ratioSpinBox->setRange(ratioSpinBox->singleStep(), 100.0);
     ratioSpinBox->setDecimals(3);
+    ratioSpinBox->setKeyboardTracking(true);
+    
+    switch (aspectRatioMode) {
+        case AspectRatioMode::TAB:
+            QObject::connect(ratioSpinBox,  static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                             this, &BrainBrowserWindow::aspectRatioDialogUpdateForTab);
+            break;
+        case AspectRatioMode::WINDOW:
+            QObject::connect(ratioSpinBox,  static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                             this, &BrainBrowserWindow::aspectRatioDialogUpdateForWindow);
+            break;
+    }
     if (ded.exec() == WuQDataEntryDialog::Accepted) {
         aspectRatioOut = ratioSpinBox->value();
     }
@@ -979,7 +1021,44 @@ BrainBrowserWindow::getAspectRatioFromDialog(const QString& title,
     return aspectRatioOut;
 }
 
+/**
+ * Called when the user manually adjust aspect ratio for all tabs.
+ *
+ * @param aspectRatio
+ *      New aspect ratio.
+ */
+void
+BrainBrowserWindow::aspectRatioDialogUpdateForTab(const double aspectRatio)
+{
+    BrowserTabContent* tabContent = getBrowserTabContent();
+    
+    if (aspectRatio > 0.0f) {
+        lockAllTabAspectRatios(true);
+        tabContent->setAspectRatio(aspectRatio);
+        tabContent->setAspectRatioLocked(true);
+    }
+    
+    updateActionsForLockingAspectRatios();
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+}
 
+/**
+ * Called when the user manually adjust aspect ratio for window.
+ * 
+ * @param aspectRatio
+ *      New aspect ratio.
+ */
+void
+BrainBrowserWindow::aspectRatioDialogUpdateForWindow(const double aspectRatio)
+{
+    if (aspectRatio > 0.0f) {
+        lockWindowAspectRatio(true);
+        m_browserWindowContent->setWindowAspectLockedRatio(aspectRatio);
+    }
+    
+    updateActionsForLockingAspectRatios();
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+}
 
 /**
  * Update the actions for window menu's lock window aspect, window menu's lock
@@ -1016,6 +1095,13 @@ BrainBrowserWindow::isWindowAspectRatioLocked() const
 float
 BrainBrowserWindow::getAspectRatio() const
 {
+    if ( ! m_browserWindowContent->isWindowAspectLocked()) {
+        /*
+         * When aspect NOT locked, use the OpenGL widget's aspect ratio
+         */
+        m_browserWindowContent->setWindowAspectLockedRatio(getOpenGLWidgetAspectRatio());
+    }
+    
     return m_browserWindowContent->getWindowAspectLockedRatio();
 }
 

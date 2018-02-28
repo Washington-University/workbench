@@ -238,6 +238,9 @@ namespace caret {
         void processEditMenuItemTriggered(QAction* action);
         void processEditMenuAboutToShow();
         
+        void aspectRatioDialogUpdateForTab(const double aspectRatio);
+        void aspectRatioDialogUpdateForWindow(const double aspectRatio);
+        
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
@@ -252,6 +255,11 @@ namespace caret {
         enum CreateDefaultTabsMode {
             CREATE_DEFAULT_TABS_YES,
             CREATE_DEFAULT_TABS_NO
+        };
+        
+        enum class AspectRatioMode {
+            TAB,
+            WINDOW
         };
         
         BrainBrowserWindow(const int browserWindowIndex,
@@ -308,7 +316,8 @@ namespace caret {
         void lockAllTabAspectRatios(const bool checked);
         void updateActionsForLockingAspectRatios();
         
-        float getAspectRatioFromDialog(const QString& title,
+        float getAspectRatioFromDialog(const AspectRatioMode aspectRatioMode,
+                                       const QString& title,
                                        const float aspectRatio,
                                        QWidget* parent) const;
         
