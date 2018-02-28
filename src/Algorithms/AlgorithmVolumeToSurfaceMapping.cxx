@@ -578,12 +578,13 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeightsMyelin(vector<vector<Voxe
         Vector3D nodeCoord = mySurface->getCoordinate(node), nodeIndices, nodenormal = normals + (node * 3);
         roiVol->spaceToIndex(nodeCoord, nodeIndices);
         float nodeThick = thicknessData[node];
+        float cylinderCorner = nodeThick * sqrt(5.0f) / 2.0f;
         int64_t min[3], max[3];
         for (int i = 0; i < 3; ++i)
         {
-            min[i] = (int)ceil(nodeIndices[i] - range[i] * nodeThick);
+            min[i] = (int)ceil(nodeIndices[i] - range[i] * cylinderCorner);
             if (min[i] < 0) min[i] = 0;
-            max[i] = (int)floor(nodeIndices[i] + range[i] * nodeThick) + 1;
+            max[i] = (int)floor(nodeIndices[i] + range[i] * cylinderCorner) + 1;
             if (max[i] > myDims[i]) max[i] = myDims[i];
         }
         double weightTotal = 0.0;
@@ -597,7 +598,7 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeightsMyelin(vector<vector<Voxe
                     Vector3D voxelCoord;
                     roiVol->indexToSpace(ijk, voxelCoord);
                     Vector3D delta = voxelCoord - nodeCoord;
-                    if (abs(nodenormal.dot(delta)) < 0.5f * nodeThick && roiVol->getValue(ijk) > 0.0f)
+                    if (abs(nodenormal.dot(delta)) < 0.5f * nodeThick && nodenormal.cross(delta).length() < nodeThick && roiVol->getValue(ijk) > 0.0f)
                     {
                         float weight = exp(delta.lengthsquared() * invnegsigmasquaredx2);
                         myWeights[node].push_back(VoxelWeight(weight, ijk));
