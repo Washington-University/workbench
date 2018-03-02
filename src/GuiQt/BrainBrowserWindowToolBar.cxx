@@ -2582,13 +2582,18 @@ BrainBrowserWindowToolBar::createModeWidget()
     /*
      * Image
      */
-    this->modeInputModeImageAction = WuQtUtilities::createAction("Image",
-                                                                 "Edit Image Control Points",
-                                                                 this);
-    this->modeInputModeImageAction->setCheckable(true);
-    QToolButton* inputModeImageToolButton = new QToolButton();
-    inputModeImageToolButton->setDefaultAction(this->modeInputModeImageAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeImageToolButton);
+    const bool showImageButtonFlag = false;
+    this->modeInputModeImageAction = NULL;
+    QToolButton* inputModeImageToolButton = NULL;
+    if (showImageButtonFlag) {
+        modeInputModeImageAction = WuQtUtilities::createAction("Image",
+                                                               "Edit Image Control Points",
+                                                               this);
+        this->modeInputModeImageAction->setCheckable(true);
+        inputModeImageToolButton = new QToolButton();
+        inputModeImageToolButton->setDefaultAction(this->modeInputModeImageAction);
+        WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeImageToolButton);
+    }
     
     /*
      * Volume Edit
@@ -2632,8 +2637,10 @@ BrainBrowserWindowToolBar::createModeWidget()
                                      inputModeVolumeEditButton);
     inputModeFociToolButton->setSizePolicy(QSizePolicy::Preferred,
                                            inputModeFociToolButton->sizePolicy().verticalPolicy());
-    inputModeImageToolButton->setSizePolicy(QSizePolicy::Preferred,
-                                           inputModeImageToolButton->sizePolicy().verticalPolicy());
+    if (inputModeImageToolButton != NULL) {
+        inputModeImageToolButton->setSizePolicy(QSizePolicy::Preferred,
+                                                inputModeImageToolButton->sizePolicy().verticalPolicy());
+    }
     
     /*
      * Layout for input modes
@@ -2646,8 +2653,13 @@ BrainBrowserWindowToolBar::createModeWidget()
     modeRow++;
     inputModeLayout->addWidget(inputModeBordersToolButton, modeRow, 0, 1, 2, Qt::AlignHCenter);
     modeRow++;
-    inputModeLayout->addWidget(inputModeFociToolButton, modeRow, 0);
-    inputModeLayout->addWidget(inputModeImageToolButton, modeRow, 1);
+    if (inputModeImageToolButton != NULL) {
+        inputModeLayout->addWidget(inputModeFociToolButton, modeRow, 0);
+        inputModeLayout->addWidget(inputModeImageToolButton, modeRow, 1);
+    }
+    else {
+        inputModeLayout->addWidget(inputModeFociToolButton, modeRow, 0, 1, 2, Qt::AlignHCenter);
+    }
     modeRow++;
     inputModeLayout->addWidget(inputModeViewToolButton, modeRow, 0, 1, 2, Qt::AlignHCenter);
     modeRow++;
@@ -2658,7 +2670,9 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputModeActionGroup->addAction(this->modeInputModeAnnotationsAction);
     this->modeInputModeActionGroup->addAction(this->modeInputModeBordersAction);
     this->modeInputModeActionGroup->addAction(this->modeInputModeFociAction);
-    this->modeInputModeActionGroup->addAction(this->modeInputModeImageAction);
+    if (this->modeInputModeImageAction != NULL) {
+        this->modeInputModeActionGroup->addAction(this->modeInputModeImageAction);
+    }
     this->modeInputModeActionGroup->addAction(this->modeInputModeViewAction);
     this->modeInputModeActionGroup->addAction(this->modeInputVolumeEditAction);
     QObject::connect(this->modeInputModeActionGroup, SIGNAL(triggered(QAction*)),
@@ -2736,7 +2750,8 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
     else if (action == this->modeInputModeFociAction) {
         inputMode = UserInputModeAbstract::FOCI;
     }
-    else if (action == this->modeInputModeImageAction) {
+    else if ((action == this->modeInputModeImageAction)
+             && (this->modeInputModeImageAction != NULL)) {
         inputMode = UserInputModeAbstract::IMAGE;
     }
     else if (action == this->modeInputVolumeEditAction) {
@@ -2789,7 +2804,9 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
             this->modeInputModeFociAction->setChecked(true);
             break;
         case UserInputModeAbstract::IMAGE:
-            this->modeInputModeImageAction->setChecked(true);
+            if (this->modeInputModeImageAction != NULL) {
+                this->modeInputModeImageAction->setChecked(true);
+            }
             break;
         case UserInputModeAbstract::VOLUME_EDIT:
             this->modeInputVolumeEditAction->setChecked(true);
