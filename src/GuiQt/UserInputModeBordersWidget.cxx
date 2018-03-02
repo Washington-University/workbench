@@ -609,11 +609,16 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     }
     
     if (surface == NULL) {
-        CaretLogSevere("PROGRAM ERROR: Cannot find surface for border drawing.");
+        AString tabsMessage;
+        if (browserWindow->isTileTabsSelected()) {
+            tabsMessage = "Verify that points are added in the SELECTED tab.";
+        }
+        WuQMessageBox::errorOk(this, "Borders may only be drawn on surface models.  "
+                               + tabsMessage);
         return;
     }
     if (brain == NULL) {
-        CaretLogSevere("PROGRAM ERROR: Cannot find surface for border drawing.");
+        CaretLogSevere("PROGRAM ERROR: Cannot find brain for border drawing.");
         return;
     }
     
