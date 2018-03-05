@@ -269,7 +269,7 @@ HelpViewerDialog::createHelpViewerWidget()
     connect(printButton, SIGNAL(clicked()),
             this, SLOT(helpPagePrintButtonClicked()));
     printButton->setText("Print");
-    printButton->hide();
+    //printButton->hide();
     
     /**
      *  Copy button
