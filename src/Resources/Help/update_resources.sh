@@ -1,8 +1,9 @@
 #!/bin/sh
 
+rm -rf OLD_HelpFiles
 mv HelpFiles OLD_HelpFiles
 
-cp -r /mnt/myelin/shared/WB_Tutorial/WB_1.2_Help ./HelpFiles
+cp -r /mnt/myelin/shared/WB_Tutorial/WB_1.3_Help ./HelpFiles
 
 rm -rf OLD_HelpFiles
 

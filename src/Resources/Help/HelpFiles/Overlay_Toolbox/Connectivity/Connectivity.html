@@ -8,8 +8,8 @@
     <font size="+2"><b><font face="Calibri">Connectivity</font></b></font><br>
     <font face="Calibri">The Connectivity tab in the <a
         href="../Overlay_Toolbox.html"><u><b>Overlay Toolbox</b></u></a>
-      contains a listing of loaded Connectivity and Fiber Orientation
-      files and links. <br>
+      contains a listing of loaded Connectivity (Dense, Dense Dynamic,
+      Parcel,&nbsp; and Fiber Orientation) files and links. <br>
       <br>
       URL links (loaded using Open Location... in <a
         href="../../Menus/File_Menu/File_Menu.html"><u><b>File Menu</b></u></a>)
@@ -19,10 +19,11 @@
       whole 90,000 x 90,000 matrix into memory.</font><font
       face="Calibri"><font face="Calibri"> </font>
       <ul>
-        <li><font face="Calibri"><font face="Calibri"><b>On</b>
+        <li><font face="Calibri"><font face="Calibri"><b>Load</b>
               checkboxes toggle on/off data loading from the listed
               connectivity file for identified brainordinates (selected
               by left clicking on surfaces or volumes). If checked, <u>every
+
                 time</u> a brainordinate is selected, data will be
               loaded into memory from that file for that brainordinate,
               regardless of whether it is displayed in any viewing tab.
@@ -32,6 +33,17 @@
       </ul>
       <font face="Calibri">
         <ul>
+          <li><font face="Calibri"><font face="Calibri"><b>Layer</b>
+                Data-series files support "dynamic connectivity".&nbsp;
+                When a brainordinate is identified, the corresponding
+                row to the brainordinate is correlated with all other
+                rows in the file to produce a connectivity map displayed
+                on the brainordinates.&nbsp; This dynamic connectivity
+                produces the same data as found in a dense connectivity
+                file without needing to create the dense connectivity
+                file.&nbsp; Note that dense connectivity files may be
+                very large (eg 9 GB).<br>
+                <b></b></font></font></li>
           <li><font face="Calibri"><font face="Calibri"><b>Copy</b>
                 copies the data from the currently loaded matrix row
                 (for the currently selected brainordinate) and creates a
@@ -39,6 +51,7 @@
                 file(s) created this way will appear and can be saved
                 (and renamed, if desired) in the <a
                   href="../../Menus/File_Menu/Save-Manage_Files/Save-Manage_Files.html"><u><b>Save</b></u><u><b>/Manage
+
 
 
 
@@ -61,7 +74,7 @@
                 </font></font><br>
             </li>
           </ul>
-          <img alt="" src="Connectivity.png" height="197" width="1209"><br>
+          <img alt="" src="Connectivity.png" width="1209" height="197"><br>
           <ul>
           </ul>
         </font></font> </font>
