@@ -90,8 +90,8 @@ namespace caret
         static void swapHeaderBytes(nifti_2_header &header);
         void prepareHeader(nifti_1_header& header) const;//transform internal state into ready to write header struct
         void prepareHeader(nifti_2_header& header) const;
-        Quirks setupFrom(const nifti_1_header& header);//error check provided header, and populate members from it
-        Quirks setupFrom(const nifti_2_header& header);
+        Quirks setupFrom(const nifti_1_header& header, const AString& filename);//error check provided header, and populate members from it
+        Quirks setupFrom(const nifti_2_header& header, const AString& filename);
         static int typeToNumBits(const int64_t& type);
         int64_t computeVoxOffset(const int& version) const;
     };

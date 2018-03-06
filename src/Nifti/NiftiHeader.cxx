@@ -633,14 +633,14 @@ void NiftiHeader::read(CaretBinaryFile& inFile)
                 swapped = true;
                 swapHeaderBytes(buffer2);
             }
-            myquirks = setupFrom(buffer2);
+            myquirks = setupFrom(buffer2, inFile.getFilename());
         } else if (version == 1) {
             if (NIFTI2_NEEDS_SWAP(buffer1))//yes, this works on nifti-1 also
             {
                 swapped = true;
                 swapHeaderBytes(buffer1);
             }
-            myquirks = setupFrom(buffer1);
+            myquirks = setupFrom(buffer1, inFile.getFilename());
         } else {
             throw DataFileException(inFile.getFilename() + " is not a valid NIfTI file");
         }
@@ -695,27 +695,27 @@ void NiftiHeader::read(CaretBinaryFile& inFile)
     m_version = version;
 }
 
-NiftiHeader::Quirks NiftiHeader::setupFrom(const nifti_1_header& header)
+NiftiHeader::Quirks NiftiHeader::setupFrom(const nifti_1_header& header, const AString& filename)
 {
     Quirks ret;
-    if (header.sizeof_hdr != sizeof(nifti_1_header)) throw DataFileException("incorrect sizeof_hdr");
+    if (header.sizeof_hdr != sizeof(nifti_1_header)) throw DataFileException(filename, "incorrect sizeof_hdr");
     const char magic[] = "n+1\0";//only support single-file nifti
-    if (strncmp(header.magic, magic, 4) != 0) throw DataFileException("incorrect magic");
-    if (header.dim[0] < 1 || header.dim[0] > 7) throw DataFileException("incorrect dim[0]");
+    if (strncmp(header.magic, magic, 4) != 0) throw DataFileException(filename, "incorrect magic");
+    if (header.dim[0] < 1 || header.dim[0] > 7) throw DataFileException(filename, "incorrect dim[0]");
     for (int i = 0; i < header.dim[0]; ++i)
     {
-        if (header.dim[i + 1] < 1) throw DataFileException("dim[" + QString::number(i + 1) + "] < 1");
+        if (header.dim[i + 1] < 1) throw DataFileException(filename, "dim[" + QString::number(i + 1) + "] < 1");
     }
     if (header.vox_offset < 352)
     {
         if (header.vox_offset < 348)
         {
-            throw DataFileException("invalid vox_offset: " + AString::number(header.vox_offset));
+            throw DataFileException(filename, "invalid vox_offset: " + AString::number(header.vox_offset));
         }
         ret.no_extender = true;
     }
     int numBits = typeToNumBits(header.datatype);
-    if (header.bitpix != numBits) CaretLogWarning("datatype disagrees with bitpix");
+    if (header.bitpix != numBits) CaretLogWarning("datatype disagrees with bitpix in file '" + filename + "'");
     m_header.sizeof_hdr = header.sizeof_hdr;//copy in everything, so we don't have to fake anything to print the header as read
     for (int i = 0; i < 4; ++i)//mostly using nifti-2 field order to make it easier to find if things are missed
     {
@@ -761,22 +761,22 @@ NiftiHeader::Quirks NiftiHeader::setupFrom(const nifti_1_header& header)
     return ret;
 }
 
-NiftiHeader::Quirks NiftiHeader::setupFrom(const nifti_2_header& header)
+NiftiHeader::Quirks NiftiHeader::setupFrom(const nifti_2_header& header, const AString& filename)
 {
     Quirks ret;
-    if (header.sizeof_hdr != sizeof(nifti_2_header)) throw DataFileException("incorrect sizeof_hdr");
+    if (header.sizeof_hdr != sizeof(nifti_2_header)) throw DataFileException(filename, "incorrect sizeof_hdr");
     const char magic[] = "n+2\0\r\n\032\n";//only support single-file nifti
     for (int i = 0; i < 8; ++i)
     {
-        if (header.magic[i] != magic[i]) throw DataFileException("incorrect magic");
+        if (header.magic[i] != magic[i]) throw DataFileException(filename, "incorrect magic");
     }
-    if (header.dim[0] < 1 || header.dim[0] > 7) throw DataFileException("incorrect dim[0]");
+    if (header.dim[0] < 1 || header.dim[0] > 7) throw DataFileException(filename, "incorrect dim[0]");
     for (int i = 0; i < header.dim[0]; ++i)
     {
-        if (header.dim[i + 1] < 1) throw DataFileException("dim[" + QString::number(i + 1) + "] < 1");
+        if (header.dim[i + 1] < 1) throw DataFileException(filename, "dim[" + QString::number(i + 1) + "] < 1");
     }
-    if (header.vox_offset < 544) throw DataFileException("incorrect vox_offset");//haven't noticed any nifti-2 with bad vox_offset yet, and all cifti files have a big extension, so they have to have used it correctly
-    if (header.bitpix != typeToNumBits(header.datatype)) CaretLogWarning("datatype disagrees with bitpix");
+    if (header.vox_offset < 544) throw DataFileException(filename, "incorrect vox_offset");//haven't noticed any nifti-2 with bad vox_offset yet, and all cifti files have a big extension, so they have to have used it correctly
+    if (header.bitpix != typeToNumBits(header.datatype)) CaretLogWarning("datatype disagrees with bitpix in file '" + filename + "'");
     memcpy(&m_header, &header, sizeof(nifti_2_header));
     return ret;
 }
