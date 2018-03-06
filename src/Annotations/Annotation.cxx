@@ -266,7 +266,20 @@ Annotation::replaceWithCopyOfAnnotation(const Annotation* annotation)
 }
 
 /**
- * @return Is this annotation requiring that it be kept in a fixed 
+ * Set this instance modified.
+ */
+void
+Annotation::setModified()
+{
+    /*
+     * While this method does not need to be overridden, 
+     * doing so enables debugging of invalid modification status.
+     */
+    CaretObjectTracksModification::setModified();
+}
+
+/**
+ * @return Is this annotation requiring that it be kept in a fixed
  * aspect ratio?  By default, this is false.  This method may be 
  * overridden by annotations that require a fixed aspect ratio
  * (such as an image annotaiton).
@@ -827,7 +840,6 @@ Annotation::setLineWidthPercentage(const float lineWidthPercentage)
 {
     if (lineWidthPercentage != m_lineWidthPercentage) {
         m_lineWidthPercentage = lineWidthPercentage;
-        setModified();
     }
 }
 

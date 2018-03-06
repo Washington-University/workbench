@@ -134,6 +134,8 @@ namespace caret {
         
         void setPropertiesForSpecializedUsage(const PropertiesSpecializedUsage specializedUsage);
         
+        virtual void setModified();
+
         AnnotationGroupKey getAnnotationGroupKey() const;
         
         int32_t getUniqueKey() const;
