@@ -1396,7 +1396,7 @@ ImageFile::getImageInByteArray(QByteArray& byteArrayOut,
  * @param format
  *    Format for the image (jpg, ppm, etc.) or empty if unknown.
  */
-void
+bool
 ImageFile::setImageFromByteArray(const QByteArray& byteArray,
                                  const AString& format)
 {
@@ -1410,9 +1410,11 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
     }
     
     if ( ! successFlag) {
-        throw DataFileException(getFileName(),
-                                "Failed to create image from byte array.");
+        CaretLogSevere(getFileName()
+                       + " Failed to create image from byte array.");
     }
+
+    return successFlag;
 }
 
 /**

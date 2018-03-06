@@ -184,7 +184,7 @@ public:
     void getImageInByteArray(QByteArray& byteArrayOut,
                              const AString& format) const;
     
-    void setImageFromByteArray(const QByteArray& byteArray,
+    bool setImageFromByteArray(const QByteArray& byteArray,
                                const AString& format);
     
     void combinePreservingAspectAndFillIfNeeded(const std::vector<ImageFile*>& imageFiles,

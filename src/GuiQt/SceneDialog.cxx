@@ -1180,6 +1180,10 @@ SceneDialog::getQImageFromSceneInfo(const SceneInfo* sceneInfo) const
     sceneInfo->getImageBytes(imageByteArray,
                              imageBytesFormat);
     
+    if (imageByteArray.isEmpty()) {
+        return new QImage();
+    }
+    
     ImageFile imageFile;
     imageFile.setImageFromByteArray(imageByteArray,
                                     imageBytesFormat);
@@ -3002,16 +3006,14 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         bool    previewImageValid = false;
         
         if (imageByteArray.length() > 0) {
-            try {
-                ImageFile imageFile;
-                imageFile.setImageFromByteArray(imageByteArray,
-                                                imageBytesFormat);
+            ImageFile imageFile;
+            imageFile.setImageFromByteArray(imageByteArray,
+                                            imageBytesFormat);
+            
+            previewImage = *imageFile.getAsQImage();
+            if ( ! previewImage.isNull()) {
                 imageFile.resizeToWidth(previewImageWidth);
-                previewImage = *imageFile.getAsQImage();
                 previewImageValid = true;
-            }
-            catch (const DataFileException& dfe) {
-                CaretLogSevere(dfe.whatString());
             }
         }
         
