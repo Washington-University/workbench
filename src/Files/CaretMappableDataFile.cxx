@@ -330,13 +330,11 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
                                                                "m_labelDrawingProperties"));
     
     
-    //m_chartingDelegate->updateAfterFileChanged();
-    if (m_chartingDelegate) {
+    if (m_chartingDelegate != NULL) {
         SceneClass* chartDelegateScene = m_chartingDelegate->saveToScene(sceneAttributes,
                                                                          "m_chartingDelegate");
         if (chartDelegateScene != NULL) {
-            sceneClass->addClass(m_chartingDelegate->saveToScene(sceneAttributes,
-                                                                 "m_chartingDelegate"));
+            sceneClass->addClass(chartDelegateScene);
         }
     }
     
@@ -425,10 +423,11 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     m_labelDrawingProperties->restoreFromScene(sceneAttributes,
                                                sceneClass->getClass("m_labelDrawingProperties"));
     const SceneClass* chartingDelegateClass = sceneClass->getClass("m_chartingDelegate");
-    m_chartingDelegate->updateAfterFileChanged();
+    ChartableTwoFileDelegate* chartDelegate = getChartingDelegate();
+    chartDelegate->updateAfterFileChanged();
     if (chartingDelegateClass != NULL) {
-        CaretAssert(m_chartingDelegate);
-        m_chartingDelegate->restoreFromScene(sceneAttributes,
+        CaretAssert(chartDelegate);
+        chartDelegate->restoreFromScene(sceneAttributes,
                                              chartingDelegateClass);
     }
     
@@ -921,6 +920,17 @@ CaretMappableDataFile::isModified() const
 }
 
 /**
+ * Clear data in this file.
+ */
+void
+CaretMappableDataFile::clear()
+{
+    CaretDataFile::clear();
+    
+    m_chartingDelegate.reset();
+}
+
+/**
  * Clear the modified status of this file.
  */
 void
@@ -928,7 +938,7 @@ CaretMappableDataFile::clearModified()
 {
     CaretDataFile::clearModified();
     
-    if (m_chartingDelegate) {
+    if (m_chartingDelegate != NULL) {
         m_chartingDelegate->clearModified();
     }
 }
@@ -1113,6 +1123,8 @@ CaretMappableDataFile::getChartingDelegate()
 {
     if (m_chartingDelegate == NULL) {
         m_chartingDelegate = std::unique_ptr<ChartableTwoFileDelegate>(new ChartableTwoFileDelegate(this));
+        
+        m_chartingDelegate->updateAfterFileChanged();
     }
     return m_chartingDelegate.get();
 }
@@ -1127,16 +1139,18 @@ CaretMappableDataFile::getChartingDelegate() const
     if (m_chartingDelegate == NULL) {
         CaretMappableDataFile* thisFile = const_cast<CaretMappableDataFile*>(this);
         m_chartingDelegate = std::unique_ptr<ChartableTwoFileDelegate>(new ChartableTwoFileDelegate(thisFile));
+
+        m_chartingDelegate->updateAfterFileChanged();
     }
     return m_chartingDelegate.get();
 }
 
 /**
- * Update the charting delegate after changes
+ * Update the charting delegate after changes (add a row/column, etc.)
  * are made to the data file.
  */
 void
-CaretMappableDataFile::updateChartingDelegate()
+CaretMappableDataFile::updateChartingDelegateAfterFileDataChanges()
 {
     getChartingDelegate()->updateAfterFileChanged();
 }

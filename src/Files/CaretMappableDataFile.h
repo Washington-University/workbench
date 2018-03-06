@@ -463,6 +463,8 @@ namespace caret {
         
         virtual void clearModified() override;
         
+        virtual void clear();
+        
         void initializeCaretMappableDataFileInstance();
         
         LabelDrawingProperties* getLabelDrawingProperties();
@@ -485,7 +487,7 @@ namespace caret {
         
         void helpGetSupportedLineSeriesChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
-        void updateChartingDelegate();
+        void updateChartingDelegateAfterFileDataChanges();
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);

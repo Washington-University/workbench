@@ -1080,8 +1080,6 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
     validateKeysAndLabels();
     
     validateAfterFileReading();
-    
-    updateChartingDelegate();
 }
 
 /**
