@@ -1304,7 +1304,13 @@ SceneDialog::replaceAllScenesPushButtonClicked()
             
             const QImage* imageFromScene = getQImageFromSceneInfo(origScene->getSceneInfo());
             if (imageFromScene != NULL) {
-                oldImages.push_back(imageFromScene->scaledToWidth(IMAGE_DISPLAY_WIDTH));
+                if (imageFromScene->isNull()) {
+                    oldImages.push_back(QImage());
+                }
+                else {
+                    oldImages.push_back(imageFromScene->scaledToWidth(IMAGE_DISPLAY_WIDTH));
+                }
+                delete imageFromScene;
             }
             else {
                 oldImages.push_back(QImage());
@@ -1368,7 +1374,13 @@ SceneDialog::replaceAllScenesPushButtonClicked()
             loadScenesIntoDialog(newScene);
             const QImage* newImage = getQImageFromSceneInfo(newScene->getSceneInfo());
             if (newImage != NULL) {
-                newImages.push_back(newImage->scaledToWidth(IMAGE_DISPLAY_WIDTH));
+                if (newImage->isNull()) {
+                    newImages.push_back(QImage());
+                }
+                else {
+                    newImages.push_back(newImage->scaledToWidth(IMAGE_DISPLAY_WIDTH));
+                }
+                delete newImage;
             }
             else {
                 newImages.push_back(QImage());
@@ -1604,7 +1616,12 @@ SceneDialog::testScenesPushButtonClicked()
             sceneNames.push_back(origScene->getName());
             const QImage* imageFromScene = getQImageFromSceneInfo(origScene->getSceneInfo());
             if (imageFromScene != NULL) {
-                sceneImages.push_back(imageFromScene->scaledToWidth(IMAGE_DISPLAY_WIDTH));
+                if (imageFromScene->isNull()) {
+                    sceneImages.push_back(QImage());
+                }
+                else {
+                    sceneImages.push_back(imageFromScene->scaledToWidth(IMAGE_DISPLAY_WIDTH));
+                }
                 delete imageFromScene;
             }
             else {
