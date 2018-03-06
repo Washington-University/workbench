@@ -3071,7 +3071,8 @@ BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
     const int32_t numSceneFiles = brain->getNumberOfSceneFiles();
     for (int32_t i = 0; i < numSceneFiles; i++) {
         SceneFile* sf = brain->getSceneFile(i);
-        if (sf->getFileName().contains(sceneFileName)) {
+        FileInformation fileInfo(sceneFileName);
+        if (sf->getFileName().contains(fileInfo.getFileName())) {
             haveSceneFileError = false;
             Scene* scene = sf->getSceneWithName(sceneNameOrNumber);
             if (scene == NULL) {
