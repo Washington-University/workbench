@@ -123,3 +123,16 @@ ElapsedTimer::getElapsedTimeMilliseconds() const
    return diffTimeMilli;
 }
 
+/**
+ * Print the given message followed by the elapsed time in seconds.
+ *
+ * @param message
+ *     Message that is printed before the seconds.
+ */
+void
+ElapsedTimer::printSeconds(const AString& message)
+{
+    std::cout << message << " " << getElapsedTimeSeconds() << " seconds" << std::endl;
+}
+
+

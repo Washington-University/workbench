@@ -64,6 +64,8 @@ namespace caret {
         
         double getElapsedTimeMilliseconds() const;
         
+        void printSeconds(const AString& message);
+        
     private:
         ElapsedTimer(const ElapsedTimer&);
 
