@@ -84,6 +84,7 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     myelinStyleOpt->addVolumeParameter(1, "ribbon-roi", "an roi volume of the cortical ribbon for this hemisphere");
     myelinStyleOpt->addMetricParameter(2, "thickness", "a metric file of cortical thickness");
     myelinStyleOpt->addDoubleParameter(3, "sigma", "gaussian kernel in mm for weighting voxels within range");
+    myelinStyleOpt->createOptionalParameter(4, "-legacy-bug", "emulate old v1.2.3 and earlier code that didn't follow a cylinder cutoff");
     
     OptionalParameter* subvolumeSelect = ret->createOptionalParameter(7, "-subvol-select", "select a single subvolume to map");
     subvolumeSelect->addStringParameter(1, "subvol", "the subvolume number or name");
@@ -102,7 +103,9 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
         "The -gaussian option makes it act more like the myelin method, where the distance of a voxel from <surface> is used to downweight the voxel.\n\n" +
         "The myelin style method uses part of the caret5 myelin mapping command to do the mapping: for each surface vertex, take all voxels that are in a cylinder " +
         "with width and height equal to cortical thickness, centered on the vertex and aligned with the surface normal, and that are also within the ribbon ROI, " +
-        "and apply a gaussian kernel with the specified sigma to them to get the weights to use."
+        "and apply a gaussian kernel with the specified sigma to them to get the weights to use.  " +
+        "The -legacy-bug flag reverts to the unintended behavior present from the initial implementation up to and including v1.2.3, which had only the tangential cutoff " +
+        "and a bounding box intended to be larger than where the cylinder cutoff should have been."
     );
     return ret;
 }
@@ -253,7 +256,8 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
             VolumeFile* roi = myelinStyleOpt->getVolume(1);
             MetricFile* thickness = myelinStyleOpt->getMetric(2);
             float sigma = (float)myelinStyleOpt->getDouble(3);
-            AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, roi, thickness, sigma, mySubVol);
+            bool oldCutoffBug = myelinStyleOpt->getOptionalParameter(4)->m_present;
+            AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, roi, thickness, sigma, mySubVol, oldCutoffBug);
             break;
         }
         default:
@@ -513,7 +517,7 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeightsRibbon(vector<vector<Voxe
 
 //myelin style mapping
 AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
-                                                                 const VolumeFile* roiVol, const MetricFile* thickness, const float& sigma, const int64_t& mySubVol): AbstractAlgorithm(myProgObj)
+                                                                 const VolumeFile* roiVol, const MetricFile* thickness, const float& sigma, const int64_t& mySubVol, const bool& oldCutoffBug): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myVolDims;
@@ -537,7 +541,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
     myMetricOut->setStructure(mySurface->getStructure());
     vector<vector<VoxelWeight> > myWeights;
-    precomputeWeightsMyelin(myWeights, mySurface, roiVol, thickness, sigma);
+    precomputeWeightsMyelin(myWeights, mySurface, roiVol, thickness, sigma, oldCutoffBug);
     vector<float> myScratch(numNodes);
     if (mySubVol == -1)
     {
@@ -551,7 +555,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                 {
                     metricLabel += " component " + AString::number(j);
                 }
-                metricLabel += " ribbon constrained";
+                metricLabel += " myelin style";
                 myMetricOut->setColumnName(thisCol, metricLabel);
 #pragma omp CARET_PARFOR schedule(dynamic)
                 for (int64_t node = 0; node < numNodes; ++node)
@@ -575,7 +579,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
             {
                 metricLabel += " component " + AString::number(j);
             }
-            metricLabel += " ribbon constrained";
+            metricLabel += " myelin style";
             int64_t thisCol = j;
             myMetricOut->setColumnName(thisCol, metricLabel);
 #pragma omp CARET_PARFOR schedule(dynamic)
@@ -595,7 +599,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
 }
 
 void AlgorithmVolumeToSurfaceMapping::precomputeWeightsMyelin(vector<vector<VoxelWeight> >& myWeights, const SurfaceFile* mySurface, const VolumeFile* roiVol,
-                                                              const MetricFile* thickness, const float& sigma)
+                                                              const MetricFile* thickness, const float& sigma, const bool& oldCutoffBug)
 {
     int64_t numNodes = mySurface->getNumberOfNodes();
     myWeights.clear();
@@ -624,6 +628,10 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeightsMyelin(vector<vector<Voxe
         roiVol->spaceToIndex(nodeCoord, nodeIndices);
         float nodeThick = thicknessData[node];
         float cylinderCorner = nodeThick * sqrt(5.0f) / 2.0f;
+        if (oldCutoffBug)
+        {
+            cylinderCorner = nodeThick;//old code didn't use a large enough box to always cover the cylinder corner
+        }
         int64_t min[3], max[3];
         for (int i = 0; i < 3; ++i)
         {
@@ -643,8 +651,8 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeightsMyelin(vector<vector<Voxe
                     Vector3D voxelCoord;
                     roiVol->indexToSpace(ijk, voxelCoord);
                     Vector3D delta = voxelCoord - nodeCoord;
-                    if (abs(nodenormal.dot(delta)) < 0.5f * nodeThick && nodenormal.cross(delta).length() < nodeThick && roiVol->getValue(ijk) > 0.0f)
-                    {
+                    if (abs(nodenormal.dot(delta)) < 0.5f * nodeThick && (oldCutoffBug || nodenormal.cross(delta).length() < nodeThick) && roiVol->getValue(ijk) > 0.0f)
+                    {//old code ignored the tangential distance, only using the box edge
                         float weight = exp(delta.lengthsquared() * invnegsigmasquaredx2);
                         myWeights[node].push_back(VoxelWeight(weight, ijk));
                         weightTotal += weight;
