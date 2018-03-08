@@ -110,6 +110,7 @@ ELSE()
         CiftiParcelSelectionComboBox.h
         ClippingPlanesDialog.h
         ColorEditorWidget.h
+	CopyPaletteColorMappingToFilesDialog.h
         CustomViewDialog.h
         DataFileContentCopyMoveDialog.h
         DisplayGroupAndTabItemViewController.h
@@ -307,6 +308,7 @@ CiftiConnectivityMatrixViewController.h
 CiftiParcelSelectionComboBox.h
 ClippingPlanesDialog.h
 ColorEditorWidget.h
+CopyPaletteColorMappingToFilesDialog.h
 CursorDisplayScoped.h
 CursorEnum.h
 CursorManager.h
@@ -531,6 +533,7 @@ CiftiConnectivityMatrixViewController.cxx
 CiftiParcelSelectionComboBox.cxx
 ClippingPlanesDialog.cxx
 ColorEditorWidget.cxx
+CopyPaletteColorMappingToFilesDialog.cxx
 CursorDisplayScoped.cxx
 CursorEnum.cxx
 CursorManager.cxx

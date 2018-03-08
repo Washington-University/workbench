@@ -45,6 +45,7 @@
 #include "Brain.h"
 #include "CaretColorEnumComboBox.h"
 #include "CaretMappableDataFile.h"
+#include "CopyPaletteColorMappingToFilesDialog.h"
 #include "CursorDisplayScoped.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventCaretMappableDataFilesGet.h"
@@ -61,7 +62,6 @@
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
 #include "VolumeFile.h"
-#include "WuQDataEntryDialog.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQDoubleSlider.h"
 #include "WuQDoubleSpinBox.h"
@@ -2653,83 +2653,15 @@ MapSettingsPaletteColorMappingWidget::createDataOptionsSection()
 void
 MapSettingsPaletteColorMappingWidget::applyToMultipleFilesPushbuttonClicked()
 {
-    EventCaretMappableDataFilesGet mapFilesGet;
-    EventManager::get()->sendEvent(mapFilesGet.getPointer());
-    
-    std::vector<CaretMappableDataFile*> mappableFiles;
-    mapFilesGet.getAllFiles(mappableFiles);
-    
-    const QString filePointerPropertyName("filePointer");
-    
-    WuQDataEntryDialog ded("Apply Palettes Settings",
-                           this->applyToMultipleFilesPushButton,
-                           true);
-    ded.setTextAtTop("Palette settings will be applied to all maps in the selected files.",
-                     true);
-    
-    std::vector<QCheckBox*> mapFileCheckBoxes;
-    for (std::vector<CaretMappableDataFile*>::iterator iter = mappableFiles.begin();
-         iter != mappableFiles.end();
-         iter++) {
-        CaretMappableDataFile* cmdf = *iter;
-        if (cmdf != this->caretMappableDataFile) {
-            if (cmdf->isMappedWithPalette()) {
-                QCheckBox* cb = ded.addCheckBox(cmdf->getFileNameNoPath());
-                cb->setProperty(filePointerPropertyName.toLatin1().constData(),
-                                qVariantFromValue((void*)cmdf));
-                mapFileCheckBoxes.push_back(cb);
-                
-                if (previousApplyPaletteToMapFilesSelected.find(cmdf) != previousApplyPaletteToMapFilesSelected.end()) {
-                    cb->setChecked(true);
-                }
-            }
+    AString errorMessage;
+    if ( ! CopyPaletteColorMappingToFilesDialog::run(this->caretMappableDataFile,
+                                                  this->paletteColorMapping,
+                                                  this,
+                                                  errorMessage)) {
+        if ( ! errorMessage.isEmpty()) {
+            WuQMessageBox::errorOk(this, errorMessage);
         }
     }
     
-    if (mapFileCheckBoxes.empty()) {
-        WuQMessageBox::errorOk(this, "There are no other files loaded that accept application of palette settings");
-        return;
-    }
-    
-    previousApplyPaletteToMapFilesSelected.clear();
-    
-    if (ded.exec() == WuQDataEntryDialog::Accepted) {
-        
-        PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-        
-        for (std::vector<QCheckBox*>::iterator iter = mapFileCheckBoxes.begin();
-             iter != mapFileCheckBoxes.end();
-             iter++) {
-            QCheckBox* cb = *iter;
-            if (cb->isChecked()) {
-                void* pointer = cb->property(filePointerPropertyName.toLatin1().constData()).value<void*>();
-                CaretMappableDataFile* cmdf = (CaretMappableDataFile*)pointer;
-
-                /*
-                 * Copy the palette normalization mode from the file active in the dialog
-                 * to the 'apply to file'
-                 */
-                if (this->caretMappableDataFile != NULL) {
-                    cmdf->setPaletteNormalizationMode(this->caretMappableDataFile->getPaletteNormalizationMode());
-                }
-                
-                const int32_t numMaps = cmdf->getNumberOfMaps();
-                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-                    PaletteColorMapping* pcm = cmdf->getMapPaletteColorMapping(iMap);
-                    if (pcm != this->paletteColorMapping) {
-                        pcm->copy(*this->paletteColorMapping,
-                                  false);
-                    }
-                }
-                
-                cmdf->updateScalarColoringForAllMaps(paletteFile);
-                
-                previousApplyPaletteToMapFilesSelected.insert(cmdf);
-            }
-        }
-        
-        updateColoringAndGraphics();
-    }
+    updateColoringAndGraphics();
 }
-
-
