@@ -3037,12 +3037,32 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
 {
     std::vector<DataFileTypeEnum::Enum> dataFileTypesDummyNotUsed;
     
+    AString userName;
+    AString password;
+    switch (loadSpecFileMode) {
+        case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
+        {
+            /*
+             * Spec file might contain a file on the network so try
+             * using the saved username and password.
+             */
+            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+            prefs->getRemoteFileUserNameAndPassword(userName,
+                                                    password);
+        }
+            break;
+        case LOAD_SPEC_FILE_WITH_DIALOG:
+            break;
+        case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
+            break;
+    }
+    
     loadFiles(this,
               filenames,
               dataFileTypesDummyNotUsed,
               loadSpecFileMode,
-              "",
-              "");
+              userName,
+              password);
 }
 
 /**
