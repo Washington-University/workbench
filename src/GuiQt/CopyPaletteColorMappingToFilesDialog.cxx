@@ -27,6 +27,8 @@
 #include <map>
 
 #include <QCheckBox>
+#include <QGridLayout>
+#include <QLabel>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -105,12 +107,26 @@ m_selectedPaletteColorMapping(selectedPaletteColorMapping)
     toolButtonLayout->addWidget(allOffToolButton);
     toolButtonLayout->addStretch();
     
+    QGridLayout* checkBoxLayout = new QGridLayout();
+    checkBoxLayout->setColumnMinimumWidth(0, 10);
+    AString lastFileTypeName;
+    int32_t row = checkBoxLayout->rowCount();
+    for (auto checkFile : m_fileCheckBoxes) {
+        const AString fileTypeName = DataFileTypeEnum::toShortGuiName(checkFile.second->getDataFileType());
+        if (fileTypeName != lastFileTypeName) {
+            checkBoxLayout->addWidget(new QLabel(fileTypeName), row, 0, 1, 2);
+            ++row;
+        }
+        lastFileTypeName = fileTypeName;
+        
+        checkBoxLayout->addWidget(checkFile.first, row, 1);
+        ++row;
+    }
+    
     QWidget* widget = new QWidget;
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addLayout(toolButtonLayout);
-    for (auto checkFile : m_fileCheckBoxes) {
-        layout->addWidget(checkFile.first);
-    }
+    layout->addLayout(checkBoxLayout);
     
     setCentralWidget(widget, SCROLL_AREA_AS_NEEDED);
 }
@@ -257,8 +273,8 @@ CopyPaletteColorMappingToFilesDialog::run(CaretMappableDataFile* selectedMapFile
                               < m2->getFileNameNoPath().toLower());
                   }
                   
-                  return (DataFileTypeEnum::toGuiName(m1->getDataFileType())
-                          < DataFileTypeEnum::toGuiName(m2->getDataFileType()));
+                  return (DataFileTypeEnum::toShortGuiName(m1->getDataFileType())
+                          < DataFileTypeEnum::toShortGuiName(m2->getDataFileType()));
               } );
     
     bool noFilesFlag = false;

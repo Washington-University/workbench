@@ -424,6 +424,38 @@ DataFileTypeEnum::toGuiName(Enum enumValue) {
 }
 
 /**
+ * Get a short GUI string representation of the enumerated type.
+ * Removes any "Connectivity - " or " TEMPORARY" from the toGuiName().
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     String representing enumerated value.
+ */
+AString
+DataFileTypeEnum::toShortGuiName(Enum enumValue)
+{
+    const AString typeName = DataFileTypeEnum::toGuiName(enumValue);
+    
+    const AString connectivityPrefix("Connectivity - ");
+    const int connectivityPrefixLength = connectivityPrefix.length();
+    
+    const AString temporarySuffix(" TEMPORARY");
+    const int temporarySuffixLength = temporarySuffix.length();
+    
+    AString text = typeName;
+    if (text.startsWith(connectivityPrefix)) {
+        text = text.mid(connectivityPrefixLength);
+    }
+    
+    if (text.endsWith(temporarySuffix)) {
+        text = text.left(text.length() - temporarySuffixLength);
+    }
+    
+    return text;
+}
+
+
+/**
  * Get an enumerated value corresponding to its GUI name.
  * @param s 
  *     Name of enumerated value.

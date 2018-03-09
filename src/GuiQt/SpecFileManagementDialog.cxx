@@ -2765,26 +2765,8 @@ SpecFileManagementDialog::createManageFilesLoadedNotLoadedToolBar(QLabel* &label
 AString
 SpecFileManagementDialog::getEditedDataFileTypeName(const DataFileTypeEnum::Enum dataFileType)
 {
-    const AString typeName = DataFileTypeEnum::toGuiName(dataFileType);
-    
-    const AString connectivityPrefix("Connectivity - ");
-    const int connectivityPrefixLength = connectivityPrefix.length();
-    
-    const AString temporarySuffix(" TEMPORARY");
-    const int temporarySuffixLength = temporarySuffix.length();
-    
-    AString text = typeName;
-    if (text.startsWith(connectivityPrefix)) {
-        text = text.mid(connectivityPrefixLength);
-    }
-    
-    if (text.endsWith(temporarySuffix)) {
-        text = text.left(text.length() - temporarySuffixLength);
-    }
-    
-    return text;
+    return DataFileTypeEnum::toShortGuiName(dataFileType);
 }
-
 
 /**
  * @return Create and return a toolbar for viewing files by structure.
