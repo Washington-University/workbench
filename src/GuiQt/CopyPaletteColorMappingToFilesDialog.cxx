@@ -246,10 +246,20 @@ CopyPaletteColorMappingToFilesDialog::run(CaretMappableDataFile* selectedMapFile
     }
     allMapFiles.clear();
     
+    /*
+     * Sort by Type and Filename
+     */
     std::sort(paletteMappedFiles.begin(),
               paletteMappedFiles.end(),
-              [](CaretMappableDataFile* m1, CaretMappableDataFile* m2) { return (m1->getFileNameNoPath().toLower()
-                                                                                 < m2->getFileNameNoPath().toLower()); } );
+              [](CaretMappableDataFile* m1, CaretMappableDataFile* m2) {
+                  if (m1->getDataFileType() == m2->getDataFileType()) {
+                      return (m1->getFileNameNoPath().toLower()
+                              < m2->getFileNameNoPath().toLower());
+                  }
+                  
+                  return (DataFileTypeEnum::toGuiName(m1->getDataFileType())
+                          < DataFileTypeEnum::toGuiName(m2->getDataFileType()));
+              } );
     
     bool noFilesFlag = false;
     if (paletteMappedFiles.empty()) {
