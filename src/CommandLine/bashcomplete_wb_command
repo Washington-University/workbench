@@ -94,7 +94,8 @@ function _wb_shortcuts ()
     fi
     local -a switches
     readarray -t switches < <(wb_shortcuts -list-functions | awk '{print $1}')
-    COMPREPLY=(`compgen -W "${switches[*]}" -- "$cur"`)
+    local infoswitches=(-help -version -list-functions -all-functions-help)
+    COMPREPLY=(`compgen -W "${switches[*]} ${infoswitches[*]}" -- "$cur"`)
 }
 
 complete -o filenames -o bashdefault -o default -F _wb_shortcuts wb_shortcuts
