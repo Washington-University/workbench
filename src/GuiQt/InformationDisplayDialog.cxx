@@ -177,6 +177,10 @@ InformationDisplayDialog::updateDialog()
     const AString text = idManager->getIdentificationText();
     m_informationTextBrowser->setContentToHtml(text);
     
+    if (m_propertiesDialog != NULL) {
+        m_propertiesDialog->updateDialog();
+    }
+    
     m_contralateralIdentificationAction->blockSignals(true);
     m_contralateralIdentificationAction->setChecked(idManager->isContralateralIdentificationEnabled());
     m_contralateralIdentificationAction->blockSignals(false);
