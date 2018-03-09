@@ -3030,7 +3030,11 @@ SceneClassInfoWidget::updateContent(Scene* scene,
             previewImage = *imageFile.getAsQImage();
             if ( ! previewImage.isNull()) {
                 imageFile.resizeToWidth(previewImageWidth);
-                previewImageValid = true;
+                QImage newPreviewImage = *imageFile.getAsQImage();
+                if ( ! newPreviewImage.isNull()) {
+                    previewImage = newPreviewImage;
+                    previewImageValid = true;
+                }
             }
         }
         
