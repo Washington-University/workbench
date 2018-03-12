@@ -2798,46 +2798,41 @@ BrainOpenGLVolumeSliceDrawing::drawIdentificationSymbols(const Plane& plane)
             return;
             break;
     }
-    
-    uint8_t rgba[4];
-    const int32_t numVoxelIdSymbols = static_cast<int32_t>(voxelIDs.size());
-    for (int32_t iVoxel = 0; iVoxel < numVoxelIdSymbols; iVoxel++) {
-        CaretAssertVectorIndex(voxelIDs, iVoxel);
-        const IdentifiedItemVoxel& voxel = voxelIDs[iVoxel];
-        
-        /*
-         * Show symbol for node ID?
-         */
-        if ( ! voxel.isShowIdentificationSymbol()) {
-            continue;
-        }
-        
-        
-        float xyz[3];
-        voxel.getXYZ(xyz);
-        
-        const float symbolDiameter = voxel.getSymbolSize();
-        const float halfSymbolSize = symbolDiameter / 2.0;
-        
-        const float dist = plane.signedDistanceToPlane(xyz);
-        if (dist < halfSymbolSize) {
-            if (isSelect) {
-                m_fixedPipelineDrawing->colorIdentification->addItem(rgba,
-                                                   SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,
-                                                   iVoxel);
-                rgba[3] = 255;
-            }
-            else {
-                voxel.getSymbolRGBA(rgba);
-            }
+
+    if (idManager->isShowVolumeIdentificationSymbols()) {
+        uint8_t rgba[4];
+        const int32_t numVoxelIdSymbols = static_cast<int32_t>(voxelIDs.size());
+        for (int32_t iVoxel = 0; iVoxel < numVoxelIdSymbols; iVoxel++) {
+            CaretAssertVectorIndex(voxelIDs, iVoxel);
+            const IdentifiedItemVoxel& voxel = voxelIDs[iVoxel];
             
-            glPushMatrix();
-            glTranslatef(xyz[0], xyz[1], xyz[2]);
-            m_fixedPipelineDrawing->drawSphereWithDiameter(rgba,
-                                                           symbolDiameter);
-            glPopMatrix();
+            float xyz[3];
+            voxel.getXYZ(xyz);
+            
+            const float symbolDiameter = voxel.getSymbolSize();
+            const float halfSymbolSize = symbolDiameter / 2.0;
+            
+            const float dist = plane.signedDistanceToPlane(xyz);
+            if (dist < halfSymbolSize) {
+                if (isSelect) {
+                    m_fixedPipelineDrawing->colorIdentification->addItem(rgba,
+                                                                         SelectionItemDataTypeEnum::VOXEL_IDENTIFICATION_SYMBOL,
+                                                                         iVoxel);
+                    rgba[3] = 255;
+                }
+                else {
+                    voxel.getSymbolRGBA(rgba);
+                }
+                
+                glPushMatrix();
+                glTranslatef(xyz[0], xyz[1], xyz[2]);
+                m_fixedPipelineDrawing->drawSphereWithDiameter(rgba,
+                                                               symbolDiameter);
+                glPopMatrix();
+            }
         }
     }
+    
     
     if (isSelect) {
         int voxelIdIndex = -1;

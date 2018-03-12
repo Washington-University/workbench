@@ -47,6 +47,7 @@ namespace caret {
     class BrainStructure;
     class CaretDataFile;
     class CaretMappableDataFile;
+    class CaretPreferences;
     class ChartingDataManager;
     class ChartableLineSeriesBrainordinateInterface;
     class ChartableMatrixInterface;
@@ -102,7 +103,7 @@ namespace caret {
     class Brain : public CaretObject, public EventListenerInterface, public SceneableInterface {
 
     public:
-        Brain();
+        Brain(const CaretPreferences* caretPreferences);
         
         ~Brain();
         

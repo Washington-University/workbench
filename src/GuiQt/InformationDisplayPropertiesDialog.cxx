@@ -35,6 +35,7 @@
 #include "GuiManager.h"
 #include "IdentificationManager.h"
 #include "WuQFactory.h"
+#include "WuQTrueFalseComboBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -58,6 +59,16 @@ InformationDisplayPropertiesDialog::InformationDisplayPropertiesDialog(QWidget* 
 {
     const int WIDGET_WIDTH = 100;
 
+    QLabel* surfaceLabel = new QLabel("Show Surface ID Symbols");
+    m_surfaceIdentificationSymbolComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(m_surfaceIdentificationSymbolComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(informationPropertyChanged()));
+    
+    QLabel* volumeLabel = new QLabel("Show Volume ID Symbols");
+    m_volumeIdentificationSymbolComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(m_volumeIdentificationSymbolComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(informationPropertyChanged()));
+    
     QLabel* idColorLabel = new QLabel("ID Symbol Color: ");
     m_idColorComboBox = new CaretColorEnumComboBox(this);
     m_idColorComboBox->getWidget()->setFixedWidth(WIDGET_WIDTH);
@@ -94,14 +105,19 @@ InformationDisplayPropertiesDialog::InformationDisplayPropertiesDialog(QWidget* 
     QObject::connect(m_mostRecentSymbolSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(informationPropertyChanged()));
     
-    QLabel* prefInfoLabel = new QLabel("Display of ID symbols is enabled/disabled on the Preference Dialog");
-    prefInfoLabel->setWordWrap(true);
-    
     const int COLUMN_LABEL  = 0;
     const int COLUMN_WIDGET = 1;
     QWidget* widget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(widget);
     int row = 0;
+    gridLayout->addWidget(surfaceLabel, row, COLUMN_LABEL);
+    gridLayout->addWidget(m_surfaceIdentificationSymbolComboBox->getWidget(), row, COLUMN_WIDGET);
+    row++;
+    gridLayout->addWidget(volumeLabel, row, COLUMN_LABEL);
+    gridLayout->addWidget(m_volumeIdentificationSymbolComboBox->getWidget(), row, COLUMN_WIDGET);
+    row++;
+
+    
     gridLayout->addWidget(idColorLabel, row, COLUMN_LABEL);
     gridLayout->addWidget(m_idColorComboBox->getWidget(), row, COLUMN_WIDGET);
     row++;
@@ -115,8 +131,6 @@ InformationDisplayPropertiesDialog::InformationDisplayPropertiesDialog(QWidget* 
     gridLayout->addWidget(m_mostRecentSymbolSizeSpinBox, row, COLUMN_WIDGET);
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, COLUMN_LABEL, 1, 2);
-    row++;
-    gridLayout->addWidget(prefInfoLabel, row, COLUMN_LABEL, 1, 2);
     row++;
     
     setCentralWidget(widget,
@@ -146,7 +160,9 @@ InformationDisplayPropertiesDialog::updateDialog()
 {
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* info = brain->getIdentificationManager();
-   
+
+    m_surfaceIdentificationSymbolComboBox->setStatus(info->isShowSurfaceIdentificationSymbols());
+    m_volumeIdentificationSymbolComboBox->setStatus(info->isShowVolumeIdentificationSymbols());
     m_idColorComboBox->setSelectedColor(info->getIdentificationSymbolColor());
     m_idContralateralColorComboBox->setSelectedColor(info->getIdentificationContralateralSymbolColor());
     m_symbolSizeSpinBox->blockSignals(true);
@@ -166,6 +182,8 @@ InformationDisplayPropertiesDialog::informationPropertyChanged()
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* info = brain->getIdentificationManager();
     
+    info->setShowSurfaceIdentificationSymbols(m_surfaceIdentificationSymbolComboBox->isTrue());
+    info->setShowVolumeIdentificationSymbols(m_volumeIdentificationSymbolComboBox->isTrue());
     info->setIdentificationSymbolColor(m_idColorComboBox->getSelectedColor());
     info->setIdentificationContralateralSymbolColor(m_idContralateralColorComboBox->getSelectedColor());
     info->setIdentificationSymbolSize(m_symbolSizeSpinBox->value());

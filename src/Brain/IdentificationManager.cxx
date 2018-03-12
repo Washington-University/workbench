@@ -27,6 +27,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "IdentifiedItemNode.h"
@@ -35,6 +36,7 @@
 #include "SceneClassAssistant.h"
 #include "SceneClass.h"
 #include "ScenePrimitive.h"
+#include "SessionManager.h"
 
 using namespace caret;
 
@@ -47,8 +49,11 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param caretPreferences
+ *    The caret preferencers  
  */
-IdentificationManager::IdentificationManager()
+IdentificationManager::IdentificationManager(const CaretPreferences* caretPreferences)
 : SceneableInterface()
 {
     m_sceneAssistant = new SceneClassAssistant();
@@ -58,6 +63,8 @@ IdentificationManager::IdentificationManager()
     m_identificationContralateralSymbolColor = CaretColorEnum::LIME;
     m_identifcationSymbolSize = 3.0;
     m_identifcationMostRecentSymbolSize = 5.0;
+    m_showSurfaceIdentificationSymbols = caretPreferences->isShowSurfaceIdentificationSymbols();
+    m_showVolumeIdentificationSymbols  = caretPreferences->isShowVolumeIdentificationSymbols();
     
     m_sceneAssistant->add("m_contralateralIdentificationEnabled",
                           &m_contralateralIdentificationEnabled);
@@ -74,6 +81,11 @@ IdentificationManager::IdentificationManager()
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_identificationContralateralSymbolColor",
                                                                 &m_identificationContralateralSymbolColor);
 
+    m_sceneAssistant->add("m_showSurfaceIdentificationSymbols",
+                          &m_showSurfaceIdentificationSymbols);
+    m_sceneAssistant->add("m_showVolumeIdentificationSymbols",
+                          &m_showVolumeIdentificationSymbols);
+    
     removeAllIdentifiedItems();
 }
 
@@ -106,7 +118,16 @@ IdentificationManager::addIdentifiedItem(IdentifiedItem* item)
             const StructureEnum::Enum contralateralStructure = StructureEnum::getContralateralStructure(nodeItem->getStructure());
             nodeItem->setContralateralStructure(contralateralStructure);
         }
+        
+        nodeItem->setShowIdentificationSymbol(isShowSurfaceIdentificationSymbols());
     }
+    else {
+        IdentifiedItemVoxel* voxelItem = dynamic_cast<IdentifiedItemVoxel*>(item);
+        if (voxelItem != NULL) {
+            voxelItem->setShowIdentificationSymbol(isShowVolumeIdentificationSymbols());
+        }
+    }
+    
     
     addIdentifiedItemPrivate(item);
 }
@@ -491,6 +512,47 @@ IdentificationManager::setIdentificationContralateralSymbolColor(const CaretColo
     m_identificationContralateralSymbolColor = color;
 }
 
+/**
+ * @return show surface identification symbols
+ */
+bool
+IdentificationManager::isShowSurfaceIdentificationSymbols() const
+{
+    return m_showSurfaceIdentificationSymbols;
+}
+
+/**
+ * Set show surface identification symbols
+ *
+ * @param showSurfaceIdentificationSymbols
+ *    New value for show surface identification symbols
+ */
+void
+IdentificationManager::setShowSurfaceIdentificationSymbols(const bool showSurfaceIdentificationSymbols)
+{
+    m_showSurfaceIdentificationSymbols = showSurfaceIdentificationSymbols;
+}
+
+/**
+ * @return show volume identification symbols
+ */
+bool
+IdentificationManager::isShowVolumeIdentificationSymbols() const
+{
+    return m_showVolumeIdentificationSymbols;
+}
+
+/**
+ * Set show volume identification symbols
+ *
+ * @param showVolumeIdentificationSymbols
+ *    New value for show volume identification symbols
+ */
+void
+IdentificationManager::setShowVolumeIdentificationSymbols(const bool showVolumeIdentificationSymbols)
+{
+    m_showVolumeIdentificationSymbols = showVolumeIdentificationSymbols;
+}
 
 /**
  * Create a scene for an instance of a class.

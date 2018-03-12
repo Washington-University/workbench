@@ -86,6 +86,8 @@ namespace caret {
         bool m_showIdentificationSymbol;
         
         SceneClassAssistant* m_sceneAssistant;
+        
+        friend class IdentificationManager;
     };
     
 #ifdef __IDENTIFIED_ITEM_DECLARE__

@@ -29,6 +29,7 @@
 
 namespace caret {
 
+    class CaretPreferences;
     class IdentifiedItem;
     class IdentifiedItemNode;
     class IdentifiedItemVoxel;
@@ -37,7 +38,7 @@ namespace caret {
     class IdentificationManager : public SceneableInterface {
         
     public:
-        IdentificationManager();
+        IdentificationManager(const CaretPreferences* caretPreferences);
         
         virtual ~IdentificationManager();
         
@@ -82,6 +83,14 @@ namespace caret {
         
         void setIdentificationContralateralSymbolColor(const CaretColorEnum::Enum color);
         
+        bool isShowSurfaceIdentificationSymbols() const;
+        
+        void setShowSurfaceIdentificationSymbols(const bool showSurfaceIdentificationSymbols);
+        
+        bool isShowVolumeIdentificationSymbols() const;
+        
+        void setShowVolumeIdentificationSymbols(const bool showVolumeIdentificationSymbols);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -120,7 +129,12 @@ namespace caret {
         CaretColorEnum::Enum m_identificationSymbolColor;
         
         CaretColorEnum::Enum m_identificationContralateralSymbolColor;
+
+        /** show surface identification symbols*/
+        bool m_showSurfaceIdentificationSymbols;
         
+        /** show volume identification symbols*/
+        bool m_showVolumeIdentificationSymbols;
     };
     
 #ifdef __IDENTIFICATION_MANAGER_DECLARE__

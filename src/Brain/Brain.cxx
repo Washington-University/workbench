@@ -122,8 +122,11 @@ using namespace caret;
 
 /**
  *  Constructor.
+ *
+ * @param caretPreferences
+ *    The caret preferencers used to initialize some components.
  */
-Brain::Brain()
+Brain::Brain(const CaretPreferences* caretPreferences)
 {
     m_annotationManager = new AnnotationManager(this);
     
@@ -236,7 +239,7 @@ Brain::Brain()
     
     m_selectionManager = new SelectionManager();
 
-    m_identificationManager = new IdentificationManager();
+    m_identificationManager = new IdentificationManager(caretPreferences);
     
     m_brainordinateHighlightRegionOfInterest = new BrainordinateRegionOfInterest();
     

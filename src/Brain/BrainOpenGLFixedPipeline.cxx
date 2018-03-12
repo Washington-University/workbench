@@ -2546,62 +2546,54 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
             return;
             break;
     }
-    
-    for (std::vector<IdentifiedItemNode>::const_iterator iter = identifiedNodes.begin();
-         iter != identifiedNodes.end();
-         iter++) {
-        const IdentifiedItemNode& nodeID = *iter;
-        
-        /*
-         * Show symbol for node ID?
-         */
-        if ( ! nodeID.isShowIdentificationSymbol()) {
-            continue;
-        }
-        
-        const int32_t nodeIndex = nodeID.getNodeIndex();
-        const int32_t i3 = nodeIndex * 3;
-        const float* xyz = &coordinates[i3];
-        
-        if (m_clippingPlaneGroup->isSurfaceSelected()) {
-            if ( ! isCoordinateInsideClippingPlanesForStructure(structure, xyz)) {
-                continue;
+    if (idManager->isShowSurfaceIdentificationSymbols()) {
+        for (std::vector<IdentifiedItemNode>::const_iterator iter = identifiedNodes.begin();
+             iter != identifiedNodes.end();
+             iter++) {
+            const IdentifiedItemNode& nodeID = *iter;
+            const int32_t nodeIndex = nodeID.getNodeIndex();
+            const int32_t i3 = nodeIndex * 3;
+            const float* xyz = &coordinates[i3];
+            
+            if (m_clippingPlaneGroup->isSurfaceSelected()) {
+                if ( ! isCoordinateInsideClippingPlanesForStructure(structure, xyz)) {
+                    continue;
+                }
             }
-        }
-        
-        const float symbolDiameter = nodeID.getSymbolSize();
-        
-        uint8_t symbolRGBA[4];
-        
-        if (isSelect) {
-            this->colorIdentification->addItem(symbolRGBA,
-                                               SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL,
-                                               nodeIndex);
-        }
-        else {
-            if (structure == nodeID.getStructure()) {
-                nodeID.getSymbolRGBA(symbolRGBA);
-                
-                colorsFromChartsEvent.applyChartColorToNode(nodeIndex,
-                                                            symbolRGBA);
+            
+            const float symbolDiameter = nodeID.getSymbolSize();
+            
+            uint8_t symbolRGBA[4];
+            
+            if (isSelect) {
+                this->colorIdentification->addItem(symbolRGBA,
+                                                   SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL,
+                                                   nodeIndex);
             }
             else {
-                nodeID.getContralateralSymbolRGB(symbolRGBA);
+                if (structure == nodeID.getStructure()) {
+                    nodeID.getSymbolRGBA(symbolRGBA);
+                    
+                    colorsFromChartsEvent.applyChartColorToNode(nodeIndex,
+                                                                symbolRGBA);
+                }
+                else {
+                    nodeID.getContralateralSymbolRGB(symbolRGBA);
+                }
             }
+            symbolRGBA[3] = 255;
+            
+            /*
+             * Need to draw each symbol independently since each symbol
+             * contains a unique size (diameter)
+             */
+            std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
+            idPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, symbolDiameter);
+            idPrimitive->addVertex(xyz,
+                                   symbolRGBA);
+            GraphicsEngineDataOpenGL::draw(idPrimitive.get());
         }
-        symbolRGBA[3] = 255;
-        
-        /*
-         * Need to draw each symbol independently since each symbol
-         * contains a unique size (diameter)
-         */
-        std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
-        idPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, symbolDiameter);
-        idPrimitive->addVertex(xyz,
-                               symbolRGBA);
-        GraphicsEngineDataOpenGL::draw(idPrimitive.get());
     }
-    
     
     if (isSelect) {
         int nodeIndex = -1;

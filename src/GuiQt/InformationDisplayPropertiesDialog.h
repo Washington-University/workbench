@@ -29,6 +29,7 @@
 namespace caret {
 
     class CaretColorEnumComboBox;
+    class WuQTrueFalseComboBox;
     
     class InformationDisplayPropertiesDialog : public WuQDialogNonModal {
         
@@ -59,6 +60,10 @@ namespace caret {
         QDoubleSpinBox* m_symbolSizeSpinBox;
         
         QDoubleSpinBox* m_mostRecentSymbolSizeSpinBox;
+        
+        WuQTrueFalseComboBox* m_surfaceIdentificationSymbolComboBox;
+        
+        WuQTrueFalseComboBox* m_volumeIdentificationSymbolComboBox;
         
         // ADD_NEW_MEMBERS_HERE
 

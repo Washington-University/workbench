@@ -98,7 +98,7 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_GET_ALL_DISPLAYED);
     
-    Brain* brain = new Brain();
+    Brain* brain = new Brain(m_caretPreferences);
     m_brains.push_back(brain);
 }
 
@@ -771,7 +771,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                                           brainClass);
         }
         else {
-            Brain* brain = new Brain();
+            Brain* brain = new Brain(m_caretPreferences);
             brain->restoreFromScene(sceneAttributes, 
                                     brainClass);
         }
