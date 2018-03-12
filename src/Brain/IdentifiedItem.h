@@ -53,8 +53,6 @@ namespace caret {
         
         AString getText() const;
 
-        bool isShowIdentificationSymbol() const;
-        
         virtual AString toString() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -69,11 +67,7 @@ namespace caret {
         
         virtual void saveMembers(const SceneAttributes* sceneAttributes,
                          SceneClass* sceneClass);
-        
-        // This method MUST NOT be virtual as it may be called
-        // from a sub-class constructor.
-        void setShowIdentificationSymbol(const bool showSymbol);
-        
+
     private:
         void copyHelperIdentifiedItem(const IdentifiedItem& obj);
 
@@ -83,8 +77,6 @@ namespace caret {
 
         AString m_text;
 
-        bool m_showIdentificationSymbol;
-        
         SceneClassAssistant* m_sceneAssistant;
         
         friend class IdentificationManager;

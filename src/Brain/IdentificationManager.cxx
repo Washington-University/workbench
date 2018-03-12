@@ -118,16 +118,7 @@ IdentificationManager::addIdentifiedItem(IdentifiedItem* item)
             const StructureEnum::Enum contralateralStructure = StructureEnum::getContralateralStructure(nodeItem->getStructure());
             nodeItem->setContralateralStructure(contralateralStructure);
         }
-        
-        nodeItem->setShowIdentificationSymbol(isShowSurfaceIdentificationSymbols());
     }
-    else {
-        IdentifiedItemVoxel* voxelItem = dynamic_cast<IdentifiedItemVoxel*>(item);
-        if (voxelItem != NULL) {
-            voxelItem->setShowIdentificationSymbol(isShowVolumeIdentificationSymbols());
-        }
-    }
-    
     
     addIdentifiedItemPrivate(item);
 }

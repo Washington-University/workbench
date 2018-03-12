@@ -24,7 +24,6 @@
 #undef __IDENTIFIED_ITEM_VOXEL_DECLARE__
 
 #include "CaretAssert.h"
-#include "CaretPreferences.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SessionManager.h"
@@ -117,9 +116,6 @@ IdentifiedItemVoxel::initializeMembers()
     m_sceneAssistant->addArray("m_xyz", m_xyz, 3, 0.0);
     m_sceneAssistant->addArray("m_symbolRGB", m_symbolRGB, 3, 0);
     m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
-    
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    setShowIdentificationSymbol(prefs->isShowVolumeIdentificationSymbols());
 }
 
 /**
@@ -139,14 +135,6 @@ IdentifiedItemVoxel::copyHelperIdentifiedItemVoxel(const IdentifiedItemVoxel& ob
     m_symbolRGB[2] = obj.m_symbolRGB[2];
     
     m_symbolSize = obj.m_symbolSize;
-    
-    /*
-     * Even though the show identification symbol is a member
-     * of the superclass, it needs to be copied here since
-     * initializeMembers() as it gets intialized for all
-     * constructors but copying needs to take precedence.
-     */
-    setShowIdentificationSymbol(obj.isShowIdentificationSymbol());
 }
 
 /**
