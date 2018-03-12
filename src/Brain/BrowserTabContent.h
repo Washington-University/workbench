@@ -374,6 +374,22 @@ namespace caret {
         
         void setIdentificationUpdatesVolumeSlices(const bool status);
 
+        bool isVolumeAxesCrosshairsDisplayed() const;
+        
+        void setVolumeAxesCrosshairsDisplayed(const bool displayed);
+        
+        bool isVolumeAxesCrosshairLabelsDisplayed() const;
+        
+        void setVolumeAxesCrosshairLabelsDisplayed(const bool displayed);
+        
+        bool isVolumeMontageAxesCoordinatesDisplayed() const;
+        
+        void setVolumeMontageAxesCoordinatesDisplayed(const bool displayed);
+
+        int32_t getVolumeMontageCoordinatePrecision() const;
+        
+        void setVolumeMontageCoordinatePrecision(const int32_t volumeMontageCoordinatePrecision);
+        
         void reset();
 
         void updateChartModelYokedBrowserTabs();
@@ -546,6 +562,18 @@ namespace caret {
          *  of the identification operation.
          */
         bool m_identificationUpdatesVolumeSlices;
+        
+        /** display crosshairs on volume slices */
+        bool m_displayVolumeAxesCrosshairs;
+        
+        /** display crosshair labels on volume slices */
+        bool m_displayVolumeAxesCrosshairLabels;
+        
+        /** display coordinates on montage */
+        bool m_displayVolumeMontageAxesCoordinates;
+        
+        /** precision for coordinate on montage */
+        int32_t m_volumeMontageCoordinatePrecision;
         
         /*
          * True if constructing an instance

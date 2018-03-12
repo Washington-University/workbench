@@ -49,6 +49,9 @@ namespace caret {
         
         void viewAllSliceLayoutMenuTriggered(QAction* action);
 
+        void volumeAxisCrosshairsTriggered(bool checked);
+        void volumeAxisCrosshairLabelsTriggered(bool checked);
+        
     private:
         BrainBrowserWindowToolBarSlicePlane(const BrainBrowserWindowToolBarSlicePlane&);
 
@@ -69,6 +72,8 @@ namespace caret {
         QAction* m_volumePlaneAxialToolButtonAction;
         QAction* m_volumePlaneAllToolButtonAction;
         QAction* m_volumePlaneResetToolButtonAction;
+        QAction* m_volumeAxisCrosshairsToolButtonAction;
+        QAction* m_volumeAxisCrosshairLabelsToolButtonAction;
         
         QActionGroup* m_volumePlaneActionGroup;
         

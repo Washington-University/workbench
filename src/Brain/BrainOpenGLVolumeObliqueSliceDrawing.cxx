@@ -467,8 +467,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
     const int32_t numCols = m_browserTabContent->getMontageNumberOfColumns();
     CaretAssert(numCols > 0);
     
-    const CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
-    const int32_t montageCoordPrecision = caretPreferences->getVolumeMontageCoordinatePrecision();
+    const int32_t montageCoordPrecision = m_browserTabContent->getVolumeMontageCoordinatePrecision();
     
     const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
 //    const int32_t horizontalMargin = static_cast<int32_t>(viewport[2] * gapsAndMargins->getVolumeMontageHorizontalGap());
@@ -559,7 +558,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
     uint8_t backgroundRGBA[4];
     prefs->getBackgroundAndForegroundColors()->getColorBackgroundVolumeView(backgroundRGBA);
     backgroundRGBA[3] = 255;
-    const bool showCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
+    const bool showCoordinates = m_browserTabContent->isVolumeMontageAxesCoordinatesDisplayed();
     
     /*
      * Determine a slice offset to selected slices is in
@@ -3014,9 +3013,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjec
                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                 const float sliceCoordinates[3])
 {
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    const bool drawCrosshairsFlag = prefs->isVolumeAxesCrosshairsDisplayed();
-    bool drawCrosshairLabelsFlag = prefs->isVolumeAxesLabelsDisplayed();
+    const bool drawCrosshairsFlag = m_browserTabContent->isVolumeAxesCrosshairsDisplayed();
+    bool drawCrosshairLabelsFlag = m_browserTabContent->isVolumeAxesCrosshairLabelsDisplayed();
     
     switch (sliceDrawingType) {
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:

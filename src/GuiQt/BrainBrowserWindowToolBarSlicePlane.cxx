@@ -153,6 +153,29 @@ m_parentToolBar(parentToolBar)
                                               QSizePolicy::Fixed);
     WuQtUtilities::setToolButtonStyleForQt5Mac(slicePlaneCustomToolButton);
     
+    m_volumeAxisCrosshairsToolButtonAction = new QAction("X");
+    m_volumeAxisCrosshairsToolButtonAction->setCheckable(true);
+    m_volumeAxisCrosshairsToolButtonAction->setToolTip("Show crosshairs on slice planes");
+    QObject::connect(m_volumeAxisCrosshairsToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairsTriggered);
+    QToolButton* volumeCrosshairsToolButton = new QToolButton();
+    volumeCrosshairsToolButton->setDefaultAction(m_volumeAxisCrosshairsToolButtonAction);
+//    volumeCrosshairsToolButton->setSizePolicy(QSizePolicy::Minimum,
+//                                              QSizePolicy::Fixed);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(volumeCrosshairsToolButton);
+    
+    m_volumeAxisCrosshairLabelsToolButtonAction = new QAction("L");
+    m_volumeAxisCrosshairLabelsToolButtonAction->setCheckable(true);
+    m_volumeAxisCrosshairLabelsToolButtonAction->setToolTip("Show crosshair slice plane labels");
+    QObject::connect(m_volumeAxisCrosshairLabelsToolButtonAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairLabelsTriggered);
+    QToolButton* volumeCrosshairLabelsToolButton = new QToolButton();
+    volumeCrosshairLabelsToolButton->setDefaultAction(m_volumeAxisCrosshairLabelsToolButtonAction);
+//    volumeCrosshairLabelsToolButton->setSizePolicy(QSizePolicy::Minimum,
+//                                              QSizePolicy::Fixed);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(volumeCrosshairLabelsToolButton);
+    
+    
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
     int32_t rowIndex = gridLayout->rowCount();
@@ -165,6 +188,9 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(volumePlaneResetToolButton, rowIndex, 0, 1, 2, Qt::AlignHCenter);
     rowIndex++;
     gridLayout->addWidget(slicePlaneCustomToolButton, rowIndex, 0, 1, 2, Qt::AlignHCenter);
+    rowIndex++;
+    gridLayout->addWidget(volumeCrosshairsToolButton, rowIndex, 0, Qt::AlignRight);
+    gridLayout->addWidget(volumeCrosshairLabelsToolButton, rowIndex, 1, Qt::AlignLeft);
     
     m_volumePlaneWidgetGroup = new WuQWidgetObjectGroup(this);
     m_volumePlaneWidgetGroup->add(m_volumePlaneActionGroup);
@@ -206,6 +232,9 @@ BrainBrowserWindowToolBarSlicePlane::updateContent(BrowserTabContent* browserTab
     
     updateViewAllSlicesLayoutMenu(browserTabContent);
     
+    m_volumeAxisCrosshairsToolButtonAction->setChecked(browserTabContent->isVolumeAxesCrosshairsDisplayed());
+    m_volumeAxisCrosshairLabelsToolButtonAction->setChecked(browserTabContent->isVolumeAxesCrosshairLabelsDisplayed());
+                                                            
     m_volumePlaneWidgetGroup->blockAllSignals(false);
 }
 
@@ -324,4 +353,34 @@ BrainBrowserWindowToolBarSlicePlane::volumePlaneResetToolButtonTriggered(bool /*
     m_parentToolBar->updateVolumeIndicesWidget(btc);
     updateGraphicsWindowAndYokedWindows();
 }
+
+/**
+ * Called when volume axis crosshairs button triggered
+ *
+ * @param checked
+ *     New checked status
+ */
+void
+BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairsTriggered(bool checked)
+{
+    BrowserTabContent* btc = getTabContentFromSelectedTab();
+    btc->setVolumeAxesCrosshairsDisplayed(checked);
+    updateGraphicsWindowAndYokedWindows();
+}
+
+/**
+ * Called when volume axis crosshair labels button triggered
+ *
+ * @param checked
+ *     New checked status
+ */
+void
+BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairLabelsTriggered(bool checked)
+{
+    BrowserTabContent* btc = getTabContentFromSelectedTab();
+    btc->setVolumeAxesCrosshairLabelsDisplayed(checked);
+    updateGraphicsWindowAndYokedWindows();
+}
+
+
 

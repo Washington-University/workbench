@@ -468,8 +468,7 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
     const int32_t numCols = m_browserTabContent->getMontageNumberOfColumns();
     CaretAssert(numCols > 0);
     
-    const CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
-    const int32_t montageCoordPrecision = caretPreferences->getVolumeMontageCoordinatePrecision();
+    const int32_t montageCoordPrecision = m_browserTabContent->getVolumeMontageCoordinatePrecision();
     
     const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
 //    const int32_t horizontalMargin = static_cast<int32_t>(viewport[2] * gapsAndMargins->getVolumeMontageHorizontalGap());
@@ -557,7 +556,7 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
     uint8_t foregroundRGBA[4];
     prefs->getBackgroundAndForegroundColors()->getColorForegroundVolumeView(foregroundRGBA);
     foregroundRGBA[3] = 255;
-    const bool showCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
+    const bool showCoordinates = m_browserTabContent->isVolumeMontageAxesCoordinatesDisplayed();
     uint8_t backgroundRGBA[4];
     prefs->getBackgroundAndForegroundColors()->getColorBackgroundVolumeView(backgroundRGBA);
     backgroundRGBA[3] = 255;
@@ -3913,9 +3912,8 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjectionTyp
                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                 const float sliceCoordinates[3])
 {
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    const bool drawCrosshairsFlag = prefs->isVolumeAxesCrosshairsDisplayed();
-    bool drawCrosshairLabelsFlag = prefs->isVolumeAxesLabelsDisplayed();
+    const bool drawCrosshairsFlag = m_browserTabContent->isVolumeAxesCrosshairsDisplayed();
+    bool drawCrosshairLabelsFlag = m_browserTabContent->isVolumeAxesCrosshairLabelsDisplayed();
     
     switch (sliceDrawingType) {
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:

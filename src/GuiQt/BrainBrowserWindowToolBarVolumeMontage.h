@@ -24,6 +24,8 @@
 
 #include "BrainBrowserWindowToolBarComponent.h"
 
+class QAction;
+class QCheckBox;
 class QSpinBox;
 
 namespace caret {
@@ -48,6 +50,9 @@ namespace caret {
         
         void montageEnabledActionToggled(bool);
         
+        void showSliceCoordinateToolButtonClicked(bool);
+        void slicePrecisionSpinBoxValueChanged(int);
+        
     private:
         BrainBrowserWindowToolBarVolumeMontage(const BrainBrowserWindowToolBarVolumeMontage&);
 
@@ -58,6 +63,9 @@ namespace caret {
         QSpinBox* m_montageRowsSpinBox;
         QSpinBox* m_montageColumnsSpinBox;
         QSpinBox* m_montageSpacingSpinBox;
+        
+        QAction* m_showSliceCoordinateAction;
+        QSpinBox* m_sliceCoordinatePrecisionSpinBox;
         
         QAction* m_montageEnabledAction;
         

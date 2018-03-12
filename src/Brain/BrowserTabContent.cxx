@@ -123,6 +123,11 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
     
+    m_displayVolumeAxesCrosshairs = prefs->isVolumeAxesCrosshairsDisplayed();
+    m_displayVolumeAxesCrosshairLabels = prefs->isVolumeAxesLabelsDisplayed();
+    m_displayVolumeMontageAxesCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
+    m_volumeMontageCoordinatePrecision = prefs->getVolumeMontageCoordinatePrecision();
+    
     m_aspectRatio = 1.0;
     m_aspectRatioLocked = false;
     
@@ -195,6 +200,15 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_identificationUpdatesVolumeSlices",
                                &m_identificationUpdatesVolumeSlices);
     
+    m_sceneClassAssistant->add("m_displayVolumeAxesCrosshairs",
+                               &m_displayVolumeAxesCrosshairs);
+    m_sceneClassAssistant->add("m_displayVolumeAxesCrosshairLabels",
+                               &m_displayVolumeAxesCrosshairLabels);
+    m_sceneClassAssistant->add("m_displayVolumeMontageAxesCoordinates",
+                               &m_displayVolumeMontageAxesCoordinates);
+    m_sceneClassAssistant->add("m_volumeMontageCoordinatePrecision",
+                               &m_volumeMontageCoordinatePrecision);
+
     m_sceneClassAssistant->add("m_aspectRatio",
                                &m_aspectRatio);
     m_sceneClassAssistant->add("m_aspectRatioLocked",
@@ -302,6 +316,11 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_obliqueVolumeRotationMatrix = *tabToClone->m_obliqueVolumeRotationMatrix;
     
     m_identificationUpdatesVolumeSlices = tabToClone->m_identificationUpdatesVolumeSlices;
+    
+    m_displayVolumeAxesCrosshairs = tabToClone->m_displayVolumeAxesCrosshairs;
+    m_displayVolumeAxesCrosshairLabels = tabToClone->m_displayVolumeAxesCrosshairLabels;
+    m_displayVolumeMontageAxesCoordinates = tabToClone->m_displayVolumeMontageAxesCoordinates;
+    m_volumeMontageCoordinatePrecision = tabToClone->m_volumeMontageCoordinatePrecision;
 
     Model* model = getModelForDisplay();
     
@@ -3282,7 +3301,7 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_A;
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     
-    m_sceneClassAssistant->restoreMembers(sceneAttributes, 
+    m_sceneClassAssistant->restoreMembers(sceneAttributes,
                                           sceneClass);
     
     /*
@@ -3970,6 +3989,94 @@ BrowserTabContent::setIdentificationUpdatesVolumeSlices(const bool status)
 }
 
 /**
+ * @return Is volume axis crosshairs displayed
+ */
+bool
+BrowserTabContent::isVolumeAxesCrosshairsDisplayed() const
+{
+    return m_displayVolumeAxesCrosshairs;
+}
+
+/**
+ * Set volume axis crosshairs displayed
+ *
+ * @param displayed
+ *     New status
+ */
+void
+BrowserTabContent::setVolumeAxesCrosshairsDisplayed(const bool displayed)
+{
+    m_displayVolumeAxesCrosshairs = displayed;
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
+ * @return Is volume axis crosshairs labels displayed
+ */
+bool
+BrowserTabContent::isVolumeAxesCrosshairLabelsDisplayed() const
+{
+    return m_displayVolumeAxesCrosshairLabels;
+}
+
+/**
+ * Set volume axis crosshairs labels displayed
+ *
+ * @param displayed
+ *     New status
+ */
+void
+BrowserTabContent::setVolumeAxesCrosshairLabelsDisplayed(const bool displayed)
+{
+    m_displayVolumeAxesCrosshairLabels = displayed;
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
+ * @return Is volume montage axes coordinates displayed
+ */
+bool
+BrowserTabContent::isVolumeMontageAxesCoordinatesDisplayed() const
+{
+    return m_displayVolumeMontageAxesCoordinates;
+}
+
+/**
+ * Set volume montage axes coordinates displayed
+ *
+ * @param displayed
+ *     New status
+ */
+void
+BrowserTabContent::setVolumeMontageAxesCoordinatesDisplayed(const bool displayed)
+{
+    m_displayVolumeMontageAxesCoordinates = displayed;
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
+ * @return Digits right of decimal for montage coordinates
+ */
+int32_t
+BrowserTabContent::getVolumeMontageCoordinatePrecision() const
+{
+    return m_volumeMontageCoordinatePrecision;
+}
+
+/**
+ * Set digits right of decimal for montage coordinates
+ *
+ * @param volumeMontageCoordinatePrecision
+ *     New precision
+ */
+void
+BrowserTabContent::setVolumeMontageCoordinatePrecision(const int32_t volumeMontageCoordinatePrecision)
+{
+    m_volumeMontageCoordinatePrecision = volumeMontageCoordinatePrecision;
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
  * Return the axial slice index.
  * @return
  *   Axial slice index or negative if invalid
@@ -4387,6 +4494,10 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 *m_obliqueVolumeRotationMatrix = *btc->m_obliqueVolumeRotationMatrix;
                 *m_clippingPlaneGroup = *btc->m_clippingPlaneGroup;
                 m_identificationUpdatesVolumeSlices = btc->m_identificationUpdatesVolumeSlices;
+                m_displayVolumeAxesCrosshairs = btc->m_displayVolumeAxesCrosshairs;
+                m_displayVolumeAxesCrosshairLabels = btc->m_displayVolumeAxesCrosshairLabels;
+                m_displayVolumeMontageAxesCoordinates = btc->m_displayVolumeMontageAxesCoordinates;
+                m_volumeMontageCoordinatePrecision = btc->m_volumeMontageCoordinatePrecision;
                 break;
             }
         }
@@ -4482,6 +4593,10 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
                 *btc->m_clippingPlaneGroup = *m_clippingPlaneGroup;
                 btc->m_identificationUpdatesVolumeSlices = m_identificationUpdatesVolumeSlices;
+                btc->m_displayVolumeAxesCrosshairs = m_displayVolumeAxesCrosshairs;
+                btc->m_displayVolumeAxesCrosshairLabels = m_displayVolumeAxesCrosshairLabels;
+                btc->m_displayVolumeMontageAxesCoordinates = m_displayVolumeMontageAxesCoordinates;
+                btc->m_volumeMontageCoordinatePrecision = m_volumeMontageCoordinatePrecision;
             }
         }
     }
