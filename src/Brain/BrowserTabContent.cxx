@@ -1098,8 +1098,8 @@ BrowserTabContent::update(const std::vector<Model*> models)
     }
     
     if (m_selectedModelType == ModelTypeEnum::MODEL_TYPE_INVALID) {
-        if (m_surfaceModelSelector->getSelectedSurfaceModel() != NULL) {
-            m_selectedModelType = ModelTypeEnum::MODEL_TYPE_SURFACE;
+        if (m_surfaceMontageModel != NULL) {
+            m_selectedModelType = ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE;
         }
         else if (m_volumeModel != NULL) {
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES;
@@ -1107,14 +1107,14 @@ BrowserTabContent::update(const std::vector<Model*> models)
         else if (m_wholeBrainModel != NULL) {
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN;
         }
-        else if (m_surfaceMontageModel != NULL) {
-            m_selectedModelType = ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE;
+        else if (m_chartTwoModel != NULL) {
+            m_selectedModelType = ModelTypeEnum::MODEL_TYPE_CHART_TWO;
+        }
+        else if (m_surfaceModelSelector->getSelectedSurfaceModel() != NULL) {
+            m_selectedModelType = ModelTypeEnum::MODEL_TYPE_SURFACE;
         }
         else if (m_chartModel != NULL) {
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_CHART;
-        }
-        else if (m_chartTwoModel != NULL) {
-            m_selectedModelType = ModelTypeEnum::MODEL_TYPE_CHART_TWO;
         }
     }
     
