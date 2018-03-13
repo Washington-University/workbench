@@ -94,7 +94,7 @@ namespace caret {
         QWidget* createIdentificationSymbolWidget();
         QWidget* createMiscellaneousWidget();
         QWidget* createOpenGLWidget();
-        QWidget* createVolumeWidget();
+        QWidget* createTabDefaltsWidget();
         
         void updateColorWidget(CaretPreferences* prefs);
         void updateIdentificationWidget(CaretPreferences* prefs);

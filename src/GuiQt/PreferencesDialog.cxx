@@ -99,10 +99,10 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
                       "ID");
     tabWidget->addTab(createMiscellaneousWidget(),
                       "Misc");
+    tabWidget->addTab(createTabDefaltsWidget(),
+                      "New Tabs");
     tabWidget->addTab(createOpenGLWidget(),
                       "OpenGL");
-    tabWidget->addTab(createVolumeWidget(),
-                      "Volume");
     setCentralWidget(tabWidget,
                            WuQDialog::SCROLL_AREA_NEVER);
     
@@ -372,16 +372,6 @@ PreferencesDialog::createMiscellaneousWidget()
     m_allWidgets->add(m_miscSplashScreenShowAtStartupComboBox);
     
     /*
-     * Yoking
-     */
-    m_yokingDefaultComboBox = new WuQTrueFalseComboBox("On",
-                                                       "Off",
-                                                       this);
-    QObject::connect(m_yokingDefaultComboBox, SIGNAL(statusChanged(bool)),
-                     this, SLOT(yokingComboBoxToggled(bool)));
-    m_allWidgets->add(m_yokingDefaultComboBox);
-    
-    /*
      * Developer Menu
      */
     m_miscDevelopMenuEnabledComboBox = new WuQTrueFalseComboBox("On",
@@ -410,9 +400,6 @@ PreferencesDialog::createMiscellaneousWidget()
     addWidgetToLayout(gridLayout,
                       "Save/Manage View Files: ",
                       m_miscSpecFileDialogViewFilesTypeEnumComboBox->getWidget());
-    addWidgetToLayout(gridLayout,
-                      "New Tabs Yoked to Group A: ",
-                      m_yokingDefaultComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       "Show Develop Menu in Menu Bar: ",
                       m_miscDevelopMenuEnabledComboBox->getWidget());
@@ -460,21 +447,27 @@ PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
 QWidget*
 PreferencesDialog::createIdentificationSymbolWidget()
 {
-    QLabel* surfaceLabel = new QLabel("Show Surface ID Symbols");
+    QLabel* infoLabel = new QLabel("These are defaults for Information Properties");
+    infoLabel->setWordWrap(true);
+    
     m_surfaceIdentificationSymbolComboBox = new WuQTrueFalseComboBox("On", "Off", this);
     QObject::connect(m_surfaceIdentificationSymbolComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(identificationSymbolToggled()));
     
-    QLabel* volumeLabel = new QLabel("Show Volume ID Symbols");
     m_volumeIdentificationSymbolComboBox = new WuQTrueFalseComboBox("On", "Off", this);
     QObject::connect(m_volumeIdentificationSymbolComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(identificationSymbolToggled()));
     
     QGridLayout* gridLayout = new QGridLayout();
-    gridLayout->addWidget(surfaceLabel, 0, 0);
-    gridLayout->addWidget(m_surfaceIdentificationSymbolComboBox->getWidget(), 0, 1);
-    gridLayout->addWidget(volumeLabel, 1, 0);
-    gridLayout->addWidget(m_volumeIdentificationSymbolComboBox->getWidget(), 1, 1);
+    int row = gridLayout->rowCount();
+    gridLayout->addWidget(infoLabel,
+                          row, 0, 1, 2);
+    addWidgetToLayout(gridLayout,
+                      "Show Surface ID Symbols: ",
+                      m_surfaceIdentificationSymbolComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Show Volume ID Symbols: ",
+                      m_volumeIdentificationSymbolComboBox->getWidget());
 
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -579,18 +572,17 @@ PreferencesDialog::updateOpenGLWidget(CaretPreferences* prefs)
  * @return The volume widget.
  */
 QWidget*
-PreferencesDialog::createVolumeWidget()
+PreferencesDialog::createTabDefaltsWidget()
 {
-    QLabel* infoLabel = new QLabel("<html>"
-                                   "These are default values for: (1) Newly created Tabs with yoking off; "
-                                   "(2) Scenes created prior to version 1.3.0; and (3) When "
-                                   "volume files are loaded without a scene."
-                                   "<p>"
-                                   "In version 1.3.0 and later: (1) Controls for these settings are "
-                                   "located in the Toolbar (volume view); (2) There are unique settings for each tab; "
-                                   "and (3) The settings are saved to scenes."
-                                   "</html>");
-    infoLabel->setWordWrap(true);
+    /*
+     * Yoking
+     */
+    m_yokingDefaultComboBox = new WuQTrueFalseComboBox("On",
+                                                       "Off",
+                                                       this);
+    QObject::connect(m_yokingDefaultComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(yokingComboBoxToggled(bool)));
+    m_allWidgets->add(m_yokingDefaultComboBox);
     
     /*
      * Crosshairs On/Off
@@ -628,10 +620,10 @@ PreferencesDialog::createVolumeWidget()
      * Montage Slice Coordinate Precision
      */
     m_volumeMontageCoordinatePrecisionSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(0,
-                                                                                                  5,
-                                                                                                  1,
-                                                                                                  this,
-                                                                                                  SLOT(volumeMontageCoordinatePrecisionChanged(int)));
+                                                                                              5,
+                                                                                              1,
+                                                                                              this,
+                                                                                              SLOT(volumeMontageCoordinatePrecisionChanged(int)));
     m_allWidgets->add(m_volumeMontageCoordinatePrecisionSpinBox);
     
     m_allWidgets->add(m_volumeAxesCrosshairsComboBox);
@@ -641,9 +633,19 @@ PreferencesDialog::createVolumeWidget()
     
     QGridLayout* gridLayout = new QGridLayout();
     
+    QLabel* infoLabel = new QLabel("<html>"
+                                   "These are the <b>default settings</b> for new Tabs.  If "
+                                   "Yoked to Group A is on, the volume settings are overriden "
+                                   "by the yoked Tabs."
+                                   "</html>");
+    infoLabel->setWordWrap(true);
+    
     gridLayout->addWidget(infoLabel,
                           0, 0, 1, 2);
     
+    addWidgetToLayout(gridLayout,
+                      "Yoked to Group A: ",
+                      m_yokingDefaultComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       "Volume Axes Crosshairs: ",
                       m_volumeAxesCrosshairsComboBox->getWidget());
@@ -651,7 +653,7 @@ PreferencesDialog::createVolumeWidget()
                       "Volume Axes Labels: ",
                       m_volumeAxesLabelsComboBox->getWidget());
     addWidgetToLayout(gridLayout,
-                      "Volume Identification For New Tabs: ",
+                      "Volume ID Moves Slice Selection: ",
                       m_volumeIdentificationComboBox->getWidget());
     addWidgetToLayout(gridLayout,
                       "Volume Montage Slice Coord: ",
