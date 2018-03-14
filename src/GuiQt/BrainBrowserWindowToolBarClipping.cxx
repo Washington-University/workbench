@@ -85,9 +85,10 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolButtonStyleForQt5Mac(setupToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
+//    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
     gridLayout->setHorizontalSpacing(6);
-    gridLayout->setVerticalSpacing(8);
-    gridLayout->setContentsMargins(0, 0, 0, 0);
+    gridLayout->setVerticalSpacing(4);
+    gridLayout->setContentsMargins(1, 1, 1, 1);
     int32_t rowIndex = gridLayout->rowCount();
     gridLayout->addWidget(m_xClippingEnabledCheckBox, rowIndex, 0);
     gridLayout->addWidget(m_yClippingEnabledCheckBox, rowIndex, 1);

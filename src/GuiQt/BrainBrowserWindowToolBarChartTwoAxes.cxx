@@ -243,7 +243,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
      */
     QWidget* sizesWidget = new QWidget();
     QGridLayout* sizesLayout = new QGridLayout(sizesWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(sizesLayout, 3, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(sizesLayout, 2, 0);
     int32_t sizesRow = 0;
     sizesLayout->addWidget(new QLabel("Label"), sizesRow, 0);
     sizesLayout->addWidget(m_labelSizeSpinBox->getWidget(), sizesRow, 1);
@@ -264,7 +264,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     const bool displayLabelShowAtTopFlag = false;
     QWidget* showWidget = new QWidget();
     QGridLayout* showLayout = new QGridLayout(showWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(showLayout, 8, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(showLayout, 1, 0);
     int32_t axisRow = 0;
     if (displayLabelShowAtTopFlag) {
         showLayout->addWidget(new QLabel("Show"), axisRow, 0, Qt::AlignHCenter);
@@ -338,7 +338,10 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
      * Grid layout containing layouts
      */
     QGridLayout* gridLayout = new QGridLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 3, 0);
+    gridLayout->setHorizontalSpacing(4);
+    gridLayout->setVerticalSpacing(1);
+    gridLayout->setContentsMargins(0, 0, 0, 0);
+//    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
     gridLayout->addLayout(topLayout, 0, 0, 1, 7);
     gridLayout->addWidget(showWidget, 1, 0, Qt::AlignTop);
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 1);
@@ -349,7 +352,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     gridLayout->addWidget(numericsWidget, 1, 6, Qt::AlignTop);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0); //2);
     layout->addLayout(gridLayout);
     layout->addStretch();
 
