@@ -1831,10 +1831,10 @@ BrainBrowserWindowToolBar::createViewWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-#ifdef CARET_OS_LINUX
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 2);
-#else
+#ifdef CARET_OS_MACOSX
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
+#else
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 2);
 #endif
     layout->addWidget(this->viewModeSurfaceMontageRadioButton);
     layout->addWidget(this->viewModeVolumeRadioButton);
