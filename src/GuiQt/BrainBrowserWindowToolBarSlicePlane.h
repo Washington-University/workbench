@@ -26,6 +26,7 @@
 
 class QActionGroup;
 class QMenu;
+class QPixmap;
 
 namespace caret {
 
@@ -60,6 +61,10 @@ namespace caret {
         QMenu* createViewAllSlicesLayoutMenu();
         
         void updateViewAllSlicesLayoutMenu(BrowserTabContent* browserTabContent);
+        
+        QPixmap createCrosshairsIcon(const QWidget* widget);
+        
+        QPixmap createCrosshairLabelsIcon(const QWidget* widget);
         
         BrainBrowserWindowToolBar* m_parentToolBar;
         

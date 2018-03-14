@@ -27,6 +27,7 @@
 #include <QActionGroup>
 #include <QHBoxLayout>
 #include <QMenu>
+#include <QPainter>
 #include <QToolButton>
 
 #include "BrainBrowserWindowToolBar.h"
@@ -153,26 +154,28 @@ m_parentToolBar(parentToolBar)
                                               QSizePolicy::Fixed);
     WuQtUtilities::setToolButtonStyleForQt5Mac(slicePlaneCustomToolButton);
     
-    m_volumeAxisCrosshairsToolButtonAction = new QAction("X");
+    m_volumeAxisCrosshairsToolButtonAction = new QAction("");
     m_volumeAxisCrosshairsToolButtonAction->setCheckable(true);
     m_volumeAxisCrosshairsToolButtonAction->setToolTip("Show crosshairs on slice planes");
     QObject::connect(m_volumeAxisCrosshairsToolButtonAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairsTriggered);
     QToolButton* volumeCrosshairsToolButton = new QToolButton();
+    QPixmap xhairPixmap = createCrosshairsIcon(volumeCrosshairsToolButton);
     volumeCrosshairsToolButton->setDefaultAction(m_volumeAxisCrosshairsToolButtonAction);
-//    volumeCrosshairsToolButton->setSizePolicy(QSizePolicy::Minimum,
-//                                              QSizePolicy::Fixed);
+    m_volumeAxisCrosshairsToolButtonAction->setIcon(QIcon(xhairPixmap));
+    volumeCrosshairsToolButton->setIconSize(xhairPixmap.size());
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumeCrosshairsToolButton);
     
-    m_volumeAxisCrosshairLabelsToolButtonAction = new QAction("L");
+    m_volumeAxisCrosshairLabelsToolButtonAction = new QAction("");
     m_volumeAxisCrosshairLabelsToolButtonAction->setCheckable(true);
     m_volumeAxisCrosshairLabelsToolButtonAction->setToolTip("Show crosshair slice plane labels");
     QObject::connect(m_volumeAxisCrosshairLabelsToolButtonAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairLabelsTriggered);
     QToolButton* volumeCrosshairLabelsToolButton = new QToolButton();
     volumeCrosshairLabelsToolButton->setDefaultAction(m_volumeAxisCrosshairLabelsToolButtonAction);
-//    volumeCrosshairLabelsToolButton->setSizePolicy(QSizePolicy::Minimum,
-//                                              QSizePolicy::Fixed);
+    QPixmap labelsPixmap = createCrosshairLabelsIcon(volumeCrosshairLabelsToolButton);
+    m_volumeAxisCrosshairLabelsToolButtonAction->setIcon(QIcon(labelsPixmap));
+    volumeCrosshairLabelsToolButton->setIconSize(labelsPixmap.size());
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumeCrosshairLabelsToolButton);
     
     
@@ -382,5 +385,77 @@ BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairLabelsTriggered(bool che
     updateGraphicsWindowAndYokedWindows();
 }
 
+/**
+ * Create a pixmap for the crosshairs button.
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @return
+ *    The pixmap.
+ */
+QPixmap
+BrainBrowserWindowToolBarSlicePlane::createCrosshairsIcon(const QWidget* widget)
+{
+    CaretAssert(widget);
+    const float pixmapSize = 22.0;
+    
+    QPixmap pixmap(static_cast<int>(pixmapSize),
+                   static_cast<int>(pixmapSize));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginCenter(widget,
+                                                                                            pixmap);
+    const int startXY = 4;
+    const int endXY   = 10;
+    QPen pen(painter->pen());
+    pen.setWidth(2);
+    painter->setPen(pen);
+    painter->drawLine(-startXY, 0, -endXY, 0);
+    painter->drawLine( startXY, 0,  endXY, 0);
+    painter->drawLine(0, -startXY, 0, -endXY);
+    painter->drawLine(0,  startXY, 0,  endXY);
+    
+    return pixmap;
+}
 
+/**
+ * Create a pixmap for the crosshairs button.
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @return
+ *    The pixmap.
+ */
+QPixmap
+BrainBrowserWindowToolBarSlicePlane::createCrosshairLabelsIcon(const QWidget* widget)
+{
+    CaretAssert(widget);
+    
+    const float pixmapSize = 22.0f;
+    const float fullXY = pixmapSize;
+    const float halfXY = fullXY / 2.0f;
+    
+    const float boxWH = 8.0f;
+    const float halfBoxWH = boxWH / 2.0f;
 
+    QPixmap pixmap(static_cast<int>(pixmapSize),
+                   static_cast<int>(pixmapSize));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
+                                                                                pixmap);
+    QFont font = painter->font();
+    font.setPixelSize(10);//9);
+    painter->setFont(font);
+    
+    const float edgeOffset = 1.0f;
+    painter->drawText(QRectF(edgeOffset, halfXY - halfBoxWH, boxWH, boxWH),
+                      "L", QTextOption(Qt::AlignCenter)); //Qt::AlignLeft | Qt::AlignTop));
+    painter->drawText(QRectF(fullXY - boxWH - edgeOffset + 1, halfXY - halfBoxWH - 1, boxWH, boxWH),
+                      "R", QTextOption(Qt::AlignCenter)); //Qt::AlignLeft | Qt::AlignTop));
+
+    painter->drawText(QRectF(halfXY - halfBoxWH, edgeOffset, boxWH, boxWH),
+                      "T", QTextOption(Qt::AlignCenter)); //Qt::AlignLeft | Qt::AlignTop));
+    painter->drawText(QRectF(halfXY - halfBoxWH + 1, fullXY - boxWH - edgeOffset, boxWH, boxWH),
+                      "B", QTextOption(Qt::AlignCenter)); //Qt::AlignLeft | Qt::AlignTop));
+    
+    return pixmap;
+}
