@@ -1382,6 +1382,45 @@ WuQtUtilities::createPixmapWidgetPainterOriginCenter100x100(const QWidget* widge
  * to the widget's foreground color, and then the painter is
  * returned.
  *
+ * Origin of the painter will be in the center with the
+ * coordinates, both X and Y, ranging -100 to 100.
+ *
+ * @param widget
+ *     Widget used for coloring.
+ * @param pixmap
+ *     The Pixmap must be square (width == height).
+ * @return
+ *     Shared pointer containing QPainter for drawing to the pixmap.
+ */
+QSharedPointer<QPainter>
+WuQtUtilities::createPixmapWidgetPainterOriginCenter(const QWidget* widget,
+                                                     QPixmap& pixmap)
+{
+    CaretAssert(pixmap.width() == pixmap.height());
+    
+    QSharedPointer<QPainter> painter = createPixmapWidgetPainter(widget,
+                                                                 pixmap);
+    
+    /*
+     * Note: QPainter has its origin at the top left.
+     * Using a negative for the Y-scale value will
+     * move the origin to the bottom.
+     */
+    painter->translate(pixmap.width() / 2.0,
+                       pixmap.height() / 2.0);
+    painter->scale(1.0,
+                   -1.0);
+    
+    return painter;
+}
+
+/**
+ * Create a painter for the given pixmap that will be placed
+ * into the given widget.  The pixmap's background is painted
+ * with the widget's background color, the painter's pen is set
+ * to the widget's foreground color, and then the painter is
+ * returned.
+ *
  * Origin of painter will be in the BOTTOM LEFT corner.
  *
  * @param widget
