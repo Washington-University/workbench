@@ -943,6 +943,99 @@ PaletteFile::addDefaultPalettes()
         spectral.addScalarAndColor(-5.0f / 5.0f, "spectral-10");
         addPalette(spectral);
     }
+    
+    //palette from Alan Anticevic
+    if (this->getPaletteByName("RY-BC-BL") == NULL) {
+        Palette RY_BC_BL;
+        RY_BC_BL.setName("RY-BC-BL");//named like "ROY-BIG-BL"
+        this->addColor("rybcbl-y", 255, 255, 0);
+        this->addColor("rybcbl-r", 255, 0, 0);
+        this->addColor("rybcbl-bl", 0, 0, 0);
+        this->addColor("rybcbl-b", 0, 0, 255);
+        this->addColor("rybcbl-c", 0, 255, 255);
+        RY_BC_BL.addScalarAndColor(1.0f, "rybcbl-y");
+        RY_BC_BL.addScalarAndColor(0.5f, "rybcbl-r");
+        RY_BC_BL.addScalarAndColor(0.0f, "rybcbl-bl");
+        RY_BC_BL.addScalarAndColor(-0.5f, "rybcbl-b");
+        RY_BC_BL.addScalarAndColor(-1.0f, "rybcbl-c");
+        addPalette(RY_BC_BL);
+    }
+    
+    //matplotlib's magma, approximated by reducing their massive 256-entry lookup table to 32 entries
+    //Copyright (c) 2012-2015 Matplotlib Development Team; All Rights Reserved
+    //see https://github.com/matplotlib/matplotlib/blob/master/LICENSE/LICENSE or debian/copyright for the matplotlib license, "All Rights Reserved" is required language by the license, but it is actually open source
+    if (this->getPaletteByName("magma") == NULL) {
+        Palette magma;
+        magma.setName("magma");
+        this->addColor("magma-black", 0, 0, 0);//negative and zero
+        this->addColor("magma-1", 3, 3, 15);
+        this->addColor("magma-2", 9, 7, 32);
+        this->addColor("magma-3", 18, 13, 49);
+        this->addColor("magma-4", 28, 16, 68);
+        this->addColor("magma-5", 39, 18, 88);
+        this->addColor("magma-6", 52, 16, 105);
+        this->addColor("magma-7", 66, 15, 117);
+        this->addColor("magma-8", 79, 18, 123);
+        this->addColor("magma-9", 92, 22, 127);
+        this->addColor("magma-10", 104, 28, 129);
+        this->addColor("magma-11", 117, 33, 129);
+        this->addColor("magma-12", 129, 37, 129);
+        this->addColor("magma-13", 142, 42, 129);
+        this->addColor("magma-14", 155, 46, 127);
+        this->addColor("magma-15", 168, 50, 125);
+        this->addColor("magma-16", 181, 54, 122);
+        this->addColor("magma-17", 194, 59, 117);
+        this->addColor("magma-18", 207, 64, 112);
+        this->addColor("magma-19", 219, 71, 106);
+        this->addColor("magma-20", 229, 80, 100);
+        this->addColor("magma-21", 238, 91, 94);
+        this->addColor("magma-22", 244, 105, 92);
+        this->addColor("magma-23", 249, 120, 93);
+        this->addColor("magma-24", 251, 135, 97);
+        this->addColor("magma-25", 253, 150, 104);
+        this->addColor("magma-26", 254, 165, 113);
+        this->addColor("magma-27", 254, 180, 123);
+        this->addColor("magma-28", 254, 194, 135);
+        this->addColor("magma-29", 254, 209, 148);
+        this->addColor("magma-30", 253, 224, 161);
+        this->addColor("magma-31", 252, 238, 176);
+        this->addColor("magma-32", 252, 253, 191);
+        magma.addScalarAndColor(32.0f / 32.0f, "magma-32");
+        magma.addScalarAndColor(31.0f / 32.0f, "magma-31");
+        magma.addScalarAndColor(30.0f / 32.0f, "magma-30");
+        magma.addScalarAndColor(29.0f / 32.0f, "magma-29");
+        magma.addScalarAndColor(28.0f / 32.0f, "magma-28");
+        magma.addScalarAndColor(27.0f / 32.0f, "magma-27");
+        magma.addScalarAndColor(26.0f / 32.0f, "magma-26");
+        magma.addScalarAndColor(25.0f / 32.0f, "magma-25");
+        magma.addScalarAndColor(24.0f / 32.0f, "magma-24");
+        magma.addScalarAndColor(23.0f / 32.0f, "magma-23");
+        magma.addScalarAndColor(22.0f / 32.0f, "magma-22");
+        magma.addScalarAndColor(21.0f / 32.0f, "magma-21");
+        magma.addScalarAndColor(20.0f / 32.0f, "magma-20");
+        magma.addScalarAndColor(19.0f / 32.0f, "magma-19");
+        magma.addScalarAndColor(18.0f / 32.0f, "magma-18");
+        magma.addScalarAndColor(17.0f / 32.0f, "magma-17");
+        magma.addScalarAndColor(16.0f / 32.0f, "magma-16");
+        magma.addScalarAndColor(15.0f / 32.0f, "magma-15");
+        magma.addScalarAndColor(14.0f / 32.0f, "magma-14");
+        magma.addScalarAndColor(13.0f / 32.0f, "magma-13");
+        magma.addScalarAndColor(12.0f / 32.0f, "magma-12");
+        magma.addScalarAndColor(11.0f / 32.0f, "magma-11");
+        magma.addScalarAndColor(10.0f / 32.0f, "magma-10");
+        magma.addScalarAndColor(9.0f / 32.0f, "magma-9");
+        magma.addScalarAndColor(8.0f / 32.0f, "magma-8");
+        magma.addScalarAndColor(7.0f / 32.0f, "magma-7");
+        magma.addScalarAndColor(6.0f / 32.0f, "magma-6");
+        magma.addScalarAndColor(5.0f / 32.0f, "magma-5");
+        magma.addScalarAndColor(4.0f / 32.0f, "magma-4");
+        magma.addScalarAndColor(3.0f / 32.0f, "magma-3");
+        magma.addScalarAndColor(2.0f / 32.0f, "magma-2");
+        magma.addScalarAndColor(1.0f / 32.0f, "magma-1");
+        magma.addScalarAndColor(0.0f, "magma-black");//technically magma doesn't quite reach black at the minimum end (0 0 4), or ~(0 0 2) if extended by one, as it is a 256 element lookup, but it is close enough
+        magma.addScalarAndColor(-1.0f, "magma-black");
+        addPalette(magma);
+    }
 
     if (this->getPaletteByName("JET256") == NULL) {
         Palette JET256;
