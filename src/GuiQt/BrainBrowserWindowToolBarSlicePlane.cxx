@@ -443,19 +443,19 @@ BrainBrowserWindowToolBarSlicePlane::createCrosshairLabelsIcon(const QWidget* wi
     QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
                                                                                 pixmap);
     QFont font = painter->font();
-    font.setPixelSize(10);//9);
+    font.setPixelSize(10);
     painter->setFont(font);
     
     const float edgeOffset = 1.0f;
     painter->drawText(QRectF(edgeOffset, halfXY - halfBoxWH, boxWH, boxWH),
-                      "L", QTextOption(Qt::AlignCenter)); //Qt::AlignLeft | Qt::AlignTop));
+                      "L", QTextOption(Qt::AlignCenter));
     painter->drawText(QRectF(fullXY - boxWH - edgeOffset + 1, halfXY - halfBoxWH - 1, boxWH, boxWH),
-                      "R", QTextOption(Qt::AlignCenter)); //Qt::AlignLeft | Qt::AlignTop));
+                      "R", QTextOption(Qt::AlignCenter));
 
     painter->drawText(QRectF(halfXY - halfBoxWH, edgeOffset, boxWH, boxWH),
-                      "T", QTextOption(Qt::AlignCenter)); //Qt::AlignLeft | Qt::AlignTop));
+                      "A", QTextOption(Qt::AlignCenter));
     painter->drawText(QRectF(halfXY - halfBoxWH + 1, fullXY - boxWH - edgeOffset, boxWH, boxWH),
-                      "B", QTextOption(Qt::AlignCenter)); //Qt::AlignLeft | Qt::AlignTop));
+                      "P", QTextOption(Qt::AlignCenter));
     
     return pixmap;
 }
