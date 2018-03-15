@@ -94,7 +94,7 @@ m_parentToolBar(parentToolBar)
     showSliceCoordToolButton->setDefaultAction(m_showSliceCoordinateAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(showSliceCoordToolButton);
 
-    QLabel* decimalsLabel = new QLabel("Dec:");
+    QLabel* decimalsLabel = new QLabel("Prec:");
     decimalsLabel->setToolTip("Digits right of decimal in slice coordinates");
     m_sliceCoordinatePrecisionSpinBox = WuQFactory::newSpinBox();
     m_sliceCoordinatePrecisionSpinBox->setRange(0, 10);
