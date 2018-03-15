@@ -53,33 +53,33 @@ BrainBrowserWindowToolBarVolumeMontage::BrainBrowserWindowToolBarVolumeMontage(B
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
-    QLabel* rowsLabel = new QLabel("Rows:");
-    QLabel* columnsLabel = new QLabel("Cols:");
-    QLabel* spacingLabel = new QLabel("Step:");
     
     const int spinBoxWidth = 48;
     
+    QLabel* rowsLabel = new QLabel("Rows:");
+    rowsLabel->setToolTip("Select the number of rows in montage of volume slices");
     m_montageRowsSpinBox = WuQFactory::newSpinBox();
     m_montageRowsSpinBox->setRange(1, 20);
     m_montageRowsSpinBox->setMaximumWidth(spinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(m_montageRowsSpinBox,
-                                          "Select the number of rows in montage of volume slices");
+    m_montageRowsSpinBox->setToolTip(rowsLabel->toolTip());
     QObject::connect(m_montageRowsSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageRowsSpinBoxValueChanged(int)));
     
+    QLabel* columnsLabel = new QLabel("Cols:");
+    columnsLabel->setToolTip("Select the number of columns in montage of volume slices");
     m_montageColumnsSpinBox = WuQFactory::newSpinBox();
     m_montageColumnsSpinBox->setRange(1, 20);
     m_montageColumnsSpinBox->setMaximumWidth(spinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(m_montageColumnsSpinBox,
-                                          "Select the number of columns in montage of volume slices");
+    m_montageColumnsSpinBox->setToolTip(columnsLabel->toolTip());
     QObject::connect(m_montageColumnsSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageColumnsSpinBoxValueChanged(int)));
     
+    QLabel* spacingLabel = new QLabel("Step:");
+    spacingLabel->setToolTip("Select the number of slices stepped (incremented) between displayed montage slices");
     m_montageSpacingSpinBox = WuQFactory::newSpinBox();
     m_montageSpacingSpinBox->setRange(1, 2500);
     m_montageSpacingSpinBox->setMaximumWidth(spinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(m_montageSpacingSpinBox,
-                                          "Select the number of slices stepped (incremented) between displayed montage slices");
+    m_montageSpacingSpinBox->setToolTip(spacingLabel->toolTip());
     QObject::connect(m_montageSpacingSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageSpacingSpinBoxValueChanged(int)));
     
@@ -94,10 +94,12 @@ m_parentToolBar(parentToolBar)
     showSliceCoordToolButton->setDefaultAction(m_showSliceCoordinateAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(showSliceCoordToolButton);
 
+    QLabel* decimalsLabel = new QLabel("Dec:");
+    decimalsLabel->setToolTip("Digits right of decimal in slice coordinates");
     m_sliceCoordinatePrecisionSpinBox = WuQFactory::newSpinBox();
     m_sliceCoordinatePrecisionSpinBox->setRange(0, 10);
     m_sliceCoordinatePrecisionSpinBox->setMaximumWidth(spinBoxWidth);
-    m_sliceCoordinatePrecisionSpinBox->setToolTip("Digits right of decimal in slice coordinates");
+    m_sliceCoordinatePrecisionSpinBox->setToolTip(decimalsLabel->toolTip());
     QObject::connect(m_sliceCoordinatePrecisionSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarVolumeMontage::slicePrecisionSpinBoxValueChanged);
 
@@ -121,9 +123,11 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(m_montageColumnsSpinBox, 1, 1);
     gridLayout->addWidget(spacingLabel, 2, 0);
     gridLayout->addWidget(m_montageSpacingSpinBox, 2, 1);
-    gridLayout->addWidget(showSliceCoordToolButton, 3, 0);
+    gridLayout->addWidget(decimalsLabel, 3, 0);
     gridLayout->addWidget(m_sliceCoordinatePrecisionSpinBox, 3, 1);
-    gridLayout->addWidget(montageEnabledToolButton, 4, 0, 1, 2, Qt::AlignHCenter);
+    gridLayout->addWidget(showSliceCoordToolButton, 4, 0);
+    gridLayout->addWidget(montageEnabledToolButton, 4, 1);
+//    gridLayout->addWidget(montageEnabledToolButton, 4, 0, 1, 2, Qt::AlignHCenter);
     
     m_volumeMontageWidgetGroup = new WuQWidgetObjectGroup(this);
     m_volumeMontageWidgetGroup->add(m_montageRowsSpinBox);
