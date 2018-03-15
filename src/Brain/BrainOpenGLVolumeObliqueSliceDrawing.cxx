@@ -624,8 +624,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
                     if (showCoordinates) {
                         const AString coordText = (axisLetter
                                                    + "="
-                                                   + AString::number(sliceCoord, 'f', montageCoordPrecision)
-                                                   + "mm");
+                                                   + AString::number(sliceCoord, 'f', montageCoordPrecision));
                         
                         AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
@@ -3585,7 +3584,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::getMinMaxVoxelSpacing(const VolumeMappable
 void
 BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
 {
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     const bool drawCylindersFlag = m_browserTabContent->isVolumeAxesCrosshairsDisplayed();
     const bool drawLabelsFlag = m_browserTabContent->isVolumeAxesCrosshairLabelsDisplayed();
     

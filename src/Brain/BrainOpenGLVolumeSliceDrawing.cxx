@@ -625,8 +625,7 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
                     if (showCoordinates) {
                         const AString coordText = (axisLetter
                                                    + "="
-                                                   + AString::number(sliceCoord, 'f', montageCoordPrecision)
-                                                   + "mm");
+                                                   + AString::number(sliceCoord, 'f', montageCoordPrecision));
                         
                         AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
                         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
