@@ -652,8 +652,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
      */
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 
-
-    if (prefs->isVolumeAxesLabelsDisplayed()) {
+    if (m_browserTabContent->isVolumeAxesCrosshairLabelsDisplayed()) {
         drawAxesCrosshairsOrthoAndOblique(sliceProjectionType,
                                           sliceViewPlane,
                                           sliceCoordinates,
@@ -3587,8 +3586,8 @@ void
 BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    const bool drawCylindersFlag = prefs->isVolumeAxesCrosshairsDisplayed();
-    const bool drawLabelsFlag = prefs->isVolumeAxesLabelsDisplayed();
+    const bool drawCylindersFlag = m_browserTabContent->isVolumeAxesCrosshairsDisplayed();
+    const bool drawLabelsFlag = m_browserTabContent->isVolumeAxesCrosshairLabelsDisplayed();
     
     /*
      * Set the viewport
