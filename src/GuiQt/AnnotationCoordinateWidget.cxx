@@ -23,6 +23,10 @@
 #include "AnnotationCoordinateWidget.h"
 #undef __ANNOTATION_COORDINATE_WIDGET_DECLARE__
 
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QHBoxLayout>
@@ -37,12 +41,19 @@
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "ChartTwoCartesianAxis.h"
+#include "ChartTwoOverlaySet.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventBrowserWindowContent.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
 #include "GuiManager.h"
+#include "MathFunctions.h"
+#include "ModelChartTwo.h"
 #include "StructureEnumComboBox.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
@@ -291,9 +302,13 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         double yMax =  0.0;
         double zMin  = 0.0;
         double zMax  = 0.0;
-        double xyzStep = 0.1;
+        double xStep = 0.1;
+        double yStep = 0.1;
+        double zStep = 0.1;
         QString suffix;
-        int32_t digitsRightOfDecimal = 2;
+        int32_t digitsRightOfDecimalX = 2;
+        int32_t digitsRightOfDecimalY = 2;
+        int32_t digitsRightOfDecimalZ = 2;
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
             {
@@ -303,10 +318,77 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 yMax = coordinateMaximum;
                 zMin = coordinateMinimum;
                 zMax = coordinateMaximum;
-                digitsRightOfDecimal = 3;
-                xyzStep = 1.0;
-                
-                
+                digitsRightOfDecimalX = 3;
+                digitsRightOfDecimalX = 3;
+                xStep = 1.0;
+                yStep = 1.0;
+
+                BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+                CaretAssert(bbw);
+                BrowserTabContent* browserTabContent = bbw->getBrowserTabContent();
+                if (browserTabContent != NULL) {
+                    ModelChartTwo* modelChartTwo = browserTabContent->getDisplayedChartTwoModel();
+                    const int32_t tabIndex = browserTabContent->getTabNumber();
+                    if (modelChartTwo != NULL) {
+                        ChartTwoOverlaySet* chartOverlaySet = NULL;
+                        switch (modelChartTwo->getSelectedChartTwoDataType(tabIndex)) {
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                                break;
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                                chartOverlaySet = modelChartTwo->getChartTwoOverlaySet(tabIndex);
+                                break;
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                                chartOverlaySet = modelChartTwo->getChartTwoOverlaySet(tabIndex);
+                                break;
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                                break;
+                        }
+                        
+                        if (chartOverlaySet != NULL) {
+                            float xAxisMin =  std::numeric_limits<float>::max();
+                            float xAxisMax = -std::numeric_limits<float>::max();
+                            float yAxisMin =  std::numeric_limits<float>::max();
+                            float yAxisMax = -std::numeric_limits<float>::max();
+                            
+                            std::vector<ChartTwoCartesianAxis*> axes;
+                            chartOverlaySet->getDisplayedChartAxes(axes);
+                            const int32_t numAxes = static_cast<int32_t>(axes.size());
+                            for (int32_t i = 0; i < numAxes; i++) {
+                                float rangeMin(0), rangeMax(0);
+                                axes[i]->getDataRange(rangeMin, rangeMax);
+                                
+                                if (rangeMax > rangeMin) {
+                                    const ChartAxisLocationEnum::Enum axisLocation = axes[i]->getAxisLocation();
+                                    switch (axisLocation) {
+                                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                                            xAxisMin = std::min(xAxisMin, rangeMin);
+                                            xAxisMax = std::max(xAxisMax, rangeMax);
+                                            break;
+                                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                                        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                                            yAxisMin = std::min(yAxisMin, rangeMin);
+                                            yAxisMax = std::max(yAxisMax, rangeMax);
+                                            break;
+                                    }
+                                }
+                            }
+                            
+                            if (xAxisMax > xAxisMin) {
+                                const float range(xAxisMax - xAxisMin);
+                                int32_t digits = 6 - static_cast<int32_t>(std::round(std::log10(range)));
+                                digitsRightOfDecimalX = MathFunctions::clamp(digits, 3, 6);
+                                xStep = range * 0.001f;
+                            }
+                            if (yAxisMax > yAxisMin) {
+                                const float range(yAxisMax - yAxisMin);
+                                int32_t digits = 6 - static_cast<int32_t>(std::round(std::log10(range)));
+                                digitsRightOfDecimalY = MathFunctions::clamp(digits, 3, 6);
+                                yStep = range * 0.001f;
+                            }
+                        }
+                    }
+                }
             }
                 break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -316,7 +398,8 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 yMax = coordinateMaximum;
                 zMin = coordinateMinimum;
                 zMax = coordinateMaximum;
-                xyzStep = 1.0;
+                xStep = 1.0;
+                yStep = 1.0;
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
                 surfaceFlag = true;
@@ -356,28 +439,28 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         m_xCoordSpinBox->blockSignals(true);
         m_xCoordSpinBox->setRange(xMin,
                                   xMax);
-        m_xCoordSpinBox->setSingleStep(xyzStep);
+        m_xCoordSpinBox->setSingleStep(xStep);
         m_xCoordSpinBox->setSuffix(suffix);
         m_xCoordSpinBox->setValue(xyz[0]);
-        m_xCoordSpinBox->setDecimals(digitsRightOfDecimal);
+        m_xCoordSpinBox->setDecimals(digitsRightOfDecimalX);
         m_xCoordSpinBox->blockSignals(false);
         
         m_yCoordSpinBox->blockSignals(true);
         m_yCoordSpinBox->setRange(yMin,
                                   yMax);
-        m_yCoordSpinBox->setSingleStep(xyzStep);
+        m_yCoordSpinBox->setSingleStep(yStep);
         m_yCoordSpinBox->setSuffix(suffix);
         m_yCoordSpinBox->setValue(xyz[1]);
-        m_yCoordSpinBox->setDecimals(digitsRightOfDecimal);
+        m_yCoordSpinBox->setDecimals(digitsRightOfDecimalY);
         m_yCoordSpinBox->blockSignals(false);
         
         m_zCoordSpinBox->blockSignals(true);
         m_zCoordSpinBox->setRange(zMin,
                                   zMax);
-        m_zCoordSpinBox->setSingleStep(xyzStep);
+        m_zCoordSpinBox->setSingleStep(zStep);
         m_zCoordSpinBox->setSuffix(suffix);
         m_zCoordSpinBox->setValue(xyz[2]);
-        m_zCoordSpinBox->setDecimals(digitsRightOfDecimal);
+        m_zCoordSpinBox->setDecimals(digitsRightOfDecimalZ);
         m_zCoordSpinBox->blockSignals(false);
         
         if (surfaceFlag) {
