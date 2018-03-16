@@ -293,9 +293,10 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         double zMax  = 0.0;
         double xyzStep = 0.1;
         QString suffix;
-        int32_t digitsRightOfDecimal = 1;
+        int32_t digitsRightOfDecimal = 2;
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
+            {
                 xMin = coordinateMinimum;
                 xMax = coordinateMaximum;
                 yMin = coordinateMinimum;
@@ -304,6 +305,9 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 zMax = coordinateMaximum;
                 digitsRightOfDecimal = 3;
                 xyzStep = 1.0;
+                
+                
+            }
                 break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 xMin = coordinateMinimum;
