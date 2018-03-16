@@ -97,6 +97,8 @@ public:
 
     static void getColorEnums(std::vector<Enum>& allColorEnums);
     
+    static void getColorEnumsNoBlackOrWhite(std::vector<Enum>& allColorEnums);
+    
     static void getColorAndOptionalEnums(std::vector<Enum>& allEnums,
                                          const int64_t colorOptions);
     

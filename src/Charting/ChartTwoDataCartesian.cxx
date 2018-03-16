@@ -109,7 +109,7 @@ ChartTwoDataCartesian::initializeMembersChartTwoDataCartesian()
     m_graphicsPrimitive = createGraphicsPrimitive();
     
     std::vector<CaretColorEnum::Enum> colorEnums;
-    CaretColorEnum::getColorEnums(colorEnums);
+    CaretColorEnum::getColorEnumsNoBlackOrWhite(colorEnums);
     const int32_t numCaretColors = static_cast<int32_t>(colorEnums.size());
     
     bool colorFound = false;

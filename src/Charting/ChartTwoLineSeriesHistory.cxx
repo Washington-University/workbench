@@ -125,10 +125,13 @@ ChartTwoLineSeriesHistory::setLoadingEnabled(const bool loadingEnabled)
 CaretColorEnum::Enum
 ChartTwoLineSeriesHistory::generateDefaultColor()
 {
-    CaretColorEnum::Enum color = CaretColorEnum::BLACK;
-    
+    /*
+     * No black or white since they are used for backgrounds
+     */
     std::vector<CaretColorEnum::Enum> colors;
-    CaretColorEnum::getColorEnums(colors);
+    CaretColorEnum::getColorEnumsNoBlackOrWhite(colors);
+    CaretAssert( ! colors.empty());
+    CaretColorEnum::Enum color = colors[0];
     
     const int32_t numColors = static_cast<int32_t>(colors.size());
     CaretAssert(numColors > 0);

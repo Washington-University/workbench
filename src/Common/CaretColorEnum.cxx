@@ -487,6 +487,25 @@ CaretColorEnum::getColorEnums(std::vector<CaretColorEnum::Enum>& allColorEnums)
 }
 
 /**
+ * Get all of the enumerated type values THAT REPRESENT A COLOR except BLACK and WHITE.  
+ * The values can be used as parameters to toXXX() methods to get associated metadata.
+ *
+ * @param allColorEnums
+ *     A vector that is OUTPUT containing all of the VALID COLOR enumerated values.
+ *     No optional enum values are included.
+ */
+void
+CaretColorEnum::getColorEnumsNoBlackOrWhite(std::vector<CaretColorEnum::Enum>& allColorEnums)
+{
+    if (initializedFlag == false) initialize();
+    
+    getColorAndOptionalEnums(allColorEnums,
+                             OPTION_NO_OPTIONS);
+    std::remove(allColorEnums.begin(), allColorEnums.end(), CaretColorEnum::BLACK);
+    std::remove(allColorEnums.begin(), allColorEnums.end(), CaretColorEnum::WHITE);
+}
+
+/**
  * Get all of the enumerated type values THAT REPRESENT A COLOR and the specified
  * optional enums.  The values can be used
  * as parameters to toXXX() methods to get associated metadata.
