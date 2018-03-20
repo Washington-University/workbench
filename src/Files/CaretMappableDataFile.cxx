@@ -432,6 +432,8 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     }
     
     if (isMappedWithPalette()) {
+        const bool paletteModifiedBeforeSceneRestoreFlag = isModifiedPaletteColorMapping();
+        
         /*
          * Palette normalization was no longer saved to scenes after 
          * palette normalization was saved in mappable files's metadata.
@@ -581,6 +583,17 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                                          + "  Map Index: "
                                          + AString::number(mapIndex));
                     sceneAttributes->addToErrorMessage(msg);
+                }
+            }
+        }
+        
+        /*
+         * Do not let restoration of palette settings cause a 'palette modified file status'
+         */
+        if (isModifiedPaletteColorMapping()) {
+            if ( ! isModifiedExcludingPaletteColorMapping()) {
+                if ( ! paletteModifiedBeforeSceneRestoreFlag) {
+                    clearModified();
                 }
             }
         }
