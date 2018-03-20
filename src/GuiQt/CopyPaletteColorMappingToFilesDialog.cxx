@@ -154,7 +154,6 @@ CopyPaletteColorMappingToFilesDialog::okButtonClicked()
         
         s_previousCheckedFiles.clear();
         
-        PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
         int32_t checkedCount = 0;
         bool sourceFileFlag = false;
         
@@ -173,7 +172,7 @@ CopyPaletteColorMappingToFilesDialog::okButtonClicked()
                         PaletteColorMapping* pcm = mapFile->getMapPaletteColorMapping(iMap);
                         pcm->copy(*m_selectedPaletteColorMapping,
                                   false);
-                        mapFile->updateScalarColoringForAllMaps(paletteFile);
+                        mapFile->updateScalarColoringForAllMaps();
                         ++checkedCount;
                     }
                 }

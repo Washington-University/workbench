@@ -245,10 +245,9 @@ namespace caret {
         
         virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
         
-        virtual void updateScalarColoringForAllMaps(const PaletteFile* paletteFile);
+        virtual void updateScalarColoringForAllMaps() override;
         
-        virtual void updateScalarColoringForMap(const int32_t mapIndex,
-                                                const PaletteFile* paletteFile);
+        virtual void updateScalarColoringForMap(const int32_t mapIndex) override;
         
         virtual bool isMapColoringValid(const int32_t mapIndex) const;
         
@@ -256,53 +255,52 @@ namespace caret {
                                    int64_t& dimOut2,
                                    int64_t& dimOut3,
                                    int64_t& dimTimeOut,
-                                   int64_t& numComponents) const;
+                                   int64_t& numComponents) const override;
         
-        virtual void getDimensions(std::vector<int64_t>& dimsOut) const;
+        virtual void getDimensions(std::vector<int64_t>& dimsOut) const override;
         
         virtual void getMapDimensions(std::vector<int64_t> &dim) const;
 
-        virtual const int64_t& getNumberOfComponents() const;
+        virtual const int64_t& getNumberOfComponents() const override;
         
         virtual void indexToSpace(const float& indexIn1,
                                   const float& indexIn2,
                                   const float& indexIn3,
                                   float& coordOut1,
                                   float& coordOut2,
-                                  float& coordOut3) const;
+                                  float& coordOut3) const override;
         
         virtual void indexToSpace(const float& indexIn1,
                                   const float& indexIn2,
                                   const float& indexIn3,
-                                  float* coordOut) const;
+                                  float* coordOut) const override;
         
         virtual void indexToSpace(const int64_t* indexIn,
-                                  float* coordOut) const;
+                                  float* coordOut) const override;
         
         virtual void enclosingVoxel(const float& coordIn1,
                                     const float& coordIn2,
                                     const float& coordIn3,
                                     int64_t& indexOut1,
                                     int64_t& indexOut2,
-                                    int64_t& indexOut3) const;
+                                    int64_t& indexOut3) const override;
         
         virtual bool indexValid(const int64_t& indexIn1,
                                 const int64_t& indexIn2,
                                 const int64_t& indexIn3,
                                 const int64_t brickIndex = 0,
-                                const int64_t component = 0) const;
+                                const int64_t component = 0) const override;
         
         virtual const VolumeSpace& getVolumeSpace() const;
         
-        virtual void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const;
+        virtual void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const override;
         
-        virtual int64_t getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,
-                                                 const int32_t mapIndex,
+        virtual int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                  const int64_t sliceIndex,
                                                  const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex,
-                                                 uint8_t* rgbaOut) const;
+                                                    uint8_t* rgbaOut) const override;
         
         int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                             const int64_t firstVoxelIJK[3],
@@ -312,10 +310,9 @@ namespace caret {
                                             const int64_t numberOfColumns,
                                             const DisplayGroupEnum::Enum displayGroup,
                                             const int32_t tabIndex,
-                                            uint8_t* rgbaOut) const;
+                                            uint8_t* rgbaOut) const override;
         
-        virtual int64_t getVoxelColorsForSubSliceInMap(const PaletteFile* paletteFile,
-                                                    const int32_t mapIndex,
+        virtual int64_t getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,
                                                     const int64_t firstCornerVoxelIndex[3],
@@ -323,19 +320,17 @@ namespace caret {
                                                     const int64_t voxelCountIJK[3],
                                                     const DisplayGroupEnum::Enum displayGroup,
                                                     const int32_t tabIndex,
-                                                    uint8_t* rgbaOut) const;
+                                                    uint8_t* rgbaOut) const override;
         
-        virtual void getVoxelColorInMap(const PaletteFile* paletteFile,
-                                        const int64_t indexIn1,
+        virtual void getVoxelColorInMap(const int64_t indexIn1,
                                         const int64_t indexIn2,
                                         const int64_t indexIn3,
                                         const int64_t mapIndex,
                                         const DisplayGroupEnum::Enum displayGroup,
                                         const int32_t tabIndex,
-                                        uint8_t rgbaOut[4]) const;
+                                        uint8_t rgbaOut[4]) const override;
         
-        virtual void getVoxelColorInMapForLabelData(const PaletteFile* paletteFile,
-                                                    const std::vector<float>& dataForMap,
+        virtual void getVoxelColorInMapForLabelData(const std::vector<float>& dataForMap,
                                         const int64_t indexIn1,
                                         const int64_t indexIn2,
                                         const int64_t indexIn3,
@@ -364,14 +359,14 @@ namespace caret {
         virtual float getVoxelValue(const float* coordinateIn,
                                     bool* validOut = NULL,
                                     const int64_t mapIndex = 0,
-                                    const int64_t component = 0) const;
+                                    const int64_t component = 0) const override;
         
         virtual float getVoxelValue(const float coordinateX,
                                     const float coordinateY,
                                     const float coordinateZ,
                                     bool* validOut = NULL,
                                     const int64_t mapIndex = 0,
-                                    const int64_t component = 0) const;
+                                    const int64_t component = 0) const override;
         
         virtual bool getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                          const float xyz[3],
@@ -415,8 +410,7 @@ namespace caret {
         bool getSeriesDataForVoxelAtCoordinate(const float xyz[3],
                                                std::vector<float>& seriesDataOut) const;
         
-        virtual bool getMapSurfaceNodeColoring(const PaletteFile* paletteFile,
-                                               const int32_t mapIndex,
+        virtual bool getMapSurfaceNodeColoring(const int32_t mapIndex,
                                                const StructureEnum::Enum structure,
                                                float* surfaceRGBAOut,
                                                float* dataValuesOut,
@@ -488,7 +482,7 @@ namespace caret {
         virtual void setMapData(const int32_t mapIndex,
                                 const std::vector<float>& data);
         
-        virtual void getMatrixRGBA(std::vector<float>& rgba, PaletteFile *paletteFile);
+        virtual void getMatrixRGBA(std::vector<float>& rgba);
     
         bool getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
                                       int32_t& numberOfColumnsOut,
@@ -556,7 +550,6 @@ namespace caret {
             void updateForChangeInMapData();
             
             void updateColoring(const std::vector<float>& data,
-                                const PaletteFile* paletteFile,
                                 const FastStatistics* fastStatistics);
             
             bool isFastStatisticsValid() const;

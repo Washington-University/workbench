@@ -128,6 +128,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm,
     this->displayPositiveDataFlag = pcm.displayPositiveDataFlag;
     this->displayZeroDataFlag     = pcm.displayZeroDataFlag;
     this->interpolatePaletteFlag  = pcm.interpolatePaletteFlag;
+    this->invertedPaletteFlag     = pcm.invertedPaletteFlag;
     this->scaleMode = pcm.scaleMode;
     this->selectedPaletteName = pcm.selectedPaletteName;
     this->userScaleNegativeMaximum = pcm.userScaleNegativeMaximum;
@@ -186,6 +187,7 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->displayPositiveDataFlag == pcm.displayPositiveDataFlag)
         && (this->displayZeroDataFlag     == pcm.displayZeroDataFlag)
         && (this->interpolatePaletteFlag  == pcm.interpolatePaletteFlag)
+        && (this->invertedPaletteFlag     == pcm.invertedPaletteFlag)
         && (this->scaleMode == pcm.scaleMode)
         && (this->selectedPaletteName == pcm.selectedPaletteName)
         && (this->userScaleNegativeMaximum == pcm.userScaleNegativeMaximum)
@@ -249,6 +251,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->userScalePositiveMaximum = 100.0f;
     this->selectedPaletteName = Palette::ROY_BIG_BL_PALETTE_NAME;
     this->interpolatePaletteFlag = true;
+    this->invertedPaletteFlag    = false;
     this->displayPositiveDataFlag = true;
     this->displayZeroDataFlag = false;
     this->displayNegativeDataFlag = true;
@@ -332,6 +335,8 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
     xmlWriter.writeElementCharacters(
                                      PaletteColorMappingXmlElements::XML_TAG_INTERPOLATE,
                                      this->interpolatePaletteFlag);
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_INVERT,
+                                     invertedPaletteFlag);
     xmlWriter.writeElementCharacters(
                                      PaletteColorMappingXmlElements::XML_TAG_DISPLAY_POSITIVE,
                                      this->displayPositiveDataFlag);
@@ -486,17 +491,8 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
     
     colorBar->clearSections();
     
-    const AString paletteName = getSelectedPaletteName();
-    EventPaletteGetByName paletteEvent(paletteName);
-    EventManager::get()->sendEvent(paletteEvent.getPointer());
-    const Palette* palette = paletteEvent.getPalette();
-    if (palette == NULL) {
-        CaretLogSevere("Unable to find palette named \""
-                       + paletteName
-                       + "\"");
-        return;
-    }
-    
+    const Palette* palette = getPalette();
+    CaretAssert(palette);
     
     /*
      * Types of values for display
@@ -942,6 +938,30 @@ PaletteColorMapping::setInterpolatePaletteFlag(const bool interpolatePaletteFlag
 }
 
 /**
+ * @return Invert the palette
+ */
+bool
+PaletteColorMapping::isInvertedPaletteFlag() const
+{
+    return this->invertedPaletteFlag;
+}
+
+/**
+ * Set Inverted the palette flag
+ *
+ * @param invertedPaletteFlag
+ *    New value for Invert the palette
+ */
+void
+PaletteColorMapping::setInvertedPaletteFlag(const bool invertedPaletteFlag)
+{
+    if (this->invertedPaletteFlag != invertedPaletteFlag) {
+        this->invertedPaletteFlag = invertedPaletteFlag;
+        this->setModified();
+    }
+}
+
+/**
  * Get how the data is scaled to the palette.
  * @return  Enumerated type indicating how data is scaled to the palette.
  *
@@ -965,6 +985,50 @@ PaletteColorMapping::setScaleMode(const PaletteScaleModeEnum::Enum scaleMode)
         this->scaleMode = scaleMode;
         this->setModified();
     }
+}
+
+/**
+ * @return The palette used by this palette color mapping.
+ * This method should always return a valid palette.
+ *
+ * If the inverted palette flag is set, this will return
+ * the inverted version of the palette.
+ *
+ * The palette is set by calling setSelectedPaletteName().
+ *
+ * If the palette name does not match a valid palette, 
+ * the default palette (ROY-BIG-BL) is returned.
+ */
+const Palette*
+PaletteColorMapping::getPalette() const
+{
+    const AString paletteName = getSelectedPaletteName();
+    EventPaletteGetByName paletteEvent(paletteName);
+    EventManager::get()->sendEvent(paletteEvent.getPointer());
+    Palette* palette = paletteEvent.getPalette();
+    
+    if (palette == NULL) {
+        if (s_missingPaletteNames.find(paletteName) == s_missingPaletteNames.end()) {
+            s_missingPaletteNames.insert(paletteName);
+            CaretLogSevere("Palette named "
+                           + paletteName
+                           + " is not a valid palette name.");
+        }
+
+        /*
+         * Use the "default" palette
+         */
+        EventPaletteGetByName paletteEvent(Palette::getDefaultPaletteName());
+        EventManager::get()->sendEvent(paletteEvent.getPointer());
+        palette = paletteEvent.getPalette();
+        CaretAssert(palette);
+    }
+    
+    if (isInvertedPaletteFlag()) {
+        return palette->getInvertedPalette();
+    }
+    
+    return palette;
 }
 
 /**

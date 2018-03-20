@@ -97,7 +97,6 @@ VolumeFileVoxelColorizer::~VolumeFileVoxelColorizer()
  */
 void
 VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
-                                                  const Palette* palette,
                                                   const VolumeFile* thresholdVolume,
                                                   const int32_t /*thresholdVolumeMapIndex*/)
 {
@@ -146,9 +145,6 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
         case SubvolumeAttributes::ANATOMY:
         case SubvolumeAttributes::FUNCTIONAL:
         {
-            CaretAssert(palette);
-
-            
             FastStatistics* statistics = NULL;
             switch (m_volumeFile->getPaletteNormalizationMode()) {
                 case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
@@ -163,7 +159,6 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
 
             NodeAndVoxelColoring::colorScalarsWithPalette(statistics, //m_volumeFile->getMapFastStatistics(mapIndex),
                                                           m_volumeFile->getMapPaletteColorMapping(mapIndex),
-                                                          palette,
                                                           mapDataPointer,
                                                           mapDataPointer,
                                                           m_voxelCountPerMap,

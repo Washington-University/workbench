@@ -28,7 +28,6 @@
 namespace caret {
     
     class BoundingBox;
-    class PaletteFile;
     
     /**
      * \class caret::VolumeMappableInterface
@@ -261,8 +260,6 @@ namespace caret {
         /**
          * Get the voxel colors for a slice in the map.
          *
-         * @param paletteFile
-         *    The palette file.
          * @param mapIndex
          *    Index of the map.
          * @param slicePlane
@@ -279,8 +276,7 @@ namespace caret {
          * @return
          *    Number of voxels with alpha greater than zero
          */
-        virtual int64_t getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,
-                                                    const int32_t mapIndex,
+        virtual int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,
                                                     const DisplayGroupEnum::Enum displayGroup,
@@ -324,8 +320,6 @@ namespace caret {
         /**
          * Get the voxel colors for a sub slice in the map.
          *
-         * @param paletteFile
-         *    The palette file.
          * @param mapIndex
          *    Index of the map.
          * @param slicePlane
@@ -348,8 +342,7 @@ namespace caret {
          * @return
          *    Number of voxels with alpha greater than zero
          */
-        virtual int64_t getVoxelColorsForSubSliceInMap(const PaletteFile* paletteFile,
-                                                       const int32_t mapIndex,
+        virtual int64_t getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                        const int64_t sliceIndex,
                                                        const int64_t firstCornerVoxelIndex[3],
@@ -362,8 +355,6 @@ namespace caret {
         /**
          * Get the voxel coloring for the voxel at the given indices.
          *
-         * @param paletteFile
-         *    The palette file.
          * @param indexIn1
          *     First dimension (i).
          * @param indexIn2
@@ -379,8 +370,7 @@ namespace caret {
          * @param rgbaOut
          *     Output containing RGBA values for voxel at the given indices.
          */
-        virtual void getVoxelColorInMap(const PaletteFile* paletteFile,
-                                        const int64_t indexIn1,
+        virtual void getVoxelColorInMap(const int64_t indexIn1,
                                         const int64_t indexIn2,
                                         const int64_t indexIn3,
                                         const int64_t brickIndex,

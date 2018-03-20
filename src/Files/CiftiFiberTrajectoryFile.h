@@ -110,8 +110,8 @@ namespace caret {
         
         virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) const;
         
-        virtual void updateScalarColoringForMap(const int32_t mapIndex,
-                                                const PaletteFile* paletteFile);
+        virtual void updateScalarColoringForMap(const int32_t mapIndex) override;
+        
         virtual void readFile(const AString& filename);
         
         virtual void writeFile(const AString& filename);

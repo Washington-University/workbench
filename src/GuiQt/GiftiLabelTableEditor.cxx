@@ -882,9 +882,7 @@ void
 GiftiLabelTableEditor::processApplyButton()
 {
     if (m_caretMappableDataFile != NULL) {
-        const PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-        m_caretMappableDataFile->updateScalarColoringForMap(m_caretMappableDataFileMapIndex,
-                                                            paletteFile);
+        m_caretMappableDataFile->updateScalarColoringForMap(m_caretMappableDataFileMapIndex);
     }
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

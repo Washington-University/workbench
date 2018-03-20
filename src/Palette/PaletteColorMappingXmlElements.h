@@ -33,6 +33,7 @@ namespace PaletteColorMappingXmlElements {
     static const AString XML_TAG_USER_SCALE_VALUES = "UserScaleValues";
     static const AString XML_TAG_PALETTE_NAME = "PaletteName";
     static const AString XML_TAG_INTERPOLATE = "InterpolatePalette";
+    static const AString XML_TAG_INVERT = "InvertPalette";
     static const AString XML_TAG_DISPLAY_POSITIVE = "DisplayPositiveData";
     static const AString XML_TAG_DISPLAY_NEGATIVE = "DisplayNegativeData";
     static const AString XML_TAG_DISPLAY_ZERO = "DisplayZeroData";

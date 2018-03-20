@@ -2904,8 +2904,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 const int32_t columnIndex = idCiftiConnMatrix->getMatrixColumnIndex();
                 if ((rowIndex >= 0)
                     || (columnIndex >= 0)) {
-                    ciftiConnectivityManager->loadRowOrColumnFromConnectivityMatrixFile(brain,
-                                                                                        matrixFile,
+                    ciftiConnectivityManager->loadRowOrColumnFromConnectivityMatrixFile(matrixFile,
                                                                                         rowIndex,
                                                                                         columnIndex,
                                                                                         ciftiLoadingInfo);
@@ -3008,8 +3007,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                 if (matrixFile != NULL) {
                                     if ((rowIndex >= 0)
                                         || (colIndex >= 0)) {
-                                        ciftiConnectivityManager->loadRowOrColumnFromConnectivityMatrixFile(brain,
-                                                                                                            matrixFile,
+                                        ciftiConnectivityManager->loadRowOrColumnFromConnectivityMatrixFile(matrixFile,
                                                                                                             rowIndex,
                                                                                                             colIndex,
                                                                                                             ciftiLoadingInfo);

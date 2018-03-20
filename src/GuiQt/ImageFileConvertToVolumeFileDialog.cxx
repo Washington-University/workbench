@@ -286,8 +286,6 @@ ImageFileConvertToVolumeFileDialog::createControlPointWidget()
 void
 ImageFileConvertToVolumeFileDialog::okButtonClicked()
 {
-    Brain* brain = GuiManager::get()->getBrain();
-    
     EventBrowserTabGet tabEvent(m_tabIndex);
     EventManager::get()->sendEvent(tabEvent.getPointer());
     BrowserTabContent* tabContent = tabEvent.getBrowserTab();
@@ -329,7 +327,6 @@ ImageFileConvertToVolumeFileDialog::okButtonClicked()
     const ImageFile::CONVERT_TO_VOLUME_COLOR_MODE colorMode = static_cast<ImageFile::CONVERT_TO_VOLUME_COLOR_MODE>(colorConversionIndex);
     AString errorMessage;
     VolumeFile* volumeFile = m_imageFile->convertToVolumeFile(colorMode,
-                                                              brain->getPaletteFile(),
                                                               errorMessage);
     
     if (volumeFile == NULL) {

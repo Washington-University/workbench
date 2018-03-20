@@ -41,7 +41,6 @@ namespace caret {
     class LabelDrawingProperties;
     class MapFileDataSelector;
     class PaletteColorMapping;
-    class PaletteFile;
     
     /**
      * \class caret::CaretMappableDataFile 
@@ -401,7 +400,7 @@ namespace caret {
          * @param paletteFile
          *    Palette file containing palettes.
          */
-        virtual void updateScalarColoringForAllMaps(const PaletteFile* paletteFile);
+        virtual void updateScalarColoringForAllMaps();
         
         /**
          * Update coloring for a map.
@@ -411,8 +410,7 @@ namespace caret {
          * @param paletteFile
          *    Palette file containing palettes.
          */
-        virtual void updateScalarColoringForMap(const int32_t mapIndex,
-                                          const PaletteFile* paletteFile) = 0;
+        virtual void updateScalarColoringForMap(const int32_t mapIndex) = 0;
         
         void invalidateHistogramChartColoring();
         

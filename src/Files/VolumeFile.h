@@ -31,7 +31,6 @@
 #include "StructureEnum.h"
 #include "GiftiMetaData.h"
 #include "BoundingBox.h"
-#include "PaletteFile.h"
 #include "VolumeFileVoxelColorizer.h"
 #include "VoxelIJK.h"
 
@@ -198,7 +197,7 @@ namespace caret {
         
         virtual bool isModifiedExcludingPaletteColorMapping() const;
         
-        void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const;
+        void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const override;
         
         /**
          * @return The structure for this file.
@@ -287,8 +286,7 @@ namespace caret {
         
         AString getMapUniqueID(const int32_t mapIndex) const;
         
-        void updateScalarColoringForMap(const int32_t mapIndex,
-                                     const PaletteFile* paletteFile);
+        void updateScalarColoringForMap(const int32_t mapIndex) override;
         
         virtual int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                             const int64_t firstVoxelIJK[3],
@@ -298,17 +296,17 @@ namespace caret {
                                             const int64_t numberOfColumns,
                                             const DisplayGroupEnum::Enum displayGroup,
                                             const int32_t tabIndex,
-                                            uint8_t* rgbaOut) const;
+                                            uint8_t* rgbaOut) const override;
         
-        virtual int64_t getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,
+        virtual int64_t getVoxelColorsForSliceInMap(
                                          const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,
                                          const DisplayGroupEnum::Enum displayGroup,
                                          const int32_t tabIndex,
-                                         uint8_t* rgbaOut) const;
+                                         uint8_t* rgbaOut) const override;
 
-        virtual int64_t getVoxelColorsForSubSliceInMap(const PaletteFile* paletteFile,
+        virtual int64_t getVoxelColorsForSubSliceInMap(
                                                     const int32_t mapIndex,
                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,
@@ -317,21 +315,20 @@ namespace caret {
                                                     const int64_t voxelCountIJK[3],
                                                     const DisplayGroupEnum::Enum displayGroup,
                                                     const int32_t tabIndex,
-                                                    uint8_t* rgbaOut) const;
+                                                    uint8_t* rgbaOut) const override;
         
         void getVoxelValuesForSliceInMap(const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,
                                          float* sliceValues) const;
         
-        void getVoxelColorInMap(const PaletteFile* paletteFile,
-                                const int64_t i,
+        void getVoxelColorInMap(const int64_t i,
                                 const int64_t j,
                                 const int64_t k,
                                 const int64_t mapIndex,
                                 const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex,
-                                uint8_t rgbaOut[4]) const;
+                                uint8_t rgbaOut[4]) const override;
         
         void clearVoxelColoringForMap(const int64_t mapIndex);
         

@@ -967,8 +967,7 @@ ChartTwoOverlayViewController::menuMatrixTriangularViewModeTriggered(QAction* ac
                                          selectedIndexType,
                                          selectedIndex);
         if (mapFile != NULL) {
-            PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-            mapFile->updateScalarColoringForAllMaps(paletteFile);
+            mapFile->updateScalarColoringForAllMaps();
         }
         this->updateGraphicsWindow();
     }

@@ -32,7 +32,6 @@
 #include "DataFileContentInformation.h"
 #include "ElapsedTimer.h"
 #include "EventManager.h"
-#include "EventPaletteGetByName.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
@@ -1411,12 +1410,9 @@ VolumeFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const
  *
  * @param mapIndex
  *     Index of map.
- * @param paletteFile
- *     File containing the palettes.
  */
 void
-VolumeFile::updateScalarColoringForMap(const int32_t mapIndex,
-                                    const PaletteFile* paletteFile)
+VolumeFile::updateScalarColoringForMap(const int32_t mapIndex)
 {
     if (s_voxelColoringEnabled == false) {
         return;
@@ -1425,39 +1421,7 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex,
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
     CaretAssert(m_voxelColorizer);
     
-    const bool usesPalette = isMappedWithPalette();
-    const PaletteColorMapping* pcm = (usesPalette
-                                      ? getMapPaletteColorMapping(mapIndex)
-                                      : NULL);
-    const AString paletteName = (usesPalette
-                                 ? pcm->getSelectedPaletteName()
-                                 : "");
-    Palette* palette = NULL;
-    
-    if (usesPalette) {
-        if (paletteFile != NULL) {
-            palette = paletteFile->getPaletteByName(paletteName);
-        }
-        
-        if (palette == NULL) {
-            EventPaletteGetByName getPaletteEvent(paletteName);
-            EventManager::get()->sendEvent(getPaletteEvent.getPointer());
-            palette = getPaletteEvent.getPalette();
-        }
-    }
-    
-    if (usesPalette
-        && (palette == NULL)) {
-        CaretLogSevere("No palette named \""
-                       + paletteName
-                       + "\" found for coloring map index="
-                       + AString::number(mapIndex)
-                       + " in "
-                       + getFileNameNoPath());
-    }
-    
     m_voxelColorizer->assignVoxelColorsForMap(mapIndex,
-                                              palette,
                                               this,
                                               mapIndex);
     
@@ -1469,8 +1433,6 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex,
  * Does nothing if coloring is not enabled and output colors are undefined
  * in this case.
  *
- * @param paletteFile
- *    The palette file.
  * @param mapIndex
  *    Index of the map.
  * @param slicePlane
@@ -1487,13 +1449,12 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex,
  *    Number of voxels with alpha greater than zero
  */
 int64_t
-VolumeFile::getVoxelColorsForSliceInMap(const PaletteFile* /*paletteFile*/,
-                                        const int32_t mapIndex,
-                                 const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                 const int64_t sliceIndex,
+VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                        const int64_t sliceIndex,
                                         const DisplayGroupEnum::Enum displayGroup,
                                         const int32_t tabIndex,
-                                 uint8_t* rgbaOut) const
+                                        uint8_t* rgbaOut) const
 {
     if (s_voxelColoringEnabled == false) {
         return 0;
@@ -1564,8 +1525,6 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
 /**
   * Get the voxel colors for a sub slice in the map.
   *
-  * @param paletteFile
-  *    The palette file.
   * @param mapIndex
   *    Index of the map.
   * @param slicePlane
@@ -1589,8 +1548,7 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
  *    Number of voxels with alpha greater than zero
   */
 int64_t
-VolumeFile::getVoxelColorsForSubSliceInMap(const PaletteFile* /*paletteFile*/,
-                                           const int32_t mapIndex,
+VolumeFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                            const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                            const int64_t sliceIndex,
                                            const int64_t firstCornerVoxelIndex[3],
@@ -1694,8 +1652,6 @@ VolumeFile::getVoxelValuesForSliceInMap(const int32_t mapIndex,
  * Does nothing if coloring is not enabled and output colors are undefined
  * in this case.
  *
- * @param paletteFile
- *    The palette file.
  * @param i
  *    Parasaggital index
  * @param j
@@ -1712,14 +1668,13 @@ VolumeFile::getVoxelValuesForSliceInMap(const int32_t mapIndex,
  *    Contains voxel coloring on exit.
  */
 void
-VolumeFile::getVoxelColorInMap(const PaletteFile* /*paletteFile*/,
-                               const int64_t i,
-                        const int64_t j,
-                        const int64_t k,
-                        const int64_t mapIndex,
+VolumeFile::getVoxelColorInMap(const int64_t i,
+                               const int64_t j,
+                               const int64_t k,
+                               const int64_t mapIndex,
                                const DisplayGroupEnum::Enum displayGroup,
                                const int32_t tabIndex,
-                        uint8_t rgbaOut[4]) const
+                               uint8_t rgbaOut[4]) const
 {
     if (s_voxelColoringEnabled == false) {
         return;

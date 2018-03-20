@@ -163,8 +163,7 @@ namespace caret {
         virtual int32_t getMapIndexFromUniqueID(const AString& uniqueID) const;
         
         
-        virtual void updateScalarColoringForMap(const int32_t mapIndex,
-                                             const PaletteFile* paletteFile);
+        virtual void updateScalarColoringForMap(const int32_t mapIndex) override;
         
         virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
                                         std::vector<float>& dataOut) const override;

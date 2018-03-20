@@ -30,7 +30,6 @@
 namespace caret {
     class FastStatistics;
     class GiftiLabelTable;
-    class Palette;
     class PaletteColorMapping;
     
     class NodeAndVoxelColoring {
@@ -38,7 +37,6 @@ namespace caret {
     public:
         static void colorScalarsWithPalette(const FastStatistics* statistics,
                                             const PaletteColorMapping* paletteColorMapping,
-                                            const Palette* palette,
                                             const float* scalars,
                                             const float* scalarThresholds,
                                             const int64_t numberOfScalars,
@@ -47,7 +45,6 @@ namespace caret {
         
         static void colorScalarsWithPalette(const FastStatistics* statistics,
                                             const PaletteColorMapping* paletteColorMapping,
-                                            const Palette* palette,
                                             const float* scalars,
                                             const float* scalarThresholds,
                                             const int64_t numberOfScalars,
@@ -103,7 +100,6 @@ namespace caret {
         
         static void colorScalarsWithPalettePrivate(const FastStatistics* statistics,
                                                    const PaletteColorMapping* paletteColorMapping,
-                                                   const Palette* palette,
                                                    const float* scalars,
                                                    const float* scalarThresholds,
                                                    const int64_t numberOfScalars,

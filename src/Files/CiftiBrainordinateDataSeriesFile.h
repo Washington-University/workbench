@@ -27,7 +27,6 @@
 
 namespace caret {
     class CiftiConnectivityMatrixDenseDynamicFile;
-    class PaletteFile;
 
     class CiftiBrainordinateDataSeriesFile :
     public CiftiMappableDataFile,

@@ -39,7 +39,6 @@ namespace caret {
     class Matrix4x4;
     class ModelVolume;
     class ModelWholeBrain;
-    class PaletteFile;
     class Plane;
     class VolumeMappableInterface;
     
@@ -361,8 +360,6 @@ namespace caret {
         std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo> m_volumeDrawInfo;
         
         BrowserTabContent* m_browserTabContent;
-        
-        PaletteFile* m_paletteFile;
         
         DisplayGroupEnum::Enum m_displayGroup;
         

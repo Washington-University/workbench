@@ -74,7 +74,6 @@ namespace caret {
     class ModelWholeBrain;
     class Palette;
     class PaletteColorMapping;
-    class PaletteFile;
     class SurfaceFile;
     class SurfaceMontageConfigurationCerebellar;
     class SurfaceMontageConfigurationCerebral;

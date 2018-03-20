@@ -29,7 +29,6 @@
 #include "CaretPreferences.h"
 #include "EventCaretPreferencesGet.h"
 #include "EventManager.h"
-#include "EventPaletteGetByName.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
 #include "NodeAndVoxelColoring.h"
@@ -161,15 +160,6 @@ ChartableTwoFileHistogramChart::getHistogramForChartDrawing(const int32_t mapInd
     
     PaletteColorMapping* paletteColorMapping = myMapFile->getMapPaletteColorMapping(mapIndex);
     CaretAssert(paletteColorMapping);
-    
-    EventPaletteGetByName paletteEvent(paletteColorMapping->getSelectedPaletteName());
-    EventManager::get()->sendEvent(paletteEvent.getPointer());
-    const Palette* palette = paletteEvent.getPalette();
-    if (palette == NULL) {
-        CaretLogSevere("Unable to find palette named: "
-                       + paletteColorMapping->getSelectedPaletteName());
-        return histogramOut;
-    }
     
     FastStatistics* statistics = NULL;
     if (useDataFromAllMapsFlag) {
@@ -356,15 +346,6 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
     PaletteColorMapping* paletteColorMapping = myMapFile->getMapPaletteColorMapping(mapIndex);
     CaretAssert(paletteColorMapping);
     
-    EventPaletteGetByName paletteEvent(paletteColorMapping->getSelectedPaletteName());
-    EventManager::get()->sendEvent(paletteEvent.getPointer());
-    const Palette* palette = paletteEvent.getPalette();
-    if (palette == NULL) {
-        CaretLogSevere("Unable to find palette named: "
-                       + paletteColorMapping->getSelectedPaletteName());
-        return NULL;
-    }
-    
     float minValueX = 0.0;
     float maxValueX = 0.0;
     histogram->getRange(minValueX,
@@ -377,7 +358,6 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
     
     if ((paletteColorMapping != NULL)
         && (statistics != NULL)
-        && (palette != NULL)
         && (histogram != NULL)) {
         std::vector<float> histogramBuckets = histogram->getHistogramDisplay();
         const int32_t numBucketValues = static_cast<int32_t>(histogramBuckets.size());
@@ -399,7 +379,6 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
                              0.0f);
         NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
                                                       paletteColorMapping,
-                                                      palette,
                                                       &xValuesAtBuckets[0],
                                                       &xValuesAtBuckets[0],
                                                       numBucketValues,

@@ -40,6 +40,7 @@ PaletteColorMappingSaxReader::PaletteColorMappingSaxReader(PaletteColorMapping* 
     this->stateStack.push(state);
     this->elementText = "";
     this->paletteColorMapping = paletteColorMapping;
+    this->paletteColorMapping->setInvertedPaletteFlag(false);
 }
 
 /**
@@ -182,6 +183,9 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_INTERPOLATE) {
                this->paletteColorMapping->setInterpolatePaletteFlag(toBool(this->elementText));
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_INVERT) {
+               this->paletteColorMapping->setInvertedPaletteFlag(toBool(this->elementText));
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_NAME) {
                this->paletteColorMapping->setSelectedPaletteName(this->elementText);

@@ -169,9 +169,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
     }
     m_underlayVolume = m_volumeDrawInfo[0].volumeFile;
     
-    m_paletteFile = m_browserTabContent->getModelForDisplay()->getBrain()->getPaletteFile();
-    CaretAssert(m_paletteFile);
-    
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     m_displayGroup = dsl->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
     
@@ -1627,22 +1624,13 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlan
             }
             else if (mappableFile->isMappedWithPalette()) {
                 const PaletteColorMapping* paletteColorMapping = mappableFile->getMapPaletteColorMapping(mapIndex);
-                const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-                const Palette* palette = m_paletteFile->getPaletteByName(paletteName);
-                if (palette != NULL) {
-                    CaretAssertVectorIndex(m_volumeDrawInfo, i);
-                    NodeAndVoxelColoring::colorScalarsWithPalette(m_volumeDrawInfo[i].statistics,
-                                                                  paletteColorMapping,
-                                                                  palette,
-                                                                  values,
-                                                                  values,
-                                                                  numValues,
-                                                                  rgba);
-                }
-                else {
-                    CaretLogWarning("Missing palette named: "
-                                    + paletteName);
-                }
+                CaretAssertVectorIndex(m_volumeDrawInfo, i);
+                NodeAndVoxelColoring::colorScalarsWithPalette(m_volumeDrawInfo[i].statistics,
+                                                              paletteColorMapping,
+                                                              values,
+                                                              values,
+                                                              numValues,
+                                                              rgba);
             }
             else if (mappableFile->isMappedWithLabelTable()) {
                 GiftiLabelTable* labelTable = mappableFile->getMapLabelTable(mapIndex);
@@ -2032,8 +2020,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewP
          * Get colors for all voxels in the slice.
          */
         const int64_t validVoxelCount =
-           volumeFile->getVoxelColorsForSliceInMap(m_brain->getPaletteFile(),
-                                                mapIndex,
+           volumeFile->getVoxelColorsForSliceInMap(mapIndex,
                                                 sliceViewPlane,
                                                 sliceIndexForDrawing,
                                                 displayGroup,
@@ -2344,8 +2331,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrthogonalSliceWithCulling(const Volum
         };
         
         const int64_t validVoxelCount =
-           volumeFile->getVoxelColorsForSubSliceInMap(m_brain->getPaletteFile(),
-                                                   mapIndex,
+           volumeFile->getVoxelColorsForSubSliceInMap(mapIndex,
                                                    sliceViewPlane,
                                                    sliceIndexForDrawing,
                                                    culledFirstVoxelIJK,

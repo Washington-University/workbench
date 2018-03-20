@@ -485,7 +485,7 @@ VolumeFileCreateDialog::okButtonClicked()
         }
     }
     m_volumeFile->setValueAllVoxels(defaultValue);
-    m_volumeFile->updateScalarColoringForAllMaps(GuiManager::get()->getBrain()->getPaletteFile());
+    m_volumeFile->updateScalarColoringForAllMaps();
     
     for (int32_t iMap = 0; iMap < numMaps; iMap++) {
         CaretAssertVectorIndex(m_mapNameLineEdits, iMap);

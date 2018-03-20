@@ -270,9 +270,7 @@ UserInputModeVolumeEdit::updateGraphicsAfterEditing(VolumeFile* volumeFile,
     CaretAssert((mapIndex >= 0) && (mapIndex < volumeFile->getNumberOfMaps()));
 
     volumeFile->clearVoxelColoringForMap(mapIndex);
-    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-    volumeFile->updateScalarColoringForMap(mapIndex,
-                                           paletteFile);
+    volumeFile->updateScalarColoringForMap(mapIndex);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

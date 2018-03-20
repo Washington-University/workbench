@@ -962,8 +962,7 @@ GiftiTypeFile::getMapIndexFromUniqueID(const AString& uniqueID) const
  *    Palette file containing palettes.
  */
 void
-GiftiTypeFile::updateScalarColoringForMap(const int32_t /*mapIndex*/,
-                                       const PaletteFile* /*paletteFile*/)
+GiftiTypeFile::updateScalarColoringForMap(const int32_t /*mapIndex*/)
 {
     invalidateHistogramChartColoring();
 }

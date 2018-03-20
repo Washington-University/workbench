@@ -90,7 +90,6 @@
 #include "EventModelSurfaceGet.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
 #include "EventOpenGLObjectToWindowTransform.h"
-#include "EventPaletteGetByName.h"
 #include "FastStatistics.h"
 #include "Fiber.h"
 #include "FiberOrientation.h"
@@ -136,7 +135,6 @@
 #include "OverlaySet.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
-#include "PaletteFile.h"
 #include "PaletteScalarAndColor.h"
 #include "Plane.h"
 #include "SessionManager.h"
@@ -3515,7 +3513,6 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
 {
     volumeDrawInfoOut.clear();
     
-    PaletteFile* paletteFile = brain->getPaletteFile();
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     const int32_t numberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
     for (int32_t iOver = (numberOfOverlays - 1); iOver >= 0; iOver--) {
@@ -3548,7 +3545,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                             }
                             
                             PaletteColorMapping* paletteColorMapping = mapFile->getMapPaletteColorMapping(mapIndex);
-                            Palette* palette = paletteFile->getPaletteByName(paletteColorMapping->getSelectedPaletteName());
+                            const Palette* palette = paletteColorMapping->getPalette();
                             if (palette != NULL) {
                                 /*
                                  * Statistics may be NULL for a dense connectome file
@@ -3769,8 +3766,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         identificationIndices.reserve(10000 * idPerVoxelCount);
     }
     
-    PaletteFile* paletteFile = m_brain->getPaletteFile();
-    
     for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
         VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
         if (volInfo.opacity < 1.0) {
@@ -3822,8 +3817,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
                 for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
                     if (ciftiLabelFile != NULL) {
-                        ciftiLabelFile->getVoxelColorInMapForLabelData(paletteFile,
-                                                                       labelMapData,
+                        ciftiLabelFile->getVoxelColorInMapForLabelData(labelMapData,
                                                                        iVoxel,
                                                                        jVoxel,
                                                                        kVoxel,
@@ -3833,8 +3827,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                                                        rgba);
                     }
                     else {
-                        volumeFile->getVoxelColorInMap(paletteFile,
-                                                       iVoxel,
+                        volumeFile->getVoxelColorInMap(iVoxel,
                                                        jVoxel,
                                                        kVoxel,
                                                        volInfo.mapIndex,

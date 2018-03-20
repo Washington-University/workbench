@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 #include <stdint.h>
 #include <vector>
 
@@ -102,6 +103,10 @@ namespace caret {
         
         bool isModified() const;
         
+        const Palette* getInvertedPalette() const;
+        
+        static AString getDefaultPaletteName();
+        
     public:
         /**Name of gray interpolate palette */
         static  const AString GRAY_INTERP_PALETTE_NAME;
@@ -124,6 +129,9 @@ namespace caret {
         
         /**The scalars in the palette. */
         std::vector<PaletteScalarAndColor*> paletteScalars;
+        
+        /** The inverted palette is lazily initialized */
+        mutable std::unique_ptr<Palette> m_invertedPalette;
         
     };
 

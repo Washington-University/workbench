@@ -177,7 +177,6 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
         parcelFilesToLoadFrom.push_back(parcelFile);
     }
     
-    PaletteFile* paletteFile = brain->getPaletteFile();
     const int32_t mapIndex = 0;
     
     /*
@@ -191,16 +190,14 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
         switch (pf->getMatrixLoadingDimension()) {
             case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
                 pf->loadDataForColumnIndex(rowColumnIndexToLoad);
-                pf->updateScalarColoringForMap(mapIndex,
-                                               paletteFile);
+                pf->updateScalarColoringForMap(mapIndex);
                 rowColumnInformationOut.push_back(pf->getFileNameNoPath()
                                                   + " column index="
                                                   + AString::number(rowColumnIndexToLoad + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 break;
             case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
                 pf->loadDataForRowIndex(rowColumnIndexToLoad);
-                pf->updateScalarColoringForMap(mapIndex,
-                                               paletteFile);
+                pf->updateScalarColoringForMap(mapIndex);
                 rowColumnInformationOut.push_back(pf->getFileNameNoPath()
                                                   + " row index="
                                                   + AString::number(rowColumnIndexToLoad + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
@@ -212,27 +209,24 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
 }
 
 bool
-CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromConnectivityMatrixFile(Brain* brain,
+CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromConnectivityMatrixFile(
                                                CiftiMappableConnectivityMatrixDataFile* ciftiConnMatrixFile,
                                                const int32_t rowIndex,
                                                const int32_t columnIndex,
                                                std::vector<AString>& rowColumnInformationOut)
 {
-    PaletteFile* paletteFile = brain->getPaletteFile();
     const int32_t mapIndex = 0;
     
     if (rowIndex >= 0) {
         ciftiConnMatrixFile->loadDataForRowIndex(rowIndex);
-        ciftiConnMatrixFile->updateScalarColoringForMap(mapIndex,
-                                       paletteFile);
+        ciftiConnMatrixFile->updateScalarColoringForMap(mapIndex);
         rowColumnInformationOut.push_back(ciftiConnMatrixFile->getFileNameNoPath()
                                           + " row index="
                                           + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
     }
     else if (columnIndex >= 0) {
         ciftiConnMatrixFile->loadDataForColumnIndex(columnIndex);
-        ciftiConnMatrixFile->updateScalarColoringForMap(mapIndex,
-                                                        paletteFile);
+        ciftiConnMatrixFile->updateScalarColoringForMap(mapIndex);
         rowColumnInformationOut.push_back(ciftiConnMatrixFile->getFileNameNoPath()
                                           + " column index="
                                           + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
@@ -266,8 +260,6 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                         ciftiMatrixFiles);
     
     
-    PaletteFile* paletteFile = brain->getPaletteFile();
-    
     bool haveData = false;
     for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
@@ -283,8 +275,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                            nodeIndex,
                                            rowIndex,
                                            columnIndex);
-            cmf->updateScalarColoringForMap(mapIndex,
-                                            paletteFile);
+            cmf->updateScalarColoringForMap(mapIndex);
             haveData = true;
             
             if (rowIndex >= 0) {
@@ -337,8 +328,6 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(Brain* br
     getDisplayedConnectivityMatrixFiles(brain,
                                         ciftiMatrixFiles);
     
-    PaletteFile* paletteFile = brain->getPaletteFile();
-    
     bool haveData = false;
     for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
@@ -350,8 +339,7 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(Brain* br
                                                    surfaceFile->getNumberOfNodes(),
                                                    surfaceFile->getStructure(),
                                                    nodeIndices);
-            cmf->updateScalarColoringForMap(mapIndex,
-                                            paletteFile);
+            cmf->updateScalarColoringForMap(mapIndex);
             haveData = true;
         }
     }
@@ -379,8 +367,6 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                                                                      const float xyz[3],
                                                                      std::vector<AString>& rowColumnInformationOut)
 {
-    PaletteFile* paletteFile = brain->getPaletteFile();
-    
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     getDisplayedConnectivityMatrixFiles(brain,
                                         ciftiMatrixFiles);
@@ -398,8 +384,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                                                  xyz,
                                                  rowIndex,
                                                  columnIndex);
-            cmf->updateScalarColoringForMap(mapIndex,
-                                            paletteFile);
+            cmf->updateScalarColoringForMap(mapIndex);
             haveData = true;
             
             if (rowIndex >= 0) {
@@ -451,8 +436,6 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(Brain* br
                                                                        const int64_t volumeDimensionIJK[3],
                                                                        const std::vector<VoxelIJK>& voxelIndices)
 {
-    PaletteFile* paletteFile = brain->getPaletteFile();
-    
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     getDisplayedConnectivityMatrixFiles(brain,
                                         ciftiMatrixFiles);
@@ -470,8 +453,7 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(Brain* br
             }
             haveData = true;
             
-            cmf->updateScalarColoringForMap(mapIndex,
-                                            paletteFile);
+            cmf->updateScalarColoringForMap(mapIndex);
         }
     }
     

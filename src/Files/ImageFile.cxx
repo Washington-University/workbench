@@ -37,7 +37,6 @@
 #include "ImageFile.h"
 #include "Matrix4x4.h"
 #include "MathFunctions.h"
-#include "PaletteFile.h"
 #include "SceneClass.h"
 #include "VolumeFile.h"
 
@@ -1424,8 +1423,6 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
  *
  * @param colorMode
  *     Color mode for conversion.
- * @param paletteFile
- *     Palette file used for coloring the voxels.
  * @param errorMessageOut
  *     Contains error message if conversion fails.
  * @return
@@ -1436,7 +1433,6 @@ ImageFile::setImageFromByteArray(const QByteArray& byteArray,
  */
 VolumeFile*
 ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
-                               const PaletteFile* paletteFile,
                                AString& errorMessageOut) const
 {
     errorMessageOut.clear();
@@ -1595,8 +1591,7 @@ ImageFile::convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
     }
     
     volumeFile->clearVoxelColoringForMap(mapIndex);
-    volumeFile->updateScalarColoringForMap(mapIndex,
-                                           paletteFile);
+    volumeFile->updateScalarColoringForMap(mapIndex);
     
     return volumeFile;
 }

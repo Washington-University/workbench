@@ -1500,7 +1500,7 @@ Brain::addReadOrReloadVolumeFile(const FileModeAddReadReload fileMode,
     
     ElapsedTimer timer;
     timer.start();
-    vf->updateScalarColoringForAllMaps(m_paletteFile);
+    vf->updateScalarColoringForAllMaps();
     CaretLogInfo("Time to color volume data is "
                  + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                  + " seconds.");
@@ -7254,8 +7254,7 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
         if (cmf->isEmpty() == false) {
             const int32_t mapIndex = 0;
-            cmf->updateScalarColoringForMap(mapIndex,
-                                            getPaletteFile());
+            cmf->updateScalarColoringForMap(mapIndex);
         }
     }
 

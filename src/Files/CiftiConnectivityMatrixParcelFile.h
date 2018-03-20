@@ -29,7 +29,6 @@ namespace caret {
 
     class ChartMatrixDisplayProperties;
     class CiftiParcelReorderingModel;
-    class PaletteFile;
     
     class CiftiConnectivityMatrixParcelFile :
     public CiftiMappableConnectivityMatrixDataFile,

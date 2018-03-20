@@ -59,11 +59,11 @@ namespace caret {
             void reinitialize(int64_t dims[5]);
             void clear();
             
-            void getDimensions(std::vector<int64_t>& dimOut) const;//NOTE: always returns a vector of 5 elements
-            void getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents) const;
+            virtual void getDimensions(std::vector<int64_t>& dimOut) const;//NOTE: always returns a vector of 5 elements
+            virtual void getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents) const;
             std::vector<int64_t> getDimensions() const;
             const int64_t* getDimensionsPtr() const { return m_dimensions; }
-            inline const int64_t& getNumberOfComponents() const {
+            inline const int64_t& getNumberOfComponents() const  {
                 return m_dimensions[4];
             }
 
@@ -159,7 +159,7 @@ namespace caret {
             return m_origDims;
         }
         
-        inline const int64_t& getNumberOfComponents() const {
+        inline const int64_t& getNumberOfComponents() const override {
             return m_storage.getNumberOfComponents();
         }
         
@@ -184,18 +184,18 @@ namespace caret {
         //not to worry, simple passthrough convenience functions like these get partially optimized to the main one by even -O1, and completely optimized together by -O2 or -O3
 
         ///returns coordinate triplet of an index triplet
-        void indexToSpace(const int64_t* indexIn, float* coordOut) const;
+        void indexToSpace(const int64_t* indexIn, float* coordOut) const override;
         ///returns three coordinates of an index triplet
         void indexToSpace(const int64_t* indexIn, float& coordOut1, float& coordOut2, float& coordOut3) const;
 
         ///returns coordinate triplet of a floating point index triplet
         void indexToSpace(const float* indexIn, float* coordOut) const;
         ///returns coordinate triplet of three floating point indexes
-        void indexToSpace(const float& indexIn1, const float& indexIn2, const float& indexIn3, float* coordOut) const;
+        void indexToSpace(const float& indexIn1, const float& indexIn2, const float& indexIn3, float* coordOut) const override;
         ///returns three coordinates of a floating point index triplet
         void indexToSpace(const float* indexIn, float& coordOut1, float& coordOut2, float& coordOut3) const;
         ///returns three coordinates of three floating point indexes
-        void indexToSpace(const float& indexIn1, const float& indexIn2, const float& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3) const;
+        void indexToSpace(const float& indexIn1, const float& indexIn2, const float& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3) const override;
 
         ///returns floating point index triplet of a given coordinate triplet
         void spaceToIndex(const float* coordIn, float* indexOut) const;
@@ -213,7 +213,7 @@ namespace caret {
         ///returns integer indexes of voxel whose center is closest to the coordinate triplet
         void enclosingVoxel(const float* coordIn, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const;
         ///returns integer indexes of voxel whose center is closest to the three coordinates
-        void enclosingVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const;
+        void enclosingVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const override;
         
         inline const VolumeSpace& getVolumeSpace() const { return m_volSpace; }
 
@@ -247,7 +247,7 @@ namespace caret {
         inline float getVoxelValue(const float* coordinateIn,
                                     bool* validOut = NULL,
                                     const int64_t mapIndex = 0,
-                                    const int64_t component = 0) const
+                                    const int64_t component = 0) const override
         {
             return getVoxelValue(coordinateIn[0],
                                  coordinateIn[1],
@@ -281,7 +281,7 @@ namespace caret {
                                     const float coordinateZ,
                                     bool* validOut = NULL,
                                     const int64_t mapIndex = 0,
-                                    const int64_t component = 0) const
+                                    const int64_t component = 0) const override
         {
             if (validOut != NULL) {
                 *validOut = false;
@@ -332,9 +332,9 @@ namespace caret {
         void setFrame(const float* frameIn, const int64_t brickIndex = 0, const int64_t component = 0) { m_storage.setFrame(frameIn, brickIndex, component); setModified(); }
 
         ///gets dimensions as a vector of 5 integers, 3 spatial, time, components
-        void getDimensions(std::vector<int64_t>& dimOut) const { m_storage.getDimensions(dimOut); }
+        void getDimensions(std::vector<int64_t>& dimOut) const override { m_storage.getDimensions(dimOut); }
         ///gets dimensions
-        void getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents) const
+        void getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents) const override
         {
             m_storage.getDimensions(dimOut1, dimOut2, dimOut3, dimTimeOut, numComponents);
         }

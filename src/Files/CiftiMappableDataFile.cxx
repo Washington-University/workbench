@@ -46,7 +46,6 @@
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
 #include "EventCaretPreferencesGet.h"
-#include "EventPaletteGetByName.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "FastStatistics.h"
 #include "FileInformation.h"
@@ -59,7 +58,6 @@
 #include "MapFileDataSelector.h"
 #include "NodeAndVoxelColoring.h"
 #include "PaletteColorMapping.h"
-#include "PaletteFile.h"
 #include "SparseVolumeIndexer.h"
 
 using namespace caret;
@@ -1438,12 +1436,9 @@ CiftiMappableDataFile::getFileData(std::vector<float>& data) const
  *
  * @param rgba
  *    RGBA for file's matrix content.
- * @param paletteFile
- *    File containg palettes for mapping data to RGBA.
  */
 void
-CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba,
-                                        PaletteFile *paletteFile)
+CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba)
 {
     std::vector<float> data;
     getFileData(data);
@@ -1453,10 +1448,7 @@ CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba,
     CaretAssert(paletteColorMapping);
     
     CaretPointer<FastStatistics> fastStatistics(new FastStatistics());
-    const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-    const Palette* palette = paletteFile->getPaletteByName(paletteName);
-    if (( ! data.empty())
-        && (palette != NULL)) {
+    if ( ! data.empty()) {
         
         fastStatistics->update(&data[0],
                                data.size());
@@ -1464,7 +1456,6 @@ CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba,
         rgba.resize(data.size() * 4);
         NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
                                                       paletteColorMapping,
-                                                      palette,
                                                       &data[0],
                                                       &data[0],
                                                       data.size(),
@@ -2442,12 +2433,9 @@ CiftiMappableDataFile::getPaletteNormalizationModesSupported(std::vector<Palette
  * Note: Overridden since Data-Series files have one palette that is
  * applied to ALL maps.  For data-series, just invalidate the coloring
  * for all maps (data points).
- *
- * @param paletteFile
- *    Palette file containing palettes.
  */
 void
-CiftiMappableDataFile::updateScalarColoringForAllMaps(const PaletteFile* /*paletteFile*/)
+CiftiMappableDataFile::updateScalarColoringForAllMaps()
 {
     /*
      * Just need to invalidate coloring.
@@ -2467,12 +2455,9 @@ CiftiMappableDataFile::updateScalarColoringForAllMaps(const PaletteFile* /*palet
  *
  * @param mapIndex
  *    Index of map.
- * @param paletteFile
- *    Palette file containing palettes.
  */
 void
-CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
-                                                  const PaletteFile* paletteFile)
+CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex)
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
@@ -2495,12 +2480,10 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
         }
         
         m_mapContent[mapIndex]->updateColoring(data,
-                                               paletteFile,
                                                statistics);
     }
     else if (isMappedWithLabelTable()) {
         m_mapContent[mapIndex]->updateColoring(data,
-                                               paletteFile,
                                                NULL);
     }
     else {
@@ -2871,8 +2854,6 @@ CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) con
 /**
  * Get the voxel colors for a slice in the map.
  *
- * @param paletteFile
- *    The palette file.
  * @param mapIndex
  *    Index of the map.
  * @param slicePlane
@@ -2890,8 +2871,7 @@ CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) con
  *    Number of voxels with alpha greater than zero
  */
 int64_t
-CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,
-                                                      const int32_t mapIndex,
+CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                       const int64_t sliceIndex,
                                                       const DisplayGroupEnum::Enum displayGroup,
@@ -2908,8 +2888,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
     
     if (isMapColoringValid(mapIndex) == false) {
         CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
-        nonConstThis->updateScalarColoringForMap(mapIndex,
-                                                 paletteFile);
+        nonConstThis->updateScalarColoringForMap(mapIndex);
     }
     
     int64_t dimI, dimJ, dimK, dimTime, dimComp;
@@ -3202,8 +3181,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
     
     if (isMapColoringValid(mapIndex) == false) {
         CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
-        nonConstThis->updateScalarColoringForMap(mapIndex,
-                                                 NULL);
+        nonConstThis->updateScalarColoringForMap(mapIndex);
     }
     
     const int64_t mapRgbaCount = m_mapContent[mapIndex]->m_rgba.size();
@@ -3320,8 +3298,6 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
 /**
  * Get the voxel colors for a sub slice in the map.
  *
- * @param paletteFile
- *    The palette file.
  * @param mapIndex
  *    Index of the map.
  * @param slicePlane
@@ -3345,8 +3321,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
  *    Number of voxels with alpha greater than zero
  */
 int64_t
-CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* paletteFile,
-                                                      const int32_t mapIndex,
+CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                       const int64_t sliceIndex,
                                                       const int64_t firstCornerVoxelIndex[3],
@@ -3366,8 +3341,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
     
     if (isMapColoringValid(mapIndex) == false) {
         CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
-        nonConstThis->updateScalarColoringForMap(mapIndex,
-                                                 paletteFile);
+        nonConstThis->updateScalarColoringForMap(mapIndex);
     }
     
     const int64_t iStart = firstCornerVoxelIndex[0];
@@ -3778,8 +3752,6 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
  *
  * This will work for non-label data.
  *
- * @param paletteFile
- *     The palette file.
  * @param dataForMap
  *     Data for the map.
  * @param indexIn1
@@ -3798,8 +3770,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const PaletteFile* palette
  *     Output containing RGBA values for voxel at the given indices.
  */
 void
-CiftiMappableDataFile::getVoxelColorInMapForLabelData(const PaletteFile* paletteFile,
-                                                      const std::vector<float>& dataForMap,
+CiftiMappableDataFile::getVoxelColorInMapForLabelData(const std::vector<float>& dataForMap,
                                                       const int64_t indexIn1,
                                                       const int64_t indexIn2,
                                                       const int64_t indexIn3,
@@ -3808,8 +3779,7 @@ CiftiMappableDataFile::getVoxelColorInMapForLabelData(const PaletteFile* palette
                                                       const int32_t tabIndex,
                                                       uint8_t rgbaOut[4]) const
 {
-    getVoxelColorInMap(paletteFile,
-                       indexIn1,
+    getVoxelColorInMap(indexIn1,
                        indexIn2,
                        indexIn3,
                        mapIndex,
@@ -3853,8 +3823,6 @@ CiftiMappableDataFile::getVoxelColorInMapForLabelData(const PaletteFile* palette
  *
  * @see getVoxelColorInMapForLabelData
  *
- * @param paletteFile
- *     The palette file.
  * @param indexIn1
  *     First dimension (i).
  * @param indexIn2
@@ -3871,14 +3839,13 @@ CiftiMappableDataFile::getVoxelColorInMapForLabelData(const PaletteFile* palette
  *     Output containing RGBA values for voxel at the given indices.
  */
 void
-CiftiMappableDataFile::getVoxelColorInMap(const PaletteFile* paletteFile,
-                                          const int64_t indexIn1,
-                                const int64_t indexIn2,
-                                const int64_t indexIn3,
-                                const int64_t mapIndex,
+CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
+                                          const int64_t indexIn2,
+                                          const int64_t indexIn3,
+                                          const int64_t mapIndex,
                                           const DisplayGroupEnum::Enum /*displayGroup*/,
                                           const int32_t /*tabIndex*/,
-                                uint8_t rgbaOut[4]) const
+                                          uint8_t rgbaOut[4]) const
 {
     rgbaOut[0] = 0;
     rgbaOut[1] = 0;
@@ -3887,8 +3854,7 @@ CiftiMappableDataFile::getVoxelColorInMap(const PaletteFile* paletteFile,
     
     if ( ! isMapColoringValid(mapIndex)) {
         CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
-        nonConstThis->updateScalarColoringForMap(mapIndex,
-                                             paletteFile);
+        nonConstThis->updateScalarColoringForMap(mapIndex);
     }
     
     CaretAssert(m_voxelIndicesToOffset);
@@ -4869,8 +4835,10 @@ CiftiMappableDataFile::getSeriesDataForVoxelAtCoordinate(const float xyz[3],
 
 /**
  * Get the node coloring for the surface.
- * @param surface
- *    Surface whose nodes are colored.
+ * @param mapIndex
+ *    Index of the map.
+ * @param structure
+ *    Surface structure nodes are colored.
  * @param surfaceRGBAOut
  *    Filled with RGBA coloring for the surface's nodes.
  *    Contains numberOfNodes * 4 elements.
@@ -4883,8 +4851,7 @@ CiftiMappableDataFile::getSeriesDataForVoxelAtCoordinate(const float xyz[3],
  *    True if coloring is valid, else false.
  */
 bool
-CiftiMappableDataFile::getMapSurfaceNodeColoring(const PaletteFile* paletteFile,
-                                                 const int32_t mapIndex,
+CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
                                                   const StructureEnum::Enum structure,
                                                   float* surfaceRGBAOut,
                                                   float* dataValuesOut,
@@ -4934,8 +4901,7 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const PaletteFile* paletteFile,
      * May need to update map coloring
      */
     if ( ! mc->m_rgbaValid) {
-        updateScalarColoringForMap(mapIndex,
-                                   paletteFile);
+        updateScalarColoringForMap(mapIndex);
     }
     
     std::vector<int64_t> dataIndicesForNodes;
@@ -6647,24 +6613,9 @@ CiftiMappableDataFile::helpMapFileLoadChartDataMatrixRGBA(int32_t& numberOfRowsO
         else if (usePaletteFlag) {
             const PaletteColorMapping* pcm = getMapPaletteColorMapping(iCol);
             CaretAssert(pcm);
-            const AString paletteName = pcm->getSelectedPaletteName();
-            if (paletteName.isEmpty()) {
-                CaretLogSevere("No palette name for coloring matrix chart data.");
-                return false;
-            }
-            EventPaletteGetByName eventPaletteGetName(paletteName);
-            EventManager::get()->sendEvent(eventPaletteGetName.getPointer());
-            const Palette* palette = eventPaletteGetName.getPalette();
-            if (palette == NULL) {
-                CaretLogSevere("No palette named "
-                               + paletteName
-                               + " found for coloring matrix chart data.");
-                return false;
-            }
             
             NodeAndVoxelColoring::colorScalarsWithPalette(nonConstMapFile->getFileFastStatistics(),
                                                           pcm,
-                                                          palette,
                                                           &columnData[0],
                                                           &columnData[0],
                                                           numberOfRowsOut,
@@ -6761,20 +6712,6 @@ CiftiMappableDataFile::helpMatrixFileLoadChartDataMatrixRGBA(int32_t& numberOfRo
         const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
         const PaletteColorMapping* pcm = ciftiXML.getFilePalette();
         CaretAssert(pcm);
-        const AString paletteName = pcm->getSelectedPaletteName();
-        if (paletteName.isEmpty()) {
-            CaretLogSevere("No palette name for coloring matrix chart data.");
-            return false;
-        }
-        EventPaletteGetByName eventPaletteGetName(paletteName);
-        EventManager::get()->sendEvent(eventPaletteGetName.getPointer());
-        const Palette* palette = eventPaletteGetName.getPalette();
-        if (palette == NULL) {
-            CaretLogSevere("No palette named "
-                           + paletteName
-                           + " found for coloring matrix chart data.");
-            return false;
-        }
         
         /*
          * Set up Fast Stats for files that use all data for
@@ -6791,7 +6728,6 @@ CiftiMappableDataFile::helpMatrixFileLoadChartDataMatrixRGBA(int32_t& numberOfRo
         rgbaOut.resize(numRGBA);
         NodeAndVoxelColoring::colorScalarsWithPalette(fileFastStats,
                                                       pcm,
-                                                      palette,
                                                       &data[0],
                                                       &data[0],
                                                       numberOfData,
@@ -7444,9 +7380,6 @@ CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const int32_t nu
  *
  * @param data
  *    Data contained in the map.
- * @param paletteFile
- *    File containing the palettes.  If NULL, the find palette
- *    event is used to find the palette.
  * @param fastStatistics
  *    Fast statistics used for palette coloring.  While map content contains
  *    a fast statistics member, it is calculated on the data within the map.
@@ -7458,7 +7391,6 @@ CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const int32_t nu
  */
 void
 CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data,
-                                                  const PaletteFile* paletteFile,
                                                   const FastStatistics* fastStatistics)
 {
     if (data.empty()) {
@@ -7472,7 +7404,6 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
     if (m_dataCount != static_cast<int64_t>(data.size())) {
         m_dataCount = static_cast<int64_t>(data.size());
     }
-//    CaretAssert(m_dataCount == static_cast<int64_t>(data.size()));
     const uint64_t rgbaCount = m_dataCount * 4;
     if (m_rgba.size() != rgbaCount) {
         m_rgba.resize(rgbaCount, 0);
@@ -7487,48 +7418,9 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
     }
     else {
         CaretAssert(m_paletteColorMapping);
-        const AString paletteName = m_paletteColorMapping->getSelectedPaletteName();
-
-        /*
-         * First, look for palette in palette file but only
-         * if the palette file is valid
-         */
-        Palette* paletteFromFile = NULL;
-        if (paletteFile != NULL) {
-            paletteFromFile = paletteFile->getPaletteByName(paletteName);
-            if (paletteFromFile == NULL) {
-                CaretLogSevere("No palette named "
-                               + paletteName
-                               + " found in "
-                               + paletteFile->getFileNameNoPath()
-                               + ".");
-            }
-        }
-
-        /*
-         * If palette was not found in palette file, 
-         * find palette using event.
-         */
-        Palette* paletteFromEvent = NULL;
-        if (paletteFromFile == NULL) {
-            EventPaletteGetByName eventPaletteGetName(paletteName);
-            EventManager::get()->sendEvent(eventPaletteGetName.getPointer());
-            paletteFromEvent = eventPaletteGetName.getPalette();
-            if (paletteFromEvent == NULL) {
-                CaretLogSevere("No palette named "
-                               + paletteName
-                               + " found using EventPaletteGetByName.");
-            }
-        }
-        
-        Palette* palette = ((paletteFromFile != NULL)
-                                  ? paletteFromFile
-                                  : paletteFromEvent);
-        if ((palette != NULL)
-            && (fastStatistics != NULL)) {
+        if (fastStatistics != NULL) {
             NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
                                                           m_paletteColorMapping,
-                                                          palette,
                                                           &data[0],
                                                           &data[0],
                                                           m_dataCount,

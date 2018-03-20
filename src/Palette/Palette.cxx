@@ -514,3 +514,43 @@ Palette::isModified() const
     return this->modifiedFlag;
 }
 
+/**
+ * @return An inverted version of this palette.  An inverted
+ * palette may be useful when data is all negative and the
+ * palette is for positive data.
+ *
+ * Example: (1.0, Red), (0.4, Yellow), (-0.3, Green), (-1.0, Blue)
+ * becomes  (1.0, Blue), (0.3, Green), (-0.4, Yellow), (-1.0, Red)
+ */
+const Palette*
+Palette::getInvertedPalette() const
+{
+    if ( ! m_invertedPalette) {
+        Palette* palette = new Palette(*this);
+        std::reverse(palette->paletteScalars.begin(), palette->paletteScalars.end());
+        
+        /*
+         * Reverse colors and then flip sign of scalars so
+         * that it is still negative to positive
+         */
+        for (auto scalar : palette->paletteScalars) {
+            scalar->setScalar( - scalar->getScalar());
+        }
+        
+        m_invertedPalette.reset(palette);
+    }
+    
+    return m_invertedPalette.get();
+}
+
+/**
+ * @return Name of the default palette.
+ */
+AString
+Palette::getDefaultPaletteName()
+{
+    return ROY_BIG_BL_PALETTE_NAME;
+}
+
+
+

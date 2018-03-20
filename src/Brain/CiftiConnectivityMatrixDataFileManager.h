@@ -64,8 +64,7 @@ namespace caret {
                                            const int32_t columnIndex,
                                            std::vector<AString>& rowColumnInformationOut);
         
-        bool loadRowOrColumnFromConnectivityMatrixFile(Brain* brain,
-                                                       CiftiMappableConnectivityMatrixDataFile* parcelFile,
+        bool loadRowOrColumnFromConnectivityMatrixFile(CiftiMappableConnectivityMatrixDataFile* parcelFile,
                                                        const int32_t rowIndex,
                                                        const int32_t columnIndex,
                                                        std::vector<AString>& rowColumnInformationOut);

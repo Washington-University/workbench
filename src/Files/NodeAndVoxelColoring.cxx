@@ -75,8 +75,6 @@ static const float negativeThresholdGreenColor[] = {
  *    Descriptive statistics for min/max values.
  * @param paletteColorMapping
  *    Specifies mapping of scalars to palette colors.
- * @param palette
- *    Color palette used to map scalars to colors.
  * @param scalarValues
  *    Scalars that are used to color the values.
  *    Number of elements is 'numberOfScalars'.
@@ -96,7 +94,6 @@ static const float negativeThresholdGreenColor[] = {
 void
 NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* statistics,
                                               const PaletteColorMapping* paletteColorMapping,
-                                              const Palette* palette,
                                               const float* scalarValues,
                                               const float* thresholdValues,
                                               const int64_t numberOfScalars,
@@ -108,9 +105,11 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
         return;
     }
     
+    const Palette* palette = paletteColorMapping->getPalette();
+    CaretAssert(palette);
+    
     CaretAssert(statistics);
     CaretAssert(paletteColorMapping);
-    CaretAssert(palette);
     CaretAssert(scalarValues);
     CaretAssert(thresholdValues);
     CaretAssert(rgbaOutPointer);
@@ -384,8 +383,6 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
  *    Descriptive statistics for min/max values.
  * @param paletteColorMapping
  *    Specifies mapping of scalars to palette colors.
- * @param palette
- *    Color palette used to map scalars to colors.
  * @param scalarValues
  *    Scalars that are used to color the values.
  *    Number of elements is 'numberOfScalars'.
@@ -405,7 +402,6 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
 void 
 NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                                               const PaletteColorMapping* paletteColorMapping,
-                                              const Palette* palette,
                                               const float* scalarValues,
                                               const float* thresholdValues,
                                               const int64_t numberOfScalars,
@@ -414,7 +410,6 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
 {
     colorScalarsWithPalettePrivate(statistics,
                                    paletteColorMapping,
-                                   palette,
                                    scalarValues,
                                    thresholdValues,
                                    numberOfScalars,
@@ -430,8 +425,6 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
  *    Descriptive statistics for min/max values.
  * @param paletteColorMapping
  *    Specifies mapping of scalars to palette colors.
- * @param palette
- *    Color palette used to map scalars to colors.
  * @param scalarValues
  *    Scalars that are used to color the values.
  *    Number of elements is 'numberOfScalars'.
@@ -451,7 +444,6 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
 void
 NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                                               const PaletteColorMapping* paletteColorMapping,
-                                              const Palette* palette,
                                               const float* scalarValues,
                                               const float* thresholdValues,
                                               const int64_t numberOfScalars,
@@ -460,7 +452,6 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
 {
     colorScalarsWithPalettePrivate(statistics,
                                    paletteColorMapping,
-                                   palette,
                                    scalarValues,
                                    thresholdValues,
                                    numberOfScalars,

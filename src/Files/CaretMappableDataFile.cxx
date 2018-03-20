@@ -33,7 +33,6 @@
 #include "CiftiXML.h"
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
-#include "EventPaletteGetByName.h"
 #include "FastStatistics.h"
 #include "FileInformation.h"
 #include "GiftiLabelTable.h"
@@ -200,12 +199,11 @@ CaretMappableDataFile::getMapIndexFromUniqueID(const AString& uniqueID) const
 
 // note: method is documented in header file
 void
-CaretMappableDataFile::updateScalarColoringForAllMaps(const PaletteFile* paletteFile)
+CaretMappableDataFile::updateScalarColoringForAllMaps()
 {
     const int32_t numMaps = getNumberOfMaps();
     for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-        updateScalarColoringForMap(iMap,
-                                   paletteFile);
+        updateScalarColoringForMap(iMap);
     }
     
     invalidateHistogramChartColoring();
@@ -560,8 +558,7 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                          */
                         VolumeFile* volumeFile = dynamic_cast<VolumeFile*>(this);
                         if (volumeFile != NULL) {
-                            volumeFile->updateScalarColoringForMap(restoreMapIndex,
-                                                                   NULL);
+                            volumeFile->updateScalarColoringForMap(restoreMapIndex);
                         }
                     }
                     catch (const XmlException& e) {

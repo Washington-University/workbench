@@ -749,8 +749,7 @@ CiftiFiberTrajectoryFile::getPaletteNormalizationModesSupported(std::vector<Pale
  *    Palette file containing palettes.
  */
 void
-CiftiFiberTrajectoryFile::updateScalarColoringForMap(const int32_t /*mapIndex*/,
-                                                  const PaletteFile* /*paletteFile*/)
+CiftiFiberTrajectoryFile::updateScalarColoringForMap(const int32_t /*mapIndex*/)
 {
 }
 

@@ -61,7 +61,6 @@
 #include "ModelChartTwo.h"
 #include "NodeAndVoxelColoring.h"
 #include "PaletteColorMapping.h"
-#include "PaletteFile.h"
 #include "SessionManager.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionItemChartTwoHistogram.h"

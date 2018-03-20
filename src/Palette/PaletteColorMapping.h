@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <set>
+
 #include <AString.h>
 
 #include "CaretObject.h"
@@ -38,6 +40,7 @@ namespace caret {
 
     class AnnotationColorBar;
     class FastStatistics;
+    class Palette;
     class XmlWriter;
     
     /**
@@ -120,6 +123,10 @@ namespace caret {
         
         void setInterpolatePaletteFlag(const bool interpolatePaletteFlag);
         
+        bool isInvertedPaletteFlag() const;
+        
+        void setInvertedPaletteFlag(const bool invertedPallete);
+        
         PaletteScaleModeEnum::Enum getScaleMode() const;
         
         void setScaleMode(const PaletteScaleModeEnum::Enum scaleMode);
@@ -127,6 +134,8 @@ namespace caret {
         AString getSelectedPaletteName() const;
         
         void setSelectedPaletteName(const AString& selectedPaletteName);
+        
+        const Palette* getPalette() const;
         
         void setSelectedPaletteToPsych();
         
@@ -307,6 +316,8 @@ namespace caret {
         
         bool interpolatePaletteFlag;
         
+        bool invertedPaletteFlag = false;
+        
         bool displayPositiveDataFlag;
         
         bool displayZeroDataFlag;
@@ -364,11 +375,14 @@ namespace caret {
         /**Tracks modification, DO NOT copy */
         bool modifiedFlag;
         
+        /** keeps missing palettes from being logged more than once */
+        static std::set<AString> s_missingPaletteNames;
     };
 
 #ifdef __PALETTE_COLOR_MAPPING_DECLARE__
     const float PaletteColorMapping::SMALL_POSITIVE = 0.0;
     const float PaletteColorMapping::SMALL_NEGATIVE = 0.0;
+    std::set<AString> PaletteColorMapping::s_missingPaletteNames;
 #endif // __PALETTE_COLOR_MAPPING_DECLARE__
     
 } // namespace

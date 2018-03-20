@@ -494,13 +494,11 @@ MapSettingsPaletteColorMappingWidget::thresholdLinkCheckBoxToggled(bool checked)
 void
 MapSettingsPaletteColorMappingWidget::updateColoringAndGraphics()
 {
-    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
     if (this->applyAllMapsCheckBox->isChecked()) {
-        this->caretMappableDataFile->updateScalarColoringForAllMaps(paletteFile);
+        this->caretMappableDataFile->updateScalarColoringForAllMaps();
     }
     else {
-        this->caretMappableDataFile->updateScalarColoringForMap(this->mapFileIndex,
-                                                                paletteFile);
+        this->caretMappableDataFile->updateScalarColoringForMap(this->mapFileIndex);
     }
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -1228,12 +1226,23 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     this->paletteWidgetGroup->add(this->interpolateColorsCheckBox);
     QObject::connect(this->interpolateColorsCheckBox, SIGNAL(toggled(bool)), 
                      this, SLOT(applySelections()));
-        
+    
+    /*
+     * Invert palette checkbox
+     */
+    this->invertPaletteCheckBox = new QCheckBox("Invert Palette");
+    WuQtUtilities::setToolTipAndStatusTip(this->invertPaletteCheckBox, "Invert the color palette");
+    this->paletteWidgetGroup->add(this->invertPaletteCheckBox);
+    QObject::connect(this->invertPaletteCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(applySelections()));
+    
     QWidget* paletteSelectionWidget = new QWidget();
-    QVBoxLayout* paletteSelectionLayout = new QVBoxLayout(paletteSelectionWidget);
+    QGridLayout* paletteSelectionLayout = new QGridLayout(paletteSelectionWidget);
     this->setLayoutSpacingAndMargins(paletteSelectionLayout);
-    paletteSelectionLayout->addWidget(this->paletteNameComboBox);
-    paletteSelectionLayout->addWidget(this->interpolateColorsCheckBox);
+    paletteSelectionLayout->addWidget(this->paletteNameComboBox, 0, 0, 1, 2);
+    paletteSelectionLayout->addWidget(this->interpolateColorsCheckBox, 1, 0);
+    paletteSelectionLayout->addWidget(this->invertPaletteCheckBox, 1, 1);
+    
     paletteSelectionWidget->setFixedHeight(paletteSelectionWidget->sizeHint().height());
     
     
@@ -1760,6 +1769,7 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
         this->displayModeNegativeCheckBox->setChecked(this->paletteColorMapping->isDisplayNegativeDataFlag());
     
         this->interpolateColorsCheckBox->setChecked(this->paletteColorMapping->isInterpolatePaletteFlag());
+        this->invertPaletteCheckBox->setChecked(this->paletteColorMapping->isInvertedPaletteFlag());
         
         m_histogramBarsColorComboBox->setSelectedColor(this->paletteColorMapping->getHistogramBarsColor());
         m_histogramEnvelopeColorComboBox->setSelectedColor(this->paletteColorMapping->getHistogramEnvelopeColor());
@@ -1968,7 +1978,6 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
         return;
     }
     
-    PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
     /*
      * Data values table
      */
@@ -2027,34 +2036,28 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
         dataValues[0] = minValue;
         dataValues[numDataValues - 1] = maxValue;
         
-        const Palette* palette = paletteFile->getPaletteByName(this->paletteColorMapping->getSelectedPaletteName());
-        
         /*
          * Color with palette so that alpha values are zero for regions not displayed
          */
-        if (palette != NULL) {
-            NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
-                                                          paletteColorMapping,
-                                                          palette,
-                                                          dataValues,
-                                                          dataValues,
-                                                          numDataValues,
-                                                          dataRGBA,
-                                                          true); // ignore thresholding
-            
-            /*
-             * If bucket is not colored (zero alpha) set bucket height to zero
-             */
-            for (int32_t i = 0; i < numHistogramValues; i++) {
-                const int32_t alphaIndex = i * 4 + 3;
-                CaretAssertArrayIndex(dataRGBA, (numDataValues * 4), alphaIndex);
-                if (dataRGBA[alphaIndex] <= 0.0) {
-                    CaretAssertVectorIndex(displayData, i);
-                    displayData[i] = 0.0;
-                }
+        NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
+                                                      paletteColorMapping,
+                                                      dataValues,
+                                                      dataValues,
+                                                      numDataValues,
+                                                      dataRGBA,
+                                                      true); // ignore thresholding
+        
+        /*
+         * If bucket is not colored (zero alpha) set bucket height to zero
+         */
+        for (int32_t i = 0; i < numHistogramValues; i++) {
+            const int32_t alphaIndex = i * 4 + 3;
+            CaretAssertArrayIndex(dataRGBA, (numDataValues * 4), alphaIndex);
+            if (dataRGBA[alphaIndex] <= 0.0) {
+                CaretAssertVectorIndex(displayData, i);
+                displayData[i] = 0.0;
             }
         }
-        
     }
     
     float z = 0.0;
@@ -2387,6 +2390,7 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     this->paletteColorMapping->setDisplayZeroDataFlag(this->displayModeZeroCheckBox->isChecked());
     
     this->paletteColorMapping->setInterpolatePaletteFlag(this->interpolateColorsCheckBox->isChecked());
+    this->paletteColorMapping->setInvertedPaletteFlag(this->invertPaletteCheckBox->isChecked());
     
     this->paletteColorMapping->setHistogramBarsColor(m_histogramBarsColorComboBox->getSelectedColor());
     this->paletteColorMapping->setHistogramEnvelopeColor(m_histogramEnvelopeColorComboBox->getSelectedColor());
@@ -2429,8 +2433,7 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
                           false);
             }
         }
-        PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-        this->caretMappableDataFile->updateScalarColoringForAllMaps(paletteFile);
+        this->caretMappableDataFile->updateScalarColoringForAllMaps();
     }
     
     this->updateHistogramPlot();
