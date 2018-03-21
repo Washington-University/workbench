@@ -115,6 +115,7 @@
 #include "AlgorithmVolumeAffineResample.h"
 #include "AlgorithmVolumeAllLabelsToROIs.h"
 #include "AlgorithmVolumeDilate.h"
+#include "AlgorithmVolumeDistortion.h"
 #include "AlgorithmVolumeErode.h"
 #include "AlgorithmVolumeEstimateFWHM.h"
 #include "AlgorithmVolumeExtrema.h"
@@ -375,6 +376,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAllLabelsToROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeDilate()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeDistortion()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeErode()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeEstimateFWHM()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
@@ -1208,9 +1210,9 @@ void CommandOperationManager::printParallelHelp(const AString& programName)
     cout << "   use other tools to restrict the entire script to execute on a single socket," << endl;
     cout << "   especially if a queueing system is involved." << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
-    cout << "   Also note that wb_view contains a few features that use multithreading," << endl;
-    cout << "   which can be controlled by setting the same environment variables before" << endl;
-    cout << "   launching wb_view (dynamic connectivity, border optimize)." << endl;
+    cout << "   Also note that wb_view contains a few features that use multithreading" << endl;
+    cout << "   (dynamic connectivity, border optimize), which can be controlled by setting" << endl;
+    cout << "   the same environment variables before launching wb_view." << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
 }
 

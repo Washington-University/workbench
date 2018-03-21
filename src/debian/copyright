@@ -61,7 +61,7 @@ License: GPL-2+ with Font exception and OFL-1.1
 
 Files: src/Files/PaletteFile.cxx
 Copyright: 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University
-           2012-2016 Matplotlib Development Team
+           2012-2015 Matplotlib Development Team
 License: Apache-2 and MDT
 
 License: GPL-2+

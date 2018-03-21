@@ -34,11 +34,13 @@ namespace caret {
         static void getFSLQuirks(const AString& niftiName, FloatMatrix& outSform, FloatMatrix& outScale);//just a convenience wrapper around the vector<vector<float> > version in NiftiHeaderIO
     public:
         AffineFile();
-        void readWorld(const AString& filename);//forward nifti coordinate transform
-        void writeWorld(const AString& filename);
+        void readWorld(const AString& filename, bool inverse = false);//forward nifti coordinate transform, optionally reverse
+        void writeWorld(const AString& filename, bool inverse = false) const;
         void readFlirt(const AString& filename, const AString& sourceName, const AString& targetName);//flirt convention matrix, requires source/target volumes
         void writeFlirt(const AString& filename, const AString& sourceName, const AString& targetName) const;
-        const FloatMatrix& getMatrix() { return m_matrix; }
+        void readITK(const AString& filename);//reverse, LPS rather than RAS, with strange encoding for translation
+        void writeITK(const AString& filename) const;
+        const FloatMatrix& getMatrix() const { return m_matrix; }
         void setMatrix(const FloatMatrix& matrix);//needs to do sanity checking, so don't inline
     };
 

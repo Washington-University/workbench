@@ -85,14 +85,10 @@ namespace caret {
       FloatMatrix reducedRowEchelon() const;
       ///return the transpose
       FloatMatrix transpose() const;
+      ///determinant - warning, uses slow O(n!) recursive algorithm
+      float determinant() const;
       ///resize the matrix - keeps contents within bounds unless destructive is true (destructive is faster)
       void resize(const int64_t rows, const int64_t cols, const bool destructive = false);
-      ///return a matrix of zeros
-      static FloatMatrix zeros(const int64_t rows, const int64_t cols);
-      ///return a matrix of ones
-      static FloatMatrix ones(const int64_t rows, const int64_t cols);
-      ///return square identity matrix
-      static FloatMatrix identity(const int64_t rows);
       ///get the range of values from first until one before afterLast, as a new matrix
       FloatMatrix getRange(const int64_t firstRow, const int64_t afterLastRow, const int64_t firstCol, const int64_t afterLastCol) const;
       ///return a matrix formed by concatenating right to the right of this
@@ -106,13 +102,20 @@ namespace caret {
       ///separate 3x4 or 4x4 into Vector3Ds, throw on wrong dimensions
       void getAffineVectors(Vector3D& xvec, Vector3D& yvec, Vector3D& zvec, Vector3D& offset) const;
       ///get number of rows
-      int64_t getNumberOfRows() { return (int64_t)m_matrix.size(); }
+      int64_t getNumberOfRows() const { return (int64_t)m_matrix.size(); }
       ///get number of columns
-      int64_t getNumberOfColumns()
+      int64_t getNumberOfColumns() const
       {
           if (m_matrix.size() == 0) return 0;
           return (int64_t)m_matrix[0].size();
       }
+      
+      ///return a matrix of zeros
+      static FloatMatrix zeros(const int64_t rows, const int64_t cols);
+      ///return a matrix of ones
+      static FloatMatrix ones(const int64_t rows, const int64_t cols);
+      ///return square identity matrix
+      static FloatMatrix identity(const int64_t rows);
    };
 
 }

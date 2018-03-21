@@ -31,11 +31,14 @@ namespace caret {
     {
         CaretPointer<VolumeFile> m_warpfield;
     public:
-        const VolumeFile* getWarpfield() { return m_warpfield.getPointer(); }
-        void readFnirt(const AString& warpName, const AString& sourceName);
+        const VolumeFile* getWarpfield() const { return m_warpfield.getPointer(); }
+        CaretPointer<VolumeFile> generateAbsolute() const;
         void readWorld(const AString& warpname);
-        void writeFnirt(const AString& warpname, const AString& sourceName);//for completeness
-        void writeWorld(const AString& warpname);
+        void readITK(const AString& warpname);
+        void readFnirt(const AString& warpName, const AString& sourceName, const bool& absolute = false);
+        void writeWorld(const AString& warpname) const;//for completeness
+        void writeITK(const AString& warpname) const;
+        void writeFnirt(const AString& warpname, const AString& sourceName) const;
     };
     
 }

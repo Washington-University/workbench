@@ -27,27 +27,87 @@
 using namespace caret;
 using namespace std;
 
+CaretPointer<VolumeFile> WarpfieldFile::generateAbsolute() const
+{
+    if (m_warpfield == NULL)
+    {
+        throw DataFileException("generateAbsolute() called on uninitialized WarpfieldFile");
+    }
+    CaretPointer<VolumeFile> ret(new VolumeFile());
+    vector<int64_t> dims = m_warpfield->getDimensions();
+    CaretAssert(dims[3] == 3);//make sure it looks like a warpfield
+    dims.resize(4);//drop number of components
+    ret->reinitialize(dims, m_warpfield->getSform());
+    ret->setMapName(0, "x location");
+    ret->setMapName(1, "y location");
+    ret->setMapName(2, "z location");
+    for (int b = 0; b < 3; ++b)
+    {
+        for (int64_t k = 0; k < dims[2]; ++k)
+        {
+            for (int64_t j = 0; j < dims[1]; ++j)
+            {
+                for (int64_t i = 0; i < dims[0]; ++i)
+                {
+                    Vector3D voxelCenter;
+                    m_warpfield->indexToSpace(i, j, k, voxelCenter);
+                    ret->setValue(m_warpfield->getValue(i, j, k, b) + voxelCenter[b], i, j, k, b);
+                }
+            }
+        }
+    }
+    return ret;
+}
+
+namespace
+{
+    void genericWarpfieldRead(VolumeFile& volOut, const AString& filename)
+    {
+        volOut.readFile(filename);
+        vector<int64_t> dims;
+        volOut.getDimensions(dims);
+        if (dims[3] != 3)
+        {
+            throw DataFileException("volume file '" + filename + "' has the wrong number of subvolumes for a warpfield");
+        }
+        if (dims[4] != 1)
+        {
+            throw DataFileException("volume file '" + filename + "' has multiple components, which is not allowed in a warpfield");
+        }
+        volOut.setMapName(0, "x displacement");
+        volOut.setMapName(1, "y displacement");
+        volOut.setMapName(2, "z displacement");
+    }
+}
+
 void WarpfieldFile::readWorld(const AString& warpname)
 {
     CaretPointer<VolumeFile> newFile(new VolumeFile());
-    newFile->readFile(warpname);
-    vector<int64_t> dims;
-    newFile->getDimensions(dims);
-    if (dims[3] != 3)
-    {
-        throw DataFileException("volume file '" + warpname + "' has the wrong number of subvolumes for a warpfield");
-    }
-    if (dims[4] != 1)
-    {
-        throw DataFileException("volume file '" + warpname + "' has multiple components, which is not allowed in a warpfield");
-    }
+    genericWarpfieldRead(*newFile, warpname);
     m_warpfield = newFile;//drop the previous warpfield, and replace with the new one
-    m_warpfield->setMapName(0, "x displacement");
-    m_warpfield->setMapName(1, "y displacement");
-    m_warpfield->setMapName(2, "z displacement");
 }
 
-void WarpfieldFile::readFnirt(const AString& warpName, const AString& sourceName)
+void WarpfieldFile::readITK(const AString& warpname)
+{
+    CaretPointer<VolumeFile> newFile(new VolumeFile());
+    genericWarpfieldRead(*newFile, warpname);
+    vector<int64_t> dims;
+    newFile->getDimensions(dims);
+    for (int64_t k = 0; k < dims[2]; ++k)
+    {
+        for (int64_t j = 0; j < dims[1]; ++j)
+        {
+            for (int64_t i = 0; i < dims[0]; ++i)
+            {
+                newFile->setValue(-newFile->getValue(i, j, k, 0), i, j, k, 0);//negate x and y to convert LPS displacements to RAS
+                newFile->setValue(-newFile->getValue(i, j, k, 1), i, j, k, 1);
+            }
+        }
+    }
+    m_warpfield = newFile;
+}
+
+void WarpfieldFile::readFnirt(const AString& warpName, const AString& sourceName, const bool& absolute)
 {
     FloatMatrix sourceSform, sourceFSL, refSform, refFSL;
     NiftiIO myIO;
@@ -58,37 +118,35 @@ void WarpfieldFile::readFnirt(const AString& warpName, const AString& sourceName
     sourceSform = FloatMatrix(myIO.getHeader().getSForm());
     sourceFSL = FloatMatrix(myIO.getHeader().getFSLSpace());
     CaretPointer<VolumeFile> newFile(new VolumeFile());
-    newFile->readFile(warpName);
+    genericWarpfieldRead(*newFile, warpName);
     vector<int64_t> dims;
     newFile->getDimensions(dims);
-    if (dims[3] != 3)
-    {
-        throw DataFileException("volume file '" + warpName + "' has the wrong number of subvolumes for a warpfield");
-    }
-    if (dims[4] != 1)
-    {
-        throw DataFileException("volume file '" + warpName + "' has multiple components, which is not allowed in a warpfield");
-    }
     FloatMatrix sourceTransform = sourceSform * sourceFSL.inverse();//goes from FSL source space to real source space
     Vector3D sourceTransX, sourceTransY, sourceTransZ, sourceTransOff;
     sourceTransform.getAffineVectors(sourceTransX, sourceTransY, sourceTransZ, sourceTransOff);
     Vector3D fslX, fslY, fslZ, fslOff;
     refFSL.getAffineVectors(fslX, fslY, fslZ, fslOff);
-    for (int k = 0; k < dims[2]; ++k)
+    for (int64_t k = 0; k < dims[2]; ++k)
     {
-        for (int j = 0; j < dims[1]; ++j)
+        for (int64_t j = 0; j < dims[1]; ++j)
         {
-            for (int i = 0; i < dims[0]; ++i)
+            for (int64_t i = 0; i < dims[0]; ++i)
             {
                 Vector3D fslcoord = i * fslX + j * fslY + k * fslZ + fslOff;
-                Vector3D coord, fsldisplacement;
+                Vector3D coord, fslwarpval;
                 newFile->indexToSpace(i, j, k, coord);
-                fsldisplacement[0] = newFile->getValue(i, j, k, 0);
-                fsldisplacement[1] = newFile->getValue(i, j, k, 1);
-                fsldisplacement[2] = newFile->getValue(i, j, k, 2);
-                Vector3D fslTransAbsolute = fslcoord + fsldisplacement;
+                fslwarpval[0] = newFile->getValue(i, j, k, 0);
+                fslwarpval[1] = newFile->getValue(i, j, k, 1);
+                fslwarpval[2] = newFile->getValue(i, j, k, 2);
+                Vector3D fslTransAbsolute;
+                if (absolute)
+                {
+                    fslTransAbsolute = fslwarpval;
+                } else {
+                    fslTransAbsolute = fslcoord + fslwarpval;
+                }
                 Vector3D transAbsolute = fslTransAbsolute[0] * sourceTransX + fslTransAbsolute[1] * sourceTransY + fslTransAbsolute[2] * sourceTransZ + sourceTransOff;
-                Vector3D transdisplace = transAbsolute - coord;
+                Vector3D transdisplace = transAbsolute - coord;//internal format is always relative
                 newFile->setValue(transdisplace[0], i, j, k, 0);//overwrite vectors in place to save memory
                 newFile->setValue(transdisplace[1], i, j, k, 1);
                 newFile->setValue(transdisplace[2], i, j, k, 2);
@@ -96,18 +154,41 @@ void WarpfieldFile::readFnirt(const AString& warpName, const AString& sourceName
         }
     }
     m_warpfield = newFile;//drop the previous warpfield, and replace with the new one
-    m_warpfield->setMapName(0, "x displacement");
-    m_warpfield->setMapName(1, "y displacement");
-    m_warpfield->setMapName(2, "z displacement");
 }
 
-void WarpfieldFile::writeWorld(const AString& warpname)
+void WarpfieldFile::writeWorld(const AString& warpname) const
 {
     if (m_warpfield == NULL) throw DataFileException("writeWorld called on uninitialized warpfield");
     m_warpfield->writeFile(warpname);
 }
 
-void WarpfieldFile::writeFnirt(const AString& warpname, const AString& sourceName)
+void WarpfieldFile::writeITK(const AString& warpname) const
+{
+    if (m_warpfield == NULL) throw DataFileException("writeWorld called on uninitialized warpfield");
+    vector<int64_t> dims;
+    m_warpfield->getDimensions(dims);
+    dims.resize(4);//drop number of components
+    VolumeFile outFile;
+    outFile.reinitialize(dims, m_warpfield->getSform());
+    outFile.setMapName(0, "x displacement");
+    outFile.setMapName(1, "y displacement");
+    outFile.setMapName(2, "z displacement");
+    for (int64_t k = 0; k < dims[2]; ++k)
+    {
+        for (int64_t j = 0; j < dims[1]; ++j)
+        {
+            for (int64_t i = 0; i < dims[0]; ++i)
+            {
+                outFile.setValue(-m_warpfield->getValue(i, j, k, 0), i, j, k, 0);//negate x and y to convert RAS displacements to LPS
+                outFile.setValue(-m_warpfield->getValue(i, j, k, 1), i, j, k, 1);
+                outFile.setValue(m_warpfield->getValue(i, j, k, 2), i, j, k, 2);
+            }
+        }
+    }
+    outFile.writeFile(warpname);
+}
+
+void WarpfieldFile::writeFnirt(const AString& warpname, const AString& sourceName) const
 {
     if (m_warpfield == NULL) throw DataFileException("writeFnirt called on uninitialized warpfield");
     FloatMatrix sourceSform, sourceFSL, refSform, refFSL;
@@ -133,11 +214,11 @@ void WarpfieldFile::writeFnirt(const AString& warpname, const AString& sourceNam
     FSLTransform.getAffineVectors(FSLTransX, FSLTransY, FSLTransZ, FSLTransOff);
     Vector3D fslX, fslY, fslZ, fslOff;
     refFSL.getAffineVectors(fslX, fslY, fslZ, fslOff);
-    for (int k = 0; k < dims[2]; ++k)
+    for (int64_t k = 0; k < dims[2]; ++k)
     {
-        for (int j = 0; j < dims[1]; ++j)
+        for (int64_t j = 0; j < dims[1]; ++j)
         {
-            for (int i = 0; i < dims[0]; ++i)
+            for (int64_t i = 0; i < dims[0]; ++i)
             {
                 Vector3D fslcoord = i * fslX + j * fslY + k * fslZ + fslOff;
                 Vector3D coord, realdisplacement;

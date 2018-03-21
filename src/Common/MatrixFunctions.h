@@ -597,15 +597,15 @@ namespace caret {
    void MatrixFunctions::horizCat(const vector<vector<T1> >& left, const vector<vector<T2> >& right, vector<vector<T3> >& result)
    {
       msize_t inrows = (msize_t)left.size(), leftcols, rightcols;
-      vector<vector<T3> > tempstorage, *tresult = &result;
-      bool copyout = false;
-      if (&left == &result || &right == &result)
+      if (inrows > 0 && inrows == (msize_t)right.size())
       {
-         copyout = true;
-         tresult = &tempstorage;
-      }
-      if (inrows && inrows == (msize_t)right.size())
-      {
+         vector<vector<T3> > tempstorage, *tresult = &result;
+         bool copyout = false;
+         if (&left == &result || &right == &result)
+         {
+            copyout = true;
+            tresult = &tempstorage;
+         }
          leftcols = (msize_t)left[0].size();
          rightcols = (msize_t)right[0].size();
          (*tresult) = left;//use STL copy to start
@@ -617,13 +617,22 @@ namespace caret {
                (*tresult)[i][j + leftcols] = right[i][j];
             }
          }
-      } else {
-         result.resize(0);
-         return;
-      }
-      if (copyout)
-      {
-         result = tempstorage;
+         if (copyout)
+         {
+            result = tempstorage;
+         }
+      } else {//handle special cases
+         if (inrows == 0 || right.size() == 0)//allow concatenating any empty matrix to any matrix
+         {
+             if (inrows == 0)
+             {
+                 result = right;
+             } else {
+                 result = left;
+             }
+         } else {
+            result.resize(0);
+         }
       }
    }
 
@@ -631,18 +640,18 @@ namespace caret {
    void MatrixFunctions::vertCat(const vector<vector<T1> >& top, const vector<vector<T2> >& bottom, vector<vector<T3> >& result)
    {
       msize_t toprows = (msize_t)top.size(), botrows = (msize_t)bottom.size(), incols;
-      vector<vector<T3> > tempstorage, *tresult = &result;
-      bool copyout = false;
-      if (&top == &result || &bottom == &result)
-      {
-         copyout = true;
-         tresult = &tempstorage;
-      }
       if (toprows && botrows)
       {
          incols = (msize_t)top[0].size();
          if (incols == (msize_t)bottom[0].size())
          {
+            vector<vector<T3> > tempstorage, *tresult = &result;
+            bool copyout = false;
+            if (&top == &result || &bottom == &result)
+            {
+                copyout = true;
+                tresult = &tempstorage;
+            }
             (*tresult) = top;
             resize(toprows + botrows, incols, (*tresult));//nondestructive resize
             for (msize_t i = 0; i < botrows; ++i)
@@ -652,17 +661,25 @@ namespace caret {
                   (*tresult)[i + toprows][j] = bottom[i][j];
                }
             }
+            if (copyout)
+            {
+               result = tempstorage;
+            }
          } else {
             result.resize(0);
-            return;
          }
-      } else {
-         result.resize(0);
-         return;
-      }
-      if (copyout)
-      {
-         result = tempstorage;
+      } else {//handle special cases
+         if (toprows == 0 || botrows == 0)//allow concatenation of empty matrix to any matrix
+         {
+             if (toprows == 0)
+             {
+                 result = bottom;
+             } else {
+                 result = top;
+             }
+         } else {
+            result.resize(0);
+         }
       }
    }
 

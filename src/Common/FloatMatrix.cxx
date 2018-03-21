@@ -21,6 +21,7 @@
 
 #include "CaretAssert.h"
 #include "CaretException.h"
+#include "CaretLogger.h"
 #include "FloatMatrix.h"
 #include "MatrixFunctions.h"
 
@@ -230,6 +231,33 @@ FloatMatrix FloatMatrix::transpose() const
    FloatMatrix ret;
    MatrixFunctions::transpose(m_matrix, ret.m_matrix);
    return ret;
+}
+
+float FloatMatrix::determinant() const
+{
+    int64_t numRows = getNumberOfRows(), numCols = getNumberOfColumns();
+    if (numRows != numCols) throw CaretException("determinant() called on non-square matrix");
+    if (numRows == 0) return 1;//whatever
+    if (numRows == 1) return m_matrix[0][0];
+    if (numRows == 2) return m_matrix[0][0] * m_matrix[1][1] - m_matrix[0][1] * m_matrix[1][0];
+    if (numRows == 3) return m_matrix[0][0] * m_matrix[1][1] * m_matrix[2][2] +
+                             m_matrix[0][1] * m_matrix[1][2] * m_matrix[2][0] +
+                             m_matrix[0][2] * m_matrix[1][0] * m_matrix[2][1] -
+                             m_matrix[0][0] * m_matrix[1][2] * m_matrix[2][1] -
+                             m_matrix[0][1] * m_matrix[1][0] * m_matrix[2][2] -
+                             m_matrix[0][2] * m_matrix[1][1] * m_matrix[2][0];
+    if (numRows > 7)
+    {
+        CaretLogWarning("determinant() called on matrix with size " + AString::number(numRows) + ", current algorithm is slow, O(n!) recursive");
+    }
+    double ret = 0.0;//replace with LU decomposition if we need it before adding a real matrix library
+    for (int64_t i = 0; i < numRows; ++i)//warning, O(n!) runtime
+    {
+        float minor = this->getRange(0, i, 1, numCols).concatVert(this->getRange(i + 1, numRows, 1, numCols)).determinant(),
+            factor = (i % 2 ? -1.0f : 1.0f);
+        ret += minor * factor;
+    }
+    return ret;
 }
 
 FloatMatrix FloatMatrix::zeros(const int64_t rows, const int64_t cols)
