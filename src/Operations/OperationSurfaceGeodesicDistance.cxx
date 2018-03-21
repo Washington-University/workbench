@@ -53,6 +53,9 @@ OperationParameters* OperationSurfaceGeodesicDistance::getParameters()
     OptionalParameter* limitOpt = ret->createOptionalParameter(5, "-limit", "stop at a certain distance");
     limitOpt->addDoubleParameter(1, "limit-mm", "distance in mm to stop at");
     
+    OptionalParameter* corrAreaOpt = ret->createOptionalParameter(6, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    corrAreaOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
+    
     ret->setHelpText(
         AString("Unless -limit is specified, computes the geodesic distance from the specified vertex to all others.  ") +
         "The result is output as a single column metric file, with a value of -1 for vertices that the distance was not computed for.  " +
@@ -68,9 +71,20 @@ void OperationSurfaceGeodesicDistance::useParameters(OperationParameters* myPara
     int myVertex = (int)myParams->getInteger(2);
     MetricFile* myMetricOut = myParams->getOutputMetric(3);
     bool smooth = !(myParams->getOptionalParameter(4)->m_present);
-    CaretPointer<GeodesicHelper> myHelp = mySurf->getGeodesicHelper();
-    vector<float> scratch(mySurf->getNumberOfNodes(), -1.0f);//use -1 to specify invalid
     OptionalParameter* limitOpt = myParams->getOptionalParameter(5);
+    CaretPointer<GeodesicHelper> myHelp;
+    CaretPointer<GeodesicHelperBase> myBase;
+    OptionalParameter* corrAreaOpt = myParams->getOptionalParameter(6);
+    if (corrAreaOpt->m_present)
+    {
+        MetricFile* corrAreas = corrAreaOpt->getMetric(1);
+        if (corrAreas->getNumberOfNodes() != mySurf->getNumberOfNodes()) throw OperationException("corrected vertex areas metric does not match surface number of vertices");
+        myBase.grabNew(new GeodesicHelperBase(mySurf, corrAreas->getValuePointerForColumn(0)));
+        myHelp.grabNew(new GeodesicHelper(myBase));
+    } else {
+        myHelp = mySurf->getGeodesicHelper();
+    }
+    vector<float> scratch(mySurf->getNumberOfNodes(), -1.0f);//use -1 to specify invalid
     if (limitOpt->m_present)
     {
         vector<int32_t> nodes;

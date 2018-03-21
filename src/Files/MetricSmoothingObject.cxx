@@ -277,16 +277,17 @@ void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFil
     metricOut->setValuesForColumn(whichOutColumn, scratch);
 }
 
-void MetricSmoothingObject::precomputeWeightsGeoGauss(const SurfaceFile* mySurf, float myKernel)
+void MetricSmoothingObject::precomputeWeightsGeoGauss(const SurfaceFile* mySurf, float myKernel, const float* nodeAreas)
 {
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myGeoDist = myKernel * 3.0f;
     float gaussianDenom = -0.5f / myKernel / myKernel;
     m_weightLists.resize(numNodes);
+    CaretPointer<GeodesicHelperBase> myGeoBase(new GeodesicHelperBase(mySurf, nodeAreas));//NOTE: if these are equal to the surface's areas, then it does some extra operations, but gets the same answer
 #pragma omp CARET_PAR
     {
         CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//don't really need one per thread here, but good practice in case we want getNeighborsToDepth
-        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp(new GeodesicHelper(myGeoBase));
         vector<float> distances;
 #pragma omp CARET_FOR schedule(dynamic)
         for (int32_t i = 0; i < numNodes; ++i)
@@ -311,17 +312,18 @@ void MetricSmoothingObject::precomputeWeightsGeoGauss(const SurfaceFile* mySurf,
     }
 }
 
-void MetricSmoothingObject::precomputeWeightsROIGeoGauss(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi)
+void MetricSmoothingObject::precomputeWeightsROIGeoGauss(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, const float* nodeAreas)
 {
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myGeoDist = myKernel * 3.0f;
     float gaussianDenom = -0.5f / myKernel / myKernel;
     m_weightLists.resize(numNodes);
     const float* myRoiColumn = theRoi->getValuePointerForColumn(0);
+    CaretPointer<GeodesicHelperBase> myGeoBase(new GeodesicHelperBase(mySurf, nodeAreas));//NOTE: if these are equal to the surface's areas, then it does some extra operations, but gets the same answer
 #pragma omp CARET_PAR
     {
         CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp(new GeodesicHelper(myGeoBase));
         vector<float> distances;
         vector<int32_t> nodes;
 #pragma omp CARET_FOR schedule(dynamic)
@@ -490,17 +492,18 @@ void MetricSmoothingObject::precomputeWeightsROIGeoGaussArea(const SurfaceFile* 
     }
 }
 
-void MetricSmoothingObject::precomputeWeightsGeoGaussEqual(const SurfaceFile* mySurf, float myKernel)
+void MetricSmoothingObject::precomputeWeightsGeoGaussEqual(const SurfaceFile* mySurf, float myKernel, const float* nodeAreas)
 {//this method is normalized in two ways to provide evenly diffusing smoothing with equivalent sum of values as input - this special purpose smoothing is for things that should not be integrated across the surface
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myGeoDist = myKernel * 3.0f;
     float gaussianDenom = -0.5f / myKernel / myKernel;
     vector<WeightList> tempList;//this is used to compute scattering kernels because it is easier to normalize scattering kernels correctly, and then convert to gathering kernels
     tempList.resize(numNodes);
+    CaretPointer<GeodesicHelperBase> myGeoBase(new GeodesicHelperBase(mySurf, nodeAreas));//NOTE: if these are equal to the surface's areas, then it does some extra operations, but gets the same answer
 #pragma omp CARET_PAR
     {
         CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//don't really need one per thread here, but good practice in case we want getNeighborsToDepth
-        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp(new GeodesicHelper(myGeoBase));
         vector<float> distances;
 #pragma omp CARET_FOR schedule(dynamic)
         for (int32_t i = 0; i < numNodes; ++i)
@@ -552,7 +555,7 @@ void MetricSmoothingObject::precomputeWeightsGeoGaussEqual(const SurfaceFile* my
     }
 }
 
-void MetricSmoothingObject::precomputeWeightsROIGeoGaussEqual(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi)
+void MetricSmoothingObject::precomputeWeightsROIGeoGaussEqual(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, const float* nodeAreas)
 {
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myGeoDist = myKernel * 3.0f;
@@ -560,10 +563,11 @@ void MetricSmoothingObject::precomputeWeightsROIGeoGaussEqual(const SurfaceFile*
     vector<WeightList> tempList;//this is used to compute scattering kernels because it is easier to normalize scattering kernels correctly, and then convert to gathering kernels
     tempList.resize(numNodes);
     const float* myRoiColumn = theRoi->getValuePointerForColumn(0);
+    CaretPointer<GeodesicHelperBase> myGeoBase(new GeodesicHelperBase(mySurf, nodeAreas));//NOTE: if these are equal to the surface's areas, then it does some extra operations, but gets the same answer
 #pragma omp CARET_PAR
     {
         CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp(new GeodesicHelper(myGeoBase));
         vector<float> distances;
         vector<int32_t> nodes;
 #pragma omp CARET_FOR schedule(dynamic)
@@ -627,17 +631,10 @@ void MetricSmoothingObject::precomputeWeights(const SurfaceFile* mySurf, float m
 {
     const float* passAreas = nodeAreas;
     vector<float> areasTemp;
-    switch (myMethod)
-    {
-        case GEO_GAUSS_AREA://currently, only this method needs them
-            if (passAreas == NULL)
-            {
-                mySurf->computeNodeAreas(areasTemp);
-                passAreas = areasTemp.data();
-            }
-            break;
-        default:
-            break;
+    if (passAreas == NULL)
+    {//corrected node areas need to be passed into all geodesic smoothings, to generate corrected distances
+        mySurf->computeNodeAreas(areasTemp);
+        passAreas = areasTemp.data();
     }
     if (theRoi != NULL)
     {
@@ -647,10 +644,10 @@ void MetricSmoothingObject::precomputeWeights(const SurfaceFile* mySurf, float m
                 precomputeWeightsROIGeoGaussArea(mySurf, myKernel, theRoi, passAreas);
                 break;
             case GEO_GAUSS_EQUAL:
-                precomputeWeightsROIGeoGaussEqual(mySurf, myKernel, theRoi);
+                precomputeWeightsROIGeoGaussEqual(mySurf, myKernel, theRoi, passAreas);
                 break;
             case GEO_GAUSS:
-                precomputeWeightsROIGeoGauss(mySurf, myKernel, theRoi);
+                precomputeWeightsROIGeoGauss(mySurf, myKernel, theRoi, passAreas);
                 break;
             default:
                 throw CaretException("unknown smoothing method specified");
@@ -662,10 +659,10 @@ void MetricSmoothingObject::precomputeWeights(const SurfaceFile* mySurf, float m
                 precomputeWeightsGeoGaussArea(mySurf, myKernel, passAreas);
                 break;
             case GEO_GAUSS_EQUAL:
-                precomputeWeightsGeoGaussEqual(mySurf, myKernel);
+                precomputeWeightsGeoGaussEqual(mySurf, myKernel, passAreas);
                 break;
             case GEO_GAUSS:
-                precomputeWeightsGeoGauss(mySurf, myKernel);
+                precomputeWeightsGeoGauss(mySurf, myKernel, passAreas);
                 break;
             default:
                 throw CaretException("unknown smoothing method specified");
