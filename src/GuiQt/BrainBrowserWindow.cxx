@@ -792,16 +792,13 @@ BrainBrowserWindow::createActionsUsedByToolBar()
 /**
  * Is called by toolbar when the user changes input mode to annotations.
  * 
- * @param parent
- *     The parent widget.
  * @return
  *     True if it is okay to change to annotations mode, else false.
  */
 bool
-BrainBrowserWindow::changeInputModeToAnnotationsWarningDialog(QWidget* parent)
+BrainBrowserWindow::changeInputModeToAnnotationsWarningDialog()
 {
-    LockAspectWarningDialog::Result result = LockAspectWarningDialog::runDialog(m_browserWindowIndex,
-                                                                                parent);
+    LockAspectWarningDialog::Result result = LockAspectWarningDialog::runDialog(m_browserWindowIndex);
     
     bool okFlag = true;
     

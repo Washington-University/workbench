@@ -1842,7 +1842,6 @@ BrainBrowserWindowToolBar::createViewWidget()
     layout->addWidget(this->viewModeChartTwoRadioButton);
     layout->addWidget(this->viewModeSurfaceRadioButton);
     layout->addWidget(this->viewModeChartOneRadioButton);
-//    layout->addStretch();
 
     QButtonGroup* viewModeRadioButtonGroup = new QButtonGroup(this);
     viewModeRadioButtonGroup->addButton(this->viewModeChartOneRadioButton);
@@ -2723,7 +2722,7 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
         if (currentMode !=  UserInputModeAbstract::ANNOTATIONS) {
             BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
             CaretAssert(bbw);
-            if ( ! bbw->changeInputModeToAnnotationsWarningDialog(this)) {
+            if ( ! bbw->changeInputModeToAnnotationsWarningDialog()) {
                 /*
                  * Since mode is rejected, need to update toolbar
                  */

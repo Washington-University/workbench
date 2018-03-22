@@ -30,11 +30,12 @@ namespace caret {
     class EventHelpViewerDisplay : public Event {
         
     public:
-        EventHelpViewerDisplay(BrainBrowserWindow* brainBrowserWindow);
+        EventHelpViewerDisplay(BrainBrowserWindow* brainBrowserWindow,
+                               const AString helpPageName);
         
         virtual ~EventHelpViewerDisplay();
         
-        BrainBrowserWindow* getBrainBrowserWindow() const;
+        const BrainBrowserWindow* getBrainBrowserWindow() const;
         
         AString getHelpPageName() const;
         
@@ -45,9 +46,9 @@ namespace caret {
 
         EventHelpViewerDisplay& operator=(const EventHelpViewerDisplay&);
         
-        BrainBrowserWindow* m_brainBrowserWindow;
+        const BrainBrowserWindow* m_brainBrowserWindow;
         
-        AString m_helpPageName;
+        const AString m_helpPageName;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -142,7 +142,7 @@ namespace caret {
         
         float getOpenGLWidgetAspectRatio() const;
         
-        bool changeInputModeToAnnotationsWarningDialog(QWidget* parent);
+        bool changeInputModeToAnnotationsWarningDialog();
         
         bool isWindowAspectRatioLocked() const;
         
@@ -242,7 +242,7 @@ namespace caret {
         void aspectRatioDialogUpdateForWindow(const double aspectRatio);
         
     private:
-        // Contains status of components such as enter/exit full screen
+        /** Contains status of components such as enter/exit full screen */
         struct WindowComponentStatus {
             bool isFeaturesToolBoxDisplayed;
             bool isOverlayToolBoxDisplayed;
@@ -434,7 +434,6 @@ namespace caret {
         
         AString m_selectedTileTabsConfigurationUniqueIdentifier;
         TileTabsConfiguration* m_defaultTileTabsConfiguration;
-        //AString m_sceneTileTabsConfigurationText;
         
         static AString s_previousOpenFileNameFilter;
         static AString s_previousOpenFileDirectory;

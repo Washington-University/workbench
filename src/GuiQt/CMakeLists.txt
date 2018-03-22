@@ -62,7 +62,6 @@ ELSE()
         AnnotationWidthHeightWidget.h
         BalsaDatabaseUploadSceneFileDialog.h
         BalsaStudySelectionDialog.h
-	BestPracticesDialog.h
         BorderEditingSelectionDialog.h
         BorderFileSplitDialog.h
         BorderOptimizeDialog.h
@@ -258,7 +257,6 @@ BalsaDatabaseUploadSceneFileDialog.h
 BalsaStudySelectionDialog.h
 BalsaStudyInformation.h
 BalsaUserRoles.h
-BestPracticesDialog.h
 BorderEditingSelectionDialog.h
 BorderFileSplitDialog.h
 BorderOptimizeDialog.h
@@ -483,7 +481,6 @@ BalsaDatabaseUploadSceneFileDialog.cxx
 BalsaStudyInformation.cxx
 BalsaUserRoles.cxx
 BalsaStudySelectionDialog.cxx
-BestPracticesDialog.cxx
 BorderEditingSelectionDialog.cxx
 BorderFileSplitDialog.cxx
 BorderOptimizeDialog.cxx

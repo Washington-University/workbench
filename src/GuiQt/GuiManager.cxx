@@ -1861,49 +1861,34 @@ GuiManager::getHelpViewerDialogDisplayAction()
  */
 void
 GuiManager::showHideHelpDialog(const bool status,
-                        BrainBrowserWindow* parentBrainBrowserWindow)
+                               const BrainBrowserWindow* parentBrainBrowserWindow)
 {
-    bool dialogWasCreated = false;
-    
-    QWidget* moveWindowParent = parentBrainBrowserWindow;
+    BrainBrowserWindow* helpDialogParentWindow = getActiveBrowserWindow();
+    if (parentBrainBrowserWindow != NULL) {
+        for (auto bbw : m_brainBrowserWindows) {
+            if (bbw == parentBrainBrowserWindow) {
+                helpDialogParentWindow = bbw;
+                break;
+            }
+        }
+    }
+    CaretAssert(helpDialogParentWindow);
     
     if (status) {
         if (m_helpViewerDialog == NULL) {
-            BrainBrowserWindow* helpDialogParent = parentBrainBrowserWindow;
-            if (helpDialogParent == NULL) {
-                helpDialogParent = getActiveBrowserWindow();
-            }
-            
-            m_helpViewerDialog = new HelpViewerDialog(helpDialogParent);
+            m_helpViewerDialog = new HelpViewerDialog(helpDialogParentWindow);
             this->addNonModalDialog(m_helpViewerDialog);
             QObject::connect(m_helpViewerDialog, SIGNAL(dialogWasClosed()),
                              this, SLOT(helpDialogWasClosed()));
             
-            dialogWasCreated = true;
-            
-            /*
-             * If there was no parent dialog for placement of the help
-             * dialog and there is only one browser window, use the browser
-             * for placement of the help dialog.
-             */
-            if (moveWindowParent == NULL) {
-                if (getAllOpenBrainBrowserWindows().size() == 1) {
-                    moveWindowParent = helpDialogParent;
-                }
-            }
+            WuQtUtilities::moveWindowToSideOfParent(helpDialogParentWindow,
+                                                    m_helpViewerDialog);
         }
         
         m_helpViewerDialog->showDialog();
     }
     else {
         m_helpViewerDialog->close();
-    }
-    
-    if (dialogWasCreated) {
-        if (moveWindowParent != NULL) {
-            WuQtUtilities::moveWindowToSideOfParent(moveWindowParent,
-                                                    m_helpViewerDialog);
-        }
     }
     
     m_helpViewerDialogDisplayAction->blockSignals(true);

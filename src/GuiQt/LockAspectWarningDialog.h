@@ -32,6 +32,8 @@ class QRadioButton;
 
 namespace caret {
 
+    class BrainBrowserWindow;
+    
     class LockAspectWarningDialog : public WuQDialogModal {
         
         Q_OBJECT
@@ -43,10 +45,9 @@ namespace caret {
             CANCEL
         };
         
-        static Result runDialog(const int32_t browserWindowIndex,
-                                QWidget* parent);
+        static Result runDialog(const int32_t browserWindowIndex);
 
-        LockAspectWarningDialog(QWidget* parent = 0);
+        LockAspectWarningDialog(BrainBrowserWindow* brainBrowserWindow);
         
         virtual ~LockAspectWarningDialog();
         
@@ -63,6 +64,8 @@ namespace caret {
         LockAspectWarningDialog(const LockAspectWarningDialog&);
 
         LockAspectWarningDialog& operator=(const LockAspectWarningDialog&);
+        
+        BrainBrowserWindow* m_brainBrowserWindow;
         
         Result m_result = Result::CANCEL;
         

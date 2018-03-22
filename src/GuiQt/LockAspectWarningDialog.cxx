@@ -33,11 +33,12 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 
-#include "BestPracticesDialog.h"
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
+#include "EventHelpViewerDisplay.h"
+#include "EventManager.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
 
@@ -56,16 +57,13 @@ using namespace caret;
  *
  * @param browserWindowIndex
  *     Index of the browser window.
- * @param parent
- *     The parent widget.
  * @return
  *     Result of user interaction with dialog.
  */
 LockAspectWarningDialog::Result
-LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex,
-                                   QWidget* parent)
+LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex)
 {
-    const BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
+    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
     CaretAssert(bbw);
     const BrowserWindowContent* browserWindowContent = bbw->getBrowerWindowContent();
     CaretAssert(browserWindowContent);
@@ -85,7 +83,7 @@ LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex,
         return Result::NO_CHANGES;
     }
     
-    LockAspectWarningDialog dialog(parent);
+    LockAspectWarningDialog dialog(bbw);
     
     if (dialog.exec() == LockAspectWarningDialog::Accepted) {
         s_doNotShowAgainStatusFlag = dialog.isDoNotShowAgainChecked();
@@ -111,9 +109,10 @@ LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex,
  * @param parent
  *     The parent widget.
  */
-LockAspectWarningDialog::LockAspectWarningDialog(QWidget* parent)
+LockAspectWarningDialog::LockAspectWarningDialog(BrainBrowserWindow* brainBrowserWindow)
 : WuQDialogModal("Enter Annotations Mode",
-                 parent)
+                 brainBrowserWindow),
+m_brainBrowserWindow(brainBrowserWindow)
 {
     const QString mainInstructions("Do you want to lock the aspect ratio while entering annotations mode?");
     
@@ -239,14 +238,9 @@ LockAspectWarningDialog::getOkResult() const
 void
 LockAspectWarningDialog::detailsLabelLinkActivated(const QString& /*link*/)
 {
-    /*
-     * Best practices dialog will destroy itself when closed.
-     * Use parent widget so that user may close this dialog but allow
-     * best practices dialog to remain open.
-     */
-    BestPracticesDialog* dialog = new BestPracticesDialog(BestPracticesDialog::InfoMode::LOCK_ASPECT_BEST_PRACTICES,
-                                                          parentWidget());
-    dialog->showDialog();
+    EventHelpViewerDisplay helpViewerEvent(m_brainBrowserWindow,
+                                           "Annotation_and_Scenes_Best_Practices");
+    EventManager::get()->sendEvent(helpViewerEvent.getPointer());
     
     reject();
 }

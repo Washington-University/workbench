@@ -225,7 +225,7 @@ namespace caret {
                                  BrainBrowserWindow* parentBrainBrowserWindow);
         
         void showHideHelpDialog(const bool status,
-                                BrainBrowserWindow* parentBrainBrowserWindow);
+                                const BrainBrowserWindow* parentBrainBrowserWindow);
         
         void addNonModalDialog(QWidget* dialog);
         

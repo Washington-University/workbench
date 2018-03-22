@@ -37,13 +37,19 @@ using namespace caret;
  */
 
 /**
- * Constructor displays help dialog with default topic.
+ * Constructor displays help dialog with specific topic.
+ *
+ * @param brainBrowserWindow
+ *     Parent window.
+ * @param helpPageName
+ *     Name of HTML file without any path nor ".html" extension.
  */
-EventHelpViewerDisplay::EventHelpViewerDisplay(BrainBrowserWindow* brainBrowserWindow)
-: Event(EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY)
+EventHelpViewerDisplay::EventHelpViewerDisplay(BrainBrowserWindow* brainBrowserWindow,
+                                               const AString helpPageName)
+: Event(EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY),
+m_brainBrowserWindow(brainBrowserWindow),
+m_helpPageName(helpPageName)
 {
-    m_brainBrowserWindow = brainBrowserWindow;
-    m_helpPageName       = "";
 }
 
 /**
@@ -57,7 +63,7 @@ EventHelpViewerDisplay::~EventHelpViewerDisplay()
  * @return Brain browser window on which a new help viewer dialog is displayed
  * May be NULL in which case any browser window should be used as parent.
  */
-BrainBrowserWindow*
+const BrainBrowserWindow*
 EventHelpViewerDisplay::getBrainBrowserWindow() const
 {
     return m_brainBrowserWindow;
