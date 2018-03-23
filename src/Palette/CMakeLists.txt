@@ -26,6 +26,7 @@ PaletteColorMappingSaxReader.h
 PaletteColorMappingXmlElements.h
 PaletteEnums.h
 PaletteHistogramRangeModeEnum.h
+PaletteInvertModeEnum.h
 PaletteNormalizationModeEnum.h
 PaletteScalarAndColor.h
 PaletteThresholdRangeModeEnum.h
@@ -36,6 +37,7 @@ PaletteColorMapping.cxx
 PaletteColorMappingSaxReader.cxx
 PaletteEnums.cxx
 PaletteHistogramRangeModeEnum.cxx
+PaletteInvertModeEnum.cxx
 PaletteNormalizationModeEnum.cxx
 PaletteScalarAndColor.cxx
 PaletteThresholdRangeModeEnum.cxx

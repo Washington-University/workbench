@@ -1211,6 +1211,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     /*
      * Selection
      */
+    QLabel* paletteNameLabel = new QLabel("Name");
     this->paletteNameComboBox = new QComboBox();
     WuQtUtilities::setToolTipAndStatusTip(this->paletteNameComboBox, 
                                           "Select palette for coloring map data");
@@ -1220,7 +1221,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     /*
      * Interpolate Colors
      */
-    this->interpolateColorsCheckBox = new QCheckBox("Interpolate Colors");
+    this->interpolateColorsCheckBox = new QCheckBox("Interpolate\nColors");
     WuQtUtilities::setToolTipAndStatusTip(this->interpolateColorsCheckBox, 
                                           "Smooth colors for data between palette colors");
     this->paletteWidgetGroup->add(this->interpolateColorsCheckBox);
@@ -1230,18 +1231,33 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     /*
      * Invert palette checkbox
      */
-    this->invertPaletteCheckBox = new QCheckBox("Invert Palette");
-    WuQtUtilities::setToolTipAndStatusTip(this->invertPaletteCheckBox, "Invert the color palette");
-    this->paletteWidgetGroup->add(this->invertPaletteCheckBox);
-    QObject::connect(this->invertPaletteCheckBox, SIGNAL(toggled(bool)),
+    QLabel* invertLabel = new QLabel("Invert");
+    this->invertPaletteModeComboBox = new EnumComboBoxTemplate(this);
+    QObject::connect(this->invertPaletteModeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(applySelections()));
+    this->invertPaletteModeComboBox->setup<PaletteInvertModeEnum, PaletteInvertModeEnum::Enum>();
+    const AString invertModeToolTip = ("<html>"
+                                         "Controls inversion of Palette:<br>"
+                                         "   " + PaletteInvertModeEnum::toGuiName(PaletteInvertModeEnum::POSITIVE_WITH_NEGATIVE)
+                                       + " - Positive and negative sections of the palette are swapped<br>"
+                                       "   " + PaletteInvertModeEnum::toGuiName(PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE)
+                                       + " - Swaps the negative range within the negative range AND<br>"
+                                         "     swaps the positive range within the positive range"
+                                         "</html>");
+    this->invertPaletteModeComboBox->getWidget()->setToolTip(invertModeToolTip);
+    this->paletteWidgetGroup->add(this->invertPaletteModeComboBox->getComboBox());
     
     QWidget* paletteSelectionWidget = new QWidget();
     QGridLayout* paletteSelectionLayout = new QGridLayout(paletteSelectionWidget);
+    paletteSelectionLayout->setColumnStretch(0,   0);
+    paletteSelectionLayout->setColumnStretch(1,   0);
+    paletteSelectionLayout->setColumnStretch(2, 100);
     this->setLayoutSpacingAndMargins(paletteSelectionLayout);
-    paletteSelectionLayout->addWidget(this->paletteNameComboBox, 0, 0, 1, 2);
-    paletteSelectionLayout->addWidget(this->interpolateColorsCheckBox, 1, 0);
-    paletteSelectionLayout->addWidget(this->invertPaletteCheckBox, 1, 1);
+    paletteSelectionLayout->addWidget(paletteNameLabel, 0, 0);
+    paletteSelectionLayout->addWidget(this->paletteNameComboBox, 0, 1); //, Qt::AlignLeft);
+    paletteSelectionLayout->addWidget(this->interpolateColorsCheckBox, 0, 2, 2, 1, Qt::AlignCenter);
+    paletteSelectionLayout->addWidget(invertLabel, 1, 0);
+    paletteSelectionLayout->addWidget(this->invertPaletteModeComboBox->getComboBox(), 1, 1); //, Qt::AlignLeft);
     
     paletteSelectionWidget->setFixedHeight(paletteSelectionWidget->sizeHint().height());
     
@@ -1769,7 +1785,7 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
         this->displayModeNegativeCheckBox->setChecked(this->paletteColorMapping->isDisplayNegativeDataFlag());
     
         this->interpolateColorsCheckBox->setChecked(this->paletteColorMapping->isInterpolatePaletteFlag());
-        this->invertPaletteCheckBox->setChecked(this->paletteColorMapping->isInvertedPaletteFlag());
+        this->invertPaletteModeComboBox->setSelectedItem<PaletteInvertModeEnum, PaletteInvertModeEnum::Enum>(this->paletteColorMapping->getInvertedMode());
         
         m_histogramBarsColorComboBox->setSelectedColor(this->paletteColorMapping->getHistogramBarsColor());
         m_histogramEnvelopeColorComboBox->setSelectedColor(this->paletteColorMapping->getHistogramEnvelopeColor());
@@ -2390,7 +2406,7 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     this->paletteColorMapping->setDisplayZeroDataFlag(this->displayModeZeroCheckBox->isChecked());
     
     this->paletteColorMapping->setInterpolatePaletteFlag(this->interpolateColorsCheckBox->isChecked());
-    this->paletteColorMapping->setInvertedPaletteFlag(this->invertPaletteCheckBox->isChecked());
+    this->paletteColorMapping->setInvertedMode(this->invertPaletteModeComboBox->getSelectedItem<PaletteInvertModeEnum, PaletteInvertModeEnum::Enum>());
     
     this->paletteColorMapping->setHistogramBarsColor(m_histogramBarsColorComboBox->getSelectedColor());
     this->paletteColorMapping->setHistogramEnvelopeColor(m_histogramEnvelopeColorComboBox->getSelectedColor());

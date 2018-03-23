@@ -169,7 +169,7 @@ namespace caret {
         QCheckBox* displayModeNegativeCheckBox;
         
         QCheckBox* interpolateColorsCheckBox;
-        QCheckBox* invertPaletteCheckBox;
+        EnumComboBoxTemplate* invertPaletteModeComboBox;
         
         QComboBox* thresholdTypeComboBox;
         

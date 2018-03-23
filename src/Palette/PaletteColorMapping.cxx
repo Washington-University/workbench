@@ -128,7 +128,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm,
     this->displayPositiveDataFlag = pcm.displayPositiveDataFlag;
     this->displayZeroDataFlag     = pcm.displayZeroDataFlag;
     this->interpolatePaletteFlag  = pcm.interpolatePaletteFlag;
-    this->invertedPaletteFlag     = pcm.invertedPaletteFlag;
+    this->invertedMode = pcm.invertedMode;
     this->scaleMode = pcm.scaleMode;
     this->selectedPaletteName = pcm.selectedPaletteName;
     this->userScaleNegativeMaximum = pcm.userScaleNegativeMaximum;
@@ -187,7 +187,7 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->displayPositiveDataFlag == pcm.displayPositiveDataFlag)
         && (this->displayZeroDataFlag     == pcm.displayZeroDataFlag)
         && (this->interpolatePaletteFlag  == pcm.interpolatePaletteFlag)
-        && (this->invertedPaletteFlag     == pcm.invertedPaletteFlag)
+        && (this->invertedMode     == pcm.invertedMode)
         && (this->scaleMode == pcm.scaleMode)
         && (this->selectedPaletteName == pcm.selectedPaletteName)
         && (this->userScaleNegativeMaximum == pcm.userScaleNegativeMaximum)
@@ -251,7 +251,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->userScalePositiveMaximum = 100.0f;
     this->selectedPaletteName = Palette::ROY_BIG_BL_PALETTE_NAME;
     this->interpolatePaletteFlag = true;
-    this->invertedPaletteFlag    = false;
+    this->invertedMode = PaletteInvertModeEnum::OFF;
     this->displayPositiveDataFlag = true;
     this->displayZeroDataFlag = false;
     this->displayNegativeDataFlag = true;
@@ -336,7 +336,7 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                      PaletteColorMappingXmlElements::XML_TAG_INTERPOLATE,
                                      this->interpolatePaletteFlag);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_INVERT,
-                                     invertedPaletteFlag);
+                                     PaletteInvertModeEnum::toName(this->invertedMode));
     xmlWriter.writeElementCharacters(
                                      PaletteColorMappingXmlElements::XML_TAG_DISPLAY_POSITIVE,
                                      this->displayPositiveDataFlag);
@@ -938,26 +938,26 @@ PaletteColorMapping::setInterpolatePaletteFlag(const bool interpolatePaletteFlag
 }
 
 /**
- * @return Invert the palette
+ * @return The inverted mode.
  */
-bool
-PaletteColorMapping::isInvertedPaletteFlag() const
+PaletteInvertModeEnum::Enum
+PaletteColorMapping::getInvertedMode() const
 {
-    return this->invertedPaletteFlag;
+    return this->invertedMode;
 }
 
 /**
- * Set Inverted the palette flag
+ * Set the inverted mode
  *
- * @param invertedPaletteFlag
- *    New value for Invert the palette
+ * @param invertedMode
+ *     New inverted mode.
  */
 void
-PaletteColorMapping::setInvertedPaletteFlag(const bool invertedPaletteFlag)
+PaletteColorMapping::setInvertedMode(const PaletteInvertModeEnum::Enum invertedMode)
 {
-    if (this->invertedPaletteFlag != invertedPaletteFlag) {
-        this->invertedPaletteFlag = invertedPaletteFlag;
-        this->setModified();
+    if (this->invertedMode != invertedMode) {
+        this->invertedMode = invertedMode;
+        setModified();
     }
 }
 
@@ -1024,8 +1024,15 @@ PaletteColorMapping::getPalette() const
         CaretAssert(palette);
     }
     
-    if (isInvertedPaletteFlag()) {
-        return palette->getInvertedPalette();
+    switch (this->invertedMode) {
+        case PaletteInvertModeEnum::OFF:
+            break;
+        case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE:
+            return palette->getSignSeparateInvertedPalette();
+            break;
+        case PaletteInvertModeEnum::POSITIVE_WITH_NEGATIVE:
+            return palette->getInvertedPalette();
+            break;
     }
     
     return palette;

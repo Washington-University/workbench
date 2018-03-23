@@ -105,6 +105,8 @@ namespace caret {
         
         const Palette* getInvertedPalette() const;
         
+        const Palette* getSignSeparateInvertedPalette() const;
+        
         static AString getDefaultPaletteName();
         
     public:
@@ -133,6 +135,8 @@ namespace caret {
         /** The inverted palette is lazily initialized */
         mutable std::unique_ptr<Palette> m_invertedPalette;
         
+        /** The inverted palette with negative inverted separate from positive */
+        mutable std::unique_ptr<Palette> m_signSeparateInvertedPalette;
     };
 
     

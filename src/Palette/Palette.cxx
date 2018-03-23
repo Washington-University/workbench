@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <deque>
 #include <limits>
 
 #include "CaretAssert.h"
@@ -513,6 +514,49 @@ Palette::isModified() const
 {
     return this->modifiedFlag;
 }
+
+/**
+ * @return An sign separate inverted version of this palette.  
+ * The positive and negative sections are separately inverted.
+ * and then positive scalar is PS = (1 - PS) and 
+ * the negative scalar NS = (NS + 1)
+ *
+ * Example: (1.0, Red), (0.4, Yellow), (0, Black), (-0.3, Green), (-1.0, Blue)
+ * becomes  (1.0, Black), (0.6, Yellow), (1.0, Red), (0, Blue), (-0.7, Green), (-1.0, Black)
+ */
+const Palette*
+Palette::getSignSeparateInvertedPalette() const
+{
+    if ( ! m_signSeparateInvertedPalette) {
+        std::deque<PaletteScalarAndColor*> positives;
+        std::deque<PaletteScalarAndColor*> negatives;
+        
+        for (auto scalar : paletteScalars) {
+            if (scalar->getScalar() >= 0.0) {
+                PaletteScalarAndColor* psc = new PaletteScalarAndColor(*scalar);
+                psc->setScalar(1.0 - psc->getScalar());
+                positives.push_front(psc);
+            }
+            if (scalar->getScalar() <= 0.0) {
+                PaletteScalarAndColor* psc = new PaletteScalarAndColor(*scalar);
+                psc->setScalar(-1.0 - psc->getScalar());
+                negatives.push_front(psc);
+            }
+        }
+
+        Palette* palette = new Palette();
+        palette->paletteScalars.insert(palette->paletteScalars.end(),
+                                       positives.begin(), positives.end());
+        palette->paletteScalars.insert(palette->paletteScalars.end(),
+                                       negatives.begin(), negatives.end());
+
+        m_signSeparateInvertedPalette.reset(palette);
+    }
+    
+    return m_signSeparateInvertedPalette.get();
+}
+
+
 
 /**
  * @return An inverted version of this palette.  An inverted

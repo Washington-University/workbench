@@ -40,7 +40,7 @@ PaletteColorMappingSaxReader::PaletteColorMappingSaxReader(PaletteColorMapping* 
     this->stateStack.push(state);
     this->elementText = "";
     this->paletteColorMapping = paletteColorMapping;
-    this->paletteColorMapping->setInvertedPaletteFlag(false);
+    this->paletteColorMapping->setInvertedMode(PaletteInvertModeEnum::OFF);
 }
 
 /**
@@ -185,7 +185,26 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                this->paletteColorMapping->setInterpolatePaletteFlag(toBool(this->elementText));
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_INVERT) {
-               this->paletteColorMapping->setInvertedPaletteFlag(toBool(this->elementText));
+               bool isValid = false;
+               PaletteInvertModeEnum::Enum invertMode = PaletteInvertModeEnum::fromName(this->elementText,
+                                                                                        &isValid);
+               if (isValid) {
+                   this->paletteColorMapping->setInvertedMode(invertMode);
+               }
+               else {
+                   if (this->elementText == "true") {
+                       this->paletteColorMapping->setInvertedMode(PaletteInvertModeEnum::POSITIVE_WITH_NEGATIVE);
+                   }
+                   else if (this->elementText == "false") {
+                       this->paletteColorMapping->setInvertedMode(PaletteInvertModeEnum::OFF);
+                   }
+                   else {
+                       this->paletteColorMapping->setInvertedMode(PaletteInvertModeEnum::OFF);
+                       CaretLogWarning("Invalid PaletteInvertModeEnum::Enum value \""
+                                       + this->elementText
+                                       + "\"");
+                   }
+               }
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_NAME) {
                this->paletteColorMapping->setSelectedPaletteName(this->elementText);

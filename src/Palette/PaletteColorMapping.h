@@ -33,6 +33,7 @@
 #include "PaletteColorBarValuesModeEnum.h"
 #include "PaletteEnums.h"
 #include "PaletteHistogramRangeModeEnum.h"
+#include "PaletteInvertModeEnum.h"
 #include "PaletteThresholdRangeModeEnum.h"
 #include "XmlException.h"
 
@@ -123,9 +124,9 @@ namespace caret {
         
         void setInterpolatePaletteFlag(const bool interpolatePaletteFlag);
         
-        bool isInvertedPaletteFlag() const;
+        PaletteInvertModeEnum::Enum getInvertedMode() const;
         
-        void setInvertedPaletteFlag(const bool invertedPallete);
+        void setInvertedMode(const PaletteInvertModeEnum::Enum invertedMode);
         
         PaletteScaleModeEnum::Enum getScaleMode() const;
         
@@ -316,7 +317,7 @@ namespace caret {
         
         bool interpolatePaletteFlag;
         
-        bool invertedPaletteFlag = false;
+        PaletteInvertModeEnum::Enum invertedMode = PaletteInvertModeEnum::OFF;
         
         bool displayPositiveDataFlag;
         
