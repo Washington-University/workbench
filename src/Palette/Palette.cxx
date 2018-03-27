@@ -108,13 +108,14 @@ Palette::toString() const
 {
     AString s;
     
-    s += "[name=" + this->name + ", ";
+    s += "name=" + this->name + "\n";
     uint64_t num = this->paletteScalars.size();
     for (uint64_t i = 0; i < num; i++) {
-        if (i > 0) s += ",";
-        s += this->paletteScalars[i]->toString();
+        s += ("    "
+              + this->paletteScalars[i]->toString()
+              + "\n");
     }    
-    s += "]";
+    s += "\n";
     
     return s;
 }
@@ -530,26 +531,60 @@ Palette::getSignSeparateInvertedPalette() const
     if ( ! m_signSeparateInvertedPalette) {
         std::deque<PaletteScalarAndColor*> positives;
         std::deque<PaletteScalarAndColor*> negatives;
+        std::vector<PaletteScalarAndColor> zeros;
         
         for (auto scalar : paletteScalars) {
-            if (scalar->getScalar() >= 0.0) {
+            if (scalar->getScalar() > 0.0) {
                 PaletteScalarAndColor* psc = new PaletteScalarAndColor(*scalar);
                 psc->setScalar(1.0 - psc->getScalar());
                 positives.push_front(psc);
             }
-            if (scalar->getScalar() <= 0.0) {
+            else if (scalar->getScalar() < 0.0) {
                 PaletteScalarAndColor* psc = new PaletteScalarAndColor(*scalar);
                 psc->setScalar(-1.0 - psc->getScalar());
                 negatives.push_front(psc);
             }
+            else {
+                /*
+                 * If there is a zero, it will be duplicated
+                 * at both positive and negative ONE.
+                 */
+                zeros.push_back(PaletteScalarAndColor(*scalar));
+            }
         }
+        
+        const bool haveZero = ( ! zeros.empty());
 
         Palette* palette = new Palette();
+        palette->setName(getName());
+        if (haveZero) {
+            /*
+             * Only add "+1" if there are positive values in invereted palette
+             */
+            if ( ! positives.empty()) {
+                PaletteScalarAndColor* psc = new PaletteScalarAndColor(zeros[0]);
+                psc->setScalar(1.0);
+                palette->paletteScalars.push_back(psc);
+            }
+        }
         palette->paletteScalars.insert(palette->paletteScalars.end(),
                                        positives.begin(), positives.end());
+
         palette->paletteScalars.insert(palette->paletteScalars.end(),
                                        negatives.begin(), negatives.end());
-
+        if (haveZero) {
+            /*
+             * Only add "-1" if there are negative values in invereted palette
+             */
+            if ( ! negatives.empty()) {
+                PaletteScalarAndColor* psc = new PaletteScalarAndColor(zeros[0]);
+                psc->setScalar(-1.0);
+                palette->paletteScalars.push_back(psc);
+            }
+        }
+        
+        palette->clearModified();
+        
         m_signSeparateInvertedPalette.reset(palette);
     }
     
@@ -580,6 +615,8 @@ Palette::getInvertedPalette() const
         for (auto scalar : palette->paletteScalars) {
             scalar->setScalar( - scalar->getScalar());
         }
+        
+        palette->clearModified();
         
         m_invertedPalette.reset(palette);
     }
