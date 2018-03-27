@@ -189,7 +189,9 @@ PaletteColorMappingEditorDialog::updateDialogContent(CaretMappableDataFile* mapF
                 colorBar = matrixProps->getColorBar();
             }
         }
-        m_paletteColorBarWidget->updateContent(colorBar,
+        m_paletteColorBarWidget->updateContent(m_mapFile,
+                                               m_mapIndex,
+                                               colorBar,
                                                paletteColorMapping);
         m_paletteColorMappingEditor->setEnabled(true);
         m_paletteColorMappingEditor->updateEditor(m_mapFile,

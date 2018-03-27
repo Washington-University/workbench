@@ -277,9 +277,9 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->colorBarNumericFormatMode = NumericFormatModeEnum::AUTO;
     this->colorBarPrecisionDigits = 2;
     this->colorBarNumericSubdivisionCount = 0;
-    this->modifiedFlag = false;
     this->colorBarValuesMode = PaletteColorBarValuesModeEnum::DATA;
     this->colorBarShowTickMarksSelected = false;
+    this->modifiedFlag = false;
 }
 
 /**

@@ -44,6 +44,7 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneAttributes.h"
+#include "ScenePrimitive.h"
 #include "StringTableModel.h"
 #include "VolumeFile.h"
 
@@ -105,6 +106,7 @@ void
 CaretMappableDataFile::initializeCaretMappableDataFileInstance()
 {
     m_labelDrawingProperties = std::unique_ptr<LabelDrawingProperties>(new LabelDrawingProperties());
+    m_applyToAllMapsSelected = false;
 }
 
 
@@ -255,6 +257,34 @@ CaretMappableDataFile::isPaletteColorMappingEqualForAllMaps() const
 }
 
 /**
+ * Apply palette coloring from the given map to all other maps in the file.
+ *
+ * @param mapIndex
+ *     Index of the map.
+ */
+void
+CaretMappableDataFile::applyPaletteColorMappingToAllMaps(const int32_t mapIndex)
+{
+    if ( ! isMappedWithPalette()) {
+        return;
+    }
+    
+    const int32_t numMaps = getNumberOfMaps();
+    if (numMaps <= 1) {
+        return;
+    }
+    
+    const PaletteColorMapping* mapColoring = getMapPaletteColorMapping(mapIndex);
+    for (int32_t i = 0; i < numMaps; i++) {
+        if (i != mapIndex) {
+            PaletteColorMapping* pcm = getMapPaletteColorMapping(i);
+                pcm->copy(*mapColoring,
+                          false);
+        }
+    }
+}
+
+/**
  * Invalidate all histogram coloring for this file.
  */
 void
@@ -350,6 +380,9 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
         sceneClass->addEnumeratedType<PaletteNormalizationModeEnum,
             PaletteNormalizationModeEnum::Enum>("m_paletteNormalizationMode",
                                                 getPaletteNormalizationMode());
+        
+        sceneClass->addBoolean("m_applyToAllMapsSelected",
+                               m_applyToAllMapsSelected);
         
         if (sceneAttributes->isModifiedPaletteSettingsSavedToScene()) {
             std::vector<SceneClass*> pcmClassVector;
@@ -582,6 +615,20 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                     sceneAttributes->addToErrorMessage(msg);
                 }
             }
+        }
+        
+        updateAfterFileDataChanges();
+        
+        /*
+         * Must restore after call to updateAfterFileDataChanges() to since
+         * that method initializes 'm_applyToAllMapsSelected'.
+         *
+         * This was added by WB-781 Apply to All Maps for ColorBar so that 
+         * the 'apply to all maps' status is saved to and restored from scenes.
+         */
+        const ScenePrimitive* applyToAllMapsPrimitive = sceneClass->getPrimitive("m_applyToAllMapsSelected");
+        if (applyToAllMapsPrimitive != NULL) {
+            m_applyToAllMapsSelected = applyToAllMapsPrimitive->booleanValue();
         }
         
         /*
@@ -1160,9 +1207,45 @@ CaretMappableDataFile::getChartingDelegate() const
  * are made to the data file.
  */
 void
-CaretMappableDataFile::updateChartingDelegateAfterFileDataChanges()
+CaretMappableDataFile::updateAfterFileDataChanges()
 {
-    getChartingDelegate()->updateAfterFileChanged();
+    if (m_chartingDelegate) {
+        m_chartingDelegate->updateAfterFileChanged();
+    }
+
+    m_applyToAllMapsSelected = isPaletteColorMappingEqualForAllMaps();
+}
+
+/**
+ * @return Is apply palette color mapping to all maps selected.
+ */
+bool
+CaretMappableDataFile::isApplyPaletteColorMappingToAllMaps() const
+{
+    return m_applyToAllMapsSelected;
+}
+
+/**
+ * Set apply palette color mapping to all maps.  Only sets the status,
+ * it does not change any palette color mapping.
+ *
+ * @param selected
+ *     New selected status.
+ */
+void
+CaretMappableDataFile::setApplyPaletteColorMappingToAllMaps(const bool selected)
+{
+    m_applyToAllMapsSelected = selected;
+}
+
+/**
+ * @return True if file is mapped with a palette and one
+ * palette is used for all maps.
+ */
+bool
+CaretMappableDataFile::isOnePaletteUsedForAllMaps() const
+{
+    return false;
 }
 
 /**

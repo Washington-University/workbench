@@ -364,7 +364,9 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
                         else if (m_chartOverlay != NULL) {
                             colorBar = m_chartOverlay->getColorBar();
                         }
-                        m_colorBarWidget->updateContent(colorBar,
+                        m_colorBarWidget->updateContent(m_caretMappableDataFile,
+                                                        m_selectedMapFileIndex,
+                                                        colorBar,
                                                         paletteColorMapping);
                     }
                 }
@@ -477,7 +479,9 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
                             else if (m_chartOverlay != NULL) {
                                 colorBar = m_chartOverlay->getColorBar();
                             }
-                            m_colorBarWidget->updateContent(colorBar,
+                            m_colorBarWidget->updateContent(m_caretMappableDataFile,
+                                                            selectedMapIndex,
+                                                            colorBar,
                                                             paletteColorMapping);
                         }
                     }

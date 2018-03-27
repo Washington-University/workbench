@@ -36,6 +36,7 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "MapSettingsColorBarPaletteOptionsWidget.h"
 #include "NumericFormatModeEnum.h"
 #include "Overlay.h"
 #include "PaletteColorBarValuesModeEnum.h"
@@ -65,12 +66,14 @@ MapSettingsColorBarWidget::MapSettingsColorBarWidget(QWidget* parent)
     
     QWidget* numericsWidget = this->createDataNumericsSection();
     
+    m_paletteOptionsWidget = new MapSettingsColorBarPaletteOptionsWidget();
     
     
     QGridLayout* layout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 6, 6);
     layout->addWidget(locationPositionWidget, 0, 0, Qt::AlignLeft);
     layout->addWidget(numericsWidget, 1, 0, Qt::AlignLeft);
+    layout->addWidget(m_paletteOptionsWidget);
     layout->setSizeConstraint(QLayout::SetFixedSize);
     
     setSizePolicy(QSizePolicy::Fixed,
@@ -113,10 +116,22 @@ MapSettingsColorBarWidget::~MapSettingsColorBarWidget()
 //    }
 //}
 
+/**
+ * Update the content of the widget.
+ *
+ * @param caretMappableDataFile
+ *    Data file containing palette that is edited.
+ * @param mapIndex
+ *    Index of map for palette that is edited.
+ */
 void
-MapSettingsColorBarWidget::updateContent(AnnotationColorBar* annotationColorBar,
+MapSettingsColorBarWidget::updateContent(CaretMappableDataFile* caretMappableDataFile,
+                                         const int32_t mapIndex,
+                                         AnnotationColorBar* annotationColorBar,
                                          PaletteColorMapping* paletteColorMapping)
 {
+    m_caretMappableDataFile = caretMappableDataFile;
+    m_mapIndex            = mapIndex;
     m_colorBar            = annotationColorBar;
     m_paletteColorMapping = paletteColorMapping;
 
@@ -144,6 +159,9 @@ MapSettingsColorBarWidget::updateContentPrivate()
         
         std::vector<AnnotationTwoDimensionalShape*> annotationTwoDimVector;
         annotationTwoDimVector.push_back(m_colorBar);
+
+        m_paletteOptionsWidget->updateEditor(m_caretMappableDataFile,
+                                             m_mapIndex);
         
         enableWidget = true;
     }
@@ -167,6 +185,8 @@ MapSettingsColorBarWidget::applySelections()
         m_paletteColorMapping->setColorBarNumericSubdivisionCount(m_colorBarNumericSubdivisionsSpinBox->value());
         m_paletteColorMapping->setColorBarShowTickMarksSelected(m_showTickMarksCheckBox->isChecked());
     }
+    
+    m_paletteOptionsWidget->applyOptions();
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

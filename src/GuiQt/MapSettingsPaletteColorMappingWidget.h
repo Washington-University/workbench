@@ -44,6 +44,7 @@ namespace caret {
     class EnumComboBoxTemplate;
     class FastStatistics;
     class Histogram;
+    class MapSettingsColorBarPaletteOptionsWidget;
     class PaletteColorMapping;
     class WuQDoubleSlider;
     class WuQDoubleSpinBox;
@@ -94,10 +95,6 @@ namespace caret {
         void applyAndUpdate();
         void applySelections();
         
-        void applyAllMapsCheckBoxStateChanged(bool);
-        
-        void applyToMultipleFilesPushbuttonClicked();
-        
         void contextMenuDisplayRequested(QContextMenuEvent* event,
                                          float graphX,
                                          float graphY);
@@ -115,7 +112,6 @@ namespace caret {
         QWidget* createHistogramSection();
         QWidget* createHistogramControlSection();
         QWidget* createNormalizationControlSection();
-        QWidget* createDataOptionsSection();
         
         void updateNormalizationControlSection();
         
@@ -123,8 +119,6 @@ namespace caret {
                                                const float highThreshold);
         
         void updateHistogramPlot();
-        
-        void updateColoringAndGraphics();
         
         void updateThresholdControlsMinimumMaximumRangeValues();
         
@@ -137,9 +131,6 @@ namespace caret {
         PaletteColorMapping* paletteColorMapping;
         
         QComboBox* paletteNameComboBox;
-        
-        QCheckBox* applyAllMapsCheckBox;
-        QPushButton* applyToMultipleFilesPushButton;
         
         QRadioButton* scaleAutoRadioButton;
         QRadioButton* scaleAutoAbsolutePercentageRadioButton;
@@ -214,7 +205,6 @@ namespace caret {
         QSpinBox* m_histogramBucketsSpinBox;
         
         CaretMappableDataFile* caretMappableDataFile;
-        CaretMappableDataFile* m_previousCaretMappableDataFile;
         
         int32_t mapFileIndex;
         
@@ -223,6 +213,7 @@ namespace caret {
         WuQWidgetObjectGroup* paletteWidgetGroup;
         WuQWidgetObjectGroup* thresholdWidgetGroup;
         
+        MapSettingsColorBarPaletteOptionsWidget* m_paletteOptionsWidget;
         
     };
     

@@ -31,7 +31,9 @@ class QSpinBox;
 namespace caret {
 
     class AnnotationColorBar;
+    class CaretMappableDataFile;
     class EnumComboBoxTemplate;
+    class MapSettingsColorBarPaletteOptionsWidget;
     class PaletteColorMapping;
     
     class Overlay;
@@ -47,7 +49,9 @@ namespace caret {
         
 //        void updateContent(Overlay* overlay);
         
-        void updateContent(AnnotationColorBar* annotationColorBar,
+        void updateContent(CaretMappableDataFile* caretMappableDataFile,
+                           const int32_t mapIndex,
+                           AnnotationColorBar* annotationColorBar,
                            PaletteColorMapping* paletteColorMapping);
 
         // ADD_NEW_METHODS_HERE
@@ -74,6 +78,10 @@ namespace caret {
         
         void updateColorBarAttributes();
         
+        CaretMappableDataFile* m_caretMappableDataFile = NULL;
+        
+        int32_t m_mapIndex = -1;
+        
         AnnotationColorBar* m_colorBar;
         
         PaletteColorMapping* m_paletteColorMapping;
@@ -95,6 +103,8 @@ namespace caret {
         
         QCheckBox* m_showTickMarksCheckBox;
         
+        MapSettingsColorBarPaletteOptionsWidget* m_paletteOptionsWidget;
+
         // ADD_NEW_MEMBERS_HERE
 
     };

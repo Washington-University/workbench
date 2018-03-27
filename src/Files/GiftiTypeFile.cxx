@@ -150,6 +150,7 @@ GiftiTypeFile::readFile(const AString& filename)
     this->setFileName(filename);
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
+    updateAfterFileDataChanges();
     this->clearModified();
 }
 

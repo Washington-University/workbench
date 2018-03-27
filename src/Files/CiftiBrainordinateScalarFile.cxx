@@ -199,6 +199,7 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
         scalarPalette->copy(*densePalette,
                             true);
         
+        scalarFile->updateAfterFileDataChanges();
         scalarFile->setModified();
         
         return scalarFile;

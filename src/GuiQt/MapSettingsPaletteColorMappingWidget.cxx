@@ -49,12 +49,11 @@
 #include "CursorDisplayScoped.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventCaretMappableDataFilesGet.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
 #include "FastStatistics.h"
 #include "GuiManager.h"
 #include "Histogram.h"
+#include "MapSettingsColorBarPaletteOptionsWidget.h"
 #include "MathFunctions.h"
 #include "NodeAndVoxelColoring.h"
 #include "NumericTextFormatting.h"
@@ -101,8 +100,6 @@ static const int32_t BIG_NUMBER = 500000000;
 MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidget* parent)
 : QWidget(parent)
 {
-    m_previousCaretMappableDataFile = NULL;
-    
     /*
      * No context menu, it screws things up
      * but one is used on the histogram plot
@@ -120,7 +117,7 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     QWidget* histogramWidget = this->createHistogramSection();
     QWidget* histogramControlWidget = this->createHistogramControlSection();
     
-    QWidget* dataOptionsWidget = this->createDataOptionsSection();
+    m_paletteOptionsWidget = new MapSettingsColorBarPaletteOptionsWidget();
     
     QWidget* normalizationWidget = this->createNormalizationControlSection();
     
@@ -137,7 +134,7 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     
     QVBoxLayout* dataLayout = new QVBoxLayout();
     dataLayout->addWidget(normalizationWidget);
-    dataLayout->addWidget(dataOptionsWidget);
+    dataLayout->addWidget(m_paletteOptionsWidget);
     
     QWidget* bottomRightWidget = new QWidget();
     QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
@@ -486,22 +483,6 @@ MapSettingsPaletteColorMappingWidget::thresholdLinkCheckBoxToggled(bool checked)
         updateAfterThresholdValuesChanged(lowValue,
                                           highValue);
     }
-}
-
-/**
- * Update coloring and graphics
- */
-void
-MapSettingsPaletteColorMappingWidget::updateColoringAndGraphics()
-{
-    if (this->applyAllMapsCheckBox->isChecked()) {
-        this->caretMappableDataFile->updateScalarColoringForAllMaps();
-    }
-    else {
-        this->caretMappableDataFile->updateScalarColoringForMap(this->mapFileIndex);
-    }
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -1548,16 +1529,7 @@ void
 MapSettingsPaletteColorMappingWidget::updateEditor(CaretMappableDataFile* caretMappableDataFile,
                                                    const int32_t mapIndex)
 {
-    const bool palettesEqualFlag = caretMappableDataFile->isPaletteColorMappingEqualForAllMaps();
     updateEditorInternal(caretMappableDataFile, mapIndex);
-    
-    if (m_previousCaretMappableDataFile != caretMappableDataFile) {
-        this->applyAllMapsCheckBox->blockSignals(true);
-        this->applyAllMapsCheckBox->setChecked(palettesEqualFlag);
-        this->applyAllMapsCheckBox->blockSignals(false);
-    }
-    
-    m_previousCaretMappableDataFile = caretMappableDataFile;
 }
 
 /**
@@ -1840,6 +1812,9 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
         this->scaleFixedPositiveMinimumSpinBox->setSingleStep(stepValue);
         this->scaleFixedPositiveMaximumSpinBox->setSingleStep(stepValue);
     }
+    
+    m_paletteOptionsWidget->updateEditor(this->caretMappableDataFile,
+                                         this->mapFileIndex);
     
     this->updateHistogramPlot();
     
@@ -2440,21 +2415,9 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
         this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE);
     }
     
-    if (this->applyAllMapsCheckBox->checkState() == Qt::Checked) {
-        const int numMaps = this->caretMappableDataFile->getNumberOfMaps();
-        for (int32_t i = 0; i < numMaps; i++) {
-            PaletteColorMapping* pcm = this->caretMappableDataFile->getMapPaletteColorMapping(i);
-            if (pcm != this->paletteColorMapping) {
-                pcm->copy(*this->paletteColorMapping,
-                          false);
-            }
-        }
-        this->caretMappableDataFile->updateScalarColoringForAllMaps();
-    }
-    
     this->updateHistogramPlot();
     
-    updateColoringAndGraphics();
+    m_paletteOptionsWidget->applyOptions();
 }
 
 /**
@@ -2610,7 +2573,7 @@ MapSettingsPaletteColorMappingWidget::normalizationModeComboBoxActivated(int)
                         this->caretMappableDataFile->setPaletteNormalizationMode(mode);
                         this->updateEditorInternal(this->caretMappableDataFile,
                                                    this->mapFileIndex);
-                        this->updateColoringAndGraphics();
+                        m_paletteOptionsWidget->applyOptions();
                     }
                     else {
                         this->updateNormalizationControlSection();
@@ -2619,68 +2582,4 @@ MapSettingsPaletteColorMappingWidget::normalizationModeComboBoxActivated(int)
             }
         }
     }
-}
-
-
-/**
- * Called when the state of the apply all maps checkbox is changed.
- * @param checked
- *    New status of checkbox.
- */
-void 
-MapSettingsPaletteColorMappingWidget::applyAllMapsCheckBoxStateChanged(bool checked)
-{
-    if (checked) {
-        this->applySelections();
-    }
-}
-
-/**
- * @return A widget containing the data options.
- */
-QWidget*
-MapSettingsPaletteColorMappingWidget::createDataOptionsSection()
-{
-    this->applyAllMapsCheckBox = new QCheckBox("Apply to All Maps");
-    this->applyAllMapsCheckBox->setCheckState(Qt::Checked);
-    QObject::connect(this->applyAllMapsCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(applyAllMapsCheckBoxStateChanged(bool)));
-    this->applyAllMapsCheckBox->setToolTip("If checked, settings are applied to all maps\n"
-                                           "in the file containing the selected map");
-    
-    this->applyToMultipleFilesPushButton = new QPushButton("Apply to Files...");
-    const QString tt("Displays a dialog that allows selection of data files to which the "
-                     "palette settings are applied.");
-    this->applyToMultipleFilesPushButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(tt));
-    QObject::connect(this->applyToMultipleFilesPushButton, SIGNAL(clicked()),
-                     this, SLOT(applyToMultipleFilesPushbuttonClicked()));
-    
-    QGroupBox* optionsGroupBox = new QGroupBox("Data Options");
-    QVBoxLayout* optionsLayout = new QVBoxLayout(optionsGroupBox);
-    this->setLayoutSpacingAndMargins(optionsLayout);
-    optionsLayout->addWidget(this->applyAllMapsCheckBox);
-    optionsLayout->addWidget(this->applyToMultipleFilesPushButton);
-    optionsGroupBox->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,
-                                               QSizePolicy::Fixed));
-    
-    return optionsGroupBox;
-}
-
-/**
- * Allows user to select files to which palette settings are applied.
- */
-void
-MapSettingsPaletteColorMappingWidget::applyToMultipleFilesPushbuttonClicked()
-{
-    AString errorMessage;
-    if ( ! CopyPaletteColorMappingToFilesDialog::run(this->caretMappableDataFile,
-                                                  this->paletteColorMapping,
-                                                  this,
-                                                  errorMessage)) {
-        if ( ! errorMessage.isEmpty()) {
-            WuQMessageBox::errorOk(this, errorMessage);
-        }
-    }
-    
-    updateColoringAndGraphics();
 }

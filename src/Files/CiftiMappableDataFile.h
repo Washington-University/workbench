@@ -204,6 +204,8 @@ namespace caret {
         
         virtual bool isMappedWithPalette() const;
         
+        virtual bool isOnePaletteUsedForAllMaps() const;
+        
         virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex);
         
         virtual const Histogram* getMapHistogram(const int32_t mapIndex);

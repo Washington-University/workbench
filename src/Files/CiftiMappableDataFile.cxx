@@ -709,6 +709,8 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName)
                                 e.whatString());
     }
     
+    updateAfterFileDataChanges();
+    
     setFileName(ciftiMapFileName);
     clearModified();
 }
@@ -1281,6 +1283,37 @@ CiftiMappableDataFile::isMappedWithPalette() const
     }
     
     return false;
+}
+
+/**
+ * @return True if file is mapped with a palette and one
+ * palette is used for all maps.
+ */
+bool
+CiftiMappableDataFile::isOnePaletteUsedForAllMaps() const
+{
+    bool onePaletteFlag = false;
+    
+    switch (m_colorMappingMethod) {
+        case COLOR_MAPPING_METHOD_INVALID:
+            break;
+        case COLOR_MAPPING_METHOD_LABEL_TABLE:
+            break;
+        case COLOR_MAPPING_METHOD_PALETTE:
+            switch (m_paletteColorMappingSource) {
+                case PALETTE_COLOR_MAPPING_SOURCE_INVALID:
+                    break;
+                case PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE:
+                    onePaletteFlag = true;
+                    break;
+                case PALETTE_COLOR_MAPPING_SOURCE_FROM_MAP:
+                    onePaletteFlag = false;
+                    break;
+            }
+            break;
+    }
+    
+    return onePaletteFlag;
 }
 
 /**

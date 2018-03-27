@@ -138,6 +138,7 @@ ELSE()
         MacApplication.h
         MacDockMenu.h
         MapSettingsChartTwoLineHistoryWidget.h
+	MapSettingsColorBarPaletteOptionsWidget.h
         MapSettingsColorBarWidget.h
         MapSettingsFiberTrajectoryWidget.h
         MapSettingsLabelsWidget.h
@@ -363,6 +364,7 @@ LockAspectWarningDialog.h
 MacApplication.h
 MacDockMenu.h
 MapSettingsChartTwoLineHistoryWidget.h
+MapSettingsColorBarPaletteOptionsWidget.h
 MapSettingsColorBarWidget.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLabelsWidget.h
@@ -586,6 +588,7 @@ LockAspectWarningDialog.cxx
 MacApplication.cxx
 MacDockMenu.cxx
 MapSettingsChartTwoLineHistoryWidget.cxx
+MapSettingsColorBarPaletteOptionsWidget.cxx
 MapSettingsColorBarWidget.cxx
 MapSettingsFiberTrajectoryWidget.cxx
 MapSettingsLabelsWidget.cxx

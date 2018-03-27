@@ -204,6 +204,8 @@ namespace caret {
          */
         virtual bool isMappedWithPalette() const = 0;
         
+        virtual bool isOnePaletteUsedForAllMaps() const;
+        
         /**
          * @return The estimated size of data after it is uncompressed
          * and loaded into RAM.  A negative value indicates that the
@@ -414,7 +416,11 @@ namespace caret {
         
         void invalidateHistogramChartColoring();
         
-        virtual bool isPaletteColorMappingEqualForAllMaps() const;
+        void applyPaletteColorMappingToAllMaps(const int32_t mapIndex);
+        
+        bool isApplyPaletteColorMappingToAllMaps() const;
+        
+        void setApplyPaletteColorMappingToAllMaps(const bool selected);
         
         /**
          * @return The units for the 'interval' between two consecutive maps.
@@ -485,7 +491,7 @@ namespace caret {
         
         void helpGetSupportedLineSeriesChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
-        void updateChartingDelegateAfterFileDataChanges();
+        void updateAfterFileDataChanges();
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);
@@ -497,9 +503,17 @@ namespace caret {
         
         void copyCaretMappableDataFile(const CaretMappableDataFile&);
         
+        bool isPaletteColorMappingEqualForAllMaps() const;
+        
         std::unique_ptr<LabelDrawingProperties> m_labelDrawingProperties;
 
         mutable std::unique_ptr<ChartableTwoFileDelegate> m_chartingDelegate;
+        
+        /** 
+         * Added by WB-781 Apply to All Maps for ColorBar.
+         * This value is saved to scenes but NOT to the data file.
+         */
+        bool m_applyToAllMapsSelected = false;
     };
 
 #ifdef __CARET_MAPPABLE_DATA_FILE_DECLARE__

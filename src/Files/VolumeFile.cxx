@@ -284,6 +284,7 @@ void VolumeFile::readFile(const AString& filename)
                      + " seconds.");
         m_header.grabNew(new NiftiHeader(inHeader));//end nifti-specific code
         parseExtensions();
+        updateAfterFileDataChanges();
         clearModified();
     }
     
