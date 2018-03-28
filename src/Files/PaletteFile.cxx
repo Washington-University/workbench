@@ -670,6 +670,22 @@ PaletteFile::addDefaultPalettes()
         addPalette(rygbr4_pos);
     }
     
+    if (this->getPaletteByName("RGRBR_mirror90_pos") == NULL) {
+        this->addColor("rgrbr_m9_p_red", 255, 0, 0);
+        this->addColor("rgrbr_m9_p_green", 0, 255, 0);
+        this->addColor("rgrbr_m9_p_blue", 0, 0, 255);
+        
+        Palette rgbgr_m9_p;
+        rgbgr_m9_p.setName("RGRBR_mirror90_pos");
+        rgbgr_m9_p.addScalarAndColor(1.0f, "rgrbr_m9_p_red");
+        rgbgr_m9_p.addScalarAndColor(0.75f, "rgrbr_m9_p_blue");
+        rgbgr_m9_p.addScalarAndColor(0.5f, "rgrbr_m9_p_red");
+        rgbgr_m9_p.addScalarAndColor(0.25f, "rgrbr_m9_p_green");
+        rgbgr_m9_p.addScalarAndColor(0.0f, "rgrbr_m9_p_red");
+        rgbgr_m9_p.addScalarAndColor(-1.0f, "rgrbr_m9_p_red");//negatives red, I guess
+        addPalette(rgbgr_m9_p);
+    }
+    
     //----------------------------------------------------------------------
     // Orange-Yellow palette
     //
