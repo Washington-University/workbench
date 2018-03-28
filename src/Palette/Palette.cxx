@@ -519,8 +519,24 @@ Palette::isModified() const
 /**
  * @return An sign separate inverted version of this palette.  
  * The positive and negative sections are separately inverted.
- * and then positive scalar is PS = (1 - PS) and 
- * the negative scalar NS = (NS + 1)
+ *
+ * For the POSITIVE region, the conversion formula is:
+ *    IS = -S + (Min + Max)
+ * Where:
+ *    IS => Inverted Scalar
+ *    S  => Scalar
+ *    Min => Minimum positive value
+ *    Max => Maximum positive value
+ *
+ * The formula was derived by charting:
+ *    Plot (x=Min, y=Max) and (x=Max, y=Min)
+ *    The slope is negative one [dx = (max - min); dy = (min-max)]
+ *    So Y = -(dy/dx) * X + C
+ *       Y = -X + C
+ *       C = X + Y
+ *       C = (Min + Max)
+ * And finally:
+ *       Y = -X + (Min + Max)
  *
  * Example: (1.0, Red), (0.4, Yellow), (0, Black), (-0.3, Green), (-1.0, Blue)
  * becomes  (1.0, Black), (0.6, Yellow), (1.0, Red), (0, Blue), (-0.7, Green), (-1.0, Black)
@@ -529,59 +545,60 @@ const Palette*
 Palette::getSignSeparateInvertedPalette() const
 {
     if ( ! m_signSeparateInvertedPalette) {
+        float leastPositiveScalar =  1000.0f;
+        float mostPositiveScalar  = -1000.0f;
+        float leastNegativeScalar = -1000.0f;
+        float mostNegativeScalar  =  1000.0f;
+        bool havePositivesFlag = false;
+        bool haveNegativesFlag = false;
+        for (const auto ps : paletteScalars) {
+            const float scalar = ps->getScalar();
+            
+            if (scalar >= 0.0) {
+                if (scalar > mostPositiveScalar)  mostPositiveScalar  = scalar;
+                if (scalar < leastPositiveScalar) leastPositiveScalar = scalar;
+                if (scalar > 0.0) {
+                    havePositivesFlag = true;
+                }
+            }
+            
+            if (scalar <= 0.0) {
+                if (scalar > leastNegativeScalar) leastNegativeScalar = scalar;
+                if (scalar < mostNegativeScalar)  mostNegativeScalar  = scalar;
+                if (scalar < 0.0) {
+                    haveNegativesFlag = true;
+                }
+            }
+        }
+        
         std::deque<PaletteScalarAndColor*> positives;
         std::deque<PaletteScalarAndColor*> negatives;
-        std::vector<PaletteScalarAndColor> zeros;
         
-        for (auto scalar : paletteScalars) {
-            if (scalar->getScalar() > 0.0) {
-                PaletteScalarAndColor* psc = new PaletteScalarAndColor(*scalar);
-                psc->setScalar(1.0 - psc->getScalar());
-                positives.push_front(psc);
+        for (const auto ps : paletteScalars) {
+            const float scalar = ps->getScalar();
+            if (havePositivesFlag) {
+                if (scalar >= 0.0) {
+                    PaletteScalarAndColor* psc = new PaletteScalarAndColor(*ps);
+                    psc->setScalar((leastPositiveScalar + mostPositiveScalar) - scalar);
+                    positives.push_front(psc);
+                }
             }
-            else if (scalar->getScalar() < 0.0) {
-                PaletteScalarAndColor* psc = new PaletteScalarAndColor(*scalar);
-                psc->setScalar(-1.0 - psc->getScalar());
-                negatives.push_front(psc);
-            }
-            else {
-                /*
-                 * If there is a zero, it will be duplicated
-                 * at both positive and negative ONE.
-                 */
-                zeros.push_back(PaletteScalarAndColor(*scalar));
+            if (haveNegativesFlag) {
+                if (scalar <= 0.0) {
+                    PaletteScalarAndColor* psc = new PaletteScalarAndColor(*ps);
+                    psc->setScalar((leastNegativeScalar + mostNegativeScalar) - scalar);
+                    negatives.push_front(psc);
+                }
             }
         }
         
-        const bool haveZero = ( ! zeros.empty());
-
         Palette* palette = new Palette();
         palette->setName(getName());
-        if (haveZero) {
-            /*
-             * Only add "+1" if there are positive values in invereted palette
-             */
-            if ( ! positives.empty()) {
-                PaletteScalarAndColor* psc = new PaletteScalarAndColor(zeros[0]);
-                psc->setScalar(1.0);
-                palette->paletteScalars.push_back(psc);
-            }
-        }
         palette->paletteScalars.insert(palette->paletteScalars.end(),
                                        positives.begin(), positives.end());
 
         palette->paletteScalars.insert(palette->paletteScalars.end(),
                                        negatives.begin(), negatives.end());
-        if (haveZero) {
-            /*
-             * Only add "-1" if there are negative values in invereted palette
-             */
-            if ( ! negatives.empty()) {
-                PaletteScalarAndColor* psc = new PaletteScalarAndColor(zeros[0]);
-                psc->setScalar(-1.0);
-                palette->paletteScalars.push_back(psc);
-            }
-        }
         
         palette->clearModified();
         
