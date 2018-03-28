@@ -653,6 +653,23 @@ PaletteFile::addDefaultPalettes()
         addPalette(pal3);
     }
     
+    if (this->getPaletteByName("RYGBR4_positive") == NULL) {
+        this->addColor("rygbr4_0", 255, 0, 0);
+        this->addColor("rygbr4_1", 255, 255, 0);
+        this->addColor("rygbr4_2", 0, 255, 0);
+        this->addColor("rygbr4_3", 0, 0, 255);
+        
+        Palette rygbr4_pos;
+        rygbr4_pos.setName("RYGBR4_positive");
+        rygbr4_pos.addScalarAndColor(1.0f, "rygbr4_0");
+        rygbr4_pos.addScalarAndColor(0.75f, "rygbr4_3");
+        rygbr4_pos.addScalarAndColor(0.5f, "rygbr4_2");
+        rygbr4_pos.addScalarAndColor(0.25f, "rygbr4_1");
+        rygbr4_pos.addScalarAndColor(0.0f, "rygbr4_0");
+        rygbr4_pos.addScalarAndColor(-1.0f, "rygbr4_0");//negatives red, I guess
+        addPalette(rygbr4_pos);
+    }
+    
     //----------------------------------------------------------------------
     // Orange-Yellow palette
     //
