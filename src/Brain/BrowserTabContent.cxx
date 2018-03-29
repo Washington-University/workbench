@@ -127,6 +127,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_displayVolumeAxesCrosshairLabels = prefs->isVolumeAxesLabelsDisplayed();
     m_displayVolumeMontageAxesCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
     m_volumeMontageCoordinatePrecision = prefs->getVolumeMontageCoordinatePrecision();
+
+    m_lightingEnabled = true;
     
     m_aspectRatio = 1.0;
     m_aspectRatioLocked = false;
@@ -209,6 +211,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_volumeMontageCoordinatePrecision",
                                &m_volumeMontageCoordinatePrecision);
 
+    m_sceneClassAssistant->add("m_lightingEnabled",
+                               &m_lightingEnabled);
     m_sceneClassAssistant->add("m_aspectRatio",
                                &m_aspectRatio);
     m_sceneClassAssistant->add("m_aspectRatioLocked",
@@ -321,6 +325,8 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_displayVolumeAxesCrosshairLabels = tabToClone->m_displayVolumeAxesCrosshairLabels;
     m_displayVolumeMontageAxesCoordinates = tabToClone->m_displayVolumeMontageAxesCoordinates;
     m_volumeMontageCoordinatePrecision = tabToClone->m_volumeMontageCoordinatePrecision;
+    
+    m_lightingEnabled = tabToClone->m_lightingEnabled;
 
     Model* model = getModelForDisplay();
     
@@ -4077,6 +4083,28 @@ BrowserTabContent::setVolumeMontageCoordinatePrecision(const int32_t volumeMonta
 }
 
 /**
+ * @return Is lighting enabled ?
+ */
+bool
+BrowserTabContent::isLightingEnabled() const
+{
+    return m_lightingEnabled;
+}
+
+/**
+ * Set lighting enabled.
+ *
+ * @param lightingEnabled
+ *     New status for lighting.
+ */
+void
+BrowserTabContent::setLightingEnabled(const bool lightingEnabled)
+{
+    m_lightingEnabled = lightingEnabled;
+}
+
+
+/**
  * Return the axial slice index.
  * @return
  *   Axial slice index or negative if invalid
@@ -4498,6 +4526,10 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_displayVolumeAxesCrosshairLabels = btc->m_displayVolumeAxesCrosshairLabels;
                 m_displayVolumeMontageAxesCoordinates = btc->m_displayVolumeMontageAxesCoordinates;
                 m_volumeMontageCoordinatePrecision = btc->m_volumeMontageCoordinatePrecision;
+                /**
+                 * lighting enabled NOT yoked 
+                 * m_lightingEnabled = btc->m_lightingEnabled;
+                 */
                 break;
             }
         }
@@ -4597,6 +4629,10 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_displayVolumeAxesCrosshairLabels = m_displayVolumeAxesCrosshairLabels;
                 btc->m_displayVolumeMontageAxesCoordinates = m_displayVolumeMontageAxesCoordinates;
                 btc->m_volumeMontageCoordinatePrecision = m_volumeMontageCoordinatePrecision;
+                /**
+                 * lighting enabled NOT yoked
+                 * btc->m_lightingEnabled = m_lightingEnabled;
+                 */
             }
         }
     }

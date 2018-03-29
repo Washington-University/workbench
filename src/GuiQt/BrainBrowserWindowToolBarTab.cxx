@@ -41,6 +41,7 @@
 #include "WuQWidgetObjectGroup.h"
 #include "YokingGroupEnum.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
     
@@ -80,15 +81,24 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
+    const AString lightToolTip = WuQtUtilities::createWordWrappedToolTipText("Enables shading on surfaces.  Shading affects "
+                                                                             "palette colors (but not by much) and in rare circumstances it "
+                                                                             "may be helpful to turn shading off.");
+    m_lightingEnabledCheckBox = new QCheckBox("Shading");
+    m_lightingEnabledCheckBox->setToolTip(lightToolTip);
+    QObject::connect(m_lightingEnabledCheckBox, &QCheckBox::toggled,
+                     this, &BrainBrowserWindowToolBarTab::lightingEnabledCheckBoxToggled);
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
     layout->addWidget(m_yokeToLabel);
     layout->addWidget(m_yokingGroupComboBox->getWidget());
-    layout->addSpacing(15);
     layout->addWidget(m_lockWindowAndAllTabAspectButton);
+    layout->addWidget(m_lightingEnabledCheckBox);
     
     addToWidgetGroup(m_yokeToLabel);
     addToWidgetGroup(m_yokingGroupComboBox->getWidget());
+    addToWidgetGroup(m_lightingEnabledCheckBox);
 }
 
 /**
@@ -107,6 +117,10 @@ BrainBrowserWindowToolBarTab::~BrainBrowserWindowToolBarTab()
 void
 BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent)
 {
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
     blockAllSignals(true);
     
     bool chartFlag = false;
@@ -138,7 +152,27 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
         m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getBrainModelYokingGroup());
     }
     
+    m_lightingEnabledCheckBox->setChecked(browserTabContent->isLightingEnabled());
+    
     blockAllSignals(false);
+}
+
+/**
+ * Called when lighting checkbox is toggled by user
+ *
+ * @param checked
+ *     New status of lighting.
+ */
+void
+BrainBrowserWindowToolBarTab::lightingEnabledCheckBoxToggled(bool checked)
+{
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
+    browserTabContent->setLightingEnabled(checked);
+    this->updateGraphicsWindow();
 }
 
 /**

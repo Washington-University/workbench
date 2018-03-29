@@ -1651,6 +1651,12 @@ BrainOpenGLFixedPipeline::enableLighting()
             
             glEnable(GL_LIGHTING);
             glEnable(GL_COLOR_MATERIAL);
+            
+            if (browserTabContent != NULL) {
+                if ( ! browserTabContent->isLightingEnabled()) {
+                    this->disableLighting();
+                }
+            }
             break;
         case MODE_IDENTIFICATION:
         case MODE_PROJECTION:

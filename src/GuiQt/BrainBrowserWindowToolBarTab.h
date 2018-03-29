@@ -25,6 +25,7 @@
 
 #include "BrainBrowserWindowToolBarComponent.h"
 
+class QCheckBox;
 class QLabel;
 class QToolButton;
 
@@ -50,6 +51,8 @@ namespace caret {
     private slots:
         void yokeToGroupComboBoxIndexChanged();
         
+        void lightingEnabledCheckBoxToggled(bool checked);
+        
     private:
         BrainBrowserWindowToolBarTab(const BrainBrowserWindowToolBarTab&);
 
@@ -64,6 +67,8 @@ namespace caret {
         BrainBrowserWindowToolBar* m_parentToolBar;
         
         QToolButton* m_lockWindowAndAllTabAspectButton;
+        
+        QCheckBox* m_lightingEnabledCheckBox;
         
         // ADD_NEW_MEMBERS_HERE
 

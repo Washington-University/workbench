@@ -390,6 +390,10 @@ namespace caret {
         
         void setVolumeMontageCoordinatePrecision(const int32_t volumeMontageCoordinatePrecision);
         
+        bool isLightingEnabled() const;
+        
+        void setLightingEnabled(const bool lightingEnabled);
+        
         void reset();
 
         void updateChartModelYokedBrowserTabs();
@@ -574,6 +578,9 @@ namespace caret {
         
         /** precision for coordinate on montage */
         int32_t m_volumeMontageCoordinatePrecision;
+        
+        /** enable lighting (shading) added 29 March 2018 */
+        bool m_lightingEnabled;
         
         /*
          * True if constructing an instance
