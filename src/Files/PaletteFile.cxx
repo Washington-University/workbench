@@ -672,18 +672,40 @@ PaletteFile::addDefaultPalettes()
     
     if (this->getPaletteByName("RGRBR_mirror90_pos") == NULL) {
         this->addColor("rgrbr_m9_p_red", 255, 0, 0);
+        this->addColor("rgrbr_m9_p_yellow_f", 255, 255, 0);
+        this->addColor("rgrbr_m9_p_yellow_m", 180, 180, 0);
         this->addColor("rgrbr_m9_p_green", 0, 255, 0);
         this->addColor("rgrbr_m9_p_blue", 0, 0, 255);
+        this->addColor("rgrbr_m9_p_purple_f", 255, 0, 255);
+        this->addColor("rgrbr_m9_p_purple_m", 180, 0, 180);
         
         Palette rgbgr_m9_p;
         rgbgr_m9_p.setName("RGRBR_mirror90_pos");
         rgbgr_m9_p.addScalarAndColor(1.0f, "rgrbr_m9_p_red");
+        rgbgr_m9_p.addScalarAndColor(0.875f, "rgrbr_m9_p_purple_m");
         rgbgr_m9_p.addScalarAndColor(0.75f, "rgrbr_m9_p_blue");
+        rgbgr_m9_p.addScalarAndColor(0.625f, "rgrbr_m9_p_purple_m");
         rgbgr_m9_p.addScalarAndColor(0.5f, "rgrbr_m9_p_red");
+        rgbgr_m9_p.addScalarAndColor(0.375f, "rgrbr_m9_p_yellow_m");
         rgbgr_m9_p.addScalarAndColor(0.25f, "rgrbr_m9_p_green");
+        rgbgr_m9_p.addScalarAndColor(0.125f, "rgrbr_m9_p_yellow_m");
         rgbgr_m9_p.addScalarAndColor(0.0f, "rgrbr_m9_p_red");
         rgbgr_m9_p.addScalarAndColor(-1.0f, "rgrbr_m9_p_red");//negatives red, I guess
         addPalette(rgbgr_m9_p);
+
+        Palette rgbgr_m9_p_f;
+        rgbgr_m9_p_f.setName("RGRBR_mirror90_pos_bright");
+        rgbgr_m9_p_f.addScalarAndColor(1.0f, "rgrbr_m9_p_red");
+        rgbgr_m9_p_f.addScalarAndColor(0.875f, "rgrbr_m9_p_purple_f");
+        rgbgr_m9_p_f.addScalarAndColor(0.75f, "rgrbr_m9_p_blue");
+        rgbgr_m9_p_f.addScalarAndColor(0.625f, "rgrbr_m9_p_purple_f");
+        rgbgr_m9_p_f.addScalarAndColor(0.5f, "rgrbr_m9_p_red");
+        rgbgr_m9_p_f.addScalarAndColor(0.375f, "rgrbr_m9_p_yellow_f");
+        rgbgr_m9_p_f.addScalarAndColor(0.25f, "rgrbr_m9_p_green");
+        rgbgr_m9_p_f.addScalarAndColor(0.125f, "rgrbr_m9_p_yellow_f");
+        rgbgr_m9_p_f.addScalarAndColor(0.0f, "rgrbr_m9_p_red");
+        rgbgr_m9_p_f.addScalarAndColor(-1.0f, "rgrbr_m9_p_red");//negatives red, I guess
+        addPalette(rgbgr_m9_p_f);
     }
     
     //----------------------------------------------------------------------
