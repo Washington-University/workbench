@@ -1520,6 +1520,19 @@ PaletteFile::addDefaultPalettes()
     if (modifiedStatus == false) {
         this->clearModified();//this clears modified status on all members, to match our status
     }
+    
+    static bool printAllPalettesFlag = false;
+    if (printAllPalettesFlag) {
+        printAllPalettesFlag = false;
+        for (const auto p : this->palettes) {
+            std::cout << "----------------------" << std::endl;
+            std::cout << p->toString() << std::endl;
+            std::cout << "INVERTED" << std::endl;
+            std::cout << p->getInvertedPalette()->toString() << std::endl;
+            std::cout << "SEPARATE" << std::endl;
+            std::cout << p->getSignSeparateInvertedPalette()->toString() << std::endl;
+        }
+    }
 }
 
 /**
