@@ -656,7 +656,7 @@ PaletteFile::addDefaultPalettes()
     if (this->getPaletteByName("RYGBR4_positive") == NULL) {
         this->addColor("rygbr4_0", 255, 0, 0);
         this->addColor("rygbr4_1", 255, 255, 0);
-        this->addColor("rygbr4_2", 0, 255, 0);
+        this->addColor("rygbr4_2", 0, 180, 0);
         this->addColor("rygbr4_3", 0, 0, 255);
         
         Palette rygbr4_pos;
