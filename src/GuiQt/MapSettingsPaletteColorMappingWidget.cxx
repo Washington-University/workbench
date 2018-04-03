@@ -1218,12 +1218,16 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
                      this, SLOT(applySelections()));
     this->invertPaletteModeComboBox->setup<PaletteInvertModeEnum, PaletteInvertModeEnum::Enum>();
     const AString invertModeToolTip = ("<html>"
-                                         "Controls inversion of Palette:<br>"
+                                         "Controls inversion of Palette:<p>"
                                          "   " + PaletteInvertModeEnum::toGuiName(PaletteInvertModeEnum::POSITIVE_WITH_NEGATIVE)
-                                       + " - Positive and negative sections of the palette are swapped<br>"
+                                       + " - Positive and negative sections of the palette are swapped<p>"
                                        "   " + PaletteInvertModeEnum::toGuiName(PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE)
-                                       + " - Swaps the negative range within the negative range AND<br>"
-                                         "     swaps the positive range within the positive range"
+                                       + " - Swaps the negative range within the negative range AND "
+                                         "     swaps the positive range within the positive range<p>"
+                                       "   " + PaletteInvertModeEnum::toGuiName(PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE_NONE)
+                                       + " - Swaps the negative range within the negative range AND"
+                                         "   swaps the positive range within the positive range AND"
+                                         "   the NONE color remains between negative and positive ranges"
                                          "</html>");
     this->invertPaletteModeComboBox->getWidget()->setToolTip(invertModeToolTip);
     this->paletteWidgetGroup->add(this->invertPaletteModeComboBox->getComboBox());

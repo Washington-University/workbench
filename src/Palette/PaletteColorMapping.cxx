@@ -1027,11 +1027,14 @@ PaletteColorMapping::getPalette() const
     switch (this->invertedMode) {
         case PaletteInvertModeEnum::OFF:
             break;
+        case PaletteInvertModeEnum::POSITIVE_WITH_NEGATIVE:
+            return palette->getInvertedPalette();
+            break;
         case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE:
             return palette->getSignSeparateInvertedPalette();
             break;
-        case PaletteInvertModeEnum::POSITIVE_WITH_NEGATIVE:
-            return palette->getInvertedPalette();
+        case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE_NONE:
+            return palette->getNoneSeparateInvertedPalette();
             break;
     }
     

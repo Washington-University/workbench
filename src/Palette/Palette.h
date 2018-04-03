@@ -107,6 +107,8 @@ namespace caret {
         
         const Palette* getSignSeparateInvertedPalette() const;
         
+        const Palette* getNoneSeparateInvertedPalette() const;
+        
         static AString getDefaultPaletteName();
         
     public:
@@ -123,6 +125,8 @@ namespace caret {
         static const AString ROY_BIG_BL_PALETTE_NAME;
         
     private:
+        Palette* createSignSeparateInvertedPalette() const;
+        
         /**has this object been modified. (DO NOT CLONE) */
         bool modifiedFlag;
         
@@ -137,6 +141,9 @@ namespace caret {
         
         /** The inverted palette with negative inverted separate from positive */
         mutable std::unique_ptr<Palette> m_signSeparateInvertedPalette;
+        
+        /** The inverted palette with negative inverted separate from positive */
+        mutable std::unique_ptr<Palette> m_noneSeparateInvertedPalette;
     };
 
     

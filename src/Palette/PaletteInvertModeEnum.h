@@ -40,7 +40,9 @@ public:
         /** Invert entire palette flipping colors and sign of scalars */
         POSITIVE_WITH_NEGATIVE,
         /** Invert within negative separately within positive */
-        POSITIVE_NEGATIVE_SEPARATE
+        POSITIVE_NEGATIVE_SEPARATE,
+        /** Invert within negative separately within positive but do not change NONE */
+        POSITIVE_NEGATIVE_SEPARATE_NONE
     };
 
 

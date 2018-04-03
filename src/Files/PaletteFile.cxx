@@ -1536,8 +1536,16 @@ PaletteFile::addDefaultPalettes()
             std::cout << p->toString() << std::endl;
             std::cout << "INVERTED" << std::endl;
             std::cout << p->getInvertedPalette()->toString() << std::endl;
-            std::cout << "SEPARATE" << std::endl;
+            std::cout << "SEPARATE SIGN" << std::endl;
             std::cout << p->getSignSeparateInvertedPalette()->toString() << std::endl;
+            std::cout << "SEPARATE NONE";
+            if (p->getSignSeparateInvertedPalette() == p->getNoneSeparateInvertedPalette()) {
+                std::cout << " same as SEPARATE SIGN" << std::endl;
+            }
+            else {
+                std::cout << std::endl;
+                std::cout << p->getNoneSeparateInvertedPalette()->toString() << std::endl;
+            }
         }
     }
 }
