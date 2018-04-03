@@ -716,7 +716,7 @@ ChartTwoOverlayViewController::updateViewController(ChartTwoOverlay* chartOverla
      * Update lines series loading checkbox
      */
     m_lineSeriesLoadingEnabledCheckBox->setEnabled(false);
-    m_lineSeriesLoadingEnabledCheckBox->setEnabled(false);
+    m_lineSeriesLoadingEnabledCheckBox->setChecked(false);
     if ((validOverlayAndFileFlag)
         && (m_chartOverlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES)) {
         m_lineSeriesLoadingEnabledCheckBox->setEnabled(true);

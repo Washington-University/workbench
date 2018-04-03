@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
+
 #define __CHARTABLE_TWO_FILE_DELEGATE_DECLARE__
 #include "ChartableTwoFileDelegate.h"
 #undef __CHARTABLE_TWO_INTERFACE_DECLARE__
@@ -173,15 +175,56 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             
     }
     
-    m_histogramCharting = std::unique_ptr<ChartableTwoFileHistogramChart>(new ChartableTwoFileHistogramChart(histogramType,
-                                                                                           m_caretMappableDataFile));
+    if (m_histogramCharting) {
+        if (histogramType != m_histogramCharting->getHistogramContentType()) {
+            m_histogramCharting.reset();
+        }
+    }
+    if ( ! m_histogramCharting) {
+        m_histogramCharting = std::unique_ptr<ChartableTwoFileHistogramChart>(new ChartableTwoFileHistogramChart(histogramType,
+                                                                                                                 m_caretMappableDataFile));
+    }
     
-    m_lineSeriesCharting = std::unique_ptr<ChartableTwoFileLineSeriesChart>(new ChartableTwoFileLineSeriesChart(lineSeriesType,
-                                                                                              m_caretMappableDataFile));
+    if (m_lineSeriesCharting) {
+        if (lineSeriesType != m_lineSeriesCharting->getLineSeriesContentType()) {
+            m_lineSeriesCharting.reset();
+        }
+    }
+    if ( ! m_lineSeriesCharting) {
+        m_lineSeriesCharting = std::unique_ptr<ChartableTwoFileLineSeriesChart>(new ChartableTwoFileLineSeriesChart(lineSeriesType,
+                                                                                                                    m_caretMappableDataFile));
+    }
     
-    m_matrixCharting = std::unique_ptr<ChartableTwoFileMatrixChart>(new ChartableTwoFileMatrixChart(matrixType,
-                                                                                                    m_caretMappableDataFile,
-                                                                                                    validMatrixRowColumnSelectionDimensions));
+    if (m_matrixCharting) {
+        if (matrixType != m_matrixCharting->getMatrixContentType()) {
+            m_matrixCharting.reset();
+        }
+        else {
+            /*
+             * Test for change in valid dimensions but do not alter content of
+             * "validMatrixRowColumnSelectionDimensions" since it order is important
+             */
+            std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum> newDims(validMatrixRowColumnSelectionDimensions);
+            std::sort(newDims.begin(),
+                      newDims.end());
+            std::vector<ChartTwoMatrixLoadingDimensionEnum::Enum> currentDims;
+            m_matrixCharting->getValidRowColumnSelectionDimensions(currentDims);
+            std::sort(currentDims.begin(),
+                      currentDims.end());
+
+            if ( ! std::equal(currentDims.begin(),
+                              currentDims.end(),
+                              newDims.begin())) {
+                m_matrixCharting.reset();
+            }
+        }
+    }
+    
+    if ( ! m_matrixCharting) {
+        m_matrixCharting = std::unique_ptr<ChartableTwoFileMatrixChart>(new ChartableTwoFileMatrixChart(matrixType,
+                                                                                                        m_caretMappableDataFile,
+                                                                                                        validMatrixRowColumnSelectionDimensions));
+    }
     
     clearModified();
 }
