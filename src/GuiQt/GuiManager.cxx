@@ -830,7 +830,10 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
          * Display dialog allowing user to save files (goes to Save/Manage
          * Files dialog), exit without saving, or cancel.
          */
-        AString paletteModifiedMessage("These file(s) contain modified palette color mapping: ");
+        AString paletteModifiedMessage("These file(s) contain modified palette color mapping "
+                                       "(this may result from loading scenes that contained modified palette color "
+                                       "mapping and this modified status is needed if scenes "
+                                       "are added or replaced): ");
         switch (testModifiedMode) {
             case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:
                 textMessageOut = "Do you want to save changes you made to these files?";

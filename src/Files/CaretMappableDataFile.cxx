@@ -463,8 +463,6 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     }
     
     if (isMappedWithPalette()) {
-        const bool paletteModifiedBeforeSceneRestoreFlag = isModifiedPaletteColorMapping();
-        
         /*
          * Palette normalization was no longer saved to scenes after 
          * palette normalization was saved in mappable files's metadata.
@@ -632,15 +630,22 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
         }
         
         /*
-         * Do not let restoration of palette settings cause a 'palette modified file status'
+         * README ABOUT IMPORTANCE OF MODIFIED COLOR PALLETTE MAPPING STATUS MUST REMAIN ON
+         *
+         * (1) The user may modify the palette color mapping for a map/file.  This modified palette
+         * color mapping is saved to the scene so that the user does not need to save the actual
+         * data file.  When the scene is restored, the palette color mapping is restored from the
+         * scene and applied to the file.  As a result, the file will contain a 'modified palette
+         * color mapping status'.
+         *
+         * (2) This 'modified palette color mapping status' must remain ON so that if the user
+         * saves a scene, the modified status is added to the scene and will be restored from
+         * the scene at a later time.  As a result, the scene will display correctly.
+         *
+         * (3) If the 'modified palette color mapping status' was NOT left on and the user 
+         * saved a scene, the scene would not display correctly due to the palette color mapping
+         * no longer being added to the scene.
          */
-        if (isModifiedPaletteColorMapping()) {
-            if ( ! isModifiedExcludingPaletteColorMapping()) {
-                if ( ! paletteModifiedBeforeSceneRestoreFlag) {
-                    clearModified();
-                }
-            }
-        }
     }
 }
 
