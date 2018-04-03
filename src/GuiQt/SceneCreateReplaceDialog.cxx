@@ -192,7 +192,7 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     const QString dateTimeText = dateTime.toString("dd MMM yyyy hh:mm:ss");
 
     PlainTextStringBuilder description;
-    description.addLine("Created " + dateTimeText);
+    description.addLine("Created on " + dateTimeText);
     std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
     for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
          iter != windows.end();
@@ -216,7 +216,8 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
         case MODE_REPLACE_SCENE:
             m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
             m_balsaSceneIDLineEdit->setText(sceneToInsertOrReplace->getBalsaSceneID());
-            m_descriptionTextEdit->setPlainText(sceneToInsertOrReplace->getDescription());
+            m_descriptionTextEdit->setPlainText("Replaced on " + dateTimeText + "\n"
+                                                + sceneToInsertOrReplace->getDescription());
             break;
     }
     
