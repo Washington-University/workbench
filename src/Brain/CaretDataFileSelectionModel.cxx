@@ -174,24 +174,6 @@ CaretDataFileSelectionModel::newInstanceForChartableMatrixParcelInterface(Brain*
 
 /**
  * Create a new instance of a Caret Data File Selection Model that
- * selects files that implement the chartable matrix interface but 
- * NOT the chartable matrix parcel interface.
- *
- * @param brain
- *    Brain from which files are obtained.
- */
-CaretDataFileSelectionModel*
-CaretDataFileSelectionModel::newInstanceForChartableMatrixSeriesInterface(Brain* brain)
-{
-    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(brain,
-                                                                         StructureEnum::ALL,
-                                                                         FILE_MODE_CHARTABLE_MATRIX_SERIES_INTERFACE);
-    
-    return model;
-}
-
-/**
- * Create a new instance of a Caret Data File Selection Model that
  * selectes multi-structure border files.
  */
 CaretDataFileSelectionModel*
@@ -319,25 +301,6 @@ CaretDataFileSelectionModel::getAvailableFiles() const
                  */
                 if (chartParcelFile != NULL) {
                     CaretMappableDataFile* mapFile = chartParcelFile->getMatrixChartCaretMappableDataFile();
-                    caretDataFiles.push_back(mapFile);
-                }
-            }
-        }
-        case FILE_MODE_CHARTABLE_MATRIX_SERIES_INTERFACE:
-        {
-            std::vector<ChartableMatrixInterface*> chartFiles;
-            m_brain->getAllChartableMatrixDataFiles(chartFiles);
-            
-            for (std::vector<ChartableMatrixInterface*>::iterator iter = chartFiles.begin();
-                 iter != chartFiles.end();
-                 iter++) {
-                ChartableMatrixInterface* chartFile = *iter;
-                ChartableMatrixParcelInterface* chartParcelFile = dynamic_cast<ChartableMatrixParcelInterface*>(chartFile);
-                /*
-                 * Want files that are NOT parcel chartable
-                 */
-                if (chartParcelFile == NULL) {
-                    CaretMappableDataFile* mapFile = chartFile->getMatrixChartCaretMappableDataFile();
                     caretDataFiles.push_back(mapFile);
                 }
             }
