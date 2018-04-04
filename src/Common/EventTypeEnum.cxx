@@ -162,6 +162,10 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION",
                                      "Browser Window Tile Tab Operation"));
     
+    enumData.push_back(EventTypeEnum(EVENT_CARET_DATA_FILES_GET,
+                                     "EVENT_CARET_DATA_FILES_GET",
+                                     "Get all Caret data files"));
+    
     enumData.push_back(EventTypeEnum(EVENT_CARET_MAPPABLE_DATA_FILES_GET,
                                      "EVENT_CARET_MAPPABLE_DATA_FILES_GET", 
                                      "Get all Caret Mappable data files"));

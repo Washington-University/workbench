@@ -84,8 +84,7 @@ CaretMappableDataFileAndMapSelectorObject::CaretMappableDataFileAndMapSelectorOb
 : QObject(parent)
 {
     
-    m_model = new CaretMappableDataFileAndMapSelectionModel(GuiManager::get()->getBrain(),
-                                                            dataFileType);
+    m_model = new CaretMappableDataFileAndMapSelectionModel(dataFileType);
     
     initializeConstruction(options);
     
@@ -109,8 +108,7 @@ CaretMappableDataFileAndMapSelectorObject::CaretMappableDataFileAndMapSelectorOb
 : QObject(parent)
 {
     
-    m_model = new CaretMappableDataFileAndMapSelectionModel(GuiManager::get()->getBrain(),
-                                                            dataFileTypes);
+    m_model = new CaretMappableDataFileAndMapSelectionModel(dataFileTypes);
     
     initializeConstruction(options);
     

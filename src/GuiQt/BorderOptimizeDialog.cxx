@@ -298,8 +298,7 @@ BorderOptimizeDialog::updateDialog(const int32_t browserTabIndex,
     if (m_vertexAreasMetricFileSelectionModel == NULL) {
         std::vector<DataFileTypeEnum::Enum> metricDataTypes;
         metricDataTypes.push_back(DataFileTypeEnum::METRIC);
-        m_vertexAreasMetricFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypesInStructure(GuiManager::get()->getBrain(),
-                                                                                                                         m_surfaceSelectionStructure,
+        m_vertexAreasMetricFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypesInStructure(m_surfaceSelectionStructure,
                                                                                                                          metricDataTypes);
         m_vertexAreasMetricFileComboBox->updateComboBox(m_vertexAreasMetricFileSelectionModel);
     }
@@ -687,8 +686,7 @@ BorderOptimizeDialog::createBorderSelectionWidget()
 {
     m_borderPairCheckBox = new QCheckBox("Border Pair File");
     m_borderPairCheckBox->setChecked(true);
-    m_borderPairFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(GuiManager::get()->getBrain(),
-                                                                                                   DataFileTypeEnum::BORDER);
+    m_borderPairFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(DataFileTypeEnum::BORDER);
     m_borderPairFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
     QHBoxLayout* borderPairLayout = new QHBoxLayout();
     borderPairLayout->addWidget(m_borderPairCheckBox, 0);

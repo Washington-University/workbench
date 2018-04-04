@@ -327,8 +327,7 @@ IdentifyBrainordinateDialog::createCiftiRowWidget(const std::vector<DataFileType
      * CIFTI Row selection
      */
     m_ciftiRowFileLabel = new QLabel("File");
-    m_ciftiRowFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(GuiManager::get()->getBrain(),
-                                                                                                supportedFileTypes);
+    m_ciftiRowFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(supportedFileTypes);
     m_ciftiRowFileComboBox = new CaretDataFileSelectionComboBox(this);
     
     m_ciftiRowFileIndexLabel = new QLabel("Row Index");

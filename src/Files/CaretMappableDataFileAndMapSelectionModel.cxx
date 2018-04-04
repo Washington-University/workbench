@@ -23,7 +23,6 @@
 #include "CaretMappableDataFileAndMapSelectionModel.h"
 #undef __CARET_MAPPABLE_DATA_FILE_AND_MAP_SELECTION_MODEL_DECLARE__
 
-#include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
@@ -38,41 +37,33 @@ using namespace caret;
 /**
  * \class caret::CaretMappableDataFileAndMapSelectionModel 
  * \brief Model for selection of a CaretMappableDataFile and map index.
- * \ingroup Brain
+ * \ingroup Files
  */
 
 /**
  * Constructor.
  *
- * @param brain
- *    Brain from which files are obtained.
  * @param dataFileType
  *    Type of data files available for selection.
  */
-CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(Brain* brain,
-                                                                                     const DataFileTypeEnum::Enum dataFileType)
+CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(const DataFileTypeEnum::Enum dataFileType)
 : CaretObject()
 {
     std::vector<DataFileTypeEnum::Enum> dataFileTypesVector;
     dataFileTypesVector.push_back(dataFileType);
-    performConstruction(brain,
-                        dataFileTypesVector);
+    performConstruction(dataFileTypesVector);
 }
 
 /**
  * Constructor for multiple types of files.
  *
- * @param brain
- *    Brain from which files are obtained.
  * @param dataFileTypes
  *    Types of data files available for selection.
  */
-CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(Brain* brain,
-                                                                                     const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
+CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
 : CaretObject()
 {
-    performConstruction(brain,
-                        dataFileTypes);
+    performConstruction(dataFileTypes);
 }
 
 /**
@@ -87,16 +78,12 @@ CaretMappableDataFileAndMapSelectionModel::~CaretMappableDataFileAndMapSelection
 /**
  * Finish construction for an instance of this class.
  *
- * @param brain
- *    Brain from which files are obtained.
  * @param dataFileTypes
  *    Types of data files available for selection.
  */
 void
-CaretMappableDataFileAndMapSelectionModel::performConstruction(Brain* brain,
-                                                               const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
+CaretMappableDataFileAndMapSelectionModel::performConstruction(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
 {
-    m_brain = brain;
     m_dataFileTypes = dataFileTypes;
     
     for (std::vector<DataFileTypeEnum::Enum>::const_iterator typeIter = dataFileTypes.begin();
@@ -185,8 +172,7 @@ CaretMappableDataFileAndMapSelectionModel::performConstruction(Brain* brain,
         }
     }
     
-    m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(brain,
-                                                                                                 dataFileTypes);
+    m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(dataFileTypes);
     m_selectedMapIndex = -1;
     
     m_sceneAssistant = new SceneClassAssistant();

@@ -73,8 +73,7 @@ BorderFileSplitDialog::BorderFileSplitDialog(QWidget* parent)
     QObject::connect(m_fileNameToolButtonSignalMapper, SIGNAL(mapped(int)),
                      this, SLOT(fileNameToolButtonClicked(int)));
     
-    Brain* brain = GuiManager::get()->getBrain();
-    m_fileSelectionModel.grabNew(CaretDataFileSelectionModel::newInstanceForMultiStructureBorderFiles(brain));
+    m_fileSelectionModel.grabNew(CaretDataFileSelectionModel::newInstanceForMultiStructureBorderFiles());
     
     QLabel* fileSelectionLabel = new QLabel("Multi Structure Border File: ");
     m_fileSelectionComboBox = new CaretDataFileSelectionComboBox(this);

@@ -35,7 +35,9 @@ BorderTracingHelper.h
 BrainordinateRegionOfInterest.h
 CaretDataFile.h
 CaretDataFileHelper.h
+CaretDataFileSelectionModel.h
 CaretMappableDataFile.h
+CaretMappableDataFileAndMapSelectionModel.h
 CaretSparseFile.h
 CaretVolumeExtension.h
 ChartableLineSeriesBrainordinateInterface.h
@@ -70,6 +72,7 @@ CiftiParcelScalarFile.h
 CiftiScalarDataSeriesFile.h
 ConnectivityDataLoaded.h
 ControlPointFile.h
+EventCaretDataFilesGet.h
 EventCaretMappableDataFileMapsViewedInOverlays.h
 EventCaretMappableDataFilesGet.h
 EventChartMatrixParcelYokingValidation.h
@@ -163,7 +166,9 @@ BorderTracingHelper.cxx
 BrainordinateRegionOfInterest.cxx
 CaretDataFile.cxx
 CaretDataFileHelper.cxx
+CaretDataFileSelectionModel.cxx
 CaretMappableDataFile.cxx
+CaretMappableDataFileAndMapSelectionModel.cxx
 CaretSparseFile.cxx
 CaretVolumeExtension.cxx
 ChartableLineSeriesInterface.cxx
@@ -196,6 +201,7 @@ CiftiParcelScalarFile.cxx
 CiftiScalarDataSeriesFile.cxx
 ConnectivityDataLoaded.cxx
 ControlPointFile.cxx
+EventCaretDataFilesGet.cxx
 EventCaretMappableDataFileMapsViewedInOverlays.cxx
 EventCaretMappableDataFilesGet.cxx
 EventChartMatrixParcelYokingValidation.cxx

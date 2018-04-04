@@ -71,6 +71,7 @@
 #include "EventDataFileDelete.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
+#include "EventCaretDataFilesGet.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
@@ -175,6 +176,8 @@ Brain::Brain(const CaretPreferences* caretPreferences)
     m_displayPropertiesVolume = new DisplayPropertiesVolume();
     m_displayProperties.push_back(m_displayPropertiesVolume);
     
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_CARET_DATA_FILES_GET);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_DATA_FILE_ADD);
     EventManager::get()->addEventListener(this,
@@ -5860,6 +5863,15 @@ Brain::receiveEvent(Event* event)
             reloadDataFileEvent->setEventProcessed();
             processReloadDataFileEvent(reloadDataFileEvent);
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_CARET_DATA_FILES_GET) {
+        EventCaretDataFilesGet* filesEvent = dynamic_cast<EventCaretDataFilesGet*>(event);
+        CaretAssert(filesEvent);
+        
+        std::vector<CaretDataFile*> caretDataFiles;
+        getAllDataFiles(caretDataFiles);
+        filesEvent->addAllCaretDataFiles(caretDataFiles);
+        filesEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET) {
         EventCaretMappableDataFilesGet* dataFilesEvent =

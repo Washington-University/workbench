@@ -53,8 +53,6 @@ BrainStructure.h
 BrainStructureNodeAttributes.h
 BrowserTabContent.h
 BrowserWindowContent.h
-CaretDataFileSelectionModel.h
-CaretMappableDataFileAndMapSelectionModel.h
 ChartTwoOverlay.h
 ChartTwoOverlaySet.h
 ChartTwoOverlaySetArray.h
@@ -203,8 +201,6 @@ BrainStructure.cxx
 BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
 BrowserWindowContent.cxx
-CaretDataFileSelectionModel.cxx
-CaretMappableDataFileAndMapSelectionModel.cxx
 ChartTwoOverlay.cxx
 ChartTwoOverlaySet.cxx
 ChartTwoOverlaySetArray.cxx
