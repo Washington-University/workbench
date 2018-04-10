@@ -509,7 +509,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     /*
      * Threshold types on/off
      */
-    QLabel* thresholdTypeLabel = new QLabel("Type");
+    QLabel* thresholdTypeLabel = new QLabel("Source");
     std::vector<PaletteThresholdTypeEnum::Enum> thresholdTypes;
     PaletteThresholdTypeEnum::getAllEnums(thresholdTypes);
     const int32_t numThresholdTypes = static_cast<int32_t>(thresholdTypes.size());
@@ -700,7 +700,8 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     
     QWidget* topWidget = new QWidget();
     QHBoxLayout* topLayout = new QHBoxLayout(topWidget);
-    this->setLayoutSpacingAndMargins(topLayout);
+    topLayout->setContentsMargins(0, 0, 0, 0);
+    //this->setLayoutSpacingAndMargins(topLayout);
     topLayout->addWidget(thresholdTypeLabel);
     topLayout->addWidget(this->thresholdTypeComboBox);
     topLayout->addStretch();
@@ -2253,7 +2254,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
     z--;
     
     if ((numHistogramValues > 2)
-        && (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF)) {
+        && (this->paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL)) {
         float threshMinValue = this->paletteColorMapping->getThresholdNormalMinimum();
         float threshMaxValue = this->paletteColorMapping->getThresholdNormalMaximum();
         

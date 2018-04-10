@@ -34,6 +34,7 @@
 #include <QPlainTextEdit>
 #include <QVBoxLayout>
 
+#include "ApplicationInformation.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
@@ -190,9 +191,11 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
 
     QDateTime dateTime = QDateTime::currentDateTime();
     const QString dateTimeText = dateTime.toString("dd MMM yyyy hh:mm:ss");
-
+    const QString commitName   = (ApplicationInformation().getCommit());
+    const QString dataTimeCommitText(dateTimeText + "   " + commitName);
+    
     PlainTextStringBuilder description;
-    description.addLine("Created on " + dateTimeText);
+    description.addLine("Created on " + dataTimeCommitText);
     std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
     for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
          iter != windows.end();
@@ -216,7 +219,7 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
         case MODE_REPLACE_SCENE:
             m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
             m_balsaSceneIDLineEdit->setText(sceneToInsertOrReplace->getBalsaSceneID());
-            m_descriptionTextEdit->setPlainText("Replaced on " + dateTimeText + "\n"
+            m_descriptionTextEdit->setPlainText("Replaced on " + dataTimeCommitText + "\n"
                                                 + sceneToInsertOrReplace->getDescription());
             break;
     }

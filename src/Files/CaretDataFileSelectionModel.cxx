@@ -324,8 +324,10 @@ CaretDataFileSelectionModel::getAvailableFiles() const
             mapFilesGetEvent.getAllFiles(mapFiles);
             
             for (auto mf : mapFiles) {
-                if (m_mappableDataFile->isMappedToSameBrainordinates(mf)) {
-                    caretDataFiles.push_back(mf);
+                if (m_mappableDataFile != mf) {
+                    if (m_mappableDataFile->isMappedToSameBrainordinates(mf)) {
+                        caretDataFiles.push_back(mf);
+                    }
                 }
             }
         }

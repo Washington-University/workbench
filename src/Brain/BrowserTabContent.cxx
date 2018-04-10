@@ -1990,6 +1990,21 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                 }
                 
                 displayedDataFiles.insert(overlayDataFile);
+                
+                if (overlayDataFile->isMappedWithPalette()) {
+                    /*
+                     * If mapped with palette, there may be thresholding with another file
+                     * so need to include that file
+                     */
+                    if (overlayDataFile->getMapPaletteColorMapping(mapIndex)->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE) {
+                        CaretMappableDataFileAndMapSelectionModel* mapFileSelector = overlayDataFile->getMapThresholdFileSelectionModel(mapIndex);
+                        CaretAssert(mapFileSelector);
+                        CaretMappableDataFile* thresholdFile = mapFileSelector->getSelectedFile();
+                        if (thresholdFile != NULL) {
+                            displayedDataFiles.insert(thresholdFile);
+                        }
+                    }
+                }
             }
         }
     }

@@ -537,7 +537,7 @@ PaletteThresholdTypeEnum::initialize()
         enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_MAPPED_AVERAGE_AREA, 3, "THRESHOLD_TYPE_MAPPED_AVERAGE_AREA", "Mapped Average Area"));
     }
     else {
-        enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_NORMAL, 1, "THRESHOLD_TYPE_NORMAL", "On"));
+        enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_NORMAL, 1, "THRESHOLD_TYPE_NORMAL", "Self"));
         enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_FILE, 2, "THRESHOLD_TYPE_FILE", "File"));
     }
 }
