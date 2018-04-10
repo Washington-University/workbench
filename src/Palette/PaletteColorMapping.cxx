@@ -614,7 +614,22 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
     /*
      * Draw over thresholded regions with background color
      */
-    if (this->thresholdType != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
+    bool thresholdSelfFlag = false;
+    switch (thresholdType) {
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+            thresholdSelfFlag = true;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+            break;
+    }
+    
+    if (thresholdSelfFlag) {
         const float minMaxThresholds[2] = {
             getThresholdMinimum(thresholdType),
             getThresholdMaximum(thresholdType)
@@ -1225,6 +1240,9 @@ PaletteColorMapping::getThresholdMinimum(const PaletteThresholdTypeEnum::Enum th
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
             value = this->thresholdNormalMinimum;
             break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+            value = this->thresholdNormalMinimum;
+            break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
             value = this->thresholdMappedMinimum;
             break;
@@ -1253,6 +1271,9 @@ PaletteColorMapping::getThresholdMaximum(const PaletteThresholdTypeEnum::Enum th
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+            value = this->thresholdNormalMaximum;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
             value = this->thresholdNormalMaximum;
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
@@ -1285,6 +1306,9 @@ PaletteColorMapping::setThresholdMinimum(const PaletteThresholdTypeEnum::Enum th
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
             setThresholdNormalMinimum(thresholdMinimum);
             break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+            setThresholdNormalMinimum(thresholdMinimum);
+            break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
             setThresholdMappedMinimum(thresholdMinimum);
             break;
@@ -1310,6 +1334,9 @@ PaletteColorMapping::setThresholdMaximum(const PaletteThresholdTypeEnum::Enum th
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+            setThresholdNormalMaximum(thresholdMaximum);
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
             setThresholdNormalMaximum(thresholdMaximum);
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:

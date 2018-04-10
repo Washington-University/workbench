@@ -147,6 +147,8 @@ public:
         THRESHOLD_TYPE_OFF,
         /** normal thresholding */
         THRESHOLD_TYPE_NORMAL,
+        /** threshold with another file */
+        THRESHOLD_TYPE_FILE,
         /** threshold from mapping of volume */
         THRESHOLD_TYPE_MAPPED,
         /** threshold from mapping to PALS average area */

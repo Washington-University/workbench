@@ -24,6 +24,7 @@
 #include <memory>
 
 #include "CaretDataFile.h"
+#include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartOneDataTypeEnum.h"
 #include "CaretPointer.h"
 #include "CiftiXML.h"
@@ -469,7 +470,7 @@ namespace caret {
         
         virtual void clear();
         
-        void initializeCaretMappableDataFileInstance();
+        void initializeCaretMappableDataFileInstance(const DataFileTypeEnum::Enum dataFileType);
         
         LabelDrawingProperties* getLabelDrawingProperties();
         
@@ -481,6 +482,20 @@ namespace caret {
         
         virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
                                         std::vector<float>& dataOut) const = 0;
+        
+        CaretMappableDataFileAndMapSelectionModel* getMapThresholdFileSelectionModel(const int32_t mapIndex);
+        
+        /**
+         * Is the give file mapped to the exact same brainordinates as the this file?
+         * The two file must map to the exact same structure and same number of vertices
+         * in each structure.
+         *
+         * @param mapFile
+         *     The other map file.
+         * @return 
+         *     True if files map to same brainordinates, else false.
+         */
+        virtual bool isMappedToSameBrainordinates(const CaretMappableDataFile* mapFile) const = 0;
         
     protected:
         CaretMappableDataFile(const CaretMappableDataFile&);
@@ -505,9 +520,13 @@ namespace caret {
         
         bool isPaletteColorMappingEqualForAllMaps() const;
         
+        void updateMapThresholdFileSelectionModels();
+        
         std::unique_ptr<LabelDrawingProperties> m_labelDrawingProperties;
 
         mutable std::unique_ptr<ChartableTwoFileDelegate> m_chartingDelegate;
+        
+        std::vector<std::unique_ptr<CaretMappableDataFileAndMapSelectionModel>> m_mapThresholdFileSelectionModels;
         
         /** 
          * Added by WB-781 Apply to All Maps for ColorBar.

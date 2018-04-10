@@ -380,6 +380,7 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
         NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
                                                       paletteColorMapping,
                                                       &xValuesAtBuckets[0],
+                                                      paletteColorMapping,
                                                       &xValuesAtBuckets[0],
                                                       numBucketValues,
                                                       &histogramRGBA[0],
@@ -408,6 +409,8 @@ ChartableTwoFileHistogramChart::getMapHistogramDrawingPrimitives(const int32_t m
                 break;
             case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
                 setThresholdingFlag = true;
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
                 break;
             case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
                 break;

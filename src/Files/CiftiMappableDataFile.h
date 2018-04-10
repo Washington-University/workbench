@@ -466,6 +466,8 @@ namespace caret {
         virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
                                         std::vector<float>& dataOut) const override;
         
+        virtual bool isMappedToSameBrainordinates(const CaretMappableDataFile* mapFile) const override;
+        
     private:
         
         CiftiMappableDataFile(const CiftiMappableDataFile&);
@@ -537,7 +539,8 @@ namespace caret {
             
         public:
             
-            MapContent(CiftiFile* ciftiFile,
+            MapContent(CiftiMappableDataFile* ciftiMappableDataFile,
+                       CiftiFile* ciftiFile,
                        const FileMapDataType fileMapDataType,
                        const int32_t readingDirectionForCiftiXML,
                        const int32_t mappingDirectionForCiftiXML,
@@ -581,6 +584,10 @@ namespace caret {
             AString getName() const;
             
             void setName(const AString& name);
+            
+            
+            /** CIFTI file containing the map */
+            CiftiMappableDataFile* m_ciftiMappableDataFile;
             
             /** The CIFTI file pointer */
             CiftiFile *m_ciftiFile;
@@ -677,6 +684,8 @@ namespace caret {
         
         static AString mappingTypeToName(const CiftiMappingType::MappingType mappingType);
 
+        const CiftiBrainModelsMap* getBrainordinateMapping() const;
+        
         /**
          * Point to the CIFTI file object.
          */
@@ -773,7 +782,6 @@ namespace caret {
         /** force an update of the class and name hierarchy */
         mutable bool m_forceUpdateOfGroupAndNameHierarchy;
 
-        
         static const int32_t S_CIFTI_XML_ALONG_INVALID;
         
     protected:
@@ -786,6 +794,12 @@ namespace caret {
     private:
         friend class ChartableTwoFileDelegate;
         friend class ChartableTwoFileMatrixChart;
+        
+        /** Is lazily initialized and caches CiftiBrainModelsMap for comparison with other CIFTI files */
+        mutable std::unique_ptr<CiftiBrainModelsMap> m_brainordinateMapping;
+        
+        /** Controls lazy initialization of m_brainordinateMapping */
+        mutable bool m_brainordinateMappingCachedFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
         

@@ -1930,3 +1930,21 @@ CiftiFiberTrajectoryFile::getDataForSelector(const MapFileDataSelector& /*mapFil
 {
     dataOut.clear();
 }
+
+/**
+ * Is the give file mapped to the exact same brainordinates as the this file?
+ * The two file must map to the exact same structure and same number of vertices
+ * in each structure.
+ *
+ * @param mapFile
+ *     The other map file.
+ * @return
+ *     True if files map to same brainordinates, else false.
+ */
+bool
+CiftiFiberTrajectoryFile::isMappedToSameBrainordinates(const CaretMappableDataFile* /*mapFile*/) const
+{
+    return false;
+}
+
+

@@ -40,6 +40,7 @@ class QwtPlot;
 namespace caret {
     
     class CaretColorEnumComboBox;
+    class CaretMappableDataFileAndMapSelectorObject;
     class CaretMappableDataFile;
     class EnumComboBoxTemplate;
     class FastStatistics;
@@ -77,6 +78,7 @@ namespace caret {
         void thresholdTypeChanged(int);
         void thresholdRangeModeChanged();
         void thresholdLinkCheckBoxToggled(bool);
+        void thresholdMapFileIndexSelectorChanged();
         
         void scaleAutoPercentageNegativeMaximumValueChanged(double value);
         void scaleAutoPercentageNegativeMinimumValueChanged(double value);
@@ -164,6 +166,9 @@ namespace caret {
         
         QComboBox* thresholdTypeComboBox;
         
+        CaretMappableDataFileAndMapSelectorObject* thresholdMapFileIndexSelector;
+        QWidget* thresholdFileWidget;
+        
         WuQDoubleSlider* thresholdLowSlider;
         WuQDoubleSlider* thresholdHighSlider;
 
@@ -176,7 +181,7 @@ namespace caret {
         
         QRadioButton* thresholdShowInsideRadioButton;
         QRadioButton* thresholdShowOutsideRadioButton;
-        
+        QWidget* thresholdAdjustmentWidget;
         EnumComboBoxTemplate* thresholdRangeModeComboBox;
         
         QCheckBox* thresholdLinkCheckBox;

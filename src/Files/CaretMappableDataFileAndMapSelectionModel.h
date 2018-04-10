@@ -35,6 +35,8 @@ namespace caret {
     class CaretMappableDataFileAndMapSelectionModel : public CaretObject, public SceneableInterface {
         
     public:
+        CaretMappableDataFileAndMapSelectionModel(const CaretMappableDataFile* caretMappableDataFile);
+        
         CaretMappableDataFileAndMapSelectionModel(const DataFileTypeEnum::Enum dataFileType);
         
         CaretMappableDataFileAndMapSelectionModel(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);
@@ -99,9 +101,20 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
+        enum class Mode {
+            MAP_TO_SAME_BRAINORDINATES,
+            MATCH_DATA_FILE_TYPES
+        };
+        
         void copyHelperCaretMappableDataFileAndMapSelectionModel(const CaretMappableDataFileAndMapSelectionModel& obj);
 
         void performConstruction(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);
+
+        void validateDataFileTypes();
+        
+        const Mode m_mode;
+        
+        const CaretMappableDataFile* m_mappableDataFile;
         
         SceneClassAssistant* m_sceneAssistant;
 

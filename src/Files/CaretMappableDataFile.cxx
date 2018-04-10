@@ -58,7 +58,7 @@ using namespace caret;
 CaretMappableDataFile::CaretMappableDataFile(const DataFileTypeEnum::Enum dataFileType)
 : CaretDataFile(dataFileType)
 {
-    initializeCaretMappableDataFileInstance();
+    initializeCaretMappableDataFileInstance(dataFileType);
 }
 
 /**
@@ -77,7 +77,7 @@ CaretMappableDataFile::~CaretMappableDataFile()
 CaretMappableDataFile::CaretMappableDataFile(const CaretMappableDataFile& cmdf)
 : CaretDataFile(cmdf)
 {
-    initializeCaretMappableDataFileInstance();
+    initializeCaretMappableDataFileInstance(cmdf.getDataFileType());
     
     this->copyCaretMappableDataFile(cmdf);
 }
@@ -101,9 +101,12 @@ CaretMappableDataFile::operator=(const CaretMappableDataFile& cmdf)
 
 /**
  * Initialize a new instance.
+ *
+ * @param dataFileType
+ *     Type of data file.
  */
 void
-CaretMappableDataFile::initializeCaretMappableDataFileInstance()
+CaretMappableDataFile::initializeCaretMappableDataFileInstance(const DataFileTypeEnum::Enum /*dataFileType*/)
 {
     m_labelDrawingProperties = std::unique_ptr<LabelDrawingProperties>(new LabelDrawingProperties());
     m_applyToAllMapsSelected = false;
@@ -117,6 +120,7 @@ void
 CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile& cmdf)
 {
     *m_labelDrawingProperties = *cmdf.m_labelDrawingProperties;
+    m_mapThresholdFileSelectionModels.clear();
 }
 
 // note: method is documented in header file
@@ -427,6 +431,29 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
                 sceneClass->addChild(pcmArray);
             }
         }
+        
+        {
+            /*
+             * Save thresholds for each map
+             */
+            SceneObjectMapIntegerKey* sceneThreshMap = new SceneObjectMapIntegerKey("m_mapThresholdFileSelectionModels",
+                                                                                    SceneObjectDataTypeEnum::SCENE_CLASS);
+            const int32_t numMaps = getNumberOfMaps();
+            for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                CaretMappableDataFileAndMapSelectionModel* threshSel = getMapThresholdFileSelectionModel(iMap);
+                if ((threshSel->getSelectedFile() != this)
+                    || (threshSel->getSelectedMapIndex() != iMap)) {
+                    sceneThreshMap->addClass(iMap, threshSel->saveToScene(sceneAttributes, "threshSelElement"));
+                }
+            }
+            
+            if (sceneThreshMap->isEmpty()) {
+                delete sceneThreshMap;
+            }
+            else {
+                sceneClass->addChild(sceneThreshMap);
+            }
+        }
     }
 }
 
@@ -611,6 +638,23 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                                          + "  Map Index: "
                                          + AString::number(mapIndex));
                     sceneAttributes->addToErrorMessage(msg);
+                }
+            }
+        }
+        
+        {
+            m_mapThresholdFileSelectionModels.clear();
+            
+            const SceneObjectMapIntegerKey* sceneThreshMap = sceneClass->getMapIntegerKey("m_mapThresholdFileSelectionModels");
+            if (sceneThreshMap != NULL) {
+                const int32_t numMaps = getNumberOfMaps();
+                const std::vector<int32_t> keys = sceneThreshMap->getKeys();
+                for (auto mapIndex : keys) {
+                    CaretAssert(mapIndex < numMaps);
+                    const SceneClass* threshSel = dynamic_cast<const SceneClass*>(sceneThreshMap->getObject(mapIndex));
+                    CaretAssert(threshSel);
+                    getMapThresholdFileSelectionModel(mapIndex)->restoreFromScene(sceneAttributes,
+                                                                                  threshSel);
                 }
             }
         }
@@ -990,6 +1034,8 @@ CaretMappableDataFile::clear()
     CaretDataFile::clear();
     
     m_chartingDelegate.reset();
+    
+    m_mapThresholdFileSelectionModels.clear();
 }
 
 /**
@@ -1205,6 +1251,39 @@ CaretMappableDataFile::getChartingDelegate() const
         m_chartingDelegate->updateAfterFileChanged();
     }
     return m_chartingDelegate.get();
+}
+
+/**
+ * Update the map threshold file selection models.
+ */
+void
+CaretMappableDataFile::updateMapThresholdFileSelectionModels()
+{
+    const int32_t numMaps = getNumberOfMaps();
+    const int32_t numThresh = static_cast<int32_t>(m_mapThresholdFileSelectionModels.size());
+    if (numMaps > numThresh) {
+        for (int32_t i = numThresh; i < numMaps; i++) {
+            std::unique_ptr<CaretMappableDataFileAndMapSelectionModel> threshSel(new CaretMappableDataFileAndMapSelectionModel(this));
+            threshSel->setSelectedFile(this);
+            threshSel->setSelectedMapIndex(i);
+            m_mapThresholdFileSelectionModels.push_back(std::move(threshSel));
+        }
+    }
+    else if (numThresh > numMaps) {
+        m_mapThresholdFileSelectionModels.resize(numMaps);
+    }
+}
+
+/**
+ * @return The thresholding file selection model for the given map index.
+ */
+CaretMappableDataFileAndMapSelectionModel*
+CaretMappableDataFile::getMapThresholdFileSelectionModel(const int32_t mapIndex)
+{
+    updateMapThresholdFileSelectionModels();
+    
+    CaretAssertVectorIndex(m_mapThresholdFileSelectionModels, mapIndex);
+    return m_mapThresholdFileSelectionModels[mapIndex].get();
 }
 
 /**

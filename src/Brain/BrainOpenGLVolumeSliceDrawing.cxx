@@ -1570,6 +1570,7 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                 NodeAndVoxelColoring::colorScalarsWithPalette(m_volumeDrawInfo[i].statistics,
                                                               paletteColorMapping,
                                                               values,
+                                                              paletteColorMapping,
                                                               values,
                                                               numValues,
                                                               rgba);

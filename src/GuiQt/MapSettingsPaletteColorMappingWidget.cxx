@@ -45,6 +45,7 @@
 #include "Brain.h"
 #include "CaretColorEnumComboBox.h"
 #include "CaretMappableDataFile.h"
+#include "CaretMappableDataFileAndMapSelectorObject.h"
 #include "CopyPaletteColorMappingToFilesDialog.h"
 #include "CursorDisplayScoped.h"
 #include "EnumComboBoxTemplate.h"
@@ -452,6 +453,15 @@ MapSettingsPaletteColorMappingWidget::thresholdHighSliderValueChanged(double thr
 }
 
 /**
+ * Gets called when the threshold map file/index is changed.
+ */
+void
+MapSettingsPaletteColorMappingWidget::thresholdMapFileIndexSelectorChanged()
+{
+    this->applySelections();
+}
+
+/**
  * Called when the threshold link check box is toggled.
  *
  * @param checked
@@ -525,6 +535,34 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
                                       "   Unlimited: Range is +/- infinity.");
     this->thresholdRangeModeComboBox->getWidget()->setToolTip(WuQtUtilities::createWordWrappedToolTipText(rangeModeToolTip));
     
+    /*
+     * Threshold file and map selector
+     */
+    this->thresholdMapFileIndexSelector = new CaretMappableDataFileAndMapSelectorObject(CaretMappableDataFileAndMapSelectorObject::OPTION_SHOW_MAP_INDEX_SPIN_BOX,
+                                                                                        this);
+    QObject::connect(this->thresholdMapFileIndexSelector, &CaretMappableDataFileAndMapSelectorObject::selectionWasPerformed,
+                     this, &MapSettingsPaletteColorMappingWidget::thresholdMapFileIndexSelectorChanged);
+    QWidget* threshFileComboBox(0);
+    QWidget* threshMapIndexSpinBox(0);
+    QWidget* threshMapNameComboBox(0);
+    this->thresholdMapFileIndexSelector->getWidgetsForAddingToLayout(threshFileComboBox,
+                                                                     threshMapIndexSpinBox,
+                                                                     threshMapNameComboBox);
+    this->thresholdFileWidget = new QWidget();
+    QGridLayout* threshFileLayout = new QGridLayout(this->thresholdFileWidget);
+    QLabel* threshFileLabel = new QLabel("File");
+    QLabel* threshMapLabel  = new QLabel("Map");
+    threshFileLayout->setContentsMargins(0, 0, 0, 0);
+    threshFileLayout->setSpacing(4);
+    threshFileLayout->setColumnStretch(0, 0);
+    threshFileLayout->setColumnStretch(1, 0);
+    threshFileLayout->setColumnStretch(2, 100);
+    threshFileLayout->addWidget(threshFileLabel, 0, 0);
+    threshFileLayout->addWidget(threshFileComboBox, 0, 1, 1, 2);
+    threshFileLayout->addWidget(threshMapLabel, 1, 0);
+    threshFileLayout->addWidget(threshMapIndexSpinBox, 1, 1);
+    threshFileLayout->addWidget(threshMapNameComboBox, 1, 2);
+
     /*
      * Linking of low/high thresholds
      */
@@ -636,22 +674,28 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     QObject::connect(thresholdShowButtonGroup, SIGNAL(buttonClicked(int)),
                      this, SLOT(applyAndUpdate()));
     
-    QWidget* thresholdAdjustmentWidget = new QWidget();
+    QHBoxLayout* rangeLayout = new QHBoxLayout();
+    rangeLayout->addWidget(thresholdRangeLabel);
+    rangeLayout->addWidget(this->thresholdRangeModeComboBox->getWidget());
+    
+    this->thresholdAdjustmentWidget = new QWidget();
     QGridLayout* thresholdAdjustmentLayout = new QGridLayout(thresholdAdjustmentWidget);
     this->setLayoutSpacingAndMargins(thresholdAdjustmentLayout);
     thresholdAdjustmentLayout->setColumnStretch(0, 0);
     thresholdAdjustmentLayout->setColumnStretch(1, 0);
     thresholdAdjustmentLayout->setColumnStretch(2, 100);
-    thresholdAdjustmentLayout->setColumnStretch(3, 0);
+    thresholdAdjustmentLayout->setColumnStretch(3, 100);
+    thresholdAdjustmentLayout->setColumnStretch(4, 0);
     thresholdAdjustmentLayout->addLayout(linkLayout, 0, 0, 2, 1, Qt::AlignCenter);
     thresholdAdjustmentLayout->addWidget(thresholdHighLabel, 0, 1);
-    thresholdAdjustmentLayout->addWidget(this->thresholdHighSlider->getWidget(), 0, 2);
-    thresholdAdjustmentLayout->addWidget(this->thresholdHighSpinBox, 0, 3);
+    thresholdAdjustmentLayout->addWidget(this->thresholdHighSlider->getWidget(), 0, 2, 1, 2);
+    thresholdAdjustmentLayout->addWidget(this->thresholdHighSpinBox, 0, 4);
     thresholdAdjustmentLayout->addWidget(thresholdLowLabel, 1, 1);
-    thresholdAdjustmentLayout->addWidget(this->thresholdLowSlider->getWidget(), 1, 2);
-    thresholdAdjustmentLayout->addWidget(this->thresholdLowSpinBox, 1, 3);
-    thresholdAdjustmentLayout->addWidget(this->thresholdShowInsideRadioButton, 2, 0, 1, 4, Qt::AlignLeft);
-    thresholdAdjustmentLayout->addWidget(this->thresholdShowOutsideRadioButton, 3, 0, 1, 4, Qt::AlignLeft);
+    thresholdAdjustmentLayout->addWidget(this->thresholdLowSlider->getWidget(), 1, 2, 1, 2);
+    thresholdAdjustmentLayout->addWidget(this->thresholdLowSpinBox, 1, 4);
+    thresholdAdjustmentLayout->addWidget(this->thresholdShowInsideRadioButton, 2, 0, 1, 3, Qt::AlignLeft);
+    thresholdAdjustmentLayout->addWidget(this->thresholdShowOutsideRadioButton, 3, 0, 1, 3, Qt::AlignLeft);
+    thresholdAdjustmentLayout->addLayout(rangeLayout, 2, 3, 2, 2, Qt::AlignRight);
     thresholdAdjustmentWidget->setFixedHeight(thresholdAdjustmentWidget->sizeHint().height());
     
     QWidget* topWidget = new QWidget();
@@ -659,14 +703,13 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->setLayoutSpacingAndMargins(topLayout);
     topLayout->addWidget(thresholdTypeLabel);
     topLayout->addWidget(this->thresholdTypeComboBox);
-    topLayout->addWidget(thresholdRangeLabel);
-    topLayout->addWidget(this->thresholdRangeModeComboBox->getWidget());
     topLayout->addStretch();
     
     QGroupBox* thresholdGroupBox = new QGroupBox("Threshold");
     QVBoxLayout* layout = new QVBoxLayout(thresholdGroupBox);
     this->setLayoutSpacingAndMargins(layout);
     layout->addWidget(topWidget, 0, Qt::AlignLeft);
+    layout->addWidget(this->thresholdFileWidget);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(thresholdAdjustmentWidget);
     thresholdGroupBox->setFixedHeight(thresholdGroupBox->sizeHint().height());
@@ -683,6 +726,9 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdShowOutsideRadioButton);
     this->thresholdAdjustmentWidgetGroup->add(thresholdRangeLabel);
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdRangeModeComboBox->getWidget());
+    this->thresholdAdjustmentWidgetGroup->add(threshFileComboBox);
+    this->thresholdAdjustmentWidgetGroup->add(threshMapIndexSpinBox);
+    this->thresholdAdjustmentWidgetGroup->add(threshMapNameComboBox);
     
     return thresholdGroupBox;
 }
@@ -1515,7 +1561,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     paletteLayout->addWidget(colorMappingWidget);
     paletteLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     paletteLayout->addWidget(displayModeWidget);
-    paletteGroupBox->setFixedHeight(paletteGroupBox->sizeHint().height());
+    paletteGroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
     return paletteGroupBox;
 }
@@ -1552,6 +1598,9 @@ MapSettingsPaletteColorMappingWidget::updateThresholdSection()
             break;
         }
     }
+
+    CaretAssert(this->caretMappableDataFile);
+    this->thresholdMapFileIndexSelector->updateFileAndMapSelector(this->caretMappableDataFile->getMapThresholdFileSelectionModel(this->mapFileIndex));
     
     const bool enableThresholdControls = (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
     this->thresholdAdjustmentWidgetGroup->setEnabled(enableThresholdControls);
@@ -1587,6 +1636,8 @@ MapSettingsPaletteColorMappingWidget::updateThresholdSection()
     
     this->thresholdLinkCheckBox->setChecked(this->paletteColorMapping->isThresholdNegMinPosMaxLinked());
     
+    this->thresholdAdjustmentWidget->setEnabled(paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL);
+    this->thresholdFileWidget->setEnabled(paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE);
     this->thresholdWidgetGroup->blockAllSignals(false);
 }
 
@@ -2037,6 +2088,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
         NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
                                                       paletteColorMapping,
                                                       dataValues,
+                                                      paletteColorMapping,
                                                       dataValues,
                                                       numDataValues,
                                                       dataRGBA,

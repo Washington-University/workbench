@@ -78,6 +78,8 @@ static const float negativeThresholdGreenColor[] = {
  * @param scalarValues
  *    Scalars that are used to color the values.
  *    Number of elements is 'numberOfScalars'.
+ * @param thresholdPaletteColorMapping
+ *    Specifies thresholding for thresholding scalars.
  * @param thresholdValues
  *    Thresholds for inhibiting coloring.
  *    Number of elements is 'numberOfScalars'.
@@ -93,13 +95,14 @@ static const float negativeThresholdGreenColor[] = {
  */
 void
 NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* statistics,
-                                              const PaletteColorMapping* paletteColorMapping,
-                                              const float* scalarValues,
-                                              const float* thresholdValues,
-                                              const int64_t numberOfScalars,
-                                              const ColorDataType colorDataType,
-                                              void* rgbaOutPointer,
-                                              const bool ignoreThresholding)
+                                                     const PaletteColorMapping* paletteColorMapping,
+                                                     const float* scalarValues,
+                                                     const PaletteColorMapping* thresholdPaletteColorMapping,
+                                                     const float* thresholdValues,
+                                                     const int64_t numberOfScalars,
+                                                     const ColorDataType colorDataType,
+                                                     void* rgbaOutPointer,
+                                                     const bool ignoreThresholding)
 {
     if (numberOfScalars <= 0) {
         return;
@@ -111,6 +114,7 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
     CaretAssert(statistics);
     CaretAssert(paletteColorMapping);
     CaretAssert(scalarValues);
+    CaretAssert(thresholdPaletteColorMapping);
     CaretAssert(thresholdValues);
     CaretAssert(rgbaOutPointer);
     
@@ -132,7 +136,7 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
      * Type of threshold testing
      */
     bool showOutsideFlag = false;
-    const PaletteThresholdTestEnum::Enum thresholdTest = paletteColorMapping->getThresholdTest();
+    const PaletteThresholdTestEnum::Enum thresholdTest = thresholdPaletteColorMapping->getThresholdTest();
     switch (thresholdTest) {
         case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
             showOutsideFlag = true;
@@ -146,13 +150,13 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
      * Range of values allowed by thresholding
      */
     const PaletteThresholdTypeEnum::Enum thresholdType = paletteColorMapping->getThresholdType();
-    const float thresholdMinimum = paletteColorMapping->getThresholdMinimum(thresholdType);
-    const float thresholdMaximum = paletteColorMapping->getThresholdMaximum(thresholdType);
-    const float thresholdMappedPositive = paletteColorMapping->getThresholdMappedMaximum();
-    const float thresholdMappedPositiveAverageArea = paletteColorMapping->getThresholdMappedAverageAreaMaximum();
-    const float thresholdMappedNegative = paletteColorMapping->getThresholdMappedMinimum();
-    const float thresholdMappedNegativeAverageArea = paletteColorMapping->getThresholdMappedAverageAreaMinimum();
-    const bool showMappedThresholdFailuresInGreen = paletteColorMapping->isShowThresholdFailureInGreen();
+    const float thresholdMinimum = thresholdPaletteColorMapping->getThresholdMinimum(thresholdType);
+    const float thresholdMaximum = thresholdPaletteColorMapping->getThresholdMaximum(thresholdType);
+    const float thresholdMappedPositive = thresholdPaletteColorMapping->getThresholdMappedMaximum();
+    const float thresholdMappedPositiveAverageArea = thresholdPaletteColorMapping->getThresholdMappedAverageAreaMaximum();
+    const float thresholdMappedNegative = thresholdPaletteColorMapping->getThresholdMappedMinimum();
+    const float thresholdMappedNegativeAverageArea = thresholdPaletteColorMapping->getThresholdMappedAverageAreaMinimum();
+    const bool showMappedThresholdFailuresInGreen = thresholdPaletteColorMapping->isShowThresholdFailureInGreen();
     
     /*
      * Skip threshold testing?
@@ -386,6 +390,8 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
  * @param scalarValues
  *    Scalars that are used to color the values.
  *    Number of elements is 'numberOfScalars'.
+ * @param thresholdPaletteColorMapping
+ *    Specifies thresholding for thresholding scalars.
  * @param thresholdValues
  *    Thresholds for inhibiting coloring.
  *    Number of elements is 'numberOfScalars'.
@@ -403,6 +409,7 @@ void
 NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                                               const PaletteColorMapping* paletteColorMapping,
                                               const float* scalarValues,
+                                              const PaletteColorMapping* thresholdPaletteColorMapping,
                                               const float* thresholdValues,
                                               const int64_t numberOfScalars,
                                               float* rgbaOut,
@@ -411,6 +418,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
     colorScalarsWithPalettePrivate(statistics,
                                    paletteColorMapping,
                                    scalarValues,
+                                   thresholdPaletteColorMapping,
                                    thresholdValues,
                                    numberOfScalars,
                                    COLOR_TYPE_FLOAT,
@@ -428,6 +436,8 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
  * @param scalarValues
  *    Scalars that are used to color the values.
  *    Number of elements is 'numberOfScalars'.
+ * @param thresholdPaletteColorMapping
+ *    Specifies thresholding for thresholding scalars.
  * @param thresholdValues
  *    Thresholds for inhibiting coloring.
  *    Number of elements is 'numberOfScalars'.
@@ -445,6 +455,7 @@ void
 NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                                               const PaletteColorMapping* paletteColorMapping,
                                               const float* scalarValues,
+                                              const PaletteColorMapping* thresholdPaletteColorMapping,
                                               const float* thresholdValues,
                                               const int64_t numberOfScalars,
                                               uint8_t* rgbaOut,
@@ -453,6 +464,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
     colorScalarsWithPalettePrivate(statistics,
                                    paletteColorMapping,
                                    scalarValues,
+                                   thresholdPaletteColorMapping,
                                    thresholdValues,
                                    numberOfScalars,
                                    COLOR_TYPE_UNSIGNED_BTYE,

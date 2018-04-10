@@ -168,6 +168,8 @@ namespace caret {
         virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
                                         std::vector<float>& dataOut) const override;
         
+        virtual bool isMappedToSameBrainordinates(const CaretMappableDataFile* mapFile) const override;
+        
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);
         

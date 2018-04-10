@@ -36,6 +36,7 @@
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "CiftiParcelLabelFile.h"
 #include "CiftiParcelReordering.h"
 #include "CiftiParcelScalarFile.h"
@@ -467,6 +468,9 @@ CiftiMappableDataFile::clearPrivate()
     m_mappingTimeStart = 0.0f;
     m_mappingTimeStep  = 1.0f;
     m_mappingTimeUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
+    
+    m_brainordinateMapping.reset();
+    m_brainordinateMappingCachedFlag = false;
 }
 
 /**
@@ -1055,7 +1059,8 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
      * Get data for maps.
      */
     for (int32_t i = 0; i < numberOfMaps; i++) {
-        MapContent* mc = new MapContent(m_ciftiFile,
+        MapContent* mc = new MapContent(this,
+                                        m_ciftiFile,
                                         m_fileMapDataType,
                                         m_dataReadingDirectionForCiftiXML,
                                         m_dataMappingDirectionForCiftiXML,
@@ -1490,6 +1495,7 @@ CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba)
         NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
                                                       paletteColorMapping,
                                                       &data[0],
+                                                      paletteColorMapping,
                                                       &data[0],
                                                       data.size(),
                                                       &rgba[0]);
@@ -6650,6 +6656,7 @@ CiftiMappableDataFile::helpMapFileLoadChartDataMatrixRGBA(int32_t& numberOfRowsO
             NodeAndVoxelColoring::colorScalarsWithPalette(nonConstMapFile->getFileFastStatistics(),
                                                           pcm,
                                                           &columnData[0],
+                                                          pcm,
                                                           &columnData[0],
                                                           numberOfRowsOut,
                                                           &columnRGBA[0]);
@@ -6762,6 +6769,7 @@ CiftiMappableDataFile::helpMatrixFileLoadChartDataMatrixRGBA(int32_t& numberOfRo
         NodeAndVoxelColoring::colorScalarsWithPalette(fileFastStats,
                                                       pcm,
                                                       &data[0],
+                                                      pcm,
                                                       &data[0],
                                                       numberOfData,
                                                       &rgbaOut[0]);
@@ -6956,12 +6964,126 @@ CiftiMappableDataFile::getDataForSelector(const MapFileDataSelector& mapFileData
     }
 }
 
+/**
+ * @return Pointer to mapping of data to brainordinates.
+ *         Will be NULL if data does not map to brainordinates.
+ */
+const CiftiBrainModelsMap*
+CiftiMappableDataFile::getBrainordinateMapping() const
+{
+    if ( ! m_brainordinateMappingCachedFlag) {
+        m_brainordinateMappingCachedFlag = true;
+        
+        switch (m_dataMappingAccessMethod) {
+            case DATA_ACCESS_METHOD_INVALID:
+                CaretAssert(0);
+                break;
+            case DATA_ACCESS_NONE:
+                break;
+            case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
+            case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
+            {
+                const CiftiXML& myXML = m_ciftiFile->getCiftiXML();
+                if (myXML.getMappingType(m_dataMappingDirectionForCiftiXML) == CiftiMappingType::BRAIN_MODELS) {
+                    /*
+                     * Cache a COPY of the CiftiBrainModelsMap to avoid calling CiftiFile::getCiftiXML() many times
+                     */
+                    m_brainordinateMapping.reset(new CiftiBrainModelsMap(myXML.getBrainModelsMap(m_dataMappingDirectionForCiftiXML)));
+                }
+            }
+                break;
+        }
+    }
+    
+    return m_brainordinateMapping.get();
+    
+    
+//    if (m_brainordinateMappingCachedFlag) {
+//        return m_brainordinateMapping.get();
+//    }
+//    
+//    m_brainordinateMappingCachedFlag = true;
+//    
+//    if (m_dataMappingDirectionForCiftiXML == S_CIFTI_XML_ALONG_INVALID) {
+//        return NULL;
+//    }
+//    
+//    if ( ! m_brainordinateMapping) {
+//        m_brainordinateMapping.reset(invalidBrainModelsMapPointer);
+//        std::cout << "Smart pointer valid after RESET WITH NULL " << ((m_brainordinateMapping.get() == invalidBrainModelsMapPointer) ? "Yes" : "No") << std::endl;
+//        const CiftiXML& myXML = m_ciftiFile->getCiftiXML();
+//        if (myXML.getMappingType(m_dataMappingDirectionForCiftiXML) == CiftiMappingType::BRAIN_MODELS) {
+//            /*
+//             * Cache a COPY of the CiftiBrainModelsMap to avoid calling CiftiFile::getCiftiXML() many times
+//             */
+//            m_brainordinateMapping.reset(new CiftiBrainModelsMap(myXML.getBrainModelsMap(m_dataMappingDirectionForCiftiXML)));
+//        }
+//        else {
+//            m_brainordinateMapping.reset(invalidBrainModelsMapPointer);
+//        }
+//    }
+//    
+//    const CiftiBrainModelsMap* ptr = m_brainordinateMapping.get();
+//    if (ptr == invalidBrainModelsMapPointer) {
+//        return NULL;
+//    }
+//    
+//    return ptr;
+}
+
+/**
+ * Is the give file mapped to the exact same brainordinates as the this file?
+ * The two file must map to the exact same structure and same number of vertices
+ * in each structure.
+ *
+ * @param mapFile
+ *     The other map file.
+ * @return
+ *     True if files map to same brainordinates, else false.
+ */
+bool
+CiftiMappableDataFile::isMappedToSameBrainordinates(const CaretMappableDataFile* mapFile) const
+{
+    CaretAssert(mapFile);
+    const CiftiMappableDataFile* otherCiftiFile = dynamic_cast<const CiftiMappableDataFile*>(mapFile);
+    if (otherCiftiFile == NULL) {
+        return false;
+    }
+    
+    const CiftiBrainModelsMap* myBrainMap = getBrainordinateMapping();
+    if (myBrainMap != NULL) {
+        const CiftiBrainModelsMap* otherBrainMap = otherCiftiFile->getBrainordinateMapping();
+        if (otherBrainMap != NULL) {
+            if (*myBrainMap == *otherBrainMap) {
+                return true;
+            }
+        }
+    }
+    return false;
+    
+//    const CiftiXML& myXML = m_ciftiFile->getCiftiXML();
+//    const CiftiXML& otherXML = otherCiftiFile->getCiftiXML();
+//    if ((myXML.getMappingType(m_dataMappingDirectionForCiftiXML) == CiftiMappingType::BRAIN_MODELS)
+//        && (otherXML.getMappingType(otherCiftiFile->m_dataMappingDirectionForCiftiXML) == CiftiMappingType::BRAIN_MODELS)) {
+//        const CiftiBrainModelsMap& myMap = myXML.getBrainModelsMap(m_dataMappingDirectionForCiftiXML);
+//        const CiftiBrainModelsMap& otherMap = otherXML.getBrainModelsMap(otherCiftiFile->m_dataMappingDirectionForCiftiXML);
+//        if (myMap == otherMap) {
+//            return true;
+//        }
+//    }
+//    
+//    return false;
+}
+
+
 
 ///* ========================================================================== */
 
 /**
  * Constructor.
  *
+ * @param ciftiMappableDataFile
+ *    CIFTI file containing this map
  * @param ciftiFile
  *    The CIFTI data file
  * @param fileMapDataType
@@ -6973,12 +7095,14 @@ CiftiMappableDataFile::getDataForSelector(const MapFileDataSelector& mapFileData
  * @param mapIndex
  *    Index of this map.
  */
-CiftiMappableDataFile::MapContent::MapContent(CiftiFile* ciftiFile,
+CiftiMappableDataFile::MapContent::MapContent(CiftiMappableDataFile* ciftiMappableDataFile,
+                                              CiftiFile* ciftiFile,
                                                  const FileMapDataType fileMapDataType,
                                                  const int32_t readingDirectionForCiftiXML,
                                                  const int32_t mappingDirectionForCiftiXML,
                                                  const int32_t mapIndex)
 : CaretObjectTracksModification(),
+m_ciftiMappableDataFile(ciftiMappableDataFile),
 m_ciftiFile(ciftiFile),
 m_fileMapDataType(fileMapDataType),
 m_readingDirectionForCiftiXML(readingDirectionForCiftiXML),
@@ -7452,12 +7576,56 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
     else {
         CaretAssert(m_paletteColorMapping);
         if (fastStatistics != NULL) {
-            NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
-                                                          m_paletteColorMapping,
-                                                          &data[0],
-                                                          &data[0],
-                                                          m_dataCount,
-                                                          &m_rgba[0]);
+            bool useThreshMapFileFlag = false;
+            switch (m_paletteColorMapping->getThresholdType()) {
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+                    useThreshMapFileFlag = true;
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+                    break;
+            }
+            
+            if (useThreshMapFileFlag) {
+                CaretAssert(m_ciftiMappableDataFile);
+                const CaretMappableDataFileAndMapSelectionModel* threshFileModel = m_ciftiMappableDataFile->getMapThresholdFileSelectionModel(m_mapIndex);
+                CaretAssert(threshFileModel);
+                const CaretMappableDataFile* threshMapFile = threshFileModel->getSelectedFile();
+                const int32_t threshMapIndex = threshFileModel->getSelectedMapIndex();
+                CaretAssert(threshMapFile);
+                CaretAssert(threshMapIndex >= 0);
+                PaletteColorMapping* thresholdPaletteColorMapping = const_cast<PaletteColorMapping*>(threshMapFile->getMapPaletteColorMapping(threshMapIndex));
+                CaretAssert(thresholdPaletteColorMapping);
+                const CiftiMappableDataFile* thresholdCiftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(threshMapFile);
+                CaretAssert(thresholdCiftiMapFile);
+                
+                std::vector<float> thresholdData;
+                thresholdCiftiMapFile->getMapData(threshMapIndex,
+                                                  thresholdData);
+
+                CaretAssert(data.size() == thresholdData.size());
+                NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
+                                                              m_paletteColorMapping,
+                                                              &data[0],
+                                                              thresholdPaletteColorMapping,
+                                                              &thresholdData[0],
+                                                              m_dataCount,
+                                                              &m_rgba[0]);
+            }
+            else {
+                NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
+                                                              m_paletteColorMapping,
+                                                              &data[0],
+                                                              m_paletteColorMapping,
+                                                              &data[0],
+                                                              m_dataCount,
+                                                              &m_rgba[0]);
+            }
         }
         else {
             std::fill(m_rgba.begin(),

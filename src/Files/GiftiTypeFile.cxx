@@ -998,3 +998,92 @@ GiftiTypeFile::getDataForSelector(const MapFileDataSelector& /*mapFileDataSelect
     dataOut.clear();
 }
 
+/**
+ * Is the give file mapped to the exact same brainordinates as the this file?
+ * The two file must map to the exact same structure and same number of vertices
+ * in each structure.
+ *
+ * @param mapFile
+ *     The other map file.
+ * @return
+ *     True if files map to same brainordinates, else false.
+ */
+bool
+GiftiTypeFile::isMappedToSameBrainordinates(const CaretMappableDataFile* mapFile) const
+{
+    bool giftiFlag = false;
+    CaretAssert(mapFile);
+    switch (mapFile->getDataFileType()) {
+        case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::IMAGE:
+            break;
+        case DataFileTypeEnum::LABEL:
+            giftiFlag = true;
+            break;
+        case DataFileTypeEnum::METRIC:
+            giftiFlag = true;
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            giftiFlag = true;
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            giftiFlag = true;
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+    }
+    
+    if (giftiFlag) {
+        const GiftiTypeFile* gtf = dynamic_cast<const GiftiTypeFile*>(mapFile);
+        CaretAssert(gtf);
+        if ((this->getNumberOfNodes() == gtf->getNumberOfNodes())
+            && (this->getStructure() == gtf->getStructure())) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+

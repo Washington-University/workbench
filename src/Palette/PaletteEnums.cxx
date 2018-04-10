@@ -538,6 +538,7 @@ PaletteThresholdTypeEnum::initialize()
     }
     else {
         enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_NORMAL, 1, "THRESHOLD_TYPE_NORMAL", "On"));
+        enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_FILE, 2, "THRESHOLD_TYPE_FILE", "File"));
     }
 }
 

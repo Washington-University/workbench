@@ -29,11 +29,14 @@
 
 namespace caret {
     class CaretDataFile;
+    class CaretMappableDataFile;
     class SceneClassAssistant;
 
     class CaretDataFileSelectionModel : public CaretObject, public SceneableInterface {
         
     public:
+        static CaretDataFileSelectionModel* newInstanceMapsToSameBrainordinates(const CaretMappableDataFile* mappableDataFile);
+        
         static CaretDataFileSelectionModel* newInstanceForCaretDataFileType(const DataFileTypeEnum::Enum dataFileType);
         
         static CaretDataFileSelectionModel* newInstanceForCaretDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);
@@ -110,15 +113,19 @@ namespace caret {
         enum FileMode {
             FILE_MODE_CHARTABLE_MATRIX_PARCEL_INTERFACE,
             FILE_MODE_DATA_FILE_TYPE_ENUM,
+            FILE_MODE_MAPS_TO_SAME_BRAINORDINATES,
             FILE_MODE_MULTI_STRUCTURE_BORDER_FILES
         };
         
-        CaretDataFileSelectionModel(const StructureEnum::Enum structure,
+        CaretDataFileSelectionModel(const CaretMappableDataFile* mappableDataFile,
+                                    const StructureEnum::Enum structure,
                                     const FileMode fileMode);
         
         void copyHelperCaretDataFileSelectionModel(const CaretDataFileSelectionModel& obj);
 
         void updateSelection() const;
+        
+        const CaretMappableDataFile* m_mappableDataFile;
         
         const FileMode m_fileMode;
         

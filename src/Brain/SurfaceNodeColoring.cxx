@@ -853,6 +853,7 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
         NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
                                                       paletteColorMapping, 
                                                       metricDisplayData,
+                                                      paletteColorMapping,
                                                       metricThresholdData, 
                                                       numberOfNodes, 
                                                       rgbv);

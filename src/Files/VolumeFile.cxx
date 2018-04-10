@@ -2239,3 +2239,40 @@ VolumeFile::getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
     }
 }
 
+/**
+ * Is the give file mapped to the exact same brainordinates as the this file?
+ * The two file must map to the exact same structure and same number of vertices
+ * in each structure.
+ *
+ * @param mapFile
+ *     The other map file.
+ * @return
+ *     True if files map to same brainordinates, else false.
+ */
+bool
+VolumeFile::isMappedToSameBrainordinates(const CaretMappableDataFile* mapFile) const
+{
+    CaretAssert(mapFile);
+    if (mapFile->getDataFileType() == DataFileTypeEnum::VOLUME) {
+        const VolumeFile* vf = dynamic_cast<const VolumeFile*>(mapFile);
+        CaretAssert(vf);
+        
+        std::vector<int64_t> myDims, otherDims;
+        getDimensions(myDims);
+        getDimensions(otherDims);
+        
+        for (int32_t i = 0; i < 3; i++) {
+            CaretAssertVectorIndex(myDims, i);
+            CaretAssertVectorIndex(otherDims, i);
+            if (myDims[i] != otherDims[i]) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    return false;
+}
+
+

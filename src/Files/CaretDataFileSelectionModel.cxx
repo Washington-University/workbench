@@ -28,6 +28,7 @@
 #include "CaretMappableDataFile.h"
 #include "ChartableMatrixParcelInterface.h"
 #include "EventCaretDataFilesGet.h"
+#include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -50,17 +51,33 @@ using namespace caret;
  * factory methods should be used to create new instances of 
  * this class.
  *
+ * @param mappableDataFile
+ *    Mappable data file for matching brainordinates.
  * @param structure
  *    Structure for the files.
  * @param fileMode
  *    File mode that indicates how files are chosen.
  */
-CaretDataFileSelectionModel::CaretDataFileSelectionModel(const StructureEnum::Enum structure,
+CaretDataFileSelectionModel::CaretDataFileSelectionModel(const CaretMappableDataFile* mappableDataFile,
+                                                         const StructureEnum::Enum structure,
                                                          const FileMode fileMode)
 : CaretObject(),
+m_mappableDataFile(mappableDataFile),
 m_fileMode(fileMode),
 m_structure(structure)
 {
+    switch (m_fileMode) {
+        case FILE_MODE_DATA_FILE_TYPE_ENUM:
+            break;
+        case FILE_MODE_CHARTABLE_MATRIX_PARCEL_INTERFACE:
+            break;
+        case FILE_MODE_MAPS_TO_SAME_BRAINORDINATES:
+            CaretAssert(m_mappableDataFile);
+            break;
+        case FILE_MODE_MULTI_STRUCTURE_BORDER_FILES:
+            break;
+    }
+    
     m_overrideOfAvailableFilesValid = false;
     
     m_sceneAssistant = new SceneClassAssistant();
@@ -76,7 +93,24 @@ CaretDataFileSelectionModel::~CaretDataFileSelectionModel()
 }
 
 /**
- * Create a new instance of a Caret Data File Selection Model that 
+ * Create a new instance of a Caret Data File Selection Model that
+ * matches a mappable data file's brainordinate mapping.
+ *
+ * @param dataFileType
+ *    Type of the data file.
+ */
+CaretDataFileSelectionModel*
+CaretDataFileSelectionModel::newInstanceMapsToSameBrainordinates(const CaretMappableDataFile* mappableDataFile)
+{
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(mappableDataFile,
+                                                                         StructureEnum::ALL,
+                                                                         FILE_MODE_MAPS_TO_SAME_BRAINORDINATES);
+    return model;
+}
+
+
+/**
+ * Create a new instance of a Caret Data File Selection Model that
  * selects files of the given Data File Type.
  *
  * @param dataFileType
@@ -85,7 +119,8 @@ CaretDataFileSelectionModel::~CaretDataFileSelectionModel()
 CaretDataFileSelectionModel*
 CaretDataFileSelectionModel::newInstanceForCaretDataFileType(const DataFileTypeEnum::Enum dataFileType)
 {
-    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(StructureEnum::ALL,
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(NULL,
+                                                                         StructureEnum::ALL,
                                                                          FILE_MODE_DATA_FILE_TYPE_ENUM);
     model->m_dataFileTypes.push_back(dataFileType);
     
@@ -102,7 +137,8 @@ CaretDataFileSelectionModel::newInstanceForCaretDataFileType(const DataFileTypeE
 CaretDataFileSelectionModel*
 CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
 {
-    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(StructureEnum::ALL,
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(NULL,
+                                                                         StructureEnum::ALL,
                                                                          FILE_MODE_DATA_FILE_TYPE_ENUM);
     model->m_dataFileTypes.insert(model->m_dataFileTypes.end(),
                                   dataFileTypes.begin(),
@@ -125,7 +161,8 @@ CaretDataFileSelectionModel*
 CaretDataFileSelectionModel::newInstanceForCaretDataFileTypesInStructure(const StructureEnum::Enum structure,
                                                                          const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
 {
-    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(structure,
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(NULL,
+                                                                         structure,
                                                                          FILE_MODE_DATA_FILE_TYPE_ENUM);
     model->m_dataFileTypes.insert(model->m_dataFileTypes.end(),
                                   dataFileTypes.begin(),
@@ -143,7 +180,8 @@ CaretDataFileSelectionModel::newInstanceForCaretDataFileTypesInStructure(const S
 CaretDataFileSelectionModel*
 CaretDataFileSelectionModel::newInstanceForChartableMatrixParcelInterface()
 {
-    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(StructureEnum::ALL,
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(NULL,
+                                                                         StructureEnum::ALL,
                                                                          FILE_MODE_CHARTABLE_MATRIX_PARCEL_INTERFACE);
     
     return model;
@@ -156,7 +194,8 @@ CaretDataFileSelectionModel::newInstanceForChartableMatrixParcelInterface()
 CaretDataFileSelectionModel*
 CaretDataFileSelectionModel::newInstanceForMultiStructureBorderFiles()
 {
-    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(StructureEnum::ALL,
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(NULL,
+                                                                         StructureEnum::ALL,
                                                                          FILE_MODE_MULTI_STRUCTURE_BORDER_FILES);
     
     return model;
@@ -172,6 +211,7 @@ CaretDataFileSelectionModel::newInstanceForMultiStructureBorderFiles()
 CaretDataFileSelectionModel::CaretDataFileSelectionModel(const CaretDataFileSelectionModel& obj)
 : CaretObject(obj),
 SceneableInterface(),
+m_mappableDataFile(obj.m_mappableDataFile),
 m_fileMode(obj.m_fileMode)
 {
     this->copyHelperCaretDataFileSelectionModel(obj);
@@ -188,6 +228,7 @@ CaretDataFileSelectionModel&
 CaretDataFileSelectionModel::operator=(const CaretDataFileSelectionModel& obj)
 {
     if (this != &obj) {
+        CaretAssert(m_fileMode == obj.m_fileMode);
         CaretObject::operator=(obj);
         this->copyHelperCaretDataFileSelectionModel(obj);
     }
@@ -270,6 +311,21 @@ CaretDataFileSelectionModel::getAvailableFiles() const
                 if (chartParcelFile != NULL) {
                     CaretMappableDataFile* mapFile = chartParcelFile->getMatrixChartCaretMappableDataFile();
                     caretDataFiles.push_back(mapFile);
+                }
+            }
+        }
+            break;
+        case FILE_MODE_MAPS_TO_SAME_BRAINORDINATES:
+        {
+            CaretAssert(m_mappableDataFile);
+            EventCaretMappableDataFilesGet mapFilesGetEvent;
+            EventManager::get()->sendEvent(mapFilesGetEvent.getPointer());
+            std::vector<CaretMappableDataFile*> mapFiles;
+            mapFilesGetEvent.getAllFiles(mapFiles);
+            
+            for (auto mf : mapFiles) {
+                if (m_mappableDataFile->isMappedToSameBrainordinates(mf)) {
+                    caretDataFiles.push_back(mf);
                 }
             }
         }

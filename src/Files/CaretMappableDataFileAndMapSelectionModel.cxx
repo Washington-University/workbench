@@ -41,13 +41,31 @@ using namespace caret;
  */
 
 /**
- * Constructor.
+ * Constructor for files that map to the same brainordinates as the given file.
+ *
+ * @param caretMappableDataFile
+ *    Mappable data file.
+ */
+CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(const CaretMappableDataFile* caretMappableDataFile)
+: CaretObject(),
+m_mode(Mode::MAP_TO_SAME_BRAINORDINATES),
+m_mappableDataFile(caretMappableDataFile)
+{
+    std::vector<DataFileTypeEnum::Enum> dataFileTypesVector;
+    performConstruction(dataFileTypesVector);
+}
+
+
+/**
+ * Constructor for instance that will contain files of the given data type.
  *
  * @param dataFileType
  *    Type of data files available for selection.
  */
 CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(const DataFileTypeEnum::Enum dataFileType)
-: CaretObject()
+: CaretObject(),
+m_mode(Mode::MATCH_DATA_FILE_TYPES),
+m_mappableDataFile(NULL)
 {
     std::vector<DataFileTypeEnum::Enum> dataFileTypesVector;
     dataFileTypesVector.push_back(dataFileType);
@@ -55,13 +73,15 @@ CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionM
 }
 
 /**
- * Constructor for multiple types of files.
+ * Constructor for instance that will contain files of the given data types.
  *
  * @param dataFileTypes
  *    Types of data files available for selection.
  */
 CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
-: CaretObject()
+: CaretObject(),
+m_mode(Mode::MATCH_DATA_FILE_TYPES),
+m_mappableDataFile(NULL)
 {
     performConstruction(dataFileTypes);
 }
@@ -76,21 +96,15 @@ CaretMappableDataFileAndMapSelectionModel::~CaretMappableDataFileAndMapSelection
 }
 
 /**
- * Finish construction for an instance of this class.
- *
- * @param dataFileTypes
- *    Types of data files available for selection.
+ * Validate that any data file types are mappable data files
+ * and remove any non-mappable data file types.
  */
 void
-CaretMappableDataFileAndMapSelectionModel::performConstruction(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
+CaretMappableDataFileAndMapSelectionModel::validateDataFileTypes()
 {
-    m_dataFileTypes = dataFileTypes;
+    std::vector<DataFileTypeEnum::Enum> mappableDataFileTypes;
     
-    for (std::vector<DataFileTypeEnum::Enum>::const_iterator typeIter = dataFileTypes.begin();
-         typeIter != dataFileTypes.end();
-         typeIter++) {
-        const DataFileTypeEnum::Enum dataFileType = *typeIter;
-        
+    for (const auto dataFileType : m_dataFileTypes) {
         bool isMappableFile = false;
         switch (dataFileType) {
             case DataFileTypeEnum::ANNOTATION:
@@ -163,16 +177,50 @@ CaretMappableDataFileAndMapSelectionModel::performConstruction(const std::vector
             case DataFileTypeEnum::UNKNOWN:
                 break;
             case DataFileTypeEnum::VOLUME:
+                isMappableFile = true;
                 break;
         }
+        
         CaretAssert(isMappableFile);
-        if ( ! isMappableFile) {
+        if (isMappableFile) {
+            mappableDataFileTypes.push_back(dataFileType);
+        }
+        else {
             CaretLogSevere(DataFileTypeEnum::toGuiName(dataFileType)
                            + " is not a valid mappable data file.");
         }
     }
     
-    m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(dataFileTypes);
+    if (m_dataFileTypes.size() != mappableDataFileTypes.size()) {
+        /*
+         * Update without non-mappable data file types.
+         */
+        m_dataFileTypes = mappableDataFileTypes;
+    }
+}
+
+/**
+ * Finish construction for an instance of this class.
+ *
+ * @param dataFileTypes
+ *    Types of data files available for selection.
+ */
+void
+CaretMappableDataFileAndMapSelectionModel::performConstruction(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
+{
+    m_dataFileTypes = dataFileTypes;
+    
+    switch (m_mode) {
+        case Mode::MAP_TO_SAME_BRAINORDINATES:
+            CaretAssert(m_mappableDataFile);
+            m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceMapsToSameBrainordinates(m_mappableDataFile);
+            break;
+        case Mode::MATCH_DATA_FILE_TYPES:
+            validateDataFileTypes();
+            m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(dataFileTypes);
+            break;
+    }
+    
     m_selectedMapIndex = -1;
     
     m_sceneAssistant = new SceneClassAssistant();
@@ -191,7 +239,9 @@ CaretMappableDataFileAndMapSelectionModel::performConstruction(const std::vector
  */
 CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(const CaretMappableDataFileAndMapSelectionModel& obj)
 : CaretObject(obj),
-SceneableInterface(obj)
+SceneableInterface(obj),
+m_mode(obj.m_mode),
+m_mappableDataFile(obj.m_mappableDataFile)
 {
     this->copyHelperCaretMappableDataFileAndMapSelectionModel(obj);
 }
@@ -287,6 +337,13 @@ CaretMappableDataFileAndMapSelectionModel::getSelectedMapIndex() const
 std::vector<CaretMappableDataFile*>
 CaretMappableDataFileAndMapSelectionModel::getAvailableFiles() const
 {
+    switch (m_mode) {
+        case Mode::MAP_TO_SAME_BRAINORDINATES:
+            break;
+        case Mode::MATCH_DATA_FILE_TYPES:
+            break;
+    }
+    
     std::vector<CaretDataFile*> caretDataFiles = m_caretDataFileSelectionModel->getAvailableFiles();
     std::vector<CaretMappableDataFile*> mappableFiles;
     for (std::vector<CaretDataFile*>::iterator iter = caretDataFiles.begin();
@@ -328,26 +385,34 @@ void
 CaretMappableDataFileAndMapSelectionModel::setSelectedFile(CaretMappableDataFile* selectedFile)
 {
     if (selectedFile != NULL) {
-        const DataFileTypeEnum::Enum fileType = selectedFile->getDataFileType();
-        if (std::find(m_dataFileTypes.begin(),
-                      m_dataFileTypes.end(),
-                      fileType) == m_dataFileTypes.end()) {
-            AString validFileTypeNames;
-            for (std::vector<DataFileTypeEnum::Enum>::const_iterator typeIter = m_dataFileTypes.begin();
-                 typeIter != m_dataFileTypes.end();
-                 typeIter++) {
-                const DataFileTypeEnum::Enum dataFileType = *typeIter;
-                validFileTypeNames.append(DataFileTypeEnum::toName(dataFileType) + " ");
+        switch (m_mode) {
+            case Mode::MAP_TO_SAME_BRAINORDINATES:
+                break;
+            case Mode::MATCH_DATA_FILE_TYPES:
+            {
+                const DataFileTypeEnum::Enum fileType = selectedFile->getDataFileType();
+                if (std::find(m_dataFileTypes.begin(),
+                              m_dataFileTypes.end(),
+                              fileType) == m_dataFileTypes.end()) {
+                    AString validFileTypeNames;
+                    for (std::vector<DataFileTypeEnum::Enum>::const_iterator typeIter = m_dataFileTypes.begin();
+                         typeIter != m_dataFileTypes.end();
+                         typeIter++) {
+                        const DataFileTypeEnum::Enum dataFileType = *typeIter;
+                        validFileTypeNames.append(DataFileTypeEnum::toName(dataFileType) + " ");
+                    }
+                    
+                    
+                    const AString msg("Attempting to set file that is of type "
+                                      + DataFileTypeEnum::toGuiName(fileType)
+                                      + " but model is for type(s) "
+                                      + validFileTypeNames);
+                    CaretAssertMessage(0, msg);
+                    CaretLogSevere(msg);
+                    return;
+                }
             }
-
-            
-            const AString msg("Attempting to set file that is of type "
-                              + DataFileTypeEnum::toGuiName(fileType)
-                              + " but model is for type(s) "
-                              + validFileTypeNames);
-            CaretAssertMessage(0, msg);
-            CaretLogSevere(msg);
-            return;
+                break;
         }
     }
     
