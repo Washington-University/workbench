@@ -83,6 +83,9 @@ OperationParameters* OperationVolumePalette::getParameters()
     thresholdOpt->addDoubleParameter(3, "min", "lower threshold");
     thresholdOpt->addDoubleParameter(4, "max", "upper threshold");
     
+    OptionalParameter* inversionOpt = ret->createOptionalParameter(15, "-inversion", "specify palette inversion");
+    inversionOpt->addStringParameter(1, "type", "the type of inversion");
+    
     AString myText = AString("The original volume file is overwritten with the modified version.  By default, all columns of the volume file are adjusted ") +
             "to the new settings, use the -subvolume option to change only one subvolume.  Mapping settings not specified in options will be taken from the first subvolume.  " +
             "The <mode> argument must be one of the following:\n\n";
@@ -112,6 +115,13 @@ OperationParameters* OperationVolumePalette::getParameters()
     for (int i = 0; i < (int)myEnums3.size(); ++i)
     {
         myText += PaletteThresholdTestEnum::toName(myEnums3[i]) + "\n";
+    }
+    myText += "\nThe <type> argument to -inversion must be one of the following:\n\n";
+    vector<PaletteInvertModeEnum::Enum> myEnums4;
+    PaletteInvertModeEnum::getAllEnums(myEnums4);
+    for (int i = 0; i < (int)myEnums4.size(); ++i)
+    {
+        myText += PaletteInvertModeEnum::toName(myEnums4[i]) + "\n";
     }
     ret->setHelpText(myText);
     return ret;
@@ -203,6 +213,14 @@ void OperationVolumePalette::useParameters(OperationParameters* myParams, Progre
         myMapping.setThresholdTest(mytest);
         myMapping.setThresholdMinimum(mytype, thresholdOpt->getDouble(3));
         myMapping.setThresholdMaximum(mytype, thresholdOpt->getDouble(4));
+    }
+    OptionalParameter* inversionOpt = myParams->getOptionalParameter(15);
+    if (inversionOpt->m_present)
+    {
+        bool ok = false;
+        PaletteInvertModeEnum::Enum inversionType = PaletteInvertModeEnum::fromName(inversionOpt->getString(1), &ok);
+        if (!ok) throw OperationException("unrecognized palette inversion type: " + inversionOpt->getString(1));
+        myMapping.setInvertedMode(inversionType);
     }
     if (mySubvolume == -1)
     {

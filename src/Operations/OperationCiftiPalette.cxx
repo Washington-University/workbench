@@ -87,6 +87,9 @@ OperationParameters* OperationCiftiPalette::getParameters()
     thresholdOpt->addDoubleParameter(3, "min", "lower threshold");
     thresholdOpt->addDoubleParameter(4, "max", "upper threshold");
     
+    OptionalParameter* inversionOpt = ret->createOptionalParameter(15, "-inversion", "specify palette inversion");
+    inversionOpt->addStringParameter(1, "type", "the type of inversion");
+    
     AString myText = AString("NOTE: The output file must be a different file than the input file.\n\n") +
         "For scalar maps, by default the palette is changed for every map, specify -column to change only one map.  Palette settings not specified will be taken from the first column " +
         "for scalar maps, and from the existing file palette for other mapping types.  " +
@@ -117,6 +120,13 @@ OperationParameters* OperationCiftiPalette::getParameters()
     for (int i = 0; i < (int)myEnums3.size(); ++i)
     {
         myText += PaletteThresholdTestEnum::toName(myEnums3[i]) + "\n";
+    }
+    myText += "\nThe <type> argument to -inversion must be one of the following:\n\n";
+    vector<PaletteInvertModeEnum::Enum> myEnums4;
+    PaletteInvertModeEnum::getAllEnums(myEnums4);
+    for (int i = 0; i < (int)myEnums4.size(); ++i)
+    {
+        myText += PaletteInvertModeEnum::toName(myEnums4[i]) + "\n";
     }
     ret->setHelpText(myText);
     return ret;
@@ -242,6 +252,14 @@ void OperationCiftiPalette::useParameters(OperationParameters* myParams, Progres
         myMapping.setThresholdTest(mytest);
         myMapping.setThresholdMinimum(mytype, thresholdOpt->getDouble(3));
         myMapping.setThresholdMaximum(mytype, thresholdOpt->getDouble(4));
+    }
+    OptionalParameter* inversionOpt = myParams->getOptionalParameter(15);
+    if (inversionOpt->m_present)
+    {
+        bool ok = false;
+        PaletteInvertModeEnum::Enum inversionType = PaletteInvertModeEnum::fromName(inversionOpt->getString(1), &ok);
+        if (!ok) throw OperationException("unrecognized palette inversion type: " + inversionOpt->getString(1));
+        myMapping.setInvertedMode(inversionType);
     }
     if (myOutXML.getRowMappingType() == CIFTI_INDEX_TYPE_SCALARS)
     {

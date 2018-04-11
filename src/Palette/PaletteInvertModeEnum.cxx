@@ -119,7 +119,7 @@ PaletteInvertModeEnum::initialize()
                                     "Swap Pos/Neg Separate Zero"));
     
     enumData.push_back(PaletteInvertModeEnum(POSITIVE_NEGATIVE_SEPARATE_NONE,
-                                             "POSITIVE_NEGATIVE_SEPARATE NONE",
+                                             "POSITIVE_NEGATIVE_SEPARATE_NONE",
                                              "Swap Pos/Neg Separate NONE"));
     
 }
