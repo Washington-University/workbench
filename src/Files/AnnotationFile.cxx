@@ -896,7 +896,7 @@ AnnotationFile::removeAnnotationPrivate(Annotation* annotation,
 bool
 AnnotationFile::removeAnnotationsInTab(const int32_t tabIndex)
 {
-    std::vector<AnnotationGroupIterator> groupsToRemove;
+    std::vector<AnnotationGroupIterator> groupsToRemoveIterators;
     
     /*
      * Find annotation group(s) in tab space
@@ -908,19 +908,24 @@ AnnotationFile::removeAnnotationsInTab(const int32_t tabIndex)
         QSharedPointer<AnnotationGroup>& group = *groupIter;
         if (group->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
             if (group->getTabOrWindowIndex() == tabIndex) {
-                groupsToRemove.push_back(groupIter);
+                groupsToRemoveIterators.push_back(groupIter);
             }
         }
     }
     
     /*
      * Remove the groups (shared pointers will do all deleting)
+     * NOTE: MUST delete iterators that are closest to the end first
+     * as any iterators that point to elements at the erased iterator
+     * or beyond are invalidated.
      */
-    for (auto annGroup : groupsToRemove) {
-        m_annotationGroups.erase(annGroup);
+    const int32_t numGroupsToRemove = static_cast<int32_t>(groupsToRemoveIterators.size());
+    for (int32_t i = (numGroupsToRemove - 1); i >= 0; i--) {
+        CaretAssertVectorIndex(groupsToRemoveIterators, i);
+        m_annotationGroups.erase(groupsToRemoveIterators[i]);
     }
     
-    return ( ! groupsToRemove.empty());
+    return ( ! groupsToRemoveIterators.empty());
 }
 
 
