@@ -999,17 +999,17 @@ GiftiTypeFile::getDataForSelector(const MapFileDataSelector& /*mapFileDataSelect
 }
 
 /**
- * Is the give file mapped to the exact same brainordinates as the this file?
- * The two file must map to the exact same structure and same number of vertices
- * in each structure.
+ * Are all brainordinates in this file also in the given file?
+ * That is, the brainordinates are equal to or a subset of the brainordinates
+ * in the given file.
  *
  * @param mapFile
- *     The other map file.
+ *     The given map file.
  * @return
- *     True if files map to same brainordinates, else false.
+ *     Match status.
  */
-bool
-GiftiTypeFile::isMappedToSameBrainordinates(const CaretMappableDataFile* mapFile) const
+CaretMappableDataFile::BrainordinateMappingMatch
+GiftiTypeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const
 {
     bool giftiFlag = false;
     CaretAssert(mapFile);
@@ -1079,11 +1079,11 @@ GiftiTypeFile::isMappedToSameBrainordinates(const CaretMappableDataFile* mapFile
         CaretAssert(gtf);
         if ((this->getNumberOfNodes() == gtf->getNumberOfNodes())
             && (this->getStructure() == gtf->getStructure())) {
-            return true;
+            return BrainordinateMappingMatch::EQUAL;
         }
     }
     
-    return false;
+    return BrainordinateMappingMatch::NO;
 }
 
 

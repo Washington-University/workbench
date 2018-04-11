@@ -1932,19 +1932,19 @@ CiftiFiberTrajectoryFile::getDataForSelector(const MapFileDataSelector& /*mapFil
 }
 
 /**
- * Is the give file mapped to the exact same brainordinates as the this file?
- * The two file must map to the exact same structure and same number of vertices
- * in each structure.
+ * Are all brainordinates in this file also in the given file?
+ * That is, the brainordinates are equal to or a subset of the brainordinates
+ * in the given file.
  *
  * @param mapFile
- *     The other map file.
+ *     The given map file.
  * @return
- *     True if files map to same brainordinates, else false.
+ *     True if brainordinates in this file are subset or equal to the given file, else false.
  */
-bool
-CiftiFiberTrajectoryFile::isMappedToSameBrainordinates(const CaretMappableDataFile* /*mapFile*/) const
+CaretMappableDataFile::BrainordinateMappingMatch
+CiftiFiberTrajectoryFile::getBrainordinateMappingMatch(const CaretMappableDataFile* /*mapFile*/) const
 {
-    return false;
+    return BrainordinateMappingMatch::NO;
 }
 
 

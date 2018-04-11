@@ -466,7 +466,7 @@ namespace caret {
         virtual void getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
                                         std::vector<float>& dataOut) const override;
         
-        virtual bool isMappedToSameBrainordinates(const CaretMappableDataFile* mapFile) const override;
+        virtual BrainordinateMappingMatch getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const override;
         
     private:
         
@@ -585,6 +585,9 @@ namespace caret {
             
             void setName(const AString& name);
             
+            bool getThresholdData(const CaretMappableDataFile* threshMapFile,
+                                  const int32_t threshMapIndex,
+                                  std::vector<float>& thresholdData);
             
             /** CIFTI file containing the map */
             CiftiMappableDataFile* m_ciftiMappableDataFile;

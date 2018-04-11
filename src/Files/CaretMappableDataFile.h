@@ -61,6 +61,18 @@ namespace caret {
     class CaretMappableDataFile : public CaretDataFile {
         
     public:
+        /**
+         * Result for brainordinate mapping match
+         */
+        enum class BrainordinateMappingMatch {
+            /** Both files map to exact same brainordinates */
+            EQUAL,
+            /** File do not match to same brainordinates */
+            NO,
+            /** File matches to a subset of the other file's brainordinates **/
+            SUBSET
+        };
+        
         CaretMappableDataFile(const DataFileTypeEnum::Enum dataFileType);
         
         virtual ~CaretMappableDataFile();
@@ -486,16 +498,16 @@ namespace caret {
         CaretMappableDataFileAndMapSelectionModel* getMapThresholdFileSelectionModel(const int32_t mapIndex);
         
         /**
-         * Is the give file mapped to the exact same brainordinates as the this file?
-         * The two file must map to the exact same structure and same number of vertices
-         * in each structure.
+         * Are all brainordinates in this file also in the given file?  
+         * That is, the brainordinates are equal to or a subset of the brainordinates
+         * in the given file.
          *
          * @param mapFile
-         *     The other map file.
+         *     The given map file.
          * @return 
-         *     True if files map to same brainordinates, else false.
+         *     Match status.
          */
-        virtual bool isMappedToSameBrainordinates(const CaretMappableDataFile* mapFile) const = 0;
+        virtual BrainordinateMappingMatch getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const = 0;
         
     protected:
         CaretMappableDataFile(const CaretMappableDataFile&);

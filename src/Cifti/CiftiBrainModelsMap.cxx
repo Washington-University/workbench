@@ -474,6 +474,39 @@ bool CiftiBrainModelsMap::approximateMatch(const CiftiMappingType& rhs, QString*
     return true;
 }
 
+/**
+ * @Return EQUAL if 'this' and 'rhs' contain the same models
+ *         SUBSET if each model in 'this' is contained in 'rhs' and 'rhs' contains models not in 'this'
+ *         NO if 'this' contains a model not in 'rhs'
+ */
+CiftiBrainModelsMap::MatchResult CiftiBrainModelsMap::testMatch(const CiftiMappingType& rhs) const
+{
+    if (rhs.getType() != getType()) return CiftiBrainModelsMap::MatchResult::NO;
+    const CiftiBrainModelsMap& myrhs = dynamic_cast<const CiftiBrainModelsMap&>(rhs);
+    CaretAssert(!m_ignoreVolSpace && !myrhs.m_ignoreVolSpace);//these should only be true while in the process of parsing cifti-1, never otherwise
+    if (m_haveVolumeSpace
+        && ( ! myrhs.m_haveVolumeSpace)) return CiftiBrainModelsMap::MatchResult::NO;
+    if (m_haveVolumeSpace && (m_volSpace != myrhs.m_volSpace)) return CiftiBrainModelsMap::MatchResult::NO;
+
+    for (const auto& modelInfo : m_modelsInfo) {
+        bool matched = false;
+        for (const auto& rhsModelInfo : myrhs.m_modelsInfo) {
+            if (modelInfo == rhsModelInfo) {
+                matched = true;
+                break;
+            }
+        }        
+        if (! matched) {
+            return CiftiBrainModelsMap::MatchResult::NO;
+        }
+    }
+    
+    if (m_modelsInfo.size() == myrhs.m_modelsInfo.size()) {
+        return CiftiBrainModelsMap::MatchResult::EQUAL;
+    }
+    return CiftiBrainModelsMap::MatchResult::SUBSET;
+}
+
 bool CiftiBrainModelsMap::BrainModelPriv::operator==(const BrainModelPriv& rhs) const
 {
     if (m_brainStructure != rhs.m_brainStructure) return false;

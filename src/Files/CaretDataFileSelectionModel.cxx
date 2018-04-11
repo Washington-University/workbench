@@ -325,8 +325,15 @@ CaretDataFileSelectionModel::getAvailableFiles() const
             
             for (auto mf : mapFiles) {
                 if (m_mappableDataFile != mf) {
-                    if (m_mappableDataFile->isMappedToSameBrainordinates(mf)) {
-                        caretDataFiles.push_back(mf);
+                    switch (m_mappableDataFile->getBrainordinateMappingMatch(mf)) {
+                        case CaretMappableDataFile::BrainordinateMappingMatch::EQUAL:
+                            caretDataFiles.push_back(mf);
+                            break;
+                        case CaretMappableDataFile::BrainordinateMappingMatch::NO:
+                            break;
+                        case CaretMappableDataFile::BrainordinateMappingMatch::SUBSET:
+                            caretDataFiles.push_back(mf);
+                            break;
                     }
                 }
             }

@@ -6996,83 +6996,50 @@ CiftiMappableDataFile::getBrainordinateMapping() const
     }
     
     return m_brainordinateMapping.get();
-    
-    
-//    if (m_brainordinateMappingCachedFlag) {
-//        return m_brainordinateMapping.get();
-//    }
-//    
-//    m_brainordinateMappingCachedFlag = true;
-//    
-//    if (m_dataMappingDirectionForCiftiXML == S_CIFTI_XML_ALONG_INVALID) {
-//        return NULL;
-//    }
-//    
-//    if ( ! m_brainordinateMapping) {
-//        m_brainordinateMapping.reset(invalidBrainModelsMapPointer);
-//        std::cout << "Smart pointer valid after RESET WITH NULL " << ((m_brainordinateMapping.get() == invalidBrainModelsMapPointer) ? "Yes" : "No") << std::endl;
-//        const CiftiXML& myXML = m_ciftiFile->getCiftiXML();
-//        if (myXML.getMappingType(m_dataMappingDirectionForCiftiXML) == CiftiMappingType::BRAIN_MODELS) {
-//            /*
-//             * Cache a COPY of the CiftiBrainModelsMap to avoid calling CiftiFile::getCiftiXML() many times
-//             */
-//            m_brainordinateMapping.reset(new CiftiBrainModelsMap(myXML.getBrainModelsMap(m_dataMappingDirectionForCiftiXML)));
-//        }
-//        else {
-//            m_brainordinateMapping.reset(invalidBrainModelsMapPointer);
-//        }
-//    }
-//    
-//    const CiftiBrainModelsMap* ptr = m_brainordinateMapping.get();
-//    if (ptr == invalidBrainModelsMapPointer) {
-//        return NULL;
-//    }
-//    
-//    return ptr;
 }
 
 /**
- * Is the give file mapped to the exact same brainordinates as the this file?
- * The two file must map to the exact same structure and same number of vertices
- * in each structure.
+ * Are all brainordinates in this file also in the given file?
+ * That is, the brainordinates are equal to or a subset of the brainordinates
+ * in the given file.
  *
  * @param mapFile
- *     The other map file.
+ *     The given map file.
  * @return
- *     True if files map to same brainordinates, else false.
+ *     Match status.
  */
-bool
-CiftiMappableDataFile::isMappedToSameBrainordinates(const CaretMappableDataFile* mapFile) const
+CaretMappableDataFile::BrainordinateMappingMatch
+CiftiMappableDataFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const
 {
     CaretAssert(mapFile);
+    if (this == mapFile) {
+        return BrainordinateMappingMatch::EQUAL;
+    }
+    
     const CiftiMappableDataFile* otherCiftiFile = dynamic_cast<const CiftiMappableDataFile*>(mapFile);
     if (otherCiftiFile == NULL) {
-        return false;
+        return BrainordinateMappingMatch::NO;
     }
     
     const CiftiBrainModelsMap* myBrainMap = getBrainordinateMapping();
     if (myBrainMap != NULL) {
         const CiftiBrainModelsMap* otherBrainMap = otherCiftiFile->getBrainordinateMapping();
         if (otherBrainMap != NULL) {
-            if (*myBrainMap == *otherBrainMap) {
-                return true;
+            switch (myBrainMap->testMatch(*otherBrainMap)) {
+                case CiftiBrainModelsMap::MatchResult::EQUAL:
+                    return BrainordinateMappingMatch::EQUAL;
+                    break;
+                case CiftiBrainModelsMap::MatchResult::NO:
+                    return BrainordinateMappingMatch::NO;
+                    break;
+                case CiftiBrainModelsMap::MatchResult::SUBSET:
+                    return BrainordinateMappingMatch::SUBSET;
+                    break;
             }
         }
     }
-    return false;
     
-//    const CiftiXML& myXML = m_ciftiFile->getCiftiXML();
-//    const CiftiXML& otherXML = otherCiftiFile->getCiftiXML();
-//    if ((myXML.getMappingType(m_dataMappingDirectionForCiftiXML) == CiftiMappingType::BRAIN_MODELS)
-//        && (otherXML.getMappingType(otherCiftiFile->m_dataMappingDirectionForCiftiXML) == CiftiMappingType::BRAIN_MODELS)) {
-//        const CiftiBrainModelsMap& myMap = myXML.getBrainModelsMap(m_dataMappingDirectionForCiftiXML);
-//        const CiftiBrainModelsMap& otherMap = otherXML.getBrainModelsMap(otherCiftiFile->m_dataMappingDirectionForCiftiXML);
-//        if (myMap == otherMap) {
-//            return true;
-//        }
-//    }
-//    
-//    return false;
+    return BrainordinateMappingMatch::NO;
 }
 
 
@@ -7532,6 +7499,88 @@ CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const int32_t nu
 }
 
 /**
+ * Get the thresholding data from the given thresholding file in a vector that
+ * has the same brainordinate mapping as this file.
+ *
+ * @param threshMapFile
+ *     The thresholding file.
+ * @param threshMapIndex
+ *     The map index in the thresholding file.
+ * @param thresholdDataOut
+ *     Output containing data for thresholding a map in this file.
+ */
+bool
+CiftiMappableDataFile::MapContent::getThresholdData(const CaretMappableDataFile* threshMapFile,
+                                                    const int32_t threshMapIndex,
+                                                    std::vector<float>& thresholdDataOut)
+{
+    CaretAssert(threshMapFile);
+    CaretAssert(threshMapIndex >= 0);
+    PaletteColorMapping* thresholdPaletteColorMapping = const_cast<PaletteColorMapping*>(threshMapFile->getMapPaletteColorMapping(threshMapIndex));
+    CaretAssert(thresholdPaletteColorMapping);
+    const CiftiMappableDataFile* thresholdCiftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(threshMapFile);
+    CaretAssert(thresholdCiftiMapFile);
+    
+    thresholdDataOut.resize(m_dataCount);
+    
+    switch (m_ciftiMappableDataFile->getBrainordinateMappingMatch(threshMapFile)) {
+        case BrainordinateMappingMatch::EQUAL:
+            thresholdCiftiMapFile->getMapData(threshMapIndex,
+                                              thresholdDataOut);
+            break;
+        case BrainordinateMappingMatch::NO:
+            CaretAssert(0); /* should never happen */
+            break;
+        case BrainordinateMappingMatch::SUBSET:
+        {
+            /*
+             * Since this file is a "subset" of the other file, will need to
+             * data using the structures in each file.
+             */
+            std::vector<float> thresholdingFileMapData;
+            thresholdCiftiMapFile->getMapData(threshMapIndex, thresholdingFileMapData);
+            
+            const CiftiBrainModelsMap* threshBrainMap = thresholdCiftiMapFile->getBrainordinateMapping();
+            CaretAssert(threshBrainMap);
+            const CiftiBrainModelsMap* dataBrainMap = m_ciftiMappableDataFile->getBrainordinateMapping();
+            CaretAssert(dataBrainMap);
+            
+            const std::vector<CiftiBrainModelsMap::ModelInfo>& dataModelsMap   = dataBrainMap->getModelInfo();
+            const std::vector<CiftiBrainModelsMap::ModelInfo>& threshModelsMap = threshBrainMap->getModelInfo();
+            for (const auto& dataModelsInfo : dataModelsMap) {
+                const StructureEnum::Enum structure = dataModelsInfo.m_structure;
+                for (const auto& threshModelsInfo : threshModelsMap) {
+                    if (structure == threshModelsInfo.m_structure) {
+                        CaretAssert(dataModelsInfo.m_indexCount == threshModelsInfo.m_indexCount);
+                        CaretAssertVectorIndex(thresholdingFileMapData, (threshModelsInfo.m_indexStart + threshModelsInfo.m_indexCount) - 1);
+                        CaretAssertVectorIndex(thresholdDataOut, (dataModelsInfo.m_indexStart + dataModelsInfo.m_indexCount) - 1);
+                        std::copy_n(&thresholdingFileMapData[threshModelsInfo.m_indexStart],
+                                    threshModelsInfo.m_indexCount,
+                                    &thresholdDataOut[dataModelsInfo.m_indexStart]);
+                        break;
+                    }
+                }
+            }
+//            for (const auto& dataModelsInfo : dataModelsMap) {
+//                switch (dataModelsInfo.m_type) {
+//                    case CiftiBrainModelsMap::SURFACE:
+//                    {
+//                        const std::vector<CiftiBrainModelsMap::SurfaceMap>& dataSurfMap = dataBrainMap->getSurfaceMap(dataModelsInfo.m_structure);
+//                        const std::vector<CiftiBrainModelsMap::SurfaceMap>& threshSurfMap = threshBrainMap->getSurfaceMap(dataModelsInfo.m_structure);
+//                    }
+//                        break;
+//                    case CiftiBrainModelsMap::VOXELS:
+//                        break;
+//                }
+//            }
+        }
+            break;
+    }
+    
+    return true;
+}
+
+/**
  * Update coloring for this map.  If the paletteFile is NOT NULL,
  * color using a palette; otherwise, color with label table.
  *
@@ -7541,7 +7590,7 @@ CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const int32_t nu
  *    Fast statistics used for palette coloring.  While map content contains
  *    a fast statistics member, it is calculated on the data within the map.
  *    However, some files need the statistics calculated on the entire file
- *    so that a particular data value from one map is colored exactly the 
+ *    so that a particular data value from one map is colored exactly the
  *    same as the particular data value in another map (the user may have
  *    a min/max coloring selected and the two maps may a have different
  *    min/max values).
@@ -7596,26 +7645,74 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
                 const CaretMappableDataFileAndMapSelectionModel* threshFileModel = m_ciftiMappableDataFile->getMapThresholdFileSelectionModel(m_mapIndex);
                 CaretAssert(threshFileModel);
                 const CaretMappableDataFile* threshMapFile = threshFileModel->getSelectedFile();
-                const int32_t threshMapIndex = threshFileModel->getSelectedMapIndex();
-                CaretAssert(threshMapFile);
-                CaretAssert(threshMapIndex >= 0);
-                PaletteColorMapping* thresholdPaletteColorMapping = const_cast<PaletteColorMapping*>(threshMapFile->getMapPaletteColorMapping(threshMapIndex));
-                CaretAssert(thresholdPaletteColorMapping);
-                const CiftiMappableDataFile* thresholdCiftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(threshMapFile);
-                CaretAssert(thresholdCiftiMapFile);
-                
-                std::vector<float> thresholdData;
-                thresholdCiftiMapFile->getMapData(threshMapIndex,
-                                                  thresholdData);
-
-                CaretAssert(data.size() == thresholdData.size());
-                NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
-                                                              m_paletteColorMapping,
-                                                              &data[0],
-                                                              thresholdPaletteColorMapping,
-                                                              &thresholdData[0],
-                                                              m_dataCount,
-                                                              &m_rgba[0]);
+                if (threshMapFile != NULL) {
+                    const int32_t threshMapIndex = threshFileModel->getSelectedMapIndex();
+                    std::vector<float> thresholdData;
+                    getThresholdData(threshMapFile,
+                                     threshMapIndex,
+                                     thresholdData);
+                    CaretAssert(threshMapFile);
+                    CaretAssert(threshMapIndex >= 0);
+                    PaletteColorMapping* thresholdPaletteColorMapping = const_cast<PaletteColorMapping*>(threshMapFile->getMapPaletteColorMapping(threshMapIndex));
+                    CaretAssert(thresholdPaletteColorMapping);
+//                    const CiftiMappableDataFile* thresholdCiftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(threshMapFile);
+//                    CaretAssert(thresholdCiftiMapFile);
+//                    
+//                    std::vector<float> thresholdData(data.size(), 0.0f);
+//                    switch (m_ciftiMappableDataFile->getBrainordinateMappingMatch(threshMapFile)) {
+//                        case BrainordinateMappingMatch::EQUAL:
+//                            thresholdCiftiMapFile->getMapData(threshMapIndex,
+//                                                              thresholdData);
+//                            break;
+//                        case BrainordinateMappingMatch::NO:
+//                            CaretAssert(0); /* should never happen */
+//                            break;
+//                        case BrainordinateMappingMatch::SUBSET:
+//                        {
+//                            std::vector<float> td;
+//                            thresholdCiftiMapFile->getMapData(threshMapIndex, td);
+//                            
+//                            const CiftiBrainModelsMap* threshBrainMap = thresholdCiftiMapFile->getBrainordinateMapping();
+//                            CaretAssert(threshBrainMap);
+//                            const CiftiBrainModelsMap* dataBrainMap = m_ciftiMappableDataFile->getBrainordinateMapping();
+//                            CaretAssert(dataBrainMap);
+//                            
+//                            const std::vector<CiftiBrainModelsMap::ModelInfo>& dataModelsMap = dataBrainMap->getModelInfo();
+//                            const std::vector<CiftiBrainModelsMap::ModelInfo>& threshModelsMap = threshBrainMap->getModelInfo();
+//                            for (const auto& dataModelsInfo : dataModelsMap) {
+//                                switch (dataModelsInfo.m_type) {
+//                                    case CiftiBrainModelsMap::SURFACE:
+//                                    {
+//                                        const std::vector<CiftiBrainModelsMap::SurfaceMap>& dataSurfMap = dataBrainMap->getSurfaceMap(dataModelsInfo.m_structure);
+//                                        const std::vector<CiftiBrainModelsMap::SurfaceMap>& dataThreshMap = dataBrainMap->getSurfaceMap(dataModelsInfo.m_structure);
+//                                    }
+//                                        break;
+//                                    case CiftiBrainModelsMap::VOXELS:
+//                                        break;
+//                                }
+//                            }
+//                        }
+//                            break;
+//                    }
+//                    
+                    CaretAssert(data.size() == thresholdData.size());
+                    NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
+                                                                  m_paletteColorMapping,
+                                                                  &data[0],
+                                                                  thresholdPaletteColorMapping,
+                                                                  &thresholdData[0],
+                                                                  m_dataCount,
+                                                                  &m_rgba[0]);
+                }
+                else {
+                    NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
+                                                                  m_paletteColorMapping,
+                                                                  &data[0],
+                                                                  m_paletteColorMapping,
+                                                                  &data[0],
+                                                                  m_dataCount,
+                                                                  &m_rgba[0]);
+                }
             }
             else {
                 NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,

@@ -41,6 +41,12 @@ namespace caret
             SURFACE,
             VOXELS
         };
+        enum class MatchResult
+        {
+            EQUAL,
+            NO,
+            SUBSET
+        };
         struct SurfaceMap
         {
             int64_t m_ciftiIndex;
@@ -94,6 +100,7 @@ namespace caret
         int64_t getLength() const;
         bool operator==(const CiftiMappingType& rhs) const;
         bool approximateMatch(const CiftiMappingType& rhs, QString* explanation = NULL) const;
+        MatchResult testMatch(const CiftiMappingType& rhs) const;
         void readXML1(QXmlStreamReader& xml);
         void readXML2(QXmlStreamReader& xml);
         void writeXML1(QXmlStreamWriter& xml) const;
