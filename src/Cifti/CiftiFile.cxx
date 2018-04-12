@@ -530,7 +530,13 @@ namespace
             case 3000://unknown
                 if (!filename.contains(QRegExp("\\.[^.]*\\.nii$")))
                 {
-                    CaretLogWarning("cifti file of nonstandard mapping combination '" + filename + "' should be saved ending in .<something>.nii, see wb_command -cifti-help");
+                    CaretLogWarning("cifti file of nonstandard mapping combination '" + filename + "' should be saved ending in .<something>.nii, "
+                                    + "but not an already used extension (don't use dtseries, dscalar, etc).");
+                }
+                if (filename.contains(QRegExp("\\.(dconn|dtseries|pconn|ptseries|dscalar|dfan|fiberTEMP|dlabel|pscalar|pdconn|dpconn|pconnseries|pconnscalar)\\.nii$")))
+                {
+                    CaretLogWarning("cifti file of nonstandard mapping combination '" + filename + "' should NOT be saved using an already-used cifti extension, "
+                                    + "please choose a different, reasonable cifti extension ending in .<something>.nii");
                 }
                 break;
             case 3001:
