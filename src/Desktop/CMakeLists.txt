@@ -125,9 +125,9 @@ OperationsBase
 ${Qwt_LIBRARIES}
 OSMesaDummy
 Brain
+Files
 Graphics
 ${FTGL_LIBRARIES}
-Files
 Annotations
 Charting
 Palette

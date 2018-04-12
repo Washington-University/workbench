@@ -93,9 +93,9 @@ Operations
 Algorithms
 OperationsBase
 Brain
+Files
 Graphics
 ${FTGL_LIBRARIES}
-Files
 Annotations
 Palette
 Gifti
