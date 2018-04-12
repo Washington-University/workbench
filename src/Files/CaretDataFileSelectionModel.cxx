@@ -323,18 +323,21 @@ CaretDataFileSelectionModel::getAvailableFiles() const
             std::vector<CaretMappableDataFile*> mapFiles;
             mapFilesGetEvent.getAllFiles(mapFiles);
             
+            /*
+             * Allow the same file to be included since this is used
+             * by thresholding and may want to threshold with a map
+             * in the same file.
+             */
             for (auto mf : mapFiles) {
-                if (m_mappableDataFile != mf) {
-                    switch (m_mappableDataFile->getBrainordinateMappingMatch(mf)) {
-                        case CaretMappableDataFile::BrainordinateMappingMatch::EQUAL:
-                            caretDataFiles.push_back(mf);
-                            break;
-                        case CaretMappableDataFile::BrainordinateMappingMatch::NO:
-                            break;
-                        case CaretMappableDataFile::BrainordinateMappingMatch::SUBSET:
-                            caretDataFiles.push_back(mf);
-                            break;
-                    }
+                switch (m_mappableDataFile->getBrainordinateMappingMatch(mf)) {
+                    case CaretMappableDataFile::BrainordinateMappingMatch::EQUAL:
+                        caretDataFiles.push_back(mf);
+                        break;
+                    case CaretMappableDataFile::BrainordinateMappingMatch::NO:
+                        break;
+                    case CaretMappableDataFile::BrainordinateMappingMatch::SUBSET:
+                        caretDataFiles.push_back(mf);
+                        break;
                 }
             }
         }

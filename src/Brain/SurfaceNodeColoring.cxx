@@ -818,14 +818,51 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
         return false;
     }
     
-    const PaletteColorMapping* paletteColorMapping = metricFile->getPaletteColorMapping(displayColumn);
+    PaletteColorMapping* paletteColorMapping = metricFile->getPaletteColorMapping(displayColumn);
+    
+    bool useThreshMapFileFlag = false;
+    switch (paletteColorMapping->getThresholdType()) {
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+            useThreshMapFileFlag = true;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+            break;
+    }
+    
+    const float* metricDisplayData = metricFile->getValuePointerForColumn(displayColumn);
+    float* metricThresholdData = const_cast<float*>(metricDisplayData);
+    PaletteColorMapping* thresholdPaletteColorMapping = paletteColorMapping;
+    
+    if (useThreshMapFileFlag) {
+        const CaretMappableDataFileAndMapSelectionModel* threshFileModel = metricFile->getMapThresholdFileSelectionModel(displayColumn);
+        CaretAssert(threshFileModel);
+        const CaretMappableDataFile* threshMapFile = threshFileModel->getSelectedFile();
+        if (threshMapFile != NULL) {
+            const MetricFile* threshMetricFile = dynamic_cast<const MetricFile*>(threshMapFile);
+            if (threshMetricFile != NULL) {
+                const int32_t threshMapIndex = threshFileModel->getSelectedMapIndex();
+                if ((threshMapIndex >= 0)
+                    && (threshMapIndex < threshMapFile->getNumberOfMaps())) {
+                    metricThresholdData = const_cast<float*>(threshMetricFile->getValuePointerForColumn(threshMapIndex));
+                    PaletteColorMapping* thresholdPaletteColorMapping = const_cast<PaletteColorMapping*>(threshMapFile->getMapPaletteColorMapping(threshMapIndex));
+                    CaretAssert(thresholdPaletteColorMapping);
+                }
+            }
+        }
+    }
     
     /*
      * Invalidate all coloring.
      */
     for (int32_t i = 0; i < numberOfNodes; i++) {
         rgbv[i*4+3] = 0.0;
-    }   
+    }
     
     /*
      * Get min/max ranges.
@@ -834,8 +871,6 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
     if (thresholdColumn < 0) {
         thresholdColumn = displayColumn;
     }
-    const float* metricDisplayData = metricFile->getValuePointerForColumn(displayColumn);
-    const float* metricThresholdData = metricFile->getValuePointerForColumn(thresholdColumn);
     
     
     FastStatistics* statistics = NULL;
@@ -853,7 +888,7 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
         NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
                                                       paletteColorMapping, 
                                                       metricDisplayData,
-                                                      paletteColorMapping,
+                                                      thresholdPaletteColorMapping,
                                                       metricThresholdData, 
                                                       numberOfNodes, 
                                                       rgbv);
