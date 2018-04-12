@@ -37,9 +37,7 @@ namespace caret {
         
         virtual ~VolumeFileVoxelColorizer();
         
-        void assignVoxelColorsForMap(const int32_t mapIndex,
-                                     const VolumeFile* thresholdVolume,
-                                     const int32_t thresholdVolumeMapIndex);
+        void assignVoxelColorsForMap(const int32_t mapIndex);
         
         int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                             const int64_t firstVoxelIJK[3],

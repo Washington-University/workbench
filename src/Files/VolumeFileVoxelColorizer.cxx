@@ -87,18 +87,9 @@ VolumeFileVoxelColorizer::~VolumeFileVoxelColorizer()
  *
  * @param mapIndex
  *     Index of map.
- * @param palette  
- *     Palette used for scalar color assignment.  May be NULL for data
- *     not mapped with a palette.
- * @param thresholdVolume
- *     Volume that contains thresholding (if NULL indicates no thresholding).
- * @param thresholdVolumeMapIndex
- *     Index of map in thresholding volume.
  */
 void
-VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
-                                                  const VolumeFile* thresholdVolume,
-                                                  const int32_t /*thresholdVolumeMapIndex*/)
+VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex)
 {
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
     
@@ -110,10 +101,38 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
      */
     const float* mapDataPointer = m_volumeFile->getFrame(mapIndex);
     
+    VolumeFile* thresholdVolume = NULL;
+    int32_t thresholdVolumeMapIndex   = -1;
+    switch (m_volumeFile->getMapPaletteColorMapping(mapIndex)->getThresholdType()) {
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+        {
+            CaretMappableDataFileAndMapSelectionModel* threshSel = m_volumeFile->getMapThresholdFileSelectionModel(mapIndex);
+            CaretMappableDataFile* mapFile = threshSel->getSelectedFile();
+            if (mapFile != NULL) {
+                thresholdVolume = dynamic_cast<VolumeFile*>(mapFile);
+                CaretAssert(thresholdVolume);
+                thresholdVolumeMapIndex = threshSel->getSelectedMapIndex();
+            }
+        }
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+            /*
+             * Thresholding with 'self'
+             */
+            thresholdVolume = m_volumeFile;
+            thresholdVolumeMapIndex = mapIndex;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+            break;
+    }
+    
     /*
      * Get access to threshold data
      */
-    //float* thresholdDataPointer = NULL;
     bool ignoreThresholding = true;
     if (thresholdVolume != NULL) {
         int64_t threshI, threshJ, threshK, threshMapCount, threshNumberOfComponents;
@@ -130,12 +149,15 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
                            + ") dimensions do not match "
                            + m_volumeFile->getFileNameNoPath());
         }
+        else if ((thresholdVolumeMapIndex < 0)
+                 || (thresholdVolumeMapIndex >= thresholdVolume->getNumberOfMaps())) {
+            CaretLogSevere("Threshold volume ("
+                           + thresholdVolume->getFileNameNoPath()
+                           + ") map index="
+                           + AString::number(thresholdVolumeMapIndex)
+                           + " is invalid");
+        }
         else {
-            /*
-             * Can use same voxel counter per map since volumes are
-             * identical dimensions;
-             */
-            //thresholdDataPointer = thresholdVolume->m_data + m_voxelCountPerMap;//TSC: this is unused, and can easily be an invalid pointer - commenting out for unused warning
             ignoreThresholding = false;
         }
     }
@@ -156,12 +178,18 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
             }
             CaretAssert(statistics);
             
+            const float* thresholdDataPointer = (ignoreThresholding
+                                                 ? mapDataPointer
+                                                 : thresholdVolume->getFrame(thresholdVolumeMapIndex));
+            const PaletteColorMapping* thresholdPaletteColorMapping = (ignoreThresholding
+                                                                       ? m_volumeFile->getMapPaletteColorMapping(mapIndex)
+                                                                       : thresholdVolume->getMapPaletteColorMapping(thresholdVolumeMapIndex));
 
-            NodeAndVoxelColoring::colorScalarsWithPalette(statistics, //m_volumeFile->getMapFastStatistics(mapIndex),
+            NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
                                                           m_volumeFile->getMapPaletteColorMapping(mapIndex),
                                                           mapDataPointer,
-                                                          m_volumeFile->getMapPaletteColorMapping(mapIndex),
-                                                          mapDataPointer,
+                                                          thresholdPaletteColorMapping,
+                                                          thresholdDataPointer,
                                                           m_voxelCountPerMap,
                                                           m_mapRGBA[mapIndex],
                                                           ignoreThresholding);

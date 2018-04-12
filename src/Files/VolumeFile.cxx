@@ -1422,9 +1422,7 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex)
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
     CaretAssert(m_voxelColorizer);
     
-    m_voxelColorizer->assignVoxelColorsForMap(mapIndex,
-                                              this,
-                                              mapIndex);
+    m_voxelColorizer->assignVoxelColorsForMap(mapIndex);
     
     invalidateHistogramChartColoring();
 }

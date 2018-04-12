@@ -7269,6 +7269,14 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
             cmf->updateScalarColoringForMap(mapIndex);
         }
     }
+    
+    /*
+     * Need to color all volume files since a thresholded volume may
+     * not get loaded until after its "thresholdee"
+     */
+    for (auto vf : m_volumeFiles) {
+        vf->updateScalarColoringForAllMaps();
+    }
 
     /*
      * Restore all models
