@@ -850,7 +850,7 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
                 if ((threshMapIndex >= 0)
                     && (threshMapIndex < threshMapFile->getNumberOfMaps())) {
                     metricThresholdData = const_cast<float*>(threshMetricFile->getValuePointerForColumn(threshMapIndex));
-                    PaletteColorMapping* thresholdPaletteColorMapping = const_cast<PaletteColorMapping*>(threshMapFile->getMapPaletteColorMapping(threshMapIndex));
+                    thresholdPaletteColorMapping = const_cast<PaletteColorMapping*>(threshMapFile->getMapPaletteColorMapping(threshMapIndex));
                     CaretAssert(thresholdPaletteColorMapping);
                 }
             }

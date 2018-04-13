@@ -647,10 +647,9 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
             
             const SceneObjectMapIntegerKey* sceneThreshMap = sceneClass->getMapIntegerKey("m_mapThresholdFileSelectionModels");
             if (sceneThreshMap != NULL) {
-                const int32_t numMaps = getNumberOfMaps();
                 const std::vector<int32_t> keys = sceneThreshMap->getKeys();
                 for (auto mapIndex : keys) {
-                    CaretAssert(mapIndex < numMaps);
+                    CaretAssert(mapIndex < getNumberOfMaps());
                     const SceneClass* threshSel = dynamic_cast<const SceneClass*>(sceneThreshMap->getObject(mapIndex));
                     CaretAssert(threshSel);
                     getMapThresholdFileSelectionModel(mapIndex)->restoreFromScene(sceneAttributes,

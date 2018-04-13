@@ -7516,8 +7516,6 @@ CiftiMappableDataFile::MapContent::getThresholdData(const CaretMappableDataFile*
 {
     CaretAssert(threshMapFile);
     CaretAssert(threshMapIndex >= 0);
-    PaletteColorMapping* thresholdPaletteColorMapping = const_cast<PaletteColorMapping*>(threshMapFile->getMapPaletteColorMapping(threshMapIndex));
-    CaretAssert(thresholdPaletteColorMapping);
     const CiftiMappableDataFile* thresholdCiftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(threshMapFile);
     CaretAssert(thresholdCiftiMapFile);
     

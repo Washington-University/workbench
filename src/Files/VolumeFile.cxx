@@ -2252,12 +2252,12 @@ VolumeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) c
 {
     CaretAssert(mapFile);
     if (mapFile->getDataFileType() == DataFileTypeEnum::VOLUME) {
-        const VolumeFile* vf = dynamic_cast<const VolumeFile*>(mapFile);
-        CaretAssert(vf);
+        const VolumeFile* otherVolumeFile = dynamic_cast<const VolumeFile*>(mapFile);
+        CaretAssert(otherVolumeFile);
         
         std::vector<int64_t> myDims, otherDims;
         getDimensions(myDims);
-        getDimensions(otherDims);
+        otherVolumeFile->getDimensions(otherDims);
         
         for (int32_t i = 0; i < 3; i++) {
             CaretAssertVectorIndex(myDims, i);
