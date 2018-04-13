@@ -475,7 +475,7 @@ bool CiftiBrainModelsMap::approximateMatch(const CiftiMappingType& rhs, QString*
 }
 
 /**
- * @Return EQUAL if 'this' and 'rhs' contain the same models
+ * @return EQUAL if 'this' and 'rhs' contain the same models
  *         SUBSET if each model in 'this' is contained in 'rhs' and 'rhs' contains models not in 'this'
  *         NO if 'this' contains a model not in 'rhs'
  */
@@ -502,6 +502,13 @@ CiftiBrainModelsMap::MatchResult CiftiBrainModelsMap::testMatch(const CiftiMappi
     }
     
     if (m_modelsInfo.size() == myrhs.m_modelsInfo.size()) {
+        /* 
+         * A note in the equality operator indicates that models are
+         * sorted by index range so if 'this' and 'rhs' have the
+         * exact same models, they must be equal.  The assertion
+         * will fail if this wrong.
+         */
+        CaretAssert(*this == rhs);
         return CiftiBrainModelsMap::MatchResult::EQUAL;
     }
     return CiftiBrainModelsMap::MatchResult::SUBSET;
