@@ -5437,14 +5437,6 @@ CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapInd
                             CaretAssertVectorIndex(parcels,
                                                    parcelMapIndex);
                             textValueOut = parcels[parcelMapIndex].m_name;
-                            
-                            //                            std::vector<float> mapData;
-                            //                            getMapData(mapIndex, mapData);
-                            //
-                            //                            if (parcelMapIndex < static_cast<int32_t>(mapData.size())) {
-                            //                                textValueOut += (" "
-                            //                                                 + AString::number(mapData[parcelMapIndex]));
-                            //                            }
                         }
                         
                         for (std::vector<int32_t>::const_iterator mapIter = mapIndices.begin();
@@ -7116,7 +7108,6 @@ m_mapIndex(mapIndex)
             switch (ciftiXML.getMappingType(m_readingDirectionForCiftiXML)) {
                 case CiftiMappingType::BRAIN_MODELS:
                 {
-                    //const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(m_readingDirectionForCiftiXML);
                     CaretAssert(0);
                 }
                     break;
@@ -7134,7 +7125,6 @@ m_mapIndex(mapIndex)
                     break;
                 case CiftiMappingType::PARCELS:
                 {
-                    //const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_readingDirectionForCiftiXML);
                     CaretAssert(0);
                 }
                     break;
@@ -7289,7 +7279,6 @@ CiftiMappableDataFile::MapContent::setName(const AString& name)
     switch (ciftiXML.getMappingType(m_readingDirectionForCiftiXML)) {
         case CiftiMappingType::BRAIN_MODELS:
         {
-            //const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(m_readingDirectionForCiftiXML);
             CaretAssert(0);
         }
             break;
@@ -7303,8 +7292,6 @@ CiftiMappableDataFile::MapContent::setName(const AString& name)
             break;
         case CiftiMappingType::PARCELS:
         {
-            //const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_readingDirectionForCiftiXML);
-            //            mapName = map.getMapName(m_mapIndex);
             CaretAssert(0);
         }
             break;
@@ -7559,18 +7546,6 @@ CiftiMappableDataFile::MapContent::getThresholdData(const CaretMappableDataFile*
                     }
                 }
             }
-//            for (const auto& dataModelsInfo : dataModelsMap) {
-//                switch (dataModelsInfo.m_type) {
-//                    case CiftiBrainModelsMap::SURFACE:
-//                    {
-//                        const std::vector<CiftiBrainModelsMap::SurfaceMap>& dataSurfMap = dataBrainMap->getSurfaceMap(dataModelsInfo.m_structure);
-//                        const std::vector<CiftiBrainModelsMap::SurfaceMap>& threshSurfMap = threshBrainMap->getSurfaceMap(dataModelsInfo.m_structure);
-//                    }
-//                        break;
-//                    case CiftiBrainModelsMap::VOXELS:
-//                        break;
-//                }
-//            }
         }
             break;
     }
@@ -7653,46 +7628,6 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
                     CaretAssert(threshMapIndex >= 0);
                     PaletteColorMapping* thresholdPaletteColorMapping = const_cast<PaletteColorMapping*>(threshMapFile->getMapPaletteColorMapping(threshMapIndex));
                     CaretAssert(thresholdPaletteColorMapping);
-//                    const CiftiMappableDataFile* thresholdCiftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(threshMapFile);
-//                    CaretAssert(thresholdCiftiMapFile);
-//                    
-//                    std::vector<float> thresholdData(data.size(), 0.0f);
-//                    switch (m_ciftiMappableDataFile->getBrainordinateMappingMatch(threshMapFile)) {
-//                        case BrainordinateMappingMatch::EQUAL:
-//                            thresholdCiftiMapFile->getMapData(threshMapIndex,
-//                                                              thresholdData);
-//                            break;
-//                        case BrainordinateMappingMatch::NO:
-//                            CaretAssert(0); /* should never happen */
-//                            break;
-//                        case BrainordinateMappingMatch::SUBSET:
-//                        {
-//                            std::vector<float> td;
-//                            thresholdCiftiMapFile->getMapData(threshMapIndex, td);
-//                            
-//                            const CiftiBrainModelsMap* threshBrainMap = thresholdCiftiMapFile->getBrainordinateMapping();
-//                            CaretAssert(threshBrainMap);
-//                            const CiftiBrainModelsMap* dataBrainMap = m_ciftiMappableDataFile->getBrainordinateMapping();
-//                            CaretAssert(dataBrainMap);
-//                            
-//                            const std::vector<CiftiBrainModelsMap::ModelInfo>& dataModelsMap = dataBrainMap->getModelInfo();
-//                            const std::vector<CiftiBrainModelsMap::ModelInfo>& threshModelsMap = threshBrainMap->getModelInfo();
-//                            for (const auto& dataModelsInfo : dataModelsMap) {
-//                                switch (dataModelsInfo.m_type) {
-//                                    case CiftiBrainModelsMap::SURFACE:
-//                                    {
-//                                        const std::vector<CiftiBrainModelsMap::SurfaceMap>& dataSurfMap = dataBrainMap->getSurfaceMap(dataModelsInfo.m_structure);
-//                                        const std::vector<CiftiBrainModelsMap::SurfaceMap>& dataThreshMap = dataBrainMap->getSurfaceMap(dataModelsInfo.m_structure);
-//                                    }
-//                                        break;
-//                                    case CiftiBrainModelsMap::VOXELS:
-//                                        break;
-//                                }
-//                            }
-//                        }
-//                            break;
-//                    }
-//                    
                     CaretAssert(data.size() == thresholdData.size());
                     NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics,
                                                                   m_paletteColorMapping,

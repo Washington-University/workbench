@@ -30,7 +30,6 @@
 #include "CaretMappableDataFile.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
-#include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartData.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"

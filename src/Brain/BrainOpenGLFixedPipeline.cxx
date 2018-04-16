@@ -60,7 +60,6 @@
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
-#include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "CaretPreferences.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartableMatrixSeriesInterface.h"

@@ -44,7 +44,6 @@
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
-#include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartMatrixDisplayProperties.h"

@@ -37,7 +37,6 @@
 #include "CaretDataFileSelectionModel.h"
 #include "EnumComboBoxTemplate.h"
 #include "CaretMappableDataFile.h"
-#include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartTwoMatrixDisplayProperties.h"
 #include "EventChartTwoAttributesChanged.h"
 #include "EventGraphicsUpdateAllWindows.h"

@@ -30,7 +30,6 @@
 #include "ChartableLineSeriesBrainordinateInterface.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
-#include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "ChartableLineSeriesRowColumnInterface.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartData.h"
