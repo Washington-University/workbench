@@ -125,13 +125,13 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     QWidget* paletteWidget = this->createPaletteSection();
 
     QWidget* thresholdWidget = this->createThresholdSection();
+    thresholdWidget->setMaximumWidth(paletteWidget->sizeHint().width() + 50);
     
     QWidget* leftWidget = new QWidget();
     QVBoxLayout* leftLayout = new QVBoxLayout(leftWidget);
     this->setLayoutSpacingAndMargins(leftLayout);
     leftLayout->addWidget(thresholdWidget);
     leftLayout->addWidget(paletteWidget);
-//    leftLayout->addStretch();
     
     QVBoxLayout* dataLayout = new QVBoxLayout();
     dataLayout->addWidget(normalizationWidget);
@@ -151,7 +151,6 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     rightLayout->addWidget(histogramWidget, 100);
     rightLayout->addWidget(bottomRightWidget, 0);
     rightWidget->setFixedHeight(leftWidget->sizeHint().height());
-//    rightLayout->addStretch();
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     this->setLayoutSpacingAndMargins(layout);
@@ -701,7 +700,6 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     QWidget* topWidget = new QWidget();
     QHBoxLayout* topLayout = new QHBoxLayout(topWidget);
     topLayout->setContentsMargins(0, 0, 0, 0);
-    //this->setLayoutSpacingAndMargins(topLayout);
     topLayout->addWidget(thresholdTypeLabel);
     topLayout->addWidget(this->thresholdTypeComboBox);
     topLayout->addStretch();
@@ -793,7 +791,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     QObject::connect(m_histogramBarsColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(applyAndUpdate()));
     
-    QLabel* envelopeColorLabel = new QLabel("Envelope");// Color");
+    QLabel* envelopeColorLabel = new QLabel("Envelope");
     if (colorBarIconValid) {
         m_histogramEnvelopeColorComboBox = new CaretColorEnumComboBox("Palette",
                                                                   colorBarIcon,
@@ -847,7 +845,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     /*
      * Statistics
      */
-    const AString blankText(""); //"                ");
+    const AString blankText("");
     this->statisticsMinimumValueLabel = new QLabel(blankText);
     this->statisticsMinimumValueLabel->setAlignment(Qt::AlignRight);
     this->statisticsMaximumValueLabel = new QLabel(blankText);
@@ -871,7 +869,6 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     statisticsLayout->addWidget(this->statisticsMaximumValueLabel, 2, 1);
     statisticsLayout->addWidget(new QLabel("Min"), 3, 0);
     statisticsLayout->addWidget(this->statisticsMinimumValueLabel, 3, 1);
-    //statisticsWidget->setFixedHeight(statisticsWidget->sizeHint().height());
     statisticsLayout->setRowStretch(statisticsLayout->rowCount(), 100);
     
     
@@ -881,7 +878,6 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     layout->addWidget(controlWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
     layout->addWidget(statisticsWidget);
-    //groupBox->setFixedHeight(groupBox->sizeHint().height());
     groupBox->setSizePolicy(QSizePolicy::Minimum,
                             QSizePolicy::Fixed);
     return groupBox;
@@ -895,7 +891,6 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
 QWidget* 
 MapSettingsPaletteColorMappingWidget::createHistogramSection()
 {
-    //this->thresholdPlot = new QwtPlot();
     this->thresholdPlot = new WuQwtPlot();
     QObject::connect(this->thresholdPlot, SIGNAL(contextMenuDisplay(QContextMenuEvent*,
                                                                     float,
@@ -1286,10 +1281,10 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     paletteSelectionLayout->setColumnStretch(2, 100);
     this->setLayoutSpacingAndMargins(paletteSelectionLayout);
     paletteSelectionLayout->addWidget(paletteNameLabel, 0, 0);
-    paletteSelectionLayout->addWidget(this->paletteNameComboBox, 0, 1); //, Qt::AlignLeft);
+    paletteSelectionLayout->addWidget(this->paletteNameComboBox, 0, 1);
     paletteSelectionLayout->addWidget(this->interpolateColorsCheckBox, 0, 2, 2, 1, Qt::AlignCenter);
     paletteSelectionLayout->addWidget(invertLabel, 1, 0);
-    paletteSelectionLayout->addWidget(this->invertPaletteModeComboBox->getComboBox(), 1, 1); //, Qt::AlignLeft);
+    paletteSelectionLayout->addWidget(this->invertPaletteModeComboBox->getComboBox(), 1, 1);
     
     paletteSelectionWidget->setFixedHeight(paletteSelectionWidget->sizeHint().height());
     
@@ -1297,10 +1292,10 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     /*
      * Color Mapping
      */
-    this->scaleAutoRadioButton = new QRadioButton("Full"); //Auto Scale");
+    this->scaleAutoRadioButton = new QRadioButton("Full");
     this->scaleAutoAbsolutePercentageRadioButton = new QRadioButton("Abs Pct");
-    this->scaleAutoPercentageRadioButton = new QRadioButton("Percent"); //"Auto Scale Percentage");
-    this->scaleFixedRadioButton = new QRadioButton("Fixed"); //"Fixed Scale");
+    this->scaleAutoPercentageRadioButton = new QRadioButton("Percent");
+    this->scaleFixedRadioButton = new QRadioButton("Fixed");
     
     WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoRadioButton, 
                                           "Map (most negative, zero, most positive) data values to (-1, 0, 0, 1) in palette");
@@ -1320,10 +1315,10 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
                      this, SLOT(applyAndUpdate()));
     
     /*
-     * Spin box width
+     * Spin box width (fixed may have much larger data values)
      */
     const int percentSpinBoxWidth = 75;
-    const int fixedSpinBoxWidth   = 82;  // fixed may have much larger data values
+    const int fixedSpinBoxWidth   = 82;
     /*
      * Percentage mapping 
      */
@@ -1471,10 +1466,6 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     this->scaleNegativeMinimumValueLabel = new QLabel(bigText);
     this->scalePositiveMinimumValueLabel = new QLabel(bigText);
     this->scalePositiveMaximumValueLabel = new QLabel(bigText);
-//    this->scaleNegativeMaximumValueLabel->setSizePolicy(QSizePolicy::Fixed, this->scaleNegativeMaximumValueLabel->sizePolicy().verticalPolicy());
-//    this->scaleNegativeMinimumValueLabel->setSizePolicy(QSizePolicy::Fixed, this->scaleNegativeMinimumValueLabel->sizePolicy().verticalPolicy());
-//    this->scalePositiveMinimumValueLabel->setSizePolicy(QSizePolicy::Fixed, this->scalePositiveMinimumValueLabel->sizePolicy().verticalPolicy());
-//    this->scalePositiveMaximumValueLabel->setSizePolicy(QSizePolicy::Fixed, this->scalePositiveMaximumValueLabel->sizePolicy().verticalPolicy());
     
     /*
      * Layout widgets
@@ -1491,7 +1482,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     colorMappingLayout->addWidget(this->scaleAutoAbsolutePercentageRadioButton, 0, 1, Qt::AlignHCenter);
     colorMappingLayout->addWidget(this->scaleAutoPercentageRadioButton, 0, 2, Qt::AlignHCenter);
     colorMappingLayout->addWidget(this->scaleFixedRadioButton, 0, 3, Qt::AlignHCenter);
-    colorMappingLayout->addWidget(new QLabel("Data"), 0, 4, Qt::AlignHCenter);
+    colorMappingLayout->addWidget(new QLabel("Data"), 0, 4, Qt::AlignRight);
     colorMappingLayout->addWidget(new QLabel("Pos Max"), 1, 0, Qt::AlignRight);
     colorMappingLayout->addWidget(new QLabel("Pos Min"), 2, 0, Qt::AlignRight);
     colorMappingLayout->addWidget(new QLabel("Neg Min"), 3, 0, Qt::AlignRight);
@@ -1532,10 +1523,8 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     WuQtUtilities::setToolTipAndStatusTip(this->displayModeZeroCheckBox, 
                                           "Enable/Disable the display of zero data.\n"
                                           "A value in the range ["
-                                          // JWH 24 April 2015+ AString::number(NodeAndVoxelColoring::SMALL_NEGATIVE, 'f', 6)
                                           + AString::number(PaletteColorMapping::SMALL_NEGATIVE, 'f', 6)
                                           + ", "
-                                          // JWH 24 April 2015+ AString::number(NodeAndVoxelColoring::SMALL_POSITIVE, 'f', 6)
                                           + AString::number(PaletteColorMapping::SMALL_POSITIVE, 'f', 6)
                                           + "]\n"
                                           "is considered to be zero.");
@@ -2041,11 +2030,10 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
      * Get data for this histogram.
      */
     const Histogram* myHist = getHistogram(statistics);
-    //const int64_t* histogram = const_cast<int64_t*>(statistics->getHistogram());
     float minValue, maxValue;
     myHist->getRange(minValue, maxValue);
     const std::vector<float>& displayDataReference = myHist->getHistogramDisplay();
-    std::vector<float> displayData = displayDataReference; // may modify it
+    std::vector<float> displayData = displayDataReference;
     const int64_t numHistogramValues = (int64_t)(displayData.size());
     
     /*
@@ -2093,7 +2081,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                                                       dataValues,
                                                       numDataValues,
                                                       dataRGBA,
-                                                      true); // ignore thresholding
+                                                      true); /* ignore thresholding */
         
         /*
          * If bucket is not colored (zero alpha) set bucket height to zero
@@ -2321,7 +2309,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                 minBox->setVisible(true);
                 
                 QColor minColor(100, 100, 255, 160);
-                minBox->setBrush(QBrush(minColor)); //, Qt::Dense4Pattern));
+                minBox->setBrush(QBrush(minColor));
                 minBox->setPen(QPen(minColor));
                 minBox->setSamples(minSamples);
                 
@@ -2591,12 +2579,12 @@ MapSettingsPaletteColorMappingWidget::normalizationModeComboBoxActivated(int)
                          * When files are "large", using all file data may take
                          * a very long time so allow the user to cancel.
                          */
-                        const int64_t megabyte = 1000000;  // 10e6
+                        const int64_t megabyte = 1000000;  /* 10e6 */
                         const int64_t warningDataSize = 100 * megabyte;
                         const int64_t dataSize = this->caretMappableDataFile->getDataSizeUncompressedInBytes();
                         
                         if (dataSize > warningDataSize) {
-                            const int64_t gigabyte = 1000000000; // 10e9
+                            const int64_t gigabyte = 1000000000; /* 10e9 */
                             const int64_t numReallys = std::min(dataSize / gigabyte,
                                                                 (int64_t)10);
                             AString veryString;
