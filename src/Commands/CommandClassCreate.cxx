@@ -349,12 +349,10 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
         t += ("        \n");
     }
     else {
-//        t += ("    private:\n");
-//        t += ("        " + className + "(const " + className + "&);\n");
-//        t += ("\n");
-//        t += ("        " + className + "& operator=(const " + className + "&);\n");
-//        t += ("        \n");
-//        t += ("    public:\n");
+        t += ("        " + className + "(const " + className + "&) = delete;\n");
+        t += ("\n");
+        t += ("        " + className + "& operator=(const " + className + "&) = delete;\n");
+        t += ("        \n");
     }
     
     if (hasEqualityOperator) {
@@ -415,12 +413,6 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
     if (hasCopyAndAssignment) {
         t += ("        void copyHelper" + className + "(const " + className + "& obj);\n");
         t += ("\n");
-    }
-    else {
-        t += ("        " + className + "(const " + className + "&);\n");
-        t += ("\n");
-        t += ("        " + className + "& operator=(const " + className + "&);\n");
-        t += ("        \n");
     }
     if (hasSceneInterface
         || hasSubClassSceneSaving) {
