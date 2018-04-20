@@ -172,6 +172,7 @@ ELSE()
         StructureSurfaceSelectionControl.h
         SurfacePropertiesEditorDialog.h
         SurfaceSelectionViewController.h
+	ThresholdingSetMapsDialog.h
         TileTabsConfigurationDialog.h
         UserInputModeAnnotationsContextMenu.h
         UserInputModeAnnotationsWidget.h
@@ -401,6 +402,7 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
+ThresholdingSetMapsDialog.h
 TileTabsConfigurationDialog.h
 UserInputModeAbstract.h
 UserInputModeAnnotations.h
@@ -625,6 +627,7 @@ StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
 SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
+ThresholdingSetMapsDialog.cxx
 TileTabsConfigurationDialog.cxx
 UserInputModeAbstract.cxx
 UserInputModeAnnotations.cxx

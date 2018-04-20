@@ -61,6 +61,7 @@
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
+#include "ThresholdingSetMapsDialog.h"
 #include "VolumeFile.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQDoubleSlider.h"
@@ -191,6 +192,43 @@ MapSettingsPaletteColorMappingWidget::thresholdTypeChanged(int indx)
                        this->mapFileIndex);
     
     this->applySelections();
+}
+
+/**
+ * Called when set all maps is selected for thresholding
+ */
+void
+MapSettingsPaletteColorMappingWidget::thresholdSetAllMapsToolButtonClicked()
+{
+    if (this->caretMappableDataFile->getNumberOfMaps() <= 1) {
+        WuQMessageBox::errorOk(this,
+                               "Data file contains one map (must have more than one map for this option)");
+        return;
+    }
+    
+    CaretMappableDataFile* threshFile = this->thresholdMapFileIndexSelector->getModel()->getSelectedFile();
+    if (threshFile == NULL) {
+        WuQMessageBox::errorOk(this,
+                               "No thresholding file is selected");
+        return;
+    }
+    
+    const int32_t threshFileNumberOfMaps = threshFile->getNumberOfMaps();
+    if (threshFileNumberOfMaps <= 0) {
+        WuQMessageBox::errorOk(this,
+                               "Thresholding file contains no data");
+        return;
+    }
+    
+    ThresholdingSetMapsDialog threshDialog(this->caretMappableDataFile,
+                                           threshFile,
+                                           (this->thresholdMapFileIndexSelector->getModel()->getSelectedMapIndex()),
+                                           this);
+    if (threshDialog.exec() == ThresholdingSetMapsDialog::Accepted) {
+        this->updateEditorInternal(this->caretMappableDataFile,
+                                   this->mapFileIndex);
+        this->applySelections();
+    }
 }
 
 /**
@@ -523,6 +561,12 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     QObject::connect(this->thresholdTypeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(thresholdTypeChanged(int)));
     
+    this->thresholdSetAllMapsToolButton = new QToolButton();
+    this->thresholdSetAllMapsToolButton->setText("Set All Maps...");
+    this->thresholdSetAllMapsToolButton->setToolTip("Setup thresholding for all maps in the data file");
+    QObject::connect(this->thresholdSetAllMapsToolButton, &QToolButton::clicked,
+                     this, &MapSettingsPaletteColorMappingWidget::thresholdSetAllMapsToolButtonClicked);
+    
     QLabel* thresholdRangeLabel = new QLabel("Range");
     this->thresholdRangeModeComboBox = new EnumComboBoxTemplate(this);
     QObject::connect(this->thresholdRangeModeComboBox, SIGNAL(itemActivated()),
@@ -702,6 +746,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     topLayout->setContentsMargins(0, 0, 0, 0);
     topLayout->addWidget(thresholdTypeLabel);
     topLayout->addWidget(this->thresholdTypeComboBox);
+    topLayout->addWidget(this->thresholdSetAllMapsToolButton);
     topLayout->addStretch();
     
     QGroupBox* thresholdGroupBox = new QGroupBox("Threshold");
@@ -728,6 +773,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdAdjustmentWidgetGroup->add(threshFileComboBox);
     this->thresholdAdjustmentWidgetGroup->add(threshMapIndexSpinBox);
     this->thresholdAdjustmentWidgetGroup->add(threshMapNameComboBox);
+    this->thresholdAdjustmentWidgetGroup->add(this->thresholdSetAllMapsToolButton);
     
     return thresholdGroupBox;
 }
@@ -1629,6 +1675,19 @@ MapSettingsPaletteColorMappingWidget::updateThresholdSection()
     this->thresholdAdjustmentWidget->setEnabled(paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL);
     this->thresholdFileWidget->setEnabled(paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE);
     this->thresholdWidgetGroup->blockAllSignals(false);
+    
+    bool enableSetAllMapsButtonFlag = false;
+    if (this->paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE) {
+        if (this->caretMappableDataFile->getNumberOfMaps() > 1) {
+            const CaretMappableDataFile* threshFile = this->caretMappableDataFile->getMapThresholdFileSelectionModel(this->mapFileIndex)->getSelectedFile();
+            if (threshFile != NULL) {
+                if (threshFile->getNumberOfMaps() > 0) {
+                    enableSetAllMapsButtonFlag = true;
+                }
+            }
+        }
+    }
+    this->thresholdSetAllMapsToolButton->setEnabled(enableSetAllMapsButtonFlag);
 }
 
 /**

@@ -34,6 +34,7 @@ class QLayout;
 class QPushButton;
 class QRadioButton;
 class QSpinBox;
+class QToolButton;
 class QwtPlot;
 
 
@@ -79,6 +80,7 @@ namespace caret {
         void thresholdRangeModeChanged();
         void thresholdLinkCheckBoxToggled(bool);
         void thresholdMapFileIndexSelectorChanged();
+        void thresholdSetAllMapsToolButtonClicked();
         
         void scaleAutoPercentageNegativeMaximumValueChanged(double value);
         void scaleAutoPercentageNegativeMinimumValueChanged(double value);
@@ -165,6 +167,7 @@ namespace caret {
         EnumComboBoxTemplate* invertPaletteModeComboBox;
         
         QComboBox* thresholdTypeComboBox;
+        QToolButton* thresholdSetAllMapsToolButton;
         
         CaretMappableDataFileAndMapSelectorObject* thresholdMapFileIndexSelector;
         QWidget* thresholdFileWidget;
