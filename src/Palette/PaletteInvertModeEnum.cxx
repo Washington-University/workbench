@@ -173,9 +173,17 @@ PaletteInvertModeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 PaletteInvertModeEnum::Enum 
-PaletteInvertModeEnum::fromName(const AString& name, bool* isValidOut)
+PaletteInvertModeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+    
+    /*
+     * Fix misspelled name that may be in some files
+     */
+    AString name = nameIn;
+    if (name == "POSITIVE_NEGATIVE_SEPARATE NONE") {
+        name = "POSITIVE_NEGATIVE_SEPARATE_NONE";
+    }
     
     bool validFlag = false;
     Enum enumValue = PaletteInvertModeEnum::enumData[0].enumValue;
