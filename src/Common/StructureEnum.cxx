@@ -68,6 +68,8 @@ StructureEnum::initialize()
         return;
     }
     initializedFlag = true;
+    
+    //TSC: WARNING: the order of these determines the standard order of the structures in some -cifti-create-* commands, DO NOT reorder any *existing* entries
 
     enumData.push_back(StructureEnum(CORTEX_LEFT,
                                      "CORTEX_LEFT",
