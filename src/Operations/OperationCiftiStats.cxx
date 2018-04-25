@@ -66,9 +66,9 @@ OperationParameters* OperationCiftiStats::getParameters()
     ret->createOptionalParameter(6, "-show-map-name", "print column index and name before each output");
     
     ret->setHelpText(
-        AString("For each column of the input, a single number is printed, resulting from the specified reduction or percentile operation.  ") +
-        "Use -column to only give output for a single column.  " +
-        "Use -roi to consider only the data within a region.  " +
+        AString("For each column of the input, a row of text is printed, resulting from the specified reduction or percentile operation.  ") +
+        "If -roi is specified without -match-maps, then each row contains as many numbers as there are maps in the ROI file, separated by tab characters.  " +
+        "Use -column to only give output for a single data column.  " +
         "Exactly one of -reduce or -percentile must be specified.\n\n" +
         "The argument to the -reduce option must be one of the following:\n\n" +
         ReductionOperation::getHelpInfo());
@@ -166,6 +166,7 @@ void OperationCiftiStats::useParameters(OperationParameters* myParams, ProgressO
     vector<float> roiData;
     bool matchColumnMode = false;
     CiftiFile* roiCifti = NULL;
+    int64_t numRois = 1;//trick: pretend we have 1 roi map when we don't have an roi file, for fewer special cases
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
     if (roiOpt->m_present)
     {
@@ -182,27 +183,34 @@ void OperationCiftiStats::useParameters(OperationParameters* myParams, ProgressO
                 throw OperationException("-match-maps specified, but roi has different number of columns than input");
             }
             matchColumnMode = true;
-        } else {
-            roiCifti->getColumn(roiData.data(), 0);//we are only getting one column, so go ahead and do it in on-disk mode
         }
+        numRois = roiCifti->getCiftiXML().getDimensionLength(CiftiXML::ALONG_ROW);
     }
     bool showMapName = myParams->getOptionalParameter(6)->m_present;
     const CiftiMappingType* rowMap = myXML.getMap(CiftiXML::ALONG_ROW);
     vector<float> colScratch(colLength);
+    int64_t columnStart, columnEnd;
     if (useColumn == -1)
     {
         myInput->convertToInMemory();//we will be getting all columns, so read it all in first
-        if (matchColumnMode)
+        if (roiCifti != NULL) roiCifti->convertToInMemory();//ditto
+        columnStart = 0;
+        columnEnd = numCols;
+    } else {
+        if (roiCifti != NULL && !matchColumnMode) roiCifti->convertToInMemory();//matching maps with one column selected is the only time we don't need the whole ROI file
+        columnStart = useColumn;
+        columnEnd = useColumn + 1;
+    }
+    for (int i = columnStart; i < columnEnd; ++i)
+    {
+        myInput->getColumn(colScratch.data(), i);
+        if (showMapName)
         {
-            roiCifti->convertToInMemory();//ditto
+            cout << AString::number(i + 1) << ":\t" << rowMap->getIndexName(i) << ":\t";
         }
-        for (int i = 0; i < numCols; ++i)
-        {
-            myInput->getColumn(colScratch.data(), i);
-            if (matchColumnMode)
-            {
-                roiCifti->getColumn(roiData.data(), i);
-            }
+        if (matchColumnMode)
+        {//trick: matchColumn is only true when we have an roi
+            roiCifti->getColumn(roiData.data(), i);
             float result;
             if (reduceOpt->m_present)
             {
@@ -211,34 +219,27 @@ void OperationCiftiStats::useParameters(OperationParameters* myParams, ProgressO
                 CaretAssert(percentileOpt->m_present);
                 result = percentile(colScratch, percent, roiData);
             }
-            if (showMapName)
-            {
-                cout << AString::number(i + 1) << ": " << rowMap->getIndexName(i) << ": ";
-            }
             stringstream resultsstr;
             resultsstr << setprecision(7) << result;
             cout << resultsstr.str() << endl;
-        }
-    } else {
-        myInput->getColumn(colScratch.data(), useColumn);
-        if (matchColumnMode)
-        {
-            roiCifti->getColumn(roiData.data(), useColumn);
-        }
-        float result;
-        if (reduceOpt->m_present)
-        {
-            result = reduce(colScratch, myop, roiData);
         } else {
-            CaretAssert(percentileOpt->m_present);
-            result = percentile(colScratch, percent, roiData);
+            for (int64_t j = 0; j < numRois; ++j)
+            {
+                if (roiCifti != NULL) roiCifti->getColumn(roiData.data(), j);
+                float result;
+                if (reduceOpt->m_present)
+                {
+                    result = reduce(colScratch, myop, roiData);
+                } else {
+                    CaretAssert(percentileOpt->m_present);
+                    result = percentile(colScratch, percent, roiData);
+                }
+                stringstream resultsstr;
+                resultsstr << setprecision(7) << result;
+                if (j != 0) cout << "\t";
+                cout << resultsstr.str();
+            }
+            cout << endl;
         }
-        if (showMapName)
-        {
-            cout << AString::number(useColumn + 1) << ": " << rowMap->getIndexName(useColumn) << ": ";
-        }
-        stringstream resultsstr;
-        resultsstr << setprecision(7) << result;
-        cout << resultsstr.str() << endl;
     }
 }

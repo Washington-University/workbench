@@ -332,6 +332,7 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
     vector<float> roiData;
     bool matchColumnMode = false;
     CiftiFile* myRoi = NULL;
+    int64_t numRoiCols = -1;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
     if (roiOpt->m_present)
     {
@@ -348,9 +349,8 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
                 throw OperationException("-match-maps specified, but roi has different number of columns than input");
             }
             matchColumnMode = true;
-        } else {
-            myRoi->getColumn(roiData.data(), 0);//again, while on disk if we are using only one column
         }
+        numRoiCols = myRoi->getCiftiXML().getDimensionLength(CiftiXML::ALONG_ROW);
     }
     bool haveOp = false;
     OperationType myop;
@@ -391,182 +391,165 @@ void OperationCiftiWeightedStats::useParameters(OperationParameters* myParams, P
     bool showMapName = myParams->getOptionalParameter(10)->m_present;
     const CiftiMappingType* rowMap = myXML.getMap(CiftiXML::ALONG_ROW);
     vector<float> inColumn(colLength);
+    int64_t columnStart, columnEnd;
     if (useColumn == -1)
     {
         myInput->convertToInMemory();//we will be getting all columns, so read it all in first
-        if (matchColumnMode)
-        {
-            myRoi->convertToInMemory();//ditto
-        }
-        if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS)
-        {
-            const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
-            vector<CiftiBrainModelsMap::ModelInfo> myModels = myDenseMap.getModelInfo();
-            int numModels = (int)myModels.size();
-            for (int64_t i = 0; i < numCols; ++i)
-            {
-                myInput->getColumn(inColumn.data(), i);
-                if (matchColumnMode)
-                {
-                    myRoi->getColumn(roiData.data(), i);
-                }
-                if (showMapName)
-                {
-                    cout << AString::number(i + 1) << ": " << rowMap->getIndexName(i) << ":" << endl;
-                }
-                for (int j = 0; j < numModels; ++j)
-                {
-                    if (myModels[j].m_type == CiftiBrainModelsMap::SURFACE)
-                    {
-                        float result;
-                        if (roiData.empty())
-                        {
-                            result = doOperation(inColumn.data() + myModels[j].m_indexStart,
-                                                 combinedWeights.data() + myModels[j].m_indexStart,
-                                                 myModels[j].m_indexCount,
-                                                 myop,
-                                                 NULL,
-                                                 argument);
-                        } else {
-                            result = doOperation(inColumn.data() + myModels[j].m_indexStart,
-                                                 combinedWeights.data() + myModels[j].m_indexStart,
-                                                 myModels[j].m_indexCount,
-                                                 myop,
-                                                 roiData.data() + myModels[j].m_indexStart,
-                                                 argument);
-                        }
-                        stringstream resultsstr;
-                        resultsstr << setprecision(7) << result;
-                        cout << StructureEnum::toName(myModels[j].m_structure) << ": " << resultsstr.str() << endl;
-                    }
-                }
-                vector<CiftiBrainModelsMap::VolumeMap> volMap = myDenseMap.getFullVolumeMap();
-                int64_t mapSize = (int64_t)volMap.size();
-                if (mapSize > 0)
-                {
-                    vector<float> volData(mapSize), weightVolData(mapSize), roiVolData(mapSize);
-                    for (int64_t j = 0; j < mapSize; ++j)
-                    {
-                        volData[j] = inColumn[volMap[j].m_ciftiIndex];
-                        weightVolData[j] = combinedWeights[volMap[j].m_ciftiIndex];
-                        if (!roiData.empty())
-                        {
-                            roiVolData[j] = roiData[volMap[j].m_ciftiIndex];
-                        }
-                    }
-                    float result;
-                    if (roiData.empty())
-                    {
-                        result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, NULL, argument);
-                    } else {
-                        result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, roiVolData.data(), argument);
-                    }
-                    stringstream resultsstr;
-                    resultsstr << setprecision(7) << result;
-                    cout << "VOLUME: " << resultsstr.str() << endl;
-                }
-            }
-        } else {
-            for (int64_t i = 0; i < numCols; ++i)
-            {
-                myInput->getColumn(inColumn.data(), i);
-                float result;
-                if (roiData.empty())
-                {
-                    result = doOperation(inColumn.data(), combinedWeights.data(), colLength, myop, NULL, argument);
-                } else {
-                    result = doOperation(inColumn.data(), combinedWeights.data(), colLength, myop, roiData.data(), argument);
-                }
-                if (showMapName)
-                {
-                    cout << AString::number(i + 1) << ": " << rowMap->getIndexName(i) << ": ";
-                }
-                stringstream resultsstr;
-                resultsstr << setprecision(7) << result;
-                cout << resultsstr.str() << endl;
-            }
-        }
+        if (myRoi != NULL) myRoi->convertToInMemory();//ditto
+        columnStart = 0;
+        columnEnd = numCols;
     } else {
-        myInput->getColumn(inColumn.data(), useColumn);
-        if (matchColumnMode)
+        if (!matchColumnMode && myRoi != NULL) myRoi->convertToInMemory();//matching maps with one column selected is the only time we don't need the whole ROI file
+        columnStart = useColumn;
+        columnEnd = useColumn + 1;
+    }
+    if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS)
+    {
+        const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+        vector<CiftiBrainModelsMap::ModelInfo> myModels = myDenseMap.getModelInfo();//use this so that we get the start and end indices, so we don't have to use cifti separate
+        int numModels = (int)myModels.size();
+        for (int64_t i = columnStart; i < columnEnd; ++i)
         {
-            myRoi->getColumn(roiData.data(), useColumn);
-        }
-        if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS)
-        {
-            const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
-            vector<CiftiBrainModelsMap::ModelInfo> myModels = myDenseMap.getModelInfo();
-            int numModels = (int)myModels.size();
+            myInput->getColumn(inColumn.data(), i);
             if (showMapName)
             {
-                cout << AString::number(useColumn + 1) << ": " << rowMap->getIndexName(useColumn) << ":" << endl;
+                cout << AString::number(i + 1) << ":\t" << rowMap->getIndexName(i) << ":" << endl;
+            }
+            if (matchColumnMode)
+            {
+                myRoi->getColumn(roiData.data(), i);//retrieve the roi data once per map with match maps
             }
             for (int j = 0; j < numModels; ++j)
-            {
+            {//first, do the surfaces individually
                 if (myModels[j].m_type == CiftiBrainModelsMap::SURFACE)
                 {
-                    float result;
-                    if (roiData.empty())
+                    cout << StructureEnum::toName(myModels[j].m_structure) << ":\t";
+                    if (roiOpt->m_present)
                     {
-                        result = doOperation(inColumn.data() + myModels[j].m_indexStart,
-                                                combinedWeights.data() + myModels[j].m_indexStart,
-                                                myModels[j].m_indexCount,
-                                                myop,
-                                                NULL,
-                                                argument);
-                    } else {
-                        result = doOperation(inColumn.data() + myModels[j].m_indexStart,
+                        if (matchColumnMode)
+                        {
+                            float result = doOperation(inColumn.data() + myModels[j].m_indexStart,
                                                 combinedWeights.data() + myModels[j].m_indexStart,
                                                 myModels[j].m_indexCount,
                                                 myop,
                                                 roiData.data() + myModels[j].m_indexStart,
                                                 argument);
+                            stringstream resultsstr;
+                            resultsstr << setprecision(7) << result;
+                            cout << resultsstr.str();
+                        } else {
+                            for (int k = 0; k < numRoiCols; ++k)
+                            {
+                                myRoi->getColumn(roiData.data(), k);
+                                float result = doOperation(inColumn.data() + myModels[j].m_indexStart,
+                                                    combinedWeights.data() + myModels[j].m_indexStart,
+                                                    myModels[j].m_indexCount,
+                                                    myop,
+                                                    roiData.data() + myModels[j].m_indexStart,
+                                                    argument);
+                                stringstream resultsstr;
+                                resultsstr << setprecision(7) << result;
+                                if (k != 0) cout << "\t";
+                                cout << resultsstr.str();
+                            }
+                        }
+                    } else {
+                        float result = doOperation(inColumn.data() + myModels[j].m_indexStart,
+                                            combinedWeights.data() + myModels[j].m_indexStart,
+                                            myModels[j].m_indexCount,
+                                            myop,
+                                            NULL,
+                                            argument);
+                        stringstream resultsstr;
+                        resultsstr << setprecision(7) << result;
+                        cout << resultsstr.str();
                     }
-                    stringstream resultsstr;
-                    resultsstr << setprecision(7) << result;
-                    cout << StructureEnum::toName(myModels[j].m_structure) << ": " << resultsstr.str() << endl;
+                    cout << endl;
                 }
-            }
+            }//now do volume as one chunk
             vector<CiftiBrainModelsMap::VolumeMap> volMap = myDenseMap.getFullVolumeMap();
             int64_t mapSize = (int64_t)volMap.size();
             if (mapSize > 0)
             {
-                vector<float> volData(mapSize), weightVolData(mapSize), roiVolData(mapSize);
+                vector<float> volData(mapSize), weightVolData(mapSize);
                 for (int64_t j = 0; j < mapSize; ++j)
                 {
                     volData[j] = inColumn[volMap[j].m_ciftiIndex];
                     weightVolData[j] = combinedWeights[volMap[j].m_ciftiIndex];
-                    if (!roiData.empty())
-                    {
-                        roiVolData[j] = roiData[volMap[j].m_ciftiIndex];
-                    }
                 }
-                float result;
-                if (roiData.empty())
+                cout << "VOLUME:\t";
+                if (roiOpt->m_present)
                 {
-                    result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, NULL, argument);
+                    vector<float> roiVolData(mapSize);
+                    if (matchColumnMode)
+                    {
+                        for (int64_t j = 0; j < mapSize; ++j)
+                        {
+                            roiVolData[j] = roiData[volMap[j].m_ciftiIndex];
+                        }
+                        float result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, roiVolData.data(), argument);
+                        stringstream resultsstr;
+                        resultsstr << setprecision(7) << result;
+                        cout << resultsstr.str();
+                    } else {
+                        for (int k = 0; k < numRoiCols; ++k)
+                        {
+                            myRoi->getColumn(roiData.data(), k);
+                            for (int64_t j = 0; j < mapSize; ++j)
+                            {
+                                roiVolData[j] = roiData[volMap[j].m_ciftiIndex];
+                            }
+                            float result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, roiVolData.data(), argument);
+                            stringstream resultsstr;
+                            resultsstr << setprecision(7) << result;
+                            if (k != 0) cout << "\t";
+                            cout << resultsstr.str();
+                        }
+                    }
                 } else {
-                    result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, roiVolData.data(), argument);
+                    float result = doOperation(volData.data(), weightVolData.data(), mapSize, myop, NULL, argument);
+                    stringstream resultsstr;
+                    resultsstr << setprecision(7) << result;
+                    cout << resultsstr.str();
                 }
-                stringstream resultsstr;
-                resultsstr << setprecision(7) << result;
-                cout << "VOLUME: " << resultsstr.str() << endl;
+                cout << endl;
             }
-        } else {
-            float result;
-            if (roiData.empty())
-            {
-                result = doOperation(inColumn.data(), combinedWeights.data(), colLength, myop, NULL, argument);
-            } else {
-                result = doOperation(inColumn.data(), combinedWeights.data(), colLength, myop, roiData.data(), argument);
-            }
+        }
+    } else {
+        for (int64_t i = columnStart; i < columnEnd; ++i)
+        {
+            myInput->getColumn(inColumn.data(), i);
             if (showMapName)
             {
-                cout << AString::number(useColumn + 1) << ": " << rowMap->getIndexName(useColumn) << ": ";
+                cout << AString::number(i + 1) << ":\t" << rowMap->getIndexName(i) << ":\t";
             }
-            stringstream resultsstr;
-            resultsstr << setprecision(7) << result;
-            cout << resultsstr.str() << endl;
+            if (roiOpt->m_present)
+            {
+                if (matchColumnMode)
+                {
+                    myRoi->getColumn(roiData.data(), i);//retrieve the roi data once per map with match maps
+                    float result = doOperation(inColumn.data(), combinedWeights.data(), colLength, myop, roiData.data(), argument);
+                    stringstream resultsstr;
+                    resultsstr << setprecision(7) << result;
+                    cout << resultsstr.str();
+                } else {
+                    for (int k = 0; k < numRoiCols; ++k)
+                    {
+                        myRoi->getColumn(roiData.data(), k);
+                        float result = doOperation(inColumn.data(), combinedWeights.data(), colLength, myop, roiData.data(), argument);
+                        stringstream resultsstr;
+                        resultsstr << setprecision(7) << result;
+                        if (k != 0) cout << "\t";
+                        cout << resultsstr.str();
+                    }
+                }
+            } else {
+                float result = doOperation(inColumn.data(), combinedWeights.data(), colLength, myop, NULL, argument);
+                stringstream resultsstr;
+                resultsstr << setprecision(7) << result;
+                cout << resultsstr.str();
+            }
+            cout << endl;
         }
     }
 }

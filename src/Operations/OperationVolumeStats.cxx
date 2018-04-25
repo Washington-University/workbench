@@ -160,11 +160,12 @@ void OperationVolumeStats::useParameters(OperationParameters* myParams, Progress
     }
     bool matchSubvolMode = false;
     VolumeFile* myRoi = NULL;
-    const float* roiData = NULL;
+    int numRoiMaps = 1;//trick: pretend there is one ROI map with no ROI file
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
     if (roiOpt->m_present)
     {
         myRoi = roiOpt->getVolume(1);
+        numRoiMaps = myRoi->getNumberOfMaps();
         if (!input->matchesVolumeSpace(myRoi)) throw OperationException("roi doesn't match volume space of input");
         if (roiOpt->getOptionalParameter(2)->m_present)
         {
@@ -173,63 +174,55 @@ void OperationVolumeStats::useParameters(OperationParameters* myParams, Progress
                 throw OperationException("-match-maps specified, but roi has different number of subvolumes than input");
             }
             matchSubvolMode = true;
-        } else {
-            roiData = myRoi->getFrame();
         }
     }
     bool showMapName = myParams->getOptionalParameter(6)->m_present;
     int numMaps = input->getNumberOfMaps();
+    int startSubvol, endSubvol;
     if (subvol == -1)
     {
-        if (reduceOpt->m_present)
-        {
-            for (int i = 0; i < numMaps; ++i)
-            {//store result before printing anything, in case it throws while computing
-                if (matchSubvolMode)
-                {
-                    roiData = myRoi->getFrame(i);
-                }
-                const float result = reduce(input->getFrame(i), frameSize, myop, roiData);
-                if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
-                stringstream resultsstr;
-                resultsstr << setprecision(7) << result;
-                cout << resultsstr.str() << endl;
-            }
-        } else {
-            CaretAssert(percentileOpt->m_present);
-            for (int i = 0; i < numMaps; ++i)
-            {//store result before printing anything, in case it throws while computing
-                if (matchSubvolMode)
-                {
-                    roiData = myRoi->getFrame(i);
-                }
-                const float result = percentile(input->getFrame(i), frameSize, percent, roiData);
-                if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
-                stringstream resultsstr;
-                resultsstr << setprecision(7) << result;
-                cout << resultsstr.str() << endl;
-            }
-        }
+        startSubvol = 0;
+        endSubvol = numMaps;
     } else {
-        CaretAssert(subvol >= 0 && subvol < numMaps);
+        startSubvol = subvol;
+        endSubvol = subvol + 1;
+    }
+    for (int i = startSubvol; i < endSubvol; ++i)
+    {
+        if (showMapName) cout << AString::number(i + 1) << ":\t" << input->getMapName(i) << ":\t";
         if (matchSubvolMode)
-        {
-            roiData = myRoi->getFrame(subvol);
-        }
-        if (reduceOpt->m_present)
-        {
-            const float result = reduce(input->getFrame(subvol), frameSize, myop, roiData);
-            if (showMapName) cout << AString::number(subvol + 1) << ": " << input->getMapName(subvol) << ": ";
+        {//trick: matchSubvolMode is only true when we have an roi
+            const float* roiData = myRoi->getFrame(i);
+            float result;
+            if (reduceOpt->m_present)
+            {
+                result = reduce(input->getFrame(i), frameSize, myop, roiData);
+            } else {
+                CaretAssert(percentileOpt->m_present);
+                result = percentile(input->getFrame(i), frameSize, percent, roiData);
+            }
             stringstream resultsstr;
             resultsstr << setprecision(7) << result;
-            cout << resultsstr.str() << endl;
+            cout << resultsstr.str();
         } else {
-            CaretAssert(percentileOpt->m_present);
-            const float result = percentile(input->getFrame(subvol), frameSize, percent, roiData);
-            if (showMapName) cout << AString::number(subvol + 1) << ": " << input->getMapName(subvol) << ": ";
-            stringstream resultsstr;
-            resultsstr << setprecision(7) << result;
-            cout << resultsstr.str() << endl;
+            const float* roiData = NULL;
+            for (int j = 0; j < numRoiMaps; ++j)
+            {
+                if (myRoi != NULL) roiData = myRoi->getFrame(j);
+                float result;
+                if (reduceOpt->m_present)
+                {
+                    result = reduce(input->getFrame(i), frameSize, myop, roiData);
+                } else {
+                    CaretAssert(percentileOpt->m_present);
+                    result = percentile(input->getFrame(i), frameSize, percent, roiData);
+                }
+                stringstream resultsstr;
+                resultsstr << setprecision(7) << result;
+                if (j != 0) cout << "\t";
+                cout << resultsstr.str();
+            }
         }
+        cout << endl;
     }
 }

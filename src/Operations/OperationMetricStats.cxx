@@ -159,75 +159,69 @@ void OperationMetricStats::useParameters(OperationParameters* myParams, Progress
     }
     bool matchColumnMode = false;
     MetricFile* myRoi = NULL;
-    const float* roiData = NULL;
+    int32_t numRoiCols = 1;//trick: pretend we have 1 roi map when we have no ROI file
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
     if (roiOpt->m_present)
     {
         myRoi = roiOpt->getMetric(1);
+        numRoiCols = myRoi->getNumberOfColumns();
         if (myRoi->getNumberOfNodes() != numNodes) throw OperationException("roi doesn't match input in number of vertices");
         if (roiOpt->getOptionalParameter(2)->m_present)
         {
-            if (myRoi->getNumberOfColumns() != numCols)
+            if (numRoiCols != numCols)
             {
                 throw OperationException("-match-maps specified, but roi has different number of columns than input");
             }
             matchColumnMode = true;
-        } else {
-            roiData = myRoi->getValuePointerForColumn(0);
         }
     }
     bool showMapName = myParams->getOptionalParameter(6)->m_present;
+    int32_t columnStart, columnEnd;
     if (column == -1)
     {
-        if (reduceOpt->m_present)
-        {
-            for (int i = 0; i < numCols; ++i)
-            {//store result before printing anything, in case it throws while computing
-                if (matchColumnMode)
-                {
-                    roiData = myRoi->getValuePointerForColumn(i);
-                }
-                const float result = reduce(input->getValuePointerForColumn(i), numNodes, myop, roiData);
-                if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
-                stringstream resultsstr;
-                resultsstr << setprecision(7) << result;
-                cout << resultsstr.str() << endl;
-            }
-        } else {
-            CaretAssert(percentileOpt->m_present);
-            for (int i = 0; i < numCols; ++i)
-            {//store result before printing anything, in case it throws while computing
-                if (matchColumnMode)
-                {
-                    roiData = myRoi->getValuePointerForColumn(i);
-                }
-                const float result = percentile(input->getValuePointerForColumn(i), numNodes, percent, roiData);
-                if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
-                stringstream resultsstr;
-                resultsstr << setprecision(7) << result;
-                cout << resultsstr.str() << endl;
-            }
-        }
+        columnStart = 0;
+        columnEnd = numCols;
     } else {
         CaretAssert(column >= 0 && column < numCols);
+        columnStart = column;
+        columnEnd = column + 1;
+    }
+    for (int i = columnStart; i < columnEnd; ++i)
+    {
+        if (showMapName) cout << AString::number(i + 1) << ":\t" << input->getMapName(i) << ":\t";
         if (matchColumnMode)
-        {
-            roiData = myRoi->getValuePointerForColumn(column);
-        }
-        if (reduceOpt->m_present)
-        {
-            const float result = reduce(input->getValuePointerForColumn(column), numNodes, myop, roiData);
-            if (showMapName) cout << AString::number(column + 1) << ": " << input->getMapName(column) << ": ";
+        {//trick: matchColumn is only true when we have an roi
+            const float* roiData = myRoi->getValuePointerForColumn(i);
+            float result;
+            if (reduceOpt->m_present)
+            {
+                result = reduce(input->getValuePointerForColumn(i), numNodes, myop, roiData);
+            } else {
+                CaretAssert(percentileOpt->m_present);
+                result = percentile(input->getValuePointerForColumn(i), numNodes, percent, roiData);
+            }
             stringstream resultsstr;
             resultsstr << setprecision(7) << result;
-            cout << resultsstr.str() << endl;
+            cout << resultsstr.str();
         } else {
-            CaretAssert(percentileOpt->m_present);
-            const float result = percentile(input->getValuePointerForColumn(column), numNodes, percent, roiData);
-            if (showMapName) cout << AString::number(column + 1) << ": " << input->getMapName(column) << ": ";
-            stringstream resultsstr;
-            resultsstr << setprecision(7) << result;
-            cout << resultsstr.str() << endl;
+            for (int j = 0; j < numRoiCols; ++j)
+            {
+                const float* roiData = NULL;
+                if (myRoi != NULL) roiData = myRoi->getValuePointerForColumn(j);
+                float result;
+                if (reduceOpt->m_present)
+                {
+                    result = reduce(input->getValuePointerForColumn(i), numNodes, myop, roiData);
+                } else {
+                    CaretAssert(percentileOpt->m_present);
+                    result = percentile(input->getValuePointerForColumn(i), numNodes, percent, roiData);
+                }
+                stringstream resultsstr;
+                resultsstr << setprecision(7) << result;
+                if (j != 0) cout << "\t";
+                cout << resultsstr.str();
+            }
         }
+        cout << endl;
     }
 }

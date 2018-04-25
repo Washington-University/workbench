@@ -234,21 +234,20 @@ void OperationMetricWeightedStats::useParameters(OperationParameters* myParams, 
     }
     bool matchColumnMode = false;
     MetricFile* myRoi = NULL;
-    const float* roiData = NULL;
+    int32_t numRoiCols = 1;//trick: pretend 1 roi column exists when there is no roi to get the inner loop to do the right thing
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
     if (roiOpt->m_present)
     {
         myRoi = roiOpt->getMetric(1);
+        numRoiCols = myRoi->getNumberOfColumns();
         if (myRoi->getNumberOfNodes() != numNodes) throw OperationException("roi doesn't match input in number of vertices");
         if (roiOpt->getOptionalParameter(2)->m_present)
         {
-            if (myRoi->getNumberOfColumns() != numCols)
+            if (numRoiCols != numCols)
             {
                 throw OperationException("-match-maps specified, but roi has different number of columns than input");
             }
             matchColumnMode = true;
-        } else {
-            roiData = myRoi->getValuePointerForColumn(0);
         }
     }
     bool haveOp = false;
@@ -288,29 +287,37 @@ void OperationMetricWeightedStats::useParameters(OperationParameters* myParams, 
     }
     if (!haveOp) throw OperationException("you must specify an operation");
     bool showMapName = myParams->getOptionalParameter(10)->m_present;
+    int32_t columnStart, columnEnd;
     if (column == -1)
     {
-        for (int i = 0; i < numCols; ++i)
-        {//store result before printing anything, in case it throws while computing
-            if (matchColumnMode)
-            {
-                roiData = myRoi->getValuePointerForColumn(i);
-            }
+        columnStart = 0;
+        columnEnd = numCols;
+    } else {
+        columnStart = column;
+        columnEnd = column + 1;
+    }
+    for (int i = columnStart; i < columnEnd; ++i)
+    {
+        if (showMapName) cout << AString::number(i + 1) << ":\t" << input->getMapName(i) << ":\t";
+        if (matchColumnMode)
+        {//trick: matchColumn is only true when we have an roi
+            const float* roiData = myRoi->getValuePointerForColumn(i);
             const float result = doOperation(input->getValuePointerForColumn(i), useWeights, numNodes, myop, roiData, argument);
-            if (showMapName) cout << AString::number(i + 1) << ": " << input->getMapName(i) << ": ";
             stringstream resultsstr;
             resultsstr << setprecision(7) << result;
-            cout << resultsstr.str() << endl;
+            cout << resultsstr.str();
+        } else {
+            for (int j = 0; j < numRoiCols; ++j)
+            {
+                const float* roiData = NULL;
+                if (myRoi != NULL) roiData = myRoi->getValuePointerForColumn(j);
+                const float result = doOperation(input->getValuePointerForColumn(i), useWeights, numNodes, myop, roiData, argument);
+                stringstream resultsstr;
+                resultsstr << setprecision(7) << result;
+                if (j != 0) cout << "\t";
+                cout << resultsstr.str();
+            }
         }
-    } else {
-        if (matchColumnMode)
-        {
-            roiData = myRoi->getValuePointerForColumn(column);
-        }
-        const float result = doOperation(input->getValuePointerForColumn(column), useWeights, numNodes, myop, roiData, argument);
-        if (showMapName) cout << AString::number(column + 1) << ": " << input->getMapName(column) << ": ";
-        stringstream resultsstr;
-        resultsstr << setprecision(7) << result;
-        cout << resultsstr.str() << endl;
+        cout << endl;
     }
 }
