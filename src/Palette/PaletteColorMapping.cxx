@@ -1688,10 +1688,18 @@ void
 PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* statistics,
                                                       const float* dataValues,
                                                       float* normalizedValuesOut,
-                                                      const int64_t numberOfData) const
+                                                      const int64_t numberOfData,
+                                                      const bool invert_pos_neg,
+                                                      const bool invert_min_max,
+                                                      int zero_maps_to) const
 {
     if (numberOfData <= 0) {
         return;
+    }
+    if (invert_min_max && (zero_maps_to > 1 || zero_maps_to < -1))
+    {
+        CaretLogWarning("invalid 'zero_maps_to' setting '" + AString::number(zero_maps_to) + "' for min/max palette inversion, resetting to 0");
+        zero_maps_to = 0;
     }
 
     /*
@@ -1734,16 +1742,27 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
             mappingMostPositive  = this->getUserScalePositiveMaximum();
             break;
     }
+    //TSC: hack to do the min/max inversion without extra conditionals: swap most and least
+    if (invert_min_max)
+    {
+        float temp = mappingMostPositive;
+        mappingMostPositive = mappingLeastPositive;
+        mappingLeastPositive = temp;
+        
+        temp = mappingMostNegative;
+        mappingMostNegative = mappingLeastNegative;
+        mappingLeastNegative = temp;
+    }
     //TSC: the excluded zone of normalization is a SEPARATE issue to zero detection in the data
     //specifically, it is a HACK, in order for palettes to be able to specify a special color for data that is 0, which is not involved in color interpolation
     const float PALETTE_ZERO_COLOR_ZONE = 0.00001f;
     bool settingsValidPos = true, settingsValidNeg = true;
     float mappingPositiveDenominator = (mappingMostPositive - mappingLeastPositive) / (1.0f - PALETTE_ZERO_COLOR_ZONE);//this correction prevents normalization from assigning most positive a normalized value greater than 1
-    if (mappingPositiveDenominator == 0.0) {//if we don't want backwards pos/neg settings to invert bright/dark, then change both these tests to be >= 0.0f
+    if (mappingPositiveDenominator == 0.0f) {//needs to be "== 0.0f", so that we can swap most/least to do min/max inversion
         settingsValidPos = false;
     }
     float mappingNegativeDenominator = (mappingMostNegative - mappingLeastNegative) / (-1.0f + PALETTE_ZERO_COLOR_ZONE);//ditto, but most negative maps to -1
-    if (mappingNegativeDenominator == 0.0) {
+    if (mappingNegativeDenominator == 0.0f) {
         settingsValidNeg = false;
     }
     
@@ -1754,35 +1773,47 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
          * Color scalar using palette
          */
         float normalized = 0.0f;
-        if (scalar > 0.0) {
+        if (scalar > 0.0f) {
             if (settingsValidPos)
             {
                 normalized = (scalar - mappingLeastPositive) / mappingPositiveDenominator + PALETTE_ZERO_COLOR_ZONE;
-                if (normalized > 1.0f) {
+            } else {
+                if (scalar > mappingLeastPositive)
+                {
                     normalized = 1.0f;
                 }
-                else if (normalized < PALETTE_ZERO_COLOR_ZONE) {
-                    normalized = PALETTE_ZERO_COLOR_ZONE;
-                }
-            } else {
-                normalized = 1.0f;
             }
-        }
-        else if (scalar < 0.0) {
+            if (normalized > 1.0f)//don't allow zero from nonzero, even when coloring range is 0
+            {
+                normalized = 1.0f;
+            } else if (normalized < PALETTE_ZERO_COLOR_ZONE) {
+                normalized = PALETTE_ZERO_COLOR_ZONE;
+            }
+        } else if (scalar < 0.0f) {
             if (settingsValidNeg)
             {
                 normalized = (scalar - mappingLeastNegative) / mappingNegativeDenominator - PALETTE_ZERO_COLOR_ZONE;
-                if (normalized < -1.0f) {
+            } else {
+                if (scalar < mappingLeastNegative)
+                {
                     normalized = -1.0f;
                 }
-                else if (normalized > -PALETTE_ZERO_COLOR_ZONE) {
-                    normalized = -PALETTE_ZERO_COLOR_ZONE;
-                }
-            } else {
-                normalized = -1.0f;
             }
+            if (normalized < -1.0f)
+            {
+                normalized = -1.0f;
+            } else if (normalized > -PALETTE_ZERO_COLOR_ZONE) {
+                normalized = -PALETTE_ZERO_COLOR_ZONE;
+            }
+        } else if (scalar == 0.0f && invert_min_max) {//don't apply the replacement to NaN, only to 0
+            normalized = zero_maps_to;
         }
-        normalizedValuesOut[i] = normalized;
+        if (invert_pos_neg)
+        {
+            normalizedValuesOut[i] = -normalized;
+        } else {
+            normalizedValuesOut[i] = normalized;
+        }
     }
 }
 
