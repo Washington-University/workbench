@@ -136,98 +136,98 @@ DataFileTypeEnum::initialize()
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE, 
                                         "CONNECTIVITY_DENSE", 
-                                        "Connectivity - Dense",
+                                        "CIFTI - Dense",
                                         "CONNECTIVITY",
                                         false,
                                         "dconn.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_DYNAMIC,
                                         "CONNECTIVITY_DENSE_DYNAMIC",
-                                        "Connectivity - Dense Dynamic",
+                                        "CIFTI - Dense Dynamic",
                                         "CONNECTIVITY DYNAMIC",
                                         false,
                                         "dynconn.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_LABEL,
                                         "CONNECTIVITY_DENSE_LABEL",
-                                        "Connectivity - Dense Label",
+                                        "CIFTI - Dense Label",
                                         "CIFTI LABELS",
                                         false,
                                         "dlabel.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_PARCEL,
                                         "CONNECTIVITY_DENSE_PARCEL",
-                                        "Connectivity - Dense Parcel",
+                                        "CIFTI - Dense Parcel",
                                         "CIFTI DENSE PARCEL",
                                         false,
                                         "dpconn.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_SCALAR,
                                         "CONNECTIVITY_DENSE_SCALAR",
-                                        "Connectivity - Dense Scalar",
+                                        "CIFTI - Dense Scalar",
                                         "CIFTI SCALARS",
                                         false,
                                         "dscalar.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_TIME_SERIES,
                                         "CONNECTIVITY_DENSE_TIME_SERIES", 
-                                        "Connectivity - Dense Data Series",
+                                        "CIFTI - Dense Data Series",
                                         "DATA SERIES",
                                         false,
                                         "dtseries.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
                                         "CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY",
-                                        "Connectivity - Fiber Orientations TEMPORARY",
+                                        "CIFTI - Fiber Orientations TEMPORARY",
                                         "FIBER ORIENTATION TEMPORARY",
                                         false,
                                         "fiberTEMP.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY,
                                         "CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY",
-                                        "Connectivity - Fiber Trajectory TEMPORARY",
+                                        "CIFTI - Fiber Trajectory TEMPORARY",
                                         "FIBER TRAJECTORY TEMPORARY",
                                         false,
                                         "trajTEMP.wbsparse"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL,
                                         "CONNECTIVITY_PARCEL",
-                                        "Connectivity - Parcel",
+                                        "CIFTI - Parcel",
                                         "CIFTI PARCEL",
                                         false,
                                         "pconn.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_DENSE,
                                         "CONNECTIVITY_PARCEL_DENSE",
-                                        "Connectivity - Parcel Dense",
+                                        "CIFTI - Parcel Dense",
                                         "CIFTI PARCEL DENSE",
                                         false,
                                         "pdconn.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_LABEL,
                                         "CONNECTIVITY_PARCEL_LABEL",
-                                        "Connectivity - Parcel Label",
+                                        "CIFTI - Parcel Label",
                                         "CIFTI PARCEL LABEL",
                                         false,
                                         "plabel.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_SCALAR,
                                         "CONNECTIVITY_PARCEL_SCALAR",
-                                        "Connectivity - Parcel Scalar",
+                                        "CIFTI - Parcel Scalar",
                                         "CIFTI PARCEL SCALAR",
                                         false,
                                         "pscalar.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_SERIES,
                                         "CONNECTIVITY_PARCEL_SERIES",
-                                        "Connectivity - Parcel Series",
+                                        "CIFTI - Parcel Series",
                                         "CIFTI PARCEL SERIES",
                                         false,
                                         "ptseries.nii"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_SCALAR_DATA_SERIES,
                                         "CONNECTIVITY_SCALAR_DATA_SERIES",
-                                        "Connectivity - Scalar Data Series",
+                                        "CIFTI - Scalar Data Series",
                                         "CIFTI SCALAR DATA SERIES",
                                         false,
                                         "sdseries.nii"));
@@ -452,45 +452,6 @@ DataFileTypeEnum::toShortGuiName(Enum enumValue)
     }
     
     return text;
-}
-
-
-/**
- * Get an enumerated value corresponding to its GUI name.
- * @param s 
- *     Name of enumerated value.
- * @param isValidOut 
- *     If not NULL, it is set indicating that a
- *     enum value exists for the input name.
- * @return 
- *     Enumerated value.
- */
-DataFileTypeEnum::Enum 
-DataFileTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
-{
-    if (initializedFlag == false) initialize();
-    
-    bool validFlag = false;
-    Enum enumValue = UNKNOWN;
-    
-    for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const DataFileTypeEnum& d = *iter;
-        if (d.guiName == guiName) {
-            enumValue = d.enumValue;
-            validFlag = true;
-            break;
-        }
-    }
-    
-    if (isValidOut != 0) {
-        *isValidOut = validFlag;
-    }
-    else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName \"" + guiName + "\" failed to match enumerated value for type DataFileTypeEnum"));
-    }
-    return enumValue;
 }
 
 /**
