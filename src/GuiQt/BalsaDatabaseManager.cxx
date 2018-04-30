@@ -369,12 +369,20 @@ BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>&
     
     AString statusText;
     {
+        if (responseContent.isEmpty()) {
+            errorMessageOut = "Process upload response content is empty.";
+            return false;
+        }
+        
         QJsonParseError jsonError;
         QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toLatin1(),
                                                              &jsonError);
         if (jsonDocument.isNull()) {
             errorMessageOut = ("Process upload response failed.  Failed to parse JSON, error:"
-                               + jsonError.errorString());
+                               + jsonError.errorString()
+                               + "\n\n"
+                               "Response Content: "
+                               + responseContent);
             return false;
         }
         
