@@ -69,6 +69,9 @@ namespace caret
             mutable GiftiMetaData m_metaData;//ditto
             mutable CaretPointer<PaletteColorMapping> m_palette;//ditto - note, this actually gets written into the metadata
             PaletteColorMapping* getPalette() const;
+            ScalarMap() {};
+            ScalarMap(const ScalarMap& rhs);
+            ScalarMap& operator=(const ScalarMap& rhs);
             bool operator==(const ScalarMap& rhs) const;
             void readXML1(QXmlStreamReader& xml);
             void readXML2(QXmlStreamReader& xml);

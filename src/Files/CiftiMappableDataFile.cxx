@@ -7678,5 +7678,5 @@ const CiftiXML CiftiMappableDataFile::getCiftiXML() const
     {
         return m_ciftiFile->getCiftiXML();
     }
-    return CiftiXML();
+    return CiftiXML();//this is why the function doesn't return a reference: must return something even when it doesn't have a CiftiXML allocated - could make it a pointer and return NULL
 }

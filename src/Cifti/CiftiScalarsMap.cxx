@@ -143,6 +143,27 @@ bool CiftiScalarsMap::ScalarMap::operator==(const CiftiScalarsMap::ScalarMap& rh
     return (mytemp == rhstemp);
 }
 
+CiftiScalarsMap::ScalarMap::ScalarMap(const CiftiScalarsMap::ScalarMap& rhs)
+{
+    m_name = rhs.m_name;
+    m_metaData = rhs.m_metaData;
+    if (rhs.m_palette != NULL) m_palette.grabNew(new PaletteColorMapping(*(rhs.m_palette)));//we need to copy the palette, because it may no longer match the metadata
+}
+
+CiftiScalarsMap::ScalarMap& CiftiScalarsMap::ScalarMap::operator=(const CiftiScalarsMap::ScalarMap& rhs)
+{
+    if (&rhs == this) return *this;
+    m_name = rhs.m_name;
+    m_metaData = rhs.m_metaData;
+    if (rhs.m_palette == NULL)
+    {
+        m_palette.grabNew(NULL);
+    } else {
+        m_palette.grabNew(new PaletteColorMapping(*(rhs.m_palette)));//we need to copy the palette object, because it may no longer match the metadata
+    }
+    return *this;
+}
+
 void CiftiScalarsMap::readXML1(QXmlStreamReader& xml)
 {
     CaretLogFiner("parsing nonstandard scalars mapping type in cifti-1");
