@@ -100,7 +100,9 @@ namespace caret {
         
         void setBalsaCustomBaseDirectory(const AString& balsaBaseDirectory);
         
-        AString findBaseDirectoryForDataFiles(std::vector<AString>& missingFileNamesOut) const;
+        bool findBaseDirectoryForDataFiles(AString& baseDirectoryOut,
+                                           std::vector<AString>& missingFileNamesOut,
+                                           AString& errorMessageOut) const;
         
         std::vector<AString> getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCount = 25);
         

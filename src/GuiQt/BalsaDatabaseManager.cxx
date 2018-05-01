@@ -484,11 +484,21 @@ BalsaDatabaseManager::zipSceneAndDataFiles(const SceneFile* sceneFile,
         case SceneFileBasePathTypeEnum::AUTOMATIC:
         {
             std::vector<AString> missingFileNames;
-            basePathName = sceneFile->findBaseDirectoryForDataFiles(missingFileNames);
+            AString errorMessage;
+            const bool validBasePathFlag = sceneFile->findBaseDirectoryForDataFiles(basePathName,
+                                                                                    missingFileNames,
+                                                                                    errorMessage);
+            if ( ! validBasePathFlag) {
+                errorMessageOut.appendWithNewLine("Automatic Base Path Failed: "
+                                                  + errorMessage);
+                return false;
+            }
+            
             if ( ! FileInformation(basePathName).exists()) {
-                errorMessageOut = ("AUTOMATIC base path mode produced an invalid base path (directory does not exist): \""
+                errorMessageOut = ("AUTOMATIC base path mode produced an invalid base path (directory does not exist).  "
+                                   ". \""
                                    + basePathName
-                                   + "\"");
+                                   + "\".");
                 return false;
             }
         }

@@ -869,17 +869,25 @@ SceneFile::setBalsaExtractToDirectoryName(const AString& extractToDirectoryName)
 /**
  * Find the base directory that is a directory that is parent to all loaded data files.
  *
+ * @param baseDirectoryOut
+ *    Output containing the base directory
  * @param missingFileNamesOut
  *    Will contain data files that are in scenes but do not exist.
+ * @param errorMessageOut
+ *    Error message if finding base directory fails
  * @return
- *    Base directory for data files.
+ *    True if the base directory is valid, else false.
  */
-AString
-SceneFile::findBaseDirectoryForDataFiles(std::vector<AString>& missingFileNamesOut) const
+bool
+SceneFile::findBaseDirectoryForDataFiles(AString& baseDirectoryOut,
+                                         std::vector<AString>& missingFileNamesOut,
+                                         AString& errorMessageOut) const
 {
-    const AString directorySeparator("/");
-    
+    baseDirectoryOut.clear();
     missingFileNamesOut.clear();
+    errorMessageOut.clear();
+    
+    const AString directorySeparator("/");
     
     const std::vector<AString> allFileNames = getAllDataFileNamesFromAllScenes();
     
@@ -927,7 +935,8 @@ SceneFile::findBaseDirectoryForDataFiles(std::vector<AString>& missingFileNamesO
         /*
          * if no valid files in scene, user path of scene file.
          */
-        return sceneFilePath;
+        baseDirectoryOut = sceneFilePath;
+        return true;
     }
     
     /*
@@ -951,15 +960,38 @@ SceneFile::findBaseDirectoryForDataFiles(std::vector<AString>& missingFileNamesO
         }
     }
     
-    AString baseDirectoryName = sceneFilePath;
+    baseDirectoryOut = sceneFilePath;
     if ( ! longestPathMatch.empty()) {
         /*
          * Assemble the path components into a directory.
          */
-        baseDirectoryName = AString::join(longestPathMatch,
+        baseDirectoryOut = AString::join(longestPathMatch,
                                           directorySeparator);
     }
-    return baseDirectoryName;
+    
+    /*
+     * If no "longest path", files are on multiple disks
+     */
+    if (baseDirectoryOut.isEmpty()) {
+        if (SystemUtilities::isWindowsOperatingSystem()) {
+            /*
+             * On Windows, there is no "root directory"
+             */
+            baseDirectoryOut = "";
+            errorMessageOut = ("Files appear to be on different disks.  On the Windows Operating System, "
+                               "there is no directory that is parent to the disks.  Files will need to "
+                               "be moved so that they are on one disk");
+            return false;
+        }
+        else {
+            /*
+             * On Unix, user root directory
+             */
+            baseDirectoryOut = directorySeparator;
+        }
+    }
+    
+    return true;
 }
 
 /**
@@ -975,9 +1007,12 @@ SceneFile::getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCo
 {
     std::vector<AString> names;
     
+    AString baseDirectoryName;
     std::vector<AString> missingFileNames;
-    AString baseDirectoryName = findBaseDirectoryForDataFiles(missingFileNames);
-    if ( ! baseDirectoryName.isEmpty()) {
+    AString errorMessage;
+    if (findBaseDirectoryForDataFiles(baseDirectoryName,
+                                      missingFileNames,
+                                      errorMessage)) {
         QDir dir(baseDirectoryName);
         
         for (int32_t i = 0; i < maximumAncestorCount; i++) {
@@ -1072,11 +1107,13 @@ SceneFile::getDefaultExtractToDirectoryName() const
 {
     AString directoryName;
 
+    AString baseDirectoryName;
     std::vector<AString> missingFileNames;
-    FileInformation fileInfo(findBaseDirectoryForDataFiles(missingFileNames));
-    AString baseDirectory = fileInfo.getAbsoluteFilePath();
-    if ( ! baseDirectory.isEmpty()) {
-        QDir dir(baseDirectory);
+    AString errorMessage;
+    if (findBaseDirectoryForDataFiles(baseDirectoryName,
+                                      missingFileNames,
+                                      errorMessage)) {
+        QDir dir(baseDirectoryName);
         directoryName = dir.dirName();
     }
     

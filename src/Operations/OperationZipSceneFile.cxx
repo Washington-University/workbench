@@ -124,8 +124,18 @@ void OperationZipSceneFile::createZipFile(const AString& sceneFileName,
         myBaseDir = QDir::cleanPath(QDir(baseDirectory).absolutePath());
     }
     else {
+        AString baseDirectoryName;
         std::vector<AString> missingFileNames;
-        myBaseDir = QDir::cleanPath(sceneFile.findBaseDirectoryForDataFiles(missingFileNames));
+        AString errorMessage;
+        const bool validBasePathFlag = sceneFile.findBaseDirectoryForDataFiles(baseDirectoryName,
+                                                                               missingFileNames,
+                                                                               errorMessage);
+        if ( ! validBasePathFlag) {
+            throw OperationException("Automatic Base Directory Failed: "
+                                     + errorMessage);
+        }
+
+        myBaseDir = QDir::cleanPath(baseDirectoryName);
     }
     if (!myBaseDir.endsWith('/'))//root is a special case, if we didn't handle it differently it would end up looking for "//somefile"
     {//this is actually because the path function strips the final "/" from the path, but not when it is just "/"

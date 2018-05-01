@@ -990,10 +990,14 @@ SceneDialog::warnIfMissingFilesInSceneFile(SceneFile* sceneFile,
 {
     CaretAssert(sceneFile);
     
-    std::vector<AString> filenames;
-    (void)sceneFile->findBaseDirectoryForDataFiles(filenames);
+    AString baseDirectoryName;
+    std::vector<AString> missingFileNames;
+    AString errorMessage;
+    sceneFile->findBaseDirectoryForDataFiles(baseDirectoryName,
+                                             missingFileNames,
+                                             errorMessage);
 
-    if (filenames.empty()) {
+    if (missingFileNames.empty()) {
         return true;
     }
     
@@ -1012,7 +1016,7 @@ SceneDialog::warnIfMissingFilesInSceneFile(SceneFile* sceneFile,
     
     const AString labelText("Do you want to continue " + verbText + " ?");
     AString text;
-    for (auto name : filenames) {
+    for (auto name : missingFileNames) {
         text.append(name + "\n");
     }
 
@@ -1894,9 +1898,14 @@ SceneDialog::showFileStructure()
     const AString sceneFileName = sceneFile->getFileName();
     AString text("<html>");
     
-    std::vector<AString> missingFiles;
+    AString baseDirectoryName;
+    std::vector<AString> missingFileNames;
+    AString errorMessage;
+    const bool validBasePathFlag = sceneFile->findBaseDirectoryForDataFiles(baseDirectoryName,
+                                                                            missingFileNames,
+                                                                            errorMessage);
     text.appendWithNewLine("<b>Automatic Base Path</b>: "
-                           + sceneFile->findBaseDirectoryForDataFiles(missingFiles)
+                           + (validBasePathFlag ? baseDirectoryName : ("INVALID: " + errorMessage))
                            + "<p>");
     text.appendWithNewLine("<b>Scene File</b>: "
                            + sceneFileName
