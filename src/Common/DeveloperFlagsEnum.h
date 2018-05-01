@@ -35,7 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        DEVELOPER_FLAG_UNUSED
+        DEVELOPER_FLAG_UNUSED,
+        DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA
     };
 
     ~DeveloperFlagsEnum();

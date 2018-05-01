@@ -25,6 +25,7 @@
 #include "AnnotationColorBarNumericText.h"
 #include "CaretLogger.h"
 #include "CaretOMP.h"
+#include "DeveloperFlagsEnum.h"
 #include "EventManager.h"
 #include "EventPaletteGetByName.h"
 #include "FastStatistics.h"
@@ -1039,18 +1040,20 @@ PaletteColorMapping::getPalette() const
         CaretAssert(palette);
     }
     
-    switch (this->invertedMode) {
-        case PaletteInvertModeEnum::OFF:
-            break;
-        case PaletteInvertModeEnum::POSITIVE_WITH_NEGATIVE:
-            return palette->getInvertedPalette();
-            break;
-        case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE:
-            return palette->getSignSeparateInvertedPalette();
-            break;
-        case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE_NONE:
-            return palette->getNoneSeparateInvertedPalette();
-            break;
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA)) {
+        switch (this->invertedMode) {
+            case PaletteInvertModeEnum::OFF:
+                break;
+            case PaletteInvertModeEnum::POSITIVE_WITH_NEGATIVE:
+                return palette->getInvertedPalette();
+                break;
+            case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE:
+                return palette->getSignSeparateInvertedPalette();
+                break;
+            case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE_NONE:
+                return palette->getNoneSeparateInvertedPalette();
+                break;
+        }
     }
     
     return palette;
@@ -1690,7 +1693,7 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
                                                       float* normalizedValuesOut,
                                                       const int64_t numberOfData) const
 {
-    bool enable_normalization_flipping = false;//temporary debug/developer variable: use this to trigger the flipping code in this function
+    bool enable_normalization_flipping = ( ! DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA)); //temporary debug/developer variable: use this to trigger the flipping code in this function
     if (numberOfData <= 0) {
         return;
     }

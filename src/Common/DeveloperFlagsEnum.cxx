@@ -95,6 +95,9 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
         case DEVELOPER_FLAG_UNUSED:
             this->flagStatus = false;
             break;
+        case DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA:
+            this->flagStatus = true;
+            break;
     }
 }
 
@@ -119,6 +122,9 @@ DeveloperFlagsEnum::initialize()
     enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_UNUSED,
                                           "DEVELOPER_FLAG_UNUSED",
                                           "Developer Flag Unused"));
+    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA,
+                                          "DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA",
+                                          "Flip Palette Not Data"));
 }
 
 /**
