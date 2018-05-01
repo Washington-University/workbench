@@ -277,10 +277,7 @@ namespace caret {
         void mapDataToPaletteNormalizedValues(const FastStatistics* statistics,
                                               const float* dataValues,
                                               float* normalizedValuesOut,
-                                              const int64_t numberOfData,
-                                              const bool invert_pos_neg = false,
-                                              const bool invert_min_max = false,
-                                              int zero_maps_to = 0) const;
+                                              const int64_t numberOfData) const;
         
         void getPaletteColorBarScaleText(const FastStatistics* statistics,
                                          std::vector<AnnotationColorBarNumericText*>& colorBarNumericTextOut) const;

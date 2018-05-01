@@ -1688,18 +1688,35 @@ void
 PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* statistics,
                                                       const float* dataValues,
                                                       float* normalizedValuesOut,
-                                                      const int64_t numberOfData,
-                                                      const bool invert_pos_neg,
-                                                      const bool invert_min_max,
-                                                      int zero_maps_to) const
+                                                      const int64_t numberOfData) const
 {
+    bool enable_normalization_flipping = false;//temporary debug/developer variable: use this to trigger the flipping code in this function
     if (numberOfData <= 0) {
         return;
     }
-    if (invert_min_max && (zero_maps_to > 1 || zero_maps_to < -1))
+    bool invert_pos_neg = false;
+    bool invert_min_max = false;
+    int inv_min_max_zero_maps_to = 0;
+    if (enable_normalization_flipping)
     {
-        CaretLogWarning("invalid 'zero_maps_to' setting '" + AString::number(zero_maps_to) + "' for min/max palette inversion, resetting to 0");
-        zero_maps_to = 0;
+        //convert the inversion settings into the orthogonal inversions that could be applied simultaneously, if desired
+        switch (this->invertedMode)
+        {
+            case PaletteInvertModeEnum::OFF:
+                break;
+            case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE://only one of these should exist, treat them the same
+            case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE_NONE:
+                invert_min_max = true;
+                break;
+            case PaletteInvertModeEnum::POSITIVE_WITH_NEGATIVE:
+                invert_pos_neg = true;
+                break;
+        }
+        if (invert_min_max && (inv_min_max_zero_maps_to > 1 || inv_min_max_zero_maps_to < -1))
+        {
+            CaretLogWarning("invalid 'inv_min_max_zero_maps_to' setting '" + AString::number(inv_min_max_zero_maps_to) + "' for min/max palette inversion, resetting to 0");
+            inv_min_max_zero_maps_to = 0;
+        }
     }
 
     /*
@@ -1743,7 +1760,7 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
             break;
     }
     //TSC: hack to do the min/max inversion without extra conditionals: swap most and least
-    if (invert_min_max)
+    if (enable_normalization_flipping && invert_min_max)
     {
         float temp = mappingMostPositive;
         mappingMostPositive = mappingLeastPositive;
@@ -1805,10 +1822,10 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
             } else if (normalized > -PALETTE_ZERO_COLOR_ZONE) {
                 normalized = -PALETTE_ZERO_COLOR_ZONE;
             }
-        } else if (scalar == 0.0f && invert_min_max) {//don't apply the replacement to NaN, only to 0
-            normalized = zero_maps_to;
+        } else if (enable_normalization_flipping && scalar == 0.0f && invert_min_max) {//don't apply the replacement to NaN, only to 0
+            normalized = inv_min_max_zero_maps_to;
         }
-        if (invert_pos_neg)
+        if (enable_normalization_flipping && invert_pos_neg)
         {
             normalizedValuesOut[i] = -normalized;
         } else {
