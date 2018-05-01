@@ -1311,11 +1311,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
                                        + " - Positive and negative sections of the palette are swapped<p>"
                                        "   " + PaletteInvertModeEnum::toGuiName(PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE)
                                        + " - Swaps the negative range within the negative range AND "
-                                         "     swaps the positive range within the positive range<p>"
-                                       "   " + PaletteInvertModeEnum::toGuiName(PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE_NONE)
-                                       + " - Swaps the negative range within the negative range AND"
-                                         "   swaps the positive range within the positive range AND"
-                                         "   the NONE color remains between negative and positive ranges"
+                                         "     swaps the positive range within the positive range"
                                          "</html>");
     this->invertPaletteModeComboBox->getWidget()->setToolTip(invertModeToolTip);
     this->paletteWidgetGroup->add(this->invertPaletteModeComboBox->getComboBox());

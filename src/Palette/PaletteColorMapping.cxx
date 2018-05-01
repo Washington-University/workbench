@@ -1048,10 +1048,8 @@ PaletteColorMapping::getPalette() const
                 return palette->getInvertedPalette();
                 break;
             case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE:
-                return palette->getSignSeparateInvertedPalette();
-                break;
-            case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE_NONE:
                 return palette->getNoneSeparateInvertedPalette();
+                //return palette->getSignSeparateInvertedPalette();
                 break;
         }
     }
@@ -1707,8 +1705,7 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
         {
             case PaletteInvertModeEnum::OFF:
                 break;
-            case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE://only one of these should exist, treat them the same
-            case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE_NONE:
+            case PaletteInvertModeEnum::POSITIVE_NEGATIVE_SEPARATE:
                 invert_min_max = true;
                 break;
             case PaletteInvertModeEnum::POSITIVE_WITH_NEGATIVE:

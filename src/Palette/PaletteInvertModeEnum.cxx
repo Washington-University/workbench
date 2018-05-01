@@ -116,12 +116,7 @@ PaletteInvertModeEnum::initialize()
     
     enumData.push_back(PaletteInvertModeEnum(POSITIVE_NEGATIVE_SEPARATE, 
                                     "POSITIVE_NEGATIVE_SEPARATE",
-                                    "Swap Pos/Neg Separate Zero"));
-    
-    enumData.push_back(PaletteInvertModeEnum(POSITIVE_NEGATIVE_SEPARATE_NONE,
-                                             "POSITIVE_NEGATIVE_SEPARATE_NONE",
-                                             "Swap Pos/Neg Separate NONE"));
-    
+                                    "Swap Pos/Neg Separate"));
 }
 
 /**
@@ -179,10 +174,14 @@ PaletteInvertModeEnum::fromName(const AString& nameIn, bool* isValidOut)
     
     /*
      * Fix misspelled name that may be in some files
+     * and test for obsolete "NONE separate"
      */
     AString name = nameIn;
     if (name == "POSITIVE_NEGATIVE_SEPARATE NONE") {
         name = "POSITIVE_NEGATIVE_SEPARATE_NONE";
+    }
+    if (name == "POSITIVE_NEGATIVE_SEPARATE_NONE") {
+        name = "POSITIVE_NEGATIVE_SEPARATE";
     }
     
     bool validFlag = false;
