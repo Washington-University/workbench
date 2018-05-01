@@ -328,6 +328,12 @@ BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>&
                                             const int32_t responseHttpCode,
                                             AString& errorMessageOut) const
 {
+    if (responseHttpCode != 200) {
+        errorMessageOut = ("Upload failed.  Http Code="
+                           + AString::number(responseHttpCode));
+        return false;
+    }
+    
     if (responseHeaders.empty()) {
         if (m_debugFlag) std::cout << "Response headers from upload are empty." << std::endl;
     }
@@ -368,7 +374,7 @@ BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>&
     
     
     AString statusText;
-    {
+    if (haveJsonResponseContentFlag) {
         if (responseContent.isEmpty()) {
             errorMessageOut = "Process upload response content is empty.";
             return false;
@@ -414,20 +420,7 @@ BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>&
             std::cout << "Status Text: " << statusText << std::endl;
         }
     }
-    
-    if (responseHttpCode != 200) {
-        if ( ! statusText.isEmpty()) {
-            contentErrorMessage.insert(0, statusText + "\n");
-        }
-        
-        errorMessageOut = ("Upload failed.  Http Code="
-                           + AString::number(responseHttpCode)
-                           + "\n"
-                           "   " + contentErrorMessage);
-        return false;
-    }
-    
-    if ( ! haveJsonResponseContentFlag) {
+    else {
         errorMessageOut = contentErrorMessage;
         return false;
     }
