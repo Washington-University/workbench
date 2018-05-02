@@ -636,41 +636,50 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
         }
         if (invert_min_max)
         {
-            palette->getPaletteColor(inv_min_max_zero_maps_to, interpolateColor, zeroRGBA);
+            if (invert_pos_neg)//when both apply, the positive data range uses negative colors, so it should map to the most negative color instead
+            {
+                palette->getPaletteColor(-inv_min_max_zero_maps_to, interpolateColor, zeroRGBA);
+            } else {
+                palette->getPaletteColor(inv_min_max_zero_maps_to, interpolateColor, zeroRGBA);
+            }
         } else {
             palette->getPaletteColor(0.0f, interpolateColor, zeroRGBA);//palette should give the right answer for 0 color
         }
         const int32_t numberOfColors = palette->getNumberOfScalarsAndColors();
-        //positive palette range, stop when rightmost value is less than used for positive interpolation
-        int i;//loops for positive and negative use different logic
-        for (i = 1; i < numberOfColors; ++i)
+        //take two, now that I know where the skeletons are: single loop, always insert virtual zero point, because it is also needed for turning off positive or negative range cleanly
+        for (int i = -1; i < numberOfColors; ++i)//also insert virtual points at 1 and -1 if they don't exist
         {
-            PaletteScalarAndColor* highSideScalarColor = palette->getScalarAndColor(i - 1);
-            PaletteScalarAndColor* lowSideScalarColor = palette->getScalarAndColor(i);
-            float highScalar = highSideScalarColor->getScalar(), lowScalar = lowSideScalarColor->getScalar();
-            if (highScalar <= PALETTE_ZERO_COLOR_ZONE) break;//interpolate across the divide, for palettes that don't have a discontinuity
-            if (invert_min_max && lowScalar < -PALETTE_ZERO_COLOR_ZONE) break;//if the palette doesn't already HAVE a zero point, and we invert each half, we have to add a virtual zero point
-            if (displayPosColors)
-            {//don't make "sections" if they won't be displayed
-                float highPosition = highScalar, lowPosition = lowScalar;//high and low refer to the original palette scalars
-                float lowRGBA[4], highRGBA[4];
-                if (highSideScalarColor->isNoneColor())//in case somebody puts a none at the start of the positives - draw it with background color to prevent alignment problems
+            PaletteScalarAndColor* highSideScalarColor = NULL, *lowSideScalarColor = NULL;
+            if (i > 0) highSideScalarColor = palette->getScalarAndColor(i);
+            if (i < numberOfColors - 1) lowSideScalarColor = palette->getScalarAndColor(i + 1);
+            float highScalar = 1.0f, lowScalar = -1.0f;
+            if (highSideScalarColor != NULL) highScalar = highSideScalarColor->getScalar();
+            if (lowSideScalarColor != NULL) lowScalar = lowSideScalarColor->getScalar();
+            if (lowScalar == highScalar) continue;//all special cases of extra virtual pieces of the noninverted palette are handled at this point, we just need to color them, split at zero, and reposition for inversion
+            bool colorIsNone = (highSideScalarColor != NULL && highSideScalarColor->isNoneColor());
+            bool interpolateSection = (interpolateColor && (lowSideScalarColor == NULL || !lowSideScalarColor->isNoneColor()));
+            if (displayPosColors && highScalar > PALETTE_ZERO_COLOR_ZONE)
+            {
+                float highPosition = highScalar, lowPosition = lowScalar;
+                if (lowPosition < -PALETTE_ZERO_COLOR_ZONE) lowPosition = 0.0f;//don't draw across zero
+                float highRGBA[4], lowRGBA[4];
+                if (colorIsNone)
                 {
                     colorBar->getBackgroundColorRGBA(highRGBA);//drawing a section in background color makes sure it doesn't get shifted around
                     colorBar->getBackgroundColorRGBA(lowRGBA);
                 } else {
-                    highSideScalarColor->getColor(highRGBA);
-                    if (interpolateColor && !lowSideScalarColor->isNoneColor())
+                    palette->getPaletteColor(highScalar, interpolateColor, highRGBA);//palette should always give the right answer as long as point isn't none, allows easier treatment of splitting for 0 and added end bar
+                    if (interpolateSection)//when exactly on the control point, it should consider it in the range between that and the lower point, and give the equivalent of the PSAC
                     {
-                        lowSideScalarColor->getColor(lowRGBA);
-                    } else {//existing, unfortunate non-interpolated convention is asymmetric - also don't interpolate with a low none
-                        highSideScalarColor->getColor(lowRGBA);
+                        palette->getPaletteColor(lowPosition, interpolateColor, lowRGBA);//NOTE: this uses Position because it could be a virtual inserted zero point
+                    } else {
+                        palette->getPaletteColor(highScalar, interpolateColor, lowRGBA);
                     }
                 }
                 if (invert_min_max)//doing this manually here means that the normalization code can't introduce a discontinuity
                 {
-                    highPosition = 1.0f - highPosition + PALETTE_ZERO_COLOR_ZONE;
-                    lowPosition = 1.0f - lowPosition + PALETTE_ZERO_COLOR_ZONE;
+                    highPosition = 1.0f - highPosition + PALETTE_ZERO_COLOR_ZONE;//for consistency, keep them in the same range
+                    lowPosition = 1.0f - lowPosition + PALETTE_ZERO_COLOR_ZONE;//could instead stretch them to 0 to 1 when converting from scalar to position
                     if (lowPosition > 1.0f) lowPosition = 1.0f;
                 }
                 if (invert_pos_neg)
@@ -680,141 +689,34 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
                 }
                 if (highPosition < lowPosition)
                 {//color bar section drawing has normals test enabled, for whatever reason, so make sure these are the right way round
-                    float tempf = lowPosition;
-                    lowPosition = highPosition;
-                    highPosition = tempf;
-                    for (int j = 0; j < 4; ++j)
-                    {
-                        tempf = lowRGBA[j];
-                        lowRGBA[j] = highRGBA[j];
-                        highRGBA[j] = tempf;
-                    }
-                }
-                colorBar->addSection(lowPosition, highPosition, lowRGBA, highRGBA);//trust that palettes are sanity checked to not have control points outside [-1, 1]
-            }
-        }
-        if (invert_min_max && i < numberOfColors)
-        {//only part of the test, now we need to check the scalars...
-            PaletteScalarAndColor* highSideScalarColor = palette->getScalarAndColor(i - 1);
-            PaletteScalarAndColor* lowSideScalarColor = palette->getScalarAndColor(i);
-            float highScalar = highSideScalarColor->getScalar(), lowScalar = lowSideScalarColor->getScalar();
-            if (highScalar > PALETTE_ZERO_COLOR_ZONE && lowScalar < -PALETTE_ZERO_COLOR_ZONE)
-            {//special case (for grey_interp, mostly): interpolation between the same two points covers both positive and negative data values
-                float lowRGBA[4], highRGBA[4], zeroishRGBA[4];//to do this correctly, we must add a virtual point at zero
-                if (highSideScalarColor->isNoneColor())
-                {//the code that does the drawing doesn't check what is or is not enabled, and just rescales to whatever is provided
-                    colorBar->getBackgroundColorRGBA(highRGBA);//so draw the section with background color to give it hard 1 and -1, to prevent alignment problems
-                    colorBar->getBackgroundColorRGBA(lowRGBA);
-                    colorBar->getBackgroundColorRGBA(zeroishRGBA);
+                    colorBar->addSection(highPosition, lowPosition, highRGBA, lowRGBA);//trust that palettes are sanity checked to not have control points outside [-1, 1]
                 } else {
-                    highSideScalarColor->getColor(highRGBA);
-                    if (interpolateColor && !lowSideScalarColor->isNoneColor())
-                    {
-                        lowSideScalarColor->getColor(lowRGBA);
-                        palette->getPaletteColor(0.0f, interpolateColor, zeroishRGBA);//zeroish is the color zero WOULD be without the "zero maps to" option, and is the correct thing to interpolate with
-                    } else {
-                        highSideScalarColor->getColor(lowRGBA);
-                        highSideScalarColor->getColor(zeroishRGBA);//if not interpolating, both bars must be solid, using the high color
-                    }
+                    colorBar->addSection(lowPosition, highPosition, lowRGBA, highRGBA);//trust that palettes are sanity checked to not have control points outside [-1, 1]
                 }
-                if (displayPosColors)//remember, we are inverting min and max in all code here
-                {
-                    if (invert_pos_neg)
-                    {
-                        colorBar->addSection(-1.0f, highScalar - 1.0f - PALETTE_ZERO_COLOR_ZONE, zeroishRGBA, highRGBA);
-                    } else {
-                        colorBar->addSection(1.0f - highScalar + PALETTE_ZERO_COLOR_ZONE, 1.0f, highRGBA, zeroishRGBA);
-                    }
-                }
-                if (displayNegColors)
-                {
-                    if (invert_pos_neg)
-                    {
-                        colorBar->addSection(lowScalar + 1.0f + PALETTE_ZERO_COLOR_ZONE, 1.0f, lowRGBA, zeroishRGBA);
-                    } else {
-                        colorBar->addSection(-1.0f, -1.0f - lowScalar - PALETTE_ZERO_COLOR_ZONE, zeroishRGBA, lowRGBA);
-                    }
-                }
-                ++i;//don't draw this special piece again (wrongly) later
             }
-        }
-        for (; i < numberOfColors; ++i)//continue looping until we are out of the special zero zone
-        {
-            PaletteScalarAndColor* lowSideScalarColor = palette->getScalarAndColor(i);
-            float lowScalar = lowSideScalarColor->getScalar();
-            if (lowScalar < -PALETTE_ZERO_COLOR_ZONE) break;
-        }
-        //negative palette range, continue until we have done all of them
-        for (; i < numberOfColors; ++i)
-        {
-            PaletteScalarAndColor* highSideScalarColor = palette->getScalarAndColor(i - 1);
-            PaletteScalarAndColor* lowSideScalarColor = palette->getScalarAndColor(i);
-            float highScalar = highSideScalarColor->getScalar(), lowScalar = lowSideScalarColor->getScalar();
-            if (displayNegColors)
-            {//don't make "sections" if they won't be displayed
+            if (displayNegColors && lowScalar < -PALETTE_ZERO_COLOR_ZONE)
+            {
                 float highPosition = highScalar, lowPosition = lowScalar;
-                float lowRGBA[4], highRGBA[4];
-                if (highSideScalarColor->isNoneColor())//prevent alignment problems with the color bar if a palette uses "none" on -1
+                if (highPosition > PALETTE_ZERO_COLOR_ZONE) highPosition = 0.0f;//don't draw across zero
+                float highRGBA[4], lowRGBA[4];
+                if (colorIsNone)
                 {
-                    colorBar->getBackgroundColorRGBA(highRGBA);
+                    colorBar->getBackgroundColorRGBA(highRGBA);//drawing a section in background color makes sure it doesn't get shifted around
                     colorBar->getBackgroundColorRGBA(lowRGBA);
                 } else {
-                    highSideScalarColor->getColor(highRGBA);
-                    if (interpolateColor && !lowSideScalarColor->isNoneColor())
+                    if (interpolateSection)
                     {
-                        lowSideScalarColor->getColor(lowRGBA);
-                    } else {//existing, unfortunate non-interpolated convention is asymmetric - also don't interpolate with a none
-                        highSideScalarColor->getColor(lowRGBA);
+                        palette->getPaletteColor(highPosition, interpolateColor, highRGBA);//NOTE: this uses Position because it could be a virtual inserted zero point
+                        palette->getPaletteColor(lowScalar, interpolateColor, lowRGBA);
+                    } else {
+                        palette->getPaletteColor(highScalar, interpolateColor, highRGBA);
+                        palette->getPaletteColor(highScalar, interpolateColor, lowRGBA);
                     }
                 }
                 if (invert_min_max)//doing this manually here means that the normalization code can't introduce a discontinuity
-                {//high position can be 
+                {
                     highPosition = -1.0f - highPosition - PALETTE_ZERO_COLOR_ZONE;
                     lowPosition = -1.0f - lowPosition - PALETTE_ZERO_COLOR_ZONE;
-                    if (highPosition < -1.0f) highPosition = -1.0f;
-                }
-                if (invert_pos_neg)
-                {
-                    highPosition = -highPosition;//high and low refer to the original palette scalars
-                    lowPosition = -lowPosition;
-                }
-                if (highPosition < lowPosition)
-                {//color bar section drawing has normals test enabled, for whatever reason, so make sure these are the right way round
-                    float tempf = lowPosition;
-                    lowPosition = highPosition;
-                    highPosition = tempf;
-                    for (int j = 0; j < 4; ++j)
-                    {
-                        tempf = lowRGBA[j];
-                        lowRGBA[j] = highRGBA[j];
-                        highRGBA[j] = tempf;
-                    }
-                }
-                colorBar->addSection(lowPosition, highPosition, lowRGBA, highRGBA);//trust that palettes are sanity checked to not have control points outside [-1, 1]
-            }
-        }
-        //finally, if the palette doesn't reach -1 (original psych...what a mess), finish it off as if it had a duplicate color at -1
-        //WARNING: this assumes that ALL palettes have both positive and zero values, which appears to be true so far, but is sadly not guaranteed
-        //all the palette code should be scrapped for a sane pos/neg/zero separated, 1 and -1 required encoding before we let users make their own
-        if (displayNegColors)
-        {
-            PaletteScalarAndColor* highSideScalarColor = palette->getScalarAndColor(numberOfColors - 1);
-            float highScalar = highSideScalarColor->getScalar();
-            if (highScalar > -1.0f)
-            {
-                float highRGBA[4];
-                if (highSideScalarColor->isNoneColor())//none means everything below it doesn't get colored, until after the next control point (and there isn't one)
-                {
-                    colorBar->getBackgroundColorRGBA(highRGBA);//do draw it, but make it background color, to make things line up properly
-                } else {
-                    highSideScalarColor->getColor(highRGBA);
-                }
-                float highPosition = highScalar;
-                float lowPosition = -1.0f;
-                if (invert_min_max)
-                {
-                    highPosition = -1.0f - highPosition - PALETTE_ZERO_COLOR_ZONE;
-                    lowPosition = -PALETTE_ZERO_COLOR_ZONE;
                     if (highPosition < -1.0f) highPosition = -1.0f;
                 }
                 if (invert_pos_neg)
@@ -824,13 +726,12 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
                 }
                 if (highPosition < lowPosition)
                 {//color bar section drawing has normals test enabled, for whatever reason, so make sure these are the right way round
-                    float tempf = lowPosition;
-                    lowPosition = highPosition;
-                    highPosition = tempf;
-                }//don't need to swap colors, there is only one color, used on both sides
-                colorBar->addSection(lowPosition, highPosition, highRGBA, highRGBA);
+                    colorBar->addSection(highPosition, lowPosition, highRGBA, lowRGBA);//trust that palettes are sanity checked to not have control points outside [-1, 1]
+                } else {
+                    colorBar->addSection(lowPosition, highPosition, lowRGBA, highRGBA);//trust that palettes are sanity checked to not have control points outside [-1, 1]
+                }
             }
-        }
+        }//so much cleaner, and handles edge cases the other didn't
         //zero: use the color that exact zeros should get colored as by asking the palette, after applying zero mapping setting
         //draw it last so any discontinuity is visible
         if (this->displayZeroDataFlag)
@@ -906,8 +807,8 @@ PaletteColorMapping::setupAnnotationColorBar(const FastStatistics* statistics,
                                                              xMinimum,
                                                              xMaximum);
                 if (xMin < xMax) {
-                    colorBar->addSection(normalizedThresholds[0],
-                                         normalizedThresholds[1],
+                    colorBar->addSection(xMin,
+                                         xMax,
                                          backgroundRGBA,
                                          backgroundRGBA);
                 }
