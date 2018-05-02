@@ -288,6 +288,9 @@ namespace caret {
         /** A negative value near zero - may be zero! */
         static const float SMALL_NEGATIVE;
         
+        /** TSC: the excluded zone of normalization is a separate issue to zero detection in the data
+          * specifically, it is a HACK, in order for palettes to be able to specify a special color for data that is 0, which is not involved in color interpolation */
+        static const float PALETTE_ZERO_COLOR_ZONE;
     private:
         bool isZeroNumericText(const AString& numericText) const;
         
@@ -383,6 +386,7 @@ namespace caret {
 #ifdef __PALETTE_COLOR_MAPPING_DECLARE__
     const float PaletteColorMapping::SMALL_POSITIVE = 0.0;
     const float PaletteColorMapping::SMALL_NEGATIVE = 0.0;
+    const float PaletteColorMapping::PALETTE_ZERO_COLOR_ZONE = 0.00001f;
     std::set<AString> PaletteColorMapping::s_missingPaletteNames;
 #endif // __PALETTE_COLOR_MAPPING_DECLARE__
     
