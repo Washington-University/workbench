@@ -738,6 +738,26 @@ Brain::resetBrainKeepSceneFiles()
         if (caretDataFile->isModified()) {
             continue;
         }
+        else {
+            /*
+             * If a palette is modified by user or by showing a previous scene,
+             * then the file MUST be reloaded because the palette may be different
+             * in the new scene that is being loaded.
+             */
+            CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
+            if (cmdf != NULL) {
+                switch (cmdf->getPaletteColorMappingModifiedStatus()) {
+                    case PaletteModifiedStatusEnum::MODIFIED:
+                        continue;
+                        break;
+                    case PaletteModifiedStatusEnum::MODIFIED_BY_SHOW_SCENE:
+                        continue;
+                        break;
+                    case PaletteModifiedStatusEnum::UNMODIFIED:
+                        break;
+                }
+            }
+        }
         if (caretDataFile->isModifiedSinceTimeOfLastReadOrWrite()) {
             continue;
         }

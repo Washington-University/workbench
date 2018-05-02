@@ -394,7 +394,18 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
             const int32_t numMaps = getNumberOfMaps();
             for (int32_t i = 0; i < numMaps; i++) {
                 const PaletteColorMapping* pcmConst = getMapPaletteColorMapping(i);
-                if (pcmConst->isModified()) {
+                bool savePaletteFlag = false;
+                switch (pcmConst->getModifiedStatus()) {
+                    case PaletteModifiedStatusEnum::MODIFIED:
+                        savePaletteFlag = true;
+                        break;
+                    case PaletteModifiedStatusEnum::MODIFIED_BY_SHOW_SCENE:
+                        savePaletteFlag = true;
+                        break;
+                    case PaletteModifiedStatusEnum::UNMODIFIED:
+                        break;
+                }
+                if (savePaletteFlag) {
                     PaletteColorMapping* pcm = const_cast<PaletteColorMapping*>(pcmConst);
                     
                     try {
@@ -608,7 +619,7 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                          * WB-522 When palette loaded from scene,
                          * mark it as modified.
                          */
-                        pcmMap->setModified();
+                        pcmMap->setSceneModified();
                         
                         /*
                          * Volume file needs it's map coloring updated since
@@ -984,6 +995,42 @@ CaretMappableDataFile::isModifiedPaletteColorMapping() const
     }
     
     return false;
+}
+
+/**
+ * @return The modified status for aall palettes in this file.
+ * Note that 'modified' overrides any 'modified by show scene'.
+ */
+PaletteModifiedStatusEnum::Enum
+CaretMappableDataFile::getPaletteColorMappingModifiedStatus() const
+{
+    PaletteModifiedStatusEnum::Enum modStatus = PaletteModifiedStatusEnum::UNMODIFIED;
+    
+    if (isMappedWithPalette()) {
+        const int32_t numMaps = getNumberOfMaps();
+        for (int32_t i = 0; i < numMaps; i++) {
+            switch (getMapPaletteColorMapping(i)->getModifiedStatus()) {
+                case PaletteModifiedStatusEnum::MODIFIED:
+                    modStatus = PaletteModifiedStatusEnum::MODIFIED;
+                    break;
+                case PaletteModifiedStatusEnum::MODIFIED_BY_SHOW_SCENE:
+                    modStatus = PaletteModifiedStatusEnum::MODIFIED_BY_SHOW_SCENE;
+                    break;
+                case PaletteModifiedStatusEnum::UNMODIFIED:
+                    break;
+            }
+            
+            if (modStatus == PaletteModifiedStatusEnum::MODIFIED) {
+                /*
+                 * 'MODIFIED' overrides 'MODIFIED_BY_SHOW_SCENE'
+                 * so no need to continue loop
+                 */
+                break;
+            }
+        }
+    }
+    
+    return modStatus;
 }
 
 /**

@@ -29,6 +29,7 @@
 #include "CaretPointer.h"
 #include "CiftiXML.h"
 #include "NiftiEnums.h"
+#include "PaletteModifiedStatusEnum.h"
 #include "PaletteNormalizationModeEnum.h"
 
 namespace caret {
@@ -464,6 +465,9 @@ namespace caret {
         /* documented in cxx file. */
         virtual bool isModifiedPaletteColorMapping() const;
         
+        /* documented in cxx file. */
+        virtual PaletteModifiedStatusEnum::Enum getPaletteColorMappingModifiedStatus() const;
+        
         /**
          * Check whether the file contains Cifti XML (all cifti types and also wbsparse have it)
          */
@@ -476,7 +480,7 @@ namespace caret {
         virtual const CiftiXML getCiftiXML() const;
         
         /* documented in cxx file. */
-        virtual bool isModified() const override;
+        virtual bool isModified() const override final;
         
         virtual void clearModified() override;
         

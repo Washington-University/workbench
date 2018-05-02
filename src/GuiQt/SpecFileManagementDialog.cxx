@@ -1478,24 +1478,35 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                 CaretAssert(statusItem);
                 statusItem->setText("");
                 if (caretDataFile != NULL) {
-                    if (caretDataFile->isModified()) {
-                        if (isFileSavable) {
-                            statusItem->setText("YES");
-                            
+                    if (isFileSavable) {
+                        /*
+                         * Is this a Caret Mappable Data file and is the modification
+                         * only in the palette color mapping?
+                         */
+                        CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
+                        if (mapFile != NULL) {
                             /*
-                             * Is this a Caret Mappable Data file and is the modification
-                             * only in the palette color mapping?
+                             * Is modification just the palette color mapping?
                              */
-                            CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
-                            if (mapFile != NULL) {
-                                /*
-                                 * Is modification just the palette color mapping?
-                                 */
-                                if (mapFile->isModifiedPaletteColorMapping()) {
-                                    if ( ! mapFile->isModifiedExcludingPaletteColorMapping()) {
+                            if (mapFile->isModifiedExcludingPaletteColorMapping()) {
+                                statusItem->setText("YES");
+                            }
+                            else {
+                                switch (mapFile->getPaletteColorMappingModifiedStatus()) {
+                                    case PaletteModifiedStatusEnum::MODIFIED:
                                         statusItem->setText("PALETTE");
-                                    }
+                                        break;
+                                    case PaletteModifiedStatusEnum::MODIFIED_BY_SHOW_SCENE:
+                                        statusItem->setText("SCENE PALETTE");
+                                        break;
+                                    case PaletteModifiedStatusEnum::UNMODIFIED:
+                                        break;
                                 }
+                            }
+                        }
+                        else {
+                            if (caretDataFile->isModified()) {
+                                statusItem->setText("YES");
                             }
                         }
                     }

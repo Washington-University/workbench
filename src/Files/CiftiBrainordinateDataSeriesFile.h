@@ -65,7 +65,9 @@ namespace caret {
         
         virtual void writeFile(const AString& filename);
         
-        virtual bool isModifiedPaletteColorMapping() const;
+        virtual bool isModifiedPaletteColorMapping() const override;
+        
+        virtual PaletteModifiedStatusEnum::Enum getPaletteColorMappingModifiedStatus() const override;
         
     private:
         CiftiBrainordinateDataSeriesFile(const CiftiBrainordinateDataSeriesFile&);

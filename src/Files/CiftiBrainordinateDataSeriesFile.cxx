@@ -23,6 +23,8 @@
 #include "CiftiBrainordinateDataSeriesFile.h"
 #undef __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_DECLARE__
 
+#include <array>
+
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
@@ -428,6 +430,45 @@ CiftiBrainordinateDataSeriesFile::isModifiedPaletteColorMapping() const
     }
     
     return false;
+}
+
+/**
+ * @return The modified status for aall palettes in this file.
+ * Note that 'modified' overrides any 'modified by show scene'.
+ */
+PaletteModifiedStatusEnum::Enum
+CiftiBrainordinateDataSeriesFile::getPaletteColorMappingModifiedStatus() const
+{
+    const std::array<PaletteModifiedStatusEnum::Enum, 2> fileModStatus = { {
+        CiftiMappableDataFile::getPaletteColorMappingModifiedStatus(),
+        ((m_lazyInitializedDenseDynamicFile != NULL)
+         ? m_lazyInitializedDenseDynamicFile->getPaletteColorMappingModifiedStatus()
+         : PaletteModifiedStatusEnum::UNMODIFIED)
+    } };
+    
+    PaletteModifiedStatusEnum::Enum modStatus = PaletteModifiedStatusEnum::UNMODIFIED;
+    for (auto status : fileModStatus) {
+        switch (status) {
+            case PaletteModifiedStatusEnum::MODIFIED:
+                modStatus = PaletteModifiedStatusEnum::MODIFIED;
+                break;
+            case PaletteModifiedStatusEnum::MODIFIED_BY_SHOW_SCENE:
+                modStatus = PaletteModifiedStatusEnum::MODIFIED_BY_SHOW_SCENE;
+                break;
+            case PaletteModifiedStatusEnum::UNMODIFIED:
+                break;
+        }
+
+        if (modStatus == PaletteModifiedStatusEnum::MODIFIED) {
+            /*
+             * 'MODIFIED' overrides 'MODIFIED_BY_SHOW_SCENE'
+             * so no need to continue loop
+             */
+            break;
+        }
+    }
+    
+    return modStatus;
 }
 
 

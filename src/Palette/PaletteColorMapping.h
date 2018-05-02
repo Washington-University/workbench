@@ -34,6 +34,7 @@
 #include "PaletteEnums.h"
 #include "PaletteHistogramRangeModeEnum.h"
 #include "PaletteInvertModeEnum.h"
+#include "PaletteModifiedStatusEnum.h"
 #include "PaletteThresholdRangeModeEnum.h"
 #include "XmlException.h"
 
@@ -49,7 +50,7 @@ namespace caret {
      */
     class PaletteColorMapping : public CaretObject {
         
-    public:
+    public:        
         PaletteColorMapping();
         
         PaletteColorMapping(const PaletteColorMapping& o);
@@ -274,6 +275,10 @@ namespace caret {
         
         bool isModified() const;
         
+        void setSceneModified();
+        
+        PaletteModifiedStatusEnum::Enum getModifiedStatus() const;
+        
         void mapDataToPaletteNormalizedValues(const FastStatistics* statistics,
                                               const float* dataValues,
                                               float* normalizedValuesOut,
@@ -377,7 +382,7 @@ namespace caret {
         bool colorBarShowTickMarksSelected;
         
         /**Tracks modification, DO NOT copy */
-        bool modifiedFlag;
+        PaletteModifiedStatusEnum::Enum modifiedStatus;
         
         /** keeps missing palettes from being logged more than once */
         static std::set<AString> s_missingPaletteNames;

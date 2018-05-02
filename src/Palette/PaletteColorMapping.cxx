@@ -280,7 +280,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->colorBarNumericSubdivisionCount = 0;
     this->colorBarValuesMode = PaletteColorBarValuesModeEnum::DATA;
     this->colorBarShowTickMarksSelected = false;
-    this->modifiedFlag = false;
+    this->modifiedStatus = PaletteModifiedStatusEnum::UNMODIFIED;
 }
 
 /**
@@ -1785,7 +1785,7 @@ PaletteColorMapping::setShowThresholdFailureInGreen(const bool showInGreenFlag)
 void
 PaletteColorMapping::setModified()
 {
-    this->modifiedFlag = true;
+    this->modifiedStatus = PaletteModifiedStatusEnum::MODIFIED;
 }
 
 /**
@@ -1796,7 +1796,7 @@ PaletteColorMapping::setModified()
 void
 PaletteColorMapping::clearModified()
 {
-    this->modifiedFlag = false;
+    this->modifiedStatus = PaletteModifiedStatusEnum::UNMODIFIED;
 }
 
 /**
@@ -1808,11 +1808,31 @@ PaletteColorMapping::clearModified()
 bool
 PaletteColorMapping::isModified() const
 {
-    return this->modifiedFlag;
+    return (this->modifiedStatus == PaletteModifiedStatusEnum::MODIFIED);
 }
 
 /**
- * Map data values to palette normalized values using the 
+ * @return Modified status enumerated type that indicates specific type of modification
+ */
+PaletteModifiedStatusEnum::Enum
+PaletteColorMapping::getModifiedStatus() const
+{
+    return this->modifiedStatus;
+}
+
+/**
+ * When restored from a scene, need to set the 
+ * 'scene modified' status to both avoid 'file modified' warnings
+ * but need to save palette to any new scenes
+ */
+void
+PaletteColorMapping::setSceneModified()
+{
+    this->modifiedStatus = PaletteModifiedStatusEnum::MODIFIED_BY_SHOW_SCENE;
+}
+
+/**
+ * Map data values to palette normalized values using the
  * settings in this palette color mapping.
  *
  * @param statistics
