@@ -82,6 +82,9 @@ namespace caret {
     protected:
         virtual void okButtonClicked();
         
+    private slots:
+        void addWindowContentToolButtonClicked();
+        
     private:
         // ADD_NEW_MEMBERS_HERE
 
@@ -109,6 +112,8 @@ namespace caret {
         QCheckBox* m_addAllLoadedFilesCheckBox;
         
         QCheckBox* m_addModifiedPaletteSettingsCheckBox;
+        
+        AString m_sceneWindowDescription;
         
         struct PreviousSelections {
             bool m_addSpecFileNameToScene;

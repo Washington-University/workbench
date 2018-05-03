@@ -25,6 +25,7 @@
 #include "SceneCreateReplaceDialog.h"
 #undef __SCENE_CREATE_REPLACE_DIALOG_DECLARE__
 
+#include <QAction>
 #include <QCheckBox>
 #include <QDateTime>
 #include <QGridLayout>
@@ -32,6 +33,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 #include "ApplicationInformation.h"
@@ -131,14 +133,15 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     m_balsaSceneIDLineEdit = new QLineEdit();
     m_balsaSceneIDLineEdit->setToolTip("Scene ID is for use with BALSA Database");
     
+    QPushButton* addWindowDescriptionPushButton = new QPushButton("Add Window Info");
+    QObject::connect(addWindowDescriptionPushButton, &QPushButton::clicked,
+                     this, &SceneCreateReplaceDialog::addWindowContentToolButtonClicked);
+    
     QLabel* descriptionLabel = new QLabel("Description");
     m_descriptionTextEdit = new QPlainTextEdit();
     
     const Qt::Alignment labelAlignment = (Qt::AlignLeft | Qt::AlignTop);
     
-    /*
-     * Layout for  widgets
-     */
     int32_t columnCounter = 0;
     const int32_t labelColumn  = columnCounter++;
     const int32_t widgetColumn = columnCounter++;
@@ -159,14 +162,18 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     infoGridLayout->addWidget(m_balsaSceneIDLineEdit,
                               rowCounter, widgetColumn);
     rowCounter++;
-    infoGridLayout->setRowStretch(rowCounter, 100);
     infoGridLayout->addWidget(descriptionLabel,
                               rowCounter, labelColumn,
                               labelAlignment);
     infoGridLayout->addWidget(m_descriptionTextEdit,
-                              rowCounter, widgetColumn);
+                              rowCounter, widgetColumn,
+                              2, 1);
     rowCounter++;
-    infoGridLayout->setRowStretch(rowCounter, 0);
+    infoGridLayout->addWidget(addWindowDescriptionPushButton,
+                              rowCounter, labelColumn,
+                              labelAlignment);
+    infoGridLayout->setRowStretch(rowCounter, 100);
+    rowCounter++;
     infoGridLayout->addWidget(optionsLabel,
                               rowCounter, labelColumn,
                               labelAlignment);
@@ -194,33 +201,32 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     const QString commitName   = (ApplicationInformation().getCommit());
     const QString dataTimeCommitText(dateTimeText + "   " + commitName);
     
-    PlainTextStringBuilder description;
-    description.addLine("Created on " + dataTimeCommitText);
+    PlainTextStringBuilder windowDescription;
     std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
     for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
          iter != windows.end();
          iter++) {
         BrainBrowserWindow* window = *iter;
-        window->getDescriptionOfContent(description);
-        description.addLine("");
+        window->getDescriptionOfContent(windowDescription);
+        windowDescription.addLine("");
     }
-    QString descriptionString = description.getText().trimmed();
+    m_sceneWindowDescription = windowDescription.getText().trimmed();
     
     const AString defaultNewSceneName = ("New Scene " + AString::number(sceneFile->getNumberOfScenes() + 1));
     m_nameLineEdit->setText(defaultNewSceneName);
     
     switch (m_mode) {
         case MODE_ADD_NEW_SCENE:
-            m_descriptionTextEdit->setPlainText(descriptionString);
+            m_descriptionTextEdit->setPlainText("Created on " + dataTimeCommitText + "\n");
             break;
         case MODE_INSERT_NEW_SCENE:
-            m_descriptionTextEdit->setPlainText(descriptionString);
+            m_descriptionTextEdit->setPlainText("Created on " + dataTimeCommitText + "\n");
             break;
         case MODE_REPLACE_SCENE:
             m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
             m_balsaSceneIDLineEdit->setText(sceneToInsertOrReplace->getBalsaSceneID());
-            m_descriptionTextEdit->setPlainText("Replaced on " + dataTimeCommitText + "\n"
-                                                + sceneToInsertOrReplace->getDescription());
+            m_descriptionTextEdit->setPlainText("Replaced on " + dataTimeCommitText + "\n\n"
+                                                + sceneToInsertOrReplace->getDescription() + "\n");
             break;
     }
     
@@ -231,7 +237,6 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     setMinimumHeight(300);
     
     setSaveWindowPositionForNextTime("SceneCreateDialog");
-    
 }
 
 /**
@@ -701,6 +706,17 @@ SceneCreateReplaceDialog::okButtonClicked()
     Scene::setSceneBeingCreated(NULL);
     
     WuQDialogModal::okButtonClicked();
+}
+
+/**
+ * Called when add window content button clicked
+ */
+void
+SceneCreateReplaceDialog::addWindowContentToolButtonClicked()
+{
+    AString txt = m_descriptionTextEdit->document()->toPlainText();
+    txt.appendWithNewLine(m_sceneWindowDescription);
+    m_descriptionTextEdit->setPlainText(txt);
 }
 
 
