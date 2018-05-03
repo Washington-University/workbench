@@ -96,7 +96,7 @@ DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
             this->flagStatus = false;
             break;
         case DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA:
-            this->flagStatus = true;
+            this->flagStatus = false;
             break;
     }
 }
