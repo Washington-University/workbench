@@ -2260,6 +2260,9 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
              * same, there is no need to display both of them.
              */
             zeroValueText = negMinText;
+            if (isZeroNumericText(zeroValueText)) {
+                zeroValueText = "0";
+            }
         }
         else if (isZeroNumericText(negMinText)
                  && (isZeroNumericText(posMinText))) {
@@ -2447,6 +2450,8 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
 
 /**
  * Is the numeric value of the text zero?
+ *
+ * Examples: 0, -0.0, 0.00, etc
  * 
  * @param numericText
  *      The text with a numeric value
@@ -2456,14 +2461,25 @@ PaletteColorMapping::getPaletteColorBarScaleText(const FastStatistics* statistic
 bool
 PaletteColorMapping::isZeroNumericText(const AString& numericText) const
 {
-    if ((numericText == "0")
-        || (numericText == "0.0")
-        || (numericText == "-0")
-        || (numericText == "-0.0")) {
-        return true;
+    /*
+     * While a regular expression could be used, it may
+     * be faster just to test for valid characters
+     */
+    const int32_t numChars = numericText.length();
+    for (int32_t i = 0; i < numChars; i++) {
+        QChar c = numericText[i];
+        if ((c == '+')
+            || (c == '-')
+            || (c == '0')
+            || (c == '.')) {
+            /* ok */
+        }
+        else {
+            return false;
+        }
     }
     
-    return false;
+    return true;
 }
 
 /**
