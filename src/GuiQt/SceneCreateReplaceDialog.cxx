@@ -196,37 +196,38 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     setCentralWidget(dialogWidget,
                      WuQDialog::SCROLL_AREA_NEVER);
 
-    QDateTime dateTime = QDateTime::currentDateTime();
-    const QString dateTimeText = dateTime.toString("dd MMM yyyy hh:mm:ss");
-    const QString commitName   = (ApplicationInformation().getCommit());
-    const QString dataTimeCommitText(dateTimeText + "   " + commitName);
-    
-    PlainTextStringBuilder windowDescription;
+    PlainTextStringBuilder windowDescriptionBuilder;
     std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
     for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
          iter != windows.end();
          iter++) {
         BrainBrowserWindow* window = *iter;
-        window->getDescriptionOfContent(windowDescription);
-        windowDescription.addLine("");
+        window->getDescriptionOfContent(windowDescriptionBuilder);
+        windowDescriptionBuilder.addLine("");
     }
-    m_sceneWindowDescription = windowDescription.getText().trimmed();
+    const AString windowDescription = windowDescriptionBuilder.getText().trimmed();
+    
+    QDateTime dateTime = QDateTime::currentDateTime();
+    const QString dateTimeText = dateTime.toString("dd MMM yyyy hh:mm:ss");
+    const QString commitName   = (ApplicationInformation().getCommit());
+    const QString dataTimeCommitText(dateTimeText + "\n" + commitName);
     
     const AString defaultNewSceneName = ("New Scene " + AString::number(sceneFile->getNumberOfScenes() + 1));
     m_nameLineEdit->setText(defaultNewSceneName);
     
     switch (m_mode) {
         case MODE_ADD_NEW_SCENE:
-            m_descriptionTextEdit->setPlainText("Created on " + dataTimeCommitText + "\n");
-            break;
         case MODE_INSERT_NEW_SCENE:
-            m_descriptionTextEdit->setPlainText("Created on " + dataTimeCommitText + "\n");
+            m_sceneWindowDescription = ("Created on " + dataTimeCommitText + "\n");
+            m_sceneWindowDescription.appendWithNewLine(windowDescription);
             break;
         case MODE_REPLACE_SCENE:
             m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
             m_balsaSceneIDLineEdit->setText(sceneToInsertOrReplace->getBalsaSceneID());
-            m_descriptionTextEdit->setPlainText("Replaced on " + dataTimeCommitText + "\n\n"
-                                                + sceneToInsertOrReplace->getDescription() + "\n");
+            m_sceneWindowDescription = ("Replaced on " + dataTimeCommitText + "\n");
+            m_sceneWindowDescription.appendWithNewLine(windowDescription);
+            m_sceneWindowDescription.appendWithNewLine(" ");
+            m_sceneWindowDescription.appendWithNewLine(sceneToInsertOrReplace->getDescription());
             break;
     }
     
