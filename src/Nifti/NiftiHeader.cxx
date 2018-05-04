@@ -245,7 +245,7 @@ vector<vector<float> > NiftiHeader::getSForm() const
             {
                 for (int j = 0; j < 3; ++j)
                 {
-                    rotmat[i][j] *= m_header.pixdim[i + 1];
+                    rotmat[i][j] *= m_header.pixdim[j + 1];
                 }
             }
             if (m_header.pixdim[0] < 0.0f)//left handed coordinate system, flip the kvec
@@ -351,6 +351,16 @@ QString NiftiHeader::toString() const
         ret += "qoffset_x: " + QString::number(m_header.qoffset_x) + "\n";
         ret += "qoffset_y: " + QString::number(m_header.qoffset_y) + "\n";
         ret += "qoffset_z: " + QString::number(m_header.qoffset_z) + "\n";
+    }
+    ret += "effective sform:\n";
+    vector<vector<float> > tempSform = getSForm();
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            ret += " " + QString::number(tempSform[i][j]);
+        }
+        ret += "\n";
     }
     ret += "xyzt_units: " + QString::number(m_header.xyzt_units) + "\n";
     ret += "intent_code: " + QString::number(m_header.intent_code) + "\n";
