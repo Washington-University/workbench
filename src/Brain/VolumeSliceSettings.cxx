@@ -543,10 +543,26 @@ VolumeSliceSettings::setSliceIndexAxial(const VolumeMappableInterface* volumeFil
                                                    const int64_t sliceIndexAxial)
 {
     CaretAssert(volumeFile);
-    float xyz[3];
-    volumeFile->indexToSpace(0, 0, sliceIndexAxial, xyz);
     
-    m_sliceCoordinateAxial = xyz[2];
+    switch (m_sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+        {
+            float xyz[3];
+            volumeFile->indexToSpace(getSliceIndexParasagittal(volumeFile),
+                                     getSliceIndexCoronal(volumeFile),
+                                     sliceIndexAxial,
+                                     xyz);
+            selectSlicesAtCoordinate(xyz);
+        }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+        {
+            float xyz[3];
+            volumeFile->indexToSpace(0, 0, sliceIndexAxial, xyz);
+            m_sliceCoordinateAxial = xyz[2];
+        }
+            break;
+    }
 }
 
 /**
@@ -601,10 +617,26 @@ VolumeSliceSettings::setSliceIndexCoronal(const VolumeMappableInterface* volumeF
                                                      const int64_t sliceIndexCoronal)
 {
     CaretAssert(volumeFile);
-    float xyz[3];
-    volumeFile->indexToSpace(0, sliceIndexCoronal, 0, xyz);
     
-    m_sliceCoordinateCoronal = xyz[1];
+    switch (m_sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+        {
+            float xyz[3];
+            volumeFile->indexToSpace(getSliceIndexParasagittal(volumeFile),
+                                     sliceIndexCoronal,
+                                     getSliceIndexAxial(volumeFile),
+                                     xyz);
+            selectSlicesAtCoordinate(xyz);
+        }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+        {
+            float xyz[3];
+            volumeFile->indexToSpace(0, sliceIndexCoronal, 0, xyz);
+            m_sliceCoordinateCoronal = xyz[1];
+        }
+            break;
+    }
 }
 
 /**
@@ -656,10 +688,26 @@ VolumeSliceSettings::setSliceIndexParasagittal(const VolumeMappableInterface* vo
                                                           const int64_t sliceIndexParasagittal)
 {
     CaretAssert(volumeFile);
-    float xyz[3];
-    volumeFile->indexToSpace(sliceIndexParasagittal, 0, 0, xyz);
     
-    m_sliceCoordinateParasagittal = xyz[0];
+    switch (m_sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+        {
+            float xyz[3];
+            volumeFile->indexToSpace(sliceIndexParasagittal,
+                                     getSliceIndexCoronal(volumeFile),
+                                     getSliceIndexAxial(volumeFile),
+                                     xyz);
+            selectSlicesAtCoordinate(xyz);
+        }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+        {
+            float xyz[3];
+            volumeFile->indexToSpace(sliceIndexParasagittal, 0, 0, xyz);
+            m_sliceCoordinateParasagittal = xyz[0];
+        }
+            break;
+    }
 }
 
 /**
