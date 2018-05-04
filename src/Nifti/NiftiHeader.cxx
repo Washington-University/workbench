@@ -449,9 +449,9 @@ void NiftiHeader::setSForm(const vector<vector<float> >& sForm)
         kvec = -kvec;//because to nifti, "left handed" apparently means "up is down", not "left is right"
     }
     float rotmat[3][3];
-    rotmat[0][0] = ivec[0]; rotmat[1][0] = jvec[0]; rotmat[2][0] = kvec[0];
-    rotmat[0][1] = ivec[1]; rotmat[1][1] = jvec[1]; rotmat[2][1] = kvec[1];
-    rotmat[0][2] = ivec[2]; rotmat[1][2] = jvec[2]; rotmat[2][2] = kvec[2];
+    rotmat[0][0] = ivec[0]; rotmat[1][0] = ivec[1]; rotmat[2][0] = ivec[2];
+    rotmat[0][1] = jvec[0]; rotmat[1][1] = jvec[1]; rotmat[2][1] = jvec[2];
+    rotmat[0][2] = kvec[0]; rotmat[1][2] = kvec[1]; rotmat[2][2] = kvec[2];
     float quat[4];
     if (!MathFunctions::matrixToQuatern(rotmat, quat))
     {
