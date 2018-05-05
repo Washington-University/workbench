@@ -228,6 +228,7 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
             m_sceneWindowDescription.appendWithNewLine(windowDescription);
             m_sceneWindowDescription.appendWithNewLine(" ");
             m_sceneWindowDescription.appendWithNewLine(sceneToInsertOrReplace->getDescription());
+            m_descriptionTextEdit->setPlainText(sceneToInsertOrReplace->getDescription());
             break;
     }
     
