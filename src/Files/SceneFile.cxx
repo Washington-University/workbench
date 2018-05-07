@@ -867,7 +867,8 @@ SceneFile::setBalsaExtractToDirectoryName(const AString& extractToDirectoryName)
 }
 
 /**
- * Find the base directory that is a directory that is parent to all loaded data files.
+ * Find the base directory that is a directory that is parent to all loaded data files
+ * and also including the scene file.
  *
  * @param baseDirectoryOut
  *    Output containing the base directory
@@ -889,7 +890,8 @@ SceneFile::findBaseDirectoryForDataFiles(AString& baseDirectoryOut,
     
     const AString directorySeparator("/");
     
-    const std::vector<AString> allFileNames = getAllDataFileNamesFromAllScenes();
+    std::vector<AString> allFileNames = getAllDataFileNamesFromAllScenes();
+    allFileNames.push_back(getFileName());
     
     /*
      * Find a unique set of directory names used by the data files and
