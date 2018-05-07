@@ -53,6 +53,7 @@
 #include "CaretLogger.h"
 #include "CommandOperation.h"
 #include "CommandOperationManager.h"
+#include "FileInformation.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -414,10 +415,15 @@ HelpViewerDialog::loadWorkbenchHelpInfoFromDirectory(QTreeWidgetItem* parent,
      */
     QListIterator<QFileInfo> otherHtmlPageIter(otherHtmlPagesList);
     while (otherHtmlPageIter.hasNext()) {
-        const QFileInfo pageInfo = otherHtmlPageIter.next();
+//        const QFileInfo pageInfo = otherHtmlPageIter.next();
+//        createHelpTreeWidgetItemForHelpPage(treeItem,
+//                                            pageInfo.baseName(),
+//                                            pageInfo.absoluteFilePath());
+        const QFileInfo qtPageInfo = otherHtmlPageIter.next();
+        const FileInformation pageInfo(qtPageInfo.absoluteFilePath());
         createHelpTreeWidgetItemForHelpPage(treeItem,
-                                            pageInfo.baseName(),
-                                            pageInfo.absoluteFilePath());
+                                            pageInfo.getFileNameNoExtension(),
+                                            qtPageInfo.absoluteFilePath());
     }
     
     /*
