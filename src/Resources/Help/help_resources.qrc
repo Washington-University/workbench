@@ -1,7 +1,8 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 <file>./help_resources.qrc</file>
-<file>./HelpFiles/Annotations/Annotations.html</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/filelist.xml</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/header.html</file>
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image001.png</file>
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image002.png</file>
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image003.png</file>
@@ -30,6 +31,17 @@
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image026.png</file>
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image027.png</file>
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image028.png</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/image029.png</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/image030.png</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/image031.png</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/image032.png</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/image033.png</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/image034.png</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/image035.png</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/item0001.xml</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/props002.xml</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.fld/themedata.thmx</file>
+<file>./HelpFiles/Annotations/Annotations_1.3.html</file>
 <file>./HelpFiles/Best_Practices_Guides/Annotation_and_Scenes_Best_Practices.html</file>
 <file>./HelpFiles/ChartingOverview/ChartingOverview.html</file>
 <file>./HelpFiles/ChartingOverview/HistogramChart.png</file>
@@ -37,7 +49,6 @@
 <file>./HelpFiles/ChartingOverview/LineSeriesChart.png</file>
 <file>./HelpFiles/ChartingOverview/LineSeriesHistory.png</file>
 <file>./HelpFiles/ChartingOverview/MatrixChart.png</file>
-<file>./HelpFiles/Edit_Menu.png</file>
 <file>./HelpFiles/Features_Toolbox/Annotations/Annotations.fld/filelist.xml</file>
 <file>./HelpFiles/Features_Toolbox/Annotations/Annotations.fld/image001.png</file>
 <file>./HelpFiles/Features_Toolbox/Annotations/Annotations.fld/themedata.thmx</file>
