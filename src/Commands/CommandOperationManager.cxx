@@ -721,7 +721,7 @@ AString CommandOperationManager::doCompletion(ProgramParameters& parameters, con
     const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
     if (!parameters.hasNext())
     {//suggest all commands, including deprecated and informational (order doesn't matter, bash sorts them before displaying)
-        ret += "\\ -help\\ -arguments-help\\ -cifti-help\\ -gifti-help\\ -parallel-help\\ -version\\ -list-commands\\ -list-deprecated-commands\\ -all-commands-help";
+        ret += "\\ -help\\ -arguments-help\\ -global-options\\ -parallel-help\\ -cifti-help\\ -gifti-help\\ -parallel-help\\ -version\\ -list-commands\\ -list-deprecated-commands\\ -all-commands-help";
         for (uint64_t i = 0; i < numberOfCommands; i++)
         {
             ret += "\\ " + commandOperations[i]->getCommandLineSwitch();
