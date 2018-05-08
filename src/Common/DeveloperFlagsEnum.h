@@ -36,7 +36,8 @@ public:
      */
     enum Enum {
         DEVELOPER_FLAG_UNUSED,
-        DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA
+        DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA,
+        DEVELOPER_FLAG_VOLUME_SLICE_TEST
     };
 
     ~DeveloperFlagsEnum();
@@ -65,9 +66,10 @@ public:
                         const bool flagStatus);
     
 private:
-    DeveloperFlagsEnum(const Enum enumValue, 
-                 const AString& name,
-                 const AString& guiName);
+    DeveloperFlagsEnum(const Enum enumValue,
+                       const AString& name,
+                       const AString& guiName,
+                       const bool defaultValue);
 
     static DeveloperFlagsEnum* findData(const Enum enumValue);
 

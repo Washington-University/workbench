@@ -74,31 +74,21 @@ using namespace caret;
  *    An enumerated value.
  * @param name
  *    Name of enumerated value.
- *
  * @param guiName
  *    User-friendly name for use in user-interface.
+ * @param defaultValue
+ *    Default value for flag
  */
 DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+                                       const AString& name,
+                                       const AString& guiName,
+                                       const bool defaultValue)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
-    this->flagStatus = false;
-    
-    /*
-     * Initialization (true/false) of enums as desired
-     */
-    switch (this->enumValue) {
-        case DEVELOPER_FLAG_UNUSED:
-            this->flagStatus = false;
-            break;
-        case DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA:
-            this->flagStatus = false;
-            break;
-    }
+    this->flagStatus = defaultValue;
 }
 
 /**
@@ -121,10 +111,16 @@ DeveloperFlagsEnum::initialize()
 
     enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_UNUSED,
                                           "DEVELOPER_FLAG_UNUSED",
-                                          "Developer Flag Unused"));
+                                          "Developer Flag Unused",
+                                          false));
     enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA,
                                           "DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA",
-                                          "Flip Palette Not Data"));
+                                          "Flip Palette Not Data",
+                                          false));
+    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOLUME_SLICE_TEST,
+                                          "DEVELOPER_FLAG_VOLUME_SLICE_TEST",
+                                          "Test Volume Slice Selection for All Orientations",
+                                          false));
 }
 
 /**

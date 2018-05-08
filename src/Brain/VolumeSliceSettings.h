@@ -87,6 +87,16 @@ namespace caret {
         
         void setSlicesToOrigin();
 
+        void getSlicesParasagittalCoronalAxial(const VolumeMappableInterface* volumeInterface,
+                                               int64_t& parasagittalIndexOut,
+                                               int64_t& coronalIndexOut,
+                                               int64_t& axialIndexOut) const;
+        
+        void setSlicesParasagittalCoronalAxial(const VolumeMappableInterface* volumeInterface,
+                                               const int64_t newParasagittalIndex,
+                                               const int64_t newCoronalIndex,
+                                               const int64_t newAxialIndex);
+        
         float getSliceCoordinateAxial() const;
         
         void setSliceCoordinateAxial(const float x);
