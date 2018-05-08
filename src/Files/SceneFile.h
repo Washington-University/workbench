@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <set>
 
 #include "CaretDataFile.h"
 #include "SceneFileBasePathTypeEnum.h"
@@ -106,7 +107,32 @@ namespace caret {
         
         std::vector<AString> getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCount = 25);
         
-        std::vector<AString> getAllDataFileNamesFromAllScenes() const;
+        class SceneDataFileInfo {
+        public:
+            SceneDataFileInfo(const AString& dataFileName,
+                              const int32_t sceneIndex)
+            : m_dataFileName(dataFileName) {
+                m_sceneIndices.push_back(sceneIndex);
+            }
+            
+            bool operator<(const SceneDataFileInfo& rhs) const {
+                return m_dataFileName < rhs.m_dataFileName;
+            }
+            
+            void addSceneIndex(const int32_t sceneIndex) const {
+                m_sceneIndices.push_back(sceneIndex);
+            }
+            
+            AString getSceneIndices() const {
+                return AString::fromNumbers(m_sceneIndices, ",");
+            }
+            
+            const AString m_dataFileName;
+            
+            mutable std::vector<int32_t> m_sceneIndices;
+        };
+        
+        std::set<SceneDataFileInfo> getAllDataFileNamesFromAllScenes() const;
         
         void reorderScenes(std::vector<Scene*>& orderedScenes);
         

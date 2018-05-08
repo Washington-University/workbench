@@ -890,7 +890,11 @@ SceneFile::findBaseDirectoryForDataFiles(AString& baseDirectoryOut,
     
     const AString directorySeparator("/");
     
-    std::vector<AString> allFileNames = getAllDataFileNamesFromAllScenes();
+    std::vector<AString> allFileNames;
+    std::set<SceneFile::SceneDataFileInfo> filesFromScenes = getAllDataFileNamesFromAllScenes();
+    for (const auto& nameInfo : filesFromScenes) {
+        allFileNames.push_back(nameInfo.m_dataFileName);
+    }
     allFileNames.push_back(getFileName());
     
     /*
@@ -1037,17 +1041,20 @@ SceneFile::getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCo
 /**
  * @return A vector containing the names of all data files from all scenes.
  */
-std::vector<AString>
+std::set<SceneFile::SceneDataFileInfo>
 SceneFile::getAllDataFileNamesFromAllScenes() const
 {
     const bool includeSpecFileFlag = false;
     
-    std::set<AString> filenamesSet;
+    std::set<SceneDataFileInfo> fileInfoOut;
     
     /**
      * Find all 'path name' elements from ALL scenes
      */
-    for (Scene* scene: m_scenes) {
+    const int32_t numScenes = static_cast<int32_t>(m_scenes.size());
+    for (int32_t sceneIndex = 0; sceneIndex < numScenes; sceneIndex++) {
+        CaretAssertVectorIndex(m_scenes, sceneIndex);
+        const Scene* scene = m_scenes[sceneIndex];
         CaretAssert(scene);
         std::vector<SceneObject*> children = scene->getDescendants();
         for (SceneObject* sceneObject : children) {
@@ -1078,7 +1085,20 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                             if ( ! absPathName.isEmpty()) {
                                 pathName = absPathName;
                             }
-                            filenamesSet.insert(pathName);
+
+                            bool foundFlag = false;
+                            for (auto& dfi : fileInfoOut) {
+                                if (dfi.m_dataFileName == pathName) {
+                                    dfi.addSceneIndex(sceneIndex);
+                                    foundFlag = true;
+                                    break;
+                                }
+                            }
+                            
+                            if ( ! foundFlag) {
+                                fileInfoOut.insert(SceneDataFileInfo(pathName,
+                                                                     sceneIndex));
+                            }
                         }
                     }
                 }
@@ -1086,10 +1106,7 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
         }
     }
     
-    std::vector<AString> filenamesOut(filenamesSet.begin(),
-                                      filenamesSet.end());
-    
-    return filenamesOut;
+    return fileInfoOut;
 }
 
 /**

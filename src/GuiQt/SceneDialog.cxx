@@ -1887,9 +1887,9 @@ SceneDialog::showFileStructure()
     SceneFile* sceneFile = getSelectedSceneFile();
     CaretAssert(sceneFile);
     
-    std::vector<AString> filenames = sceneFile->getAllDataFileNamesFromAllScenes();
+    const std::set<SceneFile::SceneDataFileInfo> fileSceneInfo = sceneFile->getAllDataFileNamesFromAllScenes();
     
-    if (filenames.empty()) {
+    if (fileSceneInfo.empty()) {
         WuQMessageBox::errorOk(m_showFileStructurePushButton,
                                "Scene file is empty.");
         return;
@@ -1913,7 +1913,8 @@ SceneDialog::showFileStructure()
     text.append("<b>Data File paths relative to Scene File</b>:");
     text.append("<ul>");
     
-    for (auto name : filenames) {
+    for (const auto& fileData : fileSceneInfo) {
+        AString name(fileData.m_dataFileName);
         FileInformation fileInfo(name);
         AString missingText;
         if ( ! fileInfo.exists()) {
@@ -1938,6 +1939,9 @@ SceneDialog::showFileStructure()
         
         text.append("<li>"
                     + missingText
+                    + " ("
+                    + fileData.getSceneIndices()
+                    + ") "
                     + name);
     }
     text.append("</ul>");
