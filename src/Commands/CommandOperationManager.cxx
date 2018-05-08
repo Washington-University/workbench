@@ -982,7 +982,7 @@ void CommandOperationManager::printHelpInfo()
     cout << "   additional arguments." << endl;
     cout << endl;
     cout << "If the first argument is not recognized, all processing commands that start" << endl;
-    cout << "   with the argument are displayed" << endl;
+    cout << "   with the argument are displayed." << endl;
     cout << endl;
 }
 
