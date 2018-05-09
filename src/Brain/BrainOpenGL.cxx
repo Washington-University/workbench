@@ -1462,4 +1462,16 @@ BrainOpenGL::testForOpenGLError(const AString& message,
     }
 }
 
+/**
+ * Allow tab highlighting (needs disabling when replacing scenes)
+ *
+ * @param flag
+ *     New status.
+ */
+void
+BrainOpenGL::setAllowTabHighlighting(const bool flag)
+{
+    s_allowTabHighlightingFlag = flag;
+}
+
 

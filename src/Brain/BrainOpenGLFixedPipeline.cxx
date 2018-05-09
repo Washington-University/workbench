@@ -684,6 +684,10 @@ BrainOpenGLFixedPipeline::drawTabHighlighting(const float width,
                          const float height,
                          const float rgb[3])
 {
+    if ( ! s_allowTabHighlightingFlag) {
+        return;
+    }
+    
     const bool depthFlag = glIsEnabled(GL_DEPTH_TEST);
     glDisable(GL_DEPTH_TEST);
     

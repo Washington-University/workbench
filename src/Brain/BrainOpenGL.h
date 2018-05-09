@@ -192,6 +192,8 @@ namespace caret {
          */
         inline void* getContextSharingGroupPointer() { return m_contextSharingGroupPointer; }
         
+        static void setAllowTabHighlighting(const bool flag);
+        
     private:
         class OpenGLNameInfo {
         public:
@@ -333,6 +335,8 @@ namespace caret {
         /** maximum line width */
         static float s_maxLineWidth;
         
+        static bool s_allowTabHighlightingFlag;
+        
     private:
         static void getOpenGLMajorMinorVersions(const AString& versionString,
                                                 AString& majorVersionOut,
@@ -370,6 +374,7 @@ namespace caret {
     bool BrainOpenGL::s_supportsDisplayLists  = false;
     bool BrainOpenGL::s_supportsImmediateMode = false;
     bool BrainOpenGL::s_supportsVertexBuffers = false;
+    bool BrainOpenGL::s_allowTabHighlightingFlag = true;
 #endif //__BRAIN_OPENGL_DEFINE_H
 
 } // namespace

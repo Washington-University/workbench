@@ -1677,6 +1677,11 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
     }
     
     /*
+     * Disable tab highlighting when capturing images
+     */
+    BrainOpenGL::setAllowTabHighlighting(false);
+    
+    /*
      * Force immediate mode since problems with display lists
      * in image capture.
      */
@@ -1761,8 +1766,9 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
         s_singletonOpenGL->getBackgroundColor(backgroundColor);
         imageCaptureEvent->setBackgroundColor(backgroundColor);
     }
-
+    
     BrainOpenGLShape::setImmediateModeOverride(false);
+    BrainOpenGL::setAllowTabHighlighting(true);
     
     this->resizeGL(oldSizeX, oldSizeY);
 }
