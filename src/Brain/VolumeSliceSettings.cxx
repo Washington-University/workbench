@@ -24,7 +24,6 @@
 #undef __VOLUME_SLICE_SETTINGS_DECLARE__
 
 #include "CaretLogger.h"
-#include "DeveloperFlagsEnum.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -55,7 +54,7 @@ VolumeSliceSettings::VolumeSliceSettings()
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
     m_volumeSliceInterpolationEdgeEffectsMaskingType = defaultVolumeSliceInterpolationEdgeMaskType;
     
-    m_montageNumberOfColumns = 6; // was 3;
+    m_montageNumberOfColumns = 6;
     m_montageNumberOfRows    = 4;
     m_montageSliceSpacing    = 5;
     
@@ -493,198 +492,6 @@ VolumeSliceSettings::selectSlicesAtCoordinate(const float xyz[3])
     m_sliceCoordinateAxial        = xyz[2];
 }
 
-///**
-// * Get the slices for a volume in any orientation.
-// *
-// * @param volumeInterface
-// *     Volume interface for file used for slices and orientations.
-// * @param parasagittalIndexOut
-// *     Output containing parasagittal index.
-// * @param coronalIndexOut
-// *     Output containing coronal index.
-// * @param axialIndexOut
-// *     Output containing axial index.
-// */
-//void
-//VolumeSliceSettings::getSlicesParasagittalCoronalAxial(const VolumeMappableInterface* volumeInterface,
-//                                                       int64_t& parasagittalIndexOut,
-//                                                       int64_t& coronalIndexOut,
-//                                                       int64_t& axialIndexOut) const
-//{
-//    CaretAssert(volumeInterface);
-//    
-//    std::vector<int64_t> dimensions;
-//    volumeInterface->getDimensions(dimensions);
-//    
-//    if (dimensions[2] >= 0) {
-//        std::vector<int64_t> dimensions;
-//        volumeInterface->getDimensions(dimensions);
-//        
-//        /*
-//         * Valid voxel range in space
-//         */
-//        float minXYZ[3];
-//        volumeInterface->indexToSpace(0, 0, 0, minXYZ);
-//        float maxXYZ[3];
-//        volumeInterface->indexToSpace(dimensions[0] - 1, dimensions[1] - 1, dimensions[2] - 1, maxXYZ);
-//        for (int32_t i = 0; i < 3; i++) {
-//            if (minXYZ[i] > maxXYZ[i]) {
-//                std::swap(minXYZ[i], maxXYZ[i]);
-//            }
-//        }
-//        
-//        /*
-//         * Limit selected slice coordinates to space
-//         */
-//        float xyz[3] = {
-//            m_sliceCoordinateParasagittal,
-//            m_sliceCoordinateCoronal,
-//            m_sliceCoordinateAxial
-//        };
-//        for (int32_t i = 0; i < 3; i++) {
-//            if (xyz[i] < minXYZ[i]) {
-//                xyz[i] = minXYZ[i];
-//            }
-//            else if (xyz[i] > maxXYZ[i]) {
-//                xyz[i] = maxXYZ[i];
-//            }
-//        }
-//        
-//        int64_t indices[3];
-//        volumeInterface->enclosingVoxel(xyz[0], xyz[1], xyz[2],
-//                                        indices[0], indices[1], indices[2]);
-//        CaretAssert((indices[0] >= 0) && (indices[0] < dimensions[0]));
-//        CaretAssert((indices[1] >= 0) && (indices[1] < dimensions[1]));
-//        CaretAssert((indices[2] >= 0) && (indices[2] < dimensions[2]));
-//        
-//        parasagittalIndexOut = indices[0];
-//        coronalIndexOut      = indices[1];
-//        axialIndexOut        = indices[2];
-//
-//        switch (m_sliceProjectionType) {
-//            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-//                break;
-//            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-//            {
-//                const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
-//                if (vf != NULL) {
-//                    VolumeSpace::OrientTypes orient[3];
-//                    vf->getOrientation(orient);
-//                    
-//                    for (int32_t i = 0; i < 3; i++) {
-//                        switch (orient[i]) {
-//                            case VolumeSpace::ANTERIOR_TO_POSTERIOR:
-//                            case VolumeSpace::POSTERIOR_TO_ANTERIOR:
-//                                coronalIndexOut = indices[i];
-//                                break;
-//                            case VolumeSpace::INFERIOR_TO_SUPERIOR:
-//                            case VolumeSpace::SUPERIOR_TO_INFERIOR:
-//                                axialIndexOut = indices[i];
-//                                break;
-//                            case VolumeSpace::LEFT_TO_RIGHT:
-//                            case VolumeSpace::RIGHT_TO_LEFT:
-//                                parasagittalIndexOut = indices[i];
-//                                break;
-//                        }
-//                    }
-//                }
-//            }
-//                break;
-//        }
-//    }
-//    else {
-//        parasagittalIndexOut = 0;
-//        coronalIndexOut      = 0;
-//        axialIndexOut        = 0;
-//    }
-//}
-//
-//
-///**
-// * Set the selected slices for volume with any orientation.  Just one
-// * slice can be set by using a negative value for the other slices.
-// *
-// * @param volumeInterface
-// *     Volume interface for file used for slices and orientations.
-// * @param newParasagittalIndex
-// *     New parasagittal index (ignored if less than zero)
-// * @param newCoronalIndex
-// *     New coronal index (ignored if less than zero)
-// * @param newAxialIndex
-// *     New axial index (ignored if less than zero)
-// */
-//void
-//VolumeSliceSettings::setSlicesParasagittalCoronalAxial(const VolumeMappableInterface* volumeInterface,
-//                                                       const int64_t newParasagittalIndex,
-//                                                       const int64_t newCoronalIndex,
-//                                                       const int64_t newAxialIndex)
-//{
-//    int64_t parasagittalIndex, coronalIndex, axialIndex;
-//    getSlicesParasagittalCoronalAxial(volumeInterface,
-//                                      parasagittalIndex,
-//                                      coronalIndex,
-//                                      axialIndex);
-//    
-//    if (newParasagittalIndex >= 0) {
-//        parasagittalIndex = newParasagittalIndex;
-//    }
-//    if (newCoronalIndex >= 0) {
-//        coronalIndex = newCoronalIndex;
-//    }
-//    if (newAxialIndex >= 0) {
-//        axialIndex = newAxialIndex;
-//    }
-//    
-//    int64_t indices[3] = { parasagittalIndex, coronalIndex, axialIndex };
-//    
-//    switch (m_sliceProjectionType) {
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-//        {
-//            const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
-//            if (vf != NULL) {
-//                VolumeSpace::OrientTypes orient[3];
-//                vf->getOrientation(orient);
-//                
-//                for (int32_t i = 0; i < 3; i++) {
-//                    switch (orient[i]) {
-//                        case VolumeSpace::ANTERIOR_TO_POSTERIOR:
-//                        case VolumeSpace::POSTERIOR_TO_ANTERIOR:
-//                            indices[i] = coronalIndex;
-//                            break;
-//                        case VolumeSpace::INFERIOR_TO_SUPERIOR:
-//                        case VolumeSpace::SUPERIOR_TO_INFERIOR:
-//                            indices[i] = axialIndex;
-//                            break;
-//                        case VolumeSpace::LEFT_TO_RIGHT:
-//                        case VolumeSpace::RIGHT_TO_LEFT:
-//                            indices[i] = parasagittalIndex;
-//                            break;
-//                    }
-//                }
-//            }
-//        }
-//            break;
-//    }
-//    
-//    std::vector<int64_t> dimensions;
-//    volumeInterface->getDimensions(dimensions);
-//    for (int32_t i = 0; i < 3; i++) {
-//        if (indices[i] < 0) {
-//            indices[i] = 0;
-//        }
-//        else if (indices[i] >= dimensions[i]) {
-//            indices[i] = dimensions[i] - 1;
-//        }
-//    }
-//    
-//    float xyz[3];
-//    volumeInterface->indexToSpace(indices,
-//                             xyz);
-//    selectSlicesAtCoordinate(xyz);
-//}
-
 /**
  * Get the slices for a volume in any orientation.
  *
@@ -753,38 +560,32 @@ VolumeSliceSettings::getSlicesParasagittalCoronalAxial(const VolumeMappableInter
         coronalIndexOut      = indices[1];
         axialIndexOut        = indices[2];
         
-//        switch (m_sliceProjectionType) {
-//            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-//                break;
-//            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            {
-                const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
-                if (vf != NULL) {
-                    if (vf->isPlumb()) {
-                        VolumeSpace::OrientTypes orient[3];
-                        vf->getOrientation(orient);
-                        
-                        for (int32_t i = 0; i < 3; i++) {
-                            switch (orient[i]) {
-                                case VolumeSpace::ANTERIOR_TO_POSTERIOR:
-                                case VolumeSpace::POSTERIOR_TO_ANTERIOR:
-                                    coronalIndexOut = indices[i];
-                                    break;
-                                case VolumeSpace::INFERIOR_TO_SUPERIOR:
-                                case VolumeSpace::SUPERIOR_TO_INFERIOR:
-                                    axialIndexOut = indices[i];
-                                    break;
-                                case VolumeSpace::LEFT_TO_RIGHT:
-                                case VolumeSpace::RIGHT_TO_LEFT:
-                                    parasagittalIndexOut = indices[i];
-                                    break;
-                            }
+        {
+            const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
+            if (vf != NULL) {
+                if (vf->isPlumb()) {
+                    VolumeSpace::OrientTypes orient[3];
+                    vf->getOrientation(orient);
+                    
+                    for (int32_t i = 0; i < 3; i++) {
+                        switch (orient[i]) {
+                            case VolumeSpace::ANTERIOR_TO_POSTERIOR:
+                            case VolumeSpace::POSTERIOR_TO_ANTERIOR:
+                                coronalIndexOut = indices[i];
+                                break;
+                            case VolumeSpace::INFERIOR_TO_SUPERIOR:
+                            case VolumeSpace::SUPERIOR_TO_INFERIOR:
+                                axialIndexOut = indices[i];
+                                break;
+                            case VolumeSpace::LEFT_TO_RIGHT:
+                            case VolumeSpace::RIGHT_TO_LEFT:
+                                parasagittalIndexOut = indices[i];
+                                break;
                         }
                     }
                 }
             }
-//                break;
-//        }
+        }
     }
     else {
         parasagittalIndexOut = 0;
@@ -831,38 +632,32 @@ VolumeSliceSettings::setSlicesParasagittalCoronalAxial(const VolumeMappableInter
     
     int64_t indices[3] = { parasagittalIndex, coronalIndex, axialIndex };
     
-//    switch (m_sliceProjectionType) {
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-        {
-            const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
-            if (vf != NULL) {
-                if (vf->isPlumb()) {
-                    VolumeSpace::OrientTypes orient[3];
-                    vf->getOrientation(orient);
-                    
-                    for (int32_t i = 0; i < 3; i++) {
-                        switch (orient[i]) {
-                            case VolumeSpace::ANTERIOR_TO_POSTERIOR:
-                            case VolumeSpace::POSTERIOR_TO_ANTERIOR:
-                                indices[i] = coronalIndex;
-                                break;
-                            case VolumeSpace::INFERIOR_TO_SUPERIOR:
-                            case VolumeSpace::SUPERIOR_TO_INFERIOR:
-                                indices[i] = axialIndex;
-                                break;
-                            case VolumeSpace::LEFT_TO_RIGHT:
-                            case VolumeSpace::RIGHT_TO_LEFT:
-                                indices[i] = parasagittalIndex;
-                                break;
-                        }
+    {
+        const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
+        if (vf != NULL) {
+            if (vf->isPlumb()) {
+                VolumeSpace::OrientTypes orient[3];
+                vf->getOrientation(orient);
+                
+                for (int32_t i = 0; i < 3; i++) {
+                    switch (orient[i]) {
+                        case VolumeSpace::ANTERIOR_TO_POSTERIOR:
+                        case VolumeSpace::POSTERIOR_TO_ANTERIOR:
+                            indices[i] = coronalIndex;
+                            break;
+                        case VolumeSpace::INFERIOR_TO_SUPERIOR:
+                        case VolumeSpace::SUPERIOR_TO_INFERIOR:
+                            indices[i] = axialIndex;
+                            break;
+                        case VolumeSpace::LEFT_TO_RIGHT:
+                        case VolumeSpace::RIGHT_TO_LEFT:
+                            indices[i] = parasagittalIndex;
+                            break;
                     }
                 }
             }
         }
-//            break;
-//    }
+    }
     
     std::vector<int64_t> dimensions;
     volumeInterface->getDimensions(dimensions);
@@ -889,43 +684,9 @@ VolumeSliceSettings::setSlicesParasagittalCoronalAxial(const VolumeMappableInter
 int64_t
 VolumeSliceSettings::getSliceIndexAxial(const VolumeMappableInterface* volumeFile) const
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_SLICE_TEST)) {
-        int64_t paraIndex, coronalIndex, axialIndex;
-        getSlicesParasagittalCoronalAxial(volumeFile, paraIndex, coronalIndex, axialIndex);
-        return axialIndex;
-    }
-    
-    CaretAssert(volumeFile);
-    
-    std::vector<int64_t> dimensions;
-    volumeFile->getDimensions(dimensions);
-    
-    int64_t axialSliceOut = -1;
-    
-    if (dimensions[2] >= 0) {
-        int64_t paragittalSlice, coronalSlice;
-        volumeFile->enclosingVoxel(m_sliceCoordinateParasagittal,
-                                   m_sliceCoordinateCoronal,
-                                   m_sliceCoordinateAxial,
-                                   paragittalSlice,
-                                   coronalSlice,
-                                   axialSliceOut);
-        if (axialSliceOut < 0) {
-            axialSliceOut = 0;
-            
-            float xyz[3];
-            volumeFile->indexToSpace(0, 0, axialSliceOut, xyz);
-            m_sliceCoordinateAxial = xyz[2];
-        }
-        else if (axialSliceOut >= dimensions[2]) {
-            axialSliceOut = dimensions[2] - 1;
-            
-            float xyz[3];
-            volumeFile->indexToSpace(0, 0, axialSliceOut, xyz);
-            m_sliceCoordinateAxial = xyz[2];
-        }
-    }
-    return axialSliceOut;
+    int64_t paraIndex, coronalIndex, axialIndex;
+    getSlicesParasagittalCoronalAxial(volumeFile, paraIndex, coronalIndex, axialIndex);
+    return axialIndex;
 }
 
 /**
@@ -937,19 +698,7 @@ void
 VolumeSliceSettings::setSliceIndexAxial(const VolumeMappableInterface* volumeFile,
                                                    const int64_t sliceIndexAxial)
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_SLICE_TEST)) {
-        setSlicesParasagittalCoronalAxial(volumeFile, -1, -1, sliceIndexAxial);
-        return;
-    }
-    
-    CaretAssert(volumeFile);
-    
-    float xyz[3];
-    volumeFile->indexToSpace(getSliceIndexParasagittal(volumeFile),
-                                getSliceIndexCoronal(volumeFile),
-                                sliceIndexAxial,
-                                xyz);
-    selectSlicesAtCoordinate(xyz);
+    setSlicesParasagittalCoronalAxial(volumeFile, -1, -1, sliceIndexAxial);
 }
 
 /**
@@ -960,43 +709,9 @@ VolumeSliceSettings::setSliceIndexAxial(const VolumeMappableInterface* volumeFil
 int64_t
 VolumeSliceSettings::getSliceIndexCoronal(const VolumeMappableInterface* volumeFile) const
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_SLICE_TEST)) {
-        int64_t paraIndex, coronalIndex, axialIndex;
-        getSlicesParasagittalCoronalAxial(volumeFile, paraIndex, coronalIndex, axialIndex);
-        return coronalIndex;
-    }
-    
-    CaretAssert(volumeFile);
-    
-    std::vector<int64_t> dimensions;
-    volumeFile->getDimensions(dimensions);
-    
-    int64_t coronalSliceOut = -1;
-    
-    if (dimensions[1] >= 0) {
-        int64_t paragittalSlice, axialSlice;
-        volumeFile->enclosingVoxel(m_sliceCoordinateParasagittal,
-                                   m_sliceCoordinateCoronal,
-                                   m_sliceCoordinateAxial,
-                                   paragittalSlice,
-                                   coronalSliceOut,
-                                   axialSlice);
-        if (coronalSliceOut < 0) {
-            coronalSliceOut = 0;
-            
-            float xyz[3];
-            volumeFile->indexToSpace(0, coronalSliceOut, 0, xyz);
-            m_sliceCoordinateCoronal = xyz[1];
-        }
-        else if (coronalSliceOut >= dimensions[1]) {
-            coronalSliceOut = dimensions[1] - 1;
-            
-            float xyz[3];
-            volumeFile->indexToSpace(0, coronalSliceOut, 0, xyz);
-            m_sliceCoordinateCoronal = xyz[1];
-        }
-    }
-    return coronalSliceOut;
+    int64_t paraIndex, coronalIndex, axialIndex;
+    getSlicesParasagittalCoronalAxial(volumeFile, paraIndex, coronalIndex, axialIndex);
+    return coronalIndex;
 }
 
 
@@ -1009,19 +724,7 @@ void
 VolumeSliceSettings::setSliceIndexCoronal(const VolumeMappableInterface* volumeFile,
                                                      const int64_t sliceIndexCoronal)
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_SLICE_TEST)) {
-        setSlicesParasagittalCoronalAxial(volumeFile, -1, sliceIndexCoronal, -1);
-        return;
-    }
-    
-    CaretAssert(volumeFile);
-    
-    float xyz[3];
-    volumeFile->indexToSpace(getSliceIndexParasagittal(volumeFile),
-                                sliceIndexCoronal,
-                                getSliceIndexAxial(volumeFile),
-                                xyz);
-    selectSlicesAtCoordinate(xyz);
+    setSlicesParasagittalCoronalAxial(volumeFile, -1, sliceIndexCoronal, -1);
 }
 
 /**
@@ -1032,41 +735,9 @@ VolumeSliceSettings::setSliceIndexCoronal(const VolumeMappableInterface* volumeF
 int64_t
 VolumeSliceSettings::getSliceIndexParasagittal(const VolumeMappableInterface* volumeFile) const
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_SLICE_TEST)) {
-        int64_t paraIndex, coronalIndex, axialIndex;
-        getSlicesParasagittalCoronalAxial(volumeFile, paraIndex, coronalIndex, axialIndex);
-        return paraIndex;
-    }
-    
-    std::vector<int64_t> dimensions;
-    volumeFile->getDimensions(dimensions);
-    
-    int64_t parasagittalSliceOut = -1;
-    
-    if (dimensions[0] >= 0) {
-        int64_t coronalSlice, axialSlice;
-        volumeFile->enclosingVoxel(m_sliceCoordinateParasagittal,
-                                   m_sliceCoordinateCoronal,
-                                   m_sliceCoordinateAxial,
-                                   parasagittalSliceOut,
-                                   coronalSlice,
-                                   axialSlice);
-        if (parasagittalSliceOut < 0) {
-            parasagittalSliceOut = 0;
-            
-            float xyz[3];
-            volumeFile->indexToSpace(parasagittalSliceOut, 0, 0, xyz);
-            m_sliceCoordinateParasagittal = xyz[0];
-        }
-        else if (parasagittalSliceOut >= dimensions[0]) {
-            parasagittalSliceOut = dimensions[0] - 1;
-            
-            float xyz[3];
-            volumeFile->indexToSpace(parasagittalSliceOut, 0, 0, xyz);
-            m_sliceCoordinateParasagittal = xyz[0];
-        }
-    }
-    return parasagittalSliceOut;
+    int64_t paraIndex, coronalIndex, axialIndex;
+    getSlicesParasagittalCoronalAxial(volumeFile, paraIndex, coronalIndex, axialIndex);
+    return paraIndex;
 }
 
 /**
@@ -1078,19 +749,7 @@ void
 VolumeSliceSettings::setSliceIndexParasagittal(const VolumeMappableInterface* volumeFile,
                                                           const int64_t sliceIndexParasagittal)
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_SLICE_TEST)) {
-        setSlicesParasagittalCoronalAxial(volumeFile, sliceIndexParasagittal, -1, -1);
-        return;
-    }
-    
-    CaretAssert(volumeFile);
-    
-    float xyz[3];
-    volumeFile->indexToSpace(sliceIndexParasagittal,
-                                getSliceIndexCoronal(volumeFile),
-                                getSliceIndexAxial(volumeFile),
-                                xyz);
-    selectSlicesAtCoordinate(xyz);
+    setSlicesParasagittalCoronalAxial(volumeFile, sliceIndexParasagittal, -1, -1);
 }
 
 /**
