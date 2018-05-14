@@ -1,0 +1,129 @@
+#-----------------------------------------------------------------------------
+# File    : makefile-oct
+# Contents: build objects for use with octave/mex
+# Author  : Kristian Loewe
+#           (with modifications for octave by Christina Rossmanith)
+#
+# Usage   : make -f makefile-oct
+#           MEX_FLAGS='-v' make -f makefile-oct
+#           make -B -f makefile-oct
+#           DEBUG=1 make -B -f makefile-oct
+#           GCC=/usr/bin/gcc-7 make -f makefile-oct
+#-----------------------------------------------------------------------------
+.SUFFIXES:
+MAKEFLAGS   += -r
+
+GCC         ?= gcc
+CFBASE       = -std=c99 -Wall -Wextra -Wno-unused-parameter -Wconversion \
+               -Wshadow -pedantic
+DEFS        ?=
+MEX_FLAGS   ?=
+
+DEBUG       ?= 0
+ifeq ($(DEBUG), 1)
+  CFBASE    += -g
+  CFOPT     ?= -O0
+else
+  CFOPT     ?= -O2
+  DEFS      += -DNDEBUG
+endif
+CFLAGS       = $(CFBASE) -fPIC $(DEFS)
+
+
+MEXCC        = CC=$(GCC) mkoctfile --mex $(MEX_FLAGS)
+
+
+OBJDIR = ../obj/$(shell uname -m)/octave
+_DUMMY := $(shell mkdir -p $(OBJDIR))
+
+#-----------------------------------------------------------------------------
+
+CPUINFODIR   = ../../cpuinfo
+
+#-----------------------------------------------------------------------------
+
+GCC_VERSION := $(shell expr `$(GCC) -dumpversion`)
+ifeq (,$(findstring .,$(GCC_VERSION)))
+  GCC_VERSION := $(shell expr `$(GCC) -dumpfullversion`)
+endif
+GCC_VERSION := $(shell expr `echo $(GCC_VERSION) | \
+               sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' \
+               -e 's/^[0-9]\{3,4\}$$/&00/'`)
+
+GCC_GTEQ_47 := $(shell echo $(GCC_VERSION)\>=40700 | bc)
+GCC_GTEQ_71 := $(shell echo $(GCC_VERSION)\>=70100 | bc)
+
+DOT_DEFS =
+
+ifeq ($(GCC_GTEQ_47),1)
+  DOT_USEFMA ?= 1
+endif
+
+ifeq ($(GCC_GTEQ_71),1)
+  CFLAGS += -Wimplicit-fallthrough=0
+  DOT_USEAVX512 ?= 1
+endif
+
+OBJS = dot.o dot_naive.o dot_sse2.o dot_avx.o
+
+ifeq ($(DOT_USEFMA),1)
+  OBJS += dot_avxfma.o
+else
+  DOT_DEFS += -DDOT_NOFMA
+endif
+
+ifeq ($(DOT_USEAVX512),1)
+  OBJS += dot_avx512.o
+  ifeq ($(DOT_USEFMA),1)
+    OBJS += dot_avx512fma.o
+  endif
+else
+  DOT_DEFS += -DDOT_NOAVX512
+endif
+
+#-----------------------------------------------------------------------------
+# Build Objects
+#-----------------------------------------------------------------------------
+all: $(OBJS) dot_all.o
+
+dot_naive.o:                $(OBJDIR)/dot_naive.o
+$(OBJDIR)/dot_naive.o:      dot_naive.h dot_naive_real.h
+$(OBJDIR)/dot_naive.o:      dot_naive.c makefile-oct
+	CFLAGS='$(CFLAGS) $(CFOPT)' $(MEXCC) -c $< -o $@
+
+dot_sse2.o:                 $(OBJDIR)/dot_sse2.o
+$(OBJDIR)/dot_sse2.o:       dot_sse2.h
+$(OBJDIR)/dot_sse2.o:       dot_sse2.c makefile-oct
+	CFLAGS='$(CFLAGS) $(CFOPT) -msse2' $(MEXCC) -c $< -o $@
+
+dot_avx.o:                  $(OBJDIR)/dot_avx.o
+$(OBJDIR)/dot_avx.o:        dot_avx.h
+$(OBJDIR)/dot_avx.o:        dot_avx.c makefile-oct
+	CFLAGS='$(CFLAGS) $(CFOPT) -mavx -funroll-loops' $(MEXCC) -c $< -o $@
+
+dot_avxfma.o:               $(OBJDIR)/dot_avxfma.o
+$(OBJDIR)/dot_avxfma.o:     dot_avx.h
+$(OBJDIR)/dot_avxfma.o:     dot_avxfma.c dot_avx.c makefile-oct
+	CFLAGS='$(CFLAGS) $(CFOPT) -mfma -mavx -funroll-loops' $(MEXCC) -c $< -o $@
+
+dot_avx512.o:               $(OBJDIR)/dot_avx512.o
+$(OBJDIR)/dot_avx512.o:     dot_avx512.h
+$(OBJDIR)/dot_avx512.o:     dot_avx512.c makefile-oct
+	CFLAGS='$(CFLAGS) $(CFOPT) -mavx512f -funroll-loops' $(MEXCC) -c $< -o $@
+
+dot_avx512fma.o:            $(OBJDIR)/dot_avx512fma.o
+$(OBJDIR)/dot_avx512fma.o:  dot_avx512.h
+$(OBJDIR)/dot_avx512fma.o:  dot_avx512.c makefile-oct
+	CFLAGS='$(CFLAGS) $(CFOPT) -mavx512f -mfma -funroll-loops' \
+    $(MEXCC) -c dot_avx512.c -o $@
+
+dot.o:                      $(OBJDIR)/dot.o
+$(OBJDIR)/dot.o:            dot.h $(CPUINFODIR)/src/cpuinfo.h
+$(OBJDIR)/dot.o:            dot.c makefile-oct
+	CFLAGS='$(CFLAGS) $(CFOPT)' \
+    $(MEXCC) $(DOT_DEFS) -I$(CPUINFODIR)/src -c $< -o $@
+
+dot_all.o:                  $(OBJDIR)/dot_all.o
+$(OBJDIR)/dot_all.o:        $(addprefix $(OBJDIR)/, $(OBJS))
+$(OBJDIR)/dot_all.o:        makefile-mex
+	$(LD) -r -o $(OBJDIR)/dot_all.o $(addprefix $(OBJDIR)/, $(OBJS))

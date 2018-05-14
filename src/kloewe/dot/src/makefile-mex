@@ -1,0 +1,137 @@
+#-----------------------------------------------------------------------------
+# File    : makefile-mex
+# Contents: build objects for use with matlab/mex
+# Author  : Kristian Loewe
+#
+# Usage   : make -f makefile-mex
+#           MEX_FLAGS='-v' make -f makefile-mex
+#           make -f makefile-mex | grep -v 'Warning.*gcc version'
+#           make -B -f makefile-mex | grep -v 'Warning.*gcc version'
+#           DEBUG=1 make -B -f makefile-mex | grep -v 'Warning.*gcc version'
+#           GCC=/usr/bin/gcc-7 make -f makefile-mex
+#-----------------------------------------------------------------------------
+.SUFFIXES:
+MAKEFLAGS   += -r
+
+GCC         ?= gcc
+CFBASE       = -std=c99 -Wall -Wextra -Wno-unused-parameter -Wconversion \
+               -Wshadow -pedantic
+DEFS        ?=
+MEX_FLAGS   ?=
+
+DEBUG       ?= 0
+ifeq ($(DEBUG), 1)
+  CFBASE    += -g
+  CFOPT     ?= -O0
+else
+  CFOPT     ?= -O2
+  DEFS      += -DNDEBUG
+endif
+CFLAGS       = $(CFBASE) -fPIC $(DEFS)
+
+MATLABROOT   = $(dir $(realpath $(shell which matlab)))
+MEXCC        = $(realpath $(MATLABROOT))/mex -largeArrayDims $(MEX_FLAGS) \
+               CFLAGS='$(CFLAGS)' GCC=$(GCC)
+
+OBJDIR       = ../obj/$(shell uname -m)/matlab
+_DUMMY      := $(shell mkdir -p $(OBJDIR))
+
+#-----------------------------------------------------------------------------
+
+CPUINFODIR   = ../../cpuinfo
+
+#-----------------------------------------------------------------------------
+
+GCC_VERSION := $(shell expr `$(GCC) -dumpversion`)
+ifeq (,$(findstring .,$(GCC_VERSION)))
+  GCC_VERSION := $(shell expr `$(GCC) -dumpfullversion`)
+endif
+GCC_VERSION := $(shell expr `echo $(GCC_VERSION) | \
+               sed -e 's/\.\([0-9][0-9]\)/\1/g' -e 's/\.\([0-9]\)/0\1/g' \
+               -e 's/^[0-9]\{3,4\}$$/&00/'`)
+
+GCC_GTEQ_47 := $(shell echo $(GCC_VERSION)\>=40700 | bc)
+GCC_GTEQ_71 := $(shell echo $(GCC_VERSION)\>=70100 | bc)
+
+DOT_DEFS =
+
+ifeq ($(GCC_GTEQ_47),1)
+  DOT_USEFMA ?= 1
+endif
+
+ifeq ($(GCC_GTEQ_71),1)
+  CFLAGS += -Wimplicit-fallthrough=0
+  DOT_USEAVX512 ?= 1
+endif
+
+OBJS = dot.o dot_naive.o dot_sse2.o dot_avx.o
+
+ifeq ($(DOT_USEFMA),1)
+  OBJS += dot_avxfma.o
+else
+  DOT_DEFS += -DDOT_NOFMA
+endif
+
+ifeq ($(DOT_USEAVX512),1)
+  OBJS += dot_avx512.o
+  ifeq ($(DOT_USEFMA),1)
+    OBJS += dot_avx512fma.o
+  endif
+else
+  DOT_DEFS += -DDOT_NOAVX512
+endif
+
+#-----------------------------------------------------------------------------
+# Build Objects
+#-----------------------------------------------------------------------------
+all: $(OBJS) dot_all.o
+
+dot_naive.o:                $(OBJDIR)/dot_naive.o
+$(OBJDIR)/dot_naive.o:      dot_naive.h dot_naive_real.h
+$(OBJDIR)/dot_naive.o:      dot_naive.c makefile-mex
+	$(MEXCC) COPTIMFLAGS='$(CFOPT)' \
+    -c dot_naive.c -outdir $(OBJDIR)
+
+dot_sse2.o:                 $(OBJDIR)/dot_sse2.o
+$(OBJDIR)/dot_sse2.o:       dot_sse2.h
+$(OBJDIR)/dot_sse2.o:       dot_sse2.c makefile-mex
+	$(MEXCC) COPTIMFLAGS='$(CFOPT) -msse2' \
+    -c dot_sse2.c -outdir $(OBJDIR)
+
+dot_avx.o:                  $(OBJDIR)/dot_avx.o
+$(OBJDIR)/dot_avx.o:        dot_avx.h
+$(OBJDIR)/dot_avx.o:        dot_avx.c makefile-mex
+	$(MEXCC) COPTIMFLAGS='$(CFOPT) -mavx -funroll-loops' \
+    -c dot_avx.c -outdir $(OBJDIR)
+
+dot_avxfma.o:               $(OBJDIR)/dot_avxfma.o
+$(OBJDIR)/dot_avxfma.o:     dot_avx.h
+$(OBJDIR)/dot_avxfma.o:     dot_avxfma.c dot_avx.c makefile-mex
+	$(MEXCC) COPTIMFLAGS='$(CFOPT) -mfma -mavx -funroll-loops' \
+    -c dot_avxfma.c -outdir $(OBJDIR)
+
+dot_avx512.o:               $(OBJDIR)/dot_avx512.o
+$(OBJDIR)/dot_avx512.o:     dot_avx512.h
+$(OBJDIR)/dot_avx512.o:     dot_avx512.c makefile-mex
+	$(MEXCC) COPTIMFLAGS='$(CFOPT) -mavx512f -funroll-loops' \
+    -c dot_avx512.c -outdir $(OBJDIR)
+
+dot_avx512fma.o:            $(OBJDIR)/dot_avx512fma.o
+$(OBJDIR)/dot_avx512fma.o:  dot_avx512.h
+$(OBJDIR)/dot_avx512fma.o:  dot_avx512.c makefile
+	mv $(OBJDIR)/dot_avx512.o $(OBJDIR)/dot_avx512.o.tmp; \
+  $(MEXCC) COPTIMFLAGS='$(CFOPT) -mavx512f -mfma -funroll-loops' \
+    -c dot_avx512.c -outdir $(OBJDIR); \
+  mv $(OBJDIR)/dot_avx512.o $(OBJDIR)/dot_avx512fma.o; \
+  mv $(OBJDIR)/dot_avx512.o.tmp $(OBJDIR)/dot_avx512.o \
+
+dot.o:                      $(OBJDIR)/dot.o
+$(OBJDIR)/dot.o:            dot.h $(CPUINFODIR)/src/cpuinfo.h
+$(OBJDIR)/dot.o:            dot.c makefile-mex
+	$(MEXCC) COPTIMFLAGS='$(CFOPT)' $(DOT_DEFS) \
+    -I$(CPUINFODIR)/src -c dot.c -outdir $(OBJDIR)
+
+dot_all.o:                  $(OBJDIR)/dot_all.o
+$(OBJDIR)/dot_all.o:        $(addprefix $(OBJDIR)/, $(OBJS))
+$(OBJDIR)/dot_all.o:        makefile-mex
+	$(LD) -r -o $(OBJDIR)/dot_all.o $(addprefix $(OBJDIR)/, $(OBJS))

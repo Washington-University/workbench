@@ -15,8 +15,8 @@
 
 // alignment check
 #include <stdint.h>
-#define is_aligned(POINTER, BYTE_COUNT) \
-  (((uintptr_t)(const void *)(POINTER)) % (BYTE_COUNT) == 0)
+#define align_rem(PTR, NBYTES) (((uintptr_t)(const void *)(PTR)) % (NBYTES))
+#define is_aligned(PTR, NBYTES) (align_rem(PTR,NBYTES) == 0)
 
 /*----------------------------------------------------------------------------
   Function Prototypes
@@ -46,18 +46,19 @@ inline float sdot_avx    (const float *a, const float *b, int n)
   float s = 0.0f;
 
   // compute and add up to 7 products without SIMD to achieve alignment
-  int aligned = is_aligned(a, 32) && is_aligned(b, 32);
-  if (!aligned) {
-    int k = 0;
-    while (!aligned) {
-      s += (*a) * (*b);
-      n--; a++; b++;
-      aligned = is_aligned(a, 32) && is_aligned(b, 32);
-      if (aligned || (++k > 6) || (n == 0))
-        break;
+  if (align_rem(a,32) == align_rem(b,32)) {
+    int aligned = is_aligned(a, 32) && is_aligned(b, 32);
+    if (!aligned) {
+      int k = 0;
+      while (!aligned) {
+        s += (*a) * (*b);
+        n--; a++; b++;
+        aligned = is_aligned(a, 32) && is_aligned(b, 32);
+        if (aligned || (++k > 6) || (n == 0))
+          break;
+      }
     }
   }
-  assert(aligned || (n < 8));
 
   // initialize 8 sums
   __m256 s8 = _mm256_setzero_ps();
@@ -105,18 +106,19 @@ inline double ddot_avx    (const double *a, const double *b, int n)
   double s = 0.0;
 
   // compute and add up to 3 products without SIMD to achieve alignment
-  int aligned = is_aligned(a, 32) && is_aligned(b, 32);
-  if (!aligned) {
-    int k = 0;
-    while (!aligned) {
-      s += (*a) * (*b);
-      n--; a++; b++;
-      aligned = is_aligned(a, 32) && is_aligned(b, 32);
-      if (aligned || (++k > 2) || (n == 0))
-        break;
+  if (align_rem(a,32) == align_rem(b,32)) {
+    int aligned = is_aligned(a, 32) && is_aligned(b, 32);
+    if (!aligned) {
+      int k = 0;
+      while (!aligned) {
+        s += (*a) * (*b);
+        n--; a++; b++;
+        aligned = is_aligned(a, 32) && is_aligned(b, 32);
+        if (aligned || (++k > 2) || (n == 0))
+          break;
+      }
     }
   }
-  assert(aligned || (n < 4));
 
   // initialize 4 sums
   __m256d s4 = _mm256_setzero_pd();
@@ -156,18 +158,19 @@ inline double dsdot_avx    (const float *a, const float *b, int n)
   double s = 0.0;
 
   // compute and add up to 7 products without SIMD to achieve alignment
-  int aligned = is_aligned(a, 32) && is_aligned(b, 32);
-  if (!aligned) {
-    int k = 0;
-    while (!aligned) {
-      s += (*a) * (*b);
-      n--; a++; b++;
-      aligned = is_aligned(a, 32) && is_aligned(b, 32);
-      if (aligned || (++k > 6) || (n == 0))
-        break;
+  if (align_rem(a,32) == align_rem(b,32)) {
+    int aligned = is_aligned(a, 32) && is_aligned(b, 32);
+    if (!aligned) {
+      int k = 0;
+      while (!aligned) {
+        s += (*a) * (*b);
+        n--; a++; b++;
+        aligned = is_aligned(a, 32) && is_aligned(b, 32);
+        if (aligned || (++k > 6) || (n == 0))
+          break;
+      }
     }
   }
-  assert(aligned || (n < 8));
 
   // initialize 4 sums
   __m256d s4 = _mm256_setzero_pd();

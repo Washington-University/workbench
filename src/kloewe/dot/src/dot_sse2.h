@@ -14,8 +14,8 @@
 
 // alignment check
 #include <stdint.h>
-#define is_aligned(POINTER, BYTE_COUNT) \
-  (((uintptr_t)(const void *)(POINTER)) % (BYTE_COUNT) == 0)
+#define align_rem(PTR, NBYTES) (((uintptr_t)(const void *)(PTR)) % (NBYTES))
+#define is_aligned(PTR, NBYTES) (align_rem(PTR,NBYTES) == 0)
 
 // horizontal sum variant
 #ifdef HORZSUM_SSE3
@@ -45,7 +45,7 @@ inline float sdot_sse2 (const float *a, const float *b, int n)
 
   // compute and add up to 3 products without SIMD to achieve alignment
   int aligned = is_aligned(a, 16) && is_aligned(b, 16);
-  if (!aligned) {
+  if (!aligned && (align_rem(a,16) == align_rem(b,16))) {
     int k = 0;
     while (!aligned) {
       s += (*a) * (*b);
@@ -60,7 +60,7 @@ inline float sdot_sse2 (const float *a, const float *b, int n)
   __m128 s4 = _mm_setzero_ps();
 
   // in each iteration, add 1 product to each of the 4 sums in parallel
-  if (is_aligned(a, 16) && is_aligned(b, 16))
+  if (aligned)
     for (int k = 0, nq = 4*(n/4); k < nq; k += 4)
       s4 = _mm_add_ps(s4, _mm_mul_ps(_mm_load_ps(a+k), _mm_load_ps(b+k)));
   else
@@ -94,10 +94,10 @@ inline double ddot_sse2 (const double *a, const double *b, int n)
 
   // compute and add up to 1 product without SIMD to achieve alignment
   int aligned = is_aligned(a, 16) && is_aligned(b, 16);
-  if (!aligned) {
-      s += (*a) * (*b);
-      n--; a++; b++;
-      aligned = is_aligned(a, 16) && is_aligned(b, 16);
+  if (!aligned && (align_rem(a,16) == align_rem(b,16))) {
+    s += (*a) * (*b);
+    n--; a++; b++;
+    aligned = is_aligned(a, 16) && is_aligned(b, 16);
   }
 
   // compute and add (the bulk of the) products using SSE2 intrinsics
@@ -134,7 +134,7 @@ inline double dsdot_sse2 (const float *a, const float *b, int n)
 
   // compute and add up to 3 products without SIMD to achieve alignment
   int aligned = is_aligned(a, 16) && is_aligned(b, 16);
-  if (!aligned) {
+  if (!aligned && (align_rem(a,16) == align_rem(b,16))) {
     int k = 0;
     while (!aligned) {
       s += (*a) * (*b);
