@@ -122,6 +122,10 @@ void DotTest::execute()
     vector<float> lowsnrA = vectorAdd(rand1, vectorMult(rand2, 20.0f)), lowsnrB = vectorAdd(rand1, vectorMult(rand3, 20.0f));
     vector<float> midsnrA = vectorAdd(rand1, vectorMult(rand2, 2.0f)), midsnrB = vectorAdd(rand1, vectorMult(rand3, 2.0f));
     vector<float> highsnrA = vectorAdd(rand1, vectorMult(rand2, 0.2f)), highsnrB = vectorAdd(rand1, vectorMult(rand3, 0.2f));
+    cout << "pointers: " << rand1.data() << ", " << rand2.data() << ", " << rand3.data() <<
+            ", " << lowsnrA.data() << ", " << lowsnrB.data() << ", " <<
+            ", " << midsnrA.data() << ", " << midsnrB.data() << ", " <<
+            ", " << highsnrA.data() << ", " << highsnrB.data() << ", " << endl;
     //compute all by naive first
     const float self_naive = correlate(rand1, rand1);
     checkVal(1.0f, self_naive, "naive self-correlation");//sanity check
