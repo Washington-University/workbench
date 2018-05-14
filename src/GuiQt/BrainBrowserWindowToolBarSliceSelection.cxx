@@ -273,11 +273,8 @@ BrainBrowserWindowToolBarSliceSelection::updateContent(BrowserTabContent* browse
          * Test selected file to see if it is an oblique volume file (not a CIFTI file)
          */
         bool obliqueVolumeFlag = false;
-        VolumeFile* volumeFile = dynamic_cast<VolumeFile*>(vf);
-        if (volumeFile != NULL) {
-            if ( ! volumeFile->isPlumb()) {
-                obliqueVolumeFlag = true;
-            }
+        if ( ! vf->getVolumeSpace().isPlumb()) {
+            obliqueVolumeFlag = true;
         }
         
         /*

@@ -6444,11 +6444,13 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
         CaretAssert(sliceViewingPlaneIndexIntoXYZ != drawBottomToTopInfo.indexIntoXYZ);
         CaretAssert(drawLeftToRightInfo.indexIntoXYZ != drawBottomToTopInfo.indexIntoXYZ);
         
-        std::cout << "Viewing Axis Index: " << viewingAxisIndex << " for " << VolumeSliceViewPlaneEnum::toGuiName(sliceViewingPlane) << std::endl;
-        std::cout << "Left to Right ";
-        drawLeftToRightInfo.print();
-        std::cout << "Bottom to Top: ";
-        drawBottomToTopInfo.print();
+        if (debugFlag) {
+            std::cout << "Viewing Axis Index: " << viewingAxisIndex << " for " << VolumeSliceViewPlaneEnum::toGuiName(sliceViewingPlane) << std::endl;
+            std::cout << "Left to Right ";
+            drawLeftToRightInfo.print();
+            std::cout << "Bottom to Top: ";
+            drawBottomToTopInfo.print();
+        }
         
         
         /*
@@ -6541,10 +6543,12 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
         /*
          * Get colors for all voxels in the slice.
          */
-        std::cout << "Slice Axis " << VolumeSliceViewPlaneEnum::toGuiName(sliceViewingPlane)
-        << " start IJK: " << AString::fromNumbers(firstVoxelIJK, 3, ",")
-        << " rowstep IJK: " << AString::fromNumbers(rowStepIJK, 3, ",")
-        << " colstep IJK: " << AString::fromNumbers(columnStepIJK, 3, ",") << std::endl;
+        if (debugFlag) {
+            std::cout << "Slice Axis " << VolumeSliceViewPlaneEnum::toGuiName(sliceViewingPlane)
+            << " start IJK: " << AString::fromNumbers(firstVoxelIJK, 3, ",")
+            << " rowstep IJK: " << AString::fromNumbers(rowStepIJK, 3, ",")
+            << " colstep IJK: " << AString::fromNumbers(columnStepIJK, 3, ",") << std::endl;
+        }
         const int64_t validVoxelCount = volumeInterface->getVoxelColorsForSliceInMap(volInfo.mapIndex,
                                                                                 firstVoxelIJK,
                                                                                 rowStepIJK,
@@ -6617,10 +6621,12 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
         //                              + "\n");
         //        std::cout << qPrintable(drawMsg) << std::endl;
         
-        std::cout << "Slice Axis " << VolumeSliceViewPlaneEnum::toGuiName(sliceViewingPlane)
-        << " start XYZ: " << AString::fromNumbers(startCoordinateXYZ, 3, ",")
-        << " rowstep XYZ: " << AString::fromNumbers(rowStepXYZ, 3, ",")
-        << " colstep XYZ: " << AString::fromNumbers(columnStepXYZ, 3, ",") << std::endl;
+        if (debugFlag) {
+            std::cout << "Slice Axis " << VolumeSliceViewPlaneEnum::toGuiName(sliceViewingPlane)
+            << " start XYZ: " << AString::fromNumbers(startCoordinateXYZ, 3, ",")
+            << " rowstep XYZ: " << AString::fromNumbers(rowStepXYZ, 3, ",")
+            << " colstep XYZ: " << AString::fromNumbers(columnStepXYZ, 3, ",") << std::endl;
+        }
         drawOrthogonalSliceVoxels(sliceNormalVector,
                                   startCoordinateXYZ,
                                   rowStepXYZ,

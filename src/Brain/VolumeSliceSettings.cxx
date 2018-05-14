@@ -23,6 +23,7 @@
 #include "VolumeSliceSettings.h"
 #undef __VOLUME_SLICE_SETTINGS_DECLARE__
 
+#include "DeveloperFlagsEnum.h"
 #include "CaretLogger.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
@@ -561,27 +562,25 @@ VolumeSliceSettings::getSlicesParasagittalCoronalAxial(const VolumeMappableInter
         axialIndexOut        = indices[2];
         
         {
-            const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
-            if (vf != NULL) {
-                if (vf->isPlumb()) {
-                    VolumeSpace::OrientTypes orient[3];
-                    vf->getOrientation(orient);
-                    
-                    for (int32_t i = 0; i < 3; i++) {
-                        switch (orient[i]) {
-                            case VolumeSpace::ANTERIOR_TO_POSTERIOR:
-                            case VolumeSpace::POSTERIOR_TO_ANTERIOR:
-                                coronalIndexOut = indices[i];
-                                break;
-                            case VolumeSpace::INFERIOR_TO_SUPERIOR:
-                            case VolumeSpace::SUPERIOR_TO_INFERIOR:
-                                axialIndexOut = indices[i];
-                                break;
-                            case VolumeSpace::LEFT_TO_RIGHT:
-                            case VolumeSpace::RIGHT_TO_LEFT:
-                                parasagittalIndexOut = indices[i];
-                                break;
-                        }
+            const VolumeSpace& volumeSpace = volumeInterface->getVolumeSpace();
+            if (volumeSpace.isPlumb()) {
+                VolumeSpace::OrientTypes orient[3];
+                volumeSpace.getOrientation(orient);
+                
+                for (int32_t i = 0; i < 3; i++) {
+                    switch (orient[i]) {
+                        case VolumeSpace::ANTERIOR_TO_POSTERIOR:
+                        case VolumeSpace::POSTERIOR_TO_ANTERIOR:
+                            coronalIndexOut = indices[i];
+                            break;
+                        case VolumeSpace::INFERIOR_TO_SUPERIOR:
+                        case VolumeSpace::SUPERIOR_TO_INFERIOR:
+                            axialIndexOut = indices[i];
+                            break;
+                        case VolumeSpace::LEFT_TO_RIGHT:
+                        case VolumeSpace::RIGHT_TO_LEFT:
+                            parasagittalIndexOut = indices[i];
+                            break;
                     }
                 }
             }
@@ -633,27 +632,24 @@ VolumeSliceSettings::setSlicesParasagittalCoronalAxial(const VolumeMappableInter
     int64_t indices[3] = { parasagittalIndex, coronalIndex, axialIndex };
     
     {
-        const VolumeFile* vf = dynamic_cast<const VolumeFile*>(volumeInterface);
-        if (vf != NULL) {
-            if (vf->isPlumb()) {
-                VolumeSpace::OrientTypes orient[3];
-                vf->getOrientation(orient);
-                
-                for (int32_t i = 0; i < 3; i++) {
-                    switch (orient[i]) {
-                        case VolumeSpace::ANTERIOR_TO_POSTERIOR:
-                        case VolumeSpace::POSTERIOR_TO_ANTERIOR:
-                            indices[i] = coronalIndex;
-                            break;
-                        case VolumeSpace::INFERIOR_TO_SUPERIOR:
-                        case VolumeSpace::SUPERIOR_TO_INFERIOR:
-                            indices[i] = axialIndex;
-                            break;
-                        case VolumeSpace::LEFT_TO_RIGHT:
-                        case VolumeSpace::RIGHT_TO_LEFT:
-                            indices[i] = parasagittalIndex;
-                            break;
-                    }
+        const VolumeSpace& volumeSpace = volumeInterface->getVolumeSpace();
+        if (volumeSpace.isPlumb()) {
+            VolumeSpace::OrientTypes orient[3];
+            volumeSpace.getOrientation(orient);
+            for (int32_t i = 0; i < 3; i++) {
+                switch (orient[i]) {
+                    case VolumeSpace::ANTERIOR_TO_POSTERIOR:
+                    case VolumeSpace::POSTERIOR_TO_ANTERIOR:
+                        indices[i] = coronalIndex;
+                        break;
+                    case VolumeSpace::INFERIOR_TO_SUPERIOR:
+                    case VolumeSpace::SUPERIOR_TO_INFERIOR:
+                        indices[i] = axialIndex;
+                        break;
+                    case VolumeSpace::LEFT_TO_RIGHT:
+                    case VolumeSpace::RIGHT_TO_LEFT:
+                        indices[i] = parasagittalIndex;
+                        break;
                 }
             }
         }
