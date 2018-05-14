@@ -22,6 +22,7 @@
 #include "AlgorithmException.h"
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "GeodesicHelper.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
@@ -174,6 +175,7 @@ AlgorithmMetricROIsFromExtrema::AlgorithmMetricROIsFromExtrema(ProgressObject* m
             }
         }
     }
+    if (extremaCount == 0) CaretLogWarning("no nonzero values in input metric file, output file will be empty");//if this were an error, the cifti version will error when just one component is zeros
     if (extremaCount >= (1LL<<31)) throw AlgorithmException("too many output maps for a metric file");//hopefully this is never needed
     int32_t mapsOut = (int32_t)extremaCount;
     vector<float> excludeDists(numNodes, -1.0f);

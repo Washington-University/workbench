@@ -21,6 +21,7 @@
 #include "AlgorithmVolumeROIsFromExtrema.h"
 #include "AlgorithmException.h"
 
+#include "CaretLogger.h"
 #include "FloatMatrix.h"
 #include "Vector3D.h"
 #include "VolumeFile.h"
@@ -178,6 +179,7 @@ AlgorithmVolumeROIsFromExtrema::AlgorithmVolumeROIsFromExtrema(ProgressObject* m
             }
         }
     }
+    if (extremaCount == 0) CaretLogWarning("no nonzero values in input volume file, output file will be empty");
     Vector3D ivec, jvec, kvec, offset, ijorth, jkorth, kiorth;
     FloatMatrix(myVol->getVolumeSpace().getSform()).getAffineVectors(ivec, jvec, kvec, offset);//this should probably be made more accessible
     ijorth = ivec.cross(jvec).normal();//find the bounding box that encloses a sphere of radius limit

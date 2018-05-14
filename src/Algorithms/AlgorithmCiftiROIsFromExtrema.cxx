@@ -244,6 +244,7 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
             mapCount += tempDims[3];//because getNumberOfMaps only returns int32
         }
     }
+    if (mapCount == 0) throw AlgorithmException("no nonzero values in input cifti file");
     if (mapCount > numeric_limits<int>::max()) throw AlgorithmException("result has too many ROIs");
     myXML.resetDirectionToScalars(1 - myDir, mapCount);
     myCiftiOut->setCiftiXML(myXML);
