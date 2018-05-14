@@ -211,6 +211,10 @@ namespace caret {
                                  const float sliceCoordinates[3],
                                  const Plane& plane);
         
+        void drawOrthogonalSliceAllView(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                        const float sliceCoordinates[3],
+                                        const Plane& plane);
+        
         void drawOrthogonalSliceWithCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                             const float sliceCoordinates[3],
                                             const Plane& plane);
