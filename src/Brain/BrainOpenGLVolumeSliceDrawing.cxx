@@ -6403,7 +6403,20 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
          * Coordinate of slice is ALWAYS from the bottom layer
          */
         if (iVol == 0) {
-            selectedSliceCoordinate = sliceCoordinates[viewingAxisIndex];
+            switch (sliceViewingPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    selectedSliceCoordinate = sliceCoordinates[2];
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    selectedSliceCoordinate = sliceCoordinates[1];
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    selectedSliceCoordinate = sliceCoordinates[0];
+                    break;
+            }
         }
         
         /*
