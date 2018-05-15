@@ -6526,6 +6526,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
          */
         float startCoordinateXYZ[3] = { 0.0, 0.0, 0.0 };
         volumeInterface->indexToSpace(firstVoxelIJK, startCoordinateXYZ);
+        startCoordinateXYZ[sliceViewingPlaneIndexIntoXYZ] = selectedSliceCoordinate;
         startCoordinateXYZ[drawLeftToRightInfo.indexIntoXYZ] -= (drawLeftToRightInfo.voxelStepSize / 2.0);
         startCoordinateXYZ[drawBottomToTopInfo.indexIntoXYZ] -= (drawBottomToTopInfo.voxelStepSize / 2.0);
         
