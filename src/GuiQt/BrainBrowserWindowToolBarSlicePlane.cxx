@@ -154,7 +154,7 @@ m_parentToolBar(parentToolBar)
                                               QSizePolicy::Fixed);
     WuQtUtilities::setToolButtonStyleForQt5Mac(slicePlaneCustomToolButton);
     
-    m_volumeAxisCrosshairsToolButtonAction = new QAction("");
+    m_volumeAxisCrosshairsToolButtonAction = new QAction("", this);
     m_volumeAxisCrosshairsToolButtonAction->setCheckable(true);
     m_volumeAxisCrosshairsToolButtonAction->setToolTip("Show crosshairs on slice planes");
     QObject::connect(m_volumeAxisCrosshairsToolButtonAction, &QAction::triggered,
@@ -166,7 +166,7 @@ m_parentToolBar(parentToolBar)
     volumeCrosshairsToolButton->setIconSize(xhairPixmap.size());
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumeCrosshairsToolButton);
     
-    m_volumeAxisCrosshairLabelsToolButtonAction = new QAction("");
+    m_volumeAxisCrosshairLabelsToolButtonAction = new QAction("", this);
     m_volumeAxisCrosshairLabelsToolButtonAction->setCheckable(true);
     m_volumeAxisCrosshairLabelsToolButtonAction->setToolTip("Show crosshair slice plane labels");
     QObject::connect(m_volumeAxisCrosshairLabelsToolButtonAction, &QAction::triggered,

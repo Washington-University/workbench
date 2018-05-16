@@ -23,6 +23,7 @@
 #include "BrainBrowserWindowToolBarChartTwoTitle.h"
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_TWO_TITLE_DECLARE__
 
+#include <QAction>
 #include <QCheckBox>
 #include <QGridLayout>
 #include <QLabel>
@@ -64,7 +65,7 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
     QObject::connect(m_showTitleCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoTitle::showTitleCheckBoxClicked);
     
-    QAction* editTitleAction = new QAction("Edit Title...");
+    QAction* editTitleAction = new QAction("Edit Title...", this);
     editTitleAction->setToolTip("Edit the chart title in a dialog");
     QObject::connect(editTitleAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarChartTwoTitle::editTitleActionTriggered);

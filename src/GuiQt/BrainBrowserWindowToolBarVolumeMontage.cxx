@@ -83,7 +83,7 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_montageSpacingSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageSpacingSpinBoxValueChanged(int)));
     
-    m_showSliceCoordinateAction = new QAction("XYZ");
+    m_showSliceCoordinateAction = new QAction("XYZ", this);
     m_showSliceCoordinateAction->setText("XYZ");
     m_showSliceCoordinateAction->setCheckable(true);
     m_showSliceCoordinateAction->setToolTip("Show coordinates on slices");

@@ -180,7 +180,7 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolTipAndStatusTip(m_volumeSliceProjectionTypeEnumComboBox->getWidget(),
                                           "Chooses viewing orientation (oblique or orthogonal)");
     
-    m_obliqueMaskingAction = new QAction("M");
+    m_obliqueMaskingAction = new QAction("M", this);
     m_obliqueMaskingAction->setToolTip(VolumeSliceInterpolationEdgeEffectsMaskingEnum::getToolTip());
     m_obliqueMaskingAction->setCheckable(true);
     QObject::connect(m_obliqueMaskingAction, &QAction::triggered,
