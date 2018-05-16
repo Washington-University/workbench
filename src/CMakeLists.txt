@@ -120,9 +120,9 @@ ENDIF (NOT MSVC)
 # If GNU compiler, use SIMD-based dot computation, if possible
 #
 SET(SIMD_RESULT "Search for SIMD disabled for compiler on this system.")
-if (CMAKE_COMPILER_IS_GNUCC OR CLANG_FLAG)
+if ((CMAKE_COMPILER_IS_GNUCC OR CLANG_FLAG) AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     #
-    # Define flag to avoid trying to compile SIMD stuff (coded for x86 only)
+    # Define flag to avoid trying to compile SIMD stuff (coded for x86_64 only)
     #
     SET(WORKBENCH_USE_SIMD TRUE CACHE BOOL "try to compile with SIMD support")
 
@@ -146,7 +146,7 @@ if (CMAKE_COMPILER_IS_GNUCC OR CLANG_FLAG)
     ELSE (WORKBENCH_USE_SIMD)
         SET(SIMD_RESULT "Search for SIMD disabled, WORKBENCH_USE_SIMD=FALSE")
     ENDIF (WORKBENCH_USE_SIMD)
-endif(CMAKE_COMPILER_IS_GNUCC OR CLANG_FLAG)
+endif ((CMAKE_COMPILER_IS_GNUCC OR CLANG_FLAG) AND CMAKE_SIZEOF_VOID_P EQUAL 8)
 
 #TSC: we require c++11, so it needs to be in the compile flags - in older cmake, this needs to be done manually
 IF (${CMAKE_VERSION} VERSION_LESS "3.1")
