@@ -769,7 +769,7 @@ BrainBrowserWindow::createActionsUsedByToolBar()
                                           "ratio for the selected tab or the window."
                                           "</html>");
     
-    m_toolBarLockWindowAndAllTabAspectRatioAction = new QAction();
+    m_toolBarLockWindowAndAllTabAspectRatioAction = new QAction(this);
     m_toolBarLockWindowAndAllTabAspectRatioAction->setCheckable(true);
     m_toolBarLockWindowAndAllTabAspectRatioAction->setChecked(false);
     m_toolBarLockWindowAndAllTabAspectRatioAction->setText("Lock Aspect");
