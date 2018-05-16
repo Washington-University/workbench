@@ -246,7 +246,8 @@ namespace caret {
         static void drawSurfaceOutline(const ModelTypeEnum::Enum modelType,
                                        const Plane& plane,
                                        VolumeSurfaceOutlineSetModel* outlineSet,
-                                       BrainOpenGLFixedPipeline* fixedPipelineDrawing);
+                                       BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                       const bool useNegativePolygonOffsetFlag);
         
         void drawVolumeSliceFoci(const Plane& plane);
         

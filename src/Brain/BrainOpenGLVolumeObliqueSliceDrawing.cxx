@@ -2711,7 +2711,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnu
                 BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(m_modelType,
                                                                   slicePlane,
                                                                   m_browserTabContent->getVolumeSurfaceOutlineSet(),
-                                                                  m_fixedPipelineDrawing);
+                                                                  m_fixedPipelineDrawing,
+                                                                  true);
             }
             
             if (drawFibersFlag) {

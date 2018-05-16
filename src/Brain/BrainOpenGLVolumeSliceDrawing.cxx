@@ -3518,7 +3518,8 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
                 drawSurfaceOutline(m_modelType,
                                    slicePlane,
                                    m_browserTabContent->getVolumeSurfaceOutlineSet(),
-                                   m_fixedPipelineDrawing);
+                                   m_fixedPipelineDrawing,
+                                   false);
             }
             
             if (drawFibersFlag) {
@@ -3582,12 +3583,15 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
  *    The surface outline set.
  * @param fixedPipelineDrawing
  *    The fixed pipeline drawing.
+ * @param useNegativePolygonOffsetFlag
+ *    If true, use a negative offset for polygon offset
  */
 void
 BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum modelType,
                                                   const Plane& plane,
                                                   VolumeSurfaceOutlineSetModel* outlineSet,
-                                                  BrainOpenGLFixedPipeline* fixedPipelineDrawing)
+                                                  BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                  const bool useNegativePolygonOffsetFlag)
 {
     glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_DEPTH_TEST);
@@ -3688,7 +3692,12 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum mode
          * Draw the contours.
          */
         for (auto primitive : contourPrimitives) {
-            glPolygonOffset(1.0, 1.0);
+            if (useNegativePolygonOffsetFlag) {
+                glPolygonOffset(-1.0, -1.0);
+            }
+            else {
+                glPolygonOffset(1.0, 1.0);
+            }
             glEnable(GL_POLYGON_OFFSET_FILL);
             
             GraphicsEngineDataOpenGL::draw(primitive);
