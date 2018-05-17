@@ -117,10 +117,6 @@ DeveloperFlagsEnum::initialize()
                                           "DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA",
                                           "Flip Palette Not Data",
                                           false));
-    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOLUME_SLICE_TEST,
-                                          "DEVELOPER_FLAG_VOLUME_SLICE_TEST",
-                                          "Test Volume Slice Selection for All Orientations",
-                                          false));
 }
 
 /**

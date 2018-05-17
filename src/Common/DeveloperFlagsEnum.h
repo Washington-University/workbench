@@ -36,8 +36,7 @@ public:
      */
     enum Enum {
         DEVELOPER_FLAG_UNUSED,
-        DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA,
-        DEVELOPER_FLAG_VOLUME_SLICE_TEST
+        DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA
     };
 
     ~DeveloperFlagsEnum();

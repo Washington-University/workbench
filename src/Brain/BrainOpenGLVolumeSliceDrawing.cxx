@@ -802,7 +802,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
                                                      slicePlane);
                     }
                     else {
-                        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOLUME_SLICE_TEST)) {
+                        const bool allOrientationsFlag = true;
+                        if (allOrientationsFlag) {
                             drawOrthogonalSliceAllView(sliceViewPlane,
                                                        sliceCoordinates,
                                                        slicePlane);
