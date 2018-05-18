@@ -147,7 +147,8 @@ namespace caret {
         static void setVoxelColoringEnabled(const bool enabled);
         
         VolumeFile();
-        VolumeFile(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1, SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY);
+        VolumeFile(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1,
+                   SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY, const AbstractHeader* templateHeader = NULL);
         ~VolumeFile();
         
         virtual void clear();
@@ -155,10 +156,15 @@ namespace caret {
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
         ///recreates the volume file storage with new size and spacing
-        void reinitialize(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1, SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY);
+        void reinitialize(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1,
+                          SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY, const AbstractHeader* templateHeader = NULL);
         
         ///convenient version for 3D or 4D from a VolumeSpace
-        void reinitialize(const VolumeSpace& volSpaceIn, const int64_t numFrames = 1, const int64_t numComponents = 1, SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY);
+        void reinitialize(const VolumeSpace& volSpaceIn, const int64_t numFrames = 1, const int64_t numComponents = 1,
+                          SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY, const AbstractHeader* templateHeader = NULL);
+        
+        ///another convenience version for taking spatial dims, spacing, type and header from existing file
+        void reinitialize(const VolumeFile* headerTemplate, const int64_t numFrames = 1, const int64_t numComponents = 1);
         
         void addSubvolumes(const int64_t& numToAdd);
         

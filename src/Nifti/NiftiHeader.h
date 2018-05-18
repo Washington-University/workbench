@@ -55,10 +55,12 @@ namespace caret
         
         std::vector<int64_t> getDimensions() const;
         std::vector<std::vector<float> > getSForm() const;
+        double getTimeStep() const;//seconds
         int64_t getDataOffset() const { return m_header.vox_offset; }
         int16_t getDataType() const { return m_header.datatype; }
         int32_t getIntentCode() const { return m_header.intent_code; }
         const char* getIntentName() const { return m_header.intent_name; }//NOTE: 16 BYTES, MAY NOT HAVE A NULL TERMINATOR
+        const char* getDescription() const { return m_header.descrip; }//NOTE: 80 BYTES, MAY NOT HAVE A NULL TERMINATOR
         bool getDataScaling(double& mult, double& offset) const;//returns false if scaling not needed
         int getNumComponents() const;
         bool hasGoodSpatialInformation() const;
@@ -66,7 +68,9 @@ namespace caret
         
         void setDimensions(const std::vector<int64_t>& dimsIn);
         void setSForm(const std::vector<std::vector<float> > &sForm);
+        void setTimeStep(const double& seconds);
         void setIntent(const int32_t& code, const char name[16]);
+        void setDescription(const char descrip[80]);
         void setDataType(const int16_t& type);
         void clearDataScaling();
         void setDataScaling(const double& mult, const double& offset);

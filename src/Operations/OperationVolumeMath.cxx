@@ -98,8 +98,11 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     VolumeSpace mySpace;
     vector<int64_t> outDims;
     int numSubvols = -1;
+    VolumeFile* toClone = NULL;
+    float headerScore = -1.0f;//used to prioritize which input file to clone the header from
     for (int i = 0; i < numInputs; ++i)
     {
+        float thisHeaderScore = 3.0f;//default to high priority, -select and -repeat reduce priority
         if (i == 0)
         {
             first = myVarOpts[0]->getVolume(2);
@@ -125,8 +128,10 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
             useSubvolume = thisVolume->getMapIndexFromNameOrNumber(subvolSelect->getString(1));
             if (useSubvolume == -1) throw OperationException("could not find map '" + subvolSelect->getString(1) +
                                                                 "' in volume file for '" + varName + "'");
+            thisHeaderScore = 2.0f;//give -select more priority over -repeat?  may not matter...
         }
         bool repeat = myVarOpts[i]->getOptionalParameter(4)->m_present;
+        if (repeat) thisHeaderScore = 1.0f;
         if (!thisVolume->matchesVolumeSpace(mySpace))
         {
             throw OperationException("volume file for variable '" + varName + "' has different volume space than the first volume file");
@@ -176,8 +181,14 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
             }
         }
         if (!found && (numVars != 0 || numInputs != 1))//supress warning when a single -var is used with a constant expression, as required per help
-        {
+        {//don't reduce header score for not being used, less confusion, and allows the file that sets the length of output to also set the timestep
             CaretLogWarning("variable '" + varName + "' not used in expression");
+        }
+        if (thisVolume->m_header == NULL) thisHeaderScore = 0.1f;//very small priority if it doesn't even have a header somehow (for instance, if we ever add GUI use of these things)
+        if (thisHeaderScore > headerScore)
+        {
+            headerScore = thisHeaderScore;
+            toClone = thisVolume;
         }
     }
     for (int i = 0; i < numVars; ++i)
@@ -191,7 +202,12 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     int64_t frameSize = outDims[0] * outDims[1] * outDims[2];
     vector<float> values(numVars), outFrame(frameSize);
     vector<const float*> inputFrames(numVars);
-    myVolOut->reinitialize(outDims, first->getSform());//DO NOT take volume type from first volume, because we don't check for or copy label tables, nor do we want to
+    if (toClone != NULL)
+    {//don't take volume type from the selected volume, because we don't check for or copy label tables, nor do we want to (might be changing all the label keys, splitting label by roi...)
+        myVolOut->reinitialize(outDims, first->getSform(), 1, SubvolumeAttributes::SubvolumeAttributes::ANATOMY, toClone->m_header);
+    } else {
+        myVolOut->reinitialize(outDims, first->getSform());
+    }
     for (int s = 0; s < numSubvols; ++s)
     {
         if (namefile != NULL) myVolOut->setMapName(s, namefile->getMapName(s));

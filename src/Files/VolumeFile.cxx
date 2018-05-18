@@ -24,6 +24,7 @@
 
 #include <QTemporaryFile>
 
+#include "ApplicationInformation.h"
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
 #include "CaretTemporaryFile.h"
@@ -76,42 +77,39 @@ VolumeFile::setVoxelColoringEnabled(const bool enabled)
 
 VolumeFile::VolumeFile()
 : VolumeBase(), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
-{
-    m_fileFastStatistics.grabNew(NULL);
-    m_fileHistogram.grabNew(NULL);
-    m_fileHistorgramLimitedValues.grabNew(NULL);
+{//CaretPointers initialize to NULL, and this isn't an operator=
     m_forceUpdateOfGroupAndNameHierarchy = true;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
-    m_volumeFileEditorDelegate.grabNew(NULL);
     validateMembers();
 }
 
-VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
+VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents,
+                       SubvolumeAttributes::VolumeType whatType, const AbstractHeader* templateHeader)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
-{
-    m_fileFastStatistics.grabNew(NULL);
-    m_fileHistogram.grabNew(NULL);
-    m_fileHistorgramLimitedValues.grabNew(NULL);
+{//CaretPointers initialize to NULL, and this isn't an operator=
     m_forceUpdateOfGroupAndNameHierarchy = true;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
-    m_volumeFileEditorDelegate.grabNew(NULL);
+    if (templateHeader != NULL) m_header.grabNew(templateHeader->clone());
     validateMembers();
     setType(whatType);
 }
 
-void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
+void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents,
+                              SubvolumeAttributes::VolumeType whatType, const AbstractHeader* templateHeader)
 {
     clear();
     VolumeBase::reinitialize(dimensionsIn, indexToSpace, numComponents);
+    if (templateHeader != NULL) m_header.grabNew(templateHeader->clone());
     validateMembers();
     setType(whatType);
 }
 
-void VolumeFile::reinitialize(const VolumeSpace& volSpaceIn, const int64_t numFrames, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
+void VolumeFile::reinitialize(const VolumeSpace& volSpaceIn, const int64_t numFrames, const int64_t numComponents,
+                              SubvolumeAttributes::VolumeType whatType, const AbstractHeader* templateHeader)
 {
     CaretAssert(numFrames > 0);
     const int64_t* dimsPtr = volSpaceIn.getDims();
@@ -120,7 +118,12 @@ void VolumeFile::reinitialize(const VolumeSpace& volSpaceIn, const int64_t numFr
     {
         dims.push_back(numFrames);
     }
-    reinitialize(dims, volSpaceIn.getSform(), numComponents, whatType);
+    reinitialize(dims, volSpaceIn.getSform(), numComponents, whatType, templateHeader);
+}
+
+void VolumeFile::reinitialize(const VolumeFile* headerTemplate, const int64_t numFrames, const int64_t numComponents)
+{//really just a convenience wrapper
+    reinitialize(headerTemplate->getVolumeSpace(), numFrames, numComponents, headerTemplate->getType(), headerTemplate->m_header);
 }
 
 void VolumeFile::addSubvolumes(const int64_t& numToAdd)
@@ -337,9 +340,10 @@ VolumeFile::writeFile(const AString& filename)
         outHeader = *((NiftiHeader*)m_header.getPointer());//also shallow copies extensions
     }
     outHeader.clearDataScaling();
+    outHeader.setDescription(("Connectome Workbench, version " + ApplicationInformation().getVersion()).toLatin1().constData());//30 chars, plus however many chars the version is (generally 5)
     outHeader.setSForm(getVolumeSpace().getSform());
     outHeader.setDimensions(getOriginalDimensions());
-    outHeader.setDataType(NIFTI_TYPE_FLOAT32);
+    outHeader.setDataType(NIFTI_TYPE_FLOAT32);//could set this to an integer when type is label
     NiftiIO myIO;
     int outVersion = 1;
     if (!outHeader.canWriteVersion(1)) outVersion = 2;
