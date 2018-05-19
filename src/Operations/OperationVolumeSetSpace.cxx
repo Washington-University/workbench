@@ -22,6 +22,7 @@
 #include "OperationException.h"
 
 #include "FloatMatrix.h"
+#include "NiftiIO.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -65,10 +66,14 @@ OperationParameters* OperationVolumeSetSpace::getParameters()
         sformOpt->addDoubleParameter(axis * 4 + 3, AString(axisNames[axis]) + "-offset", AString(axisNames[axis]) + " coordinate of first voxel");
     }
     
+    OptionalParameter* fileOpt = ret->createOptionalParameter(5, "-file", "copy spacing info from volume file with matching dimensions");
+    fileOpt->addStringParameter(1, "volume-ref", "volume file to use for reference space");
+    fileOpt->createOptionalParameter(2, "-ignore-dims", "copy the spacing info even if the dimensions don't match");
+    
     ret->setHelpText(
         AString("Writes a copy of the volume file, with the spacing information changed as specified.  ") +
-        "No reordering of the voxel data occurs.  " +
-        "Exactly one of -plumb or -sform must be specified."
+        "No reordering of the voxel data occurs, see -volume-reorient to change the volume indexing order and reorder the voxels to match.  " +
+        "Exactly one of -plumb, -sform, or -file must be specified."
     );
     return ret;
 }
@@ -122,7 +127,7 @@ void OperationVolumeSetSpace::useParameters(OperationParameters* myParams, Progr
     OptionalParameter* sformOpt = myParams->getOptionalParameter(4);
     if (sformOpt->m_present)
     {
-        if (haveSpace) throw OperationException("only one of -plumb and -sform may be specified");
+        if (haveSpace) throw OperationException("only one of -plumb, -sform, or -file may be specified");
         haveSpace = true;
         for (int axis = 0; axis < 3; ++axis)
         {
@@ -133,7 +138,23 @@ void OperationVolumeSetSpace::useParameters(OperationParameters* myParams, Progr
             newSform[axis][3] = (float)sformOpt->getDouble(axis * 4 + 3);
         }
     }
-    if (!haveSpace) throw OperationException("you must specify -plumb or -sform");
+    OptionalParameter* fileOpt = myParams->getOptionalParameter(5);
+    if (fileOpt->m_present)
+    {
+        if (haveSpace) throw OperationException("only one of -plumb, -sform, or -file may be specified");
+        haveSpace = true;
+        NiftiIO myIO;
+        myIO.openRead(fileOpt->getString(1));
+        newSform = myIO.getHeader().getSForm();
+        if (!fileOpt->getOptionalParameter(2)->m_present)
+        {
+            //check dimensions and throw
+            vector<int64_t> origDims = orig->getDimensions(), templateDims = myIO.getDimensions();
+            origDims.resize(3, 1); templateDims.resize(3, 1);
+            if (origDims != templateDims) throw OperationException("template has different dimensions than input file, use -ignore-dims to copy the volume space info anyway");
+        }
+    }
+    if (!haveSpace) throw OperationException("you must specify -plumb, -sform, or -file");
     orig->setVolumeSpace(newSform.getMatrix());
     orig->writeFile(myParams->getString(2));
 }
