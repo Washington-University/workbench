@@ -19,7 +19,7 @@
  */
 /*LICENSE_END*/
 
-#include <QComboBox>
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -38,6 +38,7 @@
 #undef __TILE_TABS_CONFIGURATION_DIALOG_DECLARE__
 
 #include "BrainBrowserWindow.h"
+#include "BrainBrowserWindowComboBox.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -47,6 +48,7 @@
 #include "TileTabsConfiguration.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
+#include "WuQListWidget.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -62,23 +64,29 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param parentBrainBrowserWindow
+ *     Parent window.
  */
-TileTabsConfigurationDialog::TileTabsConfigurationDialog(QWidget* parent)
+TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* parentBrainBrowserWindow)
 : WuQDialogNonModal("Tile Tabs Configuration",
-                    parent)
+                    parentBrainBrowserWindow)
 {
+    m_brainBrowserWindow = parentBrainBrowserWindow;
     m_blockReadConfigurationsFromPreferences = false;
     m_caretPreferences = SessionManager::get()->getCaretPreferences();
     
     QWidget* dialogWidget = new QWidget();
-    QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
-    dialogLayout->setSpacing(0);
-    dialogLayout->addWidget(createConfigurationSelectionWidget(),
-                            0,
-                            Qt::AlignHCenter);
-    dialogLayout->addWidget(createEditConfigurationWidget(),
-                            100,
-                            Qt::AlignHCenter);
+    QHBoxLayout* configurationLayout = new QHBoxLayout(dialogWidget);
+    configurationLayout->setSpacing(0);
+    configurationLayout->addWidget(createActiveConfigurationWidget(),
+                                   0);
+    configurationLayout->addWidget(createCopyLoadPushButtonsWidget(),
+                                   0,
+                                   Qt::AlignTop);
+    configurationLayout->addWidget(createUserConfigurationSelectionWidget(),
+                                   0,
+                                   Qt::AlignTop);
     
     setCentralWidget(dialogWidget,
                      WuQDialog::SCROLL_AREA_NEVER);
@@ -86,17 +94,8 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(QWidget* parent)
     disableAutoDefaultForAllPushButtons();
 
     setApplyButtonText("");
-    //    EventManager::get()->addEventListener(this, EventTypeEnum::);
     
-    updateDialog();
-    
-    /*
-     * The content region of a scroll area is often too large vertically
-     * so adjust the size of the dialog which will cause the scroll area
-     * to approximately fit its content.
-     */
-    WuQDialog::adjustSizeOfDialogWithScrollArea(this,
-                                                m_stretchFactorScrollArea);
+    updateDialogWithSelectedTileTabsFromWindow(parentBrainBrowserWindow);
 }
 
 /**
@@ -116,20 +115,67 @@ TileTabsConfigurationDialog::focusGained()
 }
 
 /**
+ * @return Create and return the copy and load buttons widget.
+ */
+QWidget*
+TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
+{
+    QPushButton* copyPushButton = new QPushButton("Copy -->");
+    WuQtUtilities::setWordWrappedToolTip(copyPushButton,
+                                         "Copy the Rows, Columns, and Stretch Factors into the selected Configuration.");
+    QObject::connect(copyPushButton, SIGNAL(clicked()),
+                     this, SLOT(copyPushButtonClicked()));
+    
+    QPushButton* loadPushButton = new QPushButton("<-- Load");
+    WuQtUtilities::setWordWrappedToolTip(loadPushButton,
+                                         "Load the Configuration into the Rows, Columns, and Stretch Factors.");
+    QObject::connect(loadPushButton, SIGNAL(clicked()),
+                     this, SLOT(loadPushButtonClicked()));
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addSpacing(50);
+    layout->addWidget(copyPushButton);
+    layout->addSpacing(50);
+    layout->addWidget(loadPushButton);
+    layout->addStretch();
+    
+    return widget;
+}
+
+/**
+ * Called when Copy pushbutton is clicked.
+ */
+void
+TileTabsConfigurationDialog::copyPushButtonClicked()
+{
+    
+}
+
+/**
+ * Called when Load pushbutton is clicked.
+ */
+void
+TileTabsConfigurationDialog::loadPushButtonClicked()
+{
+    
+}
+
+/**
  * @return The configuration selection widget.
  */
 QWidget*
-TileTabsConfigurationDialog::createConfigurationSelectionWidget()
+TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
 {
-    QLabel* configurationLabel = new QLabel("Configuration");
-    m_configurationSelectionComboBox = WuQFactory::newComboBoxSignalInt(this,
-                                                                        SLOT(configurationComboBoxItemSelected(int)));
+    m_configurationSelectionListWidget = new WuQListWidget();
+    m_configurationSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
+    QObject::connect(m_configurationSelectionListWidget, &WuQListWidget::itemClicked,
+                     this, &TileTabsConfigurationDialog::configurationListItemSelected);
     
     QHBoxLayout* selectionLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutMargins(selectionLayout,
                                     0);
-    selectionLayout->addWidget(configurationLabel, 0);
-    selectionLayout->addWidget(m_configurationSelectionComboBox, 100);
+    selectionLayout->addWidget(m_configurationSelectionListWidget, 100);
     
     m_newConfigurationPushButton = new QPushButton("New...");
     QObject::connect(m_newConfigurationPushButton, SIGNAL(clicked()),
@@ -144,143 +190,211 @@ TileTabsConfigurationDialog::createConfigurationSelectionWidget()
                      this, SLOT(deleteConfigurationButtonClicked()));
     
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
+    buttonsLayout->addStretch();
     buttonsLayout->addWidget(m_newConfigurationPushButton);
-    buttonsLayout->addStretch();
     buttonsLayout->addWidget(m_renameConfigurationPushButton);
-    buttonsLayout->addStretch();
     buttonsLayout->addWidget(m_deleteConfigurationPushButton);
+    buttonsLayout->addStretch();
     
-    QGroupBox* configurationWidget = new QGroupBox("Configuration Selection");
+    QGroupBox* configurationWidget = new QGroupBox("User Configurations");
     QVBoxLayout* configurationLayout = new QVBoxLayout(configurationWidget);
-    configurationLayout->addLayout(selectionLayout);
-    configurationLayout->addLayout(buttonsLayout);
+    configurationLayout->addWidget(m_configurationSelectionListWidget,
+                                   100,
+                                   Qt::AlignHCenter);
+    configurationLayout->addLayout(buttonsLayout,
+                                   0);
     
     return configurationWidget;
 }
 
 /**
- * @return The edit configuration widget.
+ * @return The active configuration widget.
  */
 QWidget*
-TileTabsConfigurationDialog::createEditConfigurationWidget()
+TileTabsConfigurationDialog::createActiveConfigurationWidget()
 {
-    const int32_t maximuNumberOfRows = TileTabsConfiguration::getMaximumNumberOfRows();
+    /*
+     * Window number
+     */
+    QLabel* windowLabel = new QLabel("Workbench Window");
+    m_browserWindowComboBox = new BrainBrowserWindowComboBox(BrainBrowserWindowComboBox::STYLE_NUMBER,
+                                                             this);
+    m_browserWindowComboBox->getWidget()->setFixedWidth(60);
+    QObject::connect(m_browserWindowComboBox, SIGNAL(browserWindowSelected(BrainBrowserWindow*)),
+                     this, SLOT(browserWindowComboBoxValueChanged(BrainBrowserWindow*)));
+    
+    
+    const int32_t maximumNumberOfRows = TileTabsConfiguration::getMaximumNumberOfRows();
     const int32_t maximumNumberOfColumns = TileTabsConfiguration::getMaximumNumberOfColumns();
     
-    QLabel* rowsLabel = new QLabel("Number of Rows");
-    QLabel* columnsLabel = new QLabel("Number of Columns");
+    m_automaticConfigurationCheckBox = new QCheckBox("Automatic Configuration");
+    QObject::connect(m_automaticConfigurationCheckBox, &QCheckBox::clicked,
+                     this, &TileTabsConfigurationDialog::automaticConfigurationCheckBoxClicked);
     
+    QLabel* rowsLabel = new QLabel("Number of Rows");
     m_numberOfRowsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                          maximuNumberOfRows,
+                                                                          maximumNumberOfRows,
                                                                           1,
                                                                           this,
                                                                           SLOT(numberOfRowsOrColumnsChanged()));
 
+    QLabel* columnsLabel = new QLabel("Columns");
     m_numberOfColumnsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
                                                                           maximumNumberOfColumns,
                                                                           1,
                                                                           this,
                                                                           SLOT(numberOfRowsOrColumnsChanged()));
-    QWidget* numberOfWidget = new QWidget();
-    QGridLayout* numberOfGridLayout = new QGridLayout(numberOfWidget);
-    WuQtUtilities::setLayoutMargins(numberOfGridLayout,
-                                    0);
-    numberOfGridLayout->addWidget(rowsLabel,
-                                  0, 0);
-    numberOfGridLayout->addWidget(m_numberOfRowsSpinBox,
-                                  0, 1);
-    numberOfGridLayout->addWidget(columnsLabel,
-                                  1, 0);
-    numberOfGridLayout->addWidget(m_numberOfColumnsSpinBox,
-                                  1, 1);
-    numberOfWidget->setSizePolicy(QSizePolicy::Fixed,
-                                  QSizePolicy::Fixed);
+    
+    
+    QHBoxLayout* numberOfLayout = new QHBoxLayout();
+    numberOfLayout->setContentsMargins(0, 0, 0, 0);
+    numberOfLayout->setSpacing(4);
+    numberOfLayout->addWidget(rowsLabel);
+    numberOfLayout->addWidget(m_numberOfRowsSpinBox);
+    numberOfLayout->addSpacing(4);
+    numberOfLayout->addWidget(columnsLabel);
+    numberOfLayout->addWidget(m_numberOfColumnsSpinBox);
+    numberOfLayout->addStretch();
 
+    QHBoxLayout* windowLayout = new QHBoxLayout();
+    windowLayout->setContentsMargins(0, 0, 0, 0);
+    windowLayout->addWidget(windowLabel);
+    windowLayout->addWidget(m_browserWindowComboBox->getWidget());
+    windowLayout->addStretch();
+
+    QVBoxLayout* topLayout = new QVBoxLayout();
+    topLayout->setContentsMargins(0, 0, 0, 0);
+    topLayout->addLayout(windowLayout);
+    topLayout->addWidget(m_automaticConfigurationCheckBox, 0, Qt::AlignLeft);
     
-    QLabel* stretchFactorLabel = new QLabel("Stretch Factors");
-    QLabel* indexLabel = new QLabel("Index");
-    QLabel* rowLabel = new QLabel("Row");
-    QLabel* columnLabel = new QLabel("Column");
-    
-    m_stretchFactorWidget = new QWidget();
-    QGridLayout* stretchFactorGridLayout = new QGridLayout(m_stretchFactorWidget);
-    WuQtUtilities::setLayoutMargins(stretchFactorGridLayout,
-                                    2);
-    stretchFactorGridLayout->setSizeConstraint(QLayout::SetFixedSize);
-    int row = 0;
-    stretchFactorGridLayout->addWidget(indexLabel,
-                                       row, GRID_LAYOUT_COLUMN_INDEX_FOR_LABELS,
-                                       Qt::AlignHCenter);
-    stretchFactorGridLayout->addWidget(rowLabel,
-                          row, GRID_LAYOUT_COLUMN_INDEX_FOR_ROW_CONTROLS,
-                                       Qt::AlignHCenter);
-    stretchFactorGridLayout->addWidget(columnLabel,
-                          row, GRID_LAYOUT_COLUMN_INDEX_FOR_COLUMN_CONTROLS,
-                                       Qt::AlignHCenter);
-    row++;
-    
-    const float stretchMinimumValue = 0.1;
-    const float stretchMaximumValue = 10000000.0;
-    const float stretchStep = 0.1;
-    const float stretchDigitsRightOfDecimal = 2;
+    const float stretchFactorMinimumValue = 0.1;
+    const float stretchFactorMaximumValue = 10000000.0;
+    const float stretchFactorStep = 0.1;
+    const float stretchFactorDigitsRightOfDecimal = 2;
     
     const int32_t spinBoxWidth = 80;
-    const int32_t maxItems = std::max(maximuNumberOfRows,
-                                      maximumNumberOfColumns);
-    for (int i = 0; i < maxItems; i++) {
-        QLabel* indexLabel = new QLabel(AString::number(i + 1));
-        m_stretchFactorIndexLabels.push_back(indexLabel);
-        stretchFactorGridLayout->addWidget(indexLabel,
-                                           row, GRID_LAYOUT_COLUMN_INDEX_FOR_LABELS,
-                                           Qt::AlignHCenter);
+    
+    QWidget* rowStretchFactorWidget = new QWidget();
+    QGridLayout* rowStretchFactorLayout = new QGridLayout(rowStretchFactorWidget);
+    rowStretchFactorLayout->setContentsMargins(0, 0, 0, 0);
+    rowStretchFactorLayout->setSpacing(2);
+    {
+        rowStretchFactorLayout->addWidget(new QLabel("Rows"), 0, 0, 1, 2, Qt::AlignHCenter);
         
-        if (i < maximuNumberOfRows) {
-            QDoubleSpinBox* rowSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(stretchMinimumValue,
-                                                                                                        stretchMaximumValue,
-                                                                                                        stretchStep,
-                                                                                                        stretchDigitsRightOfDecimal,
-                                                                                                        this,
-                                                                                                        SLOT(configurationStretchFactorWasChanged()));
-            rowSpinBox->setFixedWidth(spinBoxWidth);
-            m_rowStretchFactorSpinBoxes.push_back(rowSpinBox);
-            stretchFactorGridLayout->addWidget(rowSpinBox,
-                                               row, GRID_LAYOUT_COLUMN_INDEX_FOR_ROW_CONTROLS);
+        for (int32_t i = 0; i < maximumNumberOfRows; i++) {
+            AString labelSpace = ((i >= 10) ? "" : "  ");
+            if (i < maximumNumberOfRows) {
+                QLabel* numberLabel = new QLabel(labelSpace + AString::number(i + 1));
+                m_rowStretchFactorIndexLabels.push_back(numberLabel);
+
+                QDoubleSpinBox* spinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(stretchFactorMinimumValue,
+                                                                                                            stretchFactorMaximumValue,
+                                                                                                            stretchFactorStep,
+                                                                                                            stretchFactorDigitsRightOfDecimal,
+                                                                                                            this,
+                                                                                                            SLOT(configurationStretchFactorWasChanged()));
+                spinBox->setFixedWidth(spinBoxWidth);
+                m_rowStretchFactorSpinBoxes.push_back(spinBox);
+                
+                const int layoutRow = rowStretchFactorLayout->rowCount();
+                rowStretchFactorLayout->addWidget(numberLabel, layoutRow, 0, Qt::AlignRight);
+                rowStretchFactorLayout->addWidget(spinBox, layoutRow, 1);
+            }
         }
         
-        if (i < maximumNumberOfColumns) {
-            QDoubleSpinBox* colSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(stretchMinimumValue,
-                                                                                                        stretchMaximumValue,
-                                                                                                        stretchStep,
-                                                                                                        stretchDigitsRightOfDecimal,
-                                                                                                        this,
-                                                                                                        SLOT(configurationStretchFactorWasChanged()));
-            colSpinBox->setFixedWidth(spinBoxWidth);
-            m_columnStretchFactorSpinBoxes.push_back(colSpinBox);
-            stretchFactorGridLayout->addWidget(colSpinBox,
-                                               row, GRID_LAYOUT_COLUMN_INDEX_FOR_COLUMN_CONTROLS);
-        }
-        
-        row++;
+        rowStretchFactorLayout->setRowStretch(maximumNumberOfRows, 100);
     }
+    
+    QWidget* columnStretchFactorWidget = new QWidget();
+    QGridLayout* columnStretchFactorLayout = new QGridLayout(columnStretchFactorWidget);
+    columnStretchFactorLayout->setContentsMargins(0, 0, 0, 0);
+    columnStretchFactorLayout->setSpacing(2);
+    {
+        columnStretchFactorLayout->addWidget(new QLabel("Columns"), 0, 0, 1, 2, Qt::AlignHCenter);
+        
+        for (int32_t i = 0; i < maximumNumberOfColumns; i++) {
+            AString labelSpace = ((i >= 10) ? "" : "  ");
+            if (i < maximumNumberOfColumns) {
+                QLabel* numberLabel = new QLabel(labelSpace + AString::number(i + 1));
+                m_columnStretchFactorIndexLabels.push_back(numberLabel);
+                
+                QDoubleSpinBox* spinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(stretchFactorMinimumValue,
+                                                                                                            stretchFactorMaximumValue,
+                                                                                                            stretchFactorStep,
+                                                                                                            stretchFactorDigitsRightOfDecimal,
+                                                                                                            this,
+                                                                                                            SLOT(configurationStretchFactorWasChanged()));
+                spinBox->setFixedWidth(spinBoxWidth);
+                m_columnStretchFactorSpinBoxes.push_back(spinBox);
+                
+                const int layoutRow = columnStretchFactorLayout->rowCount();
+                columnStretchFactorLayout->addWidget(numberLabel, layoutRow, 0, Qt::AlignRight);
+                columnStretchFactorLayout->addWidget(spinBox, layoutRow, 1);
+            }
+        }
+        
+        columnStretchFactorLayout->setRowStretch(maximumNumberOfColumns, 100);
+    }
+    
+    QLabel* stretchFactorLabel = new QLabel("Stretch Factors");
+    
+    m_stretchFactorWidget = new QWidget();
+    m_stretchFactorWidget->setSizePolicy(m_stretchFactorWidget->sizePolicy().horizontalPolicy(),
+                                         QSizePolicy::Maximum);
+    QHBoxLayout* stretchFactorLayout = new QHBoxLayout(m_stretchFactorWidget);
+    stretchFactorLayout->addWidget(rowStretchFactorWidget, 0, Qt::AlignHCenter | Qt::AlignTop);
+    stretchFactorLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0);
+    stretchFactorLayout->addWidget(columnStretchFactorWidget, 0, Qt::AlignHCenter | Qt::AlignTop);
     
     m_stretchFactorScrollArea = new QScrollArea();
     m_stretchFactorScrollArea->setWidget(m_stretchFactorWidget);
-    m_stretchFactorScrollArea->setWidgetResizable(true);
+    m_stretchFactorScrollArea->setWidgetResizable(false);
+    m_stretchFactorScrollArea->setMinimumWidth(m_stretchFactorWidget->sizeHint().width() + 10);
     
-    QGroupBox* widget = new QGroupBox("Edit Configuration");
+    QGroupBox* widget = new QGroupBox("Active Configuration");
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
-    widgetLayout->addWidget(numberOfWidget,
+    widgetLayout->addLayout(topLayout,
                             0);
     widgetLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
                             0);
+    widgetLayout->addLayout(numberOfLayout);
     widgetLayout->addWidget(stretchFactorLabel,
                             0,
                             Qt::AlignHCenter);
     widgetLayout->addWidget(m_stretchFactorScrollArea,
-                            100);
+                            0);
+    widgetLayout->addStretch();
     
     return widget;
 }
+
+/**
+ * Called when window number combo box value changed.
+ */
+void
+TileTabsConfigurationDialog::browserWindowComboBoxValueChanged(BrainBrowserWindow* browserWindow)
+{
+    int32_t windowIndex = -1;
+    if (browserWindow != NULL) {
+        windowIndex = browserWindow->getBrowserWindowIndex();
+    }
+    
+    updateDialogWithSelectedTileTabsFromWindow(GuiManager::get()->getBrowserWindowByWindowIndex(windowIndex));
+}
+
+/**
+ * Called when automatic configuration checkbox is clicked
+ *
+ * @param checked
+ *     New checked status of checkbox.
+ */
+void
+TileTabsConfigurationDialog::automaticConfigurationCheckBoxClicked(bool checked)
+{
+    
+}
+
+
 
 /**
  * Update the content of the dialog.  If tile tabs is selected in the given
@@ -296,14 +410,14 @@ TileTabsConfigurationDialog::updateDialogWithSelectedTileTabsFromWindow(BrainBro
     CaretAssert(brainBrowserWindow);
     m_brainBrowserWindow = brainBrowserWindow;
     
-    readConfigurationsFromPreferences();
-    
-    if (m_brainBrowserWindow->isTileTabsSelected()) {
-        TileTabsConfiguration* configuration = m_brainBrowserWindow->getSelectedTileTabsConfiguration();
-        if (configuration != NULL) {
-            selectTileTabConfigurationByUniqueID(configuration->getUniqueIdentifier());
-        }
-    }
+//    readConfigurationsFromPreferences();
+//    
+//    if (m_brainBrowserWindow->isTileTabsSelected()) {
+//        TileTabsConfiguration* configuration = m_brainBrowserWindow->getSelectedTileTabsConfiguration();
+//        if (configuration != NULL) {
+//            selectTileTabConfigurationByUniqueID(configuration->getUniqueIdentifier());
+//        }
+//    }
     
     updateDialog();
 }
@@ -342,13 +456,22 @@ TileTabsConfigurationDialog::readConfigurationsFromPreferences()
 void
 TileTabsConfigurationDialog::updateDialog()
 {
+    m_browserWindowComboBox->updateComboBox();
+    m_browserWindowComboBox->setBrowserWindow(m_brainBrowserWindow);
+    /* if window was invalid, this updates to valid window */
+    m_brainBrowserWindow = m_browserWindowComboBox->getSelectedBrowserWindow();
+    CaretAssert(m_brainBrowserWindow);
+    if (m_brainBrowserWindow == NULL) {
+        close();
+    }
+    
     readConfigurationsFromPreferences();
     
     const AString selectedUniqueID = getSelectedTileTabsConfigurationUniqueID();
-    int defaultIndex = m_configurationSelectionComboBox->currentIndex();
+    int defaultIndex = m_configurationSelectionListWidget->currentRow();
     
-    m_configurationSelectionComboBox->blockSignals(true);
-    m_configurationSelectionComboBox->clear();
+    QSignalBlocker blocker(m_configurationSelectionListWidget);
+    m_configurationSelectionListWidget->clear();
     
     std::vector<const TileTabsConfiguration*> configurations = m_caretPreferences->getTileTabsConfigurationsSortedByName();
     const int32_t numConfig = static_cast<int32_t>(configurations.size());
@@ -358,27 +481,27 @@ TileTabsConfigurationDialog::updateDialog()
         /*
          * Second element is user data which contains the Unique ID
          */
-        m_configurationSelectionComboBox->addItem(configuration->getName(),
-                                                  QVariant(configuration->getUniqueIdentifier()));
+        QListWidgetItem* item = new QListWidgetItem(configuration->getName());
+        item->setData(Qt::UserRole,
+                      QVariant(configuration->getUniqueIdentifier()));
+        m_configurationSelectionListWidget->addItem(item);
         
         if (configuration->getUniqueIdentifier() == selectedUniqueID) {
             defaultIndex = i;
         }
     }
 
-    const int32_t numItemsInComboBox = m_configurationSelectionComboBox->count();
+    const int32_t numItemsInComboBox = m_configurationSelectionListWidget->count();
     if (defaultIndex >= numItemsInComboBox) {
         defaultIndex = numItemsInComboBox - 1;
     }
     if (defaultIndex < 0) {
         defaultIndex = 0;
     }
-    if (defaultIndex < m_configurationSelectionComboBox->count()) {
-        m_configurationSelectionComboBox->setCurrentIndex(defaultIndex);
+    if (defaultIndex < m_configurationSelectionListWidget->count()) {
+        m_configurationSelectionListWidget->setCurrentRow(defaultIndex);
         selectConfigurationFromComboBoxIndex(defaultIndex);
     }
-    
-    m_configurationSelectionComboBox->blockSignals(false);
     
     updateStretchFactors();
 }
@@ -398,43 +521,34 @@ TileTabsConfigurationDialog::updateStretchFactors()
         numValidColumns = configuration->getNumberOfColumns();
     }
     
+    CaretAssert(m_columnStretchFactorIndexLabels.size() == m_columnStretchFactorSpinBoxes.size());
     const int32_t numColSpinBoxes = static_cast<int32_t>(m_columnStretchFactorSpinBoxes.size());
     for (int32_t i = 0; i < numColSpinBoxes; i++) {
+        CaretAssertVectorIndex(m_columnStretchFactorSpinBoxes, i);
+        CaretAssertVectorIndex(m_columnStretchFactorIndexLabels, i);
         QDoubleSpinBox* sb = m_columnStretchFactorSpinBoxes[i];
+        QLabel* label = m_columnStretchFactorIndexLabels[i];
         if (i < numValidColumns) {
-            sb->setVisible(true);
-            sb->blockSignals(true);
+            QSignalBlocker blocker(sb);
             sb->setValue(configuration->getColumnStretchFactor(i));
-            sb->blockSignals(false);
         }
-        else {
-            sb->setVisible(false);
-        }
+        label->setVisible(i < numValidColumns);
+        sb->setVisible(i < numValidColumns);
     }
 
+    CaretAssert(m_rowStretchFactorIndexLabels.size() == m_rowStretchFactorSpinBoxes.size());
     const int32_t numRowSpinBoxes = static_cast<int32_t>(m_rowStretchFactorSpinBoxes.size());
     for (int32_t i = 0; i < numRowSpinBoxes; i++) {
+        CaretAssertVectorIndex(m_rowStretchFactorIndexLabels, i);
+        CaretAssertVectorIndex(m_rowStretchFactorSpinBoxes, i);
         QDoubleSpinBox* sb = m_rowStretchFactorSpinBoxes[i];
+        QLabel* label = m_rowStretchFactorIndexLabels[i];
         if (i < numValidRows) {
-            sb->setVisible(true);
-            sb->blockSignals(true);
+            QSignalBlocker blocker(sb);
             sb->setValue(configuration->getRowStretchFactor(i));
-            sb->blockSignals(false);
         }
-        else {
-            sb->setVisible(false);
-        }
-    }
-    
-    const int32_t numIndexLabels = static_cast<int32_t>(m_stretchFactorIndexLabels.size());
-    const int32_t numValidLabels = std::max(numValidRows, numValidColumns);
-    for (int32_t i = 0; i < numIndexLabels; i++) {
-        if (i < numValidLabels) {
-            m_stretchFactorIndexLabels[i]->setVisible(true);
-        }
-        else {
-            m_stretchFactorIndexLabels[i]->setVisible(false);
-        }
+        label->setVisible(i < numValidRows);
+        sb->setVisible(i < numValidRows);
     }
     
     m_stretchFactorWidget->setFixedSize(m_stretchFactorWidget->sizeHint());
@@ -446,12 +560,13 @@ TileTabsConfigurationDialog::updateStretchFactors()
 void
 TileTabsConfigurationDialog::selectTileTabConfigurationByUniqueID(const AString& uniqueID)
 {
-    const int32_t numItems = m_configurationSelectionComboBox->count();
+    const int32_t numItems = m_configurationSelectionListWidget->count();
     for (int32_t i = 0; i < numItems; i++) {
-        const AString itemID = m_configurationSelectionComboBox->itemData(i,
-                                                                          Qt::UserRole).toString();
+        QListWidgetItem* item = m_configurationSelectionListWidget->item(i);
+        const AString itemID = item->data(Qt::UserRole).toString();
         if (itemID == uniqueID) {
-            m_configurationSelectionComboBox->setCurrentIndex(i);
+            QSignalBlocker blocker(m_configurationSelectionListWidget);
+            m_configurationSelectionListWidget->setCurrentItem(item);
             selectConfigurationFromComboBoxIndex(i);
             break;
         }
@@ -459,14 +574,15 @@ TileTabsConfigurationDialog::selectTileTabConfigurationByUniqueID(const AString&
 }
 
 /**
- * Called when a configuration is selected from the combo box.
+ * Called when a configuration is selected from the list widget
  *
  * @param indx
  *    Index of item selected.
  */
 void
-TileTabsConfigurationDialog::configurationComboBoxItemSelected(int indx)
+TileTabsConfigurationDialog::configurationListItemSelected(QListWidgetItem* item)
 {
+    const int32_t indx = m_configurationSelectionListWidget->row(item);
     selectConfigurationFromComboBoxIndex(indx);
     updateBrowserWindowsTileTabsConfigurationSelection();
 }
@@ -481,9 +597,9 @@ void
 TileTabsConfigurationDialog::selectConfigurationFromComboBoxIndex(int indx)
 {
     if ((indx >= 0)
-        && (indx < m_configurationSelectionComboBox->count())) {
-        const AString itemID = m_configurationSelectionComboBox->itemData(indx,
-                                                                          Qt::UserRole).toString();
+        && (indx < m_configurationSelectionListWidget->count())) {
+        QListWidgetItem* item = m_configurationSelectionListWidget->item(indx);
+        const AString itemID = item->data(Qt::UserRole).toString();
         TileTabsConfiguration* configuration = m_caretPreferences->getTileTabsConfigurationByUniqueIdentifier(itemID);
         if (configuration != NULL) {
             m_numberOfRowsSpinBox->blockSignals(true);
@@ -647,11 +763,11 @@ TileTabsConfigurationDialog::getSelectedTileTabsConfigurationUniqueID()
 {
     AString uniqueID;
     
-    const int32_t indx = m_configurationSelectionComboBox->currentIndex();
+    const int32_t indx = m_configurationSelectionListWidget->currentRow();
     if ((indx >= 0)
-        && (indx < m_configurationSelectionComboBox->count())) {
-        uniqueID = m_configurationSelectionComboBox->itemData(indx,
-                                                              Qt::UserRole).toString();
+        && (indx < m_configurationSelectionListWidget->count())) {
+        QListWidgetItem* item = m_configurationSelectionListWidget->item(indx);
+        uniqueID = item->data(Qt::UserRole).toString();
     }
     
     return uniqueID;
@@ -723,9 +839,7 @@ TileTabsConfigurationDialog::updateGraphicsWindows()
          iter++) {
         BrainBrowserWindow* bbw = *iter;
         if (bbw->isTileTabsSelected()) {
-//            if (bbw->getSelectedTileTabsConfiguration() == getSelectedTileTabsConfiguration()) {
-                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(bbw->getBrowserWindowIndex()).getPointer());
-//            }
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(bbw->getBrowserWindowIndex()).getPointer());
         }
     }
 }

@@ -24,25 +24,29 @@
 
 #include "WuQDialogNonModal.h"
 
-class QComboBox;
+class QCheckBox;
 class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
+class QListWidgetItem;
 class QPushButton;
+class QRadioButton;
 class QScrollArea;
 class QSpinBox;
 
 namespace caret {
     class BrainBrowserWindow;
+    class BrainBrowserWindowComboBox;
     class CaretPreferences;
     class TileTabsConfiguration;
+    class WuQListWidget;
     
     class TileTabsConfigurationDialog : public WuQDialogNonModal {
         
         Q_OBJECT
 
     public:
-        TileTabsConfigurationDialog(QWidget* parent);
+        TileTabsConfigurationDialog(BrainBrowserWindow* parentBrainBrowserWindow);
         
         virtual ~TileTabsConfigurationDialog();
         
@@ -60,17 +64,25 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
+        void browserWindowComboBoxValueChanged(BrainBrowserWindow* browserWindow);
+        
         void newConfigurationButtonClicked();
         
         void deleteConfigurationButtonClicked();
         
         void renameConfigurationButtonClicked();
         
-        void configurationComboBoxItemSelected(int);
+        void configurationListItemSelected(QListWidgetItem*);
         
         void numberOfRowsOrColumnsChanged();
         
         void configurationStretchFactorWasChanged();
+        
+        void copyPushButtonClicked();
+        
+        void loadPushButtonClicked();
+
+        void automaticConfigurationCheckBoxClicked(bool checked);
         
     protected:
         void focusGained();
@@ -78,11 +90,7 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
         
-        enum {
-            GRID_LAYOUT_COLUMN_INDEX_FOR_LABELS = 0,
-            GRID_LAYOUT_COLUMN_INDEX_FOR_ROW_CONTROLS = 1,
-            GRID_LAYOUT_COLUMN_INDEX_FOR_COLUMN_CONTROLS = 2
-        };
+        QWidget* createCopyLoadPushButtonsWidget();
         
         void selectTileTabConfigurationByUniqueID(const AString& uniqueID);
         
@@ -90,9 +98,9 @@ namespace caret {
         
         TileTabsConfiguration* getSelectedTileTabsConfiguration();
         
-        QWidget* createConfigurationSelectionWidget();
+        QWidget* createUserConfigurationSelectionWidget();
         
-        QWidget* createEditConfigurationWidget();
+        QWidget* createActiveConfigurationWidget();
         
         void updateBrowserWindowsTileTabsConfigurationSelection();
         
@@ -104,13 +112,17 @@ namespace caret {
         
         void readConfigurationsFromPreferences();
         
+        BrainBrowserWindowComboBox* m_browserWindowComboBox;
+        
+        QCheckBox* m_automaticConfigurationCheckBox;
+        
         QPushButton* m_newConfigurationPushButton;
         
         QPushButton* m_deleteConfigurationPushButton;
         
         QPushButton* m_renameConfigurationPushButton;
         
-        QComboBox* m_configurationSelectionComboBox;
+        WuQListWidget* m_configurationSelectionListWidget;
         
         QLineEdit* m_nameLineEdit;
         
@@ -121,9 +133,11 @@ namespace caret {
         QScrollArea* m_stretchFactorScrollArea;
         QWidget* m_stretchFactorWidget;
         
-        std::vector<QLabel*> m_stretchFactorIndexLabels;
+        std::vector<QLabel*> m_rowStretchFactorIndexLabels;
         
         std::vector<QDoubleSpinBox*> m_rowStretchFactorSpinBoxes;
+        
+        std::vector<QLabel*> m_columnStretchFactorIndexLabels;
         
         std::vector<QDoubleSpinBox*> m_columnStretchFactorSpinBoxes;
         
