@@ -42,6 +42,7 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
@@ -531,8 +532,11 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
     for (int32_t i = 0; i < numberOfTabs; i++) {
         allTabs.push_back(getModelEvent.getBrowserTab(i));
     }
+    
+    BrowserWindowContent* browserWindowContent = getModelEvent.getBrowserWindowContent();
+    CaretAssert(browserWindowContent);
 
-    if (getModelEvent.isTileTabsSelected()
+    if (browserWindowContent->isTileTabsEnabled()
         && (numberOfTabs > 1)) {
         const int32_t windowWidth  = windowViewport[2];
         const int32_t windowHeight = windowViewport[3];
@@ -543,7 +547,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
         /*
          * Determine if default configuration for tiles
          */
-        TileTabsConfiguration* tileTabsConfiguration = getModelEvent.getTileTabsConfiguration();
+        TileTabsConfiguration* tileTabsConfiguration = browserWindowContent->getTileTabsConfiguration();
         CaretAssert(tileTabsConfiguration);
         
         /*
@@ -552,6 +556,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
         if (tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
                                                                              windowHeight,
                                                                              numberOfTabs,
+                                                                             browserWindowContent->isTileTabsAutomaticConfigurationEnabled(),
                                                                              rowHeights,
                                                                              columnsWidths)) {
             
@@ -560,9 +565,8 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
              */
             
             std::vector<BrainOpenGLViewportContent*> tabViewportContent = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
-                                                                                                                                       tileTabsConfiguration,
+                                                                                                                                       browserWindowContent,
                                                                                                                                        gapsAndMargins,
-                                                                                                                                       windowIndex,
                                                                                                                                        windowViewport,
                                                                                                                                        getModelEvent.getTabIndexForTileTabsHighlighting());
             for (auto tabvp : tabViewportContent) {

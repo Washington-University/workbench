@@ -29,6 +29,7 @@
 namespace caret {
 
     class BrowserTabContent;
+    class BrowserWindowContent;
     class GapsAndMargins;
     class TileTabsConfiguration;
     
@@ -75,9 +76,8 @@ namespace caret {
                                                     int32_t& height);
         
         static std::vector<BrainOpenGLViewportContent*> createViewportContentForTileTabs(std::vector<BrowserTabContent*>& tabContents,
-                                                                                         TileTabsConfiguration* tileTabsConfiguration,
+                                                                                         BrowserWindowContent* browserWindowContent,
                                                                                          const GapsAndMargins* gapsAndMargins,
-                                                                                         const int32_t windowIndex,
                                                                                          const int32_t windowViewport[4],
                                                                                          const int32_t highlightTabIndex);
         

@@ -28,7 +28,6 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QScrollArea>
-#include <QScrollBar>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
@@ -39,8 +38,10 @@
 
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowComboBox.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
+#include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -72,7 +73,6 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
 : WuQDialogNonModal("Tile Tabs Configuration",
                     parentBrainBrowserWindow)
 {
-    m_brainBrowserWindow = parentBrainBrowserWindow;
     m_blockReadConfigurationsFromPreferences = false;
     m_caretPreferences = SessionManager::get()->getCaretPreferences();
     
@@ -96,6 +96,8 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
     setApplyButtonText("");
     
     updateDialogWithSelectedTileTabsFromWindow(parentBrainBrowserWindow);
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
 }
 
 /**
@@ -103,6 +105,33 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
  */
 TileTabsConfigurationDialog::~TileTabsConfigurationDialog()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+TileTabsConfigurationDialog::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN) {
+        auto redrawEvent = dynamic_cast<EventBrowserWindowGraphicsRedrawn*>(event);
+        CaretAssert(redrawEvent);
+        
+        BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
+        CaretAssert(browserWindowContent);
+        
+        if (redrawEvent->getBrowserWindowIndex() == browserWindowContent->getWindowIndex()) {
+            if (browserWindowContent->isTileTabsEnabled()) {
+                if (browserWindowContent->isTileTabsAutomaticConfigurationEnabled()) {
+                    updateStretchFactors();
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -120,46 +149,91 @@ TileTabsConfigurationDialog::focusGained()
 QWidget*
 TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
 {
-    QPushButton* copyPushButton = new QPushButton("Copy -->");
-    WuQtUtilities::setWordWrappedToolTip(copyPushButton,
-                                         "Copy the Rows, Columns, and Stretch Factors into the selected Configuration.");
-    QObject::connect(copyPushButton, SIGNAL(clicked()),
-                     this, SLOT(copyPushButtonClicked()));
+    m_copyPushButton = new QPushButton("Copy -->");
+    WuQtUtilities::setWordWrappedToolTip(m_copyPushButton,
+                                         "Copy the Rows, Columns, and Stretch Factors into the selected User Configuration.");
+    QObject::connect(m_copyPushButton, SIGNAL(clicked()),
+                     this, SLOT(copyToUserConfigurationPushButtonClicked()));
     
-    QPushButton* loadPushButton = new QPushButton("<-- Load");
-    WuQtUtilities::setWordWrappedToolTip(loadPushButton,
-                                         "Load the Configuration into the Rows, Columns, and Stretch Factors.");
-    QObject::connect(loadPushButton, SIGNAL(clicked()),
-                     this, SLOT(loadPushButtonClicked()));
+    m_loadPushButton = new QPushButton("<-- Load");
+    WuQtUtilities::setWordWrappedToolTip(m_loadPushButton,
+                                         "Load the User Configuration into the Rows, Columns, and Stretch Factors.");
+    QObject::connect(m_loadPushButton, SIGNAL(clicked()),
+                     this, SLOT(loadIntoActiveConfigurationPushButtonClicked()));
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addSpacing(50);
-    layout->addWidget(copyPushButton);
+    layout->addWidget(m_copyPushButton);
     layout->addSpacing(50);
-    layout->addWidget(loadPushButton);
+    layout->addWidget(m_loadPushButton);
     layout->addStretch();
     
     return widget;
 }
 
 /**
- * Called when Copy pushbutton is clicked.
+ * Called when Copy to user configuration pushbutton is clicked.
  */
 void
-TileTabsConfigurationDialog::copyPushButtonClicked()
+TileTabsConfigurationDialog::copyToUserConfigurationPushButtonClicked()
 {
+    const TileTabsConfiguration* activeConfiguration = getActiveTileTabsConfiguration();
+    CaretAssert(activeConfiguration);
+
+    TileTabsConfiguration* userConfiguration = getSelectedUserTileTabsConfiguration();
+    if (userConfiguration == NULL) {
+        WuQMessageBox::errorOk(this,
+                               "There are no user configurations");
+        return;
+    }
     
+    userConfiguration->copy(*activeConfiguration);
+
+    m_caretPreferences->writeTileTabsConfigurations();
 }
 
 /**
  * Called when Load pushbutton is clicked.
  */
 void
-TileTabsConfigurationDialog::loadPushButtonClicked()
+TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
 {
+    if (m_automaticConfigurationCheckBox->isChecked()) {
+        return;
+    }
     
+    TileTabsConfiguration* activeConfiguration = getActiveTileTabsConfiguration();
+    CaretAssert(activeConfiguration);
+    
+    const TileTabsConfiguration* userConfiguration = getSelectedUserTileTabsConfiguration();
+    if (userConfiguration == NULL) {
+        WuQMessageBox::errorOk(this,
+                               "There are no user configurations");
+        return;
+    }
+    
+    activeConfiguration->copy(*userConfiguration);
+    
+    updateStretchFactors();
+    updateGraphicsWindow();
 }
+
+/**
+ * @return The browser window content for the selected window index.
+ */
+BrowserWindowContent*
+TileTabsConfigurationDialog::getBrowserWindowContent()
+{
+    m_browserWindowComboBox->updateComboBox();
+    BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
+    CaretAssert(bbw);
+    BrowserWindowContent* bwc = bbw->getBrowerWindowContent();
+    CaretAssert(bwc);
+    
+    return bwc;
+}
+
 
 /**
  * @return The configuration selection widget.
@@ -167,27 +241,28 @@ TileTabsConfigurationDialog::loadPushButtonClicked()
 QWidget*
 TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
 {
-    m_configurationSelectionListWidget = new WuQListWidget();
-    m_configurationSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
-    QObject::connect(m_configurationSelectionListWidget, &WuQListWidget::itemClicked,
-                     this, &TileTabsConfigurationDialog::configurationListItemSelected);
+    m_userConfigurationSelectionListWidget = new WuQListWidget();
+    m_userConfigurationSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
     
     QHBoxLayout* selectionLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutMargins(selectionLayout,
                                     0);
-    selectionLayout->addWidget(m_configurationSelectionListWidget, 100);
+    selectionLayout->addWidget(m_userConfigurationSelectionListWidget, 100);
     
+    const AString newToolTip = WuQtUtilities::createWordWrappedToolTipText("Create new User Configuration by entering a name.\n"
+                                                                           "It will contain rows/columns/factors from the Active Configuration");
     m_newConfigurationPushButton = new QPushButton("New...");
+    m_newConfigurationPushButton->setToolTip(newToolTip);
     QObject::connect(m_newConfigurationPushButton, SIGNAL(clicked()),
-                     this, SLOT(newConfigurationButtonClicked()));
+                     this, SLOT(newUserConfigurationButtonClicked()));
     
     m_renameConfigurationPushButton = new QPushButton("Rename...");
     QObject::connect(m_renameConfigurationPushButton, SIGNAL(clicked()),
-                     this, SLOT(renameConfigurationButtonClicked()));
+                     this, SLOT(renameUserConfigurationButtonClicked()));
     
     m_deleteConfigurationPushButton = new QPushButton("Delete...");
     QObject::connect(m_deleteConfigurationPushButton, SIGNAL(clicked()),
-                     this, SLOT(deleteConfigurationButtonClicked()));
+                     this, SLOT(deleteUserConfigurationButtonClicked()));
     
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
     buttonsLayout->addStretch();
@@ -198,7 +273,7 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     
     QGroupBox* configurationWidget = new QGroupBox("User Configurations");
     QVBoxLayout* configurationLayout = new QVBoxLayout(configurationWidget);
-    configurationLayout->addWidget(m_configurationSelectionListWidget,
+    configurationLayout->addWidget(m_userConfigurationSelectionListWidget,
                                    100,
                                    Qt::AlignHCenter);
     configurationLayout->addLayout(buttonsLayout,
@@ -236,14 +311,14 @@ TileTabsConfigurationDialog::createActiveConfigurationWidget()
                                                                           maximumNumberOfRows,
                                                                           1,
                                                                           this,
-                                                                          SLOT(numberOfRowsOrColumnsChanged()));
+                                                                          SLOT(configurationNumberOfRowsOrColumnsChanged()));
 
     QLabel* columnsLabel = new QLabel("Columns");
     m_numberOfColumnsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
                                                                           maximumNumberOfColumns,
                                                                           1,
                                                                           this,
-                                                                          SLOT(numberOfRowsOrColumnsChanged()));
+                                                                          SLOT(configurationNumberOfRowsOrColumnsChanged()));
     
     
     QHBoxLayout* numberOfLayout = new QHBoxLayout();
@@ -351,18 +426,23 @@ TileTabsConfigurationDialog::createActiveConfigurationWidget()
     m_stretchFactorScrollArea->setWidgetResizable(false);
     m_stretchFactorScrollArea->setMinimumWidth(m_stretchFactorWidget->sizeHint().width() + 10);
     
+    m_rowColumnFactorWidget = new QWidget();
+    QVBoxLayout* rowColumnFactorLayout = new QVBoxLayout(m_rowColumnFactorWidget);
+    rowColumnFactorLayout->setContentsMargins(0, 0, 0, 0);
+    rowColumnFactorLayout->addLayout(numberOfLayout);
+    rowColumnFactorLayout->addWidget(stretchFactorLabel,
+                            0,
+                            Qt::AlignHCenter);
+    rowColumnFactorLayout->addWidget(m_stretchFactorScrollArea,
+                            0);
+    
     QGroupBox* widget = new QGroupBox("Active Configuration");
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
     widgetLayout->addLayout(topLayout,
                             0);
     widgetLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
                             0);
-    widgetLayout->addLayout(numberOfLayout);
-    widgetLayout->addWidget(stretchFactorLabel,
-                            0,
-                            Qt::AlignHCenter);
-    widgetLayout->addWidget(m_stretchFactorScrollArea,
-                            0);
+    widgetLayout->addWidget(m_rowColumnFactorWidget);
     widgetLayout->addStretch();
     
     return widget;
@@ -391,7 +471,10 @@ TileTabsConfigurationDialog::browserWindowComboBoxValueChanged(BrainBrowserWindo
 void
 TileTabsConfigurationDialog::automaticConfigurationCheckBoxClicked(bool checked)
 {
-    
+    BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
+    browserWindowContent->setTileTabsAutomaticConfigurationEnabled(checked);
+    updateStretchFactors();
+    updateGraphicsWindow();
 }
 
 
@@ -408,33 +491,11 @@ void
 TileTabsConfigurationDialog::updateDialogWithSelectedTileTabsFromWindow(BrainBrowserWindow* brainBrowserWindow)
 {
     CaretAssert(brainBrowserWindow);
-    m_brainBrowserWindow = brainBrowserWindow;
     
-//    readConfigurationsFromPreferences();
-//    
-//    if (m_brainBrowserWindow->isTileTabsSelected()) {
-//        TileTabsConfiguration* configuration = m_brainBrowserWindow->getSelectedTileTabsConfiguration();
-//        if (configuration != NULL) {
-//            selectTileTabConfigurationByUniqueID(configuration->getUniqueIdentifier());
-//        }
-//    }
+    m_browserWindowComboBox->updateComboBox();
+    m_browserWindowComboBox->setBrowserWindow(brainBrowserWindow);
     
     updateDialog();
-}
-
-/**
- * Update the tile tabs configuration in the brain browser window if
- * the browser window has tile tabs enabled.
- */
-void
-TileTabsConfigurationDialog::updateBrowserWindowsTileTabsConfigurationSelection()
-{
-    if (m_brainBrowserWindow != NULL) {
-        if (m_brainBrowserWindow->isTileTabsSelected()) {
-            m_brainBrowserWindow->setSelectedTileTabsConfiguration(getSelectedTileTabsConfiguration());
-            updateGraphicsWindows();
-        }
-    }
 }
 
 /**
@@ -456,22 +517,15 @@ TileTabsConfigurationDialog::readConfigurationsFromPreferences()
 void
 TileTabsConfigurationDialog::updateDialog()
 {
-    m_browserWindowComboBox->updateComboBox();
-    m_browserWindowComboBox->setBrowserWindow(m_brainBrowserWindow);
-    /* if window was invalid, this updates to valid window */
-    m_brainBrowserWindow = m_browserWindowComboBox->getSelectedBrowserWindow();
-    CaretAssert(m_brainBrowserWindow);
-    if (m_brainBrowserWindow == NULL) {
-        close();
-    }
+    BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
+    m_automaticConfigurationCheckBox->setChecked(browserWindowContent->isTileTabsAutomaticConfigurationEnabled());
     
     readConfigurationsFromPreferences();
     
-    const AString selectedUniqueID = getSelectedTileTabsConfigurationUniqueID();
-    int defaultIndex = m_configurationSelectionListWidget->currentRow();
+    int defaultIndex = m_userConfigurationSelectionListWidget->currentRow();
     
-    QSignalBlocker blocker(m_configurationSelectionListWidget);
-    m_configurationSelectionListWidget->clear();
+    QSignalBlocker blocker(m_userConfigurationSelectionListWidget);
+    m_userConfigurationSelectionListWidget->clear();
     
     std::vector<const TileTabsConfiguration*> configurations = m_caretPreferences->getTileTabsConfigurationsSortedByName();
     const int32_t numConfig = static_cast<int32_t>(configurations.size());
@@ -484,23 +538,18 @@ TileTabsConfigurationDialog::updateDialog()
         QListWidgetItem* item = new QListWidgetItem(configuration->getName());
         item->setData(Qt::UserRole,
                       QVariant(configuration->getUniqueIdentifier()));
-        m_configurationSelectionListWidget->addItem(item);
-        
-        if (configuration->getUniqueIdentifier() == selectedUniqueID) {
-            defaultIndex = i;
-        }
+        m_userConfigurationSelectionListWidget->addItem(item);
     }
 
-    const int32_t numItemsInComboBox = m_configurationSelectionListWidget->count();
+    const int32_t numItemsInComboBox = m_userConfigurationSelectionListWidget->count();
     if (defaultIndex >= numItemsInComboBox) {
         defaultIndex = numItemsInComboBox - 1;
     }
     if (defaultIndex < 0) {
         defaultIndex = 0;
     }
-    if (defaultIndex < m_configurationSelectionListWidget->count()) {
-        m_configurationSelectionListWidget->setCurrentRow(defaultIndex);
-        selectConfigurationFromComboBoxIndex(defaultIndex);
+    if (defaultIndex < m_userConfigurationSelectionListWidget->count()) {
+        m_userConfigurationSelectionListWidget->setCurrentRow(defaultIndex);
     }
     
     updateStretchFactors();
@@ -515,11 +564,17 @@ TileTabsConfigurationDialog::updateStretchFactors()
     int32_t numValidRows = 0;
     int32_t numValidColumns = 0;
     
-    const TileTabsConfiguration* configuration = getSelectedTileTabsConfiguration();
+    const TileTabsConfiguration* configuration = getActiveTileTabsConfiguration();
     if (configuration != NULL) {
         numValidRows = configuration->getNumberOfRows();
         numValidColumns = configuration->getNumberOfColumns();
     }
+    
+    QSignalBlocker rowNumBlocker(m_numberOfRowsSpinBox);
+    m_numberOfRowsSpinBox->setValue(numValidRows);
+    
+    QSignalBlocker colNumBlocker(m_numberOfColumnsSpinBox);
+    m_numberOfColumnsSpinBox->setValue(numValidColumns);
     
     CaretAssert(m_columnStretchFactorIndexLabels.size() == m_columnStretchFactorSpinBoxes.size());
     const int32_t numColSpinBoxes = static_cast<int32_t>(m_columnStretchFactorSpinBoxes.size());
@@ -552,6 +607,11 @@ TileTabsConfigurationDialog::updateStretchFactors()
     }
     
     m_stretchFactorWidget->setFixedSize(m_stretchFactorWidget->sizeHint());
+    
+    const bool editableFlag = ( ! m_automaticConfigurationCheckBox->isChecked());
+    
+    m_rowColumnFactorWidget->setEnabled(editableFlag);
+    m_loadPushButton->setEnabled(editableFlag);
 }
 
 /**
@@ -560,66 +620,23 @@ TileTabsConfigurationDialog::updateStretchFactors()
 void
 TileTabsConfigurationDialog::selectTileTabConfigurationByUniqueID(const AString& uniqueID)
 {
-    const int32_t numItems = m_configurationSelectionListWidget->count();
+    const int32_t numItems = m_userConfigurationSelectionListWidget->count();
     for (int32_t i = 0; i < numItems; i++) {
-        QListWidgetItem* item = m_configurationSelectionListWidget->item(i);
+        QListWidgetItem* item = m_userConfigurationSelectionListWidget->item(i);
         const AString itemID = item->data(Qt::UserRole).toString();
         if (itemID == uniqueID) {
-            QSignalBlocker blocker(m_configurationSelectionListWidget);
-            m_configurationSelectionListWidget->setCurrentItem(item);
-            selectConfigurationFromComboBoxIndex(i);
+            QSignalBlocker blocker(m_userConfigurationSelectionListWidget);
+            m_userConfigurationSelectionListWidget->setCurrentItem(item);
             break;
         }
     }
 }
 
 /**
- * Called when a configuration is selected from the list widget
- *
- * @param indx
- *    Index of item selected.
+ * Called when new user configuration button is clicked.
  */
 void
-TileTabsConfigurationDialog::configurationListItemSelected(QListWidgetItem* item)
-{
-    const int32_t indx = m_configurationSelectionListWidget->row(item);
-    selectConfigurationFromComboBoxIndex(indx);
-    updateBrowserWindowsTileTabsConfigurationSelection();
-}
-
-/**
- * Select the configuration at the given index from the configuration combo box.
- *
- * @param indx
- *    Index of item for selection.
- */
-void
-TileTabsConfigurationDialog::selectConfigurationFromComboBoxIndex(int indx)
-{
-    if ((indx >= 0)
-        && (indx < m_configurationSelectionListWidget->count())) {
-        QListWidgetItem* item = m_configurationSelectionListWidget->item(indx);
-        const AString itemID = item->data(Qt::UserRole).toString();
-        TileTabsConfiguration* configuration = m_caretPreferences->getTileTabsConfigurationByUniqueIdentifier(itemID);
-        if (configuration != NULL) {
-            m_numberOfRowsSpinBox->blockSignals(true);
-            m_numberOfRowsSpinBox->setValue(configuration->getNumberOfRows());
-            m_numberOfRowsSpinBox->blockSignals(false);
-            
-            m_numberOfColumnsSpinBox->blockSignals(true);
-            m_numberOfColumnsSpinBox->setValue(configuration->getNumberOfColumns());
-            m_numberOfColumnsSpinBox->blockSignals(false);
-        }
-    }
-    
-    updateStretchFactors();
-}
-
-/**
- * Called when new configuration button is clicked.
- */
-void
-TileTabsConfigurationDialog::newConfigurationButtonClicked()
+TileTabsConfigurationDialog::newUserConfigurationButtonClicked()
 {
     AString newTileTabsName;
     
@@ -664,7 +681,7 @@ TileTabsConfigurationDialog::newConfigurationButtonClicked()
                     /*
                      * New configuration is copy of selected configuration (if available)
                      */
-                    const TileTabsConfiguration* selectedConfiguration = getSelectedTileTabsConfiguration();
+                    const TileTabsConfiguration* selectedConfiguration = getActiveTileTabsConfiguration();
                     TileTabsConfiguration* configuration = ((selectedConfiguration != NULL)
                                                             ? selectedConfiguration->newCopyWithNewUniqueIdentifier()
                                                             : new TileTabsConfiguration());
@@ -683,20 +700,19 @@ TileTabsConfigurationDialog::newConfigurationButtonClicked()
         }
     }
     
-    if (configurationUniqueID.isEmpty() == false) {
+    if ( ! configurationUniqueID.isEmpty()) {
         updateDialog();
         selectTileTabConfigurationByUniqueID(configurationUniqueID);
-        updateBrowserWindowsTileTabsConfigurationSelection();
     }
 }
 
 /**
- * Called when delete configuration button is clicked.
+ * Called when delete user configuration button is clicked.
  */
 void
-TileTabsConfigurationDialog::deleteConfigurationButtonClicked()
+TileTabsConfigurationDialog::deleteUserConfigurationButtonClicked()
 {
-    TileTabsConfiguration* configuration = getSelectedTileTabsConfiguration();
+    TileTabsConfiguration* configuration = getSelectedUserTileTabsConfiguration();
     if (configuration != NULL) {
         const AString uniqueID = configuration->getUniqueIdentifier();
         const QString msg = ("Delete configuration named \""
@@ -706,18 +722,17 @@ TileTabsConfigurationDialog::deleteConfigurationButtonClicked()
                                         msg)) {
             m_caretPreferences->removeTileTabsConfigurationByUniqueIdentifier(uniqueID);
             updateDialog();
-            updateBrowserWindowsTileTabsConfigurationSelection();
         }
     }
 }
 
 /**
- * Called when rename configuration button is clicked.
+ * Called when rename user configuration button is clicked.
  */
 void
-TileTabsConfigurationDialog::renameConfigurationButtonClicked()
+TileTabsConfigurationDialog::renameUserConfigurationButtonClicked()
 {
-    TileTabsConfiguration* configuration = getSelectedTileTabsConfiguration();
+    TileTabsConfiguration* configuration = getSelectedUserTileTabsConfiguration();
     if (configuration != NULL) {
         m_blockReadConfigurationsFromPreferences = true;
         
@@ -747,40 +762,39 @@ TileTabsConfigurationDialog::renameConfigurationButtonClicked()
  * no configuration is available.
  */
 TileTabsConfiguration*
-TileTabsConfigurationDialog::getSelectedTileTabsConfiguration()
+TileTabsConfigurationDialog::getActiveTileTabsConfiguration()
 {
-    const AString uniqueID = getSelectedTileTabsConfigurationUniqueID();
-    TileTabsConfiguration* configuration = m_caretPreferences->getTileTabsConfigurationByUniqueIdentifier(uniqueID);
-    return configuration;
+    BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
+    return browserWindowContent->getTileTabsConfiguration();
 }
 
 /**
- * @return The unique identifier of the selected tile tabs configuration an
- * empty string if no configuration is available.
+ * @return The selected user tile tabs configuration (will be
+ *         NULL if there are no user configurations).
  */
-AString
-TileTabsConfigurationDialog::getSelectedTileTabsConfigurationUniqueID()
+TileTabsConfiguration*
+TileTabsConfigurationDialog::getSelectedUserTileTabsConfiguration()
 {
-    AString uniqueID;
+    TileTabsConfiguration* configuration = NULL;
     
-    const int32_t indx = m_configurationSelectionListWidget->currentRow();
+    const int32_t indx = m_userConfigurationSelectionListWidget->currentRow();
     if ((indx >= 0)
-        && (indx < m_configurationSelectionListWidget->count())) {
-        QListWidgetItem* item = m_configurationSelectionListWidget->item(indx);
-        uniqueID = item->data(Qt::UserRole).toString();
+        && (indx < m_userConfigurationSelectionListWidget->count())) {
+        QListWidgetItem* item = m_userConfigurationSelectionListWidget->item(indx);
+        const AString itemID = item->data(Qt::UserRole).toString();
+        configuration = m_caretPreferences->getTileTabsConfigurationByUniqueIdentifier(itemID);
     }
     
-    return uniqueID;
+    return configuration;
 }
-
 
 /**
  * Called when the number of rows or columns changes.
  */
 void
-TileTabsConfigurationDialog::numberOfRowsOrColumnsChanged()
+TileTabsConfigurationDialog::configurationNumberOfRowsOrColumnsChanged()
 {
-    TileTabsConfiguration* configuration = getSelectedTileTabsConfiguration();
+    TileTabsConfiguration* configuration = getActiveTileTabsConfiguration();
     if (configuration != NULL) {
         configuration->setNumberOfRows(m_numberOfRowsSpinBox->value());
         configuration->setNumberOfColumns(m_numberOfColumnsSpinBox->value());
@@ -788,7 +802,7 @@ TileTabsConfigurationDialog::numberOfRowsOrColumnsChanged()
         
         updateStretchFactors();
 
-        updateGraphicsWindows();
+        updateGraphicsWindow();
     }
 }
 
@@ -798,7 +812,7 @@ TileTabsConfigurationDialog::numberOfRowsOrColumnsChanged()
 void
 TileTabsConfigurationDialog::configurationStretchFactorWasChanged()
 {
-    TileTabsConfiguration* configuration = getSelectedTileTabsConfiguration();
+    TileTabsConfiguration* configuration = getActiveTileTabsConfiguration();
     if (configuration == NULL) {
         return;
     }
@@ -819,28 +833,21 @@ TileTabsConfigurationDialog::configurationStretchFactorWasChanged()
         }
     }
     
-    m_caretPreferences->writeTileTabsConfigurations();
     
-    updateGraphicsWindows();
+    updateGraphicsWindow();
 }
 
 
 /**
- * Update the graphics in any windows that have tile tabs enabled to the
- * selected tile tabs configuration in this dialog.
+ * Update the graphics for the selected window.
  */
 void
-TileTabsConfigurationDialog::updateGraphicsWindows()
+TileTabsConfigurationDialog::updateGraphicsWindow()
 {
-    std::vector<BrainBrowserWindow*> allBrowserWindows = GuiManager::get()->getAllOpenBrainBrowserWindows();
-    
-    for (std::vector<BrainBrowserWindow*>::iterator iter = allBrowserWindows.begin();
-         iter != allBrowserWindows.end();
-         iter++) {
-        BrainBrowserWindow* bbw = *iter;
-        if (bbw->isTileTabsSelected()) {
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(bbw->getBrowserWindowIndex()).getPointer());
-        }
+    const BrowserWindowContent* bwc = getBrowserWindowContent();
+    if (bwc->isTileTabsEnabled()) {
+        const int32_t windowIndex = bwc->getWindowIndex();
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
     }
 }
 

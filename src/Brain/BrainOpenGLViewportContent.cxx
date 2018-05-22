@@ -561,12 +561,10 @@ BrainOpenGLViewportContent::createViewportForSingleTab(std::vector<BrowserTabCon
  *
  * @param tabContents
  *     Content of each tab.
- * @param tileTabsConfiguration
- *     The tile tabs configuration
+ * @param browserWindowContent
+ *     Content of window.
  * @param gapsAndMargins
  *     Contains margins around edges of tabs
- * @param windowIndex
- *     Index of the window.
  * @param windowViewport
  *     The window's viewport.
  * @param hightlightTabIndex
@@ -576,13 +574,12 @@ BrainOpenGLViewportContent::createViewportForSingleTab(std::vector<BrowserTabCon
  */
 std::vector<BrainOpenGLViewportContent*>
 BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<BrowserTabContent*>& tabContents,
-                                                             TileTabsConfiguration* tileTabsConfiguration,
+                                                             BrowserWindowContent* browserWindowContent,
                                                              const GapsAndMargins* gapsAndMargins,
-                                                             const int32_t windowIndex,
                                                              const int32_t windowViewport[4],
                                                              const int32_t highlightTabIndex)
 {
-    CaretAssert(tileTabsConfiguration);
+    CaretAssert(browserWindowContent);
     CaretAssert(gapsAndMargins);
     
     std::vector<BrainOpenGLViewportContent*> viewportContentsOut;
@@ -602,9 +599,11 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
      */
     std::vector<int32_t> tabConfigRowHeights;
     std::vector<int32_t> tabConfigColumnWidths;
+    TileTabsConfiguration* tileTabsConfiguration = browserWindowContent->getTileTabsConfiguration();
     tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
                                                                      windowHeight,
                                                                      numberOfTabs,
+                                                                     browserWindowContent->isTileTabsAutomaticConfigurationEnabled(),
                                                                      tabConfigRowHeights,
                                                                      tabConfigColumnWidths);
     
@@ -626,11 +625,6 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
     std::vector<int32_t> rowHeights(numRows, 0);
     std::vector<int32_t> columnWidths(numColumns, 0);
     
-    
-    std::unique_ptr<EventBrowserWindowContent> eventContent = EventBrowserWindowContent::getWindowContent(windowIndex);
-    EventManager::get()->sendEvent(eventContent->getPointer());
-    const BrowserWindowContent* browserWindowContent = eventContent->getBrowserWindowContent();
-    CaretAssert(browserWindowContent);
     const bool allTabsAspectLockedFlag = browserWindowContent->isAllTabsInWindowAspectRatioLocked();
     
     /*
@@ -772,7 +766,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                 BrainOpenGLViewportContent* vpContent = new BrainOpenGLViewportContent(windowViewport,
                                                                                        tabViewport,
                                                                                        modelViewport,
-                                                                                       windowIndex,
+                                                                                       browserWindowContent->getWindowIndex(),
                                                                                        (highlightTabIndex ==tabIndex),
                                                                                        tabSizePtr->m_browserTabContent);
                 viewportContentsOut.push_back(vpContent);
@@ -792,7 +786,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                 BrainOpenGLViewportContent* vpContent = new BrainOpenGLViewportContent(windowViewport,
                                                                                        tabViewport,
                                                                                        tabViewport,
-                                                                                       windowIndex,
+                                                                                       browserWindowContent->getWindowIndex(),
                                                                                        false,
                                                                                        NULL);
                 viewportContentsOut.push_back(vpContent);

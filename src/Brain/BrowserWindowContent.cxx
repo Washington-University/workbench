@@ -46,6 +46,7 @@ BrowserWindowContent::BrowserWindowContent(const int32_t windowIndex)
 : CaretObject(),
 m_windowIndex(windowIndex)
 {
+    m_tileTabsConfiguration.reset(new TileTabsConfiguration());
     m_validFlag = false;
     reset();
     
@@ -55,6 +56,7 @@ m_windowIndex(windowIndex)
     m_sceneAssistant->add("m_windowAspectLockedRatio", &m_windowAspectLockedRatio);
     m_sceneAssistant->add("m_allTabsInWindowAspectRatioLocked", &m_allTabsInWindowAspectRatioLocked);
     m_sceneAssistant->add("m_tileTabsEnabled", &m_tileTabsEnabled);
+    m_sceneAssistant->add("m_tileTabsAutomaticConfigurationEnabled", &m_tileTabsAutomaticConfigurationEnabled);
     m_sceneAssistant->add("m_sceneGraphicsWidth", &m_sceneGraphicsWidth);
     m_sceneAssistant->add("m_sceneGraphicsHeight", &m_sceneGraphicsHeight);
     m_sceneAssistant->add("m_sceneSelectedTabIndex", &m_sceneSelectedTabIndex);
@@ -103,6 +105,8 @@ BrowserWindowContent::reset()
     m_tileTabsEnabled = false;
     m_sceneGraphicsHeight = 0;
     m_sceneGraphicsWidth  = 0;
+    m_tileTabsAutomaticConfigurationEnabled = true;
+    m_tileTabsConfiguration->updateAutomaticConfigurationRowsAndColumns(1);
     m_sceneTileTabsConfiguration.reset(new TileTabsConfiguration());
     m_sceneTileTabsConfiguration->setName(s_sceneTileTabsConfigurationText);
     m_sceneSelectedTabIndex = 0;
@@ -202,6 +206,45 @@ void
 BrowserWindowContent::setTileTabsEnabled(const bool tileTabsEnabled)
 {
     m_tileTabsEnabled = tileTabsEnabled;
+}
+
+/**
+ * @return The current tile tabs configuration.
+ */
+TileTabsConfiguration*
+BrowserWindowContent::getTileTabsConfiguration()
+{
+    return m_tileTabsConfiguration.get();
+}
+
+/**
+ * @return The current tile tabs configuration (const method)
+ */
+const TileTabsConfiguration*
+BrowserWindowContent::getTileTabsConfiguration() const
+{
+    return m_tileTabsConfiguration.get();
+}
+
+/**
+ * @return Is the automatic tile tabs configuration enabled?
+ */
+bool
+BrowserWindowContent::isTileTabsAutomaticConfigurationEnabled() const
+{
+    return m_tileTabsAutomaticConfigurationEnabled;
+}
+
+/**
+ * Set the automatic tile tabs configuration enabled.
+ *
+ * @param enabled
+ *     New enabled status.
+ */
+void
+BrowserWindowContent::setTileTabsAutomaticConfigurationEnabled(const bool enabled)
+{
+    m_tileTabsAutomaticConfigurationEnabled = enabled;
 }
 
 /**
@@ -335,17 +378,20 @@ BrowserWindowContent::saveToScene(const SceneAttributes* sceneAttributes,
                                   sceneClass);
     
     if (m_tileTabsEnabled) {
-        /*
-         * The browser window will provide selected tile tabs configuration
-         * by calling this class' copyTileTabsConfigurationForSavingScene() method.
-         * It is saved as the scene's tile tabs configuration.
-         * The content of "m_sceneTileTabsConfiguration" is NOT saved to the scene
-         * but it will be updated when the scene is read.
-         */
-        CaretAssert(m_tileTabsConfigurationForSavingScene.get());
-        const AString xmlString = m_tileTabsConfigurationForSavingScene->encodeInXML();
-        sceneClass->addString("m_sceneTileTabsConfiguration",
-                              xmlString);
+        sceneClass->addString("m_tileTabsConfiguration",
+                              m_tileTabsConfiguration->encodeInXML());
+        
+//        /*
+//         * The browser window will provide selected tile tabs configuration
+//         * by calling this class' copyTileTabsConfigurationForSavingScene() method.
+//         * It is saved as the scene's tile tabs configuration.
+//         * The content of "m_sceneTileTabsConfiguration" is NOT saved to the scene
+//         * but it will be updated when the scene is read.
+//         */
+//        CaretAssert(m_tileTabsConfigurationForSavingScene.get());
+//        const AString xmlString = m_tileTabsConfigurationForSavingScene->encodeInXML();
+//        sceneClass->addString("m_sceneTileTabsConfiguration",
+//                              xmlString);
         
         /*
          * Clear tile tabs config now that it has been written and is no longer needed
@@ -392,17 +438,29 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         sceneTabIndicesArray->integerVectorValues(m_sceneTabIndices);
     }
     
-    const AString stringTileTabsConfig = sceneClass->getStringValue("m_sceneTileTabsConfiguration");
-    if ( ! stringTileTabsConfig.isEmpty()) {
-        if (m_sceneTileTabsConfiguration->decodeFromXML(stringTileTabsConfig)) {
-            m_sceneTileTabsConfiguration->setName(s_sceneTileTabsConfigurationText
-                                                  + " "
-                                                  + sceneAttributes->getSceneName());
-        }
-        else {
+    const AString tileTabsConfig = sceneClass->getStringValue("m_tileTabsConfiguration");
+    if ( ! tileTabsConfig.isEmpty()) {
+        const bool valid = m_tileTabsConfiguration->decodeFromXML(tileTabsConfig);
+        if ( ! valid) {
             sceneAttributes->addToErrorMessage("Failed to decode tile tabs configuration from BrowserWindowContent: \""
-                                               + stringTileTabsConfig
+                                               + tileTabsConfig
                                                + "\"");
+            m_tileTabsConfiguration.reset();
+        }
+    }
+    else {
+        const AString stringTileTabsConfig = sceneClass->getStringValue("m_sceneTileTabsConfiguration");
+        if ( ! stringTileTabsConfig.isEmpty()) {
+            if (m_sceneTileTabsConfiguration->decodeFromXML(stringTileTabsConfig)) {
+                m_sceneTileTabsConfiguration->setName(s_sceneTileTabsConfigurationText
+                                                      + " "
+                                                      + sceneAttributes->getSceneName());
+            }
+            else {
+                sceneAttributes->addToErrorMessage("Failed to decode older scene tile tabs configuration from BrowserWindowContent: \""
+                                                   + stringTileTabsConfig
+                                                   + "\"");
+            }
         }
     }
     
@@ -462,6 +520,8 @@ BrowserWindowContent::restoreFromOldBrainBrowserWindowScene(const SceneAttribute
         m_sceneTileTabsConfiguration->setName(s_sceneTileTabsConfigurationText
                                               + " "
                                               + sceneAttributes->getSceneName());
+        
+        m_tileTabsConfiguration->copy(*m_sceneTileTabsConfiguration);
     }
     
     const SceneClass* toolbarClass = browserClass->getClass("m_toolbar");

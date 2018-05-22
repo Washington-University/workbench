@@ -331,11 +331,11 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         EventManager::get()->sendEvent(yokeEvent.getPointer());
     }
     
-    std::vector<const BrowserWindowContent*> allBrowserWindowContent;
+    std::vector<BrowserWindowContent*> allBrowserWindowContent;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
         std::unique_ptr<EventBrowserWindowContent> browserContentEvent = EventBrowserWindowContent::getWindowContent(i);
         EventManager::get()->sendEvent(browserContentEvent->getPointer());
-        const BrowserWindowContent* bwc = browserContentEvent->getBrowserWindowContent();
+        BrowserWindowContent* bwc = browserContentEvent->getBrowserWindowContent();
         CaretAssert(bwc);
         if (bwc->isValid()) {
             allBrowserWindowContent.push_back(bwc);
@@ -351,7 +351,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
      */
     for (int32_t iWindow = 0; iWindow < numberOfWindows; iWindow++) {
         CaretAssertVectorIndex(allBrowserWindowContent, iWindow);
-        const auto bwc = allBrowserWindowContent[iWindow];
+        auto bwc = allBrowserWindowContent[iWindow];
         
         const bool restoreToTabTiles = bwc->isTileTabsEnabled();
         const int32_t windowIndex = bwc->getWindowIndex();
@@ -495,6 +495,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     if ( ! tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
                                                                                             windowHeight,
                                                                                             numTabContent,
+                                                                                            bwc->isTileTabsAutomaticConfigurationEnabled(),
                                                                                             rowHeights,
                                                                                             columnWidths)) {
                         throw OperationException("Tile Tabs Row/Column sizing failed !!!");
@@ -503,9 +504,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     const int32_t tabIndexToHighlight = -1;
                     std::vector<BrainOpenGLViewportContent*> viewports =
                     BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabContent,
-                                                                                 tileTabsConfiguration,
+                                                                                 bwc,
                                                                                  gapsAndMargins,
-                                                                                 windowIndex,
                                                                                  windowViewport,
                                                                                  tabIndexToHighlight);
                     

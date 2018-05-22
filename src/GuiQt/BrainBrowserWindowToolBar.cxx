@@ -70,6 +70,7 @@
 #include "BrainBrowserWindowToolBarVolumeMontage.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretFunctionName.h"
 #include "CaretLogger.h"
@@ -794,23 +795,25 @@ BrainBrowserWindowToolBar::allowAddingNewTab()
     
     BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
     CaretAssert(browserWindow);
+    BrowserWindowContent* browserWindowContent = browserWindow->getBrowerWindowContent();
+    CaretAssert(browserWindowContent);
     
     /*
      * Is tile tabs off?
      */
-    if ( ! browserWindow->isTileTabsSelected()) {
+    if ( ! browserWindowContent->isTileTabsEnabled()) {
         return true;
     }
     
-    const TileTabsConfiguration* tileTabs = browserWindow->getSelectedTileTabsConfiguration();
+    const TileTabsConfiguration* tileTabs = browserWindowContent->getTileTabsConfiguration();
     if (tileTabs == NULL) {
         return true;
     }
     
     /*
-     * Default configuration always shows all tabs
+     * Automatic configuration always shows all tabs
      */
-    if (tileTabs->isDefaultConfiguration()) {
+    if (browserWindowContent->isTileTabsAutomaticConfigurationEnabled()) {
         return true;
     }
     
@@ -4021,16 +4024,15 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
                     getModelEvent->addBrowserTab(btc);
                 }
                 
-                getModelEvent->setTileTabsSelected(browserWindow->isTileTabsSelected());
+                BrowserWindowContent* windowContent = browserWindow->getBrowerWindowContent();
+                getModelEvent->setBrowserWindowContent(windowContent);
                 
-                if (browserWindow->isTileTabsSelected()) {
+                if (windowContent->isTileTabsEnabled()) {
                     /*
                      * Tab that is highlighted so user knows which tab
                      * any changes in toolbar/toolboxes apply to.
                      */
                     getModelEvent->setTabIndexForTileTabsHighlighting(m_tabIndexForTileTabsHighlighting);
-                    
-                    getModelEvent->setTileTabsConfiguration(browserWindow->getSelectedTileTabsConfiguration());
                 }
                 
                 getModelEvent->setSelectedBrowserTabContent(this->getTabContentFromSelectedTab());

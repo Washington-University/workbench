@@ -143,11 +143,6 @@ m_browserWindowIndex(browserWindowIndex)
         BrainBrowserWindow::s_firstWindowFlag = false;
     }
     
-    m_defaultTileTabsConfiguration = new TileTabsConfiguration();
-    m_defaultTileTabsConfiguration->setDefaultConfiguration(true);
-    m_defaultTileTabsConfiguration->setName("All Tabs (Default)");
-    m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
-    
     setAttribute(Qt::WA_DeleteOnClose);
     
     setWindowTitle(ApplicationInformation().getName()
@@ -297,7 +292,6 @@ BrainBrowserWindow::~BrainBrowserWindow()
     if (s_brainBrowserWindows.empty()) {
     }
     
-    delete m_defaultTileTabsConfiguration;
     delete m_sceneAssistant;
 }
 
@@ -1264,10 +1258,12 @@ BrainBrowserWindow::createActions()
     QObject::connect(m_viewTileTabsAction, SIGNAL(triggered()),
                      this, SLOT(processViewTileTabs()));
     
-    m_createAndEditTileTabsAction = WuQtUtilities::createAction("Create and Edit...",
-                                                                "Create, Delete, and Edit Tile Tabs Configurations",
-                                                                Qt::CTRL + Qt::SHIFT + Qt::Key_M,
-                                                                this);
+    m_viewTileTabsConfigurationDialogAction = WuQtUtilities::createAction("Tile Tabs Configuration...",
+                                                                          "",
+                                                                          Qt::CTRL + Qt::SHIFT + Qt::Key_M,
+                                                                          this,
+                                                                          this,
+                                                                          SLOT(processViewTileTabsConfigurationDialog()));
 
     m_gapsAndMarginsAction =
     WuQtUtilities::createAction("Gaps and Margins...",
@@ -2183,15 +2179,6 @@ BrainBrowserWindow::processViewMenuAboutToShow()
 QMenu* 
 BrainBrowserWindow::createMenuView()
 {
-    m_tileTabsMenu = new QMenu("Tile Tabs Configuration");
-    QObject::connect(m_tileTabsMenu, SIGNAL(aboutToShow()),
-                     this, SLOT(processTileTabsMenuAboutToBeDisplayed()));
-    QObject::connect(m_tileTabsMenu, SIGNAL(triggered(QAction*)),
-                     this, SLOT(processTileTabsMenuSelection(QAction*)));
-    
-    m_tileTabsMenu->addAction(m_createAndEditTileTabsAction);
-    m_tileTabsMenu->addSeparator();
-    
     QMenu* menu = new QMenu("View", this);
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processViewMenuAboutToShow()));
@@ -2208,7 +2195,7 @@ BrainBrowserWindow::createMenuView()
     menu->addAction(m_viewTileTabsAction);
     menu->addSeparator();
     menu->addAction(m_gapsAndMarginsAction);
-    menu->addMenu(m_tileTabsMenu);
+    menu->addAction(m_viewTileTabsConfigurationDialogAction);
     
     return menu;
 }
@@ -2242,154 +2229,6 @@ BrainBrowserWindow::createMenuViewMoveOverlayToolBox()
     menu->addAction("Hide", this, SLOT(processHideOverlayToolBox()));
     
     return menu;
-}
-
-/**
- * Update the Tile Tabs Configuration Menu just before it is displayed.
- */
-void
-BrainBrowserWindow::processTileTabsMenuAboutToBeDisplayed()
-{
-    /*
-     * Remove all actions for user-defined tile tabs configurations
-     */
-    QList<QAction*> menuActions = m_tileTabsMenu->actions();
-    QListIterator<QAction*> actionIterator(menuActions);
-    while (actionIterator.hasNext()) {
-        QAction* action = actionIterator.next();
-        if (action != m_createAndEditTileTabsAction) {
-            if (action->isSeparator() == false) {
-                m_tileTabsMenu->removeAction(action);
-                delete action;
-            }
-        }
-    }
-    
-    CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-    preferences->readTileTabsConfigurations();
-    std::vector<const TileTabsConfiguration*> configurations = preferences->getTileTabsConfigurationsSortedByName();
-    const int32_t numConfigurations = static_cast<int32_t>(configurations.size());
-    
-    /*
-     * Add All Tabs (Default) tile tabs configuration
-     */
-    QAction* defaultAction = m_tileTabsMenu->addAction(m_defaultTileTabsConfiguration->getName());
-    defaultAction->setCheckable(true);
-    defaultAction->setData(QVariant(m_defaultTileTabsConfiguration->getUniqueIdentifier()));
-    
-    /*
-     * Add the scene configuration
-     */
-    QAction* sceneAction = m_tileTabsMenu->addAction(m_browserWindowContent->getSceneTileTabsConfiguration()->getName());
-    sceneAction->setCheckable(true);
-    sceneAction->setData(QVariant(m_browserWindowContent->getSceneTileTabsConfiguration()->getUniqueIdentifier()));
-    
-    bool haveSelectedTileTabsConfiguration = false;
-    
-    /*
-     * Add the user defined Tile Tabs configurations
-     */
-    if (numConfigurations > 0) {
-        m_tileTabsMenu->addSeparator();
-
-        for (int32_t i = 0; i < numConfigurations; i++) {
-            QAction* action = m_tileTabsMenu->addAction(configurations[i]->getName());
-            action->setCheckable(true);
-            
-            if (m_selectedTileTabsConfigurationUniqueIdentifier == configurations[i]->getUniqueIdentifier()) {
-                action->setChecked(true);
-                haveSelectedTileTabsConfiguration = true;
-            }
-            action->setData(QVariant(configurations[i]->getUniqueIdentifier()));
-        }
-    }
-    
-    if (m_selectedTileTabsConfigurationUniqueIdentifier == m_browserWindowContent->getSceneTileTabsConfiguration()->getUniqueIdentifier()) {
-        haveSelectedTileTabsConfiguration = true;
-        sceneAction->setChecked(true);
-    }
-    
-    if ( ! haveSelectedTileTabsConfiguration) {
-        defaultAction->setChecked(true);
-        m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
-    }
-}
-
-/**
- * Process a selection from the Tile Tab Configuration Menu.
- *
- * @param action
- *    Action that was selected.
- */
-void
-BrainBrowserWindow::processTileTabsMenuSelection(QAction* action)
-{
-    if (action == m_createAndEditTileTabsAction) {
-        processViewTileTabsConfigurationDialog();
-    }
-    else {
-        m_selectedTileTabsConfigurationUniqueIdentifier = action->data().toString();
-        
-        if (isTileTabsSelected()) {
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
-        }
-    }
-}
-
-/*
- * Set the selected tile tabs configuration.  If requested configuration is
- * NULL, the default configuration will be selected.
- *
- * @param configuration
- *    New selection for tile tabs configuration.
- */
-void
-BrainBrowserWindow::setSelectedTileTabsConfiguration(TileTabsConfiguration* configuration)
-{
-    if (configuration != NULL) {
-        m_selectedTileTabsConfigurationUniqueIdentifier = configuration->getUniqueIdentifier();
-    }
-    else {
-        m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
-    }
-}
-
-/**
- * @return The selected tile tabs configuration.
- */
-TileTabsConfiguration*
-BrainBrowserWindow::getSelectedTileTabsConfiguration()
-{
-
-    CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-    TileTabsConfiguration* configuration = preferences->getTileTabsConfigurationByUniqueIdentifier(m_selectedTileTabsConfigurationUniqueIdentifier);
-    if (configuration != NULL) {
-        /*
-         * A user configuration is selected
-         */
-        return configuration;
-    }
-    else if (m_selectedTileTabsConfigurationUniqueIdentifier == m_defaultTileTabsConfiguration->getUniqueIdentifier()) {
-        /*
-         * Default configuration is selected
-         */
-        return m_defaultTileTabsConfiguration;
-    }
-    else if (m_selectedTileTabsConfigurationUniqueIdentifier == m_browserWindowContent->getSceneTileTabsConfiguration()->getUniqueIdentifier()) {
-        /*
-         * Scene's configuration is selected
-         */
-        return m_browserWindowContent->getSceneTileTabsConfiguration();
-    }
-    else {
-        /*
-         * The selected configuration has been deleted, likely in another browser window
-         * so selecte the default configuration
-         */
-        m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
-    }
-    
-    return m_defaultTileTabsConfiguration;
 }
 
 /**
@@ -4148,7 +3987,7 @@ BrainBrowserWindow::saveBrowserWindowContentForScene()
     }
     
     if (isTileTabsSelected()) {
-        const TileTabsConfiguration* tileTabsConfig = getSelectedTileTabsConfiguration();
+        const TileTabsConfiguration* tileTabsConfig = m_browserWindowContent->getTileTabsConfiguration();
         if (tileTabsConfig != NULL) {
             m_browserWindowContent->copyTileTabsConfigurationForSavingScene(tileTabsConfig);
         }
@@ -4307,12 +4146,13 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
      * Restore Unique ID of selected tile tabs configuration.
      * If not valid, use default configuration
      */
-    m_selectedTileTabsConfigurationUniqueIdentifier = sceneClass->getStringValue("m_selectedTileTabsConfigurationUniqueIdentifier",
+    CaretAssertToDoWarning();
+    AString m_selectedTileTabsConfigurationUniqueIdentifier = sceneClass->getStringValue("m_selectedTileTabsConfigurationUniqueIdentifier",
                                                                                  "");
     CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
     TileTabsConfiguration* selectedConfiguration = caretPreferences->getTileTabsConfigurationByUniqueIdentifier(m_selectedTileTabsConfigurationUniqueIdentifier);
     if (selectedConfiguration == NULL) {
-        m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
+        // was use default config
     }
     
     /*

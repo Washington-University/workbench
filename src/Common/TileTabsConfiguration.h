@@ -40,11 +40,14 @@ namespace caret {
 
         TileTabsConfiguration& operator=(const TileTabsConfiguration& obj);
         
+        void copy(const TileTabsConfiguration& rhs);
+        
         TileTabsConfiguration* newCopyWithNewUniqueIdentifier() const;
         
         bool getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
                                                        const int32_t windowHeight,
                                                        const int32_t numberOfModelsToDraw,
+                                                       const bool automaticConfigurationEnabled,
                                                        std::vector<int32_t>& rowHeightsOut,
                                                        std::vector<int32_t>& columnWidthsOut);
         
@@ -93,7 +96,7 @@ namespace caret {
          */
         static inline int32_t getMaximumNumberOfColumns() { return 20; }
         
-        void updateDefaultConfigurationRowsAndColumns(const int32_t numberOfTabs);
+        void updateAutomaticConfigurationRowsAndColumns(const int32_t numberOfTabs);
         
         // ADD_NEW_METHODS_HERE
         

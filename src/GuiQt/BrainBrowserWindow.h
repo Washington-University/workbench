@@ -47,7 +47,6 @@ namespace caret {
     class BrowserTabContent;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
-    class TileTabsConfiguration;
 
     
     /**
@@ -115,10 +114,6 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
 
-        TileTabsConfiguration* getSelectedTileTabsConfiguration();
-        
-        void setSelectedTileTabsConfiguration(TileTabsConfiguration* configuration);
-        
         void resetGraphicsWidgetMinimumSize();
         
         void setGraphicsWidgetFixedSize(const int32_t width,
@@ -205,9 +200,6 @@ namespace caret {
         void processFileMenuAboutToShow();
         void processDataMenuAboutToShow();
         void processViewMenuAboutToShow();
-        
-        void processTileTabsMenuAboutToBeDisplayed();
-        void processTileTabsMenuSelection(QAction*);
         
         void processSurfaceMenuInformation();
         void processSurfaceMenuPrimaryAnatomical();
@@ -371,8 +363,7 @@ namespace caret {
         QAction* m_viewFullScreenAction;
         QAction* m_viewTileTabsAction;
         
-        QMenu* m_tileTabsMenu;
-        QAction* m_createAndEditTileTabsAction;
+        QAction* m_viewTileTabsConfigurationDialogAction;
         
         QAction* m_gapsAndMarginsAction;
         
@@ -431,9 +422,6 @@ namespace caret {
         BrainBrowserWindowOrientedToolBox* m_overlayVerticalToolBox;
         BrainBrowserWindowOrientedToolBox* m_overlayActiveToolBox;
         BrainBrowserWindowOrientedToolBox* m_featuresToolBox;
-        
-        AString m_selectedTileTabsConfigurationUniqueIdentifier;
-        TileTabsConfiguration* m_defaultTileTabsConfiguration;
         
         static AString s_previousOpenFileNameFilter;
         static AString s_previousOpenFileDirectory;

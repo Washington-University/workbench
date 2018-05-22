@@ -37,11 +37,10 @@ using namespace caret;
 EventBrowserWindowDrawingContent::EventBrowserWindowDrawingContent(const int32_t browserWindowIndex)
 : Event(EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET)
 {
+    m_browserWindowContent = NULL;
     m_browserWindowIndex = browserWindowIndex;
     m_tabIndexForTileTabsHighlighting = -1;
-    m_tileTabsConfiguration = NULL;
     m_selectedBrowserTabContent = NULL;
-    m_tileTabsSelectedFlag = false;
 }
 
 /*
@@ -116,28 +115,6 @@ EventBrowserWindowDrawingContent::getTabIndexForTileTabsHighlighting() const
 }
 
 /**
- * @return The tile tabs configuration when more than one tab to draw.
- *         May be NULL.
- */
-TileTabsConfiguration*
-EventBrowserWindowDrawingContent::getTileTabsConfiguration() const
-{
-    return m_tileTabsConfiguration;
-}
-
-/**
- * Set the tile tabs configuration.
- *
- * @param tileTabsConfiguration
- *    New selected tile tabs configuration.
- */
-void
-EventBrowserWindowDrawingContent::setTileTabsConfiguration(TileTabsConfiguration* tileTabsConfiguration)
-{
-    m_tileTabsConfiguration = tileTabsConfiguration;
-}
-
-/**
  * @return The selected browser tab content.  May be NULL.
  * In single tab mode, this is the tab to draw.
  */
@@ -160,25 +137,31 @@ EventBrowserWindowDrawingContent::setSelectedBrowserTabContent(BrowserTabContent
 }
 
 /**
- * @return Is tile tabs selected.
+ * @return Browser window content.
  */
-bool
-EventBrowserWindowDrawingContent::isTileTabsSelected() const
+BrowserWindowContent*
+EventBrowserWindowDrawingContent::getBrowserWindowContent()
 {
-    return m_tileTabsSelectedFlag;
+    return m_browserWindowContent;
 }
 
 /**
- * Set tile tabs selected.
- *
- * @param tileTabsSelected
- *    New status of tile tabs.
+ * @return Browser window content (const method)
  */
-void
-EventBrowserWindowDrawingContent::setTileTabsSelected(const bool tileTabsSelected)
+const BrowserWindowContent*
+EventBrowserWindowDrawingContent::getBrowserWindowContent() const
 {
-    m_tileTabsSelectedFlag = tileTabsSelected;
+    return m_browserWindowContent;
 }
 
-
-
+/**
+ * Set the browser window content.
+ *
+ * @param browserWindowContent
+ *     New content.
+ */
+void
+EventBrowserWindowDrawingContent::setBrowserWindowContent(BrowserWindowContent* browserWindowContent)
+{
+    m_browserWindowContent = browserWindowContent;
+}

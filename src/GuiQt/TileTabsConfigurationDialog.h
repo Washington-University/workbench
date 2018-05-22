@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
 class QCheckBox;
@@ -37,11 +37,12 @@ class QSpinBox;
 namespace caret {
     class BrainBrowserWindow;
     class BrainBrowserWindowComboBox;
+    class BrowserWindowContent;
     class CaretPreferences;
     class TileTabsConfiguration;
     class WuQListWidget;
     
-    class TileTabsConfigurationDialog : public WuQDialogNonModal {
+    class TileTabsConfigurationDialog : public WuQDialogNonModal, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -53,6 +54,8 @@ namespace caret {
         void updateDialogWithSelectedTileTabsFromWindow(BrainBrowserWindow* brainBrowserWindow);
         
         void updateDialog();
+        
+        virtual void receiveEvent(Event* event) override;
         
     private:
         TileTabsConfigurationDialog(const TileTabsConfigurationDialog&);
@@ -66,21 +69,19 @@ namespace caret {
     private slots:
         void browserWindowComboBoxValueChanged(BrainBrowserWindow* browserWindow);
         
-        void newConfigurationButtonClicked();
+        void newUserConfigurationButtonClicked();
         
-        void deleteConfigurationButtonClicked();
+        void deleteUserConfigurationButtonClicked();
         
-        void renameConfigurationButtonClicked();
+        void renameUserConfigurationButtonClicked();
         
-        void configurationListItemSelected(QListWidgetItem*);
-        
-        void numberOfRowsOrColumnsChanged();
+        void configurationNumberOfRowsOrColumnsChanged();
         
         void configurationStretchFactorWasChanged();
         
-        void copyPushButtonClicked();
+        void copyToUserConfigurationPushButtonClicked();
         
-        void loadPushButtonClicked();
+        void loadIntoActiveConfigurationPushButtonClicked();
 
         void automaticConfigurationCheckBoxClicked(bool checked);
         
@@ -94,25 +95,25 @@ namespace caret {
         
         void selectTileTabConfigurationByUniqueID(const AString& uniqueID);
         
-        AString getSelectedTileTabsConfigurationUniqueID();
+        TileTabsConfiguration* getActiveTileTabsConfiguration();
         
-        TileTabsConfiguration* getSelectedTileTabsConfiguration();
+        TileTabsConfiguration* getSelectedUserTileTabsConfiguration();
         
         QWidget* createUserConfigurationSelectionWidget();
         
         QWidget* createActiveConfigurationWidget();
         
-        void updateBrowserWindowsTileTabsConfigurationSelection();
-        
         void updateStretchFactors();
         
-        void updateGraphicsWindows();
-        
-        void selectConfigurationFromComboBoxIndex(int indx);
+        void updateGraphicsWindow();
         
         void readConfigurationsFromPreferences();
         
+        BrowserWindowContent* getBrowserWindowContent();
+        
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
+        
+        QWidget* m_rowColumnFactorWidget;
         
         QCheckBox* m_automaticConfigurationCheckBox;
         
@@ -122,9 +123,11 @@ namespace caret {
         
         QPushButton* m_renameConfigurationPushButton;
         
-        WuQListWidget* m_configurationSelectionListWidget;
+        QPushButton* m_copyPushButton;
         
-        QLineEdit* m_nameLineEdit;
+        QPushButton* m_loadPushButton;
+        
+        WuQListWidget* m_userConfigurationSelectionListWidget;
         
         QSpinBox* m_numberOfRowsSpinBox;
         
@@ -144,10 +147,7 @@ namespace caret {
         /** Blocks reading of preferences since that may invalidate data pointers */
         bool m_blockReadConfigurationsFromPreferences;
         
-        /** browser window from which this dialog was last displayed */
-        BrainBrowserWindow* m_brainBrowserWindow;
-        
-        /** 
+        /**
          * Keep a pointer to preferences but DO NOT delete it
          * since the preferences are managed by the session
          * manager.

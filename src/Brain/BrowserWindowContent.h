@@ -64,6 +64,14 @@ namespace caret {
         
         void setTileTabsEnabled(const bool tileTabsEnabled);
 
+        TileTabsConfiguration* getTileTabsConfiguration();
+        
+        const TileTabsConfiguration* getTileTabsConfiguration() const;
+        
+        bool isTileTabsAutomaticConfigurationEnabled() const;
+        
+        void setTileTabsAutomaticConfigurationEnabled(const bool enabled);
+        
         int32_t getSceneGraphicsWidth() const;
         
         void setSceneGraphicsWidth(const int32_t width);
@@ -129,9 +137,13 @@ namespace caret {
         
         bool m_tileTabsEnabled = false;
         
+        bool m_tileTabsAutomaticConfigurationEnabled = false;
+        
         int32_t m_sceneGraphicsWidth = 0;
         
         int32_t m_sceneGraphicsHeight = 0;
+        
+        std::unique_ptr<TileTabsConfiguration> m_tileTabsConfiguration;
         
         std::unique_ptr<TileTabsConfiguration> m_sceneTileTabsConfiguration;
         
