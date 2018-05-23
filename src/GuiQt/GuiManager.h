@@ -229,6 +229,8 @@ namespace caret {
         
         void addNonModalDialog(QWidget* dialog);
         
+        void updateNonModalDialogs();
+        
         void addParentLessNonModalDialog(QWidget* dialog);
         
         /** One instance of the GuiManager */

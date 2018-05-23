@@ -111,6 +111,10 @@ namespace caret {
         
         BrowserWindowContent* getBrowserWindowContent();
         
+        void updatePercentageLabels(const std::vector<QDoubleSpinBox*>& factorSpinBoxes,
+                                    std::vector<QLabel*>& percentageLabels,
+                                    const int32_t validCount);
+        
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
         QWidget* m_rowColumnFactorWidget;
@@ -140,9 +144,13 @@ namespace caret {
         
         std::vector<QDoubleSpinBox*> m_rowStretchFactorSpinBoxes;
         
+        std::vector<QLabel*> m_rowStretchPercentageLabels;
+        
         std::vector<QLabel*> m_columnStretchFactorIndexLabels;
         
         std::vector<QDoubleSpinBox*> m_columnStretchFactorSpinBoxes;
+        
+        std::vector<QLabel*> m_columnStretchPercentageLabels;
         
         /** Blocks reading of preferences since that may invalidate data pointers */
         bool m_blockReadConfigurationsFromPreferences;

@@ -1617,44 +1617,54 @@ GuiManager::closeAllOtherWindows(BrainBrowserWindow* browserWindow)
 void 
 GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindow)
 {
-    BrainBrowserWindow* firstBrainBrowserWindow = NULL;
-    
-    for (int32_t i = 0; i < static_cast<int32_t>(m_brainBrowserWindows.size()); i++) {
-        if (m_brainBrowserWindows[i] != NULL) {
-            if (m_brainBrowserWindows[i] != closingBrainBrowserWindow) {
-                firstBrainBrowserWindow = m_brainBrowserWindows[i];
-                break;
-            }
+    /*
+     * Find valid windows and use first window for reparenting
+     */
+    std::set<QWidget*> validWindows;
+    for (auto bbw : m_brainBrowserWindows) {
+        if ((bbw != NULL)
+            && (bbw != closingBrainBrowserWindow)) {
+            validWindows.insert(bbw);
         }
     }
+    QWidget* firstBrainBrowserWindow = (validWindows.empty()
+                                                   ? NULL
+                                                   : *(validWindows.begin()));
     
     if (firstBrainBrowserWindow != NULL) {
-        for (std::set<QWidget*>::iterator iter = this->nonModalDialogs.begin();
-                 iter != this->nonModalDialogs.end();
-                 iter++) {
-            QWidget* d = *iter;
-            if (d->parent() == closingBrainBrowserWindow) {
-                const bool wasVisible = d->isVisible();
-                const QPoint globalPos = d->pos();
-                d->setParent(firstBrainBrowserWindow, d->windowFlags());
-                d->move(globalPos);
+        for (auto dialog : this->nonModalDialogs) {
+            QWidget* dialogParent = dialog->parentWidget();
+            if (validWindows.find(dialogParent) == validWindows.end()) {
+                const bool wasVisible = dialog->isVisible();
+                const QPoint globalPos = dialog->pos();
+                dialog->setParent(firstBrainBrowserWindow, dialog->windowFlags());
+                dialog->move(globalPos);
                 if (wasVisible) {
-                    d->show();
+                    dialog->show();
                 }
                 else {
-                    d->hide();
+                    dialog->hide();
                 }
             }
             
             /*
              * Update any dialogs that are WuQ non modal dialogs.
              */
-            WuQDialogNonModal* wuqNonModalDialog = dynamic_cast<WuQDialogNonModal*>(d);
+            WuQDialogNonModal* wuqNonModalDialog = dynamic_cast<WuQDialogNonModal*>(dialog);
             if (wuqNonModalDialog != NULL) {
                 wuqNonModalDialog->updateDialog();
             }
         }
     }
+}
+
+/**
+ * Update the non-modal dialogs.
+ */
+void
+GuiManager::updateNonModalDialogs()
+{
+    reparentNonModalDialogs(NULL);
 }
 
 /**
@@ -2603,6 +2613,8 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                      + " seconds");
         timer.reset();
     }
+    
+    updateNonModalDialogs();
     
     if (imageCaptureDialog != NULL) {
         imageCaptureDialog->updateDialog();

@@ -124,8 +124,6 @@ TileTabsConfiguration::initialize()
     setNumberOfRows(2);
     setNumberOfColumns(2);
     
-    m_defaultConfigurationFlag = false;
-
     m_uniqueIdentifier = SystemUtilities::createUniqueID();
 }
 
@@ -476,27 +474,6 @@ TileTabsConfiguration::setRowStretchFactor(const int32_t rowIndex,
 }
 
 /**
- * @return Is this the default configuration?  Each browser window
- * always has ONE default configuration which displays all tabs.
- */
-bool
-TileTabsConfiguration::isDefaultConfiguration() const
-{
-    return m_defaultConfigurationFlag;
-}
-
-/**
- * Set the default configuration status.  This should only be called by
- * the browser window which contains one tile tabs configuration that is
- * used by the browser window for display of all tabs.
- */
-void
-TileTabsConfiguration::setDefaultConfiguration(const bool defaultConfiguration)
-{
-    m_defaultConfigurationFlag = defaultConfiguration;
-}
-
-/**
  * Updates the number of rows and columns for the automatic configuration
  * based upon the number of tabs.  
  *
@@ -584,7 +561,6 @@ TileTabsConfiguration::encodeInXML() const
 bool
 TileTabsConfiguration::decodeFromXML(const AString& xmlString)
 {
-    m_defaultConfigurationFlag = false;
     setNumberOfRows(2);
     setNumberOfColumns(2);
     

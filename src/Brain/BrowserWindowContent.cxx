@@ -371,9 +371,12 @@ SceneClass*
 BrowserWindowContent::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
+    /*
+     * Version 2 added by WB-735 in May 2018
+     */
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrowserWindowContent",
-                                            1);
+                                            2);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -430,6 +433,8 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    const int32_t sceneVersion = sceneClass->getVersionNumber();
+    
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
@@ -451,6 +456,14 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     else {
         const AString stringTileTabsConfig = sceneClass->getStringValue("m_sceneTileTabsConfiguration");
         if ( ! stringTileTabsConfig.isEmpty()) {
+            const bool valid = m_tileTabsConfiguration->decodeFromXML(stringTileTabsConfig);
+            if ( ! valid) {
+                sceneAttributes->addToErrorMessage("Failed to decode tile tabs configuration from BrowserWindowContent: \""
+                                                   + stringTileTabsConfig
+                                                   + "\"");
+                m_tileTabsConfiguration.reset();
+            }
+            
             if (m_sceneTileTabsConfiguration->decodeFromXML(stringTileTabsConfig)) {
                 m_sceneTileTabsConfiguration->setName(s_sceneTileTabsConfigurationText
                                                       + " "
@@ -464,6 +477,12 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
+    if (sceneVersion < 2) {
+        /*
+         * Automatic configuration added by WB-735 in May 2018
+         */
+        m_tileTabsAutomaticConfigurationEnabled = ( ! m_tileTabsEnabled);
+    }
     
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
@@ -536,6 +555,11 @@ BrowserWindowContent::restoreFromOldBrainBrowserWindowScene(const SceneAttribute
             }
         }
     }
+    
+    /*
+     * Automatic configuration added by WB-735 in May 2018
+     */
+    m_tileTabsAutomaticConfigurationEnabled = ( ! m_tileTabsEnabled);
 }
 
 

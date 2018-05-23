@@ -4146,7 +4146,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
      * Restore Unique ID of selected tile tabs configuration.
      * If not valid, use default configuration
      */
-    CaretAssertToDoWarning();
     AString m_selectedTileTabsConfigurationUniqueIdentifier = sceneClass->getStringValue("m_selectedTileTabsConfigurationUniqueIdentifier",
                                                                                  "");
     CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();

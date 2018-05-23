@@ -75,10 +75,6 @@ namespace caret {
         void setRowStretchFactor(const int32_t rowIndex,
                                  const float stretchFactor);
         
-        bool isDefaultConfiguration() const;
-        
-        void setDefaultConfiguration(const bool defaultConfiguration);
-        
         AString encodeInXML() const;
         
         bool decodeFromXML(const AString& xmlString);
@@ -111,8 +107,6 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
         
         AString m_name;
-        
-        bool m_defaultConfigurationFlag;
         
         /** Unique identifier does not get copied */
         AString m_uniqueIdentifier;
