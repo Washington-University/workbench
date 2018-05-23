@@ -103,31 +103,34 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex)
     
     VolumeFile* thresholdVolume = NULL;
     int32_t thresholdVolumeMapIndex   = -1;
-    switch (m_volumeFile->getMapPaletteColorMapping(mapIndex)->getThresholdType()) {
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
-        {
-            CaretMappableDataFileAndMapSelectionModel* threshSel = m_volumeFile->getMapThresholdFileSelectionModel(mapIndex);
-            CaretMappableDataFile* mapFile = threshSel->getSelectedFile();
-            if (mapFile != NULL) {
-                thresholdVolume = dynamic_cast<VolumeFile*>(mapFile);
-                CaretAssert(thresholdVolume);
-                thresholdVolumeMapIndex = threshSel->getSelectedMapIndex();
+
+    if (m_volumeFile->isMappedWithPalette()) {
+        switch (m_volumeFile->getMapPaletteColorMapping(mapIndex)->getThresholdType()) {
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+            {
+                CaretMappableDataFileAndMapSelectionModel* threshSel = m_volumeFile->getMapThresholdFileSelectionModel(mapIndex);
+                CaretMappableDataFile* mapFile = threshSel->getSelectedFile();
+                if (mapFile != NULL) {
+                    thresholdVolume = dynamic_cast<VolumeFile*>(mapFile);
+                    CaretAssert(thresholdVolume);
+                    thresholdVolumeMapIndex = threshSel->getSelectedMapIndex();
+                }
             }
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+                /*
+                 * Thresholding with 'self'
+                 */
+                thresholdVolume = m_volumeFile;
+                thresholdVolumeMapIndex = mapIndex;
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+                break;
         }
-            break;
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
-            break;
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
-            break;
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
-            /*
-             * Thresholding with 'self'
-             */
-            thresholdVolume = m_volumeFile;
-            thresholdVolumeMapIndex = mapIndex;
-            break;
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
-            break;
     }
     
     /*
