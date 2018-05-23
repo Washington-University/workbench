@@ -21,7 +21,7 @@
 #  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 #  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-#put this file in (or link to it from) /etc/bash_completion.d or /usr/share/bash-completion/completions or copy contents to ~/.bash_completion
+#copy/symlink this file as /usr/share/bash-completion/completions/wb_command or copy contents to ~/.bash_completion
 
 function _wb_command()
 {
@@ -78,7 +78,7 @@ function _wb_command()
 
 complete -o filenames -o bashdefault -o default -F _wb_command wb_command
 
-#completion for wb_shortcuts - could be a separate file, but this is simpler
+#completion for wb_shortcuts, for setups that just symlink this file as wb_shortcuts also
 
 function _wb_shortcuts ()
 {
