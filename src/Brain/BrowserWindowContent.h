@@ -80,10 +80,6 @@ namespace caret {
         
         void setSceneGraphicsHeight(const int32_t width);
         
-        TileTabsConfiguration* getSceneTileTabsConfiguration() const;
-        
-        void copyTileTabsConfigurationForSavingScene(const TileTabsConfiguration* tileTabsConfiguration);
-        
         int32_t getSceneSelectedTabIndex() const;
         
         void setSceneSelectedTabIndex(const int32_t selectedTabIndex);
@@ -145,24 +141,17 @@ namespace caret {
         
         std::unique_ptr<TileTabsConfiguration> m_tileTabsConfiguration;
         
-        std::unique_ptr<TileTabsConfiguration> m_sceneTileTabsConfiguration;
-        
-        std::unique_ptr<TileTabsConfiguration> m_tileTabsConfigurationForSavingScene;
-        
         int32_t m_sceneSelectedTabIndex = 0;
         
         std::vector<int32_t> m_sceneTabIndices;
         
         friend class BrainBrowserWindow;
-        
-        static const AString s_sceneTileTabsConfigurationText;
 
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __BROWSER_WINDOW_CONTENT_DECLARE__
-    const AString BrowserWindowContent::s_sceneTileTabsConfigurationText = "From Scene: ";
 #endif // __BROWSER_WINDOW_CONTENT_DECLARE__
 
 } // namespace

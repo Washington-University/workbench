@@ -3985,14 +3985,7 @@ BrainBrowserWindow::saveBrowserWindowContentForScene()
     if (activeTabContent != NULL) {
         m_browserWindowContent->setSceneSelectedTabIndex(activeTabContent->getTabNumber());
     }
-    
-    if (isTileTabsSelected()) {
-        const TileTabsConfiguration* tileTabsConfig = m_browserWindowContent->getTileTabsConfiguration();
-        if (tileTabsConfig != NULL) {
-            m_browserWindowContent->copyTileTabsConfigurationForSavingScene(tileTabsConfig);
-        }
-    }
-    
+        
     m_browserWindowContent->setSceneGraphicsWidth(m_openGLWidget->width());
     m_browserWindowContent->setSceneGraphicsHeight(m_openGLWidget->height());
 }
@@ -4143,18 +4136,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     /*
-     * Restore Unique ID of selected tile tabs configuration.
-     * If not valid, use default configuration
-     */
-    AString m_selectedTileTabsConfigurationUniqueIdentifier = sceneClass->getStringValue("m_selectedTileTabsConfigurationUniqueIdentifier",
-                                                                                 "");
-    CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
-    TileTabsConfiguration* selectedConfiguration = caretPreferences->getTileTabsConfigurationByUniqueIdentifier(m_selectedTileTabsConfigurationUniqueIdentifier);
-    if (selectedConfiguration == NULL) {
-        // was use default config
-    }
-    
-    /*
      * Restoration status for full screen and tab tiles
      *
      * If "m_screenMode" is found, the scene is an older scene that was
@@ -4200,13 +4181,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                             false);
         }
         setViewTileTabs(restoreToTabTiles);
-        
-        /*
-         * If tile tabs was saved to the scene, restore it as the scenes tile tabs configuration
-         */
-        if (restoreToTabTiles) {
-                m_selectedTileTabsConfigurationUniqueIdentifier = m_browserWindowContent->getSceneTileTabsConfiguration()->getUniqueIdentifier();
-        }
     }
 
     m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
