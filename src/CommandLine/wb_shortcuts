@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#  Copyright (C) 2016  Washington University School of Medicine
+#  Copyright (C) 2018  Washington University School of Medicine
 #
 #  Permission is hereby granted, free of charge, to any person obtaining
 #  a copy of this software and associated documentation files (the
@@ -25,7 +25,7 @@ set -ue
 
 global_cmd_line="$0 $*"
 global_script_name="wb_shortcuts"
-global_script_version="beta-0.3"
+global_script_version="beta-0.4"
 
 function version ()
 {
@@ -341,27 +341,29 @@ function cifti_demean ()
     then
         error "function requires 2 or more arguments"
     fi
+    local tempext=$(echo "$1" | cut -f2- -d.)
     local -a merge_arg_array
     for ((i = 2; i <= $#; ++i))
     do
+        local tempext2=$(echo "${!i}" | cut -f2- -d.)
         #we might not make the stdev temporary, but it isn't a problem to add it anyway
-        add_temporary_files "$1.temp${i}-mean-$$" "$1.temp${i}-normed-$$" "$1.temp${i}-stdev-$$"
-        wb_command -cifti-reduce "${!i}" MEAN "$1.temp${i}-mean-$$"
+        add_temporary_files "$1.temp${i}-mean-$$.dscalar.nii" "$1.temp${i}-normed-$$.$tempext2" "$1.temp${i}-stdev-$$.dscalar.nii"
+        wb_command -cifti-reduce "${!i}" MEAN "$1.temp${i}-mean-$$.dscalar.nii"
         if [[ $normalize == 1 ]]
         then
-            wb_command -cifti-reduce "${!i}" SAMPSTDEV "$1.temp${i}-stdev-$$"
-            wb_command -cifti-math '(x - mean) / stdev' "$1.temp${i}-normed-$$" -fixnan 0 \
+            wb_command -cifti-reduce "${!i}" SAMPSTDEV "$1.temp${i}-stdev-$$.dscalar.nii"
+            wb_command -cifti-math '(x - mean) / stdev' "$1.temp${i}-normed-$$.$tempext2" -fixnan 0 \
                             -var x "${!i}" \
-                            -var mean "$1.temp${i}-mean-$$" -select 1 1 -repeat \
-                            -var stdev "$1.temp${i}-stdev-$$" -select 1 1 -repeat
-            rm -f "$1.temp${i}-mean-$$" "$1.temp${i}-stdev-$$"
+                            -var mean "$1.temp${i}-mean-$$.dscalar.nii" -select 1 1 -repeat \
+                            -var stdev "$1.temp${i}-stdev-$$.dscalar.nii" -select 1 1 -repeat
+            rm -f "$1.temp${i}-mean-$$.dscalar.nii" "$1.temp${i}-stdev-$$.dscalar.nii"
         else
-            wb_command -cifti-math 'x - mean' "$1.temp${i}-normed-$$" -fixnan 0 \
+            wb_command -cifti-math 'x - mean' "$1.temp${i}-normed-$$.$tempext2" -fixnan 0 \
                             -var x "${!i}" \
-                            -var mean "$1.temp${i}-mean-$$" -select 1 1 -repeat
-            rm -f "$1.temp${i}-mean-$$"
+                            -var mean "$1.temp${i}-mean-$$.dscalar.nii" -select 1 1 -repeat
+            rm -f "$1.temp${i}-mean-$$.dscalar.nii"
         fi
-        merge_arg_array+=("-cifti" "$1.temp${i}-normed-$$")
+        merge_arg_array+=("-cifti" "$1.temp${i}-normed-$$.$tempext2")
     done
     wb_command -cifti-merge "$1" "${merge_arg_array[@]}"
     #let the exit hook clean up the normed temporaries, we're done
@@ -567,13 +569,14 @@ function import_probtrack_roi ()
     then
         error "function requires 3 arguments, $# provided"
     fi
+    local tempext=$(echo "$2" | cut -f2- -d.)
     #make temporaries based on the output file name
-    add_temporary_files "$3.temp1-$$" "$3.temp2-$$"
-    wb_command -cifti-restrict-dense-map "$2" COLUMN "$3.temp1-$$" -cifti-roi "$2"
-    wb_command -cifti-convert -from-text "$1" "$3.temp1-$$" "$3.temp2-$$" -reset-scalars
-    rm -f "$3.temp1-$$"
-    wb_command -cifti-create-dense-from-template "$2" "$3" -cifti "$3.temp2-$$"
-    rm -f "$3.temp2-$$"
+    add_temporary_files "$3.temp1-$$.$tempext" "$3.temp2-$$.dscalar.nii"
+    wb_command -cifti-restrict-dense-map "$2" COLUMN "$3.temp1-$$.$tempext" -cifti-roi "$2"
+    wb_command -cifti-convert -from-text "$1" "$3.temp1-$$.$tempext" "$3.temp2-$$.dscalar.nii" -reset-scalars
+    rm -f "$3.temp1-$$.$tempext"
+    wb_command -cifti-create-dense-from-template "$2" "$3" -cifti "$3.temp2-$$.dscalar.nii"
+    rm -f "$3.temp2-$$.dscalar.nii"
 }
 
 create_function "-label-concatenate" "MERGE MAPS OF LABEL FILES"

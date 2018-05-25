@@ -6,8 +6,8 @@ Files: *
 Copyright: 2014-2018 Washington University School of Medicine
 License: GPL-2+
 
-Files: src/Files/SurfaceResamplingHelper.cxx src/Cifti/examples/* src/CommandLine/wb_shortcuts src/CommandLine/wb_command_completion
-Copyright: 2014-2017 Washington University School of Medicine
+Files: src/Files/SurfaceResamplingHelper.cxx src/Cifti/examples/* src/CommandLine/wb_shortcuts src/CommandLine/bashcomplete_wb_*
+Copyright: 2014-2018 Washington University School of Medicine
 License: Expat
 
 Files: src/kloewe/*
