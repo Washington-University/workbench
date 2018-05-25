@@ -19,7 +19,7 @@
  */
 /*LICENSE_END*/
 
-#include <QCheckBox>
+#include <QButtonGroup>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -27,6 +27,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QScrollArea>
 #include <QSpinBox>
 #include <QVBoxLayout>
@@ -207,7 +208,7 @@ TileTabsConfigurationDialog::copyToUserConfigurationPushButtonClicked()
 void
 TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
 {
-    if (m_automaticConfigurationCheckBox->isChecked()) {
+    if (m_automaticConfigurationRadioButton->isChecked()) {
         return;
     }
     
@@ -295,10 +296,10 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
 }
 
 /**
- * @return The active configuration widget.
+ * @return Instance of workbench window widget.
  */
 QWidget*
-TileTabsConfigurationDialog::createActiveConfigurationWidget()
+TileTabsConfigurationDialog::createWorkbenchWindowWidget()
 {
     /*
      * Window number
@@ -310,55 +311,67 @@ TileTabsConfigurationDialog::createActiveConfigurationWidget()
     QObject::connect(m_browserWindowComboBox, SIGNAL(browserWindowSelected(BrainBrowserWindow*)),
                      this, SLOT(browserWindowComboBoxValueChanged(BrainBrowserWindow*)));
     
+    QWidget* widget = new QWidget();
+    QHBoxLayout* layout = new QHBoxLayout(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(windowLabel);
+    layout->addWidget(m_browserWindowComboBox->getWidget());
+    layout->addStretch();
     
+    return widget;
+}
+
+/**
+ * @return Instance of workbench window widget.
+ */
+QWidget*
+TileTabsConfigurationDialog::createCustomConfigurationWidget()
+{
     const int32_t maximumNumberOfRows = TileTabsConfiguration::getMaximumNumberOfRows();
     const int32_t maximumNumberOfColumns = TileTabsConfiguration::getMaximumNumberOfColumns();
     
-    const AString autoToolTip("When checked, Workbench adjusts the number of rows and columns so "
-                              "that all tabs are displayed.  When unchecked, the user can adjust "
-                              "the rows, columns, and stretch factors for configuration of the tabs.");
-    m_automaticConfigurationCheckBox = new QCheckBox("Automatic Configuration");
-    m_automaticConfigurationCheckBox->setToolTip(WuQtUtilities::createWordWrappedToolTipText(autoToolTip));
-    QObject::connect(m_automaticConfigurationCheckBox, &QCheckBox::clicked,
-                     this, &TileTabsConfigurationDialog::automaticConfigurationCheckBoxClicked);
+    const AString autoToolTip("Workbench adjusts the number of rows and columns so "
+                              "that all tabs are displayed");
+    m_automaticConfigurationRadioButton = new QRadioButton("Automatic Configuration");
+    m_automaticConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(autoToolTip));
     
-    QLabel* rowsLabel = new QLabel("Number of Rows");
+    const AString customToolTip("User sets the number of row, columns, and stretch factors");
+    m_customConfigurationRadioButton = new QRadioButton("Custom Configuration");
+    m_customConfigurationRadioButton->setToolTip(customToolTip);
+    
+    QButtonGroup* buttonGroup = new QButtonGroup(this);
+    buttonGroup->addButton(m_automaticConfigurationRadioButton);
+    buttonGroup->addButton(m_customConfigurationRadioButton);
+    QObject::connect(buttonGroup, static_cast<void (QButtonGroup::*)(QAbstractButton*)>(&QButtonGroup::buttonClicked),
+                     this, &TileTabsConfigurationDialog::automaticCustomButtonClicked);
+    
+    QLabel* dimensionsLabel = new QLabel("Dimensions");
+    QLabel* rowsLabel = new QLabel("Rows");
     m_numberOfRowsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
                                                                           maximumNumberOfRows,
                                                                           1,
                                                                           this,
                                                                           SLOT(configurationNumberOfRowsOrColumnsChanged()));
     m_numberOfRowsSpinBox->setToolTip("Number of rows for the tab configuration");
-
+    
     QLabel* columnsLabel = new QLabel("Columns");
     m_numberOfColumnsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                          maximumNumberOfColumns,
-                                                                          1,
-                                                                          this,
-                                                                          SLOT(configurationNumberOfRowsOrColumnsChanged()));
+                                                                             maximumNumberOfColumns,
+                                                                             1,
+                                                                             this,
+                                                                             SLOT(configurationNumberOfRowsOrColumnsChanged()));
     m_numberOfColumnsSpinBox->setToolTip("Number of columns for the tab configuration");
     
     
-    QHBoxLayout* numberOfLayout = new QHBoxLayout();
-    numberOfLayout->setContentsMargins(0, 0, 0, 0);
-    numberOfLayout->setSpacing(4);
-    numberOfLayout->addWidget(rowsLabel);
-    numberOfLayout->addWidget(m_numberOfRowsSpinBox);
-    numberOfLayout->addSpacing(4);
-    numberOfLayout->addWidget(columnsLabel);
-    numberOfLayout->addWidget(m_numberOfColumnsSpinBox);
-    numberOfLayout->addStretch();
-
-    QHBoxLayout* windowLayout = new QHBoxLayout();
-    windowLayout->setContentsMargins(0, 0, 0, 0);
-    windowLayout->addWidget(windowLabel);
-    windowLayout->addWidget(m_browserWindowComboBox->getWidget());
-    windowLayout->addStretch();
-
-    QVBoxLayout* topLayout = new QVBoxLayout();
-    topLayout->setContentsMargins(0, 0, 0, 0);
-    topLayout->addLayout(windowLayout);
-    topLayout->addWidget(m_automaticConfigurationCheckBox, 0, Qt::AlignLeft);
+    QGridLayout* dimensionsLayout = new QGridLayout();
+    dimensionsLayout->setContentsMargins(0, 0, 0, 0);
+    dimensionsLayout->setColumnStretch(0, 100);
+    dimensionsLayout->setColumnStretch(5, 100);
+    dimensionsLayout->addWidget(dimensionsLabel, 0, 1, 1, 4, Qt::AlignHCenter);
+    dimensionsLayout->addWidget(rowsLabel, 1, 1);
+    dimensionsLayout->addWidget(m_numberOfRowsSpinBox, 1, 2);
+    dimensionsLayout->addWidget(columnsLabel, 1, 3);
+    dimensionsLayout->addWidget(m_numberOfColumnsSpinBox, 1, 4);
     
     const float stretchFactorMinimumValue = 0.1;
     const float stretchFactorMaximumValue = 10000000.0;
@@ -379,13 +392,13 @@ TileTabsConfigurationDialog::createActiveConfigurationWidget()
             if (i < maximumNumberOfRows) {
                 QLabel* numberLabel = new QLabel(labelSpace + AString::number(i + 1));
                 m_rowStretchFactorIndexLabels.push_back(numberLabel);
-
+                
                 QDoubleSpinBox* spinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(stretchFactorMinimumValue,
-                                                                                                            stretchFactorMaximumValue,
-                                                                                                            stretchFactorStep,
-                                                                                                            stretchFactorDigitsRightOfDecimal,
-                                                                                                            this,
-                                                                                                            SLOT(configurationStretchFactorWasChanged()));
+                                                                                                         stretchFactorMaximumValue,
+                                                                                                         stretchFactorStep,
+                                                                                                         stretchFactorDigitsRightOfDecimal,
+                                                                                                         this,
+                                                                                                         SLOT(configurationStretchFactorWasChanged()));
                 spinBox->setFixedWidth(spinBoxWidth);
                 spinBox->setToolTip("Weight for row " + AString::number(i + 1));
                 m_rowStretchFactorSpinBoxes.push_back(spinBox);
@@ -417,11 +430,11 @@ TileTabsConfigurationDialog::createActiveConfigurationWidget()
                 m_columnStretchFactorIndexLabels.push_back(numberLabel);
                 
                 QDoubleSpinBox* spinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(stretchFactorMinimumValue,
-                                                                                                            stretchFactorMaximumValue,
-                                                                                                            stretchFactorStep,
-                                                                                                            stretchFactorDigitsRightOfDecimal,
-                                                                                                            this,
-                                                                                                            SLOT(configurationStretchFactorWasChanged()));
+                                                                                                         stretchFactorMaximumValue,
+                                                                                                         stretchFactorStep,
+                                                                                                         stretchFactorDigitsRightOfDecimal,
+                                                                                                         this,
+                                                                                                         SLOT(configurationStretchFactorWasChanged()));
                 spinBox->setFixedWidth(spinBoxWidth);
                 spinBox->setToolTip("Weight for column " + AString::number(i + 1));
                 m_columnStretchFactorSpinBoxes.push_back(spinBox);
@@ -441,38 +454,61 @@ TileTabsConfigurationDialog::createActiveConfigurationWidget()
     
     QLabel* stretchFactorLabel = new QLabel("Stretch Factors");
     
-    m_stretchFactorWidget = new QWidget();
-    m_stretchFactorWidget->setSizePolicy(m_stretchFactorWidget->sizePolicy().horizontalPolicy(),
-                                         QSizePolicy::Fixed);
-    QHBoxLayout* stretchFactorLayout = new QHBoxLayout(m_stretchFactorWidget);
+    QWidget* stretchFactorWidget = new QWidget();
+    stretchFactorWidget->setSizePolicy(stretchFactorWidget->sizePolicy().horizontalPolicy(),
+                                       QSizePolicy::Fixed);
+    QHBoxLayout* stretchFactorLayout = new QHBoxLayout(stretchFactorWidget);
+    stretchFactorLayout->setContentsMargins(0, 0, 0, 0);
     stretchFactorLayout->addWidget(rowStretchFactorWidget, 0, Qt::AlignHCenter | Qt::AlignTop);
     stretchFactorLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0);
     stretchFactorLayout->addWidget(columnStretchFactorWidget, 0, Qt::AlignHCenter | Qt::AlignTop);
-//    m_stretchFactorWidget->setMinimumWidth(m_stretchFactorWidget->sizeHint().width() + 10);
     
-    m_stretchFactorScrollArea = new QScrollArea();
-    m_stretchFactorScrollArea->setWidget(m_stretchFactorWidget);
-    m_stretchFactorScrollArea->setWidgetResizable(true);
-//    m_stretchFactorScrollArea->setMinimumWidth(m_stretchFactorWidget->sizeHint().width() + 10);
     
-    m_rowColumnFactorWidget = new QWidget();
-    QVBoxLayout* rowColumnFactorLayout = new QVBoxLayout(m_rowColumnFactorWidget);
-    rowColumnFactorLayout->setContentsMargins(0, 0, 0, 0);
-    rowColumnFactorLayout->addLayout(numberOfLayout);
-    rowColumnFactorLayout->addWidget(stretchFactorLabel,
-                            0,
-                            Qt::AlignHCenter);
-    rowColumnFactorLayout->addWidget(m_stretchFactorScrollArea,
-                            0);
+    m_customConfigurationWidget = new QWidget();
+    QVBoxLayout* customConfigurationLayout = new QVBoxLayout(m_customConfigurationWidget);
+    customConfigurationLayout->addLayout(dimensionsLayout);
+    customConfigurationLayout->addWidget(stretchFactorLabel,
+                                         0,
+                                         Qt::AlignHCenter);
+    customConfigurationLayout->addWidget(stretchFactorWidget,
+                                         0,
+                                         Qt::AlignHCenter);
     
-    QGroupBox* widget = new QGroupBox("Active Configuration");
-    QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
-    widgetLayout->addLayout(topLayout,
-                            0);
+    return m_customConfigurationWidget;
+}
+
+/**
+ * @return The active configuration widget.
+ */
+QWidget*
+TileTabsConfigurationDialog::createActiveConfigurationWidget()
+{
+    
+    
+    QScrollArea* stretchFactorScrollArea = new QScrollArea();
+    stretchFactorScrollArea->setWidget(createCustomConfigurationWidget());
+    stretchFactorScrollArea->setWidgetResizable(true);
+
+    QGroupBox* widget = new QGroupBox("Tile Tabs Configuration in Workbench Window");
+    QGridLayout* widgetLayout = new QGridLayout(widget);
+    widgetLayout->setColumnStretch(0, 0);
+    widgetLayout->setColumnStretch(1, 100);
+    widgetLayout->setColumnMinimumWidth(0, 20);
+    widgetLayout->addWidget(createWorkbenchWindowWidget(),
+                            0, 0, 1, 2,
+                            Qt::AlignLeft);
     widgetLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
-                            0);
-    widgetLayout->addWidget(m_rowColumnFactorWidget);
-    widgetLayout->addStretch();
+                            1, 0, 1, 2);
+    widgetLayout->addWidget(m_automaticConfigurationRadioButton,
+                            2, 0, 1, 2,
+                            Qt::AlignLeft);
+    widgetLayout->addWidget(m_customConfigurationRadioButton,
+                            3, 0, 1, 2,
+                            Qt::AlignLeft);
+    widgetLayout->addWidget(stretchFactorScrollArea,
+                            4, 1,
+                            Qt::AlignLeft);
+    widgetLayout->setRowStretch(widgetLayout->rowCount(), 100);
     
     return widget;
 }
@@ -492,16 +528,16 @@ TileTabsConfigurationDialog::browserWindowComboBoxValueChanged(BrainBrowserWindo
 }
 
 /**
- * Called when automatic configuration checkbox is clicked
+ * Called when automatic/custom configuration radiobutton is clicked
  *
- * @param checked
+ * @param button
  *     New checked status of checkbox.
  */
 void
-TileTabsConfigurationDialog::automaticConfigurationCheckBoxClicked(bool checked)
+TileTabsConfigurationDialog::automaticCustomButtonClicked(QAbstractButton* /*button*/)
 {
     BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    browserWindowContent->setTileTabsAutomaticConfigurationEnabled(checked);
+    browserWindowContent->setTileTabsAutomaticConfigurationEnabled(m_automaticConfigurationRadioButton->isChecked());
     updateStretchFactors();
     updateGraphicsWindow();
 }
@@ -547,7 +583,12 @@ void
 TileTabsConfigurationDialog::updateDialog()
 {
     BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    m_automaticConfigurationCheckBox->setChecked(browserWindowContent->isTileTabsAutomaticConfigurationEnabled());
+    if (browserWindowContent->isTileTabsAutomaticConfigurationEnabled()) {
+        m_automaticConfigurationRadioButton->setChecked(true);
+    }
+    else {
+        m_customConfigurationRadioButton->setChecked(true);
+    }
     
     readConfigurationsFromPreferences();
     
@@ -657,11 +698,10 @@ TileTabsConfigurationDialog::updateStretchFactors()
                            m_rowStretchPercentageLabels,
                            numValidRows);
     
-    m_stretchFactorWidget->setFixedSize(m_stretchFactorWidget->sizeHint());
+    const bool editableFlag = ( ! m_automaticConfigurationRadioButton->isChecked());
     
-    const bool editableFlag = ( ! m_automaticConfigurationCheckBox->isChecked());
-    
-    m_rowColumnFactorWidget->setEnabled(editableFlag);
+    m_customConfigurationWidget->setFixedSize(m_customConfigurationWidget->sizeHint());
+    m_customConfigurationWidget->setEnabled(editableFlag);
     m_loadPushButton->setEnabled(editableFlag);
 }
 

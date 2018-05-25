@@ -24,14 +24,12 @@
 #include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
-class QCheckBox;
 class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
 class QListWidgetItem;
 class QPushButton;
 class QRadioButton;
-class QScrollArea;
 class QSpinBox;
 
 namespace caret {
@@ -83,7 +81,7 @@ namespace caret {
         
         void loadIntoActiveConfigurationPushButtonClicked();
 
-        void automaticConfigurationCheckBoxClicked(bool checked);
+        void automaticCustomButtonClicked(QAbstractButton*);
         
     protected:
         void focusGained();
@@ -92,6 +90,8 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
         
         QWidget* createCopyLoadPushButtonsWidget();
+        
+        QWidget* createWorkbenchWindowWidget();
         
         void selectTileTabConfigurationByUniqueID(const AString& uniqueID);
         
@@ -102,6 +102,8 @@ namespace caret {
         QWidget* createUserConfigurationSelectionWidget();
         
         QWidget* createActiveConfigurationWidget();
+        
+        QWidget* createCustomConfigurationWidget();
         
         void updateStretchFactors();
         
@@ -117,9 +119,11 @@ namespace caret {
         
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
-        QWidget* m_rowColumnFactorWidget;
+        QWidget* m_customConfigurationWidget;
         
-        QCheckBox* m_automaticConfigurationCheckBox;
+        QRadioButton* m_automaticConfigurationRadioButton;
+        
+        QRadioButton* m_customConfigurationRadioButton;
         
         QPushButton* m_newConfigurationPushButton;
         
@@ -136,9 +140,6 @@ namespace caret {
         QSpinBox* m_numberOfRowsSpinBox;
         
         QSpinBox* m_numberOfColumnsSpinBox;
-        
-        QScrollArea* m_stretchFactorScrollArea;
-        QWidget* m_stretchFactorWidget;
         
         std::vector<QLabel*> m_rowStretchFactorIndexLabels;
         
