@@ -599,7 +599,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
      */
     std::vector<int32_t> tabConfigRowHeights;
     std::vector<int32_t> tabConfigColumnWidths;
-    TileTabsConfiguration* tileTabsConfiguration = browserWindowContent->getTileTabsConfiguration();
+    TileTabsConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
     tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
                                                                      windowHeight,
                                                                      numberOfTabs,

@@ -95,7 +95,9 @@ namespace caret {
         
         void selectTileTabConfigurationByUniqueID(const AString& uniqueID);
         
-        TileTabsConfiguration* getActiveTileTabsConfiguration();
+        TileTabsConfiguration* getAutomaticTileTabsConfiguration();
+        
+        TileTabsConfiguration* getCustomTileTabsConfiguration();
         
         TileTabsConfiguration* getSelectedUserTileTabsConfiguration();
         
@@ -111,6 +113,8 @@ namespace caret {
         
         void readConfigurationsFromPreferences();
         
+        BrainBrowserWindow* getBrowserWindow();
+        
         BrowserWindowContent* getBrowserWindowContent();
         
         void updatePercentageLabels(const std::vector<QDoubleSpinBox*>& factorSpinBoxes,
@@ -120,6 +124,8 @@ namespace caret {
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
         QWidget* m_customConfigurationWidget;
+        
+        static const AString s_automaticConfigurationPrefix;
         
         QRadioButton* m_automaticConfigurationRadioButton;
         
@@ -165,7 +171,7 @@ namespace caret {
     };
     
 #ifdef __TILE_TABS_CONFIGURATION_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const AString TileTabsConfigurationDialog::s_automaticConfigurationPrefix = "Automatic Configuration";
 #endif // __TILE_TABS_CONFIGURATION_DIALOG_DECLARE__
 
 } // namespace

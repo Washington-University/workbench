@@ -79,6 +79,8 @@ namespace caret {
         
         bool decodeFromXML(const AString& xmlString);
         
+        void updateAutomaticConfigurationRowsAndColumns(const int32_t numberOfTabs);
+        
         static bool lessThanComparisonByName(const TileTabsConfiguration* ttc1,
                                              const TileTabsConfiguration* ttc2);
         
@@ -92,8 +94,9 @@ namespace caret {
          */
         static inline int32_t getMaximumNumberOfColumns() { return 20; }
         
-        void updateAutomaticConfigurationRowsAndColumns(const int32_t numberOfTabs);
-        
+        static void getRowsAndColumnsForNumberOfTabs(const int32_t numberOfTabs,
+                                                     int32_t& numberOfRowsOut,
+                                                     int32_t& numberOfColumnsOut);
         // ADD_NEW_METHODS_HERE
         
         

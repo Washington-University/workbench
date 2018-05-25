@@ -805,11 +805,6 @@ BrainBrowserWindowToolBar::allowAddingNewTab()
         return true;
     }
     
-    const TileTabsConfiguration* tileTabs = browserWindowContent->getTileTabsConfiguration();
-    if (tileTabs == NULL) {
-        return true;
-    }
-    
     /*
      * Automatic configuration always shows all tabs
      */
@@ -820,6 +815,8 @@ BrainBrowserWindowToolBar::allowAddingNewTab()
     /*
      * Is there space in the current configuration?
      */
+    const TileTabsConfiguration* tileTabs = browserWindowContent->getCustomTileTabsConfiguration();
+    CaretAssert(tileTabs);
     const int32_t tileTabsCount = tileTabs->getNumberOfColumns() * tileTabs->getNumberOfRows();
     if (getNumberOfTabs() < tileTabsCount) {
         return true;

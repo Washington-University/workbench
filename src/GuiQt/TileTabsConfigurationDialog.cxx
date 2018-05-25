@@ -96,6 +96,7 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
     updateDialogWithSelectedTileTabsFromWindow(parentBrainBrowserWindow);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
     setCentralWidget(dialogWidget,
                      WuQDialog::SCROLL_AREA_NEVER);
@@ -128,11 +129,11 @@ TileTabsConfigurationDialog::receiveEvent(Event* event)
         CaretAssert(browserWindowContent);
         
         if (redrawEvent->getBrowserWindowIndex() == browserWindowContent->getWindowIndex()) {
-            if (browserWindowContent->isTileTabsEnabled()) {
-                if (browserWindowContent->isTileTabsAutomaticConfigurationEnabled()) {
+//            if (browserWindowContent->isTileTabsEnabled()) {
+//                if (browserWindowContent->isTileTabsAutomaticConfigurationEnabled()) {
                     updateStretchFactors();
-                }
-            }
+//                }
+//            }
         }
     }
 }
@@ -155,7 +156,7 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
     m_copyPushButton = new QPushButton("Copy -->");
     m_copyPushButton->setAutoDefault(false);
     WuQtUtilities::setWordWrappedToolTip(m_copyPushButton,
-                                         "Copy the Rows, Columns, and Stretch Factors from the Active Configuration "
+                                         "Copy the Rows, Columns, and Stretch Factors from the Custom Configuration "
                                          "into the selected User Configuration.");
     QObject::connect(m_copyPushButton, SIGNAL(clicked()),
                      this, SLOT(copyToUserConfigurationPushButtonClicked()));
@@ -164,7 +165,7 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
     m_loadPushButton->setAutoDefault(false);
     WuQtUtilities::setWordWrappedToolTip(m_loadPushButton,
                                          "Load the User Configuration's Rows, Columns, and Stretch Factors into "
-                                         "the Active Configuration.");
+                                         "the Custom Configuration.");
     QObject::connect(m_loadPushButton, SIGNAL(clicked()),
                      this, SLOT(loadIntoActiveConfigurationPushButtonClicked()));
     
@@ -185,7 +186,7 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
 void
 TileTabsConfigurationDialog::copyToUserConfigurationPushButtonClicked()
 {
-    const TileTabsConfiguration* activeConfiguration = getActiveTileTabsConfiguration();
+    const TileTabsConfiguration* activeConfiguration = getCustomTileTabsConfiguration();
     CaretAssert(activeConfiguration);
 
     TileTabsConfiguration* userConfiguration = getSelectedUserTileTabsConfiguration();
@@ -212,7 +213,7 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
         return;
     }
     
-    TileTabsConfiguration* activeConfiguration = getActiveTileTabsConfiguration();
+    TileTabsConfiguration* activeConfiguration = getCustomTileTabsConfiguration();
     CaretAssert(activeConfiguration);
     
     const TileTabsConfiguration* userConfiguration = getSelectedUserTileTabsConfiguration();
@@ -229,14 +230,27 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
 }
 
 /**
+ * @return The browser window selected window index.
+ */
+
+BrainBrowserWindow*
+TileTabsConfigurationDialog::getBrowserWindow()
+{
+    m_browserWindowComboBox->updateComboBox();
+    BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
+    CaretAssert(bbw);
+    return bbw;
+}
+
+
+
+/**
  * @return The browser window content for the selected window index.
  */
 BrowserWindowContent*
 TileTabsConfigurationDialog::getBrowserWindowContent()
 {
-    m_browserWindowComboBox->updateComboBox();
-    BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
-    CaretAssert(bbw);
+    BrainBrowserWindow* bbw = getBrowserWindow();
     BrowserWindowContent* bwc = bbw->getBrowerWindowContent();
     CaretAssert(bwc);
     
@@ -259,7 +273,7 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     selectionLayout->addWidget(m_userConfigurationSelectionListWidget, 100);
     
     const AString newToolTip = WuQtUtilities::createWordWrappedToolTipText("Create new User Configuration by entering a name.\n"
-                                                                           "It will contain rows/columns/factors from the Active Configuration");
+                                                                           "It will contain rows/columns/factors from the Custom Configuration");
     m_newConfigurationPushButton = new QPushButton("New...");
     m_newConfigurationPushButton->setAutoDefault(false);
     m_newConfigurationPushButton->setToolTip(newToolTip);
@@ -332,7 +346,7 @@ TileTabsConfigurationDialog::createCustomConfigurationWidget()
     
     const AString autoToolTip("Workbench adjusts the number of rows and columns so "
                               "that all tabs are displayed");
-    m_automaticConfigurationRadioButton = new QRadioButton("Automatic Configuration");
+    m_automaticConfigurationRadioButton = new QRadioButton(s_automaticConfigurationPrefix);
     m_automaticConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(autoToolTip));
     
     const AString customToolTip("User sets the number of row, columns, and stretch factors");
@@ -639,10 +653,24 @@ TileTabsConfigurationDialog::updateDialog()
 void
 TileTabsConfigurationDialog::updateStretchFactors()
 {
+    BrainBrowserWindow* browserWindow = getBrowserWindow();
+    std::vector<int32_t> windowTabIndices;
+    browserWindow->getAllTabContentIndices(windowTabIndices);
+    int32_t autoNumRows(0), autoNumCols(0);
+    TileTabsConfiguration::getRowsAndColumnsForNumberOfTabs(static_cast<int32_t>(windowTabIndices.size()),
+                                                            autoNumRows,
+                                                            autoNumCols);
+    m_automaticConfigurationRadioButton->setText(s_automaticConfigurationPrefix
+                                                 + " ("
+                                                 + AString::number(autoNumRows)
+                                                 + " Rows, "
+                                                 + AString::number(autoNumCols)
+                                                 + " Columns)");
+    
     int32_t numValidRows = 0;
     int32_t numValidColumns = 0;
     
-    const TileTabsConfiguration* configuration = getActiveTileTabsConfiguration();
+    const TileTabsConfiguration* configuration = getCustomTileTabsConfiguration();
     if (configuration != NULL) {
         numValidRows = configuration->getNumberOfRows();
         numValidColumns = configuration->getNumberOfColumns();
@@ -798,7 +826,7 @@ TileTabsConfigurationDialog::newUserConfigurationButtonClicked()
                     /*
                      * New configuration is copy of selected configuration (if available)
                      */
-                    const TileTabsConfiguration* selectedConfiguration = getActiveTileTabsConfiguration();
+                    const TileTabsConfiguration* selectedConfiguration = getCustomTileTabsConfiguration();
                     TileTabsConfiguration* configuration = ((selectedConfiguration != NULL)
                                                             ? selectedConfiguration->newCopyWithNewUniqueIdentifier()
                                                             : new TileTabsConfiguration());
@@ -875,14 +903,27 @@ TileTabsConfigurationDialog::renameUserConfigurationButtonClicked()
 }
 
 /**
- * @return A pointer to the selected tile tabs configuration of NULL if
- * no configuration is available.
+ * @return A pointer to the automatic tile tabs configuration.
  */
 TileTabsConfiguration*
-TileTabsConfigurationDialog::getActiveTileTabsConfiguration()
+TileTabsConfigurationDialog::getAutomaticTileTabsConfiguration()
 {
     BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    return browserWindowContent->getTileTabsConfiguration();
+    TileTabsConfiguration* configuration = browserWindowContent->getAutomaticTileTabsConfiguration();
+    CaretAssert(configuration);
+    return configuration;
+}
+
+/**
+ * @return A pointer to the custom tile tabs configuration.
+ */
+TileTabsConfiguration*
+TileTabsConfigurationDialog::getCustomTileTabsConfiguration()
+{
+    BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
+    TileTabsConfiguration* configuration = browserWindowContent->getCustomTileTabsConfiguration();
+    CaretAssert(configuration);
+    return configuration;
 }
 
 /**
@@ -911,7 +952,7 @@ TileTabsConfigurationDialog::getSelectedUserTileTabsConfiguration()
 void
 TileTabsConfigurationDialog::configurationNumberOfRowsOrColumnsChanged()
 {
-    TileTabsConfiguration* configuration = getActiveTileTabsConfiguration();
+    TileTabsConfiguration* configuration = getCustomTileTabsConfiguration();
     if (configuration != NULL) {
         configuration->setNumberOfRows(m_numberOfRowsSpinBox->value());
         configuration->setNumberOfColumns(m_numberOfColumnsSpinBox->value());
@@ -928,7 +969,7 @@ TileTabsConfigurationDialog::configurationNumberOfRowsOrColumnsChanged()
 void
 TileTabsConfigurationDialog::configurationStretchFactorWasChanged()
 {
-    TileTabsConfiguration* configuration = getActiveTileTabsConfiguration();
+    TileTabsConfiguration* configuration = getCustomTileTabsConfiguration();
     if (configuration == NULL) {
         return;
     }

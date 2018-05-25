@@ -474,6 +474,34 @@ TileTabsConfiguration::setRowStretchFactor(const int32_t rowIndex,
 }
 
 /**
+ * Get the number of rows and columns for an automatic layout with the
+ * given number of tabs.
+ * @param numberOfTabs
+ *     Number of tabs.
+ * @param numberOfRowsOut
+ *     Output with number of rows.
+ * @param numberOfColumnsOut
+ *     Output with number of columns.
+ */
+void
+TileTabsConfiguration::getRowsAndColumnsForNumberOfTabs(const int32_t numberOfTabs,
+                                                        int32_t& numberOfRowsOut,
+                                                        int32_t& numberOfColumnsOut)
+{
+    CaretAssert(numberOfTabs >= 0);
+    
+    numberOfRowsOut = (int)std::sqrt((double)numberOfTabs);
+    numberOfColumnsOut = numberOfRowsOut;
+    int32_t row2 = numberOfRowsOut * numberOfRowsOut;
+    if (row2 < numberOfTabs) {
+        numberOfColumnsOut++;
+    }
+    if ((numberOfRowsOut * numberOfColumnsOut) < numberOfTabs) {
+        numberOfRowsOut++;
+    }
+}
+
+/**
  * Updates the number of rows and columns for the automatic configuration
  * based upon the number of tabs.  
  *
@@ -483,15 +511,19 @@ TileTabsConfiguration::setRowStretchFactor(const int32_t rowIndex,
 void
 TileTabsConfiguration::updateAutomaticConfigurationRowsAndColumns(const int32_t numberOfTabs)
 {
-    int32_t numRows = (int)std::sqrt((double)numberOfTabs);
-    int32_t numCols = numRows;
-    int32_t row2 = numRows * numRows;
-    if (row2 < numberOfTabs) {
-        numCols++;
-    }
-    if ((numRows * numCols) < numberOfTabs) {
-        numRows++;
-    }
+    int32_t numRows(0), numCols(0);
+    getRowsAndColumnsForNumberOfTabs(numberOfTabs,
+                                     numRows,
+                                     numCols);
+//    int32_t numRows = (int)std::sqrt((double)numberOfTabs);
+//    int32_t numCols = numRows;
+//    int32_t row2 = numRows * numRows;
+//    if (row2 < numberOfTabs) {
+//        numCols++;
+//    }
+//    if ((numRows * numCols) < numberOfTabs) {
+//        numRows++;
+//    }
     
     setNumberOfRows(numRows);
     setNumberOfColumns(numCols);

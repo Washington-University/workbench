@@ -462,7 +462,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         if (restoreToTabTiles) {
             CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
             
-            TileTabsConfiguration* tileTabsConfiguration = bwc->getTileTabsConfiguration();
+            TileTabsConfiguration* tileTabsConfiguration = bwc->getSelectedTileTabsConfiguration();
             CaretAssert(tileTabsConfiguration);
             if ((tileTabsConfiguration->getMaximumNumberOfRows() > 0)
                 && (tileTabsConfiguration->getMaximumNumberOfColumns() > 0)) {
