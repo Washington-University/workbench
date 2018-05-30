@@ -129,11 +129,7 @@ TileTabsConfigurationDialog::receiveEvent(Event* event)
         CaretAssert(browserWindowContent);
         
         if (redrawEvent->getBrowserWindowIndex() == browserWindowContent->getWindowIndex()) {
-//            if (browserWindowContent->isTileTabsEnabled()) {
-//                if (browserWindowContent->isTileTabsAutomaticConfigurationEnabled()) {
-                    updateStretchFactors();
-//                }
-//            }
+                    updateDialog();
         }
     }
 }
@@ -301,8 +297,7 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     QGroupBox* configurationWidget = new QGroupBox("User Configurations");
     QVBoxLayout* configurationLayout = new QVBoxLayout(configurationWidget);
     configurationLayout->addWidget(m_userConfigurationSelectionListWidget,
-                                   100);//,
-                                   //Qt::AlignHCenter);
+                                   100);
     configurationLayout->addLayout(buttonsLayout,
                                    0);
     
@@ -346,7 +341,7 @@ TileTabsConfigurationDialog::createCustomConfigurationWidget()
     
     const AString autoToolTip("Workbench adjusts the number of rows and columns so "
                               "that all tabs are displayed");
-    m_automaticConfigurationRadioButton = new QRadioButton(s_automaticConfigurationPrefix);
+    m_automaticConfigurationRadioButton = new QRadioButton("Automatic Configuration");
     m_automaticConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(autoToolTip));
     
     const AString customToolTip("User sets the number of row, columns, and stretch factors");
@@ -548,10 +543,18 @@ TileTabsConfigurationDialog::browserWindowComboBoxValueChanged(BrainBrowserWindo
  *     New checked status of checkbox.
  */
 void
-TileTabsConfigurationDialog::automaticCustomButtonClicked(QAbstractButton* /*button*/)
+TileTabsConfigurationDialog::automaticCustomButtonClicked(QAbstractButton* button)
 {
     BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    browserWindowContent->setTileTabsAutomaticConfigurationEnabled(m_automaticConfigurationRadioButton->isChecked());
+    if (button == m_automaticConfigurationRadioButton) {
+        browserWindowContent->setTileTabsConfigurationMode(TileTabsConfigurationModeEnum::AUTOMATIC);
+    }
+    else if (button == m_customConfigurationRadioButton) {
+        browserWindowContent->setTileTabsConfigurationMode(TileTabsConfigurationModeEnum::CUSTOM);
+    }
+    else {
+        CaretAssert(0);
+    }
     updateStretchFactors();
     updateGraphicsWindow();
 }
@@ -597,11 +600,13 @@ void
 TileTabsConfigurationDialog::updateDialog()
 {
     BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    if (browserWindowContent->isTileTabsAutomaticConfigurationEnabled()) {
-        m_automaticConfigurationRadioButton->setChecked(true);
-    }
-    else {
-        m_customConfigurationRadioButton->setChecked(true);
+    switch (browserWindowContent->getTileTabsConfigurationMode()) {
+        case TileTabsConfigurationModeEnum::AUTOMATIC:
+            m_automaticConfigurationRadioButton->setChecked(true);
+            break;
+        case TileTabsConfigurationModeEnum::CUSTOM:
+            m_customConfigurationRadioButton->setChecked(true);
+            break;
     }
     
     readConfigurationsFromPreferences();
@@ -654,18 +659,7 @@ void
 TileTabsConfigurationDialog::updateStretchFactors()
 {
     BrainBrowserWindow* browserWindow = getBrowserWindow();
-    std::vector<int32_t> windowTabIndices;
-    browserWindow->getAllTabContentIndices(windowTabIndices);
-    int32_t autoNumRows(0), autoNumCols(0);
-    TileTabsConfiguration::getRowsAndColumnsForNumberOfTabs(static_cast<int32_t>(windowTabIndices.size()),
-                                                            autoNumRows,
-                                                            autoNumCols);
-    m_automaticConfigurationRadioButton->setText(s_automaticConfigurationPrefix
-                                                 + " ("
-                                                 + AString::number(autoNumRows)
-                                                 + " Rows, "
-                                                 + AString::number(autoNumCols)
-                                                 + " Columns)");
+    m_automaticConfigurationRadioButton->setText(browserWindow->getTileTabsAutomaticConfigurationLabel(true));
     
     int32_t numValidRows = 0;
     int32_t numValidColumns = 0;

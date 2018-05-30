@@ -146,6 +146,7 @@ StringTableModel.h
 StructureEnum.h
 SystemUtilities.h
 TileTabsConfiguration.h
+TileTabsConfigurationModeEnum.h
 TracksModificationInterface.h
 TriStateSelectionStatusEnum.h
 Vector3D.h
@@ -241,6 +242,7 @@ StringTableModel.cxx
 StructureEnum.cxx
 SystemUtilities.cxx
 TileTabsConfiguration.cxx
+TileTabsConfigurationModeEnum.cxx
 TriStateSelectionStatusEnum.cxx
 Vector3D.cxx
 VectorOperation.cxx

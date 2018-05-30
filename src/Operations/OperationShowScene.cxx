@@ -495,7 +495,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     if ( ! tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
                                                                                             windowHeight,
                                                                                             numTabContent,
-                                                                                            bwc->isTileTabsAutomaticConfigurationEnabled(),
+                                                                                            bwc->getTileTabsConfigurationMode(),
                                                                                             rowHeights,
                                                                                             columnWidths)) {
                         throw OperationException("Tile Tabs Row/Column sizing failed !!!");

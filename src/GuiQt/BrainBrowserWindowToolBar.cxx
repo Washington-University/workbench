@@ -808,8 +808,12 @@ BrainBrowserWindowToolBar::allowAddingNewTab()
     /*
      * Automatic configuration always shows all tabs
      */
-    if (browserWindowContent->isTileTabsAutomaticConfigurationEnabled()) {
-        return true;
+    switch (browserWindowContent->getTileTabsConfigurationMode()) {
+        case TileTabsConfigurationModeEnum::AUTOMATIC:
+            return true;
+            break;
+        case TileTabsConfigurationModeEnum::CUSTOM:
+            break;
     }
     
     /*

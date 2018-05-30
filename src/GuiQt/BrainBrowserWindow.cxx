@@ -1258,13 +1258,20 @@ BrainBrowserWindow::createActions()
     QObject::connect(m_viewTileTabsAction, SIGNAL(triggered()),
                      this, SLOT(processViewTileTabs()));
     
-    m_viewTileTabsConfigurationDialogAction = WuQtUtilities::createAction("Tile Tabs Configuration...",
+    m_viewTileTabsConfigurationDialogAction = WuQtUtilities::createAction("Edit Tile Tabs Configuration...",
                                                                           "",
-                                                                          Qt::CTRL + Qt::SHIFT + Qt::Key_M,
                                                                           this,
                                                                           this,
                                                                           SLOT(processViewTileTabsConfigurationDialog()));
+    m_viewTileTabsConfigurationDialogAction->setShortcut((Qt::CTRL + Qt::SHIFT + Qt::Key_M));
 
+    m_viewAutomaticTileTabsConfigurationAction = WuQtUtilities::createAction("Automatic Tile Tabs Configuration",
+                                                                             "",
+                                                                             this,
+                                                                             this,
+                                                                             SLOT(processViewTileTabsAutomaticConfigurationMenuItemTriggered(bool)));
+    m_viewAutomaticTileTabsConfigurationAction->setCheckable(true);
+    
     m_gapsAndMarginsAction =
     WuQtUtilities::createAction("Gaps and Margins...",
                                 "Adjust the gaps and margins",
@@ -2170,6 +2177,131 @@ BrainBrowserWindow::processViewMenuAboutToShow()
     else {
         m_viewTileTabsAction->setText("Enter Tile Tabs");
     }
+
+    m_viewAutomaticTileTabsConfigurationAction->setText(getTileTabsAutomaticConfigurationLabel(true));
+    
+    BrowserWindowContent* bwc = getBrowerWindowContent();
+    switch (bwc->getTileTabsConfigurationMode()) {
+        case TileTabsConfigurationModeEnum::AUTOMATIC:
+            break;
+        case TileTabsConfigurationModeEnum::CUSTOM:
+            break;
+    }
+    m_viewAutomaticTileTabsConfigurationAction->setChecked(bwc->getTileTabsConfigurationMode()
+                                                           == TileTabsConfigurationModeEnum::AUTOMATIC);
+}
+
+/**
+ * @return Label for "Automatic Configuration" in View Menu
+ * and Tile Tabs Configuration dialog.
+ */
+AString
+BrainBrowserWindow::getTileTabsAutomaticConfigurationLabel(const bool includeRowsAndColumns) const
+{
+    AString textLabel = "Automatic Configuration";
+    
+    if (includeRowsAndColumns) {
+        std::vector<int32_t> windowTabIndices;
+        getAllTabContentIndices(windowTabIndices);
+        int32_t autoNumRows(0), autoNumCols(0);
+        TileTabsConfiguration::getRowsAndColumnsForNumberOfTabs(static_cast<int32_t>(windowTabIndices.size()),
+                                                                autoNumRows,
+                                                                autoNumCols);
+        textLabel += (" ("
+                      + AString::number(autoNumRows)
+                      + " Rows, "
+                      + AString::number(autoNumCols)
+                      + " Columns)");
+    }
+    
+    return textLabel;
+}
+
+/**
+ * Update the tile tabs configuration menu just before it is shown.
+ */
+void
+BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuAboutToShow()
+{
+    
+    for (auto& menuAction : m_viewCustomTileTabsConfigurationActions) {
+        m_viewTileTabsConfigurationMenu->removeAction(menuAction.first);
+        
+        /*
+         * Since the action has been removed from the menu, allow Qt to delete it
+         */
+        menuAction.first->deleteLater();
+    }
+    
+    m_viewCustomTileTabsConfigurationActions.clear();
+    
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    std::vector<const TileTabsConfiguration*> tileTabsConfigs = prefs->getTileTabsConfigurationsSortedByName();
+    for (auto config : tileTabsConfigs) {
+        QAction* action = m_viewTileTabsConfigurationMenu->addAction(config->getName());
+        m_viewCustomTileTabsConfigurationActions.push_back(std::make_pair(action,
+                                                                          const_cast<TileTabsConfiguration*>(config)));
+    }
+}
+
+/**
+ * Called when the automatic tile tabs configuration menu item is triggered
+ */
+void
+BrainBrowserWindow::processViewTileTabsAutomaticConfigurationMenuItemTriggered(bool checked)
+{
+    BrowserWindowContent* bwc = getBrowerWindowContent();
+    if (checked) {
+        bwc->setTileTabsConfigurationMode(TileTabsConfigurationModeEnum::AUTOMATIC);
+    }
+    else {
+        bwc->setTileTabsConfigurationMode(TileTabsConfigurationModeEnum::CUSTOM);
+    }
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+}
+
+/**
+ * Process an item selected from the tile tabs configuration menu.
+ */
+void
+BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuItemTriggered(QAction* action)
+{
+    CaretAssert(action);
+    
+    BrowserWindowContent* bwc = getBrowerWindowContent();
+    bwc->setTileTabsConfigurationMode(TileTabsConfigurationModeEnum::CUSTOM);
+    
+    TileTabsConfiguration* tileTabsConfig = NULL;
+    for (auto& config : m_viewCustomTileTabsConfigurationActions) {
+        if (config.first == action) {
+            tileTabsConfig = config.second;
+            CaretAssert(tileTabsConfig);
+            break;
+        }
+    }
+    
+    CaretAssert(tileTabsConfig);
+    
+    bwc->getCustomTileTabsConfiguration()->copy(*tileTabsConfig);
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+}
+
+/**
+ * @return Instance of the tile tabs configuration menu.
+ */
+QMenu*
+BrainBrowserWindow::createMenuViewTileTabsLoadUserConfiguration()
+{
+    QMenu* menu = new QMenu("Load User Configuration");
+    QObject::connect(menu, &QMenu::aboutToShow,
+                     this, &BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuAboutToShow);
+    QObject::connect(menu, &QMenu::triggered,
+                     this, &BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuItemTriggered);
+    
+    return menu;
 }
 
 /**
@@ -2186,16 +2318,21 @@ BrainBrowserWindow::createMenuView()
     m_viewMoveFeaturesToolBoxMenu = createMenuViewMoveFeaturesToolBox();
     m_viewMoveOverlayToolBoxMenu = createMenuViewMoveOverlayToolBox();
     
+    m_viewTileTabsConfigurationMenu = createMenuViewTileTabsLoadUserConfiguration();
+    
     menu->addAction(m_showToolBarAction);
     menu->addMenu(m_viewMoveFeaturesToolBoxMenu);
     menu->addMenu(m_viewMoveOverlayToolBoxMenu);
     menu->addSeparator();
 
     menu->addAction(m_viewFullScreenAction);
-    menu->addAction(m_viewTileTabsAction);
     menu->addSeparator();
     menu->addAction(m_gapsAndMarginsAction);
+    menu->addSeparator();
+    menu->addAction(m_viewTileTabsAction);
     menu->addAction(m_viewTileTabsConfigurationDialogAction);
+    menu->addAction(m_viewAutomaticTileTabsConfigurationAction);
+    menu->addMenu(m_viewTileTabsConfigurationMenu);
     
     return menu;
 }

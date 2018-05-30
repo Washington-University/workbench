@@ -23,6 +23,7 @@
 
 #include "CaretException.h"
 #include "CaretObject.h"
+#include "TileTabsConfigurationModeEnum.h"
 
 class QDomDocument;
 
@@ -43,11 +44,11 @@ namespace caret {
         void copy(const TileTabsConfiguration& rhs);
         
         TileTabsConfiguration* newCopyWithNewUniqueIdentifier() const;
-        
+                
         bool getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
                                                        const int32_t windowHeight,
                                                        const int32_t numberOfModelsToDraw,
-                                                       const bool automaticConfigurationEnabled,
+                                                       const TileTabsConfigurationModeEnum::Enum configurationMode,
                                                        std::vector<int32_t>& rowHeightsOut,
                                                        std::vector<int32_t>& columnWidthsOut);
         

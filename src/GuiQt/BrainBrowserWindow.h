@@ -47,6 +47,7 @@ namespace caret {
     class BrowserTabContent;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
+    class TileTabsConfiguration;
 
     
     /**
@@ -147,6 +148,8 @@ namespace caret {
         
         bool isOpenGLContextSharingValid() const;
 
+        AString getTileTabsAutomaticConfigurationLabel(const bool includeRowsAndColumns) const;
+
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);
@@ -174,6 +177,11 @@ namespace caret {
         void processShowIdentifyBrainordinateDialog();
         void processGapsAndMargins();
         
+        void processViewTileTabsLoadUserConfigurationMenuAboutToShow();
+        void processViewTileTabsLoadUserConfigurationMenuItemTriggered(QAction* action);
+        void processViewTileTabsAutomaticConfigurationMenuItemTriggered(bool checked);
+        
+
         void processMoveOverlayToolBoxToLeft();
         void processMoveOverlayToolBoxToBottom();
         void processMoveOverlayToolBoxToFloat();
@@ -280,6 +288,7 @@ namespace caret {
         QMenu* createMenuView();
         QMenu* createMenuViewMoveOverlayToolBox();
         QMenu* createMenuViewMoveFeaturesToolBox();
+        QMenu* createMenuViewTileTabsLoadUserConfiguration();
         QMenu* createMenuConnect();
         QMenu* createMenuData();
         QMenu* createMenuSurface();
@@ -359,11 +368,14 @@ namespace caret {
         
         QMenu* m_viewMoveFeaturesToolBoxMenu;
         QMenu* m_viewMoveOverlayToolBoxMenu;
+        QMenu* m_viewTileTabsConfigurationMenu;
         
         QAction* m_viewFullScreenAction;
         QAction* m_viewTileTabsAction;
         
         QAction* m_viewTileTabsConfigurationDialogAction;
+        QAction* m_viewAutomaticTileTabsConfigurationAction;
+        std::vector<std::pair<QAction*, TileTabsConfiguration*>> m_viewCustomTileTabsConfigurationActions;
         
         QAction* m_gapsAndMarginsAction;
         

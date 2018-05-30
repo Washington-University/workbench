@@ -125,8 +125,6 @@ namespace caret {
         
         QWidget* m_customConfigurationWidget;
         
-        static const AString s_automaticConfigurationPrefix;
-        
         QRadioButton* m_automaticConfigurationRadioButton;
         
         QRadioButton* m_customConfigurationRadioButton;
@@ -171,7 +169,7 @@ namespace caret {
     };
     
 #ifdef __TILE_TABS_CONFIGURATION_DIALOG_DECLARE__
-    const AString TileTabsConfigurationDialog::s_automaticConfigurationPrefix = "Automatic Configuration";
+//    const AString TileTabsConfigurationDialog::s_automaticConfigurationPrefix = "Automatic Configuration";
 #endif // __TILE_TABS_CONFIGURATION_DIALOG_DECLARE__
 
 } // namespace

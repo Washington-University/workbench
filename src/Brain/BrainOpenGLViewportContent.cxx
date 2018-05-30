@@ -603,7 +603,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
     tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
                                                                      windowHeight,
                                                                      numberOfTabs,
-                                                                     browserWindowContent->isTileTabsAutomaticConfigurationEnabled(),
+                                                                     browserWindowContent->getTileTabsConfigurationMode(),
                                                                      tabConfigRowHeights,
                                                                      tabConfigColumnWidths);
     

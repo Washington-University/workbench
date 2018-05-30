@@ -556,7 +556,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
         if (tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
                                                                              windowHeight,
                                                                              numberOfTabs,
-                                                                             browserWindowContent->isTileTabsAutomaticConfigurationEnabled(),
+                                                                             browserWindowContent->getTileTabsConfigurationMode(),
                                                                              rowHeights,
                                                                              columnsWidths)) {
             
