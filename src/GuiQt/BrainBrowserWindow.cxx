@@ -26,6 +26,7 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListIterator>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -249,7 +250,6 @@ m_browserWindowIndex(browserWindowIndex)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
 
-#if QT_VERSION >= 0x050600
     if (m_overlayHorizontalToolBox == m_overlayActiveToolBox) {
         /*
          * With Qt5, default height of overlay toolbox at bottom is
@@ -262,11 +262,10 @@ m_browserWindowIndex(browserWindowIndex)
         QList<int> dockSizes;
         dockSizes.push_back(toolboxHeight);
         
-        resizeDocks(docks,
-                    dockSizes,
-                    Qt::Vertical);
+        resizeDockWidgets(docks,
+                          dockSizes,
+                          Qt::Vertical);
     }
-#endif
     s_brainBrowserWindows.insert(this);
     
     GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
@@ -475,6 +474,45 @@ BrainBrowserWindow::receiveEvent(Event* event)
          */
         processEditMenuAboutToShow();
     }
+}
+
+/**
+ * Resize the Dock Widgets (same as QMainWindow::resizeDocks in Qt 5.7 and later)
+ *
+ * @param docks
+ *     The dock widgets.
+ * @param sizes
+ *     Sizes for the dock widgets
+ * @param orientation
+ *     Orientation for resizing.
+ */
+void
+BrainBrowserWindow::resizeDockWidgets(const QList<QDockWidget *> &docks,
+                                      const QList<int> &sizes,
+                                      Qt::Orientation orientation)
+{
+    CaretAssert(docks.size() == sizes.size());
+#if QT_VERSION >= 0x050600
+    resizeDocks(docks,
+                sizes,
+                orientation);
+#else
+    const int32_t numDocks = std::min(docks.size(),
+                                      sizes.size());
+    for (int32_t i = 0; i < numDocks; i++) {
+        CaretAssert(docks[i]);
+        BrainBrowserWindowOrientedToolBox* tb = dynamic_cast<BrainBrowserWindowOrientedToolBox*>(docks[i]);
+        CaretAssert(tb);
+        switch (orientation) {
+            case Qt::Horizontal:
+                tb->setSizeHintWidth(sizes[i]);
+                break;
+            case Qt::Vertical:
+                tb->setSizeHintHeight(sizes[i]);
+                break;
+        }
+    }
+#endif
 }
 
 /**
@@ -4372,7 +4410,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
             m_featuresToolBox->restoreFromScene(sceneAttributes,
                                                 sceneClass->getClass("m_featuresToolBox"));
             
-#if QT_VERSION >= 0x050600
             /*
              * Toolboxes were not restoring to correct size in Qt5.
              * Qt5.6 adds a new method, QMainWindow::resizeDocks() that 
@@ -4389,10 +4426,9 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
                     dockList.append(m_featuresToolBox);
                     QList<int> sizeList;
                     sizeList.append(w);
-                    resizeDocks(dockList, sizeList, Qt::Horizontal);
+                    resizeDockWidgets(dockList, sizeList, Qt::Horizontal);
                 }
             }
-#endif
         }
         
         /*
@@ -4420,7 +4456,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                      sceneClass->getClass("m_overlayActiveToolBox"));
             
 
-#if QT_VERSION >= 0x050600
             /*
              * Toolboxes were not restoring to correct size in Qt5.
              * Qt5 adds a new method, QMainWindow::resizeDocks() that
@@ -4438,16 +4473,15 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
                     if (orientationName == "horizontal") {
                         QList<int> sizeList;
                         sizeList.append(h);
-                        resizeDocks(dockList, sizeList, Qt::Vertical);
+                        resizeDockWidgets(dockList, sizeList, Qt::Vertical);
                     }
                     else {
                         QList<int> sizeList;
                         sizeList.append(w);
-                        resizeDocks(dockList, sizeList, Qt::Horizontal);
+                        resizeDockWidgets(dockList, sizeList, Qt::Horizontal);
                     }
                 }
             }
-#endif
         }
     }
     

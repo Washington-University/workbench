@@ -42,6 +42,7 @@ namespace caret {
     class LabelSelectionViewController;
     class OverlaySetViewController;
     class VolumeSurfaceOutlineSetViewController;
+    class WuQTabWidgetWithSizeHint;
     
     class BrainBrowserWindowOrientedToolBox :  public QDockWidget, public EventListenerInterface, public SceneableInterface {
         Q_OBJECT
@@ -61,6 +62,12 @@ namespace caret {
         ~BrainBrowserWindowOrientedToolBox();
 
         void receiveEvent(Event* event);
+        
+        void setSizeHintWidth(const int width);
+        
+        void setSizeHintHeight(const int height);
+        
+        virtual QSize sizeHint() const override;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -102,7 +109,7 @@ namespace caret {
         
         VolumeSurfaceOutlineSetViewController* m_volumeSurfaceOutlineSetViewController;
         
-        QTabWidget* m_tabWidget;
+        WuQTabWidgetWithSizeHint* m_tabWidget;
         
         QString m_toolBoxTitle;
         
@@ -129,6 +136,10 @@ namespace caret {
         int32_t m_labelTabIndex;
         
         int32_t m_volumeSurfaceOutlineTabIndex;
+        
+        int m_sizeHintWidth = -1;
+        
+        int m_sizeHintHeight = -1;
         
         QSize m_minimumSizeAfterSceneRestored;
         QSize m_maximumSizeAfterSceneRestored;

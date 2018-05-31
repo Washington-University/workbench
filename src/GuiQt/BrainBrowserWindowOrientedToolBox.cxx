@@ -57,6 +57,7 @@
 #include "SessionManager.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineSetViewController.h"
+#include "WuQTabWidgetWithSizeHint.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -128,7 +129,25 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_overlaySetViewController         = NULL;
     m_volumeSurfaceOutlineSetViewController = NULL;
 
-    m_tabWidget = new QTabWidget();
+    m_tabWidget = new WuQTabWidgetWithSizeHint();
+#if QT_VERSION < 0x050600
+    /*
+     * Versions of Qt prior to 5.7 do not have QMainWindow::resizeDocks().
+     * QDockWidget adjusts its size using the size hint from the child widget
+     * and we have have a version of QTabWidget that overrides sizeHint.
+     * Without this, the horizontal overlay toolbox uses most of the
+     * window height (way too tall).
+     */
+    switch (toolBoxType) {
+        case TOOL_BOX_FEATURES:
+            break;
+        case TOOL_BOX_OVERLAYS_HORIZONTAL:
+            m_tabWidget->setSizeHintHeight(100);
+            break;
+        case TOOL_BOX_OVERLAYS_VERTICAL:
+            break;
+    }
+#endif
     
     m_annotationTabIndex = -1;
     m_borderTabIndex = -1;
@@ -222,6 +241,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     if (orientation == Qt::Horizontal) {
         setMinimumHeight(200);
         setMaximumHeight(800);
+        //setSizeHintHeight(200);
     }
     else {
         if (isOverlayToolBox) {
@@ -283,6 +303,50 @@ BrainBrowserWindowOrientedToolBox::floatingStatusChanged(bool /*status*/)
 }
 
 /**
+ * Set the size hint width (non-positive uses default size hint for width)
+ *
+ * @param width
+ *     Width for size hint.
+ */
+void
+BrainBrowserWindowOrientedToolBox::setSizeHintWidth(const int width)
+{
+    m_sizeHintWidth = width;
+    
+    if (m_sizeHintWidth > 0) {
+        const int32_t childSize = std::max(m_sizeHintWidth - 50, 50);
+        m_tabWidget->setSizeHintWidth(childSize);
+    }
+}
+
+/**
+ * Set the size hint height (non-positive uses default size hint for height)
+ *
+ * @param height
+ *     Height for size hint.
+ */
+void
+BrainBrowserWindowOrientedToolBox::setSizeHintHeight(const int height)
+{
+    m_sizeHintHeight = height;
+    
+    if (m_sizeHintHeight > 0) {
+        const int32_t childSize = std::max(m_sizeHintHeight - 50, 50);
+        m_tabWidget->setSizeHintHeight(childSize);
+    }
+}
+
+/**
+ * @return Recommended size for this widget.
+ */
+QSize
+BrainBrowserWindowOrientedToolBox::sizeHint() const
+{
+    QSize sh = QDockWidget::sizeHint();
+    return sh;
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes
@@ -315,11 +379,6 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
         sceneClass->addClass(m_chartToolBoxViewController->saveToScene(sceneAttributes,
                                                                        "m_chartToolBoxViewController"));
     }
-//    if (m_chartTabWidget != NULL) {
-//       const AString chartTabName = m_chartTabWidget->tabText(m_chartTabWidget->currentIndex());
-//        sceneClass->addString("selectedChartTabName",
-//                              chartTabName);
-//    }
     
     /*
      * Save current widget size
@@ -412,16 +471,6 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         m_chartToolBoxViewController->restoreFromScene(sceneAttributes,
                                                        sceneClass->getClass("m_chartToolBoxViewController"));
     }
-//    const AString chartTabName = sceneClass->getStringValue("selectedChartTabName",
-//                                                            "");
-//    if ( ! chartTabName.isEmpty()) {
-//        for (int32_t i = 0; i < m_chartTabWidget->count(); i++) {
-//            if (m_chartTabWidget->tabText(i) == chartTabName) {
-//                m_chartTabWidget->setCurrentIndex(i);
-//                break;
-//            }
-//        }
-//    }
 
     /*
      * Restore controllers in the toolbox

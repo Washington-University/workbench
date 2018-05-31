@@ -35,9 +35,9 @@
 
 class QAction;
 class QActionGroup;
-class QDockWidget;
 class QMenu;
 class QToolButton;
+class QDockWidget;
 
 namespace caret {
     class BrainBrowserWindowToolBar;
@@ -150,6 +150,8 @@ namespace caret {
 
         AString getTileTabsAutomaticConfigurationLabel(const bool includeRowsAndColumns) const;
 
+        void resizeDockWidgets(const QList<QDockWidget *> &docks, const QList<int> &sizes, Qt::Orientation orientation);
+        
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);
