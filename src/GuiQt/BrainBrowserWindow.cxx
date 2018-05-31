@@ -1265,10 +1265,12 @@ BrainBrowserWindow::createActions()
                                                                           SLOT(processViewTileTabsConfigurationDialog()));
     m_viewTileTabsConfigurationDialogAction->setShortcut((Qt::CTRL + Qt::SHIFT + Qt::Key_M));
 
-    m_viewAutomaticTileTabsConfigurationAction = new QAction("Automatic");
+    m_viewAutomaticTileTabsConfigurationAction = new QAction("Automatic",
+                                                             this);
     m_viewAutomaticTileTabsConfigurationAction->setCheckable(true);
     
-    m_viewCustomTileTabsConfigurationAction = new QAction("Custom");
+    m_viewCustomTileTabsConfigurationAction = new QAction("Custom",
+                                                          this);
     m_viewCustomTileTabsConfigurationAction->setCheckable(true);
     
     QActionGroup* autoCustomGroup = new QActionGroup(this);
@@ -2339,15 +2341,11 @@ BrainBrowserWindow::createMenuView()
     menu->addAction(m_viewFullScreenAction);
     menu->addSeparator();
     menu->addAction(m_gapsAndMarginsAction);
-//    menu->addSeparator();
     menu->addSection("Tile Tabs");
     menu->addAction(m_viewTileTabsAction);
     menu->addAction(m_viewTileTabsConfigurationDialogAction);
     menu->addMenu(tileTabsModeMenu);
     menu->addMenu(m_viewTileTabsLoadUserConfigurationMenu);
-//    menu->addSeparator();
-//    menu->addAction(m_viewAutomaticTileTabsConfigurationAction);
-//    menu->addAction(m_viewCustomTileTabsConfigurationAction);
     
     return menu;
 }
