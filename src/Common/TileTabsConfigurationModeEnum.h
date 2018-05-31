@@ -35,9 +35,9 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Workbench creates tab layout */
         AUTOMATIC,
-        /** */
+        /** User customizes tab layout */
         CUSTOM
     };
 

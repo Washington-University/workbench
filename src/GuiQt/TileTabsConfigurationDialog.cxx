@@ -71,7 +71,7 @@ using namespace caret;
  *     Parent window.
  */
 TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* parentBrainBrowserWindow)
-: WuQDialogNonModal("Tile Tabs Configuration",
+: WuQDialogNonModal("Tile Tabs Configurations",
                     parentBrainBrowserWindow)
 {
     m_blockReadConfigurationsFromPreferences = false;
@@ -187,8 +187,12 @@ TileTabsConfigurationDialog::copyToUserConfigurationPushButtonClicked()
 
     TileTabsConfiguration* userConfiguration = getSelectedUserTileTabsConfiguration();
     if (userConfiguration == NULL) {
-        WuQMessageBox::errorOk(this,
-                               "There are no user configurations");
+        newUserConfigurationButtonClicked();
+        userConfiguration = getSelectedUserTileTabsConfiguration();
+        if (userConfiguration == NULL) {
+            WuQMessageBox::errorOk(this,
+                                   "There are no user configurations");
+        }
         return;
     }
     
@@ -789,7 +793,7 @@ TileTabsConfigurationDialog::newUserConfigurationButtonClicked()
         WuQDataEntryDialog ded("New Tile Tabs Configuration",
                                m_newConfigurationPushButton);
         
-        QLineEdit* nameLineEdit = ded.addLineEditWidget("View Name");
+        QLineEdit* nameLineEdit = ded.addLineEditWidget("Configuration Name");
         nameLineEdit->setText(newTileTabsName);
         if (ded.exec() == WuQDataEntryDialog::Accepted) {
             /*

@@ -179,7 +179,7 @@ namespace caret {
         
         void processViewTileTabsLoadUserConfigurationMenuAboutToShow();
         void processViewTileTabsLoadUserConfigurationMenuItemTriggered(QAction* action);
-        void processViewTileTabsAutomaticConfigurationMenuItemTriggered(bool checked);
+        void processViewTileTabsAutomaticCustomTriggered(QAction* action);
         
 
         void processMoveOverlayToolBoxToLeft();
@@ -368,13 +368,14 @@ namespace caret {
         
         QMenu* m_viewMoveFeaturesToolBoxMenu;
         QMenu* m_viewMoveOverlayToolBoxMenu;
-        QMenu* m_viewTileTabsConfigurationMenu;
+        QMenu* m_viewTileTabsLoadUserConfigurationMenu;
         
         QAction* m_viewFullScreenAction;
         QAction* m_viewTileTabsAction;
         
         QAction* m_viewTileTabsConfigurationDialogAction;
         QAction* m_viewAutomaticTileTabsConfigurationAction;
+        QAction* m_viewCustomTileTabsConfigurationAction;
         std::vector<std::pair<QAction*, TileTabsConfiguration*>> m_viewCustomTileTabsConfigurationActions;
         
         QAction* m_gapsAndMarginsAction;

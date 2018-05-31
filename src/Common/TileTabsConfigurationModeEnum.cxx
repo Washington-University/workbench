@@ -31,9 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::TileTabsConfigurationModeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \brief Enumerated type for Tile Tab Configuration Types
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
