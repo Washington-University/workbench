@@ -2224,7 +2224,10 @@ BrainBrowserWindow::processViewMenuAboutToShow()
         m_viewTileTabsAction->setText("Enter Tile Tabs");
     }
 
-    m_viewAutomaticTileTabsConfigurationAction->setText(getTileTabsAutomaticConfigurationLabel(true));
+    m_viewAutomaticTileTabsConfigurationAction->setText(getTileTabsConfigurationLabelText(TileTabsConfigurationModeEnum::AUTOMATIC,
+                                                                                      true));
+    m_viewCustomTileTabsConfigurationAction->setText(getTileTabsConfigurationLabelText(TileTabsConfigurationModeEnum::CUSTOM,
+                                                                                   true));
     
     BrowserWindowContent* bwc = getBrowerWindowContent();
     switch (bwc->getTileTabsConfigurationMode()) {
@@ -2238,27 +2241,66 @@ BrainBrowserWindow::processViewMenuAboutToShow()
 }
 
 /**
- * @return Label for "Automatic Configuration" in View Menu
+ * @return Label for given tile tabs configuration in View Menu
  * and Tile Tabs Configuration dialog.
+ *
+ * @param configurationMode
+ *     The configuration mode.
+ * @param includeRowsAndColumns
+ *     Include the number of rows and columns.
  */
 AString
-BrainBrowserWindow::getTileTabsAutomaticConfigurationLabel(const bool includeRowsAndColumns) const
+BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsConfigurationModeEnum::Enum configurationMode,
+                                                  const bool includeRowsAndColumns) const
 {
-    AString textLabel = "Automatic";
+    AString modeLabel;
+    switch (configurationMode) {
+        case TileTabsConfigurationModeEnum::AUTOMATIC:
+            modeLabel = "Automatic";
+            break;
+        case TileTabsConfigurationModeEnum::CUSTOM:
+            modeLabel = "Custom";
+            break;
+    }
     
-    if (includeRowsAndColumns) {
         std::vector<int32_t> windowTabIndices;
         getAllTabContentIndices(windowTabIndices);
-        int32_t autoNumRows(0), autoNumCols(0);
-        TileTabsConfiguration::getRowsAndColumnsForNumberOfTabs(static_cast<int32_t>(windowTabIndices.size()),
-                                                                autoNumRows,
-                                                                autoNumCols);
-        textLabel += (" ("
-                      + AString::number(autoNumRows)
-                      + " Rows, "
-                      + AString::number(autoNumCols)
-                      + " Columns)");
+        int32_t configRowCount(0), configColCount(0);
+        
+        const int32_t windowTabCount = static_cast<int32_t>(windowTabIndices.size());
+        AString errorText;
+        switch (configurationMode) {
+            case TileTabsConfigurationModeEnum::AUTOMATIC:
+                TileTabsConfiguration::getRowsAndColumnsForNumberOfTabs(windowTabCount,
+                                                                        configRowCount,
+                                                                        configColCount);
+                break;
+            case TileTabsConfigurationModeEnum::CUSTOM:
+            {
+                const TileTabsConfiguration* customConfig = getBrowerWindowContent()->getCustomTileTabsConfiguration();
+                configRowCount = customConfig->getNumberOfRows();
+                configColCount = customConfig->getNumberOfColumns();
+                const int32_t customTabCount = (configRowCount
+                                                * configColCount);
+                if (customTabCount < windowTabCount) {
+                    errorText = " ***";
+                }
+            }
+                break;
+        }
+        
+    AString rowsColumnsText;
+    if (includeRowsAndColumns) {
+        rowsColumnsText = (" ("
+                           + AString::number(configRowCount)
+                           + " Rows, "
+                           + AString::number(configColCount)
+                           + " Columns)");
     }
+    
+    const AString textLabel(modeLabel
+                            + rowsColumnsText
+                            + errorText);
     
     return textLabel;
 }

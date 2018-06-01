@@ -348,9 +348,11 @@ TileTabsConfigurationDialog::createCustomConfigurationWidget()
     m_automaticConfigurationRadioButton = new QRadioButton("Automatic Configuration");
     m_automaticConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(autoToolTip));
     
-    const AString customToolTip("User sets the number of row, columns, and stretch factors");
+    const AString customToolTip("User sets the number of row, columns, and stretch factors; "
+                                "Asterisks (***) indicate more tabs in window than configuration "
+                                "displays");
     m_customConfigurationRadioButton = new QRadioButton("Custom Configuration");
-    m_customConfigurationRadioButton->setToolTip(customToolTip);
+    m_customConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(customToolTip));
     
     QButtonGroup* buttonGroup = new QButtonGroup(this);
     buttonGroup->addButton(m_automaticConfigurationRadioButton);
@@ -663,8 +665,10 @@ void
 TileTabsConfigurationDialog::updateStretchFactors()
 {
     BrainBrowserWindow* browserWindow = getBrowserWindow();
-    m_automaticConfigurationRadioButton->setText(browserWindow->getTileTabsAutomaticConfigurationLabel(true));
-    
+    m_automaticConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsConfigurationModeEnum::AUTOMATIC,
+                                                                                              true));
+    m_customConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsConfigurationModeEnum::CUSTOM,
+                                                                                           false));
     int32_t numValidRows = 0;
     int32_t numValidColumns = 0;
     
