@@ -2246,13 +2246,14 @@ BrainBrowserWindow::processViewMenuAboutToShow()
  *
  * @param configurationMode
  *     The configuration mode.
- * @param includeRowsAndColumns
+ * @param includeRowsAndColumnsIn
  *     Include the number of rows and columns.
  */
 AString
 BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsConfigurationModeEnum::Enum configurationMode,
-                                                  const bool includeRowsAndColumns) const
+                                                      const bool includeRowsAndColumnsIn) const
 {
+    bool includeRowsAndColumns = includeRowsAndColumnsIn;
     AString modeLabel;
     switch (configurationMode) {
         case TileTabsConfigurationModeEnum::AUTOMATIC:
@@ -2263,32 +2264,34 @@ BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsConfiguratio
             break;
     }
     
-        std::vector<int32_t> windowTabIndices;
-        getAllTabContentIndices(windowTabIndices);
-        int32_t configRowCount(0), configColCount(0);
-        
-        const int32_t windowTabCount = static_cast<int32_t>(windowTabIndices.size());
-        AString errorText;
-        switch (configurationMode) {
-            case TileTabsConfigurationModeEnum::AUTOMATIC:
-                TileTabsConfiguration::getRowsAndColumnsForNumberOfTabs(windowTabCount,
-                                                                        configRowCount,
-                                                                        configColCount);
-                break;
-            case TileTabsConfigurationModeEnum::CUSTOM:
-            {
-                const TileTabsConfiguration* customConfig = getBrowerWindowContent()->getCustomTileTabsConfiguration();
-                configRowCount = customConfig->getNumberOfRows();
-                configColCount = customConfig->getNumberOfColumns();
-                const int32_t customTabCount = (configRowCount
-                                                * configColCount);
-                if (customTabCount < windowTabCount) {
-                    errorText = " ***";
-                }
+    std::vector<int32_t> windowTabIndices;
+    getAllTabContentIndices(windowTabIndices);
+    int32_t configRowCount(0), configColCount(0);
+    
+    const int32_t windowTabCount = static_cast<int32_t>(windowTabIndices.size());
+    AString errorText;
+    switch (configurationMode) {
+        case TileTabsConfigurationModeEnum::AUTOMATIC:
+            TileTabsConfiguration::getRowsAndColumnsForNumberOfTabs(windowTabCount,
+                                                                    configRowCount,
+                                                                    configColCount);
+            break;
+        case TileTabsConfigurationModeEnum::CUSTOM:
+        {
+            const TileTabsConfiguration* customConfig = getBrowerWindowContent()->getCustomTileTabsConfiguration();
+            configRowCount = customConfig->getNumberOfRows();
+            configColCount = customConfig->getNumberOfColumns();
+            const int32_t customTabCount = (configRowCount
+                                            * configColCount);
+            const int32_t hiddenCount = windowTabCount - customTabCount;
+            if (hiddenCount > 0) {
+                errorText = " (configuration too small for all tabs)";
+                includeRowsAndColumns = false;
             }
-                break;
         }
-        
+            break;
+    }
+    
     AString rowsColumnsText;
     if (includeRowsAndColumns) {
         rowsColumnsText = (" ("

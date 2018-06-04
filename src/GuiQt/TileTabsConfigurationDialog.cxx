@@ -348,9 +348,7 @@ TileTabsConfigurationDialog::createCustomConfigurationWidget()
     m_automaticConfigurationRadioButton = new QRadioButton("Automatic Configuration");
     m_automaticConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(autoToolTip));
     
-    const AString customToolTip("User sets the number of row, columns, and stretch factors; "
-                                "Asterisks (***) indicate more tabs in window than configuration "
-                                "displays");
+    const AString customToolTip("User sets the number of row, columns, and stretch factors");
     m_customConfigurationRadioButton = new QRadioButton("Custom Configuration");
     m_customConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(customToolTip));
     
