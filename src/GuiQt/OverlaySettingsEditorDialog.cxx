@@ -151,6 +151,7 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
     disableAutoDefaultForAllPushButtons();
 
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_DATA_FILE_DELETE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
 }
 
 /**
@@ -170,7 +171,8 @@ OverlaySettingsEditorDialog::~OverlaySettingsEditorDialog()
 void
 OverlaySettingsEditorDialog::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_DELETE) {
+    if ((event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_DELETE)
+        || (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN)) {
         updateDialog();
     }
 }
