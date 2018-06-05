@@ -31,9 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::SurfaceMontageLayoutOrientationEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \brief Layout orientations for surface montage views
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -108,14 +106,21 @@ SurfaceMontageLayoutOrientationEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(SurfaceMontageLayoutOrientationEnum(LANDSCAPE_LAYOUT_ORIENTATION, 
-                                    "LANDSCAPE_LAYOUT_ORIENTATION", 
-                                    "Landscape"));
+    enumData.push_back(SurfaceMontageLayoutOrientationEnum(COLUMN_LAYOUT_ORIENTATION,
+                                                           "COLUMN_LAYOUT_ORIENTATION",
+                                                           "Column"));
     
-    enumData.push_back(SurfaceMontageLayoutOrientationEnum(PORTRAIT_LAYOUT_ORIENTATION, 
-                                    "PORTRAIT_LAYOUT_ORIENTATION", 
-                                    "Portrait"));
+    enumData.push_back(SurfaceMontageLayoutOrientationEnum(LANDSCAPE_LAYOUT_ORIENTATION,
+                                                           "LANDSCAPE_LAYOUT_ORIENTATION",
+                                                           "Landscape"));
     
+    enumData.push_back(SurfaceMontageLayoutOrientationEnum(PORTRAIT_LAYOUT_ORIENTATION,
+                                                           "PORTRAIT_LAYOUT_ORIENTATION",
+                                                           "Portrait"));
+    
+    enumData.push_back(SurfaceMontageLayoutOrientationEnum(ROW_LAYOUT_ORIENTATION,
+                                                           "ROW_LAYOUT_ORIENTATION",
+                                                           "Row"));
 }
 
 /**
@@ -172,7 +177,7 @@ SurfaceMontageLayoutOrientationEnum::fromName(const AString& name, bool* isValid
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = SurfaceMontageLayoutOrientationEnum::enumData[0].enumValue;
+    Enum enumValue = LANDSCAPE_LAYOUT_ORIENTATION;
     
     for (std::vector<SurfaceMontageLayoutOrientationEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -225,7 +230,7 @@ SurfaceMontageLayoutOrientationEnum::fromGuiName(const AString& guiName, bool* i
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = SurfaceMontageLayoutOrientationEnum::enumData[0].enumValue;
+    Enum enumValue = LANDSCAPE_LAYOUT_ORIENTATION;
     
     for (std::vector<SurfaceMontageLayoutOrientationEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -278,7 +283,7 @@ SurfaceMontageLayoutOrientationEnum::fromIntegerCode(const int32_t integerCode, 
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = SurfaceMontageLayoutOrientationEnum::enumData[0].enumValue;
+    Enum enumValue = LANDSCAPE_LAYOUT_ORIENTATION;
     
     for (std::vector<SurfaceMontageLayoutOrientationEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

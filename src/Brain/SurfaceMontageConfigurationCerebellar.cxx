@@ -387,6 +387,10 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
         CaretAssert(surfaceMontageViewports.size() == 2);
         
         switch (getLayoutOrientation()) {
+            case SurfaceMontageLayoutOrientationEnum::COLUMN_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(1, 0);
+                break;
             case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
                 surfaceMontageViewports[0].setRowAndColumn(0, 0);
                 surfaceMontageViewports[1].setRowAndColumn(0, 1);
@@ -395,8 +399,11 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
                 surfaceMontageViewports[0].setRowAndColumn(0, 0);
                 surfaceMontageViewports[1].setRowAndColumn(1, 0);
                 break;
+            case SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(0, 1);
+                break;
         }
-        
     }
     else if (totalNum == 3) {
         surfaceMontageViewports.insert(surfaceMontageViewports.end(),
@@ -405,24 +412,88 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
         
         CaretAssert(surfaceMontageViewports.size() == 3);
         
+        int32_t dorsalIndex(-1);
+        int32_t ventralIndex(-1);
+        int32_t anteriorIndex(-1);
+        int32_t posteriorIndex(-1);
         for (int32_t i = 0; i < 3; i++) {
             SurfaceMontageViewport& svp = surfaceMontageViewports[i];
             switch (svp.getProjectionViewType()) {
                 case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
                     svp.setRowAndColumn(1, 0);
+                    anteriorIndex = i;
                     break;
                 case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
                     svp.setRowAndColumn(0, 0);
+                    dorsalIndex = i;
                     break;
                 case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
                     svp.setRowAndColumn(1, 1);
+                    posteriorIndex = i;
                     break;
                 case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
                     svp.setRowAndColumn(0, 1);
+                    ventralIndex = i;
                     break;
                 default:
                     CaretAssert(0);
             }
+        }
+        switch (getLayoutOrientation()) {
+            case SurfaceMontageLayoutOrientationEnum::COLUMN_LAYOUT_ORIENTATION:
+            {
+                int32_t columnIndex = 0;
+                if (dorsalIndex >= 0) {
+                    CaretAssertVectorIndex(surfaceMontageViewports, dorsalIndex);
+                    surfaceMontageViewports[dorsalIndex].setRowAndColumn(columnIndex, 0);
+                    columnIndex++;
+                }
+                if (ventralIndex >= 0) {
+                    CaretAssertVectorIndex(surfaceMontageViewports, ventralIndex);
+                    surfaceMontageViewports[ventralIndex].setRowAndColumn(columnIndex, 0);
+                    columnIndex++;
+                }
+                if (anteriorIndex >= 0) {
+                    CaretAssertVectorIndex(surfaceMontageViewports, anteriorIndex);
+                    surfaceMontageViewports[anteriorIndex].setRowAndColumn(columnIndex, 0);
+                    columnIndex++;
+                }
+                if (posteriorIndex >= 0) {
+                    CaretAssertVectorIndex(surfaceMontageViewports, posteriorIndex);
+                    surfaceMontageViewports[posteriorIndex].setRowAndColumn(columnIndex, 0);
+                    columnIndex++;
+                }
+            }
+                break;
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                break;
+            case SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION:
+            {
+                int32_t rowIndex = 0;
+                if (dorsalIndex >= 0) {
+                    CaretAssertVectorIndex(surfaceMontageViewports, dorsalIndex);
+                    surfaceMontageViewports[dorsalIndex].setRowAndColumn(0, rowIndex);
+                    rowIndex++;
+                }
+                if (ventralIndex >= 0) {
+                    CaretAssertVectorIndex(surfaceMontageViewports, ventralIndex);
+                    surfaceMontageViewports[ventralIndex].setRowAndColumn(0, rowIndex);
+                    rowIndex++;
+                }
+                if (anteriorIndex >= 0) {
+                    CaretAssertVectorIndex(surfaceMontageViewports, anteriorIndex);
+                    surfaceMontageViewports[anteriorIndex].setRowAndColumn(0, rowIndex);
+                    rowIndex++;
+                }
+                if (posteriorIndex >= 0) {
+                    CaretAssertVectorIndex(surfaceMontageViewports, posteriorIndex);
+                    surfaceMontageViewports[posteriorIndex].setRowAndColumn(0, rowIndex);
+                    rowIndex++;
+                }
+            }
+                break;
         }
     }
     else if (totalNum == 4) {
@@ -451,6 +522,25 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
         else {
             CaretAssert(0);
         }
+        
+        switch (getLayoutOrientation()) {
+            case SurfaceMontageLayoutOrientationEnum::COLUMN_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[2].setRowAndColumn(1, 0);
+                surfaceMontageViewports[1].setRowAndColumn(2, 0);
+                surfaceMontageViewports[3].setRowAndColumn(3, 0);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                break;
+            case SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[2].setRowAndColumn(0, 1);
+                surfaceMontageViewports[1].setRowAndColumn(0, 2);
+                surfaceMontageViewports[3].setRowAndColumn(0, 3);
+                break;
+        }
     }
     else if (totalNum == 6) {
         surfaceMontageViewports.insert(surfaceMontageViewports.end(),
@@ -459,6 +549,14 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
         CaretAssert(surfaceMontageViewports.size() == 6);
         
         switch (getLayoutOrientation()) {
+            case SurfaceMontageLayoutOrientationEnum::COLUMN_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[2].setRowAndColumn(1, 0);
+                surfaceMontageViewports[4].setRowAndColumn(2, 0);
+                surfaceMontageViewports[1].setRowAndColumn(3, 0);
+                surfaceMontageViewports[3].setRowAndColumn(4, 0);
+                surfaceMontageViewports[5].setRowAndColumn(5, 0);
+                break;
             case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
                 surfaceMontageViewports[0].setRowAndColumn(0, 0);
                 surfaceMontageViewports[1].setRowAndColumn(1, 0);
@@ -475,6 +573,14 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
                 surfaceMontageViewports[4].setRowAndColumn(2, 0);
                 surfaceMontageViewports[5].setRowAndColumn(2, 1);
                 break;
+            case SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[2].setRowAndColumn(0, 1);
+                surfaceMontageViewports[4].setRowAndColumn(0, 2);
+                surfaceMontageViewports[1].setRowAndColumn(0, 3);
+                surfaceMontageViewports[3].setRowAndColumn(0, 4);
+                surfaceMontageViewports[5].setRowAndColumn(0, 5);
+                break;
         }
     }
     else if (totalNum == 8) {
@@ -484,6 +590,16 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
         CaretAssert(surfaceMontageViewports.size() == 8);
         
         switch (getLayoutOrientation()) {
+            case SurfaceMontageLayoutOrientationEnum::COLUMN_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[2].setRowAndColumn(1, 0);
+                surfaceMontageViewports[4].setRowAndColumn(2, 0);
+                surfaceMontageViewports[6].setRowAndColumn(3, 0);
+                surfaceMontageViewports[1].setRowAndColumn(4, 0);
+                surfaceMontageViewports[3].setRowAndColumn(5, 0);
+                surfaceMontageViewports[5].setRowAndColumn(6, 0);
+                surfaceMontageViewports[7].setRowAndColumn(7, 0);
+                break;
             case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
                 surfaceMontageViewports[0].setRowAndColumn(0, 0);
                 surfaceMontageViewports[1].setRowAndColumn(0, 2);
@@ -503,6 +619,16 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
                 surfaceMontageViewports[5].setRowAndColumn(2, 1);
                 surfaceMontageViewports[6].setRowAndColumn(3, 0);
                 surfaceMontageViewports[7].setRowAndColumn(3, 1);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::ROW_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[2].setRowAndColumn(0, 1);
+                surfaceMontageViewports[4].setRowAndColumn(0, 2);
+                surfaceMontageViewports[6].setRowAndColumn(0, 3);
+                surfaceMontageViewports[1].setRowAndColumn(0, 4);
+                surfaceMontageViewports[3].setRowAndColumn(0, 5);
+                surfaceMontageViewports[5].setRowAndColumn(0, 6);
+                surfaceMontageViewports[7].setRowAndColumn(0, 7);
                 break;
         }
     }

@@ -35,10 +35,14 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Column */
+        COLUMN_LAYOUT_ORIENTATION,
+        /** Landscape */
         LANDSCAPE_LAYOUT_ORIENTATION,
-        /** */
-        PORTRAIT_LAYOUT_ORIENTATION
+        /** Portrait */
+        PORTRAIT_LAYOUT_ORIENTATION,
+        /** Row */
+        ROW_LAYOUT_ORIENTATION
     };
 
 
