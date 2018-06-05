@@ -77,7 +77,7 @@ namespace caret {
         
         void configurationStretchFactorWasChanged();
         
-        void copyToUserConfigurationPushButtonClicked();
+        void replaceUserConfigurationPushButtonClicked();
         
         void loadIntoActiveConfigurationPushButtonClicked();
 
@@ -135,7 +135,7 @@ namespace caret {
         
         QPushButton* m_renameConfigurationPushButton;
         
-        QPushButton* m_copyPushButton;
+        QPushButton* m_replacePushButton;
         
         QPushButton* m_loadPushButton;
         

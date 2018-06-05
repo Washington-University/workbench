@@ -149,26 +149,26 @@ TileTabsConfigurationDialog::focusGained()
 QWidget*
 TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
 {
-    m_copyPushButton = new QPushButton("Copy -->");
-    m_copyPushButton->setAutoDefault(false);
-    WuQtUtilities::setWordWrappedToolTip(m_copyPushButton,
-                                         "Copy the Rows, Columns, and Stretch Factors from the Custom Configuration "
-                                         "into the selected User Configuration.");
-    QObject::connect(m_copyPushButton, SIGNAL(clicked()),
-                     this, SLOT(copyToUserConfigurationPushButtonClicked()));
+    m_replacePushButton = new QPushButton("Replace -->");
+    m_replacePushButton->setAutoDefault(false);
+    WuQtUtilities::setWordWrappedToolTip(m_replacePushButton,
+                                         "Replace the Rows, Columns, and Stretch Factors in the User Configuration "
+                                         "with those from the Custom Configuration");
+    QObject::connect(m_replacePushButton, SIGNAL(clicked()),
+                     this, SLOT(replaceUserConfigurationPushButtonClicked()));
     
     m_loadPushButton = new QPushButton("<-- Load");
     m_loadPushButton->setAutoDefault(false);
     WuQtUtilities::setWordWrappedToolTip(m_loadPushButton,
                                          "Load the User Configuration's Rows, Columns, and Stretch Factors into "
-                                         "the Custom Configuration.");
+                                         "the Custom Configuration");
     QObject::connect(m_loadPushButton, SIGNAL(clicked()),
                      this, SLOT(loadIntoActiveConfigurationPushButtonClicked()));
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addSpacing(50);
-    layout->addWidget(m_copyPushButton);
+    layout->addWidget(m_replacePushButton);
     layout->addSpacing(50);
     layout->addWidget(m_loadPushButton);
     layout->addStretch();
@@ -177,11 +177,13 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
 }
 
 /**
- * Called when Copy to user configuration pushbutton is clicked.
+ * Called when Replace to user configuration pushbutton is clicked.
  */
 void
-TileTabsConfigurationDialog::copyToUserConfigurationPushButtonClicked()
+TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
 {
+    m_blockReadConfigurationsFromPreferences = true;
+
     const TileTabsConfiguration* activeConfiguration = getCustomTileTabsConfiguration();
     CaretAssert(activeConfiguration);
 
@@ -192,14 +194,26 @@ TileTabsConfigurationDialog::copyToUserConfigurationPushButtonClicked()
         if (userConfiguration == NULL) {
             WuQMessageBox::errorOk(this,
                                    "There are no user configurations");
+            m_blockReadConfigurationsFromPreferences = false;
+            return;
         }
-        return;
+    }
+    else {
+        const AString msg("Do you want to replace "
+                          + userConfiguration->getName()
+                          + "?");
+        if ( ! WuQMessageBox::warningOkCancel(m_replacePushButton,
+                                              msg)) {
+            m_blockReadConfigurationsFromPreferences = false;
+            return;
+        }
     }
     
     userConfiguration->copy(*activeConfiguration);
 
     m_caretPreferences->writeTileTabsConfigurations();
     
+    m_blockReadConfigurationsFromPreferences = false;
     updateDialog();
 }
 

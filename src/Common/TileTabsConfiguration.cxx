@@ -135,6 +135,10 @@ TileTabsConfiguration::initialize()
 void 
 TileTabsConfiguration::copyHelperTileTabsConfiguration(const TileTabsConfiguration& obj)
 {
+    if (this == &obj) {
+        return;
+    }
+    
     m_numberOfColumns = obj.m_numberOfColumns;
     m_numberOfRows    = obj.m_numberOfRows;
     m_rowStretchFactors = obj.m_rowStretchFactors;
