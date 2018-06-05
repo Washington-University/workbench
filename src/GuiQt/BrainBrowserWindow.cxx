@@ -2424,7 +2424,7 @@ BrainBrowserWindow::createMenuView()
     menu->addAction(m_viewFullScreenAction);
     menu->addSeparator();
     menu->addAction(m_gapsAndMarginsAction);
-    menu->addSection("Tile Tabs");
+    menu->addSeparator();
     menu->addAction(m_viewTileTabsAction);
     menu->addAction(m_viewTileTabsConfigurationDialogAction);
     menu->addMenu(tileTabsModeMenu);
