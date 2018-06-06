@@ -131,7 +131,6 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
             m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
-            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
@@ -140,7 +139,6 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
             m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_FILE;
             m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
-            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:

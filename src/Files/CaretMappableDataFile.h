@@ -397,18 +397,9 @@ namespace caret {
          */
         virtual void getPaletteNormalizationModesSupported(std::vector<PaletteNormalizationModeEnum::Enum>& modesSupportedOut) const = 0;
         
-        /**
-         * @return The palette normalization mode for the file.
-         */
-        virtual PaletteNormalizationModeEnum::Enum getPaletteNormalizationMode() const;
+        PaletteNormalizationModeEnum::Enum getPaletteNormalizationMode() const;
 
-        /**
-         * Set the palette normalization mode for the file.
-         *
-         * @param mode
-         *     New value for palette normalization mode.
-         */
-        virtual void setPaletteNormalizationMode(const PaletteNormalizationModeEnum::Enum mode);
+        void setPaletteNormalizationMode(const PaletteNormalizationModeEnum::Enum mode);
         
         /**
          * Update coloring for all maps.
@@ -533,6 +524,10 @@ namespace caret {
     private:
         
         void copyCaretMappableDataFile(const CaretMappableDataFile&);
+        
+        void ensurePaletteNormalizationModeIsSupported(PaletteNormalizationModeEnum::Enum& modeInOut) const;
+        
+        PaletteNormalizationModeEnum::Enum getDefaultPaletteNormalizationMode() const;
         
         bool isPaletteColorMappingEqualForAllMaps() const;
         

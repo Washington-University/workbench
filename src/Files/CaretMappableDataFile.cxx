@@ -1385,39 +1385,72 @@ CaretMappableDataFile::isOnePaletteUsedForAllMaps() const
 PaletteNormalizationModeEnum::Enum
 CaretMappableDataFile::getPaletteNormalizationMode() const
 {
-    PaletteNormalizationModeEnum::Enum modeValue = PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA;
-    
     const AString textValue = getFileMetaData()->get(GiftiMetaDataXmlElements::METADATA_PALETTE_NORMALIZATION_MODE);
     bool validFlag = false;
-    modeValue = PaletteNormalizationModeEnum::fromName(textValue, &validFlag);
+    PaletteNormalizationModeEnum::Enum modeValue = PaletteNormalizationModeEnum::fromName(textValue, &validFlag);
     
     if ( ! validFlag) {
-        std::vector<PaletteNormalizationModeEnum::Enum> validModes;
-        getPaletteNormalizationModesSupported(validModes);
-        
-        if ( ! validModes.empty()) {
-            CaretAssertVectorIndex(validModes, 0);
-            modeValue = validModes[0];
-        }
-        else {
-            modeValue = PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA;
-        }
+        modeValue = getDefaultPaletteNormalizationMode();
     }
+    
+    ensurePaletteNormalizationModeIsSupported(modeValue);
     
     return modeValue;
 }
 
 /**
- * Set the palette normalization mode for the file.
+ * Set the palette normalization mode for the file.  If the mode is not supported by the
+ * file, the mode is not changed.
  *
  * @param mode
  *     New value for palette normalization mode.
  */
 void
-CaretMappableDataFile::setPaletteNormalizationMode(const PaletteNormalizationModeEnum::Enum mode)
+CaretMappableDataFile::setPaletteNormalizationMode(const PaletteNormalizationModeEnum::Enum modeIn)
 {
+    PaletteNormalizationModeEnum::Enum mode = modeIn;
+    ensurePaletteNormalizationModeIsSupported(mode);
     getFileMetaData()->set(GiftiMetaDataXmlElements::METADATA_PALETTE_NORMALIZATION_MODE,
                            PaletteNormalizationModeEnum::toName(mode));
+}
+
+/**
+ * Ensure that the given palette normalization mode is supported by the instance of this file.
+ * If not supported, it is changed to that returned by getDefaultPaletteNormalizationMode().
+ *
+ * @param modeInOut
+ *     Normalization mode that may be changed to a supported mode.
+ */
+void
+CaretMappableDataFile::ensurePaletteNormalizationModeIsSupported(PaletteNormalizationModeEnum::Enum& modeInOut) const
+{
+    std::vector<PaletteNormalizationModeEnum::Enum> validModes;
+    getPaletteNormalizationModesSupported(validModes);
+    
+    if (std::find(validModes.begin(),
+                  validModes.end(),
+                  modeInOut) == validModes.end()) {
+        modeInOut = getDefaultPaletteNormalizationMode();
+    }
+}
+
+/**
+ * @return The default palette normalization mode for this file which is always
+ * the first mode in the supported modes from getPaletteNormalizationModesSupported().
+ */
+PaletteNormalizationModeEnum::Enum
+CaretMappableDataFile::getDefaultPaletteNormalizationMode() const
+{
+    PaletteNormalizationModeEnum::Enum mode = PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA;
+    
+    std::vector<PaletteNormalizationModeEnum::Enum> validModes;
+    getPaletteNormalizationModesSupported(validModes);
+    if ( ! validModes.empty()) {
+        CaretAssertVectorIndex(validModes, 0);
+        mode = validModes[0];
+    }
+    
+    return mode;
 }
 
 /**
