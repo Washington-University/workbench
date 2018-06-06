@@ -256,23 +256,12 @@ ChartableTwoFileHistogramChart::getHistogramForChartDrawing(const int32_t mapInd
                                                        isZeroIncluded);
         }
         else {
-            switch (myMapFile->getPaletteNormalizationMode()) {
-                case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-                    histogramOut = myMapFile->getFileHistogram(mostPos,
-                                                               leastPos,
-                                                               leastNeg,
-                                                               mostNeg,
-                                                               isZeroIncluded);
-                    break;
-                case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-                    histogramOut = myMapFile->getMapHistogram(mapIndex,
-                                                              mostPos,
-                                                              leastPos,
-                                                              leastNeg,
-                                                              mostNeg,
-                                                              isZeroIncluded);
-                    break;
-            }
+            histogramOut = myMapFile->getMapHistogram(mapIndex,
+                                                      mostPos,
+                                                      leastPos,
+                                                      leastNeg,
+                                                      mostNeg,
+                                                      isZeroIncluded);
         }
     }
     else {
@@ -280,14 +269,7 @@ ChartableTwoFileHistogramChart::getHistogramForChartDrawing(const int32_t mapInd
             histogramOut = myMapFile->getFileHistogram();
         }
         else {
-            switch (myMapFile->getPaletteNormalizationMode()) {
-                case PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA:
-                    histogramOut = myMapFile->getFileHistogram();
-                    break;
-                case PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA:
-                    histogramOut = myMapFile->getMapHistogram(mapIndex);
-                    break;
-            }
+            histogramOut = myMapFile->getMapHistogram(mapIndex);
         }
     }
     
