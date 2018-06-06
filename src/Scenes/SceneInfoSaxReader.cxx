@@ -109,8 +109,7 @@ SceneInfoSaxReader::startElement(const AString& /* namespaceURI */,
                                                                                    qName);
                 XmlSaxParserException e(msg);
                 warning(e);
-//                CaretLogThrowing(e);
-//                throw e;
+                m_state = STATE_SCENE_INFO_UNRECOGNIZED;
             }
             break;
         case STATE_SCENE_INFO_NAME:
@@ -118,6 +117,8 @@ SceneInfoSaxReader::startElement(const AString& /* namespaceURI */,
         case STATE_SCENE_INFO_DESCRIPTION:
             break;
         case STATE_SCENE_INFO_IMAGE_THUMBNAIL:
+            break;
+        case STATE_SCENE_INFO_UNRECOGNIZED:
             break;
     }
     
@@ -166,6 +167,8 @@ SceneInfoSaxReader::endElement(const AString& /* namspaceURI */,
             m_imageEncoding  = "";
             m_imageFormat    = "";
         }
+            break;
+        case STATE_SCENE_INFO_UNRECOGNIZED:
             break;
     }
     

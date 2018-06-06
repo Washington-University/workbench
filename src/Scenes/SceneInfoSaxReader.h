@@ -80,7 +80,9 @@ namespace caret {
             /// processing Scene Info Description tag
             STATE_SCENE_INFO_DESCRIPTION,
             /// processing Scene Info thumbnail tag
-            STATE_SCENE_INFO_IMAGE_THUMBNAIL
+            STATE_SCENE_INFO_IMAGE_THUMBNAIL,
+            /// process an unrecognized element in Scene Info
+            STATE_SCENE_INFO_UNRECOGNIZED
         };
         
         /// name of scene file
