@@ -273,8 +273,6 @@ ChartableTwoFileHistogramChart::getHistogramForChartDrawing(const int32_t mapInd
         }
     }
     
-    CaretAssert(histogramOut);
-    
     return histogramOut;
 }
 

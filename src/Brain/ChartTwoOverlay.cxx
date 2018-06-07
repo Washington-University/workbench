@@ -1072,6 +1072,73 @@ ChartTwoOverlay::isAllMapsSupported() const
                 if (cmdf->getNumberOfMaps() > 1) {
                     supportedFlag = true;
                 }
+                else {
+                    /*
+                     * Parcel type files (dpconn, pconn, and pdconn) are a matrix
+                     * type file in which one row is loaded as the current map.
+                     * Allow "all maps" so that the histogram of all data can
+                     * be viewed as a chart histogram overlay.
+                     */
+                    switch (cmdf->getDataFileType()) {
+                        case DataFileTypeEnum::ANNOTATION:
+                            break;
+                        case DataFileTypeEnum::BORDER:
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                            supportedFlag = true;
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                            supportedFlag = true;
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                            supportedFlag = true;
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                            break;
+                        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                            break;
+                        case DataFileTypeEnum::FOCI:
+                            break;
+                        case DataFileTypeEnum::IMAGE:
+                            break;
+                        case DataFileTypeEnum::LABEL:
+                            break;
+                        case DataFileTypeEnum::METRIC:
+                            break;
+                        case DataFileTypeEnum::PALETTE:
+                            break;
+                        case DataFileTypeEnum::RGBA:
+                            break;
+                        case DataFileTypeEnum::SCENE:
+                            break;
+                        case DataFileTypeEnum::SPECIFICATION:
+                            break;
+                        case DataFileTypeEnum::SURFACE:
+                            break;
+                        case DataFileTypeEnum::UNKNOWN:
+                            break;
+                        case DataFileTypeEnum::VOLUME:
+                            break;
+                    }
+                }
             }
         }
             break;
