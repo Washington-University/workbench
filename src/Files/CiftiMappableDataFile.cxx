@@ -1423,6 +1423,9 @@ CiftiMappableDataFile::invalidateColoringInAllMaps()
     for (int64_t i = 0; i < numMaps; i++) {
         CaretAssertVectorIndex(m_mapContent, i);
         m_mapContent[i]->m_rgbaValid = false;
+        
+        /* invalidates histograms */
+        updateForChangeInMapDataWithMapIndex(i);
     }
     
     /*
