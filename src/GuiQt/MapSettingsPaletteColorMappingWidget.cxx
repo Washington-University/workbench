@@ -2630,40 +2630,8 @@ MapSettingsPaletteColorMappingWidget::normalizationModeComboBoxActivated(int)
                 if (mode != this->caretMappableDataFile->getPaletteNormalizationMode()) {
                     bool doItFlag = true;
                     if (mode == PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA) {
-                        /*
-                         * When files are "large", using all file data may take
-                         * a very long time so allow the user to cancel.
-                         */
-                        const int64_t megabyte = 1000000;  /* 10e6 */
-                        const int64_t warningDataSize = 100 * megabyte;
-                        const int64_t dataSize = this->caretMappableDataFile->getDataSizeUncompressedInBytes();
-                        
-                        if (dataSize > warningDataSize) {
-                            const int64_t gigabyte = 1000000000; /* 10e9 */
-                            const int64_t numReallys = std::min(dataSize / gigabyte,
-                                                                (int64_t)10);
-                            AString veryString;
-                            if (numReallys > 0) {
-                                veryString = ("very"
-                                              + QString(", very").repeated(numReallys - 1)
-                                              + " ");
-                            }
-                            
-                            const AString message("File size is "
-                                                  + veryString
-                                                  + "large ("
-                                                  + FileInformation::fileSizeToStandardUnits(dataSize)
-                                                  + ").  This operation may take a "
-                                                  + veryString
-                                                  + "long time.");
-                            if (WuQMessageBox::warningOkCancel(m_normalizationModeComboBox,
-                                                               message)) {
-                                doItFlag = true;
-                            }
-                            else {
-                                doItFlag = false;
-                            }
-                        }
+                        doItFlag = WuQMessageBox::warningLargeFileSizeOkCancel(m_normalizationModeComboBox,
+                                                                               this->caretMappableDataFile);
                     }
                     
                     if (doItFlag) {

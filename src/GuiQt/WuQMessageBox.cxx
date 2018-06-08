@@ -23,7 +23,8 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-
+#include "CaretMappableDataFile.h"
+#include "FileInformation.h"
 #define __WU_QMESSAGE_DEFINE__
 #include "WuQMessageBox.h"
 #undef __WU_QMESSAGE_DEFINE__
@@ -369,8 +370,64 @@ WuQMessageBox::warningOkCancel(QWidget* parent,
 }
 
 /**
+ * Display a "large file size" warning message box with Ok and Cancel
+ * buttons.  Some operations may be slow and this dialog is used
+ * so that user can choose to cancel the operation.  
+ *
+ * Pressing the enter key is the equivalent of pressing the Ok button.
+ *
+ * @param parent
+ *    Parent on which message box is displayed.
+ * @return
+ *    true if the file is smaller than the "large size" and no dialog is displayed
+ *    true if the Ok button was pressed else false
+ *    if the cancel button was pressed.
+ */
+bool
+WuQMessageBox::warningLargeFileSizeOkCancel(QWidget* parent,
+                                         const CaretMappableDataFile* caretMappableDataFile)
+{
+    CaretAssert(caretMappableDataFile);
+    
+    /*
+     * When files are "large", using all file data may take
+     * a very long time so allow the user to cancel.
+     */
+    const int64_t megabyte = 1000000;  /* 10e6 */
+    const int64_t warningDataSize = 100 * megabyte;
+    const int64_t dataSize = caretMappableDataFile->getDataSizeUncompressedInBytes();
+    
+    bool resultFlag = true;
+    
+    if (dataSize > warningDataSize) {
+        const int64_t gigabyte = 1000000000; /* 10e9 */
+        const int64_t numReallys = std::min(dataSize / gigabyte,
+                                            (int64_t)10);
+        AString veryString;
+        if (numReallys > 0) {
+            veryString = ("very"
+                          + QString(", very").repeated(numReallys - 1)
+                          + " ");
+        }
+        
+        const AString message("File size is "
+                              + veryString
+                              + "large ("
+                              + FileInformation::fileSizeToStandardUnits(dataSize)
+                              + ").  This operation may take a "
+                              + veryString
+                              + "long time.");
+        resultFlag = WuQMessageBox::warningOkCancel(parent,
+                                                    message);
+    }
+    
+    return resultFlag;
+}
+
+
+/**
  * Display a warning message box with Ok and Cancel
- * buttons and a checkbox.  Pressing the enter key is 
+ * buttons and a checkbox.  Pressing the enter key is
  * the equivalent of pressing the Ok button.
  *
  * @param parent

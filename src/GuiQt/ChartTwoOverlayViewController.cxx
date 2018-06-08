@@ -513,11 +513,25 @@ ChartTwoOverlayViewController::allMapsCheckBoxClicked(bool status)
     m_chartOverlay->getSelectionData(mapFile,
                                      selectedIndexType,
                                      selectedIndex);
+
+    bool doAllMapsFlag = true;
     if (mapFile != NULL) {
-        mapFile->invalidateHistogramChartColoring();
+        if (status) {
+            doAllMapsFlag = WuQMessageBox::warningLargeFileSizeOkCancel(m_allMapsCheckBox,
+                                                                        mapFile);
+        }
+        if (doAllMapsFlag) {
+            mapFile->invalidateHistogramChartColoring();
+        }
     }
     
-    m_chartOverlay->setAllMapsSelected(status);
+    if (doAllMapsFlag) {
+        m_chartOverlay->setAllMapsSelected(status);
+    }
+    else {
+        QSignalBlocker blocker(m_allMapsCheckBox);
+        m_allMapsCheckBox->setChecked(false);
+    }
     
     this->updateGraphicsWindow();
 }

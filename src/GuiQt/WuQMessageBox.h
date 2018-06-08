@@ -29,6 +29,8 @@
 class QCheckBox;
 
 namespace caret {
+    class CaretMappableDataFile;
+    
     class WuQMessageBox : public QMessageBox {
         
         Q_OBJECT
@@ -110,6 +112,9 @@ namespace caret {
                                         const QString& acceptButtonText,
                                         const QString& rejectButtonText);
         
+        
+        static bool warningLargeFileSizeOkCancel(QWidget* parent,
+                                                 const CaretMappableDataFile* caretMappableDataFile);
         
     private:
         WuQMessageBox(QWidget* parent = 0);
