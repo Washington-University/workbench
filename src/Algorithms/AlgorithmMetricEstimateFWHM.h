@@ -34,6 +34,7 @@ namespace caret {
         static AString getShortDescription();
 
         static float estimateFWHM(const SurfaceFile* mySurf, const MetricFile* input, const MetricFile* roi = NULL, const int64_t& column = 0);
+        static float estimateFWHMAllColumns(const SurfaceFile* mySurf, const MetricFile* input, const MetricFile* roi = NULL, const bool& demean = false);
     };
 
     typedef TemplateAutoOperation<AlgorithmMetricEstimateFWHM> AutoAlgorithmMetricEstimateFWHM;

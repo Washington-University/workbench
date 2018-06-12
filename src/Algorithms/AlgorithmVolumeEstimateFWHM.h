@@ -37,6 +37,7 @@ namespace caret {
         static AString getShortDescription();
         
         static Vector3D estimateFWHM(const VolumeFile* input, const VolumeFile* roi = NULL, const int64_t& brickIndex = 0, const int64_t& component = 0);
+        static Vector3D estimateFWHMAllFrames(const VolumeFile* input, const VolumeFile* roi = NULL, bool demean = false);
     };
 
     typedef TemplateAutoOperation<AlgorithmVolumeEstimateFWHM> AutoAlgorithmVolumeEstimateFWHM;

@@ -54,6 +54,9 @@ OperationParameters* AlgorithmMetricEstimateFWHM::getParameters()
     OptionalParameter* columnSelect = ret->createOptionalParameter(4, "-column", "select a single column to estimate smoothness of");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
+    OptionalParameter* allColumnsOpt = ret->createOptionalParameter(5, "-whole-file", "estimate for the whole file at once, not each column separately");
+    allColumnsOpt->createOptionalParameter(1, "-demean", "subtract the mean image before estimating smoothness");
+
     ret->setHelpText(
         AString("Estimates the smoothness of the metric columns, printing the estimates to standard output.  ") +
         "These estimates ignore variation in vertex spacing."
@@ -83,18 +86,32 @@ void AlgorithmMetricEstimateFWHM::useParameters(OperationParameters* myParams, P
             throw AlgorithmException("invalid column specified");
         }
     }
-    if (columnNum == -1)
+    bool allColumns = false, demean = false;
+    OptionalParameter* allColumnsOpt = myParams->getOptionalParameter(5);
+    if (allColumnsOpt->m_present)
     {
-        for (int i = 0; i < numColumns; ++i)
+        if (columnSelect->m_present) throw AlgorithmException("specifying both -column and -whole-file is not allowed");
+        allColumns = true;
+        demean = allColumnsOpt->getOptionalParameter(1)->m_present;
+    }
+    if (allColumns)
+    {
+        float result = estimateFWHMAllColumns(mySurf, myMetric, roi, demean);
+        cout << "FWHM: " << result << endl;
+    } else {
+        if (columnNum == -1)
         {
-            float result = estimateFWHM(mySurf, myMetric, roi, i);
-            if (numColumns > 1) cout << "column " << i + 1 << " ";
+            for (int i = 0; i < numColumns; ++i)
+            {
+                float result = estimateFWHM(mySurf, myMetric, roi, i);
+                if (numColumns > 1) cout << "column " << i + 1 << " ";
+                cout << "FWHM: " << result << endl;
+            }
+        } else {
+            float result = estimateFWHM(mySurf, myMetric, roi, columnNum);
+            if (numColumns > 1) cout << "column " << columnNum + 1 << " ";
             cout << "FWHM: " << result << endl;
         }
-    } else {
-        float result = estimateFWHM(mySurf, myMetric, roi, columnNum);
-        if (numColumns > 1) cout << "column " << columnNum + 1 << " ";
-        cout << "FWHM: " << result << endl;
     }
 }
 
@@ -102,13 +119,17 @@ float AlgorithmMetricEstimateFWHM::estimateFWHM(const SurfaceFile* mySurf, const
 {
     CaretAssert(column >= 0 && column < input->getNumberOfColumns());
     int numNodes = input->getNumberOfNodes();
+    if (mySurf->getNumberOfNodes() != numNodes)
+    {
+        throw AlgorithmException("surface has different number of vertices than the input data");
+    }
     const float* inCol = input->getValuePointerForColumn(column);
     const float* roiCol = NULL;
     if (roi != NULL)
     {
         if (roi->getNumberOfNodes() != numNodes)
         {
-            throw AlgorithmException("roi metric has a different number of nodes than the input metric");
+            throw AlgorithmException("roi metric has a different number of vertices than the input metric");
         }
         roiCol = roi->getValuePointerForColumn(0);
     }
@@ -143,6 +164,119 @@ float AlgorithmMetricEstimateFWHM::estimateFWHM(const SurfaceFile* mySurf, const
                     tempf = center - inCol[neighbors[j]];
                     localAccum += tempf * tempf;
                     ++localCount;
+                }
+            }
+        }
+    }
+    float globalVariance = globalAccum / globalCount;
+    float localVariance = localAccum / localCount;
+    float ret = nodeSpacingStats.getMean() * sqrt(-2.0f * log(2.0f) / log(1.0f - localVariance / (2.0f * globalVariance)));
+    return ret;
+}
+
+float AlgorithmMetricEstimateFWHM::estimateFWHMAllColumns(const SurfaceFile* mySurf, const MetricFile* input, const MetricFile* roi, const bool& demean)
+{
+    int numNodes = input->getNumberOfNodes();
+    if (mySurf->getNumberOfNodes() != numNodes)
+    {
+        throw AlgorithmException("surface has different number of vertices than the input metric");
+    }
+    const float* roiCol = NULL;
+    if (roi != NULL)
+    {
+        if (roi->getNumberOfNodes() != numNodes)
+        {
+            throw AlgorithmException("roi metric has a different number of vertices than the input metric");
+        }
+        roiCol = roi->getValuePointerForColumn(0);
+    }
+    DescriptiveStatistics nodeSpacingStats;
+    mySurf->getNodesSpacingStatistics(nodeSpacingStats);//this will be slow since it recomputes - should change it to returning a const reference, and make it a lazy member
+    int numCols = input->getNumberOfColumns();
+    vector<double> meanImage;
+    if (demean)
+    {
+        meanImage.resize(numNodes, 0.0);
+        for (int j = 0; j < numCols; ++j)
+        {
+            const float* inCol = input->getValuePointerForColumn(j);
+            for (int i = 0; i < numNodes; ++i)
+            {
+                if (roi == NULL || roiCol[i] > 0.0f)//not that it matters, but only computing the mean inside the ROI reduces the working set somewhat
+                {
+                    meanImage[i] += inCol[i];
+                }
+            }
+        }
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (roi == NULL || roiCol[i] > 0.0f)
+            {
+                meanImage[i] /= numCols;
+            }
+        }
+    }
+    double globalAccum = 0.0, localAccum = 0.0;
+    int64_t globalCount = 0, localCount = 0;
+    CaretPointer<TopologyHelper> myHelp = mySurf->getTopologyHelper();
+    vector<float> demeaned;
+    if (demean) demeaned.resize(numNodes);
+    for (int j = 0; j < numCols; ++j)
+    {
+        const float* inCol = input->getValuePointerForColumn(j);
+        if (demean)
+        {
+            for (int i = 0; i < numNodes; ++i)
+            {
+                if (roi == NULL || roiCol[i] > 0.0f)
+                {
+                    demeaned[i] = inCol[i] - meanImage[i];
+                }
+            }
+            inCol = demeaned.data();
+        }
+        for (int i = 0; i < numNodes; ++i)//the local difference mean will be zero, as we don't have directionality, so don't bother collecting it
+        {
+            if (roi == NULL || roiCol[i] > 0.0f)
+            {
+                float center = inCol[i];
+                globalAccum += center;
+                ++globalCount;
+            }
+        }
+    }
+    float globalMean = globalAccum / globalCount;
+    globalAccum = 0.0;
+    for (int j = 0; j < numCols; ++j)
+    {
+        const float* inCol = input->getValuePointerForColumn(j);
+        if (demean)
+        {
+            for (int i = 0; i < numNodes; ++i)
+            {
+                if (roi == NULL || roiCol[i] > 0.0f)
+                {
+                    demeaned[i] = inCol[i] - meanImage[i];
+                }
+            }
+            inCol = demeaned.data();
+        }
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (roi == NULL || roiCol[i] > 0.0f)
+            {
+                float center = inCol[i];
+                float tempf = center - globalMean;
+                globalAccum += tempf * tempf;//don't need to recalculate count
+                const vector<int32_t>& neighbors = myHelp->getNodeNeighbors(i);
+                for (int j = 0; j < (int)neighbors.size(); ++j)
+                {
+                    if (neighbors[j] > i && (roi == NULL || roiCol[neighbors[j]] > 0.0f))//collect lopsided to get correct degrees of freedom (if n-1 denom is desired), mean is assumed zero so it works out
+                    {
+                        tempf = center - inCol[neighbors[j]];
+                        localAccum += tempf * tempf;
+                        ++localCount;
+                    }
                 }
             }
         }

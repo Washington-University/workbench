@@ -57,6 +57,9 @@ OperationParameters* OperationCiftiEstimateFWHM::getParameters()
     surfOpt->addStringParameter(1, "structure", "what structure to use this surface for");
     surfOpt->addSurfaceParameter(2, "surface", "the surface file");
     
+    OptionalParameter* wholeFileOpt = ret->createOptionalParameter(5, "-whole-file", "estimate for the whole file at once, not each column separately");
+    wholeFileOpt->createOptionalParameter(1, "-demean", "subtract the mean image before estimating smoothness");
+    
     AString myText =
         AString("Estimate the smoothness of the components of the cifti file, printing the estimates to standard output.  ") +
         "If -merged-volume is used, all voxels are used as a single component, rather than separated by structure.\n\n" +
@@ -104,16 +107,23 @@ void OperationCiftiEstimateFWHM::useParameters(OperationParameters* myParams, Pr
         StructureEnum::fromName(surfInstances[i]->getString(1), &ok);
         if (!ok) throw OperationException("unrecognized structure name: " + surfInstances[i]->getString(1));
     }
-    vector<bool> surfUsed(surfInstances.size(), false);
+    bool wholeFile = false, demean = false;
+    OptionalParameter* wholeFileOpt = myParams->getOptionalParameter(5);
+    if (wholeFileOpt->m_present)
+    {
+        if (columnOpt->m_present) throw OperationException("specifying both -column and -whole-file is not allowed");
+        wholeFile = true;
+        demean = wholeFileOpt->getOptionalParameter(1)->m_present;
+    }
     vector<VolParams> volProcess;
     vector<SurfParams> surfProcess;
-    const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
-    if (myXML.getMappingType(CiftiXMLOld::ALONG_COLUMN) != CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    const CiftiXML& myXML = myCifti->getCiftiXML();
+    if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS)
     {
         throw OperationException("mapping type along column must be brain models");
     }
-    vector<StructureEnum::Enum> surfStructs, volStructs;
-    myXML.getStructureLists(CiftiXMLOld::ALONG_COLUMN, surfStructs, volStructs);
+    const CiftiBrainModelsMap& myMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    vector<StructureEnum::Enum> surfStructs = myMap.getSurfaceStructureList(), volStructs = myMap.getVolumeStructureList();
     int numSurf = (int)surfStructs.size();
     surfProcess.resize(numSurf);
     for (int i = 0; i < numSurf; ++i)
@@ -132,7 +142,7 @@ void OperationCiftiEstimateFWHM::useParameters(OperationParameters* myParams, Pr
         surfProcess[i].name = StructureEnum::toName(surfStructs[i]);
         surfProcess[i].data.grabNew(new MetricFile());
         surfProcess[i].roi.grabNew(new MetricFile());
-        AlgorithmCiftiSeparate(NULL, myCifti, CiftiXMLOld::ALONG_COLUMN, surfStructs[i], surfProcess[i].data, surfProcess[i].roi);
+        AlgorithmCiftiSeparate(NULL, myCifti, CiftiXML::ALONG_COLUMN, surfStructs[i], surfProcess[i].data, surfProcess[i].roi);
         if (surfProcess[i].surf->getNumberOfNodes() != surfProcess[i].data->getNumberOfNodes())
         {
             throw OperationException("input surface for structure '" + StructureEnum::toName(surfStructs[i]) + "' has different number of nodes than the cifti file");
@@ -145,7 +155,7 @@ void OperationCiftiEstimateFWHM::useParameters(OperationParameters* myParams, Pr
         volProcess[0].data.grabNew(new VolumeFile());
         volProcess[0].roi.grabNew(new VolumeFile());
         int64_t offset[3];
-        AlgorithmCiftiSeparate(NULL, myCifti, CiftiXMLOld::ALONG_COLUMN, volProcess[0].data, offset, volProcess[0].roi, true);
+        AlgorithmCiftiSeparate(NULL, myCifti, CiftiXML::ALONG_COLUMN, volProcess[0].data, offset, volProcess[0].roi, true);
     } else {
         int numVol = (int)volStructs.size();
         volProcess.resize(numVol);
@@ -155,37 +165,51 @@ void OperationCiftiEstimateFWHM::useParameters(OperationParameters* myParams, Pr
             volProcess[i].data.grabNew(new VolumeFile());
             volProcess[i].roi.grabNew(new VolumeFile());
             int64_t offset[3];
-            AlgorithmCiftiSeparate(NULL, myCifti, CiftiXMLOld::ALONG_COLUMN, volStructs[i], volProcess[i].data, offset, volProcess[i].roi, true);
+            AlgorithmCiftiSeparate(NULL, myCifti, CiftiXML::ALONG_COLUMN, volStructs[i], volProcess[i].data, offset, volProcess[i].roi, true);
         }
     }
-    if (column == -1)
+    if (wholeFile)
     {
-        int rowLength = (int)myCifti->getNumberOfColumns();
-        for (int i = 0; i < rowLength; ++i)
-        {
-            if (rowLength > 1) cout << "Column " << i + 1 << ":" << endl;
-            for (int j = 0; j < (int)surfProcess.size(); ++j)
-            {
-                float fwhm = AlgorithmMetricEstimateFWHM::estimateFWHM(surfProcess[j].surf, surfProcess[j].data, surfProcess[j].roi, i);
-                cout << surfProcess[j].name << " FWHM: " << fwhm << endl;
-            }
-            for (int j = 0; j < (int)volProcess.size(); ++j)
-            {
-                Vector3D fwhm = AlgorithmVolumeEstimateFWHM::estimateFWHM(volProcess[j].data, volProcess[j].roi, i);
-                cout << volProcess[j].name << " FWHM: " << fwhm[0] << ", " << fwhm[1] << ", " << fwhm[2] << endl;
-            }
-        }
-    } else {
-        cout << "Column " << column + 1 << ":" << endl;
         for (int j = 0; j < (int)surfProcess.size(); ++j)
         {
-            float fwhm = AlgorithmMetricEstimateFWHM::estimateFWHM(surfProcess[j].surf, surfProcess[j].data, surfProcess[j].roi, column);
+            float fwhm = AlgorithmMetricEstimateFWHM::estimateFWHMAllColumns(surfProcess[j].surf, surfProcess[j].data, surfProcess[j].roi, demean);
             cout << surfProcess[j].name << " FWHM: " << fwhm << endl;
         }
         for (int j = 0; j < (int)volProcess.size(); ++j)
         {
-            Vector3D fwhm = AlgorithmVolumeEstimateFWHM::estimateFWHM(volProcess[j].data, volProcess[j].roi, column);
+            Vector3D fwhm = AlgorithmVolumeEstimateFWHM::estimateFWHMAllFrames(volProcess[j].data, volProcess[j].roi, demean);
             cout << volProcess[j].name << " FWHM: " << fwhm[0] << ", " << fwhm[1] << ", " << fwhm[2] << endl;
+        }
+    } else {
+        if (column == -1)
+        {
+            int rowLength = (int)myCifti->getNumberOfColumns();
+            for (int i = 0; i < rowLength; ++i)
+            {
+                if (rowLength > 1) cout << "Column " << i + 1 << ":" << endl;
+                for (int j = 0; j < (int)surfProcess.size(); ++j)
+                {
+                    float fwhm = AlgorithmMetricEstimateFWHM::estimateFWHM(surfProcess[j].surf, surfProcess[j].data, surfProcess[j].roi, i);
+                    cout << surfProcess[j].name << " FWHM: " << fwhm << endl;
+                }
+                for (int j = 0; j < (int)volProcess.size(); ++j)
+                {
+                    Vector3D fwhm = AlgorithmVolumeEstimateFWHM::estimateFWHM(volProcess[j].data, volProcess[j].roi, i);
+                    cout << volProcess[j].name << " FWHM: " << fwhm[0] << ", " << fwhm[1] << ", " << fwhm[2] << endl;
+                }
+            }
+        } else {
+            cout << "Column " << column + 1 << ":" << endl;
+            for (int j = 0; j < (int)surfProcess.size(); ++j)
+            {
+                float fwhm = AlgorithmMetricEstimateFWHM::estimateFWHM(surfProcess[j].surf, surfProcess[j].data, surfProcess[j].roi, column);
+                cout << surfProcess[j].name << " FWHM: " << fwhm << endl;
+            }
+            for (int j = 0; j < (int)volProcess.size(); ++j)
+            {
+                Vector3D fwhm = AlgorithmVolumeEstimateFWHM::estimateFWHM(volProcess[j].data, volProcess[j].roi, column);
+                cout << volProcess[j].name << " FWHM: " << fwhm[0] << ", " << fwhm[1] << ", " << fwhm[2] << endl;
+            }
         }
     }
 }
