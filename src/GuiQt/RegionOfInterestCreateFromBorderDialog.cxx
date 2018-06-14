@@ -179,6 +179,7 @@ RegionOfInterestCreateFromBorderDialog::createSelectors(std::set<StructureEnum::
     
     std::vector<DataFileTypeEnum::Enum> allowedMapFileTypes;
     allowedMapFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL);
+    allowedMapFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC);
     allowedMapFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
     allowedMapFileTypes.push_back(DataFileTypeEnum::LABEL);
     allowedMapFileTypes.push_back(DataFileTypeEnum::METRIC);

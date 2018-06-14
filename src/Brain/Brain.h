@@ -490,6 +490,20 @@ namespace caret {
         
         void createModelChartTwo();
         
+        template <class DFT>
+        static void
+        getAllDataFileHelper(std::vector<CaretDataFile*>& allDataFilesOut,
+                             const std::vector<DFT*>& dataFiles)
+        {
+            for (auto df : dataFiles) {
+                allDataFilesOut.push_back(df);
+                CaretMappableDataFile* labelThreshFile = df->getLabelDynamicThresholdFile();
+                if (labelThreshFile != NULL) {
+                    allDataFilesOut.push_back(labelThreshFile);
+                }
+            }
+        }
+
         /**
          * Is the data file with the given name already loaded?
          *

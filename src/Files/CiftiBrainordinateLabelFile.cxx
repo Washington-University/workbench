@@ -46,6 +46,19 @@ CiftiBrainordinateLabelFile::CiftiBrainordinateLabelFile()
 }
 
 /**
+ * Constructor for sub-classes.
+ *
+ * @param dataFileType
+ *     Type of data file.
+ */
+CiftiBrainordinateLabelFile::CiftiBrainordinateLabelFile(const DataFileTypeEnum::Enum dataFileType)
+: CiftiMappableDataFile(dataFileType)
+{
+    
+}
+
+
+/**
  * Destructor.
  */
 CiftiBrainordinateLabelFile::~CiftiBrainordinateLabelFile()

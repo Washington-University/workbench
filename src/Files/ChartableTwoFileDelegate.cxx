@@ -95,6 +95,8 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
             break;

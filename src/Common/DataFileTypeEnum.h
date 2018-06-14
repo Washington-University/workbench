@@ -45,6 +45,8 @@ public:
         CONNECTIVITY_DENSE_DYNAMIC,
         /** Connectivity - Dense Label */
         CONNECTIVITY_DENSE_LABEL,
+        /** Connectivity - Dense Label Dynamic (threshold) */
+        CONNECTIVITY_DENSE_LABEL_DYNAMIC,
         /** Connectivity - Dense Parcel */
         CONNECTIVITY_DENSE_PARCEL,
         /** Connectivity - Dense Scalar */

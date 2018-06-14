@@ -81,6 +81,7 @@ namespace caret {
         void thresholdLinkCheckBoxToggled(bool);
         void thresholdMapFileIndexSelectorChanged();
         void thresholdSetAllMapsToolButtonClicked();
+        void thresholdOutlineCheckBoxClicked(bool);
         
         void scaleAutoPercentageNegativeMaximumValueChanged(double value);
         void scaleAutoPercentageNegativeMinimumValueChanged(double value);

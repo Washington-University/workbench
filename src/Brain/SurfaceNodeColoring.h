@@ -32,6 +32,7 @@ namespace caret {
     class Brain;
     class BrainStructure;
     class BrowserTabContent;
+    class CaretMappableDataFile;
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiBrainordinateDataSeriesFile;
     class CiftiBrainordinateLabelFile;
@@ -84,6 +85,15 @@ namespace caret {
                                const Surface* surface,
                                OverlaySet* overlaySet,
                                float* rgbaNodeColors);
+        
+        bool assignFileMapColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
+                                   const int32_t browserTabIndex,
+                                   const BrainStructure* brainStructure,
+                                   const Surface* surface,
+                                   CaretMappableDataFile* selectedMapFile,
+                                   const int32_t selectedMapIndex,
+                                   const int32_t numNodes,
+                                   float* overlayRGBV);
         
         bool assignLabelColoring(const DisplayPropertiesLabels* dpl,
                                  const int32_t browserTabIndex,

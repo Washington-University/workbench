@@ -1639,6 +1639,9 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             invalid = true;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
+            invalid = true;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
