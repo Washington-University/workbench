@@ -501,19 +501,30 @@ CiftiMappableDataFile::setMapLabelDynamicThresholdFileEnabled(const int32_t mapI
          * Lazily initialize the file
          */
         if ( ! m_labelDynamicThresholdFile) {
-            AString errorMessage;
-            CiftiBrainordinateLabelDynamicFile* labelFile = CiftiBrainordinateLabelDynamicFile::newInstance(this,
-                                                                                                               errorMessage);
-            if (labelFile != NULL) {
-                m_labelDynamicThresholdFile.reset(labelFile);
-            }
-            else {
-                m_labelDynamicThresholdFileCreationFailedFlag = true;
+            createLabelDynamicThresholdFile();
+            if (m_labelDynamicThresholdFileCreationFailedFlag) {
                 CaretMappableDataFile::setMapLabelDynamicThresholdFileEnabled(mapIndex,
                                                                               false);
-                CaretLogWarning(errorMessage);
             }
         }
+    }
+}
+
+/**
+ * Create the Label Dynamic Threshold File
+ */
+void
+CiftiMappableDataFile::createLabelDynamicThresholdFile()
+{
+    AString errorMessage;
+    CiftiBrainordinateLabelDynamicFile* labelFile = CiftiBrainordinateLabelDynamicFile::newInstance(this,
+                                                                                                    errorMessage);
+    if (labelFile != NULL) {
+        m_labelDynamicThresholdFile.reset(labelFile);
+    }
+    else {
+        m_labelDynamicThresholdFileCreationFailedFlag = true;
+        CaretLogWarning(errorMessage);
     }
 }
 
@@ -6016,6 +6027,11 @@ CiftiMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
         sceneClass->addClass(m_classNameHierarchy->saveToScene(sceneAttributes,
                                                                "m_classNameHierarchy"));
     }
+    
+    if (m_labelDynamicThresholdFile) {
+        sceneClass->addClass(m_labelDynamicThresholdFile->saveToScene(sceneAttributes,
+                                                                      "m_labelDynamicThresholdFile"));
+    }
 }
 
 /**
@@ -6042,6 +6058,16 @@ CiftiMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     if (isMappedWithLabelTable()) {
         m_classNameHierarchy->restoreFromScene(sceneAttributes,
                                                sceneClass->getClass("m_classNameHierarchy"));
+    }
+    
+    m_labelDynamicThresholdFile.reset();
+    const SceneClass* dynLabelFileSceneClass = sceneClass->getClass("m_labelDynamicThresholdFile");
+    if (dynLabelFileSceneClass != NULL) {
+        createLabelDynamicThresholdFile();
+        if (m_labelDynamicThresholdFile) {
+            m_labelDynamicThresholdFile->restoreFromScene(sceneAttributes,
+                                                          dynLabelFileSceneClass);
+        }
     }
     
     /*

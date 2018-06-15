@@ -498,6 +498,8 @@ namespace caret {
         
         virtual bool isLabelDynamicThresholdFileSupported() const;
         
+        virtual bool isMapLabelDynamicThresholdEnabledForAnyMap() const;
+        
         virtual bool isMapLabelDynamicThresholdFileEnabled(const int32_t mapIndex) const;
         
         virtual void setMapLabelDynamicThresholdFileEnabled(const int32_t mapIndex,
@@ -543,6 +545,8 @@ namespace caret {
         bool isPaletteColorMappingEqualForAllMaps() const;
         
         void updateMapThresholdFileSelectionModels();
+        
+        void updateMapLabelDynamicThresholdEnabled() const;
         
         std::unique_ptr<LabelDrawingProperties> m_labelDrawingProperties;
 

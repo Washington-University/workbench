@@ -172,7 +172,6 @@ CiftiBrainordinateLabelDynamicFile::newInstance(CiftiMappableDataFile* ciftiMapF
                 {
                     const int32_t numMaps = labelFile->getNumberOfMaps();
                     for (int32_t i = 0; i < numMaps; i++) {
-                        //labelFile->getMapLabelTable(i)->setLabel(LABEL_KEY_OFF, "Off", 0.0, 0.0, 0.0, 0.0);
                         labelFile->getMapLabelTable(i)->setLabel(LABEL_KEY_OUTLINE, "Outline", 1.0, 1.0, 1.0, 1.0);
                         labelFile->setMapName(i,
                                               ("Outline: " + ciftiMapFile->getMapName(i)));

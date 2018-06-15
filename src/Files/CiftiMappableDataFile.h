@@ -38,7 +38,7 @@ namespace caret {
     
     class ChartData;
     class ChartDataCartesian;
-    class CiftiBrainordinateLabelFile;
+    class CiftiBrainordinateLabelDynamicFile;
     class CiftiFile;
     class CiftiParcelsMap;
     class CiftiXML;
@@ -153,9 +153,6 @@ namespace caret {
                                                                      const StructureEnum::Enum structure,
                                                                      const int32_t numberOfNodes,
                                                                      AString& errorMessageOut);
-        
-//        static CiftiBrainordinateLabelFile* newInstanceLabelDynamicThresholdFile(CiftiMappableDataFile* ciftiMapFile,
-//                                                                                 AString& errorMessageOut);
         
         virtual void receiveEvent(Event* event);
         
@@ -807,7 +804,9 @@ namespace caret {
         static const int32_t CIFTI_FILE_ROW_COLUMN_INDEX_BASE_FOR_GUI = 1;
         
     private:
-        std::unique_ptr<CiftiBrainordinateLabelFile> m_labelDynamicThresholdFile;
+        void createLabelDynamicThresholdFile();
+        
+        std::unique_ptr<CiftiBrainordinateLabelDynamicFile> m_labelDynamicThresholdFile;
         
         bool m_labelDynamicThresholdFileCreationFailedFlag = false;
         
