@@ -334,18 +334,12 @@ SceneCreateReplaceDialog::replaceExistingScene(QWidget* parent,
                                     sceneToReplace);
     
     /*
-     * Error checking will not allow two scenes with the same name
-     * so temporarily modify name of scene being replaced and restore
-     * it if the user does not hit OK.
+     * Run the dialog.
+     * If user cancels, "dialog.m_sceneThatWasCreated" will be NULL.
      */
-    const AString savedSceneName = sceneToReplace->getName();
-    sceneToReplace->setName("slkkjdlkfjaslfjdljfdkljdfjsdfj");
-    
-    if (dialog.exec() == SceneCreateReplaceDialog::Rejected) {
-        sceneToReplace->setName(savedSceneName);
-    }
-    
+    dialog.exec();
     Scene* scene = dialog.m_sceneThatWasCreated;
+    
     return scene;
 }
 
@@ -619,10 +613,28 @@ SceneCreateReplaceDialog::okButtonClicked()
     if (newSceneName.isEmpty()) {
         errorMessage = "Scene Name is empty.";
     }
-    else if (m_sceneFile->getSceneWithName(newSceneName) != NULL) {
-        errorMessage = ("An existing scene uses the name \""
-                        + newSceneName
-                        + "\".  Scene names must be unique.");
+    else {
+        const Scene* sceneWithName = m_sceneFile->getSceneWithName(newSceneName);
+        if (sceneWithName != NULL) {
+            bool nameErrorFlag = true;
+            switch (m_mode) {
+                case MODE_ADD_NEW_SCENE:
+                    break;
+                case MODE_INSERT_NEW_SCENE:
+                    break;
+                case MODE_REPLACE_SCENE:
+                    if (m_sceneToInsertOrReplace == sceneWithName) {
+                        nameErrorFlag = false;
+                    }
+                    break;
+            }
+            
+            if (nameErrorFlag) {
+                errorMessage = ("An existing scene uses the name \""
+                                + newSceneName
+                                + "\".  Scene names must be unique.");
+            }
+        }
     }
     
     if ( ! errorMessage.isEmpty()) {
