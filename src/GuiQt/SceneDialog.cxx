@@ -442,7 +442,7 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
                 QObject::connect(sciw, SIGNAL(highlighted(int32_t)),
                                  this, SLOT(sceneHighlighted(int32_t)));
                 m_sceneClassInfoWidgets.push_back(sciw);
-                m_sceneSelectionLayout->addWidget(sciw);
+                m_sceneSelectionLayout->addWidget(sciw, 1);
             }
             else {
                 sciw = m_sceneClassInfoWidgets[i];
@@ -2123,8 +2123,6 @@ SceneDialog::createScenesWidget()
      */
     m_sceneSelectionLayout = new QVBoxLayout();
     m_sceneSelectionWidget = new QWidget();
-    m_sceneSelectionWidget->setSizePolicy(m_sceneSelectionWidget->sizePolicy().horizontalPolicy(),
-                                          QSizePolicy::Fixed);
     QVBoxLayout* sceneSelectionWidgetLayout = new QVBoxLayout(m_sceneSelectionWidget);
     sceneSelectionWidgetLayout->addLayout(m_sceneSelectionLayout);
     sceneSelectionWidgetLayout->addStretch();
@@ -2929,6 +2927,7 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     m_defaultAutoFillBackgroundStatus = autoFillBackground();
     
     m_nameLabel = new QLabel();
+    m_nameLabel->setWordWrap(true);
     
     m_descriptionLabel = new QLabel();
     m_descriptionLabel->setWordWrap(true);
@@ -2942,9 +2941,9 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     QVBoxLayout* rightLayout = new QVBoxLayout(m_rightSideWidget);
     rightLayout->setContentsMargins(0, 0, 0, 0);
     rightLayout->setSpacing(3);
-    rightLayout->addWidget(m_nameLabel);
+    rightLayout->addWidget(m_nameLabel,1);
     rightLayout->addWidget(m_sceneIdLabel);
-    rightLayout->addWidget(m_descriptionLabel);
+    rightLayout->addWidget(m_descriptionLabel, 100);
     rightLayout->addStretch();
     
     m_leftSideWidget = new QWidget();
@@ -2958,10 +2957,7 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     layout->setContentsMargins(0, 3, 0, 0);
     layout->setSpacing(3);
     layout->addWidget(m_leftSideWidget);
-    layout->addWidget(m_rightSideWidget, 100);
-    
-    setSizePolicy(sizePolicy().horizontalPolicy(),
-                  QSizePolicy::Fixed);
+    layout->addWidget(m_rightSideWidget, 100, Qt::AlignTop);
 }
 
 /**
@@ -3030,7 +3026,7 @@ SceneClassInfoWidget::updateContent(Scene* scene,
                                                       imageBytesFormat);
         
         
-        const int previewImageWidth = 192; //128;
+        const int previewImageWidth = 192;
         
         QImage  previewImage;
         bool    previewImageValid = false;
