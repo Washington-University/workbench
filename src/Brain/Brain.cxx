@@ -6250,6 +6250,13 @@ getAllMapDataFilesHelper(std::vector<CaretDataFile*>& allDataFilesOut,
                 if (dynFile != NULL) {
                     if (dynFile->isDataValid()) {
                         allDataFilesOut.push_back(dynFile);
+                        
+                        if (dynFile->isMapLabelDynamicThresholdEnabledForAnyMap()) {
+                            CaretMappableDataFile* labelThreshFile = dynFile->getLabelDynamicThresholdFile();
+                            if (labelThreshFile != NULL) {
+                                allDataFilesOut.push_back(labelThreshFile);
+                            }
+                        }
                     }
                 }
             }

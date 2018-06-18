@@ -812,6 +812,7 @@ namespace caret {
         
         friend class ChartableTwoFileDelegate;
         friend class ChartableTwoFileMatrixChart;
+        friend class CiftiBrainordinateLabelDynamicFile;
         
         /** Is lazily initialized and caches CiftiBrainModelsMap for comparison with other CIFTI files */
         mutable std::unique_ptr<CiftiBrainModelsMap> m_brainordinateMapping;
