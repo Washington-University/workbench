@@ -835,7 +835,7 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
          * Display dialog allowing user to save files (goes to Save/Manage
          * Files dialog), exit without saving, or cancel.
          */
-        AString paletteModifiedMessage("These file(s) contain modified palette color mapping "
+        AString paletteModifiedMessage("These file(s) contain <b>modified palette color mapping</b> "
                                        "(this may result from loading scenes that contained modified palette color "
                                        "mapping and this modified status is needed if scenes "
                                        "are added or replaced): ");
@@ -846,7 +846,7 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
             case TEST_FOR_MODIFIED_FILES_EXCLUDING_PALETTES_MODE_FOR_SCENE_ADD:
             case TEST_FOR_MODIFIED_FILES_PALETTE_ONLY_MODE_FOR_SCENE_ADD:
                 textMessageOut = "Do you want to continue creating the scene?";
-                paletteModifiedMessage = ("These file(s) contain modified palette color mapping "
+                paletteModifiedMessage = ("These file(s) contain <b>modified palette color mapping</b> "
                                           "AND \"Add modified palette color mapping to scene\" "
                                           "is NOT checked on the Create New Scene Dialog:");
                 break;
@@ -859,7 +859,7 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
         
         if (sceneAnnotationsModifiedFlag
             || (modFileCount > 0)) {
-            infoTextMsg.appendWithNewLine("These file(s) contain modified data:\n");
+            infoTextMsg.appendWithNewLine("These file(s) contain <b>modified data</b>:\n");
             infoTextMsg.appendWithNewLine("<ul>");
             
             if (sceneAnnotationsModifiedFlag) {
