@@ -355,14 +355,14 @@ SurfaceNodeColoring::assignFileMapColoring(const DisplayPropertiesLabels* displa
                                                                   overlayRGBV);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
-            isColoringValid = this->assignCiftiDenseLabelColoring(displayPropertiesLabels,
-                                                                  browserTabIndex,
-                                                                  brainStructure,
-                                                                  surface,
-                                                                  dynamic_cast<CiftiBrainordinateLabelFile*>(selectedMapFile),
-                                                                  selectedMapIndex,
-                                                                  numNodes,
-                                                                  overlayRGBV);
+            isColoringValid = this->assignCiftiDenseLabelDynamicColoring(displayPropertiesLabels,
+                                                                         browserTabIndex,
+                                                                         brainStructure,
+                                                                         surface,
+                                                                         dynamic_cast<CiftiBrainordinateLabelDynamicFile*>(selectedMapFile),
+                                                                         selectedMapIndex,
+                                                                         numNodes,
+                                                                         overlayRGBV);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
         {
@@ -1132,6 +1132,61 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
 }
 
 /**
+ * Assign cifti dense label dynamic coloring to nodes
+ *
+ * @param displayPropertiesLabels
+ *    Label display properties
+ * @param browserTabIndex
+ *    Index of the browser tab
+ * @param brainStructure
+ *    The brain structure that contains the data files.
+ * @param surface
+ *    Surface that is being colored
+ * @param ciftiLabelDynamicFile
+ *    Cifti Label Dynamic file that is selected.
+ * @param mapIndex
+ *    Index of selected map.
+ * @param numberOfNodes
+ *    Number of nodes in surface.
+ * @param rgbv
+ *    Color components set by this method.
+ *    Red, green, blue, valid.  If the valid component is
+ *    zero, it indicates that the overlay did not assign
+ *    any coloring to the node.
+ * @return
+ *    True if coloring is valid, else false.
+ */
+bool
+SurfaceNodeColoring::assignCiftiDenseLabelDynamicColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
+                                                          const int32_t browserTabIndex,
+                                                          const BrainStructure* brainStructure,
+                                                          const Surface* surface,
+                                                          CiftiBrainordinateLabelDynamicFile* ciftiLabelDynamicFile,
+                                                          const int32_t mapIndex,
+                                                          const int32_t numberOfNodes,
+                                                          float* rgbv)
+{
+    CaretAssert(ciftiLabelDynamicFile);
+    const CaretMappableDataFile* parentFile = ciftiLabelDynamicFile->getParentMappableDataFile();
+    CaretAssert(parentFile);
+    const PaletteColorMapping* pcm = parentFile->getMapPaletteColorMapping(mapIndex);
+    CaretAssert(pcm);
+    if ( ! pcm->isThresholdDynamicLabelOutlineEnabled()) {
+        return false;
+    }
+    
+    return assignCiftiDenseLabelColoring(displayPropertiesLabels,
+                                         browserTabIndex,
+                                         brainStructure,
+                                         surface,
+                                         ciftiLabelDynamicFile,
+                                         mapIndex,
+                                         numberOfNodes,
+                                         rgbv);
+}
+
+
+/**
  * Assign cifti dense label coloring to nodes
  *
  * @param displayPropertiesLabels
@@ -1158,13 +1213,13 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
  */
 bool
 SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
-                                              const int32_t browserTabIndex,
-                                              const BrainStructure* brainStructure,
+                                                   const int32_t browserTabIndex,
+                                                   const BrainStructure* brainStructure,
                                                    const Surface* surface,
-                                          CiftiBrainordinateLabelFile* ciftiLabelFile,
-                                              const int32_t mapIndex,
-                                          const int32_t numberOfNodes,
-                                          float* rgbv)
+                                                   CiftiBrainordinateLabelFile* ciftiLabelFile,
+                                                   const int32_t mapIndex,
+                                                   const int32_t numberOfNodes,
+                                                   float* rgbv)
 {
     CaretAssert(displayPropertiesLabels);
     CaretAssert(brainStructure);

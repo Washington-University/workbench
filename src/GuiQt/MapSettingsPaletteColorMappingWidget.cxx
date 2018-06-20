@@ -187,7 +187,8 @@ MapSettingsPaletteColorMappingWidget::updateWidget()
 void 
 MapSettingsPaletteColorMappingWidget::thresholdTypeChanged(int indx)
 {
-    PaletteThresholdTypeEnum::Enum paletteThresholdType = static_cast<PaletteThresholdTypeEnum::Enum>(this->thresholdTypeComboBox->itemData(indx).toInt());
+    const int32_t threshIntValue = this->thresholdTypeComboBox->itemData(indx).toInt();
+    PaletteThresholdTypeEnum::Enum paletteThresholdType = PaletteThresholdTypeEnum::fromIntegerCode(threshIntValue, NULL);
     this->paletteColorMapping->setThresholdType(paletteThresholdType);
     
     this->updateEditorInternal(this->caretMappableDataFile,
@@ -205,8 +206,11 @@ MapSettingsPaletteColorMappingWidget::thresholdTypeChanged(int indx)
 void
 MapSettingsPaletteColorMappingWidget::thresholdOutlineCheckBoxClicked(bool checked)
 {
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
     if (this->caretMappableDataFile->isLabelDynamicThresholdFileSupported()) {
-        this->caretMappableDataFile->setMapLabelDynamicThresholdFileEnabled(this->mapFileIndex, checked);
+        this->paletteColorMapping->setThresholdDynamicLabelOutlineEnabled(checked);
     }
     this->applySelections();
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -574,7 +578,8 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
                                           "Select thresholding off/on");
     for (int32_t i = 0; i < numThresholdTypes; i++) {
         this->thresholdTypeComboBox->addItem(PaletteThresholdTypeEnum::toGuiName(thresholdTypes[i]));
-        this->thresholdTypeComboBox->setItemData(i, static_cast<int>(thresholdTypes[i]));
+        int threshTypeInt = PaletteThresholdTypeEnum::toIntegerCode(thresholdTypes[i]);
+        this->thresholdTypeComboBox->setItemData(i, threshTypeInt);
     }
     QObject::connect(this->thresholdTypeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(thresholdTypeChanged(int)));
@@ -1653,10 +1658,12 @@ MapSettingsPaletteColorMappingWidget::updateThresholdSection()
 {
     this->thresholdWidgetGroup->blockAllSignals(true);
     
+    const PaletteThresholdTypeEnum::Enum selectedThresholdType = this->paletteColorMapping->getThresholdType();
     const int32_t numTypes = this->thresholdTypeComboBox->count();
     for (int32_t i = 0; i < numTypes; i++) {
-        const int value = this->thresholdTypeComboBox->itemData(i).toInt();
-        if (value == static_cast<int>(this->paletteColorMapping->getThresholdType())) {
+        const int threshIntValue = this->thresholdTypeComboBox->itemData(i).toInt();
+        const PaletteThresholdTypeEnum::Enum threshType = PaletteThresholdTypeEnum::fromIntegerCode(threshIntValue, NULL);
+        if (threshType == selectedThresholdType) {
             this->thresholdTypeComboBox->setCurrentIndex(i);
             break;
         }
@@ -1680,7 +1687,7 @@ MapSettingsPaletteColorMappingWidget::updateThresholdSection()
     
     this->thresholdOutlineCheckBox->setEnabled(this->caretMappableDataFile->isLabelDynamicThresholdFileSupported()
                                                && (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF));
-    this->thresholdOutlineCheckBox->setChecked(this->caretMappableDataFile->isMapLabelDynamicThresholdFileEnabled(this->mapFileIndex));
+    this->thresholdOutlineCheckBox->setChecked(this->paletteColorMapping->isThresholdDynamicLabelOutlineEnabled());
     
     const PaletteThresholdRangeModeEnum::Enum thresholdRangeMode = paletteColorMapping->getThresholdRangeMode();
     this->thresholdRangeModeComboBox->blockSignals(true);
@@ -2537,8 +2544,9 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     float lowValue = this->thresholdLowSpinBox->value();
     float highValue = this->thresholdHighSpinBox->value();
     
-    const int thresholdTypeIndex = this->thresholdTypeComboBox->currentIndex();
-    PaletteThresholdTypeEnum::Enum paletteThresholdType = static_cast<PaletteThresholdTypeEnum::Enum>(this->thresholdTypeComboBox->itemData(thresholdTypeIndex).toInt());
+    const int thresholdComboIndex = this->thresholdTypeComboBox->currentIndex();
+    const int32_t threshIntValue = this->thresholdTypeComboBox->itemData(thresholdComboIndex).toInt();
+    PaletteThresholdTypeEnum::Enum paletteThresholdType = PaletteThresholdTypeEnum::fromIntegerCode(threshIntValue, NULL);
     this->paletteColorMapping->setThresholdType(paletteThresholdType);
     
     this->paletteColorMapping->setThresholdMinimum(paletteThresholdType, lowValue);

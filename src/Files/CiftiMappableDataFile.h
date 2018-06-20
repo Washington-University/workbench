@@ -475,8 +475,6 @@ namespace caret {
         
         virtual bool isLabelDynamicThresholdFileSupported() const override;
         
-        virtual void setMapLabelDynamicThresholdFileEnabled(const int32_t mapIndex,
-                                                            const bool enabled) override;
     private:
         
         CiftiMappableDataFile(const CiftiMappableDataFile&);
@@ -806,9 +804,9 @@ namespace caret {
     private:
         void createLabelDynamicThresholdFile();
         
-        std::unique_ptr<CiftiBrainordinateLabelDynamicFile> m_labelDynamicThresholdFile;
+        mutable std::unique_ptr<CiftiBrainordinateLabelDynamicFile> m_labelDynamicThresholdFile;
         
-        bool m_labelDynamicThresholdFileCreationFailedFlag = false;
+        mutable bool m_labelDynamicThresholdFileCreationFailedFlag = false;
         
         friend class ChartableTwoFileDelegate;
         friend class ChartableTwoFileMatrixChart;

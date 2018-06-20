@@ -148,6 +148,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm,
     this->thresholdShowFailureInGreen = pcm.thresholdShowFailureInGreen;
     this->thresholdRangeMode = pcm.thresholdRangeMode;
     this->thresholdNegMinPosMaxLinked = pcm.thresholdNegMinPosMaxLinked;
+    this->thresholdDynamicLabelOutlineEnabled = pcm.thresholdDynamicLabelOutlineEnabled;
     if (copyHistogramAttributesFlag) {
         this->histogramRangeMode = pcm.histogramRangeMode;
         this->histogramBarsVisible = pcm.histogramBarsVisible;
@@ -208,6 +209,7 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->thresholdShowFailureInGreen == pcm.thresholdShowFailureInGreen)
         && (this->thresholdRangeMode == pcm.thresholdRangeMode)
         && (this->thresholdNegMinPosMaxLinked == pcm.thresholdNegMinPosMaxLinked)
+        && (this->thresholdDynamicLabelOutlineEnabled == pcm.thresholdDynamicLabelOutlineEnabled)
         && (this->colorBarNumericFormatMode == pcm.colorBarNumericFormatMode)
         && (this->colorBarPrecisionDigits == pcm.colorBarPrecisionDigits)
         && (this->colorBarNumericSubdivisionCount == pcm.colorBarNumericSubdivisionCount)
@@ -270,6 +272,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->thresholdShowFailureInGreen = false;
     this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_FILE;
     this->thresholdNegMinPosMaxLinked = false;
+    this->thresholdDynamicLabelOutlineEnabled = false;
     this->histogramRangeMode = PaletteHistogramRangeModeEnum::PALETTE_HISTOGRAM_RANGE_ALL;
     this->histogramBarsVisible = true;
     this->histogramEnvelopeVisible = false;
@@ -396,6 +399,8 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
     
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_NEG_MIN_POS_MAX_LINKED,
                                      this->thresholdNegMinPosMaxLinked);
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_DYNAMIC_LABEL_OUTLINE,
+                                     this->thresholdDynamicLabelOutlineEnabled);
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_RANGE_MODE,
                                      PaletteHistogramRangeModeEnum::toName(this->histogramRangeMode));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_BARS_VISIBLE,
@@ -2515,6 +2520,30 @@ PaletteColorMapping::setThresholdNegMinPosMaxLinked(const bool linked)
 {
     if (this->thresholdNegMinPosMaxLinked != linked) {
         this->thresholdNegMinPosMaxLinked = linked;
+        setModified();
+    }
+}
+
+/**
+ * @return True if threshold dynamic label outline is enabled.
+ */
+bool
+PaletteColorMapping::isThresholdDynamicLabelOutlineEnabled() const
+{
+    return this->thresholdDynamicLabelOutlineEnabled;
+}
+
+/**
+ * Set threshold dynamic label outline enabled status.
+ *
+ * @param enabled
+ *     New enabled status.
+ */
+void
+PaletteColorMapping::setThresholdDynamicLabelOutlineEnabled(const bool enabled)
+{
+    if (this->thresholdDynamicLabelOutlineEnabled != enabled) {
+        this->thresholdDynamicLabelOutlineEnabled = enabled;
         setModified();
     }
 }

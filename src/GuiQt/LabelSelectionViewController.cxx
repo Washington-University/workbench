@@ -38,6 +38,7 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CiftiBrainordinateLabelDynamicFile.h"
 #include "GroupAndNameHierarchyViewController.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesLabels.h"
@@ -46,6 +47,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "LabelFile.h"
 #include "SceneClass.h"
 #include "VolumeFile.h"
 #include "WuQDataEntryDialog.h"
@@ -169,39 +171,79 @@ LabelSelectionViewController::updateLabelViewController()
     m_labelsDisplayGroupComboBox->setSelectedDisplayGroup(dpb->getDisplayGroupForTab(browserTabIndex));
     
     /*
-     * Get all of label files.
+     * Get all of label type files
      */
     std::vector<LabelFile*> allLabelFiles;
-    const int numBrainStructures = brain->getNumberOfBrainStructures();
-    for (int32_t ibs = 0; ibs < numBrainStructures; ibs++) {
-        BrainStructure* brainStructure = brain->getBrainStructure(ibs);
-        const int32_t numLabelFiles = brainStructure->getNumberOfLabelFiles();
-        for (int32_t ilf = 0; ilf < numLabelFiles; ilf++) {
-            allLabelFiles.push_back(brainStructure->getLabelFile(ilf));
-        }
-    }
-    
-    /*
-     * Get all CIFTI label files
-     */
     std::vector<CiftiBrainordinateLabelFile*> allCiftiLabelFiles;
-    const int32_t numCiftiLabelFiles = brain->getNumberOfConnectivityDenseLabelFiles();
-    for (int32_t iclf = 0; iclf < numCiftiLabelFiles; iclf++) {
-        allCiftiLabelFiles.push_back(brain->getConnectivityDenseLabelFile(iclf));
-    }
-    
-    /*
-     * Get all Volume Files that are mapped with label tables
-     */
     std::vector<VolumeFile*> allVolumeLabelFiles;
-    const int32_t numVolumeFiles = brain->getNumberOfVolumeFiles();
-    for (int32_t iVol = 0; iVol < numVolumeFiles; iVol++) {
-        VolumeFile* vf = brain->getVolumeFile(iVol);
-        if (vf->isMappedWithLabelTable()) {
-            allVolumeLabelFiles.push_back(vf);
+
+    std::vector<CaretMappableDataFile*> allMapDataFiles;
+    brain->getAllMappableDataFiles(allMapDataFiles);
+    for (auto file : allMapDataFiles) {
+        switch (file->getDataFileType()) {
+            case DataFileTypeEnum::ANNOTATION:
+                break;
+            case DataFileTypeEnum::BORDER:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                allCiftiLabelFiles.push_back(dynamic_cast<CiftiBrainordinateLabelFile*>(file));
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                break;
+            case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::IMAGE:
+                break;
+            case DataFileTypeEnum::LABEL:
+                allLabelFiles.push_back(dynamic_cast<LabelFile*>(file));
+                break;
+            case DataFileTypeEnum::METRIC:
+                break;
+            case DataFileTypeEnum::PALETTE:
+                break;
+            case DataFileTypeEnum::RGBA:
+                break;
+            case DataFileTypeEnum::SCENE:
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                break;
+            case DataFileTypeEnum::SURFACE:
+                break;
+            case DataFileTypeEnum::VOLUME:
+                if (file->isMappedWithLabelTable()) {
+                    allVolumeLabelFiles.push_back(dynamic_cast<VolumeFile*>(file));
+                }
+                break;
+            case DataFileTypeEnum::UNKNOWN:
+                break;
         }
     }
-    
     /*
      * Update the class/name hierarchy
      */

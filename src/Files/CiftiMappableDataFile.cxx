@@ -47,6 +47,7 @@
 #include "CiftiXML.h"
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
+#include "EventAlertUser.h"
 #include "EventCaretPreferencesGet.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "FastStatistics.h"
@@ -446,6 +447,9 @@ CiftiMappableDataFile::newInstanceForCiftiFileTypeAndSurface(const DataFileTypeE
 CaretMappableDataFile*
 CiftiMappableDataFile::getLabelDynamicThresholdFile()
 {
+    if ( ! m_labelDynamicThresholdFile) {
+        createLabelDynamicThresholdFile();
+    }
     return m_labelDynamicThresholdFile.get();
 }
 
@@ -455,6 +459,10 @@ CiftiMappableDataFile::getLabelDynamicThresholdFile()
 const CaretMappableDataFile*
 CiftiMappableDataFile::getLabelDynamicThresholdFile() const
 {
+    if ( ! m_labelDynamicThresholdFile) {
+        CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
+        nonConstThis->createLabelDynamicThresholdFile();
+    }
     return m_labelDynamicThresholdFile.get();
 }
 
@@ -477,54 +485,40 @@ CiftiMappableDataFile::isLabelDynamicThresholdFileSupported() const
 }
 
 /**
- * Set the enabled status of label dynamic threshold file for the given map index.
- *
- * @param index
- *     Index of the map.
- */
-void
-CiftiMappableDataFile::setMapLabelDynamicThresholdFileEnabled(const int32_t mapIndex,
-                                                              const bool enabled)
-{
-    if (m_labelDynamicThresholdFileCreationFailedFlag) {
-        CaretMappableDataFile::setMapLabelDynamicThresholdFileEnabled(mapIndex,
-                                                                      false);
-        return;
-    }
-    
-    CaretMappableDataFile::setMapLabelDynamicThresholdFileEnabled(mapIndex,
-                                                                  enabled);
-    
-    
-    if (isMapLabelDynamicThresholdFileEnabled(mapIndex)) {
-        /*
-         * Lazily initialize the file
-         */
-        if ( ! m_labelDynamicThresholdFile) {
-            createLabelDynamicThresholdFile();
-            if (m_labelDynamicThresholdFileCreationFailedFlag) {
-                CaretMappableDataFile::setMapLabelDynamicThresholdFileEnabled(mapIndex,
-                                                                              false);
-            }
-        }
-    }
-}
-
-/**
- * Create the Label Dynamic Threshold File
+ * Lazily create the Label Dynamic Threshold File
  */
 void
 CiftiMappableDataFile::createLabelDynamicThresholdFile()
 {
+    if (m_labelDynamicThresholdFileCreationFailedFlag) {
+        return;
+    }
+    if ( ! isMapLabelDynamicThresholdEnabledForAnyMap()) {
+        return;
+    }
+    
     AString errorMessage;
     CiftiBrainordinateLabelDynamicFile* labelFile = CiftiBrainordinateLabelDynamicFile::newInstance(this,
                                                                                                     errorMessage);
     if (labelFile != NULL) {
         m_labelDynamicThresholdFile.reset(labelFile);
+        
+        /*
+         * Maybe disable in all maps???
+         */
+        CaretAssertToDoWarning();
     }
     else {
         m_labelDynamicThresholdFileCreationFailedFlag = true;
-        CaretLogWarning(errorMessage);
+        CaretLogSevere(errorMessage);
+        EventAlertUser alertUserEvent(errorMessage);
+        EventManager::get()->sendEvent(alertUserEvent.getPointer());
+        const int32_t numMaps = getNumberOfMaps();
+        if (isMappedWithPalette()) {
+            for (int32_t i = 0; i < numMaps; i++) {
+                getMapPaletteColorMapping(i)->setThresholdDynamicLabelOutlineEnabled(false);
+            }
+        }
     }
 }
 
@@ -2607,9 +2601,9 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex)
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
     
-    std::vector<float> data;
+    std::vector<float> myMapData;
     getMapData(mapIndex,
-               data);
+               myMapData);
 
     m_mapContent[mapIndex]->m_rgbaValid = false;
     if (isMappedWithPalette()) {
@@ -2624,37 +2618,51 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex)
                 break;
         }
         
-        m_mapContent[mapIndex]->updateColoring(data,
+        m_mapContent[mapIndex]->updateColoring(myMapData,
                                                statistics);
     }
     else if (isMappedWithLabelTable()) {
         if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC) {
             CiftiBrainordinateLabelDynamicFile* dynLabelFile = dynamic_cast<CiftiBrainordinateLabelDynamicFile*>(this);
             CaretAssert(dynLabelFile);
+            
             CiftiMappableDataFile* ciftiParentFile = dynamic_cast<CiftiMappableDataFile*>(dynLabelFile->getParentMappableDataFile());
             CaretAssert(ciftiParentFile);
-            ciftiParentFile->updateScalarColoringForMap(mapIndex);
+            const int32_t parentMapCount = ciftiParentFile->m_mapContent[mapIndex]->m_dataCount;
+            const int32_t myMapCount = static_cast<int32_t>(myMapData.size());
+            CaretAssert(myMapCount == parentMapCount);
             
-            const int32_t mapCount = m_mapContent[mapIndex]->m_dataCount;
-            CaretAssertVectorIndex(m_mapContent, mapIndex);
+            /*
+             * Update coloring in parent file's map since it may not be displayed
+             * in an overlay
+             */
             CaretAssertVectorIndex(ciftiParentFile->m_mapContent, mapIndex);
-            CaretAssert(mapCount == ciftiParentFile->m_mapContent[mapIndex]->m_dataCount);
-            
-            std::vector<float> mapData(mapCount);
-            for (int32_t i = 0; i < mapCount; i++) {
+            ciftiParentFile->m_mapContent[mapIndex]->m_rgbaValid = false;
+            ciftiParentFile->updateScalarColoringForMap(mapIndex);
+
+            /*
+             * For each brainordinate in the dynamic label file, set using
+             * the alpha value from the parent file's corresponding brainordinate
+             */
+            for (int32_t i = 0; i < myMapCount; i++) {
                 const int32_t alphaIndex = i*4 + 3;
                 CaretAssertVectorIndex(ciftiParentFile->m_mapContent[mapIndex]->m_rgba, alphaIndex);
-                CaretAssertVectorIndex(mapData, i);
-                mapData[i] = 0.0;
+                CaretAssertVectorIndex(myMapData, i);
+                myMapData[i] = 0.0;
                 if (ciftiParentFile->m_mapContent[mapIndex]->m_rgba[alphaIndex] > 0) {
-                    mapData[i] = 1.0;
+                    myMapData[i] = 1.0;
                 }
             }
-            
-            setMapData(mapIndex, mapData);
+            setMapData(mapIndex, myMapData);
+
+            /*
+             * Labels usage may change
+             */
+            m_forceUpdateOfGroupAndNameHierarchy = true;
+            (void)getGroupAndNameHierarchyModel();
         }
         
-        m_mapContent[mapIndex]->updateColoring(data,
+        m_mapContent[mapIndex]->updateColoring(myMapData,
                                                NULL);
     }
     else {
@@ -3855,58 +3863,60 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                 }
             }
         }
-            for (int64_t k = kStart; k <= kEnd; k++) {
-                for (int64_t j = jStart; j < jEnd; j++) {
-                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(sliceIndex,
-                                                                                           j,
-                                                                                           k);
-                    if (dataOffset >= 0) {
-                        const int64_t dataOffset4 = dataOffset * 4;
-                        CaretAssert(dataOffset4 < mapRgbaCount);
-                        
-                        const int64_t rgbaOffset = (((k - kStart) * voxelCountJ) + (j - jStart)) * 4;
-                        CaretAssert(rgbaOffset < componentCount);
-                        rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
-                        rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
-                        rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
-                        /*
-                         * A negative value for alpha indicates "do not draw".
-                         * Since unsigned bytes do not have negative values,
-                         * change the value to zero (which indicates "transparent").
-                         */
-                        float alpha = mapRGBA[dataOffset4+3];
-                        if (alpha < 0.0) {
-                            alpha = 0.0;
-                        }
-                        
-                        if (alpha > 0.0) {
-                            if (labelTable != NULL) {
-                                /*
-                                 * For label data, verify that the label is displayed.
-                                 * If NOT displayed, zero out the alpha value to
-                                 * prevent display of the data.
-                                 */
-                                CaretAssertVectorIndex(dataValues, dataOffset);
-                                const int32_t dataValue = dataValues[dataOffset];
-                                const GiftiLabel* label = labelTable->getLabel(dataValue);
-                                if (label != NULL) {
-                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-                                    CaretAssert(item);
-                                    if (item->isSelected(displayGroup, tabIndex) == false) {
-                                        alpha = 0.0;
-                                    }
-                                }
-                            }
-                            
-                        }
-                        
-                        if (alpha > 0.0) {
-                            ++validVoxelCount;
-                        }
-                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
-                    }
-                }
-            }
+            
+//            CaretAssertToDoWarning(); // should this code be here????
+//            for (int64_t k = kStart; k <= kEnd; k++) {
+//                for (int64_t j = jStart; j < jEnd; j++) {
+//                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(sliceIndex,
+//                                                                                           j,
+//                                                                                           k);
+//                    if (dataOffset >= 0) {
+//                        const int64_t dataOffset4 = dataOffset * 4;
+//                        CaretAssert(dataOffset4 < mapRgbaCount);
+//                        
+//                        const int64_t rgbaOffset = (((k - kStart) * voxelCountJ) + (j - jStart)) * 4;
+//                        CaretAssert(rgbaOffset < componentCount);
+//                        rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
+//                        rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
+//                        rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
+//                        /*
+//                         * A negative value for alpha indicates "do not draw".
+//                         * Since unsigned bytes do not have negative values,
+//                         * change the value to zero (which indicates "transparent").
+//                         */
+//                        float alpha = mapRGBA[dataOffset4+3];
+//                        if (alpha < 0.0) {
+//                            alpha = 0.0;
+//                        }
+//                        
+//                        if (alpha > 0.0) {
+//                            if (labelTable != NULL) {
+//                                /*
+//                                 * For label data, verify that the label is displayed.
+//                                 * If NOT displayed, zero out the alpha value to
+//                                 * prevent display of the data.
+//                                 */
+//                                CaretAssertVectorIndex(dataValues, dataOffset);
+//                                const int32_t dataValue = dataValues[dataOffset];
+//                                const GiftiLabel* label = labelTable->getLabel(dataValue);
+//                                if (label != NULL) {
+//                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+//                                    CaretAssert(item);
+//                                    if (item->isSelected(displayGroup, tabIndex) == false) {
+//                                        alpha = 0.0;
+//                                    }
+//                                }
+//                            }
+//                            
+//                        }
+//                        
+//                        if (alpha > 0.0) {
+//                            ++validVoxelCount;
+//                        }
+//                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+//                    }
+//                }
+//            }
             break;
     }
     
