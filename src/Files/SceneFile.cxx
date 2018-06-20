@@ -1079,25 +1079,99 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                     }
                     if (useNameFlag) {
                         AString pathName = scenePathName->stringValue().trimmed();
-                        if ( ! pathName.isEmpty()) {
-                            QFileInfo fileInfo(pathName);
-                            const QString absPathName = fileInfo.absoluteFilePath();
-                            if ( ! absPathName.isEmpty()) {
-                                pathName = absPathName;
-                            }
 
-                            bool foundFlag = false;
-                            for (auto& dfi : fileInfoOut) {
-                                if (dfi.m_dataFileName == pathName) {
-                                    dfi.addSceneIndex(sceneIndex);
-                                    foundFlag = true;
-                                    break;
+                        if ( ! pathName.isEmpty()) {
+                            bool validExtensionFlag = false;
+                            const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(pathName,
+                                                                                                            &validExtensionFlag);
+                            
+                            bool validDiskFileFlag = true;
+                            if (validExtensionFlag) {
+                                switch (dataFileType) {
+                                    case DataFileTypeEnum::ANNOTATION:
+                                        break;
+                                    case DataFileTypeEnum::BORDER:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                                        validDiskFileFlag = false;
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
+                                        validDiskFileFlag = false;
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                                        break;
+                                    case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                                        break;
+                                    case DataFileTypeEnum::FOCI:
+                                        break;
+                                    case DataFileTypeEnum::IMAGE:
+                                        break;
+                                    case DataFileTypeEnum::LABEL:
+                                        break;
+                                    case DataFileTypeEnum::METRIC:
+                                        break;
+                                    case DataFileTypeEnum::PALETTE:
+                                        break;
+                                    case DataFileTypeEnum::RGBA:
+                                        break;
+                                    case DataFileTypeEnum::SCENE:
+                                        break;
+                                    case DataFileTypeEnum::SPECIFICATION:
+                                        break;
+                                    case DataFileTypeEnum::SURFACE:
+                                        break;
+                                    case DataFileTypeEnum::VOLUME:
+                                        break;
+                                    case DataFileTypeEnum::UNKNOWN:
+                                        break;
                                 }
                             }
                             
-                            if ( ! foundFlag) {
-                                fileInfoOut.insert(SceneDataFileInfo(pathName,
-                                                                     sceneIndex));
+                            if (validDiskFileFlag) {
+                                QFileInfo fileInfo(pathName);
+                                const QString absPathName = fileInfo.absoluteFilePath();
+                                if ( ! absPathName.isEmpty()) {
+                                    pathName = absPathName;
+                                }
+                                
+                                /*
+                                 * Test to see if this file is already in the output file info
+                                 */
+                                bool foundFlag = false;
+                                for (auto& dfi : fileInfoOut) {
+                                    if (dfi.m_dataFileName == pathName) {
+                                        dfi.addSceneIndex(sceneIndex);
+                                        foundFlag = true;
+                                        break;
+                                    }
+                                }
+                                
+                                if ( ! foundFlag) {
+                                    fileInfoOut.insert(SceneDataFileInfo(pathName,
+                                                                         sceneIndex));
+                                }
                             }
                         }
                     }
