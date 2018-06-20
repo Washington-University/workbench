@@ -116,6 +116,10 @@ m_sceneFile(sceneFile)
     
     m_basePathWidget->updateWithSceneFile(m_sceneFile);
     updateUserRolesLabel();
+    
+    disableAutoDefaultForAllPushButtons();
+    m_loginPushButton->setAutoDefault(true);
+    m_loginPushButton->setDefault(true);
 }
 
 /**
