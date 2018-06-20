@@ -4707,7 +4707,12 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
                                                          const uint8_t sliceOpacity)
 {
     if (validVoxelCount <= 0) {
-        return;
+        if (m_identificationModeFlag) {
+            /* voxels are always drawn in identification mode */
+        }
+        else {
+            return;
+        }
     }
     
     /*
