@@ -1192,6 +1192,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processDataFileOpen()));
+    m_openFileAction->setShortcutContext(Qt::ApplicationShortcut);
     
     m_openLocationAction = 
     WuQtUtilities::createAction("Open Location...", 
@@ -1200,6 +1201,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processDataFileLocationOpen()));
+    m_openLocationAction->setShortcutContext(Qt::ApplicationShortcut);
     
     m_manageFilesAction =
     WuQtUtilities::createAction("Save/Manage Files...", 
@@ -1208,6 +1210,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processManageSaveLoadedFiles()));
+    m_manageFilesAction->setShortcutContext(Qt::ApplicationShortcut);
     
     m_closeSpecFileAction =
     WuQtUtilities::createAction("Close All Files",
