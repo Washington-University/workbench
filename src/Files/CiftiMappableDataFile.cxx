@@ -2623,6 +2623,7 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex)
             
             CiftiMappableDataFile* ciftiParentFile = dynamic_cast<CiftiMappableDataFile*>(dynLabelFile->getParentMappableDataFile());
             CaretAssert(ciftiParentFile);
+            CaretAssertVectorIndex(ciftiParentFile->m_mapContent, mapIndex);
             const int32_t parentMapCount = ciftiParentFile->m_mapContent[mapIndex]->m_dataCount;
             const int32_t myMapCount = static_cast<int32_t>(myMapData.size());
             CaretAssert(myMapCount == parentMapCount);
@@ -2649,6 +2650,8 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex)
                 }
             }
             setMapData(mapIndex, myMapData);
+            setMapName(mapIndex, ("Outline: "
+                                  + ciftiParentFile->getMapName(mapIndex)));
 
             /*
              * Labels usage may change

@@ -30,6 +30,7 @@
 
 
 namespace caret {
+    class AString;
     class CiftiMappableDataFile;
 
     class CiftiBrainordinateLabelDynamicFile : public CiftiBrainordinateLabelFile {
@@ -57,6 +58,11 @@ namespace caret {
 
     private:
         CiftiBrainordinateLabelDynamicFile(CaretMappableDataFile* parentMappableDataFile);
+        
+        static bool getBrainModelsAndMapsFromFile(CaretMappableDataFile* mapFile,
+                                                  CiftiBrainModelsMap& brainModelsMapOut,
+                                                  int32_t& numberOfMapsOut,
+                                                  AString& errorMessageOut);
         
         CaretMappableDataFile* m_parentMappableDataFile;
         

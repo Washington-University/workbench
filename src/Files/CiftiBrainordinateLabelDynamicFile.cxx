@@ -78,68 +78,13 @@ CiftiBrainordinateLabelDynamicFile::newInstance(CiftiMappableDataFile* ciftiMapF
     if (supportedFlag) {
         CaretAssert(ciftiMapFile);
         
-        int32_t brainModelsDirection = -1;
-        int32_t mapsDirection        = -1;
-        switch (ciftiMapFile->m_dataMappingDirectionForCiftiXML) {
-            case CiftiXML::ALONG_COLUMN:
-                brainModelsDirection = CiftiXML::ALONG_COLUMN;
-                mapsDirection        = CiftiXML::ALONG_ROW;
-                break;
-            case CiftiXML::ALONG_ROW:
-                brainModelsDirection = CiftiXML::ALONG_ROW;
-                mapsDirection        = CiftiXML::ALONG_COLUMN;
-                break;
-        }
-        
-        const CiftiXML& parentXML = ciftiMapFile->getCiftiXML();
         CiftiBrainModelsMap brainModelsMap;
-        if (CiftiMappingType::MappingType::BRAIN_MODELS)
-        switch (brainModelsDirection) {
-            case CiftiXML::ALONG_ROW:
-            case CiftiXML::ALONG_COLUMN:
-                if (parentXML.getMappingType(brainModelsDirection) == CiftiMappingType::BRAIN_MODELS) {
-                    brainModelsMap = parentXML.getBrainModelsMap(brainModelsDirection);
-                }
-                break;
-            default:
-                break;
-        }
-        
         int32_t numberOfMaps = -1;
-        switch (mapsDirection) {
-            case CiftiXML::ALONG_COLUMN:
-            case CiftiXML::ALONG_ROW:
-                switch (parentXML.getMappingType(mapsDirection)) {
-                    case CiftiMappingType::BRAIN_MODELS:
-                        if (ciftiMapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
-                            numberOfMaps = 1;
-                        }
-                        break;
-                    case CiftiMappingType::LABELS:
-                        break;
-                    case CiftiMappingType::PARCELS:
-                        if (ciftiMapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE) {
-                            numberOfMaps = 1;
-                        }
-                        break;
-                    case CiftiMappingType::SCALARS:
-                    {
-                        CiftiScalarsMap scalarsMap = parentXML.getScalarsMap(mapsDirection);
-                        numberOfMaps = scalarsMap.getLength();
-                    }
-                        break;
-                    case CiftiMappingType::SERIES:
-                    {
-                        CiftiSeriesMap seriesMap = parentXML.getSeriesMap(mapsDirection);
-                        numberOfMaps = seriesMap.getLength();
-                    }
-                        break;
-                }
-                break;
-        }
-        
-        if ((brainModelsMap.getLength() > 0)
-            && (numberOfMaps > 0)) {
+        const bool validFlag = getBrainModelsAndMapsFromFile(ciftiMapFile,
+                                                             brainModelsMap,
+                                                             numberOfMaps,
+                                                             errorMessageOut);
+        if (validFlag) {
             CiftiFile* ciftiFile = NULL;
             
             try {
@@ -228,17 +173,6 @@ CiftiBrainordinateLabelDynamicFile::newInstance(CiftiMappableDataFile* ciftiMapF
                                    + ciftiMapFile->getFileName()
                                    + ": "
                                    + de.whatString());
-            }
-        }
-        else {
-            errorMessageOut = ("CIFTI file is NOT label dynamic compatible: "
-                               + ciftiMapFile->getFileName()
-                               + "  ");
-            if (brainModelsMap.getLength() <= 0) {
-                errorMessageOut.append("Unable to find Brain Models.  ");
-            }
-            if (numberOfMaps <= 0) {
-                errorMessageOut.append("Unable to find number of maps or file is empty.  ");
             }
         }
     }
@@ -336,6 +270,172 @@ CiftiBrainordinateLabelDynamicFile::isFileTypeSupported(const DataFileTypeEnum::
 }
 
 /**
+ * Find the brain models mapping and the number of maps for the given data file.
+ *
+ * @param mapFile
+ *     The map file.
+ * @param brainModelsMapOut
+ *     Output with brain models map.
+ * @param numberOfMapsOut
+ *     Number of maps.
+ * @param errorMessageOut
+ *     Error message.
+ * @return True if brain models map and ar valid.
+ */
+bool
+CiftiBrainordinateLabelDynamicFile::getBrainModelsAndMapsFromFile(CaretMappableDataFile* mapFile,
+                                                                  CiftiBrainModelsMap& brainModelsMapOut,
+                                                                  int32_t& numberOfMapsOut,
+                                                                  AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    brainModelsMapOut.clear();
+    numberOfMapsOut = -1;
+    
+    CaretAssert(mapFile);
+    if ( ! isFileTypeSupported(mapFile->getDataFileType())) {
+        errorMessageOut = ("Label dynamic threshold file not supported for "
+                           + mapFile->getFileNameNoPath());
+        return false;
+    }
+    
+    bool validFlag = false;
+    CiftiMappableDataFile* ciftiFile = dynamic_cast<CiftiMappableDataFile*>(mapFile);
+    
+    const DataFileTypeEnum::Enum dataFileType = mapFile->getDataFileType();
+    switch (dataFileType) {
+        case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+        {
+            CaretAssert(ciftiFile);
+            const CiftiXML& ciftiXML = ciftiFile->getCiftiXML();
+            CaretAssert(ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::BRAIN_MODELS);
+            brainModelsMapOut = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+            numberOfMapsOut = 1;
+            validFlag = true;
+        }
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+        {
+            CaretAssert(ciftiFile);
+            const CiftiXML& ciftiXML = ciftiFile->getCiftiXML();
+            CaretAssert(ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS);
+            brainModelsMapOut = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+            
+            CaretAssert(ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES);
+            numberOfMapsOut = 1; /* always one map for dense dynamic */
+            validFlag = true;
+        }
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+        {
+            CaretAssert(ciftiFile);
+            const CiftiXML& ciftiXML = ciftiFile->getCiftiXML();
+            CaretAssert(ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS);
+            brainModelsMapOut = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+            
+            CaretAssert(ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS);
+            numberOfMapsOut = ciftiXML.getScalarsMap(CiftiXML::ALONG_ROW).getLength();
+            validFlag = true;
+        }
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+        {
+            CaretAssert(ciftiFile);
+            const CiftiXML& ciftiXML = ciftiFile->getCiftiXML();
+            CaretAssert(ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS);
+            brainModelsMapOut = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+            
+            CaretAssert(ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES);
+            numberOfMapsOut = ciftiXML.getSeriesMap(CiftiXML::ALONG_ROW).getLength();
+            validFlag = true;
+        }
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+        {
+            CaretAssert(ciftiFile);
+            const CiftiXML& ciftiXML = ciftiFile->getCiftiXML();
+            CaretAssert(ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::BRAIN_MODELS);
+            brainModelsMapOut = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+            numberOfMapsOut = 1;
+            validFlag = true;
+        }
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::IMAGE:
+            break;
+        case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::METRIC:
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            break;
+    }
+    
+    if (validFlag) {
+        if (brainModelsMapOut.getLength() <= 0) {
+            errorMessageOut.append("Failed to find brain models (length==0).  ");
+        }
+        if (numberOfMapsOut == 0) {
+            errorMessageOut.append("File contains zero maps.  ");
+        }
+        else if (numberOfMapsOut < 0) {
+            errorMessageOut.append("Failed to find number of maps.  ");
+        }
+        
+        if ( ! errorMessageOut.isEmpty()) {
+            errorMessageOut.insert(0, (mapFile->getFileNameNoPath() + "  "));
+            validFlag = false;
+        }
+    }
+    else {
+        if (errorMessageOut.isEmpty()) {
+            errorMessageOut = ("PROGRAM ERROR: Failed to search for brain models and number of maps for "
+                               + mapFile->getFileNameNoPath());
+            CaretAssertMessage(0, errorMessageOut);
+        }
+    }
+    
+    return validFlag;
+}
+
+/**
  * @return The parent mappable data file (const method)
  */
 const CaretMappableDataFile*
@@ -363,4 +463,5 @@ CiftiBrainordinateLabelDynamicFile::supportsWriting() const
 {
     return false;
 }
+
 
