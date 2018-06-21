@@ -43,6 +43,7 @@
 #include "GiftiLabelTableEditor.h"
 #include "GuiManager.h"
 #include "Overlay.h"
+#include "OverlaySet.h"
 #include "VolumeFile.h"
 #include "VolumeFileEditorDelegate.h"
 #include "VolumeFileCreateDialog.h"
@@ -469,22 +470,45 @@ UserInputModeVolumeEditWidget::newFileActionTriggered()
             EventDataFileAdd addFileEvent(vf);
             EventManager::get()->sendEvent(addFileEvent.getPointer());
             
-            const int32_t mapIndex = 0;
-            
-            UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
-            m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo);
-            if (volumeEditInfo.m_topOverlay != NULL) {
-                volumeEditInfo.m_topOverlay->setSelectionData(vf,
-                                                              mapIndex);
-                volumeEditInfo.m_topOverlay->setEnabled(true);
-                volumeEditInfo.m_topOverlay->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
-                m_inputModeVolumeEdit->updateGraphicsAfterEditing(vf,
-                                                                  mapIndex);
-            }
-            
-            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+            viewVolumeInNewOverlay(vf,
+                                   0);
         }
     }
+}
+
+/**
+ * View the volume in a new overlay at the top of the overlays
+ *
+ * @param vf
+ *     The volume file.
+ * @param mapIndex
+ *     Select this map index in overlay.
+ */
+void
+UserInputModeVolumeEditWidget::viewVolumeInNewOverlay(VolumeFile* vf,
+                                                      const int32_t mapIndex)
+{
+    UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
+    m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo);
+    if (volumeEditInfo.m_topOverlay != NULL) {
+        /*
+         * Add new overlay and place new volume file in the top most overlay
+         */
+        volumeEditInfo.m_overlaySet->insertOverlayAbove(0);
+        volumeEditInfo.m_topOverlay = volumeEditInfo.m_overlaySet->getPrimaryOverlay();
+        
+        CaretAssert((mapIndex >= 0)
+                    && (mapIndex < vf->getNumberOfMaps()));
+        volumeEditInfo.m_topOverlay->setSelectionData(vf,
+                                                      mapIndex);
+        volumeEditInfo.m_topOverlay->setEnabled(true);
+        volumeEditInfo.m_topOverlay->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
+        m_inputModeVolumeEdit->updateGraphicsAfterEditing(vf,
+                                                          mapIndex);
+    }
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    updateWidget();
 }
 
 /**
@@ -497,11 +521,13 @@ UserInputModeVolumeEditWidget::addMapsActionTriggered()
     if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
         VolumeFile* vf = volumeEditInfo.m_volumeFile;
         
-        WuQDataEntryDialog ded("Add Map to Volume File",
+        WuQDataEntryDialog ded("Add Map",
                                m_addMapsToolButton);
+        ded.setTextAtTop(("Add Map to Volume File: "
+                          + vf->getFileNameNoPath()), true);
         const int32_t newMapIndex = vf->getNumberOfMaps();
         QLineEdit* nameLineEdit = ded.addLineEditWidget("Map Name");
-        nameLineEdit->setText("Editing (" + AString::number(newMapIndex + 1) + ")");
+        nameLineEdit->setText("Map " + AString::number(newMapIndex + 1));
         
         if (ded.exec() == WuQDataEntryDialog::Accepted) {
             /*
@@ -514,13 +540,8 @@ UserInputModeVolumeEditWidget::addMapsActionTriggered()
                            nameLineEdit->text().trimmed());
             vf->getVolumeFileEditorDelegate()->setLocked(newMapIndex,
                                                          false);
-            
-            volumeEditInfo.m_volumeOverlay->setSelectionData(vf,
-                                                             newMapIndex);
-            m_inputModeVolumeEdit->updateGraphicsAfterEditing(vf,
-                                                              newMapIndex);
-            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-            updateWidget();
+            viewVolumeInNewOverlay(vf,
+                                   newMapIndex);
         }
     }
 }

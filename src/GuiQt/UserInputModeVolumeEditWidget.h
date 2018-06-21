@@ -99,6 +99,9 @@ namespace caret {
         
         QWidget* createModeToolBar();
         
+        void viewVolumeInNewOverlay(VolumeFile* vf,
+                                    const int32_t mapIndex);
+                                              
         QAction* m_lockAction;
         
         UserInputModeVolumeEdit* m_inputModeVolumeEdit;

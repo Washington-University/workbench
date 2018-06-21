@@ -317,6 +317,7 @@ UserInputModeVolumeEdit::getCursor() const
 bool
 UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
 {
+    volumeEditInfo.m_overlaySet     = NULL;
     volumeEditInfo.m_topOverlay     = NULL;
     volumeEditInfo.m_volumeOverlay  = NULL;
     volumeEditInfo.m_volumeFile     = NULL;
@@ -324,7 +325,6 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
     volumeEditInfo.m_sliceViewPlane = VolumeSliceViewPlaneEnum::ALL;
     volumeEditInfo.m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
     volumeEditInfo.m_obliqueRotationMatrix.identity();
-//    volumeEditInfo.m_modelVolume    = NULL;
     
     EventBrowserWindowDrawingContent windowEvent(m_windowIndex);
     EventManager::get()->sendEvent(windowEvent.getPointer());
@@ -351,6 +351,7 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
                     if (mapFile != NULL) {
                         VolumeFile* vf = dynamic_cast<VolumeFile*>(mapFile);
                         if (vf != NULL) {
+                            volumeEditInfo.m_overlaySet     = overlaySet;
                             volumeEditInfo.m_volumeOverlay  = overlay;
                             volumeEditInfo.m_volumeFile     = vf;
                             volumeEditInfo.m_mapIndex       = mapIndex;
