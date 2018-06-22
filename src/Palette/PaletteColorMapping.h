@@ -269,6 +269,10 @@ namespace caret {
         
         void setColorBarShowTickMarksSelected(const bool selected);
         
+        bool isOutlineModeEnabled() const;
+        
+        void setOutlineModeEnabled(const bool enabled);
+        
         void setModified();
         
         void clearModified();
@@ -380,6 +384,8 @@ namespace caret {
         PaletteColorBarValuesModeEnum::Enum colorBarValuesMode;
     
         bool colorBarShowTickMarksSelected;
+        
+        bool outlineModeEnabled;
         
         /**Tracks modification, DO NOT copy */
         PaletteModifiedStatusEnum::Enum modifiedStatus;

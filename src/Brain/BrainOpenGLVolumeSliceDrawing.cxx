@@ -2576,6 +2576,17 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
                                                                     xdim,
                                                                     ydim);
         }
+        if (m_volumeDrawInfo[iVol].mapFile->isMappedWithPalette()) {
+            const int32_t mapIndex = m_volumeDrawInfo[iVol].mapIndex;
+            if (m_volumeDrawInfo[iVol].mapFile->getMapPaletteColorMapping(mapIndex)->isOutlineModeEnabled()) {
+                int64_t xdim = drawLeftToRightInfo.numberOfVoxels;
+                int64_t ydim = drawBottomToTopInfo.numberOfVoxels;
+                NodeAndVoxelColoring::convertSliceColoringToOutlineModeTesting(sliceVoxelsRGBA,
+                                                                               CaretColorEnum::WHITE,
+                                                                               xdim,
+                                                                               ydim);
+            }
+        }
         
         const uint8_t volumeDrawingOpacity = static_cast<uint8_t>(volInfo.opacity * 255.0);
         
@@ -3131,6 +3142,35 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
                                                                     outlineColor,
                                                                     xdim,
                                                                     ydim);
+        }
+        
+        if (m_volumeDrawInfo[iVol].mapFile->isMappedWithPalette()) {
+            const int32_t mapIndex = m_volumeDrawInfo[iVol].mapIndex;
+            if (m_volumeDrawInfo[iVol].mapFile->getMapPaletteColorMapping(mapIndex)->isOutlineModeEnabled()) {
+                int64_t xdim = 0;
+                int64_t ydim = 0;
+                switch (sliceViewPlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        CaretAssert(0);
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        xdim = numVoxelsX;
+                        ydim = numVoxelsY;
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        xdim = numVoxelsX;
+                        ydim = numVoxelsZ;
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        xdim = numVoxelsY;
+                        ydim = numVoxelsZ;
+                        break;
+                }
+                NodeAndVoxelColoring::convertSliceColoringToOutlineModeTesting(sliceVoxelsRGBA,
+                                                                               CaretColorEnum::WHITE,
+                                                                               xdim,
+                                                                               ydim);
+            }
         }
         
         const uint8_t volumeDrawingOpacity = static_cast<uint8_t>(volInfo.opacity * 255.0);
@@ -6610,6 +6650,18 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
                                                                     outlineColor,
                                                                     xdim,
                                                                     ydim);
+        }
+        
+        if (m_volumeDrawInfo[iVol].mapFile->isMappedWithPalette()) {
+            const int32_t mapIndex = m_volumeDrawInfo[iVol].mapIndex;
+            if (m_volumeDrawInfo[iVol].mapFile->getMapPaletteColorMapping(mapIndex)->isOutlineModeEnabled()) {
+                int64_t xdim = drawLeftToRightInfo.numberOfVoxels;
+                int64_t ydim = drawBottomToTopInfo.numberOfVoxels;
+                NodeAndVoxelColoring::convertSliceColoringToOutlineModeTesting(sliceVoxelsRGBA,
+                                                                               CaretColorEnum::WHITE,
+                                                                               xdim,
+                                                                               ydim);
+            }
         }
         
         const uint8_t volumeDrawingOpacity = static_cast<uint8_t>(volInfo.opacity * 255.0);

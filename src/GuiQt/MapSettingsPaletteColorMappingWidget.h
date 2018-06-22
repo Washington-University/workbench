@@ -169,6 +169,8 @@ namespace caret {
         QComboBox* thresholdTypeComboBox;
         QToolButton* thresholdSetAllMapsToolButton;
         
+        QCheckBox* thresholdOutlineCheckBox;
+        
         CaretMappableDataFileAndMapSelectorObject* thresholdMapFileIndexSelector;
         QWidget* thresholdFileWidget;
         

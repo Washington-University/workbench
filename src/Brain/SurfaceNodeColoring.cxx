@@ -493,6 +493,54 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
             }
             
             if (isColoringValid) {
+                if (selectedMapFile->isMappedWithPalette()) {
+                    const PaletteColorMapping* pcm = selectedMapFile->getMapPaletteColorMapping(selectedMapIndex);
+                    CaretAssert(pcm);
+                    if (pcm->isOutlineModeEnabled()) {
+                        CaretPointer<TopologyHelper> topologyHelper = surface->getTopologyHelper();
+                        std::vector<float> rgbaCopy(numNodes * 4);
+                        for (int32_t i = 0; i < (numNodes*4); i++) {
+                            rgbaCopy[i] = overlayRGBV[i];
+                        }
+                        for (int32_t i = 0; i < numNodes; i++) {
+                            const int32_t i4 = i * 4;
+                            CaretAssertVectorIndex(rgbaCopy, i4 + 3);
+                            const float alpha = rgbaCopy[i4 + 3];
+                            if (alpha > 0.0 ) {
+                                /*
+                                 * If a node is the same color as all of its neighbors,
+                                 * use the fill color.  Otherwise, use the outline color.
+                                 */
+                                bool isLabelBoundaryNode = false;
+                                int32_t numNeighbors = 0;
+                                const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(i, numNeighbors);
+                                for (int32_t n = 0; n < numNeighbors; n++) {
+                                    const int32_t neighborNodeIndex = allNeighbors[n];
+                                    const int32_t n4 = neighborNodeIndex * 4;
+                                    CaretAssertVectorIndex(rgbaCopy, n4 + 3);
+                                    const float neighborAlpha = rgbaCopy[n4 + 3];
+                                    if (neighborAlpha <= 0.0) {
+                                        isLabelBoundaryNode = true;
+                                        break;
+                                    }
+                                }
+                                CaretAssertArrayIndex(overlayRGBV, numNodes * 4, i4 + 3);
+                                if (isLabelBoundaryNode) {
+                                    overlayRGBV[i4]   = 1.0;
+                                    overlayRGBV[i4+1] = 1.0;
+                                    overlayRGBV[i4+2] = 1.0;
+                                    overlayRGBV[i4+3] = 1.0;
+                                }
+                                else {
+                                    overlayRGBV[i4+3] = 0.0;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (isColoringValid) {
                 const float opacity = overlay->getOpacity();
                 const float oneMinusOpacity = 1.0 - opacity;
                 

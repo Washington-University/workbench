@@ -970,4 +970,101 @@ NodeAndVoxelColoring::convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
     }
 }
 
+/**
+ * Convert the slice coloring to outline mode.
+ *
+ * @param rgbaInOut
+ *    Coloring for the slice (input and output)
+ * @param labelDrawingType
+ *    Type of drawing for label filling and outline.
+ * @param labelOutlineColor
+ *    Outline color of label.
+ * @param xdim
+ *    X-dimension of slice (number of columns)
+ * @param ydim
+ *    Y-dimension of slice (number of rows).
+ */
+void
+NodeAndVoxelColoring::convertSliceColoringToOutlineModeTesting(uint8_t* rgbaInOut,
+                                                               const CaretColorEnum::Enum labelOutlineColor,
+                                                               const int64_t xdim,
+                                                               const int64_t ydim)
+{
+    /*
+     * Copy the rgba colors
+     */
+    const int64_t numRGBA = xdim * ydim * 4;
+    if (numRGBA <= 0) {
+        return;
+    }
+    std::vector<uint8_t> sliceCopyVector(numRGBA);
+    uint8_t* rgba = &sliceCopyVector[0];
+    
+    for (int64_t i = 0; i < numRGBA; i++) {
+        rgba[i] = rgbaInOut[i];
+    }
+    
+    uint8_t outlineRGBA[4];
+    CaretColorEnum::toRGBAByte(labelOutlineColor,
+                               outlineRGBA);
+    outlineRGBA[3] = 255;
+    
+    /*
+     * Examine coloring for all voxels except those along the edge
+     */
+    const int64_t lastX = xdim - 1;
+    const int64_t lastY = ydim - 1;
+    for (int64_t i = 1; i < lastX; i++) {
+        for (int64_t j = 1; j < lastY; j++) {
+            const int iStart = i - 1;
+            const int iEnd   = i + 1;
+            const int jStart = j - 1;
+            const int jEnd   = j + 1;
+            
+            const int64_t myOffset = (i + (xdim * j)) * 4;
+            CaretAssert(myOffset < numRGBA);
+            
+            const uint8_t* myRGBA = &rgba[myOffset];
+            if (myRGBA[3] <= 0) {
+                continue;
+            }
+            
+            /*
+             * Determine if voxel colors match voxel coloring
+             * of ALL immediate neighbors (8-connected).
+             */
+            bool isLabelBoundaryVoxel = false;
+            for (int64_t iNeigh = iStart; iNeigh <= iEnd; iNeigh++) {
+                for (int64_t jNeigh = jStart; jNeigh <= jEnd; jNeigh++) {
+                    if ((i != iNeigh)
+                        || (j != jNeigh)) {
+                        const int64_t neighOffset = (iNeigh + (xdim * jNeigh)) * 4;
+                        CaretAssert(neighOffset < numRGBA);
+                        const uint8_t* neighRGBA = &rgba[neighOffset];
+                        if (neighRGBA[3] <= 0.0) {
+                            isLabelBoundaryVoxel = true;
+                        }
+                    }
+                    if (isLabelBoundaryVoxel) {
+                        break;
+                    }
+                }
+                if (isLabelBoundaryVoxel) {
+                    break;
+                }
+            }
+            
+            if (isLabelBoundaryVoxel) {
+                rgbaInOut[myOffset]     = outlineRGBA[0];
+                rgbaInOut[myOffset + 1] = outlineRGBA[1];
+                rgbaInOut[myOffset + 2] = outlineRGBA[2];
+                rgbaInOut[myOffset + 3] = 1.0;
+            }
+            else {
+                rgbaInOut[myOffset + 3] = 0.0;
+            }
+        }
+    }
+}
+
 

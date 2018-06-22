@@ -94,6 +94,11 @@ namespace caret {
                                                       const int64_t xdim,
                                                       const int64_t ydim);
         
+        static void convertSliceColoringToOutlineModeTesting(uint8_t* rgbaInOut,
+                                                             const CaretColorEnum::Enum labelOutlineColor,
+                                                             const int64_t xdim,
+                                                             const int64_t ydim);
+        
     private:
         enum ColorDataType {
             COLOR_TYPE_FLOAT,

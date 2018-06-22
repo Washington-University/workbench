@@ -162,6 +162,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm,
     this->colorBarNumericSubdivisionCount = pcm.colorBarNumericSubdivisionCount;
     this->colorBarValuesMode = pcm.colorBarValuesMode;
     this->colorBarShowTickMarksSelected = pcm.colorBarShowTickMarksSelected;
+    this->outlineModeEnabled = pcm.outlineModeEnabled;
     
     this->clearModified();
 }
@@ -211,7 +212,8 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->colorBarPrecisionDigits == pcm.colorBarPrecisionDigits)
         && (this->colorBarNumericSubdivisionCount == pcm.colorBarNumericSubdivisionCount)
         && (this->colorBarValuesMode == pcm.colorBarValuesMode)
-        && (this->colorBarShowTickMarksSelected == pcm.colorBarShowTickMarksSelected)) {
+        && (this->colorBarShowTickMarksSelected == pcm.colorBarShowTickMarksSelected)
+        && (this->outlineModeEnabled == pcm.outlineModeEnabled)) {
 
         allMatchFlag = true;
         
@@ -280,6 +282,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->colorBarNumericSubdivisionCount = 0;
     this->colorBarValuesMode = PaletteColorBarValuesModeEnum::DATA;
     this->colorBarShowTickMarksSelected = false;
+    this->outlineModeEnabled = false;
     this->modifiedStatus = PaletteModifiedStatusEnum::UNMODIFIED;
 }
 
@@ -2803,6 +2806,21 @@ PaletteColorMapping::setColorBarShowTickMarksSelected(const bool selected)
 {
     if (selected != this->colorBarShowTickMarksSelected) {
         this->colorBarShowTickMarksSelected = selected;
+        setModified();
+    }
+}
+
+bool
+PaletteColorMapping::isOutlineModeEnabled() const
+{
+    return this->outlineModeEnabled;
+}
+
+void
+PaletteColorMapping::setOutlineModeEnabled(const bool enabled)
+{
+    if (this->outlineModeEnabled != enabled) {
+        this->outlineModeEnabled = enabled;
         setModified();
     }
 }
