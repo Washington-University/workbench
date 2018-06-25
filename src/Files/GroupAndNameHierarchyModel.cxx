@@ -606,9 +606,6 @@ GroupAndNameHierarchyModel::update(CiftiMappableDataFile* ciftiMappableDataFile,
              * Get indices of labels used in this map
              */
             std::vector<int32_t> labelKeys = ciftiMappableDataFile->getUniqueLabelKeysUsedInMap(iMap);
-            if (ciftiMappableDataFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC) {
-                labelKeys = ciftiMappableDataFile->getMapLabelTable(iMap)->getLabelKeysSortedByName();
-            }
             
             const int32_t numLabelKeys = static_cast<int32_t>(labelKeys.size());
             for (int32_t iLabel = 0; iLabel < numLabelKeys; iLabel++) {

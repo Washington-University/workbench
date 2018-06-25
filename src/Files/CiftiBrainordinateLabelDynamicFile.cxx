@@ -29,7 +29,6 @@
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
-#include "GroupAndNameHierarchyModel.h"
 #include "LabelDrawingProperties.h"
 #include "SceneClassAssistant.h"
 
@@ -199,23 +198,9 @@ CiftiBrainordinateLabelDynamicFile::newInstance(CiftiMappableDataFile* ciftiMapF
                 labelProps->setDrawingType(LabelDrawingTypeEnum::DRAW_OUTLINE_COLOR);
                 labelProps->setOutlineColor(CaretColorEnum::WHITE);
                 labelProps->setDrawMedialWallFilled(false);
-                
-                labelFile->m_classNameHierarchy->update(labelFile,
-                                                        true);
-                labelFile->m_forceUpdateOfGroupAndNameHierarchy = false;
-                labelFile->m_classNameHierarchy->setAllSelected(true);
-                
-                CaretLogFiner("CLASS/NAME Table for : "
-                              + labelFile->getFileNameNoPath()
-                              + "\n"
-                              + labelFile->m_classNameHierarchy->toString());
-                
-                labelFile->validateKeysAndLabels();
-                
                 labelFile->setModified();
-
-                CaretLogFine("Created CIFTI label dynamic file for "
-                             + ciftiMapFile->getFileName());
+                
+                std::cout << "Created CIFTI label dynamic file for " << ciftiMapFile->getFileName() << std::endl;
             }
             catch (const DataFileException& de) {
                 if (ciftiFile != NULL) {

@@ -47,7 +47,6 @@
 #include "CiftiXML.h"
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
-#include "EventAlertUser.h"
 #include "EventCaretPreferencesGet.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "FastStatistics.h"
@@ -447,9 +446,6 @@ CiftiMappableDataFile::newInstanceForCiftiFileTypeAndSurface(const DataFileTypeE
 CaretMappableDataFile*
 CiftiMappableDataFile::getLabelDynamicThresholdFile()
 {
-    if ( ! m_labelDynamicThresholdFile) {
-        createLabelDynamicThresholdFile();
-    }
     return m_labelDynamicThresholdFile.get();
 }
 
@@ -459,10 +455,6 @@ CiftiMappableDataFile::getLabelDynamicThresholdFile()
 const CaretMappableDataFile*
 CiftiMappableDataFile::getLabelDynamicThresholdFile() const
 {
-    if ( ! m_labelDynamicThresholdFile) {
-        CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
-        nonConstThis->createLabelDynamicThresholdFile();
-    }
     return m_labelDynamicThresholdFile.get();
 }
 
@@ -485,18 +477,45 @@ CiftiMappableDataFile::isLabelDynamicThresholdFileSupported() const
 }
 
 /**
- * Lazily create the Label Dynamic Threshold File
+ * Set the enabled status of label dynamic threshold file for the given map index.
+ *
+ * @param index
+ *     Index of the map.
+ */
+void
+CiftiMappableDataFile::setMapLabelDynamicThresholdFileEnabled(const int32_t mapIndex,
+                                                              const bool enabled)
+{
+    if (m_labelDynamicThresholdFileCreationFailedFlag) {
+        CaretMappableDataFile::setMapLabelDynamicThresholdFileEnabled(mapIndex,
+                                                                      false);
+        return;
+    }
+    
+    CaretMappableDataFile::setMapLabelDynamicThresholdFileEnabled(mapIndex,
+                                                                  enabled);
+    
+    
+    if (isMapLabelDynamicThresholdFileEnabled(mapIndex)) {
+        /*
+         * Lazily initialize the file
+         */
+        if ( ! m_labelDynamicThresholdFile) {
+            createLabelDynamicThresholdFile();
+            if (m_labelDynamicThresholdFileCreationFailedFlag) {
+                CaretMappableDataFile::setMapLabelDynamicThresholdFileEnabled(mapIndex,
+                                                                              false);
+            }
+        }
+    }
+}
+
+/**
+ * Create the Label Dynamic Threshold File
  */
 void
 CiftiMappableDataFile::createLabelDynamicThresholdFile()
 {
-    if (m_labelDynamicThresholdFileCreationFailedFlag) {
-        return;
-    }
-    if ( ! isMapLabelDynamicThresholdEnabledForAnyMap()) {
-        return;
-    }
-    
     AString errorMessage;
     CiftiBrainordinateLabelDynamicFile* labelFile = CiftiBrainordinateLabelDynamicFile::newInstance(this,
                                                                                                     errorMessage);
@@ -505,15 +524,7 @@ CiftiMappableDataFile::createLabelDynamicThresholdFile()
     }
     else {
         m_labelDynamicThresholdFileCreationFailedFlag = true;
-        CaretLogSevere(errorMessage);
-        EventAlertUser alertUserEvent(errorMessage);
-        EventManager::get()->sendEvent(alertUserEvent.getPointer());
-        const int32_t numMaps = getNumberOfMaps();
-        if (isMappedWithPalette()) {
-            for (int32_t i = 0; i < numMaps; i++) {
-                getMapPaletteColorMapping(i)->setThresholdDynamicLabelOutlineEnabled(false);
-            }
-        }
+        CaretLogWarning(errorMessage);
     }
 }
 
@@ -2596,9 +2607,9 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex)
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
     
-    std::vector<float> myMapData;
+    std::vector<float> data;
     getMapData(mapIndex,
-               myMapData);
+               data);
 
     m_mapContent[mapIndex]->m_rgbaValid = false;
     if (isMappedWithPalette()) {
@@ -2613,51 +2624,37 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex)
                 break;
         }
         
-        m_mapContent[mapIndex]->updateColoring(myMapData,
+        m_mapContent[mapIndex]->updateColoring(data,
                                                statistics);
     }
     else if (isMappedWithLabelTable()) {
         if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC) {
             CiftiBrainordinateLabelDynamicFile* dynLabelFile = dynamic_cast<CiftiBrainordinateLabelDynamicFile*>(this);
             CaretAssert(dynLabelFile);
-            
             CiftiMappableDataFile* ciftiParentFile = dynamic_cast<CiftiMappableDataFile*>(dynLabelFile->getParentMappableDataFile());
             CaretAssert(ciftiParentFile);
-            const int32_t parentMapCount = ciftiParentFile->m_mapContent[mapIndex]->m_dataCount;
-            const int32_t myMapCount = static_cast<int32_t>(myMapData.size());
-            CaretAssert(myMapCount == parentMapCount);
-            
-            /*
-             * Update coloring in parent file's map since it may not be displayed
-             * in an overlay
-             */
-            CaretAssertVectorIndex(ciftiParentFile->m_mapContent, mapIndex);
-            ciftiParentFile->m_mapContent[mapIndex]->m_rgbaValid = false;
             ciftiParentFile->updateScalarColoringForMap(mapIndex);
-
-            /*
-             * For each brainordinate in the dynamic label file, set using
-             * the alpha value from the parent file's corresponding brainordinate
-             */
-            for (int32_t i = 0; i < myMapCount; i++) {
+            
+            const int32_t mapCount = m_mapContent[mapIndex]->m_dataCount;
+            CaretAssertVectorIndex(m_mapContent, mapIndex);
+            CaretAssertVectorIndex(ciftiParentFile->m_mapContent, mapIndex);
+            CaretAssert(mapCount == ciftiParentFile->m_mapContent[mapIndex]->m_dataCount);
+            
+            std::vector<float> mapData(mapCount);
+            for (int32_t i = 0; i < mapCount; i++) {
                 const int32_t alphaIndex = i*4 + 3;
                 CaretAssertVectorIndex(ciftiParentFile->m_mapContent[mapIndex]->m_rgba, alphaIndex);
-                CaretAssertVectorIndex(myMapData, i);
-                myMapData[i] = 0.0;
+                CaretAssertVectorIndex(mapData, i);
+                mapData[i] = 0.0;
                 if (ciftiParentFile->m_mapContent[mapIndex]->m_rgba[alphaIndex] > 0) {
-                    myMapData[i] = 1.0;
+                    mapData[i] = 1.0;
                 }
             }
-            setMapData(mapIndex, myMapData);
-
-            /*
-             * Labels usage may change
-             */
-            m_forceUpdateOfGroupAndNameHierarchy = true;
-            (void)getGroupAndNameHierarchyModel();
+            
+            setMapData(mapIndex, mapData);
         }
         
-        m_mapContent[mapIndex]->updateColoring(myMapData,
+        m_mapContent[mapIndex]->updateColoring(data,
                                                NULL);
     }
     else {

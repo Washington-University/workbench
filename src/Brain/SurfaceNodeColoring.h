@@ -35,7 +35,6 @@ namespace caret {
     class CaretMappableDataFile;
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiBrainordinateDataSeriesFile;
-    class CiftiBrainordinateLabelDynamicFile;
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
     class CiftiParcelLabelFile;
@@ -106,22 +105,13 @@ namespace caret {
                                  float* rgbv);
 
         bool assignCiftiDenseLabelColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
-                                           const int32_t browserTabIndex,
-                                           const BrainStructure* brainStructure,
+                                      const int32_t browserTabIndex,
+                                      const BrainStructure* brainStructure,
                                            const Surface* surface,
-                                           CiftiBrainordinateLabelFile* ciftiLabelFile,
-                                           const int32_t mapIndex,
-                                           const int32_t numberOfNodes,
-                                           float* rgbv);
-        
-        bool assignCiftiDenseLabelDynamicColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
-                                                  const int32_t browserTabIndex,
-                                                  const BrainStructure* brainStructure,
-                                                  const Surface* surface,
-                                                  CiftiBrainordinateLabelDynamicFile* ciftiLabelDynamicFile,
-                                                  const int32_t mapIndex,
-                                                  const int32_t numberOfNodes,
-                                                  float* rgbv);
+                                  CiftiBrainordinateLabelFile* ciftiLabelFile,
+                                      const int32_t mapIndex,
+                                  const int32_t numberOfNodes,
+                                  float* rgbv);
         
         bool assignCiftiScalarColoring(const BrainStructure* brainStructure,
                                        CiftiBrainordinateScalarFile* ciftiScalarFile,

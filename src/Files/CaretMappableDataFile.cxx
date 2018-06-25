@@ -465,6 +465,25 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
                 sceneClass->addChild(sceneThreshMap);
             }
         }
+        
+        /*
+         * Save dynamic thresholding with labels
+         */
+        if ( ! m_mapLabelDynamicThresholdFileEnabled.empty()) {
+            const int32_t numItems = static_cast<int32_t>(m_mapLabelDynamicThresholdFileEnabled.size());
+            if (numItems > 0) {
+                bool* boolArray = new bool[numItems];
+                
+                for (int32_t i = 0; i < numItems; i++) {
+                    boolArray[i] = m_mapLabelDynamicThresholdFileEnabled[i];
+                }
+                sceneClass->addBooleanArray("m_mapLabelDynamicThresholdFileEnabled",
+                                            boolArray,
+                                            numItems);
+                
+                delete[] boolArray;
+            }
+        }
     }
 }
 
@@ -667,6 +686,20 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                                                                                   threshSel);
                 }
             }
+        }
+
+        const int32_t numItems = getNumberOfMaps();
+        if (numItems > 0) {
+            bool* boolValues = new bool[numItems];
+            sceneClass->getBooleanArrayValue("m_mapLabelDynamicThresholdFileEnabled",
+                                             boolValues,
+                                             numItems,
+                                             false);
+            m_mapLabelDynamicThresholdFileEnabled.resize(numItems);
+            for (int32_t i = 0; i < numItems; i++) {
+                m_mapLabelDynamicThresholdFileEnabled[i] = boolValues[i];
+            }
+            delete[] boolValues;
         }
 
         updateAfterFileDataChanges();
@@ -1507,17 +1540,66 @@ CaretMappableDataFile::isLabelDynamicThresholdFileSupported() const
 bool
 CaretMappableDataFile::isMapLabelDynamicThresholdEnabledForAnyMap() const
 {
-    if (isMappedWithPalette()) {
-        if (isLabelDynamicThresholdFileSupported()) {
-            const int numMaps = getNumberOfMaps();
-            for (int32_t i = 0; i < numMaps; i++) {
-                if (getMapPaletteColorMapping(i)->isThresholdDynamicLabelOutlineEnabled()) {
-                    return true;
-                }
-            }
-        }
+    bool result = false;
+    
+    if (getLabelDynamicThresholdFile() != NULL) {
+        updateMapLabelDynamicThresholdEnabled();
+        
+        result = std::any_of(m_mapLabelDynamicThresholdFileEnabled.begin(),
+                             m_mapLabelDynamicThresholdFileEnabled.end(),
+                             [](bool b) { return b; });
+    }
+    
+    return result;
+}
+
+/**
+ * Update the size of the label dynamic threshold enabled vector to the number of maps
+ */
+void
+CaretMappableDataFile::updateMapLabelDynamicThresholdEnabled() const
+{
+    const int32_t numMaps = getNumberOfMaps();
+    if (numMaps > static_cast<int32_t>(m_mapLabelDynamicThresholdFileEnabled.size())) {
+        m_mapLabelDynamicThresholdFileEnabled.resize(numMaps,
+                                                     false);
+    }
+}
+
+/**
+ * @return True if the label dynamic threshold file is enabled for the given map index.
+ *         False if disabled or not supported.
+ * @param index
+ *     Index of the map.
+ */
+bool
+CaretMappableDataFile::isMapLabelDynamicThresholdFileEnabled(const int32_t mapIndex) const
+{
+    if (isLabelDynamicThresholdFileSupported()) {
+        updateMapLabelDynamicThresholdEnabled();
+        
+        CaretAssertVectorIndex(m_mapLabelDynamicThresholdFileEnabled, mapIndex);
+        return m_mapLabelDynamicThresholdFileEnabled[mapIndex];
     }
     
     return false;
 }
+
+/**
+ * Set the enabled status of label dynamic threshold file for the given map index.
+ *
+ * @param index
+ *     Index of the map.
+ */
+void
+CaretMappableDataFile::setMapLabelDynamicThresholdFileEnabled(const int32_t mapIndex,
+                                                              const bool enabled)
+{
+    updateMapLabelDynamicThresholdEnabled();
+    
+    CaretAssertVectorIndex(m_mapLabelDynamicThresholdFileEnabled, mapIndex);
+    m_mapLabelDynamicThresholdFileEnabled[mapIndex] = enabled;
+}
+
+
 

@@ -311,9 +311,6 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_NEG_MIN_POS_MAX_LINKED) {
                this->paletteColorMapping->setThresholdNegMinPosMaxLinked(toBool(this->elementText));
            }
-           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_DYNAMIC_LABEL_OUTLINE) {
-               this->paletteColorMapping->setThresholdDynamicLabelOutlineEnabled(toBool(this->elementText));
-           }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING) {
                /* WB-  
                 * We want to default the range mode to 'FILE'.  While we do that in the constructor

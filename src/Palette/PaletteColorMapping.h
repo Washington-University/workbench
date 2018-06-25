@@ -221,10 +221,6 @@ namespace caret {
         
         void setThresholdNegMinPosMaxLinked(const bool linked);
         
-        bool isThresholdDynamicLabelOutlineEnabled() const;
-        
-        void setThresholdDynamicLabelOutlineEnabled(const bool enabled);
-        
         PaletteHistogramRangeModeEnum::Enum getHistogramRangeMode() const;
         
         void setHistogramRangeMode(const PaletteHistogramRangeModeEnum::Enum histogramRangeMode);
@@ -364,8 +360,6 @@ namespace caret {
         bool thresholdShowFailureInGreen;
         
         bool thresholdNegMinPosMaxLinked;
-        
-        bool thresholdDynamicLabelOutlineEnabled;
         
         PaletteHistogramRangeModeEnum::Enum histogramRangeMode;
         
