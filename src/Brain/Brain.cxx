@@ -6240,16 +6240,16 @@ getAllMapDataFilesHelper(std::vector<CaretDataFile*>& allDataFilesOut,
             if (labelThreshFile != NULL) {
                 allDataFilesOut.push_back(labelThreshFile);
             }
-        }
-        
-        if (cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES) {
-            CiftiBrainordinateDataSeriesFile* dataSeriesFile = dynamic_cast<CiftiBrainordinateDataSeriesFile*>(cmdf);
-            CaretAssert(dataSeriesFile);
-            if (dataSeriesFile != NULL) {
-                CiftiConnectivityMatrixDenseDynamicFile* dynFile = dataSeriesFile->getConnectivityMatrixDenseDynamicFile();
-                if (dynFile != NULL) {
-                    if (dynFile->isDataValid()) {
-                        allDataFilesOut.push_back(dynFile);
+            
+            if (cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES) {
+                CiftiBrainordinateDataSeriesFile* dataSeriesFile = dynamic_cast<CiftiBrainordinateDataSeriesFile*>(cmdf);
+                CaretAssert(dataSeriesFile);
+                if (dataSeriesFile != NULL) {
+                    CiftiConnectivityMatrixDenseDynamicFile* dynFile = dataSeriesFile->getConnectivityMatrixDenseDynamicFile();
+                    if (dynFile != NULL) {
+                        if (dynFile->isDataValid()) {
+                            allDataFilesOut.push_back(dynFile);
+                        }
                     }
                 }
             }
