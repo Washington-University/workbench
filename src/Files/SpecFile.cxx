@@ -561,6 +561,27 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
     return NULL; // will never get here since exception thrown
 }
 
+///**
+// * @return ALL of the connectivity file types (NEVER delete contents of returned vector.
+// */
+//void 
+//SpecFile::getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivityDataFilesOut)
+//{
+//    connectivityDataFilesOut.clear();
+//    
+//    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+//         iter != dataFileTypeGroups.end();
+//         iter++) {
+//        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+//        if (DataFileTypeEnum::isConnectivityDataType(dataFileTypeGroup->getDataFileType())) {
+//            const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+//            for (int32_t i = 0; i < numFiles; i++) {
+//                connectivityDataFilesOut.push_back(dataFileTypeGroup->getFileInformation(i));
+//            }
+//        }
+//    }
+//}
+
 /**
  * Set the selection status of a data file.
  * @param dataFileTypeName
@@ -1141,6 +1162,41 @@ SpecFile::updateFileNameAndPathForWriting(const AString& dataFileNameIn)
     return dataFileName;
 }
 
+
+/**
+ * Write the file to a XML string.
+ * @param writeMetaDataStatus
+ *    Write the metadata to the file.
+ * @return 
+ *    String containing XML.
+ * @throws DataFileException
+ *    If error writing to XML.
+ */
+//AString 
+//SpecFile::writeFileToString(const WriteMetaDataType writeMetaDataStatus,
+//                            const WriteFilesSelectedType writeFilesSelectedStatus)
+//{    
+//    /*
+//     * Create a TextStream that writes to a string.
+//     */
+//    AString xmlString;
+//    QTextStream textStream(&xmlString);
+//    
+//    /*
+//     * Create the xml writer
+//     */
+//    XmlWriter xmlWriter(textStream);
+//
+//    /*
+//     * Write file to XML.
+//     */
+//    this->writeFileContentToXML(xmlWriter,
+//                                writeMetaDataStatus,
+//                                writeFilesSelectedStatus);
+//    
+//    return xmlString;
+//}
+
 /**
  * Get information about this file's contents.
  * @return
@@ -1719,70 +1775,11 @@ SpecFile::addToDataFileContentInformation(DataFileContentInformation& dataFileIn
 bool
 SpecFile::isDataFileTypeAllowedInSpecFile(const DataFileTypeEnum::Enum dataFileType)
 {
-    bool allowedInSpecFileFlag = true;
-    
-    switch (dataFileType) {
-        case DataFileTypeEnum::ANNOTATION:
-            break;
-        case DataFileTypeEnum::BORDER:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
-            allowedInSpecFileFlag = false;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
-            allowedInSpecFileFlag = false;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
-            break;
-        case DataFileTypeEnum::FOCI:
-            break;
-        case DataFileTypeEnum::IMAGE:
-            break;
-        case DataFileTypeEnum::LABEL:
-            break;
-        case DataFileTypeEnum::METRIC:
-            break;
-        case DataFileTypeEnum::PALETTE:
-            break;
-        case DataFileTypeEnum::RGBA:
-            break;
-        case DataFileTypeEnum::SCENE:
-            break;
-        case DataFileTypeEnum::SPECIFICATION:
-            break;
-        case DataFileTypeEnum::SURFACE:
-            break;
-        case DataFileTypeEnum::UNKNOWN:
-            break;
-        case DataFileTypeEnum::VOLUME:
-            break;
+    if (dataFileType == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+        return false;
     }
-
-    return allowedInSpecFileFlag;
+    
+    return true;
 }
 
 

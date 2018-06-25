@@ -30,7 +30,6 @@
 
 
 namespace caret {
-    class CiftiMappableDataFile;
 
     class CiftiBrainordinateLabelDynamicFile : public CiftiBrainordinateLabelFile {
         

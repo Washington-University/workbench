@@ -437,6 +437,9 @@ Brain::getDuplicateFileNameCounterForFileType(const DataFileTypeEnum::Enum dataF
 
     m_duplicateFileNameCounter[dataFileType] = counterValue;
     
+//    m_duplicateFileNameCounter.insert(std::make_pair(dataFileType,
+//                                                     counterValue));
+    
     return counterValue;
 }
 
@@ -508,6 +511,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_annotationFiles.clear();
     
     m_sceneAnnotationFile->clear();
+    //m_sceneAnnotationFile->setFileName("Scene Annotations");
     m_sceneAnnotationFile->clearModified();
     
     for (std::vector<BorderFile*>::iterator bfi = m_borderFiles.begin();
@@ -3273,6 +3277,10 @@ Brain::addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
         m_sceneFiles.push_back(sf);
     }
     
+    
+//    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+//    prefs->addToPreviousSceneFiles(sf->getFileName());
+    
     return sf;
 }
 
@@ -5465,6 +5473,20 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     m_paletteFile->setFileName(convertFilePathNameToAbsolutePathName(m_paletteFile->getFileNameNoPath()));
     m_paletteFile->clearModified();
     
+
+    
+    
+//    CaretLogSevere("Adding an annotation file for testing to the Brain."
+//                   "NOTE: THIS WILL CAUSE A PRINTOUT OF UNDELETED OBJECTS since this file is "
+//                   "added inside of resetBrain() which does all file deletion.");
+//    AnnotationFile* testingAnnFile = new AnnotationFile();
+//    testingAnnFile->setFileName("Testing." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::ANNOTATION));
+//    addDataFile(testingAnnFile);
+    
+    
+    
+    
+    
     /*
      * Reset the primary anatomical surfaces since they can get set
      * incorrectly when loading files
@@ -6217,45 +6239,30 @@ Brain::getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType
     
     getAllDataFilesWithDataFileTypes(dataFileTypes,
                                      caretDataFilesOut);
+
+//    caretDataFilesOut.clear();
+//    
+//    std::vector<CaretDataFile*> allDataFiles;
+//    getAllDataFiles(allDataFiles,
+//                    true);
+//    
+//    for (std::vector<CaretDataFile*>::iterator iter = allDataFiles.begin();
+//         iter != allDataFiles.end();
+//         iter++) {
+//        CaretDataFile* cdf = *iter;
+//        if (cdf->getDataFileType() == dataFileType) {
+//            caretDataFilesOut.push_back(cdf);
+//        }
+//    }
 }
 
-/**
- * Simplifies getting all mappable data files and including any dynamic
- * label or connectivity files immediately after the parent file
- *
- * @param allDataFilesOut
- *     Input/Output to which files are added.
- * @param
- *     Input with files that are added to allDataFilesOut
- */
-template <class MDF>
-static void
-getAllMapDataFilesHelper(std::vector<CaretDataFile*>& allDataFilesOut,
-                     const std::vector<MDF*>& mapDataFiles)
-{
-    for (auto cmdf : mapDataFiles) {
-        allDataFilesOut.push_back(cmdf);
-        if (cmdf->isMapLabelDynamicThresholdEnabledForAnyMap()) {
-            CaretMappableDataFile* labelThreshFile = cmdf->getLabelDynamicThresholdFile();
-            if (labelThreshFile != NULL) {
-                allDataFilesOut.push_back(labelThreshFile);
-            }
-            
-            if (cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES) {
-                CiftiBrainordinateDataSeriesFile* dataSeriesFile = dynamic_cast<CiftiBrainordinateDataSeriesFile*>(cmdf);
-                CaretAssert(dataSeriesFile);
-                if (dataSeriesFile != NULL) {
-                    CiftiConnectivityMatrixDenseDynamicFile* dynFile = dataSeriesFile->getConnectivityMatrixDenseDynamicFile();
-                    if (dynFile != NULL) {
-                        if (dynFile->isDataValid()) {
-                            allDataFilesOut.push_back(dynFile);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+//template <class DFT>
+//void
+//getAllDataFileHelper(std::vector<CaretDataFile*>& allDataFilesOut,
+//                     std::vector<DFT*>& dataFiles) const
+//{
+//    
+//}
 
 /**
  * Get all loaded data files.
@@ -6278,19 +6285,7 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
     
     const int32_t numBrainStructures = getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
-        std::vector<CaretDataFile*> files;
-        getBrainStructure(i)->getAllDataFiles(files);
-        
-        for (auto f : files) {
-            allDataFilesOut.push_back(f);
-            if (f->getDataFileType() == DataFileTypeEnum::METRIC) {
-                MetricFile* mf = dynamic_cast<MetricFile*>(f);
-                CaretMappableDataFile* labelThreshFile = mf->getLabelDynamicThresholdFile();
-                if (labelThreshFile != NULL) {
-                    allDataFilesOut.push_back(labelThreshFile);
-                }
-            }
-        }
+        getBrainStructure(i)->getAllDataFiles(allDataFilesOut);
     }
     
     allDataFilesOut.insert(allDataFilesOut.end(),
@@ -6309,20 +6304,53 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_imageFiles.begin(),
                            m_imageFiles.end());
     
-    getAllMapDataFilesHelper(allDataFilesOut,
+    getAllDataFileHelper(allDataFilesOut,
                          m_connectivityDenseScalarFiles);
     
-    getAllMapDataFilesHelper(allDataFilesOut,
-                         m_connectivityMatrixDenseFiles);
+//    allDataFilesOut.insert(allDataFilesOut.end(),
+//                           m_connectivityDenseScalarFiles.begin(),
+//                           m_connectivityDenseScalarFiles.end());
     
-    getAllMapDataFilesHelper(allDataFilesOut,
-                         m_connectivityDataSeriesFiles);
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityMatrixDenseFiles.begin(),
+                           m_connectivityMatrixDenseFiles.end());
+    
+//    allDataFilesOut.insert(allDataFilesOut.end(),
+//                           m_connectivityDataSeriesFiles.begin(),
+//                           m_connectivityDataSeriesFiles.end());
+    
+    /*
+     * By placing the dynamic connectivity file immediately after
+     * its parent data-series file, they will appear in this
+     * order in the overlay file selectors.
+     */
+    for (std::vector<CiftiBrainordinateDataSeriesFile*>::const_iterator dsIter = m_connectivityDataSeriesFiles.begin();
+         dsIter != m_connectivityDataSeriesFiles.end();
+         dsIter++) {
+        CiftiBrainordinateDataSeriesFile* seriesFile = *dsIter;
+        CaretAssert(seriesFile);
+        allDataFilesOut.push_back(seriesFile);
+        
+        CiftiConnectivityMatrixDenseDynamicFile* dynFile = seriesFile->getConnectivityMatrixDenseDynamicFile();
+        CaretAssert(dynFile);
+        if (dynFile->isDataValid()) {
+            allDataFilesOut.push_back(dynFile);
+        }
+    }
 
-    getAllMapDataFilesHelper(allDataFilesOut,
-                         m_connectivityDenseLabelFiles);
+//    std::vector<CiftiConnectivityMatrixDenseDynamicFile*> denseDynFiles;
+//    getConnectivityMatrixDenseDynamicFiles(denseDynFiles);
+//    allDataFilesOut.insert(allDataFilesOut.end(),
+//                           denseDynFiles.begin(),
+//                           denseDynFiles.end());
     
-    getAllMapDataFilesHelper(allDataFilesOut,
-                             m_connectivityMatrixDenseParcelFiles);
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityDenseLabelFiles.begin(),
+                           m_connectivityDenseLabelFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityMatrixDenseParcelFiles.begin(),
+                           m_connectivityMatrixDenseParcelFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityFiberOrientationFiles.begin(),
@@ -6332,23 +6360,29 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityFiberTrajectoryFiles.begin(),
                            m_connectivityFiberTrajectoryFiles.end());
     
-    getAllMapDataFilesHelper(allDataFilesOut,
-                             m_connectivityMatrixParcelFiles);
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityMatrixParcelFiles.begin(),
+                           m_connectivityMatrixParcelFiles.end());
     
-    getAllMapDataFilesHelper(allDataFilesOut,
-                             m_connectivityMatrixParcelDenseFiles);
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityMatrixParcelDenseFiles.begin(),
+                           m_connectivityMatrixParcelDenseFiles.end());
     
-    getAllMapDataFilesHelper(allDataFilesOut,
-                             m_connectivityParcelLabelFiles);
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityParcelLabelFiles.begin(),
+                           m_connectivityParcelLabelFiles.end());
     
-    getAllMapDataFilesHelper(allDataFilesOut,
-                             m_connectivityParcelScalarFiles);
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityParcelScalarFiles.begin(),
+                           m_connectivityParcelScalarFiles.end());
     
-    getAllMapDataFilesHelper(allDataFilesOut,
-                             m_connectivityParcelSeriesFiles);
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityParcelSeriesFiles.begin(),
+                           m_connectivityParcelSeriesFiles.end());
     
-    getAllMapDataFilesHelper(allDataFilesOut,
-                             m_connectivityScalarDataSeriesFiles);
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityScalarDataSeriesFiles.begin(),
+                           m_connectivityScalarDataSeriesFiles.end());
     
     allDataFilesOut.push_back(m_paletteFile);
     
@@ -6356,8 +6390,9 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                               m_sceneFiles.begin(),
                               m_sceneFiles.end());
     
-    getAllMapDataFilesHelper(allDataFilesOut,
-                             m_volumeFiles);
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_volumeFiles.begin(),
+                           m_volumeFiles.end());    
 }
 
 /**
@@ -6427,6 +6462,48 @@ Brain::getAllModifiedFiles(const std::vector<DataFileTypeEnum::Enum>& excludeThe
         }
     }
 }
+
+
+///**
+// * Are any data files modified (including spec file)?
+// * @param excludeTheseDataTypes
+// *    Do not check the modification status of any data files whose
+// *    data type is contained in this parameter.
+// */
+//bool
+//Brain::areFilesModified(const std::vector<DataFileTypeEnum::Enum>& excludeTheseDataTypes)
+//{
+//    if (std::find(excludeTheseDataTypes.begin(),
+//                  excludeTheseDataTypes.end(),
+//                  DataFileTypeEnum::SPECIFICATION) == excludeTheseDataTypes.end()) {
+//        if (m_specFile->isModified()) {
+//            return true;
+//        }
+//    }
+//    
+//    std::vector<CaretDataFile*> dataFiles;
+//    getAllDataFiles(dataFiles);
+//    
+//    for (std::vector<CaretDataFile*>::iterator iter = dataFiles.begin();
+//         iter != dataFiles.end();
+//         iter++) {
+//        CaretDataFile* cdf = *iter;
+//        
+//        /**
+//         * Ignore files whose data type is excluded.
+//         */
+//        if (std::find(excludeTheseDataTypes.begin(),
+//                      excludeTheseDataTypes.end(),
+//                      cdf->getDataFileType()) == excludeTheseDataTypes.end()) {
+//            if (cdf->isModified()) {
+//                return true;
+//            }
+//        }
+//    }
+//    
+//    return false;
+//}
+
 
 /**
  * Write a data file.
@@ -6992,7 +7069,7 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
          iter++) {
         CaretDataFile* cdf = *iter;
 
-        const AString caretDataFileName = cdf->getFileName();
+        const AString caretDataFileName = cdf->getFileName();  // use full path 7/16/2015 cdf->getFileNameNoPath();
         SceneClass* caretDataFileSceneClass = cdf->saveToScene(sceneAttributes,
                                                       caretDataFileName);
         if (caretDataFileSceneClass != NULL) {
@@ -7186,6 +7263,8 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                         bestMatchingSceneClass = const_cast<SceneClass*>(fileSceneClass);
                         bestMatchingCount      = matchCount;
                     }
+//                    caretDataFile->restoreFromScene(sceneAttributes,
+//                                                    fileSceneClass);
                 }
             }
             
