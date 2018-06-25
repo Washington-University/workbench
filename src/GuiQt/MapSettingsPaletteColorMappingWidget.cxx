@@ -45,14 +45,12 @@
 #include "Brain.h"
 #include "CaretColorEnumComboBox.h"
 #include "CaretMappableDataFile.h"
-#include "CiftiBrainordinateLabelDynamicFile.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
 #include "CopyPaletteColorMappingToFilesDialog.h"
 #include "CursorDisplayScoped.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
-#include "EventUserInterfaceUpdate.h"
 #include "FastStatistics.h"
 #include "GuiManager.h"
 #include "Histogram.h"
@@ -194,22 +192,6 @@ MapSettingsPaletteColorMappingWidget::thresholdTypeChanged(int indx)
                        this->mapFileIndex);
     
     this->applySelections();
-}
-
-/**
- * Called when threshold outline checkbox clicked
- *
- * @param checked
- *    New checked status.
- */
-void
-MapSettingsPaletteColorMappingWidget::thresholdOutlineCheckBoxClicked(bool checked)
-{
-    if (this->caretMappableDataFile->isLabelDynamicThresholdFileSupported()) {
-        this->caretMappableDataFile->setMapLabelDynamicThresholdFileEnabled(this->mapFileIndex, checked);
-    }
-    this->applySelections();
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**
@@ -585,11 +567,6 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     QObject::connect(this->thresholdSetAllMapsToolButton, &QToolButton::clicked,
                      this, &MapSettingsPaletteColorMappingWidget::thresholdSetAllMapsToolButtonClicked);
     
-    this->thresholdOutlineCheckBox = new QCheckBox("Outline");
-    this->thresholdOutlineCheckBox->setToolTip("Enable Threshold Outlining");
-    QObject::connect(this->thresholdOutlineCheckBox, &QCheckBox::clicked,
-                     this, &MapSettingsPaletteColorMappingWidget::thresholdOutlineCheckBoxClicked);
-    
     QLabel* thresholdRangeLabel = new QLabel("Range");
     this->thresholdRangeModeComboBox = new EnumComboBoxTemplate(this);
     QObject::connect(this->thresholdRangeModeComboBox, SIGNAL(itemActivated()),
@@ -775,7 +752,6 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     topLayout->addWidget(thresholdTypeLabel);
     topLayout->addWidget(this->thresholdTypeComboBox);
     topLayout->addWidget(this->thresholdSetAllMapsToolButton);
-    topLayout->addWidget(this->thresholdOutlineCheckBox);
     topLayout->addStretch();
     
     QGroupBox* thresholdGroupBox = new QGroupBox("Threshold");
@@ -804,7 +780,6 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdAdjustmentWidgetGroup->add(threshMapIndexSpinBox);
     this->thresholdAdjustmentWidgetGroup->add(threshMapNameComboBox);
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdSetAllMapsToolButton);
-    this->thresholdAdjustmentWidgetGroup->add(this->thresholdOutlineCheckBox);
     
     return thresholdGroupBox;
 }
@@ -1677,10 +1652,6 @@ MapSettingsPaletteColorMappingWidget::updateThresholdSection()
             this->thresholdShowInsideRadioButton->setChecked(true);
             break;
     }
-    
-    this->thresholdOutlineCheckBox->setEnabled(this->caretMappableDataFile->isLabelDynamicThresholdFileSupported()
-                                               && (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF));
-    this->thresholdOutlineCheckBox->setChecked(this->caretMappableDataFile->isMapLabelDynamicThresholdFileEnabled(this->mapFileIndex));
     
     const PaletteThresholdRangeModeEnum::Enum thresholdRangeMode = paletteColorMapping->getThresholdRangeMode();
     this->thresholdRangeModeComboBox->blockSignals(true);

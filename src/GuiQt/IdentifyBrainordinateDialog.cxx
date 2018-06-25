@@ -120,9 +120,6 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                 labelFileFlag = true;
                 break;
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
-                labelFileFlag = true;
-                break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
                 ciftiRowFlag = true;
                 break;

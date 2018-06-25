@@ -53,7 +53,6 @@ ChartableTwoFileLineSeriesChart.h
 ChartableTwoFileMatrixChart.h
 CiftiBrainordinateDataSeriesFile.h
 CiftiBrainordinateLabelFile.h
-CiftiBrainordinateLabelDynamicFile.h
 CiftiBrainordinateScalarFile.h
 CiftiConnectivityMatrixDenseFile.h
 CiftiConnectivityMatrixDenseDynamicFile.h
@@ -174,14 +173,15 @@ CaretSparseFile.cxx
 CaretVolumeExtension.cxx
 ChartableLineSeriesInterface.cxx
 ChartableMatrixInterface.cxx
+
 ChartableTwoFileDelegate.cxx
 ChartableTwoFileBaseChart.cxx
 ChartableTwoFileHistogramChart.cxx
 ChartableTwoFileLineSeriesChart.cxx
 ChartableTwoFileMatrixChart.cxx
+
 CiftiBrainordinateDataSeriesFile.cxx
 CiftiBrainordinateLabelFile.cxx
-CiftiBrainordinateLabelDynamicFile.cxx
 CiftiBrainordinateScalarFile.cxx
 CiftiConnectivityMatrixDenseFile.cxx
 CiftiConnectivityMatrixDenseDynamicFile.cxx

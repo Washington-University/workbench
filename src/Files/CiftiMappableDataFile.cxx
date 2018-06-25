@@ -30,7 +30,6 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "ChartDataCartesian.h"
-#include "CiftiBrainordinateLabelDynamicFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
@@ -82,8 +81,6 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
 : CaretMappableDataFile(dataFileType)
 {
     m_ciftiFile.grabNew(NULL);
-    m_labelDynamicThresholdFile.reset();
-    m_labelDynamicThresholdFileCreationFailedFlag = false;
     m_voxelIndicesToOffset.grabNew(NULL);
     m_classNameHierarchy.grabNew(NULL);
     m_fileDataReadingType = FILE_READ_DATA_ALL;
@@ -145,12 +142,6 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-            m_dataReadingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
-            m_dataMappingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
-            m_colorMappingMethod      = COLOR_MAPPING_METHOD_LABEL_TABLE;
-            m_fileMapDataType         = FILE_MAP_DATA_TYPE_MULTI_MAP;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
             m_dataReadingAccessMethod = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             m_dataMappingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
             m_colorMappingMethod      = COLOR_MAPPING_METHOD_LABEL_TABLE;
@@ -441,83 +432,6 @@ CiftiMappableDataFile::newInstanceForCiftiFileTypeAndSurface(const DataFileTypeE
 }
 
 /**
- * @return This file's label dynamic threshold file (may be NULL is not supported by this file type).
- */
-CaretMappableDataFile*
-CiftiMappableDataFile::getLabelDynamicThresholdFile()
-{
-    return m_labelDynamicThresholdFile.get();
-}
-
-/**
- * @return This file's label dynamic threshold file (may be NULL is not supported by this file type) const method.
- */
-const CaretMappableDataFile*
-CiftiMappableDataFile::getLabelDynamicThresholdFile() const
-{
-    return m_labelDynamicThresholdFile.get();
-}
-
-/**
- * @return True if this file type supports the label dynamic threshold file.
- */
-bool
-CiftiMappableDataFile::isLabelDynamicThresholdFileSupported() const
-{
-    if (m_labelDynamicThresholdFileCreationFailedFlag) {
-        /*
-         * Creation failed, so don't allow it
-         */
-        return false;
-    }
-    
-    const bool supportedFlag = CiftiBrainordinateLabelDynamicFile::isFileTypeSupported(getDataFileType());
-    
-    return supportedFlag;
-}
-
-/**
- * Set the enabled status of label dynamic threshold file for the given map index.
- *
- * @param index
- *     Index of the map.
- */
-void
-CiftiMappableDataFile::setMapLabelDynamicThresholdFileEnabled(const int32_t mapIndex,
-                                                              const bool enabled)
-{
-    if (m_labelDynamicThresholdFileCreationFailedFlag) {
-        CaretMappableDataFile::setMapLabelDynamicThresholdFileEnabled(mapIndex,
-                                                                      false);
-        return;
-    }
-    
-    CaretMappableDataFile::setMapLabelDynamicThresholdFileEnabled(mapIndex,
-                                                                  enabled);
-    
-    
-    if (isMapLabelDynamicThresholdFileEnabled(mapIndex)) {
-        /*
-         * Lazily initialize the file
-         */
-        if ( ! m_labelDynamicThresholdFile) {
-            AString errorMessage;
-            CiftiBrainordinateLabelDynamicFile* labelFile = CiftiBrainordinateLabelDynamicFile::newInstance(this,
-                                                                                                               errorMessage);
-            if (labelFile != NULL) {
-                m_labelDynamicThresholdFile.reset(labelFile);
-            }
-            else {
-                m_labelDynamicThresholdFileCreationFailedFlag = true;
-                CaretMappableDataFile::setMapLabelDynamicThresholdFileEnabled(mapIndex,
-                                                                              false);
-                CaretLogWarning(errorMessage);
-            }
-        }
-    }
-}
-
-/**
  * Clear the contents of the file.
  */
 void
@@ -543,8 +457,6 @@ CiftiMappableDataFile::clearPrivate()
      */
     
     m_ciftiFile.grabNew(NULL);
-    m_labelDynamicThresholdFile.reset();
-    m_labelDynamicThresholdFileCreationFailedFlag = false;
     
     resetDataLoadingMembers();
     
@@ -830,10 +742,6 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
             expectedAlongRowMapType = CiftiMappingType::SERIES;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-            expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
-            expectedAlongRowMapType = CiftiMappingType::LABELS;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
             expectedAlongColumnMapType = CiftiMappingType::BRAIN_MODELS;
             expectedAlongRowMapType = CiftiMappingType::LABELS;
             break;
@@ -1842,8 +1750,6 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
-            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
@@ -2617,32 +2523,6 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex)
                                                statistics);
     }
     else if (isMappedWithLabelTable()) {
-        if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC) {
-            CiftiBrainordinateLabelDynamicFile* dynLabelFile = dynamic_cast<CiftiBrainordinateLabelDynamicFile*>(this);
-            CaretAssert(dynLabelFile);
-            CiftiMappableDataFile* ciftiParentFile = dynamic_cast<CiftiMappableDataFile*>(dynLabelFile->getParentMappableDataFile());
-            CaretAssert(ciftiParentFile);
-            ciftiParentFile->updateScalarColoringForMap(mapIndex);
-            
-            const int32_t mapCount = m_mapContent[mapIndex]->m_dataCount;
-            CaretAssertVectorIndex(m_mapContent, mapIndex);
-            CaretAssertVectorIndex(ciftiParentFile->m_mapContent, mapIndex);
-            CaretAssert(mapCount == ciftiParentFile->m_mapContent[mapIndex]->m_dataCount);
-            
-            std::vector<float> mapData(mapCount);
-            for (int32_t i = 0; i < mapCount; i++) {
-                const int32_t alphaIndex = i*4 + 3;
-                CaretAssertVectorIndex(ciftiParentFile->m_mapContent[mapIndex]->m_rgba, alphaIndex);
-                CaretAssertVectorIndex(mapData, i);
-                mapData[i] = 0.0;
-                if (ciftiParentFile->m_mapContent[mapIndex]->m_rgba[alphaIndex] > 0) {
-                    mapData[i] = 1.0;
-                }
-            }
-            
-            setMapData(mapIndex, mapData);
-        }
-        
         m_mapContent[mapIndex]->updateColoring(data,
                                                NULL);
     }
@@ -4705,9 +4585,6 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             useMapData = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-            useSeriesData = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
             useSeriesData = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:

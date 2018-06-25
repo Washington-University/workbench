@@ -48,9 +48,6 @@ namespace caret {
         void getVoxelCoordinatesWithLabelKey(const int32_t mapIndex,
                                          const int32_t labelKey,
                                          std::vector<float>& voxelXyzOut) const;
-
-    protected:
-        CiftiBrainordinateLabelFile(const DataFileTypeEnum::Enum dataFileType);
         
     private:
         CiftiBrainordinateLabelFile(const CiftiBrainordinateLabelFile&);

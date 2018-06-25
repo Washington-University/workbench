@@ -154,14 +154,7 @@ DataFileTypeEnum::initialize()
                                         "CIFTI LABELS",
                                         false,
                                         "dlabel.nii"));
-
-    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_LABEL_DYNAMIC,
-                                        "CONNECTIVITY_DENSE_LABEL_DYNAMIC",
-                                        "CIFTI - Dense Label Dynamic",
-                                        "CIFTI LABELS DYNAMIC",
-                                        false,
-                                        "dynlabel.nii"));
-
+    
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_PARCEL,
                                         "CONNECTIVITY_DENSE_PARCEL",
                                         "CIFTI - Dense Parcel",
@@ -264,7 +257,7 @@ DataFileTypeEnum::initialize()
                                         true,
                                         "label.gii"));
     
-    enumData.push_back(DataFileTypeEnum(METRIC,
+    enumData.push_back(DataFileTypeEnum(METRIC, 
                                         "METRIC", 
                                         "Metric",
                                         "METRIC",
@@ -309,8 +302,8 @@ DataFileTypeEnum::initialize()
                                         "SURFACE",
                                         true,
                                         "surf.gii"));
-
-    enumData.push_back(DataFileTypeEnum(UNKNOWN,
+    
+    enumData.push_back(DataFileTypeEnum(UNKNOWN, 
                                         "UNKNOWN", 
                                         "Unknown",
                                         "UNKNOWN",

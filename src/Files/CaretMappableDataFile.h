@@ -492,17 +492,6 @@ namespace caret {
         
         CaretMappableDataFileAndMapSelectionModel* getMapThresholdFileSelectionModel(const int32_t mapIndex);
         
-        virtual CaretMappableDataFile* getLabelDynamicThresholdFile();
-        
-        virtual const CaretMappableDataFile* getLabelDynamicThresholdFile() const;
-        
-        virtual bool isLabelDynamicThresholdFileSupported() const;
-        
-        virtual bool isMapLabelDynamicThresholdFileEnabled(const int32_t mapIndex) const;
-        
-        virtual void setMapLabelDynamicThresholdFileEnabled(const int32_t mapIndex,
-                                                            const bool enabled);
-        
         /**
          * Are all brainordinates in this file also in the given file?  
          * That is, the brainordinates are equal to or a subset of the brainordinates
@@ -550,9 +539,7 @@ namespace caret {
         
         std::vector<std::unique_ptr<CaretMappableDataFileAndMapSelectionModel>> m_mapThresholdFileSelectionModels;
         
-        mutable std::vector<bool> m_mapLabelDynamicThresholdFileEnabled;
-        
-        /**
+        /** 
          * Added by WB-781 Apply to All Maps for ColorBar.
          * This value is saved to scenes but NOT to the data file.
          */

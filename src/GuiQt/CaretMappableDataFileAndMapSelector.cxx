@@ -371,9 +371,6 @@ CaretMappableDataFileAndMapSelector::updateFileTypeSelections(const DataFileType
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             showLabelSelectionWidgets = true;
             break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
-            showLabelSelectionWidgets = true;
-            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
             showScalarSelectionWidgets = true;
             break;

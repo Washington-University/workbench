@@ -97,8 +97,6 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                 break;
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
-                break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:

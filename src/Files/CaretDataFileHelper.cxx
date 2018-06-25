@@ -319,9 +319,6 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
             caretDataFile = new CiftiBrainordinateLabelFile();
             break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
-            CaretAssertMessage(0, "Never create a label dynamic file.");
-            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
             caretDataFile = new CiftiConnectivityMatrixDenseParcelFile();
             break;

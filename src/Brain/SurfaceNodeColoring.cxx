@@ -33,7 +33,6 @@
 #include "CaretPreferences.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiBrainordinateLabelFile.h"
-#include "CiftiBrainordinateLabelDynamicFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
@@ -284,210 +283,7 @@ SurfaceNodeColoring::showBrainordinateHighlightRegionOfInterest(const Brain* bra
 }
 
 /**
- * Assign coloring for the given file and map
- *
- * @param displayPropertiesLabels
- *    Label display properties
- * @param browserTabIndex
- *    Index of the browser tab
- * @param brainStructure
- *    The brain structure that contains the data files.
- * @param surface
- *    Surface that is being colored
- * @param ciftiLabelDynamicFile
- *    Cifti Label file that is selected.
- * @param mapIndex
- *    Index of selected map.
- * @param numberOfNodes
- *    Number of nodes in surface.
- * @param rgbv
- *    Color components set by this method.
- *    Red, green, blue, valid.  If the valid component is
- *    zero, it indicates that the overlay did not assign
- *    any coloring to the node.
- * @return
- *    True if coloring is valid, else false.
- */
-bool
-SurfaceNodeColoring::assignFileMapColoring(const DisplayPropertiesLabels* displayPropertiesLabels,
-                                           const int32_t browserTabIndex,
-                                           const BrainStructure* brainStructure,
-                                           const Surface* surface,
-                                           CaretMappableDataFile* selectedMapFile,
-                                           const int32_t selectedMapIndex,
-                                           const int32_t numNodes,
-                                           float* overlayRGBV)
-{
-    bool isColoringValid = false;
-    switch (selectedMapFile->getDataFileType()) {
-        case DataFileTypeEnum::ANNOTATION:
-            break;
-        case DataFileTypeEnum::BORDER:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE:
-        {
-            CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
-            isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
-                                                                            cmf,
-                                                                            selectedMapIndex,
-                                                                            numNodes,
-                                                                            overlayRGBV);
-        }
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
-        {
-            CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
-            isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
-                                                                            cmf,
-                                                                            selectedMapIndex,
-                                                                            numNodes,
-                                                                            overlayRGBV);
-        }
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-            isColoringValid = this->assignCiftiDenseLabelColoring(displayPropertiesLabels,
-                                                                  browserTabIndex,
-                                                                  brainStructure,
-                                                                  surface,
-                                                                  dynamic_cast<CiftiBrainordinateLabelFile*>(selectedMapFile),
-                                                                  selectedMapIndex,
-                                                                  numNodes,
-                                                                  overlayRGBV);
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
-            isColoringValid = this->assignCiftiDenseLabelColoring(displayPropertiesLabels,
-                                                                  browserTabIndex,
-                                                                  brainStructure,
-                                                                  surface,
-                                                                  dynamic_cast<CiftiBrainordinateLabelFile*>(selectedMapFile),
-                                                                  selectedMapIndex,
-                                                                  numNodes,
-                                                                  overlayRGBV);
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-        {
-            CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
-            isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
-                                                                            cmf,
-                                                                            selectedMapIndex,
-                                                                            numNodes,
-                                                                            overlayRGBV);
-        }
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-            isColoringValid = this->assignCiftiScalarColoring(brainStructure,
-                                                              dynamic_cast<CiftiBrainordinateScalarFile*>(selectedMapFile),
-                                                              selectedMapIndex,
-                                                              numNodes,
-                                                              overlayRGBV);
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            isColoringValid = this->assignCiftiDataSeriesColoring(brainStructure,
-                                                                  dynamic_cast<CiftiBrainordinateDataSeriesFile*>(selectedMapFile),
-                                                                  selectedMapIndex,
-                                                                  numNodes,
-                                                                  overlayRGBV);
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-        {
-            CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
-            isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
-                                                                            cmf,
-                                                                            selectedMapIndex,
-                                                                            numNodes,
-                                                                            overlayRGBV);
-        }
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-        {
-            CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
-            isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
-                                                                            cmf,
-                                                                            selectedMapIndex,
-                                                                            numNodes,
-                                                                            overlayRGBV);
-        }
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
-        {
-            CiftiParcelLabelFile* cplf = dynamic_cast<CiftiParcelLabelFile*>(selectedMapFile);
-            isColoringValid = assignCiftiParcelLabelColoring(displayPropertiesLabels,
-                                                             browserTabIndex,
-                                                             brainStructure,
-                                                             surface,
-                                                             cplf,
-                                                             selectedMapIndex,
-                                                             numNodes,
-                                                             overlayRGBV);
-        }
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
-            isColoringValid = this->assignCiftiParcelScalarColoring(brainStructure,
-                                                                    dynamic_cast<CiftiParcelScalarFile*>(selectedMapFile),
-                                                                    selectedMapIndex,
-                                                                    numNodes,
-                                                                    overlayRGBV);
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
-            isColoringValid = this->assignCiftiParcelSeriesColoring(brainStructure,
-                                                                    dynamic_cast<CiftiParcelSeriesFile*>(selectedMapFile),
-                                                                    selectedMapIndex,
-                                                                    numNodes,
-                                                                    overlayRGBV);
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
-            break;
-        case DataFileTypeEnum::FOCI:
-            break;
-        case DataFileTypeEnum::IMAGE:
-            break;
-        case DataFileTypeEnum::LABEL:
-            isColoringValid = this->assignLabelColoring(displayPropertiesLabels,
-                                                        browserTabIndex,
-                                                        brainStructure,
-                                                        surface,
-                                                        dynamic_cast<LabelFile*>(selectedMapFile),
-                                                        selectedMapIndex,
-                                                        numNodes,
-                                                        overlayRGBV);
-            break;
-        case DataFileTypeEnum::METRIC:
-            isColoringValid = this->assignMetricColoring(brainStructure,
-                                                         dynamic_cast<MetricFile*>(selectedMapFile),
-                                                         selectedMapIndex,
-                                                         numNodes,
-                                                         overlayRGBV);
-            break;
-        case DataFileTypeEnum::PALETTE:
-            break;
-        case DataFileTypeEnum::RGBA:
-            isColoringValid = this->assignRgbaColoring(brainStructure,
-                                                       dynamic_cast<RgbaFile*>(selectedMapFile),
-                                                       selectedMapIndex,
-                                                       numNodes,
-                                                       overlayRGBV);
-            break;
-        case DataFileTypeEnum::SCENE:
-            break;
-        case DataFileTypeEnum::SPECIFICATION:
-            break;
-        case DataFileTypeEnum::SURFACE:
-            break;
-        case DataFileTypeEnum::VOLUME:
-            break;
-        case DataFileTypeEnum::UNKNOWN:
-            break;
-    }
-
-    return isColoringValid;
-}
-
-/**
- * Assign color components to surface nodes.
+ * Assign color components to surface nodes. 
  *
  * @param surface
  *    Surface that has its nodes colored.
@@ -496,7 +292,7 @@ SurfaceNodeColoring::assignFileMapColoring(const DisplayPropertiesLabels* displa
  * @param rgbaNodeColors
  *    RGBA color components that are set by this method.
  */
-void
+void 
 SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPropertiesLabels,
                                        const int32_t browserTabIndex,
                                        const Surface* surface,
@@ -541,14 +337,160 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                 mapDataFileType = selectedMapFile->getDataFileType();
             }
             
-            const bool isColoringValid = assignFileMapColoring(displayPropertiesLabels,
-                                                               browserTabIndex,
-                                                               brainStructure,
-                                                               surface,
-                                                               selectedMapFile,
+            bool isColoringValid = false;
+            switch (mapDataFileType) {
+                case DataFileTypeEnum::ANNOTATION:
+                    break;
+                case DataFileTypeEnum::BORDER:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                {
+                    CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
+                                                                                    cmf,
+                                                                                    selectedMapIndex,
+                                                                                    numNodes,
+                                                                                    overlayRGBV);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                {
+                    CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
+                                                                                    cmf,
+                                                                                    selectedMapIndex,
+                                                                                    numNodes,
+                                                                                    overlayRGBV);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                    isColoringValid = this->assignCiftiDenseLabelColoring(displayPropertiesLabels,
+                                                                     browserTabIndex,
+                                                                     brainStructure,
+                                                                          surface,
+                                                                      dynamic_cast<CiftiBrainordinateLabelFile*>(selectedMapFile),
+                                                                     selectedMapIndex,
+                                                                      numNodes,
+                                                                      overlayRGBV);
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                {
+                    CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
+                                                                            cmf,
+                                                                                    selectedMapIndex,
+                                                                            numNodes,
+                                                                            overlayRGBV);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                    isColoringValid = this->assignCiftiScalarColoring(brainStructure,
+                                                                 dynamic_cast<CiftiBrainordinateScalarFile*>(selectedMapFile),
+                                                                      selectedMapIndex,
+                                                                 numNodes,
+                                                                 overlayRGBV);
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                    isColoringValid = this->assignCiftiDataSeriesColoring(brainStructure,
+                                                                      dynamic_cast<CiftiBrainordinateDataSeriesFile*>(selectedMapFile),
+                                                                          selectedMapIndex,
+                                                                      numNodes,
+                                                                      overlayRGBV);
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                {
+                    CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
+                                                                            cmf,
+                                                                                    selectedMapIndex,
+                                                                            numNodes,
+                                                                            overlayRGBV);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                {
+                    CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
+                                                                            cmf,
+                                                                                    selectedMapIndex,
+                                                                            numNodes,
+                                                                            overlayRGBV);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                {
+                    CiftiParcelLabelFile* cplf = dynamic_cast<CiftiParcelLabelFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiParcelLabelColoring(displayPropertiesLabels,
+                                                   browserTabIndex,
+                                                   brainStructure,
+                                                                     surface,
+                                                   cplf,
+                                                   selectedMapIndex,
+                                                   numNodes,
+                                                   overlayRGBV);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                    isColoringValid = this->assignCiftiParcelScalarColoring(brainStructure,
+                                                                            dynamic_cast<CiftiParcelScalarFile*>(selectedMapFile),
+                                                                            selectedMapIndex,
+                                                                            numNodes,
+                                                                            overlayRGBV);
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                    isColoringValid = this->assignCiftiParcelSeriesColoring(brainStructure,
+                                                                            dynamic_cast<CiftiParcelSeriesFile*>(selectedMapFile),
+                                                                            selectedMapIndex,
+                                                                            numNodes,
+                                                                            overlayRGBV);
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                    break;
+                case DataFileTypeEnum::FOCI:
+                    break;
+                case DataFileTypeEnum::IMAGE:
+                    break;
+                case DataFileTypeEnum::LABEL:
+                    isColoringValid = this->assignLabelColoring(displayPropertiesLabels,
+                                                                browserTabIndex,
+                                                                brainStructure,
+                                                                surface,
+                                                                dynamic_cast<LabelFile*>(selectedMapFile),
+                                                                selectedMapIndex,
+                                                                numNodes, 
+                                                                overlayRGBV);
+                    break;
+                case DataFileTypeEnum::METRIC:
+                    isColoringValid = this->assignMetricColoring(brainStructure, 
+                                                                 dynamic_cast<MetricFile*>(selectedMapFile),
+                                                                 selectedMapIndex,
+                                                                 numNodes, 
+                                                                 overlayRGBV);
+                    break;
+                case DataFileTypeEnum::PALETTE:
+                    break;
+                case DataFileTypeEnum::RGBA:
+                    isColoringValid = this->assignRgbaColoring(brainStructure, 
+                                                               dynamic_cast<RgbaFile*>(selectedMapFile),
                                                                selectedMapIndex,
-                                                               numNodes,
+                                                               numNodes, 
                                                                overlayRGBV);
+                    break;
+                case DataFileTypeEnum::SCENE:
+                    break;
+                case DataFileTypeEnum::SPECIFICATION:
+                    break;
+                case DataFileTypeEnum::SURFACE:
+                    break;
+                case DataFileTypeEnum::VOLUME:
+                    break;
+                case DataFileTypeEnum::UNKNOWN:
+                    break;
+            }
             
             if (isColoringValid) {
                 if (selectedMapFile->isMappedWithPalette()) {
@@ -1133,19 +1075,12 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
 
 /**
  * Assign cifti dense label coloring to nodes
- *
- * @param displayPropertiesLabels
- *    Label display properties
- * @param browserTabIndex
- *    Index of the browser tab
  * @param brainStructure
  *    The brain structure that contains the data files.
- * @param surface
- *    Surface that is being colored
  * @param ciftiLabelFile
  *    Cifti Label file that is selected.
- * @param mapIndex
- *    Index of selected map.
+ * @param ciftiMapUniqueID
+ *    UniqueID of selected map.
  * @param numberOfNodes
  *    Number of nodes in surface.
  * @param rgbv
@@ -1170,6 +1105,10 @@ SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels
     CaretAssert(brainStructure);
     CaretAssert(ciftiLabelFile);
     CaretAssert(rgbv);
+    
+    Brain* brain = (Brain*)(brainStructure->getBrain());
+    std::vector<CiftiBrainordinateLabelFile*> allCiftiBrainordinateLabelFiles;
+    brain->getConnectivityDenseLabelFiles(allCiftiBrainordinateLabelFiles);
     
     if (mapIndex < 0) {
         return false;
@@ -1232,14 +1171,8 @@ SurfaceNodeColoring::assignCiftiDenseLabelColoring(const DisplayPropertiesLabels
 
 /**
  * Assign cifti parcel label coloring to nodes
- * @param displayPropertiesLabels
- *    Label display properties
- * @param browserTabIndex
- *    Index of browser tab
  * @param brainStructure
  *    The brain structure that contains the data files.
- * @param surface
- *    Surface receiving color assignment
  * @param ciftiParcelLabelFile
  *    Cifti Parcel Label file that is selected.
  * @param mapIndex
@@ -1268,6 +1201,10 @@ SurfaceNodeColoring::assignCiftiParcelLabelColoring(const DisplayPropertiesLabel
     CaretAssert(brainStructure);
     CaretAssert(ciftiParcelLabelFile);
     CaretAssert(rgbv);
+    
+    Brain* brain = (Brain*)(brainStructure->getBrain());
+    std::vector<CiftiBrainordinateLabelFile*> allCiftiBrainordinateLabelFiles;
+    brain->getConnectivityDenseLabelFiles(allCiftiBrainordinateLabelFiles);
     
     if (mapIndex < 0) {
         return false;
@@ -1352,6 +1289,10 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
                                                const int32_t numberOfNodes,
                                                float* rgbv)
 {
+    Brain* brain = (Brain*)(brainStructure->getBrain());
+    std::vector<CiftiBrainordinateScalarFile*> allCiftiBrainordinateScalarFiles;
+    brain->getConnectivityDenseScalarFiles(allCiftiBrainordinateScalarFiles);
+    
     if (mapIndex < 0) {
         return false;
     }
@@ -1405,6 +1346,10 @@ SurfaceNodeColoring::assignCiftiParcelScalarColoring(const BrainStructure* brain
                                                const int32_t numberOfNodes,
                                                float* rgbv)
 {
+    Brain* brain = (Brain*)(brainStructure->getBrain());
+    std::vector<CiftiParcelScalarFile*> allCiftiParcelScalarFiles;
+    brain->getConnectivityParcelScalarFiles(allCiftiParcelScalarFiles);
+    
     if (mapIndex < 0) {
         return false;
     }
@@ -1458,6 +1403,10 @@ SurfaceNodeColoring::assignCiftiDataSeriesColoring(const BrainStructure* brainSt
                                                const int32_t numberOfNodes,
                                                float* rgbv)
 {
+    Brain* brain = (Brain*)(brainStructure->getBrain());
+    std::vector<CiftiBrainordinateDataSeriesFile*> allCiftiDataSeriesFiles;
+    brain->getConnectivityDataSeriesFiles(allCiftiDataSeriesFiles);
+    
     if (mapIndex < 0) {
         return false;
     }
@@ -1514,6 +1463,10 @@ SurfaceNodeColoring::assignCiftiParcelSeriesColoring(const BrainStructure* brain
                                                    const int32_t numberOfNodes,
                                                    float* rgbv)
 {
+    Brain* brain = (Brain*)(brainStructure->getBrain());
+    std::vector<CiftiParcelSeriesFile*> allCiftiParcelSeriesFiles;
+    brain->getConnectivityParcelSeriesFiles(allCiftiParcelSeriesFiles);
+    
     if (mapIndex < 0) {
         return false;
     }

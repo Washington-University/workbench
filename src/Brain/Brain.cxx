@@ -776,8 +776,6 @@ Brain::resetBrainKeepSceneFiles()
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                 break;
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
-                break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
@@ -4189,9 +4187,6 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     m_connectivityDenseLabelFiles.push_back(file);
                 }
                     break;
-                case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
-                    CaretAssertMessage(0, "Label Dynamic Files should never be added to Brain.");
-                    break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
                 {
                     CiftiConnectivityMatrixDenseParcelFile* file = dynamic_cast<CiftiConnectivityMatrixDenseParcelFile*>(caretDataFile);
@@ -5106,9 +5101,6 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 caretDataFileRead  = addReadOrReloadConnectivityDenseLabelFile(fileMode,
                                                                    caretDataFile,
                                                                    dataFileName);
-                break;
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
-                CaretAssertMessage(0, "Label Dynamic files are never read by the Brain.");
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
                 caretDataFileRead  = addReadOrReloadConnectivityMatrixDenseParcelFile(fileMode,
@@ -6256,13 +6248,6 @@ Brain::getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType
 //    }
 }
 
-//template <class DFT>
-//void
-//getAllDataFileHelper(std::vector<CaretDataFile*>& allDataFilesOut,
-//                     std::vector<DFT*>& dataFiles) const
-//{
-//    
-//}
 
 /**
  * Get all loaded data files.
@@ -6304,12 +6289,9 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_imageFiles.begin(),
                            m_imageFiles.end());
     
-    getAllDataFileHelper(allDataFilesOut,
-                         m_connectivityDenseScalarFiles);
-    
-//    allDataFilesOut.insert(allDataFilesOut.end(),
-//                           m_connectivityDenseScalarFiles.begin(),
-//                           m_connectivityDenseScalarFiles.end());
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityDenseScalarFiles.begin(),
+                           m_connectivityDenseScalarFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityMatrixDenseFiles.begin(),
@@ -6558,8 +6540,6 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
         case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL_DYNAMIC:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
             break;
