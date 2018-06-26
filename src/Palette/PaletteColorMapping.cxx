@@ -162,7 +162,8 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm,
     this->colorBarNumericSubdivisionCount = pcm.colorBarNumericSubdivisionCount;
     this->colorBarValuesMode = pcm.colorBarValuesMode;
     this->colorBarShowTickMarksSelected = pcm.colorBarShowTickMarksSelected;
-    this->outlineModeEnabled = pcm.outlineModeEnabled;
+    this->thresholdOutlineDrawingMode = pcm.thresholdOutlineDrawingMode;
+    this->thresholdOutlineDrawingColor = pcm.thresholdOutlineDrawingColor;
     
     this->clearModified();
 }
@@ -213,7 +214,8 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->colorBarNumericSubdivisionCount == pcm.colorBarNumericSubdivisionCount)
         && (this->colorBarValuesMode == pcm.colorBarValuesMode)
         && (this->colorBarShowTickMarksSelected == pcm.colorBarShowTickMarksSelected)
-        && (this->outlineModeEnabled == pcm.outlineModeEnabled)) {
+        && (this->thresholdOutlineDrawingMode == pcm.thresholdOutlineDrawingMode)
+        && (this->thresholdOutlineDrawingColor == pcm.thresholdOutlineDrawingColor)) {
 
         allMatchFlag = true;
         
@@ -282,7 +284,8 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->colorBarNumericSubdivisionCount = 0;
     this->colorBarValuesMode = PaletteColorBarValuesModeEnum::DATA;
     this->colorBarShowTickMarksSelected = false;
-    this->outlineModeEnabled = false;
+    this->thresholdOutlineDrawingMode = PaletteThresholdOutlineDrawingModeEnum::OFF;
+    this->thresholdOutlineDrawingColor = CaretColorEnum::WHITE;
     this->modifiedStatus = PaletteModifiedStatusEnum::UNMODIFIED;
 }
 
@@ -396,6 +399,10 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
     
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_NEG_MIN_POS_MAX_LINKED,
                                      this->thresholdNegMinPosMaxLinked);
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_OUTLINE_DRAWING_MODE,
+                                     PaletteThresholdOutlineDrawingModeEnum::toName(this->thresholdOutlineDrawingMode));
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_OUTLINE_DRAWING_COLOR,
+                                     CaretColorEnum::toName(this->thresholdOutlineDrawingColor));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_RANGE_MODE,
                                      PaletteHistogramRangeModeEnum::toName(this->histogramRangeMode));
     xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_HISTOGRAM_BARS_VISIBLE,
@@ -2810,20 +2817,51 @@ PaletteColorMapping::setColorBarShowTickMarksSelected(const bool selected)
     }
 }
 
-bool
-PaletteColorMapping::isOutlineModeEnabled() const
+/**
+ * @return The threshold outline drawing mode.
+ */
+PaletteThresholdOutlineDrawingModeEnum::Enum
+PaletteColorMapping::getThresholdOutlineDrawingMode() const
 {
-    return this->outlineModeEnabled;
+    return this->thresholdOutlineDrawingMode;
 }
 
+/**
+ * Set the threshold outline drawing mode.
+ *
+ * @param drawingMode
+ *     New drawing mode for threshold outline.
+ */
 void
-PaletteColorMapping::setOutlineModeEnabled(const bool enabled)
+PaletteColorMapping::setThresholdOutlineDrawingMode(const PaletteThresholdOutlineDrawingModeEnum::Enum drawingMode)
 {
-    if (this->outlineModeEnabled != enabled) {
-        this->outlineModeEnabled = enabled;
+    if (this->thresholdOutlineDrawingMode != drawingMode) {
+        this->thresholdOutlineDrawingMode = drawingMode;
         setModified();
     }
 }
 
+/**
+ * @return The threshold outline drawing color.
+ */
+CaretColorEnum::Enum
+PaletteColorMapping::getThresholdOutlineDrawingColor() const
+{
+    return this->thresholdOutlineDrawingColor;
+}
 
+/**
+ * Set the threshold outline drawing color.
+ *
+ * @param color
+ *     New color for threshold outline.
+ */
+void
+PaletteColorMapping::setThresholdOutlineDrawingColor(const CaretColorEnum::Enum color)
+{
+    if (this->thresholdOutlineDrawingColor != color) {
+        this->thresholdOutlineDrawingColor = color;
+        setModified();
+    }
+}
 

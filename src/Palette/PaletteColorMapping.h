@@ -35,6 +35,7 @@
 #include "PaletteHistogramRangeModeEnum.h"
 #include "PaletteInvertModeEnum.h"
 #include "PaletteModifiedStatusEnum.h"
+#include "PaletteThresholdOutlineDrawingModeEnum.h"
 #include "PaletteThresholdRangeModeEnum.h"
 #include "XmlException.h"
 
@@ -269,10 +270,14 @@ namespace caret {
         
         void setColorBarShowTickMarksSelected(const bool selected);
         
-        bool isOutlineModeEnabled() const;
+        PaletteThresholdOutlineDrawingModeEnum::Enum getThresholdOutlineDrawingMode() const;
         
-        void setOutlineModeEnabled(const bool enabled);
+        void setThresholdOutlineDrawingMode(const PaletteThresholdOutlineDrawingModeEnum::Enum drawingMode);
         
+        CaretColorEnum::Enum getThresholdOutlineDrawingColor() const;
+        
+        void setThresholdOutlineDrawingColor(const CaretColorEnum::Enum color);
+
         void setModified();
         
         void clearModified();
@@ -385,7 +390,9 @@ namespace caret {
     
         bool colorBarShowTickMarksSelected;
         
-        bool outlineModeEnabled;
+        PaletteThresholdOutlineDrawingModeEnum::Enum thresholdOutlineDrawingMode;
+        
+        CaretColorEnum::Enum thresholdOutlineDrawingColor;
         
         /**Tracks modification, DO NOT copy */
         PaletteModifiedStatusEnum::Enum modifiedStatus;

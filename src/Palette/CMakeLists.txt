@@ -30,6 +30,7 @@ PaletteInvertModeEnum.h
 PaletteModifiedStatusEnum.h
 PaletteNormalizationModeEnum.h
 PaletteScalarAndColor.h
+PaletteThresholdOutlineDrawingModeEnum.h
 PaletteThresholdRangeModeEnum.h
 
 Palette.cxx
@@ -42,6 +43,7 @@ PaletteInvertModeEnum.cxx
 PaletteModifiedStatusEnum.cxx
 PaletteNormalizationModeEnum.cxx
 PaletteScalarAndColor.cxx
+PaletteThresholdOutlineDrawingModeEnum.cxx
 PaletteThresholdRangeModeEnum.cxx
 )
 

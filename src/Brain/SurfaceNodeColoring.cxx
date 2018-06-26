@@ -496,7 +496,25 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                 if (selectedMapFile->isMappedWithPalette()) {
                     const PaletteColorMapping* pcm = selectedMapFile->getMapPaletteColorMapping(selectedMapIndex);
                     CaretAssert(pcm);
-                    if (pcm->isOutlineModeEnabled()) {
+                    bool hideDataFlag    = false;
+                    bool showOutlineFlag = false;
+                    const PaletteThresholdOutlineDrawingModeEnum::Enum outlineMode = pcm->getThresholdOutlineDrawingMode();
+                    switch (outlineMode) {
+                        case PaletteThresholdOutlineDrawingModeEnum::OFF:
+                            break;
+                        case PaletteThresholdOutlineDrawingModeEnum::OUTLINE:
+                            hideDataFlag    = true;
+                            showOutlineFlag = true;
+                        case PaletteThresholdOutlineDrawingModeEnum::OUTLINE_AND_DATA:
+                            showOutlineFlag = true;
+                            break;
+                    }
+                    
+                    if (showOutlineFlag) {
+                        const CaretColorEnum::Enum outlineColor = pcm->getThresholdOutlineDrawingColor();
+                        float outlineRGBA[4];
+                        CaretColorEnum::toRGBAFloat(outlineColor, outlineRGBA);
+                        
                         CaretPointer<TopologyHelper> topologyHelper = surface->getTopologyHelper();
                         std::vector<float> rgbaCopy(numNodes * 4);
                         for (int32_t i = 0; i < (numNodes*4); i++) {
@@ -526,12 +544,12 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                 }
                                 CaretAssertArrayIndex(overlayRGBV, numNodes * 4, i4 + 3);
                                 if (isLabelBoundaryNode) {
-                                    overlayRGBV[i4]   = 1.0;
-                                    overlayRGBV[i4+1] = 1.0;
-                                    overlayRGBV[i4+2] = 1.0;
+                                    overlayRGBV[i4]   = outlineRGBA[0];
+                                    overlayRGBV[i4+1] = outlineRGBA[1];
+                                    overlayRGBV[i4+2] = outlineRGBA[2];
                                     overlayRGBV[i4+3] = 1.0;
                                 }
-                                else {
+                                else if (hideDataFlag) {
                                     overlayRGBV[i4+3] = 0.0;
                                 }
                             }

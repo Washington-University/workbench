@@ -971,11 +971,13 @@ NodeAndVoxelColoring::convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
 }
 
 /**
- * Convert the slice coloring to outline mode.
+ * Convert the palette slice coloring to outline mode.
  *
  * @param rgbaInOut
  *    Coloring for the slice (input and output)
- * @param labelDrawingType
+ * @param outlineMode
+ *    Outline mode
+ * @param outlineColor
  *    Type of drawing for label filling and outline.
  * @param labelOutlineColor
  *    Outline color of label.
@@ -985,11 +987,24 @@ NodeAndVoxelColoring::convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
  *    Y-dimension of slice (number of rows).
  */
 void
-NodeAndVoxelColoring::convertSliceColoringToOutlineModeTesting(uint8_t* rgbaInOut,
-                                                               const CaretColorEnum::Enum labelOutlineColor,
+NodeAndVoxelColoring::convertPaletteSliceColoringToOutlineMode(uint8_t* rgbaInOut,
+                                                               const PaletteThresholdOutlineDrawingModeEnum::Enum outlineMode,
+                                                               const CaretColorEnum::Enum outlineColor,
                                                                const int64_t xdim,
                                                                const int64_t ydim)
 {
+    bool hideDataFlag = false;
+    switch (outlineMode) {
+        case PaletteThresholdOutlineDrawingModeEnum::OFF:
+            return;
+            break;
+        case PaletteThresholdOutlineDrawingModeEnum::OUTLINE:
+            hideDataFlag = true;
+            break;
+        case PaletteThresholdOutlineDrawingModeEnum::OUTLINE_AND_DATA:
+            break;
+    }
+
     /*
      * Copy the rgba colors
      */
@@ -1005,7 +1020,7 @@ NodeAndVoxelColoring::convertSliceColoringToOutlineModeTesting(uint8_t* rgbaInOu
     }
     
     uint8_t outlineRGBA[4];
-    CaretColorEnum::toRGBAByte(labelOutlineColor,
+    CaretColorEnum::toRGBAByte(outlineColor,
                                outlineRGBA);
     outlineRGBA[3] = 255;
     
@@ -1060,7 +1075,7 @@ NodeAndVoxelColoring::convertSliceColoringToOutlineModeTesting(uint8_t* rgbaInOu
                 rgbaInOut[myOffset + 2] = outlineRGBA[2];
                 rgbaInOut[myOffset + 3] = 1.0;
             }
-            else {
+            else if (hideDataFlag) {
                 rgbaInOut[myOffset + 3] = 0.0;
             }
         }

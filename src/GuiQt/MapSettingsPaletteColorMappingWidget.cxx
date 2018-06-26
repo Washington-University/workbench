@@ -544,6 +544,27 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     allowUpdateOfThresholdHighSpinBox = true;
     
     /*
+     * Threshold Outline
+     */
+    QLabel* thresholdOutlineLabel = new QLabel("Outline ");
+    this->thresholdOutlineDrawingModeComboBox = new EnumComboBoxTemplate(this);
+    this->thresholdOutlineDrawingModeComboBox->setup<PaletteThresholdOutlineDrawingModeEnum, PaletteThresholdOutlineDrawingModeEnum::Enum>();
+    QObject::connect(this->thresholdOutlineDrawingModeComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &MapSettingsPaletteColorMappingWidget::applySelections);
+    QLabel* thresholdOutlineColorLabel = new QLabel(" Color ");
+    this->thresholdOutlineDrawingColorComboBox = new CaretColorEnumComboBox(this);
+    QObject::connect(this->thresholdOutlineDrawingColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
+                     this, SLOT(applySelections()));
+    this->thresholdOutlineDrawingWidget = new QWidget();
+    QHBoxLayout* thresholdOutlineLayout = new QHBoxLayout(this->thresholdOutlineDrawingWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(thresholdOutlineLayout, 2, 0);
+    thresholdOutlineLayout->addWidget(thresholdOutlineLabel);
+    thresholdOutlineLayout->addWidget(this->thresholdOutlineDrawingModeComboBox->getWidget());
+    thresholdOutlineLayout->addWidget(thresholdOutlineColorLabel);
+    thresholdOutlineLayout->addWidget(this->thresholdOutlineDrawingColorComboBox->getWidget());
+    thresholdOutlineLayout->addStretch();
+    
+    /*
      * Threshold types on/off
      */
     QLabel* thresholdTypeLabel = new QLabel("Source");
@@ -591,10 +612,6 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdMapFileIndexSelector->getWidgetsForAddingToLayout(threshFileComboBox,
                                                                      threshMapIndexSpinBox,
                                                                      threshMapNameComboBox);
-    
-    this->thresholdOutlineCheckBox = new QCheckBox("Outline Testing");
-    QObject::connect(this->thresholdOutlineCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(applySelections()));
     
     this->thresholdFileWidget = new QWidget();
     QGridLayout* threshFileLayout = new QGridLayout(this->thresholdFileWidget);
@@ -757,9 +774,9 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     QGroupBox* thresholdGroupBox = new QGroupBox("Threshold");
     QVBoxLayout* layout = new QVBoxLayout(thresholdGroupBox);
     this->setLayoutSpacingAndMargins(layout);
-    layout->addWidget(thresholdOutlineCheckBox, 0, Qt::AlignLeft);
     layout->addWidget(topWidget, 0, Qt::AlignLeft);
     layout->addWidget(this->thresholdFileWidget);
+    layout->addWidget(this->thresholdOutlineDrawingWidget);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(thresholdAdjustmentWidget);
     thresholdGroupBox->setFixedHeight(thresholdGroupBox->sizeHint().height());
@@ -780,6 +797,8 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdAdjustmentWidgetGroup->add(threshMapIndexSpinBox);
     this->thresholdAdjustmentWidgetGroup->add(threshMapNameComboBox);
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdSetAllMapsToolButton);
+    this->thresholdAdjustmentWidgetGroup->add(this->thresholdOutlineDrawingColorComboBox->getWidget());
+    this->thresholdAdjustmentWidgetGroup->add(this->thresholdOutlineDrawingModeComboBox->getWidget());
     
     return thresholdGroupBox;
 }
@@ -1675,9 +1694,10 @@ MapSettingsPaletteColorMappingWidget::updateThresholdSection()
     
     this->thresholdAdjustmentWidget->setEnabled(paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL);
     this->thresholdFileWidget->setEnabled(paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE);
+    this->thresholdOutlineDrawingModeComboBox->setSelectedItem<PaletteThresholdOutlineDrawingModeEnum, PaletteThresholdOutlineDrawingModeEnum::Enum>(this->paletteColorMapping->getThresholdOutlineDrawingMode());
+    this->thresholdOutlineDrawingColorComboBox->setSelectedColor(this->paletteColorMapping->getThresholdOutlineDrawingColor());
+    this->thresholdOutlineDrawingWidget->setEnabled(this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
     this->thresholdWidgetGroup->blockAllSignals(false);
-    
-    this->thresholdOutlineCheckBox->setChecked(this->paletteColorMapping->isOutlineModeEnabled());
     
     bool enableSetAllMapsButtonFlag = false;
     if (this->paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE) {
@@ -1771,7 +1791,7 @@ MapSettingsPaletteColorMappingWidget::updatePaletteMappedToDataValueLabels()
  */
 void 
 MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile* caretMappableDataFile,
-                                                   const int32_t mapIndexIn)
+                                                           const int32_t mapIndexIn)
 {
     this->caretMappableDataFile = caretMappableDataFile;
     this->mapFileIndex = mapIndexIn;
@@ -2522,7 +2542,8 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
         this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE);
     }
     
-    this->paletteColorMapping->setOutlineModeEnabled(this->thresholdOutlineCheckBox->isChecked());
+    this->paletteColorMapping->setThresholdOutlineDrawingMode(this->thresholdOutlineDrawingModeComboBox->getSelectedItem<PaletteThresholdOutlineDrawingModeEnum, PaletteThresholdOutlineDrawingModeEnum::Enum>());
+    this->paletteColorMapping->setThresholdOutlineDrawingColor(this->thresholdOutlineDrawingColorComboBox->getSelectedColor());
     
     this->updateHistogramPlot();
     

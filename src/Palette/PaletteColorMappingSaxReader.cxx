@@ -311,6 +311,30 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_NEG_MIN_POS_MAX_LINKED) {
                this->paletteColorMapping->setThresholdNegMinPosMaxLinked(toBool(this->elementText));
            }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_OUTLINE_DRAWING_MODE) {
+               bool valid = false;
+               PaletteThresholdOutlineDrawingModeEnum::Enum drawMode = PaletteThresholdOutlineDrawingModeEnum::fromName(this->elementText,
+                                                                                                                        &valid);
+               if (valid) {
+                   this->paletteColorMapping->setThresholdOutlineDrawingMode(drawMode);
+               }
+               else {
+                   warning(XmlSaxParserException("Invalid PaletteThresholdOutlineDrawingModeEnum::Enum "
+                                                 + this->elementText));
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_OUTLINE_DRAWING_COLOR) {
+               bool valid = false;
+               CaretColorEnum::Enum color = CaretColorEnum::fromName(this->elementText,
+                                                                     &valid);
+               if (valid) {
+                   this->paletteColorMapping->setThresholdOutlineDrawingColor(color);
+               }
+               else {
+                   warning(XmlSaxParserException("Invalid CaretColorEnum::Enum for palette outline color "
+                                                 + this->elementText));
+               }
+           }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING) {
                /* WB-  
                 * We want to default the range mode to 'FILE'.  While we do that in the constructor
