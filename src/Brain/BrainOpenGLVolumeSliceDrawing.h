@@ -199,10 +199,6 @@ namespace caret {
                                  const float sliceCoordinates[3],
                                  const int32_t viewport[4]);
         
-        void drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                              Matrix4x4& transformationMatrix,
-                              const Plane& plane);
-        
         void drawOrthogonalSlice_LPI_ONLY(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                  const float sliceCoordinates[3],
                                  const Plane& plane);
@@ -262,8 +258,6 @@ namespace caret {
         
         void drawSquare(const float size);
         
-        void drawOrientationAxes(const int viewport[4]);
-        
         void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);
         
@@ -306,9 +300,6 @@ namespace caret {
         
         bool getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
                                                 float spacingOut[3]);
-        
-        void createObliqueTransformationMatrix(const float sliceCoordinates[3],
-                                               Matrix4x4& obliqueTransformationMatrixOut);
         
         void drawIdentificationSymbols(const Plane& plane);
         
