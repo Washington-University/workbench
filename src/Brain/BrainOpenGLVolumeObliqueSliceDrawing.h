@@ -228,14 +228,6 @@ namespace caret {
                               Matrix4x4& transformationMatrix,
                               const Plane& plane);
         
-        void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                 const float sliceCoordinates[3],
-                                 const Plane& plane);
-        
-        void drawOrthogonalSliceWithCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                            const float sliceCoordinates[3],
-                                            const Plane& plane);
-        
         void createSlicePlaneEquation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                       const float sliceCoordinates[3],
@@ -280,43 +272,6 @@ namespace caret {
         
         void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);
-        
-        void drawOrthogonalSliceVoxels(const float sliceNormalVector[3],
-                                       const float coordinate[3],
-                                       const float rowStep[3],
-                                       const float columnStep[3],
-                                       const int64_t numberOfColumns,
-                                       const int64_t numberOfRows,
-                                       const std::vector<uint8_t>& sliceRGBA,
-                                       const int64_t validVoxelCount,
-                                       const VolumeMappableInterface* volumeInterface,
-                                       const int32_t volumeIndex,
-                                       const int32_t mapIndex,
-                                       const uint8_t sliceOpacity);
-        
-        void drawOrthogonalSliceVoxelsSingleQuads(const float sliceNormalVector[3],
-                                       const float coordinate[3],
-                                       const float rowStep[3],
-                                       const float columnStep[3],
-                                       const int64_t numberOfColumns,
-                                       const int64_t numberOfRows,
-                                       const std::vector<uint8_t>& sliceRGBA,
-                                       const VolumeMappableInterface* volumeInterface,
-                                       const int32_t volumeIndex,
-                                       const int32_t mapIndex,
-                                       const uint8_t sliceOpacity);
-        
-        void drawOrthogonalSliceVoxelsQuadIndicesAndStrips(const float sliceNormalVector[3],
-                                                           const float coordinate[3],
-                                                           const float rowStep[3],
-                                                           const float columnStep[3],
-                                                           const int64_t numberOfColumns,
-                                                           const int64_t numberOfRows,
-                                                           const std::vector<uint8_t>& sliceRGBA,
-                                                           const VolumeMappableInterface* volumeInterface,
-                                                           const int32_t volumeIndex,
-                                                           const int32_t mapIndex,
-                                                           const uint8_t sliceOpacity);
         
         bool getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
                                                 float spacingOut[3]);
