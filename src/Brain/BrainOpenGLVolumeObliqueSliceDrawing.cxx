@@ -51,6 +51,7 @@
 #include "GroupAndNameHierarchyModel.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fC4f.h"
+#include "GraphicsPrimitiveV3fC4ub.h"
 #include "IdentificationWithColor.h"
 #include "LabelDrawingProperties.h"
 #include "MathFunctions.h"
@@ -468,13 +469,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Volum
     const int32_t montageCoordPrecision = m_browserTabContent->getVolumeMontageCoordinatePrecision();
     
     const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
-//    const int32_t horizontalMargin = static_cast<int32_t>(viewport[2] * gapsAndMargins->getVolumeMontageHorizontalGap());
-//    const int32_t verticalMargin   = static_cast<int32_t>(viewport[3] * gapsAndMargins->getVolumeMontageVerticalGap());
-//    
-//    const int32_t totalGapX = horizontalMargin * (numCols - 1);
-//    const int32_t vpSizeX = (viewport[2] - totalGapX) / numCols;
-//    const int32_t totalGapY = verticalMargin * (numRows - 1);
-//    const int32_t vpSizeY = (viewport[3] - totalGapY) / numRows;
     
     const int32_t windowIndex = m_fixedPipelineDrawing->m_windowIndex;
     
@@ -785,9 +779,15 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const Volume
                 createObliqueTransformationMatrix(sliceCoordinates,
                                                   obliqueTransformationMatrix);
                 
-                drawObliqueSlice(sliceViewPlane,
-                                 obliqueTransformationMatrix,
-                                 slicePlane);
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_OBLIQUE_SLICE_OUTLINE)) {
+                    drawObliqueSliceWithOutlines(sliceViewPlane,
+                                                 obliqueTransformationMatrix);
+                }
+                else {
+                    drawObliqueSlice(sliceViewPlane,
+                                     obliqueTransformationMatrix,
+                                     slicePlane);
+                }
             }
                 break;
         }
@@ -2380,15 +2380,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjec
         {
             glPushMatrix();
             glLoadIdentity();
-            
-//            double mv[16];
-//            glGetDoublev(GL_MODELVIEW_MATRIX, mv);
-//            Matrix4x4 mvm;
-//            mvm.setMatrixFromOpenGL(mv);
-            
-//            float trans[3];
-//            m_browserTabContent->getTranslation(trans);
-//            glTranslatef(trans[0], trans[1], trans[2]);
             drawAxesCrosshairsOrthoAndOblique(sliceProjectionType,
                                               sliceViewPlane,
                                               sliceCoordinates,
@@ -3460,15 +3451,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::getVoxelCoordinateBoundsAndSpacing(float b
         valid = true;
     }
     
-//    if ((maxVoxelX > minVoxelX)
-//        && (maxVoxelY > minVoxelY)
-//        && (maxVoxelZ > minVoxelZ)
-//        && (voxelStepX > 0.0)
-//        && (voxelStepY > 0.0)
-//        && (voxelStepZ > 0.0)) {
-//        valid = true;
-//    }
-    
     return valid;
 }
 
@@ -3674,6 +3656,1506 @@ BrainOpenGLVolumeObliqueSliceDrawing::VoxelToDraw::addVolumeValue(const int64_t 
     m_sliceIndices.push_back(sliceIndex);
     m_sliceOffsets.push_back(sliceOffset);
 }
+
+/**
+ * Draw an oblique slice with support for outlining labels and thresholded palette data.
+ *
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
+ * @param transformationMatrix
+ *    The for oblique viewing.
+ * @param plane
+ *    Plane equation for the selected slice.
+ */
+void
+BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                   Matrix4x4& transformationMatrix)
+{
+    /*
+     * When performing voxel identification for editing voxels,
+     * we need to draw EVERY voxel since the user may click
+     * regions where the voxels are "off".
+     */
+    float voxelEditingValue = 1.0;
+    VolumeFile* voxelEditingVolumeFile = NULL;
+    bool volumeEditingDrawAllVoxelsFlag = false;
+    if (m_identificationModeFlag) {
+        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+        if (voxelEditID->isEnabledForSelection()) {
+            voxelEditingVolumeFile = voxelEditID->getVolumeFileForEditing();
+            if (voxelEditingVolumeFile != NULL) {
+                volumeEditingDrawAllVoxelsFlag = true;
+                if (voxelEditingVolumeFile->isMappedWithLabelTable()) {
+                    if (voxelEditingVolumeFile->getNumberOfMaps() > 0) {
+                        voxelEditingValue = voxelEditingVolumeFile->getMapLabelTable(0)->getUnassignedLabelKey();
+                    }
+                }
+            }
+        }
+    }
+    
+    const bool obliqueSliceModeThreeDimFlag = false;
+    
+    float m[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, m);
+    Matrix4x4 tm;
+    tm.setMatrixFromOpenGL(m);
+    
+    const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
+    
+    /*
+     * Get the maximum bounds of the voxels from all slices
+     * and the smallest voxel spacing
+     */
+    float voxelBounds[6];
+    float voxelSpacing[3];
+    if (false == getVoxelCoordinateBoundsAndSpacing(voxelBounds,
+                                                    voxelSpacing)) {
+        return;
+    }
+    float voxelSize = std::min(voxelSpacing[0],
+                               std::min(voxelSpacing[1],
+                                        voxelSpacing[2]));
+    
+    /*
+     * Use a larger voxel size for the 3D view in volume slice viewing
+     * since it draws all three slices and this takes time
+     */
+    if (obliqueSliceModeThreeDimFlag) {
+        voxelSize *= 3.0;
+    }
+    
+    /*
+     * Look at point is in center of volume
+     */
+    float translation[3];
+    m_browserTabContent->getTranslation(translation);
+    float viewOffsetX = 0.0;
+    float viewOffsetY = 0.0;
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            viewOffsetX = (m_lookAtCenter[0] + translation[0]);
+            viewOffsetY = (m_lookAtCenter[1] + translation[1]);
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            viewOffsetX = (m_lookAtCenter[0] + translation[0]);
+            viewOffsetY = (m_lookAtCenter[2] + translation[2]);
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            viewOffsetX = (m_lookAtCenter[1] + translation[1]);
+            viewOffsetY = (m_lookAtCenter[2] + translation[2]);
+            break;
+    }
+    
+    float minScreenX = m_orthographicBounds[0] - viewOffsetX;
+    float maxScreenX = m_orthographicBounds[1] - viewOffsetX;
+    float minScreenY = m_orthographicBounds[2] - viewOffsetY;
+    float maxScreenY = m_orthographicBounds[3] - viewOffsetY;
+    
+    
+    /*
+     * Get origin voxel IJK
+     */
+    const float zeroXYZ[3] = { 0.0, 0.0, 0.0 };
+    int64_t originIJK[3];
+    m_volumeDrawInfo[0].volumeFile->enclosingVoxel(zeroXYZ[0], zeroXYZ[1], zeroXYZ[2],
+                                                   originIJK[0], originIJK[1], originIJK[2]);
+    
+    
+    /*
+     * Get XYZ center of origin Voxel
+     */
+    float originVoxelXYZ[3];
+    m_volumeDrawInfo[0].volumeFile->indexToSpace(originIJK, originVoxelXYZ);
+    float actualOrigin[3];
+    m_volumeDrawInfo[0].volumeFile->indexToSpace(originIJK, actualOrigin);
+    
+    float screenOffsetX = 0.0;
+    float screenOffsetY = 0.0;
+    float originOffsetX = 0.0;
+    float originOffsetY = 0.0;
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            screenOffsetX = m_lookAtCenter[0];
+            screenOffsetY = m_lookAtCenter[1];
+            originOffsetX = actualOrigin[0];
+            originOffsetY = actualOrigin[1];
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            screenOffsetX = m_lookAtCenter[0];
+            screenOffsetY = m_lookAtCenter[2];
+            originOffsetX = actualOrigin[0];
+            originOffsetY = actualOrigin[2];
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            screenOffsetX = m_lookAtCenter[1];
+            screenOffsetY = m_lookAtCenter[2];
+            originOffsetX = actualOrigin[1];
+            originOffsetY = actualOrigin[2];
+            break;
+    }
+    
+    const int32_t alignVoxelsFlag = 1;
+    if (alignVoxelsFlag == 1) {
+        /*
+         * Adjust for when selected slices are not at the origin
+         */
+        const float xOffset = MathFunctions::remainder(screenOffsetX, voxelSize);
+        const float yOffset = MathFunctions::remainder(screenOffsetY, voxelSize);
+        originOffsetX -= xOffset;
+        originOffsetY -= yOffset;
+        
+        const int64_t numVoxelsToLeft = static_cast<int64_t>(MathFunctions::round(minScreenX + originOffsetX) / voxelSize);
+        const int64_t numVoxelsToRight = static_cast<int64_t>(MathFunctions::round(maxScreenX + originOffsetX) / voxelSize);
+        const int64_t numVoxelsToBottom = static_cast<int64_t>(MathFunctions::round(minScreenY + originOffsetY) / voxelSize);
+        const int64_t numVoxelsToTop = static_cast<int64_t>(MathFunctions::round(maxScreenY + originOffsetY)/ voxelSize);
+        
+        const float halfVoxel = voxelSize / 2.0;
+        
+        const float firstVoxelCenterX = (numVoxelsToLeft * voxelSize) + originOffsetX;
+        const float lastVoxelCenterX = (numVoxelsToRight * voxelSize) + originOffsetX;
+        
+        const float firstVoxelCenterY = (numVoxelsToBottom * voxelSize) + originOffsetY;
+        const float lastVoxelCenterY = (numVoxelsToTop * voxelSize) + originOffsetY;
+        
+        float newMinScreenX = firstVoxelCenterX - halfVoxel;
+        float newMaxScreenX = lastVoxelCenterX + halfVoxel;
+        float newMinScreenY = firstVoxelCenterY - halfVoxel;
+        float newMaxScreenY = lastVoxelCenterY + halfVoxel;
+        
+        if (debugFlag) {
+            const AString msg2 = ("Origin Voxel Coordinate: ("
+                                  + AString::fromNumbers(actualOrigin, 3, ",")
+                                  + "\n   Oblique Screen X: ("
+                                  + AString::number(minScreenX)
+                                  + ","
+                                  + AString::number(maxScreenX)
+                                  + ") Y: ("
+                                  + AString::number(minScreenY)
+                                  + ","
+                                  + AString::number(maxScreenY)
+                                  + ")\nNew X: ("
+                                  + AString::number(newMinScreenX)
+                                  + ","
+                                  + AString::number(newMaxScreenX)
+                                  + ") Y: ("
+                                  + AString::number(newMinScreenY)
+                                  + ","
+                                  + AString::number(newMaxScreenY)
+                                  + ") Diff: ("
+                                  + AString::number((newMaxScreenX - newMinScreenX) / voxelSize)
+                                  + ","
+                                  + AString::number((newMaxScreenY - newMinScreenY) / voxelSize)
+                                  + ")");
+            std::cout << qPrintable(msg2) << std::endl;
+        }
+        
+        minScreenX = newMinScreenX;
+        maxScreenX = newMaxScreenX;
+        minScreenY = newMinScreenY;
+        maxScreenY = newMaxScreenY;
+    }
+    
+    /*
+     * Set the corners of the screen for the respective view
+     */
+    float bottomLeft[3];
+    float bottomRight[3];
+    float topRight[3];
+    float topLeft[3];
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            bottomLeft[0] = minScreenX;
+            bottomLeft[1] = minScreenY;
+            bottomLeft[2] = 0.0;
+            bottomRight[0] = maxScreenX;
+            bottomRight[1] = minScreenY;
+            bottomRight[2] = 0.0;
+            topRight[0] = maxScreenX;
+            topRight[1] = maxScreenY;
+            topRight[2] = 0.0;
+            topLeft[0] = minScreenX;
+            topLeft[1] = maxScreenY;
+            topLeft[2] = 0.0;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            bottomLeft[0] = minScreenX;
+            bottomLeft[1] = 0.0;
+            bottomLeft[2] = minScreenY;
+            bottomRight[0] = maxScreenX;
+            bottomRight[1] = 0.0;
+            bottomRight[2] = minScreenY;
+            topRight[0] = maxScreenX;
+            topRight[1] = 0.0;
+            topRight[2] = maxScreenY;
+            topLeft[0] = minScreenX;
+            topLeft[1] = 0.0;
+            topLeft[2] = maxScreenY;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            bottomLeft[0] = 0.0;
+            bottomLeft[1] = minScreenX;
+            bottomLeft[2] = minScreenY;
+            bottomRight[0] = 0.0;
+            bottomRight[1] = maxScreenX;
+            bottomRight[2] = minScreenY;
+            topRight[0] = 0.0;
+            topRight[1] = maxScreenX;
+            topRight[2] = maxScreenY;
+            topLeft[0] = 0.0;
+            topLeft[1] = minScreenX;
+            topLeft[2] = maxScreenY;
+            break;
+    }
+    
+    
+    /*
+     * Transform the corners of the screen into model coordinates
+     */
+    transformationMatrix.multiplyPoint3(bottomLeft);
+    transformationMatrix.multiplyPoint3(bottomRight);
+    transformationMatrix.multiplyPoint3(topRight);
+    transformationMatrix.multiplyPoint3(topLeft);
+    
+    if (debugFlag) {
+        const double bottomDist = MathFunctions::distance3D(bottomLeft, bottomRight);
+        const double topDist = MathFunctions::distance3D(topLeft, topRight);
+        const double bottomVoxels = bottomDist / voxelSize;
+        const double topVoxels = topDist / voxelSize;
+        const AString msg = ("Bottom Dist: "
+                             + AString::number(bottomDist)
+                             + " voxel size: "
+                             + AString::number(bottomVoxels)
+                             + " Top Dist: "
+                             + AString::number(bottomDist)
+                             + " voxel size: "
+                             + AString::number(topVoxels));
+        std::cout << qPrintable(msg) << std::endl;
+    }
+    
+    if (debugFlag) {
+        m_fixedPipelineDrawing->setLineWidth(3.0);
+        glColor3f(1.0, 0.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex3fv(bottomLeft);
+        glVertex3fv(bottomRight);
+        glVertex3fv(topRight);
+        glVertex3fv(topLeft);
+        glEnd();
+    }
+    
+    /*
+     * Unit vector and distance in model coords along left side of screen
+     */
+    double bottomLeftToTopLeftUnitVector[3] = {
+        topLeft[0] - bottomLeft[0],
+        topLeft[1] - bottomLeft[1],
+        topLeft[2] - bottomLeft[2],
+    };
+    MathFunctions::normalizeVector(bottomLeftToTopLeftUnitVector);
+    const double bottomLeftToTopLeftDistance = MathFunctions::distance3D(bottomLeft,
+                                                                         topLeft);
+    
+    /*
+     * Unit vector and distance in model coords along right side of screen
+     */
+    double bottomRightToTopRightUnitVector[3] = {
+        topRight[0] - bottomRight[0],
+        topRight[1] - bottomRight[1],
+        topRight[2] - bottomRight[2]
+    };
+    MathFunctions::normalizeVector(bottomRightToTopRightUnitVector);
+    const double bottomRightToTopRightDistance = MathFunctions::distance3D(bottomRight,
+                                                                           topRight);
+    /*
+     * For fastest coloring, need to color data values as a group
+     */
+    std::vector<VolumeSlice> volumeSlices;
+    for (int32_t i = 0; i < numVolumes; i++) {
+        if (m_volumeDrawInfo[i].opacity > 0.0) {
+            volumeSlices.push_back(VolumeSlice(m_volumeDrawInfo[i].volumeFile,
+                                               m_volumeDrawInfo[i].mapIndex,
+                                               m_volumeDrawInfo[i].opacity));
+        }
+        
+    }
+
+    if ((bottomLeftToTopLeftDistance > 0)
+        && (bottomRightToTopRightDistance > 0)) {
+        float leftToRightStepXYZ[3] = {
+            bottomRight[0] - bottomLeft[0],
+            bottomRight[1] - bottomLeft[1],
+            bottomRight[2] - bottomLeft[2]
+        };
+        const float bottomLeftToBottomRightDistance = MathFunctions::normalizeVector(leftToRightStepXYZ);
+        leftToRightStepXYZ[0] *= voxelSize;
+        leftToRightStepXYZ[1] *= voxelSize;
+        leftToRightStepXYZ[2] *= voxelSize;
+        
+        const int32_t numberOfRows = std::round(bottomLeftToTopLeftDistance / voxelSize);
+        const int32_t numberOfColumns = std::round(bottomLeftToBottomRightDistance / voxelSize);
+        
+        
+        float bottomToTopStepXYZ[3] = {
+            topLeft[0] - bottomLeft[0],
+            topLeft[1] - bottomLeft[1],
+            topLeft[2] - bottomLeft[2]
+        };
+        MathFunctions::normalizeVector(bottomToTopStepXYZ);
+        bottomToTopStepXYZ[0] *= voxelSize;
+        bottomToTopStepXYZ[1] *= voxelSize;
+        bottomToTopStepXYZ[2] *= voxelSize;
+        
+        const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
+        const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
+        const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
+        
+        std::vector<ObliqueSlice*> slices;
+        for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
+            const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
+            VolumeMappableInterface* volInter = vdi.volumeFile;
+            
+            bool volumeEditDrawAllVoxelsFlag = false;
+            if (voxelEditingVolumeFile != NULL) {
+                if (voxelEditingVolumeFile == m_volumeDrawInfo[iVol].volumeFile) {
+                    volumeEditDrawAllVoxelsFlag = true;
+                }
+            }
+            ObliqueSlice* slice = new ObliqueSlice(m_fixedPipelineDrawing,
+                                                   volInter,
+                                                   m_volumeDrawInfo[iVol].opacity,
+                                                   m_volumeDrawInfo[iVol].mapIndex,
+                                                   numberOfRows,
+                                                   numberOfColumns,
+                                                   browserTabIndex,
+                                                   displayPropertiesLabels,
+                                                   displayGroup,
+                                                   bottomLeft,
+                                                   leftToRightStepXYZ,
+                                                   bottomToTopStepXYZ,
+                                                   m_obliqueSliceMaskingType,
+                                                   voxelEditingValue,
+                                                   volumeEditDrawAllVoxelsFlag,
+                                                   m_identificationModeFlag);
+            slices.push_back(slice);
+        }
+        
+        const int32_t numSlices = static_cast<int32_t>(slices.size());
+        if (numSlices > 0) {
+            bool drawAllSlicesFlag = true;
+            const bool compositeFlag = true;
+            if (compositeFlag
+                && ( ! m_identificationModeFlag)) {
+                CaretAssertVectorIndex(slices, 0);
+                ObliqueSlice* underlaySlice = slices[0];
+                if (numSlices > 1) {
+                    std::vector<ObliqueSlice*> overlaySlices;
+                    for (int32_t i = 1; i < numSlices; i++) {
+                        CaretAssertVectorIndex(slices, i);
+                        overlaySlices.push_back(slices[i]);
+                    }
+                    if (underlaySlice->compositeSlicesRGBA(overlaySlices)) {
+                        underlaySlice->draw(m_fixedPipelineDrawing);
+                        drawAllSlicesFlag = false;
+                    }
+                }
+            }
+            
+            if (drawAllSlicesFlag) {
+                for (auto s : slices) {
+                    s->draw(m_fixedPipelineDrawing);
+                }
+            }
+        }
+        
+        for (auto s : slices) {
+            delete s;
+        }
+        slices.clear();
+    }
+}
+
+/**
+ * Constructor for drawing an oblique slice.
+ *
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing.
+ * @param volumeInterface
+ *    Interface for volume-type file being drawn.
+ * @param opacity
+ *    Opacity for drawing the slice.
+ * @param mapIndex
+ *    Index of map in file being drawn.
+ * @param numberOfRows
+ *    Number of rows used when drawing slice.
+ * @param numberOfColumns
+ *    Number of columns used when drawing slice.
+ * @param browserTabIndex
+ *    Index of browser tab being drawn.
+ * @param displayPropertiesLabels
+ *    Display properties for labels.
+ * @param displayGroup
+ *    Selected display group for labels.
+ * @param originXYZ
+ *    XYZ coordinate of first voxel in slice.
+ * @param leftToRightStepXYZ
+ *    XYZ step for one voxel in screen left to right.
+ * @param bottomToTopStepXYZ
+ *    XYZ step for one voxel in screen bottom to top.
+ * @param maskingType
+ *    Masking type to eliminate interpolation artifacts
+ * @param voxelEditingValue
+ *    Value used when editing voxels.
+ * @param volumeEditingDrawAllVoxelsFlag
+ *    Draw all voxels when editing a volume.
+ * @param identificationModeFlag
+ *    True if identification mode is active.
+ */
+BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::ObliqueSlice(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                                 VolumeMappableInterface* volumeInterface,
+                                                                 const float opacity,
+                                                                 const int32_t mapIndex,
+                                                                 const int32_t numberOfRows,
+                                                                 const int32_t numberOfColumns,
+                                                                 const int32_t browserTabIndex,
+                                                                 const DisplayPropertiesLabels* displayPropertiesLabels,
+                                                                 const DisplayGroupEnum::Enum displayGroup,
+                                                                 const float originXYZ[3],
+                                                                 const float leftToRightStepXYZ[3],
+                                                                 const float bottomToTopStepXYZ[3],
+                                                                 const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskingType,
+                                                                 const float voxelEditingValue,
+                                                                 const bool volumeEditingDrawAllVoxelsFlag,
+                                                                 const bool identificationModeFlag)
+:
+m_volumeInterface(volumeInterface),
+m_opacity(opacity),
+m_mapFile(dynamic_cast<const CaretMappableDataFile*>(volumeInterface)),
+m_mapIndex(mapIndex),
+m_numberOfRows(numberOfRows),
+m_numberOfColumns(numberOfColumns),
+m_browserTabIndex(browserTabIndex),
+m_displayPropertiesLabels(displayPropertiesLabels),
+m_displayGroup(displayGroup),
+m_identificationX(fixedPipelineDrawing->mouseX),
+m_identificationY(fixedPipelineDrawing->mouseY),
+m_identificationModeFlag(identificationModeFlag)
+{
+    CaretAssert(volumeInterface);
+    CaretAssert(m_mapFile);
+    
+    m_opacityByte = 255;
+    if (m_opacity >= 1.0) {
+        m_opacityByte = 255;
+    }
+    if (m_opacity <= 0.0) {
+        m_opacityByte = 0;
+    }
+    else {
+        m_opacityByte = static_cast<uint8_t>(m_opacity * 255.0f);
+    }
+    
+    for (int32_t i = 0; i < 3; i++) {
+        m_selectionIJK[i] = -1;
+        m_leftToRightStepXYZ[i] = leftToRightStepXYZ[i];
+        m_bottomToTopStepXYZ[i] = bottomToTopStepXYZ[i];
+        m_originXYZ[i] = originXYZ[i];
+    }
+
+    const VolumeFile* volumeFileConst =  dynamic_cast<const VolumeFile*>(volumeInterface);
+    m_volumeFile = const_cast<VolumeFile*>(volumeFileConst);
+    const CiftiMappableDataFile* ciftiMappableFileConst = dynamic_cast<const CiftiMappableDataFile*>(volumeInterface);
+    m_ciftiMappableFile = const_cast<CiftiMappableDataFile*>(ciftiMappableFileConst);
+    
+    m_dataValueType = DataValueType::INVALID;
+    if (m_mapFile->isMappedWithPalette()) {
+        if (m_volumeFile != NULL) {
+            m_dataValueType = DataValueType::VOLUME_PALETTE;
+        }
+        else if (m_ciftiMappableFile != NULL) {
+            m_dataValueType = DataValueType::CIFTI_PALETTE;
+        }
+        else {
+            CaretAssert(0);
+        }
+    }
+    else if (m_mapFile->isMappedWithLabelTable()) {
+        if (m_volumeFile != NULL) {
+            m_dataValueType = DataValueType::VOLUME_LABEL;
+        }
+        else if (m_ciftiMappableFile != NULL) {
+            m_dataValueType = DataValueType::CIFTI_LABEL;
+        }
+        else {
+            CaretAssert(0);
+        }
+    }
+    else if (m_mapFile->isMappedWithRGBA()) {
+        if (m_volumeFile != NULL) {
+            if (m_volumeFile->getNumberOfComponents() == 4) {
+                m_dataValueType = DataValueType::VOLUME_RGBA;
+            }
+            else if (m_volumeFile->getNumberOfComponents() == 3) {
+                m_dataValueType = DataValueType::VOLUME_RGB;
+            }
+        }
+        else {
+            CaretAssert(0);
+        }
+    }
+    CaretAssert(m_dataValueType != DataValueType::INVALID);
+    
+    m_sliceNumberOfVoxels     = m_numberOfRows * m_numberOfColumns;
+    m_voxelNumberOfComponents = 1;
+    switch (m_dataValueType) {
+        case DataValueType::INVALID:
+            CaretAssert(0);
+            break;
+        case DataValueType::CIFTI_LABEL:
+        case DataValueType::CIFTI_PALETTE:
+        case DataValueType::VOLUME_LABEL:
+        case DataValueType::VOLUME_PALETTE:
+            break;
+        case DataValueType::VOLUME_RGB:
+        case DataValueType::VOLUME_RGBA:
+            m_voxelNumberOfComponents = 4;
+            break;
+    }
+    m_data.reserve(m_sliceNumberOfVoxels
+                   * m_voxelNumberOfComponents);
+    
+    m_thresholdData.reserve(m_data.size());
+    
+    m_rgba.reserve(m_sliceNumberOfVoxels * 4);
+    
+    if (m_identificationModeFlag) {
+        m_identificationIJK.reserve(m_sliceNumberOfVoxels * 3);
+        m_identificationHelper.reset(new IdentificationWithColor());
+    }
+    
+    setThresholdFileAndMap();
+    
+    loadData(maskingType,
+             voxelEditingValue,
+             volumeEditingDrawAllVoxelsFlag);
+    
+    assignRgba(volumeEditingDrawAllVoxelsFlag);
+    
+    if ( ! m_identificationModeFlag) {
+        addOutlines();
+    }
+    
+    CaretAssert((m_sliceNumberOfVoxels*4) == static_cast<int32_t>(m_rgba.size()));
+}
+
+/**
+ * Set thresholding file and map, if applicable.
+ */
+bool
+BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::setThresholdFileAndMap()
+{
+    switch (m_dataValueType) {
+        case DataValueType::INVALID:
+            CaretAssert(0);
+            break;
+        case DataValueType::CIFTI_LABEL:
+            break;
+        case DataValueType::CIFTI_PALETTE:
+        {
+            const PaletteColorMapping* pcm = m_ciftiMappableFile->getMapPaletteColorMapping(m_mapIndex);
+            CaretAssert(pcm);
+            switch (pcm->getThresholdType()) {
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+                    m_thresholdCiftiMappableFile = m_ciftiMappableFile;
+                    m_thresholdMapIndex   = m_mapIndex;
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+                {
+                    CaretMappableDataFileAndMapSelectionModel* selector = m_ciftiMappableFile->getMapThresholdFileSelectionModel(m_mapIndex);
+                    m_thresholdCiftiMappableFile = dynamic_cast<CiftiMappableDataFile*>(selector->getSelectedFile());
+                    if (m_thresholdCiftiMappableFile != NULL) {
+                        m_thresholdMapIndex = selector->getSelectedMapIndex();
+                    }
+                }
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+                    CaretAssert(0);
+                    break;
+            }
+            if (m_thresholdCiftiMappableFile != NULL) {
+                if ((m_thresholdMapIndex >= 0)
+                    && (m_thresholdMapIndex < m_thresholdCiftiMappableFile->getNumberOfMaps())) {
+                    m_thresholdPaletteColorMapping = m_thresholdCiftiMappableFile->getMapPaletteColorMapping(m_thresholdMapIndex);
+                }
+                else {
+                    m_thresholdCiftiMappableFile = NULL;
+                    m_thresholdMapIndex = -1;
+                }
+            }
+        }
+            break;
+        case DataValueType::VOLUME_LABEL:
+            break;
+        case DataValueType::VOLUME_PALETTE:
+        {
+            const PaletteColorMapping* pcm = m_volumeFile->getMapPaletteColorMapping(m_mapIndex);
+            CaretAssert(pcm);
+            switch (pcm->getThresholdType()) {
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+                    m_thresholdVolumeFile = m_volumeFile;
+                    m_thresholdMapIndex   = m_mapIndex;
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+                {
+                    CaretMappableDataFileAndMapSelectionModel* selector = m_volumeFile->getMapThresholdFileSelectionModel(m_mapIndex);
+                    m_thresholdVolumeFile = dynamic_cast<VolumeFile*>(selector->getSelectedFile());
+                    if (m_thresholdVolumeFile != NULL) {
+                        m_thresholdMapIndex = selector->getSelectedMapIndex();
+                    }
+                }
+                    break;
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+                    CaretAssert(0);
+                    break;
+            }
+            if (m_thresholdVolumeFile != NULL) {
+                if ((m_thresholdMapIndex >= 0)
+                    && (m_thresholdMapIndex < m_thresholdVolumeFile->getNumberOfMaps())) {
+                    m_thresholdPaletteColorMapping = m_thresholdVolumeFile->getMapPaletteColorMapping(m_thresholdMapIndex);
+                }
+                else {
+                    m_thresholdVolumeFile = NULL;
+                    m_thresholdMapIndex = -1;
+                }
+            }
+        }
+            break;
+        case DataValueType::VOLUME_RGB:
+            break;
+        case DataValueType::VOLUME_RGBA:
+            break;
+    }
+    
+    if (m_thresholdMapIndex < 0) {
+        m_thresholdCiftiMappableFile = NULL;
+        m_thresholdVolumeFile = NULL;
+        m_thresholdPaletteColorMapping = NULL;
+    }
+    
+    return (m_thresholdMapIndex >= 0);
+}
+
+/**
+ * Assign RGBA coloring for the voxels.
+ *
+ * @param volumeEditingDrawAllVoxelsFlag
+ *    True if editing and all voxels should be drawn for selection.
+ */
+void
+BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volumeEditingDrawAllVoxelsFlag)
+{
+    if (m_data.empty()) {
+        return;
+    }
+    
+    switch (m_dataValueType) {
+        case DataValueType::INVALID:
+            CaretAssert(0);
+            break;
+        case DataValueType::CIFTI_LABEL:
+        case DataValueType::CIFTI_PALETTE:
+        case DataValueType::VOLUME_LABEL:
+        case DataValueType::VOLUME_PALETTE:
+            /*
+             * One data value per voxel.
+             */
+            m_rgba.resize(m_data.size() * 4);
+            break;
+        case DataValueType::VOLUME_RGB:
+        case DataValueType::VOLUME_RGBA:
+            /*
+             * For RGBA, there are four data values per voxel
+             */
+            m_rgba.resize(m_data.size());
+            break;
+    }
+
+    if (volumeEditingDrawAllVoxelsFlag) {
+        const int32_t numVoxels = static_cast<int32_t>(m_rgba.size() / 4);
+        for (int32_t i = 0; i < numVoxels; i++) {
+            const int32_t i4 = i * 4;
+            m_rgba[i4]   = 255;
+            m_rgba[i4+1] = 255;
+            m_rgba[i4+2] = 255;
+            m_rgba[i4+3] = 255;
+        }
+        
+        return;
+    }
+    
+    switch (m_dataValueType) {
+        case DataValueType::INVALID:
+            break;
+        case DataValueType::CIFTI_LABEL:
+        {
+            CaretAssert(m_ciftiMappableFile);
+            const GiftiLabelTable* labelTable = m_ciftiMappableFile->getMapLabelTable(m_mapIndex);
+            CaretAssert(labelTable);
+            NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(labelTable,
+                                                                               &m_data[0],
+                                                                               m_data.size(),
+                                                                               m_displayGroup,
+                                                                               m_browserTabIndex,
+                                                                               &m_rgba[0]);
+        }
+            break;
+        case DataValueType::CIFTI_PALETTE:
+        {
+            CaretAssert(m_ciftiMappableFile);
+            PaletteColorMapping* pcm = m_ciftiMappableFile->getMapPaletteColorMapping(m_mapIndex);
+            CaretAssert(pcm);
+            const FastStatistics* stats = m_ciftiMappableFile->getMapFastStatistics(m_mapIndex);
+            CaretAssert(stats);
+            CaretAssert(m_data.size() == m_thresholdData.size());
+            
+            PaletteColorMapping* threshPcm = ((m_thresholdPaletteColorMapping != NULL)
+                                              ? m_thresholdPaletteColorMapping
+                                              : pcm);
+            NodeAndVoxelColoring::colorScalarsWithPalette(stats,
+                                                          pcm,
+                                                          &m_data[0],
+                                                          threshPcm,
+                                                          &m_thresholdData[0],
+                                                          m_data.size(),
+                                                          &m_rgba[0]);
+        }
+            break;
+        case DataValueType::VOLUME_LABEL:
+        {
+            CaretAssert(m_volumeFile);
+            const GiftiLabelTable* labelTable = m_volumeFile->getMapLabelTable(m_mapIndex);
+            CaretAssert(labelTable);
+            NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(labelTable,
+                                                                               &m_data[0],
+                                                                               m_data.size(),
+                                                                               m_displayGroup,
+                                                                               m_browserTabIndex,
+                                                                               &m_rgba[0]);
+        }
+            break;
+        case DataValueType::VOLUME_PALETTE:
+        {
+            CaretAssert(m_volumeFile);
+            PaletteColorMapping* pcm = m_volumeFile->getMapPaletteColorMapping(m_mapIndex);
+            CaretAssert(pcm);
+            const FastStatistics* stats = m_volumeFile->getMapFastStatistics(m_mapIndex);
+            CaretAssert(stats);
+            CaretAssert(m_data.size() == m_thresholdData.size());
+            
+            PaletteColorMapping* threshPcm = ((m_thresholdPaletteColorMapping != NULL)
+                                              ? m_thresholdPaletteColorMapping
+                                              : pcm);
+            NodeAndVoxelColoring::colorScalarsWithPalette(stats,
+                                                          pcm,
+                                                          &m_data[0],
+                                                          threshPcm,
+                                                          &m_thresholdData[0],
+                                                          m_data.size(),
+                                                          &m_rgba[0]);
+        }
+            break;
+        case DataValueType::VOLUME_RGB:
+        case DataValueType::VOLUME_RGBA:
+        {
+            /*
+             * Test RGB data to see if it ranges from [0, 1] or [0, 255].
+             * Assume if any component is greater than 1, then the data is [0, 255]
+             */
+            bool range255Flag = std::any_of(m_data.begin(),
+                                            m_data.end(),
+                                            [](float f) { return f > 1.0f; });
+            
+            CaretAssert(m_data.size() == m_rgba.size());
+            const int32_t numVoxels = static_cast<int32_t>(m_data.size() / 4);
+            if (range255Flag) {
+                for (int32_t i = 0; i < numVoxels; i++) {
+                    const int32_t i4 = i * 4;
+                    m_rgba[i4] = static_cast<uint8_t>(m_data[i4]);
+                    m_rgba[i4+1] = static_cast<uint8_t>(m_data[i4+1]);
+                    m_rgba[i4+2] = static_cast<uint8_t>(m_data[i4+2]);
+                    if (m_dataValueType == DataValueType::VOLUME_RGB) {
+                        m_rgba[i4+3] = ((m_data[i4+3] > 0)
+                                        ? 255
+                                        : 0);
+                    }
+                }
+            }
+            else {
+                for (int32_t i = 0; i < numVoxels; i++) {
+                    const int32_t i4 = i * 4;
+                    m_rgba[i4]   = static_cast<uint8_t>(m_data[i4] * 255.0);
+                    m_rgba[i4+1] = static_cast<uint8_t>(m_data[i4+1] * 255.0);
+                    m_rgba[i4+2] = static_cast<uint8_t>(m_data[i4+2] * 255.0);
+                    m_rgba[i4+3] = static_cast<uint8_t>(m_data[i4+3] * 255.0);
+                }
+            }
+        }
+            break;
+    }
+}
+
+/**
+ * Add any outlines for labels or thresholded palette data.
+ */
+void
+BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::addOutlines()
+{
+    LabelDrawingProperties* labelDrawingProperties = NULL;
+    PaletteColorMapping* paletteColorMapping = NULL;
+    switch (m_dataValueType) {
+        case DataValueType::INVALID:
+            break;
+        case DataValueType::CIFTI_LABEL:
+            CaretAssert(m_ciftiMappableFile);
+            labelDrawingProperties = m_ciftiMappableFile->getLabelDrawingProperties();
+            break;
+        case DataValueType::CIFTI_PALETTE:
+            CaretAssert(m_ciftiMappableFile);
+            paletteColorMapping = m_ciftiMappableFile->getMapPaletteColorMapping(m_mapIndex);
+            break;
+        case DataValueType::VOLUME_LABEL:
+            CaretAssert(m_volumeFile);
+            labelDrawingProperties = m_volumeFile->getLabelDrawingProperties();
+            break;
+        case DataValueType::VOLUME_PALETTE:
+            CaretAssert(m_volumeFile);
+            paletteColorMapping = m_volumeFile->getMapPaletteColorMapping(m_mapIndex);
+            break;
+        case DataValueType::VOLUME_RGB:
+            break;
+        case DataValueType::VOLUME_RGBA:
+            break;
+    }
+    
+    if (labelDrawingProperties != NULL) {
+        const LabelDrawingTypeEnum::Enum labelDrawingType = labelDrawingProperties->getDrawingType();
+        if (labelDrawingType != LabelDrawingTypeEnum::DRAW_FILLED) {
+            const CaretColorEnum::Enum outlineColor = labelDrawingProperties->getOutlineColor();
+            NodeAndVoxelColoring::convertSliceColoringToOutlineMode(&m_rgba[0],
+                                                                    labelDrawingType,
+                                                                    outlineColor,
+                                                                    m_numberOfColumns,
+                                                                    m_numberOfRows);
+        }
+    }
+    
+    if (paletteColorMapping != NULL) {
+        const PaletteThresholdOutlineDrawingModeEnum::Enum outlineMode = paletteColorMapping->getThresholdOutlineDrawingMode();
+        if (outlineMode != PaletteThresholdOutlineDrawingModeEnum::OFF) {
+            const CaretColorEnum::Enum outlineColor = paletteColorMapping->getThresholdOutlineDrawingColor();
+            NodeAndVoxelColoring::convertPaletteSliceColoringToOutlineMode(&m_rgba[0],
+                                                                           outlineMode,
+                                                                           outlineColor,
+                                                                           m_numberOfColumns,
+                                                                           m_numberOfRows);
+        }
+    }
+}
+
+/**
+ * Loads voxels data into the 'slice'.
+ * @param maskingType
+ *    Masking type to hide artifacts of interpolation
+ * @param voxelEditingValue
+ *    Value for voxels when editing a volume
+ * @param volumeEditingDrawAllVoxelsFlag
+ *    True if editing and all voxels should be drawn for selection.
+ */
+void
+BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskingType,
+                                                             const float voxelEditingValue,
+                                                             const bool volumeEditingDrawAllVoxelsFlag)
+{
+    m_validVoxelCount = 0;
+    
+    bool needCiftiMapDataFlag = false;
+    switch (m_dataValueType) {
+        case DataValueType::INVALID:
+            break;
+        case DataValueType::CIFTI_LABEL:
+        case DataValueType::CIFTI_PALETTE:
+            needCiftiMapDataFlag = true;
+            break;
+        case DataValueType::VOLUME_LABEL:
+        case DataValueType::VOLUME_PALETTE:
+        case DataValueType::VOLUME_RGB:
+        case DataValueType::VOLUME_RGBA:
+            break;
+    }
+    
+    float voxelCenterOffset[3] = {
+        ((m_leftToRightStepXYZ[0] / 2.0f) + (m_bottomToTopStepXYZ[0] / 2.0f)),
+        ((m_leftToRightStepXYZ[1] / 2.0f) + (m_bottomToTopStepXYZ[1] / 2.0f)),
+        ((m_leftToRightStepXYZ[2] / 2.0f) + (m_bottomToTopStepXYZ[2] / 2.0f)),
+    };
+
+    std::vector<float> ciftiFileMapData;
+    std::vector<float> thresholdCiftiFileMapData;
+    if (needCiftiMapDataFlag) {
+        /*
+         * Cifti files are slow at getting individual voxels since they
+         * provide no access to individual voxels.  The reason is that
+         * the data may be on a server (Dense data) and accessing a single
+         * voxel would require requesting the entire map.  So, for
+         * each Cifti file, get the entire map.
+         */
+        CaretAssert(m_ciftiMappableFile);
+        m_ciftiMappableFile->getMapData(m_mapIndex,
+                                        ciftiFileMapData);
+        
+        if (m_thresholdCiftiMappableFile != NULL) {
+            m_thresholdCiftiMappableFile->getMapData(m_thresholdMapIndex,
+                                                     thresholdCiftiFileMapData);
+        }
+    }
+    
+    for (int32_t iRow = 0; iRow < m_numberOfRows; iRow++) {
+        float rowStartXYZ[3] = {
+            m_originXYZ[0] + (iRow * m_bottomToTopStepXYZ[0]),
+            m_originXYZ[1] + (iRow * m_bottomToTopStepXYZ[1]),
+            m_originXYZ[2] + (iRow * m_bottomToTopStepXYZ[2])
+        };
+        
+        for (int32_t iCol = 0; iCol < m_numberOfColumns; iCol++) {
+            
+            const float voxelBottomLeft[3] = {
+                rowStartXYZ[0] + (iCol * m_leftToRightStepXYZ[0]),
+                rowStartXYZ[1] + (iCol * m_leftToRightStepXYZ[1]),
+                rowStartXYZ[2] + (iCol * m_leftToRightStepXYZ[2])
+            };
+            
+            const float voxelCenter[3] = {
+                voxelBottomLeft[0] + voxelCenterOffset[0],
+                voxelBottomLeft[1] + voxelCenterOffset[1],
+                voxelBottomLeft[2] + voxelCenterOffset[2]
+            };
+            
+            float values[4] = { 0.0, 0.0, 0.0, 0.0 };
+            bool valueValidFlag = false;
+            
+            float thresholdValue = 0.0;
+            bool thresholdValueValidFlag = false;
+            
+            switch (m_dataValueType) {
+                case DataValueType::INVALID:
+                    CaretAssert(0);
+                    break;
+                case DataValueType::CIFTI_LABEL:
+                case DataValueType::CIFTI_PALETTE:
+                {
+                    CaretAssert(m_ciftiMappableFile);
+                    const int64_t voxelOffset = m_ciftiMappableFile->getMapDataOffsetForVoxelAtCoordinate(voxelCenter,
+                                                                                                              m_mapIndex);
+                    if (voxelOffset >= 0) {
+                        CaretAssertVectorIndex(ciftiFileMapData, voxelOffset);
+                        values[0] = ciftiFileMapData[voxelOffset];
+                        valueValidFlag = true;
+                    }
+                    
+                    if (m_thresholdCiftiMappableFile != NULL) {
+                        const int64_t thresholdVoxelOffset = m_thresholdCiftiMappableFile->getMapDataOffsetForVoxelAtCoordinate(voxelCenter,
+                                                                                                                                m_thresholdMapIndex);
+                        if (thresholdVoxelOffset >= 0) {
+                            CaretAssertVectorIndex(thresholdCiftiFileMapData, thresholdVoxelOffset);
+                            thresholdValue = thresholdCiftiFileMapData[thresholdVoxelOffset];
+                            thresholdValueValidFlag = true;
+                        }
+                    }
+                }
+                    break;
+                case DataValueType::VOLUME_LABEL:
+                {
+                    CaretAssert(m_volumeFile);
+                    values[0] = m_volumeFile->getVoxelValue(voxelCenter,
+                                                          &valueValidFlag,
+                                                          m_mapIndex,
+                                                          0);
+                }
+                    break;
+                case DataValueType::VOLUME_PALETTE:
+                {
+                    CaretAssert(m_volumeFile);
+                    values[0] = m_volumeFile->interpolateValue(voxelCenter,
+                                                             VolumeFile::CUBIC,
+                                                             &valueValidFlag,
+                                                             m_mapIndex);
+                    
+                    if (valueValidFlag
+                        && (values[0] != 0.0f)) {
+                        /*
+                         * Apply masking to oblique voxels (WB-750).
+                         * In some instances, CUBIC interpolation may result in a voxel
+                         * receiving a very small value (0.000000000000000210882405) and
+                         * this will cause the slice drawing to look very unusual.  Masking
+                         * is used to prevent this from occurring.
+                         *
+                         */
+                        bool maskValidFlag = false;
+                        float maskValue = 0.0f;
+                        switch (maskingType) {
+                            case VolumeSliceInterpolationEdgeEffectsMaskingEnum::OFF:
+                                maskValidFlag = false;
+                                break;
+                            case VolumeSliceInterpolationEdgeEffectsMaskingEnum::LOOSE:
+                                maskValue = m_volumeFile->interpolateValue(voxelCenter,
+                                                                         VolumeFile::TRILINEAR,
+                                                                         &maskValidFlag,
+                                                                         m_mapIndex);
+                                break;
+                            case VolumeSliceInterpolationEdgeEffectsMaskingEnum::TIGHT:
+                                maskValue = m_volumeFile->interpolateValue(voxelCenter,
+                                                                         VolumeFile::ENCLOSING_VOXEL,
+                                                                         &maskValidFlag,
+                                                                         m_mapIndex);
+                                break;
+                        }
+                        
+                        if (maskValidFlag
+                            && (maskValue == 0.0f)) {
+                            values[0] = 0.0f;
+                            valueValidFlag = false;
+                        }
+                    }
+                    
+                    if (m_thresholdVolumeFile != NULL) {
+                        thresholdValue = m_thresholdVolumeFile->getVoxelValue(voxelCenter,
+                                                                              &thresholdValueValidFlag,
+                                                                              m_thresholdMapIndex,
+                                                                              0);
+                    }
+                }
+                    break;
+                case DataValueType::VOLUME_RGB:
+                case DataValueType::VOLUME_RGBA:
+                {
+                    values[0] = m_volumeFile->getVoxelValue(voxelCenter,
+                                                               &valueValidFlag,
+                                                               m_mapIndex,
+                                                               0);
+                    if (valueValidFlag) {
+                        values[1] = m_volumeFile->getVoxelValue(voxelCenter,
+                                                                   &valueValidFlag,
+                                                                   m_mapIndex,
+                                                                   1);
+                        values[2] = m_volumeFile->getVoxelValue(voxelCenter,
+                                                                   &valueValidFlag,
+                                                                   m_mapIndex,
+                                                                   2);
+                        if (m_dataValueType == DataValueType::VOLUME_RGBA) {
+                            values[3] = m_volumeFile->getVoxelValue(voxelCenter,
+                                                                       &valueValidFlag,
+                                                                       m_mapIndex,
+                                                                       3);
+                        }
+                        else {
+                            values[3] = 1.0;
+                        }
+                    }
+                }
+                    break;
+            }
+            
+            if (m_thresholdMapIndex < 0) {
+                thresholdValue = values[0];
+            }
+            
+            /*
+             * Need to draw all voxels when editing
+             */
+            if (volumeEditingDrawAllVoxelsFlag) {
+                if (! valueValidFlag) {
+                    values[0] = voxelEditingValue;
+                    valueValidFlag = true;
+                }
+            }
+            
+            switch (m_dataValueType) {
+                case DataValueType::INVALID:
+                    break;
+                case DataValueType::CIFTI_LABEL:
+                case DataValueType::CIFTI_PALETTE:
+                case DataValueType::VOLUME_LABEL:
+                case DataValueType::VOLUME_PALETTE:
+                    m_data.push_back(values[0]);
+                    m_thresholdData.push_back(thresholdValue);
+                    break;
+                case DataValueType::VOLUME_RGB:
+                case DataValueType::VOLUME_RGBA:
+                    m_data.push_back(values[0]);
+                    m_data.push_back(values[1]);
+                    m_data.push_back(values[2]);
+                    m_data.push_back(values[3]);
+                    break;
+            }
+            
+            if (m_identificationModeFlag) {
+                /*
+                 * When identifying, need an IJK triplet
+                 * for each voxel
+                 */
+                int64_t ijk[3] = { -1, -1, -1 };
+                if (valueValidFlag) {
+                    if (m_volumeFile != NULL) {
+                        m_volumeFile->enclosingVoxel(voxelCenter, ijk);
+                        if ( ! m_volumeFile->indexValid(ijk)) {
+                            ijk[0] = -1;
+                            ijk[1] = -1;
+                            ijk[2] = -1;
+                            valueValidFlag = false;
+                        }
+                    }
+                    else if (m_ciftiMappableFile != NULL) {
+                        int64_t i(-1), j(-1), k(-1);
+                        m_ciftiMappableFile->enclosingVoxel(voxelCenter[0], voxelCenter[1], voxelCenter[2],
+                                                            i, j, k);
+                        if (m_ciftiMappableFile->indexValid(i, j, k)) {
+                            ijk[0] = i;
+                            ijk[1] = j;
+                            ijk[2] = k;
+                        }
+                        else {
+                            valueValidFlag = false;
+                        }
+                    }
+                }
+                m_identificationIJK.insert(m_identificationIJK.end(),
+                                           ijk, ijk + 3);
+            }
+            
+            if (valueValidFlag) {
+                m_validVoxelCount++;
+            }
+        }
+    }
+    
+    CaretAssert((m_sliceNumberOfVoxels * m_voxelNumberOfComponents) == static_cast<int32_t>(m_data.size()));
+    if (m_thresholdMapIndex >= 0) {
+        CaretAssert(m_data.size() == m_thresholdData.size());
+    }
+    
+    if (m_identificationModeFlag) {
+        CaretAssert((m_data.size() * 3) == m_identificationIJK.size());
+    }
+}
+
+/**
+ * Draw the oblique slice with the graphics primitives.
+ *
+ * @param fixedPipelineDrawing
+ *     The fixed pipeline drawing.
+ */
+void
+BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing)
+{
+    Brain* brain = fixedPipelineDrawing->m_brain;
+    SelectionItemVoxel* selectionItemVoxel = brain->getSelectionManager()->getVoxelIdentification();
+    SelectionItemVoxelEditing* selectionItemVoxelEditing = brain->getSelectionManager()->getVoxelEditingIdentification();
+
+    const GraphicsPrimitive::PrimitiveType primitiveType = GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES;
+    std::unique_ptr<GraphicsPrimitiveV3fC4ub> primitive(GraphicsPrimitive::newPrimitiveV3fC4ub(primitiveType));
+    
+    float rowXYZ[3] = {
+        m_originXYZ[0],
+        m_originXYZ[1],
+        m_originXYZ[2]
+    };
+    
+    std::vector<int64_t> selectionIJK;
+    for (int32_t iRow = 0; iRow < m_numberOfRows; iRow++) {
+        float voxelXYZ[3] = {
+            rowXYZ[0],
+            rowXYZ[1],
+            rowXYZ[2]
+        };
+        
+        const int32_t rowRgbaOffset = (iRow * m_numberOfColumns * 4);
+        for (int32_t iCol = 0; iCol < m_numberOfColumns; iCol++) {
+            float nextXYZ[3] = {
+                voxelXYZ[0] + m_leftToRightStepXYZ[0],
+                voxelXYZ[1] + m_leftToRightStepXYZ[1],
+                voxelXYZ[2] + m_leftToRightStepXYZ[2],
+            };
+            
+            const int32_t rgbaIndex = rowRgbaOffset + (iCol * 4);
+            CaretAssertVectorIndex(m_rgba, rgbaIndex + 3);
+            const uint8_t alpha = m_rgba[rgbaIndex +3];
+            if (alpha > 0) {
+                const float upperLeftXYZ[3] = {
+                    voxelXYZ[0] + m_bottomToTopStepXYZ[0],
+                    voxelXYZ[1] + m_bottomToTopStepXYZ[1],
+                    voxelXYZ[2] + m_bottomToTopStepXYZ[2]
+                };
+                const float upperRightXYZ[3] = {
+                    nextXYZ[0] + m_bottomToTopStepXYZ[0],
+                    nextXYZ[1] + m_bottomToTopStepXYZ[1],
+                    nextXYZ[2] + m_bottomToTopStepXYZ[2]
+                };
+                const uint8_t* rgba = &m_rgba[rgbaIndex];
+                
+                /*
+                 * Each voxel is drawn with two triangles because:
+                 * (1) Voxels may be sparse and triangles strips do not support 'restart'
+                 * until newer versions of OpenGL.
+                 * (2) Support for Quads is removed in newer versions of OpenGL.
+                 */
+                primitive->addVertex(voxelXYZ,
+                                     rgba);
+                primitive->addVertex(nextXYZ,
+                                     rgba);
+                primitive->addVertex(upperLeftXYZ,
+                                     rgba);
+                primitive->addVertex(upperLeftXYZ,
+                                     rgba);
+                primitive->addVertex(nextXYZ,
+                                     rgba);
+                primitive->addVertex(upperRightXYZ,
+                                     rgba);
+                
+                if (m_identificationModeFlag) {
+                    /*
+                     * Each voxel is drawn with two triangles so need to put ID 
+                     * in twice since so that number of selections equals number
+                     * of triangles
+                     */
+                    const int32_t idIndex = ((iRow * m_numberOfColumns * 3) + (iCol * 3));
+                    CaretAssertVectorIndex(m_identificationIJK, idIndex + 2);
+                    selectionIJK.push_back(m_identificationIJK[idIndex]);
+                    selectionIJK.push_back(m_identificationIJK[idIndex+1]);
+                    selectionIJK.push_back(m_identificationIJK[idIndex+2]);
+                    selectionIJK.push_back(m_identificationIJK[idIndex]);
+                    selectionIJK.push_back(m_identificationIJK[idIndex+1]);
+                    selectionIJK.push_back(m_identificationIJK[idIndex+2]);
+                }
+            }
+            
+            voxelXYZ[0] = nextXYZ[0];
+            voxelXYZ[1] = nextXYZ[1];
+            voxelXYZ[2] = nextXYZ[2];
+        }
+        
+        rowXYZ[0] += m_bottomToTopStepXYZ[0];
+        rowXYZ[1] += m_bottomToTopStepXYZ[1];
+        rowXYZ[2] += m_bottomToTopStepXYZ[2];
+    }
+    
+    if (primitive->isValid()) {
+        if (m_identificationModeFlag) {
+            int32_t selectedIndex = -1;
+            float selectedDepth  = -1.0;
+            GraphicsEngineDataOpenGL::drawWithSelection(primitive.get(),
+                                                        fixedPipelineDrawing->mouseX,
+                                                        fixedPipelineDrawing->mouseY,
+                                                        selectedIndex,
+                                                        selectedDepth);
+            
+            if (selectedIndex >= 0) {
+                const int32_t ijkIndex = selectedIndex * 3;
+                CaretAssertVectorIndex(selectionIJK, ijkIndex + 2);
+                
+                m_selectionIJK[0] = selectionIJK[ijkIndex];
+                m_selectionIJK[1] = selectionIJK[ijkIndex+1];
+                m_selectionIJK[2] = selectionIJK[ijkIndex+2];
+                
+                if ((m_selectionIJK[0] >= 0)
+                    && (m_selectionIJK[1] >= 0)
+                    && (m_selectionIJK[2])) {
+                    if (selectionItemVoxel->isEnabledForSelection()) {
+                        if (selectionItemVoxel->isOtherScreenDepthCloserToViewer(selectedDepth)) {
+                            selectionItemVoxel->setVoxelIdentification(brain,
+                                                                       m_volumeInterface,
+                                                                       m_selectionIJK,
+                                                                       selectedDepth);
+                            
+                            float voxelCoordinates[3];
+                            m_volumeInterface->indexToSpace(m_selectionIJK[0], m_selectionIJK[1], m_selectionIJK[2],
+                                                            voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                            
+                            fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemVoxel,
+                                                                           voxelCoordinates);
+                            CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(m_selectionIJK, 3, ","));
+                        }
+                    }
+                    
+                    if (selectionItemVoxelEditing->isEnabledForSelection()) {
+                        if (selectionItemVoxelEditing->getVolumeFileForEditing() == m_volumeFile) {
+                            if (selectionItemVoxelEditing->isOtherScreenDepthCloserToViewer(selectedDepth)) {
+                                selectionItemVoxelEditing->setVoxelIdentification(brain,
+                                                                                  m_volumeInterface,
+                                                                                  m_selectionIJK,
+                                                                                  selectedDepth);
+                                float floatDiffXYZ[3] = {
+                                    m_leftToRightStepXYZ[0] + m_bottomToTopStepXYZ[0],
+                                    m_leftToRightStepXYZ[1] + m_bottomToTopStepXYZ[1],
+                                    m_leftToRightStepXYZ[2] + m_bottomToTopStepXYZ[2]
+                                };
+                                selectionItemVoxelEditing->setVoxelDiffXYZ(floatDiffXYZ);
+                                
+                                float voxelCoordinates[3];
+                                m_volumeInterface->indexToSpace(m_selectionIJK[0], m_selectionIJK[1], m_selectionIJK[2],
+                                                                voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                                
+                                fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemVoxelEditing,
+                                                                               voxelCoordinates);
+                                CaretLogFinest("Selected Voxel Editing (3D): Indices ("
+                                               + AString::fromNumbers(m_selectionIJK, 3, ",")
+                                               + ") Diff XYZ ("
+                                               + AString::fromNumbers(floatDiffXYZ, 3, ",")
+                                               + ")");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            GraphicsEngineDataOpenGL::draw(primitive.get());
+        }
+    }
+}
+
+/**
+ * @return True if the output slice indices are valid, else false.
+ *
+ * @param ijkOut
+ *     Output slice indices.
+ */
+bool
+BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::getSelectionIJK(int32_t ijkOut[3]) const
+{
+    ijkOut[0] = m_selectionIJK[0];
+    ijkOut[1] = m_selectionIJK[1];
+    ijkOut[2] = m_selectionIJK[2];
+    return (m_selectionIJK[0] >= 0);
+}
+
+/**
+ * @return True if the given slice spatially matches (voxel row/columns and coordinates).
+ *
+ * @param slice
+ *     Slice for comparison.
+ */
+bool
+BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::spatialMatch(const ObliqueSlice* slice)
+{
+    CaretAssert(slice);
+    
+    const float diffMax = 0.001f;
+    if ((m_numberOfRows == slice->m_numberOfRows)
+        && (m_numberOfColumns == slice->m_numberOfColumns)
+        && (MathFunctions::distanceSquared3D(m_originXYZ, slice->m_originXYZ) < diffMax)
+        && (MathFunctions::distanceSquared3D(m_leftToRightStepXYZ, slice->m_leftToRightStepXYZ) < diffMax)
+        && (MathFunctions::distanceSquared3D(m_bottomToTopStepXYZ, slice->m_bottomToTopStepXYZ) < diffMax)) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Composite the given slices onto this slice
+ *
+ * @param slices
+ *     Slices that are composited.
+ * @return
+ *     True if able to composite all slices, else false.
+ */
+bool
+BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::compositeSlicesRGBA(const std::vector<ObliqueSlice*>& slices)
+{
+    std::vector<ObliqueSlice*> matchedSlices;
+    for (auto s : slices) {
+        if (s != this) {
+            if (spatialMatch(s)) {
+                if (m_rgba.size() == s->m_rgba.size()) {
+                    matchedSlices.push_back(s);
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+    }
+    
+    if (matchedSlices.empty()) {
+        return false;
+    }
+    
+    const int32_t numSlices = static_cast<int32_t>(matchedSlices.size());
+    const int32_t rgbaLength = static_cast<int32_t>(m_rgba.size() / 4);
+    
+    for (int32_t i = 0; i < rgbaLength; i++) {
+        const int32_t i4 = i * 4;
+        for (int32_t iSlice = 0; iSlice < numSlices; iSlice++) {
+            CaretAssertVectorIndex(matchedSlices, iSlice);
+            const uint8_t* rgbaTop = &matchedSlices[iSlice]->m_rgba[i4];
+            uint8_t alphaTop = rgbaTop[3];
+            if (matchedSlices[iSlice]->m_opacity < 1.0f) {
+                float sliceAlphaFloat = ((static_cast<float>(alphaTop) / 255.0f) * matchedSlices[iSlice]->m_opacity);
+                if (sliceAlphaFloat >= 1.0f) {
+                    alphaTop = 255;
+                }
+                else if (sliceAlphaFloat <= 0.0f) {
+                    alphaTop = 0;
+                }
+                else {
+                    alphaTop = static_cast<uint8_t>(sliceAlphaFloat * 255);
+                }
+            }
+            if (alphaTop > 0) {
+                uint8_t* rgbaBottom = &m_rgba[i4];
+                if ((alphaTop == 255) ||
+                    (rgbaBottom[3] == 0)) {
+                    rgbaBottom[0] = rgbaTop[0];
+                    rgbaBottom[1] = rgbaTop[1];
+                    rgbaBottom[2] = rgbaTop[2];
+                    rgbaBottom[3] = 255;
+                }
+                else if (alphaTop > 0) {
+                    const float alpha = static_cast<float>(alphaTop) / 255.0f;
+                    const float oneMinusAlpha = 1.0f - alpha;
+                    for (int32_t m = 0; m < 3; m++) {
+                        const int32_t top    = static_cast<int32_t>(static_cast<float>(rgbaTop[m]) * alpha);
+                        const int32_t bottom = static_cast<int32_t>(static_cast<float>(rgbaBottom[m]) * oneMinusAlpha);
+                        int32_t blended = (top + bottom);
+                        if (blended > 255)    blended = 255;
+                        else if (blended < 0) blended = 0;
+                        
+                        rgbaBottom[m] = static_cast<uint8_t>(blended);
+                    }
+                    rgbaBottom[3] = 255;
+                }
+            }
+        }
+    }
+    
+    return true;
+}
+
 
 
 
