@@ -71,6 +71,7 @@ namespace caret {
         virtual bool getShapeBounds(const float viewportWidth,
                                     const float viewportHeight,
                                     const float viewportXYZ[3],
+                                    const float annotationOverrideWidthPixels,
                                     float bottomLeftOut[3],
                                     float bottomRightOut[3],
                                     float topRightOut[3],

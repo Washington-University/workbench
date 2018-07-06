@@ -195,6 +195,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawChartOverlaySet(Brain* brain,
                 float viewportXYZ[3] = { 5.0, 5.0, 0.0 };
                 const bool boundsValid = cb->getShapeBounds(m_viewport[2], m_viewport[3],
                                                             viewportXYZ,
+                                                            -1.0,
                                                             bottomLeft, bottomRight, topRight, topLeft);
                 if (boundsValid) {
                     heightOfAllColorBars += (topRight[1] - bottomRight[1]);

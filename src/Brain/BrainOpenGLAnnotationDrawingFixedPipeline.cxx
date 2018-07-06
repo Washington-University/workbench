@@ -354,6 +354,69 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertModelToWindowCoordinate(const 
 }
 
 /**
+ * Estimate the width of the text in an annotation color bar with automatic mode
+ *
+ * @param windowXYZ
+ *     Window coordinates of the annotation.
+ * @param viewportWidth
+ *     Viewport width.
+ * @param viewportHeight
+ *     Viewport height.
+ * @param colorBar
+ *     The colorbar.
+ * @return
+ *     Estimated width or negative if not valid.
+ */
+float
+BrainOpenGLAnnotationDrawingFixedPipeline::estimateColorBarTextWidth(const float windowXYZ[3],
+                                                                     const float viewportWidth,
+                                                                     const float viewportHeight,
+                                                                     const AnnotationColorBar* colorBar) const
+{
+    float widthOut = -1.0;
+    CaretAssert(colorBar);
+    switch (colorBar->getPositionMode()) {
+        case AnnotationColorBarPositionModeEnum::AUTOMATIC:
+        {
+            AString allText;
+            const int32_t numText = colorBar->getNumberOfNumericText();
+            for (int32_t i = 0; i < numText; i++) {
+                const AnnotationColorBarNumericText* numericText = colorBar->getNumericText(i);
+                allText.append(numericText->getNumericText());
+                allText.append(" ");
+            }
+            
+            float textHeightPercent      = colorBar->getFontPercentViewportSize();
+            const float textHeightPixels = (viewportHeight
+                                            * (textHeightPercent / 100.0f));
+            const float textPercentageHeight = (textHeightPixels / viewportHeight) * 100.0;
+            
+            AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+            annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+            annText.setFont(colorBar->getFont());
+            annText.setFontPercentViewportSize(textPercentageHeight);
+            annText.setText(allText);
+            
+            float textBottomLeft[3];
+            float textBottomRight[3];
+            float textTopRight[3];
+            float textTopLeft[3];
+            m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(annText,
+                                                                                            windowXYZ[0], windowXYZ[1], windowXYZ[2],
+                                                                                            viewportWidth, viewportHeight,
+                                                                                            textBottomLeft, textBottomRight, textTopRight, textTopLeft);
+            widthOut = MathFunctions::distance3D(textBottomLeft, textBottomRight);
+            
+        }
+            break;
+        case AnnotationColorBarPositionModeEnum::MANUAL:
+            break;
+    }
+    
+    return widthOut;
+}
+
+/**
  * Get the bounds for a two-dimensional shape annotation.
  *
  * @param annotation
@@ -401,9 +464,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
         boundsValid = true;
     }
     else {
+        float colorBarWidth = -1.0;
+        if (annotation2D->getType() == AnnotationTypeEnum::COLOR_BAR) {
+            /*
+             * In automatic mode, the colorbar is a fixed width that is a percentage of the viewport widget.
+             * When the numerical text values are long, they may overlap so estimate the width of all
+             * numerical text that will be used to extend the width, when needed, of the colorbar.
+             */
+            const AnnotationColorBar* colorBar = dynamic_cast<const AnnotationColorBar*>(annotation2D);
+            colorBarWidth = estimateColorBarTextWidth(windowXYZ,
+                                                          viewportWidth,
+                                                          viewportHeight,
+                                                          colorBar);
+        }
         boundsValid = annotation2D->getShapeBounds(viewportWidth,
                                                    viewportHeight,
                                                    windowXYZ,
+                                                   colorBarWidth,
                                                    bottomLeftOut,
                                                    bottomRightOut,
                                                    topRightOut,

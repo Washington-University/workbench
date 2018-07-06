@@ -167,6 +167,11 @@ namespace caret {
                                                  const Surface* surfaceDisplayed,
                                                  float xyzOut[3]) const;
         
+        float estimateColorBarTextWidth(const float windowXYZ[3],
+                                        const float viewportWidth,
+                                        const float viewportHeight,
+                                        const AnnotationColorBar* colorBar) const;
+        
         bool getAnnotationTwoDimShapeBounds(const AnnotationTwoDimensionalShape* annotation2D,
                                  const float windowXYZ[3],
                                  float bottomLeftOut[3],
