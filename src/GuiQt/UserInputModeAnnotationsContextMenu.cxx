@@ -540,7 +540,7 @@ UserInputModeAnnotationsContextMenu::createDuplicateTabSpaceAnnotationMenu()
     if (menuValidFlag) {
         for (BrowserTabContent* tabContent : allTabs) {
             if (tabContent->getTabNumber() != m_annotation->getTabIndex()) {
-                QAction* action = menu->addAction(tabContent->getName());
+                QAction* action = menu->addAction(tabContent->getTabName());
                 action->setData((int)tabContent->getTabNumber());
             }
         }

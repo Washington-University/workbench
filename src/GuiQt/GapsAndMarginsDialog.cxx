@@ -404,7 +404,7 @@ GapsAndMarginsDialog::updateMarginSpinBoxes(const int32_t windowIndex)
             
             CaretAssertVectorIndex(m_tabNumberLabels, iTab);
 //            m_tabNumberLabels[iTab]->setText("Tab " + QString::number(tabIndex + 1));
-            m_tabNumberLabels[iTab]->setText(browserTab->getName());
+            m_tabNumberLabels[iTab]->setText(browserTab->getTabName());
             
             CaretAssertVectorIndex(m_leftMarginSpinBoxes, iTab);
             m_leftMarginSpinBoxes[iTab]->blockSignals(true);

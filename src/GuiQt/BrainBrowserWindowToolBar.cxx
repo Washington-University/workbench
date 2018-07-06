@@ -1346,7 +1346,7 @@ BrainBrowserWindowToolBar::renameTab()
     if (tabIndex >= 0) {
         void* p = this->tabBar->tabData(tabIndex).value<void*>();
         BrowserTabContent* btc = (BrowserTabContent*)p;
-        AString currentName = btc->getUserName();
+        AString currentName = btc->getUserTabName();
         bool ok = false;
         AString newName = QInputDialog::getText(this,
                                                 "Set Tab Name",
@@ -1355,7 +1355,7 @@ BrainBrowserWindowToolBar::renameTab()
                                                 currentName,
                                                 &ok);
         if (ok) {
-            btc->setUserName(newName);
+            btc->setUserTabName(newName);
             this->updateTabName(tabIndex);
         }
     }
@@ -1392,7 +1392,7 @@ BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
     AString newName = "";
     BrowserTabContent* btc = (BrowserTabContent*)p;   
     if (btc != NULL) {
-        newName = btc->getName();
+        newName = btc->getTabName();
     }
     this->tabBar->setTabText(tabIndexForUpdate, newName);
 }

@@ -992,7 +992,7 @@ BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectMenu(const QPoint& po
             
             aspectRatio = getAspectRatioFromDialog(AspectRatioMode::TAB,
                                                    ("Tab "
-                                                    + tabContent->getName()
+                                                    + tabContent->getTabName()
                                                     + " Aspect Ratio"),
                                                    aspectRatio,
                                                    this);

@@ -994,7 +994,7 @@ void
 BrainOpenGLViewportContent::TileTabsViewportSizingInfo::print(const int32_t x,
                                                               const int32_t y)
 {
-    const QString msg("Model: " + m_browserTabContent->getName()
+    const QString msg("Model: " + m_browserTabContent->getTabName()
                       + "\n   row/col: " + QString::number(m_rowIndexFromTop) + ", " + QString::number(m_columnIndex)
                       + "\n   x/y: " + QString::number(x) + ", " + QString::number(y)
                       + "\n   width/height: " + QString::number(m_width) + ", " + QString::number(m_height));

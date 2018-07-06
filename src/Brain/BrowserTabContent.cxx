@@ -389,10 +389,13 @@ BrowserTabContent::getDefaultName() const
  * @return  Name of this tab.
  */
 AString 
-BrowserTabContent::getName() const
+BrowserTabContent::getTabName() const
 {
     if ( ! m_userName.isEmpty()) {
-        return m_userName;
+        const AString nameOut = ("(" + AString::number(m_tabNumber + 1) + ") "
+                                 + m_userName);
+
+        return nameOut;
     }
     
     return getDefaultName();
@@ -406,7 +409,7 @@ BrowserTabContent::getName() const
  *    User name for tab.
  */
 void 
-BrowserTabContent::setUserName(const AString& userName)
+BrowserTabContent::setUserTabName(const AString& userName)
 {
     m_userName = userName;
 }
@@ -415,11 +418,11 @@ BrowserTabContent::setUserName(const AString& userName)
  * @return The user name.
  */
 AString 
-BrowserTabContent::getUserName() const
+BrowserTabContent::getUserTabName() const
 {
-    if (m_userName.isEmpty()) {
-        return getDefaultName();
-    }
+//    if (m_userName.isEmpty()) {
+//        return getDefaultName();
+//    }
     
     return m_userName;
 }

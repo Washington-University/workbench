@@ -85,13 +85,11 @@ namespace caret {
         
         virtual AString toString() const;
         
-        AString getName() const;
+        AString getTabName() const;
         
-        //void setGuiName(const AString& name);
+        AString getUserTabName() const;
         
-        AString getUserName() const;
-        
-        void setUserName(const AString& userName);
+        void setUserTabName(const AString& userName);
         
         OverlaySet* getOverlaySet();
         
