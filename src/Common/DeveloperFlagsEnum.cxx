@@ -117,10 +117,6 @@ DeveloperFlagsEnum::initialize()
                                           "DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA",
                                           "Flip Palette Not Data",
                                           false));
-    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_OBLIQUE_SLICE_OUTLINE,
-                                          "DEVELOPER_FLAG_OBLIQUE_SLICE_OUTLINE",
-                                          "Enable Oblique Slice Outline Testing",
-                                          true));
 }
 
 /**

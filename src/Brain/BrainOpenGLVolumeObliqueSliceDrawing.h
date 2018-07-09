@@ -61,105 +61,7 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-    private:
-        /**
-         * Holds values in the slice for a volume so that they
-         * can be colored all at once which is more efficient than
-         * colors singles voxels many times
-         */
-        class VolumeSlice{
-        public:
-            /**
-             * Constructor
-             *
-             * @param volumeMappableInterface
-             *   Volume that contains the data values.
-             */
-            VolumeSlice(VolumeMappableInterface* volumeMappableInterface,
-                        const int32_t mapIndex,
-                        const float opacity);
-            
-            /**
-             * Add a value and return its index.
-             *
-             * @param value
-             *     Value that is added.
-             * @return
-             *     The index for the value.
-             */
-            int64_t addValue(const float value);
-
-            /**
-             * Add values for RGBA and returns its index.
-             *
-             * @param value
-             *     Value that is added.
-             * @return
-             *     The index for the value.
-             */
-            int64_t addValuesRGBA(const float values[4]);
-            
-            /**
-             * Return RGBA colors for value using the value's index
-             * returned by addValue().
-             *
-             * @param indx
-             *    Index of the value.
-             * @return
-             *    RGBA coloring for value.
-             */
-            uint8_t* getRgbaForValueByIndex(const int64_t indx);
-            
-            /**
-             * Allocate colors for the voxel values
-             */
-            void allocateColors();
-            
-            /**
-             * Volume containing the values
-             */
-            VolumeMappableInterface* m_volumeMappableInterface;
-            
-            /**
-             * If not NULL, it is a VolumeFile
-             */
-            VolumeFile* m_volumeFile;
-            
-            /**
-             * If not NULL, it is a Cifti Mappable Data File
-             */
-            CiftiMappableDataFile* m_ciftiMappableDataFile;
-            
-            /**
-             * Map index
-             */
-            int32_t m_mapIndex;
-            
-            /**
-             * Opacity
-             */
-            float m_opacity;
-            
-            /**
-             * The voxel values for single scalar or red if RGBA volume
-             */
-            std::vector<float> m_values;
-            
-            /** Voxel values for green in RGBA */
-            std::vector<float> m_valuesGreen;
-            
-            /** Voxel values for blue in RGBA */
-            std::vector<float> m_valuesBlue;
-            
-            /** Voxel values for alpha in RGBA */
-            std::vector<float> m_valuesAlpha;
-            
-            /**
-             * Coloring corresponding to the values (4 components per voxel)
-             */
-            std::vector<uint8_t> m_rgba;
-        };
-        
+    private:        
         class ObliqueSlice {
         public:
             enum class DataValueType {
@@ -171,17 +73,6 @@ namespace caret {
                 VOLUME_RGB,
                 VOLUME_RGBA
             };
-            
-//            class RowInfo {
-//            public:
-//                RowInfo(const int32_t firstValidIndex,
-//                        const int32_t lastValidIndex,
-//                        const int32_t numValidVoxels);
-//                
-//                const int32_t m_firstValidIndex;
-//                const int32_t m_lastValidIndex;
-//                const int32_t m_numValidVoxels;
-//            };
             
             ObliqueSlice(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                          VolumeMappableInterface* volumeInterface,
@@ -281,45 +172,6 @@ namespace caret {
             std::unique_ptr<IdentificationWithColor> m_identificationHelper;
             
             int64_t m_selectionIJK[3];
-            
-//            std::vector<RowInfo> m_rowInfo;
-        };
-        
-        /**
-         * For each voxel, contains offsets to each layer
-         */
-        class VoxelToDraw {
-        public:
-            VoxelToDraw(const float center[3],
-                        const double leftBottom[3],
-                        const double rightBottom[3],
-                        const double rightTop[3],
-                        const double leftTop[3]);
-            
-            void getDiffXYZ(float dxyzOut[3]) const;
-            
-            void addVolumeValue(const int64_t sliceIndex,
-                                const int64_t sliceOffset);
-            
-            /**
-             * Center of voxel.
-             */
-            float m_center[3];
-            
-            /**
-             * Corners of voxel
-             */
-            float m_coordinates[12];
-            
-            /*
-             * Index of volume in VoxelsInSliceForVolume
-             */
-            std::vector<int64_t> m_sliceIndices;
-            
-            /**
-             * Offset in values in VoxelsInSliceForVolume
-             */
-            std::vector<int64_t> m_sliceOffsets;
         };
         
         BrainOpenGLVolumeObliqueSliceDrawing(const BrainOpenGLVolumeObliqueSliceDrawing&);
@@ -382,8 +234,6 @@ namespace caret {
                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                         const Plane& slicePlane,
                         const float sliceCoordinates[3]);
-        
-//        void drawSurfaceOutline(const Plane& plane);
         
         void drawVolumeSliceFoci(const Plane& plane);
         
