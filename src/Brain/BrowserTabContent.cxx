@@ -371,7 +371,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
 AString
 BrowserTabContent::getDefaultName() const
 {
-    AString s = "(" + AString::number(m_tabNumber + 1) + ") ";
+    AString s = getTabNamePrefix();
     
     const Model* displayedModel =
     getModelForDisplay();
@@ -384,6 +384,18 @@ BrowserTabContent::getDefaultName() const
 }
 
 /**
+ * @return Prefix for the tab name that consists of the 
+ * tab number inside parenthesis.
+ */
+AString
+BrowserTabContent::getTabNamePrefix() const
+{
+    const AString namePrefix = ("(" + AString::number(m_tabNumber + 1) + ") ");
+    return namePrefix;
+}
+
+
+/**
  * Get the name of this browser tab.
  *
  * @return  Name of this tab.
@@ -391,14 +403,13 @@ BrowserTabContent::getDefaultName() const
 AString 
 BrowserTabContent::getTabName() const
 {
-    if ( ! m_userName.isEmpty()) {
-        const AString nameOut = ("(" + AString::number(m_tabNumber + 1) + ") "
-                                 + m_userName);
-
-        return nameOut;
+    if (m_userName.isEmpty()) {
+        return getDefaultName();
     }
-    
-    return getDefaultName();
+
+    const AString nameOut = (getTabNamePrefix()
+                             + m_userName);
+    return nameOut;
 }
 
 /**
@@ -411,7 +422,7 @@ BrowserTabContent::getTabName() const
 void 
 BrowserTabContent::setUserTabName(const AString& userName)
 {
-    m_userName = userName;
+    m_userName = userName.trimmed();
 }
 
 /**
@@ -420,10 +431,6 @@ BrowserTabContent::setUserTabName(const AString& userName)
 AString 
 BrowserTabContent::getUserTabName() const
 {
-//    if (m_userName.isEmpty()) {
-//        return getDefaultName();
-//    }
-    
     return m_userName;
 }
 

@@ -469,6 +469,8 @@ namespace caret {
         
         AString getDefaultName() const;
         
+        AString getTabNamePrefix() const;
+        
         /** Number of this tab */
         int32_t m_tabNumber;
         
