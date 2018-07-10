@@ -780,8 +780,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                     /*
                      * Note: Positions are in percentages ranging [0.0, 100.0]
                      */
+                    const float yStart = 4.0;
                     float x = 14.0;
-                    float y = 4.0;
+                    float y = yStart;
+                    int32_t lastTabIndex = -1;
                     bool firstColorBarFlag = true;
                     if ( ! colorBars.empty()) {
                         for (std::vector<AnnotationColorBar*>::iterator cbIter = colorBars.begin();
@@ -805,9 +807,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                                             if (halfHeight > y) {
                                                 y = halfHeight;
                                             }
+                                            
+                                            if (drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
+                                                lastTabIndex = cb->getTabIndex();
+                                            }
                                         }
                                         else {
                                             y += halfHeight;
+                                            
+                                            if (drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
+                                                if (cb->getTabIndex() != lastTabIndex) {
+                                                    /*
+                                                     * First color bar in tab is at bottom of tab
+                                                     */
+                                                    y = yStart;
+                                                }
+                                                lastTabIndex = cb->getTabIndex();
+                                            }
                                         }
                                         
                                         float xyz[3];
