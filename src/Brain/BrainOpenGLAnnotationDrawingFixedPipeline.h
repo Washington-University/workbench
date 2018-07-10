@@ -152,6 +152,14 @@ namespace caret {
             bool m_valid = false;
         };
         
+        /**
+         * Mode for drawing or estimating width of color bar
+         */
+        enum class ColorBarTextMode {
+            DRAW,
+            ESTIMATE_WIDTH
+        };
+        
         BrainOpenGLAnnotationDrawingFixedPipeline(const BrainOpenGLAnnotationDrawingFixedPipeline&);
 
         BrainOpenGLAnnotationDrawingFixedPipeline& operator=(const BrainOpenGLAnnotationDrawingFixedPipeline&);
@@ -166,11 +174,6 @@ namespace caret {
                                                  const AnnotationCoordinate* coordinate,
                                                  const Surface* surfaceDisplayed,
                                                  float xyzOut[3]) const;
-        
-        float estimateColorBarTextWidth(const float windowXYZ[3],
-                                        const float viewportWidth,
-                                        const float viewportHeight,
-                                        const AnnotationColorBar* colorBar) const;
         
         bool getAnnotationTwoDimShapeBounds(const AnnotationTwoDimensionalShape* annotation2D,
                                  const float windowXYZ[3],
@@ -220,13 +223,14 @@ namespace caret {
                                   const float topLeft[3],
                                   const float sectionsHeightInPixels);
         
-        void drawColorBarText(const AnnotationColorBar* colorBar,
-                              const float bottomLeft[3],
-                              const float bottomRight[3],
-                              const float topRight[3],
-                              const float topLeft[3],
-                              const float textHeightInPixels,
-                              const float offsetFromTopInPixels);
+        float drawColorBarText(const ColorBarTextMode colorBarTextMode,
+                               const AnnotationColorBar* colorBar,
+                               const float bottomLeft[3],
+                               const float bottomRight[3],
+                               const float topRight[3],
+                               const float topLeft[3],
+                               const float textHeightInPixels,
+                               const float offsetFromTopInPixels);
 
         void drawColorBarTickMarks(const AnnotationColorBar* colorBar,
                                    const float bottomLeft[3],

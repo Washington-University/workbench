@@ -912,7 +912,6 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
     const bool validBounds = getShapeBounds(spatialModification.m_viewportWidth,
                                             spatialModification.m_viewportHeight,
                                             viewportXYZ,
-                                            -1.0,
                                             bottomLeftXYZ,
                                             bottomRightXYZ,
                                             topRightXYZ,
@@ -1452,8 +1451,6 @@ AnnotationTwoDimensionalShape::addToXYZWithXY(float xyz[3],
  *     Height of the viewport.
  * @param viewportXYZ
  *     Viewport coordinates of the annotation.
- * @param annotationOverrideWidthPixels
- *     Used if greater than width from bounds
  * @param bottomLeftOut
  *     The bottom left corner of the annotation absolute bounds.
  * @param bottomRightOut
@@ -1467,7 +1464,6 @@ bool
 AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
                                               const float viewportHeight,
                                               const float viewportXYZ[3],
-                                              const float annotationOverrideWidthPixels,
                                               float bottomLeftOut[3],
                                               float bottomRightOut[3],
                                               float topRightOut[3],
@@ -1482,11 +1478,6 @@ AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
     const float halfHeight = (getHeight() / 200.0) * viewportHeight;
     if (isFixedAspectRatio()) {
         halfWidth = halfHeight / getFixedAspectRatio();
-    }
-    
-    const float halfOverrideWidth = annotationOverrideWidthPixels / 2.0;
-    if (halfOverrideWidth > halfWidth) {
-        halfWidth = halfOverrideWidth;
     }
     
     bottomLeftOut[0]  = viewportXYZ[0] - halfWidth;

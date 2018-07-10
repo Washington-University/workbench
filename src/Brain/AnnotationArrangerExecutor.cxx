@@ -713,7 +713,6 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
                 boundsValidFlag = twoDimAnn->getShapeBounds(annViewport[2],
                                                             annViewport[3],
                                                             viewportPixelOneXYZ,
-                                                            -1.0,
                                                             bottomLeft,
                                                             bottomRight,
                                                             topRight,
