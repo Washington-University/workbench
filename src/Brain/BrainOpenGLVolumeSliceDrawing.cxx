@@ -257,7 +257,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawing
              * Draw parasagittal slice
              */
             glPushMatrix();
-            drawVolumeSliceViewType(sliceDrawingType,
+            drawVolumeSliceViewType(AllSliceViewMode::ALL_YES,
+                                    sliceDrawingType,
                                     sliceProjectionType,
                                     VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                     paraVP);
@@ -268,7 +269,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawing
              * Draw coronal slice
              */
             glPushMatrix();
-            drawVolumeSliceViewType(sliceDrawingType,
+            drawVolumeSliceViewType(AllSliceViewMode::ALL_YES,
+                                    sliceDrawingType,
                                     sliceProjectionType,
                                     VolumeSliceViewPlaneEnum::CORONAL,
                                     coronalVP);
@@ -279,7 +281,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawing
              * Draw axial slice
              */
             glPushMatrix();
-            drawVolumeSliceViewType(sliceDrawingType,
+            drawVolumeSliceViewType(AllSliceViewMode::ALL_YES,
+                                    sliceDrawingType,
                                     sliceProjectionType,
                                     VolumeSliceViewPlaneEnum::AXIAL,
                                     axialVP);
@@ -308,10 +311,11 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawing
         case VolumeSliceViewPlaneEnum::AXIAL:
         case VolumeSliceViewPlaneEnum::CORONAL:
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            drawVolumeSliceViewType(sliceDrawingType,
-                          sliceProjectionType,
-                          sliceViewPlane,
-                          viewport);
+            drawVolumeSliceViewType(AllSliceViewMode::ALL_NO,
+                                    sliceDrawingType,
+                                    sliceProjectionType,
+                                    sliceViewPlane,
+                                    viewport);
             break;
     }
 }
@@ -370,7 +374,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSlicesForAllStructuresView(const Volume
     
     if (m_browserTabContent->isSliceAxialEnabled()) {
         glPushMatrix();
-        drawVolumeSliceViewProjection(VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
+        drawVolumeSliceViewProjection(AllSliceViewMode::ALL_NO,
+                                      VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
                                       sliceProjectionType,
                                       VolumeSliceViewPlaneEnum::AXIAL,
                                       sliceCoordinates,
@@ -380,7 +385,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSlicesForAllStructuresView(const Volume
     
     if (m_browserTabContent->isSliceCoronalEnabled()) {
         glPushMatrix();
-        drawVolumeSliceViewProjection(VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
+        drawVolumeSliceViewProjection(AllSliceViewMode::ALL_NO,
+                                      VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
                                       sliceProjectionType,
                                       VolumeSliceViewPlaneEnum::CORONAL,
                                       sliceCoordinates,
@@ -390,7 +396,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSlicesForAllStructuresView(const Volume
     
     if (m_browserTabContent->isSliceParasagittalEnabled()) {
         glPushMatrix();
-        drawVolumeSliceViewProjection(VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
+        drawVolumeSliceViewProjection(AllSliceViewMode::ALL_NO,
+                                      VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE,
                                       sliceProjectionType,
                                       VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                       sliceCoordinates,
@@ -402,6 +409,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSlicesForAllStructuresView(const Volume
 /**
  * Draw single or montage volume view slices.
  *
+ * @param allSliceViewMode
+ *    Indicates drawing of ALL slices volume view (axial, coronal, parasagittal in one view)
  * @param sliceDrawingType
  *    Type of slice drawing (montage, single)
  * @param sliceProjectionType
@@ -412,17 +421,19 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSlicesForAllStructuresView(const Volume
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewType(const AllSliceViewMode allSliceViewMode,
+                                                       const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                            const int32_t viewport[4])
 {
     switch (sliceDrawingType) {
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
-            drawVolumeSliceViewTypeMontage(sliceDrawingType,
+            drawVolumeSliceViewTypeMontage(allSliceViewMode,
+                                           sliceDrawingType,
                                            sliceProjectionType,
-                                 sliceViewPlane,
-                                 viewport);
+                                           sliceViewPlane,
+                                           viewport);
             break;
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
         {
@@ -431,11 +442,12 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewType(const VolumeSliceDrawingT
                 m_browserTabContent->getSliceCoordinateCoronal(),
                 m_browserTabContent->getSliceCoordinateAxial()
             };
-            drawVolumeSliceViewProjection(sliceDrawingType,
+            drawVolumeSliceViewProjection(allSliceViewMode,
+                                          sliceDrawingType,
                                           sliceProjectionType,
-                                sliceViewPlane,
-                                sliceCoordinates,
-                                viewport);
+                                          sliceViewPlane,
+                                          sliceCoordinates,
+                                          viewport);
         }
             break;
     }
@@ -445,6 +457,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewType(const VolumeSliceDrawingT
 /**
  * Draw montage slices.
  *
+ * @param allSliceViewMode
+ *    Indicates drawing of ALL slices volume view (axial, coronal, parasagittal in one view)
  * @param sliceDrawingType
  *    Type of slice drawing (montage, single)
  * @param sliceProjectionType
@@ -455,10 +469,11 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewType(const VolumeSliceDrawingT
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
-                                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                  const int32_t viewport[4])
+BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const AllSliceViewMode allSliceViewMode,
+                                                              const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                                              const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                              const int32_t viewport[4])
 {
     const int32_t numRows = m_browserTabContent->getMontageNumberOfRows();
     CaretAssert(numRows > 0);
@@ -613,7 +628,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
                             break;
                     }
                     
-                    drawVolumeSliceViewProjection(sliceDrawingType,
+                    drawVolumeSliceViewProjection(allSliceViewMode,
+                                                  sliceDrawingType,
                                                   sliceProjectionType,
                                                   sliceViewPlane,
                                                   sliceCoordinates,
@@ -661,6 +677,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
 /**
  * Draw a slice for either projection mode (oblique, orthogonal)
  *
+ * @param allSliceViewMode
+ *    Indicates drawing of ALL slices volume view (axial, coronal, parasagittal in one view)
  * @param sliceDrawingType
  *    Type of slice drawing (montage, single)
  * @param sliceProjectionType
@@ -673,11 +691,12 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceD
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
-                                                           const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                           const float sliceCoordinates[3],
-                                                           const int32_t viewport[4])
+BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewMode allSliceViewMode,
+                                                             const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                                             const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                             const float sliceCoordinates[3],
+                                                             const int32_t viewport[4])
 {
     bool twoDimSliceViewFlag = false;
     if (m_modelVolume != NULL) {
@@ -702,7 +721,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDr
         /*
          * Set the orthographic projection to fit the slice axis
          */
-        setOrthographicProjection(sliceViewPlane,
+        setOrthographicProjection(allSliceViewMode,
+                                  sliceViewPlane,
                                   viewport);
     }
     
@@ -3527,22 +3547,25 @@ BrainOpenGLVolumeSliceDrawing::getMinMaxVoxelSpacing(const VolumeMappableInterfa
 /**
  * Set the orthographic projection.
  *
+ * @param allSliceViewMode
+ *    Indicates drawing of ALL slices volume view (axial, coronal, parasagittal in one view)
  * @param sliceViewPlane
  *    View plane that is displayed.
+ * @param boundingBox
+ *    Bounding box for all volume.
  * @param viewport
  *    The viewport.
+ * @param orthographicBoundsOut
+ *    Output containing the orthographic bounds used for orthographic projection.
  */
 void
-BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                         const int viewport[4])
+BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const AllSliceViewMode allSliceViewMode,
+                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                         const BoundingBox& boundingBox,
+                                                         const float zoomFactor,
+                                                         const int viewport[4],
+                                                         double orthographicBoundsOut[6])
 {
-    
-    /*
-     * Determine model size in screen Y when viewed
-     */
-    BoundingBox boundingBox;
-    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
-    
     /*
      * Set top and bottom to the min/max coordinate
      * that runs vertically on the screen
@@ -3567,10 +3590,35 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
             break;
     }
     
+    
+    /*
+     * WB-677 The zoom of axial, coronal, and sagittal views is not the same
+     */
+    switch (allSliceViewMode) {
+        case AllSliceViewMode::ALL_YES:
+        {
+            /*
+             * Parasagittal and Coronal Views have Brain's Z-axis in Screen Y
+             * Axial View has Brain's Y-axis in Screen Y
+             * So, use maximum of Brain's Y- and Z-axes for sizing height of slice
+             * so that voxels are same size for each slice in each axis view
+             */
+            const float maxRangeYZ = std::max(boundingBox.getDifferenceY(),
+                                              boundingBox.getDifferenceZ());
+            const double halfHeight = maxRangeYZ / 2.0;
+            const double middle     = (modelBottom + modelTop) / 2.0;
+            modelTop    = middle + halfHeight;
+            modelBottom = middle - halfHeight;
+        }
+            break;
+        case AllSliceViewMode::ALL_NO:
+            break;
+    }
+    
     /*
      * Scale ratio makes region slightly larger than model
      */
-    const double zoom =  1.0;
+    const double zoom = zoomFactor; 
     double scaleRatio = (1.0 / 0.98);
     if (zoom > 0.0) {
         scaleRatio /= zoom;
@@ -3596,22 +3644,52 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
     const double orthoRight  =  halfModelY * aspectRatio;
     const double nearDepth = -1000.0;
     const double farDepth  =  1000.0;
-    m_orthographicBounds[0] = orthoLeft;
-    m_orthographicBounds[1] = orthoRight;
-    m_orthographicBounds[2] = orthoBottom;
-    m_orthographicBounds[3] = orthoTop;
-    m_orthographicBounds[4] = nearDepth;
-    m_orthographicBounds[5] = farDepth;
+    orthographicBoundsOut[0] = orthoLeft;
+    orthographicBoundsOut[1] = orthoRight;
+    orthographicBoundsOut[2] = orthoBottom;
+    orthographicBoundsOut[3] = orthoTop;
+    orthographicBoundsOut[4] = nearDepth;
+    orthographicBoundsOut[5] = farDepth;
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(m_orthographicBounds[0],
-            m_orthographicBounds[1],
-            m_orthographicBounds[2],
-            m_orthographicBounds[3],
-            m_orthographicBounds[4],
-            m_orthographicBounds[5]);
+    glOrtho(orthographicBoundsOut[0],
+            orthographicBoundsOut[1],
+            orthographicBoundsOut[2],
+            orthographicBoundsOut[3],
+            orthographicBoundsOut[4],
+            orthographicBoundsOut[5]);
     glMatrixMode(GL_MODELVIEW);
+}
+
+/**
+ * Set the orthographic projection.
+ *
+ * @param allSliceViewMode
+ *    Indicates drawing of ALL slices volume view (axial, coronal, parasagittal in one view)
+ * @param sliceViewPlane
+ *    View plane that is displayed.
+ * @param viewport
+ *    The viewport.
+ */
+void
+BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const AllSliceViewMode allSliceViewMode,
+                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                         const int viewport[4])
+{
+    /*
+     * Determine model size in screen Y when viewed
+     */
+    BoundingBox boundingBox;
+    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+    
+    const float zoomFactor = 1.0f;
+    setOrthographicProjection(allSliceViewMode,
+                              sliceViewPlane,
+                              boundingBox,
+                              zoomFactor,
+                              viewport,
+                              m_orthographicBounds);
 }
 
 /**

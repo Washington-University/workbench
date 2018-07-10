@@ -24,6 +24,7 @@
 #include <array>
 
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLVolumeSliceDrawing.h"
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
 #include "ModelTypeEnum.h"
@@ -187,17 +188,20 @@ namespace caret {
                                       const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
                                       const int32_t viewport[4]);
         
-        void drawVolumeSliceViewType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+        void drawVolumeSliceViewType(const BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode,
+                                     const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                            const int32_t viewport[4]);
         
-        void drawVolumeSliceViewTypeMontage(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+        void drawVolumeSliceViewTypeMontage(const BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode,
+                                            const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                             const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                   const int32_t viewport[4]);
         
-        void drawVolumeSliceViewProjection(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+        void drawVolumeSliceViewProjection(const BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode,
+                                           const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                  const float sliceCoordinates[3],
@@ -250,7 +254,8 @@ namespace caret {
         
         void drawOrientationAxes(const int viewport[4]);
         
-        void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void setOrthographicProjection(const BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode,
+                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);
         
         bool getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],

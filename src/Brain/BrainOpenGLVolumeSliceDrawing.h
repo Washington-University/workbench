@@ -32,7 +32,7 @@
 
 
 namespace caret {
-
+    
     class Brain;
     class BrowserTabContent;
     class CiftiMappableDataFile;
@@ -56,10 +56,19 @@ namespace caret {
                   const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                   const int32_t viewport[4]);
-
+        
         // ADD_NEW_METHODS_HERE
-
+        
     private:
+        /**
+         * Indicates drawing volume sclice "ALL that shows
+         * axial, coronal, and parasagittal at same time
+         */
+        enum class AllSliceViewMode {
+            ALL_YES,
+            ALL_NO
+        };
+        
         /**
          * Holds values in the slice for a volume so that they
          * can be colored all at once which is more efficient than
@@ -171,7 +180,7 @@ namespace caret {
         };
         
         BrainOpenGLVolumeSliceDrawing(const BrainOpenGLVolumeSliceDrawing&);
-
+        
         BrainOpenGLVolumeSliceDrawing& operator=(const BrainOpenGLVolumeSliceDrawing&);
         
         void drawVolumeSlicesForAllStructuresView(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
@@ -183,25 +192,28 @@ namespace caret {
                                       const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
                                       const int32_t viewport[4]);
         
-        void drawVolumeSliceViewType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
-                           const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                           const int32_t viewport[4]);
+        void drawVolumeSliceViewType(const AllSliceViewMode allSliceViewMode,
+                                     const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                     const int32_t viewport[4]);
         
-        void drawVolumeSliceViewTypeMontage(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+        void drawVolumeSliceViewTypeMontage(const AllSliceViewMode allSliceViewMode,
+                                            const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                             const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                  const int32_t viewport[4]);
+                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                            const int32_t viewport[4]);
         
-        void drawVolumeSliceViewProjection(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+        void drawVolumeSliceViewProjection(const AllSliceViewMode allSliceViewMode,
+                                           const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                 const float sliceCoordinates[3],
-                                 const int32_t viewport[4]);
+                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                           const float sliceCoordinates[3],
+                                           const int32_t viewport[4]);
         
         void drawOrthogonalSlice_LPI_ONLY(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                 const float sliceCoordinates[3],
-                                 const Plane& plane);
+                                          const float sliceCoordinates[3],
+                                          const Plane& plane);
         
         void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                  const float sliceCoordinates[3],
@@ -258,8 +270,16 @@ namespace caret {
         
         void drawSquare(const float size);
         
-        void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void setOrthographicProjection(const AllSliceViewMode allSliceViewMode,
+                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);
+        
+        static void setOrthographicProjection(const AllSliceViewMode allSliceViewMode,
+                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                              const BoundingBox& boundingBox,
+                                              const float zoomFactor,
+                                              const int viewport[4],
+                                              double orthographicBoundsOut[6]);
         
         void drawOrthogonalSliceVoxels(const float sliceNormalVector[3],
                                        const float coordinate[3],
@@ -275,16 +295,16 @@ namespace caret {
                                        const uint8_t sliceOpacity);
         
         void drawOrthogonalSliceVoxelsSingleQuads(const float sliceNormalVector[3],
-                                       const float coordinate[3],
-                                       const float rowStep[3],
-                                       const float columnStep[3],
-                                       const int64_t numberOfColumns,
-                                       const int64_t numberOfRows,
-                                       const std::vector<uint8_t>& sliceRGBA,
-                                       const VolumeMappableInterface* volumeInterface,
-                                       const int32_t volumeIndex,
-                                       const int32_t mapIndex,
-                                       const uint8_t sliceOpacity);
+                                                  const float coordinate[3],
+                                                  const float rowStep[3],
+                                                  const float columnStep[3],
+                                                  const int64_t numberOfColumns,
+                                                  const int64_t numberOfRows,
+                                                  const std::vector<uint8_t>& sliceRGBA,
+                                                  const VolumeMappableInterface* volumeInterface,
+                                                  const int32_t volumeIndex,
+                                                  const int32_t mapIndex,
+                                                  const uint8_t sliceOpacity);
         
         void drawOrthogonalSliceVoxelsQuadIndicesAndStrips(const float sliceNormalVector[3],
                                                            const float coordinate[3],
@@ -368,6 +388,6 @@ namespace caret {
 #ifdef __BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_DECLARE__
     const int32_t BrainOpenGLVolumeSliceDrawing::IDENTIFICATION_INDICES_PER_VOXEL = 8;
 #endif // __BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_DECLARE__
-
+    
 } // namespace
 #endif  //__BRAIN_OPEN_GL_VOLUME_SLICE_DRAWING_H__
