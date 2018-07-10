@@ -1073,10 +1073,10 @@ NodeAndVoxelColoring::convertPaletteSliceColoringToOutlineMode(uint8_t* rgbaInOu
                 rgbaInOut[myOffset]     = outlineRGBA[0];
                 rgbaInOut[myOffset + 1] = outlineRGBA[1];
                 rgbaInOut[myOffset + 2] = outlineRGBA[2];
-                rgbaInOut[myOffset + 3] = 1.0;
+                rgbaInOut[myOffset + 3] = outlineRGBA[3];
             }
             else if (hideDataFlag) {
-                rgbaInOut[myOffset + 3] = 0.0;
+                rgbaInOut[myOffset + 3] = 0;
             }
         }
     }
