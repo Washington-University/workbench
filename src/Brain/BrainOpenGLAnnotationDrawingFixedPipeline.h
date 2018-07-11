@@ -152,14 +152,6 @@ namespace caret {
             bool m_valid = false;
         };
         
-        /**
-         * Mode for drawing or estimating width of color bar
-         */
-        enum class ColorBarTextMode {
-            DRAW,
-            ESTIMATE_WIDTH
-        };
-        
         BrainOpenGLAnnotationDrawingFixedPipeline(const BrainOpenGLAnnotationDrawingFixedPipeline&);
 
         BrainOpenGLAnnotationDrawingFixedPipeline& operator=(const BrainOpenGLAnnotationDrawingFixedPipeline&);
@@ -223,8 +215,7 @@ namespace caret {
                                   const float topLeft[3],
                                   const float sectionsHeightInPixels);
         
-        float drawColorBarText(const ColorBarTextMode colorBarTextMode,
-                               const AnnotationColorBar* colorBar,
+        void drawColorBarText(const AnnotationColorBar* colorBar,
                                const float bottomLeft[3],
                                const float bottomRight[3],
                                const float topRight[3],
@@ -318,6 +309,9 @@ namespace caret {
         void convertObsoleteLineWidthPixelsToPercentageWidth(const Annotation* annotation) const;
         
         float getLineWidthFromPercentageHeight(const float percentageHeight) const;
+        
+        float estimateColorBarWidth(const AnnotationColorBar* colorBar,
+                                    const float textHeightInPixels) const;
         
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
         
