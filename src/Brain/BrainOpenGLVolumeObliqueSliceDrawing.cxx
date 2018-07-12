@@ -2578,13 +2578,11 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
      */
     float voxelEditingValue = 1.0;
     VolumeFile* voxelEditingVolumeFile = NULL;
-    bool volumeEditingDrawAllVoxelsFlag = false;
     if (m_identificationModeFlag) {
         SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
         if (voxelEditID->isEnabledForSelection()) {
             voxelEditingVolumeFile = voxelEditID->getVolumeFileForEditing();
             if (voxelEditingVolumeFile != NULL) {
-                volumeEditingDrawAllVoxelsFlag = true;
                 if (voxelEditingVolumeFile->isMappedWithLabelTable()) {
                     if (voxelEditingVolumeFile->getNumberOfMaps() > 0) {
                         voxelEditingValue = voxelEditingVolumeFile->getMapLabelTable(0)->getUnassignedLabelKey();
