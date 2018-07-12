@@ -1282,6 +1282,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
         return;
     }
     
+    const float viewportHeight = m_modelSpaceViewport[3];
+    const float viewportWidth  = m_modelSpaceViewport[2];
+    
     /*
      * The user sets the total height of the colorbar and the
      * height of the text.
@@ -1291,40 +1294,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
      *    (2) The tick marks
      *    (3) The palettes color sections
      */
-    const float totalHeightPercent = colorBar->getHeight();
+    float totalHeightPercent = colorBar->getHeight();
     float textHeightPercent        = colorBar->getFontPercentViewportSize();
-    float ticksMarksHeightPercent  = totalHeightPercent * 0.10;
-    float sectionsHeightPercent    = totalHeightPercent - (ticksMarksHeightPercent - textHeightPercent);
-    
-    if (sectionsHeightPercent <= 0.0f) {
-        sectionsHeightPercent    = totalHeightPercent * 0.10f;
-        textHeightPercent = totalHeightPercent - sectionsHeightPercent;
-    }
-    
-    const float viewportHeight = m_modelSpaceViewport[3];
-    const float viewportWidth  = m_modelSpaceViewport[2];
+    float totalHeightPixels = (viewportHeight
+                               * (totalHeightPercent / 100.0f));
     
     /*
      * Text is aligned at the top of the characters
      */
-    const float totalHeightPixels = (viewportHeight
-                                     * (totalHeightPercent / 100.0f));
-    const float textOffsetFromTopPixels = 2;
-    const float textHeightPixels = (viewportHeight
+    float textHeightPixels = (viewportHeight
                                     * (textHeightPercent / 100.0f));
-    const float tickMarksHeightPixels = (viewportHeight
-                                         * (ticksMarksHeightPercent / 100.0f));
-    const float sectionsHeightPixels = (totalHeightPixels
-                                        - (textHeightPixels
-                                           + textOffsetFromTopPixels
-                                           + tickMarksHeightPixels));
     
     if (debugFlag) {
-        std::cout << "Color bar heights (pixels) " << std::endl;
-        std::cout << "   Total:       " << totalHeightPixels << std::endl;
+        std::cout << "Color bar heights before corrections (pixels) " << std::endl;
         std::cout << "   Text:        " << textHeightPixels << std::endl;
-        std::cout << "   Text Offset: " << textOffsetFromTopPixels << std::endl;
-        std::cout << "   Ticks:       " << tickMarksHeightPixels << std::endl;
     }
     
     switch (colorBar->getPositionMode()) {
@@ -1339,20 +1322,67 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
                  */
                 const float maximumWidth = viewportWidth - (startingX * 2.0f);
                 if (estimatedWidth > maximumWidth) {
-                    estimatedWidth = maximumWidth;
+                    /*
+                     * Since the width of the text is a function of the text height,
+                     * gradually reduce the height of the text until the color bar
+                     * width is less than the maximum allowable width.  Note that 
+                     * the font heights are not a continuous function so that a
+                     * range of "requested font heights" may correspond to one
+                     * font height.
+                     */
+                    const float tooBigTextHeightPixels = textHeightPixels;
+                    const float onePercentPixelHeight = textHeightPixels * 0.01;
+                    for (int32_t pctSteps = 0; pctSteps < 100; pctSteps++) {
+                        textHeightPixels -= onePercentPixelHeight;
+                        estimatedWidth = estimateColorBarWidth(colorBar,
+                                                               textHeightPixels);
+                        if (estimatedWidth <= maximumWidth) {
+                            break;
+                        }
+                    }
+                    if (estimatedWidth > maximumWidth) {
+                        estimatedWidth = maximumWidth;
+                    }
+                    
+                    /*
+                     * Since the height of the text has been reduced, we must also reduce the
+                     * height of the color bar.  Otherwise, the color swatches will become taller
+                     * (color swatches fill the region of color bar not used by the text).
+                     */
+                    const float textHeightPixelChangePercent = ((tooBigTextHeightPixels - textHeightPixels)
+                                                                / tooBigTextHeightPixels);
+                    if (debugFlag) {
+                        std::cout << "Too big text height: " << tooBigTextHeightPixels << std::endl;
+                        std::cout << "   Reduced to: " << textHeightPixels << std::endl;
+                        std::cout << "Text height percentage change: " << textHeightPixelChangePercent << std::endl;
+                    }
+                    
+                    const float tooBigTextHeightPercent = textHeightPercent;
+                    textHeightPercent = (textHeightPixels / viewportHeight) * 100.0;
+                    const float textPercentChange = tooBigTextHeightPercent - textHeightPercent;
+                    totalHeightPercent -= textPercentChange;
+                    totalHeightPixels = (viewportHeight
+                                         * (totalHeightPercent / 100.0f));
                 }
                 
                 const float shapeWidth = MathFunctions::distance3D(bottomLeft, bottomRight);
                 if (estimatedWidth > shapeWidth) {
+                    /*
+                     * The corners of the color bar must now be recomputed to account
+                     * for the reduced dimensions of the color bar.
+                     */
                     float bottomUnitVector[3];
                     MathFunctions::createUnitVector(bottomLeft, bottomRight, bottomUnitVector);
                     float topUnitVector[3];
                     MathFunctions::createUnitVector(topLeft, topRight, topUnitVector);
+                    float leftUnitVector[3];
+                    MathFunctions::createUnitVector(bottomLeft, topLeft, leftUnitVector);
                     if (debugFlag) {
                         std::cout << "Too short bottom right: " << AString::fromNumbers(bottomRight, 3, ", ") << std::endl;
                     }
                     for (int32_t i = 0; i < 3; i++) {
-                        topRight[i] = topLeft[i] + topUnitVector[i] * estimatedWidth;
+                        topLeft[i]     = bottomLeft[i] + leftUnitVector[i] * totalHeightPixels;
+                        topRight[i]    = topLeft[i]    + topUnitVector[i] * estimatedWidth;
                         bottomRight[i] = bottomLeft[i] + bottomUnitVector[i] * estimatedWidth;
                     }
                     if (debugFlag) {
@@ -1365,6 +1395,28 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
             break;
     }
     
+    float ticksMarksHeightPercent  = totalHeightPercent * 0.10;
+    float sectionsHeightPercent    = totalHeightPercent - (ticksMarksHeightPercent - textHeightPercent);
+    
+    if (sectionsHeightPercent <= 0.0f) {
+        sectionsHeightPercent    = totalHeightPercent * 0.10f;
+        textHeightPercent = totalHeightPercent - sectionsHeightPercent;
+    }
+    const float tickMarksHeightPixels = (viewportHeight
+                                         * (ticksMarksHeightPercent / 100.0f));
+    const float textOffsetFromTopPixels = 2;
+    const float sectionsHeightPixels = (totalHeightPixels
+                                        - (textHeightPixels
+                                           + textOffsetFromTopPixels
+                                           + tickMarksHeightPixels));
+    if (debugFlag) {
+        std::cout << "Color bar heights after any adjustments (pixels) " << std::endl;
+        std::cout << "   Total:       " << totalHeightPixels << std::endl;
+        std::cout << "   Text:        " << textHeightPixels << std::endl;
+        std::cout << "   Text Offset: " << textOffsetFromTopPixels << std::endl;
+        std::cout << "   Ticks:       " << tickMarksHeightPixels << std::endl;
+    }
+
     const float selectionCenterXYZ[3] = {
         (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0f,
         (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0f,
