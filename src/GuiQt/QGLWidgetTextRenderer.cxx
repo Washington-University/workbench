@@ -854,6 +854,135 @@ QGLWidgetTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& an
 }
 
 /**
+ * Get the bounds of text (in pixels) using the given text
+ * attributes.  NO MARGIN is placed around the text.
+ *
+ * See http://ftgl.sourceforge.net/docs/html/metrics.png
+ *
+ * @param annotationText
+ *   Text that is to be drawn.
+ * @param viewportX
+ *    Viewport X-coordinate.
+ * @param viewportY
+ *    Viewport Y-coordinate.
+ * @param viewportZ
+ *    Viewport Z-coordinate.
+ * @param viewportWidth
+ *    Height of the viewport needed for percentage height text.
+ * @param viewportHeight
+ *    Height of the viewport needed for percentage height text.
+ * @param bottomLeftOut
+ *    The bottom left corner of the text bounds.
+ * @param bottomRightOut
+ *    The bottom right corner of the text bounds.
+ * @param topRightOut
+ *    The top right corner of the text bounds.
+ * @param topLeftOut
+ *    The top left corner of the text bounds.
+ */
+void
+QGLWidgetTextRenderer::getBoundsWithoutMarginForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                                     const double viewportX,
+                                                                     const double viewportY,
+                                                                     const double viewportZ,
+                                                                     const double /*viewportWidth*/,
+                                                                     const double /*viewportHeight*/,
+                                                                     double bottomLeftOut[3],
+                                                                     double bottomRightOut[3],
+                                                                     double topRightOut[3],
+                                                                     double topLeftOut[3])
+{
+    setViewportHeight();
+    
+    QFont* font = findFont(annotationText,
+                           false);
+    if (font == NULL) {
+        return;
+    }
+    
+    double xMin = 0.0;
+    double xMax = 0.0;
+    double yMin = 0.0;
+    double yMax = 0.0;
+    
+    switch (annotationText.getOrientation()) {
+        case AnnotationTextOrientationEnum::HORIZONTAL:
+        {
+            QFontMetricsF fontMetrics(*font);
+            QRectF boundsRect = fontMetrics.boundingRect(annotationText.getText());
+            
+            /*
+             * Note: sometimes boundsRect.top() is negative and
+             * that screws things up.
+             */
+            xMin = boundsRect.left();
+            xMax = boundsRect.right();
+            yMin = boundsRect.bottom();
+            yMax = boundsRect.bottom() + boundsRect.height();
+        }
+            break;
+        case AnnotationTextOrientationEnum::STACKED:
+        {
+            double textHeight = 0.0;
+            std::vector<CharInfo> charInfo;
+            getVerticalTextCharInfo(annotationText,
+                                    xMin,
+                                    xMax,
+                                    textHeight,
+                                    charInfo);
+            yMax = textHeight;
+        }
+            break;
+    }
+    
+    const double width = xMax - xMin;
+    double left = 0.0;
+    switch (annotationText.getHorizontalAlignment()) {
+        case AnnotationTextAlignHorizontalEnum::LEFT:
+            left = viewportX;
+            break;
+        case AnnotationTextAlignHorizontalEnum::CENTER:
+            left = viewportX - (width / 2.0);
+            break;
+        case AnnotationTextAlignHorizontalEnum::RIGHT:
+            left = viewportX - width;
+            break;
+    }
+    const double right = left + width;
+    
+    const double height = yMax - yMin;
+    double bottom = 0.0;
+    switch (annotationText.getVerticalAlignment()) {
+        case AnnotationTextAlignVerticalEnum::BOTTOM:
+            bottom = viewportY;
+            break;
+        case AnnotationTextAlignVerticalEnum::MIDDLE:
+            bottom = viewportY - (height / 2.0);
+            break;
+        case AnnotationTextAlignVerticalEnum::TOP:
+            bottom = viewportY - height;
+            break;
+    }
+    const double top = bottom + height;
+    
+    bottomLeftOut[0] = left;
+    bottomLeftOut[1] = bottom;
+    bottomLeftOut[2] = viewportZ;
+    
+    bottomRightOut[0] = right;
+    bottomRightOut[0] = bottom;
+    bottomRightOut[0] = viewportZ;
+    
+    topRightOut[0] = right;
+    topRightOut[0] = top;
+    topRightOut[0] = viewportZ;
+    
+    topLeftOut[0] = left;
+    topLeftOut[0] = top;
+    topLeftOut[0] = viewportZ;
+}
+
+/**
  * Get the character info for drawing vertical text which includes
  * position for each of the characters.  The TOP of the first
  * character will be at Y=0.

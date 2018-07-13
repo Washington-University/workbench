@@ -187,6 +187,44 @@ namespace caret {
         
         /**
          * Get the bounds of text (in pixels) using the given text
+         * attributes.    NO MARGIN is placed around the text.
+         *
+         * See http://ftgl.sourceforge.net/docs/html/metrics.png
+         *
+         * @param annotationText
+         *   Text that is to be drawn.
+         * @param viewportX
+         *    Viewport X-coordinate.
+         * @param viewportY
+         *    Viewport Y-coordinate.
+         * @param viewportZ
+         *    Viewport Z-coordinate.
+         * @param viewportWidth
+         *    Width of the viewport needed for percentage height text.
+         * @param viewportHeight
+         *    Height of the viewport needed for percentage height text.
+         * @param bottomLeftOut
+         *    The bottom left corner of the text bounds.
+         * @param bottomRightOut
+         *    The bottom right corner of the text bounds.
+         * @param topRightOut
+         *    The top right corner of the text bounds.
+         * @param topLeftOut
+         *    The top left corner of the text bounds.
+         */
+        virtual void getBoundsWithoutMarginForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                                   const double viewportX,
+                                                                   const double viewportY,
+                                                                   const double viewportZ,
+                                                                   const double viewportWidth,
+                                                                   const double viewportHeight,
+                                                                   double bottomLeftOut[3],
+                                                                   double bottomRightOut[3],
+                                                                   double topRightOut[3],
+                                                                   double topLeftOut[3]) = 0;
+        
+        /**
+         * Get the bounds of text (in pixels) using the given text
          * attributes.
          *
          * See http://ftgl.sourceforge.net/docs/html/metrics.png
@@ -222,6 +260,44 @@ namespace caret {
                                               float bottomRightOut[3],
                                               float topRightOut[3],
                                               float topLeftOut[3]);
+        
+        /**
+         * Get the bounds of text (in pixels) using the given text
+         * attributes.  NO MARGIN is placed around the text.
+         *
+         * See http://ftgl.sourceforge.net/docs/html/metrics.png
+         *
+         * @param annotationText
+         *   Text that is to be drawn.
+         * @param viewportX
+         *    Viewport X-coordinate.
+         * @param viewportY
+         *    Viewport Y-coordinate.
+         * @param viewportZ
+         *    Viewport Z-coordinate.
+         * @param viewportWidth
+         *    Width of the viewport needed for percentage height text.
+         * @param viewportHeight
+         *    Height of the viewport needed for percentage height text.
+         * @param bottomLeftOut
+         *    The bottom left corner of the text bounds.
+         * @param bottomRightOut
+         *    The bottom right corner of the text bounds.
+         * @param topRightOut
+         *    The top right corner of the text bounds.
+         * @param topLeftOut
+         *    The top left corner of the text bounds.
+         */
+        void getBoundsWithoutMarginForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                           const float viewportX,
+                                                           const float viewportY,
+                                                           const float viewportZ,
+                                                           const float viewportWidth,
+                                                           const float viewportHeight,
+                                                           float bottomLeftOut[3],
+                                                           float bottomRightOut[3],
+                                                           float topRightOut[3],
+                                                           float topLeftOut[3]);
         
         static float pointSizeToPixels(const float pointSize);
         

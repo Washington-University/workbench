@@ -1816,6 +1816,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::estimateColorBarWidth(const Annotatio
     
     std::vector<float> allTextWidths;
     
+    if (debugFlag) {
+        std::cout << "Estimating with pixel height: " << textHeightInPixels << std::endl;
+    }
+    
     /*
      * Get width of each numerical text value displayed above the color bar
      */
@@ -1828,7 +1832,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::estimateColorBarWidth(const Annotatio
                 float textBottomRight[3];
                 float textTopRight[3];
                 float textTopLeft[3];
-                m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(annText,
+                m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsWithoutMarginForTextAtViewportCoords(annText,
                                                                                                 windowX, windowY, windowZ,
                                                                                                 viewportWidth, viewportHeight,
                                                                                                 textBottomLeft, textBottomRight, textTopRight, textTopLeft);
@@ -1837,6 +1841,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::estimateColorBarWidth(const Annotatio
                 if (debugFlag) {
                     std::cout << "Width of \"" << numericText->getNumericText() << "\" is " << textWidth << std::endl;
                 }
+                
             }
     }
 
@@ -1845,7 +1850,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::estimateColorBarWidth(const Annotatio
      */
     float separatorWidth = 0.0;
     {
-        annText.setText("0");
+        const AString separatorCharacter("0");
+        annText.setText(separatorCharacter);
         float textBottomLeft[3];
         float textBottomRight[3];
         float textTopRight[3];
@@ -1855,6 +1861,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::estimateColorBarWidth(const Annotatio
                                                                                         viewportWidth, viewportHeight,
                                                                                         textBottomLeft, textBottomRight, textTopRight, textTopLeft);
         separatorWidth = MathFunctions::distance3D(textBottomLeft, textBottomRight);
+        if (debugFlag) {
+            std::cout << "Separator \"" << separatorCharacter << "\" width: " << separatorWidth << std::endl;
+        }
     }
     
     CaretAssert(numText == static_cast<int32_t>(allTextWidths.size()));
@@ -1898,9 +1907,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::estimateColorBarWidth(const Annotatio
                 }
                 else {
                     CaretAssertVectorIndex(allTextWidths, i - 1);
-                    const float lastHalfWidth = allTextWidths[i - 1] / 2.0f;
-                    interval = lastHalfWidth + halfWidth;
+                    const float previousHalfWidth = allTextWidths[i - 1] / 2.0f;
+                    interval = previousHalfWidth + halfWidth;
                 }
+                
+                /* space to separate adjacent text */
+                interval += separatorWidth;
                 
                 if (debugFlag) {
                     std::cout << "Interval " << i << " width: " << interval << std::endl;
@@ -1911,6 +1923,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::estimateColorBarWidth(const Annotatio
             
             const float numberOfIntervals = numText - 1;
             estimatedWidth = largestInterval * numberOfIntervals;
+            if (debugFlag) {
+                std::cout << "Estimated Width: " << estimatedWidth
+                   << " Viewport Width: " << viewportWidth << std::endl;
+            }
         }
     }
     

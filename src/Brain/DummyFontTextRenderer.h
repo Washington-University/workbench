@@ -67,6 +67,18 @@ namespace caret {
                                                       double bottomRightOut[3],
                                                       double topRightOut[3],
                                                       double topLeftOut[3]);
+        
+        virtual void getBoundsWithoutMarginForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                                   const double viewportX,
+                                                                   const double viewportY,
+                                                                   const double viewportZ,
+                                                                   const double viewportWidth,
+                                                                   const double viewportHeight,
+                                                                   double bottomLeftOut[3],
+                                                                   double bottomRightOut[3],
+                                                                   double topRightOut[3],
+                                                                   double topLeftOut[3]) override;
+
         virtual AString getName() const;
 
         // ADD_NEW_METHODS_HERE
