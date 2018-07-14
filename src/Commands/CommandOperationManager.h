@@ -73,6 +73,8 @@ namespace caret {
         
         void printGiftiHelp();
         
+        void printVolumeHelp();
+        
         void printParallelHelp(const AString& programName);
         
         void printVersionInfo();

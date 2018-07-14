@@ -53,7 +53,7 @@ OperationParameters* AlgorithmCiftiCreateDenseTimeseries::getParameters()
     
     OptionalParameter* volumeOpt = ret->createOptionalParameter(2, "-volume", "volume component");
     volumeOpt->addVolumeParameter(1, "volume-data", "volume file containing all voxel data for all volume structures");
-    volumeOpt->addVolumeParameter(2, "label-volume", "label volume file containing labels for cifti structures");
+    volumeOpt->addVolumeParameter(2, "structure-label-volume", "label volume file containing labels for cifti structures");
     
     OptionalParameter* leftMetricOpt = ret->createOptionalParameter(3, "-left-metric", "metric for left surface");
     leftMetricOpt->addMetricParameter(1, "metric", "the metric file");
@@ -79,8 +79,11 @@ OperationParameters* AlgorithmCiftiCreateDenseTimeseries::getParameters()
     OptionalParameter* unitOpt = ret->createOptionalParameter(8, "-unit", "use a unit other than time");
     unitOpt->addStringParameter(1, "unit", "unit identifier (default SECOND)");
     
-    AString myText = AString("All input files must have the same number of columns/subvolumes.  Only the specified components will be in the output cifti.  ") +
-        "At least one component must be specified.  The label volume should have some of the label names from this list, all other label names will be ignored:\n";
+    AString myText = AString("All input files must have the same number of columns/subvolumes.  ") +
+        "Only the specified components will be in the output cifti.  " +
+        "At least one component must be specified.\n\n" +
+        "See -volume-label-import and -volume-help for format details of label volume files.  " +
+        "The structure-label-volume should have some of the label names from this list, all other label names will be ignored:\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)

@@ -618,6 +618,8 @@ CommandOperationManager::runCommand(ProgramParameters& parameters)
         printCiftiHelp();
     } else if (commandSwitch == "-gifti-help") {
         printGiftiHelp();
+    } else if (commandSwitch == "-volume-help") {
+        printVolumeHelp();
     } else if (commandSwitch == "-parallel-help") {
         printParallelHelp(myProgramName);
     } else if (commandSwitch == "-version") {
@@ -721,7 +723,7 @@ AString CommandOperationManager::doCompletion(ProgramParameters& parameters, con
     const uint64_t numberOfDeprecated = this->deprecatedOperations.size();
     if (!parameters.hasNext())
     {//suggest all commands, including deprecated and informational (order doesn't matter, bash sorts them before displaying)
-        ret += "\\ -help\\ -arguments-help\\ -global-options\\ -parallel-help\\ -cifti-help\\ -gifti-help\\ -version\\ -list-commands\\ -list-deprecated-commands\\ -all-commands-help";
+        ret += "\\ -help\\ -arguments-help\\ -global-options\\ -parallel-help\\ -cifti-help\\ -gifti-help\\ -volume-help\\ -version\\ -list-commands\\ -list-deprecated-commands\\ -all-commands-help";
         for (uint64_t i = 0; i < numberOfCommands; i++)
         {
             ret += "\\ " + commandOperations[i]->getCommandLineSwitch();
@@ -972,6 +974,7 @@ void CommandOperationManager::printHelpInfo()
     cout << "   -parallel-help              details on how wb_command uses parallelization" << endl;
     cout << "   -cifti-help                 explain the cifti file format and related terms" << endl;
     cout << "   -gifti-help                 explain the gifti file format (metric, surface)" << endl;
+    cout << "   -volume-help                explain volume files, including label volumes" << endl;
     cout << "   -version                    show extended version information" << endl;
     cout << "   -list-commands              list all processing subcommands" << endl;
     cout << "   -list-deprecated-commands   list deprecated subcommands" << endl;
@@ -1187,6 +1190,47 @@ void CommandOperationManager::printGiftiHelp()
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "   For the full details of the GIFTI format, see" << endl;
     cout << "      http://www.nitrc.org/projects/gifti/" << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+}
+
+void CommandOperationManager::printVolumeHelp()
+{
+    //guide for wrap, assuming 80 columns:                                                  |
+    cout << "   Volume files are like 3 or 4 dimensional bitmaps, they represent a" << endl;
+    cout << "   rectangular grid of (often cubic) voxels, with each voxel having an" << endl;
+    cout << "   independent value.  Workbench supports oblique volumes, but it is still" << endl;
+    cout << "   recommended to deoblique the data before processing it, as other tools may" << endl;
+    cout << "   give unexpected results for oblique volume files." << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+    cout << "   Workbench currently only supports volume files in NIfTI format, but supports" << endl;
+    cout << "   both version 1 and version 2 of the NIfTI standard:" << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+    cout << "   https://nifti.nimh.nih.gov/nifti-1" << endl;
+    cout << "   https://nifti.nimh.nih.gov/nifti-2" << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+    cout << "   Workbench writes volumes in NIfTI-1 format whenever possible, but if one of" << endl;
+    cout << "   the dimensions is longer than 32767, it will write the file in NIfTI-2" << endl;
+    cout << "   format instead.  Specifying '.nii.gz' on the end of the filename will cause" << endl;
+    cout << "   workbench to automatically write the volume in compressed format, and this" << endl;
+    cout << "   is generally recommended as best practice for volume files." << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+    cout << "   The reason that workbench only supports NIfTI format is that it is widely" << endl;
+    cout << "   supported, has well-defined spacing and orientation information, is" << endl;
+    cout << "   relatively simple, and supports adding extensions to the header information." << endl;
+    cout << "   Workbench uses such an extension to store various things, such as names for" << endl;
+    cout << "   each frame in a volume file, storing palette display settings, provenance" << endl;
+    cout << "   information, and label names and colors for label-type volume files." << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+    cout << "   The header extension that workbench uses is derived from the caret5 NIfTI" << endl;
+    cout << "   extension, and has two main types: scalar-type volume files, and label-type" << endl;
+    cout << "   volume files.  Commands that require a label volume as input check that the" << endl;
+    cout << "   extension is present and set to label type, and the label names, colors, and" << endl;
+    cout << "   integer keys are read from the extension.  To import a label-like volume" << endl;
+    cout << "   into this format, use the -volume-label-import command.  Note that other" << endl;
+    cout << "   tools will generally remove this label information when they write derived" << endl;
+    cout << "   or modified files, as will commands in workbench that are not designed" << endl;
+    cout << "   specifically for label volumes (e.g., -volume-math), so you may need to use" << endl;
+    cout << "   -volume-label-import after using such commands." << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
 }
 

@@ -44,13 +44,13 @@ AString OperationVolumeLabelImport::getCommandSwitch()
 
 AString OperationVolumeLabelImport::getShortDescription()
 {
-    return "IMPORT A LABEL VOLUME TO CARET FORMAT";
+    return "IMPORT A LABEL VOLUME TO WORKBENCH FORMAT";
 }
 
 OperationParameters* OperationVolumeLabelImport::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addVolumeParameter(1, "input", "the label volume to import");
+    ret->addVolumeParameter(1, "input", "the input volume file");
     
     ret->addStringParameter(2, "label-list-file", "text file containing the values and names for labels");
     
@@ -67,10 +67,11 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
     ret->createOptionalParameter(7, "-drop-unused-labels", "remove any unused label values from the label table");
     
     ret->setHelpText(
-        AString("Creates a new volume with label information in the header in the caret nifti extension format.  ") +
+        AString("Creates a new label volume from an integer-valued volume file.  ") +
+        "The label name and color information is stored in the volume header in a nifti extension, with a similar format as in caret5, see -volume-help.  " +
         "You may specify the empty string ('' will work on linux/mac) for <label-list-file>, which will be treated as if it is an empty file.  " +
-        "The label list file must have lines of the following format:\n\n" + 
-        "<labelname>\n<value> <red> <green> <blue> <alpha>\n\n" + 
+        "The label list file must have pairs of lines of the following format:\n\n" +
+        "<labelname>\n<value> <red> <green> <blue> <alpha>\n\n" +
         "Do not specify the \"unlabeled\" key in the file, it is assumed that 0 means not labeled unless -unlabeled-value is specified.  " +
         "Label names must be on a separate line, but may contain spaces or other unusual characters (but not newline).  " +
         "Whitespace is trimmed from both ends of the label name, but is kept if it is in the middle of a label.  " +

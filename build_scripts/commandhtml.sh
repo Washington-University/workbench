@@ -60,6 +60,11 @@ make_basic_command_page "-gifti-help"
 echo -n '<a href="'`command_to_page_name -gifti-help`'">' >> "$outDir/$startPage"
 echo "$initialText" | grep -- -gifti-help >> "$outDir/$startPage"
 echo -n '</a>' >> "$outDir/$startPage"
+#-volume-help
+make_basic_command_page "-volume-help"
+echo -n '<a href="'`command_to_page_name -volume-help`'">' >> "$outDir/$startPage"
+echo "$initialText" | grep -- -volume-help >> "$outDir/$startPage"
+echo -n '</a>' >> "$outDir/$startPage"
 #-version
 echo "$initialText" | grep -- -version >> "$outDir/$startPage"
 #-list-commands

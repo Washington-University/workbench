@@ -82,7 +82,8 @@ OperationParameters* AlgorithmCiftiSeparate::getParameters()
     
     AString helpText = AString("For dtseries, dscalar, and dlabel, use COLUMN for <direction>, and if you have a symmetric dconn, COLUMN is more efficient.\n\n") +
         "You must specify at least one of -metric, -volume-all, -volume, or -label for this command to do anything.  " +
-        "Output volumes will spatially line up with their original positions, whether or not they are cropped.\n\n" +
+        "Output volumes will spatially line up with their original positions, whether or not they are cropped.  " +
+        "Volume files produced by separating a dlabel file, or from the -label suboption of -volume-all, will be label volumes, see -volume-help.\n\n" +
         "For each <structure> argument, use one of the following strings:\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);

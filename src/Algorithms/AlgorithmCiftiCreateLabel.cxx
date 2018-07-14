@@ -52,8 +52,8 @@ OperationParameters* AlgorithmCiftiCreateLabel::getParameters()
     ret->addCiftiOutputParameter(1, "cifti-out", "the output cifti file");
     
     OptionalParameter* volumeOpt = ret->createOptionalParameter(2, "-volume", "volume component");
-    volumeOpt->addVolumeParameter(1, "label-volume", "volume file containing the label data");
-    volumeOpt->addVolumeParameter(2, "parcel-volume", "label volume file with cifti structure names to define the volume parcels");
+    volumeOpt->addVolumeParameter(1, "label-volume", "label volume file containing the data to be copied");
+    volumeOpt->addVolumeParameter(2, "structure-label-volume", "label volume file that defines which voxels to use");
     
     OptionalParameter* leftLabelOpt = ret->createOptionalParameter(3, "-left-label", "label file for left surface");
     leftLabelOpt->addLabelParameter(1, "label", "the label file");
@@ -72,11 +72,12 @@ OperationParameters* AlgorithmCiftiCreateLabel::getParameters()
     
     AString myText = AString("All input files must have the same number of columns/subvolumes.  Only the specified components will be in the output cifti.  ") +
         "At least one component must be specified.\n\n" +
-        "The -volume option of -cifti-create-label requires two volume arguments, " +
+        "The -volume option requires two volume arguments, " +
         "the label-volume argument contains all labels you want to display (e.g. nuclei of the thalamus), " +
-        "whereas the parcel-volume argument includes all CIFTI structures you want to include data within (e.g. THALAMUS_LEFT, THALAMUS_RIGHT).  " +
+        "whereas the structure-label-volume argument contains all CIFTI voxel-based structures you want to include data within (e.g. THALAMUS_LEFT, THALAMUS_RIGHT, etc).  " +
+        "See -volume-label-import and -volume-help for format details of label volume files.  " +
         "If you just want the labels in voxels to be the structure names, you may use the same file for both arguments.  " +
-        "The parcel-volume must use some of the label names from this list, all other label names in the parcel-volume will be ignored:\n";
+        "The structure-label-volume must use some of the label names from this list, all other label names in the structure-label-volume will be ignored:\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
