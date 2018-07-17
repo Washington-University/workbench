@@ -58,8 +58,11 @@ OperationParameters* OperationSurfaceGeodesicDistance::getParameters()
     
     ret->setHelpText(
         AString("Unless -limit is specified, computes the geodesic distance from the specified vertex to all others.  ") +
-        "The result is output as a single column metric file, with a value of -1 for vertices that the distance was not computed for.  " +
-        "If -naive is not specified, it uses not just immediate neighbors, but also neighbors derived from crawling across pairs of triangles that share an edge."
+        "The result is output as a single column metric file, with a value of -1 for vertices that the distance was not computed for.\n\n" +
+        "The -corrected-areas option should be used when the input is a group average surface - group average surfaces have " +
+        "significantly less surface area than individual surfaces do, and therefore distances measured on them would be smaller than measuring them on individual surfaces.  " +
+        "In this case, the input to this option should be a group average of the output of -surface-vertex-areas for each subject.\n\n" +
+        "If -naive is not specified, the algorithm uses not just immediate neighbors, but also neighbors derived from crawling across pairs of triangles that share an edge."
     );
     return ret;
 }
