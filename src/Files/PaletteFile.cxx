@@ -1629,6 +1629,9 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
         case DataFileTypeEnum::ANNOTATION:
             invalid = true;
             break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+            invalid = true;
+            break;
         case DataFileTypeEnum::BORDER:
             invalid = true;
             break;

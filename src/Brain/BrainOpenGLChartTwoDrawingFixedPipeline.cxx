@@ -2000,6 +2000,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeLabel(const 
         double textWidth = 0.0;
         double textHeight = 0.0;
         m_textRenderer->getTextWidthHeightInPixels(*text,
+                                                   BrainOpenGLTextRenderInterface::DrawingFlags(),
                                                    m_tabViewportWidth, m_tabViewportHeight,
                                                    textWidth, textHeight);
         widthOut  = textWidth;
@@ -2201,6 +2202,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
         double textWidth = 0.0;
         double textHeight = 0.0;
         m_textRenderer->getTextWidthHeightInPixels(*text,
+                                                   BrainOpenGLTextRenderInterface::DrawingFlags(),
                                                    m_tabViewportWidth, m_tabViewportHeight,
                                                    textWidth, textHeight);
         if (rotateNumericFlag) {
@@ -2519,7 +2521,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
             m_textRenderer->drawTextAtViewportCoords(textX,
                                                      textY,
                                                      0.0,
-                                                     *text);
+                                                     *text,
+                                                     BrainOpenGLTextRenderInterface::DrawingFlags());
         }
         
         /*
@@ -2546,7 +2549,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
             float   primitiveDepth = 0.0;
             
             float bottomLeft[3], bottomRight[3], topLeft[3], topRight[3];
-            m_textRenderer->getBoundsForTextAtViewportCoords(*(m_labelText.get()), xyz[0], xyz[1], xyz[2],
+            m_textRenderer->getBoundsForTextAtViewportCoords(*(m_labelText.get()),
+                                                             BrainOpenGLTextRenderInterface::DrawingFlags(),
+                                                             xyz[0], xyz[1], xyz[2],
                                                              m_tabViewportWidth, m_tabViewportHeight,
                                                              bottomLeft, bottomRight, topRight, topLeft);
             
@@ -2575,7 +2580,8 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::drawAxis(BrainOpenGLCh
             m_textRenderer->drawTextAtViewportCoords(xyz[0],
                                                      xyz[1],
                                                      0.0,
-                                                     *(m_labelText.get()));
+                                                     *(m_labelText.get()),
+                                                     BrainOpenGLTextRenderInterface::DrawingFlags());
         }
     }
 }
@@ -2632,6 +2638,7 @@ m_title(title)
     double m_textWidth = 0.0;
     double m_textHeight = 0.0;
     m_textRenderer->getTextWidthHeightInPixels(*text,
+                                               BrainOpenGLTextRenderInterface::DrawingFlags(),
                                                m_tabViewportWidth, m_tabViewportHeight,
                                                m_textWidth, m_textHeight);
     m_text.reset(text);
@@ -2719,5 +2726,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::TitleDrawingInfo::drawTitle(const float
     m_textRenderer->drawTextAtViewportCoords(xyz[0],
                                              xyz[1],
                                              0.0,
-                                             *(m_text.get()));
+                                             *(m_text.get()),
+                                             BrainOpenGLTextRenderInterface::DrawingFlags());
 }

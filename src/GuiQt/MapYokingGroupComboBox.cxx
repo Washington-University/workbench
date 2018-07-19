@@ -23,6 +23,7 @@
 #include "MapYokingGroupComboBox.h"
 #undef __MAP_YOKING_GROUP_COMBO_BOX_DECLARE__
 
+#include "AnnotationTextSubstitutionFile.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "ChartTwoOverlay.h"
@@ -131,9 +132,10 @@ MapYokingGroupComboBox::validateYokingChange(ChartableMatrixSeriesInterface* cha
         
         if ((mapFile != NULL)
             && (mapIndex >= 0)) {
-            const YokeValidationResult result = validateYoking(mapFile,
-                                                         mapIndex,
-                                                         selectionStatus);
+            const YokeValidationResult result = validateYoking(NULL,
+                                                               mapFile,
+                                                               mapIndex,
+                                                               selectionStatus);
             
             switch (result) {
                 case YOKE_VALIDATE_RESULT_ACCEPT:
@@ -158,6 +160,43 @@ MapYokingGroupComboBox::validateYokingChange(ChartableMatrixSeriesInterface* cha
 /**
  * Validate a change in yoking for an overlay.
  *
+ * @param annTextSubFile
+ *    Annotation text substitution file
+ */
+void
+MapYokingGroupComboBox::validateYokingChange(AnnotationTextSubstitutionFile* annTextSubFile)
+{
+    CaretAssert(annTextSubFile);
+    const MapYokingGroupEnum::Enum previousMapYokingGroup = annTextSubFile->getMapYokingGroup();
+    const MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
+    int32_t mapIndex = annTextSubFile->getSelectedValueIndex();
+    bool selectionStatus = true;
+    
+        const YokeValidationResult result = validateYoking(annTextSubFile,
+                                                           NULL,
+                                                           mapIndex,
+                                                           selectionStatus);
+        
+        switch (result) {
+            case YOKE_VALIDATE_RESULT_ACCEPT:
+                annTextSubFile->setSelectedValueIndex(mapIndex);
+                annTextSubFile->setMapYokingGroup(newYokingGroup);
+                break;
+            case YOKE_VALIDATE_RESULT_OFF:
+                annTextSubFile->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
+                break;
+            case YOKE_VALIDATE_RESULT_PREVIOUS:
+                annTextSubFile->setMapYokingGroup(previousMapYokingGroup);
+                break;
+        }
+        
+        setMapYokingGroup(annTextSubFile->getMapYokingGroup());
+}
+
+
+/**
+ * Validate a change in yoking for an overlay.
+ *
  * @param overlay
  *    Overlay whose yoking changes.
  */
@@ -173,7 +212,8 @@ MapYokingGroupComboBox::validateYokingChange(Overlay* overlay)
     
     if ((mapFile != NULL)
         && (mapIndex >= 0)) {
-        const YokeValidationResult result = validateYoking(mapFile,
+        const YokeValidationResult result = validateYoking(NULL,
+                                                           mapFile,
                                                      mapIndex,
                                                      selectionStatus);
         
@@ -222,7 +262,8 @@ MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
                 selectedIndex = 0;
             }
         }
-        const YokeValidationResult result = validateYoking(mapFile,
+        const YokeValidationResult result = validateYoking(NULL,
+                                                           mapFile,
                                                            selectedIndex,
                                                            selectionStatus);
         
@@ -248,9 +289,9 @@ MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
 /**
  * Validate yoking when a new file is added to a yoking group.
  *
- * @param previousMapYokingGroup
- *     The previous yoking group.
- * @param selectedFile
+ * @param annTextSubFile
+ *     The annotation text substitution file.
+ * @param mapFile
  *     The file that the user would like to yoke.
  * @param selectedMapIndexInOut
  *     The current map selected for the file.  Its value will be updated
@@ -260,15 +301,18 @@ MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
  *     if yoking is selected (turned on or changed).
  */
 MapYokingGroupComboBox::YokeValidationResult
-MapYokingGroupComboBox::validateYoking(CaretMappableDataFile* selectedFile,
+MapYokingGroupComboBox::validateYoking(AnnotationTextSubstitutionFile* annTextSubFile,
+                                       CaretMappableDataFile* mapFile,
                                        int32_t& selectedMapIndexInOut,
                                        bool& /* selectionStatusInOut */)
 {
     YokeValidationResult yokeResult = YOKE_VALIDATE_RESULT_OFF; //YOKE_VALIDATE_RESULT_PREVIOUS;
     
+    const bool validFileFlag = ((annTextSubFile != NULL)
+                                || (mapFile != NULL));
     MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
     if (newYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-        if ((selectedFile != NULL)
+        if (validFileFlag
             && (selectedMapIndexInOut >= 0)) {
             /*
              * Get info on yoking selections
@@ -282,7 +326,8 @@ MapYokingGroupComboBox::validateYoking(CaretMappableDataFile* selectedFile,
              */
             int32_t numberOfYokedFiles = 0;
             AString message;
-            if (validateEvent.validateCompatibility(selectedFile,
+            if (validateEvent.validateCompatibility(annTextSubFile,
+                                                    mapFile,
                                                     numberOfYokedFiles,
                                                     message)) {
                 yokeResult = YOKE_VALIDATE_RESULT_ACCEPT;

@@ -40,24 +40,29 @@ namespace caret {
         virtual void drawTextAtViewportCoords(const double viewportX,
                                               const double viewportY,
                                               const double viewportZ,
-                                              const AnnotationText& annotationText);
+                                              const AnnotationText& annotationText,
+                                              const DrawingFlags& flags) override;
         
         virtual void drawTextAtViewportCoords(const double viewportX,
                                               const double viewportY,
-                                              const AnnotationText& annotationText);
+                                              const AnnotationText& annotationText,
+                                              const DrawingFlags& flags) override;
         
         virtual void drawTextAtModelCoords(const double modelX,
                                            const double modelY,
                                            const double modelZ,
-                                           const AnnotationText& annotationText);
+                                           const AnnotationText& annotationText,
+                                           const DrawingFlags& flags) override;
         
         virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                const DrawingFlags& flags,
                                                 const double viewportWidth,
                                                 const double viewportHeight,
                                                 double& widthOut,
-                                                double& heightOut);
+                                                double& heightOut) override;
         
         virtual void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                      const DrawingFlags& flags,
                                                       const double viewportX,
                                                       const double viewportY,
                                                       const double viewportZ,
@@ -66,9 +71,10 @@ namespace caret {
                                                       double bottomLeftOut[3],
                                                       double bottomRightOut[3],
                                                       double topRightOut[3],
-                                                      double topLeftOut[3]);
+                                                      double topLeftOut[3]) override;
         
         virtual void getBoundsWithoutMarginForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                                   const DrawingFlags& flags,
                                                                    const double viewportX,
                                                                    const double viewportY,
                                                                    const double viewportZ,

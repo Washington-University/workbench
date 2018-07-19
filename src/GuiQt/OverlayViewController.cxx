@@ -410,6 +410,7 @@ OverlayViewController::mapIndexSpinBoxValueChanged(int indx)
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
+                                               NULL,
                                                overlayIndex,
                                                overlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -456,6 +457,7 @@ OverlayViewController::mapNameComboBoxSelected(int indx)
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
+                                               NULL,
                                                indx,
                                                overlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -497,6 +499,7 @@ OverlayViewController::enabledCheckBoxClicked(bool checked)
         
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                myFile,
+                                               NULL,
                                                myIndex,
                                                overlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());

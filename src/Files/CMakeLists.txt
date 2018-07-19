@@ -26,6 +26,7 @@ AnnotationFile.h
 AnnotationFileXmlFormatBase.h
 AnnotationFileXmlReader.h
 AnnotationFileXmlWriter.h
+AnnotationTextSubstitutionFile.h
 Border.h
 BorderException.h
 BorderFile.h
@@ -158,6 +159,7 @@ AnnotationFile.cxx
 AnnotationFileXmlFormatBase.cxx
 AnnotationFileXmlReader.cxx
 AnnotationFileXmlWriter.cxx
+AnnotationTextSubstitutionFile.cxx
 Border.cxx
 BorderException.cxx
 BorderFile.cxx
@@ -173,13 +175,11 @@ CaretSparseFile.cxx
 CaretVolumeExtension.cxx
 ChartableLineSeriesInterface.cxx
 ChartableMatrixInterface.cxx
-
 ChartableTwoFileDelegate.cxx
 ChartableTwoFileBaseChart.cxx
 ChartableTwoFileHistogramChart.cxx
 ChartableTwoFileLineSeriesChart.cxx
 ChartableTwoFileMatrixChart.cxx
-
 CiftiBrainordinateDataSeriesFile.cxx
 CiftiBrainordinateLabelFile.cxx
 CiftiBrainordinateScalarFile.cxx
@@ -298,6 +298,7 @@ ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
+${CMAKE_SOURCE_DIR}/QxtCore
 ${CMAKE_SOURCE_DIR}/Scenes
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common

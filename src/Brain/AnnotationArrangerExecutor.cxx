@@ -37,6 +37,7 @@
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretAssert.h"
 #include "CaretException.h"
+#include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "EventGetViewportSize.h"
 #include "EventManager.h"
 
@@ -698,6 +699,7 @@ AnnotationArrangerExecutor::setupAnnotationInfo(const AnnotationArrangerInputs& 
                 const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(twoDimAnn);
                 CaretAssert(textAnn);
                 arrangerInputs.getTextRender()->getBoundsForTextAtViewportCoords(*textAnn,
+                                                                                 arrangerInputs.getDrawingFlags(),
                                                                                  viewportPixelOneXYZ[0],
                                                                                  viewportPixelOneXYZ[1],
                                                                                  viewportPixelOneXYZ[2],

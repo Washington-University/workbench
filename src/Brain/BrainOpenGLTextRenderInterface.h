@@ -33,6 +33,33 @@ namespace caret {
         BrainOpenGLTextRenderInterface();
         
     public:
+        /**
+         * Flags for drawing text.
+         */
+        class DrawingFlags {
+        public:
+            /**
+             * Constructor with all flags off.
+             */
+            DrawingFlags() { }
+            
+            /**
+             * @return Is draw substituted text flag on?
+             */
+            inline bool isDrawSubstitutedText() const { return m_drawSubstitutedText; }
+            
+            /**
+             * Set flag for drawing substituted text.
+             *
+             * @param flag
+             *     New status.
+             */
+            inline void setDrawSubstitutedText(const bool flag) { m_drawSubstitutedText = flag; }
+            
+        private:
+            bool m_drawSubstitutedText = false;
+        };
+        
         virtual ~BrainOpenGLTextRenderInterface();
         
         /**
@@ -50,7 +77,8 @@ namespace caret {
          */
         virtual void drawTextAtViewportCoords(const double viewportX,
                                               const double viewportY,
-                                              const AnnotationText& annotationText) = 0;
+                                              const AnnotationText& annotationText,
+                                              const DrawingFlags& flags) = 0;
         
         /**
          * Draw annnotation text at the given viewport coordinates using
@@ -70,7 +98,8 @@ namespace caret {
         virtual void drawTextAtViewportCoords(const double viewportX,
                                               const double viewportY,
                                               const double viewportZ,
-                                              const AnnotationText& annotationText) = 0;
+                                              const AnnotationText& annotationText,
+                                              const DrawingFlags& flags) = 0;
         
         /**
          * Draw annnotation text at the given model coordinates using
@@ -90,7 +119,8 @@ namespace caret {
         virtual void drawTextAtModelCoords(const double modelX,
                                            const double modelY,
                                            const double modelZ,
-                                           const AnnotationText& annotationText) = 0;
+                                           const AnnotationText& annotationText,
+                                           const DrawingFlags& flags) = 0;
         
         /**
          * Draw annnotation text at the given model coordinates using
@@ -104,8 +134,9 @@ namespace caret {
          *     Annotation text and attributes.
          */
         void drawTextAtModelCoords(const double modelXYZ[3],
-                                   const AnnotationText& annotationText) {
-            drawTextAtModelCoords(modelXYZ[0], modelXYZ[1], modelXYZ[2], annotationText);
+                                   const AnnotationText& annotationText,
+                                   const DrawingFlags& flags) {
+            drawTextAtModelCoords(modelXYZ[0], modelXYZ[1], modelXYZ[2], annotationText, flags);
         }
         
         /**
@@ -120,8 +151,9 @@ namespace caret {
          *     Annotation text and attributes.
          */
         void drawTextAtModelCoords(const float modelXYZ[3],
-                                   const AnnotationText& annotationText) {
-            drawTextAtModelCoords(modelXYZ[0], modelXYZ[1], modelXYZ[2], annotationText);
+                                   const AnnotationText& annotationText,
+                                   const DrawingFlags& flags) {
+            drawTextAtModelCoords(modelXYZ[0], modelXYZ[1], modelXYZ[2], annotationText, flags);
         }
         
         /**
@@ -142,6 +174,7 @@ namespace caret {
          *    Estimated height of text.
          */
         virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                const DrawingFlags& flags,
                                                 const double viewportWidth,
                                                 const double viewportHeight,
                                                 double& widthOut,
@@ -175,6 +208,7 @@ namespace caret {
          *    The top left corner of the text bounds.
          */
         virtual void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                      const DrawingFlags& flags,
                                                       const double viewportX,
                                                       const double viewportY,
                                                       const double viewportZ,
@@ -213,6 +247,7 @@ namespace caret {
          *    The top left corner of the text bounds.
          */
         virtual void getBoundsWithoutMarginForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                                   const DrawingFlags& flags,
                                                                    const double viewportX,
                                                                    const double viewportY,
                                                                    const double viewportZ,
@@ -251,6 +286,7 @@ namespace caret {
          *    The top left corner of the text bounds.
          */
         void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
+                                              const DrawingFlags& flags,
                                               const float viewportX,
                                               const float viewportY,
                                               const float viewportZ,
@@ -289,6 +325,7 @@ namespace caret {
          *    The top left corner of the text bounds.
          */
         void getBoundsWithoutMarginForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                           const DrawingFlags& flags,
                                                            const float viewportX,
                                                            const float viewportY,
                                                            const float viewportZ,

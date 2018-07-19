@@ -679,7 +679,8 @@ FtglFontTextRenderer::expandBox(float bottomLeft[3],
 void
 FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
                                                const double viewportY,
-                                               const AnnotationText& annotationText)
+                                               const AnnotationText& annotationText,
+                                               const DrawingFlags& flags)
 {
     setViewportHeight();
     
@@ -687,7 +688,8 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
                                      viewportX,
                                      viewportY,
                                      0.0,
-                                     annotationText);
+                                     annotationText,
+                                     flags);
 }
 
 /**
@@ -709,7 +711,8 @@ void
 FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
                                                const double viewportY,
                                                const double viewportZ,
-                                               const AnnotationText& annotationText)
+                                               const AnnotationText& annotationText,
+                                               const DrawingFlags& flags)
 {
     setViewportHeight();
     
@@ -717,7 +720,8 @@ FtglFontTextRenderer::drawTextAtViewportCoords(const double viewportX,
                                      viewportX,
                                      viewportY,
                                      viewportZ,
-                                     annotationText);
+                                     annotationText,
+                                     flags);
 }
 
 /**
@@ -741,7 +745,8 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
                                                        const double viewportX,
                                                        const double viewportY,
                                                        const double viewportZ,
-                                                       const AnnotationText& annotationText)
+                                                       const AnnotationText& annotationText,
+                                                       const DrawingFlags& flags)
 {
     if (annotationText.getText().isEmpty()) {
         return;
@@ -763,6 +768,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
     const double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidthPercentage());
     
     TextStringGroup tsg(annotationText,
+                        flags,
                         font,
                         viewportX,
                         viewportY,
@@ -805,6 +811,7 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
  */
 void
 FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                       const DrawingFlags& flags,
                                                        const double viewportX,
                                                        const double viewportY,
                                                        const double viewportZ,
@@ -833,6 +840,7 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
     double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidthPercentage());
     
     TextStringGroup textStringGroup(annotationText,
+                                    flags,
                                     font,
                                     viewportX,
                                     viewportY,
@@ -918,6 +926,7 @@ FtglFontTextRenderer::getBoundsForTextAtViewportCoords(const AnnotationText& ann
  */
 void
 FtglFontTextRenderer::getBoundsWithoutMarginForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                                    const DrawingFlags& flags,
                                                                     const double viewportX,
                                                                     const double viewportY,
                                                                     const double viewportZ,
@@ -946,6 +955,7 @@ FtglFontTextRenderer::getBoundsWithoutMarginForTextAtViewportCoords(const Annota
     double lineThicknessForViewportHeight = getLineWidthFromPercentageHeight(annotationText.getLineWidthPercentage());
     
     TextStringGroup textStringGroup(annotationText,
+                                    flags,
                                     font,
                                     viewportX,
                                     viewportY,
@@ -1094,6 +1104,7 @@ FtglFontTextRenderer::setViewportHeight()
  */
 void
 FtglFontTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                 const DrawingFlags& flags,
                                                  const double viewportWidth,
                                                  const double viewportHeight,
                                                  double& widthOut,
@@ -1114,11 +1125,11 @@ FtglFontTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotatio
         AnnotationText* textCopy = dynamic_cast<AnnotationText*>(annotation.get());
         CaretAssert(textCopy);
         textCopy->setRotationAngle(0.0);
-        getBoundsForTextAtViewportCoords(*textCopy, 0.0, 0.0, 0.0,
+        getBoundsForTextAtViewportCoords(*textCopy, flags, 0.0, 0.0, 0.0,
                                          viewportWidth, viewportHeight, bottomLeft, bottomRight, topRight, topLeft);
     }
     else {
-        getBoundsForTextAtViewportCoords(annotationText, 0.0, 0.0, 0.0,
+        getBoundsForTextAtViewportCoords(annotationText, flags, 0.0, 0.0, 0.0,
                                          viewportWidth, viewportHeight, bottomLeft, bottomRight, topRight, topLeft);
     }
     
@@ -1145,7 +1156,8 @@ void
 FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                                             const double modelY,
                                             const double modelZ,
-                                            const AnnotationText& annotationText)
+                                            const AnnotationText& annotationText,
+                                            const DrawingFlags& flags)
 {
     setViewportHeight();
     
@@ -1188,7 +1200,8 @@ FtglFontTextRenderer::drawTextAtModelCoords(const double modelX,
                                          x,
                                          y,
                                          windowZ,
-                                         annotationText);
+                                         annotationText,
+                                         flags);
         
     }
     else {
@@ -1821,6 +1834,7 @@ FtglFontTextRenderer::TextString::getTextBoundsInViewportCoordinates(double& vie
  *    Line thickness adjusted for viewport height.
  */
 FtglFontTextRenderer::TextStringGroup::TextStringGroup(const AnnotationText& annotationText,
+                                                       const DrawingFlags& flags,
                                                        FTFont* font,
                                                        const double viewportX,
                                                        const double viewportY,
@@ -1875,8 +1889,11 @@ m_viewportBoundsMaxY(0.0)
      * Each row (horizontal text) or column (vertical text) is
      * separated by a newline character
      */
-    QStringList textList = m_annotationText.getText().split('\n',
-                                                            QString::KeepEmptyParts);
+    QString textString = (flags.isDrawSubstitutedText()
+                          ? m_annotationText.getTextWithSubstitutionsApplied()
+                          : m_annotationText.getText());
+    QStringList textList = textString.split('\n',
+                                            QString::KeepEmptyParts);
     const int32_t textListSize = textList.size();
     
     for (int32_t i = 0; i < textListSize; i++) {

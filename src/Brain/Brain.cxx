@@ -27,6 +27,7 @@
 
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
+#include "AnnotationTextSubstitutionFile.h"
 #include "Border.h"
 #include "BorderFile.h"
 #include "BorderPointFromSearch.h"
@@ -56,6 +57,7 @@
 #include "CiftiParcelScalarFile.h"
 #include "CiftiScalarDataSeriesFile.h"
 #include "DisplayPropertiesAnnotation.h"
+#include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFoci.h"
@@ -155,6 +157,9 @@ Brain::Brain(const CaretPreferences* caretPreferences)
     m_displayPropertiesAnnotation = new DisplayPropertiesAnnotation(this);
     m_displayProperties.push_back(m_displayPropertiesAnnotation);
     
+    m_displayPropertiesAnnotationTextSubstitution = new DisplayPropertiesAnnotationTextSubstitution(this);
+    m_displayProperties.push_back(m_displayPropertiesAnnotationTextSubstitution);
+    
     m_displayPropertiesBorders = new DisplayPropertiesBorders();
     m_displayProperties.push_back(m_displayPropertiesBorders);
     
@@ -208,6 +213,10 @@ Brain::Brain(const CaretPreferences* caretPreferences)
     m_sceneAssistant->add("displayPropertiesAnnotation",
                           "DisplayPropertiesAnnotation",
                           m_displayPropertiesAnnotation);
+    
+    m_sceneAssistant->add("displayPropertiesAnnotationTextSubstitution",
+                          "DisplayPropertiesAnnotationTextSubstitution",
+                          m_displayPropertiesAnnotationTextSubstitution);
     
     m_sceneAssistant->add("displayPropertiesBorders", 
                           "DisplayPropertiesBorders", 
@@ -510,6 +519,11 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_annotationFiles.clear();
     
+    for (auto asf : m_annotationSubstitutionFiles) {
+        delete asf;
+    }
+    m_annotationSubstitutionFiles.clear();
+    
     m_sceneAnnotationFile->clear();
     //m_sceneAnnotationFile->setFileName("Scene Annotations");
     m_sceneAnnotationFile->clearModified();
@@ -767,6 +781,8 @@ Brain::resetBrainKeepSceneFiles()
         bool keepFileFlag = true;
         switch (dataFileType) {
             case DataFileTypeEnum::ANNOTATION:
+                break;
+            case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
                 break;
             case DataFileTypeEnum::BORDER:
                 break;
@@ -1648,6 +1664,86 @@ Brain::addReadOrReloadAnnotationFile(const FileModeAddReadReload fileMode,
         updateDataFileNameIfDuplicate(m_annotationFiles,
                                       af);
         m_annotationFiles.push_back(af);
+    }
+    
+    
+    return af;
+}
+
+/**
+ * Add, read, or reload an annotation substitution file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @return
+ *    File that was read.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+AnnotationTextSubstitutionFile*
+Brain::addReadOrReloadAnnotationTextSubstitutionFile(const FileModeAddReadReload fileMode,
+                                                 CaretDataFile* caretDataFile,
+                                                 const AString& filename)
+{
+    AnnotationTextSubstitutionFile* af = NULL;
+    if (caretDataFile != NULL) {
+        af = dynamic_cast<AnnotationTextSubstitutionFile*>(caretDataFile);
+        CaretAssert(af);
+    }
+    else {
+        af = new AnnotationTextSubstitutionFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                af->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+        }
+        catch (DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete af;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_annotationSubstitutionFiles,
+                                      af);
+        m_annotationSubstitutionFiles.push_back(af);
     }
     
     
@@ -4163,6 +4259,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     m_annotationFiles.push_back(file);
                 }
                     break;
+                case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+                {
+                    AnnotationTextSubstitutionFile* file = dynamic_cast<AnnotationTextSubstitutionFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_annotationSubstitutionFiles.push_back(file);
+                }
+                    break;
                 case DataFileTypeEnum::BORDER:
                 {
                     BorderFile* file = dynamic_cast<BorderFile*>(caretDataFile);
@@ -4424,6 +4527,18 @@ Brain::getSceneAnnotationFile() const
 {
     CaretAssert(m_sceneAnnotationFile);
     return m_sceneAnnotationFile;
+}
+
+/**
+ * Get the annotation substitution files.
+ *
+ * @param annSubFileOut
+ *     Output containing annotation substitution files.
+ */
+void
+Brain::getAnnotationTextSubstitutionFiles(std::vector<AnnotationTextSubstitutionFile*>& annSubFilesOut) const
+{
+    annSubFilesOut = m_annotationSubstitutionFiles;
 }
 
 /**
@@ -5083,6 +5198,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 caretDataFileRead = addReadOrReloadAnnotationFile(fileMode,
                                                                   caretDataFile,
                                                                   dataFileName);
+                break;
+            case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+                caretDataFileRead = addReadOrReloadAnnotationTextSubstitutionFile(fileMode,
+                                                                              caretDataFile,
+                                                                              dataFileName);
                 break;
             case DataFileTypeEnum::BORDER:
                 caretDataFileRead  = addReadOrReloadBorderFile(fileMode,
@@ -6278,6 +6398,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_annotationFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_annotationSubstitutionFiles.begin(),
+                           m_annotationSubstitutionFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_borderFiles.begin(),
                            m_borderFiles.end());
     
@@ -6533,6 +6657,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
     switch (dataFileType) {
         case DataFileTypeEnum::ANNOTATION:
             break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+            break;
         case DataFileTypeEnum::BORDER:
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
@@ -6671,6 +6797,14 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
     if (caretDataFile == m_sceneAnnotationFile) {
         m_sceneAnnotationFile->clear();
         m_sceneAnnotationFile->clearModified();
+        return true;
+    }
+    
+    auto annSubIter = std::find(m_annotationSubstitutionFiles.begin(),
+                                m_annotationSubstitutionFiles.end(),
+                                caretDataFile);
+    if (annSubIter != m_annotationSubstitutionFiles.end()) {
+        m_annotationSubstitutionFiles.erase(annSubIter);
         return true;
     }
     
@@ -6876,6 +7010,24 @@ const DisplayPropertiesAnnotation*
 Brain::getDisplayPropertiesAnnotation() const
 {
     return m_displayPropertiesAnnotation;
+}
+
+/**
+ * @return The annotation text substitution display properties.
+ */
+DisplayPropertiesAnnotationTextSubstitution*
+Brain::getDisplayPropertiesAnnotationTextSubstitution()
+{
+    return m_displayPropertiesAnnotationTextSubstitution;
+}
+
+/**
+ * @return The annotation text substitution display properties.
+ */
+const DisplayPropertiesAnnotationTextSubstitution*
+Brain::getDisplayPropertiesAnnotationTextSubstitution() const
+{
+    return m_displayPropertiesAnnotationTextSubstitution;
 }
 
 /**

@@ -62,6 +62,7 @@ CiftiFiberTrajectoryManager.h
 ClippingPlaneGroup.h
 DisplayProperties.h
 DisplayPropertiesAnnotation.h
+DisplayPropertiesAnnotationTextSubstitution.h
 DisplayPropertiesBorders.h
 DisplayPropertiesFiberOrientation.h
 DisplayPropertiesFoci.h
@@ -210,6 +211,7 @@ CiftiFiberTrajectoryManager.cxx
 ClippingPlaneGroup.cxx
 DisplayProperties.cxx
 DisplayPropertiesAnnotation.cxx
+DisplayPropertiesAnnotationTextSubstitution.cxx
 DisplayPropertiesBorders.cxx
 DisplayPropertiesFiberOrientation.cxx
 DisplayPropertiesFoci.cxx
@@ -338,6 +340,7 @@ ${CMAKE_SOURCE_DIR}/Graphics
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
+${CMAKE_SOURCE_DIR}/QxtCore
 ${CMAKE_SOURCE_DIR}/Scenes
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common

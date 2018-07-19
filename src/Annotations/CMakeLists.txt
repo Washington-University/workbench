@@ -65,6 +65,7 @@ EventAnnotationAddToRemoveFromFile.h
 EventAnnotationChartLabelGet.h
 EventAnnotationGroupGetWithKey.h
 EventAnnotationGrouping.h
+EventAnnotationTextSubstitutionGet.h
 
 Annotation.cxx
 AnnotationAlignmentEnum.cxx
@@ -107,6 +108,7 @@ EventAnnotationAddToRemoveFromFile.cxx
 EventAnnotationChartLabelGet.cxx
 EventAnnotationGroupGetWithKey.cxx
 EventAnnotationGrouping.cxx
+EventAnnotationTextSubstitutionGet.cxx
 )
 
 TARGET_LINK_LIBRARIES(Annotations ${CARET_QT5_LINK})

@@ -29,6 +29,7 @@
 
 #include "AnnotationFile.h"
 #include "AnnotationSelectionViewController.h"
+#include "AnnotationTextSubstitutionViewController.h"
 #include "BorderSelectionViewController.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -117,7 +118,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                   + "_"
                   + AString::number(browserWindowIndex));
     
+    m_annotationTabWidget              = NULL;
     m_annotationViewController         = NULL;
+    m_annotationTextSubstitutionViewController = NULL;
     m_borderSelectionViewController    = NULL;
     m_chartOverlaySetViewController    = NULL;
     m_chartToolBoxViewController       = NULL;
@@ -191,7 +194,13 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     if (isFeaturesToolBox) {
         m_annotationViewController = new AnnotationSelectionViewController(browserWindowIndex,
                                                                            this);
-        m_annotationTabIndex = addToTabWidget(m_annotationViewController,
+        m_annotationTextSubstitutionViewController = new AnnotationTextSubstitutionViewController(browserWindowIndex,
+                                                                                                  this);
+        
+        m_annotationTabWidget = new QTabWidget();
+        m_annotationTabWidget->addTab(m_annotationViewController, "Annotations");
+        m_annotationTabWidget->addTab(m_annotationTextSubstitutionViewController, "Substitutions");
+        m_annotationTabIndex = addToTabWidget(m_annotationTabWidget,
                                               "Annot");
     }
     if (isFeaturesToolBox) {
@@ -410,9 +419,17 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
     /*
      * Save controllers in the toolbox
      */
+    if (m_annotationTabWidget) {
+        sceneClass->addInteger("annotationSubTabWidgetIndex",
+                               m_annotationTabWidget->currentIndex());
+    }
     if (m_annotationViewController != NULL) {
         sceneClass->addClass(m_annotationViewController->saveToScene(sceneAttributes,
                                                                      "m_annotationViewController"));
+    }
+    if (m_annotationTextSubstitutionViewController != NULL) {
+        sceneClass->addClass(m_annotationTextSubstitutionViewController->saveToScene(sceneAttributes,
+                                                                                     "m_annotationTextSubstitutionViewController"));
     }
     if (m_borderSelectionViewController != NULL) {
         sceneClass->addClass(m_borderSelectionViewController->saveToScene(sceneAttributes,
@@ -475,9 +492,18 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
     /*
      * Restore controllers in the toolbox
      */
+    if (m_annotationTabWidget != NULL) {
+        const int32_t subTabIndex = sceneClass->getIntegerValue("annotationSubTabWidgetIndex", 0);
+        if (subTabIndex >= 0) {
+            m_annotationTabWidget->setCurrentIndex(subTabIndex);
+        }
+    }
     if (m_annotationViewController != NULL) {
         m_annotationViewController->restoreFromScene(sceneAttributes,
                                                      sceneClass->getClass("m_annotationViewController"));
+    }
+    if (m_annotationTextSubstitutionViewController != NULL) {
+        m_annotationTextSubstitutionViewController->restoreFromScene(sceneAttributes, sceneClass->getClass("m_annotationTextSubstitutionViewController"));
     }
     if (m_borderSelectionViewController != NULL) {
         m_borderSelectionViewController->restoreFromScene(sceneAttributes,
@@ -611,6 +637,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
             const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
             switch (dataFileType) {
                 case DataFileTypeEnum::ANNOTATION:
+                    haveAnnotation = true;
+                    break;
+                case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
                     haveAnnotation = true;
                     break;
                 case DataFileTypeEnum::BORDER:

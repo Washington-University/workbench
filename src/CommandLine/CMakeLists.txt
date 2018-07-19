@@ -102,6 +102,7 @@ Gifti
 Cifti
 Nifti
 Charting
+QxtCore
 FilesBase
 Scenes
 Xml

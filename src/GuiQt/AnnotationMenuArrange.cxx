@@ -31,6 +31,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "EventAnnotationGrouping.h"
 #include "EventGetBrainOpenGLTextRenderer.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -256,7 +257,11 @@ AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignm
         return;
     }
     
+    DisplayPropertiesAnnotationTextSubstitution* dpats = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotationTextSubstitution();
+    BrainOpenGLTextRenderInterface::DrawingFlags drawingFlags;
+    drawingFlags.setDrawSubstitutedText(dpats->isEnableSubstitutions());
     AnnotationArrangerInputs alignMod(textRenderer,
+                                      drawingFlags,
                                      m_browserWindowIndex);
     
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
@@ -290,7 +295,11 @@ AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum dist
         return;
     }
     
+    DisplayPropertiesAnnotationTextSubstitution* dpats = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotationTextSubstitution();
+    BrainOpenGLTextRenderInterface::DrawingFlags drawingFlags;
+    drawingFlags.setDrawSubstitutedText(dpats->isEnableSubstitutions());
     AnnotationArrangerInputs distributeMod(textRenderer,
+                                           drawingFlags,
                                            m_browserWindowIndex);
     
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();

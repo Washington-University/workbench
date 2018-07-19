@@ -126,6 +126,13 @@ DataFileTypeEnum::initialize()
                                         "annot",
                                         "wb_annot"));
     
+    enumData.push_back(DataFileTypeEnum(ANNOTATION_TEXT_SUBSTITUTION,
+                                        "ANNOTATION_TEXT_SUBSTITUTION",
+                                        "Annotation Text Substitution",
+                                        "ANNOTATION TEXT SUBSTITUTION",
+                                        false,
+                                        "wb_annsub.csv"));
+    
     enumData.push_back(DataFileTypeEnum(BORDER,
                                         "BORDER", 
                                         "Border",

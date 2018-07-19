@@ -134,6 +134,7 @@ Palette
 Cifti
 Gifti
 Nifti
+QxtCore
 FilesBase
 Scenes
 Xml

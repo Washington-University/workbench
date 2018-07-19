@@ -49,6 +49,7 @@
 #include "CaretLogger.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesAnnotation.h"
+#include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
@@ -393,6 +394,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
     bool boundsValid = false;
     if (textFlag) {
         m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*textAnnotation,
+                                                                                        m_textDrawingFlags,
                                                                                    windowXYZ[0], windowXYZ[1], windowXYZ[2],
                                                                                     viewportWidth, viewportHeight,
                                                                                    bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
@@ -571,6 +573,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                                               : NULL);
     
     bool drawAnnotationsFromFilesFlag = true;
+    
+    const DisplayPropertiesAnnotationTextSubstitution* dpats = m_inputs->m_brain->getDisplayPropertiesAnnotationTextSubstitution();
+    m_textDrawingFlags.setDrawSubstitutedText(dpats->isEnableSubstitutions());
     
     bool haveDisplayGroupFlag = true;
     switch (drawingCoordinateSpace) {
@@ -1833,6 +1838,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::estimateColorBarWidth(const Annotatio
                 float textTopRight[3];
                 float textTopLeft[3];
                 m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsWithoutMarginForTextAtViewportCoords(annText,
+                                                                                                             m_textDrawingFlags,
                                                                                                 windowX, windowY, windowZ,
                                                                                                 viewportWidth, viewportHeight,
                                                                                                 textBottomLeft, textBottomRight, textTopRight, textTopLeft);
@@ -1857,6 +1863,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::estimateColorBarWidth(const Annotatio
         float textTopRight[3];
         float textTopLeft[3];
         m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(annText,
+                                                                                        m_textDrawingFlags,
                                                                                         windowX, windowY, windowZ,
                                                                                         viewportWidth, viewportHeight,
                                                                                         textBottomLeft, textBottomRight, textTopRight, textTopLeft);
@@ -2013,7 +2020,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
         m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowX,
                                                                                 windowY,
                                                                                 windowZ,
-                                                                                annText);
+                                                                                annText,
+                                                                                m_textDrawingFlags);
         
         if (annText.isFontTooSmallWhenLastDrawn()) {
             fontTooSmallFlag = true;
@@ -2417,6 +2425,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     const bool modifiedStatus = text->isModified();
     
     m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*text,
+                                                                                    m_textDrawingFlags,
                                                                                     annXYZ[0], annXYZ[1], annXYZ[2],
                                                                                     m_modelSpaceViewport[2], m_modelSpaceViewport[3],
                                                                                     bottomLeft, bottomRight, topRight, topLeft);
@@ -2500,7 +2509,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                     m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(annXYZ[0],
                                                                                             annXYZ[1],
                                                                                             annXYZ[2],
-                                                                                            *text);
+                                                                                            *text,
+                                                                                            m_textDrawingFlags);
                     drawnFlag = true;
                 }
                 else {
@@ -2524,7 +2534,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                     else {
                         m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(annXYZ[0],
                                                                                            annXYZ[1],
-                                                                                           *text);
+                                                                                           *text,
+                                                                                                m_textDrawingFlags);
                         drawnFlag = true;
                     }
                 }

@@ -351,6 +351,7 @@ ChartTwoOverlayViewController::mapRowOrColumnIndexSpinBoxValueChanged(int indxIn
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
+                                               NULL,
                                                indx,
                                                m_chartOverlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -403,6 +404,7 @@ ChartTwoOverlayViewController::mapRowOrColumnNameComboBoxSelected(int indx)
     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                file,
+                                               NULL,
                                                indx,
                                                m_chartOverlay->isEnabled());
         EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -453,6 +455,7 @@ ChartTwoOverlayViewController::enabledCheckBoxClicked(bool checked)
         if (selectedIndexType == ChartTwoOverlay::SelectedIndexType::MAP) {
             EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                    mapFile,
+                                                   NULL,
                                                    selectedIndex,
                                                    m_chartOverlay->isEnabled());
             EventManager::get()->sendEvent(selectMapEvent.getPointer());

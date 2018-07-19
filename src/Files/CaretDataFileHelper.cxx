@@ -24,6 +24,7 @@
 #undef __CARET_DATA_FILE_HELPER_DECLARE__
 
 #include "AnnotationFile.h"
+#include "AnnotationTextSubstitutionFile.h"
 #include "BorderFile.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -306,6 +307,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
     switch (dataFileType) {
         case DataFileTypeEnum::ANNOTATION:
             caretDataFile = new AnnotationFile();
+            break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+            caretDataFile = new AnnotationTextSubstitutionFile();
             break;
         case DataFileTypeEnum::BORDER:
             caretDataFile = new BorderFile();

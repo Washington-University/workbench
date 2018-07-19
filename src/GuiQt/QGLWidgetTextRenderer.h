@@ -47,24 +47,29 @@ namespace caret {
         virtual void drawTextAtViewportCoords(const double viewportX,
                                               const double viewportY,
                                               const double viewportZ,
-                                              const AnnotationText& annotationText);
+                                              const AnnotationText& annotationText,
+                                              const BrainOpenGLTextRenderInterface::DrawingFlags& flags) override;
         
         virtual void drawTextAtViewportCoords(const double viewportX,
                                               const double viewportY,
-                                              const AnnotationText& annotationText);
+                                              const AnnotationText& annotationText,
+                                              const BrainOpenGLTextRenderInterface::DrawingFlags& flags) override;
         
         virtual void drawTextAtModelCoords(const double modelX,
                                            const double modelY,
                                            const double modelZ,
-                                           const AnnotationText& annotationText);
+                                           const AnnotationText& annotationText,
+                                           const BrainOpenGLTextRenderInterface::DrawingFlags& flags) override;
         
         virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
+                                                const BrainOpenGLTextRenderInterface::DrawingFlags& flags,
                                                 const double viewportWidth,
                                                 const double viewportHeight,
                                                 double& widthOut,
-                                                double& heightOut);
+                                                double& heightOut) override;
         
         virtual void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                      const BrainOpenGLTextRenderInterface::DrawingFlags& flags,
                                                       const double viewportX,
                                                       const double viewportY,
                                                       const double viewportZ,
@@ -73,9 +78,10 @@ namespace caret {
                                                       double bottomLeftOut[3],
                                                       double bottomRightOut[3],
                                                       double topRightOut[3],
-                                                      double topLeftOut[3]);
+                                                      double topLeftOut[3]) override;
         
         virtual void getBoundsWithoutMarginForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                                   const BrainOpenGLTextRenderInterface::DrawingFlags& flags,
                                                                    const double viewportX,
                                                                    const double viewportY,
                                                                    const double viewportZ,
@@ -129,6 +135,7 @@ namespace caret {
                         const bool creatingDefaultFontFlag);
         
         void getVerticalTextCharInfo(const AnnotationText& annotationText,
+                                     const BrainOpenGLTextRenderInterface::DrawingFlags& flags,
                                      double& xMinOut,
                                      double& xMaxOut,
                                      double& heightOut,
@@ -136,11 +143,13 @@ namespace caret {
         
         void drawHorizontalTextAtWindowCoords(const double windowX,
                                               const double windowY,
-                                              const AnnotationText& annotationText);
+                                              const AnnotationText& annotationText,
+                                              const BrainOpenGLTextRenderInterface::DrawingFlags& flags);
         
         void drawVerticalTextAtWindowCoords(const double windowX,
                                             const double windowY,
-                                            const AnnotationText& annotationText);
+                                            const AnnotationText& annotationText,
+                                            const BrainOpenGLTextRenderInterface::DrawingFlags& flags);
         
         void applyForegroundColoring(const AnnotationText& annotationText);
         

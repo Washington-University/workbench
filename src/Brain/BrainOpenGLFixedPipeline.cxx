@@ -6640,7 +6640,8 @@ BrainOpenGLFixedPipeline::drawTextAtViewportCoords(const double viewportX,
     if (getTextRenderer() != NULL) {
         getTextRenderer()->drawTextAtViewportCoords(viewportX,
                                                      viewportY,
-                                                     annotationText);
+                                                     annotationText,
+                                                    BrainOpenGLTextRenderInterface::DrawingFlags());
     }
 }
 
@@ -6669,7 +6670,8 @@ BrainOpenGLFixedPipeline::drawTextAtModelCoords(const double modelX,
         getTextRenderer()->drawTextAtModelCoords(modelX,
                                                   modelY,
                                                   modelZ,
-                                                  annotationText);
+                                                  annotationText,
+                                                 BrainOpenGLTextRenderInterface::DrawingFlags());
     }
 }
 
@@ -6688,7 +6690,8 @@ BrainOpenGLFixedPipeline::drawTextAtModelCoords(const double modelXYZ[3],
 {
     if (getTextRenderer() != NULL) {
         getTextRenderer()->drawTextAtModelCoords(modelXYZ,
-                                                  annotationText);
+                                                  annotationText,
+                                                 BrainOpenGLTextRenderInterface::DrawingFlags());
     }
 }
 
@@ -6707,7 +6710,8 @@ BrainOpenGLFixedPipeline::drawTextAtModelCoords(const float modelXYZ[3],
 {
     if (getTextRenderer() != NULL) {
         getTextRenderer()->drawTextAtModelCoords(modelXYZ,
-                                                  annotationText);
+                                                  annotationText,
+                                                 BrainOpenGLTextRenderInterface::DrawingFlags());
     }
 }
 

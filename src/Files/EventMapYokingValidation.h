@@ -29,6 +29,7 @@
 
 namespace caret {
 
+    class AnnotationTextSubstitutionFile;
     class CaretMappableDataFile;
     
     class EventMapYokingValidation : public Event {
@@ -42,12 +43,16 @@ namespace caret {
                              const MapYokingGroupEnum::Enum mapYokingGroup,
                              const int32_t tabIndex);
         
+        void addAnnotationTextSubstitutionFile(const AnnotationTextSubstitutionFile* annTextSubFile,
+                                               const MapYokingGroupEnum::Enum mapYokingGroup);
+        
         void addMapYokedFileAllTabs(const CaretMappableDataFile* caretMapFile,
                                     const MapYokingGroupEnum::Enum* mapYokingGroupsForAllTabs);
         
         MapYokingGroupEnum::Enum getMapYokingGroup() const;
         
-        bool validateCompatibility(const CaretMappableDataFile* caretMapFile,
+        bool validateCompatibility(const AnnotationTextSubstitutionFile* annTextSubFile,
+                                   const CaretMappableDataFile* caretMapFile,
                                    int32_t& numberOfYokedFilesOut,
                                    AString& messageOut) const;
         
@@ -56,9 +61,12 @@ namespace caret {
     private:
         class YokedFileInfo {
         public:
-            YokedFileInfo(const CaretMappableDataFile* caretMapFile,
+            YokedFileInfo(const AnnotationTextSubstitutionFile* annTextSubFile,
+                          const CaretMappableDataFile* caretMapFile,
                           const int32_t tabIndex);
 
+            const AnnotationTextSubstitutionFile* m_annTextSubFile;
+            
             const CaretMappableDataFile* m_mapFile;
             
             const int32_t m_tabIndex;

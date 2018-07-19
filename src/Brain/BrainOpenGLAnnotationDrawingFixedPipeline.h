@@ -27,6 +27,7 @@
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSizingHandleTypeEnum.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLTextRenderInterface.h"
 #include "CaretObject.h"
 #include "CaretOpenGLInclude.h"
 #include "Plane.h"
@@ -352,6 +353,8 @@ namespace caret {
         uint8_t m_selectionBoxRGBA[4];
         
         float m_lineWidthMinimum = 1.0f;
+        
+        BrainOpenGLTextRenderInterface::DrawingFlags m_textDrawingFlags;
         
         std::unique_ptr<EventOpenGLObjectToWindowTransform> m_transformEvent;
         

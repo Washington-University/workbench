@@ -79,6 +79,7 @@ BrainOpenGLTextRenderInterface::~BrainOpenGLTextRenderInterface()
  */
 void
 BrainOpenGLTextRenderInterface::getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                                 const DrawingFlags& flags,
                                                                  const float viewportX,
                                                                  const float viewportY,
                                                                  const float viewportZ,
@@ -95,6 +96,7 @@ BrainOpenGLTextRenderInterface::getBoundsForTextAtViewportCoords(const Annotatio
     double topLeft[3];
     
     getBoundsForTextAtViewportCoords(annotationText,
+                                     flags,
                                      viewportX,
                                      viewportY,
                                      viewportZ,
@@ -142,6 +144,7 @@ BrainOpenGLTextRenderInterface::getBoundsForTextAtViewportCoords(const Annotatio
  */
 void
 BrainOpenGLTextRenderInterface::getBoundsWithoutMarginForTextAtViewportCoords(const AnnotationText& annotationText,
+                                                                              const DrawingFlags& flags,
                                                                  const float viewportX,
                                                                  const float viewportY,
                                                                  const float viewportZ,
@@ -158,15 +161,16 @@ BrainOpenGLTextRenderInterface::getBoundsWithoutMarginForTextAtViewportCoords(co
     double topLeft[3];
     
     getBoundsWithoutMarginForTextAtViewportCoords(annotationText,
-                                     viewportX,
-                                     viewportY,
-                                     viewportZ,
-                                     viewportWidth,
-                                     viewportHeight,
-                                     bottomLeft,
-                                     bottomRight,
-                                     topRight,
-                                     topLeft);
+                                                  flags,
+                                                  viewportX,
+                                                  viewportY,
+                                                  viewportZ,
+                                                  viewportWidth,
+                                                  viewportHeight,
+                                                  bottomLeft,
+                                                  bottomRight,
+                                                  topRight,
+                                                  topLeft);
     
     for (int32_t i = 0; i < 3; i++) {
         bottomLeftOut[i]  = bottomLeft[i];

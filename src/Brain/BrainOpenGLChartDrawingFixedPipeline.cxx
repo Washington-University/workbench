@@ -594,7 +594,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             textRenderer->drawTextAtViewportCoords(textX,
                                                    textY,
                                                    0.0,
-                                                   annotationText);
+                                                   annotationText,
+                                                   BrainOpenGLTextRenderInterface::DrawingFlags());
         }
         
         const AString axisText = axis->getText();
@@ -637,7 +638,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 textRenderer->drawTextAtViewportCoords(axisTextCenterX,
                                                        axisTextCenterY,
                                                        0.0,
-                                                       annotationText);
+                                                       annotationText,
+                                                       BrainOpenGLTextRenderInterface::DrawingFlags());
             }
             else {
                 annotationText.setOrientation(AnnotationTextOrientationEnum::HORIZONTAL);
@@ -645,7 +647,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 textRenderer->drawTextAtViewportCoords(axisTextCenterX,
                                                        axisTextCenterY,
                                                        0.0,
-                                                       annotationText);
+                                                       annotationText,
+                                                       BrainOpenGLTextRenderInterface::DrawingFlags());
             }
         }
     }
@@ -705,7 +708,9 @@ BrainOpenGLChartDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeig
             annotationText.setText(text);
             double textWidth = 0.0;
             double textHeight = 0.0;
-            textRenderer->getTextWidthHeightInPixels(annotationText, viewportWidth, viewportHeight, textWidth, textHeight);
+            textRenderer->getTextWidthHeightInPixels(annotationText,
+                                                     BrainOpenGLTextRenderInterface::DrawingFlags(),
+                                                     viewportWidth, viewportHeight, textWidth, textHeight);
             
             widthOut  = std::max(widthOut,  textWidth);
             heightOut = std::max(heightOut, textHeight);

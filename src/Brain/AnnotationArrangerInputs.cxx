@@ -45,9 +45,11 @@ using namespace caret;
  *     Index of window in which annotations are aligned.
  */
 AnnotationArrangerInputs::AnnotationArrangerInputs(BrainOpenGLTextRenderInterface* textRenderInterface,
-                                                                 const int32_t windowIndex)
+                                                   const BrainOpenGLTextRenderInterface::DrawingFlags& drawingFlags,
+                                                   const int32_t windowIndex)
 : CaretObject(),
 m_textRenderInterface(textRenderInterface),
+m_drawingFlags(drawingFlags),
 m_windowIndex(windowIndex)
 {
 }
@@ -67,6 +69,16 @@ AnnotationArrangerInputs::getTextRender() const
 {
     return m_textRenderInterface;
 }
+
+/**
+ * @return Reference to the drawing flags.
+ */
+const BrainOpenGLTextRenderInterface::DrawingFlags&
+AnnotationArrangerInputs::getDrawingFlags() const
+{
+    return m_drawingFlags;
+}
+
 
 
 /**

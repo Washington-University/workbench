@@ -21,22 +21,23 @@
  */
 /*LICENSE_END*/
 
-
+#include "BrainOpenGLTextRenderInterface.h"
 #include "CaretObject.h"
 
 namespace caret {
 
-    class BrainOpenGLTextRenderInterface;
-    
     class AnnotationArrangerInputs : public CaretObject {
         
     public:
         AnnotationArrangerInputs(BrainOpenGLTextRenderInterface* textRenderInterface,
-                                        const int32_t windowIndex);
+                                 const BrainOpenGLTextRenderInterface::DrawingFlags& drawingFlags,
+                                 const int32_t windowIndex);
         
         virtual ~AnnotationArrangerInputs();
 
         BrainOpenGLTextRenderInterface* getTextRender() const;
+        
+        const BrainOpenGLTextRenderInterface::DrawingFlags& getDrawingFlags() const;
         
         int32_t getWindowIndex() const;
         
@@ -51,6 +52,7 @@ namespace caret {
         
         BrainOpenGLTextRenderInterface* m_textRenderInterface;
         
+        const BrainOpenGLTextRenderInterface::DrawingFlags& m_drawingFlags;
         const int32_t m_windowIndex;
         
         // ADD_NEW_MEMBERS_HERE

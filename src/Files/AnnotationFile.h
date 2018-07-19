@@ -77,7 +77,7 @@ namespace caret {
 
         AnnotationFile& operator=(const AnnotationFile& obj);
 
-        bool isEmpty() const;
+        virtual bool isEmpty() const override;
 
         virtual void clear();
         

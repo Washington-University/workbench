@@ -38,6 +38,7 @@
 
 namespace caret {
     class AnnotationFile;
+    class AnnotationTextSubstitutionFile;
     class AnnotationManager;
     class Border;
     class BorderFile;
@@ -69,6 +70,7 @@ namespace caret {
     class CiftiScalarDataSeriesFile;
     class DisplayProperties;
     class DisplayPropertiesAnnotation;
+    class DisplayPropertiesAnnotationTextSubstitution;
     class DisplayPropertiesBorders;
     class DisplayPropertiesFiberOrientation;
     class DisplayPropertiesFoci;
@@ -136,6 +138,8 @@ namespace caret {
         AnnotationFile* getSceneAnnotationFile();
         
         const AnnotationFile* getSceneAnnotationFile() const;
+        
+        void getAnnotationTextSubstitutionFiles(std::vector<AnnotationTextSubstitutionFile*>& annSubFilesOut) const;
         
         int32_t getNumberOfFociFiles() const;
         
@@ -370,6 +374,10 @@ namespace caret {
         DisplayPropertiesAnnotation* getDisplayPropertiesAnnotation();
         
         const DisplayPropertiesAnnotation* getDisplayPropertiesAnnotation() const;
+        
+        DisplayPropertiesAnnotationTextSubstitution* getDisplayPropertiesAnnotationTextSubstitution();
+        
+        const DisplayPropertiesAnnotationTextSubstitution* getDisplayPropertiesAnnotationTextSubstitution() const;
         
         DisplayPropertiesBorders* getDisplayPropertiesBorders();
         
@@ -619,6 +627,10 @@ namespace caret {
                                    CaretDataFile* caretDataFile,
                                    const AString& filename);
         
+        AnnotationTextSubstitutionFile* addReadOrReloadAnnotationTextSubstitutionFile(const FileModeAddReadReload fileMode,
+                                                                              CaretDataFile* caretDataFile,
+                                                                              const AString& filename);
+        
         BorderFile* addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
                                               CaretDataFile* caretDataFile,
                                               const AString& filename);
@@ -719,6 +731,8 @@ namespace caret {
         
         AnnotationFile* m_sceneAnnotationFile;
         
+        std::vector<AnnotationTextSubstitutionFile*> m_annotationSubstitutionFiles;
+        
         std::vector<BorderFile*> m_borderFiles;
         
         std::vector<FociFile*> m_fociFiles;
@@ -809,6 +823,12 @@ namespace caret {
          * is also in the displayProperties std::vector.
          */
         DisplayPropertiesAnnotation* m_displayPropertiesAnnotation;
+        
+        /**
+         * Display properties for annotation text substitutions - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesAnnotationTextSubstitution* m_displayPropertiesAnnotationTextSubstitution;
         
         /**
          * Display properties for borders - DO NOT delete since this

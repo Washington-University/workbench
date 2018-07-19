@@ -37,6 +37,8 @@ public:
     enum Enum {
         /** Annotation */
         ANNOTATION,
+        /** Annotation Text Substitution */
+        ANNOTATION_TEXT_SUBSTITUTION,
         /** Border */
         BORDER,
         /** Connectivity - Dense */

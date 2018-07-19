@@ -222,6 +222,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MULTI_MAP;
             break;
         case DataFileTypeEnum::ANNOTATION:
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
         case DataFileTypeEnum::BORDER:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -782,6 +783,7 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
             expectedAlongRowMapType = CiftiMappingType::SERIES;
             break;
         case DataFileTypeEnum::ANNOTATION:
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
         case DataFileTypeEnum::BORDER:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
@@ -1869,6 +1871,8 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
             useMatrixFileHelperFlag = true;
             break;
         case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
             break;
         case DataFileTypeEnum::BORDER:
             break;
@@ -4573,6 +4577,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
     bool useSeriesData = false;
     switch (getDataFileType()) {
         case DataFileTypeEnum::ANNOTATION:
+            CaretAssert(0);
+            break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
             CaretAssert(0);
             break;
         case DataFileTypeEnum::BORDER:

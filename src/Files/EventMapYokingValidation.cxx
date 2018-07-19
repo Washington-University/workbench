@@ -25,6 +25,7 @@
 #include "EventMapYokingValidation.h"
 #undef __EVENT_MAP_YOKING_VALIDATION_DECLARE__
 
+#include "AnnotationTextSubstitutionFile.h"
 #include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
@@ -102,9 +103,39 @@ EventMapYokingValidation::addMapYokedFile(const CaretMappableDataFile* caretMapF
         return;
     }
  
-    m_yokedFileInfo.insert(YokedFileInfo(caretMapFile,
+    m_yokedFileInfo.insert(YokedFileInfo(NULL,
+                                         caretMapFile,
                                          tabIndex));
 }
+
+/**
+ * Add a annotation text substitution file, if it is yoked to the same yoking group, 
+ * so that it may be used in the compatibility test.
+ *
+ * @param annTextSubFile
+ *     The annotation text substitution file.
+ * @param mapYokingGroup
+ *     Yoking group status of the file
+ */
+void
+EventMapYokingValidation::addAnnotationTextSubstitutionFile(const AnnotationTextSubstitutionFile* annTextSubFile,
+                                                            const MapYokingGroupEnum::Enum mapYokingGroup)
+{
+    CaretAssert(annTextSubFile);
+    
+    if (mapYokingGroup == MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    if (mapYokingGroup != m_mapYokingGroup) {
+        return;
+    }
+    
+    m_yokedFileInfo.insert(YokedFileInfo(annTextSubFile,
+                                         NULL,
+                                         -1));
+}
+
 
 /**
  * Add a map file, if it is yoked to the same yoking group, so that it
@@ -137,7 +168,8 @@ EventMapYokingValidation::addMapYokedFileAllTabs(const CaretMappableDataFile* ca
             continue;
         }
         
-        m_yokedFileInfo.insert(YokedFileInfo(caretMapFile,
+        m_yokedFileInfo.insert(YokedFileInfo(NULL,
+                                             caretMapFile,
                                              iTab));
     }
 }
@@ -154,6 +186,8 @@ EventMapYokingValidation::getMapYokingGroup() const
 /**
  * Validate the file for compatibility.
  *
+ * @param annTextSubFile
+ *     The annotation text substitution file.
  * @param caretMapFile
  *     The map file.
  * @param numberOfYokedFilesOut
@@ -165,16 +199,32 @@ EventMapYokingValidation::getMapYokingGroup() const
  *     True if new file is compatible with any existing yoked files, else false.
  */
 bool
-EventMapYokingValidation::validateCompatibility(const CaretMappableDataFile* caretMapFile,
+EventMapYokingValidation::validateCompatibility(const AnnotationTextSubstitutionFile* annTextSubFile,
+                                                const CaretMappableDataFile* caretMapFile,
                                                 int32_t& numberOfYokedFilesOut,
                                                 AString& messageOut) const
 {
     numberOfYokedFilesOut = 0;
     messageOut = "";
-    
-    CaretAssert(caretMapFile);
-    
-    const int32_t numberOfMaps = caretMapFile->getNumberOfMaps();
+ 
+    AString filename;
+    int32_t numberOfMaps = 0;
+    AString message;
+    if (annTextSubFile != NULL) {
+        filename     = annTextSubFile->getFileNameNoPath();
+        numberOfMaps = annTextSubFile->getNumberOfValues();
+        message = (AString::number(numberOfMaps)
+                   + " substitution values in ");
+    }
+    else if (caretMapFile != NULL) {
+        filename     = caretMapFile->getFileNameNoPath();
+        numberOfMaps = caretMapFile->getNumberOfMaps();
+        message = (AString::number(numberOfMaps)
+                   + " maps in ");
+    }
+    else {
+        CaretAssert(0);
+    }
     
     for (std::set<YokedFileInfo>::const_iterator iter = m_yokedFileInfo.begin();
          iter != m_yokedFileInfo.end();
@@ -191,10 +241,9 @@ EventMapYokingValidation::validateCompatibility(const CaretMappableDataFile* car
         return true;
     }
     
-    const AString fileInfo("Incompatible number of map for yoking:\n"
-                           + AString::number(numberOfMaps)
-                           + " in "
-                           + caretMapFile->getFileNameNoPath()
+    const AString fileInfo("Incompatibilities for yoking:\n"
+                           + message
+                           + filename
                            + "\n\n");
     messageOut.insert(0, fileInfo);
                            
@@ -204,23 +253,37 @@ EventMapYokingValidation::validateCompatibility(const CaretMappableDataFile* car
 /**
  * Constructor for yoked file information.
  *
+ * @param annTextSubFile
+ *     The annotation text substitution file.
  * @param caretMapFile
  *     The map file.
  * @param tabIndex
  *     Index of tab in which the file is displayed.
  */
-EventMapYokingValidation::YokedFileInfo::YokedFileInfo(const CaretMappableDataFile* caretMapFile,
+EventMapYokingValidation::YokedFileInfo::YokedFileInfo(const AnnotationTextSubstitutionFile* annTextSubFile,
+                                                       const CaretMappableDataFile* caretMapFile,
                                                        const int32_t tabIndex)
-: m_mapFile(caretMapFile),
+: m_annTextSubFile(annTextSubFile),
+m_mapFile(caretMapFile),
 m_tabIndex(tabIndex)
 {
-    CaretAssert(caretMapFile);
-    
-    m_numberOfMaps = caretMapFile->getNumberOfMaps();
-    
-    m_infoText = (AString::number(m_numberOfMaps)
-                  + " maps in tab "
-                  + AString::number(tabIndex + 1)
-                  + " file: "
-                  + caretMapFile->getFileNameNoPath());
+    if (m_annTextSubFile != NULL) {
+        m_numberOfMaps = annTextSubFile->getNumberOfValues();
+        
+        m_infoText = (AString::number(m_numberOfMaps)
+                      + " substitution values in "
+                      + m_annTextSubFile->getFileNameNoPath());
+    }
+    else if (m_mapFile != NULL) {
+        m_numberOfMaps = caretMapFile->getNumberOfMaps();
+        
+        m_infoText = (AString::number(m_numberOfMaps)
+                      + " maps in tab "
+                      + AString::number(tabIndex + 1)
+                      + " file: "
+                      + caretMapFile->getFileNameNoPath());
+    }
+    else {
+        CaretAssert(0);
+    }
 }

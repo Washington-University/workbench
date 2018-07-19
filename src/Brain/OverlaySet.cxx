@@ -1342,7 +1342,10 @@ OverlaySet::receiveEvent(Event* event)
                         }
                         
                         if (mapFile == eventMapFile) {
-                            overlay->setEnabled(yokingGroupSelectedStatus);
+                            /* only alter status if event was sent by mappable file */
+                            if (selectMapEvent->getCaretMappableDataFile() != NULL) {
+                                overlay->setEnabled(yokingGroupSelectedStatus);
+                            }
                         }
                     }
                 }

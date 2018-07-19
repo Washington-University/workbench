@@ -32,6 +32,7 @@ class QTabWidget;
 
 namespace caret {
     class AnnotationSelectionViewController;
+    class AnnotationTextSubstitutionViewController;
     class BorderSelectionViewController;
     class ChartTwoOverlaySetViewController;
     class ChartToolBoxViewController;
@@ -91,6 +92,8 @@ namespace caret {
         
         AnnotationSelectionViewController* m_annotationViewController;
         
+        AnnotationTextSubstitutionViewController* m_annotationTextSubstitutionViewController;
+        
         BorderSelectionViewController* m_borderSelectionViewController;
 
         ChartTwoOverlaySetViewController* m_chartOverlaySetViewController;
@@ -110,6 +113,8 @@ namespace caret {
         VolumeSurfaceOutlineSetViewController* m_volumeSurfaceOutlineSetViewController;
         
         WuQTabWidgetWithSizeHint* m_tabWidget;
+        
+        QTabWidget* m_annotationTabWidget;
         
         QString m_toolBoxTitle;
         

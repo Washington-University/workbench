@@ -2881,6 +2881,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                         if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
                             EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                                    scalarDataSeriesFile,
+                                                                   NULL,
                                                                    rowIndex,
                                                                    true);
                             EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -2962,6 +2963,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                             if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
                                     EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                                            cmdf,
+                                                                           NULL,
                                                                            rowColumnIndex,
                                                                            true);
                                     EventManager::get()->sendEvent(selectMapEvent.getPointer());
@@ -3034,6 +3036,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                     if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
                                         EventMapYokingSelectMap selectMapEvent(mapYoking,
                                                                                scalarDataSeriesFile,
+                                                                               NULL,
                                                                                rowIndex,
                                                                                true);
                                         EventManager::get()->sendEvent(selectMapEvent.getPointer());

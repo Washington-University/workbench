@@ -109,6 +109,7 @@ Graphics
 Cifti
 Gifti
 Nifti
+QxtCore
 FilesBase
 Charting
 Palette

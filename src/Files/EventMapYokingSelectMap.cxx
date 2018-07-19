@@ -39,24 +39,30 @@ using namespace caret;
 /**
  * Constructor for change in map yoking.
  *
- * @param caretMappableDataFile
- *    Caret mappable file that is causing this event.
  * @param mapYokingGroup
  *    Map yoking group that has a status change (selected map or enabled status)
+ * @param caretMappableDataFile
+ *    Caret mappable file that is causing this event.
+ * @param mapIndex
+ *    Index of map selected.
+ * @param selectionStatus
+ *    Status of selection.
  */
 EventMapYokingSelectMap::EventMapYokingSelectMap(const MapYokingGroupEnum::Enum mapYokingGroup,
                                                  const CaretMappableDataFile* caretMappableDataFile,
+                                                 const AnnotationTextSubstitutionFile* annotationTextSubstitutionFile,
                                                  const int32_t mapIndex,
-                                                 const bool selectionStatus)
+                                                 const bool mapOverlaySelectionStatus)
 : Event(EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP),
 m_mapYokingGroup(mapYokingGroup),
 m_caretMappableDataFile(caretMappableDataFile),
+m_annotationTextSubstitutionFile(annotationTextSubstitutionFile),
 m_mapIndex(mapIndex),
-m_selectionStatus(selectionStatus)
+m_selectionStatus(mapOverlaySelectionStatus)
 {
     if (mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         MapYokingGroupEnum::setSelectedMapIndex(mapYokingGroup, mapIndex);
-        MapYokingGroupEnum::setEnabled(mapYokingGroup, selectionStatus);
+        MapYokingGroupEnum::setEnabled(mapYokingGroup, mapOverlaySelectionStatus);
     }
 }
 
@@ -85,6 +91,17 @@ EventMapYokingSelectMap::getCaretMappableDataFile() const
 {
     return m_caretMappableDataFile;
 }
+
+/**
+ * @return Annotation text substitution file for which event was issued.
+ * Might be NULL.
+ */
+const AnnotationTextSubstitutionFile*
+EventMapYokingSelectMap::getAnnotationTextSubstitutionFile() const
+{
+    return m_annotationTextSubstitutionFile;
+}
+
 
 /**
  * @return Map index selected.

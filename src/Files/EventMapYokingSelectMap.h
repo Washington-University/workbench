@@ -27,6 +27,7 @@
 
 namespace caret {
 
+    class AnnotationTextSubstitutionFile;
     class CaretMappableDataFile;
     
     class EventMapYokingSelectMap : public Event {
@@ -34,6 +35,7 @@ namespace caret {
     public:
         EventMapYokingSelectMap(const MapYokingGroupEnum::Enum mapYokingGroup,
                                 const CaretMappableDataFile* caretMappableDataFile,
+                                const AnnotationTextSubstitutionFile* annotationTextSubstitutionFile,
                                 const int32_t mapIndex,
                                 const bool selectionStatus);
         
@@ -42,6 +44,8 @@ namespace caret {
         MapYokingGroupEnum::Enum getMapYokingGroup() const;
         
         const CaretMappableDataFile* getCaretMappableDataFile() const;
+        
+        const AnnotationTextSubstitutionFile* getAnnotationTextSubstitutionFile() const;
         
         int32_t getMapIndex() const;
         
@@ -57,6 +61,8 @@ namespace caret {
         const MapYokingGroupEnum::Enum m_mapYokingGroup;
         
         const CaretMappableDataFile* m_caretMappableDataFile;
+        
+        const AnnotationTextSubstitutionFile* m_annotationTextSubstitutionFile;
         
         const int32_t m_mapIndex;
         

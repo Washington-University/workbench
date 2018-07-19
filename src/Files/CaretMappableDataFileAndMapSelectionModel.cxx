@@ -110,6 +110,9 @@ CaretMappableDataFileAndMapSelectionModel::validateDataFileTypes()
             case DataFileTypeEnum::ANNOTATION:
                 CaretAssert(0);
                 break;
+            case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+                CaretAssert(0);
+                break;
             case DataFileTypeEnum::BORDER:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE:
