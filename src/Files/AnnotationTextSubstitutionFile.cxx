@@ -23,6 +23,7 @@
 #include "AnnotationTextSubstitutionFile.h"
 #undef __ANNOTATION_TEXT_SUBSTITUTION_FILE_DECLARE__
 
+#include <QBuffer>
 #include <QFile>
 
 #include "DataFileException.h"
@@ -467,11 +468,24 @@ AnnotationTextSubstitutionFile::readFile(const AString& filename)
                                     + " for reading.");
         }
         
+        /*
+         * Excel writes CSV files using '\r' between lines.
+         * QxtCsvModel uses QIODevice::readLine(), and Qt's documentation 
+         * indicates that QIODevice::readLine() uses only '\n' as a line separator.
+         * See http://doc.qt.io/Qt-5/qiodevice.html#readLine
+         */
+        AString fileContent = file.readAll();
+        fileContent = fileContent.trimmed();
+        fileContent = fileContent.replace('\r', '\n');
+        fileContent = fileContent.replace("\n\n", "\n");
+        
+        QByteArray byteArray(fileContent.toLatin1());
+        QBuffer buffer(&byteArray);
         const bool hasHeaderFlag(false);
         const QChar separator(',');
         
         QxtCsvModel csvModel;
-        csvModel.setSource(&file,
+        csvModel.setSource(&buffer,
                            hasHeaderFlag,
                            separator);
         
