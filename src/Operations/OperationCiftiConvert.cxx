@@ -299,16 +299,17 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         VolumeFile* myNiftiOut = toNifti->getOutputVolume(2);
         bool betterDims = toNifti->getOptionalParameter(3)->m_present;
         bool smallerDims = toNifti->getOptionalParameter(4)->m_present;
-        if (betterDims && smallerDims) CaretLogWarning("-smaller-file has no effect when using -smaller-dims");
+        if (betterDims && smallerDims) throw OperationException("-smaller-file and -smaller-dims may not be specified together");
         vector<int64_t> outDims(4, 1);
         outDims[3] = myCiftiIn->getNumberOfColumns();
-        if (outDims[3] > numeric_limits<short>::max()) throw OperationException("cifti rows are too long for nifti1, failing");
+        if (outDims[3] > numeric_limits<short>::max()) throw OperationException("cifti rows are too long for nifti-1, failing");
         int64_t numRows = myCiftiIn->getNumberOfRows();
         const int64_t SHORTMAX = numeric_limits<short>::max();//less ugly than writing it out every time
         if (smallerDims)
         {
             outDims[0] = int64_t(ceil(pow(numRows, 1.0f / 3.0f))) - 1;//deliberately start 1 below what floating point says for a cube
             while (outDims[0] * outDims[0] * outDims[0] < numRows) ++outDims[0];//use integer math to get the exact answer
+            if (outDims[2] > SHORTMAX) throw OperationException("too many cifti rows for nifti-1 spatial dimensions, failing");
             outDims[1] = outDims[0];
             outDims[2] = outDims[0];
             if (outDims[0] * outDims[0] * (outDims[0] - 1) >= numRows)//see whether we can subtract one from a different dimension
@@ -320,7 +321,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             if (betterDims)
             {//find the minimum needed third dimension, then compute from that how many elements the first two dimensions must encompass, etc
                 outDims[2] = (numRows - 1) / (SHORTMAX * SHORTMAX) + 1;//round up
-                if (outDims[2] > SHORTMAX) throw OperationException("too many cifti rows for nifti1 spatial dimensions, failing");
+                if (outDims[2] > SHORTMAX) throw OperationException("too many cifti rows for nifti-1 spatial dimensions, failing");
                 int64_t temp = (numRows - 1) / outDims[2] + 1;//and again...
                 outDims[1] = (temp - 1) / SHORTMAX + 1;
                 outDims[0] = (temp - 1) / outDims[1] + 1;
@@ -329,7 +330,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
                 int index = 0;
                 while (temp > SHORTMAX)
                 {
-                    if (index > 1) throw OperationException("too many cifti rows for nifti1 spatial dimensions, failing");
+                    if (index > 1) throw OperationException("too many cifti rows for nifti-1 spatial dimensions, failing");
                     outDims[index] = SHORTMAX;
                     temp = (temp - 1) / SHORTMAX + 1;//round up
                     ++index;
