@@ -42,6 +42,7 @@
 #include "EventAnnotationAddToRemoveFromFile.h"
 #include "EventAnnotationGroupGetWithKey.h"
 #include "EventAnnotationGrouping.h"
+#include "EventAnnotationTextSubstitutionInvalidate.h"
 #include "EventBrowserTabDelete.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
@@ -219,6 +220,7 @@ AnnotationFile::initializeAnnotationFile()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUP_GET_WITH_KEY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUPING);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
 }
 
@@ -446,6 +448,21 @@ AnnotationFile::receiveEvent(Event* event)
         if (removeAnnotationsInTab(tabIndex)) {
             deleteEvent->setEventProcessed();
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE) {
+        EventAnnotationTextSubstitutionInvalidate* textSubEvent = dynamic_cast<EventAnnotationTextSubstitutionInvalidate*>(event);
+        CaretAssert(textSubEvent);
+        
+        for (auto ag : m_annotationGroups) {
+            std::vector<Annotation*> annotations;
+            ag->getAllAnnotations(annotations);
+            
+            for (auto ann : annotations) {
+                ann->invalidateTextSubstitution();
+            }
+        }
+        
+        textSubEvent->setEventProcessed();
     }
 }
 

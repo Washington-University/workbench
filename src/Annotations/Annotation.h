@@ -344,6 +344,8 @@ namespace caret {
         
         void clearDrawnInWindowStatusForAllWindows();
         
+        virtual void invalidateTextSubstitution();
+        
     private:
         float getLineWidthPixelsObsolete() const;
         

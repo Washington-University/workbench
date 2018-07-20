@@ -66,6 +66,7 @@
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
+#include "EventAnnotationTextSubstitutionInvalidate.h"
 #include "EventBrainReset.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
@@ -1746,6 +1747,9 @@ Brain::addReadOrReloadAnnotationTextSubstitutionFile(const FileModeAddReadReload
         m_annotationSubstitutionFiles.push_back(af);
     }
     
+    if (fileMode == FILE_MODE_RELOAD) {
+        EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
+    }
     
     return af;
 }
@@ -7536,6 +7540,8 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                                sceneClass->getClass("m_brainordinateHighlightRegionOfInterest"));
     
     m_sceneAnnotationFile->clearModified();
+
+    EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
 }
 
 /**

@@ -54,8 +54,10 @@ public:
         EVENT_ANNOTATION_GROUP_GET_WITH_KEY,
         /** Annotation grouping (group, regroup, ungroup) operation */
         EVENT_ANNOTATION_GROUPING,
-        /** Get annotation substitution */
+        /** Get annotation text substitutions */
         EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET,
+        /** Invalid annotation text substitutions */
+        EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE,
         /** Annotation toolbar update */
         EVENT_ANNOTATION_TOOLBAR_UPDATE,
         /** Inform that Brain has been reset (new spec or scene loaded) */

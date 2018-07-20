@@ -32,6 +32,7 @@
 #include "EventMapYokingSelectMap.h"
 #include "EventMapYokingValidation.h"
 #include "EventAnnotationTextSubstitutionGet.h"
+#include "EventAnnotationTextSubstitutionInvalidate.h"
 #include "GiftiMetaData.h"
 #include "qxtcsvmodel.h"
 #include "SceneClassAssistant.h"
@@ -108,7 +109,7 @@ AnnotationTextSubstitutionFile::copyHelperAnnotationTextSubstitutionFile(const A
     m_numberOfValues = obj.m_numberOfValues;
     m_substitutionNameToIndexMap = obj.m_substitutionNameToIndexMap;
     m_mapYokingGroup = obj.m_mapYokingGroup;
-    m_selectedValueIndex = obj.m_selectedValueIndex;
+    setSelectedValueIndexPrivate(obj.m_selectedValueIndex);
 }
 
 /**
@@ -227,7 +228,7 @@ AnnotationTextSubstitutionFile::clearPrivate()
     m_numberOfSubstitutions = 0;
     m_numberOfValues = 0;
     m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
-    m_selectedValueIndex = 0;
+    m_selectedValueIndex = -1;  /* invalid so text substitutions get invalidated */
 }
 
 /**
@@ -314,11 +315,6 @@ AnnotationTextSubstitutionFile::getTextSubstitution(const AString& textSubstitut
                                    valueIndex);
     }
     
-    if (text.isEmpty()) {
-        std::cout << "Failed to find value for text subsitution name "
-        << textSubstitutionName << " and index " << valueIndex << std::endl;
-    }
-    
     return text;
 }
 
@@ -334,7 +330,7 @@ AnnotationTextSubstitutionFile::getSubstitutionValues(EventAnnotationTextSubstit
     const std::vector<AString>& substitutionNames = substituteEvent->getSubstitutionNames();
     for (const auto name : substitutionNames) {
         AString value = getTextSubstitution(name,
-                                            m_selectedValueIndex);
+                                            getSelectedValueIndex());
         substituteEvent->setSubstitutionValueForName(name,
                                                      value);
     }
@@ -359,39 +355,6 @@ AnnotationTextSubstitutionFile::saveFileDataToScene(const SceneAttributes* scene
 {
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
-    
-//    switch (m_fileSubType) {
-//        case ANNOTATION_FILE_SAVE_TO_FILE:
-//            break;
-//        case ANNOTATION_FILE_SAVE_TO_SCENE:
-//            if ( ! isEmpty()) {
-//                try {
-//                    AnnotationFileXmlWriter writer;
-//                    QString fileContentInString;
-//                    writer.writeFileToString(this,
-//                                             fileContentInString);
-//                    sceneClass->addString("AnnotationFileContent",
-//                                          fileContentInString);
-//                }
-//                catch (const DataFileException& dfe) {
-//                    sceneAttributes->addToErrorMessage(dfe.whatString());
-//                }
-//            }
-//            break;
-//    }
-//    
-//    /*
-//     * Save groups to scene
-//     */
-//    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
-//         groupIter != m_annotationGroups.end();
-//         groupIter++) {
-//        AnnotationGroup* group = (*groupIter).data();
-//        const int32_t uniqueKey = group->getUniqueKey();
-//        SceneClass* groupClass = group->saveToScene(sceneAttributes,
-//                                                    AnnotationGroup::getSceneClassNameForAnnotationUniqueKey(uniqueKey));
-//        sceneClass->addClass(groupClass);
-//    }
 }
 
 /**
@@ -425,42 +388,61 @@ AnnotationTextSubstitutionFile::restoreFileDataFromScene(const SceneAttributes* 
 {
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
-    
-//    switch (m_fileSubType) {
-//        case ANNOTATION_FILE_SAVE_TO_FILE:
-//            break;
-//        case ANNOTATION_FILE_SAVE_TO_SCENE:
-//            QString fileContentInString = sceneClass->getStringValue("AnnotationFileContent");
-//            if ( ! fileContentInString.isEmpty()) {
-//                try {
-//                    AnnotationFileXmlReader reader;
-//                    reader.readFileFromString(fileContentInString,
-//                                              this);
-//                    updateUniqueKeysAfterReadingFile();
-//                    clearModified();
-//                }
-//                catch (const DataFileException& dfe) {
-//                    sceneAttributes->addToErrorMessage(dfe.whatString());
-//                }
-//            }
-//            break;
-//    }
-//    
-//    /*
-//     * Restore groups from scene
-//     */
-//    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
-//         groupIter != m_annotationGroups.end();
-//         groupIter++) {
-//        AnnotationGroup* group = (*groupIter).data();
-//        const int32_t uniqueKey = group->getUniqueKey();
-//        const SceneClass* annClass = sceneClass->getClass(AnnotationGroup::getSceneClassNameForAnnotationUniqueKey(uniqueKey));
-//        if (sceneClass != NULL) {
-//            group->restoreFromScene(sceneAttributes,
-//                                    annClass);
-//        }
-//    }
 }
+
+void
+AnnotationTextSubstitutionFile::cleanCsvModel(QxtCsvModel* csvModel,
+                                              const AString& filename)
+{
+    /*
+     * QxtCsvModel interprets blank lines as rows.
+     * So, find blank rows at end and reduce number of rows
+     */
+    int32_t lastValidRowIndex = -1;
+    for (int32_t iRow = 0; iRow < m_numberOfValues; iRow++) {
+        bool validRowFlag = false;
+        for (int32_t iCol = 0; iCol < m_numberOfSubstitutions; iCol++) {
+            const QModelIndex modelIndex = csvModel->index(iRow,
+                                                          iCol);
+            if ( ! modelIndex.isValid()) {
+                throw DataFileException("Getting QModelIndex failed for row="
+                                        + AString::number(iRow)
+                                        + " and column="
+                                        + AString::number(iCol)
+                                        + " for file "
+                                        + filename);
+            }
+            
+            const QVariant dataVariant = csvModel->data(modelIndex,
+                                                       Qt::DisplayRole);
+            AString cell = dataVariant.toString();
+            if ( ! cell.isEmpty()) {
+                validRowFlag = true;
+                
+                /*
+                 * Remove double quotes from ends of a cell
+                 */
+                if (cell.startsWith('\"')
+                    && cell.endsWith('\"')) {
+                    cell = cell.mid(1, cell.length() - 2);
+                    csvModel->setData(modelIndex,
+                                      cell,
+                                      Qt::DisplayRole);
+                }
+            }
+        }
+        
+        if (validRowFlag) {
+            lastValidRowIndex = iRow;
+        }
+    }
+    
+    if (lastValidRowIndex >= 0) {
+        int32_t numberOfValidRows = lastValidRowIndex + 1;
+        m_numberOfValues = numberOfValidRows;
+    }
+}
+
 
 /**
  * Read the data file.
@@ -495,6 +477,12 @@ AnnotationTextSubstitutionFile::readFile(const AString& filename)
         
         m_numberOfSubstitutions = csvModel.columnCount();
         m_numberOfValues        = csvModel.rowCount();
+        
+        if ((m_numberOfSubstitutions > 0)
+            && (m_numberOfValues > 0)) {
+            cleanCsvModel(&csvModel,
+                          filename);
+        }
         
         const int32_t numberOfValues = (m_numberOfSubstitutions
                                         * m_numberOfValues);
@@ -549,12 +537,6 @@ AnnotationTextSubstitutionFile::readFile(const AString& filename)
     setFileName(filename);
     
     clearModified();
-    
-    std::cout << "Read " << m_numberOfSubstitutions << " substitutions with " << m_numberOfValues << " values" << std::endl;
-    for (auto ni : m_substitutionNameToIndexMap) {
-        std::cout << "   name=" << ni.first << " columnIndex=" << ni.second << std::endl;
-    }
-    
 }
 
 /**
@@ -669,12 +651,9 @@ AnnotationTextSubstitutionFile::setMapYokingGroup(const MapYokingGroupEnum::Enum
 int32_t
 AnnotationTextSubstitutionFile::getSelectedValueIndex() const
 {
-    if (m_selectedValueIndex < 0) {
-        m_selectedValueIndex = 0;
-    }
-    else if (m_selectedValueIndex >= m_numberOfValues) {
-        m_selectedValueIndex = m_numberOfValues - 1;
-    }
+    /* validates index */
+    setSelectedValueIndexPrivate(m_selectedValueIndex);
+    
     return m_selectedValueIndex;
 }
 
@@ -687,7 +666,33 @@ AnnotationTextSubstitutionFile::getSelectedValueIndex() const
 void
 AnnotationTextSubstitutionFile::setSelectedValueIndex(const int32_t valueIndex)
 {
+    setSelectedValueIndexPrivate(valueIndex);
+}
+
+/**
+ * Set the selected value index.  Private method that invalidates text substitutions
+ * and ensures selected value index is valid.
+ *
+ * @param valueIndex
+ *     New value for index.
+ */
+void
+AnnotationTextSubstitutionFile::setSelectedValueIndexPrivate(const int32_t valueIndex) const
+{
+    int32_t previousValueIndex = m_selectedValueIndex;
+    
     m_selectedValueIndex = valueIndex;
+    
+    if (m_selectedValueIndex < 0) {
+        m_selectedValueIndex = 0;
+    }
+    else if (m_selectedValueIndex >= m_numberOfValues) {
+        m_selectedValueIndex = m_numberOfValues - 1;
+    }
+
+    if (previousValueIndex != m_selectedValueIndex) {
+        EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
+    }
 }
 
 /**

@@ -1464,6 +1464,18 @@ Annotation::getUniqueKey() const
 }
 
 /**
+ * Invalidate text substitutions.  This method is
+ * implemented as a virtual method to avoid
+ * dyamic casts since they are slow.
+ */
+void
+Annotation::invalidateTextSubstitution()
+{
+    /* Nothing, override by AnnotationText */
+}
+
+
+/**
  * @return Name of annotation.
  */
 AString

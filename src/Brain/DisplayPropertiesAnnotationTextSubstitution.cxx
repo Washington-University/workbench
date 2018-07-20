@@ -30,6 +30,7 @@
 #include "CaretLogger.h"
 #include "EventManager.h"
 #include "EventAnnotationTextSubstitutionGet.h"
+#include "EventAnnotationTextSubstitutionInvalidate.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -187,6 +188,8 @@ DisplayPropertiesAnnotationTextSubstitution::getSelectedFile() const
 void
 DisplayPropertiesAnnotationTextSubstitution::validateSelectedFile() const
 {
+    AnnotationTextSubstitutionFile* previousFile = m_selectedFile;
+    
     std::vector<AnnotationTextSubstitutionFile*> files;
     m_parentBrain->getAnnotationTextSubstitutionFiles(files);
     
@@ -203,6 +206,10 @@ DisplayPropertiesAnnotationTextSubstitution::validateSelectedFile() const
             CaretAssert(m_selectedFile);
         }
     }
+    
+    if (m_selectedFile != previousFile) {
+        EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
+    }
 }
 
 /**
@@ -214,6 +221,9 @@ DisplayPropertiesAnnotationTextSubstitution::validateSelectedFile() const
 void
 DisplayPropertiesAnnotationTextSubstitution::setSelectedFile(AnnotationTextSubstitutionFile* selectedFile)
 {
+    if (selectedFile != m_selectedFile) {
+        EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
+    }
     m_selectedFile = selectedFile;
 }
 

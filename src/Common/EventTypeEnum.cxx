@@ -102,6 +102,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET",
                                      "Get an annotation text substitution"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE,
+                                     "EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE",
+                                     "Invalidate text substitutions in text annotations"));
+    
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TOOLBAR_UPDATE,
                                      "EVENT_ANNOTATION_TOOLBAR_UPDATE",
                                      "Event to update annotation toolbar"));

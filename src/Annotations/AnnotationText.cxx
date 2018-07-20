@@ -283,20 +283,22 @@ AnnotationText::getText() const
 }
 
 /**
+ * Invalidate text substitutions.  This method is
+ * implemented as a virtual method to avoid
+ * dyamic casts since they are slow.
+ */
+void
+AnnotationText::invalidateTextSubstitution()
+{
+    m_textWithSubstitutions.clear();
+}
+
+/**
  * @return Text with any substitutions applied to the text.
  */
 AString
 AnnotationText::getTextWithSubstitutionsApplied() const
 {
-    /*
-     * For now, by clearing, recreate the substituted text annotation each time.
-     * This can be cached, but it requires resetting when the selected
-     * value index is changed in the AnnotationTextSubstitutionFile, 
-     * the selected AnnotationTextSubstitutionFile changes, and after
-     * loading/unloading a AnnotationTextSubstitutionFile.
-     */
-    m_textWithSubstitutions.clear();
-    
     if (m_textWithSubstitutions.isEmpty()) {
         if ( ! m_text.isEmpty()) {
             std::vector<int32_t> indices;
@@ -318,13 +320,11 @@ AnnotationText::getTextWithSubstitutionsApplied() const
                     if (indexTwo > (indexOne + 1)) {
                         const int32_t nameLen  = indexTwo - indexOne - 1;
                         AString name = m_text.mid(indexOne + 1, nameLen);
-                        //std::cout << "Sub name " << i << ": " << name << std::endl;
                         
                         EventAnnotationTextSubstitutionGet subEvent;
                         subEvent.addSubstitutionName(name);
                         EventManager::get()->sendEvent(subEvent.getPointer());
                         const AString subValue = subEvent.getSubstitutionValueForName(name);
-                        //std::cout << "Sub value: " << subValue << std::endl;
                         
                         if (subValue.isEmpty()) {
                             CaretLogWarning("Unable to find substitution value for name \""
@@ -333,7 +333,6 @@ AnnotationText::getTextWithSubstitutionsApplied() const
                         }
                         
                         const AString txt = m_text.mid(lastPos, indexOne - lastPos);
-                        //std::cout << "sub text " << txt << std::endl;
                         m_textWithSubstitutions.append(txt);
                         if (subValue.isEmpty()) {
                             m_textWithSubstitutions.append("$" + name + "$");
@@ -353,8 +352,6 @@ AnnotationText::getTextWithSubstitutionsApplied() const
                 }
                 const AString lastTxt = m_text.mid(lastPos);
                 m_textWithSubstitutions.append(lastTxt);
-                //std::cout << "sub text (last) " << lastTxt << std::endl;
-                //std::cout << m_text << " contains " << indices.size() << " $ chars" << std::endl;
             }
             
         }

@@ -186,6 +186,8 @@ namespace caret {
         
         void setFontPercentViewportSizeProtected(const float fontPercentViewportHeight);
         
+        virtual void invalidateTextSubstitution() override;
+
     private:
         /* Not implemented */
         AnnotationText();

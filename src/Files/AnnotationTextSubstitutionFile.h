@@ -29,6 +29,8 @@
 #include "EventListenerInterface.h"
 #include "MapYokingGroupEnum.h"
 
+class QxtCsvModel;
+
 namespace caret {
 
     class EventAnnotationTextSubstitutionGet;
@@ -107,6 +109,11 @@ namespace caret {
         AString columnIndexToDefaultSubstitutionName(const int32_t columnIndex) const;
         
         int32_t getColumnIndexForSubstitutionName(const AString substitutionName) const;
+        
+        void setSelectedValueIndexPrivate(const int32_t valueIndex) const;
+        
+        void cleanCsvModel(QxtCsvModel* csvModel,
+                           const AString& filename);
         
         std::unique_ptr<GiftiMetaData> m_metadata;
         
