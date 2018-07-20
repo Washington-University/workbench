@@ -295,7 +295,7 @@ DisplayPropertiesAnnotationTextSubstitution::restoreFromScene(const SceneAttribu
     
     const ScenePathName* filePathName = sceneClass->getPathName("selectedFile");
     if (filePathName != NULL) {
-        const AString filename = filePathName->getName();
+        const AString filename = filePathName->stringValue();
         
         FileInformation fileInfo(filename);
         const AString fileNameNoPath = fileInfo.getFileName();
