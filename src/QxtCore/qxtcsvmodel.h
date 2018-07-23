@@ -35,7 +35,7 @@
 #include "qxtglobal.h"
 
 class QxtCsvModelPrivate;
-class QXT_CORE_EXPORT QxtCsvModel : public QAbstractTableModel
+class /*QXT_CORE_EXPORT*/ QxtCsvModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:

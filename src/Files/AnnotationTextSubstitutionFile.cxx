@@ -73,7 +73,8 @@ AnnotationTextSubstitutionFile::~AnnotationTextSubstitutionFile()
  *    Object that is copied.
  */
 AnnotationTextSubstitutionFile::AnnotationTextSubstitutionFile(const AnnotationTextSubstitutionFile& obj)
-: CaretDataFile(obj)
+: CaretDataFile(obj),
+EventListenerInterface()
 {
     initializeAnnotationTextSubstitutionFile();
     this->copyHelperAnnotationTextSubstitutionFile(obj);
@@ -545,7 +546,7 @@ AnnotationTextSubstitutionFile::readFile(const AString& filename)
      */
     for (int32_t iColumn = 0; iColumn < m_numberOfSubstitutions; iColumn++) {
         const AString columnName = columnIndexToDefaultSubstitutionName(iColumn);
-        m_substitutionNameToIndexMap.emplace(columnName, iColumn);
+        m_substitutionNameToIndexMap.insert(std::make_pair(columnName, iColumn));
     }
     
     setFileName(filename);
