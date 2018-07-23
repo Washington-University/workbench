@@ -351,6 +351,8 @@ AnnotationText::getTextWithSubstitutionsApplied() const
                         }
                     }
                     else {
+                        const AString txt = m_text.mid(lastPos, indexOne - lastPos);
+                        m_textWithSubstitutions.append(txt + "$$");
                         CaretLogWarning("Text annotation \""
                                         + m_text
                                         + "\" contains empty text substitution delimeters ("
@@ -379,6 +381,7 @@ AnnotationText::setText(const AString& text)
 {
     if (text != m_text) {
         m_text = text;
+        m_textWithSubstitutions.clear();
         textAnnotationResetName();
         setModified();
     }
