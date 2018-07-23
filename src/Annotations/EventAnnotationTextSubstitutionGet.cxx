@@ -117,6 +117,5 @@ void
 EventAnnotationTextSubstitutionGet::addSubstitutionName(const AString& substitutionName)
 {
     m_substitutionNames.push_back(substitutionName);
-    m_substitutionNamesAndValues.emplace(substitutionName,
-                                         "");
+    m_substitutionNamesAndValues.insert(std::make_pair(substitutionName, ""));
 }
