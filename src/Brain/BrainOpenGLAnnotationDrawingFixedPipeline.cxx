@@ -2017,11 +2017,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarText(const AnnotationColo
         
         annText.setText(numericText->getNumericText());
 
+        BrainOpenGLTextRenderInterface::DrawingFlags flags;
+        flags.setDrawSubstitutedText(false);
         m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(windowX,
                                                                                 windowY,
                                                                                 windowZ,
                                                                                 annText,
-                                                                                m_textDrawingFlags);
+                                                                                flags);
         
         if (annText.isFontTooSmallWhenLastDrawn()) {
             fontTooSmallFlag = true;

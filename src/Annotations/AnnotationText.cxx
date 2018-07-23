@@ -309,7 +309,16 @@ AnnotationText::getTextWithSubstitutionsApplied() const
                 index = m_text.indexOf(substituteChar, index + 1);
             }
             
-            if ( ! indices.empty()) {
+            if (indices.size() < 2) {
+                if (indices.size() == 1) {
+                    CaretLogWarning("Text annotation \""
+                                    + m_text
+                                    + "\" is missing substitution delimeters");
+                }
+                
+                m_textWithSubstitutions = m_text;
+            }
+            else {
                 int32_t lastPos = 0;
                 const int32_t numSubsitutions = static_cast<int32_t>(indices.size() / 2);
                 for (int32_t i = 0; i < numSubsitutions; i++) {
@@ -370,7 +379,6 @@ AnnotationText::setText(const AString& text)
 {
     if (text != m_text) {
         m_text = text;
-        m_textWithSubstitutions.clear();
         textAnnotationResetName();
         setModified();
     }
