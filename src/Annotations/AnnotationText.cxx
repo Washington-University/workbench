@@ -885,7 +885,7 @@ void
 AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
 {
     m_text                = obj.m_text;
-    m_textWithSubstitutions = obj.m_text;
+    m_textWithSubstitutions.clear();
     m_alignmentHorizontal = obj.m_alignmentHorizontal;
     m_alignmentVertical   = obj.m_alignmentVertical;
     m_font                = obj.m_font;
