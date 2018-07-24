@@ -24,8 +24,6 @@
 
 #include <vector>
 #include <stdint.h>
-#include <cmath>
-//for inlining
 
 #include "CaretMutex.h"
 #include "CaretPointer.h"
@@ -88,7 +86,6 @@ namespace caret {
         void dijkstra(const int32_t root, bool smooth);//full surface
         void dijkstra(const int32_t root, const std::vector<int32_t>& interested, bool smooth);//partial surface
         int32_t dijkstra(const std::vector<int32_t>& startList, const std::vector<int32_t>& endList, const float& maxDist, bool smooth);//one path that connects lists
-        void alltoall(float** out, int32_t** parents, bool smooth);//must be fully allocated
         int32_t closest(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smooth);//just closest node
         int32_t closest(const int32_t& root, const char* roi, bool smooth);//just closest node
         void aStar(const int32_t root, const int32_t endpoint, bool smooth);//faster method for path
@@ -115,9 +112,6 @@ namespace caret {
 
         /// Get distances from root node to entire surface, and their parents, vector method (root node has -1 as parent)
         void getGeoFromNode(const int32_t node, std::vector<float>& valuesOut, std::vector<int32_t>& parentsOut, const bool smoothflag = true);
-
-        /// Get distances from all nodes to all nodes, passes back NULL if cannot allocate, if successful you must eventually delete the memory
-        float** getGeoAllToAll(const bool smooth = true);//i really don't think this needs an overloaded function that outputs parents
 
         /// Get distances to a restricted set of nodes - output vector is in the SAME ORDER and same size as the input vector ofInterest
         void getGeoToTheseNodes(const int32_t root, const std::vector<int32_t>& ofInterest, std::vector<float>& distsOut, bool smoothflag = true);

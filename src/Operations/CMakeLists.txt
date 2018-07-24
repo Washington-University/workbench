@@ -87,6 +87,7 @@ OperationSurfaceCoordinatesToMetric.h
 OperationSurfaceCutResample.h
 OperationSurfaceFlipNormals.h
 OperationSurfaceGeodesicDistance.h
+OperationSurfaceGeodesicDistanceAllToAll.h
 OperationSurfaceGeodesicROIs.h
 OperationSurfaceInformation.h
 OperationSurfaceNormals.h
@@ -176,6 +177,7 @@ OperationSurfaceCoordinatesToMetric.cxx
 OperationSurfaceCutResample.cxx
 OperationSurfaceFlipNormals.cxx
 OperationSurfaceGeodesicDistance.cxx
+OperationSurfaceGeodesicDistanceAllToAll.cxx
 OperationSurfaceGeodesicROIs.cxx
 OperationSurfaceInformation.cxx
 OperationSurfaceNormals.cxx

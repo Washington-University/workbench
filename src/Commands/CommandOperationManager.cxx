@@ -206,6 +206,7 @@
 #include "OperationSurfaceCutResample.h"
 #include "OperationSurfaceFlipNormals.h"
 #include "OperationSurfaceGeodesicDistance.h"
+#include "OperationSurfaceGeodesicDistanceAllToAll.h"
 #include "OperationSurfaceGeodesicROIs.h"
 #include "OperationSurfaceInformation.h"
 #include "OperationSurfaceNormals.h"
@@ -462,6 +463,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceCutResample()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceFlipNormals()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicDistance()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicDistanceAllToAll()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceNormals()));
