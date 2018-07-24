@@ -636,7 +636,7 @@ Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
     
     pasteSpecialMenuItemText = ("Paste "
                                 + typeName
-                                + " and Change Space");
+                                + " and Change Space...");
 }
 
 /**
