@@ -487,7 +487,7 @@ BrainOpenGLFixedPipeline::setTabViewport(const BrainOpenGLViewportContent* vpCon
  *     Output with window color bars in the viewports.
  */
 void
-BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& /*viewportContents*/)
+BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
 {
     m_annotationColorBarsForDrawing.clear();
     
@@ -500,6 +500,22 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(const std::vector<con
     EventAnnotationColorBarGet colorBarEvent;
     EventManager::get()->sendEvent(colorBarEvent.getPointer());
     m_annotationColorBarsForDrawing = colorBarEvent.getAnnotationColorBars();
+    
+    /*
+     * Tab index is always set in BrowserTabContent when it receives
+     * EventAnnotationColorBarGet event.  So, the tab index should always
+     * be valid.  The user can place the color bar in window space so 
+     * update the window index so that color bar's in window space
+     * are drawn and drawn only in the window containing the color bar.
+     */
+    for (auto colorBar : m_annotationColorBarsForDrawing) {
+        const int32_t tabIndex = colorBar->getTabIndex();
+        for (auto vc : viewportContents) {
+            if (vc->getTabIndex() == tabIndex) {
+                colorBar->setWindowIndex(vc->getWindowIndex());
+            }
+        }
+    }
 }
 
 /**
@@ -907,14 +923,6 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    
-    for (std::vector<AnnotationColorBar*>::iterator iter = m_annotationColorBarsForDrawing.begin();
-         iter != m_annotationColorBarsForDrawing.end();
-         iter++) {
-        AnnotationColorBar* cb = *iter;
-        CaretAssert(cb);
-        cb->setWindowIndex(m_windowIndex);
-    }
     
     /*
      * No valid tab
