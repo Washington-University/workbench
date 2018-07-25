@@ -76,11 +76,6 @@ void CaretVolumeExtension::writeAsXML(XmlWriter& xmlWriter)
     char buf[101];//we actually only need 20 bytes, but hey
     strftime(buf, 100, "%Y-%m-%dT%H:%M:%S", timeinfo);
     xmlWriter.writeElementCData(CARET_VOL_EXT_DATE, AString(buf));
-    int numVols = (int)m_attributes.size();
-    for (int i = 0; i < numVols; ++i)
-    {
-        m_attributes[i]->writeAsXML(xmlWriter, i);
-    }
     if ( ! m_metadata.isEmpty()) {
         /*
          * Prior to "WB-664 Data normalization should be saved in file", VolumeFile did not contain
@@ -103,6 +98,11 @@ void CaretVolumeExtension::writeAsXML(XmlWriter& xmlWriter)
         if (writeFileMetaDataFlag) {
             m_metadata.writeAsXML(xmlWriter);
         }
+    }
+    int numVols = (int)m_attributes.size();
+    for (int i = 0; i < numVols; ++i)
+    {
+        m_attributes[i]->writeAsXML(xmlWriter, i);
     }
     xmlWriter.writeEndElement();//just to make it clean
     xmlWriter.writeEndDocument();//so, this just flushes
