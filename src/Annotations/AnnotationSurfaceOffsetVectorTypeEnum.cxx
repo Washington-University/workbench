@@ -118,6 +118,11 @@ AnnotationSurfaceOffsetVectorTypeEnum::initialize()
                                                              "SURACE_NORMAL",
                                                              "N",
                                                              "Surace Normal"));
+    
+    enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(TANGENT,
+                                                             "TANGENT",
+                                                             "T",
+                                                             "Tangent"));
 }
 
 /**

@@ -74,6 +74,8 @@ namespace caret {
          *     Viewport Y-coordinate.
          * @param annotationText
          *     Annotation text and attributes.
+         * @param flags
+         *     Drawing flags.
          */
         virtual void drawTextAtViewportCoords(const double viewportX,
                                               const double viewportY,
@@ -94,6 +96,8 @@ namespace caret {
          *     Viewport Z-coordinate.
          * @param annotationText
          *     Annotation text and attributes.
+         * @param flags
+         *     Drawing flags.
          */
         virtual void drawTextAtViewportCoords(const double viewportX,
                                               const double viewportY,
@@ -104,6 +108,7 @@ namespace caret {
         /**
          * Draw annnotation text at the given model coordinates using
          * the the annotations attributes for the style of text.
+         * Text is drawn so that is in the plane of the screen (faces user)
          *
          * Depth testing is ENABLED when drawing text with this method.
          *
@@ -115,8 +120,10 @@ namespace caret {
          *     Model Z-coordinate.
          * @param annotationText
          *     Annotation text and attributes.
+         * @param flags
+         *     Drawing flags.
          */
-        virtual void drawTextAtModelCoords(const double modelX,
+        virtual void drawTextAtModelCoordsFacingUser(const double modelX,
                                            const double modelY,
                                            const double modelZ,
                                            const AnnotationText& annotationText,
@@ -125,6 +132,7 @@ namespace caret {
         /**
          * Draw annnotation text at the given model coordinates using
          * the the annotations attributes for the style of text.
+         * Text is drawn so that is in the plane of the screen (faces user)
          *
          * Depth testing is ENABLED when drawing text with this method.
          *
@@ -132,16 +140,19 @@ namespace caret {
          *     Model XYZ coordinate.
          * @param annotationText
          *     Annotation text and attributes.
+         * @param flags
+         *     Drawing flags.
          */
-        void drawTextAtModelCoords(const double modelXYZ[3],
+        void drawTextAtModelCoordsFacingUser(const double modelXYZ[3],
                                    const AnnotationText& annotationText,
                                    const DrawingFlags& flags) {
-            drawTextAtModelCoords(modelXYZ[0], modelXYZ[1], modelXYZ[2], annotationText, flags);
+            drawTextAtModelCoordsFacingUser(modelXYZ[0], modelXYZ[1], modelXYZ[2], annotationText, flags);
         }
         
         /**
          * Draw annnotation text at the given model coordinates using
          * the the annotations attributes for the style of text.
+         * Text is drawn so that is in the plane of the screen (faces user)
          *
          * Depth testing is ENABLED when drawing text with this method.
          *
@@ -149,12 +160,58 @@ namespace caret {
          *     Model XYZ coordinate.
          * @param annotationText
          *     Annotation text and attributes.
+         * @param flags
+         *     Drawing flags.
          */
-        void drawTextAtModelCoords(const float modelXYZ[3],
-                                   const AnnotationText& annotationText,
-                                   const DrawingFlags& flags) {
-            drawTextAtModelCoords(modelXYZ[0], modelXYZ[1], modelXYZ[2], annotationText, flags);
+        void drawTextAtModelCoordsFacingUser(const float modelXYZ[3],
+                                             const AnnotationText& annotationText,
+                                             const DrawingFlags& flags) {
+            drawTextAtModelCoordsFacingUser(modelXYZ[0], modelXYZ[1], modelXYZ[2], annotationText, flags);
         }
+        
+        /**
+         * Get the bounds of text drawn in model space using the current model transformations.
+         *
+         * @param annotationText
+         *   Text that is to be drawn.
+         * @param heightOrWidthForPercentageSizeText
+         *    Size of region used when converting percentage size to a fixed size
+         * @param flags
+         *     Drawing flags.
+         * @param bottomLeftOut
+         *    The bottom left corner of the text bounds.
+         * @param bottomRightOut
+         *    The bottom right corner of the text bounds.
+         * @param topRightOut
+         *    The top right corner of the text bounds.
+         * @param topLeftOut
+         *    The top left corner of the text bounds.
+         */
+        virtual void getBoundsForTextInModelSpace(const AnnotationText& annotationText,
+                                                  const float heightOrWidthForPercentageSizeText,
+                                                  const DrawingFlags& flags,
+                                                  float bottomLeftOut[3],
+                                                  float bottomRightOut[3],
+                                                  float topRightOut[3],
+                                                  float topLeftOut[3]) = 0;
+        /**
+         * Draw text in model space using the current model transformations.
+         *
+         * Depth testing is ENABLED when drawing text with this method.
+         *
+         * @param annotationText
+         *     Annotation text and attributes.
+         * @param heightOrWidthForPercentageSizeText
+         *    If positive, use it to override width/height of viewport.
+         * @param backgroundOverrideRGBA
+         *     If alpha is greater that zero, draw background with this color
+         * @param flags
+         *     Drawing flags.
+         */
+        virtual void drawTextInModelSpace(const AnnotationText& annotationText,
+                                          const float heightOrWidthForPercentageSizeText,
+                                          const float normalVector[3],
+                                          const DrawingFlags& flags) = 0;
         
         /**
          * Get the estimated width and height of text (in pixels) using the given text

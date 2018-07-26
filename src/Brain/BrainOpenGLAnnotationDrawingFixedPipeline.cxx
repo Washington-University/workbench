@@ -56,6 +56,7 @@
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
+#include "GraphicsPrimitiveV3fN3f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "GraphicsShape.h"
 #include "GraphicsUtilitiesOpenGL.h"
@@ -257,12 +258,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                                                                surfaceCenter,
                                                                offsetUnitVector);
                                 MathFunctions::normalizeVector(offsetUnitVector);
-                            }                                break;
+                            }
+                                break;
                             case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
+                            {
                                 const float* normalVector = surfaceDisplayed->getNormalVector(annotationNodeIndex);
                                 offsetUnitVector[0] = normalVector[0];
                                 offsetUnitVector[1] = normalVector[1];
                                 offsetUnitVector[2] = normalVector[2];
+                            }
+                                break;
+                            case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+                                CaretAssertToDoFatal();
                                 break;
                         }
                         
@@ -2374,6 +2381,128 @@ BrainOpenGLAnnotationDrawingFixedPipeline::clipLineAtTextBox(const float bottomL
 }
 
 /**
+ * Draw an annotation text with tangent offset
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param text
+ *    Annotation text to draw.
+ * @param surfaceDisplayed
+ *    Surface that is displayed (may be NULL).
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile* annotationFile,
+                                                                 AnnotationText* text,
+                                                                 const Surface* surfaceDisplayed)
+{
+    CaretAssert(annotationFile);
+    CaretAssert(text);
+    CaretAssert(surfaceDisplayed);
+    
+    const AnnotationCoordinate* coord = text->getCoordinate();
+    StructureEnum::Enum structure;
+    int32_t surfaceNumberOfNodes(0);
+    int32_t vertexIndex(0);
+    float offsetLength(0.0f);
+    AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVectorType;
+    coord->getSurfaceSpace(structure, surfaceNumberOfNodes, vertexIndex, offsetLength, offsetVectorType);
+    
+    if ((structure == surfaceDisplayed->getStructure())
+        && (surfaceDisplayed->getNumberOfNodes() == surfaceNumberOfNodes)) {
+        float vertexXYZ[3];
+        surfaceDisplayed->getCoordinate(vertexIndex,
+                                        vertexXYZ);
+        const float* normalXYZ = surfaceDisplayed->getNormalVector(vertexIndex);
+        const BoundingBox* boundingBox = surfaceDisplayed->getBoundingBox();
+        const float surfaceExtentZ = boundingBox->getDifferenceZ();
+        
+        /*
+         * Need to restore model space
+         * Recall that all other annotation spaces are drawn in window space
+         */
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadMatrixd(m_modelSpaceProjectionMatrix);
+        
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadMatrixd(m_modelSpaceModelMatrix);
+        int32_t savedViewport[4];
+        glGetIntegerv(GL_VIEWPORT,
+                      savedViewport);
+        glViewport(m_modelSpaceViewport[0],
+                   m_modelSpaceViewport[1],
+                   m_modelSpaceViewport[2],
+                   m_modelSpaceViewport[3]);
+        
+        glPushMatrix();
+        
+        /*
+         * Matrix place text in plane of vertex's normal vector
+         */
+        Matrix4x4 rotationMatrix;
+        rotationMatrix.setMatrixToOpenGLRotationFromVector(normalXYZ);
+        double rotationArray[16];
+        rotationMatrix.getMatrixForOpenGL(rotationArray);
+        
+        const float rotationAngle = text->getRotationAngle();
+
+        glPushMatrix();
+        glTranslatef(vertexXYZ[0], vertexXYZ[1], vertexXYZ[2]);
+        glMultMatrixd(rotationArray);
+        glRotatef(rotationAngle, 0.0, 0.0, 1.0);
+        
+        float bottomLeft[3];
+        float bottomRight[3];
+        float topRight[3];
+        float topLeft[3];
+        m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextInModelSpace(*text, surfaceExtentZ, m_textDrawingFlags,
+                                                                                    bottomLeft, bottomRight, topRight, topLeft);
+        
+        uint8_t selectionColorRGBA[4] = { 0, 0, 0, 0 };
+        if (m_selectionModeFlag) {
+            getIdentificationColor(selectionColorRGBA);
+            GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                              selectionColorRGBA);
+            primitive.addVertex(topLeft, normalXYZ);
+            primitive.addVertex(bottomLeft, normalXYZ);
+            primitive.addVertex(topRight, normalXYZ);
+            primitive.addVertex(bottomRight, normalXYZ);
+            GraphicsEngineDataOpenGL::draw(&primitive);
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    text,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    vertexXYZ));
+        }
+        else {
+            m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextInModelSpace(*text,
+                                                                                surfaceExtentZ,
+                                                                                normalXYZ,
+                                                                                m_textDrawingFlags);
+        }
+        
+        glPopMatrix();
+        
+        glPopMatrix(); /* restore MODELVIEW */
+        
+        glViewport(savedViewport[0],
+                   savedViewport[1],
+                   savedViewport[2],
+                   savedViewport[3]);
+        glPopMatrix();
+        
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+    }
+    
+    
+    return false;
+}
+
+/**
  * Draw an annotation text.
  *
  * @param annotationFile
@@ -2402,7 +2531,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
             return false;
         }
     }
-    
+
+    if (text->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+        switch (text->getCoordinate()->getSurfaceOffsetVectorType()) {
+            case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
+                break;
+            case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
+                break;
+            case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+                /*
+                 * Tangent offset is drawn in model space
+                 */
+                return drawTextTangentOffset(annotationFile,
+                                             text,
+                                             surfaceDisplayed);
+                break;
+        }
+    }
 
     float annXYZ[3];
     if ( ! getAnnotationDrawingSpaceCoordinate(text,

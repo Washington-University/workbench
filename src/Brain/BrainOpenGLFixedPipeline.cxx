@@ -1891,6 +1891,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<Annotation*> emptyViewportAnnotations;
+           
+            
             m_annotationDrawing->drawAnnotations(&inputs,
                                                  AnnotationCoordinateSpaceEnum::SURFACE,
                                                  emptyColorBars,
@@ -6675,7 +6677,7 @@ BrainOpenGLFixedPipeline::drawTextAtModelCoords(const double modelX,
                                                 const AnnotationText& annotationText)
 {
     if (getTextRenderer() != NULL) {
-        getTextRenderer()->drawTextAtModelCoords(modelX,
+        getTextRenderer()->drawTextAtModelCoordsFacingUser(modelX,
                                                   modelY,
                                                   modelZ,
                                                   annotationText,
@@ -6697,7 +6699,7 @@ BrainOpenGLFixedPipeline::drawTextAtModelCoords(const double modelXYZ[3],
                                                 const AnnotationText& annotationText)
 {
     if (getTextRenderer() != NULL) {
-        getTextRenderer()->drawTextAtModelCoords(modelXYZ,
+        getTextRenderer()->drawTextAtModelCoordsFacingUser(modelXYZ,
                                                   annotationText,
                                                  BrainOpenGLTextRenderInterface::DrawingFlags());
     }
@@ -6717,7 +6719,7 @@ BrainOpenGLFixedPipeline::drawTextAtModelCoords(const float modelXYZ[3],
                                                 const AnnotationText& annotationText)
 {
     if (getTextRenderer() != NULL) {
-        getTextRenderer()->drawTextAtModelCoords(modelXYZ,
+        getTextRenderer()->drawTextAtModelCoordsFacingUser(modelXYZ,
                                                   annotationText,
                                                  BrainOpenGLTextRenderInterface::DrawingFlags());
     }

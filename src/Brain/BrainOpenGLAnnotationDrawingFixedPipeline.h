@@ -209,6 +209,10 @@ namespace caret {
                       AnnotationText* text,
                        const Surface* surfaceDisplayed);
         
+        bool drawTextTangentOffset(AnnotationFile* annotationFile,
+                                   AnnotationText* text,
+                                   const Surface* surfaceDisplayed);
+        
         void drawColorBarSections(const AnnotationColorBar* colorBar,
                                   const float bottomLeft[3],
                                   const float bottomRight[3],

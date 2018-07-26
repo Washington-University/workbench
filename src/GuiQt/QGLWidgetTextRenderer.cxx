@@ -216,6 +216,7 @@ QGLWidgetTextRenderer::drawTextAtViewportCoords(const double viewportX,
 /**
  * Draw annnotation text at the given model coordinates using
  * the the annotations attributes for the style of text.
+ * Text is drawn so that is in the plane of the screen (faces user)
  *
  * Depth testing is ENABLED when drawing text with this method.
  *
@@ -227,9 +228,11 @@ QGLWidgetTextRenderer::drawTextAtViewportCoords(const double viewportX,
  *     Model Z-coordinate.
  * @param annotationText
  *     Annotation text and attributes.
+ * @param flags
+ *     Drawing flags.
  */
 void
-QGLWidgetTextRenderer::drawTextAtModelCoords(const double modelX,
+QGLWidgetTextRenderer::drawTextAtModelCoordsFacingUser(const double modelX,
                                           const double modelY,
                                           const double modelZ,
                                           const AnnotationText& annotationText,
@@ -305,6 +308,29 @@ QGLWidgetTextRenderer::drawTextAtModelCoords(const double modelX,
     else {
         CaretLogSevere("gluProject() failed for drawing text at model coordinates.");
     }
+}
+
+/**
+ * Draw text in model space using the current model transformations.
+ *
+ * Depth testing is ENABLED when drawing text with this method.
+ *
+ * @param annotationText
+ *     Annotation text and attributes.
+ * @param heightOrWidthForPercentageSizeText
+ *    If positive, use it to override width/height of viewport.
+ * @param normalVector
+ *     Normal vector of text.
+ * @param flags
+ *     Drawing flags.
+ */
+void
+QGLWidgetTextRenderer::drawTextInModelSpace(const AnnotationText& /* annotationText */,
+                                            const float /*heightOrWidthForPercentageSizeText*/,
+                                            const float* /*normalVector[3]*/,
+                                            const DrawingFlags& /* flags */)
+{
+    CaretAssertMessage(0, "Not implemented");
 }
 
 /**
@@ -733,6 +759,36 @@ QGLWidgetTextRenderer::getTextWidthHeightInPixels(const AnnotationText& annotati
     
     widthOut  = xMax - xMin;
     heightOut = yMax - yMin;
+}
+
+/**
+ * Get the bounds of text drawn in model space using the current model transformations.
+ *
+ * @param annotationText
+ *   Text that is to be drawn.
+ * @param heightOrWidthForPercentageSizeText
+ *    Size of region used when converting percentage size to a fixed size
+ * @param flags
+ *     Drawing flags.
+ * @param bottomLeftOut
+ *    The bottom left corner of the text bounds.
+ * @param bottomRightOut
+ *    The bottom right corner of the text bounds.
+ * @param topRightOut
+ *    The top right corner of the text bounds.
+ * @param topLeftOut
+ *    The top left corner of the text bounds.
+ */
+void
+QGLWidgetTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& /*annotationText*/,
+                                          const float /*heightOrWidthForPercentageSizeText*/,
+                                          const DrawingFlags& /*flags*/,
+                                          float* /*bottomLeftOut[3]*/,
+                                          float* /*bottomRightOut[3]*/,
+                                          float* /*topRightOut[3]*/,
+                                          float* /*topLeftOut[3]*/)
+{
+    
 }
 
 /**

@@ -52,12 +52,17 @@ namespace caret {
                                               const AnnotationText& annotationText,
                                               const DrawingFlags& flags) override;
         
-        virtual void drawTextAtModelCoords(const double modelX,
+        virtual void drawTextAtModelCoordsFacingUser(const double modelX,
                                            const double modelY,
                                            const double modelZ,
                                            const AnnotationText& annotationText,
                                            const DrawingFlags& flags) override;
         
+        virtual void drawTextInModelSpace(const AnnotationText& annotationText,
+                                          const float heightOrWidthForPercentageSizeText,
+                                          const float normalVector[3],
+                                          const DrawingFlags& flags) override;
+
         virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
                                                 const DrawingFlags& flags,
                                                 const double viewportWidth,
@@ -65,6 +70,14 @@ namespace caret {
                                                 double& widthOut,
                                                 double& heightOut) override;
         
+        
+        virtual void getBoundsForTextInModelSpace(const AnnotationText& annotationText,
+                                          const float heightOrWidthForPercentageSizeText,
+                                          const DrawingFlags& flags,
+                                          float bottomLeftOut[3],
+                                          float bottomRightOut[3],
+                                          float topRightOut[3],
+                                          float topLeftOut[3]) override;
         
         virtual void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
                                                       const DrawingFlags& flags,
@@ -98,6 +111,11 @@ namespace caret {
             DEPTH_TEST_YES
         };
         
+        enum class FtglFontTypeEnum {
+            POLYGON,
+            TEXTURE
+        };
+        
         FtglFontTextRenderer(const FtglFontTextRenderer&);
 
         FtglFontTextRenderer& operator=(const FtglFontTextRenderer&);
@@ -110,6 +128,12 @@ namespace caret {
                                               const DrawingFlags& flags);
         
         FTFont* getFont(const AnnotationText& annotationText,
+                        const FtglFontTypeEnum ftglFontType,
+                        const bool creatingDefaultFontFlag);
+        
+        FTFont* getFont(const AnnotationText& annotationText,
+                        const FtglFontTypeEnum ftglFontType,
+                        const float heightOrWidthForPercentageSizeText,
                         const bool creatingDefaultFontFlag);
         
         void drawUnderline(const double lineStartX,
@@ -134,20 +158,29 @@ namespace caret {
                               const float extraSpaceX,
                               const float extraSpaceY);
         
-        double getLineWidthFromPercentageHeight(const double percentageHeight) const;
+        static void expandBoxPercentage(float bottomLeft[3],
+                                        float bottomRight[3],
+                                        float topRight[3],
+                                        float topLeft[3],
+                                        const float extraSpacePercentX,
+                                        const float extraSpacePercentY);
         
+        double getLineWidthFromPercentageHeight(const double percentageHeight) const;
         
         class FontData {
         public:
             FontData();
             
             FontData(const AnnotationText&  annotationText,
+                     const FtglFontTypeEnum ftglFontType,
                      const int32_t viewportWidth,
                      const int32_t viewportHeight);
             
             ~FontData();
             
             void initialize(const AString& fontFileName);
+            
+            FtglFontTypeEnum m_ftglFontType = FtglFontTypeEnum::TEXTURE;
             
             QByteArray m_fontData;
             
