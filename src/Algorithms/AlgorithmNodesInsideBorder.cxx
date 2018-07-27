@@ -73,6 +73,8 @@ OperationParameters* AlgorithmNodesInsideBorder::getParameters()
     
     ret->createOptionalParameter(5, "-inverse", "use inverse selection (outside border)");
     
+    ret->createOptionalParameter(6, "-include-border", "include vertices the border is closest to");
+    
     ret->setHelpText(
         AString("By default, draws ROIs inside all borders in the border file, as separate metric columns.")
     );
@@ -87,6 +89,7 @@ void AlgorithmNodesInsideBorder::useParameters(OperationParameters* myParams, Pr
     MetricFile* myMetricOut = myParams->getOutputMetric(3);
     OptionalParameter* borderOpt = myParams->getOptionalParameter(4);
     bool inverse = myParams->getOptionalParameter(5)->m_present;
+    bool includeBorder = myParams->getOptionalParameter(6)->m_present;
     int numNodes = mySurf->getNumberOfNodes();
     if (mySurf->getStructure() == StructureEnum::INVALID) throw AlgorithmException("surface file needs a valid structure to find the correct borders in the file");
     if (myBorderFile->getNumberOfNodes() > 0)//-1 number of nodes is the signal that this is an old-format, potentially multistructure border file
@@ -106,7 +109,7 @@ void AlgorithmNodesInsideBorder::useParameters(OperationParameters* myParams, Pr
             if (thisBorder->getName() == findName && thisBorder->getStructure() == mySurf->getStructure())
             {
                 found = true;//don't use inverse in this call, because we need to merge results, and having them inverted first would just make things more confusing
-                vector<int32_t> insideNodes = findNodesInsideBorder(mySurf, thisBorder, false);
+                vector<int32_t> insideNodes = findNodesInsideBorder(mySurf, thisBorder, false, includeBorder);
                 for (int index = 0; index < (int)insideNodes.size(); ++index)
                 {
                     scratchCol[insideNodes[index]] = (inverse ? 0.0f : 1.0f);
@@ -150,7 +153,7 @@ void AlgorithmNodesInsideBorder::useParameters(OperationParameters* myParams, Pr
             for (int j = 0; j < numParts; ++j)
             {
                 const Border* thisBorder = myBorderFile->getBorder(borderPartGroups[i][j]);
-                vector<int32_t> insideNodes = findNodesInsideBorder(mySurf, thisBorder, false);
+                vector<int32_t> insideNodes = findNodesInsideBorder(mySurf, thisBorder, false, includeBorder);
                 for (int index = 0; index < (int)insideNodes.size(); ++index)
                 {
                     scratchCol[insideNodes[index]] = (inverse ? 0.0f : 1.0f);
@@ -222,7 +225,8 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                                                        const bool isInverseSelection,
                                                        const int32_t assignToMetricMapIndex,
                                                        const float assignMetricValue,
-                                                       MetricFile* metricFileInOut)
+                                                       MetricFile* metricFileInOut,
+                                                       const bool& includeBorder)
 : AbstractAlgorithm(myProgObj)
 {
     CaretAssert(surfaceFile);
@@ -231,7 +235,7 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
     
     if (surfaceFile->getNumberOfNodes() != metricFileInOut->getNumberOfNodes()) throw AlgorithmException("metric file must be initialized to same number of nodes");//a method that requires this really shouldn't be public
     
-    std::vector<int32_t> nodesInsideBorder = findNodesInsideBorder(surfaceFile, border, isInverseSelection);
+    std::vector<int32_t> nodesInsideBorder = findNodesInsideBorder(surfaceFile, border, isInverseSelection, includeBorder);
     
     const int32_t numberOfNodesInsideBorder = static_cast<int32_t>(nodesInsideBorder.size());
     for (int32_t i = 0; i < numberOfNodesInsideBorder; i++) {
@@ -267,7 +271,8 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                                                        const bool isInverseSelection,
                                                        const int32_t assignToLabelMapIndex,
                                                        const int32_t assignLabelKey,
-                                                       LabelFile* labelFileInOut)
+                                                       LabelFile* labelFileInOut,
+                                                       const bool& includeBorder)
 : AbstractAlgorithm(myProgObj)
 {
     CaretAssert(surfaceFile);
@@ -276,7 +281,7 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
     
     if (surfaceFile->getNumberOfNodes() != labelFileInOut->getNumberOfNodes()) throw AlgorithmException("metric file must be initialized to same number of nodes");//a method that requires this really shouldn't be public
     
-    std::vector<int32_t> nodesInsideBorder = findNodesInsideBorder(surfaceFile, border, isInverseSelection);
+    std::vector<int32_t> nodesInsideBorder = findNodesInsideBorder(surfaceFile, border, isInverseSelection, includeBorder);
     
     const int32_t numberOfNodesInsideBorder = static_cast<int32_t>(nodesInsideBorder.size());
     for (int32_t i = 0; i < numberOfNodesInsideBorder; i++) {
@@ -312,14 +317,15 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                            const bool isInverseSelection,
                            const int32_t assignToCiftiScalarMapIndex,
                            const float assignScalarValue,
-                           CiftiBrainordinateScalarFile* ciftiScalarFileInOut)
+                           CiftiBrainordinateScalarFile* ciftiScalarFileInOut,
+                           const bool& includeBorder)
 : AbstractAlgorithm(myProgObj)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
     CaretAssert(ciftiScalarFileInOut);
     
-    std::vector<int32_t> nodesInsideBorder = findNodesInsideBorder(surfaceFile, border, isInverseSelection);
+    std::vector<int32_t> nodesInsideBorder = findNodesInsideBorder(surfaceFile, border, isInverseSelection, includeBorder);
     
     std::vector<float> surfaceMapData(surfaceFile->getNumberOfNodes(),
                                       0.0);
@@ -360,14 +366,15 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                                                        const bool isInverseSelection,
                                                        const int32_t assignToCiftiLabelMapIndex,
                                                        const int32_t assignLabelKey,
-                                                       CiftiBrainordinateLabelFile* ciftiLabelFileInOut)
+                                                       CiftiBrainordinateLabelFile* ciftiLabelFileInOut,
+                                                       const bool& includeBorder)
 : AbstractAlgorithm(myProgObj)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
     CaretAssert(ciftiLabelFileInOut);
     
-    std::vector<int32_t> nodesInsideBorder = this->findNodesInsideBorder(surfaceFile, border, isInverseSelection);
+    std::vector<int32_t> nodesInsideBorder = this->findNodesInsideBorder(surfaceFile, border, isInverseSelection, includeBorder);
     
     std::vector<float> surfaceMapData(surfaceFile->getNumberOfNodes(),
                                       0.0);
@@ -408,17 +415,18 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                                                        const SurfaceFile* surfaceFile,
                                                        const Border* border,
                                                        const bool isInverseSelection,
-                                                       std::vector<int32_t>& nodesInsideBorderOut)
+                                                       std::vector<int32_t>& nodesInsideBorderOut,
+                                                       const bool& includeBorder)
 : AbstractAlgorithm(myProgObj)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
     
-    nodesInsideBorderOut = this->findNodesInsideBorder(surfaceFile, border, isInverseSelection);
+    nodesInsideBorderOut = this->findNodesInsideBorder(surfaceFile, border, isInverseSelection, includeBorder);
 }
 
 std::vector<int32_t>
-AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* mySurf, const Border* myBorder, const bool& inverse)
+AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* mySurf, const Border* myBorder, const bool& inverse, const bool& includeBorder)
 {
     std::vector<int32_t> nodesInsideBorderOut;
     if (myBorder->getNumberOfPoints() == 0) return nodesInsideBorderOut;//we could throw, but whatever
@@ -482,7 +490,7 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* mySurf, con
             if (std::find(connectedNodesPath.begin(),
                           connectedNodesPath.end(),
                           i) != connectedNodesPath.end()) {
-                insideFlag = false;
+                insideFlag = includeBorder;
             }
         }
         else {

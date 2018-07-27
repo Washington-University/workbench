@@ -44,7 +44,8 @@ namespace caret {
                                    const bool isInverseSelection,
                                    const int32_t assignToMetricMapIndex,
                                    const float assignMetricValue,
-                                   MetricFile* metricFileInOut);
+                                   MetricFile* metricFileInOut,
+                                   const bool& includeBorder = false);
         
         AlgorithmNodesInsideBorder(ProgressObject* myProgObj,
                                    const SurfaceFile* surfaceFile,
@@ -52,7 +53,8 @@ namespace caret {
                                    const bool isInverseSelection,
                                    const int32_t assignToCiftiScalarMapIndex,
                                    const float assignScalarValue,
-                                   CiftiBrainordinateScalarFile* ciftiScalarFileInOut);
+                                   CiftiBrainordinateScalarFile* ciftiScalarFileInOut,
+                                   const bool& includeBorder = false);
         
         AlgorithmNodesInsideBorder(ProgressObject* myProgObj,
                                    const SurfaceFile* surfaceFile,
@@ -60,7 +62,8 @@ namespace caret {
                                    const bool isInverseSelection,
                                    const int32_t assignToCiftiLabelMapIndex,
                                    const int32_t assignLabelKey,
-                                   CiftiBrainordinateLabelFile* ciftiLabelFileInOut);
+                                   CiftiBrainordinateLabelFile* ciftiLabelFileInOut,
+                                   const bool& includeBorder = false);
         
         AlgorithmNodesInsideBorder(ProgressObject* myProgObj,
                                    const SurfaceFile* surfaceFile,
@@ -68,13 +71,15 @@ namespace caret {
                                    const bool isInverseSelection,
                                    const int32_t assignToLabelMapIndex,
                                    const int32_t assignLabelKey,
-                                   LabelFile* labelFileInOut);
+                                   LabelFile* labelFileInOut,
+                                   const bool& includeBorder = false);
         
         AlgorithmNodesInsideBorder(ProgressObject* myProgObj,
                                    const SurfaceFile* surfaceFile,
                                    const Border* border,
                                    const bool isInverseSelection,
-                                   std::vector<int32_t>& nodesInsideBorderOut);
+                                   std::vector<int32_t>& nodesInsideBorderOut,
+                                   const bool& includeBorder = false);
         
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, 
@@ -85,7 +90,7 @@ namespace caret {
         static const BorderFile* getDebugBorderFile() { return NULL; }
         
     private:
-        static std::vector<int32_t> findNodesInsideBorder(const SurfaceFile* mySurf, const Border* myBorder, const bool& inverse);
+        static std::vector<int32_t> findNodesInsideBorder(const SurfaceFile* mySurf, const Border* myBorder, const bool& inverse, const bool& includeBorder);
         
         static std::vector<int32_t> findNodesOutsideOfConnectedPath(const SurfaceFile* mySurf, const std::vector<int32_t>& connectedNodesPath);
         
