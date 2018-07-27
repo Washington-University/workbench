@@ -79,7 +79,9 @@ namespace caret {
                                                   float bottomLeftOut[3],
                                                   float bottomRightOut[3],
                                                   float topRightOut[3],
-                                                  float topLeftOut[3]) override;
+                                                  float topLeftOut[3],
+                                                  float underlineStartOut[3],
+                                                  float underlineEndOut[3]) override;
         
         virtual void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
                                                       const BrainOpenGLTextRenderInterface::DrawingFlags& flags,

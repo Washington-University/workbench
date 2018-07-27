@@ -82,6 +82,7 @@
 #include "CaretOpenGLInclude.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsOpenGLError.h"
+#include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fN3f.h"
 #include "GraphicsShape.h"
 #include "GraphicsUtilitiesOpenGL.h"
@@ -1429,6 +1430,10 @@ FtglFontTextRenderer::drawTextAtModelCoordsFacingUser(const double modelX,
  *    The top right corner of the text bounds.
  * @param topLeftOut
  *    The top left corner of the text bounds.
+ * @param underlineStartOut
+ *    Starting coordinate for drawing text underline.
+ * @param underlineEndOut
+ *    Ending coordinate for drawing text underline.
  */
 void
 FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotationText,
@@ -1437,7 +1442,9 @@ FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotat
                                                    float bottomLeftOut[3],
                                                    float bottomRightOut[3],
                                                    float topRightOut[3],
-                                                   float topLeftOut[3])
+                                                   float topLeftOut[3],
+                                                   float underlineStartOut[3],
+                                                   float underlineEndOut[3])
 {
     std::fill(bottomLeftOut,  bottomLeftOut + 3,  0.0f);
     std::fill(bottomRightOut, bottomRightOut + 3, 0.0f);
@@ -1510,8 +1517,18 @@ FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotat
         topRightOut[1] = dy + ub.Yf();
         topRightOut[2] = z;
         
+        underlineStartOut[0] = bottomLeftOut[0];
+        underlineStartOut[1] = bottomLeftOut[1];
+        underlineStartOut[2] = bottomLeftOut[2];
+        underlineEndOut[0]   = bottomRightOut[0];
+        underlineEndOut[1]   = bottomRightOut[1];
+        underlineEndOut[2]   = bottomRightOut[2];
+        
         const float percent = 0.05;
         expandBoxPercentage(bottomLeftOut, bottomRightOut, topRightOut, topLeftOut, percent, percent);
+        
+        underlineStartOut[1] = bottomLeftOut[1];
+        underlineEndOut[1]   = bottomRightOut[1];
     }
 #endif // HAVE_FREETYPE
     
@@ -1604,17 +1621,20 @@ FtglFontTextRenderer::drawTextInModelSpace(const AnnotationText& annotationText,
         
         glPushAttrib(GL_POLYGON_BIT);
         
+        float bottomLeft[3]     { 0.0, 0.0, 0.0 };
+        float bottomRight[3]    { 0.0, 0.0, 0.0 };
+        float topLeft[3]        { 0.0, 0.0, 0.0 };
+        float topRight[3]       { 0.0, 0.0, 0.0 };
+        float underlineStart[3] { 0.0, 0.0, 0.0 };
+        float underlineEnd[3]   { 0.0, 0.0, 0.0 };
+        
+        getBoundsForTextInModelSpace(annotationText, heightOrWidthForPercentageSizeText, flags,
+                                     bottomLeft, bottomRight, topRight, topLeft,
+                                     underlineStart, underlineEnd);
+        
         uint8_t backgroundColor[4];
         annotationText.getBackgroundColorRGBA(backgroundColor);
-        
         if (backgroundColor[3] > 0) {
-            float bottomLeft[3]  { 0.0, 0.0, 0.0 };
-            float bottomRight[3] { 0.0, 0.0, 0.0 };
-            float topLeft[3]     { 0.0, 0.0, 0.0 };
-            float topRight[3]    { 0.0, 0.0, 0.0 };
-            
-            getBoundsForTextInModelSpace(annotationText, heightOrWidthForPercentageSizeText, flags,
-                                         bottomLeft, bottomRight, topRight, topLeft);
             
             GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                               backgroundColor);
@@ -1634,10 +1654,25 @@ FtglFontTextRenderer::drawTextInModelSpace(const AnnotationText& annotationText,
             glPolygonOffset(-1.0, 1.0);
         }
         
-        glTranslatef(dx, dy, 0.0);
-
         uint8_t textRGBA[4];
         annotationText.getTextColorRGBA(textRGBA);
+        
+        if (annotationText.isUnderlineStyleEnabled()) {
+            const float lineThicknessPercentage(1.0f);
+            float lineThickness = (heightOrWidthForPercentageSizeText
+                                         * (lineThicknessPercentage / 100.0));
+            
+            GraphicsPrimitiveV3f linePrimitive(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
+                                              textRGBA);
+            linePrimitive.setLineWidth(GraphicsPrimitiveV3f::LineWidthType::PIXELS,
+                                       lineThickness);
+            linePrimitive.addVertex(underlineStart);
+            linePrimitive.addVertex(underlineEnd);
+            GraphicsEngineDataOpenGL::draw(&linePrimitive);
+        }
+        
+        glTranslatef(dx, dy, 0.0);
+
         glColor3ubv(textRGBA);
         font->Render(wideCharString);
         

@@ -186,6 +186,10 @@ namespace caret {
          *    The top right corner of the text bounds.
          * @param topLeftOut
          *    The top left corner of the text bounds.
+         * @param underlineStartOut
+         *    Starting coordinate for drawing text underline.
+         * @param underlineEndOut
+         *    Ending coordinate for drawing text underline.
          */
         virtual void getBoundsForTextInModelSpace(const AnnotationText& annotationText,
                                                   const float heightOrWidthForPercentageSizeText,
@@ -193,7 +197,9 @@ namespace caret {
                                                   float bottomLeftOut[3],
                                                   float bottomRightOut[3],
                                                   float topRightOut[3],
-                                                  float topLeftOut[3]) = 0;
+                                                  float topLeftOut[3],
+                                                  float underlineStartOut[3],
+                                                  float underlineEndOut[3]) = 0;
         /**
          * Draw text in model space using the current model transformations.
          *

@@ -2458,8 +2458,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
         float bottomRight[3];
         float topRight[3];
         float topLeft[3];
+        float underlineStart[3];
+        float underlineEnd[3];
         m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextInModelSpace(*text, surfaceExtentZ, m_textDrawingFlags,
-                                                                                    bottomLeft, bottomRight, topRight, topLeft);
+                                                                                    bottomLeft, bottomRight, topRight, topLeft,
+                                                                                    underlineStart, underlineEnd);
         
         uint8_t selectionColorRGBA[4] = { 0, 0, 0, 0 };
         if (m_selectionModeFlag) {

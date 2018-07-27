@@ -181,6 +181,10 @@ DummyFontTextRenderer::drawTextInModelSpace(const AnnotationText& /* annotationT
  *    The top right corner of the text bounds.
  * @param topLeftOut
  *    The top left corner of the text bounds.
+ * @param underlineStartOut
+ *    Starting coordinate for drawing text underline.
+ * @param underlineEndOut
+ *    Ending coordinate for drawing text underline.
  */
 void
 DummyFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& /*annotationText*/,
@@ -189,7 +193,9 @@ DummyFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& /*anno
                                                     float* /*bottomLeftOut[3]*/,
                                                     float* /*bottomRightOut[3]*/,
                                                     float* /*topRightOut[3]*/,
-                                                    float* /*topLeftOut[3]*/)
+                                                    float* /*topLeftOut[3]*/,
+                                                    float* /*underlineStartOut[3]*/,
+                                                    float* /*underlineEndOut[3]*/)
 {
     
 }
