@@ -202,6 +202,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_annotationTabWidget->addTab(m_annotationTextSubstitutionViewController, "Substitutions");
         m_annotationTabIndex = addToTabWidget(m_annotationTabWidget,
                                               "Annot");
+        m_annotationTabWidget->setCurrentIndex(0);
     }
     if (isFeaturesToolBox) {
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
@@ -618,6 +619,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * Determine types of data this is loaded
          */
         bool haveAnnotation = ( ! brain->getSceneAnnotationFile()->isEmpty());
+        bool haveAnnSub     = false;
         bool haveBorders    = false;
         bool haveConnFiles  = false;
         bool haveFibers     = false;
@@ -640,7 +642,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     haveAnnotation = true;
                     break;
                 case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
-                    haveAnnotation = true;
+                    haveAnnSub = true;
                     break;
                 case DataFileTypeEnum::BORDER:
                     haveBorders = true;
@@ -794,7 +796,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveConnFiles);
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         
-        if (m_annotationTabIndex >= 0) m_tabWidget->setTabEnabled(m_annotationTabIndex, haveAnnotation);
+        if (m_annotationTabIndex >= 0) m_tabWidget->setTabEnabled(m_annotationTabIndex, (haveAnnotation
+                                                                                         || haveAnnSub));
         if (m_borderTabIndex >= 0) m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
         if (m_fiberOrientationTabIndex >= 0) m_tabWidget->setTabEnabled(m_fiberOrientationTabIndex, haveFibers);
         if (m_fociTabIndex >= 0) m_tabWidget->setTabEnabled(m_fociTabIndex, haveFoci);
@@ -803,6 +806,21 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         
         if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, enableLayers);
         
+        if (m_annotationTabWidget != NULL) {
+            const int32_t numTabs = m_annotationTabWidget->count();
+            for (int32_t iTab = 0; iTab < numTabs; iTab++) {
+                if (m_annotationTabWidget->widget(iTab) == m_annotationViewController) {
+                    m_annotationTabWidget->setTabEnabled(iTab, haveAnnotation);
+                }
+                else if (m_annotationTabWidget->widget(iTab) == m_annotationTextSubstitutionViewController) {
+                    m_annotationTabWidget->setTabEnabled(iTab, haveAnnSub);
+                }
+                else {
+                    CaretAssertMessage(0, "Has new annotation sub tab been added?");
+                }
+            }
+        }
+
         /*
          * Switch selected tab if it is not valid
          */
