@@ -43,10 +43,16 @@ double dsdot_select (const float *a, const float *b, int n) {
 
 dot_flags dot_set_impl (dot_flags impl) {
 
+  // forcibly select the naive implementations if the architecture
+  // is anything other than x86_64
   #ifndef ARCH_IS_X86_64
-  impl = DOT_NAIVE;
-  #endif
-
+  sdot_ptr  = &sdot_naive;
+  ddot_ptr  = &ddot_naive;
+  dsdot_ptr = &dsdot_naive;
+  return DOT_NAIVE;
+  // note that the cpuinfo functions are currently only being made
+  // available if the architecture is x86_64 (see top of file)
+  #else
   switch (impl) {
     case DOT_AUTO :
     #ifndef DOT_NOAVX512
@@ -100,4 +106,5 @@ dot_flags dot_set_impl (dot_flags impl) {
     default :
       return dot_set_impl(DOT_AUTO);
   }
+  #endif
 }  // dot_set_impl()
