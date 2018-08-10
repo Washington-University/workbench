@@ -66,6 +66,7 @@
 #include "SelectionManager.h"
 #include "SelectionItemAnnotation.h"
 #include "Surface.h"
+#include "TopologyHelper.h"
 
 using namespace caret;
 
@@ -2380,6 +2381,62 @@ BrainOpenGLAnnotationDrawingFixedPipeline::clipLineAtTextBox(const float bottomL
     }
 }
 
+double
+angleInDegreesBetweenVectors(const float u[3], const float v[3])
+{
+    double angle = 0.0;
+    
+    const double numerator = MathFunctions::dotProduct(u, v);
+    const double uLength   = MathFunctions::vectorLength(u);
+    const double vLength   = MathFunctions::vectorLength(v);
+    const double denominator = uLength * vLength;
+    if (denominator > 0.0) {
+        double a = numerator / denominator;
+        if (a > 1.0) {
+            a = 1.0;
+        }
+        else if (a < -1.0) {
+            a = -1.0;
+        }
+        const double angleRadians = std::acos(a);
+        angle = MathFunctions::toDegrees(angleRadians);
+    }
+    return angle;
+}
+
+void
+getSurfaceNormalVector(const Surface* surfaceDisplayed,
+                       const int32_t vertexIndex,
+                       float normalVectorOut[3])
+{
+    const float* normalXYZ = surfaceDisplayed->getNormalVector(vertexIndex);
+    normalVectorOut[0] = normalXYZ[0];
+    normalVectorOut[1] = normalXYZ[1];
+    normalVectorOut[2] = normalXYZ[2];
+//    std::cout << "Normal Vector: " << AString::fromNumbers(normalVectorOut, 3, ", ") << std::endl;
+    
+    CaretPointer<TopologyHelper> th = surfaceDisplayed->getTopologyHelper();
+    int32_t numNeighbors(0);
+    const int32_t* neighbors = th->getNodeNeighbors(vertexIndex, numNeighbors);
+    
+    normalVectorOut[0] = 0.0;
+    normalVectorOut[1] = 0.0;
+    normalVectorOut[2] = 0.0;
+    for (int32_t n = 0; n < numNeighbors; n++) {
+        const float* normalXYZ = surfaceDisplayed->getNormalVector(neighbors[n]);
+        normalVectorOut[0] += normalXYZ[0];
+        normalVectorOut[1] += normalXYZ[1];
+        normalVectorOut[2] += normalXYZ[2];
+    }
+    
+    if (numNeighbors > 0) {
+        normalVectorOut[0] /= numNeighbors;
+        normalVectorOut[1] /= numNeighbors;
+        normalVectorOut[2] /= numNeighbors;
+    }
+//    std::cout << "   Average Normal Vector: " << AString::fromNumbers(normalVectorOut, 3, ", ") << std::endl;
+}
+
 /**
  * Draw an annotation text with tangent offset
  *
@@ -2409,127 +2466,228 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
     AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVectorType;
     coord->getSurfaceSpace(structure, surfaceNumberOfNodes, vertexIndex, offsetLength, offsetVectorType);
     
-    if ((structure == surfaceDisplayed->getStructure())
-        && (surfaceDisplayed->getNumberOfNodes() == surfaceNumberOfNodes)) {
-        float vertexXYZ[3];
-        surfaceDisplayed->getCoordinate(vertexIndex,
-                                        vertexXYZ);
-        const float* normalXYZ = surfaceDisplayed->getNormalVector(vertexIndex);
-        const BoundingBox* boundingBox = surfaceDisplayed->getBoundingBox();
-        const float surfaceExtentZ = boundingBox->getDifferenceZ();
-        
+    if (structure != surfaceDisplayed->getStructure()) {
+        return false;
+    }
+    if (surfaceDisplayed->getNumberOfNodes() != surfaceNumberOfNodes) {
+        return false;
+    }
+    float vertexXYZ[3];
+    surfaceDisplayed->getCoordinate(vertexIndex,
+                                    vertexXYZ);
+    float normalXYZ[3];
+    getSurfaceNormalVector(surfaceDisplayed, vertexIndex, normalXYZ);
+    const BoundingBox* boundingBox = surfaceDisplayed->getBoundingBox();
+    const float surfaceExtentZ = boundingBox->getDifferenceZ();
+    
+    /*
+     * Need to restore model space
+     * Recall that all other annotation spaces are drawn in window space
+     */
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadMatrixd(m_modelSpaceProjectionMatrix);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadMatrixd(m_modelSpaceModelMatrix);
+    int32_t savedViewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  savedViewport);
+    glViewport(m_modelSpaceViewport[0],
+               m_modelSpaceViewport[1],
+               m_modelSpaceViewport[2],
+               m_modelSpaceViewport[3]);
+    
+    glPushMatrix();
+    
+    /*
+     * Matrix that rotates text to plane of vertex's normal vector
+     */
+    Matrix4x4 rotationMatrix;
+    rotationMatrix.setMatrixToOpenGLRotationFromVector(normalXYZ);
+    double rotationArray[16];
+    rotationMatrix.getMatrixForOpenGL(rotationArray);
+    
+    
+    /*
+     * Translate to the vertex and then translate using offset
+     * vector of text.
+     */
+    const float offsetVectorXYZ[3] {
+        normalXYZ[0] * offsetLength,
+        normalXYZ[1] * offsetLength,
+        normalXYZ[2] * offsetLength
+    };
+    glTranslatef(vertexXYZ[0], vertexXYZ[1], vertexXYZ[2]);
+    glTranslatef(offsetVectorXYZ[0], offsetVectorXYZ[1], offsetVectorXYZ[2]);
+    
+    /*
+     * Rotate into plane of surface normal vector
+     */
+    glMultMatrixd(rotationArray);
+    
+    /*
+     * Up vector in local coordinates (text drawing plane)
+     * Z points out of text
+     */
+    const float len(25.0f);
+    const float localUpXYZ[3] {
+        0.0,
+        len,
+        0.0
+    };
+    
+    /*
+     * Inverse matrix goes back to surface coordinate system
+     */
+    Matrix4x4 inverseMatrix(rotationMatrix);
+    inverseMatrix.invert();
+    
+    /*
+     * Create the plane in which text is drawn
+     * (plane is not used for drawing text but is used
+     * to orient the text).  The plane is constructed
+     * from the vertex's normal vector and the the
+     * vertex's XYZ-coordinate.
+     */
+    Plane textDrawingPlane(normalXYZ,
+                           vertexXYZ);
+    
+    /*
+     * Project a point with a large Z-coordinate to the plane
+     * and use it to creat the 'text up orientation vector'.
+     */
+    const float zBig[3] { 0.0, 0.0, 10000.0 };
+    float textUpOrientationVectorXYZ[3];
+    textDrawingPlane.projectPointToPlane(zBig, textUpOrientationVectorXYZ);
+    inverseMatrix.multiplyPoint3(textUpOrientationVectorXYZ);
+    
+    if (debugFlag) {
         /*
-         * Need to restore model space
-         * Recall that all other annotation spaces are drawn in window space
+         * Red line is normal vector
+         * Green line is "text up" vector
+         * Blue points to surface Z-vector
          */
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadMatrixd(m_modelSpaceProjectionMatrix);
-        
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadMatrixd(m_modelSpaceModelMatrix);
-        int32_t savedViewport[4];
-        glGetIntegerv(GL_VIEWPORT,
-                      savedViewport);
-        glViewport(m_modelSpaceViewport[0],
-                   m_modelSpaceViewport[1],
-                   m_modelSpaceViewport[2],
-                   m_modelSpaceViewport[3]);
-        
-        glPushMatrix();
-        
-        /*
-         * Matrix place text in plane of vertex's normal vector
-         */
-        Matrix4x4 rotationMatrix;
-        rotationMatrix.setMatrixToOpenGLRotationFromVector(normalXYZ);
-        double rotationArray[16];
-        rotationMatrix.getMatrixForOpenGL(rotationArray);
-        
-        const float rotationAngle = text->getRotationAngle();
-
-        glPushMatrix();
-        glTranslatef(vertexXYZ[0], vertexXYZ[1], vertexXYZ[2]);
-        glMultMatrixd(rotationArray);
-        glRotatef(rotationAngle, 0.0, 0.0, 1.0);
-        
-        float bottomLeft[3];
-        float bottomRight[3];
-        float topRight[3];
-        float topLeft[3];
-        float underlineStart[3];
-        float underlineEnd[3];
-        m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextInModelSpace(*text, surfaceExtentZ, m_textDrawingFlags,
-                                                                                    bottomLeft, bottomRight, topRight, topLeft,
-                                                                                    underlineStart, underlineEnd);
-        
-        uint8_t selectionColorRGBA[4] = { 0, 0, 0, 0 };
-        if (m_selectionModeFlag) {
-            getIdentificationColor(selectionColorRGBA);
-            GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                              selectionColorRGBA);
-            primitive.addVertex(topLeft, normalXYZ);
-            primitive.addVertex(bottomLeft, normalXYZ);
-            primitive.addVertex(topRight, normalXYZ);
-            primitive.addVertex(bottomRight, normalXYZ);
-            GraphicsEngineDataOpenGL::draw(&primitive);
-            m_selectionInfo.push_back(SelectionInfo(annotationFile,
-                                                    text,
-                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
-                                                    vertexXYZ));
-        }
-        else {
-            glPushMatrix();
-            m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextInModelSpace(*text,
-                                                                                surfaceExtentZ,
-                                                                                normalXYZ,
-                                                                                m_textDrawingFlags);
-            glPopMatrix();
-        }
-        
-        if (text->isSelectedForEditing(m_inputs->m_windowIndex)) {
-            glPushAttrib(GL_POLYGON_BIT
-                         | GL_LIGHTING_BIT);
-            
-            /*
-             * So that text and background do not mix together
-             * in the Z-buffer
-             */
-            glEnable(GL_POLYGON_OFFSET_FILL);
-            glEnable(GL_POLYGON_OFFSET_LINE);
-            glEnable(GL_POLYGON_OFFSET_POINT);
-            glPolygonOffset(-1.0, 1.0);
-            glDisable(GL_LIGHTING);
-            
-            drawAnnotationTwoDimSizingHandles(annotationFile,
-                                              text,
-                                              bottomLeft,
-                                              bottomRight,
-                                              topRight,
-                                              topLeft,
-                                              s_sizingHandleLineWidthInPixels * 2.0,
-                                              text->getRotationAngle());
-            glPopAttrib();
-        }
-        
-        glPopMatrix();
-        
-        glPopMatrix(); /* restore MODELVIEW */
-        
-        glViewport(savedViewport[0],
-                   savedViewport[1],
-                   savedViewport[2],
-                   savedViewport[3]);
-        glPopMatrix();
-        
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
+        const float startXYZ[3] {
+            0.0,
+            0.0,
+            0.0
+        };
+        const float endXYZ[3] {
+            0.0,
+            0.0,
+            len
+        };
+        glBegin(GL_LINES);
+        glColor3f(1.0, 0.0, 0.0);
+        glVertex3fv(startXYZ);
+        glVertex3fv(endXYZ);
+        glColor3f(0.0, 1.0, 0.0);
+        glVertex3fv(startXYZ);
+        glVertex3fv(localUpXYZ);
+        glColor3f(0.0, 0.0, 1.0);
+        glVertex3fv(startXYZ);
+        glVertex3fv(textUpOrientationVectorXYZ);
+        glEnd();
     }
     
+    /*
+     * Rotate the text so that the horzontal flow of the text
+     * is orthogonal to the 'text up orientation vector'.
+     */
+    const float angle = angleInDegreesBetweenVectors(localUpXYZ,
+                                                     textUpOrientationVectorXYZ);
+    glRotatef(-angle, 0.0, 0.0, 1.0);
     
-    return false;
+    if (debugFlag) {
+        std::cout << "Annotation: " <<  text->getText() << std::endl;
+        std::cout << "   Plane: " << textDrawingPlane.toString() << std::endl;
+        std::cout << "   Local Up Vector: " << AString::fromNumbers(localUpXYZ, 3, ", ") << std::endl;
+        std::cout << "   Angle: " << angle << std::endl;
+    }
+    
+    /*
+     * Apply user rotation of text
+     */
+    const float rotationAngle = text->getRotationAngle();
+    glRotatef(-rotationAngle, 0.0, 0.0, 1.0);
+    
+    float bottomLeft[3];
+    float bottomRight[3];
+    float topRight[3];
+    float topLeft[3];
+    float underlineStart[3];
+    float underlineEnd[3];
+    m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextInModelSpace(*text, surfaceExtentZ, m_textDrawingFlags,
+                                                                                bottomLeft, bottomRight, topRight, topLeft,
+                                                                                underlineStart, underlineEnd);
+    
+    bool textDrawnFlag = false;
+    if (m_selectionModeFlag) {
+        uint8_t selectionColorRGBA[4] = { 0, 0, 0, 0 };
+        getIdentificationColor(selectionColorRGBA);
+        GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                          selectionColorRGBA);
+        primitive.addVertex(topLeft, normalXYZ);
+        primitive.addVertex(bottomLeft, normalXYZ);
+        primitive.addVertex(topRight, normalXYZ);
+        primitive.addVertex(bottomRight, normalXYZ);
+        GraphicsEngineDataOpenGL::draw(&primitive);
+        m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                text,
+                                                AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                vertexXYZ));
+    }
+    else {
+        glPushMatrix();
+        m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextInModelSpace(*text,
+                                                                            surfaceExtentZ,
+                                                                            normalXYZ,
+                                                                            m_textDrawingFlags);
+        glPopMatrix();
+        
+        textDrawnFlag = true;
+    }
+    
+    if (text->isSelectedForEditing(m_inputs->m_windowIndex)) {
+        glPushAttrib(GL_POLYGON_BIT
+                     | GL_LIGHTING_BIT);
+        
+        /*
+         * So that text and background do not mix together
+         * in the Z-buffer
+         */
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        glEnable(GL_POLYGON_OFFSET_POINT);
+        glPolygonOffset(-1.0, 1.0);
+        glDisable(GL_LIGHTING);
+        
+        drawAnnotationTwoDimSizingHandles(annotationFile,
+                                          text,
+                                          bottomLeft,
+                                          bottomRight,
+                                          topRight,
+                                          topLeft,
+                                          s_sizingHandleLineWidthInPixels * 2.0,
+                                          text->getRotationAngle());
+        glPopAttrib();
+    }
+    
+    glPopMatrix(); /* restore MODELVIEW */
+    
+    glViewport(savedViewport[0],
+               savedViewport[1],
+               savedViewport[2],
+               savedViewport[3]);
+    glPopMatrix();
+    
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+
+    return textDrawnFlag;
 }
 
 /**
