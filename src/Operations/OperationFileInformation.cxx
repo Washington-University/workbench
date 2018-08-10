@@ -27,6 +27,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPointer.h"
 #include "CiftiMappableDataFile.h"
+#include "CiftiFile.h"
 #include "CiftiXML.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
@@ -141,13 +142,29 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     bool preferOnDisk = (!showMapInformationFlag || countOnlys != 0);
 
     CaretPointer<CaretDataFile> caretDataFile;
-    caretDataFile.grabNew(CaretDataFileHelper::readAnyCaretDataFile(dataFileName, preferOnDisk));
+    CiftiFile nonstandardCifti;
+    const GiftiMetaData* nonstandardMD = NULL;
+    DataFileContentInformation nonstandardInfo;
+    try
+    {
+        caretDataFile.grabNew(CaretDataFileHelper::readAnyCaretDataFile(dataFileName, preferOnDisk));
+    } catch (...) {//still fails if the Cifti XML has a nonstandard mapping combination
+        try
+        {
+            CiftiMappableDataFile::getDataFileContentInformationForGenericCiftiFile(dataFileName, nonstandardInfo);
+            nonstandardCifti.openFile(dataFileName);
+            nonstandardMD = nonstandardCifti.getCiftiXML().getFileMetaData();
+        } catch (...) {
+            throw OperationException("unable to open file '" + dataFileName + "', check the format and file extension");
+        }
+    }
     //readAnyCaretDataFile now handles cifti files with the wrong extension
+    //FIXME: does not handle cifti files with unusual mappings
     
     if (onlyTimestep)
     {
         CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile.getPointer());
-        if (mappableFile == NULL) throw OperationException("file does not support maps");//TODO: also give error on things that it doesn't make sense on
+        if (mappableFile == NULL) throw OperationException("file does not support maps");//TODO: also give error on things that it doesn't make sense on?
         if (mappableFile->getMapIntervalUnits() == NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN) throw OperationException("file does not support series data");
         float start, step;
         mappableFile->getMapIntervalStartAndStep(start, step);
@@ -156,7 +173,7 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     if (onlyNumMaps)
     {
         CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile.getPointer());
-        if (mappableFile == NULL) throw OperationException("file does not support maps");//TODO: also give error on things that it doesn't make sense on
+        if (mappableFile == NULL) throw OperationException("file does not support maps");//TODO: also give error on things that it doesn't make sense on?
         int numMaps = mappableFile->getNumberOfMaps();
         if (numMaps < 1) throw OperationException("file does not support maps");
         cout << numMaps << endl;
@@ -164,7 +181,7 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     if (onlyMapNames)
     {
         CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile.getPointer());
-        if (mappableFile == NULL) throw OperationException("file does not support maps");//TODO: also give error on things that it doesn't make sense on
+        if (mappableFile == NULL) throw OperationException("file does not support maps");//TODO: also give error on things that it doesn't make sense on?
         int numMaps = mappableFile->getNumberOfMaps();
         if (numMaps < 1) throw OperationException("file does not support maps");
         for (int i = 0; i < numMaps; ++i)
@@ -174,7 +191,14 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     }
     if (onlyMetadata)
     {
-        const GiftiMetaData* myMD = caretDataFile->getFileMetaData();
+        const GiftiMetaData* myMD = NULL;
+        if (caretDataFile != NULL)
+        {
+            myMD = caretDataFile->getFileMetaData();
+        } else {
+            myMD = nonstandardMD;
+        }
+        CaretAssert(myMD != NULL);
         if (mdKey == "")
         {
             const map<AString, AString> mdMap = myMD->getAsMap();
@@ -193,22 +217,38 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     }
     if (onlyCiftiXML)
     {
-        CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile.getPointer());
-        if (mappableFile != NULL && mappableFile->hasCiftiXML())
+        const CiftiXML* myXML = NULL;
+        CiftiXML tempXML;//because CaretMappableDataFile doesn't return the XML as a pointer
+        if (caretDataFile == NULL)
         {
-            const CiftiXML& myXML = mappableFile->getCiftiXML();
-            cout << myXML.writeXMLToString(myXML.getParsedVersion()) << endl;
+            myXML = &(nonstandardCifti.getCiftiXML());
+        } else {
+            CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile.getPointer());
+            if (mappableFile != NULL && mappableFile->hasCiftiXML())
+            {
+                tempXML = mappableFile->getCiftiXML();
+                myXML = &tempXML;
+            }
+        }
+        if (myXML != NULL)
+        {
+            cout << myXML->writeXMLToString(myXML->getParsedVersion()) << endl;
         }
     }
     if (countOnlys == 0)
     {
-        DataFileContentInformation dataFileContentInformation;
-        dataFileContentInformation.setOptionFlag(DataFileContentInformation::OPTION_SHOW_MAP_INFORMATION,
-                                                showMapInformationFlag);
-        
-        caretDataFile->addToDataFileContentInformation(dataFileContentInformation);
-        
-        cout << qPrintable(dataFileContentInformation.getInformationInString()) << endl;
+        if (caretDataFile != NULL)
+        {
+            DataFileContentInformation dataFileContentInformation;
+            dataFileContentInformation.setOptionFlag(DataFileContentInformation::OPTION_SHOW_MAP_INFORMATION,
+                                                    showMapInformationFlag);
+            
+            caretDataFile->addToDataFileContentInformation(dataFileContentInformation);
+            
+            cout << qPrintable(dataFileContentInformation.getInformationInString()) << endl;
+        } else {
+            cout << qPrintable(nonstandardInfo.getInformationInString()) << endl;
+        }
     }
 }
 
