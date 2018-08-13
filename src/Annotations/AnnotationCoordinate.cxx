@@ -41,8 +41,10 @@ using namespace caret;
 /**
  * Constructor.
  */
-AnnotationCoordinate::AnnotationCoordinate()
-: CaretObjectTracksModification()
+AnnotationCoordinate::AnnotationCoordinate(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
+: CaretObjectTracksModification(),
+SceneableInterface(),
+m_attributeDefaultType(attributeDefaultType)
 {
     initializeAnnotationCoordinateMembers();
     
@@ -63,7 +65,8 @@ AnnotationCoordinate::~AnnotationCoordinate()
  */
 AnnotationCoordinate::AnnotationCoordinate(const AnnotationCoordinate& obj)
 : CaretObjectTracksModification(obj),
-SceneableInterface(obj)
+SceneableInterface(obj),
+m_attributeDefaultType(obj.m_attributeDefaultType)
 {
     initializeAnnotationCoordinateMembers();
     this->copyHelperAnnotationCoordinate(obj);
@@ -118,8 +121,17 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
     m_surfaceSpaceStructure     = StructureEnum::INVALID;
     m_surfaceSpaceNumberOfNodes = -1;
     m_surfaceSpaceNodeIndex     = -1;
-    m_surfaceOffsetLength       = getDefaultSurfaceOffsetLength();
-    m_surfaceOffsetVectorType   = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
+    
+    switch (m_attributeDefaultType) {
+        case AnnotationAttributesDefaultTypeEnum::NORMAL:
+            m_surfaceOffsetLength       = getDefaultSurfaceOffsetLength();
+            m_surfaceOffsetVectorType   = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
+            break;
+        case AnnotationAttributesDefaultTypeEnum::USER:
+            m_surfaceOffsetLength     = s_userDefaultSurfaceOffsetLength;
+            m_surfaceOffsetVectorType = s_userDefaultSurfaceOffsetVectorType;
+            break;
+    }
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->addArray("m_xyz",
@@ -451,6 +463,30 @@ AString
 AnnotationCoordinate::toString() const
 {
     return "AnnotationCoordinate";
+}
+
+/**
+ * Set the user default for the surface offset vector type.
+ *
+ * @param surfaceOffsetVectorType
+ *     new default value.
+ */
+void
+AnnotationCoordinate::setUserDefautlSurfaceOffsetVectorType(const AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorType)
+{
+    s_userDefaultSurfaceOffsetVectorType = surfaceOffsetVectorType;
+}
+
+/**
+ * Set the user default for the surface offset length.
+ * 
+ * @param surfaceOffsetLength
+ *    New default value.
+ */
+void
+AnnotationCoordinate::setUserDefaultSurfaceOffsetLength(const float surfaceOffsetLength)
+{
+    s_userDefaultSurfaceOffsetLength = surfaceOffsetLength;
 }
 
 /**

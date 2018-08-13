@@ -67,6 +67,10 @@ namespace caret {
         
         void setCoordinateActionTriggered();
         
+        void surfaceOffsetLengthValueChanged(double);
+        
+        void surfaceOffsetVectorTypeChanged();
+        
     private:
         AnnotationCoordinateWidget(const AnnotationCoordinateWidget&);
 

@@ -112,8 +112,8 @@ AnnotationOneDimensionalShape::copyHelperAnnotationOneDimensionalShape(const Ann
 void
 AnnotationOneDimensionalShape::initializeMembersAnnotationOneDimensionalShape()
 {
-    m_startCoordinate.grabNew(new AnnotationCoordinate());
-    m_endCoordinate.grabNew(new AnnotationCoordinate());
+    m_startCoordinate.grabNew(new AnnotationCoordinate(m_attributeDefaultType));
+    m_endCoordinate.grabNew(new AnnotationCoordinate(m_attributeDefaultType));
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {

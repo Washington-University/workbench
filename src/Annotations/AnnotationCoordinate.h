@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "AnnotationAttributesDefaultTypeEnum.h"
 #include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "CaretObjectTracksModification.h"
 #include "SceneableInterface.h"
@@ -33,7 +34,7 @@ namespace caret {
     class AnnotationCoordinate : public CaretObjectTracksModification, public SceneableInterface {
         
     public:
-        AnnotationCoordinate();
+        AnnotationCoordinate(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         virtual ~AnnotationCoordinate();
         
@@ -106,7 +107,9 @@ namespace caret {
           
         static float getDefaultSurfaceOffsetLength();
 
+        static void setUserDefautlSurfaceOffsetVectorType(const AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorType);
         
+        static void setUserDefaultSurfaceOffsetLength(const float surfaceOffsetLength);
           
           
 // If there will be sub-classes of this class that need to save
@@ -124,6 +127,8 @@ namespace caret {
 
         void initializeAnnotationCoordinateMembers();
         
+        const AnnotationAttributesDefaultTypeEnum::Enum m_attributeDefaultType;
+
         SceneClassAssistant* m_sceneAssistant;
 
         float m_xyz[3];
@@ -138,12 +143,18 @@ namespace caret {
         
         AnnotationSurfaceOffsetVectorTypeEnum::Enum m_surfaceOffsetVectorType;
         
+        
+        static float s_userDefaultSurfaceOffsetLength;
+        
+        static AnnotationSurfaceOffsetVectorTypeEnum::Enum s_userDefaultSurfaceOffsetVectorType;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __ANNOTATION_COORDINATE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    float AnnotationCoordinate::s_userDefaultSurfaceOffsetLength = 5.0f;
+    AnnotationSurfaceOffsetVectorTypeEnum::Enum AnnotationCoordinate::s_userDefaultSurfaceOffsetVectorType = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
 #endif // __ANNOTATION_COORDINATE_DECLARE__
 
 } // namespace

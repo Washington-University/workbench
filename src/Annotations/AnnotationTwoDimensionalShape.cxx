@@ -117,7 +117,7 @@ AnnotationTwoDimensionalShape::copyHelperAnnotationTwoDimensionalShape(const Ann
 void
 AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
 {
-    m_coordinate.grabNew(new AnnotationCoordinate());
+    m_coordinate.grabNew(new AnnotationCoordinate(m_attributeDefaultType));
     
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:

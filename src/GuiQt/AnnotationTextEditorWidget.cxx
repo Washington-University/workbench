@@ -120,6 +120,7 @@ AnnotationTextEditorWidget::updateContent(std::vector<AnnotationText*>& annotati
     AnnotationTextConnectTypeEnum::Enum connectValue = AnnotationTextConnectTypeEnum::ANNOTATION_TEXT_CONNECT_NONE;
     if (m_annotationText != NULL) {
         connectValue = m_annotationText->getConnectToBrainordinate();
+        AnnotationText::setUserDefaultConnectToBrainordinate(connectValue);
     }
     m_annotationTextConnectTypeEnumComboBox->setSelectedItem<AnnotationTextConnectTypeEnum,AnnotationTextConnectTypeEnum::Enum>(connectValue);
     
@@ -245,6 +246,7 @@ AnnotationTextEditorWidget::annotationTextConnectTypeEnumComboBoxItemActivated()
         WuQMessageBox::errorOk(this,
                                errorMessage);
     }
+    AnnotationText::setUserDefaultConnectToBrainordinate(connectType);
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
