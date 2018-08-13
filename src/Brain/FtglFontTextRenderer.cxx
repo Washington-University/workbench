@@ -492,9 +492,6 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
         return;
     }
 
-//    const bool tooSmallFlag = (font->FaceSize() <= s_tooSmallFontSize);
-//    annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag);
-    
     if (annotationText.getText().isEmpty()) {
         return;
     }
@@ -772,6 +769,46 @@ FtglFontTextRenderer::drawOutline(const double minX,
 }
 
 /**
+ * Draw an outline for 3D using the given coordinates.
+ *
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ * @param outlineThickness
+ *     Thickness of outline
+ * @param foregroundRGBA
+ *     Color for drawing outline.
+ */
+void
+FtglFontTextRenderer::drawOutline3D(float bottomLeft[3],
+                                    float bottomRight[3],
+                                    float topRight[3],
+                                    float topLeft[3],
+                                    const double outlineThickness,
+                                    uint8_t foregroundRgba[4])
+{
+    /*
+     * Need to enable anti-aliasing for smooth lines
+     */
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    
+    GraphicsShape::drawBoxOutlineByteColor(bottomLeft, bottomRight, topRight, topLeft,
+                                           foregroundRgba,
+                                           GraphicsPrimitive::LineWidthType::PIXELS, outlineThickness);
+    
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_BLEND);
+}
+
+/**
  * Expand a box by given amounts in X and Y.
  *
  * @param bottomLeft
@@ -824,6 +861,67 @@ FtglFontTextRenderer::expandBox(float bottomLeft[3],
 }
 
 /**
+ * Expand the end points of a line.
+ *
+ * @param u
+ *     First point in line.
+ * @param v
+ *     Second point in line.
+ * #param extraSpacePercent
+ *     Percentage amount to expand the points.
+ */
+void
+FtglFontTextRenderer::expandLinePercentage3D(float u[3],
+                                             float v[3],
+                                             const float extraSpacePercent)
+{
+    float vector[3];
+    MathFunctions::subtractVectors(v, u, vector);
+    const float length = MathFunctions::normalizeVector(vector) / 2.0;
+    const float extraVector[3] {
+        vector[0] * (length * extraSpacePercent),
+        vector[1] * (length * extraSpacePercent),
+        vector[2] * (length * extraSpacePercent)
+    };
+    
+    for (int32_t i = 0; i < 3; i++) {
+        u[i] -= extraVector[i];
+        v[i] += extraVector[i];
+    }
+}
+
+/**
+ * Expand the end points of a line.
+ *
+ * @param u
+ *     First point in line.
+ * @param v
+ *     Second point in line.
+ * #param extraSpacePixels
+ *     Pixels amount to expand the points.
+ */
+void
+FtglFontTextRenderer::expandLinePixels3D(float u[3],
+                                         float v[3],
+                                         const float extraSpacePixels)
+{
+    float vector[3];
+    MathFunctions::subtractVectors(v, u, vector);
+    MathFunctions::normalizeVector(vector);
+    const float halfExtra = extraSpacePixels / 2.0;
+    const float extraVector[3] {
+        vector[0] * halfExtra,
+        vector[1] * halfExtra,
+        vector[2] * halfExtra
+    };
+    
+    for (int32_t i = 0; i < 3; i++) {
+        u[i] -= extraVector[i];
+        v[i] += extraVector[i];
+    }
+}
+
+/**
  * Expand a box by given amounts in X and Y.
  *
  * @param bottomLeft
@@ -834,28 +932,20 @@ FtglFontTextRenderer::expandBox(float bottomLeft[3],
  *     Top right corner of annotation.
  * @param topLeft
  *     Top left corner of annotation.
- * @param extraSpacePercentX
- *     Extra space to add in X, percentage is zero to one with one interpreted as 100%.
- * @param extraSpacePercentY
- *     Extra space to add in Y, percentage is zero to one with one interpreted as 100%.
+ * @param extraSpacePercent
+ *     Extra space to add, percentage is zero to one with one interpreted as 100%.
  */
 void
-FtglFontTextRenderer::expandBoxPercentage(float bottomLeft[3],
-                                          float bottomRight[3],
-                                          float topRight[3],
-                                          float topLeft[3],
-                                          const float extraSpacePercentX,
-                                          const float extraSpacePercentY)
+FtglFontTextRenderer::expandBoxPixels3D(float bottomLeft[3],
+                                            float bottomRight[3],
+                                            float topRight[3],
+                                            float topLeft[3],
+                                            const float extraSpacePixels)
 {
-    const float width = MathFunctions::distance3D(bottomLeft, bottomRight);
-    const float height = MathFunctions::distance3D(bottomLeft, topLeft);
-    
-    expandBox(bottomLeft,
-              bottomRight,
-              topRight,
-              topLeft,
-              width * extraSpacePercentX,
-              height * extraSpacePercentY);
+    expandLinePixels3D(bottomLeft, bottomRight, extraSpacePixels);
+    expandLinePixels3D(topLeft, topRight, extraSpacePixels);
+    expandLinePixels3D(bottomLeft, topLeft, extraSpacePixels);
+    expandLinePixels3D(bottomRight, topRight, extraSpacePixels);
 }
 
 /**
@@ -953,9 +1043,6 @@ FtglFontTextRenderer::drawTextAtViewportCoordsInternal(const DepthTestEnum depth
     if ( ! font) {
         return;
     }
-    
-//    const bool tooSmallFlag = (font->FaceSize() < s_tooSmallFontSize);
-//    annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag);
     
     m_depthTestingStatus = depthTesting;
     
@@ -1418,6 +1505,8 @@ FtglFontTextRenderer::drawTextAtModelCoordsFacingUser(const double modelX,
  *
  * @param annotationText
  *   Text that is to be drawn.
+ * @param modelSpaceScaling
+ *   Scaling in the model space.
  * @param heightOrWidthForPercentageSizeText
  *    Size of region used when converting percentage size to a fixed size
  * @param flags
@@ -1437,6 +1526,7 @@ FtglFontTextRenderer::drawTextAtModelCoordsFacingUser(const double modelX,
  */
 void
 FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotationText,
+                                                   const float modelSpaceScaling,
                                                    const float heightOrWidthForPercentageSizeText,
                                                    const DrawingFlags& flags,
                                                    float bottomLeftOut[3],
@@ -1517,6 +1607,17 @@ FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotat
         topRightOut[1] = dy + ub.Yf();
         topRightOut[2] = z;
         
+        float copyTopLeft[3] {
+            topLeftOut[0],
+            topLeftOut[1],
+            topLeftOut[2]
+        };
+        float copyTopRight[3] {
+            topRightOut[0],
+            topRightOut[1],
+            topRightOut[2]
+        };
+        
         underlineStartOut[0] = bottomLeftOut[0];
         underlineStartOut[1] = bottomLeftOut[1];
         underlineStartOut[2] = bottomLeftOut[2];
@@ -1524,14 +1625,39 @@ FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotat
         underlineEndOut[1]   = bottomRightOut[1];
         underlineEndOut[2]   = bottomRightOut[2];
         
-        const float percent = 0.05;
-        expandBoxPercentage(bottomLeftOut, bottomRightOut, topRightOut, topLeftOut, percent, percent);
-        
-        underlineStartOut[1] = bottomLeftOut[1];
-        underlineEndOut[1]   = bottomRightOut[1];
+        const float boxExpansion(getLineThicknessPixelsInModelSpace(annotationText.getLineWidthPercentage(),
+                                                                    heightOrWidthForPercentageSizeText,
+                                                                    1.0));
+        expandBoxPixels3D(bottomLeftOut, bottomRightOut, topRightOut, topLeftOut,
+                          boxExpansion);
+        expandLinePixels3D(underlineStartOut, copyTopLeft, boxExpansion * 0.5);
+        expandLinePixels3D(underlineEndOut, copyTopRight, boxExpansion * 0.5);
     }
 #endif // HAVE_FREETYPE
+}
+
+/**
+ * Get the line thickness for model space.
+ *
+ * @param lineWidthPercentage
+ *     The line width percentage.
+ * @param heightOrWidthForPercentageSizeText
+ *     The height/width of region (surface) for percentage size text.
+ * @param modelSpaceScaling
+ *     Scaling in model space.
+ */
+float
+FtglFontTextRenderer::getLineThicknessPixelsInModelSpace(const float lineWidthPercentage,
+                                                         const float heightOrWidthForPercentageSizeText,
+                                                         const float modelSpaceScaling) const
+{
+    float lineThicknessPercentage = std::max(0.01f,
+                                             (lineWidthPercentage / 100.f));
+    float lineThicknessPixels = (heightOrWidthForPercentageSizeText
+                                 * lineThicknessPercentage);
+    lineThicknessPixels *= modelSpaceScaling;
     
+    return lineThicknessPixels;
 }
 
 /**
@@ -1541,6 +1667,8 @@ FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotat
  *
  * @param annotationText
  *     Annotation text and attributes.
+ * @param modelSpaceScaling
+ *     Scaling in the model space.
  * @param heightOrWidthForPercentageSizeText
  *    If positive, use it to override width/height of viewport.
  * @param normalVector
@@ -1550,6 +1678,7 @@ FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotat
  */
 void
 FtglFontTextRenderer::drawTextInModelSpace(const AnnotationText& annotationText,
+                                           const float modelSpaceScaling,
                                            const float heightOrWidthForPercentageSizeText,
                                            const float normalVector[3],
                                            const DrawingFlags& flags)
@@ -1628,7 +1757,7 @@ FtglFontTextRenderer::drawTextInModelSpace(const AnnotationText& annotationText,
         float underlineStart[3] { 0.0, 0.0, 0.0 };
         float underlineEnd[3]   { 0.0, 0.0, 0.0 };
         
-        getBoundsForTextInModelSpace(annotationText, heightOrWidthForPercentageSizeText, flags,
+        getBoundsForTextInModelSpace(annotationText, modelSpaceScaling, heightOrWidthForPercentageSizeText, flags,
                                      bottomLeft, bottomRight, topRight, topLeft,
                                      underlineStart, underlineEnd);
         
@@ -1657,18 +1786,33 @@ FtglFontTextRenderer::drawTextInModelSpace(const AnnotationText& annotationText,
         uint8_t textRGBA[4];
         annotationText.getTextColorRGBA(textRGBA);
         
+        const float lineThicknessPixels = getLineThicknessPixelsInModelSpace(annotationText.getLineWidthPercentage(),
+                                                                             heightOrWidthForPercentageSizeText,
+                                                                             modelSpaceScaling);
+        
         if (annotationText.isUnderlineStyleEnabled()) {
-            const float lineThicknessPercentage(1.0f);
-            float lineThickness = (heightOrWidthForPercentageSizeText
-                                         * (lineThicknessPercentage / 100.0));
-            
             GraphicsPrimitiveV3f linePrimitive(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
                                               textRGBA);
             linePrimitive.setLineWidth(GraphicsPrimitiveV3f::LineWidthType::PIXELS,
-                                       lineThickness);
+                                       lineThicknessPixels);
             linePrimitive.addVertex(underlineStart);
             linePrimitive.addVertex(underlineEnd);
             GraphicsEngineDataOpenGL::draw(&linePrimitive);
+        }
+        
+        if (annotationText.getLineColor() != CaretColorEnum::NONE) {
+            glPushMatrix();
+            
+            uint8_t foregroundRgba[4];
+            annotationText.getLineColorRGBA(foregroundRgba);
+            drawOutline3D(bottomLeft,
+                          bottomRight,
+                          topRight,
+                          topLeft,
+                          lineThicknessPixels,
+                          foregroundRgba);
+            
+            glPopMatrix();
         }
         
         glTranslatef(dx, dy, 0.0);

@@ -192,10 +192,12 @@ namespace caret {
                               ModelChartTwo* chartData,
                               const int32_t viewport[4]);
         
-        void drawSurfaceModel(ModelSurface* surfaceModel,
-                                   const int32_t viewport[4]);
+        void drawSurfaceModel(BrowserTabContent* browserTabContent,
+                              ModelSurface* surfaceModel,
+                              const int32_t viewport[4]);
         
         void drawSurface(Surface* surface,
+                         const float surfaceScaling,
                          const float* nodeColoringRGBA,
                          const bool drawAnnotationsInModelSpaceFlag);
         

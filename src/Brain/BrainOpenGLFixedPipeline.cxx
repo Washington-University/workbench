@@ -153,6 +153,8 @@
 
 using namespace caret;
 
+static Surface* annotationDrawingNullSurface(NULL);
+static float    annotationDrawingUnusedSurfaceScaling(1.0f);
 /**
  * Constructor.
  *
@@ -822,7 +824,8 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLV
                                              AnnotationCoordinateSpaceEnum::CHART,
                                              emptyColorBars,
                                              emptyViewportAnnotations,
-                                             NULL);
+                                             NULL,
+                                             1.0);
         
         
         
@@ -880,7 +883,8 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
                                          AnnotationCoordinateSpaceEnum::TAB,
                                          m_annotationColorBarsForDrawing,
                                          m_specialCaseGraphicsAnnotations,
-                                         NULL);
+                                         annotationDrawingNullSurface,
+                                         annotationDrawingUnusedSurfaceScaling);
     
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
@@ -940,7 +944,8 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
                                          AnnotationCoordinateSpaceEnum::WINDOW,
                                          m_annotationColorBarsForDrawing,
                                          m_specialCaseGraphicsAnnotations,
-                                         NULL);
+                                         annotationDrawingNullSurface,
+                                         annotationDrawingUnusedSurfaceScaling);
 
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
@@ -1017,7 +1022,9 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             }
             else if (surfaceModel != NULL) {
                 m_mirroredClippingEnabled = true;
-                this->drawSurfaceModel(surfaceModel, viewport);
+                this->drawSurfaceModel(browserTabContent,
+                                       surfaceModel,
+                                       viewport);
             }
             else if (surfaceMontageModel != NULL) {
                 m_mirroredClippingEnabled = true;
@@ -1726,14 +1733,17 @@ BrainOpenGLFixedPipeline::disableLineAntiAliasing()
 
 /**
  * Draw contents of a surface model.
+ * @param browserTabContent
+ *    Browser tab containing surface model.
  * @param surfaceModel
  *    Model that is drawn.
  * @param viewport
  *    Viewport for drawing region.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurfaceModel(ModelSurface* surfaceModel,
-                                   const int32_t viewport[4])
+BrainOpenGLFixedPipeline::drawSurfaceModel(BrowserTabContent* browserTabContent,
+                                           ModelSurface* surfaceModel,
+                                           const int32_t viewport[4])
 {
     Surface* surface = surfaceModel->getSurface();
     float center[3];
@@ -1752,6 +1762,7 @@ BrainOpenGLFixedPipeline::drawSurfaceModel(ModelSurface* surfaceModel,
                                                                                  this->windowTabIndex);
     
     this->drawSurface(surface,
+                      browserTabContent->getScaling(),
                       nodeColoringRGBA,
                       true);
 }
@@ -1782,6 +1793,8 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
  *
  * @param surface
  *    Surface that is drawn.
+ * @param surfaceScaling
+ *    User scaling of surface.
  * @param nodeColoringRGBA
  *    RGBA coloring for the nodes.
  * @param drawAnnotationsInModelSpaceFlag
@@ -1789,6 +1802,7 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
  */
 void 
 BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
+                                      const float surfaceScaling,
                                       const float* nodeColoringRGBA,
                                       const bool drawAnnotationsInModelSpaceFlag)
 {
@@ -1897,13 +1911,15 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                  AnnotationCoordinateSpaceEnum::SURFACE,
                                                  emptyColorBars,
                                                  emptyViewportAnnotations,
-                                                 surface);
+                                                 surface,
+                                                 surfaceScaling);
             if (drawAnnotationsInModelSpaceFlag) {
                 m_annotationDrawing->drawAnnotations(&inputs,
                                                      AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      emptyColorBars,
                                                      emptyViewportAnnotations,
-                                                     NULL);
+                                                     annotationDrawingNullSurface,
+                                                     annotationDrawingUnusedSurfaceScaling);
             }
         }
             break;
@@ -1945,13 +1961,15 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                  AnnotationCoordinateSpaceEnum::SURFACE,
                                                  emptyColorBars,
                                                  emptyViewportAnnotations,
-                                                 surface);
+                                                 surface,
+                                                 surfaceScaling);
             if (drawAnnotationsInModelSpaceFlag) {
                 m_annotationDrawing->drawAnnotations(&inputs,
                                                      AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      emptyColorBars,
                                                      emptyViewportAnnotations,
-                                                     NULL);
+                                                     annotationDrawingNullSurface,
+                                                     annotationDrawingUnusedSurfaceScaling);
             }
             
             /*
@@ -5052,6 +5070,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                                           mvp->getProjectionViewType());
         
         this->drawSurface(mvp->getSurface(),
+                          browserTabContent->getScaling(),
                           nodeColoringRGBA,
                           true);
     }
@@ -5296,6 +5315,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
             glPushMatrix();
             glTranslatef(dx, dy, dz);
             this->drawSurface(surface,
+                              browserTabContent->getScaling(),
                               nodeColoringRGBA,
                               drawModelSpaceAnnotationsFlag);
             glPopMatrix();

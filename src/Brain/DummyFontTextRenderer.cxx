@@ -148,6 +148,8 @@ DummyFontTextRenderer::drawTextAtModelCoordsFacingUser(const double /*modelX*/,
  *
  * @param annotationText
  *     Annotation text and attributes.
+ * @param modelSpaceScaling
+ *     Scaling in the model space.
  * @param heightOrWidthForPercentageSizeText
  *    If positive, use it to override width/height of viewport.
  * @param normalVector
@@ -157,6 +159,7 @@ DummyFontTextRenderer::drawTextAtModelCoordsFacingUser(const double /*modelX*/,
  */
 void
 DummyFontTextRenderer::drawTextInModelSpace(const AnnotationText& /* annotationText */,
+                                            const float /*modelSpaceScaling*/,
                                             const float /*heightOrWidthForPercentageSizeText*/,
                                             const float* /*normalVector[3]*/,
                                             const DrawingFlags& /* flags */)
@@ -169,6 +172,8 @@ DummyFontTextRenderer::drawTextInModelSpace(const AnnotationText& /* annotationT
  *
  * @param annotationText
  *   Text that is to be drawn.
+ * @param modelSpaceScaling
+ *   Scaling in the model space.
  * @param heightOrWidthForPercentageSizeText
  *    Size of region used when converting percentage size to a fixed size
  * @param flags
@@ -188,6 +193,7 @@ DummyFontTextRenderer::drawTextInModelSpace(const AnnotationText& /* annotationT
  */
 void
 DummyFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& /*annotationText*/,
+                                                    const float /*modelSpaceScaling*/,
                                                     const float /*heightOrWidthForPercentageSizeText*/,
                                                     const DrawingFlags& /*flags*/,
                                                     float* /*bottomLeftOut[3]*/,

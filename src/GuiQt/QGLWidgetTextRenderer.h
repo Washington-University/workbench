@@ -62,6 +62,7 @@ namespace caret {
                                            const BrainOpenGLTextRenderInterface::DrawingFlags& flags) override;
         
         virtual void drawTextInModelSpace(const AnnotationText& annotationText,
+                                          const float modelSpaceScaling,
                                           const float heightOrWidthForPercentageSizeText,
                                           const float normalVector[3],
                                           const DrawingFlags& flags) override;
@@ -74,6 +75,7 @@ namespace caret {
                                                 double& heightOut) override;
         
         virtual void getBoundsForTextInModelSpace(const AnnotationText& annotationText,
+                                                  const float modelSpaceScaling,
                                                   const float heightOrWidthForPercentageSizeText,
                                                   const DrawingFlags& flags,
                                                   float bottomLeftOut[3],

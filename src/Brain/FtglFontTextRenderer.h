@@ -59,6 +59,7 @@ namespace caret {
                                            const DrawingFlags& flags) override;
         
         virtual void drawTextInModelSpace(const AnnotationText& annotationText,
+                                          const float modelSpaceScaling,
                                           const float heightOrWidthForPercentageSizeText,
                                           const float normalVector[3],
                                           const DrawingFlags& flags) override;
@@ -72,6 +73,7 @@ namespace caret {
         
         
         virtual void getBoundsForTextInModelSpace(const AnnotationText& annotationText,
+                                                  const float modelSpaceScaling,
                                           const float heightOrWidthForPercentageSizeText,
                                           const DrawingFlags& flags,
                                           float bottomLeftOut[3],
@@ -153,6 +155,13 @@ namespace caret {
                          const double outlineThickness,
                          uint8_t foregroundRgba[4]);
         
+        void drawOutline3D(float bottomLeft[3],
+                           float bottomRight[3],
+                           float topRight[3],
+                           float topLeft[3],
+                           const double outlineThickness,
+                           uint8_t foregroundRgba[4]);
+        
         static void expandBox(float bottomLeft[3],
                               float bottomRight[3],
                               float topRight[3],
@@ -160,14 +169,24 @@ namespace caret {
                               const float extraSpaceX,
                               const float extraSpaceY);
         
-        static void expandBoxPercentage(float bottomLeft[3],
-                                        float bottomRight[3],
-                                        float topRight[3],
-                                        float topLeft[3],
-                                        const float extraSpacePercentX,
-                                        const float extraSpacePercentY);
+        static void expandBoxPixels3D(float bottomLeft[3],
+                                          float bottomRight[3],
+                                          float topRight[3],
+                                          float topLeft[3],
+                                          const float extraSpacePixels);
+        
+        static void expandLinePercentage3D(float u[3],
+                                           float v[3],
+                                           const float extraSpacePercent);
+        static void expandLinePixels3D(float u[3],
+                                       float v[3],
+                                       const float extraSpacePixels);
         
         double getLineWidthFromPercentageHeight(const double percentageHeight) const;
+        
+        float getLineThicknessPixelsInModelSpace(const float lineWidthPercentage,
+                                                 const float heightOrWidthForPercentageSizeText,
+                                                 const float modelSpaceScaling) const;
         
         class FontData {
         public:

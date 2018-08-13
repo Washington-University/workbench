@@ -474,6 +474,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
 {
     CaretAssert(inputs);
     m_inputs = inputs;
+    m_surfaceViewScaling = 1.0f;
     m_volumeSpacePlaneValid = false;
     
     if (plane.isValidPlane()) {
@@ -506,16 +507,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
  *     Annotations that are not in a file but need to be drawn.
  * @param surfaceDisplayed
  *     In not NULL, surface no which annotations are drawn.
+ * @param surfaceViewScaling
+ *     Scaling of the viewed surface.
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
                                                            const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                            std::vector<AnnotationColorBar*>& colorBars,
                                                            std::vector<Annotation*>& notInFileAnnotations,
-                                                           const Surface* surfaceDisplayed)
+                                                           const Surface* surfaceDisplayed,
+                                                           const float surfaceViewScaling)
 {
     CaretAssert(inputs);
     m_inputs = inputs;
+    m_surfaceViewScaling = surfaceViewScaling;
     
     m_volumeSpacePlaneValid = false;
     
@@ -2381,8 +2386,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::clipLineAtTextBox(const float bottomL
     }
 }
 
+/**
+ * @return The angle formed by two vectors.
+ * cos = (u . v) / (||u|| * ||v||)
+ *
+ * @param u
+ *     First vector.
+ * @param v
+ *     Second vector.
+ */
 double
-angleInDegreesBetweenVectors(const float u[3], const float v[3])
+BrainOpenGLAnnotationDrawingFixedPipeline::angleInDegreesBetweenVectors(const float u[3], const float v[3]) const
 {
     double angle = 0.0;
     
@@ -2404,16 +2418,30 @@ angleInDegreesBetweenVectors(const float u[3], const float v[3])
     return angle;
 }
 
+/**
+ * Get the normal vector for a surface vector.
+ *
+ * @param surface
+ *     The surface.
+ * @param vertexIndex
+ *     Index of the vertex.
+ * @param normalVectorOut
+ *     Output containing the normal vector.
+ */
 void
-getSurfaceNormalVector(const Surface* surfaceDisplayed,
-                       const int32_t vertexIndex,
-                       float normalVectorOut[3])
+BrainOpenGLAnnotationDrawingFixedPipeline::getSurfaceNormalVector(const Surface* surfaceDisplayed,
+                                                                  const int32_t vertexIndex,
+                                                                  float normalVectorOut[3]) const
 {
     const float* normalXYZ = surfaceDisplayed->getNormalVector(vertexIndex);
     normalVectorOut[0] = normalXYZ[0];
     normalVectorOut[1] = normalXYZ[1];
     normalVectorOut[2] = normalXYZ[2];
-//    std::cout << "Normal Vector: " << AString::fromNumbers(normalVectorOut, 3, ", ") << std::endl;
+    
+    const bool useAverageFlag = false;
+    if ( ! useAverageFlag) {
+        return;
+    }
     
     CaretPointer<TopologyHelper> th = surfaceDisplayed->getTopologyHelper();
     int32_t numNeighbors(0);
@@ -2434,7 +2462,6 @@ getSurfaceNormalVector(const Surface* surfaceDisplayed,
         normalVectorOut[1] /= numNeighbors;
         normalVectorOut[2] /= numNeighbors;
     }
-//    std::cout << "   Average Normal Vector: " << AString::fromNumbers(normalVectorOut, 3, ", ") << std::endl;
 }
 
 /**
@@ -2619,7 +2646,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
     float topLeft[3];
     float underlineStart[3];
     float underlineEnd[3];
-    m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextInModelSpace(*text, surfaceExtentZ, m_textDrawingFlags,
+    m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextInModelSpace(*text, m_surfaceViewScaling, surfaceExtentZ, m_textDrawingFlags,
                                                                                 bottomLeft, bottomRight, topRight, topLeft,
                                                                                 underlineStart, underlineEnd);
     
@@ -2642,6 +2669,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
     else {
         glPushMatrix();
         m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextInModelSpace(*text,
+                                                                            m_surfaceViewScaling,
                                                                             surfaceExtentZ,
                                                                             normalXYZ,
                                                                             m_textDrawingFlags);
