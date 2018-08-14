@@ -2471,3 +2471,171 @@ float MathFunctions::q_func(const float& x)
     }
     return ret;
 }
+
+/**
+ * Expand a box by given amounts in X and Y.
+ *
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ * @param extraSpaceX
+ *     Extra space to add in X.
+ * @param extraSpaceY
+ *     Extra space to add in Y.
+ */
+void
+MathFunctions::expandBox(float bottomLeft[3],
+                                float bottomRight[3],
+                                float topRight[3],
+                                float topLeft[3],
+                                const float extraSpaceX,
+                                const float extraSpaceY)
+{
+    float widthVector[3];
+    MathFunctions::subtractVectors(topRight, topLeft, widthVector);
+    MathFunctions::normalizeVector(widthVector);
+    
+    float heightVector[3];
+    MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
+    MathFunctions::normalizeVector(heightVector);
+    
+    const float widthSpacingX = extraSpaceX * widthVector[0];
+    const float widthSpacingY = extraSpaceY * widthVector[1];
+    
+    const float heightSpacingX = extraSpaceX * heightVector[0];
+    const float heightSpacingY = extraSpaceY * heightVector[1];
+    
+    
+    topLeft[0] += (-widthSpacingX + heightSpacingX);
+    topLeft[1] += (-widthSpacingY + heightSpacingY);
+    
+    topRight[0] += (widthSpacingX + heightSpacingX);
+    topRight[1] += (widthSpacingY + heightSpacingY);
+    
+    bottomLeft[0] += (-widthSpacingX - heightSpacingX);
+    bottomLeft[1] += (-widthSpacingY - heightSpacingY);
+    
+    bottomRight[0] += (widthSpacingX - heightSpacingX);
+    bottomRight[1] += (widthSpacingY - heightSpacingY);
+}
+
+/**
+ * Expand the end points of a line.
+ *
+ * @param u
+ *     First point in line.
+ * @param v
+ *     Second point in line.
+ * #param extraSpacePercent
+ *     Percentage amount to expand the points.
+ */
+void
+MathFunctions::expandLinePercentage3D(float u[3],
+                                             float v[3],
+                                             const float extraSpacePercent)
+{
+    float vector[3];
+    MathFunctions::subtractVectors(v, u, vector);
+    const float length = MathFunctions::normalizeVector(vector) / 2.0;
+    const float extraVector[3] {
+        vector[0] * (length * extraSpacePercent),
+        vector[1] * (length * extraSpacePercent),
+        vector[2] * (length * extraSpacePercent)
+    };
+    
+    for (int32_t i = 0; i < 3; i++) {
+        u[i] -= extraVector[i];
+        v[i] += extraVector[i];
+    }
+}
+
+/**
+ * Expand the end points of a line.
+ *
+ * @param u
+ *     First point in line.
+ * @param v
+ *     Second point in line.
+ * #param extraSpacePixels
+ *     Pixels amount to expand the points.
+ */
+void
+MathFunctions::expandLinePixels3D(float u[3],
+                                         float v[3],
+                                         const float extraSpacePixels)
+{
+    float vector[3];
+    MathFunctions::subtractVectors(v, u, vector);
+    MathFunctions::normalizeVector(vector);
+    const float halfExtra = extraSpacePixels / 2.0;
+    const float extraVector[3] {
+        vector[0] * halfExtra,
+        vector[1] * halfExtra,
+        vector[2] * halfExtra
+    };
+    
+    for (int32_t i = 0; i < 3; i++) {
+        u[i] -= extraVector[i];
+        v[i] += extraVector[i];
+    }
+}
+
+/**
+ * Expand a box by given amounts in X and Y.
+ *
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ * @param extraSpacePixels
+ *     Extra space to add, ion pixels.
+ */
+void
+MathFunctions::expandBoxPixels3D(float bottomLeft[3],
+                                        float bottomRight[3],
+                                        float topRight[3],
+                                        float topLeft[3],
+                                        const float extraSpacePixels)
+{
+    expandLinePixels3D(bottomLeft, bottomRight, extraSpacePixels);
+    expandLinePixels3D(topLeft, topRight, extraSpacePixels);
+    expandLinePixels3D(bottomLeft, topLeft, extraSpacePixels);
+    expandLinePixels3D(bottomRight, topRight, extraSpacePixels);
+}
+
+/**
+ * Expand a box by given amounts in X and Y.
+ *
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ * @param extraSpacePercentage
+ *     Extra space to add, percentage is zero to one with one interpreted as 100%.
+ */
+void
+MathFunctions::expandBoxPercentage3D(float bottomLeft[3],
+                                  float bottomRight[3],
+                                  float topRight[3],
+                                  float topLeft[3],
+                                  const float extraSpacePercentage)
+{
+    expandLinePercentage3D(bottomLeft, bottomRight, extraSpacePercentage);
+    expandLinePercentage3D(topLeft, topRight, extraSpacePercentage);
+    expandLinePercentage3D(bottomLeft, topLeft, extraSpacePercentage);
+    expandLinePercentage3D(bottomRight, topRight, extraSpacePercentage);
+}
+

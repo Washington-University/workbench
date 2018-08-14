@@ -398,6 +398,33 @@ public:
     ///one minus cdf of standard normal distribution
     static float q_func(const float& x);
     
+    static void expandBox(float bottomLeft[3],
+                          float bottomRight[3],
+                          float topRight[3],
+                          float topLeft[3],
+                          const float extraSpaceX,
+                          const float extraSpaceY);
+    
+    static void expandBoxPixels3D(float bottomLeft[3],
+                                  float bottomRight[3],
+                                  float topRight[3],
+                                  float topLeft[3],
+                                  const float extraSpacePixels);
+    
+    static void expandBoxPercentage3D(float bottomLeft[3],
+                                      float bottomRight[3],
+                                      float topRight[3],
+                                      float topLeft[3],
+                                      const float extraSpacePercentage);
+    
+    static void expandLinePercentage3D(float u[3],
+                                       float v[3],
+                                       const float extraSpacePercent);
+    
+    static void expandLinePixels3D(float u[3],
+                                   float v[3],
+                                   const float extraSpacePixels);
+    
 };
 
 } // namespace

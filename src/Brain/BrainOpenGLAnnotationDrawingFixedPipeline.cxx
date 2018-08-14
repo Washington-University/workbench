@@ -1476,7 +1476,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
                 bgTopLeft[i]     = topLeft[i];
                 bgTopRight[i]    = topRight[i];
             }
-            expandBox(bgBottomLeft, bgBottomRight, bgTopRight, bgTopLeft, 2, 0);
+            MathFunctions::expandBox(bgBottomLeft, bgBottomRight, bgTopRight, bgTopLeft, 2, 0);
             
             std::vector<float> bgCoords;
             bgCoords.insert(bgCoords.end(), bgBottomLeft,  bgBottomLeft + 3);
@@ -1585,7 +1585,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBarTickMarks(const Annotatio
      * and end ticks are at the ends of the color bar.
      */
     const float tickThickness = 2.0;
-    expandBox(bottomLeft, bottomRight, topRight, topLeft, (-tickThickness / 2.0), 0);
+    MathFunctions::expandBox(bottomLeft, bottomRight, topRight, topLeft, (-tickThickness / 2.0), 0);
     
     float bottomToTopUnitVector[3];
     MathFunctions::createUnitVector(bottomLeft,
@@ -2692,14 +2692,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
         glPolygonOffset(-1.0, 1.0);
         glDisable(GL_LIGHTING);
         
-        drawAnnotationTwoDimSizingHandles(annotationFile,
-                                          text,
-                                          bottomLeft,
-                                          bottomRight,
-                                          topRight,
-                                          topLeft,
-                                          s_sizingHandleLineWidthInPixels * 2.0,
-                                          text->getRotationAngle());
+        drawAnnotationTwoDimSizingHandlesInModelSpace(annotationFile,
+                                                      text,
+                                                      bottomLeft,
+                                                      bottomRight,
+                                                      topRight,
+                                                      topLeft,
+                                                      s_sizingHandleLineWidthInPixels * 2.0,
+                                                      text->getRotationAngle());
         glPopAttrib();
     }
     
@@ -3579,58 +3579,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(Ann
 }
 
 /**
- * Expand a box by given amounts in X and Y.
- *
- * @param bottomLeft
- *     Bottom left corner of annotation.
- * @param bottomRight
- *     Bottom right corner of annotation.
- * @param topRight
- *     Top right corner of annotation.
- * @param topLeft
- *     Top left corner of annotation.
- * @param extraSpaceX
- *     Extra space to add in X.
- * @param extraSpaceY
- *     Extra space to add in Y.
- */
-void
-BrainOpenGLAnnotationDrawingFixedPipeline::expandBox(float bottomLeft[3],
-                                                     float bottomRight[3],
-                                                     float topRight[3],
-                                                     float topLeft[3],
-                                                     const float extraSpaceX,
-                                                     const float extraSpaceY)
-{
-    float widthVector[3];
-    MathFunctions::subtractVectors(topRight, topLeft, widthVector);
-    MathFunctions::normalizeVector(widthVector);
-    
-    float heightVector[3];
-    MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
-    MathFunctions::normalizeVector(heightVector);
-    
-    const float widthSpacingX = extraSpaceX * widthVector[0];
-    const float widthSpacingY = extraSpaceY * widthVector[1];
-    
-    const float heightSpacingX = extraSpaceX * heightVector[0];
-    const float heightSpacingY = extraSpaceY * heightVector[1];
-    
-
-    topLeft[0] += (-widthSpacingX + heightSpacingX);
-    topLeft[1] += (-widthSpacingY + heightSpacingY);
-    
-    topRight[0] += (widthSpacingX + heightSpacingX);
-    topRight[1] += (widthSpacingY + heightSpacingY);
-
-    bottomLeft[0] += (-widthSpacingX - heightSpacingX);
-    bottomLeft[1] += (-widthSpacingY - heightSpacingY);
-
-    bottomRight[0] += (widthSpacingX - heightSpacingX);
-    bottomRight[1] += (widthSpacingY - heightSpacingY);
-}
-
-/**
  * Draw sizing handles around a two-dimensional annotation.
  *
  * @param annotationFile
@@ -3654,48 +3602,28 @@ void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(AnnotationFile* annotationFile,
                                                                              Annotation* annotation,
                                                                              const float bottomLeft[3],
-                                                                        const float bottomRight[3],
-                                                                        const float topRight[3],
-                                                                        const float topLeft[3],
-                                                                        const float lineThickness,
-                                                                        const float rotationAngle)
+                                                                             const float bottomRight[3],
+                                                                             const float topRight[3],
+                                                                             const float topLeft[3],
+                                                                             const float lineThickness,
+                                                                             const float rotationAngle)
 {
-    AnnotationText* textAnn(NULL);
-    bool modelSpaceTangentTextFlag = false;
-    if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-        textAnn = dynamic_cast<AnnotationText*>(annotation);
-        CaretAssert(textAnn);
-        if (textAnn->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
-            const AnnotationCoordinate* coord = textAnn->getCoordinate();
-            switch (coord->getSurfaceOffsetVectorType()) {
-                case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
-                    break;
-                case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
-                    break;
-                case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
-                    modelSpaceTangentTextFlag = true;
-                    break;
-            }
-        }
-    }
-    
-    
     float heightVector[3];
     MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
-    const float boxHeight = MathFunctions::normalizeVector(heightVector);
-
+    MathFunctions::normalizeVector(heightVector);
+    
     const float innerSpacing = 2.0f + (lineThickness / 2.0f);
-        float handleTopLeft[3];
-        float handleTopRight[3];
-        float handleBottomRight[3];
-        float handleBottomLeft[3];
-        for (int32_t i = 0; i < 3; i++) {
-            handleTopLeft[i]     = topLeft[i];
-            handleTopRight[i]    = topRight[i];
-            handleBottomRight[i] = bottomRight[i];
-            handleBottomLeft[i]  = bottomLeft[i];
-        }
-    expandBox(handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft, innerSpacing, innerSpacing);
+    float handleTopLeft[3];
+    float handleTopRight[3];
+    float handleBottomRight[3];
+    float handleBottomLeft[3];
+    for (int32_t i = 0; i < 3; i++) {
+        handleTopLeft[i]     = topLeft[i];
+        handleTopRight[i]    = topRight[i];
+        handleBottomRight[i] = bottomRight[i];
+        handleBottomLeft[i]  = bottomLeft[i];
+    }
+    MathFunctions::expandBox(handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft, innerSpacing, innerSpacing);
     
     if (! m_selectionModeFlag) {
         GraphicsShape::drawBoxOutlineByteColor(handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft,
@@ -3801,6 +3729,231 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
             handleTop[2]
         };
         
+        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+            const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(annotation);
+            CaretAssert(textAnn);
+            
+            /*
+             * The rotation point of a text annotation
+             * is adjusted for the horizontal alignment.
+             */
+            switch (textAnn->getHorizontalAlignment()) {
+                case AnnotationTextAlignHorizontalEnum::CENTER:
+                    break;
+                case AnnotationTextAlignHorizontalEnum::LEFT:
+                    handleOffset[0] = handleTopLeft[0];
+                    handleOffset[1] = handleTopLeft[1];
+                    handleOffset[2] = handleTopLeft[2];
+                    break;
+                case AnnotationTextAlignHorizontalEnum::RIGHT:
+                    handleOffset[0] = handleTopRight[0];
+                    handleOffset[1] = handleTopRight[1];
+                    handleOffset[2] = handleTopRight[2];
+                    break;
+            }
+        }
+        
+        const float rotationOffset = sizeHandleSize * 3.0;
+        const float handleRotation[3] = {
+            handleOffset[0] + (rotationOffset * heightVector[0]),
+            handleOffset[1] + (rotationOffset * heightVector[1]),
+            handleOffset[2] + (rotationOffset * heightVector[2])
+        };
+        
+        const float handleRotationLineEnd[3] = {
+            handleOffset[0] + (rotationOffset * 0.75f * heightVector[0] ),
+            handleOffset[1] + (rotationOffset * 0.75f * heightVector[1]),
+            handleOffset[2] + (rotationOffset * 0.75f * heightVector[2])
+        };
+        
+        /*
+         * Rotation handle and line connecting rotation handle to selection box
+         */
+        std::vector<float> coords;
+        coords.insert(coords.end(), handleRotationLineEnd, handleRotationLineEnd + 3);
+        coords.insert(coords.end(), handleOffset, handleOffset + 3);
+        GraphicsShape::drawLinesByteColor(coords, m_selectionBoxRGBA,
+                                          GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION,
+                         annotationFile,
+                         annotation,
+                         handleRotation,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+}
+
+/**
+ * Draw sizing handles around a two-dimensional annotation that is drawn in "model space"
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param annotation
+ *    Annotation to draw.
+ * @param bottomLeft
+ *     Bottom left corner of annotation.
+ * @param bottomRight
+ *     Bottom right corner of annotation.
+ * @param topRight
+ *     Top right corner of annotation.
+ * @param topLeft
+ *     Top left corner of annotation.
+ * @param lineThickness
+ *     Thickness of line (when enabled).
+ * @param rotationAngle
+ *     Rotation of the annotation.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandlesInModelSpace(AnnotationFile* annotationFile,
+                                                                                         Annotation* annotation,
+                                                                                         const float bottomLeft[3],
+                                                                                         const float bottomRight[3],
+                                                                                         const float topRight[3],
+                                                                                         const float topLeft[3],
+                                                                                         const float /*lineThickness*/,
+                                                                                         const float rotationAngle)
+{
+    CaretAssert(annotation);
+    AnnotationText* textAnn(NULL);
+    bool modelSpaceTangentTextFlag = false;
+    if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+        textAnn = dynamic_cast<AnnotationText*>(annotation);
+        CaretAssert(textAnn);
+        if (textAnn->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+            const AnnotationCoordinate* coord = textAnn->getCoordinate();
+            switch (coord->getSurfaceOffsetVectorType()) {
+                case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+                    modelSpaceTangentTextFlag = true;
+                    break;
+            }
+        }
+    }
+    CaretAssert(modelSpaceTangentTextFlag);
+    
+    float heightVector[3];
+    MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
+    const float boxHeight = MathFunctions::normalizeVector(heightVector);
+    
+    float handleTopLeft[3];
+    float handleTopRight[3];
+    float handleBottomRight[3];
+    float handleBottomLeft[3];
+    for (int32_t i = 0; i < 3; i++) {
+        handleTopLeft[i]     = topLeft[i];
+        handleTopRight[i]    = topRight[i];
+        handleBottomRight[i] = bottomRight[i];
+        handleBottomLeft[i]  = bottomLeft[i];
+    }
+    const float percentage(0.1f);
+    MathFunctions::expandBoxPercentage3D(handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft, percentage);
+  
+    if (! m_selectionModeFlag) {
+        GraphicsShape::drawBoxOutlineByteColor(handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft,
+                                               m_selectionBoxRGBA, GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
+    }
+    
+    const float handleLeft[3] = {
+        (handleBottomLeft[0] + handleTopLeft[0]) / 2.0f,
+        (handleBottomLeft[1] + handleTopLeft[1]) / 2.0f,
+        (handleBottomLeft[2] + handleTopLeft[2]) / 2.0f,
+    };
+    
+    const float handleRight[3] = {
+        (handleBottomRight[0] + handleTopRight[0]) / 2.0f,
+        (handleBottomRight[1] + handleTopRight[1]) / 2.0f,
+        (handleBottomRight[2] + handleTopRight[2]) / 2.0f,
+    };
+    
+    const float handleBottom[3] = {
+        (handleBottomLeft[0] + handleBottomRight[0]) / 2.0f,
+        (handleBottomLeft[1] + handleBottomRight[1]) / 2.0f,
+        (handleBottomLeft[2] + handleBottomRight[2]) / 2.0f,
+    };
+    
+    const float handleTop[3] = {
+        (handleTopLeft[0] + handleTopRight[0]) / 2.0f,
+        (handleTopLeft[1] + handleTopRight[1]) / 2.0f,
+        (handleTopLeft[2] + handleTopRight[2]) / 2.0f,
+    };
+    
+    const float sizeHandleSize = 5.0;
+    
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT,
+                         annotationFile,
+                         annotation,
+                         handleBottomLeft,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT,
+                         annotationFile,
+                         annotation,
+                         handleBottomRight,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT,
+                         annotationFile,
+                         annotation,
+                         handleTopRight,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT,
+                         annotationFile,
+                         annotation,
+                         handleTopLeft,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP,
+                         annotationFile,
+                         annotation,
+                         handleTop,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM,
+                         annotationFile,
+                         annotation,
+                         handleBottom,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT,
+                         annotationFile,
+                         annotation,
+                         handleRight,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT)) {
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT,
+                         annotationFile,
+                         annotation,
+                         handleLeft,
+                         sizeHandleSize,
+                         rotationAngle);
+    }
+    
+    if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
+        float handleOffset[3] = {
+            handleTop[0],
+            handleTop[1],
+            handleTop[2]
+        };
+        
         if (textAnn != NULL) {
             /*
              * The rotation point of a text annotation
@@ -3820,90 +3973,36 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
                     handleOffset[2] = handleTopRight[2];
                     break;
             }
-            
-//            if (textAnn->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
-//                StructureEnum::Enum structure;
-//                int32_t numberOfVertices(-1);
-//                int32_t vertexIndex(-1);
-//                float offsetLength(0.0f);
-//                AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorType;
-//                textAnn->getCoordinate()->getSurfaceSpace(structure,
-//                                                          numberOfVertices,
-//                                                          vertexIndex,
-//                                                          offsetLength,
-//                                                          surfaceOffsetVectorType);
-//                
-//                switch (surfaceOffsetVectorType) {
-//                    case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
-//                        break;
-//                    case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
-//                        break;
-//                    case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
-//                        modelSpaceTangentTextFlag = true;
-//                        break;
-//                }
-//            }
         }
-
-        if (modelSpaceTangentTextFlag) {
-            const float rotationHandleSize = boxHeight * 0.30;
-            const float rotationOffset = rotationHandleSize * 1.5;
-            const float handleRotation[3] = {
-                handleOffset[0] + (rotationOffset * heightVector[0]),
-                handleOffset[1] + (rotationOffset * heightVector[1]),
-                handleOffset[2] + (rotationOffset * heightVector[2])
-            };
-            
-            const float handleRotationLineEnd[3] = {
-                handleOffset[0] + (rotationHandleSize * heightVector[0] ),
-                handleOffset[1] + (rotationHandleSize * heightVector[1]),
-                handleOffset[2] + (rotationHandleSize * heightVector[2])
-            };
-            
-            /*
-             * Rotation handle and line connecting rotation handle to selection box
-             */
-            std::vector<float> coords;
-            coords.insert(coords.end(), handleRotationLineEnd, handleRotationLineEnd + 3);
-            coords.insert(coords.end(), handleOffset, handleOffset + 3);
-            GraphicsShape::drawLinesByteColor(coords, m_selectionBoxRGBA,
-                                              GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
-            drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION,
-                             annotationFile,
-                             annotation,
-                             handleRotation,
-                             rotationHandleSize,
-                             rotationAngle);
-        }
-        else {
-            float rotationOffset = sizeHandleSize * 3.0;
-            const float handleRotation[3] = {
-                handleOffset[0] + (rotationOffset * heightVector[0]),
-                handleOffset[1] + (rotationOffset * heightVector[1]),
-                handleOffset[2] + (rotationOffset * heightVector[2])
-            };
-            
-            const float handleRotationLineEnd[3] = {
-                handleOffset[0] + (rotationOffset * 0.75f * heightVector[0] ),
-                handleOffset[1] + (rotationOffset * 0.75f * heightVector[1]),
-                handleOffset[2] + (rotationOffset * 0.75f * heightVector[2])
-            };
-            
-            /*
-             * Rotation handle and line connecting rotation handle to selection box
-             */
-            std::vector<float> coords;
-            coords.insert(coords.end(), handleRotationLineEnd, handleRotationLineEnd + 3);
-            coords.insert(coords.end(), handleOffset, handleOffset + 3);
-            GraphicsShape::drawLinesByteColor(coords, m_selectionBoxRGBA,
-                                              GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
-            drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION,
-                             annotationFile,
-                             annotation,
-                             handleRotation,
-                             sizeHandleSize,
-                             rotationAngle);
-        }
+        
+        const float rotationHandleSize = boxHeight * 0.20; // 0.30;
+        const float rotationOffset = rotationHandleSize * 1.5;
+        const float handleRotation[3] = {
+            handleOffset[0] + (rotationOffset * heightVector[0]),
+            handleOffset[1] + (rotationOffset * heightVector[1]),
+            handleOffset[2] + (rotationOffset * heightVector[2])
+        };
+        
+        const float handleRotationLineEnd[3] = {
+            handleOffset[0] + (rotationHandleSize * heightVector[0] ),
+            handleOffset[1] + (rotationHandleSize * heightVector[1]),
+            handleOffset[2] + (rotationHandleSize * heightVector[2])
+        };
+        
+        /*
+         * Rotation handle and line connecting rotation handle to selection box
+         */
+        std::vector<float> coords;
+        coords.insert(coords.end(), handleRotationLineEnd, handleRotationLineEnd + 3);
+        coords.insert(coords.end(), handleOffset, handleOffset + 3);
+        GraphicsShape::drawLinesByteColor(coords, m_selectionBoxRGBA,
+                                          GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION,
+                         annotationFile,
+                         annotation,
+                         handleRotation,
+                         rotationHandleSize,
+                         rotationAngle);
     }
 }
 

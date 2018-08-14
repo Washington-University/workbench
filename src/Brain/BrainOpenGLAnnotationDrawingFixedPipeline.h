@@ -253,6 +253,15 @@ namespace caret {
                                                const float lineThickness,
                                                const float rotationAngle);
 
+        void drawAnnotationTwoDimSizingHandlesInModelSpace(AnnotationFile* annotationFile,
+                                                           Annotation* annotation,
+                                                           const float bottomLeft[3],
+                                                           const float bottomRight[3],
+                                                           const float topRight[3],
+                                                           const float topLeft[3],
+                                                           const float lineThickness,
+                                                           const float rotationAngle);
+        
         void drawAnnotationOneDimSizingHandles(AnnotationFile* annotationFile,
                                                Annotation* annotation,
                                                const float firstPoint[3],
@@ -289,14 +298,7 @@ namespace caret {
                                                        const float topLeft[3],
                                                        std::vector<float>& lineCoordinatesOut,
                                                        std::vector<float>& arrowCoordinatesOut) const;
-        
-        static void expandBox(float bottomLeft[3],
-                       float bottomRight[3],
-                       float topRight[3],
-                       float topLeft[3],
-                       const float extraSpaceX,
-                       const float extraSpaceY);
-        
+                
         void setSelectionBoxColor();
         
         void startOpenGLForDrawing(GLint* savedShadeModelOut,
