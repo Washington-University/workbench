@@ -1526,7 +1526,7 @@ FtglFontTextRenderer::drawTextAtModelCoordsFacingUser(const double modelX,
  */
 void
 FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotationText,
-                                                   const float modelSpaceScaling,
+                                                   const float /*modelSpaceScaling*/,
                                                    const float heightOrWidthForPercentageSizeText,
                                                    const DrawingFlags& flags,
                                                    float bottomLeftOut[3],
@@ -1625,9 +1625,13 @@ FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotat
         underlineEndOut[1]   = bottomRightOut[1];
         underlineEndOut[2]   = bottomRightOut[2];
         
+        /*
+         * No scaling since we want the box to tightly enclose the text.
+         */
+        const float noScalingOfModel(1.0);
         const float boxExpansion(getLineThicknessPixelsInModelSpace(annotationText.getLineWidthPercentage(),
                                                                     heightOrWidthForPercentageSizeText,
-                                                                    1.0));
+                                                                    noScalingOfModel));
         expandBoxPixels3D(bottomLeftOut, bottomRightOut, topRightOut, topLeftOut,
                           boxExpansion);
         expandLinePixels3D(underlineStartOut, copyTopLeft, boxExpansion * 0.5);
@@ -1791,10 +1795,14 @@ FtglFontTextRenderer::drawTextInModelSpace(const AnnotationText& annotationText,
                                                                              modelSpaceScaling);
         
         if (annotationText.isUnderlineStyleEnabled()) {
+            float underlineThickness = std::max((font->FaceSize() / 14.0),
+                                               1.0);
+            underlineThickness *= modelSpaceScaling;
+            
             GraphicsPrimitiveV3f linePrimitive(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
                                               textRGBA);
             linePrimitive.setLineWidth(GraphicsPrimitiveV3f::LineWidthType::PIXELS,
-                                       lineThicknessPixels);
+                                       underlineThickness); // lineThicknessPixels
             linePrimitive.addVertex(underlineStart);
             linePrimitive.addVertex(underlineEnd);
             GraphicsEngineDataOpenGL::draw(&linePrimitive);

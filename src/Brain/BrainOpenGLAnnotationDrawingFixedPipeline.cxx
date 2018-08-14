@@ -3660,6 +3660,26 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
                                                                         const float lineThickness,
                                                                         const float rotationAngle)
 {
+    AnnotationText* textAnn(NULL);
+    bool modelSpaceTangentTextFlag = false;
+    if (annotation->getType() == AnnotationTypeEnum::TEXT) {
+        textAnn = dynamic_cast<AnnotationText*>(annotation);
+        CaretAssert(textAnn);
+        if (textAnn->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+            const AnnotationCoordinate* coord = textAnn->getCoordinate();
+            switch (coord->getSurfaceOffsetVectorType()) {
+                case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+                    modelSpaceTangentTextFlag = true;
+                    break;
+            }
+        }
+    }
+    
+    
     float heightVector[3];
     MathFunctions::subtractVectors(topLeft, bottomLeft, heightVector);
     const float boxHeight = MathFunctions::normalizeVector(heightVector);
@@ -3781,11 +3801,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
             handleTop[2]
         };
         
-        bool modelSpaceTangentTextFlag = false;
-        if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-            const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(annotation);
-            CaretAssert(textAnn);
-            
+        if (textAnn != NULL) {
             /*
              * The rotation point of a text annotation
              * is adjusted for the horizontal alignment.
@@ -3805,28 +3821,28 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
                     break;
             }
             
-            if (textAnn->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
-                StructureEnum::Enum structure;
-                int32_t numberOfVertices(-1);
-                int32_t vertexIndex(-1);
-                float offsetLength(0.0f);
-                AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorType;
-                textAnn->getCoordinate()->getSurfaceSpace(structure,
-                                                          numberOfVertices,
-                                                          vertexIndex,
-                                                          offsetLength,
-                                                          surfaceOffsetVectorType);
-                
-                switch (surfaceOffsetVectorType) {
-                    case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
-                        break;
-                    case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
-                        break;
-                    case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
-                        modelSpaceTangentTextFlag = true;
-                        break;
-                }
-            }
+//            if (textAnn->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+//                StructureEnum::Enum structure;
+//                int32_t numberOfVertices(-1);
+//                int32_t vertexIndex(-1);
+//                float offsetLength(0.0f);
+//                AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorType;
+//                textAnn->getCoordinate()->getSurfaceSpace(structure,
+//                                                          numberOfVertices,
+//                                                          vertexIndex,
+//                                                          offsetLength,
+//                                                          surfaceOffsetVectorType);
+//                
+//                switch (surfaceOffsetVectorType) {
+//                    case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
+//                        break;
+//                    case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
+//                        break;
+//                    case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+//                        modelSpaceTangentTextFlag = true;
+//                        break;
+//                }
+//            }
         }
 
         if (modelSpaceTangentTextFlag) {
