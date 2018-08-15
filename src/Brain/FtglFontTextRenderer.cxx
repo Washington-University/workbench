@@ -1673,12 +1673,20 @@ FtglFontTextRenderer::drawTextInModelSpace(const AnnotationText& annotationText,
             
             uint8_t foregroundRgba[4];
             annotationText.getLineColorRGBA(foregroundRgba);
-            drawOutline3D(bottomLeft,
-                          bottomRight,
-                          topRight,
-                          topLeft,
-                          lineThicknessPixels,
-                          foregroundRgba);
+//            drawOutline3D(bottomLeft,
+//                          bottomRight,
+//                          topRight,
+//                          topLeft,
+//                          lineThicknessPixels,
+//                          foregroundRgba);
+            GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP,
+                                              foregroundRgba);
+            primitive.addVertex(topLeft, normalVector);
+            primitive.addVertex(bottomLeft, normalVector);
+            primitive.addVertex(bottomRight, normalVector);
+            primitive.addVertex(topRight, normalVector);
+            primitive.setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, lineThicknessPixels);
+            GraphicsEngineDataOpenGL::draw(&primitive);
             
             glPopMatrix();
         }
