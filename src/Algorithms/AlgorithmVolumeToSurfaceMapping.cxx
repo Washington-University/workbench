@@ -102,7 +102,7 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
         "voxels, consider increasing this if you get zeros in your output.  " +
         "The -gaussian option makes it act more like the myelin method, where the distance of a voxel from <surface> is used to downweight the voxel.\n\n" +
         "The myelin style method uses part of the caret5 myelin mapping command to do the mapping: for each surface vertex, take all voxels that are in a cylinder " +
-        "with width and height equal to cortical thickness, centered on the vertex and aligned with the surface normal, and that are also within the ribbon ROI, " +
+        "with radius and height equal to cortical thickness, centered on the vertex and aligned with the surface normal, and that are also within the ribbon ROI, " +
         "and apply a gaussian kernel with the specified sigma to them to get the weights to use.  " +
         "The -legacy-bug flag reverts to the unintended behavior present from the initial implementation up to and including v1.2.3, which had only the tangential cutoff " +
         "and a bounding box intended to be larger than where the cylinder cutoff should have been."
