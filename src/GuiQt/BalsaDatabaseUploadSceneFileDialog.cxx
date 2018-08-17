@@ -186,8 +186,11 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
     m_passwordLineEdit->setMinimumWidth(minimumLineEditWidth);
     m_passwordLineEdit->setEchoMode(QLineEdit::Password);
     if (s_password.isEmpty()) {
-        QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
-        m_passwordLineEdit->setText(environment.value("WORKBENCH_BALSA_PD"));
+        const bool allowEnvPasswordFlag(false);
+        if (allowEnvPasswordFlag) {
+            QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
+            m_passwordLineEdit->setText(environment.value("WORKBENCH_BALSA_PD"));
+        }
     }
     else {
         m_passwordLineEdit->setText(s_password);
