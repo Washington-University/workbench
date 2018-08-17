@@ -129,6 +129,8 @@ namespace caret {
         
         void updateUserRolesLabel();
         
+        bool checkBalsaForUnzipIntoDirectory();
+        
         SceneFile* m_sceneFile;
         
         std::unique_ptr<BalsaDatabaseManager> m_balsaDatabaseManager;

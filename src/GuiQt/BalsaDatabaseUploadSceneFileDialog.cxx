@@ -691,6 +691,87 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
 }
 
 /**
+ * Check the BALSA database to see if the "unzip into directory" in the database
+ * is different than the value in the dialog.  If so, warn user.
+ *
+ * @return 
+ *     True if uploading should continue, otherwise false.
+ */
+bool
+BalsaDatabaseUploadSceneFileDialog::checkBalsaForUnzipIntoDirectory()
+{
+    bool validFlag = true;
+    
+    const AString studyID = m_balsaStudyIDLineEdit->text().trimmed();
+    if ( ! studyID.isEmpty()) {
+        if (m_balsaDatabaseManager->isStudyIDValid(studyID)) {
+            AString balsaDirectoryName;
+            AString errorMessage;
+            if (m_balsaDatabaseManager->getStudyExtractDirectoryPrefix(studyID,
+                                                                       balsaDirectoryName,
+                                                                       errorMessage)) {
+                if ( ! balsaDirectoryName.isEmpty()) {
+                    const AString currentDirName = m_extractDirectoryNameLineEdit->text().trimmed();
+                    if (balsaDirectoryName != currentDirName) {
+                        AString msg("<html>"
+                                    "The <b>Unzip into Directory</b> in this dialog is different than the "
+                                    "<b>Unzip into Directory</b> for this study in the BALSA Database.  "
+                                    "<P>"
+                                    "This may be caused by:"
+                                    "<ul>"
+                                    "<li>A scene file containing a different "
+                                    "Unzip into Directory in the same study was uploaded to BALSA. "
+                                    "<li>The Unzip into Directory has been edited in this scene file."
+                                    "<li>The Unzip into Directory has been edited through the BALSA "
+                                    "Database web interface."
+                                    "</ul>"
+                                    "For the <b>Unzip into Directory</b>:"
+                                    "</html>");
+                        WuQDataEntryDialog ded("Warning, Extract to Directory",
+                                               this);
+                        ded.setTextAtTop(msg, true);
+                        QRadioButton* balsaDirRadioButton = ded.addRadioButton("Change to \""
+                                                                               + balsaDirectoryName
+                                                                               + "\" from the BALSA Database");
+                        
+                        QRadioButton* dialogDirRadioButton = ded.addRadioButton("No change, use \""
+                                                                                + currentDirName
+                                                                                + "\" from this dialog");
+                        balsaDirRadioButton->setChecked(true);
+                        ded.setOkButtonText("Continue");
+                        if (ded.exec() == WuQDataEntryDialog::Accepted) {
+                            AString dirName;
+                            if (balsaDirRadioButton->isChecked()){
+                                dirName = balsaDirectoryName;
+                            }
+                            else if (dialogDirRadioButton->isChecked()) {
+                                dirName = currentDirName;
+                            }
+                            else {
+                                CaretAssert(0);
+                            }
+                            m_extractDirectoryNameLineEdit->setText(dirName);
+                            m_sceneFile->setBalsaExtractToDirectoryName(dirName);
+                        }
+                        else {
+                            validFlag = false;
+                        }
+                    }
+                }
+            }
+            else {
+                AString msg("BALSA was unable to provide an updated \"Unzip into Directory\" for Study ID \""
+                            + studyID
+                            + "\".  You may continue uploading.");
+                WuQMessageBox::warningOk(this, msg);
+            }
+        }
+    }
+    
+    return validFlag;
+}
+
+/**
  * Update roles label with user's valid roles
  */
 void
@@ -757,7 +838,7 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
         msg.appendWithNewLine(zipFileErrorMessage + "<p>");
     }
     if ( ! m_extractDirectoryNameLineEdit->hasAcceptableInput()) {
-        msg.appendWithNewLine("Extract to Directory is invalid.<p>");
+        msg.appendWithNewLine("Unzip into Directory is invalid.<p>");
     }
     
     AString basePathErrorMessage;
@@ -802,6 +883,10 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
         msg.insert(0, "<html>");
         msg.append("</html>");
         WuQMessageBox::errorOk(this, msg);
+        return;
+    }
+    
+    if ( ! checkBalsaForUnzipIntoDirectory()) {
         return;
     }
     
