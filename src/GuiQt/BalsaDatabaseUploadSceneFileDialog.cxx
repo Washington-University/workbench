@@ -34,6 +34,7 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QProcessEnvironment>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QRegularExpression>
@@ -181,7 +182,13 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
     m_passwordLineEdit = new QLineEdit();
     m_passwordLineEdit->setMinimumWidth(minimumLineEditWidth);
     m_passwordLineEdit->setEchoMode(QLineEdit::Password);
-    m_passwordLineEdit->setText(s_password);
+    if (s_password.isEmpty()) {
+        QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
+        m_passwordLineEdit->setText(environment.value("WORKBENCH_BALSA_PD"));
+    }
+    else {
+        m_passwordLineEdit->setText(s_password);
+    }
     m_passwordLineEdit->setValidator(createValidator(LabelName::LABEL_PASSWORD));
     QObject::connect(m_passwordLineEdit, &QLineEdit::textEdited,
                      this, [=] { this->loginInformationChanged(); });
