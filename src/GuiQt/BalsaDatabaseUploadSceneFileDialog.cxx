@@ -23,6 +23,7 @@
 #include "BalsaDatabaseUploadSceneFileDialog.h"
 #undef __BALSA_DATABASE_UPLOAD_SCENE_FILE_DIALOG_DECLARE__
 
+#include <QAction>
 #include <QApplication>
 #include <QButtonGroup>
 #include <QCheckBox>
@@ -40,6 +41,7 @@
 #include <QRegularExpression>
 #include <QRegularExpressionValidator>
 #include <QTabWidget>
+#include <QToolButton>
 
 #include "BalsaDatabaseManager.h"
 #include "BalsaStudySelectionDialog.h"
@@ -121,6 +123,7 @@ m_sceneFile(sceneFile)
     disableAutoDefaultForAllPushButtons();
     m_loginPushButton->setAutoDefault(true);
     m_loginPushButton->setDefault(true);
+    showPasswordActionTriggered(m_showPasswordAction->isChecked());
 }
 
 /**
@@ -205,6 +208,17 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
                      this, SLOT(labelHtmlLinkClicked(const QString&)));
     
     /*
+     * Show password tool button
+     */
+    m_showPasswordAction = new QAction("Show");
+    m_showPasswordAction->setCheckable(true);
+    m_showPasswordAction->setChecked(false);
+    QObject::connect(m_showPasswordAction, &QAction::triggered,
+                     this, &BalsaDatabaseUploadSceneFileDialog::showPasswordActionTriggered);
+    QToolButton* showPasswordToolButton = new QToolButton();
+    showPasswordToolButton->setDefaultAction(m_showPasswordAction);
+    
+    /*
      * Forgot password label/link
      */
     QLabel* forgotPasswordLabel = new QLabel("<html>"
@@ -256,7 +270,8 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
     row++;
     gridLayout->addWidget(m_passwordLabel, row, COLUMN_LABEL, Qt::AlignRight);
     gridLayout->addWidget(m_passwordLineEdit, row, COLUMN_DATA_WIDGET_ONE, 1, 2);
-    gridLayout->addWidget(forgotPasswordLabel, row, COLUMN_BUTTON_ONE);
+    gridLayout->addWidget(showPasswordToolButton, row, COLUMN_BUTTON_ONE);
+    gridLayout->addWidget(forgotPasswordLabel, row, COLUMN_BUTTON_TWO);
     row++;
     gridLayout->setRowMinimumHeight(row, 10); // empty row
     row++;
@@ -277,6 +292,23 @@ BalsaDatabaseUploadSceneFileDialog::loginInformationChanged()
     m_selectStudyTitlePushButton->setEnabled(false);
     m_userRoles->resetToAllInvalid();
     updateAllLabels();
+}
+
+/**
+ * Called when show password action is triggered.
+ *
+ * @param checked
+ *     New status.
+ */
+void
+BalsaDatabaseUploadSceneFileDialog::showPasswordActionTriggered(bool checked)
+{
+    if (checked) {
+        m_passwordLineEdit->setEchoMode(QLineEdit::Normal);
+    }
+    else {
+        m_passwordLineEdit->setEchoMode(QLineEdit::Password);
+    }
 }
 
 /**
