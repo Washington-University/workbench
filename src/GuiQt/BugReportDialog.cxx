@@ -107,11 +107,16 @@ BugReportDialog::BugReportDialog(QWidget* parent,
                                  + hcpURL
                                  + "\">"
                                  + hcpURL
-                                 + "</a>."
-                                 + "<br>"
+                                 + "</a>.  "
                                  + "You are using version " + ApplicationInformation().getVersion()
                                  + "."
                                  + "<br><br>"
+                                 + "Do not submit bug reports for these problems:<ol>"
+                                 + "<li>wb_command, if run from the GUI by double-clicking (it will start and immediately "
+                                 + "exit).  wb_command must be run inside a terminal window (DOS Prompt on Windows).</li>"
+                                 + "<li>wb_view may crash if run with a remote desktop due to XCB and OpenGL problems in "
+                                 + "the remote desktop.  Some users have had success with NX and/or VirtualGL.</li>"
+                                 + "</ol>"
                                  + "Please address each of the numbered items in the field below."
                                  + "  Use the \"Copy to Email\" button to submit your bug report to "
                                  + emailAddress
