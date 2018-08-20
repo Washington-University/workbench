@@ -342,7 +342,7 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
     m_extractDirectoryNameLineEdit = new QLineEdit();
     m_extractDirectoryNameLineEdit->setText("ExtDir");
     m_extractDirectoryNameLineEdit->setValidator(createValidator(LabelName::LABEL_EXTRACT_DIRECTORY));
-    m_extractDirectoryNameLineEdit->setToolTip("Directory that is created when user unzips the ZIP file");
+    m_extractDirectoryNameLineEdit->setToolTip("Directory created when data files are extracted from ZIP archive");
     m_extractDirectoryNameLineEdit->setText(defaultExtractDirectoryName);
     QObject::connect(m_extractDirectoryNameLineEdit, &QLineEdit::textEdited,
                      this, [=] { this->validateUploadData(); });
@@ -733,14 +733,14 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
 }
 
 /**
- * Check the BALSA database to see if the "unzip into directory" in the database
+ * Check the BALSA database to see if the "Extraction Directory Prefix" in the database
  * is different than the value in the dialog.  If so, warn user.
  *
  * @return 
  *     True if uploading should continue, otherwise false.
  */
 bool
-BalsaDatabaseUploadSceneFileDialog::checkBalsaForUnzipIntoDirectory()
+BalsaDatabaseUploadSceneFileDialog::checkBalsaExtractionDirectoryPrefix()
 {
     bool validFlag = true;
     
@@ -756,25 +756,26 @@ BalsaDatabaseUploadSceneFileDialog::checkBalsaForUnzipIntoDirectory()
                     const AString currentDirName = m_extractDirectoryNameLineEdit->text().trimmed();
                     if (balsaDirectoryName != currentDirName) {
                         AString msg("<html>"
-                                    "The <b>Unzip into Directory</b> in this dialog is different than the "
-                                    "<b>Unzip into Directory</b> for this study in the BALSA Database.  "
-                                    "<P>"
+                                    "The <b>Extraction Directory Prefix</b> in this dialog differs from the "
+                                    "<b>Extraction Directory Prefix</b> for this study in the BALSA Database."
+                                    "<p>"
                                     "This may be caused by:"
                                     "<ul>"
-                                    "<li>A scene file containing a different "
-                                    "Unzip into Directory in the same study was uploaded to BALSA. "
-                                    "<li>The Unzip into Directory has been edited in this scene file."
-                                    "<li>The Unzip into Directory has been edited through the BALSA "
-                                    "Database web interface."
+                                    "<li>A scene file containing a different base directory in the "
+                                    "same study was uploaded to BALSA"
+                                    "<li>The Extraction Directory Prefix has been edited in this scene file"
+                                    "<li>The Extraction Directory Prefix has been edited through the "
+                                    "BALSA Database web interface (Edit Study: Study Details)"
                                     "</ul>"
-                                    "For the <b>Unzip into Directory</b>:"
+                                    "<p>"
+                                    "For the Extraction Directory Prefix:"
                                     "</html>");
-                        WuQDataEntryDialog ded("Warning, Extract to Directory",
+                        WuQDataEntryDialog ded("Warning, Extraction Directory Prefix",
                                                this);
                         ded.setTextAtTop(msg, true);
                         QRadioButton* balsaDirRadioButton = ded.addRadioButton("Change to \""
                                                                                + balsaDirectoryName
-                                                                               + "\" from the BALSA Database");
+                                                                               + "\"");
                         
                         QRadioButton* dialogDirRadioButton = ded.addRadioButton("No change, use \""
                                                                                 + currentDirName
@@ -802,7 +803,7 @@ BalsaDatabaseUploadSceneFileDialog::checkBalsaForUnzipIntoDirectory()
                 }
             }
             else {
-                AString msg("BALSA was unable to provide an updated \"Unzip into Directory\" for Study ID \""
+                AString msg("BALSA was unable to provide an updated \"Extraction Directory Prefix\" for Study ID \""
                             + studyID
                             + "\".  You may continue uploading.");
                 WuQMessageBox::warningOk(this, msg);
@@ -880,7 +881,7 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
         msg.appendWithNewLine(zipFileErrorMessage + "<p>");
     }
     if ( ! m_extractDirectoryNameLineEdit->hasAcceptableInput()) {
-        msg.appendWithNewLine("Unzip into Directory is invalid.<p>");
+        msg.appendWithNewLine("Extraction Directory Prfeix is invalid.<p>");
     }
     
     AString basePathErrorMessage;
@@ -928,7 +929,7 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
         return;
     }
     
-    if ( ! checkBalsaForUnzipIntoDirectory()) {
+    if ( ! checkBalsaExtractionDirectoryPrefix()) {
         return;
     }
     
@@ -1273,7 +1274,7 @@ BalsaDatabaseUploadSceneFileDialog::setLabelText(const LabelName labelName)
             break;
         case LabelName::LABEL_EXTRACT_DIRECTORY:
             label = m_extractDirectoryNameLabel;
-            labelText = "Unzip into Directory";
+            labelText = "Extraction Directory Prefix";
             validFlag = m_extractDirectoryNameLineEdit->hasAcceptableInput();
             break;
         case LabelName::LABEL_PASSWORD:

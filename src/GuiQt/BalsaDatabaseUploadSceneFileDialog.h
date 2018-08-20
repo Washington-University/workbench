@@ -132,7 +132,7 @@ namespace caret {
         
         void updateUserRolesLabel();
         
-        bool checkBalsaForUnzipIntoDirectory();
+        bool checkBalsaExtractionDirectoryPrefix();
         
         SceneFile* m_sceneFile;
         
