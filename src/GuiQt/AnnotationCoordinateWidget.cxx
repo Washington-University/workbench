@@ -531,6 +531,7 @@ AnnotationCoordinateWidget::surfaceOffsetVectorTypeChanged()
     if ((m_annotation != NULL)
         && (coordinate != NULL)) {
         AnnotationCoordinate::setUserDefautlSurfaceOffsetVectorType(m_surfaceOffsetVectorTypeComboBox->getSelectedItem<AnnotationSurfaceOffsetVectorTypeEnum, AnnotationSurfaceOffsetVectorTypeEnum::Enum>());
+        valueChanged();
     }
 }
 
