@@ -2640,12 +2640,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
     const float rotationAngle = text->getRotationAngle();
     glRotatef(-rotationAngle, 0.0, 0.0, 1.0);
     
-    float bottomLeft[3];
-    float bottomRight[3];
-    float topRight[3];
-    float topLeft[3];
-    float underlineStart[3];
-    float underlineEnd[3];
+    double bottomLeft[3];
+    double bottomRight[3];
+    double topRight[3];
+    double topLeft[3];
+    double underlineStart[3];
+    double underlineEnd[3];
     m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextInModelSpace(*text, m_surfaceViewScaling, surfaceExtentZ, m_textDrawingFlags,
                                                                                 bottomLeft, bottomRight, topRight, topLeft,
                                                                                 underlineStart, underlineEnd);
@@ -2656,10 +2656,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
         getIdentificationColor(selectionColorRGBA);
         GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                           selectionColorRGBA);
-        primitive.addVertex(topLeft, normalXYZ);
-        primitive.addVertex(bottomLeft, normalXYZ);
-        primitive.addVertex(topRight, normalXYZ);
-        primitive.addVertex(bottomRight, normalXYZ);
+        const double doubleNormalXYZ[3] {
+            normalXYZ[0],
+            normalXYZ[1],
+            normalXYZ[2]
+        };
+        primitive.addVertex(topLeft, doubleNormalXYZ);
+        primitive.addVertex(bottomLeft, doubleNormalXYZ);
+        primitive.addVertex(topRight, doubleNormalXYZ);
+        primitive.addVertex(bottomRight, doubleNormalXYZ);
         GraphicsEngineDataOpenGL::draw(&primitive);
         m_selectionInfo.push_back(SelectionInfo(annotationFile,
                                                 text,
@@ -2692,12 +2697,22 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
         glPolygonOffset(-1.0, 1.0);
         glDisable(GL_LIGHTING);
         
+        float floatBottomLeft[3];
+        float floatBottomRight[3];
+        float floatTopRight[3];
+        float floatTopLeft[3];
+        for (int32_t i = 0; i < 3; i++) {
+            floatBottomLeft[i] = bottomLeft[i];
+            floatBottomRight[i] = bottomRight[i];
+            floatTopLeft[i] = topLeft[i];
+            floatTopRight[i] = topRight[i];
+        }
         drawAnnotationTwoDimSizingHandlesInModelSpace(annotationFile,
                                                       text,
-                                                      bottomLeft,
-                                                      bottomRight,
-                                                      topRight,
-                                                      topLeft,
+                                                      floatBottomLeft,
+                                                      floatBottomRight,
+                                                      floatTopRight,
+                                                      floatTopLeft,
                                                       s_sizingHandleLineWidthInPixels * 2.0,
                                                       text->getRotationAngle());
         glPopAttrib();

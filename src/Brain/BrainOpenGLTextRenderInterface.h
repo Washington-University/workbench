@@ -197,12 +197,12 @@ namespace caret {
                                                   const float modelSpaceScaling,
                                                   const float heightOrWidthForPercentageSizeText,
                                                   const DrawingFlags& flags,
-                                                  float bottomLeftOut[3],
-                                                  float bottomRightOut[3],
-                                                  float topRightOut[3],
-                                                  float topLeftOut[3],
-                                                  float underlineStartOut[3],
-                                                  float underlineEndOut[3]) = 0;
+                                                  double bottomLeftOut[3],
+                                                  double bottomRightOut[3],
+                                                  double topRightOut[3],
+                                                  double topLeftOut[3],
+                                                  double underlineStartOut[3],
+                                                  double underlineEndOut[3]) = 0;
         /**
          * Draw text in model space using the current model transformations.
          *

@@ -405,11 +405,11 @@ public:
                           const float extraSpaceX,
                           const float extraSpaceY);
     
-    static void expandBoxPixels3D(float bottomLeft[3],
-                                  float bottomRight[3],
-                                  float topRight[3],
-                                  float topLeft[3],
-                                  const float extraSpacePixels);
+    static void expandBoxPixels3D(double bottomLeft[3],
+                                  double bottomRight[3],
+                                  double topRight[3],
+                                  double topLeft[3],
+                                  const double extraSpacePixels);
     
     static void expandBoxPercentage3D(float bottomLeft[3],
                                       float bottomRight[3],
@@ -421,9 +421,9 @@ public:
                                        float v[3],
                                        const float extraSpacePercent);
     
-    static void expandLinePixels3D(float u[3],
-                                   float v[3],
-                                   const float extraSpacePixels);
+    static void expandLinePixels3D(double u[3],
+                                   double v[3],
+                                   const double extraSpacePixels);
     
 };
 

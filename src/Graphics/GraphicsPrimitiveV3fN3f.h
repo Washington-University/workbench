@@ -47,6 +47,9 @@ namespace caret {
         void addVertex(const float xyz[3],
                        const float normalXYZ[3]);
 
+        void addVertex(const double xyz[3],
+                       const double normalXYZ[3]);
+        
         void addVertex(const float x,
                        const float y,
                        const float z,

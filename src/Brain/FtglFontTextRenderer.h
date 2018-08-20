@@ -64,6 +64,12 @@ namespace caret {
                                           const float normalVector[3],
                                           const DrawingFlags& flags) override;
 
+        virtual void OLDdrawTextInModelSpace(const AnnotationText& annotationText,
+                                             const float modelSpaceScaling,
+                                             const float heightOrWidthForPercentageSizeText,
+                                             const float normalVector[3],
+                                             const DrawingFlags& flags);
+        
         virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
                                                 const DrawingFlags& flags,
                                                 const double viewportWidth,
@@ -76,12 +82,12 @@ namespace caret {
                                                   const float modelSpaceScaling,
                                           const float heightOrWidthForPercentageSizeText,
                                           const DrawingFlags& flags,
-                                          float bottomLeftOut[3],
-                                          float bottomRightOut[3],
-                                          float topRightOut[3],
-                                                  float topLeftOut[3],
-                                                  float underlineStartOut[3],
-                                                  float underlineEndOut[3]) override;
+                                          double bottomLeftOut[3],
+                                          double bottomRightOut[3],
+                                          double topRightOut[3],
+                                                  double topLeftOut[3],
+                                                  double underlineStartOut[3],
+                                                  double underlineEndOut[3]) override;
         
         virtual void getBoundsForTextAtViewportCoords(const AnnotationText& annotationText,
                                                       const DrawingFlags& flags,
@@ -190,7 +196,19 @@ namespace caret {
             bool m_valid;
         };
         
-        
+        /**
+         * Drawing space of text
+         */
+        enum class TextDrawingSpace {
+            /**
+             * Drawn in model space coordinates
+             */
+            MODEL,
+            /**
+             * Drawn in viewport coordinates
+             */
+            VIEWPORT
+        };
         
         /**
          * A text character
@@ -235,6 +253,7 @@ namespace caret {
         class TextString {
         public:
             TextString(const QString& textString,
+                       const TextDrawingSpace textDrawingSpace,
                        const AnnotationTextOrientationEnum::Enum orientation,
                        const double underlineThickness,
                        const double outlineThickness,
@@ -251,6 +270,7 @@ namespace caret {
                                                     double& viewportMinY,
                                                     double& viewportMaxY) const;
             
+            const TextDrawingSpace m_textDrawingSpace;
             const double m_underlineThickness;
             const double m_outlineThickness;
             
@@ -322,6 +342,7 @@ namespace caret {
             double m_viewportBoundsMinY;
             double m_viewportBoundsMaxY;
             
+            TextDrawingSpace m_textDrawingSpace;
         private:
             void applyAlignmentsToHorizontalTextStrings();
             void applyAlignmentsToStackedTextStrings();
@@ -333,6 +354,13 @@ namespace caret {
         
         void drawTextAtViewportCoordinatesInternal(const AnnotationText& annotationText,
                                                    const TextStringGroup& textStringGroup);
+        
+        void drawTextInModelSpaceInternal(const AnnotationText& annotationText,
+                                          const float modelSpaceScaling,
+                                          const TextStringGroup& textStringGroup,
+                                          const float heightOrWidthForPercentageSizeText,
+                                          const float normalVector[3],
+                                          const DrawingFlags& flags);
         
         void applyTextColoring(const AnnotationText& annotationText);
         
@@ -385,10 +413,12 @@ namespace caret {
         float m_lineWidthMaximum = 5.0f;
         
         static const double s_textMarginSize;
+        static const double s_modelSpaceMarginPercentage;
     };
     
 #ifdef __FTGL_FONT_TEXT_RENDERER_DECLARE__
     const double FtglFontTextRenderer::s_textMarginSize = 3.0;
+    const double FtglFontTextRenderer::s_modelSpaceMarginPercentage = 0.2;
 #endif // __FTGL_FONT_TEXT_RENDERER_DECLARE__
 
 } // namespace

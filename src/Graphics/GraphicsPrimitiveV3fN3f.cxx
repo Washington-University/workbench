@@ -140,6 +140,35 @@ GraphicsPrimitiveV3fN3f::addVertex(const float xyz[3],
 /**
  * Add a vertex.
  *
+ * @param xyz
+ *     Coordinate of vertex.
+ * @param normalXYZ
+ *     Normal vector
+ */
+void
+GraphicsPrimitiveV3fN3f::addVertex(const double xyz[3],
+                                   const double normalXYZ[3])
+{
+    const float floatXYZ[] {
+        static_cast<float>(xyz[0]),
+        static_cast<float>(xyz[1]),
+        static_cast<float>(xyz[2])
+    };
+    const float floatNormalXYZ[3] {
+        static_cast<float>(normalXYZ[0]),
+        static_cast<float>(normalXYZ[1]),
+        static_cast<float>(normalXYZ[2])
+    };
+    addVertexProtected(floatXYZ,
+                       floatNormalXYZ,
+                       m_floatSolidRGBA,
+                       m_unsignedByteSolidRGBA,
+                       NULL);
+}
+
+/**
+ * Add a vertex.
+ *
  * @param x
  *     X-coordinate of vertex.
  * @param y

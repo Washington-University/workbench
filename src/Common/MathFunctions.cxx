@@ -2565,15 +2565,15 @@ MathFunctions::expandLinePercentage3D(float u[3],
  *     Pixels amount to expand the points.
  */
 void
-MathFunctions::expandLinePixels3D(float u[3],
-                                         float v[3],
-                                         const float extraSpacePixels)
+MathFunctions::expandLinePixels3D(double u[3],
+                                  double v[3],
+                                  const double extraSpacePixels)
 {
-    float vector[3];
+    double vector[3];
     MathFunctions::subtractVectors(v, u, vector);
     MathFunctions::normalizeVector(vector);
-    const float halfExtra = extraSpacePixels / 2.0;
-    const float extraVector[3] {
+    const double halfExtra = extraSpacePixels / 2.0;
+    const double extraVector[3] {
         vector[0] * halfExtra,
         vector[1] * halfExtra,
         vector[2] * halfExtra
@@ -2600,11 +2600,11 @@ MathFunctions::expandLinePixels3D(float u[3],
  *     Extra space to add, ion pixels.
  */
 void
-MathFunctions::expandBoxPixels3D(float bottomLeft[3],
-                                        float bottomRight[3],
-                                        float topRight[3],
-                                        float topLeft[3],
-                                        const float extraSpacePixels)
+MathFunctions::expandBoxPixels3D(double bottomLeft[3],
+                                 double bottomRight[3],
+                                 double topRight[3],
+                                 double topLeft[3],
+                                 const double extraSpacePixels)
 {
     expandLinePixels3D(bottomLeft, bottomRight, extraSpacePixels);
     expandLinePixels3D(topLeft, topRight, extraSpacePixels);
