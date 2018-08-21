@@ -63,6 +63,8 @@
  **
  ****************************************************************************/
 
+#ifdef HAVE_FREETYPE
+
 #define __FTGL_FONT_TEXT_RENDERER_DECLARE__
 #include "FtglFontTextRenderer.h"
 #undef __FTGL_FONT_TEXT_RENDERER_DECLARE__
@@ -90,10 +92,8 @@
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 
-#ifdef HAVE_FREETYPE
 #include <FTGL/ftgl.h>
 using namespace FTGL;
-#endif // HAVE_FREETYPE
 
 using namespace caret;
 
@@ -126,7 +126,6 @@ FtglFontTextRenderer::FtglFontTextRenderer()
 : BrainOpenGLTextRenderInterface()
 {
     m_defaultFont = NULL;
-#ifdef HAVE_FREETYPE
     AnnotationPointSizeText defaultAnnotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
     defaultAnnotationText.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE14);
     defaultAnnotationText.setFont(AnnotationTextFontNameEnum::VERA);
@@ -136,7 +135,6 @@ FtglFontTextRenderer::FtglFontTextRenderer()
     m_defaultFont = getFont(defaultAnnotationText,
                             FtglFontTypeEnum::TEXTURE,
                             true);
-#endif // HAVE_FREETYPE
     m_depthTestingStatus = DEPTH_TEST_NO;
     BrainOpenGL::getMinMaxLineWidth(m_lineWidthMinimum,
                                     m_lineWidthMaximum);
@@ -147,7 +145,6 @@ FtglFontTextRenderer::FtglFontTextRenderer()
  */
 FtglFontTextRenderer::~FtglFontTextRenderer()
 {
-#ifdef HAVE_FREETYPE
     for (FONT_MAP_ITERATOR iter = m_fontNameToFontMap.begin();
          iter != m_fontNameToFontMap.end();
          iter++) {
@@ -160,7 +157,6 @@ FtglFontTextRenderer::~FtglFontTextRenderer()
      * in m_fontNameToFontMap.  Doing so would cause
      * a double delete.
      */
-#endif // HAVE_FREETYPE
 }
 
 /**
@@ -194,7 +190,6 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
                               const float heightOrWidthForPercentageSizeText,
                               const bool creatingDefaultFontFlag)
 {
-#ifdef HAVE_FREETYPE
     int32_t viewportWidth  = m_viewportWidth;
     int32_t viewportHeight = m_viewportHeight;
     
@@ -311,11 +306,6 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
      */
     annotationText.setFontTooSmallWhenLastDrawn(false);
     return m_defaultFont;
-    
-#else  // HAVE_FREETYPE
-    CaretLogSevere("Trying to use FTGL Font rendering but FTGL is not valid.");
-    return NULL;
-#endif // HAVE_FREETYPE
 }
 
 
@@ -342,7 +332,6 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
                    ftglFontType,
                    -1.0,
                    creatingDefaultFontFlag);
-#ifdef HAVE_FREETYPE
     int32_t viewportWidth  = m_viewportWidth;
     int32_t viewportHeight = m_viewportHeight;
     
@@ -442,11 +431,6 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
      */
     annotationText.setFontTooSmallWhenLastDrawn(false);
     return m_defaultFont;
-    
-#else  // HAVE_FREETYPE
-    CaretLogSevere("Trying to use FTGL Font rendering but FTGL is not valid.");
-    return NULL;
-#endif // HAVE_FREETYPE
 }
 
 /**
@@ -485,7 +469,6 @@ void
 FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText& annotationText,
                                                             const TextStringGroup& textStringGroup)
 {
-#ifdef HAVE_FREETYPE
     FTFont* font = getFont(annotationText,
                            FtglFontTypeEnum::TEXTURE,
                            false);
@@ -664,10 +647,6 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
                                     + annotationText.getText());
     
     restoreStateOfOpenGL();
-
-#else // HAVE_FREETYPE
-    CaretLogSevere("Trying to use FTGL Font rendering but it cannot be used due to FreeType not found.");
-#endif // HAVE_FREETYPE
 }
 
 /**
@@ -1402,7 +1381,6 @@ FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotat
     std::fill(topRightOut,    topRightOut + 3,    0.0f);
     std::fill(topLeftOut,     topLeftOut + 3,     0.0f);
     
-#ifdef HAVE_FREETYPE
     FTFont* font = getFont(annotationText,
                            FtglFontTypeEnum::POLYGON,
                            heightOrWidthForPercentageSizeText,
@@ -1543,7 +1521,6 @@ FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotat
         MathFunctions::expandLinePixels3D(underlineStartOut, copyTopLeft, boxExpansion * 0.5);
         MathFunctions::expandLinePixels3D(underlineEndOut, copyTopRight, boxExpansion * 0.5);
     }
-#endif // HAVE_FREETYPE
 }
 
 /**
@@ -1594,7 +1571,6 @@ FtglFontTextRenderer::drawTextInModelSpace(const AnnotationText& annotationText,
                                            const float normalVector[3],
                                            const DrawingFlags& flags)
 {
-#ifdef HAVE_FREETYPE
     FTFont* font = getFont(annotationText,
                            FtglFontTypeEnum::POLYGON,
                            heightOrWidthForPercentageSizeText,
@@ -1640,7 +1616,6 @@ FtglFontTextRenderer::drawTextInModelSpace(const AnnotationText& annotationText,
                                  heightOrWidthForPercentageSizeText,
                                  normalVector,
                                  flags);
-#endif // HAVE_FREETYPE
 }
 
 
@@ -1663,7 +1638,6 @@ FtglFontTextRenderer::drawTextInModelSpaceInternal(const AnnotationText& annotat
                                                    const float normalVector[3],
                                                    const DrawingFlags& flags)
 {
-#ifdef HAVE_FREETYPE
     FTFont* font = getFont(annotationText,
                            FtglFontTypeEnum::POLYGON,
                            heightOrWidthForPercentageSizeText,
@@ -1806,10 +1780,6 @@ FtglFontTextRenderer::drawTextInModelSpaceInternal(const AnnotationText& annotat
                                     + annotationText.getText());
     
     restoreStateOfOpenGL();
-    
-#else // HAVE_FREETYPE
-    CaretLogSevere("Trying to use FTGL Font rendering but it cannot be used due to FreeType not found.");
-#endif // HAVE_FREETYPE
 }
 
 
@@ -1885,7 +1855,6 @@ FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
     m_valid    = false;
     m_font     = NULL;
     
-#ifdef HAVE_FREETYPE
     const AnnotationTextFontNameEnum::Enum fontName = annotationText.getFont();
     
     AString fontFileName = AnnotationTextFontNameEnum::getResourceFontFileName(fontName);
@@ -1983,7 +1952,6 @@ FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
             m_font = NULL;
         }
     }
-#endif // HAVE_FREETYPE
 }
 
 /**
@@ -1991,12 +1959,10 @@ FtglFontTextRenderer::FontData::FontData(const AnnotationText&  annotationText,
  */
 FtglFontTextRenderer::FontData::~FontData()
 {
-#ifdef HAVE_FREETYPE
     if (m_font != NULL) {
         delete m_font;
         m_font = NULL;
     }
-#endif // HAVE_FREETYPE
 }
 
 /**
@@ -2130,7 +2096,6 @@ m_stringGlyphsMaxX(0.0),
 m_stringGlyphsMinY(0.0),
 m_stringGlyphsMaxY(0.0)
 {
-#ifdef HAVE_FREETYPE
     /*
      * Split the string into individual characters.
      */
@@ -2190,7 +2155,6 @@ m_stringGlyphsMaxY(0.0)
      * Set the bounds of the characters in this string.
      */
     setGlyphBounds();
-#endif // HAVE_FREETYPE
 }
 
 /**
@@ -2481,7 +2445,6 @@ m_viewportBoundsMinY(0.0),
 m_viewportBoundsMaxY(0.0),
 m_textDrawingSpace(TextDrawingSpace::VIEWPORT)
 {
-#ifdef HAVE_FREETYPE
     CaretAssert(font);
     
     m_textDrawingSpace = TextDrawingSpace::VIEWPORT;
@@ -2551,7 +2514,6 @@ m_textDrawingSpace(TextDrawingSpace::VIEWPORT)
      * Alignment moves text so bounds need to be updated
      */
     updateTextBounds();
-#endif // HAVE_FREETYPE
 }
 
 /**
@@ -2956,3 +2918,5 @@ FtglFontTextRenderer::TextStringGroup::applyAlignmentsToTextStrings()
             break;
     }
 }
+
+#endif // HAVE_FREETYPE

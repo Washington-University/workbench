@@ -1,5 +1,8 @@
+
 #ifndef __FTGL_FONT_TEXT_RENDERER_H__
 #define __FTGL_FONT_TEXT_RENDERER_H__
+
+#ifdef HAVE_FREETYPE
 
 /*LICENSE_START*/
 /*
@@ -416,4 +419,7 @@ namespace caret {
 #endif // __FTGL_FONT_TEXT_RENDERER_DECLARE__
 
 } // namespace
+
+#endif // HAVE_FREETYPE
+
 #endif  //__FTGL_FONT_TEXT_RENDERER_H__

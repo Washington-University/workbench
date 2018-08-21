@@ -242,13 +242,19 @@ BrainOpenGLWidget::initializeGL()
          * OpenGL drawing will take ownership of the text renderer
          * and handle deletion of the text renderer.
          */
-        BrainOpenGLTextRenderInterface* textRenderer = new FtglFontTextRenderer();
+        BrainOpenGLTextRenderInterface* textRenderer = NULL;
+#ifdef HAVE_FREETYPE
+        textRenderer = new FtglFontTextRenderer();
         if (! textRenderer->isValid()) {
             delete textRenderer;
             textRenderer = NULL;
             CaretLogWarning("Unable to create FTGL Font Renderer.\n"
                             "No text will be available in graphics window.");
         }
+#else
+        CaretLogWarning("Unable to create FTGL Font Renderer due to FreeType not found during configuration.\n"
+                        "No text will be available in graphics window.");
+#endif
         if (textRenderer == NULL) {
             textRenderer = new DummyFontTextRenderer();
         }

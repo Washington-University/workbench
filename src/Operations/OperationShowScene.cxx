@@ -749,6 +749,7 @@ OperationShowScene::createBrainOpenGL()
      */
     BrainOpenGLTextRenderInterface* textRenderer = NULL;
     if (textRenderer == NULL) {
+#ifdef HAVE_FREETYPE
         textRenderer = new FtglFontTextRenderer();
         if (! textRenderer->isValid()) {
             delete textRenderer;
@@ -756,6 +757,10 @@ OperationShowScene::createBrainOpenGL()
             CaretLogWarning("Unable to create FTGL Font Renderer.\n"
                             "No text will be available in graphics window.");
         }
+#else
+        CaretLogWarning("Unable to create FTGL Font Renderer due to FreeType not found during configuration.\n"
+                        "No text will be available in graphics window.");
+#endif
     }
     if (textRenderer == NULL) {
         textRenderer = new DummyFontTextRenderer();
