@@ -64,12 +64,6 @@ namespace caret {
                                           const float normalVector[3],
                                           const DrawingFlags& flags) override;
 
-        virtual void OLDdrawTextInModelSpace(const AnnotationText& annotationText,
-                                             const float modelSpaceScaling,
-                                             const float heightOrWidthForPercentageSizeText,
-                                             const float normalVector[3],
-                                             const DrawingFlags& flags);
-        
         virtual void getTextWidthHeightInPixels(const AnnotationText& annotationText,
                                                 const DrawingFlags& flags,
                                                 const double viewportWidth,

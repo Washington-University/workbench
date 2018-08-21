@@ -1623,9 +1623,6 @@ FtglFontTextRenderer::drawTextInModelSpace(const AnnotationText& annotationText,
         return;
     }
     
-//    std::wstring wideString = text.toStdWString();
-//    const wchar_t* wideCharString = wideString.c_str();
-    
     const float lineThicknessForViewportHeight(getLineThicknessPixelsInModelSpace(annotationText.getLineWidthPercentage(),
                                                                                   heightOrWidthForPercentageSizeText,
                                                                                   0.0));
@@ -1637,8 +1634,6 @@ FtglFontTextRenderer::drawTextInModelSpace(const AnnotationText& annotationText,
                         0.0,
                         annotationText.getRotationAngle(),
                         lineThicknessForViewportHeight);
-    //tsg.print();
-    
     drawTextInModelSpaceInternal(annotationText,
                                  modelSpaceScaling,
                                  tsg,
@@ -1696,10 +1691,6 @@ FtglFontTextRenderer::drawTextInModelSpaceInternal(const AnnotationText& annotat
     double bottomLeft[3], bottomRight[3], topRight[3], topLeft[3], rotationPointXYZ[3];
     textStringGroup.getViewportBounds(s_textMarginSize,
                                       bottomLeft, bottomRight, topRight, topLeft, rotationPointXYZ);
-//    double underlineStart[3], underlineEnd[3];
-//    getBoundsForTextInModelSpace(annotationText,
-//                                 modelSpaceScaling, heightOrWidthForPercentageSizeText, flags, bottomLeft,
-//                                 bottomRight, topRight, topLeft, underlineStart, underlineEnd);
     rotationPointXYZ[2] = 0.0;
     
     glPushMatrix();
@@ -1781,32 +1772,6 @@ FtglFontTextRenderer::drawTextInModelSpaceInternal(const AnnotationText& annotat
             glPopMatrix();
         }
     }
-    
-//    if (annotationText.isUnderlineStyleEnabled()) {
-//        float underlineThickness = std::max((font->FaceSize() / 14.0),
-//                                            1.0);
-//        underlineThickness *= modelSpaceScaling;
-//        
-//        uint8_t underlineRGBA[4];
-//        annotationText.getTextColorRGBA(underlineRGBA);
-//        GraphicsPrimitiveV3f linePrimitive(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
-//                                           underlineRGBA);
-//        linePrimitive.setLineWidth(GraphicsPrimitiveV3f::LineWidthType::PIXELS,
-//                                   underlineThickness); // lineThicknessPixels
-//        const float floatUnderlineStart[3] = {
-//            static_cast<float>(underlineStart[0]),
-//            static_cast<float>(underlineStart[1]),
-//            static_cast<float>(underlineStart[2])
-//        };
-//        const float floatUnderlineEnd[3] = {
-//            static_cast<float>(underlineEnd[0]),
-//            static_cast<float>(underlineEnd[1]),
-//            static_cast<float>(underlineEnd[2])
-//        };
-//        linePrimitive.addVertex(floatUnderlineStart);
-//        linePrimitive.addVertex(floatUnderlineEnd);
-//        GraphicsEngineDataOpenGL::draw(&linePrimitive);
-//    }
     
     if (annotationText.getLineColor() != CaretColorEnum::NONE) {
         glPushMatrix();
@@ -2718,14 +2683,23 @@ FtglFontTextRenderer::TextStringGroup::getViewportBounds(const double margin,
      * Margin is NOT included when rotation point is computed
      * as it will move the rotation point to the wrong position.
      */
-    bottomLeftOut[0]  -= margin;
-    bottomLeftOut[1]  -= margin;
-    bottomRightOut[0] += margin;
-    bottomRightOut[1] -= margin;
-    topRightOut[0]    += margin;
-    topRightOut[1]    += margin;
-    topLeftOut[0]     -= margin;
-    topLeftOut[1]     += margin;
+    double boundsMargin = 0.0;
+    switch (m_textDrawingSpace) {
+        case TextDrawingSpace::MODEL:
+            boundsMargin = GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(margin);
+            break;
+        case TextDrawingSpace::VIEWPORT:
+            boundsMargin = margin;
+            break;
+    }
+    bottomLeftOut[0]  -= boundsMargin;
+    bottomLeftOut[1]  -= boundsMargin;
+    bottomRightOut[0] += boundsMargin;
+    bottomRightOut[1] -= boundsMargin;
+    topRightOut[0]    += boundsMargin;
+    topRightOut[1]    += boundsMargin;
+    topLeftOut[0]     -= boundsMargin;
+    topLeftOut[1]     += boundsMargin;
     
     matrix.multiplyPoint3(bottomLeftOut);
     matrix.multiplyPoint3(bottomRightOut);
@@ -2982,214 +2956,3 @@ FtglFontTextRenderer::TextStringGroup::applyAlignmentsToTextStrings()
             break;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * Draw text in model space using the current model transformations.
- *
- * Depth testing is ENABLED when drawing text with this method.
- *
- * @param annotationText
- *     Annotation text and attributes.
- * @param modelSpaceScaling
- *     Scaling in the model space.
- * @param heightOrWidthForPercentageSizeText
- *    If positive, use it to override width/height of viewport.
- * @param normalVector
- *     Normal vector of text.
- * @param flags
- *     Drawing flags.
- */
-void
-FtglFontTextRenderer::OLDdrawTextInModelSpace(const AnnotationText& annotationText,
-                                              const float modelSpaceScaling,
-                                              const float heightOrWidthForPercentageSizeText,
-                                              const float normalVector[3],
-                                              const DrawingFlags& flags)
-{
-#ifdef HAVE_FREETYPE
-    FTFont* font = getFont(annotationText,
-                           FtglFontTypeEnum::POLYGON,
-                           heightOrWidthForPercentageSizeText,
-                           false);
-    if (! font) {
-        return;
-    }
-    
-    const bool drawCrossFlag = false;
-    if (drawCrossFlag) {
-        const float a(100.0f);
-        glLineWidth(3.0);
-        glBegin(GL_LINES);
-        glVertex3f(-a, 0, 0);
-        glVertex3f( a, 0, 0);
-        glVertex3f(0, -a, 0);
-        glVertex3f(0,  a, 0);
-        glVertex3f(0,  0,-a);
-        glVertex3f(0,  0, a);
-        glEnd();
-    }
-    AString text = (flags.isDrawSubstitutedText()
-                    ? annotationText.getTextWithSubstitutionsApplied()
-                    : annotationText.getText());
-    if (text.isEmpty()) {
-        return;
-    }
-    
-    std::wstring wideString = text.toStdWString();
-    const wchar_t* wideCharString = wideString.c_str();
-    
-    FTBBox bounds = font->BBox(wideCharString);
-    if (bounds.IsValid()) {
-        FTPoint lb = bounds.Lower();
-        FTPoint ub = bounds.Upper();
-        //        std::cout << "Lower: " << lb.X() << ", " << lb.Y() << ", " << lb.Z() << std::endl;
-        //        std::cout << "Upper: " << ub.X() << ", " << ub.Y() << ", " << ub.Z() << std::endl;
-        
-        float dx(0.0);
-        float dy(0.0f);
-        switch (annotationText.getHorizontalAlignment()) {
-            case AnnotationTextAlignHorizontalEnum::CENTER:
-                dx = -((lb.X() + ub.X()) / 2.0);
-                break;
-            case AnnotationTextAlignHorizontalEnum::LEFT:
-                dx = -lb.X();
-                break;
-            case AnnotationTextAlignHorizontalEnum::RIGHT:
-                dx = -ub.X();
-                break;
-        }
-        
-        switch (annotationText.getVerticalAlignment()) {
-            case AnnotationTextAlignVerticalEnum::BOTTOM:
-                dy = -lb.Y();
-                break;
-            case AnnotationTextAlignVerticalEnum::MIDDLE:
-                dy = -((lb.Y() + ub.Y()) / 2.0);
-                break;
-            case AnnotationTextAlignVerticalEnum::TOP:
-                dy = -ub.Y();
-                break;
-        }
-        
-        glPushAttrib(GL_POLYGON_BIT);
-        
-        const double doubleNormalXYZ[3] {
-            normalVector[0],
-            normalVector[1],
-            normalVector[2]
-        };
-        
-        double bottomLeft[3]     { 0.0, 0.0, 0.0 };
-        double bottomRight[3]    { 0.0, 0.0, 0.0 };
-        double topLeft[3]        { 0.0, 0.0, 0.0 };
-        double topRight[3]       { 0.0, 0.0, 0.0 };
-        double underlineStart[3] { 0.0, 0.0, 0.0 };
-        double underlineEnd[3]   { 0.0, 0.0, 0.0 };
-        
-        getBoundsForTextInModelSpace(annotationText, modelSpaceScaling, heightOrWidthForPercentageSizeText, flags,
-                                     bottomLeft, bottomRight, topRight, topLeft,
-                                     underlineStart, underlineEnd);
-        
-        uint8_t backgroundColor[4];
-        annotationText.getBackgroundColorRGBA(backgroundColor);
-        if (backgroundColor[3] > 0) {
-            
-            GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                              backgroundColor);
-            primitive.addVertex(topLeft, doubleNormalXYZ);
-            primitive.addVertex(bottomLeft, doubleNormalXYZ);
-            primitive.addVertex(topRight, doubleNormalXYZ);
-            primitive.addVertex(bottomRight, doubleNormalXYZ);
-            GraphicsEngineDataOpenGL::draw(&primitive);
-            
-            /*
-             * So that text and background do not mix together
-             * in the Z-buffer
-             */
-            glEnable(GL_POLYGON_OFFSET_FILL);
-            glEnable(GL_POLYGON_OFFSET_LINE);
-            glEnable(GL_POLYGON_OFFSET_POINT);
-            glPolygonOffset(-1.0, 1.0);
-        }
-        
-        uint8_t textRGBA[4];
-        annotationText.getTextColorRGBA(textRGBA);
-        
-        const float lineThicknessPixels = getLineThicknessPixelsInModelSpace(annotationText.getLineWidthPercentage(),
-                                                                             heightOrWidthForPercentageSizeText,
-                                                                             modelSpaceScaling);
-        
-        if (annotationText.isUnderlineStyleEnabled()) {
-            float underlineThickness = std::max((font->FaceSize() / 14.0),
-                                                1.0);
-            underlineThickness *= modelSpaceScaling;
-            
-            GraphicsPrimitiveV3f linePrimitive(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
-                                               textRGBA);
-            linePrimitive.setLineWidth(GraphicsPrimitiveV3f::LineWidthType::PIXELS,
-                                       underlineThickness); // lineThicknessPixels
-            const float floatUnderlineStart[3] = {
-                static_cast<float>(underlineStart[0]),
-                static_cast<float>(underlineStart[1]),
-                static_cast<float>(underlineStart[2])
-            };
-            const float floatUnderlineEnd[3] = {
-                static_cast<float>(underlineEnd[0]),
-                static_cast<float>(underlineEnd[1]),
-                static_cast<float>(underlineEnd[2])
-            };
-            linePrimitive.addVertex(floatUnderlineStart);
-            linePrimitive.addVertex(floatUnderlineEnd);
-            GraphicsEngineDataOpenGL::draw(&linePrimitive);
-        }
-        
-        if (annotationText.getLineColor() != CaretColorEnum::NONE) {
-            glPushMatrix();
-            
-            uint8_t foregroundRgba[4];
-            annotationText.getLineColorRGBA(foregroundRgba);
-            GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP,
-                                              foregroundRgba);
-            primitive.addVertex(topLeft, doubleNormalXYZ);
-            primitive.addVertex(bottomLeft, doubleNormalXYZ);
-            primitive.addVertex(bottomRight, doubleNormalXYZ);
-            primitive.addVertex(topRight, doubleNormalXYZ);
-            primitive.setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, lineThicknessPixels);
-            GraphicsEngineDataOpenGL::draw(&primitive);
-            
-            glPopMatrix();
-        }
-        
-        glTranslatef(dx, dy, 0.0);
-        
-        glColor3ubv(textRGBA);
-        font->Render(wideCharString);
-        
-        annotationText.setFontTooSmallWhenLastDrawn(false);
-        
-        glPopAttrib();
-    }
-    
-    
-#endif // HAVE_FREETYPE
-}
-
-
