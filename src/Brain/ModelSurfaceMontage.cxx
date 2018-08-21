@@ -945,14 +945,13 @@ ModelSurfaceMontage::getSurfaceMontageNumberOfRowsAndColumns(const int32_t tabIn
     numberOfColumnsOut = 1;
     
     ModelSurfaceMontage* nonConstMSM = const_cast<ModelSurfaceMontage*>(this);
-    std::vector<SurfaceMontageViewport*> surfaceMontageViewports;
-    nonConstMSM->getSurfaceMontageViewportsForDrawing(tabIndex,
-                                                      surfaceMontageViewports);
+    std::vector<const SurfaceMontageViewport*> surfaceMontageViewports;
+    nonConstMSM->getSurfaceMontageViewportsForTransformation(tabIndex,
+                                                             surfaceMontageViewports);
     SurfaceMontageViewport::getNumberOfRowsAndColumns(surfaceMontageViewports,
                                                       numberOfRowsOut,
                                                       numberOfColumnsOut);
 }
-
 
 /**
  * Get the montage viewports for drawing by OpenGL.  The montage viewports

@@ -90,6 +90,9 @@ namespace caret {
                                               int32_t& numberOfRowsOut,
                                               int32_t& numberOfColumnsOut);
         
+        static void getNumberOfRowsAndColumns(const std::vector<const SurfaceMontageViewport*>& montageViewports,
+                                              int32_t& numberOfRowsOut,
+                                              int32_t& numberOfColumnsOut);
     private:
         int32_t m_row;
         

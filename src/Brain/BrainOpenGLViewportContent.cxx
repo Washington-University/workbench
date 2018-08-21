@@ -916,7 +916,6 @@ BrainOpenGLViewportContent::getSurfaceMontageModelViewport(const int32_t montage
                     return;
                 }
             }
-            
         }
     }
 }

@@ -1175,18 +1175,17 @@ AnnotationCreateDialog::NewAnnotationInfo::adjustViewportForSurfaceMontage(Brows
         return false;
     }
     
-    std::vector<SurfaceMontageViewport*> montageViewports;
-    msm->getSurfaceMontageViewportsForDrawing(browserTabContent->getTabNumber(),
-                                              montageViewports);
-    
     int32_t numRows = -1;
     int32_t numCols = -1;
-    SurfaceMontageViewport::getNumberOfRowsAndColumns(montageViewports,
-                                                      numRows,
-                                                      numCols);
+    msm->getSurfaceMontageNumberOfRowsAndColumns(browserTabContent->getTabNumber(),
+                                                 numRows,
+                                                 numCols);
     
     if ((numRows > 0)
         && (numCols > 0)) {
+        /*
+         * All viewports within a surface montage are same dimensions
+         */
         const float viewportWidth  = viewport[2];
         const float viewportHeight = viewport[3];
         widthOut  = viewportWidth  / static_cast<float>(numCols);
