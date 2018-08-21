@@ -608,14 +608,19 @@ GraphicsOpenGLPolylineTriangles::createTrianglesFromWindowVertices(const int32_t
     };
     const float lineLength = MathFunctions::normalizeVector(startToEndVector);
     if (lineLength < 0.001f) {
-        CaretLogWarning("This should not happen: Failure to filter coincident points with indices="
-                       + AString::number(windowVertexOneIndex)
-                       + ", "
-                       + AString::number(windowVertexTwoIndex)
-                       + " Coordinates: "
-                       + AString::fromNumbers(&m_vertexWindowXYZ[iOne3], 3, ",")
-                       + "    "
-                       + AString::fromNumbers(&m_vertexWindowXYZ[iTwo3], 3, ","));
+        const AString msg("This should not happen: Failure to filter coincident points with indices="
+                          + AString::number(windowVertexOneIndex)
+                          + ", "
+                          + AString::number(windowVertexTwoIndex)
+                          + " Coordinates: "
+                          + AString::fromNumbers(&m_vertexWindowXYZ[iOne3], 3, ",")
+                          + "    "
+                          + AString::fromNumbers(&m_vertexWindowXYZ[iTwo3], 3, ","));
+#ifdef NDEBUG
+        CaretLogFine(msg);
+#else
+        CaretLogSevere(msg);
+#endif
     }
     
     /*

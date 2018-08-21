@@ -529,7 +529,13 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
         primitiveToDraw = GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(primitive,
                                                                                                  errorMessage);
         if (primitiveToDraw == NULL) {
-            CaretLogSevere(errorMessage);
+            const AString msg("For developer: "
+                              + errorMessage);
+#ifdef NDEBUG
+            CaretLogFine(msg);
+#else
+            CaretLogSevere(msg);
+#endif
             return;
         }
         windowSpacePrimitive.reset(primitiveToDraw);
