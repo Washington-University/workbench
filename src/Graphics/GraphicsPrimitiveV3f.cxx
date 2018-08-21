@@ -120,6 +120,18 @@ GraphicsPrimitiveV3f::copyHelperGraphicsPrimitiveV3f(const GraphicsPrimitiveV3f&
 
 /**
  * Add a vertex.
+ *
+ * @param xyz
+ *     Coordinate of vertex.
+ */
+void
+GraphicsPrimitiveV3f::addVertex(const double xyz[3])
+{
+    addVertex(xyz[0], xyz[1], xyz[2]);
+}
+
+/**
+ * Add a vertex.
  * 
  * @param xyz
  *     Coordinate of vertex.

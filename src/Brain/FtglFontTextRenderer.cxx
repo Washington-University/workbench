@@ -620,25 +620,23 @@ FtglFontTextRenderer::drawTextAtViewportCoordinatesInternal(const AnnotationText
             
             glPopMatrix();
         }
-        
-        if (ts->m_outlineThickness > 0.0) {
-            glPushMatrix();
-            glTranslated(ts->m_viewportX - rotationPointXYZ[0], ts->m_viewportY - rotationPointXYZ[1], 0.0);
-            
-            uint8_t foregroundRgba[4];
-            annotationText.getLineColorRGBA(foregroundRgba);
-            drawOutline(ts->m_stringGlyphsMinX,
-                        ts->m_stringGlyphsMaxX,
-                        ts->m_stringGlyphsMinY,
-                        ts->m_stringGlyphsMaxY,
-                        z,
-                        ts->m_outlineThickness,
-                        foregroundRgba);
-            
-            glPopMatrix();
-        }
     }
     
+    glLoadIdentity();
+    
+    uint8_t foregroundRgba[4];
+    annotationText.getLineColorRGBA(foregroundRgba);
+    if (foregroundRgba[3] > 0) {
+        GraphicsPrimitiveV3f primitive(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN,
+                                       foregroundRgba);
+        primitive.addVertex(topLeft);
+        primitive.addVertex(bottomLeft);
+        primitive.addVertex(bottomRight);
+        primitive.addVertex(topRight);
+        primitive.setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                               annotationText.getLineWidthPercentage());
+        GraphicsEngineDataOpenGL::draw(&primitive);
+    }
     glPopMatrix();
     
     BrainOpenGL::testForOpenGLError("At end of "
