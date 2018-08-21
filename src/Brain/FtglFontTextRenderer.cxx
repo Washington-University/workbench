@@ -1419,108 +1419,6 @@ FtglFontTextRenderer::getBoundsForTextInModelSpace(const AnnotationText& annotat
     underlineEndOut[0]   = bottomRightOut[0];
     underlineEndOut[1]   = bottomRightOut[1];
     underlineEndOut[2]   = bottomRightOut[2];
-
-    return;
-    
-    
-    
-    
-    
-    /* remove code below !!! */
-    CaretAssertToDoFatal();
-    
-    
-    
-    
-    
-    
-    AString text = (flags.isDrawSubstitutedText()
-                    ? annotationText.getTextWithSubstitutionsApplied()
-                    : annotationText.getText());
-    if (text.isEmpty()) {
-        return;
-    }
-    
-    std::wstring wideString = text.toStdWString();
-    const wchar_t* wideCharString = wideString.c_str();
-    
-    FTBBox bounds = font->BBox(wideCharString);
-    if (bounds.IsValid()) {
-        FTPoint lb = bounds.Lower();
-        FTPoint ub = bounds.Upper();
-//        std::cout << "Lower: " << lb.X() << ", " << lb.Y() << ", " << lb.Z() << std::endl;
-//        std::cout << "Upper: " << ub.X() << ", " << ub.Y() << ", " << ub.Z() << std::endl;
-        
-        float dx(0.0);
-        float dy(0.0f);
-        switch (annotationText.getHorizontalAlignment()) {
-            case AnnotationTextAlignHorizontalEnum::CENTER:
-                dx = -((lb.X() + ub.X()) / 2.0);
-                break;
-            case AnnotationTextAlignHorizontalEnum::LEFT:
-                dx = -lb.X();
-                break;
-            case AnnotationTextAlignHorizontalEnum::RIGHT:
-                dx = -ub.X();
-                break;
-        }
-        
-        switch (annotationText.getVerticalAlignment()) {
-            case AnnotationTextAlignVerticalEnum::BOTTOM:
-                dy = -lb.Y();
-                break;
-            case AnnotationTextAlignVerticalEnum::MIDDLE:
-                dy = -((lb.Y() + ub.Y()) / 2.0);
-                break;
-            case AnnotationTextAlignVerticalEnum::TOP:
-                dy = -ub.Y();
-                break;
-        }
-        
-        const float z(0.0f);
-        bottomLeftOut[0] = dx + lb.Xf();
-        bottomLeftOut[1] = dy + lb.Yf();
-        bottomLeftOut[2] = z;
-        bottomRightOut[0] = dx + ub.Xf();
-        bottomRightOut[1] = dy + lb.Yf();
-        bottomRightOut[2] = z;
-        topLeftOut[0] = dx + lb.Xf();
-        topLeftOut[1] = dy + ub.Yf();
-        topLeftOut[2] = z;
-        topRightOut[0] = dx + ub.Xf();
-        topRightOut[1] = dy + ub.Yf();
-        topRightOut[2] = z;
-        
-        double copyTopLeft[3] {
-            topLeftOut[0],
-            topLeftOut[1],
-            topLeftOut[2]
-        };
-        double copyTopRight[3] {
-            topRightOut[0],
-            topRightOut[1],
-            topRightOut[2]
-        };
-        
-        underlineStartOut[0] = bottomLeftOut[0];
-        underlineStartOut[1] = bottomLeftOut[1];
-        underlineStartOut[2] = bottomLeftOut[2];
-        underlineEndOut[0]   = bottomRightOut[0];
-        underlineEndOut[1]   = bottomRightOut[1];
-        underlineEndOut[2]   = bottomRightOut[2];
-        
-        /*
-         * No scaling since we want the box to tightly enclose the text.
-         */
-        const float noScalingOfModel(1.0);
-        const float boxExpansion(getLineThicknessPixelsInModelSpace(annotationText.getLineWidthPercentage(),
-                                                                    heightOrWidthForPercentageSizeText,
-                                                                    noScalingOfModel));
-        MathFunctions::expandBoxPixels3D(bottomLeftOut, bottomRightOut, topRightOut, topLeftOut,
-                          boxExpansion);
-        MathFunctions::expandLinePixels3D(underlineStartOut, copyTopLeft, boxExpansion * 0.5);
-        MathFunctions::expandLinePixels3D(underlineEndOut, copyTopRight, boxExpansion * 0.5);
-    }
 }
 
 /**
@@ -1636,7 +1534,7 @@ FtglFontTextRenderer::drawTextInModelSpaceInternal(const AnnotationText& annotat
                                                    const TextStringGroup& textStringGroup,
                                                    const float heightOrWidthForPercentageSizeText,
                                                    const float normalVector[3],
-                                                   const DrawingFlags& flags)
+                                                   const DrawingFlags& /*flags*/)
 {
     FTFont* font = getFont(annotationText,
                            FtglFontTypeEnum::POLYGON,

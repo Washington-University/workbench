@@ -270,7 +270,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                             }
                                 break;
                             case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
-                                CaretAssertToDoFatal();
+                                CaretAssert(0);
                                 break;
                         }
                         
