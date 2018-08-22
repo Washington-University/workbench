@@ -219,13 +219,17 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
         viewportWidth  = heightOrWidthForPercentageSizeText;
     }
     
+    bool tooSmallTextHeightValidFlag = false;
     AString fontTypeString;
     switch (ftglFontType) {
         case FtglFontTypeEnum::POLYGON:
             fontTypeString = "Polygon_";
+            /* Polygon text is never too small */
+            tooSmallTextHeightValidFlag = false;
             break;
         case FtglFontTypeEnum::TEXTURE:
             fontTypeString = "Texture_";
+            tooSmallTextHeightValidFlag = true;
             break;
     }
     
@@ -245,7 +249,8 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
          * Set font "too small" status
          */
         const bool tooSmallFlag = (fontData->m_font->FaceSize() <= AnnotationText::getTooSmallTextHeight());
-        annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag);
+        annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag
+                                                    && tooSmallTextHeightValidFlag);
         
         return fontData->m_font;
     }
@@ -270,7 +275,8 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
          * Set font "too small" status
          */
         const bool tooSmallFlag = (fontData->m_font->FaceSize() <= AnnotationText::getTooSmallTextHeight());
-        annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag);
+        annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag
+                                                    && tooSmallTextHeightValidFlag);
         
         return fontData->m_font;
     }
@@ -330,107 +336,8 @@ FtglFontTextRenderer::getFont(const AnnotationText& annotationText,
 {
     return getFont(annotationText,
                    ftglFontType,
-                   -1.0,
+                   -1.0, // negative indicates invalid height for percentage text
                    creatingDefaultFontFlag);
-    int32_t viewportWidth  = m_viewportWidth;
-    int32_t viewportHeight = m_viewportHeight;
-    
-    switch (annotationText.getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::CHART:
-            break;
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            break;
-        case AnnotationCoordinateSpaceEnum::VIEWPORT:
-        {
-            int32_t vp[4];
-            annotationText.getViewportCoordinateSpaceViewport(vp);
-            viewportWidth  = vp[2];
-            viewportHeight = vp[3];
-        }
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            break;
-    }
-    const AString fontName = annotationText.getFontRenderingEncodedName(viewportWidth,
-                                                                        viewportHeight);
-    
-    /*
-     * Has the font already has been created?
-     */
-    FONT_MAP_ITERATOR fontIter = m_fontNameToFontMap.find(fontName);
-    if (fontIter != m_fontNameToFontMap.end()) {
-        FontData* fontData = fontIter->second;
-        CaretAssert(fontData);
-        
-        /*
-         * Set font "too small" status
-         */
-        const bool tooSmallFlag = (fontData->m_font->FaceSize() <= AnnotationText::getTooSmallTextHeight());
-        annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag);
-        
-        return fontData->m_font;
-    }
-    
-    /*
-     * Create and save the font
-     */
-    FontData* fontData = new FontData(annotationText,
-                                      ftglFontType,
-                                      viewportWidth,
-                                      viewportHeight);
-    if (fontData->m_valid) {
-        /*
-         * Request font is valid.
-         */
-        m_fontNameToFontMap.insert(std::make_pair(fontName,
-                                                  fontData));
-        CaretLogFine("Created font with encoded name "
-                     + fontName);
-        
-        /*
-         * Set font "too small" status
-         */
-        const bool tooSmallFlag = (fontData->m_font->FaceSize() <= AnnotationText::getTooSmallTextHeight());
-        annotationText.setFontTooSmallWhenLastDrawn(tooSmallFlag);
-
-        return fontData->m_font;
-    }
-    else {
-        /*
-         * Error creating font
-         */
-        delete fontData;
-        fontData = NULL;
-        
-        /*
-         * Issue a message about failure to create font but
-         * don't print same message more than once.
-         */
-        if (std::find(m_failedFontNames.begin(),
-                      m_failedFontNames.end(),
-                      fontName) == m_failedFontNames.end()) {
-            m_failedFontNames.insert(fontName);
-            CaretLogSevere("Failed to create font with encoded name "
-                           + fontName);
-        }
-    }
-    
-    /*
-     * Were we trying to create the default font?
-     */
-    if (creatingDefaultFontFlag) {
-        return NULL;
-    }
-    
-    /*
-     * Failed so use the default font.
-     */
-    annotationText.setFontTooSmallWhenLastDrawn(false);
-    return m_defaultFont;
 }
 
 /**
