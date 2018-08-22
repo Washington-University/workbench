@@ -174,7 +174,7 @@ void ZFileImpl::open(const QString& filename, const CaretBinaryFile::OpenMode& o
             mode = "rb";
             break;
         case CaretBinaryFile::WRITE_TRUNCATE:
-            mode = "wb";//you have to do "r+b" in order to ask it to not truncate, which zlib doesn't support anyway
+            mode = "wb";//you have to do "w+b" in order to ask it to not truncate, which zlib doesn't support anyway
             break;
         default:
             throw DataFileException("compressed file only supports READ and WRITE_TRUNCATE modes");
@@ -361,7 +361,7 @@ void QFileImpl::write(const void* dataIn, const int64_t& count)
     while (total < count)
     {
         int64_t maxToWrite = min(count - total, CHUNK_SIZE);
-        writeret = m_file.write((const char*)dataIn, maxToWrite);//QFile probably also chokes on large writes
+        writeret = m_file.write(((const char*)dataIn) + total, maxToWrite);//QFile probably also chokes on large writes
         if (writeret < 1) break;//0 or -1 means error or eof
         total += writeret;
     }
