@@ -134,7 +134,7 @@ ScenePathName::setValueToAbsolutePath(const AString& sceneFileName,
                     FileInformation fileInfo(sceneFileInfo.getPathName(),
                                              name);
                     name = fileInfo.getAbsoluteFilePath();
-                    name = QDir::cleanPath(name);
+                    name = FileInformation::cleanPath(name);
                 }
             }
         }

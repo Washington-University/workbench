@@ -819,4 +819,25 @@ FileInformation::fileSizeToStandardUnits(const int64_t numberOfBytes)
     return sizeString;
 }
 
+/**
+ * Cleans the path.  First, replaces any backward slashes with forward slashes
+ * and then calls QDir::cleanPath().   Note that QDir::cleanPath() only converts
+ * backward slashes to forward slashes when the native separator is a backward
+ * slash (on Windows).   Thus, if a path on Mac or Linux contains a backward
+ * slash, QDir::cleanPath() will not convert to a forward slash.
+ *
+ * @param path
+ *     This input path.
+ * @return
+ *     Path after cleaning.
+ */
+AString
+FileInformation::cleanPath(const AString& path)
+{
+    AString pathOut(path);
+    pathOut.replace(QLatin1Char('\\'), QLatin1Char('/'));
+    pathOut = QDir::cleanPath(pathOut);
+    return pathOut;
+}
+
 

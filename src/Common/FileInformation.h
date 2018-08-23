@@ -112,6 +112,8 @@ namespace caret {
         
         static AString fileSizeToStandardUnits(const int64_t numberOfBytes);
         
+        static AString cleanPath(const AString& path);
+        
     private:
         FileInformation(const FileInformation&);
 
