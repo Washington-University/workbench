@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <QDir>
+
 #define __SCENE_PATH_NAME_DECLARE__
 #include "ScenePathName.h"
 #undef __SCENE_PATH_NAME_DECLARE__
@@ -132,6 +134,7 @@ ScenePathName::setValueToAbsolutePath(const AString& sceneFileName,
                     FileInformation fileInfo(sceneFileInfo.getPathName(),
                                              name);
                     name = fileInfo.getAbsoluteFilePath();
+                    name = QDir::cleanPath(name);
                 }
             }
         }
