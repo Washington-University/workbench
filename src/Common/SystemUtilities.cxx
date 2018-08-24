@@ -467,8 +467,13 @@ SystemUtilities::relativePath(
     if (sameCount == 0) {
         result = otherPathIn;
     }
-    
-    //const char separator[2] = { QDir::separator(), '\0' };
+
+    /*
+     * Always use a forward slash for the separator, even on Windows,
+     * so that paths are valid on Unix (Qt does not handle backslashes
+     * properly on Unix)
+     */
+    const AString separatorCharacter("/");
     
     //
     // Is other path a subdirectory of mypath
@@ -478,7 +483,7 @@ SystemUtilities::relativePath(
         for (int j = sameCount; j < otherPath.size(); j++) {
             result.append(otherPath[j]);
             if (j < (otherPath.size() - 1)) {
-                result.append(QDir::separator());
+                result.append(separatorCharacter);
             }
         }
     }
@@ -490,12 +495,12 @@ SystemUtilities::relativePath(
     for (int j = sameCount; j < myPath.size(); j++) {
         result.append("..");
         if (j < (myPath.size() - 1)) {
-            result.append(QDir::separator());
+            result.append(separatorCharacter);
         }
     }
     for (int k = sameCount; k < otherPath.size(); k++) {
         if (result.isEmpty() == false) {
-            result.append(QDir::separator());
+            result.append(separatorCharacter);
         }
         result.append(otherPath[k]);
     }   

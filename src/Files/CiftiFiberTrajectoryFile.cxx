@@ -906,7 +906,7 @@ CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(const AString&
         
         
         const AString tempFileName = (QDir::tempPath()
-                              + QDir::separator()
+                                      + "/"
                                       + newFile->getFileNameNoPath());
         std::cout << "Filename: " << qPrintable(tempFileName) << std::endl;
         
