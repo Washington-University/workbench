@@ -1558,7 +1558,7 @@ FtglFontTextRenderer::drawTextInModelSpaceInternal(const AnnotationText& annotat
                                                                              modelSpaceScaling);
         uint8_t foregroundRgba[4];
         annotationText.getLineColorRGBA(foregroundRgba);
-        GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP,
+        GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN,
                                           foregroundRgba);
         double doubleNormalXYZ[3] {
             normalVector[0],
