@@ -244,7 +244,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                          *
                          */
                         if (surfaceDisplayed->getSurfaceType() == SurfaceTypeEnum::FLAT) {
-                            annotationOffsetVector = AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL;
+                            annotationOffsetVector = AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL;
                         }
                         
                         switch (annotationOffsetVector) {
@@ -261,7 +261,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                                 MathFunctions::normalizeVector(offsetUnitVector);
                             }
                                 break;
-                            case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
+                            case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
                             {
                                 const float* normalVector = surfaceDisplayed->getNormalVector(annotationNodeIndex);
                                 offsetUnitVector[0] = normalVector[0];
@@ -2767,7 +2767,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
         switch (text->getCoordinate()->getSurfaceOffsetVectorType()) {
             case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
                 break;
-            case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
+            case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
                 break;
             case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
                 /*
@@ -3634,7 +3634,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
             switch (coord->getSurfaceOffsetVectorType()) {
                 case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
                     break;
-                case AnnotationSurfaceOffsetVectorTypeEnum::SURACE_NORMAL:
+                case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
                     break;
                 case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
                     modelSpaceTangentTextFlag = true;

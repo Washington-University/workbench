@@ -38,7 +38,7 @@ public:
         /** Vector starts at centroid and extends through vertex */
         CENTROID_THRU_VERTEX,
         /** Vector is surface normal */
-        SURACE_NORMAL,
+        SURFACE_NORMAL,
         /** Tangent to surface */
         TANGENT
     };

@@ -114,10 +114,10 @@ AnnotationSurfaceOffsetVectorTypeEnum::initialize()
                                                              "C",
                                                              "Centroid Thru Vertex"));
     
-    enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(SURACE_NORMAL,
-                                                             "SURACE_NORMAL",
+    enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(SURFACE_NORMAL,
+                                                             "SURFACE_NORMAL",
                                                              "N",
-                                                             "Surace Normal"));
+                                                             "Surface Normal"));
     
     enumData.push_back(AnnotationSurfaceOffsetVectorTypeEnum(TANGENT,
                                                              "TANGENT",
@@ -165,7 +165,7 @@ AnnotationSurfaceOffsetVectorTypeEnum::toName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its name.
- * @param name 
+ * @param nameIn
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -174,9 +174,18 @@ AnnotationSurfaceOffsetVectorTypeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 AnnotationSurfaceOffsetVectorTypeEnum::Enum 
-AnnotationSurfaceOffsetVectorTypeEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationSurfaceOffsetVectorTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+    
+    /*
+     * SURFACE_NORMAL was spelled incorrectly prior to 24aug2018
+     * (was missing 'F').
+     */
+    AString name(nameIn);
+    if (name == "SURACE_NORMAL") {
+        name = "SURFACE_NORMAL";
+    }
     
     bool validFlag = false;
     Enum enumValue = AnnotationSurfaceOffsetVectorTypeEnum::enumData[0].enumValue;
