@@ -137,7 +137,7 @@ XmlSaxParserException::whatString() const throw()
 {
     AString s = CaretException::whatString();
     if (m_lineNumber >= 0) {
-        s += (", line number: "
+        s += ("\nline number: "
               + AString::number(m_lineNumber));
     }
     if (m_columnNumber >= 0) {

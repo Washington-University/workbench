@@ -79,18 +79,20 @@ DataFileException::DataFileException(const AString& dataFileName,
 {
     this->initializeMembersDataFileException();
     
-    AString msg = s;
+    AString msg;
     if ( ! dataFileName.isEmpty()) {
         FileInformation fileInfo(dataFileName);
         const AString pathName = fileInfo.getPathName();
         
-        msg.appendWithNewLine("   Name: " + fileInfo.getFileName());
+        msg.appendWithNewLine("NAME OF FILE: " + fileInfo.getFileName());
         if ( ! pathName.isEmpty()) {
             if (pathName != ".") {
-                msg.appendWithNewLine("   Path: " + pathName);
+                msg.appendWithNewLine("PATH TO FILE: " + pathName);
             }
         }
+        msg.append("\n");
     }
+    msg.appendWithNewLine(s);
 
     this->setExceptionDescription(msg);
 }
