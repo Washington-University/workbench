@@ -56,6 +56,8 @@ namespace caret {
         
         void setStudyTitle(const AString& studyTitle);
 
+        bool isEditable() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -68,6 +70,9 @@ namespace caret {
         
         /** study title*/
         AString m_studyTitle;
+        
+        /** editable status (true is YES) */
+        bool m_editableStatus = false;
         
         // ADD_NEW_MEMBERS_HERE
 

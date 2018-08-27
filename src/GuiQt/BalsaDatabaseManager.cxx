@@ -1383,6 +1383,54 @@ BalsaDatabaseManager::isStudyIDValid(const AString& studyID)
     return false;
 }
 
+/**
+ * @return Is the study editable by the user?
+ * 
+ * @param studyID
+ *     The study ID.
+ * @param errorMessageOut
+ *      Description of error if false is returned.
+ */
+bool
+BalsaDatabaseManager::isStudyEditableByUser(const AString& studyID,
+                                            AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    std::vector<BalsaStudyInformation> studyInformation;
+    AString errorMessage;
+    
+    bool validStudyFlag = false;
+    
+    if (getAllStudyInformation(studyInformation,
+                               errorMessage)) {
+        for (const auto& info : studyInformation) {
+            if (info.getStudyID() == studyID) {
+                validStudyFlag = true;
+                if (info.isEditable()) {
+                    return true;
+                }
+                else {
+                    errorMessageOut = ("The study (ID="
+                                       + studyID
+                                       + ") is not editable.");
+                    return false;
+                }
+            }
+        }
+        
+        errorMessageOut = ("You are not the owner of the study (ID="
+                           + studyID
+                           + ").");
+        return false;
+    }
+    else {
+        errorMessageOut = errorMessage;
+    }
+    
+    return false;
+}
+
 
 /**
  * Login to BALSA, zip the scene and data files, and upload the

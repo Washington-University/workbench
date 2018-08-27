@@ -881,7 +881,7 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
         msg.appendWithNewLine(zipFileErrorMessage + "<p>");
     }
     if ( ! m_extractDirectoryNameLineEdit->hasAcceptableInput()) {
-        msg.appendWithNewLine("Extraction Directory Prfeix is invalid.<p>");
+        msg.appendWithNewLine("Extraction Directory Prefix is invalid.<p>");
     }
     
     AString basePathErrorMessage;
@@ -920,6 +920,16 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
         msg.appendWithNewLine("Study ID and/or Title is invalid.  Press the \""
                               + m_selectStudyTitlePushButton->text()
                               + "\" button to choose or create a BALSA Study ID and Title.");
+    }
+    else {
+        if (m_extractDirectoryNameLineEdit->hasAcceptableInput()) {
+            const AString studyID = m_balsaStudyIDLineEdit->text().trimmed();
+            AString errorMessage;
+            if ( ! m_balsaDatabaseManager->isStudyEditableByUser(studyID,
+                                                                 errorMessage)) {
+                msg.appendWithNewLine(errorMessage);
+            }
+        }
     }
     
     if ( ! msg.isEmpty()) {

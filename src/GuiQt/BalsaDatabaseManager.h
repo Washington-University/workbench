@@ -82,6 +82,9 @@ namespace caret {
                                          const AString& zipFileName,
                                          AString& errorMessageOut);
         
+        bool isStudyEditableByUser(const AString& studyID,
+                                   AString& errorMessageOut);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
