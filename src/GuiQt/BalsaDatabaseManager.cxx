@@ -1400,13 +1400,10 @@ BalsaDatabaseManager::isStudyEditableByUser(const AString& studyID,
     std::vector<BalsaStudyInformation> studyInformation;
     AString errorMessage;
     
-    bool validStudyFlag = false;
-    
     if (getAllStudyInformation(studyInformation,
                                errorMessage)) {
         for (const auto& info : studyInformation) {
             if (info.getStudyID() == studyID) {
-                validStudyFlag = true;
                 if (info.isEditable()) {
                     return true;
                 }

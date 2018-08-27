@@ -86,7 +86,6 @@ BalsaStudyInformation::BalsaStudyInformation(const QJsonObject& jsonObject)
                 m_editableStatus = (editText == "EDITABLE");
             }
         }
-        std::cout << "Study " << m_studyTitle << " editable=" << AString::fromBool(m_editableStatus) << std::endl;
     }
 }
 
