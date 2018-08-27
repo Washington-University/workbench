@@ -1,8 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
 <file>./help_resources.qrc</file>
-<file>./HelpFiles/Annotations/Annotations_1.3.fld/filelist.xml</file>
-<file>./HelpFiles/Annotations/Annotations_1.3.fld/header.html</file>
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image001.png</file>
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image002.png</file>
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image003.png</file>
@@ -36,11 +34,6 @@
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image031.png</file>
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image032.png</file>
 <file>./HelpFiles/Annotations/Annotations_1.3.fld/image033.png</file>
-<file>./HelpFiles/Annotations/Annotations_1.3.fld/image034.png</file>
-<file>./HelpFiles/Annotations/Annotations_1.3.fld/image035.png</file>
-<file>./HelpFiles/Annotations/Annotations_1.3.fld/item0001.xml</file>
-<file>./HelpFiles/Annotations/Annotations_1.3.fld/props002.xml</file>
-<file>./HelpFiles/Annotations/Annotations_1.3.fld/themedata.thmx</file>
 <file>./HelpFiles/Annotations/Annotations_1.3.html</file>
 <file>./HelpFiles/Best_Practices_Guides/Annotation_and_Scenes_Best_Practices.html</file>
 <file>./HelpFiles/ChartingOverview/ChartingOverview.html</file>
