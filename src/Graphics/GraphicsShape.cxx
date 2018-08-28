@@ -1179,6 +1179,197 @@ GraphicsShape::updateModelMatrixToFaceViewer()
 }
 
 /**
+ * Draw an rectangle outline.
+ * The normal vector is computed from three consecutive vertices in the rectangle.
+ *
+ * @param bottomLeft
+ *     Bottom left vertex of the rectangle.
+ * @param bottomRight
+ *     Bottom right vertex of the rectangle.
+ * @param topRight
+ *     Top right vertex of the rectangle.
+ * @param topLeft
+ *     Top left vertex of the rectangle.
+ * @param thickness
+ *     Thickness of the outline
+ * @param rgba
+ *     RGBA color for the outline.
+ * @param verticesInMiddleFlag
+ *     If true, the lines are centered around the vertices.  Otherwise,
+ *     the inner sides of the lines are tangent to the vertices.
+ */
+void
+GraphicsShape::drawOutlineRectanglePrivate(const double bottomLeft[3],
+                                           const double bottomRight[3],
+                                           const double topRight[3],
+                                           const double topLeft[3],
+                                           const double thicknessIn,
+                                           const uint8_t rgba[4],
+                                           bool verticesInMiddleFlag)
+{
+    double bottomLeftInner[3] = { bottomLeft[0], bottomLeft[1], bottomLeft[2] };
+    double bottomLeftOuter[3] = { bottomLeft[0], bottomLeft[1], bottomLeft[2] };
+    double bottomRightInner[3] = { bottomRight[0], bottomRight[1], bottomRight[2] };
+    double bottomRightOuter[3] = { bottomRight[0], bottomRight[1], bottomRight[2] };
+    double topRightInner[3] = { topRight[0], topRight[1], topRight[2] };
+    double topRightOuter[3] = { topRight[0], topRight[1], topRight[2] };
+    double topLeftInner[3] = { topLeft[0], topLeft[1], topLeft[2] };
+    double topLeftOuter[3] = { topLeft[0], topLeft[1], topLeft[2] };
+    
+    
+    /*
+     * Limit thickness of the outline to half of width or height
+     * when points in middle
+     */
+    const double boxHeight = MathFunctions::distance3D(bottomLeft, topLeft);
+    const double boxWidth  = MathFunctions::distance3D(bottomLeft, bottomRight);
+    double thickness = thicknessIn;
+    thickness /= 2.0;
+    if (verticesInMiddleFlag) {
+        thickness = std::min(thickness,
+                             boxWidth / 2.0);
+        thickness = std::min(thickness,
+                             boxHeight / 2.0);
+    }
+    
+    /*
+     * Horizontal contraction/expansion of vertices
+     */
+    double horizVector[3];
+    MathFunctions::subtractVectors(bottomRight, bottomLeft, horizVector);
+    MathFunctions::normalizeVector(horizVector);
+    horizVector[0] *= thickness;
+    horizVector[1] *= thickness;
+    horizVector[2] *= thickness;
+    
+    MathFunctions::subtractOffsetFromVector(bottomLeftOuter, horizVector);
+    MathFunctions::subtractOffsetFromVector(topLeftOuter, horizVector);
+    MathFunctions::addOffsetToVector(bottomRightOuter, horizVector);
+    MathFunctions::addOffsetToVector(topRightOuter, horizVector);
+    if (verticesInMiddleFlag) {
+        MathFunctions::subtractOffsetFromVector(bottomRightInner, horizVector);
+        MathFunctions::subtractOffsetFromVector(topRightInner, horizVector);
+        MathFunctions::addOffsetToVector(bottomLeftInner, horizVector);
+        MathFunctions::addOffsetToVector(topLeftInner, horizVector);
+    }
+    
+    /*
+     * Vertical contraction/expansion of vertices
+     */
+    double vertVector[3];
+    MathFunctions::subtractVectors(topLeft, bottomLeft, vertVector);
+    MathFunctions::normalizeVector(vertVector);
+    vertVector[0] *= thickness;
+    vertVector[1] *= thickness;
+    vertVector[2] *= thickness;
+    
+    MathFunctions::subtractOffsetFromVector(bottomRightOuter, vertVector);
+    MathFunctions::subtractOffsetFromVector(bottomLeftOuter, vertVector);
+    MathFunctions::addOffsetToVector(topLeftOuter, vertVector);
+    MathFunctions::addOffsetToVector(topRightOuter, vertVector);
+    if (verticesInMiddleFlag) {
+        MathFunctions::subtractOffsetFromVector(topLeftInner, vertVector);
+        MathFunctions::subtractOffsetFromVector(topRightInner, vertVector);
+        MathFunctions::addOffsetToVector(bottomRightInner, vertVector);
+        MathFunctions::addOffsetToVector(bottomLeftInner, vertVector);
+    }
+    
+    /*
+     * Use three consecutive vertices to calculate normal vector
+     */
+    double normalVector[3];
+    MathFunctions::normalVector(bottomRight, topRight, topLeft, normalVector);
+    
+    /*
+     * Draw the outline as triangles using a triangle strip
+     */
+    GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                      rgba);
+    primitive.addVertex(bottomRightInner, normalVector);
+    primitive.addVertex(bottomRightOuter, normalVector);
+    primitive.addVertex(topRightInner, normalVector);
+    primitive.addVertex(topRightOuter, normalVector);
+    primitive.addVertex(topLeftInner, normalVector);
+    primitive.addVertex(topLeftOuter, normalVector);
+    primitive.addVertex(bottomLeftInner, normalVector);
+    primitive.addVertex(bottomLeftOuter, normalVector);
+    primitive.addVertex(bottomRightInner, normalVector);
+    primitive.addVertex(bottomRightOuter, normalVector);
+    
+    GraphicsEngineDataOpenGL::draw(&primitive);
+}
+
+/**
+ * Draw an rectangle outline.
+ * The given points are in the middle of outline.
+ * The normal vector is computed from three consecutive vertices in the rectangle.
+ *
+ * @param bottomLeft
+ *     Bottom left vertex of the rectangle.
+ * @param bottomRight
+ *     Bottom right vertex of the rectangle.
+ * @param topRight
+ *     Top right vertex of the rectangle.
+ * @param topLeft
+ *     Top left vertex of the rectangle.
+ * @param thickness
+ *     Thickness of the outline
+ * @param rgba
+ *     RGBA color for the outline.
+ */
+void
+GraphicsShape::drawOutlineRectangleVerticesInMiddle(const double bottomLeft[3],
+                                                    const double bottomRight[3],
+                                                    const double topRight[3],
+                                                    const double topLeft[3],
+                                                    const double thickness,
+                                                    const uint8_t rgba[4])
+{
+    drawOutlineRectanglePrivate(bottomLeft,
+                                bottomRight,
+                                topRight,
+                                topLeft,
+                                thickness,
+                                rgba,
+                                true);
+}
+
+/**
+ * Draw an rectangle outline.
+ * The given points are at the inside of outline.
+ * The normal vector is computed from three consecutive vertices in the rectangle.
+ *
+ * @param bottomLeft
+ *     Bottom left vertex of the rectangle.
+ * @param bottomRight
+ *     Bottom right vertex of the rectangle.
+ * @param topRight
+ *     Top right vertex of the rectangle.
+ * @param topLeft
+ *     Top left vertex of the rectangle.
+ * @param thickness
+ *     Thickness of the outline
+ * @param rgba
+ *     RGBA color for the outline.
+ */
+void
+GraphicsShape::drawOutlineRectangleVerticesAtInside(const double bottomLeft[3],
+                                                    const double bottomRight[3],
+                                                    const double topRight[3],
+                                                    const double topLeft[3],
+                                                    const double thickness,
+                                                    const uint8_t rgba[4])
+{
+    drawOutlineRectanglePrivate(bottomLeft,
+                                bottomRight,
+                                topRight,
+                                topLeft,
+                                thickness,
+                                rgba,
+                                false);
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
