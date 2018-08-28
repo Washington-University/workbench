@@ -172,6 +172,12 @@ public:
                             const double p1[3],
                             const double p2[3]);
     
+    static void addOffsetToVector(double v[3],
+                                  const double offset[3]);
+    
+    static void subtractOffsetFromVector(double v[3],
+                                         const double offset[3]);
+    
     static float triangleArea(
                     const float v1[3],
                     const float v2[3],

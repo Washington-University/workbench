@@ -673,6 +673,40 @@ MathFunctions::dotProduct(
 }
 
 /**
+ * Add an offset to a vector
+ *
+ * @param v
+ *     The vector
+ * @param offset
+ *     Offset added to the vector.
+ */
+void
+MathFunctions::addOffsetToVector(double v[3],
+                                 const double offset[3])
+{
+    v[0] += offset[0];
+    v[1] += offset[1];
+    v[2] += offset[2];
+}
+
+/**
+ * Subtract an offset from a vector
+ *
+ * @param v
+ *     The vector
+ * @param offset
+ *     Offset subtracted from the vector.
+ */
+void
+MathFunctions::subtractOffsetFromVector(double v[3],
+                                        const double offset[3])
+{
+    v[0] -= offset[0];
+    v[1] -= offset[1];
+    v[2] -= offset[2];
+}
+
+/**
  * Calculate the area for a triangle.
  * @param v1 - XYZ coordinates for vertex 1
  * @param v2 - XYZ coordinates for vertex 2
