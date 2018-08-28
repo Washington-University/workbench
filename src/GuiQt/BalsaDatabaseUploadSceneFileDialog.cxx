@@ -922,12 +922,19 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
                               + "\" button to choose or create a BALSA Study ID and Title.");
     }
     else {
-        if (m_extractDirectoryNameLineEdit->hasAcceptableInput()) {
-            const AString studyID = m_balsaStudyIDLineEdit->text().trimmed();
-            AString errorMessage;
-            if ( ! m_balsaDatabaseManager->isStudyEditableByUser(studyID,
-                                                                 errorMessage)) {
-                msg.appendWithNewLine(errorMessage);
+        /*
+         * Note: Test of study ID for editable status will move
+         * into BALSA Database so disabled until that time.
+         */
+        const bool testStudyIdEditableFlag(false);
+        if (testStudyIdEditableFlag) {
+            if (m_extractDirectoryNameLineEdit->hasAcceptableInput()) {
+                const AString studyID = m_balsaStudyIDLineEdit->text().trimmed();
+                AString errorMessage;
+                if ( ! m_balsaDatabaseManager->isStudyEditableByUser(studyID,
+                                                                     errorMessage)) {
+                    msg.appendWithNewLine(errorMessage);
+                }
             }
         }
     }

@@ -329,8 +329,15 @@ BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>&
                                             AString& errorMessageOut) const
 {
     if (responseHttpCode != 200) {
-        errorMessageOut = ("Upload failed.  Http Code="
-                           + AString::number(responseHttpCode));
+        if (responseHttpCode == 403) {
+            errorMessageOut = ("Upload failed.  Http Code="
+                               + AString::number(responseHttpCode)
+                               + ".  You may not have ownership/permission to edit the study.");
+        }
+        else {
+            errorMessageOut = ("Upload failed.  Http Code="
+                               + AString::number(responseHttpCode));
+        }
         return false;
     }
     
