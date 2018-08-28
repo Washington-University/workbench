@@ -109,7 +109,7 @@ logHeadersFromRequest(const QNetworkRequest& request,
         infoText.appendWithNewLine("        Contains no headers");
     }
     
-    CaretLogInfo(infoText);
+    CaretLogFine(infoText);
 }
 
 void
@@ -160,7 +160,7 @@ logHeadersFromReply(const QNetworkReply& reply,
         infoText.appendWithNewLine("    Contains no headers");
     }
     
-    CaretLogInfo(infoText);
+    CaretLogFine(infoText);
 }
 
 void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpResponse &response)
@@ -183,7 +183,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
             CaretHttpRequest redirectedRequest = request;
             redirectedRequest.m_url = response.m_redirectionUrl.toString();
 
-            CaretLogInfo("Received and processing redirection request from "
+            CaretLogFine("Received and processing redirection request from "
                            + request.m_url
                            + " to "
                            + redirectedRequest.m_url);
@@ -222,14 +222,14 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
         {
             QString unencoded = myCaretMgr->m_authList[i].m_user + ":" + myCaretMgr->m_authList[i].m_pass;
             myRequest.setRawHeader("Authorization", "Basic " + unencoded.toLocal8Bit().toBase64());
-            CaretLogInfo("Found auth for URL " + request.m_url);
+            CaretLogFine("Found auth for URL " + request.m_url);
             have_auth = true;
             break;
         }
     }
     if (!have_auth)
     {
-        CaretLogInfo("NO AUTH FOUND for URL " + request.m_url);
+        CaretLogFine("NO AUTH FOUND for URL " + request.m_url);
     }
     QNetworkReply* myReply = NULL;
 /*
@@ -280,7 +280,7 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
 #endif // QT_VERSION
             myRequest.setUrl(myUrl);
             myReply = myQNetMgr->post(myRequest, postData);
-            CaretLogInfo("POST ARGUMENTS URL: " + myUrl.toString());
+            CaretLogFine("POST ARGUMENTS URL: " + myUrl.toString());
         }
         break;
     case POST_FILE:
@@ -300,7 +300,7 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
 #endif // QT_VERSION
                 myRequest.setUrl(myUrl);
                 myReply = myQNetMgr->post(myRequest, postUploadFile);
-                CaretLogInfo("POST FILE URL: " + myUrl.toString());
+                CaretLogFine("POST FILE URL: " + myUrl.toString());
             }
             else {
                 
@@ -320,7 +320,7 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
         myUrl.setQuery(myUrlQuery);
 #endif // QT_VERSION
         myRequest.setUrl(myUrl);
-        CaretLogInfo("GET URL: " + myUrl.toString());
+        CaretLogFine("GET URL: " + myUrl.toString());
         myReply = myQNetMgr->get(myRequest);
         break;
     case HEAD:
@@ -336,7 +336,7 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
         myUrl.setQuery(myUrlQuery);
 #endif // QT_VERSION
         myRequest.setUrl(myUrl);
-        CaretLogInfo("HEAD URL: " + myUrl.toString());
+        CaretLogFine("HEAD URL: " + myUrl.toString());
         myReply = myQNetMgr->head(myRequest);
         break;
     };
@@ -400,7 +400,7 @@ void CaretHttpManager::setAuthentication(const AString& url, const AString& user
 {
     CaretHttpManager* myCaretMgr = getHttpManager();
     AString myServerString = getServerString(url);
-    CaretLogInfo("Setting auth for server " + myServerString);
+    CaretLogFine("Setting auth for server " + myServerString);
     for (int i = 0; i < (int)myCaretMgr->m_authList.size(); ++i)
     {
         if (myServerString == myCaretMgr->m_authList[i].m_serverString)
