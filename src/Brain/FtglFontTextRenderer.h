@@ -353,11 +353,8 @@ namespace caret {
                                                    const TextStringGroup& textStringGroup);
         
         void drawTextInModelSpaceInternal(const AnnotationText& annotationText,
-                                          const float modelSpaceScaling,
                                           const TextStringGroup& textStringGroup,
-                                          const float heightOrWidthForPercentageSizeText,
-                                          const float normalVector[3],
-                                          const DrawingFlags& flags);
+                                          const float heightOrWidthForPercentageSizeText);
         
         void applyTextColoring(const AnnotationText& annotationText);
         
