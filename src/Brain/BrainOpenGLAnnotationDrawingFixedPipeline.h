@@ -311,6 +311,8 @@ namespace caret {
         
         float getLineWidthFromPercentageHeight(const float percentageHeight) const;
         
+        float getLineWidthPercentageInSelectionMode(const Annotation* annotation) const;
+        
         float estimateColorBarWidth(const AnnotationColorBar* colorBar,
                                     const float textHeightInPixels) const;
         
@@ -359,6 +361,7 @@ namespace caret {
         std::unique_ptr<EventOpenGLObjectToWindowTransform> m_transformEvent;
         
         static constexpr float s_sizingHandleLineWidthInPixels = 2.0f;
+        static constexpr float s_selectionLineMinimumPixelWidth = 5.0f;
         
         // ADD_NEW_MEMBERS_HERE
 

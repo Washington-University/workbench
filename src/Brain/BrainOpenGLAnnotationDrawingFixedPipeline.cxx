@@ -58,6 +58,7 @@
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "GraphicsShape.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -1203,13 +1204,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
                  * Drawing foreground as line will still allow user to
                  * select annotation that are inside of the box
                  */
+                const float percentHeight = getLineWidthPercentageInSelectionMode(box);
                 GraphicsShape::drawBoxOutlineByteColor(bottomLeft,
                                                        bottomRight,
                                                        topRight,
                                                        topLeft,
                                                        selectionColorRGBA,
                                                        GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                                       box->getLineWidthPercentage());
+                                                       percentHeight);
             }
             
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
@@ -2127,11 +2129,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
                  * Drawing foreground as line will still allow user to
                  * select annotation that are inside of the box
                  */
+                const float percentHeight = getLineWidthPercentageInSelectionMode(oval);
                 GraphicsShape::drawEllipseOutlineByteColor(majorAxis * 2.0f,
                                                            minorAxis * 2.0f,
                                                            selectionColorRGBA,
                                                            GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                                           oval->getLineWidthPercentage());
+                                                           percentHeight);
             }
             
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
@@ -2923,10 +2926,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
             
+            const float percentHeight = getLineWidthPercentageInSelectionMode(line);
             GraphicsShape::drawLinesByteColor(lineCoordinates,
                                               selectionColorRGBA,
                                               GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                              line->getLineWidthPercentage());
+                                              percentHeight);
             if ( ! startArrowCoordinates.empty()) {
                 GraphicsShape::drawLineStripMiterJoinByteColor(startArrowCoordinates,
                                                       selectionColorRGBA,
@@ -2979,6 +2983,31 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     
     return drawnFlag;
 }
+
+/**
+ * When lines are very thin, they can be difficult to select.  This method will 
+ * return the line thickness percentage, adjusted so that is thick enough that
+ * the user will be able to select the annotation.
+ *
+ * @param
+ *     Annotation drawn as line
+ * @return
+ *     Percentage thickness for drawing that may be increased to ensure that
+       the annotation is selectable.
+ */
+float
+BrainOpenGLAnnotationDrawingFixedPipeline::getLineWidthPercentageInSelectionMode(const Annotation* annotation) const
+{
+    CaretAssert(annotation);
+    const float minPercentHeight = GraphicsUtilitiesOpenGL::convertPixelsToPercentageOfViewportHeight(s_selectionLineMinimumPixelWidth);
+    float percentHeight = annotation->getLineWidthPercentage();
+    if (percentHeight < minPercentHeight) {
+        percentHeight = minPercentHeight;
+    }
+    
+    return percentHeight;
+}
+
 
 /**
  * Draw a sizing handle at the given coordinate.
