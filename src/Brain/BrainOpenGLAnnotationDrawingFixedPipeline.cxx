@@ -2590,11 +2590,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
     textDrawingPlane.projectPointToPlane(zBig, textUpOrientationVectorXYZ);
     inverseMatrix.multiplyPoint3(textUpOrientationVectorXYZ);
     
+    /*
+     * Vector is parallel to surface Z-axis
+     */
+    float vectorSurfaceAxisZ[3] = { 0.0f, 0.0f, 100.0f };
+    inverseMatrix.multiplyPoint3(vectorSurfaceAxisZ);
+    
     if (debugFlag) {
         /*
          * Red line is normal vector
          * Green line is "text up" vector
          * Blue points to surface Z-vector
+         * Yellow is parallel to surface Z-axis
          */
         const float startXYZ[3] {
             0.0,
@@ -2616,15 +2623,34 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
         glColor3f(0.0, 0.0, 1.0);
         glVertex3fv(startXYZ);
         glVertex3fv(textUpOrientationVectorXYZ);
+        glColor3f(1.0, 1.0, 0.0);
+        glVertex3fv(startXYZ);
+        glVertex3fv(vectorSurfaceAxisZ);
         glEnd();
+        
+        {
+//            /*
+//             * Vector is parallel to surface Z-axis
+//             */
+//            float bigZ[3] = { 0.0f, 0.0f, 100.0f };
+//            inverseMatrix.multiplyPoint3(bigZ);
+//            glBegin(GL_LINES);
+//            glColor3f(1.0, 1.0, 0.0);
+//            glVertex3fv(startXYZ);
+//            glVertex3fv(bigZ);
+//            glEnd();
+            
+        }
     }
     
     /*
      * Rotate the text so that the horzontal flow of the text
      * is orthogonal to the 'text up orientation vector'.
      */
+//    const float angle = angleInDegreesBetweenVectors(localUpXYZ,
+//                                                     textUpOrientationVectorXYZ);
     const float angle = angleInDegreesBetweenVectors(localUpXYZ,
-                                                     textUpOrientationVectorXYZ);
+                                                     vectorSurfaceAxisZ);
     glRotatef(-angle, 0.0, 0.0, 1.0);
     
     if (debugFlag) {
@@ -2633,12 +2659,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
         std::cout << "   Local Up Vector: " << AString::fromNumbers(localUpXYZ, 3, ", ") << std::endl;
         std::cout << "   Angle: " << angle << std::endl;
     }
-    
-    /*
-     * Apply user rotation of text
-     */
-    const float rotationAngle = text->getRotationAngle();
-    glRotatef(-rotationAngle, 0.0, 0.0, 1.0);
     
     double bottomLeft[3];
     double bottomRight[3];
