@@ -1007,11 +1007,17 @@ UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
     }
     
     openGLWidget->updateCursor();
+    
+    /*
+     * Update graphics only if an annotation was passed to this method (WB-820)
+     */
+    if (annotationIDIn != NULL) {
 #if BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
-    openGLWidget->updateGL();
+        openGLWidget->updateGL();
 #else
-    openGLWidget->update();
+        openGLWidget->update();
 #endif
+    }
 }
 
 /**
