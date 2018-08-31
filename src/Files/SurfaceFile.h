@@ -91,6 +91,9 @@ namespace caret {
         
         const float* getNormalVector(const int32_t nodeIndex) const;
         
+        void getNormalVector(const int32_t nodeIndex,
+                             float normalVectorOut[3]) const;
+        
         const float* getNormalData() const;
         
         int getNumberOfTriangles() const;

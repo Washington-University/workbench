@@ -556,6 +556,25 @@ SurfaceFile::getNormalVector(const int32_t nodeIndex) const
     return &(this->normalVectors[offset]);    
 }
 
+/**
+ * Get a normal vector for a coordinate.
+ *
+ * @param nodeIndex
+ *    Index of coordinate.
+ * @param normalVectorOut
+ *    Output containing the normal vector for the node.
+ */
+void
+SurfaceFile::getNormalVector(const int32_t nodeIndex,
+                             float normalVectorOut[3]) const
+{
+    const int32_t offset = nodeIndex * 3;
+    CaretAssertVectorIndex(this->normalVectors, offset+2);
+    normalVectorOut[0] = this->normalVectors[offset];
+    normalVectorOut[1] = this->normalVectors[offset+1];
+    normalVectorOut[2] = this->normalVectors[offset+2];
+}
+
 const float* SurfaceFile::getNormalData() const
 {
     return normalVectors.data();
