@@ -178,7 +178,8 @@ OverlaySet::getUnderlayVolume()
 {
     VolumeMappableInterface* vf = NULL;
     
-    for (int32_t i = (getNumberOfDisplayedOverlays() - 1); i >= 0; i--) {
+    const int32_t numOverlays = getNumberOfDisplayedOverlays();
+    for (int32_t i = (numOverlays - 1); i >= 0; i--) {
         if (m_overlays[i]->isEnabled()) {
             CaretMappableDataFile* mapFile = NULL;
             int32_t mapIndex;
@@ -195,6 +196,29 @@ OverlaySet::getUnderlayVolume()
             }
         }
     }
+    
+    if (vf == NULL) {
+        /*
+         * If we are here, either there are no volume files or
+         * no overlays are enabled containing a volume file.
+         * So, find the lowest layer than contains a volume file,
+         * even if the layer is disabled.
+         */
+        for (int32_t i = 0; i < numOverlays; i++) {
+            CaretMappableDataFile* mapFile = NULL;
+            int32_t mapIndex;
+            m_overlays[i]->getSelectionData(mapFile,
+                                            mapIndex);
+            
+            if (mapFile != NULL) {
+                if (mapFile->isVolumeMappable()) {
+                    vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
+                    break;
+                }
+            }
+        }
+    }
+    
     return vf;
 }
 
