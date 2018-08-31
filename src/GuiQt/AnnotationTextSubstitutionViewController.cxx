@@ -97,8 +97,13 @@ m_browserWindowIndex(browserWindowIndex)
         
         QSpinBox* sb = new QSpinBox();
         sb->setRange(1, 100);
+#if QT_VERSION >= 0x050700
         QObject::connect(sb, QOverload<int>::of(&QSpinBox::valueChanged),
                          [=] { valueIndexSpinBoxChanged(i); } );
+#else
+        QObject::connect(sb, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                         [=] { valueIndexSpinBoxChanged(i); } );
+#endif
         
         QLabel* fl = new QLabel();
         
