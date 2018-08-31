@@ -32,6 +32,8 @@
 #include "Vector3D.h"
 #include "VolumeFile.h"
 #include "dot_wrapper.h"
+
+#include <algorithm>
 #include <cmath>
 
 using namespace caret;
@@ -89,6 +91,11 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     
     OptionalParameter* memLimitOpt = ret->createOptionalParameter(11, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
+    
+    OptionalParameter* secondCorrOpt = ret->createOptionalParameter(14, "-double-correlation", "do two correlations before taking the gradient");
+    secondCorrOpt->createOptionalParameter(1, "-fisher-z-first", "after the FIRST correlation, apply fisher small z transform (ie, artanh)");
+    secondCorrOpt->createOptionalParameter(2, "-no-demean-first", "instead of correlation for the FIRST operation, do dot product of rows, then normalize by diagonal");
+    secondCorrOpt->createOptionalParameter(3, "-covariance-first", "instead of correlation for the FIRST operation, compute covariance");
     
     ret->setHelpText(
         AString("For each structure, compute the correlation of the rows in the structure, and take the gradients of ") +
@@ -179,8 +186,18 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
         }
     }
     bool covariance = myParams->getOptionalParameter(13)->m_present;
+    bool doubleCorr = false, firstFisher = false, firstNoDemean = false, firstCovar = false;
+    OptionalParameter* doubleCorrOpt = myParams->getOptionalParameter(14);
+    if (doubleCorrOpt->m_present)
+    {
+        doubleCorr = true;
+        firstFisher = doubleCorrOpt->getOptionalParameter(1)->m_present;
+        firstNoDemean = doubleCorrOpt->getOptionalParameter(2)->m_present;
+        firstCovar = doubleCorrOpt->getOptionalParameter(3)->m_present;
+    }
     AlgorithmCiftiCorrelationGradient(myProgObj, myCifti, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, myLeftAreas, myRightAreas, myCerebAreas,
-                                      surfKern, volKern, undoFisherInput, applyFisher, surfaceExclude, volumeExclude, covariance, memLimitGB);
+                                      surfKern, volKern, undoFisherInput, applyFisher, surfaceExclude, volumeExclude, covariance, memLimitGB,
+                                      doubleCorr, firstFisher, firstNoDemean, firstCovar);
 }
 
 AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
@@ -189,17 +206,19 @@ AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObj
                                                                      const float& surfKern, const float& volKern, const bool& undoFisherInput, const bool& applyFisher,
                                                                      const float& surfaceExclude, const float& volumeExclude,
                                                                      const bool& covariance,
-                                                                     const float& memLimitGB) : AbstractAlgorithm(myProgObj)
+                                                                     const float& memLimitGB,
+                                                                     const bool doubleCorr, const bool firstFisher, const bool firstNoDemean, const bool firstCovar) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    init(myCifti, undoFisherInput, applyFisher, covariance);
-    const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
-    CiftiXMLOld myNewXML = myXML;
-    myNewXML.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, 1);
-    myNewXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, 0, "gradient");
+    init(myCifti, memLimitGB, undoFisherInput, applyFisher, covariance, doubleCorr, firstFisher, firstNoDemean, firstCovar);
+    const CiftiXML& myXML = myCifti->getCiftiXML();
+    CiftiXML myNewXML = myXML;
+    CiftiScalarsMap newMap(1);
+    newMap.setMapName(0, "gradient");
+    myNewXML.setMap(CiftiXML::ALONG_ROW, newMap);
     myCiftiOut->setCiftiXML(myNewXML);
-    vector<StructureEnum::Enum> surfaceList, volumeList;
-    myXML.getStructureListsForColumns(surfaceList, volumeList);
+    const CiftiBrainModelsMap& spaceMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    vector<StructureEnum::Enum> surfaceList = spaceMap.getSurfaceStructureList(), volumeList = spaceMap.getVolumeStructureList();
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
         SurfaceFile* mySurf = NULL;
@@ -279,6 +298,107 @@ AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObj
     myCiftiOut->setColumn(m_outColumn.data(), 0);
 }
 
+namespace
+{
+    
+    //expects rows to already be demeaned, if demeaning is to be done
+    float correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2, const int64_t length, const bool covariance, const bool fisherz)
+    {
+        double r;
+        if (row1 == row2 && !covariance)
+        {
+            r = 1.0;//short circuit for same row - works because one row is always in the cache range
+        } else {
+            double accum = dsdot(row1, row2, length);//these have already had the row means subtracted out
+            if (covariance)
+            {
+                r = accum / length;
+            } else {
+                r = accum / (rrs1 * rrs2);
+            }
+        }
+        if (!covariance)
+        {
+            if (fisherz)
+            {
+                if (r > 0.999999) r = 0.999999;//prevent inf
+                if (r < -0.999999) r = -0.999999;//prevent -inf
+                r = 0.5 * log((1 + r) / (1 - r));
+            } else {
+                if (r > 1.0) r = 1.0;//don't output anything silly
+                if (r < -1.0) r = -1.0;
+            }
+        }
+        return r;
+    }
+    
+    void adjustRow(float* rowOut, int64_t length, AlgorithmCiftiCorrelationGradient::RowInfo& rowInfo, const bool undoFisher, const bool covariance, const bool noDemean)
+    {
+        if (undoFisher)
+        {
+            for (int64_t i = 0; i < length; ++i)
+            {
+                double temp = exp(2 * rowOut[i]);
+                rowOut[i] = (float)((temp - 1)/(temp + 1));
+            }
+        }
+        if (!rowInfo.m_haveCalculated)
+        {
+            double accum = 0.0;
+            float mean = 0.0f;
+            if (!noDemean)
+            {
+                for (int64_t i = 0; i < length; ++i)
+                {
+                    accum += rowOut[i];
+                }
+                mean = accum / length;
+            }
+            rowInfo.m_mean = mean;//note: mean is intentionally 0 when noDemean is true
+            if (!covariance)//rrs not used in covariance
+            {
+                accum = 0.0;
+                for (int i = 0; i < length; ++i)
+                {
+                    float tempf = rowOut[i] - mean;
+                    accum += tempf * tempf;
+                    if (!noDemean)//do one less pass over the data the first time the mean is computed
+                    {
+                        rowOut[i] = tempf;
+                    }
+                }
+                rowInfo.m_rootResidSqr = sqrt(accum);
+            } else {
+                rowInfo.m_rootResidSqr = 0.0f;
+            }
+            rowInfo.m_haveCalculated = true;
+        } else {
+            if (!noDemean)
+            {
+                float mean = rowInfo.m_mean;
+                for (int64_t i = 0; i < length; ++i)
+                {
+                    rowOut[i] -= mean;
+                }
+            }
+        }
+    }
+    
+    struct FirstCorrPlan
+    {
+        bool m_cacheFullInput;
+        int64_t m_chunkSize;
+    };
+    
+    FirstCorrPlan firstCorrMemoryPlan(int64_t totalRows)
+    {
+        FirstCorrPlan ret;//FIXME: actually do something with the memory limit
+        ret.m_cacheFullInput = true;
+        ret.m_chunkSize = totalRows;
+        return ret;
+    }
+}
+
 void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf, const MetricFile* myAreas)
 {
     const CiftiXMLOld& myXML = m_inputCifti->getCiftiXMLOld();
@@ -287,10 +407,10 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     int mapSize = (int)myMap.size();
     vector<double> accum(mapSize, 0.0);
     int numCacheRows = mapSize;
-    bool cacheFullInput = true;
+    bool cacheFullInput = true;//numRowsForMem() sets this
     if (memLimitGB >= 0.0f)
     {
-        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), (mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1)) / 8, mapSize, cacheFullInput);
+        numCacheRows = numRowsForMem(m_numCols * sizeof(float), (mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1)) / 8, mapSize, cacheFullInput);
     }
     if (numCacheRows > mapSize)
     {
@@ -311,7 +431,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     MetricFile myRoi;
     myRoi.setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
     myRoi.initializeColumn(0);
-    vector<int> rowsToCache;
+    vector<int64_t> rowsToCache;
     for (int i = 0; i < mapSize; ++i)
     {
         myRoi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
@@ -345,35 +465,46 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
         int curRow = 0;//because we can't trust the order threads hit the critical section
         MetricFile computeMetric;
         computeMetric.setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), endpos - startpos);
-#pragma omp CARET_PARFOR schedule(dynamic)
-        for (int i = 0; i < mapSize; ++i)
+#pragma omp CARET_PAR
         {
-            float movingRrs;
-            const float* movingRow;
-            int myrow;
-#pragma omp critical
-            {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
-                myrow = curRow;//so, manually force it to read sequentially
-                ++curRow;
-                movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs);
-            }
-            for (int j = startpos; j < endpos; ++j)
+            vector<float> scratchRow1(m_numCols), scratchRow2(m_numCols);
+#pragma omp CARET_FOR schedule(dynamic)
+            for (int i = 0; i < mapSize; ++i)
             {
-                if (myrow >= startpos && myrow < endpos)
-                {
-                    if (j >= myrow)
-                    {
-                        float cacheRrs;
-                        const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
-                        float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                        computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
-                        computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result);
+                float movingRrs;
+                const float* movingRow = NULL;
+                int myrow;
+#pragma omp critical
+                {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
+                    myrow = curRow;//so, manually force it to read sequentially
+                    ++curRow;
+                    if (!m_doubleCorr)
+                    {//when not doing double corr, we want to read single rows in order on disk
+                        movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs, scratchRow1.data());
                     }
-                } else {
-                    float cacheRrs;
-                    const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
-                    float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                    computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                }
+                if (m_doubleCorr)
+                {//when doing double corr, let the threads compute correlations in parallel
+                    movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs, scratchRow1.data());
+                }
+                for (int j = startpos; j < endpos; ++j)
+                {
+                    if (myrow >= startpos && myrow < endpos)
+                    {
+                        if (j >= myrow)
+                        {
+                            float cacheRrs;
+                            const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, scratchRow2.data());
+                            float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs, m_numCols, m_covariance, m_applyFisher);
+                            computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                            computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result);
+                        }
+                    } else {
+                        float cacheRrs;
+                        const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, scratchRow2.data());
+                        float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs, m_numCols, m_covariance, m_applyFisher);
+                        computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                    }
                 }
             }
         }
@@ -419,7 +550,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     bool cacheFullInput = true;
     if (memLimitGB >= 0.0f)
     {
-        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), (mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1)) / 8, mapSize, cacheFullInput);
+        numCacheRows = numRowsForMem(m_numCols * sizeof(float), (mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1)) / 8, mapSize, cacheFullInput);
     }
     if (numCacheRows > mapSize)
     {
@@ -444,7 +575,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     vector<vector<bool> > roiLookup(numCacheRows);//this gets bit compressed
     vector<bool> origRoi(mySurf->getNumberOfNodes());
     vector<vector<int32_t> > excludeNodes(numCacheRows);
-    vector<int> rowsToCache;
+    vector<int64_t> rowsToCache;
     for (int i = 0; i < mapSize; ++i)
     {
         myRoi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
@@ -501,37 +632,48 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
         int curRow = 0;//because we can't trust the order threads hit the critical section
         MetricFile computeMetric;
         computeMetric.setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), endpos - startpos);
-#pragma omp CARET_PARFOR schedule(dynamic)
-        for (int i = 0; i < mapSize; ++i)
+#pragma omp CARET_PAR
         {
-            float movingRrs;
-            const float* movingRow;
-            int myrow;
-#pragma omp critical
-            {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
-                myrow = curRow;//so, manually force it to read sequentially
-                ++curRow;
-                movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs);
-            }
-            for (int j = startpos; j < endpos; ++j)
+            vector<float> scratchRow1(m_numCols), scratchRow2(m_numCols);
+#pragma omp CARET_FOR schedule(dynamic)
+            for (int i = 0; i < mapSize; ++i)
             {
-                if (roiLookup[j - startpos][myMap[myrow].m_surfaceNode])
+                float movingRrs;
+                const float* movingRow = NULL;
+                int myrow;
+#pragma omp critical
+                {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
+                    myrow = curRow;//so, manually force it to read sequentially
+                    ++curRow;
+                    if (!m_doubleCorr)
+                    {//when not doing double corr, we want to read single rows in order on disk
+                        movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs, scratchRow1.data());
+                    }
+                }
+                if (m_doubleCorr)
+                {//when doing double corr, let the threads compute correlations in parallel
+                    movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs, scratchRow1.data());
+                }
+                for (int j = startpos; j < endpos; ++j)
                 {
-                    if (myrow >= startpos && myrow < endpos)
+                    if (roiLookup[j - startpos][myMap[myrow].m_surfaceNode])
                     {
-                        if (j >= myrow)
+                        if (myrow >= startpos && myrow < endpos)
                         {
+                            if (j >= myrow)
+                            {
+                                float cacheRrs;
+                                const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, scratchRow2.data());
+                                float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs, m_numCols, m_covariance, m_applyFisher);
+                                computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                                computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result);
+                            }
+                        } else {
                             float cacheRrs;
-                            const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
-                            float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
+                            const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, scratchRow2.data());
+                            float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs, m_numCols, m_covariance, m_applyFisher);
                             computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
-                            computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result);
                         }
-                    } else {
-                        float cacheRrs;
-                        const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
-                        float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                        computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
                     }
                 }
             }
@@ -622,7 +764,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     }
     if (memLimitGB >= 0.0f)
     {
-        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), newdims[0] * newdims[1] * newdims[2] * sizeof(float), mapSize, cacheFullInput);
+        numCacheRows = numRowsForMem(m_numCols * sizeof(float), newdims[0] * newdims[1] * newdims[2] * sizeof(float), mapSize, cacheFullInput);
     }
     if (numCacheRows > mapSize)
     {
@@ -640,7 +782,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     myXML.getVolumeDimsAndSForm(ciftiDims, ciftiSform);
     VolumeFile volRoi(newdims, ciftiSform);
     volRoi.setValueAllVoxels(0.0f);
-    vector<int> rowsToCache;
+    vector<int64_t> rowsToCache;
     for (int i = 0; i < mapSize; ++i)
     {
         volRoi.setValue(1.0f, myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2]);
@@ -670,35 +812,46 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
         vector<int64_t> computeDims = newdims;
         computeDims.push_back(endpos - startpos);
         VolumeFile computeVol(computeDims, ciftiSform);
-#pragma omp CARET_PARFOR schedule(dynamic)
-        for (int i = 0; i < mapSize; ++i)
+#pragma omp CARET_PAR
         {
-            float movingRrs;
-            const float* movingRow;
-            int myrow;
-#pragma omp critical
-            {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
-                myrow = curRow;//so, manually force it to read sequentially
-                ++curRow;
-                movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs);
-            }
-            for (int j = startpos; j < endpos; ++j)
+            vector<float> scratchRow1(m_numCols), scratchRow2(m_numCols);
+#pragma omp CARET_FOR schedule(dynamic)
+            for (int i = 0; i < mapSize; ++i)
             {
-                if (myrow >= startpos && myrow < endpos)
-                {
-                    if (j >= myrow)
-                    {
-                        float cacheRrs;
-                        const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
-                        float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                        computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
-                        computeVol.setValue(result, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                float movingRrs;
+                const float* movingRow = NULL;
+                int myrow;
+#pragma omp critical
+                {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
+                    myrow = curRow;//so, manually force it to read sequentially
+                    ++curRow;
+                    if (!m_doubleCorr)
+                    {//when not doing double corr, we want to read single rows in order on disk
+                        movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs, scratchRow1.data());
                     }
-                } else {
-                    float cacheRrs;
-                    const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
-                    float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                    computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                }
+                if (m_doubleCorr)
+                {//when doing double corr, let the threads compute correlations in parallel
+                    movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs, scratchRow1.data());
+                }
+                for (int j = startpos; j < endpos; ++j)
+                {
+                    if (myrow >= startpos && myrow < endpos)
+                    {
+                        if (j >= myrow)
+                        {
+                            float cacheRrs;
+                            const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, scratchRow2.data());
+                            float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs, m_numCols, m_covariance, m_applyFisher);
+                            computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                            computeVol.setValue(result, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                        }
+                    } else {
+                        float cacheRrs;
+                        const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, scratchRow2.data());
+                        float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs, m_numCols, m_covariance, m_applyFisher);
+                        computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                    }
                 }
             }
         }
@@ -760,7 +913,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     }
     if (memLimitGB >= 0.0f)
     {
-        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), newdims[0] * newdims[1] * newdims[2] * sizeof(float), mapSize, cacheFullInput);
+        numCacheRows = numRowsForMem(m_numCols * sizeof(float), newdims[0] * newdims[1] * newdims[2] * sizeof(float), mapSize, cacheFullInput);
     }
     if (numCacheRows > mapSize)
     {
@@ -778,7 +931,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     myXML.getVolumeDimsAndSForm(ciftiDims, ciftiSform);
     VolumeFile volRoi(newdims, ciftiSform);
     volRoi.setValueAllVoxels(0.0f);
-    vector<int> rowsToCache;
+    vector<int64_t> rowsToCache;
     for (int i = 0; i < mapSize; ++i)
     {
         volRoi.setValue(1.0f, myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2]);
@@ -808,41 +961,52 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
         vector<int64_t> computeDims = newdims;
         computeDims.push_back(endpos - startpos);
         VolumeFile computeVol(computeDims, ciftiSform);
-#pragma omp CARET_PARFOR schedule(dynamic)
-        for (int i = 0; i < mapSize; ++i)
+#pragma omp CARET_PAR
         {
-            float movingRrs;
-            const float* movingRow;
-            int myrow;
-#pragma omp critical
-            {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
-                myrow = curRow;//so, manually force it to read sequentially
-                ++curRow;
-                movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs);
-            }
-            Vector3D movingLoc;
-            volRoi.indexToSpace(myMap[myrow].m_ijk, movingLoc);//NOTE: this is outside the cropped volume, but matches the real location in the full volume, because we didn't fix the center
-            for (int j = startpos; j < endpos; ++j)
+            vector<float> scratchRow1(m_numCols), scratchRow2(m_numCols);
+#pragma omp CARET_FOR schedule(dynamic)
+            for (int i = 0; i < mapSize; ++i)
             {
-                Vector3D seedLoc;
-                volRoi.indexToSpace(myMap[j].m_ijk, seedLoc);//ditto
-                if ((movingLoc - seedLoc).length() > volExclude)//don't correlate if closer than the exclude range
+                float movingRrs;
+                const float* movingRow = NULL;
+                int myrow;
+#pragma omp critical
+                {//CiftiFile does use mutexes now (in NiftiIO), but sequential IO is better
+                    myrow = curRow;//so, manually force it to read sequentially
+                    ++curRow;
+                    if (!m_doubleCorr)
+                    {//when not doing double corr, we want to read single rows in order on disk
+                        movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs, scratchRow1.data());
+                    }
+                }
+                if (m_doubleCorr)
+                {//when doing double corr, let the threads compute correlations in parallel
+                    movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs, scratchRow1.data());
+                }
+                Vector3D movingLoc;
+                volRoi.indexToSpace(myMap[myrow].m_ijk, movingLoc);//NOTE: this is outside the cropped volume, but matches the real location in the full volume, because we didn't fix the center
+                for (int j = startpos; j < endpos; ++j)
                 {
-                    if (myrow >= startpos && myrow < endpos)
+                    Vector3D seedLoc;
+                    volRoi.indexToSpace(myMap[j].m_ijk, seedLoc);//ditto
+                    if ((movingLoc - seedLoc).length() > volExclude)//don't correlate if closer than the exclude range
                     {
-                        if (j >= myrow)
+                        if (myrow >= startpos && myrow < endpos)
                         {
+                            if (j >= myrow)
+                            {
+                                float cacheRrs;
+                                const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, scratchRow2.data());
+                                float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs, m_numCols, m_covariance, m_applyFisher);
+                                computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                                computeVol.setValue(result, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                            }
+                        } else {
                             float cacheRrs;
-                            const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
-                            float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
+                            const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, scratchRow2.data());
+                            float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs, m_numCols, m_covariance, m_applyFisher);
                             computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
-                            computeVol.setValue(result, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
                         }
-                    } else {
-                        float cacheRrs;
-                        const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
-                        float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
-                        computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
                     }
                 }
             }
@@ -888,38 +1052,8 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     }
 }
 
-float AlgorithmCiftiCorrelationGradient::correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2)
-{
-    double r;
-    if (row1 == row2 && !m_covariance)
-    {
-        r = 1.0;//short circuit for same row
-    } else {
-        double accum = dsdot(row1, row2, m_numCols);//these have already had the row means subtracted out
-        if (m_covariance)
-        {
-            r = accum / m_numCols;
-        } else {
-            r = accum / (rrs1 * rrs2);
-        }
-    }
-    if (!m_covariance)
-    {
-        if (m_applyFisher)
-        {
-            if (r > 0.999999) r = 0.999999;//prevent inf
-            if (r < -0.999999) r = -0.999999;//prevent -inf
-            r = 0.5 * log((1 + r) / (1 - r));
-        } else {
-            if (r > 1.0) r = 1.0;//don't output anything silly
-            if (r < -1.0) r = -1.0;
-        }
-    }
-    return r;
-}
-
-void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const bool& undoFisherInput, const bool& applyFisher,
-                                             const bool& covariance)
+void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const float& memLimitGB, const bool& undoFisherInput, const bool& applyFisher,
+                                             const bool& covariance, const bool doubleCorr, const bool firstFisher, const bool firstNoDemean, const bool firstCovar)
 {
     if (input->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("input cifti file must have brain models mapping along column");
     if (covariance)
@@ -930,62 +1064,152 @@ void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const bool&
     m_applyFisher = applyFisher;
     m_covariance = covariance;
     m_inputCifti = input;
-    m_rowInfo.resize(m_inputCifti->getNumberOfRows());
-    m_cacheUsed = 0;
-    m_numCols = m_inputCifti->getNumberOfColumns();
-    m_outColumn.resize(m_inputCifti->getNumberOfRows());
+    int64_t colLength = m_inputCifti->getNumberOfRows();//this is correct even for double correlation
+    m_doubleCorr = doubleCorr;
+    if (doubleCorr)
+    {
+        if (firstCovar && firstFisher) throw AlgorithmException("cannot apply fisher z transformation to first covariance");
+        m_numCols = colLength;//virtual intermediate file is square and symmetric, because there is no -roi-override option
+        m_rowLengthFirst = m_inputCifti->getNumberOfColumns();
+        m_firstFisher = firstFisher;
+        m_firstNoDemean = firstNoDemean;
+        m_firstCovar = firstCovar;
+        m_firstCorrInfo.resize(colLength);
+        //TODO: deal with doubleCorr in getRow/#cacheRows
+    } else {
+        m_numCols = m_inputCifti->getNumberOfColumns();
+        m_rowLengthFirst = 0;//trick to get the memory computations to work out
+    }
+    m_memLimitGB = memLimitGB;
+    m_rowInfo.resize(colLength);
+    m_outColumn.resize(colLength);
 }
 
-void AlgorithmCiftiCorrelationGradient::cacheRows(const vector<int>& ciftiIndices)
+void AlgorithmCiftiCorrelationGradient::cacheRows(const vector<int64_t>& ciftiIndices)
 {
     clearCache();//clear first, to be sure we never keep a cache around too long
-    int curIndex = 0, numIndices = (int)ciftiIndices.size();//manually in-order
-    m_rowCache.reserve(m_cacheUsed + numIndices);//so that pointers to members don't change
-#pragma omp CARET_PAR
+    int64_t numIndices = (int64_t)ciftiIndices.size();
+    m_rowCache.resize(numIndices, CacheRow(m_numCols));
+    if (m_doubleCorr)
     {
-        int myIndex;
-        float* myPtr;
-#pragma omp CARET_FOR schedule(dynamic)
-        for (int i = 0; i < numIndices; ++i)
+        for (int64_t i = 0; i < numIndices; ++i)//prepopulate intermediate output lookups, they will be useful to reuse symmetric correlations
         {
-            myPtr = NULL;
-#pragma omp critical
+            m_rowCache[i].m_ciftiIndex = ciftiIndices[i];
+            m_rowInfo[ciftiIndices[i]].m_cacheIndex = i;
+        }
+        vector<vector<float> > preparedInput;
+        FirstCorrPlan plan = firstCorrMemoryPlan(numIndices);
+        if (plan.m_cacheFullInput)
+        {
+            preparedInput.resize(m_numCols, vector<float>(m_rowLengthFirst));
+            for (int64_t i = 0; i < m_numCols; ++i)
             {
+                m_inputCifti->getRow(preparedInput[i].data(), i);
+                adjustRow(preparedInput[i].data(), m_rowLengthFirst, m_firstCorrInfo[i], false, m_firstCovar, m_firstNoDemean);//also calculates rrs, needed for -no-demean-first in correlation mode
+                m_firstCorrInfo[i].m_cacheIndex = i;
+            }
+        } else {
+            preparedInput.resize(plan.m_chunkSize, vector<float>(m_rowLengthFirst));
+        }
+        vector<float> scratchRow(m_rowLengthFirst);
+        for (int64_t chunkStart = 0; chunkStart < m_numCols; chunkStart += plan.m_chunkSize)//cache chunks are along the complete dimension
+        {
+            int64_t chunkEnd = min(m_numCols, chunkStart + plan.m_chunkSize);
+            if (!(plan.m_cacheFullInput))
+            {
+                for (int64_t i = chunkStart; i < chunkEnd; ++i)
+                {
+                    m_inputCifti->getRow(preparedInput[i - chunkStart].data(), i);
+                    adjustRow(preparedInput[i - chunkStart].data(), m_rowLengthFirst, m_firstCorrInfo[i], false, m_firstCovar, m_firstNoDemean);
+                    m_firstCorrInfo[i].m_cacheIndex = i - chunkStart;
+                }
+            }
+            int64_t curIndex = 0;//force manual in-order
+#pragma omp CARET_PARFOR schedule(dynamic)
+            for (int64_t i = 0; i < numIndices; ++i)//myIndex loops through the ciftiIndices array
+            {
+                float* movingData = NULL;
+                int64_t movingRow = -1, myIndex = -1;
+                bool doAdjust = false;
+#pragma omp critical
+                {
+                    myIndex = curIndex;
+                    ++curIndex;
+                    movingRow = ciftiIndices[myIndex];
+                    if (m_firstCorrInfo[movingRow].m_cacheIndex != -1)
+                    {
+                        movingData = preparedInput[m_firstCorrInfo[movingRow].m_cacheIndex].data();
+                    } else {
+                        doAdjust = true;
+                        movingData = scratchRow.data();
+                        m_inputCifti->getRow(movingData, movingRow);
+                    }
+                }
+                if (doAdjust)
+                {
+                    adjustRow(movingData, m_rowLengthFirst, m_firstCorrInfo[movingRow], false, m_firstCovar, m_firstNoDemean);
+                }
+                float movingRrs = m_firstCorrInfo[movingRow].m_rootResidSqr;//do not move this up, for some rows it is not computed until adjustRow
+                for (int64_t j = chunkStart; j < chunkEnd; ++j)//j loops through the complete dimension, in chunks
+                {
+                    float* cacheData = preparedInput[j - chunkStart].data();
+                    float cacheRrs = m_firstCorrInfo[j].m_rootResidSqr;
+                    if (m_rowInfo[j].m_cacheIndex == -1 || ciftiIndices[m_rowInfo[j].m_cacheIndex] >= movingRow)//if a symmetric output element exists in the rows to cache, don't do the correlation of the lower one
+                    {
+                        float corrval = correlate(movingData, movingRrs, cacheData, cacheRrs, m_rowLengthFirst, m_firstCovar, m_firstFisher);
+                        m_rowCache[myIndex].m_row[j] = corrval;
+                        if (m_rowInfo[j].m_cacheIndex != -1)//fill the symmetric part if it exists
+                        {
+                            m_rowCache[m_rowInfo[j].m_cacheIndex].m_row[movingRow] = corrval;
+                        }
+                    }
+                }
+            }
+            if (!(plan.m_cacheFullInput))
+            {
+                for (int64_t i = chunkStart; i < chunkEnd; ++i)
+                {
+                    m_firstCorrInfo[i].m_cacheIndex = -1;
+                }
+            }
+        }
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int64_t i = 0; i < numIndices; ++i)
+        {
+            adjustRow(m_rowCache[i].m_row.data(), m_numCols, m_rowInfo[ciftiIndices[i]], m_undoFisherInput, m_covariance, false);
+        }
+    } else {
+        int64_t curIndex = 0;
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int64_t i = 0; i < numIndices; ++i)
+        {
+            float* myPtr = NULL;
+            int64_t myIndex = -1;
+#pragma omp critical
+            {//manually in-order reading
                 myIndex = curIndex;
                 ++curIndex;
                 CaretAssertVectorIndex(m_rowInfo, ciftiIndices[myIndex]);
-                if (m_rowInfo[ciftiIndices[myIndex]].m_cacheIndex == -1)
-                {
-                    if (m_cacheUsed >= (int)m_rowCache.size())
-                    {
-                        m_rowCache.push_back(CacheRow());
-                        m_rowCache[m_cacheUsed].m_row.resize(m_numCols);
-                    }
-                    m_rowCache[m_cacheUsed].m_ciftiIndex = ciftiIndices[myIndex];
-                    myPtr = m_rowCache[m_cacheUsed].m_row.data();
-                    m_inputCifti->getRow(myPtr, ciftiIndices[myIndex]);
-                    m_rowInfo[ciftiIndices[myIndex]].m_cacheIndex = m_cacheUsed;
-                    ++m_cacheUsed;
-                }
-            }//end critical, now compute while the next thread reads
-            if (myPtr != NULL)
-            {
-                adjustRow(myPtr, ciftiIndices[myIndex]);
-            }
+                myPtr = m_rowCache[myIndex].m_row.data();
+                m_inputCifti->getRow(myPtr, ciftiIndices[myIndex]);
+                m_rowCache[myIndex].m_ciftiIndex = ciftiIndices[myIndex];
+                m_rowInfo[ciftiIndices[myIndex]].m_cacheIndex = myIndex;
+            }//end critical, now demean while the next thread reads
+            adjustRow(myPtr, m_numCols, m_rowInfo[ciftiIndices[myIndex]], m_undoFisherInput, m_covariance, false);
         }
     }
 }
 
 void AlgorithmCiftiCorrelationGradient::clearCache()
 {
-    for (int i = 0; i < m_cacheUsed; ++i)
+    for (int64_t i = 0; i < int64_t(m_rowCache.size()); ++i)
     {
         m_rowInfo[m_rowCache[i].m_ciftiIndex].m_cacheIndex = -1;
     }
-    m_cacheUsed = 0;
+    m_rowCache.clear();
 }
 
-const float* AlgorithmCiftiCorrelationGradient::getRow(const int& ciftiIndex, float& rootResidSqr, const bool& mustBeCached)
+const float* AlgorithmCiftiCorrelationGradient::getRow(const int& ciftiIndex, float& rootResidSqr, float* scratchStorage)
 {
     float* ret;
     CaretAssertVectorIndex(m_rowInfo, ciftiIndex);
@@ -993,91 +1217,47 @@ const float* AlgorithmCiftiCorrelationGradient::getRow(const int& ciftiIndex, fl
     {
         ret = m_rowCache[m_rowInfo[ciftiIndex].m_cacheIndex].m_row.data();
     } else {
-        CaretAssert(!mustBeCached);
-        if (mustBeCached)//largely so it doesn't give warning about unused when compiled in release
-        {
-            throw AlgorithmException("something very bad happened, notify the developers");
+        ret = scratchStorage;
+        if (m_doubleCorr)
+        {//will only happen with a memory limit that prevents caching entire row range - need to take a look at this when memory limit is extended to this case
+            vector<float> fixedRow(m_rowLengthFirst), movingRow(m_rowLengthFirst);
+            m_inputCifti->getRow(fixedRow.data(), ciftiIndex);
+            adjustRow(fixedRow.data(), m_rowLengthFirst, m_firstCorrInfo[ciftiIndex], false, m_firstCovar, m_firstNoDemean);
+            for (int64_t i = 0; i < m_numCols; ++i)//TODO: convert input to in-memory when possible
+            {
+                float* movingData = movingRow.data();
+                if (i == ciftiIndex)
+                {//correlate has logic to give the right answer without doing the corr when the pointers are the same
+                    movingData = fixedRow.data();
+                } else {
+                    m_inputCifti->getRow(movingRow.data(), i);
+                    adjustRow(movingRow.data(), m_rowLengthFirst, m_firstCorrInfo[i], false, m_firstCovar, m_firstNoDemean);
+                }
+                ret[i] = correlate(fixedRow.data(), m_firstCorrInfo[ciftiIndex].m_rootResidSqr, movingData, m_firstCorrInfo[i].m_rootResidSqr, m_rowLengthFirst, m_firstCovar, m_firstFisher);
+            }
+        } else {
+            m_inputCifti->getRow(ret, ciftiIndex);
         }
-        ret = getTempRow();
-        m_inputCifti->getRow(ret, ciftiIndex);
-        adjustRow(ret, ciftiIndex);
+        adjustRow(ret, m_numCols, m_rowInfo[ciftiIndex], m_undoFisherInput, m_covariance, false);
     }
     rootResidSqr = m_rowInfo[ciftiIndex].m_rootResidSqr;
     return ret;
 }
 
-void AlgorithmCiftiCorrelationGradient::adjustRow(float* rowOut, const int& ciftiIndex)
+int AlgorithmCiftiCorrelationGradient::numRowsForMem(const int64_t& inrowBytes, const int64_t& outrowBytes, const int& numRows, bool& cacheFullInputOut)
 {
-    if (m_undoFisherInput)
+    if (m_memLimitGB < 0.0f)
     {
-        for (int i = 0; i < m_numCols; ++i)
-        {
-            double temp = exp(2 * rowOut[i]);
-            rowOut[i] = (float)((temp - 1)/(temp + 1));
-        }
+        cacheFullInputOut = true;
+        return numRows;
     }
-    if (!m_rowInfo[ciftiIndex].m_haveCalculated)
-    {
-        double accum = 0.0;//double, for numerical stability
-        for (int i = 0; i < m_numCols; ++i)//two pass, for numerical stability
-        {
-            accum += rowOut[i];
-        }
-        float mean = accum / m_numCols;
-        float rootResidSqr = 0.0f;//not used in covariance
-        if (!m_covariance)
-        {
-            accum = 0.0;
-            for (int i = 0; i < m_numCols; ++i)
-            {
-                float tempf = rowOut[i] - mean;
-                accum += tempf * tempf;
-            }
-            rootResidSqr = sqrt(accum);
-        }
-        m_rowInfo[ciftiIndex].m_mean = mean;
-        m_rowInfo[ciftiIndex].m_rootResidSqr = rootResidSqr;
-        m_rowInfo[ciftiIndex].m_haveCalculated = true;
-    }
-    float mean = m_rowInfo[ciftiIndex].m_mean;
-    for (int i = 0; i < m_numCols; ++i)
-    {
-        rowOut[i] -= mean;
-    }
-}
-
-float* AlgorithmCiftiCorrelationGradient::getTempRow()
-{
-#ifdef CARET_OMP
-    int oldsize = (int)m_tempRows.size();
-    int threadNum = omp_get_thread_num();
-    if (threadNum >= oldsize)
-    {
-        m_tempRows.resize(threadNum + 1);
-        for (int i = oldsize; i <= threadNum; ++i)
-        {
-            m_tempRows[i] = CaretArray<float>(m_numCols);
-        }
-    }
-    return m_tempRows[threadNum].getArray();
-#else
-    if (m_tempRows.size() == 0)
-    {
-        m_tempRows.resize(1);
-        m_tempRows[0] = CaretArray<float>(m_numCols);
-    }
-    return m_tempRows[0].getArray();
-#endif
-}
-
-int AlgorithmCiftiCorrelationGradient::numRowsForMem(const float& memLimitGB, const int64_t& inrowBytes, const int64_t& outrowBytes, const int& numRows, bool& cacheFullInput)
-{
-    int64_t targetBytes = (int64_t)(memLimitGB * 1024 * 1024 * 1024);
-    if (m_inputCifti->isInMemory()) targetBytes -= numRows * inrowBytes;//count in-memory input against the total too
+    int64_t targetBytes = (int64_t)(m_memLimitGB * 1024 * 1024 * 1024);
+    bool inputIsMemory = m_inputCifti->isInMemory();//FIXME: double corr
+    if (inputIsMemory) targetBytes -= numRows * inrowBytes;//count in-memory input against the total too - TODO: if in memory, don't cache input rows at all?
     targetBytes -= numRows * sizeof(RowInfo) + 2 * outrowBytes;//storage for mean, stdev, and info about caching, output structures
     if (targetBytes < 1)
     {
-        cacheFullInput = false;//the most memory conservation possible, though it will take a LOT of time and do a LOT of IO
+        cacheFullInputOut = false;//the most memory conservation possible, though it will take a LOT of time and do a LOT of IO
         return 1;
     }
     if (inrowBytes * numRows < targetBytes)//if we can cache the full input, compute the number of passes needed and compare
@@ -1104,17 +1284,17 @@ int AlgorithmCiftiCorrelationGradient::numRowsForMem(const float& memLimitGB, co
         int ret;
         if (partialCorrSkip > fullCorrSkip * 1.05f)//prefer full caching slightly - include a bias factor in options?
         {//assume IO and row adjustment (unfisher, subtract mean) won't be the limiting factor, since IO should be balanced during correlation due to evenly sized passes when not fully cached
-            cacheFullInput = false;
+            cacheFullInputOut = false;
             ret = numRowsPartial;
         } else {
-            cacheFullInput = true;
+            cacheFullInputOut = true;
             ret = numRowsFull;
         }
         if (ret < 1) ret = 1;//sanitize, just in case
         if (ret > numRows) ret = numRows;
         return ret;
     } else {//if we can't cache the whole thing, split passes evenly
-        cacheFullInput = false;
+        cacheFullInputOut = false;
         int64_t div = max((int64_t)1, (outrowBytes + inrowBytes) * numRows);
 #ifdef CARET_OMP
         targetBytes -= inrowBytes * omp_get_max_threads();

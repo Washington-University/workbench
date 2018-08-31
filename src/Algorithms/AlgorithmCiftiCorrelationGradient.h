@@ -22,7 +22,6 @@
 /*LICENSE_END*/
 
 #include "AbstractAlgorithm.h"
-#include "CaretPointer.h"
 #include "StructureEnum.h"
 
 namespace caret {
@@ -30,11 +29,7 @@ namespace caret {
     class AlgorithmCiftiCorrelationGradient : public AbstractAlgorithm
     {
         AlgorithmCiftiCorrelationGradient();
-        struct CacheRow
-        {
-            int m_ciftiIndex;
-            std::vector<float> m_row;
-        };
+    public:
         struct RowInfo
         {
             bool m_haveCalculated;
@@ -46,22 +41,32 @@ namespace caret {
                 m_cacheIndex = -1;
             }
         };
+    private:
+        struct CacheRow
+        {
+            int m_ciftiIndex;
+            std::vector<float> m_row;
+            CacheRow(int64_t rowLength)
+            {
+                m_ciftiIndex = -1;
+                m_row.resize(rowLength);
+            }
+        };
         std::vector<CacheRow> m_rowCache;
-        std::vector<RowInfo> m_rowInfo;
-        std::vector<CaretArray<float> > m_tempRows;//reuse return values in getRow instead of reallocating
+        std::vector<RowInfo> m_rowInfo, m_firstCorrInfo;
         std::vector<float> m_outColumn;
-        int m_cacheUsed;//reuse cache entries instead of reallocating them
-        int m_numCols;
+        int64_t m_numCols;
         bool m_undoFisherInput, m_applyFisher, m_covariance;
         const CiftiFile* m_inputCifti;//so that accesses work through the cache functions
-        void cacheRows(const std::vector<int>& ciftiIndices);//grabs the rows and does whatever it needs to, using as much IO bandwidth and CPU resources as available/needed
+        int64_t m_rowLengthFirst;//for -double-correlation
+        bool m_doubleCorr, m_firstCovar, m_firstNoDemean, m_firstFisher;
+        float m_memLimitGB;
+        void cacheRows(const std::vector<int64_t>& ciftiIndices);//grabs the rows and does whatever it needs to, using as much IO bandwidth and CPU resources as available/needed
         void clearCache();
-        const float* getRow(const int& ciftiIndex, float& rootResidSqr, const bool& mustBeCached = false);
-        void adjustRow(float* rowOut, const int& ciftiIndex);//does the reverse fisher transform, computes stuff, subtracts mean
-        float* getTempRow();
-        float correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2);
-        void init(const CiftiFile* input, const bool& undoFisherInput, const bool& applyFisher, const bool& covariance);
-        int numRowsForMem(const float& memLimitGB, const int64_t& inrowBytes, const int64_t& outrowBytes, const int& numRows, bool& cacheFullInput);
+        const float* getRow(const int& ciftiIndex, float& rootResidSqr, float* scratchStorage);
+        void init(const CiftiFile* input, const float& memLimitGB, const bool& undoFisherInput, const bool& applyFisher, const bool& covariance,
+                  const bool doubleCorr, const bool firstFisher, const bool firstNoDemean, const bool firstCovar);
+        int numRowsForMem(const int64_t& inrowBytes, const int64_t& outrowBytes, const int& numRows, bool& cacheFullInput);
         //void processSurfaceComponentLocal(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf);
         void processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf, const MetricFile* myAreas);
         void processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& surfExclude, const float& memLimitGB, SurfaceFile* mySurf, const MetricFile* myAreas);
@@ -78,7 +83,8 @@ namespace caret {
                                           const float& surfKern = -1.0f, const float& volKern = -1.0f, const bool& undoFisherInput = false, const bool& applyFisher = false,
                                           const float& surfaceExclude = -1.0f, const float& volumeExclude = -1.0f,
                                           const bool& covariance = false,
-                                          const float& memLimitGB = -1.0f);
+                                          const float& memLimitGB = -1.0f,
+                                          const bool doubleCorr = false, const bool firstFisher = false, const bool firstNoDemean = false, const bool firstCovar = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
