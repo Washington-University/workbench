@@ -27,6 +27,7 @@
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationGroupKey.h"
 #include "AnnotationSizingHandleTypeEnum.h"
+#include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
@@ -154,6 +155,8 @@ namespace caret {
         AnnotationCoordinateSpaceEnum::Enum getCoordinateSpace() const;
         
         void setCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace);
+        
+        virtual AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const = 0;
         
         int32_t getTabIndex() const;
         

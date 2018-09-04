@@ -26,6 +26,7 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSizingHandleTypeEnum.h"
+#include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretObject.h"
@@ -42,6 +43,7 @@ namespace caret {
     class AnnotationFile;
     class AnnotationImage;
     class AnnotationLine;
+    class AnnotationOneDimensionalShape;
     class AnnotationOval;
     class AnnotationText;
     class AnnotationTwoDimensionalShape;
@@ -187,6 +189,14 @@ namespace caret {
                             Annotation* annotation,
                             const Surface* surfaceDisplayed);
         
+        bool drawTwoDimAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
+                                                      AnnotationTwoDimensionalShape* annotation,
+                                                      const Surface* surfaceDisplayed);
+        
+        bool drawOneDimAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
+                                                      AnnotationOneDimensionalShape* annotation,
+                                                      const Surface* surfaceDisplayed);
+        
         void drawColorBar(AnnotationFile* annotationFile,
                           AnnotationColorBar* colorBar);
         
@@ -194,25 +204,51 @@ namespace caret {
                      AnnotationBox* box,
                        const Surface* surfaceDisplayed);
         
+        bool drawBoxSurfaceTangentOffset(AnnotationFile* annotationFile,
+                                         AnnotationBox* box,
+                                         const Surface* surfaceDisplayed,
+                                         const float surfaceExtentZ,
+                                         const float vertexXYZ[3]);
+
         bool drawImage(AnnotationFile* annotationFile,
                        AnnotationImage* image,
-                      const Surface* surfaceDisplayed);
+                       const Surface* surfaceDisplayed);
+        
+        bool drawImageSurfaceTangentOffset(AnnotationFile* annotationFile,
+                                           AnnotationImage* image,
+                                           const Surface* surfaceDisplayed,
+                                           const float surfaceExtentZ,
+                                           const float vertexXYZ[3]);
         
         bool drawLine(AnnotationFile* annotationFile,
                       AnnotationLine* line,
                       const Surface* surfaceDisplayed);
         
+        bool drawLineSurfaceTextureOffset(AnnotationFile* annotationFile,
+                                          AnnotationLine* line,
+                                          const Surface* surfaceDisplayed,
+                                          const float surfaceExtentZ);
+        
         bool drawOval(AnnotationFile* annotationFile,
                       AnnotationOval* oval,
                       const Surface* surfaceDisplayed);
+        
+        bool drawOvalSurfaceTangentOffset(AnnotationFile* annotationFile,
+                                          AnnotationOval* oval,
+                                          const Surface* surfaceDisplayed,
+                                          const float surfaceExtentZ,
+                                          const float vertexXYZ[3]);
         
         bool drawText(AnnotationFile* annotationFile,
                       AnnotationText* text,
                        const Surface* surfaceDisplayed);
         
-        bool drawTextTangentOffset(AnnotationFile* annotationFile,
-                                   AnnotationText* text,
-                                   const Surface* surfaceDisplayed);
+        bool drawTextSurfaceTangentOffset(AnnotationFile* annotationFile,
+                                          AnnotationText* text,
+                                          const Surface* surfaceDisplayed,
+                                          const float surfaceExtentZ,
+                                          const float vertexXYZ[3],
+                                          const float vertexNormalXYZ[3]);
         
         void drawColorBarSections(const AnnotationColorBar* colorBar,
                                   const float bottomLeft[3],
@@ -366,15 +402,16 @@ namespace caret {
         
         std::unique_ptr<EventOpenGLObjectToWindowTransform> m_transformEvent;
         
-        static constexpr float s_sizingHandleLineWidthInPixels = 2.0f;
-        static constexpr float s_selectionLineMinimumPixelWidth = 5.0f;
+        static const float s_sizingHandleLineWidthInPixels;
+        static const float s_selectionLineMinimumPixelWidth;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const float BrainOpenGLAnnotationDrawingFixedPipeline::s_sizingHandleLineWidthInPixels  = 2.0f;
+    const float BrainOpenGLAnnotationDrawingFixedPipeline::s_selectionLineMinimumPixelWidth = 5.0f;
 #endif // __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
 
 } // namespace

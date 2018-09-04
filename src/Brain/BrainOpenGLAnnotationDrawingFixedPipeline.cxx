@@ -147,8 +147,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::viewportToOpenGLWindowCoordinate(cons
  *     The annotation.
  * @param coordinate
  *     The annotation coordinate whose window coordinate is computed.
- * @param annotationCoordSpace
- *     The annotation coordinate space.
  * @param surfaceDisplayed
  *     Surface that is displayed (may be NULL !)
  * @param xyzOut
@@ -162,6 +160,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                                                                                const Surface* surfaceDisplayed,
                                                                                float xyzOut[3]) const
 {
+    CaretAssert(annotation);
     const AnnotationCoordinateSpaceEnum::Enum annotationCoordSpace = annotation->getCoordinateSpace();
     
     float modelXYZ[3]  = { 0.0, 0.0, 0.0 };
@@ -219,6 +218,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                                             annotationNodeIndex,
                                             annotationOffsetLength,
                                             annotationOffsetVector);
+                
+                /*
+                 * Always use surface offset vector reported by annotation since 
+                 * annotations with multiple coordinates must use the same offset
+                 */
+                annotationOffsetVector = annotation->getSurfaceOffsetVectorType();
                 
                 const StructureEnum::Enum surfaceStructure = surfaceDisplayed->getStructure();
                 const int32_t surfaceNumberOfNodes = surfaceDisplayed->getNumberOfNodes();
@@ -1080,12 +1085,49 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
     
     bool drawnFlag = false;
     
+    bool surfaceTextureSpaceFlag = false;
     switch (annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
+            if (annotation->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+                AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+                if (twoDimAnn != NULL) {
+                    switch (twoDimAnn->getCoordinate()->getSurfaceOffsetVectorType()) {
+                        case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
+                            break;
+                        case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
+                            break;
+                        case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+                        {
+                            drawnFlag = drawTwoDimAnnotationSurfaceTextureOffset(annotationFile,
+                                                                                 twoDimAnn,
+                                                                                 surfaceDisplayed);
+                            surfaceTextureSpaceFlag = true;
+                        }
+                            break;
+                    }
+                }
+                else {
+                    AnnotationOneDimensionalShape* oneDimAnn = dynamic_cast<AnnotationOneDimensionalShape*>(annotation);
+                    switch (oneDimAnn->getStartCoordinate()->getSurfaceOffsetVectorType()) {
+                        case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
+                            break;
+                        case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
+                            break;
+                        case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+                        {
+                            drawnFlag = drawOneDimAnnotationSurfaceTextureOffset(annotationFile,
+                                                                                 oneDimAnn,
+                                                                                 surfaceDisplayed);
+                            surfaceTextureSpaceFlag = true;
+                        }
+                            break;
+                    }
+                }
+            }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             break;
@@ -1095,36 +1137,38 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
             break;
     }
     
-    switch (annotation->getType()) {
-        case AnnotationTypeEnum::BOX:
-            drawnFlag = drawBox(annotationFile,
-                                dynamic_cast<AnnotationBox*>(annotation),
-                                surfaceDisplayed);
-            break;
-        case AnnotationTypeEnum::COLOR_BAR:
-            drawColorBar(annotationFile,
-                         dynamic_cast<AnnotationColorBar*>(annotation));
-            break;
-        case AnnotationTypeEnum::IMAGE:
-            drawnFlag = drawImage(annotationFile,
-                                  dynamic_cast<AnnotationImage*>(annotation),
-                                  surfaceDisplayed);
-            break;
-        case AnnotationTypeEnum::LINE:
-            drawnFlag = drawLine(annotationFile,
-                                 dynamic_cast<AnnotationLine*>(annotation),
-                                 surfaceDisplayed);
-            break;
-        case AnnotationTypeEnum::OVAL:
-            drawnFlag = drawOval(annotationFile,
-                                 dynamic_cast<AnnotationOval*>(annotation),
-                                 surfaceDisplayed);
-            break;
-        case AnnotationTypeEnum::TEXT:
-            drawnFlag = drawText(annotationFile,
-                                 dynamic_cast<AnnotationText*>(annotation),
-                                 surfaceDisplayed);
-            break;
+    if ( ! surfaceTextureSpaceFlag) {
+        switch (annotation->getType()) {
+            case AnnotationTypeEnum::BOX:
+                drawnFlag = drawBox(annotationFile,
+                                    dynamic_cast<AnnotationBox*>(annotation),
+                                    surfaceDisplayed);
+                break;
+            case AnnotationTypeEnum::COLOR_BAR:
+                drawColorBar(annotationFile,
+                             dynamic_cast<AnnotationColorBar*>(annotation));
+                break;
+            case AnnotationTypeEnum::IMAGE:
+                drawnFlag = drawImage(annotationFile,
+                                      dynamic_cast<AnnotationImage*>(annotation),
+                                      surfaceDisplayed);
+                break;
+            case AnnotationTypeEnum::LINE:
+                drawnFlag = drawLine(annotationFile,
+                                     dynamic_cast<AnnotationLine*>(annotation),
+                                     surfaceDisplayed);
+                break;
+            case AnnotationTypeEnum::OVAL:
+                drawnFlag = drawOval(annotationFile,
+                                     dynamic_cast<AnnotationOval*>(annotation),
+                                     surfaceDisplayed);
+                break;
+            case AnnotationTypeEnum::TEXT:
+                drawnFlag = drawText(annotationFile,
+                                     dynamic_cast<AnnotationText*>(annotation),
+                                     surfaceDisplayed);
+                break;
+        }
     }
     
     if (drawnFlag) {
@@ -1132,6 +1176,348 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
     }
 }
 
+/**
+ * Draw a two-dimensional annotation that is in surface space with a texture offset.
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param annotation
+ *    Annotation to draw.
+ * @param surfaceDisplayed
+ *    Surface that is displayed (may be NULL).
+ * @return
+ *    True if the anntotation was drawn, else false.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
+                                                                                    AnnotationTwoDimensionalShape* annotation,
+                                                                                    const Surface* surfaceDisplayed)
+{
+    bool drawnFlag = false;
+    
+    CaretAssert(annotationFile);
+    CaretAssert(annotation);
+    CaretAssert(surfaceDisplayed);
+    
+    
+    const AnnotationCoordinate* coord = annotation->getCoordinate();
+    CaretAssert(coord->getSurfaceOffsetVectorType() == AnnotationSurfaceOffsetVectorTypeEnum::TANGENT);
+    StructureEnum::Enum structure;
+    int32_t surfaceNumberOfNodes(0);
+    int32_t vertexIndex(0);
+    float offsetLength(0.0f);
+    AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVectorType;
+    coord->getSurfaceSpace(structure, surfaceNumberOfNodes, vertexIndex, offsetLength, offsetVectorType);
+    
+    if (structure != surfaceDisplayed->getStructure()) {
+        return false;
+    }
+    if (surfaceDisplayed->getNumberOfNodes() != surfaceNumberOfNodes) {
+        return false;
+    }
+    float vertexXYZ[3];
+    surfaceDisplayed->getCoordinate(vertexIndex,
+                                    vertexXYZ);
+    float normalXYZ[3];
+    getSurfaceNormalVector(surfaceDisplayed, vertexIndex, normalXYZ);
+    const BoundingBox* boundingBox = surfaceDisplayed->getBoundingBox();
+    const float surfaceExtentZ = boundingBox->getDifferenceZ();
+    
+    /*
+     * Need to restore model space
+     * Recall that all other annotation spaces are drawn in window space
+     */
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadMatrixd(m_modelSpaceProjectionMatrix);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadMatrixd(m_modelSpaceModelMatrix);
+    int32_t savedViewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  savedViewport);
+    glViewport(m_modelSpaceViewport[0],
+               m_modelSpaceViewport[1],
+               m_modelSpaceViewport[2],
+               m_modelSpaceViewport[3]);
+    
+    glPushMatrix();
+    
+    /*
+     * Matrix that rotates annotation to plane of vertex's normal vector
+     */
+    Matrix4x4 rotationMatrix;
+    rotationMatrix.setMatrixToOpenGLRotationFromVector(normalXYZ);
+    double rotationArray[16];
+    rotationMatrix.getMatrixForOpenGL(rotationArray);
+    
+    
+    /*
+     * Translate to the vertex and then translate using offset
+     * vector of text.
+     */
+    const float offsetVectorXYZ[3] {
+        normalXYZ[0] * offsetLength,
+        normalXYZ[1] * offsetLength,
+        normalXYZ[2] * offsetLength
+    };
+    glTranslatef(vertexXYZ[0], vertexXYZ[1], vertexXYZ[2]);
+    glTranslatef(offsetVectorXYZ[0], offsetVectorXYZ[1], offsetVectorXYZ[2]);
+    
+    /*
+     * Rotate into plane of surface normal vector
+     */
+    glMultMatrixd(rotationArray);
+    
+    /*
+     * Up vector in local coordinates (text drawing plane)
+     * Z points out of text
+     */
+    const float len(25.0f);
+    const float localUpXYZ[3] {
+        0.0,
+        len,
+        0.0
+    };
+    
+    /*
+     * Inverse matrix goes back to surface coordinate system
+     */
+    Matrix4x4 inverseMatrix(rotationMatrix);
+    inverseMatrix.invert();
+    
+    /*
+     * Create the plane in which text is drawn
+     * (plane is not used for drawing text but is used
+     * to orient the text).  The plane is constructed
+     * from the vertex's normal vector and the the
+     * vertex's XYZ-coordinate.
+     */
+    Plane textDrawingPlane(normalXYZ,
+                           vertexXYZ);
+    
+    /*
+     * Project a point with a large Z-coordinate to the plane
+     * and use it to creat the 'text up orientation vector'.
+     */
+    const float zBig[3] { 0.0, 0.0, 10000.0 };
+    float textUpOrientationVectorXYZ[3];
+    textDrawingPlane.projectPointToPlane(zBig, textUpOrientationVectorXYZ);
+    inverseMatrix.multiplyPoint3(textUpOrientationVectorXYZ);
+    
+    /*
+     * Vector is parallel to surface Z-axis
+     */
+    float vectorSurfaceAxisZ[3] = { 0.0f, 0.0f, 100.0f };
+    inverseMatrix.multiplyPoint3(vectorSurfaceAxisZ);
+    
+    if (debugFlag) {
+        /*
+         * Red line is normal vector
+         * Green line is "text up" vector
+         * Blue points to surface Z-vector
+         * Yellow is parallel to surface Z-axis
+         */
+        const float startXYZ[3] {
+            0.0,
+            0.0,
+            0.0
+        };
+        const float endXYZ[3] {
+            0.0,
+            0.0,
+            len
+        };
+        glBegin(GL_LINES);
+        glColor3f(1.0, 0.0, 0.0);
+        glVertex3fv(startXYZ);
+        glVertex3fv(endXYZ);
+        glColor3f(0.0, 1.0, 0.0);
+        glVertex3fv(startXYZ);
+        glVertex3fv(localUpXYZ);
+        glColor3f(0.0, 0.0, 1.0);
+        glVertex3fv(startXYZ);
+        glVertex3fv(textUpOrientationVectorXYZ);
+        glColor3f(1.0, 1.0, 0.0);
+        glVertex3fv(startXYZ);
+        glVertex3fv(vectorSurfaceAxisZ);
+        glEnd();
+        
+        {
+            //            /*
+            //             * Vector is parallel to surface Z-axis
+            //             */
+            //            float bigZ[3] = { 0.0f, 0.0f, 100.0f };
+            //            inverseMatrix.multiplyPoint3(bigZ);
+            //            glBegin(GL_LINES);
+            //            glColor3f(1.0, 1.0, 0.0);
+            //            glVertex3fv(startXYZ);
+            //            glVertex3fv(bigZ);
+            //            glEnd();
+            
+        }
+    }
+    
+    /*
+     * Rotate the text so that the horzontal flow of the text
+     * is orthogonal to the 'text up orientation vector'.
+     */
+    //    const float angle = angleInDegreesBetweenVectors(localUpXYZ,
+    //                                                     textUpOrientationVectorXYZ);
+    const float orientationUpAngle = angleInDegreesBetweenVectors(localUpXYZ,
+                                                     vectorSurfaceAxisZ);
+    glRotatef(orientationUpAngle, 0.0, 0.0, -1.0);
+    
+    
+    
+    if (debugFlag) {
+        //std::cout << "Annotation: " <<  text->getText() << std::endl;
+        std::cout << "   Plane: " << textDrawingPlane.toString() << std::endl;
+        std::cout << "   Local Up Vector: " << AString::fromNumbers(localUpXYZ, 3, ", ") << std::endl;
+        std::cout << "   Angle: " << orientationUpAngle << std::endl;
+    }
+    
+    /*
+     * Note that text is rotated by the text renderer
+     */
+    if (annotation->getType() != AnnotationTypeEnum::TEXT) {
+        glRotated(annotation->getRotationAngle(), 0.0, 0.0, -1.0);
+    }
+    
+    switch (annotation->getType()) {
+        case AnnotationTypeEnum::BOX:
+            drawnFlag = drawBoxSurfaceTangentOffset(annotationFile,
+                                                    dynamic_cast<AnnotationBox*>(annotation),
+                                                    surfaceDisplayed,
+                                                    surfaceExtentZ,
+                                                    vertexXYZ);
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            CaretAssertMessage(0, "Color Bar is NEVER drawn in surface space");
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            drawImageSurfaceTangentOffset(annotationFile,
+                                          dynamic_cast<AnnotationImage*>(annotation),
+                                          surfaceDisplayed,
+                                          surfaceExtentZ,
+                                          vertexXYZ);
+            break;
+        case AnnotationTypeEnum::LINE:
+            CaretAssertToDoFatal();
+            //            drawnFlag = drawLine(annotationFile,
+            //                                 dynamic_cast<AnnotationLine*>(annotation),
+            //                                 surfaceDisplayed);
+            break;
+        case AnnotationTypeEnum::OVAL:
+            drawnFlag = drawOvalSurfaceTangentOffset(annotationFile,
+                                                     dynamic_cast<AnnotationOval*>(annotation),
+                                                     surfaceDisplayed,
+                                                     surfaceExtentZ,
+                                                     vertexXYZ);
+            break;
+        case AnnotationTypeEnum::TEXT:
+            drawnFlag = drawTextSurfaceTangentOffset(annotationFile,
+                                                     dynamic_cast<AnnotationText*>(annotation),
+                                                     surfaceDisplayed,
+                                                     surfaceExtentZ,
+                                                     vertexXYZ,
+                                                     normalXYZ);
+            break;
+    }
+    
+    glPopMatrix(); /* restore MODELVIEW */
+    
+    glViewport(savedViewport[0],
+               savedViewport[1],
+               savedViewport[2],
+               savedViewport[3]);
+    glPopMatrix();
+    
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    
+    return drawnFlag;
+}
+
+/**
+ * Draw a one-dimensional annotation that is in surface space with a texture offset.
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param annotation
+ *    Annotation to draw.
+ * @param surfaceDisplayed
+ *    Surface that is displayed (may be NULL).
+ * @return
+ *    True if the anntotation was drawn, else false.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::drawOneDimAnnotationSurfaceTextureOffset(AnnotationFile* annotationFile,
+                                                                                    AnnotationOneDimensionalShape* annotation,
+                                                                                    const Surface* surfaceDisplayed)
+{
+    CaretAssert(annotationFile);
+    CaretAssert(annotation);
+    CaretAssert(surfaceDisplayed);
+    
+    bool drawnFlag = false;
+    
+    
+    const BoundingBox* boundingBox = surfaceDisplayed->getBoundingBox();
+    const float surfaceExtentZ = boundingBox->getDifferenceZ();
+    
+    /*
+     * Need to restore model space
+     * Recall that all other annotation spaces are drawn in window space
+     */
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadMatrixd(m_modelSpaceProjectionMatrix);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadMatrixd(m_modelSpaceModelMatrix);
+    int32_t savedViewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  savedViewport);
+    glViewport(m_modelSpaceViewport[0],
+               m_modelSpaceViewport[1],
+               m_modelSpaceViewport[2],
+               m_modelSpaceViewport[3]);
+    
+    glPushMatrix();
+    switch (annotation->getType()) {
+        case AnnotationTypeEnum::BOX:
+        case AnnotationTypeEnum::COLOR_BAR:
+        case AnnotationTypeEnum::IMAGE:
+        case AnnotationTypeEnum::OVAL:
+        case AnnotationTypeEnum::TEXT:
+            CaretAssert(0);
+            break;
+        case AnnotationTypeEnum::LINE:
+            drawnFlag = drawLineSurfaceTextureOffset(annotationFile,
+                                                     dynamic_cast<AnnotationLine*>(annotation),
+                                                     surfaceDisplayed,
+                                                     surfaceExtentZ);
+            break;
+    }
+    
+    glPopMatrix(); /* restore MODELVIEW */
+    
+    glViewport(savedViewport[0],
+               savedViewport[1],
+               savedViewport[2],
+               savedViewport[3]);
+    glPopMatrix();
+    
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    
+    return drawnFlag;
+}
 
 /**
  * Draw an annotation box.
@@ -1271,7 +1657,139 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
 }
 
 /**
- * Draw an annotation box.
+ * Draw an annotation box in surface tangent offset space
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param box
+ *    box to draw.
+ * @param surfaceDisplayed
+ *    Surface that is displayed (may be NULL).
+ * @param surfaceExtentZ
+ *    Z-extent of the surface.
+ * @param vertexXYZ
+ *    Coordinate of the vertex.
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::drawBoxSurfaceTangentOffset(AnnotationFile* annotationFile,
+                                                                       AnnotationBox* box,
+                                                                       const Surface* surfaceDisplayed,
+                                                                       const float surfaceExtentZ,
+                                                                       const float vertexXYZ[3])
+{
+    CaretAssert(annotationFile);
+    CaretAssert(box);
+    CaretAssert(surfaceDisplayed);
+    CaretAssert(box->getType() == AnnotationTypeEnum::BOX);
+    
+    const float halfWidth  = ((box->getWidth() / 100.0) * surfaceExtentZ) / 2.0;
+    const float halfHeight = ((box->getHeight() / 100.0) * surfaceExtentZ) / 2.0;
+    float bottomLeft[3]  { -halfWidth, -halfHeight, 0.0f };
+    float bottomRight[3] {  halfWidth, -halfHeight, 0.0f };
+    float topRight[3]    {  halfWidth,  halfHeight, 0.0f };
+    float topLeft[3]     { -halfWidth,  halfHeight, 0.0f };
+
+    const float selectionCenterXYZ[3] = {
+        vertexXYZ[0],
+        vertexXYZ[1],
+        vertexXYZ[2]
+    };
+    
+    float lineThickness = ((box->getLineWidthPercentage() / 100.0)
+                                 * surfaceExtentZ);
+    if (m_selectionModeFlag) {
+        lineThickness = std::max(lineThickness,
+                                 s_selectionLineMinimumPixelWidth);
+    }
+    
+    uint8_t backgroundRGBA[4];
+    box->getBackgroundColorRGBA(backgroundRGBA);
+    uint8_t foregroundRGBA[4];
+    box->getLineColorRGBA(foregroundRGBA);
+    
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0);
+    const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
+    
+    bool drawnFlag = false;
+    
+    if (drawAnnotationFlag) {
+        if (m_selectionModeFlag) {
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
+            
+            if (drawBackgroundFlag) {
+                /*
+                 * When selecting draw only background if it is enabled
+                 * since it is opaque and prevents "behind" annotations
+                 * from being selected
+                 */
+                GraphicsShape::drawBoxFilledByteColor(bottomLeft,
+                                                      bottomRight,
+                                                      topRight,
+                                                      topLeft,
+                                                      selectionColorRGBA);
+            }
+            else {
+                /*
+                 * Drawing foreground as line will still allow user to
+                 * select annotation that are inside of the box
+                 */
+                GraphicsShape::drawBoxOutlineByteColor(bottomLeft,
+                                                       bottomRight,
+                                                       topRight,
+                                                       topLeft,
+                                                       selectionColorRGBA,
+                                                       GraphicsPrimitive::LineWidthType::PIXELS,
+                                                       lineThickness);
+            }
+            
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    box,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
+        }
+        else {
+            if (drawBackgroundFlag) {
+                GraphicsShape::drawBoxFilledByteColor(bottomLeft,
+                                                      bottomRight,
+                                                      topRight,
+                                                      topLeft,
+                                                      backgroundRGBA);
+                drawnFlag = true;
+            }
+            
+            if (drawForegroundFlag) {
+                GraphicsShape::drawBoxOutlineByteColor(bottomLeft,
+                                                       bottomRight,
+                                                       topRight,
+                                                       topLeft,
+                                                       foregroundRGBA,
+                                                       GraphicsPrimitive::LineWidthType::PIXELS,
+                                                       lineThickness);
+                drawnFlag = true;
+            }
+        }
+        if (box->isSelectedForEditing(m_inputs->m_windowIndex)) {
+            drawAnnotationTwoDimSizingHandles(annotationFile,
+                                              box,
+                                              bottomLeft,
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              s_sizingHandleLineWidthInPixels,
+                                              box->getRotationAngle());
+        }
+    }
+    
+    return drawnFlag;
+}
+
+
+/**
+ * Draw an annotation color bar.
  *
  * @param annotationFile
  *    File containing the annotation.
@@ -2192,6 +2710,135 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
 }
 
 /**
+ * Draw an annotation oval in surface tangent offset space
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param oval
+ *    oval to draw.
+ * @param surfaceDisplayed
+ *    Surface that is displayed (may be NULL).
+ * @param surfaceExtentZ
+ *    Z-extent of the surface.
+ * @param vertexXYZ
+ *    Coordinate of the vertex.
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::drawOvalSurfaceTangentOffset(AnnotationFile* annotationFile,
+                                                                        AnnotationOval* oval,
+                                                                        const Surface* surfaceDisplayed,
+                                                                        const float surfaceExtentZ,
+                                                                        const float vertexXYZ[3])
+{
+    CaretAssert(annotationFile);
+    CaretAssert(oval);
+    CaretAssert(surfaceDisplayed);
+    CaretAssert(oval->getType() == AnnotationTypeEnum::OVAL);
+    
+    const float halfWidth  = ((oval->getWidth() / 100.0) * surfaceExtentZ) / 2.0;
+    const float halfHeight = ((oval->getHeight() / 100.0) * surfaceExtentZ) / 2.0;
+    float bottomLeft[3]  { -halfWidth, -halfHeight, 0.0f };
+    float bottomRight[3] {  halfWidth, -halfHeight, 0.0f };
+    float topRight[3]    {  halfWidth,  halfHeight, 0.0f };
+    float topLeft[3]     { -halfWidth,  halfHeight, 0.0f };
+    
+    const float selectionCenterXYZ[3] = {
+        vertexXYZ[0],
+        vertexXYZ[1],
+        vertexXYZ[2]
+    };
+    
+    float lineThickness = ((oval->getLineWidthPercentage() / 100.0)
+                           * surfaceExtentZ);
+    if (m_selectionModeFlag) {
+        lineThickness = std::max(lineThickness,
+                                 s_selectionLineMinimumPixelWidth);
+    }
+    
+    uint8_t backgroundRGBA[4];
+    oval->getBackgroundColorRGBA(backgroundRGBA);
+    uint8_t foregroundRGBA[4];
+    oval->getLineColorRGBA(foregroundRGBA);
+    
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0);
+    const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
+    
+    bool drawnFlag = false;
+    
+    const float majorAxis     = ((oval->getWidth()  / 100.0f) * surfaceExtentZ);
+    const float minorAxis     = ((oval->getHeight() / 100.0f) * surfaceExtentZ);
+    
+    if (drawAnnotationFlag) {
+        if (m_selectionModeFlag) {
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
+            
+            if (drawBackgroundFlag) {
+                /*
+                 * When selecting draw only background if it is enabled
+                 * since it is opaque and prevents "behind" annotations
+                 * from being selected
+                 */
+                GraphicsShape::drawEllipseFilledByteColor(majorAxis,
+                                                          minorAxis,
+                                                          selectionColorRGBA);
+            }
+            else {
+                /*
+                 * Drawing foreground as line will still allow user to
+                 * select annotation that are inside of the box
+                 */
+                GraphicsShape::drawEllipseOutlineByteColor(majorAxis,
+                                                           minorAxis,
+                                                           selectionColorRGBA,
+                                                           GraphicsPrimitive::LineWidthType::PIXELS,
+                                                           lineThickness);
+            }
+            
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    oval,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
+        }
+        else {
+            if (drawBackgroundFlag) {
+                GraphicsShape::drawEllipseFilledByteColor(majorAxis,
+                                                          minorAxis,
+                                                          backgroundRGBA);
+                drawnFlag = true;
+            }
+            
+            if (drawForegroundFlag) {
+                glPolygonOffset(-1.0, 1.0);
+                glEnable(GL_POLYGON_OFFSET_FILL);
+                GraphicsShape::drawEllipseOutlineByteColor(majorAxis,
+                                                           minorAxis,
+                                                           foregroundRGBA,
+                                                           GraphicsPrimitive::LineWidthType::PIXELS,
+                                                           lineThickness);
+                glDisable(GL_POLYGON_OFFSET_FILL);
+                drawnFlag = true;
+            }
+        }
+        if (oval->isSelectedForEditing(m_inputs->m_windowIndex)) {
+            drawAnnotationTwoDimSizingHandles(annotationFile,
+                                              oval,
+                                              bottomLeft,
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              s_sizingHandleLineWidthInPixels,
+                                              oval->getRotationAngle());
+        }
+    }
+    
+    return drawnFlag;
+}
+
+/**
  * Get coordinate for drawing a line that connects text to brainordinate.
  *
  * @param text
@@ -2465,7 +3112,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getSurfaceNormalVector(const Surface*
 }
 
 /**
- * Draw an annotation text with tangent offset
+ * Draw an annotation text with surface tangent offset
  *
  * @param annotationFile
  *    File containing the annotation.
@@ -2473,191 +3120,35 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getSurfaceNormalVector(const Surface*
  *    Annotation text to draw.
  * @param surfaceDisplayed
  *    Surface that is displayed (may be NULL).
+ * @param surfaceExtentZ
+ *    Z-extent of the surface.
+ * @param vertexXYZ,
+ *    Coordinate of the vertex.
+ * @param vertexNormalXYZ
+ *    Normal vector of vertex.
  * @return
  *    True if the annotation was drawn while NOT selecting annotations.
  */
 bool
-BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile* annotationFile,
-                                                                 AnnotationText* text,
-                                                                 const Surface* surfaceDisplayed)
+BrainOpenGLAnnotationDrawingFixedPipeline::drawTextSurfaceTangentOffset(AnnotationFile* annotationFile,
+                                                                        AnnotationText* text,
+                                                                        const Surface* surfaceDisplayed,
+                                                                        const float surfaceExtentZ,
+                                                                        const float vertexXYZ[3],
+                                                                        const float vertexNormalXYZ[3])
 {
     CaretAssert(annotationFile);
     CaretAssert(text);
     CaretAssert(surfaceDisplayed);
     
-    const AnnotationCoordinate* coord = text->getCoordinate();
-    StructureEnum::Enum structure;
-    int32_t surfaceNumberOfNodes(0);
-    int32_t vertexIndex(0);
-    float offsetLength(0.0f);
-    AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVectorType;
-    coord->getSurfaceSpace(structure, surfaceNumberOfNodes, vertexIndex, offsetLength, offsetVectorType);
-    
-    if (structure != surfaceDisplayed->getStructure()) {
-        return false;
-    }
-    if (surfaceDisplayed->getNumberOfNodes() != surfaceNumberOfNodes) {
-        return false;
-    }
-    float vertexXYZ[3];
-    surfaceDisplayed->getCoordinate(vertexIndex,
-                                    vertexXYZ);
-    float normalXYZ[3];
-    getSurfaceNormalVector(surfaceDisplayed, vertexIndex, normalXYZ);
-    const BoundingBox* boundingBox = surfaceDisplayed->getBoundingBox();
-    const float surfaceExtentZ = boundingBox->getDifferenceZ();
-    
     /*
-     * Need to restore model space
-     * Recall that all other annotation spaces are drawn in window space
+     * Annotations with "DISPLAY_GROUP" propery may be turned on/off by user.
      */
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadMatrixd(m_modelSpaceProjectionMatrix);
-    
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadMatrixd(m_modelSpaceModelMatrix);
-    int32_t savedViewport[4];
-    glGetIntegerv(GL_VIEWPORT,
-                  savedViewport);
-    glViewport(m_modelSpaceViewport[0],
-               m_modelSpaceViewport[1],
-               m_modelSpaceViewport[2],
-               m_modelSpaceViewport[3]);
-    
-    glPushMatrix();
-    
-    /*
-     * Matrix that rotates text to plane of vertex's normal vector
-     */
-    Matrix4x4 rotationMatrix;
-    rotationMatrix.setMatrixToOpenGLRotationFromVector(normalXYZ);
-    double rotationArray[16];
-    rotationMatrix.getMatrixForOpenGL(rotationArray);
-    
-    
-    /*
-     * Translate to the vertex and then translate using offset
-     * vector of text.
-     */
-    const float offsetVectorXYZ[3] {
-        normalXYZ[0] * offsetLength,
-        normalXYZ[1] * offsetLength,
-        normalXYZ[2] * offsetLength
-    };
-    glTranslatef(vertexXYZ[0], vertexXYZ[1], vertexXYZ[2]);
-    glTranslatef(offsetVectorXYZ[0], offsetVectorXYZ[1], offsetVectorXYZ[2]);
-    
-    /*
-     * Rotate into plane of surface normal vector
-     */
-    glMultMatrixd(rotationArray);
-    
-    /*
-     * Up vector in local coordinates (text drawing plane)
-     * Z points out of text
-     */
-    const float len(25.0f);
-    const float localUpXYZ[3] {
-        0.0,
-        len,
-        0.0
-    };
-    
-    /*
-     * Inverse matrix goes back to surface coordinate system
-     */
-    Matrix4x4 inverseMatrix(rotationMatrix);
-    inverseMatrix.invert();
-    
-    /*
-     * Create the plane in which text is drawn
-     * (plane is not used for drawing text but is used
-     * to orient the text).  The plane is constructed
-     * from the vertex's normal vector and the the
-     * vertex's XYZ-coordinate.
-     */
-    Plane textDrawingPlane(normalXYZ,
-                           vertexXYZ);
-    
-    /*
-     * Project a point with a large Z-coordinate to the plane
-     * and use it to creat the 'text up orientation vector'.
-     */
-    const float zBig[3] { 0.0, 0.0, 10000.0 };
-    float textUpOrientationVectorXYZ[3];
-    textDrawingPlane.projectPointToPlane(zBig, textUpOrientationVectorXYZ);
-    inverseMatrix.multiplyPoint3(textUpOrientationVectorXYZ);
-    
-    /*
-     * Vector is parallel to surface Z-axis
-     */
-    float vectorSurfaceAxisZ[3] = { 0.0f, 0.0f, 100.0f };
-    inverseMatrix.multiplyPoint3(vectorSurfaceAxisZ);
-    
-    if (debugFlag) {
-        /*
-         * Red line is normal vector
-         * Green line is "text up" vector
-         * Blue points to surface Z-vector
-         * Yellow is parallel to surface Z-axis
-         */
-        const float startXYZ[3] {
-            0.0,
-            0.0,
-            0.0
-        };
-        const float endXYZ[3] {
-            0.0,
-            0.0,
-            len
-        };
-        glBegin(GL_LINES);
-        glColor3f(1.0, 0.0, 0.0);
-        glVertex3fv(startXYZ);
-        glVertex3fv(endXYZ);
-        glColor3f(0.0, 1.0, 0.0);
-        glVertex3fv(startXYZ);
-        glVertex3fv(localUpXYZ);
-        glColor3f(0.0, 0.0, 1.0);
-        glVertex3fv(startXYZ);
-        glVertex3fv(textUpOrientationVectorXYZ);
-        glColor3f(1.0, 1.0, 0.0);
-        glVertex3fv(startXYZ);
-        glVertex3fv(vectorSurfaceAxisZ);
-        glEnd();
-        
-        {
-//            /*
-//             * Vector is parallel to surface Z-axis
-//             */
-//            float bigZ[3] = { 0.0f, 0.0f, 100.0f };
-//            inverseMatrix.multiplyPoint3(bigZ);
-//            glBegin(GL_LINES);
-//            glColor3f(1.0, 1.0, 0.0);
-//            glVertex3fv(startXYZ);
-//            glVertex3fv(bigZ);
-//            glEnd();
-            
+    DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
+    if (text->testProperty(Annotation::Property::DISPLAY_GROUP)) {
+        if ( ! dpa->isDisplayTextAnnotations()) {
+            return false;
         }
-    }
-    
-    /*
-     * Rotate the text so that the horzontal flow of the text
-     * is orthogonal to the 'text up orientation vector'.
-     */
-//    const float angle = angleInDegreesBetweenVectors(localUpXYZ,
-//                                                     textUpOrientationVectorXYZ);
-    const float angle = angleInDegreesBetweenVectors(localUpXYZ,
-                                                     vectorSurfaceAxisZ);
-    glRotatef(-angle, 0.0, 0.0, 1.0);
-    
-    if (debugFlag) {
-        std::cout << "Annotation: " <<  text->getText() << std::endl;
-        std::cout << "   Plane: " << textDrawingPlane.toString() << std::endl;
-        std::cout << "   Local Up Vector: " << AString::fromNumbers(localUpXYZ, 3, ", ") << std::endl;
-        std::cout << "   Angle: " << angle << std::endl;
     }
     
     double bottomLeft[3];
@@ -2677,9 +3168,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
         GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                           selectionColorRGBA);
         const double doubleNormalXYZ[3] {
-            normalXYZ[0],
-            normalXYZ[1],
-            normalXYZ[2]
+            vertexNormalXYZ[0],
+            vertexNormalXYZ[1],
+            vertexNormalXYZ[2]
         };
         primitive.addVertex(topLeft, doubleNormalXYZ);
         primitive.addVertex(bottomLeft, doubleNormalXYZ);
@@ -2696,7 +3187,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
         m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextInModelSpace(*text,
                                                                             m_surfaceViewScaling,
                                                                             surfaceExtentZ,
-                                                                            normalXYZ,
+                                                                            vertexNormalXYZ,
                                                                             m_textDrawingFlags);
         glPopMatrix();
         
@@ -2738,20 +3229,308 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextTangentOffset(AnnotationFile*
         glPopAttrib();
     }
     
-    glPopMatrix(); /* restore MODELVIEW */
-    
-    glViewport(savedViewport[0],
-               savedViewport[1],
-               savedViewport[2],
-               savedViewport[3]);
-    glPopMatrix();
-    
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-
     return textDrawnFlag;
 }
+
+///**
+// * Draw an annotation text with surface tangent offset
+// *
+// * @param annotationFile
+// *    File containing the annotation.
+// * @param text
+// *    Annotation text to draw.
+// * @param surfaceDisplayed
+// *    Surface that is displayed (may be NULL).
+// * @return
+// *    True if the annotation was drawn while NOT selecting annotations.
+// */
+//bool
+//BrainOpenGLAnnotationDrawingFixedPipeline::drawTextSurfaceTangentOffset(AnnotationFile* annotationFile,
+//                                                                        AnnotationText* text,
+//                                                                        const Surface* surfaceDisplayed)
+//{
+//    CaretAssert(annotationFile);
+//    CaretAssert(text);
+//    CaretAssert(surfaceDisplayed);
+//    
+//    /*
+//     * Annotations with "DISPLAY_GROUP" propery may be turned on/off by user.
+//     */
+//    DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
+//    if (text->testProperty(Annotation::Property::DISPLAY_GROUP)) {
+//        if ( ! dpa->isDisplayTextAnnotations()) {
+//            return false;
+//        }
+//    }
+//    
+//    const AnnotationCoordinate* coord = text->getCoordinate();
+//    CaretAssert(coord->getSurfaceOffsetVectorType() == AnnotationSurfaceOffsetVectorTypeEnum::TANGENT);
+//    StructureEnum::Enum structure;
+//    int32_t surfaceNumberOfNodes(0);
+//    int32_t vertexIndex(0);
+//    float offsetLength(0.0f);
+//    AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVectorType;
+//    coord->getSurfaceSpace(structure, surfaceNumberOfNodes, vertexIndex, offsetLength, offsetVectorType);
+//    
+//    if (structure != surfaceDisplayed->getStructure()) {
+//        return false;
+//    }
+//    if (surfaceDisplayed->getNumberOfNodes() != surfaceNumberOfNodes) {
+//        return false;
+//    }
+//    float vertexXYZ[3];
+//    surfaceDisplayed->getCoordinate(vertexIndex,
+//                                    vertexXYZ);
+//    float normalXYZ[3];
+//    getSurfaceNormalVector(surfaceDisplayed, vertexIndex, normalXYZ);
+//    const BoundingBox* boundingBox = surfaceDisplayed->getBoundingBox();
+//    const float surfaceExtentZ = boundingBox->getDifferenceZ();
+//    
+//    /*
+//     * Need to restore model space
+//     * Recall that all other annotation spaces are drawn in window space
+//     */
+//    glMatrixMode(GL_PROJECTION);
+//    glPushMatrix();
+//    glLoadMatrixd(m_modelSpaceProjectionMatrix);
+//    
+//    glMatrixMode(GL_MODELVIEW);
+//    glPushMatrix();
+//    glLoadMatrixd(m_modelSpaceModelMatrix);
+//    int32_t savedViewport[4];
+//    glGetIntegerv(GL_VIEWPORT,
+//                  savedViewport);
+//    glViewport(m_modelSpaceViewport[0],
+//               m_modelSpaceViewport[1],
+//               m_modelSpaceViewport[2],
+//               m_modelSpaceViewport[3]);
+//    
+//    glPushMatrix();
+//    
+//    /*
+//     * Matrix that rotates text to plane of vertex's normal vector
+//     */
+//    Matrix4x4 rotationMatrix;
+//    rotationMatrix.setMatrixToOpenGLRotationFromVector(normalXYZ);
+//    double rotationArray[16];
+//    rotationMatrix.getMatrixForOpenGL(rotationArray);
+//    
+//    
+//    /*
+//     * Translate to the vertex and then translate using offset
+//     * vector of text.
+//     */
+//    const float offsetVectorXYZ[3] {
+//        normalXYZ[0] * offsetLength,
+//        normalXYZ[1] * offsetLength,
+//        normalXYZ[2] * offsetLength
+//    };
+//    glTranslatef(vertexXYZ[0], vertexXYZ[1], vertexXYZ[2]);
+//    glTranslatef(offsetVectorXYZ[0], offsetVectorXYZ[1], offsetVectorXYZ[2]);
+//    
+//    /*
+//     * Rotate into plane of surface normal vector
+//     */
+//    glMultMatrixd(rotationArray);
+//    
+//    /*
+//     * Up vector in local coordinates (text drawing plane)
+//     * Z points out of text
+//     */
+//    const float len(25.0f);
+//    const float localUpXYZ[3] {
+//        0.0,
+//        len,
+//        0.0
+//    };
+//    
+//    /*
+//     * Inverse matrix goes back to surface coordinate system
+//     */
+//    Matrix4x4 inverseMatrix(rotationMatrix);
+//    inverseMatrix.invert();
+//    
+//    /*
+//     * Create the plane in which text is drawn
+//     * (plane is not used for drawing text but is used
+//     * to orient the text).  The plane is constructed
+//     * from the vertex's normal vector and the the
+//     * vertex's XYZ-coordinate.
+//     */
+//    Plane textDrawingPlane(normalXYZ,
+//                           vertexXYZ);
+//    
+//    /*
+//     * Project a point with a large Z-coordinate to the plane
+//     * and use it to creat the 'text up orientation vector'.
+//     */
+//    const float zBig[3] { 0.0, 0.0, 10000.0 };
+//    float textUpOrientationVectorXYZ[3];
+//    textDrawingPlane.projectPointToPlane(zBig, textUpOrientationVectorXYZ);
+//    inverseMatrix.multiplyPoint3(textUpOrientationVectorXYZ);
+//    
+//    /*
+//     * Vector is parallel to surface Z-axis
+//     */
+//    float vectorSurfaceAxisZ[3] = { 0.0f, 0.0f, 100.0f };
+//    inverseMatrix.multiplyPoint3(vectorSurfaceAxisZ);
+//    
+//    if (debugFlag) {
+//        /*
+//         * Red line is normal vector
+//         * Green line is "text up" vector
+//         * Blue points to surface Z-vector
+//         * Yellow is parallel to surface Z-axis
+//         */
+//        const float startXYZ[3] {
+//            0.0,
+//            0.0,
+//            0.0
+//        };
+//        const float endXYZ[3] {
+//            0.0,
+//            0.0,
+//            len
+//        };
+//        glBegin(GL_LINES);
+//        glColor3f(1.0, 0.0, 0.0);
+//        glVertex3fv(startXYZ);
+//        glVertex3fv(endXYZ);
+//        glColor3f(0.0, 1.0, 0.0);
+//        glVertex3fv(startXYZ);
+//        glVertex3fv(localUpXYZ);
+//        glColor3f(0.0, 0.0, 1.0);
+//        glVertex3fv(startXYZ);
+//        glVertex3fv(textUpOrientationVectorXYZ);
+//        glColor3f(1.0, 1.0, 0.0);
+//        glVertex3fv(startXYZ);
+//        glVertex3fv(vectorSurfaceAxisZ);
+//        glEnd();
+//        
+//        {
+////            /*
+////             * Vector is parallel to surface Z-axis
+////             */
+////            float bigZ[3] = { 0.0f, 0.0f, 100.0f };
+////            inverseMatrix.multiplyPoint3(bigZ);
+////            glBegin(GL_LINES);
+////            glColor3f(1.0, 1.0, 0.0);
+////            glVertex3fv(startXYZ);
+////            glVertex3fv(bigZ);
+////            glEnd();
+//            
+//        }
+//    }
+//    
+//    /*
+//     * Rotate the text so that the horzontal flow of the text
+//     * is orthogonal to the 'text up orientation vector'.
+//     */
+////    const float angle = angleInDegreesBetweenVectors(localUpXYZ,
+////                                                     textUpOrientationVectorXYZ);
+//    const float angle = angleInDegreesBetweenVectors(localUpXYZ,
+//                                                     vectorSurfaceAxisZ);
+//    glRotatef(-angle, 0.0, 0.0, 1.0);
+//    
+//    if (debugFlag) {
+//        std::cout << "Annotation: " <<  text->getText() << std::endl;
+//        std::cout << "   Plane: " << textDrawingPlane.toString() << std::endl;
+//        std::cout << "   Local Up Vector: " << AString::fromNumbers(localUpXYZ, 3, ", ") << std::endl;
+//        std::cout << "   Angle: " << angle << std::endl;
+//    }
+//    
+//    double bottomLeft[3];
+//    double bottomRight[3];
+//    double topRight[3];
+//    double topLeft[3];
+//    double underlineStart[3];
+//    double underlineEnd[3];
+//    m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextInModelSpace(*text, m_surfaceViewScaling, surfaceExtentZ, m_textDrawingFlags,
+//                                                                                bottomLeft, bottomRight, topRight, topLeft,
+//                                                                                underlineStart, underlineEnd);
+//    
+//    bool textDrawnFlag = false;
+//    if (m_selectionModeFlag) {
+//        uint8_t selectionColorRGBA[4] = { 0, 0, 0, 0 };
+//        getIdentificationColor(selectionColorRGBA);
+//        GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+//                                          selectionColorRGBA);
+//        const double doubleNormalXYZ[3] {
+//            normalXYZ[0],
+//            normalXYZ[1],
+//            normalXYZ[2]
+//        };
+//        primitive.addVertex(topLeft, doubleNormalXYZ);
+//        primitive.addVertex(bottomLeft, doubleNormalXYZ);
+//        primitive.addVertex(topRight, doubleNormalXYZ);
+//        primitive.addVertex(bottomRight, doubleNormalXYZ);
+//        GraphicsEngineDataOpenGL::draw(&primitive);
+//        m_selectionInfo.push_back(SelectionInfo(annotationFile,
+//                                                text,
+//                                                AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+//                                                vertexXYZ));
+//    }
+//    else {
+//        glPushMatrix();
+//        m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextInModelSpace(*text,
+//                                                                            m_surfaceViewScaling,
+//                                                                            surfaceExtentZ,
+//                                                                            normalXYZ,
+//                                                                            m_textDrawingFlags);
+//        glPopMatrix();
+//        
+//        textDrawnFlag = true;
+//    }
+//    
+//    if (text->isSelectedForEditing(m_inputs->m_windowIndex)) {
+//        glPushAttrib(GL_POLYGON_BIT
+//                     | GL_LIGHTING_BIT);
+//        
+//        /*
+//         * So that text and background do not mix together
+//         * in the Z-buffer
+//         */
+//        glEnable(GL_POLYGON_OFFSET_FILL);
+//        glEnable(GL_POLYGON_OFFSET_LINE);
+//        glEnable(GL_POLYGON_OFFSET_POINT);
+//        glPolygonOffset(-1.0, 1.0);
+//        glDisable(GL_LIGHTING);
+//        
+//        float floatBottomLeft[3];
+//        float floatBottomRight[3];
+//        float floatTopRight[3];
+//        float floatTopLeft[3];
+//        for (int32_t i = 0; i < 3; i++) {
+//            floatBottomLeft[i] = bottomLeft[i];
+//            floatBottomRight[i] = bottomRight[i];
+//            floatTopLeft[i] = topLeft[i];
+//            floatTopRight[i] = topRight[i];
+//        }
+//        drawAnnotationTwoDimSizingHandles(annotationFile,
+//                                          text,
+//                                          floatBottomLeft,
+//                                          floatBottomRight,
+//                                          floatTopRight,
+//                                          floatTopLeft,
+//                                          s_sizingHandleLineWidthInPixels,
+//                                          text->getRotationAngle());
+//        glPopAttrib();
+//    }
+//    
+//    glPopMatrix(); /* restore MODELVIEW */
+//    
+//    glViewport(savedViewport[0],
+//               savedViewport[1],
+//               savedViewport[2],
+//               savedViewport[3]);
+//    glPopMatrix();
+//    
+//    glMatrixMode(GL_PROJECTION);
+//    glPopMatrix();
+//    glMatrixMode(GL_MODELVIEW);
+//
+//    return textDrawnFlag;
+//}
 
 /**
  * Draw an annotation text.
@@ -2780,23 +3559,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     if (text->testProperty(Annotation::Property::DISPLAY_GROUP)) {
         if ( ! dpa->isDisplayTextAnnotations()) {
             return false;
-        }
-    }
-
-    if (text->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
-        switch (text->getCoordinate()->getSurfaceOffsetVectorType()) {
-            case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
-                break;
-            case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
-                break;
-            case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
-                /*
-                 * Tangent offset is drawn in model space
-                 */
-                return drawTextTangentOffset(annotationFile,
-                                             text,
-                                             surfaceDisplayed);
-                break;
         }
     }
 
@@ -3122,6 +3884,123 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
 }
 
 /**
+ * Draw an annotation image in surface tangent offset space
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param image
+ *    Image to draw.
+ * @param surfaceDisplayed
+ *    Surface that is displayed (may be NULL).
+ * @param surfaceExtentZ
+ *    Z-extent of the surface.
+ * @param vertexXYZ
+ *    Coordinate of the vertex.
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::drawImageSurfaceTangentOffset(AnnotationFile* annotationFile,
+                                                                       AnnotationImage* image,
+                                                                       const Surface* surfaceDisplayed,
+                                                                       const float surfaceExtentZ,
+                                                                       const float vertexXYZ[3])
+{
+    CaretAssert(annotationFile);
+    CaretAssert(image);
+    CaretAssert(surfaceDisplayed);
+    CaretAssert(image->getType() == AnnotationTypeEnum::IMAGE);
+    
+    const float halfWidth  = ((image->getWidth() / 100.0) * surfaceExtentZ) / 2.0;
+    const float halfHeight = ((image->getHeight() / 100.0) * surfaceExtentZ) / 2.0;
+    float bottomLeft[3]  { -halfWidth, -halfHeight, 0.0f };
+    float bottomRight[3] {  halfWidth, -halfHeight, 0.0f };
+    float topRight[3]    {  halfWidth,  halfHeight, 0.0f };
+    float topLeft[3]     { -halfWidth,  halfHeight, 0.0f };
+    
+    const float selectionCenterXYZ[3] = {
+        vertexXYZ[0],
+        vertexXYZ[1],
+        vertexXYZ[2]
+    };
+    
+    float lineThickness = ((image->getLineWidthPercentage() / 100.0)
+                           * surfaceExtentZ);
+    if (m_selectionModeFlag) {
+        lineThickness = std::max(lineThickness,
+                                 s_selectionLineMinimumPixelWidth);
+    }
+    
+    uint8_t backgroundRGBA[4];
+    image->getBackgroundColorRGBA(backgroundRGBA);
+    uint8_t foregroundRGBA[4];
+    image->getLineColorRGBA(foregroundRGBA);
+    
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0);
+    const bool drawAnnotationFlag = true;
+    
+    bool drawnFlag = false;
+    
+    if (drawAnnotationFlag) {
+        if (m_selectionModeFlag) {
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
+            
+            /*
+             * When selecting draw only background if it is enabled
+             * since it is opaque and prevents "behind" annotations
+             * from being selected
+             */
+            GraphicsShape::drawBoxFilledByteColor(bottomLeft,
+                                                  bottomRight,
+                                                  topRight,
+                                                  topLeft,
+                                                  selectionColorRGBA);
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    image,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
+        }
+        else {
+            image->setVertexBounds(bottomLeft,
+                                   bottomRight,
+                                   topRight,
+                                   topLeft);
+            GraphicsPrimitiveV3fT3f* primitive = image->getGraphicsPrimitive();
+            if (primitive != NULL) {
+                if (primitive->isValid()) {
+                    GraphicsEngineDataOpenGL::draw(primitive);
+                }
+                drawnFlag = true;
+            }
+            
+            if (drawForegroundFlag) {
+                GraphicsShape::drawBoxOutlineByteColor(bottomLeft,
+                                                       bottomRight,
+                                                       topRight,
+                                                       topLeft,
+                                                       foregroundRGBA,
+                                                       GraphicsPrimitive::LineWidthType::PIXELS,
+                                                       lineThickness);
+                drawnFlag = true;
+            }
+        }
+        if (image->isSelectedForEditing(m_inputs->m_windowIndex)) {
+            drawAnnotationTwoDimSizingHandles(annotationFile,
+                                              image,
+                                              bottomLeft,
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              s_sizingHandleLineWidthInPixels,
+                                              image->getRotationAngle());
+        }
+    }
+    
+    return drawnFlag;
+}
+
+/**
  * Create the coordinates for drawing a line with optional arrows at the end points.
  *
  * @param lineHeadXYZ
@@ -3381,7 +4260,156 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
 }
 
 /**
- * When lines are very thin, they can be difficult to select.  This method will 
+ * Draw an annotation line that is in surface space with tangent offset.
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param line
+ *    Annotation line to draw.
+ * @param surfaceDisplayed
+ *    Surface that is displayed (may be NULL).
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::drawLineSurfaceTextureOffset(AnnotationFile* annotationFile,
+                                                                        AnnotationLine* line,
+                                                                        const Surface* surfaceDisplayed,
+                                                                        const float surfaceExtentZ)
+{
+    CaretAssert(line);
+    CaretAssert(line->getType() == AnnotationTypeEnum::LINE);
+    
+    StructureEnum::Enum structureOne(StructureEnum::INVALID);
+    StructureEnum::Enum structureTwo(StructureEnum::INVALID);
+    int32_t numberOfVerticesOne(0);
+    int32_t numberOfVerticesTwo(0);
+    int32_t vertexIndexOne(-1);
+    int32_t vertexIndexTwo(-1);
+    float offsetLengthOne(0.0f);
+    float offsetLengthTwo(0.0f);
+    AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorOne(AnnotationSurfaceOffsetVectorTypeEnum::TANGENT);
+    AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorTwo(AnnotationSurfaceOffsetVectorTypeEnum::TANGENT);
+    line->getStartCoordinate()->getSurfaceSpace(structureOne, numberOfVerticesOne, vertexIndexOne,
+                                                offsetLengthOne, surfaceOffsetVectorOne);
+    line->getEndCoordinate()->getSurfaceSpace(structureTwo, numberOfVerticesTwo, vertexIndexTwo,
+                                                offsetLengthTwo, surfaceOffsetVectorTwo);
+
+    if ((surfaceDisplayed->getStructure() != structureOne)
+        || (surfaceDisplayed->getStructure() != structureTwo)
+        || (surfaceDisplayed->getNumberOfNodes() != numberOfVerticesOne)
+        || (surfaceDisplayed->getNumberOfNodes() != numberOfVerticesTwo)
+        || (vertexIndexOne < 0)
+        || (vertexIndexTwo < 0)) {
+        return false;
+    }
+    float lineHeadXYZ[3];
+    float lineTailXYZ[3];
+    surfaceDisplayed->getCoordinate(vertexIndexOne, lineHeadXYZ);
+    surfaceDisplayed->getCoordinate(vertexIndexTwo, lineTailXYZ);
+    
+    float offsetVectorOne[3];
+    float offsetVectorTwo[3];
+    surfaceDisplayed->getNormalVector(vertexIndexOne,
+                                      offsetVectorOne);
+    surfaceDisplayed->getNormalVector(vertexIndexTwo,
+                                      offsetVectorTwo);
+    for (int32_t i = 0; i < 3; i++) {
+        lineHeadXYZ[i] += (offsetVectorOne[i] * offsetLengthOne);
+        lineTailXYZ[i] += (offsetVectorTwo[i] * offsetLengthTwo);
+    }
+    
+    std::vector<float> lineCoordinates;
+    lineCoordinates.insert(lineCoordinates.end(),
+                           lineHeadXYZ, lineHeadXYZ + 3);
+    lineCoordinates.insert(lineCoordinates.end(),
+                           lineTailXYZ, lineTailXYZ + 3);
+    
+    if (line->getLineWidthPercentage() <= 0.0) {
+        convertObsoleteLineWidthPixelsToPercentageWidth(line);
+    }
+    float lineThickness = ((line->getLineWidthPercentage() / 100.0)
+                           * surfaceExtentZ);
+    if (m_selectionModeFlag) {
+        lineThickness = std::max(lineThickness,
+                                 s_selectionLineMinimumPixelWidth);
+    }
+    
+    const float selectionCenterXYZ[3] = {
+        (lineHeadXYZ[0] + lineTailXYZ[0]) / 2.0f,
+        (lineHeadXYZ[1] + lineTailXYZ[1]) / 2.0f,
+        (lineHeadXYZ[2] + lineTailXYZ[2]) / 2.0f
+    };
+    
+    uint8_t foregroundRGBA[4];
+    line->getLineColorRGBA(foregroundRGBA);
+    
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0f);
+    
+    bool drawnFlag = false;
+    
+    if (drawForegroundFlag) {
+        if (m_selectionModeFlag) {
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
+            
+            GraphicsShape::drawLinesByteColor(lineCoordinates,
+                                              selectionColorRGBA,
+                                              GraphicsPrimitive::LineWidthType::PIXELS,
+                                              lineThickness);
+//            if ( ! startArrowCoordinates.empty()) {
+//                GraphicsShape::drawLineStripMiterJoinByteColor(startArrowCoordinates,
+//                                                               selectionColorRGBA,
+//                                                               GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+//                                                               lineThickness);
+//            }
+//            if ( ! endArrowCoordinates.empty()) {
+//                GraphicsShape::drawLineStripMiterJoinByteColor(endArrowCoordinates,
+//                                                               selectionColorRGBA,
+//                                                               GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+//                                                               lineThickness);
+//            }
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    line,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
+        }
+        else {
+            if (drawForegroundFlag) {
+                GraphicsShape::drawLinesByteColor(lineCoordinates,
+                                                  foregroundRGBA,
+                                                  GraphicsPrimitive::LineWidthType::PIXELS,
+                                                  lineThickness);
+//                if ( ! startArrowCoordinates.empty()) {
+//                    GraphicsShape::drawLineStripMiterJoinByteColor(startArrowCoordinates,
+//                                                                   foregroundRGBA,
+//                                                                   GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+//                                                                   lineThickness);
+//                }
+//                if ( ! endArrowCoordinates.empty()) {
+//                    GraphicsShape::drawLineStripMiterJoinByteColor(endArrowCoordinates,
+//                                                                   foregroundRGBA,
+//                                                                   GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+//                                                                   lineThickness);
+//                }
+                drawnFlag = true;
+            }
+        }
+        
+        if (line->isSelectedForEditing(m_inputs->m_windowIndex)) {
+            drawAnnotationOneDimSizingHandles(annotationFile,
+                                              line,
+                                              lineHeadXYZ,
+                                              lineTailXYZ,
+                                              s_sizingHandleLineWidthInPixels);
+        }
+    }
+    
+    return drawnFlag;
+}
+
+/**
+ * When lines are very thin, they can be difficult to select.  This method will
  * return the line thickness percentage, adjusted so that is thick enough that
  * the user will be able to select the annotation.
  *
@@ -3644,13 +4672,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
                                                                              const float rotationAngle)
 {
     CaretAssert(annotation);
-    AnnotationText* textAnn(NULL);
+    AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
     bool modelSpaceTangentTextFlag = false;
-    if (annotation->getType() == AnnotationTypeEnum::TEXT) {
-        textAnn = dynamic_cast<AnnotationText*>(annotation);
-        CaretAssert(textAnn);
-        if (textAnn->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
-            const AnnotationCoordinate* coord = textAnn->getCoordinate();
+    {
+        AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(annotation);
+        if (twoDimShape != NULL) {
+            const AnnotationCoordinate* coord = twoDimShape->getCoordinate();
             switch (coord->getSurfaceOffsetVectorType()) {
                 case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
                     break;

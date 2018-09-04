@@ -163,6 +163,16 @@ AnnotationOneDimensionalShape::getEndCoordinate() const
 }
 
 /**
+ * @return The surface offset vector type for this annotation.
+ */
+AnnotationSurfaceOffsetVectorTypeEnum::Enum
+AnnotationOneDimensionalShape::getSurfaceOffsetVectorType() const
+{
+    CaretAssert(m_startCoordinate);
+    return m_startCoordinate->getSurfaceOffsetVectorType();
+}
+
+/**
  * Is the object modified?
  * @return true if modified, else false.
  */

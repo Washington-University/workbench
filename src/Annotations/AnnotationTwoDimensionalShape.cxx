@@ -170,6 +170,16 @@ AnnotationTwoDimensionalShape::getCoordinate() const
 }
 
 /**
+ * @return The surface offset vector type for this annotation.
+ */
+AnnotationSurfaceOffsetVectorTypeEnum::Enum
+AnnotationTwoDimensionalShape::getSurfaceOffsetVectorType() const
+{
+    CaretAssert(m_coordinate);
+    return m_coordinate->getSurfaceOffsetVectorType();
+}
+
+/**
  * @return Height for "two-dimensional" annotations in percentage zero to one-hundred.
  */
 float
@@ -330,12 +340,22 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
 {
     bool viewportFlag    = false;
     
+    bool surfaceTangentOffsetFlag = false;
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
+            switch (getCoordinate()->getSurfaceOffsetVectorType()) {
+                case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+                    surfaceTangentOffsetFlag = true;
+                    break;
+            }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
             break;
@@ -381,6 +401,11 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
             allowsMovingFlag   = true;
             allowsRotationFlag = true;
             break;
+    }
+    
+    if (surfaceTangentOffsetFlag) {
+        allowsCornerResizingFlag = false;
+        allowsSideResizingFlag   = false;
     }
     
     bool validFlag = false;

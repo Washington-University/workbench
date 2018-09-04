@@ -49,6 +49,8 @@ namespace caret {
         
         const AnnotationCoordinate* getEndCoordinate() const;
         
+        virtual AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const override;
+        
         virtual bool isModified() const;
         
         virtual void clearModified();
