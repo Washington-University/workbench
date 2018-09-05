@@ -129,11 +129,25 @@ namespace caret {
                                                          const double thickness,
                                                          const uint8_t rgba[4]);
         
+        static void drawOutlineRectangleVerticesInMiddle(const float bottomLeft[3],
+                                                         const float bottomRight[3],
+                                                         const float topRight[3],
+                                                         const float topLeft[3],
+                                                         const float thickness,
+                                                         const uint8_t rgba[4]);
+        
         static void drawOutlineRectangleVerticesAtInside(const double bottomLeft[3],
                                                          const double bottomRight[3],
                                                          const double topRight[3],
                                                          const double topLeft[3],
                                                          const double thickness,
+                                                         const uint8_t rgba[4]);
+        
+        static void drawOutlineRectangleVerticesAtInside(const float bottomLeft[3],
+                                                         const float bottomRight[3],
+                                                         const float topRight[3],
+                                                         const float topLeft[3],
+                                                         const float thickness,
                                                          const uint8_t rgba[4]);
         
         // ADD_NEW_METHODS_HERE
@@ -214,6 +228,14 @@ namespace caret {
                                                 const double topRight[3],
                                                 const double topLeft[3],
                                                 const double thicknessIn,
+                                                const uint8_t rgba[4],
+                                                bool verticesInMiddleFlag);
+        
+        static void drawOutlineRectanglePrivate(const float bottomLeft[3],
+                                                const float bottomRight[3],
+                                                const float topRight[3],
+                                                const float topLeft[3],
+                                                const float thicknessIn,
                                                 const uint8_t rgba[4],
                                                 bool verticesInMiddleFlag);
         

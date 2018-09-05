@@ -1707,14 +1707,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBoxSurfaceTangentOffset(Annotatio
             }
             
             if (drawForegroundFlag) {
-                GraphicsShape::drawBoxOutlineByteColor(bottomLeft,
-                                                       bottomRight,
-                                                       topRight,
-                                                       topLeft,
-                                                       foregroundRGBA,
-                                                       GraphicsPrimitive::LineWidthType::PIXELS,
-                                                       lineThickness);
+                glPolygonOffset(-1.0, -1.0);
+                glEnable(GL_POLYGON_OFFSET_FILL);
+                GraphicsShape::drawOutlineRectangleVerticesInMiddle(bottomLeft,
+                                                                    bottomRight,
+                                                                    topRight,
+                                                                    topLeft,
+                                                                    lineThickness,
+                                                                    foregroundRGBA);
                 drawnFlag = true;
+                glDisable(GL_POLYGON_OFFSET_FILL);
             }
         }
         if (box->isSelectedForEditing(m_inputs->m_windowIndex)) {
@@ -3620,14 +3622,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageSurfaceTangentOffset(Annotat
             }
             
             if (drawForegroundFlag) {
-                GraphicsShape::drawBoxOutlineByteColor(bottomLeft,
-                                                       bottomRight,
-                                                       topRight,
-                                                       topLeft,
-                                                       foregroundRGBA,
-                                                       GraphicsPrimitive::LineWidthType::PIXELS,
-                                                       lineThickness);
+                glPolygonOffset(-1.0, -1.0);
+                glEnable(GL_POLYGON_OFFSET_FILL);
+                GraphicsShape::drawOutlineRectangleVerticesInMiddle(bottomLeft,
+                                                                    bottomRight,
+                                                                    topRight,
+                                                                    topLeft,
+                                                                    lineThickness,
+                                                                    foregroundRGBA);
                 drawnFlag = true;
+                glDisable(GL_POLYGON_OFFSET_FILL);
             }
         }
         if (image->isSelectedForEditing(m_inputs->m_windowIndex)) {

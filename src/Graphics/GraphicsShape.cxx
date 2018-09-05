@@ -1178,6 +1178,44 @@ GraphicsShape::updateModelMatrixToFaceViewer()
     glScalef(sx, sy, sz);
 }
 
+
+/**
+ * Draw an rectangle outline.
+ * The normal vector is computed from three consecutive vertices in the rectangle.
+ *
+ * @param bottomLeft
+ *     Bottom left vertex of the rectangle.
+ * @param bottomRight
+ *     Bottom right vertex of the rectangle.
+ * @param topRight
+ *     Top right vertex of the rectangle.
+ * @param topLeft
+ *     Top left vertex of the rectangle.
+ * @param thickness
+ *     Thickness of the outline
+ * @param rgba
+ *     RGBA color for the outline.
+ * @param verticesInMiddleFlag
+ *     If true, the lines are centered around the vertices.  Otherwise,
+ *     the inner sides of the lines are tangent to the vertices.
+ */
+void
+GraphicsShape::drawOutlineRectanglePrivate(const float bottomLeft[3],
+                                           const float bottomRight[3],
+                                           const float topRight[3],
+                                           const float topLeft[3],
+                                           const float thicknessIn,
+                                           const uint8_t rgba[4],
+                                           bool verticesInMiddleFlag)
+{
+    const double bl[3] { bottomLeft[0], bottomLeft[1], bottomLeft[2] };
+    const double br[3] { bottomRight[0], bottomRight[1], bottomRight[2] };
+    const double tr[3] { topRight[0], topRight[1], topRight[2] };
+    const double tl[3] { topLeft[0], topLeft[1], topLeft[2] };
+    
+    drawOutlineRectanglePrivate(bl, br, tr, tl, thicknessIn, rgba, verticesInMiddleFlag);
+}
+
 /**
  * Draw an rectangle outline.
  * The normal vector is computed from three consecutive vertices in the rectangle.
@@ -1332,6 +1370,76 @@ GraphicsShape::drawOutlineRectangleVerticesInMiddle(const double bottomLeft[3],
                                 thickness,
                                 rgba,
                                 true);
+}
+
+/**
+ * Draw an rectangle outline.
+ * The given points are in the middle of outline.
+ * The normal vector is computed from three consecutive vertices in the rectangle.
+ *
+ * @param bottomLeft
+ *     Bottom left vertex of the rectangle.
+ * @param bottomRight
+ *     Bottom right vertex of the rectangle.
+ * @param topRight
+ *     Top right vertex of the rectangle.
+ * @param topLeft
+ *     Top left vertex of the rectangle.
+ * @param thickness
+ *     Thickness of the outline
+ * @param rgba
+ *     RGBA color for the outline.
+ */
+void
+GraphicsShape::drawOutlineRectangleVerticesInMiddle(const float bottomLeft[3],
+                                                    const float bottomRight[3],
+                                                    const float topRight[3],
+                                                    const float topLeft[3],
+                                                    const float thickness,
+                                                    const uint8_t rgba[4])
+{
+    drawOutlineRectanglePrivate(bottomLeft,
+                                bottomRight,
+                                topRight,
+                                topLeft,
+                                thickness,
+                                rgba,
+                                true);
+}
+
+/**
+ * Draw an rectangle outline.
+ * The given points are at the inside of outline.
+ * The normal vector is computed from three consecutive vertices in the rectangle.
+ *
+ * @param bottomLeft
+ *     Bottom left vertex of the rectangle.
+ * @param bottomRight
+ *     Bottom right vertex of the rectangle.
+ * @param topRight
+ *     Top right vertex of the rectangle.
+ * @param topLeft
+ *     Top left vertex of the rectangle.
+ * @param thickness
+ *     Thickness of the outline
+ * @param rgba
+ *     RGBA color for the outline.
+ */
+void
+GraphicsShape::drawOutlineRectangleVerticesAtInside(const float bottomLeft[3],
+                                                    const float bottomRight[3],
+                                                    const float topRight[3],
+                                                    const float topLeft[3],
+                                                    const float thickness,
+                                                    const uint8_t rgba[4])
+{
+    drawOutlineRectanglePrivate(bottomLeft,
+                                bottomRight,
+                                topRight,
+                                topLeft,
+                                thickness,
+                                rgba,
+                                false);
 }
 
 /**
