@@ -172,6 +172,48 @@ GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(const float pixels)
 }
 
 /**
+ * Convert millimeters to pixels.
+ * The current transformations must be for drawing in millimeters.
+ *
+ * @param millimeters
+ *    The millimeters size
+ * @return
+ *    Pixels value.
+ */
+float
+GraphicsUtilitiesOpenGL::convertMillimetersToPixels(const float millimeters)
+{
+    float pixels = 1.0f;
+    
+    EventOpenGLObjectToWindowTransform xform(EventOpenGLObjectToWindowTransform::SpaceType::VOLUME_SLICE_MODEL);
+    EventManager::get()->sendEvent(xform.getPointer());
+    if (xform.isValid()) {
+        const std::array<int32_t, 4> viewport = xform.getViewport();
+        
+        const float windowZ = 0.0f;
+        float bottomWindowXYZ[3] = { (float)viewport[0], (float)viewport[1], (float)windowZ };
+        float topWindowXYZ[3]    = { (float)viewport[0], (float)(viewport[1] + viewport[3]), (float)windowZ };
+        
+        float bottomModelXYZ[3];
+        float topModelXYZ[3];
+        
+        xform.inverseTransformPoint(bottomWindowXYZ, bottomModelXYZ);
+        xform.inverseTransformPoint(topWindowXYZ, topModelXYZ);
+        
+        const float rangeMillimeters = MathFunctions::distance3D(bottomModelXYZ,
+                                                                 topModelXYZ);
+        const float rangePixels = viewport[3];
+        if ((rangePixels > 0)
+            && (rangeMillimeters > 0)) {
+            const float ratio =  rangePixels / rangeMillimeters;
+            pixels = millimeters * ratio;
+        }
+    }
+    
+    return pixels;
+}
+
+/**
  * Reset and ignore any OpenGL errors.
  */
 void

@@ -338,33 +338,9 @@ AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
 bool
 AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const
 {
-    bool viewportFlag    = false;
+    const bool viewportFlag    = (getCoordinateSpace() == AnnotationCoordinateSpaceEnum::VIEWPORT);
     
-    bool surfaceTangentOffsetFlag = false;
-    switch (getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::CHART:
-            break;
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            switch (getCoordinate()->getSurfaceOffsetVectorType()) {
-                case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
-                    break;
-                case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
-                    break;
-                case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
-                    surfaceTangentOffsetFlag = true;
-                    break;
-            }
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            break;
-        case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            viewportFlag = true;
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            break;
-    }
+    const bool surfaceTangentOffsetFlag = isInSurfaceSpaceWithTangentOffset();
     
     bool allowsMovingFlag         = false;
     bool allowsCornerResizingFlag = false;

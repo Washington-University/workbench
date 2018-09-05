@@ -666,6 +666,41 @@ Annotation::setCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordin
 }
 
 /**
+ * @return Is this annotation in surface coordinate space
+ * with tangent selected for the surface offset vector?
+ */
+bool
+Annotation::isInSurfaceSpaceWithTangentOffset() const
+{
+    bool flag = false;
+    
+    switch (m_coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            switch (getSurfaceOffsetVectorType()) {
+                case AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::SURFACE_NORMAL:
+                    break;
+                case AnnotationSurfaceOffsetVectorTypeEnum::TANGENT:
+                    flag = true;
+                    break;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    return flag;
+}
+
+/**
  * @return The tab index.  Valid only for tab coordinate space annotations.
  */
 int32_t

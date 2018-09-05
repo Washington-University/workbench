@@ -158,6 +158,8 @@ namespace caret {
         
         virtual AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const = 0;
         
+        bool isInSurfaceSpaceWithTangentOffset() const;
+        
         int32_t getTabIndex() const;
         
         void setTabIndex(const int32_t tabIndex);

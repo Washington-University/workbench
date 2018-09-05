@@ -2220,10 +2220,8 @@ m_textDrawingSpace(TextDrawingSpace::VIEWPORT)
     CaretAssert(font);
     
     m_textDrawingSpace = TextDrawingSpace::VIEWPORT;
-    if (m_annotationText.getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
-        if (m_annotationText.getCoordinate()->getSurfaceOffsetVectorType() == AnnotationSurfaceOffsetVectorTypeEnum::TANGENT) {
-            m_textDrawingSpace = TextDrawingSpace::MODEL;
-        }
+    if (m_annotationText.isInSurfaceSpaceWithTangentOffset()) {
+        m_textDrawingSpace = TextDrawingSpace::MODEL;
     }
     
     if (annotationText.getText().isEmpty()) {
