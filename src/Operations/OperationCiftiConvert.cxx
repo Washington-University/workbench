@@ -129,6 +129,38 @@ OperationParameters* OperationCiftiConvert::getParameters()
     return ret;
 }
 
+namespace
+{
+    
+    bool haveWarned = false;
+    
+    float toFloat(const AString& input)
+    {
+        bool ok = false;
+        double converted = input.toDouble(&ok);
+        if (!ok) throw OperationException("failed to convert text to number: '" + input + "'");
+        float ret = float(converted);//this will turn some non-inf values into +/- inf, so let's fix that
+        if (!std::isinf(converted) && (abs(converted) > numeric_limits<float>::max() || abs(converted) < numeric_limits<float>::denorm_min()))
+        {
+            if (!haveWarned)
+            {
+                CaretLogWarning("input number(s) changed to fit range of float32, first instance: '" + input + "'");
+                haveWarned = true;
+            }
+            if (std::isinf(ret))
+            {
+                if (ret > 0.0f)
+                {
+                    ret = numeric_limits<float>::max();
+                } else {
+                    ret = -numeric_limits<float>::max();
+                }
+            }
+        }
+        return ret;
+    }
+}
+
 void OperationCiftiConvert::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -498,11 +530,9 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         }
         ciftiOut->setCiftiXML(outXML);
         vector<float> temprow(textRowLength);
-        bool ok = false;
         for (int i = 0; i < textRowLength; ++i)
         {
-            temprow[i] = entries[i].toFloat(&ok);
-            if (!ok) throw OperationException("failed to convert text to number: '" + entries[i] + "'");
+            temprow[i] = toFloat(entries[i]);
         }
         ciftiOut->setRow(temprow.data(), 0);
         for (int64_t j = 1; j < numRows; ++j)
@@ -517,8 +547,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             if (entries.size() != textRowLength) throw OperationException("text file has inconsistent line length");
             for (int i = 0; i < textRowLength; ++i)
             {
-                temprow[i] = entries[i].toFloat(&ok);
-                if (!ok) throw OperationException("failed to convert text to number: '" + entries[i] + "'");
+                temprow[i] = toFloat(entries[i]);
             }
             ciftiOut->setRow(temprow.data(), j);
         }
