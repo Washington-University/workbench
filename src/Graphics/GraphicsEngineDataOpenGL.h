@@ -64,6 +64,11 @@ namespace caret {
             DRAW_SELECTION,
         };
         
+        enum SpaceMode {
+            MODEL,
+            WINDOW,
+        };
+        
         GraphicsEngineDataOpenGL(const GraphicsEngineDataOpenGL&);
 
         GraphicsEngineDataOpenGL& operator=(const GraphicsEngineDataOpenGL&);
@@ -84,9 +89,14 @@ namespace caret {
                                 GraphicsPrimitive* primitive,
                                 GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
         
-        static void drawWindowSpace(const PrivateDrawMode drawMode,
-                                GraphicsPrimitive* primitive,
-                                GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
+        static void drawModelOrWindowSpace(const SpaceMode spaceMode,
+                                           const PrivateDrawMode drawMode,
+                                           GraphicsPrimitive* primitive,
+                                           GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
+        
+//        static void drawWindowSpace(const PrivateDrawMode drawMode,
+//                                GraphicsPrimitive* primitive,
+//                                GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper);
         
         static void drawPointsPrimitiveMillimeters(const GraphicsPrimitive* primitive);
         

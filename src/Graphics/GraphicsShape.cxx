@@ -288,6 +288,42 @@ GraphicsShape::drawEllipseOutlineByteColor(const double majorAxis,
 }
 
 /**
+ * Draw an outline ellipse in the XY plane (all Z-coordinates will be zero).
+ *
+ * @param majorAxis
+ *    Diameter of the major axis.
+ * @param minorAxis
+ *    Diameter of the minor axis.
+ * @param rgba
+ *    Color for drawing.
+ * @param lineThickness
+ *    Thickness of the line.
+ */
+void
+GraphicsShape::drawEllipseOutlineModelSpaceByteColor(const double majorAxis,
+                                                     const double minorAxis,
+                                                     const uint8_t rgba[4],
+                                                     const double lineThickness)
+{
+    std::vector<float> ellipseXYZ;
+    createEllipseVertices(majorAxis, minorAxis, ellipseXYZ);
+    
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN,
+                                                                                       rgba));
+    const int32_t numVertices = static_cast<int32_t>(ellipseXYZ.size() / 3);
+    primitive->reserveForNumberOfVertices(numVertices);
+    for (int32_t i = 0; i < numVertices; i++) {
+        primitive->addVertex(&ellipseXYZ[i * 3]);
+    }
+    
+    primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
+                            lineThickness);
+    primitive->setUsageTypeAll(GraphicsPrimitive::UsageType::MODIFIED_ONCE_DRAWN_FEW_TIMES);
+    
+    GraphicsEngineDataOpenGL::draw(primitive.get());
+}
+
+/**
  * Draw a filled ellipse.
  *
  * @param majorAxis

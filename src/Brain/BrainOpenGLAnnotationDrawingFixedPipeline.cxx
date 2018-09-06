@@ -2761,11 +2761,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOvalSurfaceTangentOffset(Annotati
             if (drawForegroundFlag) {
                 glPolygonOffset(-1.0, 1.0);
                 glEnable(GL_POLYGON_OFFSET_FILL);
-                GraphicsShape::drawEllipseOutlineByteColor(majorAxis,
-                                                           minorAxis,
-                                                           foregroundRGBA,
-                                                           GraphicsPrimitive::LineWidthType::PIXELS,
-                                                           lineThickness);
+                GraphicsShape::drawEllipseOutlineModelSpaceByteColor(majorAxis,
+                                                                     minorAxis,
+                                                                     foregroundRGBA,
+                                                                     lineThickness);
+//                GraphicsShape::drawEllipseOutlineByteColor(majorAxis,
+//                                                           minorAxis,
+//                                                           foregroundRGBA,
+//                                                           GraphicsPrimitive::LineWidthType::PIXELS,
+//                                                           lineThickness);
                 glDisable(GL_POLYGON_OFFSET_FILL);
                 drawnFlag = true;
             }

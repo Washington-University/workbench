@@ -63,6 +63,23 @@ namespace caret {
         };
         
         /**
+         * Drawing space
+         */
+        enum class DrawingSpace {
+            /**
+             * Lines are drawn using the current modeling transformations in
+             * the XY plane.  Z-coordinates should all be the same.
+             */
+            MODEL_XY,
+            /**
+             * Coordinates of the lines are converted into window (pixel) coordinates
+             * and the lines are drawn in 'window space'.  The lines always
+             * face the user even with rotations.
+             */
+            WINDOW
+        };
+        
+        /**
          * Join tyupe of how connected lines are drawn to remove gaps between segments
          */
         enum class JoinType {
@@ -80,7 +97,7 @@ namespace caret {
         enum class LineType {
             /** Each pair of vertices is an independent line segment (GL_LINES) */
             LINES,
-            /** A connected set of lines forming a loop (last is automaticall connected to first) */
+            /** A connected set of lines forming a loop (last is automatically connected to first) */
             LINE_LOOP,
             /** A connected set of lines (last is not connected to first) */
             LINE_STRIP
@@ -152,8 +169,9 @@ namespace caret {
                                         const std::vector<float>& floatRGBA,
                                         const std::vector<uint8_t>& byteRGBA,
                                         const std::set<int32_t>& vertexPrimitiveRestartIndices,
-                                        const float lineThicknessPixels,
+                                        const float lineThickness,
                                         const ColorType colorType,
+                                        const DrawingSpace drawingSpace,
                                         const LineType lineType,
                                         const JoinType joinType);
         
@@ -214,9 +232,11 @@ namespace caret {
         
         std::set<int32_t> m_vertexPrimitiveRestartIndices;
         
-        const float m_lineThicknessPixels;
+        const float m_lineThickness;
         
         const ColorType m_colorType;
+        
+        const DrawingSpace m_drawingSpace;
         
         const LineType m_lineType;
         

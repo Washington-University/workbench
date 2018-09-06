@@ -63,10 +63,12 @@ using namespace caret;
  * @param vertexPrimitiveRestartIndices
  *     Contains indices at which the primitive should restart.
  *     The primitive will stop at the index and not connect to the next index.
- * @param lineThicknessPixels
- *     Thickness of lines in pixels.
+ * @param lineThickness
+ *     Thickness of lines in (pixels when drawingSpace is WINDOW)
  * @param colorType
  *     Type of color (solid or per-vertex)
+ * @param drawingSpace
+ *     Drawing space
  * @param lineType
  *     Type of lines drawn.
  * @param joinType
@@ -76,16 +78,18 @@ GraphicsOpenGLPolylineTriangles::GraphicsOpenGLPolylineTriangles(const std::vect
                                                                  const std::vector<float>& floatRGBA,
                                                                  const std::vector<uint8_t>& byteRGBA,
                                                                  const std::set<int32_t>& vertexPrimitiveRestartIndices,
-                                                                 const float lineThicknessPixels,
+                                                                 const float lineThickness,
                                                                  const ColorType colorType,
+                                                                 const DrawingSpace drawingSpace,
                                                                  const LineType lineType,
                                                                  const JoinType joinType)
 : m_inputXYZ(xyz),
 m_inputFloatRGBA(floatRGBA),
 m_inputByteRGBA(byteRGBA),
 m_vertexPrimitiveRestartIndices(vertexPrimitiveRestartIndices),
-m_lineThicknessPixels(lineThicknessPixels),
+m_lineThickness(lineThickness),
 m_colorType(colorType),
+m_drawingSpace(drawingSpace),
 m_lineType(lineType),
 m_joinType(joinType)
 {
@@ -158,6 +162,7 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
             break;
     }
     
+    DrawingSpace drawingSpace = DrawingSpace::WINDOW;
     LineType lineType = LineType::LINES;
     JoinType joinType = JoinType::NONE;
     switch (primitive->m_primitiveType) {
@@ -181,6 +186,30 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             errorMessageOut = "Input type is OPENGL_TRIANGLES but must be one of the POLYGONAL_LINE* types";
+            break;
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+            drawingSpace = DrawingSpace::MODEL_XY;
+            lineType = LineType::LINE_LOOP;
+            joinType = JoinType::BEVEL;
+            break;
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
+            drawingSpace = DrawingSpace::MODEL_XY;
+            lineType = LineType::LINE_LOOP;
+            joinType = JoinType::MITER;
+            break;
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+            drawingSpace = DrawingSpace::MODEL_XY;
+            lineType = LineType::LINE_STRIP;
+            joinType = JoinType::BEVEL;
+            break;
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_MITER_JOIN:
+            drawingSpace = DrawingSpace::MODEL_XY;
+            lineType = LineType::LINE_STRIP;
+            joinType = JoinType::MITER;
+            break;
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINES:
+            drawingSpace = DrawingSpace::MODEL_XY;
+            lineType = LineType::LINES;
             break;
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
             lineType = LineType::LINE_LOOP;
@@ -216,6 +245,7 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
                                                    primitive->m_polygonalLinePrimitiveRestartIndices,
                                                    lineWidthPixels,
                                                    colorType,
+                                                   drawingSpace,
                                                    lineType,
                                                    joinType);
     
@@ -570,9 +600,18 @@ void
 GraphicsOpenGLPolylineTriangles::convertFromModelToWindowCoordinate(const float modelXYZ[3],
                                                               float windowXYZOut[3]) const
 {
-    CaretAssert(m_transformEvent);
-    m_transformEvent->transformPoint(modelXYZ,
-                                     windowXYZOut);
+    switch (m_drawingSpace) {
+        case DrawingSpace::MODEL_XY:
+            windowXYZOut[0] = modelXYZ[0];
+            windowXYZOut[1] = modelXYZ[1];
+            windowXYZOut[2] = modelXYZ[2];
+            break;
+        case DrawingSpace::WINDOW:
+            CaretAssert(m_transformEvent);
+            m_transformEvent->transformPoint(modelXYZ,
+                                             windowXYZOut);
+            break;
+    }
 }
 
 /**
@@ -635,7 +674,7 @@ GraphicsOpenGLPolylineTriangles::createTrianglesFromWindowVertices(const int32_t
     /*
      * "Width" of rectangle
      */
-    const float halfWidth = m_lineThicknessPixels / 2.0f;
+    const float halfWidth = m_lineThickness / 2.0f;
     const float halfWidthX = perpendicularVector[0] * halfWidth;
     const float halfWidthY = perpendicularVector[1] * halfWidth;
     
@@ -1046,7 +1085,7 @@ GraphicsOpenGLPolylineTriangles::performMiterJoin(const PolylineInfo& polyOne,
     /*
      * Miter limit is a multiple of the line thickness
      */
-    const float miterLimit = m_lineThicknessPixels;
+    const float miterLimit = m_lineThickness;
     const float miterLimitSquared = miterLimit * miterLimit;
     
     /*

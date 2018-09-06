@@ -375,6 +375,8 @@ GraphicsPrimitive::isValid() const
         
         switch (m_primitiveType) {
             case PrimitiveType::OPENGL_LINE_LOOP:
+            case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+            case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
             case PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
             case PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
                 if (numXYZ < 3) {
@@ -382,12 +384,15 @@ GraphicsPrimitive::isValid() const
                 }
                 break;
             case PrimitiveType::OPENGL_LINE_STRIP:
+            case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+            case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_MITER_JOIN:
             case PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN:
             case PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN:
                 if (numXYZ < 2) {
                     CaretLogWarning("Line strip must have at least 2 vertices.");
                 }
                 break;
+            case PrimitiveType::MODEL_SPACE_POLYGONAL_LINES:
             case PrimitiveType::OPENGL_LINES:
             case PrimitiveType::POLYGONAL_LINES:
                 if (numXYZ < 2) {
@@ -485,6 +490,21 @@ GraphicsPrimitive::getPrimitiveTypeAsText() const
             break;
         case PrimitiveType::OPENGL_TRIANGLES:
             s = "OpenGL Triangles";
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+            s = "Model Space Polygonal Line Loop Bevel Join";
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
+            s = "Model Space Polygonal Line Loop Meter Join";
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+            s = "Model Space Polygonal Line Strip Bevel Join";
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_MITER_JOIN:
+            s = "Model Space Polygonal Line Strip Miter Join";
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINES:
+            s = "Model Space Polygonal Lines";
             break;
         case PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
             s = "Polygonal Line Loop Bevel Join";
@@ -648,6 +668,17 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
         case PrimitiveType::OPENGL_TRIANGLE_STRIP:
             break;
         case PrimitiveType::OPENGL_TRIANGLES:
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
+            addLineWidthFlag = true;
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_MITER_JOIN:
+            addLineWidthFlag = true;
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINES:
+            addLineWidthFlag = true;
             break;
         case PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
         case PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
@@ -1159,6 +1190,16 @@ GraphicsPrimitive::addPrimitiveRestart()
             triangleStripFlag = true;
             break;
         case PrimitiveType::OPENGL_TRIANGLES:
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
+            polygonalLineFlag = true;
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_MITER_JOIN:
+            polygonalLineFlag = true;
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINES:
             break;
         case PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
         case PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:

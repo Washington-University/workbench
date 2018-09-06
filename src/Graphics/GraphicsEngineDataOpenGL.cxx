@@ -474,9 +474,10 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
     GraphicsPrimitive* primitiveToDraw = primitive;
     
     /* Conversion to window space creates a new primitive that must be deleted */
-    std::unique_ptr<GraphicsPrimitive> windowSpacePrimitive;
+    std::unique_ptr<GraphicsPrimitive> lineConversionPrimitive;
     
-    bool workbenchLineFlag = false;
+    bool modelSpaceLineFlag = false;
+    bool windowSpaceLineFlag = false;
     bool millimeterPointsFlag = false;
     bool spheresFlag = false;
     switch (primitive->m_primitiveType) {
@@ -503,12 +504,19 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
             break;
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_MITER_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINES:
+            modelSpaceLineFlag = true;
+            break;
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
-            workbenchLineFlag = true;
+            windowSpaceLineFlag = true;
             break;
         case GraphicsPrimitive::PrimitiveType::SPHERES:
             spheresFlag = true;
@@ -524,7 +532,8 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
     else if (spheresFlag) {
         drawSpheresPrimitive(primitive);
     }
-    else if (workbenchLineFlag) {
+    else if (modelSpaceLineFlag
+             || windowSpaceLineFlag) {
         AString errorMessage;
         primitiveToDraw = GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(primitive,
                                                                                                  errorMessage);
@@ -538,10 +547,22 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
 #endif
             return;
         }
-        windowSpacePrimitive.reset(primitiveToDraw);
-        drawWindowSpace(PrivateDrawMode::DRAW_NORMAL,
-                        primitiveToDraw,
-                        NULL);
+        SpaceMode spaceMode = SpaceMode::WINDOW;
+        if (modelSpaceLineFlag) {
+            spaceMode = SpaceMode::MODEL;
+        }
+        else if (windowSpaceLineFlag) {
+            spaceMode = SpaceMode::WINDOW;
+        }
+        else {
+            CaretAssert(0);
+        }
+        
+        lineConversionPrimitive.reset(primitiveToDraw);
+        drawModelOrWindowSpace(spaceMode,
+                               PrivateDrawMode::DRAW_NORMAL,
+                               primitiveToDraw,
+                               NULL);
     }
     else {
         drawPrivate(PrivateDrawMode::DRAW_NORMAL,
@@ -550,9 +571,49 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
     }
 }
 
+///**
+// * Draw the graphics primitive in window space.
+// *
+// * @param drawMode
+// *     Mode for drawing.
+// * @param primitive
+// *     Primitive that is drawn.
+// * @param primitiveSelectionHelper
+// *     Selection helper when draw mode is selection.
+// */
+//void
+//GraphicsEngineDataOpenGL::drawWindowSpace(const PrivateDrawMode drawMode,
+//                            GraphicsPrimitive* primitive,
+//                            GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper)
+//{
+//    int32_t polygonMode[2];
+//    int32_t viewport[4];
+//    saveOpenGLStateForWindowSpaceDrawing(polygonMode,
+//                                         viewport);
+//    
+//    glMatrixMode(GL_PROJECTION);
+//    glLoadIdentity();
+//    glOrtho(viewport[0], viewport[0] + viewport[2],
+//            viewport[1], viewport[1] + viewport[3],
+//            0, 1);
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
+//    
+//    glPolygonMode(GL_FRONT, GL_FILL);
+//
+//    drawPrivate(drawMode,
+//                primitive,
+//                primitiveSelectionHelper);
+//    
+//    restoreOpenGLStateForWindowSpaceDrawing(polygonMode,
+//                                            viewport);
+//}
+
 /**
- * Draw the graphics primitive in window space.
+ * Draw the graphics primitive in model space.
  *
+ * @param spaceMode
+ *     Space mode: model or window
  * @param drawMode
  *     Mode for drawing.
  * @param primitive
@@ -561,25 +622,37 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
  *     Selection helper when draw mode is selection.
  */
 void
-GraphicsEngineDataOpenGL::drawWindowSpace(const PrivateDrawMode drawMode,
-                            GraphicsPrimitive* primitive,
-                            GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper)
+GraphicsEngineDataOpenGL::drawModelOrWindowSpace(const SpaceMode spaceMode,
+                                                 const PrivateDrawMode drawMode,
+                                                 GraphicsPrimitive* primitive,
+                                                 GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper)
 {
+    bool windowSpaceFlag = false;
+    switch (spaceMode) {
+        case MODEL:
+            break;
+        case WINDOW:
+            windowSpaceFlag = true;
+            break;
+    }
+    
     int32_t polygonMode[2];
     int32_t viewport[4];
     saveOpenGLStateForWindowSpaceDrawing(polygonMode,
                                          viewport);
     
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(viewport[0], viewport[0] + viewport[2],
-            viewport[1], viewport[1] + viewport[3],
-            0, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    if (windowSpaceFlag) {
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(viewport[0], viewport[0] + viewport[2],
+                viewport[1], viewport[1] + viewport[3],
+                0, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+    }
     
     glPolygonMode(GL_FRONT, GL_FILL);
-
+    
     drawPrivate(drawMode,
                 primitive,
                 primitiveSelectionHelper);
@@ -827,6 +900,12 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP:
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES:
+            break;
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_MITER_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINES:
             break;
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
@@ -1094,17 +1173,22 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
     GLenum openGLPrimitiveType = GL_INVALID_ENUM;
     switch (primitive->m_primitiveType) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
             openGLPrimitiveType = GL_LINE_LOOP;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_MITER_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN:
             openGLPrimitiveType = GL_LINE_STRIP;
             glLineWidth(getLineWidthForDrawingInPixels(primitive));
             break;
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINES:
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
             openGLPrimitiveType = GL_LINES;

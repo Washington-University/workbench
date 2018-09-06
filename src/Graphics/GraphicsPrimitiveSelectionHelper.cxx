@@ -74,15 +74,20 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
     
     switch (m_parentGraphicsPrimitive->getPrimitiveType()) {
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
             m_numberOfVerticesPerPrimitive = numberOfVertices;
             break;
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_MITER_JOIN:
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN:
             m_numberOfVerticesPerPrimitive = numberOfVertices;
             break;
+        case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINES:
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINES:
         case GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES:
             m_numberOfVerticesPerPrimitive = 2;

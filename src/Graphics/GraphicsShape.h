@@ -78,6 +78,11 @@ namespace caret {
                                                const double minorAxis,
                                                const uint8_t rgba[4]);
         
+        static void drawEllipseOutlineModelSpaceByteColor(const double majorAxis,
+                                                          const double minorAxis,
+                                                          const uint8_t rgba[4],
+                                                          const double lineThickness);
+        
         static void drawLinesByteColor(const std::vector<float>& xyz,
                                        const uint8_t rgba[4],
                                        const GraphicsPrimitive::LineWidthType lineThicknessType,
