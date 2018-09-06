@@ -168,9 +168,9 @@ m_browserWindowIndex(browserWindowIndex)
                              this, SLOT(surfaceOffsetVectorTypeChanged()));
             m_surfaceOffsetVectorTypeComboBox->getWidget()->setFixedWidth(45);
             m_surfaceOffsetVectorTypeComboBox->getWidget()->setToolTip("Vector for surface offset:\n"
-                                                                       "   C - Centroid thru Vertex\n"
-                                                                       "   N - Vertex Normal"
-                                                                       "   T - Tangent");
+                                                                       "   C - Centroid thru Vertex, Faces Viewer\n"
+                                                                       "   N - Vertex Normal, Faces Viewer\n"
+                                                                       "   T - Tangent, Rotates with Surface");
             break;
         case COORDINATE_TWO:
             break;

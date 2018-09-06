@@ -1262,8 +1262,8 @@ GraphicsShape::drawOutlineRectanglePrivate(const double bottomLeft[3],
     const double boxHeight = MathFunctions::distance3D(bottomLeft, topLeft);
     const double boxWidth  = MathFunctions::distance3D(bottomLeft, bottomRight);
     double thickness = thicknessIn;
-    thickness /= 2.0;
     if (verticesInMiddleFlag) {
+        thickness /= 2.0;
         thickness = std::min(thickness,
                              boxWidth / 2.0);
         thickness = std::min(thickness,
