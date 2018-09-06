@@ -3063,6 +3063,41 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getSurfaceNormalVector(const Surface*
 }
 
 /**
+ * @return True If the coordinate/normal vector backfacing (facing away from viewer)?
+ *
+ * @param xyz
+ *     Coordinate.
+ * @param normal
+ *     Normal vector.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::isBackFacing(const float xyz[3],
+                                                        const float normal[3]) const
+{
+    /*
+     * We don't know where the viewer is located in relation to the view of the model.
+     * But, we can transform the XYZ coordinate and another XYZ coordinate along the
+     * normal vector from model space to window space.  Then, we can compare the transformed
+     * Z-coordinates and if the Window Z along the normal vector is greater than Window Z
+     * of the coordinate, the normal vector is pointing to the viewer (if NOT then backfacing).
+     */
+    CaretAssert(m_transformEvent.get());
+    CaretAssert(m_transformEvent->isValid());
+    float windowXYZ[3];
+    const float length(25);
+    float offsetXYZ[3] {
+        xyz[0] + (normal[0] * length),
+        xyz[1] + (normal[1] * length),
+        xyz[2] + (normal[2] * length)
+    };
+    m_transformEvent->transformPoint(xyz, windowXYZ);
+    float windowOffsetXYZ[3];
+    m_transformEvent->transformPoint(offsetXYZ, windowOffsetXYZ);
+    const float diff = windowOffsetXYZ[2] - windowXYZ[2];
+    return (diff < 0.0f);
+}
+
+/**
  * Draw an annotation text with surface tangent offset
  *
  * @param annotationFile
@@ -3100,6 +3135,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextSurfaceTangentOffset(Annotati
         if ( ! dpa->isDisplayTextAnnotations()) {
             return false;
         }
+    }
+    
+    if (isBackFacing(vertexXYZ,
+                     vertexNormalXYZ)) {
+        return false;
     }
     
     double bottomLeft[3];

@@ -571,44 +571,6 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
     }
 }
 
-///**
-// * Draw the graphics primitive in window space.
-// *
-// * @param drawMode
-// *     Mode for drawing.
-// * @param primitive
-// *     Primitive that is drawn.
-// * @param primitiveSelectionHelper
-// *     Selection helper when draw mode is selection.
-// */
-//void
-//GraphicsEngineDataOpenGL::drawWindowSpace(const PrivateDrawMode drawMode,
-//                            GraphicsPrimitive* primitive,
-//                            GraphicsPrimitiveSelectionHelper* primitiveSelectionHelper)
-//{
-//    int32_t polygonMode[2];
-//    int32_t viewport[4];
-//    saveOpenGLStateForWindowSpaceDrawing(polygonMode,
-//                                         viewport);
-//    
-//    glMatrixMode(GL_PROJECTION);
-//    glLoadIdentity();
-//    glOrtho(viewport[0], viewport[0] + viewport[2],
-//            viewport[1], viewport[1] + viewport[3],
-//            0, 1);
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
-//    
-//    glPolygonMode(GL_FRONT, GL_FILL);
-//
-//    drawPrivate(drawMode,
-//                primitive,
-//                primitiveSelectionHelper);
-//    
-//    restoreOpenGLStateForWindowSpaceDrawing(polygonMode,
-//                                            viewport);
-//}
-
 /**
  * Draw the graphics primitive in model space.
  *

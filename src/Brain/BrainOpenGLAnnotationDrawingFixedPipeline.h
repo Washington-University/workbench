@@ -356,6 +356,9 @@ namespace caret {
                                     const int32_t vertexIndex,
                                     float normalVectorOut[3]) const;
         
+        bool isBackFacing(const float xyz[3],
+                          const float normal[3]) const;
+        
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
         
         Inputs* m_inputs;
