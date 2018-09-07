@@ -165,22 +165,22 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
     }
     
     if (enableTabSpaceFlag) {
-        if (m_coordInfo.m_tabIndex < 0) {
+        if (m_coordInfo.m_tabSpaceInfo.m_index < 0) {
             enableTabSpaceFlag = false;
         }
         if (m_optionalSecondCoordInfo != NULL) {
-            if (m_optionalSecondCoordInfo->m_tabIndex < 0) {
+            if (m_optionalSecondCoordInfo->m_tabSpaceInfo.m_index < 0) {
                 enableTabSpaceFlag = false;
             }
         }
     }
     
     if (enableChartSpaceFlag) {
-        if ( ! m_coordInfo.m_chartXYZValid) {
+        if ( ! m_coordInfo.m_chartSpaceInfo.m_validFlag) {
             enableChartSpaceFlag = false;
         }
         if (m_optionalSecondCoordInfo != NULL) {
-            if ( ! m_optionalSecondCoordInfo->m_chartXYZValid) {
+            if ( ! m_optionalSecondCoordInfo->m_chartSpaceInfo.m_validFlag) {
                 enableChartSpaceFlag = false;
             }
             /*
@@ -202,35 +202,35 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
         const int rowNum = gridLayout->rowCount();
         gridLayout->addWidget(rb,
                               rowNum, COLUMN_RADIO_BUTTON);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_chartXYZ[0], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_chartSpaceInfo.m_xyz[0], 'f', 1)),
                               rowNum, COLUMN_COORD_X,
                               Qt::AlignRight);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_chartXYZ[1], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_chartSpaceInfo.m_xyz[1], 'f', 1)),
                               rowNum, COLUMN_COORD_Y,
                               Qt::AlignRight);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_chartXYZ[2], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_chartSpaceInfo.m_xyz[2], 'f', 1)),
                               rowNum, COLUMN_COORD_Z,
                               Qt::AlignRight);
         
         if (m_optionalSecondCoordInfo != NULL) {
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_chartXYZ[0], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_chartSpaceInfo.m_xyz[0], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_X,
                                   Qt::AlignRight);
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_chartXYZ[1], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_chartSpaceInfo.m_xyz[1], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_Y,
                                   Qt::AlignRight);
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_chartXYZ[2], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_chartSpaceInfo.m_xyz[2], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_Z,
                                   Qt::AlignRight);
         }
     }
     
     if (enableModelSpaceFlag) {
-        if ( ! m_coordInfo.m_modelXYZValid) {
+        if ( ! m_coordInfo.m_modelSpaceInfo.m_validFlag) {
             enableModelSpaceFlag = false;
         }
         if (m_optionalSecondCoordInfo != NULL) {
-            if ( ! m_optionalSecondCoordInfo->m_modelXYZValid) {
+            if ( ! m_optionalSecondCoordInfo->m_modelSpaceInfo.m_validFlag) {
                 enableModelSpaceFlag = false;
             }
             /*
@@ -251,24 +251,24 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
         const int rowNum = gridLayout->rowCount();
         gridLayout->addWidget(rb,
                               rowNum, COLUMN_RADIO_BUTTON);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[0], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelSpaceInfo.m_xyz[0], 'f', 1)),
                               rowNum, COLUMN_COORD_X,
                               Qt::AlignRight);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[1], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelSpaceInfo.m_xyz[1], 'f', 1)),
                               rowNum, COLUMN_COORD_Y,
                               Qt::AlignRight);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelXYZ[2], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_modelSpaceInfo.m_xyz[2], 'f', 1)),
                               rowNum, COLUMN_COORD_Z,
                               Qt::AlignRight);
         
         if (m_optionalSecondCoordInfo != NULL) {
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_modelXYZ[0], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_modelSpaceInfo.m_xyz[0], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_X,
                                   Qt::AlignRight);
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_modelXYZ[1], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_modelSpaceInfo.m_xyz[1], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_Y,
                                   Qt::AlignRight);
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_modelXYZ[2], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_modelSpaceInfo.m_xyz[2], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_Z,
                                   Qt::AlignRight);
         }
@@ -278,42 +278,42 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::TAB);
         rb->setText(rb->text()
                     + " "
-                    + AString::number(m_coordInfo.m_tabIndex + 1));
+                    + AString::number(m_coordInfo.m_tabSpaceInfo.m_index + 1));
         m_spaceButtonGroup->addButton(rb,
                                       AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::TAB));
         
         const int rowNum = gridLayout->rowCount();
         gridLayout->addWidget(rb,
                               rowNum, COLUMN_RADIO_BUTTON);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[0], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabSpaceInfo.m_xyz[0], 'f', 1)),
                               rowNum, COLUMN_COORD_X,
                               Qt::AlignRight);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[1], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabSpaceInfo.m_xyz[1], 'f', 1)),
                               rowNum, COLUMN_COORD_Y,
                               Qt::AlignRight);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabXYZ[2], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_tabSpaceInfo.m_xyz[2], 'f', 1)),
                               rowNum, COLUMN_COORD_Z,
                               Qt::AlignRight);
         
         if (m_optionalSecondCoordInfo != NULL) {
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_tabXYZ[0], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_tabSpaceInfo.m_xyz[0], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_X,
                                   Qt::AlignRight);
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_tabXYZ[1], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_tabSpaceInfo.m_xyz[1], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_Y,
                                   Qt::AlignRight);
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_tabXYZ[2], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_tabSpaceInfo.m_xyz[2], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_Z,
                                   Qt::AlignRight);
         }
     }
     
     if (enableWindowSpaceFlag) {
-        if (m_coordInfo.m_windowIndex < 0) {
+        if (m_coordInfo.m_windowSpaceInfo.m_index < 0) {
             enableWindowSpaceFlag = false;
         }
         if (m_optionalSecondCoordInfo != NULL) {
-            if (m_optionalSecondCoordInfo->m_windowIndex < 0) {
+            if (m_optionalSecondCoordInfo->m_windowSpaceInfo.m_index < 0) {
                 enableWindowSpaceFlag = false;
             }
         }
@@ -322,7 +322,7 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
         QRadioButton* rb = createRadioButtonForSpace(AnnotationCoordinateSpaceEnum::WINDOW);
         rb->setText(rb->text()
                     + " "
-                    + AString::number(m_coordInfo.m_windowIndex + 1));
+                    + AString::number(m_coordInfo.m_windowSpaceInfo.m_index + 1));
         m_spaceButtonGroup->addButton(rb,
                                       AnnotationCoordinateSpaceEnum::toIntegerCode(AnnotationCoordinateSpaceEnum::WINDOW));
         
@@ -330,35 +330,35 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
         const int rowNum = gridLayout->rowCount();
         gridLayout->addWidget(rb,
                               rowNum, COLUMN_RADIO_BUTTON);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[0], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowSpaceInfo.m_xyz[0], 'f', 1)),
                               rowNum, COLUMN_COORD_X,
                               Qt::AlignRight);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[1], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowSpaceInfo.m_xyz[1], 'f', 1)),
                               rowNum, COLUMN_COORD_Y,
                               Qt::AlignRight);
-        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowXYZ[2], 'f', 1)),
+        gridLayout->addWidget(new QLabel(AString::number(m_coordInfo.m_windowSpaceInfo.m_xyz[2], 'f', 1)),
                               rowNum, COLUMN_COORD_Z,
                               Qt::AlignRight);
         
         if (m_optionalSecondCoordInfo != NULL) {
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_windowXYZ[0], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_windowSpaceInfo.m_xyz[0], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_X,
                                   Qt::AlignRight);
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_windowXYZ[1], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_windowSpaceInfo.m_xyz[1], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_Y,
                                   Qt::AlignRight);
-            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_windowXYZ[2], 'f', 1)),
+            gridLayout->addWidget(new QLabel(AString::number(m_optionalSecondCoordInfo->m_windowSpaceInfo.m_xyz[2], 'f', 1)),
                                   rowNum, COLUMN_COORD_TWO_Z,
                                   Qt::AlignRight);
         }
     }
     
     if (enableSurfaceSpaceFlag) {
-        if ( ! m_coordInfo.m_surfaceNodeValid) {
+        if ( ! m_coordInfo.m_surfaceSpaceInfo.m_validFlag) {
             enableSurfaceSpaceFlag = false;
         }
         if (m_optionalSecondCoordInfo != NULL) {
-            if ( ! m_optionalSecondCoordInfo->m_surfaceNodeValid) {
+            if ( ! m_optionalSecondCoordInfo->m_surfaceSpaceInfo.m_validFlag) {
                 enableSurfaceSpaceFlag = false;
             }
         }
@@ -381,17 +381,17 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
         const int rowNum = gridLayout->rowCount();
         gridLayout->addWidget(rb,
                               rowNum, COLUMN_RADIO_BUTTON);
-        const AString infoText(StructureEnum::toGuiName(m_coordInfo.m_surfaceStructure)
+        const AString infoText(StructureEnum::toGuiName(m_coordInfo.m_surfaceSpaceInfo.m_structure)
                                + " Vertex: "
-                               +AString::number(m_coordInfo.m_surfaceNodeIndex));
+                               +AString::number(m_coordInfo.m_surfaceSpaceInfo.m_nodeIndex));
         gridLayout->addWidget(new QLabel(infoText),
                               rowNum, COLUMN_COORD_X, 1, 4);
         
         if (m_optionalSecondCoordInfo != NULL) {
             const int rowNum = gridLayout->rowCount();
-            const AString infoText(StructureEnum::toGuiName(m_optionalSecondCoordInfo->m_surfaceStructure)
+            const AString infoText(StructureEnum::toGuiName(m_optionalSecondCoordInfo->m_surfaceSpaceInfo.m_structure)
                                    + " Vertex 2: "
-                                   +AString::number(m_optionalSecondCoordInfo->m_surfaceNodeIndex));
+                                   +AString::number(m_optionalSecondCoordInfo->m_surfaceSpaceInfo.m_nodeIndex));
             gridLayout->addWidget(new QLabel(infoText),
                                   rowNum, COLUMN_COORD_X, 1, 4);
         }
@@ -551,22 +551,22 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
     float oldViewportHeight = 0.0;
     switch (oldSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
-            oldViewportHeight = m_coordInfo.m_tabHeight;
+            oldViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            oldViewportHeight = m_coordInfo.m_tabHeight;
+            oldViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            oldViewportHeight = m_coordInfo.m_tabHeight;
+            oldViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            oldViewportHeight = m_coordInfo.m_tabHeight;
+            oldViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
             CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            oldViewportHeight = m_coordInfo.m_windowHeight;
+            oldViewportHeight = m_coordInfo.m_windowSpaceInfo.m_height;
             break;
     }
     
@@ -614,33 +614,33 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
     bool setOtherCoordinateFlag = false;
     switch (newSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
-            if (m_coordInfo.m_chartXYZValid) {
-                coordinate->setXYZ(m_coordInfo.m_chartXYZ);
+            if (m_coordInfo.m_chartSpaceInfo.m_validFlag) {
+                coordinate->setXYZ(m_coordInfo.m_chartSpaceInfo.m_xyz);
                 redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::CHART);
-                newViewportHeight = m_coordInfo.m_tabHeight;
+                newViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             }
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            if (m_coordInfo.m_modelXYZValid) {
-                coordinate->setXYZ(m_coordInfo.m_modelXYZ);
+            if (m_coordInfo.m_modelSpaceInfo.m_validFlag) {
+                coordinate->setXYZ(m_coordInfo.m_modelSpaceInfo.m_xyz);
                 redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
-                newViewportHeight = m_coordInfo.m_tabHeight;
+                newViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             }
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            if (m_coordInfo.m_surfaceNodeValid) {
-                coordinate->setSurfaceSpace(m_coordInfo.m_surfaceStructure,
-                                            m_coordInfo.m_surfaceNumberOfNodes,
-                                            m_coordInfo.m_surfaceNodeIndex);
+            if (m_coordInfo.m_surfaceSpaceInfo.m_validFlag) {
+                coordinate->setSurfaceSpace(m_coordInfo.m_surfaceSpaceInfo.m_structure,
+                                            m_coordInfo.m_surfaceSpaceInfo.m_numberOfNodes,
+                                            m_coordInfo.m_surfaceSpaceInfo.m_nodeIndex);
                 redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-                newViewportHeight = m_coordInfo.m_tabHeight;
+                newViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            if (m_coordInfo.m_tabIndex >= 0) {
+            if (m_coordInfo.m_tabSpaceInfo.m_index >= 0) {
                 const int32_t oldTabIndex = redoAnnotation->getTabIndex();
-                const int32_t newTabIndex = m_coordInfo.m_tabIndex;
-                coordinate->setXYZ(m_coordInfo.m_tabXYZ);
+                const int32_t newTabIndex = m_coordInfo.m_tabSpaceInfo.m_index;
+                coordinate->setXYZ(m_coordInfo.m_tabSpaceInfo.m_xyz);
                 redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
                 redoAnnotation->setTabIndex(newTabIndex);
                 
@@ -654,17 +654,17 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                         setOtherCoordinateFlag = true;
                     }
                 }
-                newViewportHeight = m_coordInfo.m_tabHeight;
+                newViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             }
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
             CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            if (m_coordInfo.m_windowIndex >= 0) {
+            if (m_coordInfo.m_windowSpaceInfo.m_index >= 0) {
                 const int32_t oldWindowIndex = redoAnnotation->getWindowIndex();
-                const int32_t newWindowIndex = m_coordInfo.m_windowIndex;
-                coordinate->setXYZ(m_coordInfo.m_windowXYZ);
+                const int32_t newWindowIndex = m_coordInfo.m_windowSpaceInfo.m_index;
+                coordinate->setXYZ(m_coordInfo.m_windowSpaceInfo.m_xyz);
                 redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::WINDOW);
                 redoAnnotation->setWindowIndex(newWindowIndex);
                 
@@ -679,7 +679,7 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                         setOtherCoordinateFlag = true;
                     }
                 }
-                newViewportHeight = m_coordInfo.m_windowHeight;
+                newViewportHeight = m_coordInfo.m_windowSpaceInfo.m_height;
             }
             break;
     }
@@ -783,14 +783,12 @@ AnnotationCoordinateSelectionWidget::setCoordinateForNewAnnotation(Annotation* a
                                                                    coordinateSpace,
                                                                    &m_coordInfo,
                                                                    m_optionalSecondCoordInfo);
-//        setOneDimAnnotationCoordinates(oneDimAnn);
     }
     else if (twoDimAnn != NULL) {
         validCoordsFlag = AnnotationCoordinateInformation::setAnnotationCoordinatesForSpace(twoDimAnn,
                                                                    coordinateSpace,
                                                                    &m_coordInfo,
                                                                    m_optionalSecondCoordInfo);
-//        setTwoDimAnnotationCoordinates(twoDimAnn);
     }
     else {
         const QString msg("PROGRAM ERROR: Annotation is neither one nor two dimensional");
@@ -829,27 +827,27 @@ AnnotationCoordinateSelectionWidget::setWidthAndHeightForImage(AnnotationImage* 
     float vpHeight = 0.0;
     switch (imageAnn->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
-            vpWidth  = m_coordInfo.m_tabWidth;
-            vpHeight = m_coordInfo.m_tabHeight;
+            vpWidth  = m_coordInfo.m_tabSpaceInfo.m_width;
+            vpHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            vpWidth  = m_coordInfo.m_tabWidth;
-            vpHeight = m_coordInfo.m_tabHeight;
+            vpWidth  = m_coordInfo.m_tabSpaceInfo.m_width;
+            vpHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            vpWidth  = m_coordInfo.m_tabWidth;
-            vpHeight = m_coordInfo.m_tabHeight;
+            vpWidth  = m_coordInfo.m_tabSpaceInfo.m_width;
+            vpHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            vpWidth  = m_coordInfo.m_tabWidth;
-            vpHeight = m_coordInfo.m_tabHeight;
+            vpWidth  = m_coordInfo.m_tabSpaceInfo.m_width;
+            vpHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
             CaretAssert(0);
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            vpWidth  = m_coordInfo.m_windowWidth;
-            vpHeight = m_coordInfo.m_windowHeight;
+            vpWidth  = m_coordInfo.m_windowSpaceInfo.m_width;
+            vpHeight = m_coordInfo.m_windowSpaceInfo.m_height;
             break;
     }
     
@@ -904,11 +902,11 @@ AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Ann
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            if (m_coordInfo.m_tabIndex >= 0) {
+            if (m_coordInfo.m_tabSpaceInfo.m_index >= 0) {
             }
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
-            if (m_coordInfo.m_tabIndex >= 0) {
+            if (m_coordInfo.m_tabSpaceInfo.m_index >= 0) {
             }
             break;
         case AnnotationCoordinateSpaceEnum::TAB:

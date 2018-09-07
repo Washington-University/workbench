@@ -388,7 +388,7 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
         finishAnnotationCreation(newAnnotationInfo.m_annotationFile,
                                  newAnnotation,
                                  newAnnotationInfo.m_mouseEvent.getBrowserWindowIndex(),
-                                 newAnnotationInfo.m_coordOneInfo.m_tabIndex);
+                                 newAnnotationInfo.m_coordOneInfo.m_tabSpaceInfo.m_index);
         return newAnnotation;
     }
     
@@ -794,8 +794,6 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
      * A new chart annotation is displayed only in the tab in which it was created
      */
     if (annotation->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::CHART) {
-        
-        //annotation->setItemDisplaySelectedInNoDisplayGroups();
         annotation->setItemDisplaySelectedInOneTab(tabIndex);
         annotation->setItemDisplaySelected(DisplayGroupEnum::DISPLAY_GROUP_TAB,
                                            tabIndex,
@@ -804,66 +802,6 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
     
 }
 
-///**
-// * Constructor for information used to create a new annotation.
-// *
-// * @param mouseEvent
-// *     The mouse event.
-// * @param selectedSpace
-// *     The space selected by the user.
-// * @param annotationType
-// *     The annotation type.
-// * @param useBothCoordinatesFromMouseFlag
-// *     Use both coords (X/Y and pressed X/Y)
-// * @param annotationFile
-// *     File to which annotation is added.
-// */
-//AnnotationCreateDialog::NewAnnotationInfo::NewAnnotationInfo(const MouseEvent& mouseEvent,
-//                                                             const AnnotationCoordinateSpaceEnum::Enum selectedSpace,
-//                                                             const AnnotationTypeEnum::Enum annotationType,
-//                                                             const bool useBothCoordinatesFromMouseFlag,
-//                                                             AnnotationFile* annotationFile)
-//: m_mouseEvent(mouseEvent),
-//m_selectedSpace(selectedSpace),
-//m_annotationType(annotationType),
-//m_annotationFile(annotationFile)
-//{
-//    CaretAssert(annotationFile);
-//    
-//    m_validSpaces.clear();
-//    m_coordOneInfo.reset();
-//    m_coordTwoInfo.reset();
-//    m_coordTwoInfoValid = false;
-//    m_percentageWidth  = -1;
-//    m_percentageHeight = -1;
-//    
-//    AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
-//                                                                       mouseEvent.getX(),
-//                                                                       mouseEvent.getY(),
-//                                                                       m_coordOneInfo);
-//    
-//    if (useBothCoordinatesFromMouseFlag) {
-//        AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
-//                                                                           mouseEvent.getPressedX(),
-//                                                                           mouseEvent.getPressedY(),
-//                                                                           m_coordTwoInfo);
-//        
-//        AnnotationCoordinateInformation::getValidCoordinateSpaces(&m_coordOneInfo,
-//                                                                  &m_coordTwoInfo,
-//                                                                  m_validSpaces);
-//        
-//        if (isValid()) {
-//            m_coordTwoInfoValid = true;
-//            
-//            processTwoCoordInfo();
-//        }
-//    }
-//    else {
-//        AnnotationCoordinateInformation::getValidCoordinateSpaces(&m_coordOneInfo,
-//                                                                  NULL,
-//                                                                  m_validSpaces);
-//    }
-//}
 /**
  * Constructor for information used to create a new annotation.
  *
@@ -964,8 +902,8 @@ m_annotationFile(annotationFile)
 void
 AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
 {
-    if ((m_coordOneInfo.m_windowIndex >= 0)
-        && (m_coordTwoInfo.m_windowIndex >= 0)) {
+    if ((m_coordOneInfo.m_windowSpaceInfo.m_index >= 0)
+        && (m_coordTwoInfo.m_windowSpaceInfo.m_index >= 0)) {
     
         bool useAverageFlag      = false;
         bool useTextAligmentFlag = false;
@@ -992,10 +930,10 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
         
         if (useAverageFlag
             || useTextAligmentFlag) {
-            int32_t windowPixelX    = m_coordOneInfo.m_windowPixelXYZ[0];
-            int32_t windowPixelY    = m_coordOneInfo.m_windowPixelXYZ[1];
-            int32_t windowTwoPixelX = m_coordTwoInfo.m_windowPixelXYZ[0];
-            int32_t windowTwoPixelY = m_coordTwoInfo.m_windowPixelXYZ[1];
+            int32_t windowPixelX    = m_coordOneInfo.m_windowSpaceInfo.m_pixelXYZ[0];
+            int32_t windowPixelY    = m_coordOneInfo.m_windowSpaceInfo.m_pixelXYZ[1];
+            int32_t windowTwoPixelX = m_coordTwoInfo.m_windowSpaceInfo.m_pixelXYZ[0];
+            int32_t windowTwoPixelY = m_coordTwoInfo.m_windowSpaceInfo.m_pixelXYZ[1];
             
             if ((windowPixelX >= 0)
                 && (windowPixelY >= 0)
@@ -1033,9 +971,6 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                                                                 viewport,
                                                                 subWidth,
                                                                 subHeight)) {
-//                                std::cout << "Changing "
-//                                << viewportWidth << ", " << viewportHeight << " to "
-//                                << subWidth << ", " << subHeight << std::endl;
                                 
                                 viewportWidth  = subWidth;
                                 viewportHeight = subHeight;

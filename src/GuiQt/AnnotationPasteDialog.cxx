@@ -178,14 +178,13 @@ AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(const MouseEvent& m
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     if (annotationManager->isAnnotationOnClipboardValid()) {
         AnnotationFile* annotationFile = annotationManager->getAnnotationFileOnClipboard();
-        //Annotation* annotation = annotationManager->getAnnotationOnClipboard()->clone();
         
         AString message("Choose one of the coordinate "
                         "spaces below to paste the annotation or press Cancel to cancel pasting "
                         "of the annotation.");
         AnnotationPasteDialog pasteDialog(mouseEvent,
                                           annotationFile,
-                                          annotationManager->getAnnotationOnClipboard(), //annotation,
+                                          annotationManager->getAnnotationOnClipboard(),
                                           message,
                                           mouseEvent.getOpenGLWidget());
         if (pasteDialog.exec() == AnnotationPasteDialog::Accepted) {
@@ -327,19 +326,19 @@ AnnotationPasteDialog::pasteOneDimensionalShape(AnnotationOneDimensionalShape* o
         };
         
         if (tabFlag
-            && (coordInfo.m_tabIndex >= 0)) {
-            startXYZ[0] = coordInfo.m_tabXYZ[0];
-            startXYZ[1] = coordInfo.m_tabXYZ[1];
-            startXYZ[2] = coordInfo.m_tabXYZ[2];
-            oneDimShape->setTabIndex(coordInfo.m_tabIndex);
+            && (coordInfo.m_tabSpaceInfo.m_index >= 0)) {
+            startXYZ[0] = coordInfo.m_tabSpaceInfo.m_xyz[0];
+            startXYZ[1] = coordInfo.m_tabSpaceInfo.m_xyz[1];
+            startXYZ[2] = coordInfo.m_tabSpaceInfo.m_xyz[2];
+            oneDimShape->setTabIndex(coordInfo.m_tabSpaceInfo.m_index);
             validCoordsFlag = true;
         }
         else if (windowFlag
-                 && (coordInfo.m_windowIndex >= 0)) {
-            startXYZ[0] = coordInfo.m_windowXYZ[0];
-            startXYZ[1] = coordInfo.m_windowXYZ[1];
-            startXYZ[2] = coordInfo.m_windowXYZ[2];
-            oneDimShape->setWindowIndex(coordInfo.m_windowIndex);
+                 && (coordInfo.m_windowSpaceInfo.m_index >= 0)) {
+            startXYZ[0] = coordInfo.m_windowSpaceInfo.m_xyz[0];
+            startXYZ[1] = coordInfo.m_windowSpaceInfo.m_xyz[1];
+            startXYZ[2] = coordInfo.m_windowSpaceInfo.m_xyz[2];
+            oneDimShape->setWindowIndex(coordInfo.m_windowSpaceInfo.m_index);
             validCoordsFlag = true;
         }
         
@@ -516,23 +515,6 @@ AnnotationPasteDialog::adjustTextAnnotationFontHeight(const AnnotationCoordinate
                     heightMultiplier = 1.0 / surfaceMontageRowCount;
                 }
             }
-
-//            if (previousSpace != AnnotationCoordinateSpaceEnum::SURFACE) {
-//                if (annotation->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
-//                    /*
-//                     * Converting to surface
-//                     */
-//                    heightMultiplier = surfaceMontageRowCount;
-//                }
-//            }
-//            else {
-//                if (annotation->getCoordinateSpace() != AnnotationCoordinateSpaceEnum::SURFACE) {
-//                    /*
-//                     * Converting from surface
-//                     */
-//                    heightMultiplier = 1.0 / surfaceMontageRowCount;
-//                }
-//            }
             
             if (heightMultiplier != 0.0) {
                 AnnotationPercentSizeText* textAnn = dynamic_cast<AnnotationPercentSizeText*>(annotation);

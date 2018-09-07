@@ -766,22 +766,22 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                         dx,
                                                         dy,
                                                         mouseEvent.isFirstDragging());
-            if (coordInfo.m_surfaceNodeValid) {
-                annSpatialMod.setSurfaceCoordinateAtMouseXY(coordInfo.m_surfaceStructure,
-                                                            coordInfo.m_surfaceNumberOfNodes,
-                                                            coordInfo.m_surfaceNodeIndex);
+            if (coordInfo.m_surfaceSpaceInfo.m_validFlag) {
+                annSpatialMod.setSurfaceCoordinateAtMouseXY(coordInfo.m_surfaceSpaceInfo.m_structure,
+                                                            coordInfo.m_surfaceSpaceInfo.m_numberOfNodes,
+                                                            coordInfo.m_surfaceSpaceInfo.m_nodeIndex);
             }
             
-            if (coordInfo.m_modelXYZValid) {
-                annSpatialMod.setStereotaxicCoordinateAtMouseXY(coordInfo.m_modelXYZ[0],
-                                                                coordInfo.m_modelXYZ[1],
-                                                                coordInfo.m_modelXYZ[2]);
+            if (coordInfo.m_modelSpaceInfo.m_validFlag) {
+                annSpatialMod.setStereotaxicCoordinateAtMouseXY(coordInfo.m_modelSpaceInfo.m_xyz[0],
+                                                                coordInfo.m_modelSpaceInfo.m_xyz[1],
+                                                                coordInfo.m_modelSpaceInfo.m_xyz[2]);
             }
             
-            if (coordInfo.m_chartXYZValid) {
-                annSpatialMod.setChartCoordinateAtMouseXY(coordInfo.m_chartXYZ[0],
-                                                          coordInfo.m_chartXYZ[1],
-                                                          coordInfo.m_chartXYZ[2]);
+            if (coordInfo.m_chartSpaceInfo.m_validFlag) {
+                annSpatialMod.setChartCoordinateAtMouseXY(coordInfo.m_chartSpaceInfo.m_xyz[0],
+                                                          coordInfo.m_chartSpaceInfo.m_xyz[1],
+                                                          coordInfo.m_chartSpaceInfo.m_xyz[2]);
             }
             
             if ((dx != 0.0)
@@ -792,10 +792,10 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                                                    mouseEvent.getX() - dx,
                                                                                    mouseEvent.getY() - dy,
                                                                                    previousMouseXYCoordInfo);
-                if (previousMouseXYCoordInfo.m_chartXYZValid) {
-                    annSpatialMod.setChartCoordinateAtPreviousMouseXY(previousMouseXYCoordInfo.m_chartXYZ[0],
-                                                                      previousMouseXYCoordInfo.m_chartXYZ[1],
-                                                                      previousMouseXYCoordInfo.m_chartXYZ[2]);
+                if (previousMouseXYCoordInfo.m_chartSpaceInfo.m_validFlag) {
+                    annSpatialMod.setChartCoordinateAtPreviousMouseXY(previousMouseXYCoordInfo.m_chartSpaceInfo.m_xyz[0],
+                                                                      previousMouseXYCoordInfo.m_chartSpaceInfo.m_xyz[1],
+                                                                      previousMouseXYCoordInfo.m_chartSpaceInfo.m_xyz[2]);
                 }
             }
             
@@ -1228,10 +1228,10 @@ UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
         int32_t numNodes = -1;
         int32_t nodeIndex = -1;
         float surfaceOffset = 0.0;
-        AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceVector = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
-        coordinate->getSurfaceSpace(structure, numNodes, nodeIndex, surfaceOffset, surfaceVector);
-        coordInfo.m_surfaceNodeOffset = surfaceOffset;
-        coordInfo.m_surfaceNodeVector = surfaceVector;
+        AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceVectorType = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
+        coordinate->getSurfaceSpace(structure, numNodes, nodeIndex, surfaceOffset, surfaceVectorType);
+        coordInfo.m_surfaceSpaceInfo.m_nodeOffsetLength = surfaceOffset;
+        coordInfo.m_surfaceSpaceInfo.m_nodeVectorOffsetType = surfaceVectorType;
     }
     
     AnnotationChangeCoordinateDialog changeCoordDialog(coordInfo,

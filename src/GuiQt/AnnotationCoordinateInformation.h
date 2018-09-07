@@ -70,31 +70,51 @@ namespace caret {
                                                      const AnnotationCoordinateInformation* coordInfoOne,
                                                      const AnnotationCoordinateInformation* coordInfoTwo);
         
-        double m_modelXYZ[3];
-        bool   m_modelXYZValid;
+        class SpaceInfo {
+        public:
+            bool m_validFlag = false;
+        };
         
-        float m_tabWidth;
-        float m_tabHeight;
-        float m_tabXYZ[3];
-        float m_tabPixelXYZ[3];
-        int32_t m_tabIndex;
+        class ModelSpaceInfo : public SpaceInfo {
+        public:
+            double m_xyz[3] = { 0.0, 0.0, 0.0 };
+        };
         
-        float m_windowWidth;
-        float m_windowHeight;
-        float m_windowXYZ[3];
-        float m_windowPixelXYZ[3];
-        int32_t m_windowIndex;
+        class TabWindowSpaceInfo : public SpaceInfo {
+        public:
+            float m_width = 0.0f;
+            float m_height = 0.0f;
+            float m_xyz[3] = { 0.0f, 0.0f, 0.0f };
+            float m_pixelXYZ[3] = { 0.0f, 0.0f, 0.0f };
+            int32_t m_index = -1;
+            
+        };
         
-        StructureEnum::Enum m_surfaceStructure;
-        int32_t m_surfaceNumberOfNodes;
-        int32_t m_surfaceNodeIndex;
-        float m_surfaceNodeOffset;
-        AnnotationSurfaceOffsetVectorTypeEnum::Enum m_surfaceNodeVector;
-        bool m_surfaceNodeValid;
+        class ChartSpaceInfo : public SpaceInfo {
+        public:
+            float m_xyz[3] = { 0.0f, 0.0f, 0.0f };
+        };
         
+        class SurfaceSpaceInfo : public SpaceInfo {
+        public:
+            StructureEnum::Enum m_structure = StructureEnum::INVALID;
+            int32_t m_numberOfNodes = 0;
+            int32_t m_nodeIndex = -1;
+            float m_nodeOffsetLength = 0.0f;
+            float m_nodeNormalVector[3] = { 0.0f, 0.0f, 1.0f };
+            AnnotationSurfaceOffsetVectorTypeEnum::Enum m_nodeVectorOffsetType = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
+        };
         
-        float m_chartXYZ[3];
-        bool  m_chartXYZValid;
+        ModelSpaceInfo m_modelSpaceInfo;
+        
+        TabWindowSpaceInfo m_tabSpaceInfo;
+        
+        TabWindowSpaceInfo m_windowSpaceInfo;
+        
+        ChartSpaceInfo m_chartSpaceInfo;
+        
+        SurfaceSpaceInfo m_surfaceSpaceInfo;
+        
     private:
         AnnotationCoordinateInformation(const AnnotationCoordinateInformation&);
 
