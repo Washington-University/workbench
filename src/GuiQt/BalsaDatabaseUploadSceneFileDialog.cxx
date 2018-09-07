@@ -213,7 +213,7 @@ BalsaDatabaseUploadSceneFileDialog::createLoginWidget()
     /*
      * Show password tool button
      */
-    m_showPasswordAction = new QAction("Show");
+    m_showPasswordAction = new QAction("Show", this);
     m_showPasswordAction->setCheckable(true);
     m_showPasswordAction->setChecked(false);
     QObject::connect(m_showPasswordAction, &QAction::triggered,
