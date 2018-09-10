@@ -333,6 +333,8 @@ public:
                     const float pk[3],
                     const float n[3]);
 
+    static float angleInDegreesBetweenVectors(const float u[3], const float v[3]);
+    
     static bool isOddNumber(const int32_t number);
 
     static bool isEvenNumber(const int32_t number);

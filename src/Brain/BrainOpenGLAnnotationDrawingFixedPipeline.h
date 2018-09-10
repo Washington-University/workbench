@@ -350,8 +350,6 @@ namespace caret {
         float estimateColorBarWidth(const AnnotationColorBar* colorBar,
                                     const float textHeightInPixels) const;
         
-        double angleInDegreesBetweenVectors(const float u[3], const float v[3]) const;
-        
         void getSurfaceNormalVector(const Surface* surfaceDisplayed,
                                     const int32_t vertexIndex,
                                     float normalVectorOut[3]) const;

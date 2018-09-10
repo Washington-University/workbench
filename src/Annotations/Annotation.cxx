@@ -25,6 +25,7 @@
 
 #include "AnnotationBox.h"
 #include "AnnotationColorBar.h"
+#include "AnnotationCoordinate.h"
 #include "AnnotationGroup.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
@@ -37,6 +38,7 @@
 #include "CaretLogger.h"
 #include "DisplayGroupAndTabItemHelper.h"
 #include "MathFunctions.h"
+#include "Matrix4x4.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -698,6 +700,140 @@ Annotation::isInSurfaceSpaceWithTangentOffset() const
             break;
     }
     return flag;
+}
+
+/**
+ * Initialize the rotation for an annotation in surface space with tangent
+ * offset using the given normal vector from the vertex to which the 
+ * annotation is attached.
+ *
+ * @param structure
+ *     The surface structure.
+ * @param vertexNormal
+ *     Normal vector of surface vertex.
+ */
+void
+Annotation::initializeSurfaceSpaceWithTangentOffsetRotation(const StructureEnum::Enum structure,
+                                                            const float vertexNormal[3])
+{
+    AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(this);
+    if (twoDimAnn != NULL) {
+        if (isInSurfaceSpaceWithTangentOffset()) {
+            enum class OrientationType {
+                LEFT_TO_RIGHT         = 0,
+                RIGHT_TO_LEFT         = 1,
+                POSTERIOR_TO_ANTERIOR = 2,
+                ANTERIOR_TO_POSTERIOR = 3,
+                INFERIOR_TO_SUPERIOR  = 4,
+                SUPERIOR_TO_INFERIOR  = 5
+            };
+            
+            const OrientationType orientations[6] = {
+                OrientationType::LEFT_TO_RIGHT,
+                OrientationType::RIGHT_TO_LEFT,
+                OrientationType::POSTERIOR_TO_ANTERIOR,
+                OrientationType::ANTERIOR_TO_POSTERIOR,
+                OrientationType::INFERIOR_TO_SUPERIOR,
+                OrientationType::SUPERIOR_TO_INFERIOR
+            };
+            const float orientationVectors[6][3] {
+                {  1.0,  0.0,  0.0 },
+                { -1.0,  0.0,  0.0 },
+                {  0.0,  1.0,  0.0 },
+                {  0.0, -1.0,  0.0 },
+                {  0.0,  0.0,  1.0 },
+                {  0.0,  0.0, -1.0 }
+            };
+            
+            
+            /*
+             * Find orientation that aligns with the vertex's normal vector
+             */
+            OrientationType matchingOrientation = OrientationType::LEFT_TO_RIGHT;
+            float matchingAngle = 10000.0f;
+            for (int32_t i = 0; i < 6; i++) {
+                const float angle = MathFunctions::angleInDegreesBetweenVectors(orientationVectors[i],
+                                                                                vertexNormal);
+                if (angle < matchingAngle) {
+                    matchingAngle = angle;
+                    matchingOrientation = orientations[i];
+                }
+            }
+            
+            float surfaceUpAxisVector[3] = { 0.0f, 0.0f, 1.0f };
+            switch (matchingOrientation) {
+                case OrientationType::LEFT_TO_RIGHT:
+                    break;
+                case OrientationType::RIGHT_TO_LEFT:
+                    break;
+                case OrientationType::POSTERIOR_TO_ANTERIOR:
+                    break;
+                case OrientationType::ANTERIOR_TO_POSTERIOR:
+                    break;
+                case OrientationType::INFERIOR_TO_SUPERIOR:
+                    surfaceUpAxisVector[0] = 1.0;
+                    surfaceUpAxisVector[0] = 0.0;
+                    surfaceUpAxisVector[0] = 0.0;
+                    break;
+                case OrientationType::SUPERIOR_TO_INFERIOR:
+                    surfaceUpAxisVector[0] = -1.0;
+                    surfaceUpAxisVector[0] =  0.0;
+                    surfaceUpAxisVector[0] =  0.0;
+                    break;
+            }
+            
+            /*
+             * Vector for annotation's Y (vector from bottom to top of annotation)
+             */
+            const float annotationUpYVector[3] {
+                0.0,
+                1.0,
+                0.0
+            };
+            
+            /*
+             * Initialize the rotation angle so that the annotation's vertical axis
+             * is aligned with the screen vertical axis when the surface is in the
+             * analogous surface view.  For a text annotation, the text should be
+             * flowing left to right across screen.
+             */
+            Matrix4x4 rotationMatrix;
+            rotationMatrix.setMatrixToOpenGLRotationFromVector(vertexNormal);
+            Matrix4x4 inverseMatrix(rotationMatrix);
+            inverseMatrix.invert();
+            inverseMatrix.multiplyPoint3(surfaceUpAxisVector);
+            const float alignRotationAngle = MathFunctions::angleInDegreesBetweenVectors(annotationUpYVector,
+                                                                                           surfaceUpAxisVector);
+            float rotationAngle = alignRotationAngle;
+            switch (matchingOrientation) {
+                case OrientationType::LEFT_TO_RIGHT:
+                    rotationAngle = 360.0 - rotationAngle;
+                    break;
+                case OrientationType::RIGHT_TO_LEFT:
+                    break;
+                case OrientationType::POSTERIOR_TO_ANTERIOR:
+                    if (StructureEnum::isRight(structure)) {
+                        rotationAngle = 360.0 - rotationAngle;
+                    }
+                    break;
+                case OrientationType::ANTERIOR_TO_POSTERIOR:
+                    if (StructureEnum::isRight(structure)) {
+                        rotationAngle = 360.0 - rotationAngle;
+                    }
+                    break;
+                case OrientationType::INFERIOR_TO_SUPERIOR:
+                    if (StructureEnum::isRight(structure)) {
+                        rotationAngle += 180.0;
+                    }
+                    break;
+                case OrientationType::SUPERIOR_TO_INFERIOR:
+                    rotationAngle += 90.0;
+                    break;
+            }
+
+            twoDimAnn->setRotationAngle(rotationAngle);
+        }
+    }
 }
 
 /**

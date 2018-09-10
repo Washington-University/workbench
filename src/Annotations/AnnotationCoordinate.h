@@ -154,7 +154,7 @@ namespace caret {
     
 #ifdef __ANNOTATION_COORDINATE_DECLARE__
     float AnnotationCoordinate::s_userDefaultSurfaceOffsetLength = 5.0f;
-    AnnotationSurfaceOffsetVectorTypeEnum::Enum AnnotationCoordinate::s_userDefaultSurfaceOffsetVectorType = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
+    AnnotationSurfaceOffsetVectorTypeEnum::Enum AnnotationCoordinate::s_userDefaultSurfaceOffsetVectorType = AnnotationSurfaceOffsetVectorTypeEnum::TANGENT;
 #endif // __ANNOTATION_COORDINATE_DECLARE__
 
 } // namespace

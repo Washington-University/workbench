@@ -659,7 +659,8 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
                                             coordInfoOne->m_surfaceSpaceInfo.m_numberOfNodes,
                                             coordInfoOne->m_surfaceSpaceInfo.m_nodeIndex);
                 annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SURFACE);
-                
+                annotation->initializeSurfaceSpaceWithTangentOffsetRotation(coordInfoOne->m_surfaceSpaceInfo.m_structure,
+                                                                            coordInfoOne->m_surfaceSpaceInfo.m_nodeNormalVector);
                 validCoordinateFlag = true;
                 
                 if (optionalCoordInfoTwo != NULL) {

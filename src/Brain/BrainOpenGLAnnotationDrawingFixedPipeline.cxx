@@ -1311,16 +1311,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOff
      * Rotate the text so that the horzontal flow of the text
      * is orthogonal to the 'text up orientation vector'.
      */
-    //    const float angle = angleInDegreesBetweenVectors(localUpXYZ,
-    //                                                     textUpOrientationVectorXYZ);
-    const float orientationUpAngle = angleInDegreesBetweenVectors(localUpXYZ,
-                                                     vectorSurfaceAxisZ);
-    glRotatef(orientationUpAngle, 0.0, 0.0, -1.0);
-    
-    
+    const float orientationUpAngle = MathFunctions::angleInDegreesBetweenVectors(localUpXYZ,
+                                                                                 vectorSurfaceAxisZ);
     
     if (debugFlag) {
-        //std::cout << "Annotation: " <<  text->getText() << std::endl;
+        std::cout << "Annotation: " <<  annotation->toString() << std::endl;
         std::cout << "   Plane: " << textDrawingPlane.toString() << std::endl;
         std::cout << "   Local Up Vector: " << AString::fromNumbers(localUpXYZ, 3, ", ") << std::endl;
         std::cout << "   Angle: " << orientationUpAngle << std::endl;
@@ -2982,38 +2977,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::clipLineAtTextBox(const float bottomL
         endXYZ[1] = clippedXYZ[1];
         endXYZ[2] = clippedXYZ[2];
     }
-}
-
-/**
- * @return The angle formed by two vectors.
- * cos = (u . v) / (||u|| * ||v||)
- *
- * @param u
- *     First vector.
- * @param v
- *     Second vector.
- */
-double
-BrainOpenGLAnnotationDrawingFixedPipeline::angleInDegreesBetweenVectors(const float u[3], const float v[3]) const
-{
-    double angle = 0.0;
-    
-    const double numerator = MathFunctions::dotProduct(u, v);
-    const double uLength   = MathFunctions::vectorLength(u);
-    const double vLength   = MathFunctions::vectorLength(v);
-    const double denominator = uLength * vLength;
-    if (denominator > 0.0) {
-        double a = numerator / denominator;
-        if (a > 1.0) {
-            a = 1.0;
-        }
-        else if (a < -1.0) {
-            a = -1.0;
-        }
-        const double angleRadians = std::acos(a);
-        angle = MathFunctions::toDegrees(angleRadians);
-    }
-    return angle;
 }
 
 /**

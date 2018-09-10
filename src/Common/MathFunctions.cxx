@@ -1974,6 +1974,38 @@ MathFunctions::signedAngle(
 }
 
 /**
+ * @return The angle formed by two vectors.
+ * cos = (u . v) / (||u|| * ||v||)
+ *
+ * @param u
+ *     First vector.
+ * @param v
+ *     Second vector.
+ */
+float
+MathFunctions::angleInDegreesBetweenVectors(const float u[3], const float v[3])
+{
+    float angle = 0.0;
+    
+    const float numerator = MathFunctions::dotProduct(u, v);
+    const float uLength   = MathFunctions::vectorLength(u);
+    const float vLength   = MathFunctions::vectorLength(v);
+    const float denominator = uLength * vLength;
+    if (denominator > 0.0) {
+        float a = numerator / denominator;
+        if (a > 1.0) {
+            a = 1.0;
+        }
+        else if (a < -1.0) {
+            a = -1.0;
+        }
+        const float angleRadians = std::acos(a);
+        angle = MathFunctions::toDegrees(angleRadians);
+    }
+    return angle;
+}
+
+/**
  * Determine if an integer is an odd number.
  * @param number Integer to test.
  * @return  true if integer is odd, else false.

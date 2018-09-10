@@ -33,6 +33,7 @@
 #include "CaretObjectTracksModification.h"
 #include "DisplayGroupAndTabItemInterface.h"
 #include "SceneableInterface.h"
+#include "StructureEnum.h"
 
 
 namespace caret {
@@ -159,6 +160,9 @@ namespace caret {
         virtual AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const = 0;
         
         bool isInSurfaceSpaceWithTangentOffset() const;
+        
+        void initializeSurfaceSpaceWithTangentOffsetRotation(const StructureEnum::Enum structure,
+                                                             const float vertexNormal[3]);
         
         int32_t getTabIndex() const;
         

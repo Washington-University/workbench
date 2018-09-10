@@ -125,7 +125,7 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
     switch (m_attributeDefaultType) {
         case AnnotationAttributesDefaultTypeEnum::NORMAL:
             m_surfaceOffsetLength       = getDefaultSurfaceOffsetLength();
-            m_surfaceOffsetVectorType   = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
+            m_surfaceOffsetVectorType   = AnnotationSurfaceOffsetVectorTypeEnum::TANGENT;
             break;
         case AnnotationAttributesDefaultTypeEnum::USER:
             m_surfaceOffsetLength     = s_userDefaultSurfaceOffsetLength;
