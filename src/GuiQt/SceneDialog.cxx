@@ -44,6 +44,8 @@
 #include "SceneDialog.h"
 #undef __SCENE_DIALOG_DECLARE__
 
+#include "Annotation.h"
+#include "AnnotationManager.h"
 #include "ApplicationInformation.h"
 #include "BalsaDatabaseUploadSceneFileDialog.h"
 #include "Brain.h"
@@ -79,6 +81,7 @@
 #include "SceneFile.h"
 #include "SceneInfo.h"
 #include "ScenePreviewDialog.h"
+#include "SceneReplaceAllDialog.h"
 #include "SceneShowOptionsDialog.h"
 #include "SessionManager.h"
 #include "UsernamePasswordWidget.h"
@@ -1222,9 +1225,9 @@ SceneDialog::replaceAllScenesPushButtonClicked()
         return;
     }
     
-    if ( ! WuQMessageBox::warningOkCancel(m_replaceAllScenesPushButton,
-                                          "Replace All Scenes",
-                                          m_replaceAllScenesDescription)) {
+    SceneReplaceAllDialog replaceDialog(m_replaceAllScenesDescription,
+                                        m_replaceAllScenesPushButton);
+    if (replaceDialog.exec() == SceneReplaceAllDialog::Rejected) {
         return;
     }
     
@@ -1338,6 +1341,17 @@ SceneDialog::replaceAllScenesPushButtonClicked()
             newScene->setName(origScene->getName());
             newScene->setDescription(origScene->getDescription());
             newScene->setBalsaSceneID(origScene->getBalsaSceneID());
+            
+            /*
+             * Process options
+             */
+            if (replaceDialog.isChangeSurfaceAnnotationOffsetToOffset()) {
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                std::vector<Annotation*> annotations = annMan->getAllAnnotations();
+                for (auto ann : annotations) {
+                    ann->changeSurfaceSpaceToTangentOffset();
+                }
+            }
             
             const std::vector<int32_t> windowIndices = GuiManager::get()->getAllOpenBrainBrowserWindowIndices();
             

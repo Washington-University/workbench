@@ -152,6 +152,42 @@ AnnotationTwoDimensionalShape::initializeMembersAnnotationTwoDimensionalShape()
 }
 
 /**
+ * @return 'this' as a one-dimensional shape. NULL if this is not a one-dimensional shape.
+ */
+AnnotationOneDimensionalShape*
+AnnotationTwoDimensionalShape::castToOneDimensionalShape()
+{
+    return NULL;
+}
+
+/**
+ * @return 'this' as a one-dimensional shape. NULL if this is not a one-dimensional shape.
+ */
+const AnnotationOneDimensionalShape*
+AnnotationTwoDimensionalShape::castToOneDimensionalShape() const
+{
+    return NULL;
+}
+
+/**
+ * @return 'this' as a one-dimensional shape. NULL if this is not a two-dimensional shape.
+ */
+AnnotationTwoDimensionalShape*
+AnnotationTwoDimensionalShape::castToTwoDimensionalShape()
+{
+    return this;
+}
+
+/**
+ * @return 'this' as a one-dimensional shape. NULL if this is not a two-dimensional shape.
+ */
+const AnnotationTwoDimensionalShape*
+AnnotationTwoDimensionalShape::castToTwoDimensionalShape() const
+{
+    return this;
+}
+
+/**
  * @return The coordinate for the two dimensional shape.
  */
 AnnotationCoordinate*

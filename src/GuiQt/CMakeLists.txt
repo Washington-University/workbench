@@ -166,6 +166,7 @@ ELSE()
         SceneCreateReplaceDialog.h
         SceneDialog.h
         ScenePreviewDialog.h
+        SceneReplaceAllDialog.h
         SceneShowOptionsDialog.h
         SpecFileManagementDialog.h
         SplashScreen.h
@@ -397,6 +398,7 @@ SceneBasePathWidget.h
 SceneCreateReplaceDialog.h
 SceneDialog.h
 ScenePreviewDialog.h
+SceneReplaceAllDialog.h
 SceneShowOptionsDialog.h
 SceneWindowGeometry.h
 SpecFileManagementDialog.h
@@ -624,6 +626,7 @@ SceneBasePathWidget.cxx
 SceneCreateReplaceDialog.cxx
 SceneDialog.cxx
 ScenePreviewDialog.cxx
+SceneReplaceAllDialog.cxx
 SceneShowOptionsDialog.cxx
 SceneWindowGeometry.cxx
 SpecFileManagementDialog.cxx

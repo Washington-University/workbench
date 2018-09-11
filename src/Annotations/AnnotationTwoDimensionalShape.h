@@ -42,6 +42,14 @@ namespace caret {
 
         AnnotationTwoDimensionalShape& operator=(const AnnotationTwoDimensionalShape& obj);
         
+        virtual AnnotationOneDimensionalShape* castToOneDimensionalShape() override;
+        
+        virtual const AnnotationOneDimensionalShape* castToOneDimensionalShape() const override;
+        
+        virtual AnnotationTwoDimensionalShape* castToTwoDimensionalShape() override;
+        
+        virtual const AnnotationTwoDimensionalShape* castToTwoDimensionalShape() const override;
+        
         AnnotationCoordinate* getCoordinate();
         
         const AnnotationCoordinate* getCoordinate() const;

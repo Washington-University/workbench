@@ -703,6 +703,51 @@ Annotation::isInSurfaceSpaceWithTangentOffset() const
 }
 
 /**
+ * Change a surface space annotation to TANGENT offset and update offset length.
+ * If the annotation is already TANGENT space, no changes are made.
+ */
+void
+Annotation::changeSurfaceSpaceToTangentOffset()
+{
+    std::vector<AnnotationCoordinate*> coords;
+    if (getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+        AnnotationOneDimensionalShape* oneDimAnn = castToOneDimensionalShape();
+        if (oneDimAnn != NULL) {
+            coords.push_back(oneDimAnn->getStartCoordinate());
+            coords.push_back(oneDimAnn->getEndCoordinate());
+        }
+        else {
+            AnnotationTwoDimensionalShape* twoDimAnn = castToTwoDimensionalShape();
+            if (twoDimAnn != NULL) {
+                coords.push_back(twoDimAnn->getCoordinate());
+            }
+        }
+        
+        for (auto c : coords) {
+            StructureEnum::Enum structure;
+            int32_t surfaceNumberOfNodes;
+            int32_t surfaceNodeIndex;
+            float surfaceOffsetLength;
+            AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVectorType;
+            c->getSurfaceSpace(structure,
+                               surfaceNumberOfNodes,
+                               surfaceNodeIndex,
+                               surfaceOffsetLength,
+                               surfaceOffsetVectorType);
+            if (surfaceOffsetVectorType != AnnotationSurfaceOffsetVectorTypeEnum::TANGENT) {
+                surfaceOffsetVectorType = AnnotationSurfaceOffsetVectorTypeEnum::TANGENT;
+                surfaceOffsetLength     = 1.0;
+                c->setSurfaceSpace(structure,
+                                   surfaceNumberOfNodes,
+                                   surfaceNodeIndex,
+                                   surfaceOffsetLength,
+                                   surfaceOffsetVectorType);
+            }
+        }
+    }
+}
+
+/**
  * Initialize the rotation for an annotation in surface space with tangent
  * offset using the given normal vector from the vertex to which the 
  * annotation is attached.

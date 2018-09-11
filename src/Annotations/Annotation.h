@@ -37,6 +37,8 @@
 
 
 namespace caret {
+    class AnnotationOneDimensionalShape;
+    class AnnotationTwoDimensionalShape;
     class AnnotationSpatialModification;
     class DisplayGroupAndTabItemHelper;
     class SceneClassAssistant;
@@ -121,6 +123,14 @@ namespace caret {
         
         Annotation* clone() const;
         
+        virtual AnnotationOneDimensionalShape* castToOneDimensionalShape() = 0;
+        
+        virtual const AnnotationOneDimensionalShape* castToOneDimensionalShape() const = 0;
+
+        virtual AnnotationTwoDimensionalShape* castToTwoDimensionalShape() = 0;
+        
+        virtual const AnnotationTwoDimensionalShape* castToTwoDimensionalShape() const = 0;
+
         bool testProperty(const Property property) const;
         
         bool testPropertiesAny(const Property propertyOne,
@@ -160,6 +170,8 @@ namespace caret {
         virtual AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const = 0;
         
         bool isInSurfaceSpaceWithTangentOffset() const;
+        
+        void changeSurfaceSpaceToTangentOffset();
         
         void initializeSurfaceSpaceWithTangentOffsetRotation(const StructureEnum::Enum structure,
                                                              const float vertexNormal[3]);
