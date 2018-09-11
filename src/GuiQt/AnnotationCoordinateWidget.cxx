@@ -118,7 +118,7 @@ m_browserWindowIndex(browserWindowIndex)
     
     m_surfaceOffsetLengthSpinBox = new QDoubleSpinBox();
     m_surfaceOffsetLengthSpinBox->setRange(0.0, 999.0);
-    m_surfaceOffsetLengthSpinBox->setSingleStep(1.0);
+    m_surfaceOffsetLengthSpinBox->setSingleStep(0.1);
     m_surfaceOffsetLengthSpinBox->setToolTip("Offset of annotation from surface vertex");
     QObject::connect(m_surfaceOffsetLengthSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(surfaceOffsetLengthValueChanged(double)));
