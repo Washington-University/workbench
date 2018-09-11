@@ -38,25 +38,38 @@ AString AlgorithmSurfaceSphereProjectUnproject::getCommandSwitch()
 
 AString AlgorithmSurfaceSphereProjectUnproject::getShortDescription()
 {
-    return "DEFORM A SPHERE ACCORDING TO A REGISTRATION";
+    return "COPY REGISTRATION DEFORMATIONS TO DIFFERENT SPHERE";
 }
 
 OperationParameters* AlgorithmSurfaceSphereProjectUnproject::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addSurfaceParameter(1, "sphere-in", "the sphere with the desired output mesh");
+    ret->addSurfaceParameter(1, "sphere-in", "a sphere with the desired output mesh");
     
     ret->addSurfaceParameter(2, "sphere-project-to", "a sphere that aligns with sphere-in");
     
-    ret->addSurfaceParameter(3, "sphere-unproject-from", "sphere-project-to deformed to the output space");
+    ret->addSurfaceParameter(3, "sphere-unproject-from", "<sphere-project-to> deformed to the desired output space");
     
     ret->addSurfaceOutputParameter(4, "sphere-out", "the output sphere");
     
     ret->setHelpText(
-        AString("Each vertex of <sphere-in> is projected to <sphere-project-to> to obtain barycentric weights, which are then used to unproject ") +
-        "from <sphere-unproject-from>.  This results in a sphere with the topology of <sphere-in>, but coordinates shifted by the deformation between " +
-        "<sphere-project-to> and <sphere-unproject-from>.  <sphere-project-to> and <sphere-unproject-from> must have the same topology as each other, " +
-        "but <sphere-in> may have different topology."
+        AString("Background: A surface registration starts with an input sphere, and moves its vertices around on the sphere until it matches the template data.  ") +
+        "Since the starting sphere of the registration typically has no vertex correspondence to any other sphere (often, it is a native sphere), it is inconvenient to manipulate or compare these deformations across subjects, etc.\n\n" +
+        
+        "The purpose of this command is to be able to apply these deformations onto a new sphere of the user's choice, to make it easier to compare or manipulate them.  " +
+        "Common uses are to concatenate two successive separate registrations (e.g. Human to Chimpanzee, and then Chimpanzee to Macaque) or inversion (for dedrifting or symmetric registration schemes).\n\n" +
+        
+        "<sphere-in> must already be considered to be in alignment with one of the two ends of the registration (if your registration is Human to Chimpanzee, <sphere-in> must be in register with either Human or Chimpanzee).  " +
+        "The 'project-to' sphere must be the side of the registration that is aligned to the input sphere (if your registration is Human to Chimpanzee, and your input sphere is aligned with Human, then 'project-to' should be the original Human sphere).  " +
+        "The 'unproject-from' sphere must be the remaining sphere of the registration (original vs deformed/registered).  " +
+        "The output is as if you had run the same registration with <sphere-in> as the starting sphere, in the direction of deforming the 'project-to' sphere to create the 'unproject-from' sphere.\n\n" +
+        
+        "Note that this command cannot check for you what spheres are aligned with other spheres, and using the wrong spheres or in the incorrect order will not necessarily cause an error message.  " +
+        "In some cases, it may be useful to use a new, arbitrary sphere as the input, which can be created with the -surface-create-sphere command.\n\n" +
+        
+        "Technical details: Each vertex of <sphere-in> is projected to a triangle of <sphere-project-to>, and its new position is determined by the position of the corresponding triangle in <sphere-unproject-from>.  " +
+        "The output is a sphere with the topology of <sphere-in>, but coordinates shifted by the deformation from <sphere-project-to> to <sphere-unproject-from>.  " +
+        "<sphere-project-to> and <sphere-unproject-from> must have the same topology as each other, but <sphere-in> may have any topology."
     );
     return ret;
 }
