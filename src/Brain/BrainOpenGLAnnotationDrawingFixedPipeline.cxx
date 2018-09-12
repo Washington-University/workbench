@@ -1332,7 +1332,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOff
         case AnnotationTypeEnum::BOX:
             drawnFlag = drawBoxSurfaceTangentOffset(annotationFile,
                                                     dynamic_cast<AnnotationBox*>(annotation),
-                                                    surfaceDisplayed,
                                                     surfaceExtentZ,
                                                     vertexXYZ);
             break;
@@ -1342,7 +1341,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOff
         case AnnotationTypeEnum::IMAGE:
             drawnFlag = drawImageSurfaceTangentOffset(annotationFile,
                                                       dynamic_cast<AnnotationImage*>(annotation),
-                                                      surfaceDisplayed,
                                                       surfaceExtentZ,
                                                       vertexXYZ);
             break;
@@ -1352,14 +1350,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOff
         case AnnotationTypeEnum::OVAL:
             drawnFlag = drawOvalSurfaceTangentOffset(annotationFile,
                                                      dynamic_cast<AnnotationOval*>(annotation),
-                                                     surfaceDisplayed,
                                                      surfaceExtentZ,
                                                      vertexXYZ);
             break;
         case AnnotationTypeEnum::TEXT:
             drawnFlag = drawTextSurfaceTangentOffset(annotationFile,
                                                      dynamic_cast<AnnotationText*>(annotation),
-                                                     surfaceDisplayed,
                                                      surfaceExtentZ,
                                                      vertexXYZ,
                                                      normalXYZ);
@@ -1603,8 +1599,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
  *    File containing the annotation.
  * @param box
  *    box to draw.
- * @param surfaceDisplayed
- *    Surface that is displayed (may be NULL).
  * @param surfaceExtentZ
  *    Z-extent of the surface.
  * @param vertexXYZ
@@ -1615,13 +1609,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawBoxSurfaceTangentOffset(AnnotationFile* annotationFile,
                                                                        AnnotationBox* box,
-                                                                       const Surface* surfaceDisplayed,
                                                                        const float surfaceExtentZ,
                                                                        const float vertexXYZ[3])
 {
     CaretAssert(annotationFile);
     CaretAssert(box);
-    CaretAssert(surfaceDisplayed);
     CaretAssert(box->getType() == AnnotationTypeEnum::BOX);
     
     const float halfWidth  = ((box->getWidth() / 100.0) * surfaceExtentZ) / 2.0;
@@ -2658,8 +2650,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
  *    File containing the annotation.
  * @param oval
  *    oval to draw.
- * @param surfaceDisplayed
- *    Surface that is displayed (may be NULL).
  * @param surfaceExtentZ
  *    Z-extent of the surface.
  * @param vertexXYZ
@@ -2670,13 +2660,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawOvalSurfaceTangentOffset(AnnotationFile* annotationFile,
                                                                         AnnotationOval* oval,
-                                                                        const Surface* surfaceDisplayed,
                                                                         const float surfaceExtentZ,
                                                                         const float vertexXYZ[3])
 {
     CaretAssert(annotationFile);
     CaretAssert(oval);
-    CaretAssert(surfaceDisplayed);
     CaretAssert(oval->getType() == AnnotationTypeEnum::OVAL);
     
     const float halfWidth  = ((oval->getWidth() / 100.0) * surfaceExtentZ) / 2.0;
@@ -3067,8 +3055,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isBackFacing(const float xyz[3],
  *    File containing the annotation.
  * @param text
  *    Annotation text to draw.
- * @param surfaceDisplayed
- *    Surface that is displayed (may be NULL).
  * @param surfaceExtentZ
  *    Z-extent of the surface.
  * @param vertexXYZ,
@@ -3081,14 +3067,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isBackFacing(const float xyz[3],
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawTextSurfaceTangentOffset(AnnotationFile* annotationFile,
                                                                         AnnotationText* text,
-                                                                        const Surface* surfaceDisplayed,
                                                                         const float surfaceExtentZ,
                                                                         const float vertexXYZ[3],
                                                                         const float vertexNormalXYZ[3])
 {
     CaretAssert(annotationFile);
     CaretAssert(text);
-    CaretAssert(surfaceDisplayed);
     
     /*
      * Annotations with "DISPLAY_GROUP" propery may be turned on/off by user.
@@ -3544,8 +3528,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
  *    File containing the annotation.
  * @param image
  *    Image to draw.
- * @param surfaceDisplayed
- *    Surface that is displayed (may be NULL).
  * @param surfaceExtentZ
  *    Z-extent of the surface.
  * @param vertexXYZ
@@ -3556,13 +3538,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawImageSurfaceTangentOffset(AnnotationFile* annotationFile,
                                                                        AnnotationImage* image,
-                                                                       const Surface* surfaceDisplayed,
                                                                        const float surfaceExtentZ,
                                                                        const float vertexXYZ[3])
 {
     CaretAssert(annotationFile);
     CaretAssert(image);
-    CaretAssert(surfaceDisplayed);
     CaretAssert(image->getType() == AnnotationTypeEnum::IMAGE);
     
     const float halfWidth  = ((image->getWidth() / 100.0) * surfaceExtentZ) / 2.0;

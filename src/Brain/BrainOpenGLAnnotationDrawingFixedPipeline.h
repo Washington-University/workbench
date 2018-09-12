@@ -206,7 +206,6 @@ namespace caret {
         
         bool drawBoxSurfaceTangentOffset(AnnotationFile* annotationFile,
                                          AnnotationBox* box,
-                                         const Surface* surfaceDisplayed,
                                          const float surfaceExtentZ,
                                          const float vertexXYZ[3]);
 
@@ -216,7 +215,6 @@ namespace caret {
         
         bool drawImageSurfaceTangentOffset(AnnotationFile* annotationFile,
                                            AnnotationImage* image,
-                                           const Surface* surfaceDisplayed,
                                            const float surfaceExtentZ,
                                            const float vertexXYZ[3]);
         
@@ -235,7 +233,6 @@ namespace caret {
         
         bool drawOvalSurfaceTangentOffset(AnnotationFile* annotationFile,
                                           AnnotationOval* oval,
-                                          const Surface* surfaceDisplayed,
                                           const float surfaceExtentZ,
                                           const float vertexXYZ[3]);
         
@@ -245,7 +242,6 @@ namespace caret {
         
         bool drawTextSurfaceTangentOffset(AnnotationFile* annotationFile,
                                           AnnotationText* text,
-                                          const Surface* surfaceDisplayed,
                                           const float surfaceExtentZ,
                                           const float vertexXYZ[3],
                                           const float vertexNormalXYZ[3]);
