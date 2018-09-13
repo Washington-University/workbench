@@ -1167,7 +1167,7 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
                                                         mapIndex);
                     if (key >= 0) {
                         if ( ! valuesText.isEmpty()) {
-                            valuesText.append(" ");
+                            valuesText.append(", ");
                         }
                         valuesText.append(labelTable->getLabel(key)->getName());
                     }
@@ -1187,7 +1187,7 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
                     const float value = mf->getValue(nodeIndex,
                                                      mapIndex);
                     if ( ! valuesText.isEmpty()) {
-                        valuesText.append(" ");
+                        valuesText.append(", ");
                     }
                     valuesText.append(AString::number(value, 'f', 3));
                 }

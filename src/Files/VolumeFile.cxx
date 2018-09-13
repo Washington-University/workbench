@@ -33,6 +33,7 @@
 #include "DataFileContentInformation.h"
 #include "ElapsedTimer.h"
 #include "EventManager.h"
+#include "GiftiLabel.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
@@ -2295,30 +2296,50 @@ VolumeFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapI
                                                 int64_t ijkOut[3],
                                                 AString& textOut) const
 {
-//    CaretAssert(m_ciftiFile);
-//    
-//    const int32_t numberOfMapIndices = static_cast<int32_t>(mapIndices.size());
-//    if (numberOfMapIndices <= 0) {
-//        return false;
-//    }
-//    
-//    textOut = "";
-//    
-//    std::vector<float> numericalValues;
-//    std::vector<bool>  numericalValuesValid;
-//    AString textValue;
-//    if (getMapVolumeVoxelValues(mapIndices,
-//                                xyz,
-//                                ijkOut,
-//                                numericalValues,
-//                                numericalValuesValid,
-//                                textValue)) {
-//        textOut = textValue;
-//    }
-//    
-//    if (textOut.isEmpty() == false) {
-//        return true;
-//    }
+    float floatIJK[3];
+    spaceToIndex(xyz, floatIJK);
+    
+    ijkOut[0] = floatIJK[0];
+    ijkOut[1] = floatIJK[1];
+    ijkOut[2] = floatIJK[2];
+    
+    bool anyValidFlag = false;
+    AString valuesText;
+    for (const auto mapIndex : mapIndices) {
+        if ( ! valuesText.isEmpty()) {
+            valuesText.append(", ");
+        }
+        bool validFlag(false);
+        const float value = getVoxelValue(xyz,
+                                          &validFlag,
+                                          mapIndex);
+        if (validFlag) {
+            anyValidFlag = true;
+            if (isMappedWithLabelTable()) {
+                const GiftiLabelTable* labelTable = getMapLabelTable(mapIndex);
+                CaretAssert(labelTable);
+                const int32_t key = static_cast<int32_t>(value);
+                const GiftiLabel* label = labelTable->getLabel(key);
+                if (label != NULL) {
+                    valuesText.append(label->getName());
+                }
+                else {
+                    valuesText.append("?");
+                }
+            }
+            else {
+                valuesText.append(AString::number(value, 'f', 3));
+            }
+        }
+        else {
+            valuesText.append("invalid");
+        }
+    }
+    
+    if (anyValidFlag) {
+        textOut = valuesText;
+        return true;
+    }
     
     return false;
 }
