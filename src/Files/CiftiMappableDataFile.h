@@ -401,7 +401,7 @@ namespace caret {
                                                             const StructureEnum::Enum structure,
                                                             const int nodeIndex,
                                                             const int32_t numberOfNodes,
-                                                            AString& textOut) const;
+                                                            AString& textOut) const override;
         
         int32_t getMappingSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
         

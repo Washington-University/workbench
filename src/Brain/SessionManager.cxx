@@ -35,6 +35,7 @@
 #include "CaretPreferences.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
+#include "DataToolTipsManager.h"
 #include "ElapsedTimer.h"
 #include "EventManager.h"
 #include "EventBrowserTabDelete.h"
@@ -76,6 +77,7 @@ SessionManager::SessionManager()
 
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
     m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
+    m_dataToolTipsManager.reset(new DataToolTipsManager());
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_browserTabs[i] = NULL;
@@ -978,6 +980,26 @@ SessionManager::getCiftiFiberTrajectoryManager() const
 {
     return m_ciftiFiberTrajectoryManager;
 }
+
+/**
+ * @return The data tool tips manager
+ */
+DataToolTipsManager*
+SessionManager::getDataToolTipsManager()
+{
+    return m_dataToolTipsManager.get();
+}
+
+/**
+ * @return The data tool tips manager (const method)
+ */
+const DataToolTipsManager*
+SessionManager::getDataToolTipsManager() const
+{
+    return m_dataToolTipsManager.get();
+}
+
+
 
 /**
  * @return Image capture settings for image capture dialog.

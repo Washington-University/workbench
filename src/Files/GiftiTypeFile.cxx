@@ -24,10 +24,14 @@
 #include "FastStatistics.h"
 #include "GiftiDataArray.h"
 #include "GiftiFile.h"
+#include "GiftiLabel.h"
+#include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "GiftiTypeFile.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "Histogram.h"
+#include "LabelFile.h"
+#include "MetricFile.h"
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "SurfaceFile.h"
@@ -1086,6 +1090,131 @@ GiftiTypeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile
     }
     
     return BrainordinateMappingMatch::NO;
+}
+
+/**
+ * Get the identification information for a surface node in the given maps.
+ *
+ * @param mapIndices
+ *    Indices of maps for which identification information is requested.
+ * @param structure
+ *    Structure of the surface.
+ * @param nodeIndex
+ *    Index of the node.
+ * @param numberOfNodes
+ *    Number of nodes in the surface.
+ * @param textOut
+ *    Output containing identification information.
+ */
+bool
+GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
+                                                           const StructureEnum::Enum structure,
+                                                           const int nodeIndex,
+                                                           const int32_t numberOfNodes,
+                                                           AString& textOut) const
+{
+    textOut.clear();
+    
+    if ((getStructure() == structure)
+        && (getNumberOfNodes() == numberOfNodes)) {
+        switch (getDataFileType()) {
+            case DataFileTypeEnum::ANNOTATION:
+                break;
+            case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+                break;
+            case DataFileTypeEnum::BORDER:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                break;
+            case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::IMAGE:
+                break;
+            case DataFileTypeEnum::LABEL:
+            {
+                const LabelFile* lf = dynamic_cast<const LabelFile*>(this);
+                CaretAssert(lf);
+                const GiftiLabelTable* labelTable = lf->getLabelTable();
+                AString valuesText;
+                for (const auto mapIndex : mapIndices) {
+                    const int32_t key = lf->getLabelKey(nodeIndex,
+                                                        mapIndex);
+                    if (key >= 0) {
+                        if ( ! valuesText.isEmpty()) {
+                            valuesText.append(" ");
+                        }
+                        valuesText.append(labelTable->getLabel(key)->getName());
+                    }
+                }
+                
+                if ( ! valuesText.isEmpty()) {
+                    textOut = valuesText;
+                }
+            }
+                break;
+            case DataFileTypeEnum::METRIC:
+            {
+                const MetricFile* mf = dynamic_cast<const MetricFile*>(this);
+                CaretAssert(mf);
+                AString valuesText;
+                for (const auto mapIndex : mapIndices) {
+                    const float value = mf->getValue(nodeIndex,
+                                                     mapIndex);
+                    if ( ! valuesText.isEmpty()) {
+                        valuesText.append(" ");
+                    }
+                    valuesText.append(AString::number(value, 'f', 3));
+                }
+                
+                if ( ! valuesText.isEmpty()) {
+                    textOut = valuesText;
+                }
+            }
+                break;
+            case DataFileTypeEnum::PALETTE:
+                break;
+            case DataFileTypeEnum::RGBA:
+                break;
+            case DataFileTypeEnum::SCENE:
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                break;
+            case DataFileTypeEnum::SURFACE:
+                break;
+            case DataFileTypeEnum::UNKNOWN:
+                break;
+            case DataFileTypeEnum::VOLUME:
+                break;
+        }
+    }
+    
+    return ( ! textOut.isEmpty());
 }
 
 

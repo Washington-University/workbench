@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <array>
+#include <memory>
 
 #include "ApplicationTypeEnum.h"
 #include "BrainConstants.h"
@@ -37,6 +38,7 @@ namespace caret {
     class CaretPreferences;
     class CiftiConnectivityMatrixDataFileManager;
     class CiftiFiberTrajectoryManager;
+    class DataToolTipsManager;
     class ImageCaptureSettings;
     class Model;
     
@@ -67,6 +69,10 @@ namespace caret {
         CiftiFiberTrajectoryManager* getCiftiFiberTrajectoryManager();
         
         const CiftiFiberTrajectoryManager* getCiftiFiberTrajectoryManager() const;
+        
+        DataToolTipsManager* getDataToolTipsManager();
+        
+        const DataToolTipsManager* getDataToolTipsManager() const;
         
         ImageCaptureSettings* getImageCaptureDialogSettings();
         
@@ -117,6 +123,9 @@ namespace caret {
         
         /** Loads fiber trajectory data */
         CiftiFiberTrajectoryManager* m_ciftiFiberTrajectoryManager;
+        
+        /** Data Tool Tips Manager */
+        std::unique_ptr<DataToolTipsManager> m_dataToolTipsManager;
         
         /** Settings for image capture dialog */
         ImageCaptureSettings* m_imageCaptureDialogSettings;

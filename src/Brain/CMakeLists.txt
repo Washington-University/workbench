@@ -60,6 +60,7 @@ ChartingDataManager.h
 CiftiConnectivityMatrixDataFileManager.h
 CiftiFiberTrajectoryManager.h
 ClippingPlaneGroup.h
+DataToolTipsManager.h
 DisplayProperties.h
 DisplayPropertiesAnnotation.h
 DisplayPropertiesAnnotationTextSubstitution.h
@@ -209,6 +210,7 @@ ChartingDataManager.cxx
 CiftiConnectivityMatrixDataFileManager.cxx
 CiftiFiberTrajectoryManager.cxx
 ClippingPlaneGroup.cxx
+DataToolTipsManager.cxx
 DisplayProperties.cxx
 DisplayPropertiesAnnotation.cxx
 DisplayPropertiesAnnotationTextSubstitution.cxx

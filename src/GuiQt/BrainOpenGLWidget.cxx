@@ -47,6 +47,8 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CursorManager.h"
+#include "DataToolTipsManager.h"
+#include "DeveloperFlagsEnum.h"
 #include "DummyFontTextRenderer.h"
 #include "EventBrainReset.h"
 #include "EventImageCapture.h"
@@ -655,33 +657,46 @@ BrainOpenGLWidget::paintGL()
 bool
 BrainOpenGLWidget::event(QEvent* event)
 {
-    const bool toolTipsEnabled = false;
+    const bool toolTipsEnabled = DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_BRAIN_TIPS);
     if (toolTipsEnabled) {
         if (event->type() == QEvent::ToolTip) {
             QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
             CaretAssert(helpEvent);
             
             QPoint globalXY = helpEvent->globalPos();
-            QPoint xy = helpEvent->pos();
+            QPoint xyPoint = helpEvent->pos();
+            const int32_t x = xyPoint.x();
+            const int32_t y = this->height() - xyPoint.y();
             
-            static int counter = 0;
+            DataToolTipsManager* dttm = SessionManager::get()->getDataToolTipsManager();
+            CaretAssert(dttm);
             
-            std::cout
-            << "Displaying tooltip "
-            << counter++
-            << " at global ("
-            << globalXY.x()
-            << ", "
-            << globalXY.y()
-            << ") at pos ("
-            << xy.x()
-            << ", "
-            << xy.y()
-            << ")"
-            << std::endl;
+            Brain* brain = GuiManager::get()->getBrain();
+            CaretAssert(brain);
             
-            QToolTip::showText(globalXY,
-                               "This is the tooltip " + AString::number(counter));
+            AString toolTipText;
+
+            const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
+            if (idViewport != NULL) {
+                BrowserTabContent* browserTabContent = idViewport->getBrowserTabContent();
+                if (browserTabContent != NULL) {
+                    SelectionManager* selectionManager = performIdentification(x,
+                                                                               y,
+                                                                               false); // include items in background
+                    toolTipText = dttm->getToolTip(GuiManager::get()->getBrain(),
+                                                   browserTabContent,
+                                                   selectionManager);
+                }
+            }
+            
+            if (toolTipText.isEmpty()) {
+                QToolTip::hideText();
+                event->ignore();
+            }
+            else {
+                QToolTip::showText(globalXY,
+                                   toolTipText);
+            }
             
             return true;
         }
@@ -1373,7 +1388,13 @@ BrainOpenGLWidget::performProjection(const int x,
  */
 void 
 BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
-{    
+{
+    /*
+     * Tooltip will remain displayed for several seconds.
+     * So if the user moves the mouse, remove the tooltip.
+     */
+    QToolTip::hideText();
+    
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
     Qt::MouseButtons mouseButtons = me->buttons();

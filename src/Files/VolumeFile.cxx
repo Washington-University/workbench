@@ -2277,4 +2277,51 @@ VolumeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) c
     return BrainordinateMappingMatch::NO;
 }
 
+/**
+ * Get the identification information for a surface node in the given maps.
+ *
+ * @param mapIndices
+ *    Indices of maps for which identification information is requested.
+ * @param xyz
+ *     Coordinate of voxel.
+ * @param ijkOut
+ *     Voxel indices of value.
+ * @param textOut
+ *    Output containing identification information.
+ */
+bool
+VolumeFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
+                                                const float xyz[3],
+                                                int64_t ijkOut[3],
+                                                AString& textOut) const
+{
+//    CaretAssert(m_ciftiFile);
+//    
+//    const int32_t numberOfMapIndices = static_cast<int32_t>(mapIndices.size());
+//    if (numberOfMapIndices <= 0) {
+//        return false;
+//    }
+//    
+//    textOut = "";
+//    
+//    std::vector<float> numericalValues;
+//    std::vector<bool>  numericalValuesValid;
+//    AString textValue;
+//    if (getMapVolumeVoxelValues(mapIndices,
+//                                xyz,
+//                                ijkOut,
+//                                numericalValues,
+//                                numericalValuesValid,
+//                                textValue)) {
+//        textOut = textValue;
+//    }
+//    
+//    if (textOut.isEmpty() == false) {
+//        return true;
+//    }
+    
+    return false;
+}
+
+
 

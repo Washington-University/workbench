@@ -369,6 +369,12 @@ namespace caret {
                                         std::vector<float>& dataOut) const override;
         
         virtual BrainordinateMappingMatch getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const override;
+       
+        virtual bool getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
+                                                         const float xyz[3],
+                                                         int64_t ijkOut[3],
+                                                         AString& textOut) const;
+        
     };
 
 }

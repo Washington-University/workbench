@@ -170,6 +170,12 @@ namespace caret {
         
         virtual BrainordinateMappingMatch getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const override;
         
+        virtual bool getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
+                                                         const StructureEnum::Enum structure,
+                                                         const int nodeIndex,
+                                                         const int32_t numberOfNodes,
+                                                         AString& textOut) const;
+
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);
         

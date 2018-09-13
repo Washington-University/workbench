@@ -117,6 +117,10 @@ DeveloperFlagsEnum::initialize()
                                           "DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA",
                                           "Flip Palette Not Data",
                                           false));
+    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BRAIN_TIPS,
+                                          "DEVELOPER_FLAG_BRAIN_TIPS",
+                                          "Enable Data Tool Tips",
+                                          false));
 }
 
 /**
