@@ -173,6 +173,9 @@ namespace caret {
         
         void changeSurfaceSpaceToTangentOffset();
         
+        float getSurfaceSpaceWithTangentOffsetRotation(const StructureEnum::Enum structure,
+                                                       const float vertexNormal[3]) const;
+        
         void initializeSurfaceSpaceWithTangentOffsetRotation(const StructureEnum::Enum structure,
                                                              const float vertexNormal[3]);
         

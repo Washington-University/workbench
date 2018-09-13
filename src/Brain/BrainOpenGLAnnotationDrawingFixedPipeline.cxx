@@ -1322,6 +1322,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOff
     }
     
     /*
+     * TEST ROTATE HERE
+     */
+    {
+        const float angle = annotation->getSurfaceSpaceWithTangentOffsetRotation(structure,
+                                                                                 normalXYZ);
+        glRotated(angle, 0.0, 0.0, -1.0);
+    }
+    
+
+    /*
      * Note that text is rotated by the text renderer
      */
     if (annotation->getType() != AnnotationTypeEnum::TEXT) {
