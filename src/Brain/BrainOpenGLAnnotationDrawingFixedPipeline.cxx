@@ -1322,9 +1322,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOff
     }
     
     /*
-     * TEST ROTATE HERE
+     * Do not adjust tangent text on flat surfaces
      */
-    {
+    if (surfaceDisplayed->getSurfaceType() != SurfaceTypeEnum::FLAT) {
+        /*
+         * Rotates annotation so that its horizontal axis is aligned with the 
+         * 'best matching' cartesian axis.
+         */
         const float angle = annotation->getSurfaceSpaceWithTangentOffsetRotation(structure,
                                                                                  normalXYZ);
         glRotated(angle, 0.0, 0.0, -1.0);
