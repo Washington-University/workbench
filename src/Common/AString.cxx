@@ -178,19 +178,27 @@ AString::fromNumbers(const std::vector<uint64_t>& v, const AString& separator)
  *   The vector of values.
  * @param separator
  *   Inserted between each pair of values.
+ * @param format
+ *   e format as [-]9.9e[+|-]999
+ *   E format as [-]9.9E[+|-]999
+ *   f format as [-]9.9
+ *   g use e or f format, whichever is the most concise
+ *   G use E or f format, whichever is the most concise
+ * @param precision
+ *   Maximum number of digits following decimal.
  * @return
  *   String containing the vector's values separated
  *   by the separator.
  */
 AString
-AString::fromNumbers(const std::vector<float>& v, const AString& separator)
+AString::fromNumbers(const std::vector<float>& v, const AString& separator, char format, const int32_t precision)
 {
     AString s;
     for (uint64_t i = 0; i < v.size(); i++) {
         if (i > 0) {
             s += separator;
         }
-        s += AString::number(v[i]);
+        s += AString::number(v[i], format, precision);
     }
     return s;
 }
@@ -201,19 +209,27 @@ AString::fromNumbers(const std::vector<float>& v, const AString& separator)
  *   The vector of values.
  * @param separator
  *   Inserted between each pair of values.
+ * @param format
+ *   e format as [-]9.9e[+|-]999
+ *   E format as [-]9.9E[+|-]999
+ *   f format as [-]9.9
+ *   g use e or f format, whichever is the most concise
+ *   G use E or f format, whichever is the most concise
+ * @param precision
+ *   Maximum number of digits following decimal.
  * @return
  *   String containing the vector's values separated
  *   by the separator.
  */
 AString
-AString::fromNumbers(const std::vector<double>& v, const AString& separator)
+AString::fromNumbers(const std::vector<double>& v, const AString& separator, char format, const int32_t precision)
 {
     AString s;
     for (uint64_t i = 0; i < v.size(); i++) {
         if (i > 0) {
             s += separator;
         }
-        s += AString::number(v[i]);
+        s += AString::number(v[i], format, precision);
     }
     return s;
 }
@@ -226,19 +242,27 @@ AString::fromNumbers(const std::vector<double>& v, const AString& separator)
  *   Number of elements in the array.
  * @param separator
  *   Inserted between each pair of values.
+ * @param format
+ *   e format as [-]9.9e[+|-]999
+ *   E format as [-]9.9E[+|-]999
+ *   f format as [-]9.9
+ *   g use e or f format, whichever is the most concise
+ *   G use E or f format, whichever is the most concise
+ * @param precision
+ *   Maximum number of digits following decimal.
  * @return
  *   String containing the array values separated
  *   by the separator.
  */
 AString
-AString::fromNumbers(const float* array, const int64_t numberOfElements, const AString& separator)
+AString::fromNumbers(const float* array, const int64_t numberOfElements, const AString& separator, char format, const int32_t precision)
 {
     AString s;
     for (int64_t i = 0; i < numberOfElements; i++) {
         if (i > 0) {
             s += separator;
         }
-        s += AString::number(array[i]);
+        s += AString::number(array[i], format, precision);
     }
     return s;
 }
@@ -360,21 +384,31 @@ AString::fromNumbers(const int64_t* array,
  *   Number of elements in the array.
  * @param separator
  *   Inserted between each pair of values.
+ * @param format
+ *   e format as [-]9.9e[+|-]999
+ *   E format as [-]9.9E[+|-]999
+ *   f format as [-]9.9
+ *   g use e or f format, whichever is the most concise
+ *   G use E or f format, whichever is the most concise
+ * @param precision
+ *   Maximum number of digits following decimal.
  * @return
  *   String containing the array values separated
  *   by the separator.
  */
 AString
 AString::fromNumbers(const double* array,
-                             const int64_t numberOfElements,
-                             const AString& separator)
+                     const int64_t numberOfElements,
+                     const AString& separator,
+                     char format,
+                     const int32_t precision)
 {
     AString s;
     for (int64_t i = 0; i < numberOfElements; i++) {
         if (i > 0) {
             s += separator;
         }
-        s += AString::number(array[i]);
+        s += AString::number(array[i], format, precision);
     }
     return s;
 }

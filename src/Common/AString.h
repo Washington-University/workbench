@@ -118,14 +118,14 @@ namespace caret {
         static AString fromNumbers(const std::vector<uint32_t>& v, const AString& separator);
         static AString fromNumbers(const std::vector<int64_t>& v, const AString& separator);
         static AString fromNumbers(const std::vector<uint64_t>& v, const AString& separator);
-        static AString fromNumbers(const std::vector<float>& v, const AString& separator);
-        static AString fromNumbers(const std::vector<double>& v, const AString& separator);
-        static AString fromNumbers(const float* array, const int64_t numberOfElements, const AString& separator);
+        static AString fromNumbers(const std::vector<float>& v, const AString& separator, const char format = 'g', const int32_t precision = 6);
+        static AString fromNumbers(const std::vector<double>& v, const AString& separator, const char format = 'g', const int32_t precision = 6);
+        static AString fromNumbers(const float* array, const int64_t numberOfElements, const AString& separator, char format = 'g', const int32_t precision = 6);
         static AString fromNumbers(const uint8_t* array,const int64_t numberOfElements, const AString& separator);
         static AString fromNumbers(const int8_t* array,const int64_t numberOfElements, const AString& separator);
         static AString fromNumbers(const int32_t* array,const int64_t numberOfElements, const AString& separator);
         static AString fromNumbers(const int64_t* array,const int64_t numberOfElements, const AString& separator);
-        static AString fromNumbers(const double* array, const int64_t numberOfElements, const AString& separator);
+        static AString fromNumbers(const double* array, const int64_t numberOfElements, const AString& separator, const char format = 'g', const int32_t precision = 6);
         static AString fromBool(const bool b);
         
         AString replaceHtmlSpecialCharactersWithEscapeCharacters() const;
