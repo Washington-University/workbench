@@ -657,8 +657,8 @@ BrainOpenGLWidget::paintGL()
 bool
 BrainOpenGLWidget::event(QEvent* event)
 {
-    const bool toolTipsEnabled = DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_BRAIN_TIPS);
-    if (toolTipsEnabled) {
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    if (prefs->isShowDataToolTipsEnabled()) {
         if (event->type() == QEvent::ToolTip) {
             QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
             CaretAssert(helpEvent);

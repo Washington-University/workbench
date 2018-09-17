@@ -66,6 +66,10 @@ namespace caret {
         
         void setShowSurfaceViewed(const bool status);
         
+        bool isShowVolumeUnderlay() const;
+        
+        void setShowVolumeUnderlay(const bool status);
+        
         bool isShowTopLayer() const;
         
         void setShowTopLayer(const bool status);
@@ -77,6 +81,10 @@ namespace caret {
         bool isShowFocus() const;
         
         void setShowFocus(const bool status);
+        
+        bool isShowChart() const;
+        
+        void setShowChart(const bool status);
         
         // ADD_NEW_METHODS_HERE
 
@@ -106,16 +114,6 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        AString getSurfaceToolTip(const Brain* brain,
-                                  const BrowserTabContent* browserTab,
-                                  const SelectionManager* selectionManager,
-                                  const SelectionItemSurfaceNode* nodeSelection) const;
-        
-        AString getVolumeToolTip(const Brain* brain,
-                                 const BrowserTabContent* browserTab,
-                                 const SelectionManager* selectionManager,
-                                 const SelectionItemVoxel* voxelSelection) const;
-        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         bool m_enabledFlag = true;
@@ -124,11 +122,15 @@ namespace caret {
         
         bool m_showSurfaceViewedFlag = true;
         
+        bool m_showVolumeUnderlayFlag = true;
+        
         bool m_showTopLayerFlag = true;
         
         bool m_showBorderFlag = true;
         
         bool m_showFocusFlag = true;
+        
+        bool m_showChartFlag = true;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -458,6 +458,10 @@ PreferencesDialog::createIdentificationSymbolWidget()
     QObject::connect(m_volumeIdentificationSymbolComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(identificationSymbolToggled()));
     
+    m_dataToolTipsComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(m_dataToolTipsComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(identificationSymbolToggled()));
+    
     QGridLayout* gridLayout = new QGridLayout();
     int row = gridLayout->rowCount();
     gridLayout->addWidget(infoLabel,
@@ -468,6 +472,9 @@ PreferencesDialog::createIdentificationSymbolWidget()
     addWidgetToLayout(gridLayout,
                       "Show Volume ID Symbols: ",
                       m_volumeIdentificationSymbolComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Show Data Tool Tips: ",
+                      m_dataToolTipsComboBox->getWidget());
 
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -487,6 +494,7 @@ PreferencesDialog::updateIdentificationWidget(CaretPreferences* prefs)
 {
     m_surfaceIdentificationSymbolComboBox->setStatus(prefs->isShowSurfaceIdentificationSymbols());
     m_volumeIdentificationSymbolComboBox->setStatus(prefs->isShowVolumeIdentificationSymbols());
+    m_dataToolTipsComboBox->setStatus(prefs->isShowDataToolTipsEnabled());
 }
 
 /**
@@ -498,6 +506,7 @@ PreferencesDialog::identificationSymbolToggled()
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setShowSurfaceIdentificationSymbols(m_surfaceIdentificationSymbolComboBox->isTrue());
     prefs->setShowVolumeIdentificationSymbols(m_volumeIdentificationSymbolComboBox->isTrue());
+    prefs->setShowDataToolTipsEnabled(m_dataToolTipsComboBox->isTrue());
 }
 
 /**

@@ -267,15 +267,60 @@ HtmlStringBuilder::toString() const
  *
  */
 AString
+HtmlStringBuilder::toStringWithHtmlBodyForToolTip()
+{
+    return toStringWithHtmlBodyPrivate(true);
+}
+
+/**
+ * Convert to a string in HTML format WITH leading and trailing
+ * HTML and BODY tags.
+ *
+ * @return String containing text.
+ *
+ */
+AString
 HtmlStringBuilder::toStringWithHtmlBody()
+{
+    return toStringWithHtmlBodyPrivate(false);
+}
+
+/**
+ * Convert to a string in HTML format WITH leading and trailing
+ * HTML and BODY tags.
+ *
+ * @param toolTipFlag
+ *      If true, set the style so text does not wrap when
+ *      placed into a QToolTip (see QToolTip documentation).
+ * @return String containing text.
+ *
+ */
+AString
+HtmlStringBuilder::toStringWithHtmlBodyPrivate(const bool toolTipFlag)
 {
     AString sb;
     sb.reserve(this->stringBuilder.length() + 100);
     
     sb.append("<HTML><BODY>");
+    if (toolTipFlag) {
+        sb.append("<p style='white-space:pre'>");
+    }
+    
+    /*
+     * If the string ends with a line break, remove the line break
+     */
+    const AString lastBreak("<BR></BR>");
+    if (this->stringBuilder.endsWith(lastBreak)) {
+        this->stringBuilder.resize(this->stringBuilder.length() - lastBreak.length());
+    }
     sb.append(this->stringBuilder);
+    
+    if (toolTipFlag) {
+        sb.append("</p>");
+    }
     sb.append("</BODY></HTML>");
     
     return sb;
 }
+
 

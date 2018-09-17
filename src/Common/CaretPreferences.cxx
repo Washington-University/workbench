@@ -1256,6 +1256,30 @@ CaretPreferences::setDevelopMenuEnabled(const bool enabled)
 }
 
 /**
+ * @return Is Show Data ToolTips enabled?
+ */
+bool
+CaretPreferences::isShowDataToolTipsEnabled() const
+{
+    return this->dataToolTipsEnabled;
+}
+
+/**
+ * Set Show Data ToolTips enabled.
+ * @param enabled
+ *    New status.
+ */
+void
+CaretPreferences::setShowDataToolTipsEnabled(const bool enabled)
+{
+    this->dataToolTipsEnabled = enabled;
+    this->setBoolean(CaretPreferences::NAME_DATA_TOOL_TIPS,
+                     this->dataToolTipsEnabled);
+    this->qSettings->sync();
+}
+
+
+/**
  * @param Is yoking defaulted on ?
  */
 bool CaretPreferences::isYokingDefaultedOn() const
@@ -1505,6 +1529,9 @@ CaretPreferences::readPreferences()
     
     this->developMenuEnabled = this->getBoolean(CaretPreferences::NAME_DEVELOP_MENU,
                                                 false);
+    
+    this->dataToolTipsEnabled = this->getBoolean(CaretPreferences::NAME_DATA_TOOL_TIPS,
+                                                 true);
 
     this->yokingDefaultedOn = this->getBoolean(CaretPreferences::NAME_YOKING_DEFAULT_ON,
                                                true);

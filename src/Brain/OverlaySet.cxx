@@ -173,23 +173,25 @@ OverlaySet::getUnderlay()
  * @return Returns the bottom-most overlay that is set a a volume file.
  * Will return NULL if no, enabled overlays are set to a volume file.
  */
-VolumeMappableInterface*
-OverlaySet::getUnderlayVolume()
+Overlay*
+OverlaySet::getUnderlayContainingVolume()
 {
-    VolumeMappableInterface* vf = NULL;
+    Overlay* underlayOut(NULL);
     
     const int32_t numOverlays = getNumberOfDisplayedOverlays();
     for (int32_t i = (numOverlays - 1); i >= 0; i--) {
         if (m_overlays[i]->isEnabled()) {
             CaretMappableDataFile* mapFile = NULL;
             int32_t mapIndex;
+            CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
             m_overlays[i]->getSelectionData(mapFile,
                                             mapIndex);
             
             if (mapFile != NULL) {
                 if (mapFile->isVolumeMappable()) {
-                    vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
+                    const VolumeMappableInterface* vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
                     if (vf != NULL) {
+                        underlayOut = m_overlays[i];
                         break;
                     }
                 }
@@ -197,7 +199,7 @@ OverlaySet::getUnderlayVolume()
         }
     }
     
-    if (vf == NULL) {
+    if (underlayOut == NULL) {
         /*
          * If we are here, either there are no volume files or
          * no overlays are enabled containing a volume file.
@@ -207,15 +209,45 @@ OverlaySet::getUnderlayVolume()
         for (int32_t i = 0; i < numOverlays; i++) {
             CaretMappableDataFile* mapFile = NULL;
             int32_t mapIndex;
+            CaretAssertArrayIndex(m_overlays, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, i);
             m_overlays[i]->getSelectionData(mapFile,
                                             mapIndex);
             
             if (mapFile != NULL) {
                 if (mapFile->isVolumeMappable()) {
-                    vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
-                    break;
+                    const VolumeMappableInterface* vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
+                    if (vf != NULL) {
+                        underlayOut = m_overlays[i];
+                        break;
+                    }
                 }
             }
+        }
+    }
+    
+    return underlayOut;
+}
+
+/*
+ * Get the bottom-most overlay that is a volume file for the given
+ * browser tab and return its volume file.
+ * @param browserTabContent
+ *    Content of browser tab.
+ * @return Returns the bottom-most overlay that is set a a volume file.
+ * Will return NULL if no, enabled overlays are set to a volume file.
+ */
+VolumeMappableInterface*
+OverlaySet::getUnderlayVolume()
+{
+    VolumeMappableInterface* vf = NULL;
+ 
+    Overlay* underlay = getUnderlayContainingVolume();
+    if (underlay != NULL) {
+        CaretMappableDataFile* mapFile = NULL;
+        int32_t mapIndex;
+        underlay->getSelectionData(mapFile, mapIndex);
+        if (mapFile != NULL) {
+            vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
         }
     }
     

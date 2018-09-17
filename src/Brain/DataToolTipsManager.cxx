@@ -24,32 +24,19 @@
 #undef __DATA_TOOL_TIPS_MANAGER_DECLARE__
 
 #include "Brain.h"
-#include "Border.h"
-#include "BorderFile.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "CaretMappableDataFile.h"
-#include "CiftiMappableDataFile.h"
 #include "EventManager.h"
-#include "FociFile.h"
-#include "Focus.h"
-#include "GiftiLabelTable.h"
+#include "IdentificationStringBuilder.h"
+#include "IdentificationTextGenerator.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
-#include "SelectionItemBorderSurface.h"
-#include "SelectionItemFocusSurface.h"
-#include "SelectionItemFocusVolume.h"
-#include "SelectionItemSurfaceNode.h"
-#include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
-#include "Surface.h"
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::DataToolTipsManager 
  * \brief Manages Data ToolTips.
@@ -65,7 +52,7 @@ DataToolTipsManager::DataToolTipsManager()
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-//    EventManager::get()->addEventListener(this, EventTypeEnum::);
+    /*EventManager::get()->addEventListener(this, EventTypeEnum::);*/
 }
 
 /**
@@ -95,225 +82,14 @@ DataToolTipsManager::getToolTip(const Brain* brain,
     CaretAssert(browserTab);
     CaretAssert(selectionManager);
     
-    AString text;
-    
-    const SelectionItemSurfaceNode* selectedNode = selectionManager->getSurfaceNodeIdentification();
-    CaretAssert(selectedNode);
-    
-    if (selectedNode->isValid()) {
-        text = getSurfaceToolTip(brain,
-                                 browserTab,
-                                 selectionManager,
-                                 selectedNode);
-    }
-    else {
-        const SelectionItemVoxel* selectedVoxel = selectionManager->getVoxelIdentification();
-        if (selectedVoxel->isValid()) {
-            text = getVolumeToolTip(brain,
-                                    browserTab,
-                                    selectionManager,
-                                    selectedVoxel);
-        }
-    }
-    
+    IdentificationTextGenerator itg;
+    const AString text = itg.createToolTipText(brain,
+                                               browserTab,
+                                               selectionManager,
+                                               this);
+
     return text;
 }
-
-/**
- * Get text for the tooltip for a selected node.
- *
- * @param brain
- *     The Brain.
- * @param browserTab
- *     Browser tab in which tooltip is displayed
- * @param selectionManager
- *     The selection manager.
- * @param nodeSelection
- *     Node selection information.
- */
-AString
-DataToolTipsManager::getSurfaceToolTip(const Brain* brain,
-                                       const BrowserTabContent* browserTab,
-                                       const SelectionManager* selectionManager,
-                                       const SelectionItemSurfaceNode* nodeSelection) const
-{
-    AString text;
-    
-    const Surface* surface = nodeSelection->getSurface();
-    CaretAssert(surface);
-    int32_t surfaceNumberOfNodes = surface->getNumberOfNodes();
-    int32_t surfaceNodeIndex = nodeSelection->getNodeNumber();
-    StructureEnum::Enum surfaceStructure = surface->getStructure();
-    
-    if ((surfaceStructure != StructureEnum::INVALID)
-        && (surfaceNumberOfNodes > 0)
-        && (surfaceNodeIndex >= 0)) {
-        
-        bool showSurfaceFlag = m_showSurfaceViewedFlag;
-        if (m_showSurfacePrimaryAnatomicalFlag) {
-            const Surface* anatSurface = brain->getPrimaryAnatomicalSurfaceForStructure(surfaceStructure);
-            if (anatSurface != NULL) {
-                if (anatSurface->getNumberOfNodes() == surfaceNumberOfNodes) {
-                    float xyz[3];
-                    anatSurface->getCoordinate(surfaceNodeIndex,
-                                               xyz);
-                    text.appendWithNewLine("Anatomy Surface: "
-                                           + AString::fromNumbers(xyz, 3, ", "));
-                    if (surface == anatSurface) {
-                        showSurfaceFlag = false;
-                    }
-                }
-            }
-        }
-        
-        if (showSurfaceFlag) {
-            float xyz[3];
-            surface->getCoordinate(surfaceNodeIndex,
-                                   xyz);
-            text.appendWithNewLine("Surface: "
-                                   + AString::fromNumbers(xyz, 3, ", "));
-        }
-        
-        if (m_showTopLayerFlag) {
-            const OverlaySet* overlaySet = browserTab->getOverlaySet();
-            CaretAssert(overlaySet);
-            Overlay* overlay = const_cast<Overlay*>(overlaySet->getOverlay(0));
-            CaretAssert(overlay);
-            CaretMappableDataFile* mapFile(NULL);
-            int32_t mapIndex(-1);
-            overlay->getSelectionData(mapFile,
-                                      mapIndex);
-            if ((mapFile != NULL)
-                && (mapIndex >= 0)) {
-                std::vector<int32_t> mapIndices { mapIndex };
-                AString textValue;
-                mapFile->getSurfaceNodeIdentificationForMaps(mapIndices,
-                                                             surfaceStructure,
-                                                             surfaceNodeIndex,
-                                                             surfaceNumberOfNodes,
-                                                             textValue);
-                if ( ! textValue.isEmpty()) {
-                    text.appendWithNewLine("Top Layer: "
-                                           + textValue);
-                }
-            }
-        }
-    }
-    
-    if (m_showBorderFlag) {
-        const SelectionItemBorderSurface* borderSelection = selectionManager->getSurfaceBorderIdentification();
-        CaretAssert(borderSelection);
-        const BorderFile* borderFile = borderSelection->getBorderFile();
-        const int32_t borderIndex    = borderSelection->getBorderIndex();
-        if ((borderFile != NULL)
-            && (borderIndex >= 0)) {
-            const Border* border = borderFile->getBorder(borderIndex);
-            if (border != NULL) {
-                text.appendWithNewLine("Border: "
-                                       + border->getName());
-            }
-        }
-    }
-    
-    if (m_showFocusFlag) {
-        const SelectionItemFocusSurface* focusSelection = selectionManager->getSurfaceFocusIdentification();
-        CaretAssert(focusSelection);
-        const FociFile* fociFile = focusSelection->getFociFile();
-        const int32_t focusIndex = focusSelection->getFocusIndex();
-        if ((fociFile != NULL)
-            && (focusIndex >= 0)) {
-            const Focus* focus = fociFile->getFocus(focusIndex);
-            if (focus != NULL) {
-                text.appendWithNewLine("Focus: "
-                                       + focus->getName());
-            }
-        }
-    }
-    
-    return text;
-}
-
-/**
- * Get text for the tooltip for a selected node.
- *
- * @param brain
- *     The Brain.
- * @param browserTab
- *     Browser tab in which tooltip is displayed
- * @param selectionManager
- *     The selection manager.
- * @param voxelSelection
- *     Voxel selection information.
- */
-AString
-DataToolTipsManager::getVolumeToolTip(const Brain* /*brain*/,
-                                      const BrowserTabContent* browserTab,
-                                      const SelectionManager* /*selectionManager*/,
-                                      const SelectionItemVoxel* voxelSelection) const
-{
-    AString text;
-    
-    const VolumeMappableInterface* selectedVolumeInterface = voxelSelection->getVolumeFile();
-    AString filename;
-    {
-        const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(selectedVolumeInterface);
-        if (volumeFile != NULL) {
-            filename = volumeFile->getFileNameNoPath();
-        }
-    }
-    {
-        const CiftiMappableDataFile* ciftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(selectedVolumeInterface);
-        if (ciftiMapFile != NULL) {
-            filename = ciftiMapFile->getFileNameNoPath();
-        }
-    }
-    double modelXYZ[3];
-    voxelSelection->getModelXYZ(modelXYZ);
-    const float floatXYZ[3] {
-        static_cast<float>(modelXYZ[0]),
-        static_cast<float>(modelXYZ[1]),
-        static_cast<float>(modelXYZ[2])
-    };
-    int64_t ijk[3];
-    voxelSelection->getVoxelIJK(ijk);
-    
-    text.appendWithNewLine("Voxel IJK: "
-                           + AString::fromNumbers(ijk, 3, ", ")
-                           + " XYZ: "
-                           + AString::fromNumbers(modelXYZ, 3, ", ")
-                           + " "
-                           + filename);
-    const float value = selectedVolumeInterface->getVoxelValue(floatXYZ);
-    text.appendWithNewLine("   Value: "
-                           + AString::number(value, 'f'));
-    
-    if (m_showTopLayerFlag) {
-        const OverlaySet* overlaySet = browserTab->getOverlaySet();
-        CaretAssert(overlaySet);
-        Overlay* overlay = const_cast<Overlay*>(overlaySet->getOverlay(0));
-        CaretAssert(overlay);
-        CaretMappableDataFile* mapFile(NULL);
-        int32_t mapIndex(-1);
-        overlay->getSelectionData(mapFile,
-                                  mapIndex);
-        if ((mapFile != NULL)
-            && (mapIndex >= 0)) {
-            std::vector<int32_t> mapIndices { mapIndex };
-            AString textValue;
-            int64_t ijk[3];
-            mapFile->getVolumeVoxelIdentificationForMaps(mapIndices,
-                                                         floatXYZ,
-                                                         ijk,
-                                                         textValue);
-            if ( ! textValue.isEmpty()) {
-                text.appendWithNewLine("Top Layer: "
-                                       + textValue);
-            }
-        }
-    }
-    return text;
-}
-
 
 /**
  * @return Is tips enabled?
@@ -379,6 +155,28 @@ DataToolTipsManager::setShowSurfaceViewed(const bool status)
 }
 
 /**
+ * @return Is show volume underlayenabled?
+ */
+bool
+DataToolTipsManager::isShowVolumeUnderlay() const
+{
+    return m_showVolumeUnderlayFlag;
+}
+
+/**
+ * Set status for volume underlay enabled
+ *
+ * @param status
+ *     New status.
+ */
+void
+DataToolTipsManager::setShowVolumeUnderlay(const bool status)
+{
+    m_showVolumeUnderlayFlag = status;
+}
+
+
+/**
  * @return Is show top layer enabled?
  */
 bool
@@ -440,6 +238,28 @@ DataToolTipsManager::setShowFocus(const bool status)
 {
     m_showFocusFlag = status;
 }
+
+/**
+ * @return Is show chart enabled?
+ */
+bool
+DataToolTipsManager::isShowChart() const
+{
+    return m_showChartFlag;
+}
+
+/**
+ * Set status for show chart
+ *
+ * @param status
+ *     New status.
+ */
+void
+DataToolTipsManager::setShowChart(const bool status)
+{
+    m_showChartFlag = status;
+}
+
 
 /**
  * Get a description of this object's content.

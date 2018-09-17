@@ -41,6 +41,7 @@
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CaretVolumeExtension.h"
+#include "DataToolTipsManager.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "FileInformation.h"
@@ -126,17 +127,19 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                                             surfaceID);
     
     this->generateSurfaceBorderIdentifcationText(idText,
-                                                 idManager->getSurfaceBorderIdentification());
+                                                 idManager->getSurfaceBorderIdentification(),
+                                                 false);
     
     this->generateSurfaceFociIdentifcationText(idText, 
-                                               idManager->getSurfaceFocusIdentification());
+                                               idManager->getSurfaceFocusIdentification(),
+                                               false);
     
     this->generateVolumeFociIdentifcationText(idText,
                                               idManager->getVolumeFocusIdentification());
     
     this->generateVolumeIdentificationText(idText,
                                            brain,
-                                           idManager->getVoxelIdentification());
+                                        idManager->getVoxelIdentification());
     
     this->generateChartDataSeriesIdentificationText(idText,
                                                     idManager->getChartDataSeriesIdentification());
@@ -167,6 +170,64 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
     
     return idText.toString();
 }
+
+/**
+ * Get text for the tooltip for a selected node.
+ *
+ * @param brain
+ *     The Brain.
+ * @param browserTab
+ *     Browser tab in which tooltip is displayed
+ * @param selectionManager
+ *     The selection manager.
+ * @param dataToolTipsManager
+ *     The data tooltips manager
+ * @param idText
+ *     String builder for identification text.
+ */
+AString
+IdentificationTextGenerator::createToolTipText(const Brain* brain,
+                                               const BrowserTabContent* browserTab,
+                                               const SelectionManager* selectionManager,
+                                               const DataToolTipsManager* dataToolTipsManager) const
+{
+    CaretAssert(brain);
+    CaretAssert(browserTab);
+    CaretAssert(selectionManager);
+    CaretAssert(dataToolTipsManager);
+    
+    const SelectionItemSurfaceNode* selectedNode = selectionManager->getSurfaceNodeIdentification();
+    const SelectionItemVoxel* selectedVoxel = selectionManager->getVoxelIdentification();
+    
+    IdentificationStringBuilder idText;
+    
+    if (selectedNode->isValid()) {
+        generateSurfaceToolTip(brain,
+                               browserTab,
+                               selectionManager,
+                               dataToolTipsManager,
+                               idText);
+    }
+    else if (selectedVoxel->isValid()) {
+        generateVolumeToolTip(browserTab,
+                              selectionManager,
+                              dataToolTipsManager,
+                              idText);
+    }
+    else {
+        generateChartToolTip(selectionManager,
+                             dataToolTipsManager,
+                             idText);
+    }
+
+    AString text;
+    if (idText.length() > 0) {
+       text = idText.toStringWithHtmlBodyForToolTip();
+    }
+
+    return text;
+}
+
 
 /**
  * Generate identification text for volume voxel identification.
@@ -1146,10 +1207,13 @@ IdentificationTextGenerator::generateChartTimeSeriesIdentificationText(Identific
  *     String builder for identification text.
  * @param idSurfaceBorder
  *     Information for surface border ID.
+ * @param toolTipFlag
+ *     True if this is for tooltip.
  */
 void
 IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(IdentificationStringBuilder& idText,
-                                                                    const SelectionItemBorderSurface* idSurfaceBorder) const
+                                                                    const SelectionItemBorderSurface* idSurfaceBorder,
+                                                                    const bool toolTipFlag) const
 {
     if (idSurfaceBorder->isValid()) {
         const Border* border = idSurfaceBorder->getBorder();
@@ -1157,23 +1221,36 @@ IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(Identificati
         float xyz[3];
         spi->getProjectedPosition(*idSurfaceBorder->getSurface(), xyz, false);
 
-        AString boldText = ("BORDER " 
-                            + StructureEnum::toGuiName(spi->getStructure())
-                            + " Name: "
-                            + border->getName());
-        if (border->getClassName().isEmpty() == false) {
-            boldText += (" ClassName: "
-                         + border->getClassName()
-                         + ": ");
+        if (toolTipFlag) {
+            bool indentFlag = false;
+            idText.addLine(indentFlag,
+                           "Border",
+                           border->getName());
+            indentFlag = true;
+            idText.addLine(indentFlag,
+                           "XYZ",
+                           AString::fromNumbers(xyz, 3, ","));
         }
-        const AString text = ("("
-                              + AString::number(idSurfaceBorder->getBorderIndex())
-                              + ","
-                              + AString::number(idSurfaceBorder->getBorderPointIndex())
-                              + ") ("
-                              + AString::fromNumbers(xyz, 3, ",")
-                              + ")");
-        idText.addLine(false, boldText, text);
+        else {
+            AString boldText = ("BORDER "
+                                + StructureEnum::toGuiName(spi->getStructure())
+                                + " Name: "
+                                + border->getName());
+            if (border->getClassName().isEmpty() == false) {
+                boldText += (" ClassName: "
+                             + border->getClassName()
+                             + ": ");
+            }
+            
+            const AString text = ("("
+                                  + AString::number(idSurfaceBorder->getBorderIndex())
+                                  + ","
+                                  + AString::number(idSurfaceBorder->getBorderPointIndex())
+                                  + ") ("
+                                  + AString::fromNumbers(xyz, 3, ",")
+                                  + ")");
+            idText.addLine(false, boldText, text);
+        }
     }
 }
 
@@ -1183,121 +1260,139 @@ IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(Identificati
  *     String builder for identification text.
  * @param idSurfaceFocus
  *     Information for surface focus ID.
- */void 
+ * @param toolTipFlag
+ *     True if this is for tooltip.
+ */
+void
 IdentificationTextGenerator::generateSurfaceFociIdentifcationText(IdentificationStringBuilder& idText,
-                                          const SelectionItemFocusSurface* idSurfaceFocus) const
+                                                                  const SelectionItemFocusSurface* idSurfaceFocus,
+                                                                  const bool toolTipFlag) const
 {
     if (idSurfaceFocus->isValid()) {
         const Focus* focus = idSurfaceFocus->getFocus();
-        idText.addLine(false,
-                       "FOCUS", 
-                       focus->getName());
-
-        idText.addLine(true,
-                       "Index",
-                       AString::number(idSurfaceFocus->getFocusIndex()));
-        
         const int32_t projectionIndex = idSurfaceFocus->getFocusProjectionIndex();
         const SurfaceProjectedItem* spi = focus->getProjection(projectionIndex);
-        float xyzProj[3];
-        spi->getProjectedPosition(*idSurfaceFocus->getSurface(), xyzProj, false);
         float xyzStereo[3];
         spi->getStereotaxicXYZ(xyzStereo);
-        
-        idText.addLine(true,
-                       "Structure",
-                       StructureEnum::toGuiName(spi->getStructure()));
-
-        if (spi->isStereotaxicXYZValid()) {
-            idText.addLine(true,
-                           "XYZ (Stereotaxic)",
-                           xyzStereo,
-                           3,
-                           true);
+        if (toolTipFlag) {
+            bool indentFlag = false;
+            idText.addLine(indentFlag,
+                           "Focus",
+                           focus->getName());
+            indentFlag = true;
+            idText.addLine(indentFlag,
+                           "XYZ",
+                           (spi->isStereotaxicXYZValid()
+                            ? AString::fromNumbers(xyzStereo, 3, ",")
+                            : "Invalid"));
         }
         else {
+            idText.addLine(false,
+                           "FOCUS",
+                           focus->getName());
+            
             idText.addLine(true,
-                           "XYZ (Stereotaxic)",
-                           "Invalid");
-        }
-        
-        bool projValid = false;
-        AString xyzProjName = "XYZ (Projected)";
-        if (spi->getBarycentricProjection()->isValid()) {
-            xyzProjName = "XYZ (Projected to Triangle)";
-            projValid = true;
-        }
-        else if (spi->getVanEssenProjection()->isValid()) {
-            xyzProjName = "XYZ (Projected to Edge)";
-            projValid = true;
-        }
-        if (projValid) {
+                           "Index",
+                           AString::number(idSurfaceFocus->getFocusIndex()));
+            
+            float xyzProj[3];
+            spi->getProjectedPosition(*idSurfaceFocus->getSurface(), xyzProj, false);
+            
             idText.addLine(true,
-                           xyzProjName,
-                           xyzProj,
-                           3,
-                           true);
-        }
-        else {
-            idText.addLine(true,
-                           xyzProjName,
-                           "Invalid");
-        }
-        
-        const int32_t numberOfProjections = focus->getNumberOfProjections();
-        for (int32_t i = 0; i < numberOfProjections; i++) {
-            if (i != projectionIndex) {
-                const SurfaceProjectedItem* proj = focus->getProjection(i);
-                AString projTypeName = "";
-                if (proj->getBarycentricProjection()->isValid()) {
-                    projTypeName = "Triangle";
-                    
-                }
-                else if (proj->getVanEssenProjection()->isValid()) {
-                    projTypeName = "Edge";
-                }
-                if (projTypeName.isEmpty() == false) {
-                    const AString txt = (StructureEnum::toGuiName(proj->getStructure())
-                                         + " ("
-                                         + projTypeName
-                                         + ")");
-                                         
-                    idText.addLine(true,
-                                   "Ambiguous Projection",
-                                   txt);
+                           "Structure",
+                           StructureEnum::toGuiName(spi->getStructure()));
+            
+            if (spi->isStereotaxicXYZValid()) {
+                idText.addLine(true,
+                               "XYZ (Stereotaxic)",
+                               xyzStereo,
+                               3,
+                               true);
+            }
+            else {
+                idText.addLine(true,
+                               "XYZ (Stereotaxic)",
+                               "Invalid");
+            }
+            
+            bool projValid = false;
+            AString xyzProjName = "XYZ (Projected)";
+            if (spi->getBarycentricProjection()->isValid()) {
+                xyzProjName = "XYZ (Projected to Triangle)";
+                projValid = true;
+            }
+            else if (spi->getVanEssenProjection()->isValid()) {
+                xyzProjName = "XYZ (Projected to Edge)";
+                projValid = true;
+            }
+            if (projValid) {
+                idText.addLine(true,
+                               xyzProjName,
+                               xyzProj,
+                               3,
+                               true);
+            }
+            else {
+                idText.addLine(true,
+                               xyzProjName,
+                               "Invalid");
+            }
+            
+            const int32_t numberOfProjections = focus->getNumberOfProjections();
+            for (int32_t i = 0; i < numberOfProjections; i++) {
+                if (i != projectionIndex) {
+                    const SurfaceProjectedItem* proj = focus->getProjection(i);
+                    AString projTypeName = "";
+                    if (proj->getBarycentricProjection()->isValid()) {
+                        projTypeName = "Triangle";
+                        
+                    }
+                    else if (proj->getVanEssenProjection()->isValid()) {
+                        projTypeName = "Edge";
+                    }
+                    if (projTypeName.isEmpty() == false) {
+                        const AString txt = (StructureEnum::toGuiName(proj->getStructure())
+                                             + " ("
+                                             + projTypeName
+                                             + ")");
+                        
+                        idText.addLine(true,
+                                       "Ambiguous Projection",
+                                       txt);
+                    }
                 }
             }
+            
+            idText.addLine(true,
+                           "Area",
+                           focus->getArea());
+            
+            idText.addLine(true,
+                           "Class Name",
+                           focus->getClassName());
+            
+            idText.addLine(true,
+                           "Comment",
+                           focus->getComment());
+            
+            idText.addLine(true,
+                           "Extent",
+                           focus->getExtent(),
+                           true);
+            
+            idText.addLine(true,
+                           "Geography",
+                           focus->getGeography());
+            
+            idText.addLine(true,
+                           "Region of Interest",
+                           focus->getRegionOfInterest());
+            
+            idText.addLine(true,
+                           "Statistic",
+                           focus->getStatistic());
+            
         }
-        
-        idText.addLine(true,
-                       "Area",
-                       focus->getArea());
-        
-        idText.addLine(true,
-                       "Class Name",
-                       focus->getClassName());
-
-        idText.addLine(true,
-                       "Comment",
-                       focus->getComment());
-        
-        idText.addLine(true,
-                       "Extent",
-                       focus->getExtent(),
-                       true);
-        
-        idText.addLine(true,
-                       "Geography",
-                       focus->getGeography());
-        
-        idText.addLine(true,
-                       "Region of Interest",
-                       focus->getRegionOfInterest());
-        
-        idText.addLine(true,
-                       "Statistic",
-                       focus->getStatistic());
-        
     }
 }
 
@@ -1410,6 +1505,287 @@ IdentificationTextGenerator::generateImageIdentificationText(IdentificationStrin
         
         idText.addLine(false,
                        text);
+    }
+}
+
+/**
+ * Get text for the tooltip for a selected node.
+ *
+ * @param brain
+ *     The Brain.
+ * @param browserTab
+ *     Browser tab in which tooltip is displayed
+ * @param selectionManager
+ *     The selection manager.
+ * @param dataToolTipsManager
+ *     The data tooltips manager
+ * @param idText
+ *     String builder for identification text.
+ */
+void
+IdentificationTextGenerator::generateSurfaceToolTip(const Brain* brain,
+                                                    const BrowserTabContent* browserTab,
+                                                    const SelectionManager* selectionManager,
+                                                    const DataToolTipsManager* dataToolTipsManager,
+                                                    IdentificationStringBuilder& idText) const
+{
+    const SelectionItemSurfaceNode* nodeSelection = selectionManager->getSurfaceNodeIdentification();
+    CaretAssert(nodeSelection);
+    if (nodeSelection->isValid()) {
+        const Surface* surface = nodeSelection->getSurface();
+        CaretAssert(surface);
+        int32_t surfaceNumberOfNodes = surface->getNumberOfNodes();
+        int32_t surfaceNodeIndex = nodeSelection->getNodeNumber();
+        StructureEnum::Enum surfaceStructure = surface->getStructure();
+        
+        bool indentFlag = false;
+        if ((surfaceStructure != StructureEnum::INVALID)
+            && (surfaceNumberOfNodes > 0)
+            && (surfaceNodeIndex >= 0)) {
+            
+            bool addVertexFlag(false);
+            bool showSurfaceFlag = dataToolTipsManager->isShowSurfaceViewed();
+            if (dataToolTipsManager->isShowSurfacePrimaryAnatomical()) {
+                const Surface* anatSurface = brain->getPrimaryAnatomicalSurfaceForStructure(surfaceStructure);
+                if (anatSurface != NULL) {
+                    if (anatSurface->getNumberOfNodes() == surfaceNumberOfNodes) {
+                        float xyz[3];
+                        anatSurface->getCoordinate(surfaceNodeIndex,
+                                                   xyz);
+                        idText.addLine(indentFlag,
+                                       "Vertex",
+                                       AString::number(surfaceNodeIndex));
+                        indentFlag = true;
+                        addVertexFlag = false;
+                        
+                        idText.addLine(indentFlag,
+                                       "Anatomy Surface",
+                                       AString::fromNumbers(xyz, 3, ", ", 'f', 2));
+                        if (surface == anatSurface) {
+                            showSurfaceFlag = false;
+                        }
+                    }
+                }
+            }
+            
+            if (showSurfaceFlag) {
+                float xyz[3];
+                surface->getCoordinate(surfaceNodeIndex,
+                                       xyz);
+                if (addVertexFlag) {
+                    idText.addLine(indentFlag,
+                                   "Vertex",
+                                   AString::number(surfaceNodeIndex));
+                    indentFlag = true;
+                }
+
+                idText.addLine(indentFlag,
+                               (SurfaceTypeEnum::toGuiName(surface->getSurfaceType())
+                                + " Surface"),
+                               AString::fromNumbers(xyz, 3, ", "));
+            }
+            
+            if (dataToolTipsManager->isShowTopLayer()) {
+                const OverlaySet* overlaySet = browserTab->getOverlaySet();
+                CaretAssert(overlaySet);
+                Overlay* overlay = const_cast<Overlay*>(overlaySet->getOverlay(0));
+                CaretAssert(overlay);
+                CaretMappableDataFile* mapFile(NULL);
+                int32_t mapIndex(-1);
+                overlay->getSelectionData(mapFile,
+                                          mapIndex);
+                if ((mapFile != NULL)
+                    && (mapIndex >= 0)) {
+                    std::vector<int32_t> mapIndices { mapIndex };
+                    AString textValue;
+                    mapFile->getSurfaceNodeIdentificationForMaps(mapIndices,
+                                                                 surfaceStructure,
+                                                                 surfaceNodeIndex,
+                                                                 surfaceNumberOfNodes,
+                                                                 textValue);
+                    if ( ! textValue.isEmpty()) {
+                        idText.addLine(indentFlag,
+                                       "Top Layer",
+                                       textValue);
+                    }
+                }
+            }
+        }
+    }
+    
+    if (dataToolTipsManager->isShowBorder()) {
+        const SelectionItemBorderSurface* borderSelection = selectionManager->getSurfaceBorderIdentification();
+        CaretAssert(borderSelection);
+        if (borderSelection->isValid()) {
+            generateSurfaceBorderIdentifcationText(idText,
+                                                   borderSelection,
+                                                   true);
+            
+//            const BorderFile* borderFile = borderSelection->getBorderFile();
+//            const int32_t borderIndex    = borderSelection->getBorderIndex();
+//            if ((borderFile != NULL)
+//                && (borderIndex >= 0)) {
+//                const Border* border = borderFile->getBorder(borderIndex);
+//                if (border != NULL) {
+//                    text.appendWithNewLine("Border: "
+//                                           + border->getName());
+//                }
+//            }
+        }
+    }
+    
+    if (dataToolTipsManager->isShowFocus()) {
+        const SelectionItemFocusSurface* focusSelection = selectionManager->getSurfaceFocusIdentification();
+        CaretAssert(focusSelection);
+        if (focusSelection->isValid()) {
+            generateSurfaceFociIdentifcationText(idText,
+                                                 focusSelection,
+                                                 true);
+            
+            
+//            const FociFile* fociFile = focusSelection->getFociFile();
+//            const int32_t focusIndex = focusSelection->getFocusIndex();
+//            if ((fociFile != NULL)
+//                && (focusIndex >= 0)) {
+//                const Focus* focus = fociFile->getFocus(focusIndex);
+//                if (focus != NULL) {
+//                    text.appendWithNewLine("Focus: "
+//                                           + focus->getName());
+//                }
+//            }
+        }
+    }
+}
+
+/**
+ * Get text for the tooltip for a selected node.
+ *
+ * @param browserTab
+ *     Browser tab in which tooltip is displayed
+ * @param selectionManager
+ *     The selection manager.
+ * @param dataToolTipsManager
+ *     The data tooltips manager
+ * @param idText
+ *     String builder for identification text.
+ */
+void
+IdentificationTextGenerator::generateVolumeToolTip(const BrowserTabContent* browserTab,
+                                                   const SelectionManager* selectionManager,
+                                                   const DataToolTipsManager* dataToolTipsManager,
+                                                   IdentificationStringBuilder& idText) const
+{
+    const SelectionItemVoxel* voxelSelection = selectionManager->getVoxelIdentification();
+    
+    OverlaySet* overlaySet = const_cast<OverlaySet*>(browserTab->getOverlaySet());
+    CaretAssert(overlaySet);
+    
+    double selectionXYZ[3];
+    voxelSelection->getModelXYZ(selectionXYZ);
+    float xyz[3] {
+        static_cast<float>(selectionXYZ[0]),
+        static_cast<float>(selectionXYZ[1]),
+        static_cast<float>(selectionXYZ[2])
+    };
+    
+    bool indentFlag = false;
+    if (dataToolTipsManager->isShowVolumeUnderlay()) {
+        Overlay* volumeUnderlay = overlaySet->getUnderlayContainingVolume();
+        if (volumeUnderlay != NULL) {
+            CaretMappableDataFile* mapFile = NULL;
+            int32_t mapIndex(-1);
+            volumeUnderlay->getSelectionData(mapFile,
+                                             mapIndex);
+            
+            VolumeMappableInterface* underlayVolumeInterface = NULL;
+            if (mapFile != NULL) {
+                underlayVolumeInterface = dynamic_cast<VolumeMappableInterface*>(mapFile);
+                CaretAssert(underlayVolumeInterface == overlaySet->getUnderlayVolume());
+            }
+            
+            if (underlayVolumeInterface != NULL) {
+                /*
+                 * Update IJK and XYZ since selection XYZ may be
+                 * a different volume file.
+                 */
+                int64_t selectionIJK[3];
+                voxelSelection->getVoxelIJK(selectionIJK);
+                int64_t ijk[3] { selectionIJK[0], selectionIJK[1], selectionIJK[2] };
+                
+                
+                bool validFlag(false);
+                const float value = underlayVolumeInterface->getVoxelValue(xyz[0], xyz[1], xyz[2],
+                                                                           &validFlag,
+                                                                           mapIndex);
+                if (validFlag) {
+                    underlayVolumeInterface->enclosingVoxel(xyz[0], xyz[1], xyz[2],
+                                                            ijk[0], ijk[1], ijk[2]);
+                    underlayVolumeInterface->indexToSpace(ijk, xyz);
+                    idText.addLine(indentFlag,
+                                   "Underlay Value",
+                                   AString::number(value, 'f'));
+                    indentFlag = true;
+                    idText.addLine(indentFlag,
+                                   "IJK: ",
+                                   AString::fromNumbers(ijk, 3, ", "));
+                    idText.addLine(indentFlag,
+                                   "XYZ",
+                                   AString::fromNumbers(xyz, 3, ", ", 'f', 1));
+                }
+            }
+        }
+    }
+    
+    if (dataToolTipsManager->isShowTopLayer()) {
+        Overlay* overlay = const_cast<Overlay*>(overlaySet->getOverlay(0));
+        CaretAssert(overlay);
+        CaretMappableDataFile* mapFile(NULL);
+        int32_t mapIndex(-1);
+        overlay->getSelectionData(mapFile,
+                                  mapIndex);
+        if ((mapFile != NULL)
+            && (mapIndex >= 0)) {
+            std::vector<int32_t> mapIndices { mapIndex };
+            AString textValue;
+            int64_t ijk[3];
+            mapFile->getVolumeVoxelIdentificationForMaps(mapIndices,
+                                                         xyz,
+                                                         ijk,
+                                                         textValue);
+            if ( ! textValue.isEmpty()) {
+                idText.addLine(indentFlag,
+                               ("Top Layer: "
+                                + textValue));
+            }
+        }
+    }
+    
+}
+
+/**
+ * Get text for the tooltip for a selected node.
+ *
+ * @param selectionManager
+ *     The selection manager.
+ * @param dataToolTipsManager
+ *     The data tooltips manager
+ * @param idText
+ *     String builder for identification text.
+ */
+void
+IdentificationTextGenerator::generateChartToolTip(const SelectionManager* selectionManager,
+                                                  const DataToolTipsManager* dataToolTipsManager,
+                                                  IdentificationStringBuilder& idText) const
+{
+    if (dataToolTipsManager->isShowChart()) {
+        this->generateChartTwoHistogramIdentificationText(idText,
+                                                          selectionManager->getChartTwoHistogramIdentification());
+        
+        this->generateChartTwoLineSeriesIdentificationText(idText,
+                                                           selectionManager->getChartTwoLineSeriesIdentification());
+        
+        this->generateChartTwoMatrixIdentificationText(idText,
+                                                       selectionManager->getChartTwoMatrixIdentification());
     }
 }
 

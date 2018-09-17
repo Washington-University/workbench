@@ -153,6 +153,7 @@ namespace caret {
         
         WuQTrueFalseComboBox* m_surfaceIdentificationSymbolComboBox;
         WuQTrueFalseComboBox* m_volumeIdentificationSymbolComboBox;
+        WuQTrueFalseComboBox* m_dataToolTipsComboBox;
         
         WuQWidgetObjectGroup* m_allWidgets;
     };

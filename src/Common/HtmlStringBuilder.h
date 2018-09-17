@@ -83,7 +83,11 @@ namespace caret {
         
         AString toStringWithHtmlBody();
         
+        AString toStringWithHtmlBodyForToolTip();
+        
     private:
+        AString toStringWithHtmlBodyPrivate(const bool toolTipFlag);
+        
         AString stringBuilder;
         
     };
