@@ -671,9 +671,6 @@ BrainOpenGLWidget::event(QEvent* event)
             DataToolTipsManager* dttm = SessionManager::get()->getDataToolTipsManager();
             CaretAssert(dttm);
             
-            Brain* brain = GuiManager::get()->getBrain();
-            CaretAssert(brain);
-            
             AString toolTipText;
 
             const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);

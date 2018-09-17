@@ -865,6 +865,25 @@ GraphicsPrimitive::addVertexProtected(const float xyz[3],
 }
 
 /**
+ * Get the XYZ coordinate from the given vertex.
+ *
+ * @param vertexIndex 
+ *     Index of the vertex.
+ * @param xyzOut
+ *     Output containing the XYZ coordinat.
+ */
+void
+GraphicsPrimitive::getVertexFloatXYZ(const int32_t vertexIndex,
+                                     float xyzOut[3]) const
+{
+    const int32_t i3 = vertexIndex * 3;
+    CaretAssertVectorIndex(m_xyz, i3 + 2);
+    xyzOut[0] = m_xyz[i3];
+    xyzOut[1] = m_xyz[i3+1];
+    xyzOut[2] = m_xyz[i3+2];
+}
+
+/**
  * Replace the existing XYZ coordinates with the given
  * XYZ coordinates.  The existing and new coordinates
  * MUST BE the same size.

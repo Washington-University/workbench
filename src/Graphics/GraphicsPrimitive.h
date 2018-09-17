@@ -369,6 +369,9 @@ namespace caret {
          */
         const std::vector<float>& getFloatXYZ() const { return m_xyz; }
         
+        void getVertexFloatXYZ(const int32_t vertexIndex,
+                               float xyzOut[3]) const;
+        
         void replaceFloatXYZ(const std::vector<float>& xyz);
         
         /**

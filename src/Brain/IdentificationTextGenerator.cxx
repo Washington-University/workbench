@@ -48,6 +48,8 @@
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
+#include "GraphicsPrimitive.h"
+#include "GraphicsPrimitiveV3f.h"
 #include "Histogram.h"
 #include "ImageFile.h"
 #include "MapFileDataSelector.h"
@@ -872,16 +874,39 @@ IdentificationTextGenerator::generateChartTwoLineSeriesIdentificationText(Identi
         const MapFileDataSelector* mapFileDataSelector = cartesianData->getMapFileDataSelector();
         CaretAssert(mapFileDataSelector);
         
-        const int32_t primitiveIndex = idChartTwoLineSeries->getLineSegmentIndex();
+        int32_t primitiveIndex = idChartTwoLineSeries->getLineSegmentIndex();
         
         AString boldText("Line Chart");
         idText.addLine(false,
                        boldText,
                        mapFile->getFileNameNoPath());
         
-        idText.addLine(true,
-                       "Line Segment Index",
-                       (AString::number(primitiveIndex)));
+        cartesianData->getGraphicsPrimitive();
+        const GraphicsPrimitive* primitive = cartesianData->getGraphicsPrimitive();
+        CaretAssert(primitive);
+        
+        if (primitiveIndex >= 1) {
+            float xyz1[3];
+            primitive->getVertexFloatXYZ(primitiveIndex - 1,
+                                         xyz1);
+            float xyz2[3];
+            primitive->getVertexFloatXYZ(primitiveIndex,
+                                         xyz2);
+            idText.addLine(true,
+                           "XY Start",
+                           AString::fromNumbers(xyz1, 2, ", "));
+            idText.addLine(true,
+                           "XY End ",
+                           AString::fromNumbers(xyz2, 2, ", "));
+        }
+        else {
+            float xyz[3];
+            primitive->getVertexFloatXYZ(primitiveIndex,
+                                         xyz);
+            idText.addLine(true,
+                           "XY",
+                           AString::fromNumbers(xyz, 2, ", "));
+        }
         
         generateMapFileSelectorText(idText,
                                     mapFileDataSelector);
