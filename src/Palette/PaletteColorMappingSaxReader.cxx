@@ -436,7 +436,7 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                << qName.toStdString()
                << "\" with content: "
                << this->elementText.toStdString();
-               warning(XmlSaxParserException(AString::fromStdString(str.str())));
+               CaretLogFine(AString::fromStdString(str.str()));
            }
          break;
    }
