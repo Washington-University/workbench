@@ -1132,7 +1132,7 @@ IdentificationTextGenerator::generateMapFileSelectorText(IdentificationStringBui
                            mapFileName);
             idText.addLine(true,
                            "Column Index",
-                           AString::number(columnIndex));
+                           AString::number(columnIndex + 1));
         }
             break;
         case MapFileDataSelector::DataSelectionType::ROW_DATA:
@@ -1149,7 +1149,7 @@ IdentificationTextGenerator::generateMapFileSelectorText(IdentificationStringBui
                            mapFileName);
             idText.addLine(true,
                            "Row Index",
-                           AString::number(rowIndex));
+                           AString::number(rowIndex + 1));
         }
             break;
         case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
