@@ -1149,8 +1149,8 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                             }
                             
                             if (validDiskFileFlag) {
-                                QFileInfo fileInfo(pathName);
-                                const QString absPathName = fileInfo.absoluteFilePath();
+                                FileInformation fileInfo(pathName);
+                                const QString absPathName = fileInfo.getAbsoluteFilePath();
                                 if ( ! absPathName.isEmpty()) {
                                     pathName = absPathName;
                                 }

@@ -112,7 +112,7 @@ namespace caret {
             SceneDataFileInfo(const AString& dataFileName,
                               const int32_t sceneIndex)
             : m_dataFileName(dataFileName) {
-                m_sceneIndices.push_back(sceneIndex);
+                m_sceneIndices.push_back(sceneIndex + 1);
             }
             
             bool operator<(const SceneDataFileInfo& rhs) const {
@@ -120,7 +120,7 @@ namespace caret {
             }
             
             void addSceneIndex(const int32_t sceneIndex) const {
-                m_sceneIndices.push_back(sceneIndex);
+                m_sceneIndices.push_back(sceneIndex + 1);
             }
             
             AString getSceneIndices() const {

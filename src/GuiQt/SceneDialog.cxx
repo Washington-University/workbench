@@ -1924,7 +1924,7 @@ SceneDialog::showFileStructure()
     text.appendWithNewLine("<b>Scene File</b>: "
                            + sceneFileName
                            + "<p>");
-    text.append("<b>Data File paths relative to Scene File</b>:");
+    text.append("<b>Data File paths relative to Scene File (indices of scenes using file in parenthesis)</b>:");
     text.append("<ul>");
     
     for (const auto& fileData : fileSceneInfo) {
