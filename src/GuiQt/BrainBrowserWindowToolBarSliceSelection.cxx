@@ -31,6 +31,8 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QMenu>
+#include <QPainter>
+#include <QPen>
 #include <QSpinBox>
 #include <QToolButton>
 
@@ -162,13 +164,14 @@ m_parentToolBar(parentToolBar)
     const bool volumeCrossHairIconValid =
     WuQtUtilities::loadIcon(":/ToolBar/volume-crosshair-pointer.png",
                             volumeCrossHairIcon);
+    QToolButton* volumeIDToolButton = new QToolButton;
     if (volumeCrossHairIconValid) {
         m_volumeIdentificationUpdatesSlicesAction->setIcon(volumeCrossHairIcon);
+        m_volumeIdentificationUpdatesSlicesAction->setIcon(createVolumeIdentificationUpdatesSlicesIcon(volumeIDToolButton));
     }
     else {
         m_volumeIdentificationUpdatesSlicesAction->setText("ID");
     }
-    QToolButton* volumeIDToolButton = new QToolButton;
     volumeIDToolButton->setDefaultAction(m_volumeIdentificationUpdatesSlicesAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumeIDToolButton);
     
@@ -826,4 +829,51 @@ BrainBrowserWindowToolBarSliceSelection::updateObliqueMaskingButton()
     }
 }
 
+/**
+ * Create a pixmap for the volume identification updates slice selection button.
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @return
+ *    The pixmap.
+ */
+QPixmap
+BrainBrowserWindowToolBarSliceSelection::createVolumeIdentificationUpdatesSlicesIcon(const QWidget* widget)
+{
+    CaretAssert(widget);
+    const int pixmapSize = 24;
+    const int halfSize = pixmapSize / 2;
+    
+    QPixmap pixmap(pixmapSize,
+                   pixmapSize);
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginCenter(widget,
+                                                                                            pixmap,
+                                                                                            static_cast<uint32_t>(WuQtUtilities::PixMapCreationOptions::TransparentBackground));
+    const int startXY = 3;
+    const int endXY   = 8;
+    QPen pen(painter->pen());
+    pen.setWidth(2);
+    painter->setPen(pen);
+    const int tx(-3);
+    const int ty(3);
+    painter->translate(tx, ty);
+    painter->drawLine(-startXY, 0, -endXY, 0);
+    painter->drawLine( startXY, 0,  endXY, 0);
+    painter->drawLine(0, -startXY, 0, -endXY);
+    painter->drawLine(0,  startXY, 0,  endXY);
+    painter->translate(-tx, -ty);
+    
+    const int tipX(3);
+    const int tipY(-3);
+    const int tailX(halfSize);
+    const int tailY(-halfSize);
+    painter->drawLine(tipX, tipY, tailX, tailY);
+    
+    const int headLength(3);
+    painter->drawLine(tipX, tipY, tipX + headLength, tipY);
+    painter->drawLine(tipX, tipY, tipX, tipY - headLength);
+    
+    return pixmap;
+}
 

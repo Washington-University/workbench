@@ -22,6 +22,7 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
 #include <iosfwd>
 
 #include <QSize>
@@ -52,6 +53,18 @@ namespace caret {
     class WuQtUtilities {
         
     public:
+        /*
+         * Options for creating pixmaps
+         */
+        enum  class PixMapCreationOptions : uint32_t {
+            /*
+             * Create pixmap with transparent background.
+             * Useful for pixmaps used in toolbar toggle buttons so that selection is shaded
+             * in the entire button not just around the pixmap
+             */
+            TransparentBackground = 1
+        };
+        
         static QAction* createAction(const QString& text,
                                      const QString& toolAndStatusTipText,
                                      const QKeySequence& shortcut,
@@ -91,16 +104,20 @@ namespace caret {
                                                   const bool     outlineFlag);
         
         static QSharedPointer<QPainter> createPixmapWidgetPainter(const QWidget* widget,
-                                                                  QPixmap& pixmap);
+                                                                  QPixmap& pixmap,
+                                                                  const uint32_t pixmapOptions = 0);
         
         static QSharedPointer<QPainter> createPixmapWidgetPainterOriginBottomLeft(const QWidget* widget,
-                                                                                  QPixmap& pixmap);
+                                                                                  QPixmap& pixmap,
+                                                                                  const uint32_t pixmapOptions = 0);
                 
         static QSharedPointer<QPainter> createPixmapWidgetPainterOriginCenter(const QWidget* widget,
-                                                                              QPixmap& pixmap);
+                                                                              QPixmap& pixmap,
+                                                                              const uint32_t pixmapOptions = 0);
         
         static QSharedPointer<QPainter> createPixmapWidgetPainterOriginCenter100x100(const QWidget* widget,
-                                                                                     QPixmap& pixmap);
+                                                                                     QPixmap& pixmap,
+                                                                                     const uint32_t pixmapOptions = 0);
         
         static void moveWindowToOffset(QWidget* parentWidget,
                                        QWidget* window,
@@ -206,6 +223,10 @@ namespace caret {
         static void setToolButtonStyleForQt5Mac(QToolButton* toolButton);
         
     private:
+        static QSharedPointer<QPainter> createPixmapWidgetPainterPrivate(const QWidget* widget,
+                                                                         QPixmap& pixmap,
+                                                                         const uint32_t pixmapOptions = 0);
+        
         WuQtUtilities();
         ~WuQtUtilities();
         WuQtUtilities(const WuQtUtilities&);

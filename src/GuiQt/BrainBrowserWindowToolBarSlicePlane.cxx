@@ -403,7 +403,8 @@ BrainBrowserWindowToolBarSlicePlane::createCrosshairsIcon(const QWidget* widget)
     QPixmap pixmap(static_cast<int>(pixmapSize),
                    static_cast<int>(pixmapSize));
     QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginCenter(widget,
-                                                                                            pixmap);
+                                                                                            pixmap,
+                                                                                            static_cast<uint32_t>(WuQtUtilities::PixMapCreationOptions::TransparentBackground));
     const int startXY = 4;
     const int endXY   = 10;
     QPen pen(painter->pen());
@@ -441,7 +442,8 @@ BrainBrowserWindowToolBarSlicePlane::createCrosshairLabelsIcon(const QWidget* wi
     QPixmap pixmap(static_cast<int>(pixmapSize),
                    static_cast<int>(pixmapSize));
     QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
-                                                                                pixmap);
+                                                                                pixmap,
+                                                                                static_cast<uint32_t>(WuQtUtilities::PixMapCreationOptions::TransparentBackground));
     QFont font = painter->font();
     font.setPixelSize(10);
     painter->setFont(font);

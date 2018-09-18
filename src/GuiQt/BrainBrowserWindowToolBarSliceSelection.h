@@ -75,6 +75,9 @@ namespace caret {
         
         void updateObliqueMaskingButton();
         
+        QPixmap createVolumeIdentificationUpdatesSlicesIcon(const QWidget* widget);
+        
+
         BrainBrowserWindowToolBar* m_parentToolBar;
         
         WuQWidgetObjectGroup* m_volumeIndicesWidgetGroup;

@@ -1296,7 +1296,8 @@ WuQtUtilities::createCaretColorEnumPixmap(const QWidget* widget,
     QPixmap pixmap(pixmapWidth,
                    pixmapHeight);
     QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainter(widget,
-                                                                                pixmap);
+                                                                                pixmap,
+                                                                                0);
     
     if (noneColorFlag) {
         /*
@@ -1350,17 +1351,21 @@ WuQtUtilities::createCaretColorEnumPixmap(const QWidget* widget,
  *     Widget used for coloring.
  * @param pixmap
  *     The Pixmap must be square (width == height).
+ * @param pixmapOptions
+ *     Options for creation of pixmap.
  * @return
  *     Shared pointer containing QPainter for drawing to the pixmap.
  */
 QSharedPointer<QPainter>
 WuQtUtilities::createPixmapWidgetPainterOriginCenter100x100(const QWidget* widget,
-                                                            QPixmap& pixmap)
+                                                            QPixmap& pixmap,
+                                                            const uint32_t pixmapOptions)
 {
     CaretAssert(pixmap.width() == pixmap.height());
     
     QSharedPointer<QPainter> painter = createPixmapWidgetPainter(widget,
-                                                                 pixmap);
+                                                                 pixmap,
+                                                                 pixmapOptions);
     
     /*
      * Note: QPainter has its origin at the top left.
@@ -1389,17 +1394,21 @@ WuQtUtilities::createPixmapWidgetPainterOriginCenter100x100(const QWidget* widge
  *     Widget used for coloring.
  * @param pixmap
  *     The Pixmap must be square (width == height).
+ * @param pixmapOptions
+ *     Options for creation of pixmap.
  * @return
  *     Shared pointer containing QPainter for drawing to the pixmap.
  */
 QSharedPointer<QPainter>
 WuQtUtilities::createPixmapWidgetPainterOriginCenter(const QWidget* widget,
-                                                     QPixmap& pixmap)
+                                                     QPixmap& pixmap,
+                                                     const uint32_t pixmapOptions)
 {
     CaretAssert(pixmap.width() == pixmap.height());
     
-    QSharedPointer<QPainter> painter = createPixmapWidgetPainter(widget,
-                                                                 pixmap);
+    QSharedPointer<QPainter> painter = createPixmapWidgetPainterPrivate(widget,
+                                                                        pixmap,
+                                                                        pixmapOptions);
     
     /*
      * Note: QPainter has its origin at the top left.
@@ -1427,15 +1436,19 @@ WuQtUtilities::createPixmapWidgetPainterOriginCenter(const QWidget* widget,
  *     Widget used for coloring.
  * @param pixmap
  *     The Pixmap.
+ * @param pixmapOptions
+ *     Options for creation of pixmap.
  * @return
  *     Shared pointer containing QPainter for drawing to the pixmap.
  */
 QSharedPointer<QPainter>
 WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(const QWidget* widget,
-                                                         QPixmap& pixmap)
+                                                         QPixmap& pixmap,
+                                                         const uint32_t pixmapOptions)
 {
     QSharedPointer<QPainter> painter = createPixmapWidgetPainter(widget,
-                                                                 pixmap);
+                                                                 pixmap,
+                                                                 pixmapOptions);
     
     /*
      * Note: QPainter has its origin at the top left.
@@ -1464,12 +1477,43 @@ WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(const QWidget* widget,
  *     Widget used for coloring.
  * @param pixmap
  *     The Pixmap.
+ * @param pixmapOptions
+ *     Options for creation of pixmap.
  * @return
  *     Shared pointer containing QPainter for drawing to the pixmap.
  */
 QSharedPointer<QPainter>
 WuQtUtilities::createPixmapWidgetPainter(const QWidget* widget,
-                                         QPixmap& pixmap)
+                                         QPixmap& pixmap,
+                                         const uint32_t pixmapOptions)
+{
+    return createPixmapWidgetPainterPrivate(widget,
+                                            pixmap,
+                                            pixmapOptions);
+}
+
+/**
+ * Create a painter for the given pixmap that will be placed
+ * into the given widget.  The pixmap's background is painted
+ * with the widget's background color, the painter's pen is set
+ * to the widget's foreground color, and then the painter is
+ * returned.
+ *
+ * Origin of painter will be in the TOP LEFT corner.
+ *
+ * @param widget
+ *     Widget used for coloring.
+ * @param pixmap
+ *     The Pixmap.
+ * @param pixmapOptions
+ *     Options for creation of the pixmap.
+ * @return
+ *     Shared pointer containing QPainter for drawing to the pixmap.
+ */
+QSharedPointer<QPainter>
+WuQtUtilities::createPixmapWidgetPainterPrivate(const QWidget* widget,
+                                                QPixmap& pixmap,
+                                                const uint32_t pixmapOptions)
 {
     CaretAssert(widget);
     CaretAssert(pixmap.width() > 0);
@@ -1486,6 +1530,23 @@ WuQtUtilities::createPixmapWidgetPainter(const QWidget* widget,
     const QBrush foregroundBrush = palette.brush(foregroundRole);
     const QColor foregroundColor = foregroundBrush.color();
     
+    const bool transparentBackgroundFlag = (pixmapOptions
+                                            & static_cast<uint32_t>(PixMapCreationOptions::TransparentBackground));
+    if (transparentBackgroundFlag) {
+        /*
+         * It is not possible to create a pixmap with alpha using Qt.
+         * So, create a QImage filled with alpha = 0 and then
+         * let the pixmap copy from the QImage.
+         */
+        QImage image(pixmap.width(),
+                     pixmap.height(),
+                     QImage::Format_RGBA8888_Premultiplied);
+        image.fill(QColor(0, 0, 0, 0));
+        const bool succssFlag = pixmap.convertFromImage(image);
+        if ( ! succssFlag) {
+            CaretLogSevere("Failed to convert image to pixmap");
+        }
+    }
     
     /*
      * Create a painter and fill the pixmap with
@@ -1493,9 +1554,14 @@ WuQtUtilities::createPixmapWidgetPainter(const QWidget* widget,
      */
     QSharedPointer<QPainter> painter(new QPainter(&pixmap));
     painter->setRenderHint(QPainter::Antialiasing,
-                          true);
-    painter->setBackgroundMode(Qt::OpaqueMode);
-    painter->fillRect(pixmap.rect(), backgroundColor);
+                           true);
+    if (transparentBackgroundFlag) {
+        painter->setBackgroundMode(Qt::TransparentMode);
+    }
+    else {
+        painter->setBackgroundMode(Qt::OpaqueMode);
+        painter->fillRect(pixmap.rect(), backgroundColor);
+    }
     
     painter->setPen(foregroundColor);
     
