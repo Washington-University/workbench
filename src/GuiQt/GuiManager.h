@@ -123,6 +123,8 @@ namespace caret {
         
         QAction* getHelpViewerDialogDisplayAction();
         
+        QAction* getDataToolTipsAction(QWidget* buttonWidget);
+        
         void closeAllOtherWindows(BrainBrowserWindow* browserWindow);
         
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
@@ -201,6 +203,7 @@ namespace caret {
         void helpDialogWasClosed();
         void sceneDialogWasClosed();
         void identifyBrainordinateDialogWasClosed();
+        void dataToolTipsActionTriggered(bool);
         
     private:
         GuiManager(QObject* parent = 0);
@@ -232,6 +235,8 @@ namespace caret {
         void updateNonModalDialogs();
         
         void addParentLessNonModalDialog(QWidget* dialog);
+        
+        QPixmap createDataToolTipsIcon(const QWidget* widget);
         
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;
@@ -281,6 +286,8 @@ namespace caret {
         QAction* m_informationDisplayDialogEnabledAction;
         
         QAction* m_identifyBrainordinateDialogEnabledAction;
+        
+        QAction* m_dataToolTipsEnabledAction;
         
         BugReportDialog* m_bugReportDialog;
         

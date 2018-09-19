@@ -77,7 +77,7 @@ SessionManager::SessionManager()
 
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
     m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
-    m_dataToolTipsManager.reset(new DataToolTipsManager());
+    m_dataToolTipsManager.reset(new DataToolTipsManager(m_caretPreferences->isShowDataToolTipsEnabled()));
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_browserTabs[i] = NULL;

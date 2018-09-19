@@ -657,8 +657,7 @@ BrainOpenGLWidget::paintGL()
 bool
 BrainOpenGLWidget::event(QEvent* event)
 {
-    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    if (prefs->isShowDataToolTipsEnabled()) {
+    if (SessionManager::get()->getDataToolTipsManager()->isEnabled()) {
         if (event->type() == QEvent::ToolTip) {
             QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
             CaretAssert(helpEvent);

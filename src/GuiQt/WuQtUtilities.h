@@ -56,7 +56,7 @@ namespace caret {
         /*
          * Options for creating pixmaps
          */
-        enum  class PixMapCreationOptions : uint32_t {
+        enum PixMapCreationOptions {
             /*
              * Create pixmap with transparent background.
              * Useful for pixmaps used in toolbar toggle buttons so that selection is shaded

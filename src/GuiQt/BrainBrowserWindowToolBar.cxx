@@ -307,6 +307,9 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QToolButton* layersToolBoxToolButton = new QToolButton();
     layersToolBoxToolButton->setDefaultAction(layersToolBoxAction);
     
+    QToolButton* dataToolTipsToolButton = new QToolButton();
+    dataToolTipsToolButton->setDefaultAction(GuiManager::get()->getDataToolTipsAction(dataToolTipsToolButton));
+    
     /*
      * Make all tool buttons the same height
      */
@@ -316,7 +319,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                       sceneDialogToolButton,
                                       toolBarToolButton,
                                       overlayToolBoxToolButton,
-                                      layersToolBoxToolButton);
+                                      layersToolBoxToolButton,
+                                      dataToolTipsToolButton);
     
     WuQtUtilities::setToolButtonStyleForQt5Mac(helpDialogToolButton);
     WuQtUtilities::setToolButtonStyleForQt5Mac(informationDialogToolButton);
@@ -325,6 +329,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     WuQtUtilities::setToolButtonStyleForQt5Mac(toolBarToolButton);
     WuQtUtilities::setToolButtonStyleForQt5Mac(overlayToolBoxToolButton);
     WuQtUtilities::setToolButtonStyleForQt5Mac(layersToolBoxToolButton);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(dataToolTipsToolButton);
     
     /*
      * Tab bar and controls at far right side of toolbar
@@ -333,6 +338,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QHBoxLayout* tabBarLayout = new QHBoxLayout(this->tabBarWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(tabBarLayout, 2, 1);
     tabBarLayout->addWidget(this->tabBar, 100);
+    tabBarLayout->addWidget(dataToolTipsToolButton);
     tabBarLayout->addWidget(helpDialogToolButton);
     tabBarLayout->addWidget(informationDialogToolButton);
     tabBarLayout->addWidget(identifyDialogToolButton);
@@ -4425,4 +4431,7 @@ BrainBrowserWindowToolBar::getNumberOfTabs() const
 {
     return this->tabBar->count();
 }
+
+
+
 

@@ -27,6 +27,8 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QMenu>
+#include <QPainter>
+#include <QPen>
 #include <QPushButton>
 
 #define __GUI_MANAGER_DEFINE__
@@ -59,6 +61,7 @@
 #include "CursorManager.h"
 #include "CustomViewDialog.h"
 #include "DataFileException.h"
+#include "DataToolTipsManager.h"
 #include "ElapsedTimer.h"
 #include "EventAlertUser.h"
 #include "EventAnnotationGetDrawnInWindow.h"
@@ -290,6 +293,11 @@ GuiManager::initializeGuiManager()
     m_helpViewerDialogDisplayAction->setCheckable(true);
     m_helpViewerDialogDisplayAction->setChecked(false);
     m_helpViewerDialogDisplayAction->blockSignals(false);
+    
+    /*
+     * Data tooltip action is created when requested by a toolbar
+     */
+    m_dataToolTipsEnabledAction = NULL;
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ALERT_USER);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW);
@@ -1863,6 +1871,96 @@ GuiManager::getHelpViewerDialogDisplayAction()
 }
 
 /**
+ * Get the action for the data tooltips.  The action
+ * is lazily initialized since a widget is needed to 
+ * create the tooltip's icon.  The background and foreground
+ * colors are copied from the widget and nothing is dependent
+ * upon the widget after this method returns.
+ *
+ * @param buttonWidget
+ *    Widget that is used the first time this method is called
+ *    to provide foreground/background colors for the pixmap.
+ *
+ * @return Action for display of data tool tips.
+ */
+QAction*
+GuiManager::getDataToolTipsAction(QWidget* buttonWidget)
+{
+    if (m_dataToolTipsEnabledAction == NULL) {
+        m_dataToolTipsEnabledAction = WuQtUtilities::createAction("Data ToolTips",
+                                                                  "Enable/Disable Data Tool Tips",
+                                                                  this,
+                                                                  this,
+                                                                  SLOT(dataToolTipsActionTriggered(bool)));
+        m_dataToolTipsEnabledAction->setIcon(createDataToolTipsIcon(buttonWidget));
+        m_dataToolTipsEnabledAction->setIconVisibleInMenu(false);
+        m_dataToolTipsEnabledAction->setCheckable(true);
+        m_dataToolTipsEnabledAction->setChecked(SessionManager::get()->getDataToolTipsManager()->isEnabled());
+    }
+    
+    return m_dataToolTipsEnabledAction;
+}
+
+/**
+ * Create a pixmap for the data tool tips button.
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @return
+ *    The pixmap.
+ */
+QPixmap
+GuiManager::createDataToolTipsIcon(const QWidget* widget)
+{
+    CaretAssert(widget);
+    const float pixmapSize = 32.0;
+    
+    QPixmap pixmap(static_cast<int>(pixmapSize),
+                   static_cast<int>(pixmapSize));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginCenter(widget,
+                                                                                            pixmap,
+                                                                                            WuQtUtilities::PixMapCreationOptions::TransparentBackground);
+    const int leftX(-14);
+    const int rightX(14);
+    const int bottomY(-8);
+    const int topY(14);
+    const int tipLeftX(-6);
+    const int tipRightX(6);
+    const int tipY(-14);
+    const int tipX(0);
+    
+    QPen pen(painter->pen());
+    pen.setWidth(2);
+    painter->setPen(pen);
+    
+    /*
+     * Outline of icon
+     */
+    QPolygon polygon;
+    polygon.push_back(QPoint(leftX, topY));
+    polygon.push_back(QPoint(leftX, bottomY));
+    polygon.push_back(QPoint(tipLeftX, bottomY));
+    polygon.push_back(QPoint(tipX, tipY));
+    polygon.push_back(QPoint(tipRightX, bottomY));
+    polygon.push_back(QPoint(rightX, bottomY));
+    polygon.push_back(QPoint(rightX, topY));
+    painter->drawPolygon(polygon);
+    
+    /*
+     * Horizontal lines inside outline
+     */
+    const int lineLeftX(-8);
+    const int lineRightX(8);
+    const int lineOneY(6);
+    const int lineTwoY(0);
+    painter->drawLine(lineLeftX, lineOneY, lineRightX, lineOneY);
+    painter->drawLine(lineLeftX, lineTwoY, lineRightX, lineTwoY);
+    
+    return pixmap;
+}
+
+/**
  * Show or hide the help dialog.
  *
  * @param status
@@ -1925,11 +2023,26 @@ GuiManager::helpDialogWasClosed()
 
 /**
  * Called when show help action is triggered
+ *
+ * @param status
+ *     New status.
  */
 void
 GuiManager::showHelpDialogActionToggled(bool status)
 {
     showHideHelpDialog(status, NULL);
+}
+
+/**
+ * Called when data tooltips action is triggered
+ *
+ * @param status
+ *     New status.
+ */
+void
+GuiManager::dataToolTipsActionTriggered(bool status)
+{
+    SessionManager::get()->getDataToolTipsManager()->setEnabled(status);
 }
 
 /**
@@ -3202,6 +3315,5 @@ GuiManager::processIdentification(const int32_t tabIndex,
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().addToolBox().getPointer());
     }
 }
-
 
 

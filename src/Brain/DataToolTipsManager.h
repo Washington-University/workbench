@@ -42,7 +42,7 @@ namespace caret {
     class DataToolTipsManager : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        DataToolTipsManager();
+        DataToolTipsManager(const bool enabledStatus);
         
         virtual ~DataToolTipsManager();
         

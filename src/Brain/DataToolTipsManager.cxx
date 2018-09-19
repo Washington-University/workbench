@@ -45,11 +45,14 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param enabledStatus
+ *     Enabled status for data tool tips
  */
-DataToolTipsManager::DataToolTipsManager()
+DataToolTipsManager::DataToolTipsManager(const bool enabledStatus)
 : CaretObject()
 {
-    
+    m_enabledFlag = enabledStatus;
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
     /*EventManager::get()->addEventListener(this, EventTypeEnum::);*/
