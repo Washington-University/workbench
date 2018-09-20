@@ -116,6 +116,7 @@ OxfordSparseThreeFile.h
 PaletteFile.h
 RgbaFile.h
 RibbonMappingHelper.h
+SceneDataFileInfo.h
 SceneFile.h
 SceneFileSaxReader.h
 SignedDistanceHelper.h
@@ -244,6 +245,7 @@ OxfordSparseThreeFile.cxx
 PaletteFile.cxx
 RgbaFile.cxx
 RibbonMappingHelper.cxx
+SceneDataFileInfo.cxx
 SceneFile.cxx
 SceneFileSaxReader.cxx
 SignedDistanceHelper.cxx

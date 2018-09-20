@@ -891,7 +891,7 @@ SceneFile::findBaseDirectoryForDataFiles(AString& baseDirectoryOut,
     const AString directorySeparator("/");
     
     std::vector<AString> allFileNames;
-    std::set<SceneFile::SceneDataFileInfo> filesFromScenes = getAllDataFileNamesFromAllScenes();
+    std::set<FileAndSceneIndicesInfo> filesFromScenes = getAllDataFileNamesFromAllScenes();
     for (const auto& nameInfo : filesFromScenes) {
         allFileNames.push_back(nameInfo.m_dataFileName);
     }
@@ -1041,12 +1041,12 @@ SceneFile::getBaseDirectoryHierarchyForDataFiles(const int32_t maximumAncestorCo
 /**
  * @return A vector containing the names of all data files from all scenes.
  */
-std::set<SceneFile::SceneDataFileInfo>
+std::set<SceneFile::FileAndSceneIndicesInfo>
 SceneFile::getAllDataFileNamesFromAllScenes() const
 {
     const bool includeSpecFileFlag = false;
     
-    std::set<SceneDataFileInfo> fileInfoOut;
+    std::set<FileAndSceneIndicesInfo> fileInfoOut;
     
     /**
      * Find all 'path name' elements from ALL scenes
@@ -1079,7 +1079,7 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                     }
                     if (useNameFlag) {
                         AString pathName = scenePathName->stringValue().trimmed();
-
+                        
                         if ( ! pathName.isEmpty()) {
                             bool validExtensionFlag = false;
                             const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(pathName,
@@ -1168,8 +1168,8 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                                 }
                                 
                                 if ( ! foundFlag) {
-                                    fileInfoOut.insert(SceneDataFileInfo(pathName,
-                                                                         sceneIndex));
+                                    fileInfoOut.insert(FileAndSceneIndicesInfo(pathName,
+                                                                               sceneIndex));
                                 }
                             }
                         }
@@ -1181,6 +1181,36 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
     
     return fileInfoOut;
 }
+
+/**
+ * @return File info for all files in the scene file.
+ */
+std::vector<SceneDataFileInfo>
+SceneFile::getAllDataFileInfoFromAllScenes() const
+{
+    const std::set<SceneFile::FileAndSceneIndicesInfo> allNamesAndIndices = getAllDataFileNamesFromAllScenes();
+    
+    AString basePath;
+    AString errorMessage;
+    std::vector<AString> missingFiles;
+    const bool validFlag = findBaseDirectoryForDataFiles(basePath, missingFiles, errorMessage);
+    if ( ! validFlag) {
+        CaretLogSevere("Failed to find the base path for scene file: "
+                       + getFileName());
+    }
+    
+    std::vector<SceneDataFileInfo> fileInfoOut;
+ 
+    for (const auto nameAndIndices : allNamesAndIndices) {
+        fileInfoOut.emplace_back(nameAndIndices.m_dataFileName,
+                                 basePath,
+                                 getFileName(),
+                                 nameAndIndices.m_sceneIndices);
+    }
+    
+    return fileInfoOut;
+}
+
 
 /**
  * @return Default name for a ZIP file containing the scene file and its data files.

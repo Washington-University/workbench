@@ -79,6 +79,7 @@
 #include "SceneClass.h"
 #include "SceneCreateReplaceDialog.h"
 #include "SceneFile.h"
+#include "SceneFileInformationDialog.h"
 #include "SceneInfo.h"
 #include "ScenePreviewDialog.h"
 #include "SceneReplaceAllDialog.h"
@@ -1901,71 +1902,15 @@ SceneDialog::showFileStructure()
     SceneFile* sceneFile = getSelectedSceneFile();
     CaretAssert(sceneFile);
     
-    const std::set<SceneFile::SceneDataFileInfo> fileSceneInfo = sceneFile->getAllDataFileNamesFromAllScenes();
-    
-    if (fileSceneInfo.empty()) {
-        WuQMessageBox::errorOk(m_showFileStructurePushButton,
-                               "Scene file is empty.");
-        return;
-    }
-    
-    const AString sceneFileName = sceneFile->getFileName();
-    AString text("<html>");
-    
-    AString baseDirectoryName;
-    std::vector<AString> missingFileNames;
-    AString errorMessage;
-    const bool validBasePathFlag = sceneFile->findBaseDirectoryForDataFiles(baseDirectoryName,
-                                                                            missingFileNames,
-                                                                            errorMessage);
-    text.appendWithNewLine("<b>Automatic Base Path</b>: "
-                           + (validBasePathFlag ? baseDirectoryName : ("INVALID: " + errorMessage))
-                           + "<p>");
-    text.appendWithNewLine("<b>Scene File</b>: "
-                           + sceneFileName
-                           + "<p>");
-    text.append("<b>Data File paths relative to Scene File (indices of scenes using file in parenthesis)</b>:");
-    text.append("<ul>");
-    
-    for (const auto& fileData : fileSceneInfo) {
-        AString name(fileData.m_dataFileName);
-        FileInformation fileInfo(name);
-        AString missingText;
-        if ( ! fileInfo.exists()) {
-            missingText = "MISSING: ";
-        }
-        
-        if (fileInfo.isAbsolute()) {
-            FileInformation specFileInfo(sceneFileName);
-            if (specFileInfo.isAbsolute()) {
-                const AString newPath = SystemUtilities::relativePath(fileInfo.getPathName(),
-                                                                      specFileInfo.getPathName());
-                if (newPath.isEmpty()) {
-                    name = fileInfo.getFileName();
-                }
-                else {
-                    name = (newPath
-                            + "/"
-                            + fileInfo.getFileName());
-                }
-            }
-        }
-        
-        text.append("<li>"
-                    + missingText
-                    + " ("
-                    + fileData.getSceneIndices()
-                    + ") "
-                    + name);
-    }
-    text.append("</ul>");
-    text.append("</html>");
-    
-    WuQTextEditorDialog::runNonModal("Scene File Paths",
-                                     text,
-                                     WuQTextEditorDialog::TextMode::HTML,
-                                     WuQTextEditorDialog::WrapMode::NO,
-                                     this);
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+
+    SceneFileInformationDialog* infoDialog = new SceneFileInformationDialog(sceneFile,
+                                                                            this);
+    infoDialog->setVisible(true);
+    infoDialog->show();
+    infoDialog->activateWindow();
+    infoDialog->raise();
 }
 
 /**

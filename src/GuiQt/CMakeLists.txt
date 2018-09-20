@@ -165,6 +165,7 @@ ELSE()
         SceneBasePathWidget.h
         SceneCreateReplaceDialog.h
         SceneDialog.h
+	SceneFileInformationDialog.h
         ScenePreviewDialog.h
         SceneReplaceAllDialog.h
         SceneShowOptionsDialog.h
@@ -397,6 +398,7 @@ RegionOfInterestCreateFromBorderDialog.h
 SceneBasePathWidget.h
 SceneCreateReplaceDialog.h
 SceneDialog.h
+SceneFileInformationDialog.h
 ScenePreviewDialog.h
 SceneReplaceAllDialog.h
 SceneShowOptionsDialog.h
@@ -625,6 +627,7 @@ RegionOfInterestCreateFromBorderDialog.cxx
 SceneBasePathWidget.cxx
 SceneCreateReplaceDialog.cxx
 SceneDialog.cxx
+SceneFileInformationDialog.cxx
 ScenePreviewDialog.cxx
 SceneReplaceAllDialog.cxx
 SceneShowOptionsDialog.cxx
