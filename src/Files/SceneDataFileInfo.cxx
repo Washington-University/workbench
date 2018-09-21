@@ -294,4 +294,21 @@ SceneDataFileInfo::sort(std::vector<SceneDataFileInfo>& sceneDataFileInfo,
                   }
                   return (lhsPath < rhsPath);
               });
+    
+    /*print (sceneDataFileInfo);*/
 }
+
+/**
+ * Print the vector of file information.
+ *
+ * @param sceneDataFileInfo
+ *     Information that is printed.
+ */
+void
+SceneDataFileInfo::print(const std::vector<SceneDataFileInfo>& sceneDataFileInfo)
+{
+    for (const auto sdfi : sceneDataFileInfo) {
+        std::cout << sdfi.getAbsolutePathAndFileName() << std::endl;
+    }
+}
+

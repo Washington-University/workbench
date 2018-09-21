@@ -84,6 +84,8 @@ namespace caret {
         static void sort(std::vector<SceneDataFileInfo>& sceneDataFileInfo,
                          const SortMode sortMode);
         
+        static void print(const std::vector<SceneDataFileInfo>& sceneDataFileInfo);
+        
     private:
         void copyHelperSceneDataFileInfo(const SceneDataFileInfo& obj);
 
