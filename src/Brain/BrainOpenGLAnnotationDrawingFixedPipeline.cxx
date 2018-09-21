@@ -1183,7 +1183,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOff
     float normalXYZ[3];
     getSurfaceNormalVector(surfaceDisplayed, vertexIndex, normalXYZ);
     const BoundingBox* boundingBox = surfaceDisplayed->getBoundingBox();
-    const float surfaceExtentZ = boundingBox->getDifferenceZ();
+    const float surfaceExtentZ = ((surfaceDisplayed->getSurfaceType() == SurfaceTypeEnum::FLAT)
+                                  ? boundingBox->getDifferenceY()
+                                  : boundingBox->getDifferenceZ());
     
     /*
      * Need to restore model space
