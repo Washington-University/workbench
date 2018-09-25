@@ -24,13 +24,19 @@
 #undef __SCENE_FILE_INFORMATION_DIALOG_DECLARE__
 
 #include <QComboBox>
+#include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
+#include <QTabWidget>
 #include <QTextEdit>
+#include <QTreeView>
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
 #include "CursorDisplayScoped.h"
+#include "FileInformation.h"
+#include "SceneDataFileTreeItemModel.h"
 #include "SceneFile.h"
 #include "WuQMessageBox.h"
 
@@ -62,32 +68,76 @@ m_sceneFile(sceneFile)
     setApplyButtonText("");
     
     m_modeComboBox = new QComboBox();
-    QLabel* modeLabel = new QLabel("Show Files");
-    m_modeComboBox->addItem("Absolute Path",
+    QLabel* modeLabel = new QLabel("Show Files:");
+    m_modeComboBox->addItem("With Absolute Path",
                           static_cast<int>(SceneDataFileInfo::SortMode::AbsolutePath));
     m_modeComboBox->addItem("Relative to Base Path",
                           static_cast<int>(SceneDataFileInfo::SortMode::RelativeToBasePath));
     m_modeComboBox->addItem("Relative to Scene File Path",
                           static_cast<int>(SceneDataFileInfo::SortMode::RelativeToSceneFilePath));
-    
+    m_modeComboBox->setSizeAdjustPolicy(QComboBox::SizeAdjustPolicy::AdjustToContents);
     QObject::connect(m_modeComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
                      this, &SceneFileInformationDialog::modeComboBoxActivated);
     
+    AString basePathName;
+    std::vector<AString> missingDataFiles;
+    AString basePathErrorMessage;
+    const bool validBasePathFlag = sceneFile->findBaseDirectoryForDataFiles(basePathName,
+                                                                            missingDataFiles,
+                                                                            basePathErrorMessage);
+    if ( ! validBasePathFlag) {
+        basePathName = basePathErrorMessage;
+    }
+    
+    QLabel* basePathLabel = new QLabel("Base Path:");
+    m_basePathLineEdit = new QLineEdit();
+    m_basePathLineEdit->setReadOnly(true);
+    m_basePathLineEdit->setText(basePathName);
+    m_basePathLineEdit->home(true);
+    
+    FileInformation sceneFileInfo(sceneFile->getFileName());
+    QLabel* sceneFileNameLabel = new QLabel("Scene File Name:");
+    m_sceneFileNameLineEdit = new QLineEdit();
+    m_sceneFileNameLineEdit->setReadOnly(true);
+    m_sceneFileNameLineEdit->setText(sceneFileInfo.getFileName());
+    m_sceneFileNameLineEdit->home(true);
+
+    QLabel* sceneFilePathLabel = new QLabel("Scene File Path:");
+    m_sceneFilePathLineEdit = new QLineEdit();
+    m_sceneFilePathLineEdit->setReadOnly(true);
+    m_sceneFilePathLineEdit->setText(sceneFileInfo.getPathName());
+    m_sceneFilePathLineEdit->home(true);
+    
     m_textEdit = new QTextEdit();
     
-    QHBoxLayout* modeLayout = new QHBoxLayout();
-    modeLayout->addWidget(modeLabel),
-    modeLayout->addWidget(m_modeComboBox);
-    modeLayout->addStretch();
-
+    m_sceneFileHierarchyTreeView = new QTreeView();
+    m_sceneFileHierarchyTreeView->setHeaderHidden(true);
+    
+    QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->addTab(m_sceneFileHierarchyTreeView, "Hierarchy");
+    tabWidget->addTab(m_textEdit, "List");
+    
+    QGridLayout* namesLayout = new QGridLayout();
+    namesLayout->setColumnStretch(0, 0);
+    namesLayout->setColumnStretch(1, 100);
+    namesLayout->addWidget(basePathLabel, 0, 0);
+    namesLayout->addWidget(m_basePathLineEdit, 0, 1);
+    namesLayout->addWidget(sceneFileNameLabel, 1, 0);
+    namesLayout->addWidget(m_sceneFileNameLineEdit, 1, 1);
+    namesLayout->addWidget(sceneFilePathLabel, 2, 0);
+    namesLayout->addWidget(m_sceneFilePathLineEdit, 2, 1);
+    namesLayout->addWidget(modeLabel, 3, 0);
+    namesLayout->addWidget(m_modeComboBox, 3, 1, Qt::AlignLeft);
+    
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
-    dialogLayout->addLayout(modeLayout, 0);
-    dialogLayout->addWidget(m_textEdit, 100);
+    dialogLayout->setSpacing(3);
+    dialogLayout->addLayout(namesLayout, 0);
+    dialogLayout->addWidget(tabWidget, 100);
     
     setCentralWidget(dialogWidget, WuQDialog::SCROLL_AREA_NEVER);
     
-    const SceneDataFileInfo::SortMode defaultSortMode(SceneDataFileInfo::SortMode::RelativeToSceneFilePath);
+    const SceneDataFileInfo::SortMode defaultSortMode(SceneDataFileInfo::SortMode::AbsolutePath);
     QSignalBlocker blocker(m_modeComboBox);
     m_modeComboBox->setCurrentIndex(static_cast<int>(defaultSortMode));
     displayFiles(static_cast<int32_t>(defaultSortMode));
@@ -133,12 +183,20 @@ SceneFileInformationDialog::displayFiles(int modeInteger)
     
     std::vector<SceneDataFileInfo> fileSceneInfo = m_sceneFile->getAllDataFileInfoFromAllScenes();
     SceneDataFileInfo::sort(fileSceneInfo,
-                            SceneDataFileInfo::SortMode::RelativeToSceneFilePath);
+                            sortMode);
     
     if (fileSceneInfo.empty()) {
         WuQMessageBox::errorOk(this,
                                "Scene file is empty.");
         return;
+    }
+    
+    {
+        m_sceneFileHierarchyTreeModel.reset(new SceneDataFileTreeItemModel("",
+                                                                           fileSceneInfo,
+                                                                           sortMode));
+        m_sceneFileHierarchyTreeView->setModel(m_sceneFileHierarchyTreeModel.get());
+        m_sceneFileHierarchyTreeView->expandAll();
     }
     
     const AString sceneFileName = m_sceneFile->getFileName();

@@ -166,6 +166,7 @@ ELSE()
         SceneCreateReplaceDialog.h
         SceneDialog.h
 	SceneFileInformationDialog.h
+	SceneDataFileTreeItemModel.h
         ScenePreviewDialog.h
         SceneReplaceAllDialog.h
         SceneShowOptionsDialog.h
@@ -399,6 +400,8 @@ SceneBasePathWidget.h
 SceneCreateReplaceDialog.h
 SceneDialog.h
 SceneFileInformationDialog.h
+SceneDataFileTreeItem.h
+SceneDataFileTreeItemModel.h
 ScenePreviewDialog.h
 SceneReplaceAllDialog.h
 SceneShowOptionsDialog.h
@@ -628,6 +631,8 @@ SceneBasePathWidget.cxx
 SceneCreateReplaceDialog.cxx
 SceneDialog.cxx
 SceneFileInformationDialog.cxx
+SceneDataFileTreeItem.cxx
+SceneDataFileTreeItemModel.cxx
 ScenePreviewDialog.cxx
 SceneReplaceAllDialog.cxx
 SceneShowOptionsDialog.cxx

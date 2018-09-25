@@ -28,10 +28,13 @@
 #include "WuQDialogNonModal.h"
 
 class QComboBox;
+class QLineEdit;
 class QTextEdit;
+class QTreeView;
 
 namespace caret {
 
+    class SceneDataFileTreeItemModel;
     class SceneFile;
     
     class SceneFileInformationDialog : public WuQDialogNonModal {
@@ -62,6 +65,16 @@ namespace caret {
         QComboBox* m_modeComboBox;
         
         QTextEdit* m_textEdit;
+        
+        QTreeView* m_sceneFileHierarchyTreeView;
+        
+        std::unique_ptr<SceneDataFileTreeItemModel> m_sceneFileHierarchyTreeModel;
+        
+        QLineEdit* m_basePathLineEdit;
+        
+        QLineEdit* m_sceneFileNameLineEdit;
+        
+        QLineEdit* m_sceneFilePathLineEdit;
         
         // ADD_NEW_MEMBERS_HERE
 
