@@ -85,7 +85,6 @@ SceneDataFileTreeItemModel::SceneDataFileTreeItemModel(const AString& sceneFileP
     for (const auto dataFileInfo : sceneDataFileInfo) {
         AString pathName;
         AString pathAndFileName;
-        bool relativePathFlag = false;
         switch (sortMode) {
             case SceneDataFileInfo::SortMode::AbsolutePath:
                 pathName = dataFileInfo.getAbsolutePath();
@@ -96,14 +95,12 @@ SceneDataFileTreeItemModel::SceneDataFileTreeItemModel(const AString& sceneFileP
                 pathAndFileName = (dataFileInfo.getRelativePathToBasePath()
                                    + "/"
                                    + dataFileInfo.getDataFileName());
-                relativePathFlag = true;
                 break;
             case SceneDataFileInfo::SortMode::RelativeToSceneFilePath:
                 pathName = dataFileInfo.getRelativePathToSceneFile();
                 pathAndFileName = (dataFileInfo.getRelativePathToSceneFile()
                                    + "/"
                                    + dataFileInfo.getDataFileName());
-                relativePathFlag = true;
                 break;
         }
         
@@ -141,7 +138,8 @@ SceneDataFileTreeItemModel::addFindDirectoryPath(const AString& absoluteDirName)
             rootPrefix = httpsPrefix;
         }
         
-        QStringList components(nameForSplitting.split("/"));
+        QStringList components(nameForSplitting.split("/",
+                                                      QString::SkipEmptyParts));
         const int32_t componentCount = components.length();
 
         std::vector<AString> parentDirectoryHierarchy;
