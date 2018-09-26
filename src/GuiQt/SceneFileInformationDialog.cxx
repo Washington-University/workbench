@@ -59,7 +59,7 @@ using namespace caret;
  */
 SceneFileInformationDialog::SceneFileInformationDialog(const SceneFile* sceneFile,
                                                        QWidget* parent)
-: WuQDialogNonModal("Scene File Information",
+: WuQDialogNonModal("Files and Folders",
                     parent),
 m_sceneFile(sceneFile)
 {

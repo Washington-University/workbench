@@ -2145,9 +2145,9 @@ SceneDialog::createSceneFileWidget()
     /*
      * File structure buttons
      */
-    m_showFileStructurePushButton = new QPushButton("List Files...");
+    m_showFileStructurePushButton = new QPushButton("Show Files and Folders...");
     WuQtUtilities::setWordWrappedToolTip(m_showFileStructurePushButton,
-                                         "In a dialog, show data files from all scenes with paths relative to the scene file");
+                                         "In a dialog, show the organization files and folders contained in the Scene File");
     QObject::connect(m_showFileStructurePushButton, &QPushButton::clicked,
                      this, &SceneDialog::showFileStructure);
     
