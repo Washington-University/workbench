@@ -162,9 +162,12 @@ SceneDataFileTreeItemModel::addFindDirectoryPath(const AString& absoluteDirName)
             
             parentDirName = dirName;
             
-            if ( ! dirName.endsWith('/')) {
-                dirName.append("/");
+            if ( ! dirName.isEmpty()) {
+                if ( ! dirName.endsWith('/')) {
+                    dirName.append("/");
+                }
             }
+            
             dirName.append(components.at(i));
             parentDirectoryHierarchy.push_back(dirName);
         }
