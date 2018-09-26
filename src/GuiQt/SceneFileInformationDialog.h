@@ -27,7 +27,6 @@
 
 #include "WuQDialogNonModal.h"
 
-class QComboBox;
 class QLineEdit;
 class QTextEdit;
 class QTreeView;
@@ -54,15 +53,12 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-    private slots:
-        void modeComboBoxActivated(int);
-        
     private:
-        void displayFiles(int modeInteger);
+        void displayFilesList();
+        
+        void displayFilesHierarchy();
         
         const SceneFile* m_sceneFile;
-        
-        QComboBox* m_modeComboBox;
         
         QTextEdit* m_textEdit;
         

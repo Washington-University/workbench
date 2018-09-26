@@ -23,7 +23,6 @@
 #include "SceneFileInformationDialog.h"
 #undef __SCENE_FILE_INFORMATION_DIALOG_DECLARE__
 
-#include <QComboBox>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -66,18 +65,6 @@ m_sceneFile(sceneFile)
 {
     setDeleteWhenClosed(true);
     setApplyButtonText("");
-    
-    m_modeComboBox = new QComboBox();
-    QLabel* modeLabel = new QLabel("Show Files:");
-    m_modeComboBox->addItem("With Absolute Path",
-                          static_cast<int>(SceneDataFileInfo::SortMode::AbsolutePath));
-    m_modeComboBox->addItem("Relative to Base Path",
-                          static_cast<int>(SceneDataFileInfo::SortMode::RelativeToBasePath));
-    m_modeComboBox->addItem("Relative to Scene File Path",
-                          static_cast<int>(SceneDataFileInfo::SortMode::RelativeToSceneFilePath));
-    m_modeComboBox->setSizeAdjustPolicy(QComboBox::SizeAdjustPolicy::AdjustToContents);
-    QObject::connect(m_modeComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
-                     this, &SceneFileInformationDialog::modeComboBoxActivated);
     
     AString basePathName;
     std::vector<AString> missingDataFiles;
@@ -126,8 +113,6 @@ m_sceneFile(sceneFile)
     namesLayout->addWidget(m_sceneFileNameLineEdit, 1, 1);
     namesLayout->addWidget(sceneFilePathLabel, 2, 0);
     namesLayout->addWidget(m_sceneFilePathLineEdit, 2, 1);
-    namesLayout->addWidget(modeLabel, 3, 0);
-    namesLayout->addWidget(m_modeComboBox, 3, 1, Qt::AlignLeft);
     
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
@@ -137,10 +122,8 @@ m_sceneFile(sceneFile)
     
     setCentralWidget(dialogWidget, WuQDialog::SCROLL_AREA_NEVER);
     
-    const SceneDataFileInfo::SortMode defaultSortMode(SceneDataFileInfo::SortMode::AbsolutePath);
-    QSignalBlocker blocker(m_modeComboBox);
-    m_modeComboBox->setCurrentIndex(static_cast<int>(defaultSortMode));
-    displayFiles(static_cast<int32_t>(defaultSortMode));
+    displayFilesHierarchy();
+    displayFilesList();
     
     setSizeOfDialogWhenDisplayed(QSize(600, 800));
 }
@@ -153,32 +136,12 @@ SceneFileInformationDialog::~SceneFileInformationDialog()
 }
 
 /**
- * Called when mode combo box is selected
+ * Setup the list of files
  */
 void
-SceneFileInformationDialog::modeComboBoxActivated(int mode)
+SceneFileInformationDialog::displayFilesList()
 {
-    CursorDisplayScoped cursor;
-    cursor.showWaitCursor();
-    
-    displayFiles(mode);
-}
-
-/**
- * Called when mode combo box is selected
- */
-void
-SceneFileInformationDialog::displayFiles(int modeInteger)
-{
-    const SceneDataFileInfo::SortMode sortMode = static_cast<SceneDataFileInfo::SortMode>(modeInteger);
-    switch (sortMode) {
-        case SceneDataFileInfo::SortMode::AbsolutePath:
-            break;
-        case SceneDataFileInfo::SortMode::RelativeToBasePath:
-            break;
-        case SceneDataFileInfo::SortMode::RelativeToSceneFilePath:
-            break;
-    }
+    const SceneDataFileInfo::SortMode sortMode = SceneDataFileInfo::SortMode::RelativeToSceneFilePath;
     CaretAssert(m_sceneFile);
     
     std::vector<SceneDataFileInfo> fileSceneInfo = m_sceneFile->getAllDataFileInfoFromAllScenes();
@@ -191,30 +154,23 @@ SceneFileInformationDialog::displayFiles(int modeInteger)
         return;
     }
     
-    {
-        m_sceneFileHierarchyTreeModel.reset(new SceneDataFileTreeItemModel("",
-                                                                           fileSceneInfo,
-                                                                           sortMode));
-        m_sceneFileHierarchyTreeView->setModel(m_sceneFileHierarchyTreeModel.get());
-        m_sceneFileHierarchyTreeView->expandAll();
-    }
-    
-    const AString sceneFileName = m_sceneFile->getFileName();
-    AString text("<html>");
-    
     AString baseDirectoryName;
     std::vector<AString> missingFileNames;
     AString errorMessage;
     const bool validBasePathFlag = m_sceneFile->findBaseDirectoryForDataFiles(baseDirectoryName,
-                                                                            missingFileNames,
-                                                                            errorMessage);
+                                                                              missingFileNames,
+                                                                              errorMessage);
+    
+    const AString sceneFileName = m_sceneFile->getFileName();
+    AString text("<html>");
+    
     text.appendWithNewLine("<b>Automatic Base Path</b>: "
                            + (validBasePathFlag ? baseDirectoryName : ("INVALID: " + errorMessage))
                            + "<p>");
     text.appendWithNewLine("<b>Scene File</b>: "
                            + sceneFileName
                            + "<p>");
-
+    
     bool needListEndElementFlag = false;
     AString lastPathName("bogus ##(*&$UI()#NFGK path name");
     for (const auto& fileData : fileSceneInfo) {
@@ -270,4 +226,35 @@ SceneFileInformationDialog::displayFiles(int modeInteger)
     m_textEdit->clear();
     m_textEdit->setHtml(text);
 }
+
+/**
+ * Setup the hierarchy of files
+ */
+void
+SceneFileInformationDialog::displayFilesHierarchy()
+{
+    AString baseDirectoryName;
+    std::vector<AString> missingFileNames;
+    AString errorMessage;
+    const bool validBasePathFlag = m_sceneFile->findBaseDirectoryForDataFiles(baseDirectoryName,
+                                                                              missingFileNames,
+                                                                              errorMessage);
+    if ( ! validBasePathFlag) {
+        return;
+    }
+    CaretAssert(m_sceneFile);
+    
+    std::vector<SceneDataFileInfo> fileSceneInfo = m_sceneFile->getAllDataFileInfoFromAllScenes();
+    SceneDataFileInfo::sort(fileSceneInfo,
+                            SceneDataFileInfo::SortMode::AbsolutePath);
+
+    m_sceneFileHierarchyTreeModel.reset(new SceneDataFileTreeItemModel(m_sceneFile->getFileName(),
+                                                                       baseDirectoryName,
+                                                                       fileSceneInfo,
+                                                                       SceneDataFileInfo::SortMode::AbsolutePath));
+    m_sceneFileHierarchyTreeView->setModel(m_sceneFileHierarchyTreeModel.get());
+    m_sceneFileHierarchyTreeView->expandAll();
+}
+
+
 

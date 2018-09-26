@@ -39,7 +39,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        SceneDataFileTreeItemModel(const AString& relativeToPath,
+        SceneDataFileTreeItemModel(const AString& sceneFilePathAndName,
+                                   const AString& baseDirectoryPath,
                                    const std::vector<SceneDataFileInfo>& sceneDataFileInfo,
                                    const SceneDataFileInfo::SortMode sortMode);
         

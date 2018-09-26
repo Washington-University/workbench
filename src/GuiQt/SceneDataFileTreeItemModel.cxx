@@ -44,18 +44,44 @@ static bool debugFlag(false);
 /**
  * Constructor.
  *
- * @param relativeToPath
- *     When the sortMode is a "relative to" mode, this contains that path that files are relative to.
+ * @param sceneFilePathAndName
+ *     Scene file path and name.
+ * @param baseDirectoryPath
+ *     Path of the base directory.
  * @param sceneDataFileInfo
  *     The scene file info.
  * @param sortMode
  *     The sorting mode.
  */
-SceneDataFileTreeItemModel::SceneDataFileTreeItemModel(const AString& /*relativeToPath */,
+SceneDataFileTreeItemModel::SceneDataFileTreeItemModel(const AString& sceneFilePathAndName,
+                                                       const AString& baseDirectoryPath,
                                                        const std::vector<SceneDataFileInfo>& sceneDataFileInfo,
                                                        const SceneDataFileInfo::SortMode sortMode)
 : QStandardItemModel()
 {
+    if ( ! baseDirectoryPath.isEmpty()) {
+        /*
+         * Add a root element to the tree containing the base path
+         */
+        addDirectory(baseDirectoryPath,
+                     "");
+    }
+    
+    if ( ! sceneFilePathAndName.isEmpty()) {
+        /*
+         * Add the scene file and highlight the name to make it stand out from other files
+         */
+        SceneDataFileTreeItem* sceneFileItem = addFile(sceneFilePathAndName,
+                                                       "");
+        CaretAssert(sceneFileItem);
+        QFont font = sceneFileItem->font();
+        font.setBold(true);
+        sceneFileItem->setFont(font);
+    }
+    
+    /*
+     * Add the data files
+     */
     for (const auto dataFileInfo : sceneDataFileInfo) {
         AString pathName;
         AString pathAndFileName;
@@ -80,7 +106,6 @@ SceneDataFileTreeItemModel::SceneDataFileTreeItemModel(const AString& /*relative
                 relativePathFlag = true;
                 break;
         }
-        
         
         addFile(pathAndFileName,
                 dataFileInfo.getSceneIndicesAsString());
@@ -107,9 +132,6 @@ SceneDataFileTreeItemModel::addFindDirectoryPath(const AString& absoluteDirName)
     SceneDataFileTreeItem* directoryItemOut = findDirectory(absoluteDirName);
     
     if (directoryItemOut == NULL) {
-        AString parentDirName;
-        AString dirName;
-
         const AString httpsPrefix("https://");
         
         AString rootPrefix("/");
@@ -120,25 +142,102 @@ SceneDataFileTreeItemModel::addFindDirectoryPath(const AString& absoluteDirName)
         }
         
         QStringList components(nameForSplitting.split("/"));
+        const int32_t componentCount = components.length();
         
-        for (int32_t i = 0; i < components.length(); i++) {
-            if (i == 0) {
-                if (absoluteDirName.startsWith(rootPrefix)) {
-                    dirName = rootPrefix;
-                    addDirectory(dirName,
-                                 parentDirName);
+        const bool testFlag(true);
+        if(testFlag) {
+            std::vector<AString> parentDirectoryHierarchy;
+            
+            /*
+             * Create a vector containing all directory paths 
+             * in the hierarchy as absolute paths.  This is necessary
+             * to avoid duplicating a hierarchy that matches the
+             * base path.
+             */
+            AString dirName;
+            AString parentDirName;
+            for (int32_t i = 0; i < componentCount; i++) {
+                if (i == 0) {
+                    if (absoluteDirName.startsWith(rootPrefix)) {
+                        dirName = rootPrefix;
+                        parentDirectoryHierarchy.push_back(dirName);
+                    }
+                }
+                
+                parentDirName = dirName;
+                
+                if ( ! dirName.endsWith('/')) {
+                    dirName.append("/");
+                }
+                dirName.append(components.at(i));
+                parentDirectoryHierarchy.push_back(dirName);
+            }
+            
+            if (debugFlag) {
+                std::cout << "Parent directory hierarchy: " << std::endl;
+                for (const auto s : parentDirectoryHierarchy) {
+                    std::cout << "    " << s << std::endl;
                 }
             }
             
-            parentDirName = dirName;
-            
-            if ( ! dirName.endsWith('/')) {
-                dirName.append("/");
+            /*
+             * Start at the deepest directory path and work way up
+             * to find the deepest existing path.
+             */
+            int32_t iStart(0);
+            const int32_t numDirs = static_cast<int32_t>(parentDirectoryHierarchy.size());
+            for (int32_t iDir = (numDirs - 1); iDir >= 0; iDir--) {
+                CaretAssertVectorIndex(parentDirectoryHierarchy, iDir);
+                SceneDataFileTreeItem* dirItem = findDirectory(parentDirectoryHierarchy[iDir]);
+                if (dirItem != NULL) {
+                    iStart = iDir + 1;
+                    break;
+                }
             }
-            dirName.append(components.at(i));
-            addDirectory(dirName,
-                         parentDirName);
+            if (iStart < numDirs) {
+                /*
+                 * Create directories that are children of the deepest existing path
+                 */
+                for (int32_t iDir = iStart; iDir < numDirs; iDir++) {
+                    AString parentDirName;
+                    if (iDir > 0) {
+                        CaretAssertVectorIndex(parentDirectoryHierarchy, iDir - 1);
+                        parentDirName = parentDirectoryHierarchy[iDir - 1];
+                    }
+                    CaretAssertVectorIndex(parentDirectoryHierarchy, iDir);
+                    if (debugFlag) {
+                        std::cout << "Creating directory " << parentDirectoryHierarchy[iDir]
+                        << " with parent " << parentDirName << std::endl;
+                    }
+                    addDirectory(parentDirectoryHierarchy[iDir],
+                                 parentDirName);
+                }
+            }
         }
+        else {
+            AString dirName;
+            AString parentDirName;
+            for (int32_t i = 0; i < componentCount; i++) {
+                if (i == 0) {
+                    if (absoluteDirName.startsWith(rootPrefix)) {
+                        dirName = rootPrefix;
+                        addDirectory(dirName,
+                                     parentDirName);
+                    }
+                }
+                
+                parentDirName = dirName;
+                
+                if ( ! dirName.endsWith('/')) {
+                    dirName.append("/");
+                }
+                dirName.append(components.at(i));
+                addDirectory(dirName,
+                             parentDirName);
+            }
+        }
+        
+        
         
         directoryItemOut = findDirectory(absoluteDirName);
         CaretAssert(directoryItemOut);
@@ -243,7 +342,16 @@ SceneDataFileTreeItemModel::addFile(const AString& absoluteFilePathAndName,
     
     if (fileItemOut == NULL) {
         FileInformation fileInfo(absoluteFilePathAndName);
-        SceneDataFileTreeItem* directoryItem = addFindDirectoryPath(fileInfo.getAbsolutePath());
+        /*
+         * First look for parent directory, which may be the base directory.
+         */
+        SceneDataFileTreeItem* directoryItem = findDirectory(fileInfo.getAbsolutePath());
+        if (directoryItem == NULL) {
+            /*
+             * Start looking/adding directory from root down to file's parent
+             */
+            directoryItem = addFindDirectoryPath(fileInfo.getAbsolutePath());
+        }
         if (directoryItem != NULL) {
             AString itemText(fileInfo.getFileName());
             if ( ! sceneIndicesText.isEmpty()) {
