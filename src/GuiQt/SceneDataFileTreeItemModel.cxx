@@ -143,101 +143,74 @@ SceneDataFileTreeItemModel::addFindDirectoryPath(const AString& absoluteDirName)
         
         QStringList components(nameForSplitting.split("/"));
         const int32_t componentCount = components.length();
+
+        std::vector<AString> parentDirectoryHierarchy;
         
-        const bool testFlag(true);
-        if(testFlag) {
-            std::vector<AString> parentDirectoryHierarchy;
-            
-            /*
-             * Create a vector containing all directory paths 
-             * in the hierarchy as absolute paths.  This is necessary
-             * to avoid duplicating a hierarchy that matches the
-             * base path.
-             */
-            AString dirName;
-            AString parentDirName;
-            for (int32_t i = 0; i < componentCount; i++) {
-                if (i == 0) {
-                    if (absoluteDirName.startsWith(rootPrefix)) {
-                        dirName = rootPrefix;
-                        parentDirectoryHierarchy.push_back(dirName);
-                    }
-                }
-                
-                parentDirName = dirName;
-                
-                if ( ! dirName.endsWith('/')) {
-                    dirName.append("/");
-                }
-                dirName.append(components.at(i));
-                parentDirectoryHierarchy.push_back(dirName);
-            }
-            
-            if (debugFlag) {
-                std::cout << "Parent directory hierarchy: " << std::endl;
-                for (const auto s : parentDirectoryHierarchy) {
-                    std::cout << "    " << s << std::endl;
+        /*
+         * Create a vector containing all directory paths
+         * in the hierarchy as absolute paths.  This is necessary
+         * to avoid duplicating a hierarchy that matches the
+         * base path.
+         */
+        AString dirName;
+        AString parentDirName;
+        for (int32_t i = 0; i < componentCount; i++) {
+            if (i == 0) {
+                if (absoluteDirName.startsWith(rootPrefix)) {
+                    dirName = rootPrefix;
+                    parentDirectoryHierarchy.push_back(dirName);
                 }
             }
             
-            /*
-             * Start at the deepest directory path and work way up
-             * to find the deepest existing path.
-             */
-            int32_t iStart(0);
-            const int32_t numDirs = static_cast<int32_t>(parentDirectoryHierarchy.size());
-            for (int32_t iDir = (numDirs - 1); iDir >= 0; iDir--) {
-                CaretAssertVectorIndex(parentDirectoryHierarchy, iDir);
-                SceneDataFileTreeItem* dirItem = findDirectory(parentDirectoryHierarchy[iDir]);
-                if (dirItem != NULL) {
-                    iStart = iDir + 1;
-                    break;
-                }
+            parentDirName = dirName;
+            
+            if ( ! dirName.endsWith('/')) {
+                dirName.append("/");
             }
-            if (iStart < numDirs) {
-                /*
-                 * Create directories that are children of the deepest existing path
-                 */
-                for (int32_t iDir = iStart; iDir < numDirs; iDir++) {
-                    AString parentDirName;
-                    if (iDir > 0) {
-                        CaretAssertVectorIndex(parentDirectoryHierarchy, iDir - 1);
-                        parentDirName = parentDirectoryHierarchy[iDir - 1];
-                    }
-                    CaretAssertVectorIndex(parentDirectoryHierarchy, iDir);
-                    if (debugFlag) {
-                        std::cout << "Creating directory " << parentDirectoryHierarchy[iDir]
-                        << " with parent " << parentDirName << std::endl;
-                    }
-                    addDirectory(parentDirectoryHierarchy[iDir],
-                                 parentDirName);
-                }
+            dirName.append(components.at(i));
+            parentDirectoryHierarchy.push_back(dirName);
+        }
+        
+        if (debugFlag) {
+            std::cout << "Parent directory hierarchy: " << std::endl;
+            for (const auto s : parentDirectoryHierarchy) {
+                std::cout << "    " << s << std::endl;
             }
         }
-        else {
-            AString dirName;
-            AString parentDirName;
-            for (int32_t i = 0; i < componentCount; i++) {
-                if (i == 0) {
-                    if (absoluteDirName.startsWith(rootPrefix)) {
-                        dirName = rootPrefix;
-                        addDirectory(dirName,
-                                     parentDirName);
-                    }
+        
+        /*
+         * Start at the deepest directory path and work way up
+         * to find the deepest existing path.
+         */
+        int32_t iStart(0);
+        const int32_t numDirs = static_cast<int32_t>(parentDirectoryHierarchy.size());
+        for (int32_t iDir = (numDirs - 1); iDir >= 0; iDir--) {
+            CaretAssertVectorIndex(parentDirectoryHierarchy, iDir);
+            SceneDataFileTreeItem* dirItem = findDirectory(parentDirectoryHierarchy[iDir]);
+            if (dirItem != NULL) {
+                iStart = iDir + 1;
+                break;
+            }
+        }
+        if (iStart < numDirs) {
+            /*
+             * Create directories that are children of the deepest existing path
+             */
+            for (int32_t iDir = iStart; iDir < numDirs; iDir++) {
+                AString parentDirName;
+                if (iDir > 0) {
+                    CaretAssertVectorIndex(parentDirectoryHierarchy, iDir - 1);
+                    parentDirName = parentDirectoryHierarchy[iDir - 1];
                 }
-                
-                parentDirName = dirName;
-                
-                if ( ! dirName.endsWith('/')) {
-                    dirName.append("/");
+                CaretAssertVectorIndex(parentDirectoryHierarchy, iDir);
+                if (debugFlag) {
+                    std::cout << "Creating directory " << parentDirectoryHierarchy[iDir]
+                    << " with parent " << parentDirName << std::endl;
                 }
-                dirName.append(components.at(i));
-                addDirectory(dirName,
+                addDirectory(parentDirectoryHierarchy[iDir],
                              parentDirName);
             }
         }
-        
-        
         
         directoryItemOut = findDirectory(absoluteDirName);
         CaretAssert(directoryItemOut);
