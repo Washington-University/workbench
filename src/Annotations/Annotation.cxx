@@ -2299,8 +2299,11 @@ Annotation::isItemExpanded(const DisplayGroupEnum::Enum displayGroup,
         return m_displayGroupAndTabItemHelper->isExpandedInWindow(m_windowIndex);
     }
     
+    const int32_t itemTabIndex = updateDisplayGroupTabIndex(displayGroup,
+                                                            tabIndex);
+    
     return m_displayGroupAndTabItemHelper->isExpanded(displayGroup,
-                                                      tabIndex);
+                                                      itemTabIndex);
 }
 
 /**
@@ -2327,8 +2330,11 @@ Annotation::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
                                                             status);
     }
     else {
+        const int32_t itemTabIndex = updateDisplayGroupTabIndex(displayGroup,
+                                                                tabIndex);
+        
         m_displayGroupAndTabItemHelper->setExpanded(displayGroup,
-                                                    tabIndex,
+                                                    itemTabIndex,
                                                     status);
     }
     
@@ -2355,8 +2361,11 @@ Annotation::getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
             return m_displayGroupAndTabItemHelper->getSelectedInWindow(m_windowIndex);
         }
         
+        const int32_t itemTabIndex = updateDisplayGroupTabIndex(displayGroup,
+                                                                tabIndex);
+        
         return m_displayGroupAndTabItemHelper->getSelected(displayGroup,
-                                                           tabIndex);
+                                                           itemTabIndex);
     }
     
     /*
@@ -2389,11 +2398,38 @@ Annotation::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                                                             status);
     }
     else {
+        const int32_t itemTabIndex = updateDisplayGroupTabIndex(displayGroup,
+                                                                tabIndex);
+        
         m_displayGroupAndTabItemHelper->setSelected(displayGroup,
-                                                    tabIndex,
+                                                    itemTabIndex,
                                                     status);
     }
 }
+
+/**
+ * Update the tab index to correspond to the tab index used for this
+ * annotation if it is in tab annotation space.  This functionality
+ * was added to resolve WB-831.
+ *
+ * @param displayGroup
+ *     The display group.
+ * @param tabIndex
+ *     Index of the tab.
+ */
+int32_t
+Annotation::updateDisplayGroupTabIndex(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t tabIndex) const
+{
+    int32_t tabIndexOut(tabIndex);
+    if (getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
+        if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+            tabIndexOut = getTabIndex();
+        }
+    }
+    return tabIndexOut;
+}
+
 
 /**
  * Is this item selected for editing in the given window?

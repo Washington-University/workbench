@@ -381,6 +381,9 @@ namespace caret {
         
         void setUniqueKey(const int32_t uniqueKey);
         
+        int32_t updateDisplayGroupTabIndex(const DisplayGroupEnum::Enum displayGroup,
+                                           const int32_t tabIndex) const;
+        
         SceneClassAssistant* m_sceneAssistant;
         
         DisplayGroupAndTabItemHelper* m_displayGroupAndTabItemHelper;
