@@ -44,7 +44,6 @@
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QStyleFactory>
-#include <QTabBar>
 #include <QTextEdit>
 #include <QTimer>
 #include <QToolButton>
@@ -124,6 +123,7 @@
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
+#include "WuQTabBar.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -181,7 +181,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     /*
      * Create tab bar that displays models.
      */
-    this->tabBar = new QTabBar();
+    this->tabBar = new WuQTabBar();
     if (WuQtUtilities::isSmallDisplay()) {
         this->tabBar->setStyleSheet("QTabBar::tab:selected {"
                                     "    font: bold;"
@@ -232,7 +232,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                      this, SLOT(tabCloseSelected(int)));
     QObject::connect(this->tabBar, SIGNAL(tabMoved(int,int)),
                      this, SLOT(tabMoved(int,int)));
-    
 
     /*
      * Add context menu

@@ -116,6 +116,10 @@ namespace caret {
         QImage performOffScreenImageCapture(const int32_t imageWidth,
                                             const int32_t imageHeight);
         
+        static bool isDrawingBlocked();
+        
+        static void setDrawingBlocked(const bool blocked);
+        
     protected:
         virtual void initializeGL();
         
@@ -213,7 +217,7 @@ namespace caret {
         
         static BrainOpenGL* s_singletonOpenGL;
         
-
+        static bool s_drawingBlockedFlag;
     };
     
 #ifdef __BRAIN_OPENGL_WIDGET_DEFINE__
@@ -221,6 +225,7 @@ namespace caret {
         bool BrainOpenGLWidget::s_defaultGLFormatInitialized = false;
         std::set<BrainOpenGLWidget*> BrainOpenGLWidget::s_brainOpenGLWidgets;
         BrainOpenGL* BrainOpenGLWidget::s_singletonOpenGL = NULL;
+        bool BrainOpenGLWidget::s_drawingBlockedFlag = false;
 #endif // __BRAIN_OPENGL_WIDGET_DEFINE__
     
 } // namespace

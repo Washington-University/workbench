@@ -45,7 +45,6 @@ class QLabel;
 class QMenu;
 class QRadioButton;
 class QSpinBox;
-class QTabBar;
 class QToolButton;
 
 namespace caret {
@@ -74,6 +73,7 @@ namespace caret {
     class Surface;
     class SurfaceSelectionViewController;
     class StructureSurfaceSelectionControl;
+    class WuQTabBar;
     class WuQWidgetObjectGroup;
     
     class BrainBrowserWindowToolBar : public QToolBar, public EventListenerInterface, public SceneableInterface   {
@@ -216,7 +216,7 @@ namespace caret {
         QHBoxLayout* toolbarWidgetLayout;
         
         QWidget* tabBarWidget;
-        QTabBar* tabBar;
+        WuQTabBar* tabBar;
         
         /** Widget displayed at bottom of toolbar for mouse input controls */
         QWidget* userInputControlsWidget;

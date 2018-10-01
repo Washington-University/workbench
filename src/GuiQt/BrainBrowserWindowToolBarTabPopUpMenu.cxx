@@ -25,6 +25,7 @@
 
 #include "BrainBrowserWindowToolBar.h"
 #include "CaretAssert.h"
+#include "WuQTabBar.h"
 using namespace caret;
 
 

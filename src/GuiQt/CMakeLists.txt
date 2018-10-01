@@ -208,6 +208,7 @@ ELSE()
         WuQSpecialIncrementDoubleSpinBox.h
         WuQSpinBoxGroup.h
         WuQSpinBoxOddValue.h
+	WuQTabBar.h
         WuQTabWidget.h
 	WuQTabWidgetWithSizeHint.h
 	WuQTextEditorDialog.h
@@ -453,6 +454,7 @@ WuQwtPlot.h
 WuQSpecialIncrementDoubleSpinBox.h
 WuQSpinBoxGroup.h
 WuQSpinBoxOddValue.h
+WuQTabBar.h
 WuQTabWidget.h
 WuQTabWidgetWithSizeHint.h
 WuQTextEditorDialog.h
@@ -684,6 +686,7 @@ WuQwtPlot.cxx
 WuQSpecialIncrementDoubleSpinBox.cxx
 WuQSpinBoxGroup.cxx
 WuQSpinBoxOddValue.cxx
+WuQTabBar.cxx
 WuQTabWidget.cxx
 WuQTabWidgetWithSizeHint.cxx
 WuQTextEditorDialog.cxx
