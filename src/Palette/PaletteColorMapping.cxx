@@ -1963,7 +1963,7 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
             {
                 normalized = (scalar - mappingLeastPositive) / mappingPositiveDenominator + PALETTE_ZERO_COLOR_ZONE;
             } else {
-                if (scalar > mappingLeastPositive)
+                if (scalar >= mappingMostPositive)
                 {
                     normalized = 1.0f;
                 }
@@ -1979,7 +1979,7 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
             {
                 normalized = (scalar - mappingLeastNegative) / mappingNegativeDenominator - PALETTE_ZERO_COLOR_ZONE;
             } else {
-                if (scalar < mappingLeastNegative)
+                if (scalar <= mappingMostNegative)
                 {
                     normalized = -1.0f;
                 }
