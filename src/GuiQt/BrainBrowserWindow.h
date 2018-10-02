@@ -245,10 +245,6 @@ namespace caret {
         void aspectRatioDialogUpdateForTab(const double aspectRatio);
         void aspectRatioDialogUpdateForWindow(const double aspectRatio);
         
-        void tabBarMousePressedSlot();
-        
-        void tabBarMouseReleasedSlot();
-        
     private:
         /** Contains status of components such as enter/exit full screen */
         struct WindowComponentStatus {

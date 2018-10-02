@@ -224,10 +224,6 @@ m_browserWindowIndex(browserWindowIndex)
                                                   this);
     m_showToolBarAction = m_toolbar->toolBarToolButtonAction;
     addToolBar(m_toolbar);
-    QObject::connect(this->m_toolbar->tabBar, &WuQTabBar::mousePressedSignal,
-                     this, &BrainBrowserWindow::tabBarMousePressedSlot);
-    QObject::connect(this->m_toolbar->tabBar, &WuQTabBar::mouseReleasedSignal,
-                     this, &BrainBrowserWindow::tabBarMouseReleasedSlot);
     
     createActions();
     
@@ -478,49 +474,6 @@ BrainBrowserWindow::receiveEvent(Event* event)
          * shortcut keys will function.
          */
         processEditMenuAboutToShow();
-    }
-}
-
-/**
- * Called when tab bar mouse pressed.
- */
-void
-BrainBrowserWindow::tabBarMousePressedSlot()
-{
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TAB_DRAGGING)) {
-        /*
-         * Dragging tabs is slow because as the tab is moved, there are many graphics 
-         * and user-interface updates.  So, disable these updates during the time the 
-         * mouse is pressed and released.
-         *
-         * Block user-interface updates and also disable graphics drawing.  While there is
-         * an event for graphics updates, the windowing system may directly call the 
-         * drawing code (BrainOpenGLWidget::paintGL()) so we simply disable graphics drawing.
-         */
-        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, true);
-        BrainOpenGLWidget::setDrawingBlocked(true);
-    }
-}
-
-/**
- * Called when tab bar mouse released.
- */
-void
-BrainBrowserWindow::tabBarMouseReleasedSlot()
-{
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TAB_DRAGGING)) {
-        /*
-         * Enable user-interface updates and graphics drawing.
-         */
-        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, false);
-        BrainOpenGLWidget::setDrawingBlocked(false);
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).getPointer());
-        
-        /**
-         * Causes graphics and user-interface to update.  
-         * A box is drawn around selected tab.
-         */
-        m_toolbar->selectedTabChanged(m_toolbar->tabBar->currentIndex());
     }
 }
 
