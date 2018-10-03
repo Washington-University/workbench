@@ -1513,29 +1513,15 @@ BrainBrowserWindowToolBar::resetTabIndexForTileTabsHighlighting()
 void
 BrainBrowserWindowToolBar::tabBarMousePressedSlot()
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TAB_DRAGGING)) {
-        /*
-         * Dragging tabs is slow because as the tab is moved, there are many graphics
-         * and user-interface updates.  So, disable these updates during the time the
-         * mouse is pressed and released.
-         *
-         * Block user-interface updates and also disable graphics drawing.  While there is
-         * an event for graphics updates, the windowing system may directly call the
-         * drawing code (BrainOpenGLWidget::paintGL()) so we simply disable graphics drawing.
-         */
-        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, true);
-        EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, true);
-        
-        /*
-         * If drawing is blocked, the selected tab is NOT highlighted and the user
-         * may have trouble determining the location of the selected tab with
-         * tile tabs enabled.
-         */
-        const bool blockDrawingFlag(false);
-        if (blockDrawingFlag) {
-            BrainOpenGLWidget::setDrawingBlocked(true);
-        }
-    }
+    /*
+     * Dragging tabs is slow because as the tab is moved, there are many graphics
+     * and user-interface updates each time the tab changes.  So, disable these updates 
+     * during the time the mouse is pressed and until it is released.  Note that we
+     * block the "all windows graphics" update but not the individual window update.
+     * The individual window graphics update is needed to draw the box around the selected tab.
+     */
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, true);
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, true);
 }
 
 /**
@@ -1544,21 +1530,19 @@ BrainBrowserWindowToolBar::tabBarMousePressedSlot()
 void
 BrainBrowserWindowToolBar::tabBarMouseReleasedSlot()
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TAB_DRAGGING)) {
-        /*
-         * Enable user-interface updates and graphics drawing.
-         */
-        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, false);
-        EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, false);
-        BrainOpenGLWidget::setDrawingBlocked(false);
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
-        
-        /**
-         * Causes graphics and user-interface to update.
-         * A box is drawn around selected tab.
-         */
-        selectedTabChanged(tabBar->currentIndex());
-    }
+    /*
+     * Enable user-interface updates and graphics drawing since any tab
+     * dragging has finished.
+     */
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, false);
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, false);
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
+    
+    /**
+     * Causes graphics and user-interface to update.
+     * A box is drawn around selected tab.
+     */
+    selectedTabChanged(tabBar->currentIndex());
 }
 
 /**

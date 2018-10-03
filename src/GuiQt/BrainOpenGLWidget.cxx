@@ -604,36 +604,11 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
 }
 
 /**
- * @return True if drawing is blocked
- */
-bool
-BrainOpenGLWidget::isDrawingBlocked()
-{
-    return s_drawingBlockedFlag;
-}
-
-/**
- * Set drawing blocked status.
- *
- * @param blocked
- *     New blocked status.
- */
-void
-BrainOpenGLWidget::setDrawingBlocked(const bool blocked)
-{
-    s_drawingBlockedFlag = blocked;
-}
-
-/**
  * Paints the graphics.
  */
 void
 BrainOpenGLWidget::paintGL()
 {
-    if (isDrawingBlocked()) {
-        return;
-    }
-    
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     if (m_contextShareGroupPointer == NULL) {
         m_contextShareGroupPointer = context()->shareGroup();
