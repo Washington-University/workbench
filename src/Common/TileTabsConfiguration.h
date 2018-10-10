@@ -25,8 +25,7 @@
 #include "CaretObject.h"
 #include "TileTabsConfigurationModeEnum.h"
 
-class QDomDocument;
-
+class QXmlStreamReader;
 
 namespace caret {
 
@@ -82,6 +81,8 @@ namespace caret {
         
         void updateAutomaticConfigurationRowsAndColumns(const int32_t numberOfTabs);
         
+        AString toString() const override;
+        
         static bool lessThanComparisonByName(const TileTabsConfiguration* ttc1,
                                              const TileTabsConfiguration* ttc2);
         
@@ -102,9 +103,23 @@ namespace caret {
         
         
     private:
+        void setRowStretchFactors(const std::vector<float>& stretchFactors,
+                                  const int32_t numberOfRows);
+        
+        void setColumnStretchFactors(const std::vector<float>& stretchFactors,
+                                     const int32_t numberOfColumns);
+        
         void copyHelperTileTabsConfiguration(const TileTabsConfiguration& obj);
 
-        void parseVersionOneXML(QDomDocument& doc);
+        bool decodeFromXMLWithStreamReader(const AString& xmlString);
+        
+        bool decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader& xml);
+        
+        bool decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader& xml);
+        
+        AString encodeInXMLWithStreamWriterVersionOne() const;
+        
+        AString encodeInXMLWithStreamWriterVersionTwo() const;
         
         void initialize();
         
@@ -124,6 +139,7 @@ namespace caret {
         std::vector<float> m_columnStretchFactors;
 
         static const AString s_rootTagName;
+        static const AString s_v2_versionAttributeName;
         static const AString s_versionTagName;
         static const AString s_nameTagName;
         static const AString s_uniqueIdentifierTagName;
@@ -139,6 +155,7 @@ namespace caret {
     
 #ifdef __TILE_TABS_CONFIGURATION_DECLARE__
     const AString TileTabsConfiguration::s_rootTagName = "TileTabsConfiguration";
+    const AString TileTabsConfiguration::s_v2_versionAttributeName = "Version";
     const AString TileTabsConfiguration::s_versionTagName = "Version";
     const AString TileTabsConfiguration::s_versionNumberAttributeName = "Number";
     const AString TileTabsConfiguration::s_nameTagName = "Name";
