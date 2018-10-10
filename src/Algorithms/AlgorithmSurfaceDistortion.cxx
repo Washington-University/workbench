@@ -61,7 +61,8 @@ OperationParameters* AlgorithmSurfaceDistortion::getParameters()
     
     ret->createOptionalParameter(6, "-edge-method", "calculate distortion of edge lengths rather than areas");
     
-    ret->createOptionalParameter(7, "-local-affine-method", "calculate distortion by the local affines between triangles");
+    OptionalParameter* strainOpt = ret->createOptionalParameter(7, "-local-affine-method", "calculate distortion by the local affines between triangles");
+    strainOpt->createOptionalParameter(1, "-log2", "apply base-2 log transform");
     
     ret->setHelpText(
         AString("This command, when not using -caret5-method, -edge-method, or -local-affine-method, is equivalent to using -surface-vertex-areas on each surface, ") +
@@ -94,14 +95,22 @@ void AlgorithmSurfaceDistortion::useParameters(OperationParameters* myParams, Pr
     if (caret5method) ++methodCount;
     bool edgeMethod = myParams->getOptionalParameter(6)->m_present;
     if (edgeMethod) ++methodCount;
-    bool strainMethod = myParams->getOptionalParameter(7)->m_present;
-    if (strainMethod) ++methodCount;
+    bool strainMethod = false;
+    bool strainLog2 = false;
+    OptionalParameter* strainOpt = myParams->getOptionalParameter(7);
+    if (strainOpt->m_present)
+    {
+        strainMethod = true;
+        ++methodCount;
+        strainLog2 = strainOpt->getOptionalParameter(1)->m_present;
+    }
     if (methodCount > 1) throw AlgorithmException("you may not specify more than one of -caret5-method, -edge-method, or -local-affine-method");
-    AlgorithmSurfaceDistortion(myProgObj, referenceSurf, distortedSurf, myMetricOut, smooth, caret5method, edgeMethod, strainMethod);
+    AlgorithmSurfaceDistortion(myProgObj, referenceSurf, distortedSurf, myMetricOut, smooth, caret5method, edgeMethod, strainMethod, strainLog2);
 }
 
 AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj, const SurfaceFile* referenceSurf, const SurfaceFile* distortedSurf,
-                                                       MetricFile* myMetricOut, const float& smooth, const bool& caret5method, const bool& edgeMethod, const bool& strainMethod) : AbstractAlgorithm(myProgObj)
+                                                       MetricFile* myMetricOut, const float& smooth, const bool& caret5method, const bool& edgeMethod,
+                                                       const bool& strainMethod, const bool& strainLog2) : AbstractAlgorithm(myProgObj)
 {
     int methodCount = 0;
     if (caret5method) ++methodCount;
@@ -278,8 +287,14 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
                 accumJ += thisJ;//not sure which areas to weight by, so for now do a straight average, relying on smoothness inherent in the measures
                 accumR += thisR;//could maybe do some fancy interpolation of the affines in 3D sphere space
             }
-            myMetricOut->setValue(i, 0, accumJ / myTiles.size());
-            myMetricOut->setValue(i, 1, accumR / myTiles.size());
+            if (strainLog2)
+            {
+                myMetricOut->setValue(i, 0, log2(accumJ / myTiles.size()));
+                myMetricOut->setValue(i, 1, log2(accumR / myTiles.size()));
+            } else {
+                myMetricOut->setValue(i, 0, accumJ / myTiles.size());
+                myMetricOut->setValue(i, 1, accumR / myTiles.size());
+            }
         }
     } else {
         myMetricOut->setColumnName(0, "area distortion");
