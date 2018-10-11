@@ -99,7 +99,6 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
     m_tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    //WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(m_bordersDisplayCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupLayout);
@@ -171,17 +170,15 @@ BorderSelectionViewController::createAttributesWidget()
     QObject::connect(m_standardColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(processAttributesChanges()));
 
-    float minLineWidth = 0;
+    float minLineWidth = 0.1;
     float maxLineWidth = 1000;
-    //BrainOpenGL::getMinMaxLineWidth(minLineWidth,
-    //                                maxLineWidth);
     
     QLabel* lineWidthLabel = new QLabel("Line Diameter");
     m_lineWidthSpinBox = WuQFactory::newDoubleSpinBox();
     m_lineWidthSpinBox->setFixedWidth(80);
     m_lineWidthSpinBox->setRange(minLineWidth,
                                  maxLineWidth);
-    m_lineWidthSpinBox->setSingleStep(1.0);
+    m_lineWidthSpinBox->setSingleStep(0.1);
     m_lineWidthSpinBox->setDecimals(1);
     m_lineWidthSpinBox->setSuffix("px");
     m_lineWidthSpinBox->setToolTip("Adjust the width of borders drawn as lines.\n"
@@ -199,7 +196,7 @@ BorderSelectionViewController::createAttributesWidget()
     m_pointSizeSpinBox->setFixedWidth(80);
     m_pointSizeSpinBox->setRange(minLineWidth,
                                  maxLineWidth);
-    m_pointSizeSpinBox->setSingleStep(1.0);
+    m_pointSizeSpinBox->setSingleStep(0.1);
     m_pointSizeSpinBox->setDecimals(1);
     m_pointSizeSpinBox->setToolTip("Adjust the size of borders drawn as points");
     m_pointSizeSpinBox->setSuffix("mm");

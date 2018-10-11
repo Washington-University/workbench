@@ -2670,32 +2670,21 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     const int32_t numBorderPoints = borderDrawInfo.border->getNumberOfPoints();
     const bool isHighlightEndPoints = borderDrawInfo.isHighlightEndPoints;
     
-    float pointDiameter = 2.0;
-    float lineWidth  = 2.0;
-    BorderDrawingTypeEnum::Enum drawType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
-    if (borderDrawInfo.borderFileIndex >= 0) {
-        const BrainStructure* bs = borderDrawInfo.surface->getBrainStructure();
-        const Brain* brain = bs->getBrain();
-        const DisplayPropertiesBorders* dpb = brain->getDisplayPropertiesBorders();
-        const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(this->windowTabIndex);
-        pointDiameter = dpb->getPointSize(displayGroup,
-                                          this->windowTabIndex);
-        lineWidth  = dpb->getLineWidth(displayGroup,
-                                       this->windowTabIndex);
-        drawType  = dpb->getDrawingType(displayGroup,
-                                        this->windowTabIndex);
-    }
-    
+    CaretAssert(m_brain);
+    const DisplayPropertiesBorders* dpb = m_brain->getDisplayPropertiesBorders();
+    const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(this->windowTabIndex);
+    const float pointDiameter = dpb->getPointSize(displayGroup,
+                                            this->windowTabIndex);
+    const float lineWidth  = dpb->getLineWidth(displayGroup,
+                                         this->windowTabIndex);
+    BorderDrawingTypeEnum::Enum drawType = dpb->getDrawingType(displayGroup,
+                                                                         this->windowTabIndex);
+
+    /*
+     * When a border is being drawn, always use spheres
+     */
     if (borderDrawInfo.border == this->borderBeingDrawn) {
-        if (borderDrawInfo.surface != NULL) {
-            const BoundingBox* bb = borderDrawInfo.surface->getBoundingBox();
-            const float maxSize = std::max(bb->getDifferenceX(),
-                                           std::max(bb->getDifferenceY(), bb->getDifferenceZ()));
-            if (maxSize > 0.0f) {
-                const float percentSize = 0.03f;
-                pointDiameter = maxSize * percentSize;
-            }
-        }
+        drawType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
     }
     
     bool drawSphericalPoints = false;

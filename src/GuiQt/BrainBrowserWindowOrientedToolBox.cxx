@@ -45,6 +45,7 @@
 #include "CiftiConnectivityMatrixViewController.h"
 #include "DeveloperFlagsEnum.h"
 #include "EventBrowserWindowDrawingContent.h"
+#include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FiberOrientationSelectionViewController.h"
@@ -251,7 +252,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     if (orientation == Qt::Horizontal) {
         setMinimumHeight(200);
         setMaximumHeight(800);
-        //setSizeHintHeight(200);
     }
     else {
         if (isOverlayToolBox) {
@@ -778,6 +778,33 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 }
             }
 
+        EventGetOrSetUserInputModeProcessor inputModeEvent(m_browserWindowIndex);
+        EventManager::get()->sendEvent(inputModeEvent.getPointer());
+        const UserInputModeAbstract::UserInputMode inputMode = inputModeEvent.getUserInputMode();
+        switch (inputMode) {
+            case UserInputModeAbstract::ANNOTATIONS:
+                break;
+            case UserInputModeAbstract::BORDERS:
+                /*
+                 * Enable borders tab if the input mode is 'borders' so that user
+                 * can edit border point size while drawing a border before any
+                 * borders exist.
+                 */
+                haveBorders = true;
+                break;
+            case UserInputModeAbstract::FOCI:
+                break;
+            case UserInputModeAbstract::IMAGE:
+                break;
+            case UserInputModeAbstract::INVALID:
+                break;
+            case UserInputModeAbstract::VIEW:
+                break;
+            case UserInputModeAbstract::VOLUME_EDIT:
+                break;
+        }
+        
+        
         /*
          * Get the selected tab BEFORE enabling/disabling tabs.
          * Otherwise, the enabling/disabling of tabs may cause the selection
