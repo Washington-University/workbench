@@ -3346,6 +3346,14 @@ Brain::addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
     if (readFlag) {
         try {
             try {
+                /*
+                 * Add to recent scene files
+                 */
+                if (FileInformation(filename).exists()) {
+                    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+                    prefs->addToPreviousSceneFiles(filename);
+                }
+                
                 sf->readFile(filename);
             }
             catch (const std::bad_alloc&) {
@@ -3374,10 +3382,6 @@ Brain::addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
                                       sf);
         m_sceneFiles.push_back(sf);
     }
-    
-    
-//    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-//    prefs->addToPreviousSceneFiles(sf->getFileName());
     
     return sf;
 }
@@ -5484,6 +5488,20 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
     
+    const AString specFileName = sf->getFileName();
+    if (DataFile::isFileOnNetwork(specFileName)) {
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        prefs->addToPreviousSpecFiles(specFileName);
+    }
+    else {
+        FileInformation specFileInfo(specFileName);
+        if (specFileInfo.exists()
+            && specFileInfo.isAbsolute()) {
+            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+            prefs->addToPreviousSpecFiles(specFileName);
+        }
+    }
+    
     try  {
         m_specFile->clear();
         *m_specFile = *sf;
@@ -5568,20 +5586,6 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     }
     
     m_specFile->clearModified();
-    
-    const AString specFileName = sf->getFileName();
-    if (DataFile::isFileOnNetwork(specFileName)) {
-        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->addToPreviousSpecFiles(specFileName);
-    }
-    else {
-        FileInformation specFileInfo(specFileName);
-        if (specFileInfo.exists()
-            && specFileInfo.isAbsolute()) {
-            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            prefs->addToPreviousSpecFiles(specFileName);
-        }
-    }
     
     if (errorMessage.isEmpty() == false) {
         readSpecFileDataFilesEvent->setErrorMessage(errorMessage);

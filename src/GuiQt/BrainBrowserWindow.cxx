@@ -2069,6 +2069,8 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
         SpecFile specFile;
         try {
             specFile.readFile(specFileName);
+            SessionManager::get()->getCaretPreferences()->addToPreviousSpecFiles(specFileName);
+
             
             if (m_recentSpecFileMenu->title() == m_recentSpecFileMenuOpenConfirmTitle) {
                 if (GuiManager::get()->processShowOpenSpecFileDialog(&specFile,
@@ -3353,7 +3355,15 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
     if (specFileName.isEmpty() == false) {
         SpecFile specFile;
         try {
+            FileInformation fileInfo(specFileName);
+            if (fileInfo.isRelative()) {
+                specFileName = fileInfo.getAbsoluteFilePath();
+            }
+            if (fileInfo.exists()) {
+                SessionManager::get()->getCaretPreferences()->addToPreviousSpecFiles(specFileName);
+            }
             specFile.readFile(specFileName);
+            
         }
         catch (const DataFileException& e) {
             errorMessages += e.whatString();
