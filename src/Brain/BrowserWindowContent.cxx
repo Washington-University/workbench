@@ -486,9 +486,13 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         tileTabsConfig = sceneClass->getStringValue("m_tileTabsConfiguration");
     }
     if ( ! tileTabsConfig.isEmpty()) {
-        const bool valid = m_customTileTabsConfiguration->decodeFromXML(tileTabsConfig);
+        AString errorMessage;
+        const bool valid = m_customTileTabsConfiguration->decodeFromXML(tileTabsConfig,
+                                                                        errorMessage);
         if ( ! valid) {
-            sceneAttributes->addToErrorMessage("Failed to decode custom tile tabs configuration from BrowserWindowContent: \""
+            sceneAttributes->addToErrorMessage("Failed to decode custom tile tabs configuration with error \""
+                                               + errorMessage
+                                               + "\" from BrowserWindowContent: \""
                                                + tileTabsConfig
                                                + "\"");
             m_customTileTabsConfiguration.reset();
@@ -508,9 +512,13 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
          */
         const AString stringTileTabsConfig = sceneClass->getStringValue("m_sceneTileTabsConfiguration");
         if ( ! stringTileTabsConfig.isEmpty()) {
-            const bool valid = m_customTileTabsConfiguration->decodeFromXML(stringTileTabsConfig);
+            AString errorMessage;
+            const bool valid = m_customTileTabsConfiguration->decodeFromXML(stringTileTabsConfig,
+                                                                            errorMessage);
             if ( ! valid) {
-                sceneAttributes->addToErrorMessage("Failed to decode custom tile tabs configuration from BrowserWindowContent: \""
+                sceneAttributes->addToErrorMessage("Failed to decode custom tile tabs configuration with error \""
+                                                   + errorMessage
+                                                   + "\" from BrowserWindowContent: \""
                                                    + stringTileTabsConfig
                                                    + "\"");
                 m_customTileTabsConfiguration.reset();
@@ -594,7 +602,17 @@ BrowserWindowContent::restoreFromOldBrainBrowserWindowScene(const SceneAttribute
     
     const AString tileTabsConfigString = browserClass->getStringValue("m_sceneTileTabsConfiguration");
     if ( ! tileTabsConfigString.isEmpty()) {
-        m_customTileTabsConfiguration->decodeFromXML(tileTabsConfigString);
+        AString errorMessage;
+        const bool valid = m_customTileTabsConfiguration->decodeFromXML(tileTabsConfigString,
+                                                     errorMessage);
+        if ( ! valid) {
+            sceneAttributes->addToErrorMessage("Failed to decode custom tile tabs configuration with error \""
+                                               + errorMessage
+                                               + "\" from OLD BrowserWindowContent: \""
+                                               + tileTabsConfigString
+                                               + "\"");
+            m_customTileTabsConfiguration.reset();
+        }
     }
     
     const SceneClass* toolbarClass = browserClass->getClass("m_toolbar");

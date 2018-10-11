@@ -394,10 +394,13 @@ CaretPreferences::readTileTabsConfigurations(const bool performSync)
         this->qSettings->setArrayIndex(i);
         const AString configString = this->qSettings->value(AString::number(i)).toString();
         TileTabsConfiguration* ttc = new TileTabsConfiguration();
-        if (ttc->decodeFromXML(configString)) {
+        AString errorMessage;
+        if (ttc->decodeFromXML(configString,
+                               errorMessage)) {
             this->tileTabsConfigurations.push_back(ttc);
         }
         else {
+            CaretLogWarning(errorMessage);
             delete ttc;
         }
     }

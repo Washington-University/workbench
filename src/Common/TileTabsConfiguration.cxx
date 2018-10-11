@@ -620,11 +620,14 @@ TileTabsConfiguration::encodeInXMLWithStreamWriterVersionTwo() const
  *
  * @param xmlString
  *   String containing XML.
+ * @param errorMessageOut
+ *   Will contain error information.
  * @return
- *   True if configuration was successfully read from the XML, else false.
+ *   True if decoding is successful, else false.
  */
 bool
-TileTabsConfiguration::decodeFromXMLWithStreamReader(const AString& xmlString)
+TileTabsConfiguration::decodeFromXMLWithStreamReader(const AString& xmlString,
+                                                     AString& errorMessageOut)
 {
     QXmlStreamReader xml(xmlString);
     
@@ -663,16 +666,19 @@ TileTabsConfiguration::decodeFromXMLWithStreamReader(const AString& xmlString)
                            + s_rootTagName);
         }
     }
-    
-    if (xml.hasError()) {
-        throw CaretException("Tile Tabs Configuration Read Error at line number="
-                             + AString::number(xml.lineNumber())
-                             + " column number="
-                             + AString::number(xml.columnNumber())
-                             + " description="
-                             + xml.errorString());
+    else {
+        xml.raiseError("TileTabsConfiguration failed to find start elemnent.");
     }
     
+    if (xml.hasError()) {
+        errorMessageOut = ("Tile Tabs Configuration Read Error at line number="
+                           + AString::number(xml.lineNumber())
+                           + " column number="
+                           + AString::number(xml.columnNumber())
+                           + " description="
+                           + xml.errorString());
+        return false;
+    }
     
     return true;
 }
@@ -682,10 +688,8 @@ TileTabsConfiguration::decodeFromXMLWithStreamReader(const AString& xmlString)
  *
  * @param xml
  *   Stream XML parser.
- * @return
- *   True if configuration was successfully read from the XML, else false.
  */
-bool
+void
 TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader& xml)
 {
     std::set<QString> invalidElements;
@@ -741,8 +745,7 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader&
                        + " not found or invalid.  ");
     }
     if (uniqueID.isEmpty()) {
-        message.append(s_uniqueIdentifierTagName
-                       + " not found or invalid.  ");
+        uniqueID = SystemUtilities::createUniqueID();
     }
     if (rowStretchFactors.empty()) {
         message.append(s_rowStretchFactorsTagName
@@ -766,6 +769,9 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader&
     }
     
     if ( ! invalidElements.empty()) {
+        /*
+         * If invalid elements were encountered, don't throw
+         */
         AString msg("Invalid element(s) ignored: ");
         for (const auto s : invalidElements) {
             msg.append(s + " ");
@@ -781,13 +787,10 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader&
                              numberOfRows);
         setColumnStretchFactors(columnStretchFactors,
                                 numberOfColumns);
-        
-        return true;
     }
-    
-    xml.raiseError(message);
-    
-    return false;
+    else {
+        xml.raiseError(message);
+    }
 }
 
 /**
@@ -837,13 +840,10 @@ TileTabsConfiguration::setColumnStretchFactors(const std::vector<float>& stretch
  *
  * @param xml
  *   Stream XML parser.
- * @return
- *   True if configuration was successfully read from the XML, else false.
  */
-bool
+void
 TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader& /*xml*/)
 {
-    return false;
 }
 
 /**
@@ -851,13 +851,19 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader&
  *
  * @param xmlString
  *   String containing XML.
+ * @param errorMessageOut
+ *   Contains error information if decoding fails.
  * @return
  *   True if configuration was successfully read from the XML, else false.
  */
 bool
-TileTabsConfiguration::decodeFromXML(const AString& xmlString)
+TileTabsConfiguration::decodeFromXML(const AString& xmlString,
+                                     AString& errorMessageOut)
 {
-    return decodeFromXMLWithStreamReader(xmlString);
+    errorMessageOut.clear();
+    
+    return decodeFromXMLWithStreamReader(xmlString,
+                                         errorMessageOut);
 }
 
 /**

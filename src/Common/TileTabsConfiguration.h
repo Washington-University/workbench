@@ -77,7 +77,8 @@ namespace caret {
         
         AString encodeInXML() const;
         
-        bool decodeFromXML(const AString& xmlString);
+        bool decodeFromXML(const AString& xmlString,
+                           AString& errorMessageOut);
         
         void updateAutomaticConfigurationRowsAndColumns(const int32_t numberOfTabs);
         
@@ -111,11 +112,12 @@ namespace caret {
         
         void copyHelperTileTabsConfiguration(const TileTabsConfiguration& obj);
 
-        bool decodeFromXMLWithStreamReader(const AString& xmlString);
+        bool decodeFromXMLWithStreamReader(const AString& xmlString,
+                                           AString& errorMessageOut);
         
-        bool decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader& xml);
+        void decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader& xml);
         
-        bool decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader& xml);
+        void decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader& xml);
         
         AString encodeInXMLWithStreamWriterVersionOne() const;
         
