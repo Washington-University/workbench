@@ -354,9 +354,6 @@ TileTabsConfigurationDialog::createWorkbenchWindowWidget()
 QWidget*
 TileTabsConfigurationDialog::createCustomConfigurationWidget()
 {
-    const int32_t maximumNumberOfRows = TileTabsConfiguration::getMaximumNumberOfRows();
-    const int32_t maximumNumberOfColumns = TileTabsConfiguration::getMaximumNumberOfColumns();
-    
     const AString autoToolTip("Workbench adjusts the number of rows and columns so "
                               "that all tabs are displayed");
     m_automaticConfigurationRadioButton = new QRadioButton("Automatic Configuration");
@@ -375,7 +372,7 @@ TileTabsConfigurationDialog::createCustomConfigurationWidget()
     QLabel* dimensionsLabel = new QLabel("Dimensions");
     QLabel* rowsLabel = new QLabel("Rows");
     m_numberOfRowsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                          maximumNumberOfRows,
+                                                                          s_maximumRowsColumns,
                                                                           1,
                                                                           this,
                                                                           SLOT(configurationNumberOfRowsOrColumnsChanged()));
@@ -383,7 +380,7 @@ TileTabsConfigurationDialog::createCustomConfigurationWidget()
     
     QLabel* columnsLabel = new QLabel("Columns");
     m_numberOfColumnsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                             maximumNumberOfColumns,
+                                                                             s_maximumRowsColumns,
                                                                              1,
                                                                              this,
                                                                              SLOT(configurationNumberOfRowsOrColumnsChanged()));
@@ -414,9 +411,8 @@ TileTabsConfigurationDialog::createCustomConfigurationWidget()
     {
         rowStretchFactorLayout->addWidget(new QLabel("Rows"), 0, 0, 1, 2, Qt::AlignHCenter);
         
-        for (int32_t i = 0; i < maximumNumberOfRows; i++) {
+        for (int32_t i = 0; i < s_maximumRowsColumns; i++) {
             AString labelSpace = ((i >= 10) ? "" : "  ");
-            if (i < maximumNumberOfRows) {
                 QLabel* numberLabel = new QLabel(labelSpace + AString::number(i + 1));
                 m_rowStretchFactorIndexLabels.push_back(numberLabel);
                 
@@ -437,10 +433,9 @@ TileTabsConfigurationDialog::createCustomConfigurationWidget()
                 rowStretchFactorLayout->addWidget(numberLabel, layoutRow, 0, Qt::AlignRight);
                 rowStretchFactorLayout->addWidget(spinBox, layoutRow, 1);
                 rowStretchFactorLayout->addWidget(pctLabel, layoutRow, 2);
-            }
         }
         
-        rowStretchFactorLayout->setRowStretch(maximumNumberOfRows, 100);
+        rowStretchFactorLayout->setRowStretch(s_maximumRowsColumns, 100);
     }
     
     QWidget* columnStretchFactorWidget = new QWidget();
@@ -450,9 +445,8 @@ TileTabsConfigurationDialog::createCustomConfigurationWidget()
     {
         columnStretchFactorLayout->addWidget(new QLabel("Columns"), 0, 0, 1, 2, Qt::AlignHCenter);
         
-        for (int32_t i = 0; i < maximumNumberOfColumns; i++) {
+        for (int32_t i = 0; i < s_maximumRowsColumns; i++) {
             AString labelSpace = ((i >= 10) ? "" : "  ");
-            if (i < maximumNumberOfColumns) {
                 QLabel* numberLabel = new QLabel(labelSpace + AString::number(i + 1));
                 m_columnStretchFactorIndexLabels.push_back(numberLabel);
                 
@@ -473,10 +467,9 @@ TileTabsConfigurationDialog::createCustomConfigurationWidget()
                 columnStretchFactorLayout->addWidget(numberLabel, layoutRow, 0, Qt::AlignRight);
                 columnStretchFactorLayout->addWidget(spinBox, layoutRow, 1);
                 columnStretchFactorLayout->addWidget(pctLabel, layoutRow, 2);
-            }
         }
         
-        columnStretchFactorLayout->setRowStretch(maximumNumberOfColumns, 100);
+        columnStretchFactorLayout->setRowStretch(s_maximumRowsColumns, 100);
     }
     
     QLabel* stretchFactorLabel = new QLabel("Stretch Factors");
@@ -708,7 +701,8 @@ TileTabsConfigurationDialog::updateStretchFactors()
         QLabel* pctLabel   = m_columnStretchPercentageLabels[i];
         if (i < numValidColumns) {
             QSignalBlocker blocker(sb);
-            sb->setValue(configuration->getColumnStretchFactor(i));
+            const TileTabsRowColumnElement* e = configuration->getColumn(i);
+            sb->setValue(e->getWeightStretch());
         }
         indexLabel->setVisible(i < numValidColumns);
         sb->setVisible(i < numValidColumns);
@@ -730,7 +724,8 @@ TileTabsConfigurationDialog::updateStretchFactors()
         QLabel* pctLabel = m_rowStretchPercentageLabels[i];
         if (i < numValidRows) {
             QSignalBlocker blocker(sb);
-            sb->setValue(configuration->getRowStretchFactor(i));
+            const TileTabsRowColumnElement* e = configuration->getRow(i);
+            sb->setValue(e->getWeightStretch());
         }
         indexLabel->setVisible(i < numValidRows);
         sb->setVisible(i < numValidRows);
@@ -991,16 +986,16 @@ TileTabsConfigurationDialog::configurationStretchFactorWasChanged()
     const int32_t numColSpinBoxes = static_cast<int32_t>(m_columnStretchFactorSpinBoxes.size());
     for (int32_t i = 0; i < numColSpinBoxes; i++) {
         if (m_columnStretchFactorSpinBoxes[i]->isEnabled()) {
-            configuration->setColumnStretchFactor(i,
-                                                  m_columnStretchFactorSpinBoxes[i]->value());
+            TileTabsRowColumnElement* e = configuration->getColumn(i);
+            e->setWeightStretch(m_columnStretchFactorSpinBoxes[i]->value());
         }
     }
     
     const int32_t numRowSpinBoxes = static_cast<int32_t>(m_rowStretchFactorSpinBoxes.size());
     for (int32_t i = 0; i < numRowSpinBoxes; i++) {
         if (m_rowStretchFactorSpinBoxes[i]->isEnabled()) {
-            configuration->setRowStretchFactor(i,
-                                               m_rowStretchFactorSpinBoxes[i]->value());
+            TileTabsRowColumnElement* e = configuration->getRow(i);
+            e->setWeightStretch(m_rowStretchFactorSpinBoxes[i]->value());
         }
     }
     

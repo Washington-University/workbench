@@ -147,6 +147,9 @@ StructureEnum.h
 SystemUtilities.h
 TileTabsConfiguration.h
 TileTabsConfigurationModeEnum.h
+TileTabsRowColumnContentTypeEnum.h
+TileTabsRowColumnElement.h
+TileTabsRowColumnStretchTypeEnum.h
 TracksModificationInterface.h
 TriStateSelectionStatusEnum.h
 Vector3D.h
@@ -243,6 +246,9 @@ StructureEnum.cxx
 SystemUtilities.cxx
 TileTabsConfiguration.cxx
 TileTabsConfigurationModeEnum.cxx
+TileTabsRowColumnContentTypeEnum.cxx
+TileTabsRowColumnElement.cxx
+TileTabsRowColumnStretchTypeEnum.cxx
 TriStateSelectionStatusEnum.cxx
 Vector3D.cxx
 VectorOperation.cxx

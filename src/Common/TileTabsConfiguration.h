@@ -24,8 +24,10 @@
 #include "CaretException.h"
 #include "CaretObject.h"
 #include "TileTabsConfigurationModeEnum.h"
+#include "TileTabsRowColumnElement.h"
 
 class QXmlStreamReader;
+class QXmlStreamWriter;
 
 namespace caret {
 
@@ -65,17 +67,17 @@ namespace caret {
 
         void setNumberOfColumns(const int32_t numberOfColumns);
         
-        float getColumnStretchFactor(const int32_t columnIndex) const;
-
-        void setColumnStretchFactor(const int32_t columnIndex,
-                                    const float stretchFactor);
+        TileTabsRowColumnElement* getColumn(const int32_t columnIndex);
         
-        float getRowStretchFactor(const int32_t rowIndex) const;
+        const TileTabsRowColumnElement* getColumn(const int32_t columnIndex) const;
         
-        void setRowStretchFactor(const int32_t rowIndex,
-                                 const float stretchFactor);
+        TileTabsRowColumnElement* getRow(const int32_t rowIndex);
         
-        AString encodeInXML() const;
+        const TileTabsRowColumnElement* getRow(const int32_t rowIndex) const;
+        
+        AString encodeInXML(AString s) const;
+        
+        AString encodeVersionInXML(const int32_t versionNumber) const;
         
         bool decodeFromXML(const AString& xmlString,
                            AString& errorMessageOut);
@@ -87,16 +89,6 @@ namespace caret {
         static bool lessThanComparisonByName(const TileTabsConfiguration* ttc1,
                                              const TileTabsConfiguration* ttc2);
         
-        /**
-         * @return Maximum number of rows in a tile tabs configuration
-         */
-        static inline int32_t getMaximumNumberOfRows() { return 20; }
-        
-        /**
-         * @return Maximum number of columns in a tile tabs configuration
-         */
-        static inline int32_t getMaximumNumberOfColumns() { return 20; }
-        
         static void getRowsAndColumnsForNumberOfTabs(const int32_t numberOfTabs,
                                                      int32_t& numberOfRowsOut,
                                                      int32_t& numberOfColumnsOut);
@@ -104,12 +96,6 @@ namespace caret {
         
         
     private:
-        void setRowStretchFactors(const std::vector<float>& stretchFactors,
-                                  const int32_t numberOfRows);
-        
-        void setColumnStretchFactors(const std::vector<float>& stretchFactors,
-                                     const int32_t numberOfColumns);
-        
         void copyHelperTileTabsConfiguration(const TileTabsConfiguration& obj);
 
         bool decodeFromXMLWithStreamReader(const AString& xmlString,
@@ -123,6 +109,14 @@ namespace caret {
         
         AString encodeInXMLWithStreamWriterVersionTwo() const;
         
+        void encodeRowColumnElement(QXmlStreamWriter& writer,
+                                    const AString tagName,
+                                    const std::vector<TileTabsRowColumnElement>& elements) const;
+        
+        bool decodeRowColumnElement(QXmlStreamReader& reader,
+                                    TileTabsRowColumnElement& element,
+                                    AString& errorMessageOut);
+        
         void initialize();
         
         // ADD_NEW_MEMBERS_HERE
@@ -132,42 +126,59 @@ namespace caret {
         /** Unique identifier does not get copied */
         AString m_uniqueIdentifier;
         
-        int32_t m_numberOfRows;
-        
-        int32_t m_numberOfColumns;
-        
-        std::vector<float> m_rowStretchFactors;
-        
         std::vector<float> m_columnStretchFactors;
 
-        static const AString s_rootTagName;
-        static const AString s_v2_versionAttributeName;
-        static const AString s_versionTagName;
+        std::vector<TileTabsRowColumnElement> m_columns;
+        
+        std::vector<TileTabsRowColumnElement> m_rows;
+        
         static const AString s_nameTagName;
         static const AString s_uniqueIdentifierTagName;
-        static const AString s_versionNumberAttributeName;
-        static const AString s_columnStretchFactorsTagName;
-        static const AString s_columnStretchFactorsSelectedCountAttributeName;
-        static const AString s_columnStretchFactorsTotalCountAttributeName;
-        static const AString s_rowStretchFactorsTagName;
-        static const AString s_rowStretchFactorsSelectedCountAttributeName;
-        static const AString s_rowStretchFactorsTotalCountAttributeName;
+
+        static const AString s_v1_rootTagName;
+        static const AString s_v1_versionTagName;
+        static const AString s_v1_versionNumberAttributeName;
+        static const AString s_v1_columnStretchFactorsTagName;
+        static const AString s_v1_columnStretchFactorsSelectedCountAttributeName;
+        static const AString s_v1_columnStretchFactorsTotalCountAttributeName;
+        static const AString s_v1_rowStretchFactorsTagName;
+        static const AString s_v1_rowStretchFactorsSelectedCountAttributeName;
+        static const AString s_v1_rowStretchFactorsTotalCountAttributeName;
         
+        static const AString s_v2_rootTagName;
+        static const AString s_v2_versionAttributeName;
+        static const AString s_v2_columnsTagName;
+        static const AString s_v2_contentTypeAttributeName;
+        static const AString s_v2_elementTagName;
+        static const AString s_v2_percentStretchAttributeName;
+        static const AString s_v2_rowsTagName;
+        static const AString s_v2_stretchTypeAttributeName;
+        static const AString s_v2_weightStretchAttributeName;
     };
     
 #ifdef __TILE_TABS_CONFIGURATION_DECLARE__
-    const AString TileTabsConfiguration::s_rootTagName = "TileTabsConfiguration";
-    const AString TileTabsConfiguration::s_v2_versionAttributeName = "Version";
-    const AString TileTabsConfiguration::s_versionTagName = "Version";
-    const AString TileTabsConfiguration::s_versionNumberAttributeName = "Number";
     const AString TileTabsConfiguration::s_nameTagName = "Name";
     const AString TileTabsConfiguration::s_uniqueIdentifierTagName = "UniqueIdentifier";
-    const AString TileTabsConfiguration::s_columnStretchFactorsTagName = "ColumnStretchFactors";
-    const AString TileTabsConfiguration::s_columnStretchFactorsSelectedCountAttributeName = "SelectedRowCount";
-    const AString TileTabsConfiguration::s_columnStretchFactorsTotalCountAttributeName = "TotalRowCount";
-    const AString TileTabsConfiguration::s_rowStretchFactorsTagName = "RowStretchFactors";
-    const AString TileTabsConfiguration::s_rowStretchFactorsSelectedCountAttributeName = "SelectedColumnCount";
-    const AString TileTabsConfiguration::s_rowStretchFactorsTotalCountAttributeName = "TotalColumnCount";
+
+    const AString TileTabsConfiguration::s_v1_rootTagName = "TileTabsConfiguration";
+    const AString TileTabsConfiguration::s_v1_versionTagName = "Version";
+    const AString TileTabsConfiguration::s_v1_versionNumberAttributeName = "Number";
+    const AString TileTabsConfiguration::s_v1_columnStretchFactorsTagName = "ColumnStretchFactors";
+    const AString TileTabsConfiguration::s_v1_columnStretchFactorsSelectedCountAttributeName = "SelectedRowCount";
+    const AString TileTabsConfiguration::s_v1_columnStretchFactorsTotalCountAttributeName = "TotalRowCount";
+    const AString TileTabsConfiguration::s_v1_rowStretchFactorsTagName = "RowStretchFactors";
+    const AString TileTabsConfiguration::s_v1_rowStretchFactorsSelectedCountAttributeName = "SelectedColumnCount";
+    const AString TileTabsConfiguration::s_v1_rowStretchFactorsTotalCountAttributeName = "TotalColumnCount";
+    
+    const AString TileTabsConfiguration::s_v2_rootTagName = "TileTabsConfigurationTwo";
+    const AString TileTabsConfiguration::s_v2_versionAttributeName = "Version";
+    const AString TileTabsConfiguration::s_v2_columnsTagName = "Columns";
+    const AString TileTabsConfiguration::s_v2_contentTypeAttributeName = "ContentType";
+    const AString TileTabsConfiguration::s_v2_elementTagName = "Element";
+    const AString TileTabsConfiguration::s_v2_percentStretchAttributeName = "PercentStretch";
+    const AString TileTabsConfiguration::s_v2_rowsTagName = "Rows";
+    const AString TileTabsConfiguration::s_v2_stretchTypeAttributeName = "StretchType";
+    const AString TileTabsConfiguration::s_v2_weightStretchAttributeName = "WeightStretch";
 #endif // __TILE_TABS_CONFIGURATION_DECLARE__
 
 } // namespace

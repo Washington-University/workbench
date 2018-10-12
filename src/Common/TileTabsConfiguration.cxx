@@ -70,7 +70,9 @@ TileTabsConfiguration::~TileTabsConfiguration()
 TileTabsConfiguration::TileTabsConfiguration(const TileTabsConfiguration& obj)
 : CaretObject(obj)
 {
+    const AString savedUniqueID = m_uniqueIdentifier;
     initialize();
+    m_uniqueIdentifier = savedUniqueID;
     this->copyHelperTileTabsConfiguration(obj);
 }
 
@@ -116,16 +118,10 @@ TileTabsConfiguration::newCopyWithNewUniqueIdentifier() const
 void
 TileTabsConfiguration::initialize()
 {
-    m_rowStretchFactors.resize(getMaximumNumberOfRows(),
-                               1.0);
-    m_columnStretchFactors.resize(getMaximumNumberOfColumns(),
-                                  1.0);
-    m_numberOfColumns = 0;
-    m_numberOfRows    = 0;
-    
     setNumberOfRows(2);
     setNumberOfColumns(2);
-    
+
+    m_name.clear();
     m_uniqueIdentifier = SystemUtilities::createUniqueID();
 }
 
@@ -141,11 +137,9 @@ TileTabsConfiguration::copyHelperTileTabsConfiguration(const TileTabsConfigurati
         return;
     }
     
-    m_numberOfColumns = obj.m_numberOfColumns;
-    m_numberOfRows    = obj.m_numberOfRows;
-    m_rowStretchFactors = obj.m_rowStretchFactors;
-    m_columnStretchFactors = obj.m_columnStretchFactors;
-    m_name = obj.m_name;
+    m_name    = obj.m_name;
+    m_columns = obj.m_columns;
+    m_rows    = obj.m_rows;
     //DO NOT CHANGE THE UNIQUE IDENTIFIER:  m_uniqueIdentifier
 }
 
@@ -159,6 +153,54 @@ TileTabsConfiguration::copy(const TileTabsConfiguration& rhs)
     AString savedName = m_name;
     copyHelperTileTabsConfiguration(rhs);
     m_name = savedName;
+}
+
+/**
+ * Get infoformation for the given elemnent in the columns.
+ *
+ * @param Information for element.
+ */
+TileTabsRowColumnElement*
+TileTabsConfiguration::getColumn(const int32_t columnIndex)
+{
+    CaretAssertVectorIndex(m_columns, columnIndex);
+    return &m_columns[columnIndex];
+}
+
+/**
+ * Get infoformation for the given elemnent in the columns.
+ *
+ * @param Information for element.
+ */
+const TileTabsRowColumnElement*
+TileTabsConfiguration::getColumn(const int32_t columnIndex) const
+{
+    CaretAssertVectorIndex(m_columns, columnIndex);
+    return &m_columns[columnIndex];
+}
+
+/**
+ * Get infoformation for the given elemnent in the rows.
+ *
+ * @param Information for element.
+ */
+TileTabsRowColumnElement*
+TileTabsConfiguration::getRow(const int32_t rowIndex)
+{
+    CaretAssertVectorIndex(m_rows, rowIndex);
+    return &m_rows[rowIndex];
+}
+
+/**
+ * Get infoformation for the given elemnent in the rows.
+ *
+ * @param Information for element.
+ */
+const TileTabsRowColumnElement*
+TileTabsConfiguration::getRow(const int32_t rowIndex) const
+{
+    CaretAssertVectorIndex(m_rows, rowIndex);
+    return &m_rows[rowIndex];
 }
 
 /**
@@ -234,12 +276,27 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
              */
             float rowStretchTotal = 0.0;
             for (int32_t i = 0; i < numRows; i++) {
-                rowStretchTotal += getRowStretchFactor(i);
+                const TileTabsRowColumnElement* e = getRow(i);
+                switch (e->getStretchType()) {
+                    case TileTabsRowColumnStretchTypeEnum::PERCENTAGE:
+                        break;
+                    case TileTabsRowColumnStretchTypeEnum::WEIGHT:
+                        rowStretchTotal += e->getWeightStretch();
+                        break;
+                }
             }
             CaretAssert(rowStretchTotal > 0.0);
             for (int32_t i = 0; i < numRows; i++) {
-                const int32_t h = static_cast<int32_t>((getRowStretchFactor(i) / rowStretchTotal)
-                                                       * windowHeight);
+                int32_t h = 0;
+                const TileTabsRowColumnElement* e = getRow(i);
+                switch (e->getStretchType()) {
+                    case TileTabsRowColumnStretchTypeEnum::PERCENTAGE:
+                        break;
+                    case TileTabsRowColumnStretchTypeEnum::WEIGHT:
+                        h = static_cast<int32_t>((e->getWeightStretch() / rowStretchTotal)
+                                                 * windowHeight);
+                        break;
+                }
                 
                 rowHeightsOut.push_back(h);
             }
@@ -249,12 +306,27 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
              */
             float columnStretchTotal = 0.0;
             for (int32_t i = 0; i < numCols; i++) {
-                columnStretchTotal += getColumnStretchFactor(i);
+                const TileTabsRowColumnElement* e = getColumn(i);
+                switch (e->getStretchType()) {
+                    case TileTabsRowColumnStretchTypeEnum::PERCENTAGE:
+                        break;
+                    case TileTabsRowColumnStretchTypeEnum::WEIGHT:
+                        columnStretchTotal += e->getWeightStretch();
+                        break;
+                }
             }
             CaretAssert(columnStretchTotal > 0.0);
             for (int32_t i = 0; i < numCols; i++) {
-                const int32_t w = static_cast<int32_t>((getColumnStretchFactor(i) / columnStretchTotal)
-                                                       * windowWidth);
+                int32_t w = 0;
+                const TileTabsRowColumnElement* e = getColumn(i);
+                switch (e->getStretchType()) {
+                    case TileTabsRowColumnStretchTypeEnum::PERCENTAGE:
+                        break;
+                    case TileTabsRowColumnStretchTypeEnum::WEIGHT:
+                        w = static_cast<int32_t>((e->getWeightStretch() / columnStretchTotal)
+                                                 * windowWidth);
+                        break;
+                }
                 columnWidthsOut.push_back(w);
             }
         }            break;
@@ -343,7 +415,7 @@ TileTabsConfiguration::setName(const AString& name)
 int32_t
 TileTabsConfiguration::getNumberOfRows() const
 {
-    return m_numberOfRows;
+    return m_rows.size();
 }
 
 /**
@@ -355,25 +427,7 @@ TileTabsConfiguration::getNumberOfRows() const
 void
 TileTabsConfiguration::setNumberOfRows(const int32_t numberOfRows)
 {
-    const int32_t oldNumerOfRows = m_numberOfRows;
-    
-    CaretAssert(numberOfRows >= 1);
-    m_numberOfRows = numberOfRows;
-    if (m_numberOfRows > getMaximumNumberOfRows()) {
-        CaretLogSevere("Requested number of rows is "
-                       + AString::number(m_numberOfRows)
-                       + " but maximum is "
-                       + getMaximumNumberOfRows());
-        m_numberOfRows = getMaximumNumberOfRows();
-    }
-    
-    /*
-     * Stretch factors default to 1.0
-     */
-    for (int32_t iRow = oldNumerOfRows; iRow < m_numberOfRows; iRow++) {
-        CaretAssertVectorIndex(m_rowStretchFactors, iRow);
-        m_rowStretchFactors[iRow] = 1.0;
-    }
+    m_rows.resize(numberOfRows);
 }
 
 /**
@@ -382,7 +436,7 @@ TileTabsConfiguration::setNumberOfRows(const int32_t numberOfRows)
 int32_t
 TileTabsConfiguration::getNumberOfColumns() const
 {
-    return m_numberOfColumns;
+    return m_columns.size();
 }
 
 /**
@@ -394,93 +448,7 @@ TileTabsConfiguration::getNumberOfColumns() const
 void
 TileTabsConfiguration::setNumberOfColumns(const int32_t numberOfColumns)
 {
-    const int32_t oldNumberOfColumns = m_numberOfColumns;
-    
-    CaretAssert(numberOfColumns >= 1);
-    
-    m_numberOfColumns = numberOfColumns;
-    if (m_numberOfColumns > getMaximumNumberOfColumns()) {
-        CaretLogSevere("Requested number of columns is "
-                       + AString::number(m_numberOfColumns)
-                       + " but maximum is "
-                       + getMaximumNumberOfColumns());
-        m_numberOfColumns = getMaximumNumberOfColumns();
-    }
-    
-    /*
-     * Stretch factors default to 1.0
-     */
-    for (int32_t iCol = oldNumberOfColumns; iCol < m_numberOfColumns; iCol++) {
-        CaretAssertVectorIndex(m_columnStretchFactors, iCol);
-        m_columnStretchFactors[iCol] = 1.0;
-    }
-}
-
-/**
- * Get stretch factor for a column.
- *
- * @param columnIndex
- *    Index of the column.
- * @return
- *    Stretch factor for the column.
- */
-float
-TileTabsConfiguration::getColumnStretchFactor(const int32_t columnIndex) const
-{
-    CaretAssertVectorIndex(m_columnStretchFactors, columnIndex);
-    
-    return m_columnStretchFactors[columnIndex];
-}
-
-/**
- * Set stretch factor for a column.
- *
- * @param columnIndex
- *    Index of the column.
- * @param stretchFactor
- *    Stretch factor for the column.
- */
-void
-TileTabsConfiguration::setColumnStretchFactor(const int32_t columnIndex,
-                            const float stretchFactor)
-{
-    CaretAssertVectorIndex(m_columnStretchFactors, columnIndex);
-    
-    m_columnStretchFactors[columnIndex] = stretchFactor;
-}
-
-/**
- * Get stretch factor for a column.
- *
- * @param columnIndex
- *    Index of the column.
- * @return
- *    Stretch factor for the column.
- */
-float
-TileTabsConfiguration::getRowStretchFactor(const int32_t rowIndex) const
-{
-    CaretAssertVectorIndex(m_rowStretchFactors, rowIndex);
-    
-    return m_rowStretchFactors[rowIndex];
-}
-
-/**
- * Set stretch factor for a column.
- *
- * @param rowIndex
- *    Index of the row.
- * @param stretchFactor
- *    Stretch factor for the column.
- */
-void
-TileTabsConfiguration::setRowStretchFactor(const int32_t rowIndex,
-                         const float stretchFactor)
-{
-    CaretAssertVectorIndex(m_rowStretchFactors, rowIndex);
-    
-    m_rowStretchFactors[rowIndex] = stretchFactor;
-    
+    m_columns.resize(numberOfColumns);
 }
 
 /**
@@ -528,23 +496,41 @@ TileTabsConfiguration::updateAutomaticConfigurationRowsAndColumns(const int32_t 
     
     setNumberOfRows(numRows);
     setNumberOfColumns(numCols);
-    
-    std::fill(m_columnStretchFactors.begin(),
-              m_columnStretchFactors.end(),
-              1.0);
-    std::fill(m_rowStretchFactors.begin(),
-              m_rowStretchFactors.end(),
-              1.0);
 }
 
 /**
  * @return Encoded tile tabs configuration in XML
  */
 AString
-TileTabsConfiguration::encodeInXML() const
+TileTabsConfiguration::encodeInXML(AString s) const
 {
-    return encodeInXMLWithStreamWriterVersionOne();
+    return encodeVersionInXML(2);
 }
+
+/**
+ * @return Encoded tile tabs configuration in XML
+ * using the give XML version of TileTabsConfiguration.
+ */
+AString
+TileTabsConfiguration::encodeVersionInXML(const int32_t versionNumber) const
+{
+    AString s;
+    
+    switch (versionNumber) {
+        case 1:
+            s = encodeInXMLWithStreamWriterVersionOne();
+            break;
+        case 2:
+            s = encodeInXMLWithStreamWriterVersionTwo();
+            break;
+        default:
+            CaretAssertMessage(0, "Requested invalid version=" + AString::number(versionNumber));
+            break;
+    }
+    
+    return s;
+}
+
 
 /**
  * @return Encoded tile tabs configuration in XML with Stream Writer
@@ -556,25 +542,35 @@ TileTabsConfiguration::encodeInXMLWithStreamWriterVersionOne() const
     QXmlStreamWriter writer(&xmlString);
     writer.setAutoFormatting(true);
     
-    writer.writeStartElement(s_rootTagName);
+    writer.writeStartElement(s_v1_rootTagName);
     
-    writer.writeStartElement(s_versionTagName);
-    writer.writeAttribute(s_versionNumberAttributeName, "1");
+    writer.writeStartElement(s_v1_versionTagName);
+    writer.writeAttribute(s_v1_versionNumberAttributeName, "1");
     writer.writeEndElement();
     
     writer.writeTextElement(s_nameTagName, m_name);
     writer.writeTextElement(s_uniqueIdentifierTagName, m_uniqueIdentifier);
     
-    writer.writeStartElement(s_rowStretchFactorsTagName);
-    writer.writeAttribute(s_rowStretchFactorsSelectedCountAttributeName, AString::number(m_numberOfRows));
-    writer.writeAttribute(s_rowStretchFactorsTotalCountAttributeName, AString::number(m_rowStretchFactors.size()));
-    writer.writeCharacters(AString::fromNumbers(m_rowStretchFactors, " "));
+    const int32_t numberOfRows = getNumberOfRows();
+    writer.writeStartElement(s_v1_rowStretchFactorsTagName);
+    writer.writeAttribute(s_v1_rowStretchFactorsSelectedCountAttributeName, AString::number(numberOfRows));
+    writer.writeAttribute(s_v1_rowStretchFactorsTotalCountAttributeName, AString::number(numberOfRows));
+    std::vector<float> rowStretchFactors;
+    for (const auto e : m_rows) {
+        rowStretchFactors.push_back(e.getWeightStretch());
+    }
+    writer.writeCharacters(AString::fromNumbers(rowStretchFactors, " "));
     writer.writeEndElement();
     
-    writer.writeStartElement(s_columnStretchFactorsTagName);
-    writer.writeAttribute(s_columnStretchFactorsSelectedCountAttributeName, AString::number(m_numberOfColumns));
-    writer.writeAttribute(s_columnStretchFactorsTotalCountAttributeName, AString::number(m_columnStretchFactors.size()));
-    writer.writeCharacters(AString::fromNumbers(m_columnStretchFactors, " "));
+    const int32_t numberOfColumns = getNumberOfColumns();
+    writer.writeStartElement(s_v1_columnStretchFactorsTagName);
+    writer.writeAttribute(s_v1_columnStretchFactorsSelectedCountAttributeName, AString::number(numberOfColumns));
+    writer.writeAttribute(s_v1_columnStretchFactorsTotalCountAttributeName, AString::number(numberOfColumns));
+    std::vector<float> columnStretchFactors;
+    for (const auto e : m_columns) {
+        columnStretchFactors.push_back(e.getWeightStretch());
+    }
+    writer.writeCharacters(AString::fromNumbers(columnStretchFactors, " "));
     writer.writeEndElement();
     
     writer.writeEndElement();
@@ -592,27 +588,47 @@ TileTabsConfiguration::encodeInXMLWithStreamWriterVersionTwo() const
     QXmlStreamWriter writer(&xmlString);
     writer.setAutoFormatting(true);
     
-    writer.writeStartElement(s_rootTagName);
+    writer.writeStartElement(s_v2_rootTagName);
     writer.writeAttribute(s_v2_versionAttributeName, "2");
     
     writer.writeTextElement(s_nameTagName, m_name);
     writer.writeTextElement(s_uniqueIdentifierTagName, m_uniqueIdentifier);
     
-    writer.writeStartElement(s_rowStretchFactorsTagName);
-    writer.writeAttribute(s_rowStretchFactorsSelectedCountAttributeName, AString::number(m_numberOfRows));
-    writer.writeAttribute(s_rowStretchFactorsTotalCountAttributeName, AString::number(m_rowStretchFactors.size()));
-    writer.writeCharacters(AString::fromNumbers(m_rowStretchFactors, " "));
-    writer.writeEndElement();
-    
-    writer.writeStartElement(s_columnStretchFactorsTagName);
-    writer.writeAttribute(s_columnStretchFactorsSelectedCountAttributeName, AString::number(m_numberOfColumns));
-    writer.writeAttribute(s_columnStretchFactorsTotalCountAttributeName, AString::number(m_columnStretchFactors.size()));
-    writer.writeCharacters(AString::fromNumbers(m_columnStretchFactors, " "));
-    writer.writeEndElement();
+    encodeRowColumnElement(writer, s_v2_columnsTagName, m_columns);
+    encodeRowColumnElement(writer, s_v2_rowsTagName, m_rows);
     
     writer.writeEndElement();
     
     return xmlString;
+}
+
+/**
+ * Encode a vector of elements into xml.
+ * 
+ * @param writer
+ *     The XML stream writer.
+ * @param tagName
+ *     Tag name for enclosing the elements.
+ * @param elements
+ *     Vector of elements added to XML.
+ */
+void
+TileTabsConfiguration::encodeRowColumnElement(QXmlStreamWriter& writer,
+                                              const AString tagName,
+                                              const std::vector<TileTabsRowColumnElement>& elements) const
+{
+    writer.writeStartElement(tagName);
+    
+    for (const auto e : elements) {
+        writer.writeStartElement(s_v2_elementTagName);
+        writer.writeAttribute(s_v2_contentTypeAttributeName,    TileTabsRowColumnContentTypeEnum::toName(e.getContentType()));
+        writer.writeAttribute(s_v2_stretchTypeAttributeName,    TileTabsRowColumnStretchTypeEnum::toName(e.getStretchType()));
+        writer.writeAttribute(s_v2_percentStretchAttributeName, AString::number(e.getPercentStretch(), 'f', 2));
+        writer.writeAttribute(s_v2_weightStretchAttributeName,  AString::number(e.getWeightStretch(), 'f', 2));
+        writer.writeEndElement();
+    }
+    
+    writer.writeEndElement();
 }
 
 /**
@@ -633,29 +649,27 @@ TileTabsConfiguration::decodeFromXMLWithStreamReader(const AString& xmlString,
     
     if (xml.readNextStartElement()) {
         const QStringRef tagName(xml.name());
-        if (tagName == s_rootTagName) {
+        if (tagName == s_v1_rootTagName) {
+                decodeFromXMLWithStreamReaderVersionOne(xml);
+        }
+        else if (tagName == s_v2_rootTagName) {
+            /*
+             * Version 2 uses a different root tag than version 1.  The reason is that 
+             * the older code for decoding from XML will throw an exception if it 
+             * encounters invalid elements or the version number is invalid.  The problem
+             * is that the exception is not caught and wb_view will terminate.
+             */
             QString versionNumberText("Unknown");
             const QXmlStreamAttributes atts = xml.attributes();
             if (atts.hasAttribute(s_v2_versionAttributeName)) {
                 versionNumberText = atts.value(s_v2_versionAttributeName).toString();
             }
-            else {
-                /*
-                 * Version attribute was added to root element by version 2.
-                 * So, if not present, must be version 1.
-                 * Version 1 contained a version XML element.
-                 */
-                versionNumberText = "1";
-            }
-            
-            if (versionNumberText == "1") {
-                decodeFromXMLWithStreamReaderVersionOne(xml);
-            }
-            else if (versionNumberText == "2") {
+
+            if (versionNumberText == "2") {
                 decodeFromXMLWithStreamReaderVersionTwo(xml);
             }
             else {
-                xml.raiseError("TileTabsConfiguration invalid version="
+                xml.raiseError("TileTabsConfigurationT invalid version="
                                + versionNumberText);
             }
         }
@@ -663,7 +677,9 @@ TileTabsConfiguration::decodeFromXMLWithStreamReader(const AString& xmlString,
             xml.raiseError("TileTabsConfiguration first element is "
                            + xml.name().toString()
                            + " but should be "
-                           + s_rootTagName);
+                           + s_v1_rootTagName
+                           + " or "
+                           + s_v2_rootTagName);
         }
     }
     else {
@@ -680,6 +696,24 @@ TileTabsConfiguration::decodeFromXMLWithStreamReader(const AString& xmlString,
         return false;
     }
     
+    const bool debugFlag(false);
+    if (debugFlag) {
+        AString xmlText = encodeInXMLWithStreamWriterVersionTwo();
+        std::cout << std::endl << "NEW: " << xmlText << std::endl << std::endl;
+        AString em;
+        TileTabsConfiguration temp;
+        QXmlStreamReader tempReader(xmlText);
+        tempReader.readNextStartElement();
+        temp.decodeFromXMLWithStreamReaderVersionTwo(tempReader);
+        if (tempReader.hasError()) {
+            std::cout << "Decode error: " << tempReader.errorString() << std::endl;
+        }
+        else {
+            std::cout << "Decoded: " << temp.toString() << std::endl;
+        }
+
+        std::cout << std::endl;
+    }
     return true;
 }
 
@@ -709,7 +743,7 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader&
         if (xml.isStartElement()) {
             const QStringRef tagName(xml.name());
 
-            if (tagName == s_versionTagName) {
+            if (tagName == s_v1_versionTagName) {
                 /* ignore */
             }
             else if (tagName == s_nameTagName) {
@@ -718,18 +752,18 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader&
             else if (tagName == s_uniqueIdentifierTagName) {
                 uniqueID = xml.readElementText();
             }
-            else if (tagName == s_rowStretchFactorsTagName) {
+            else if (tagName == s_v1_rowStretchFactorsTagName) {
                 QXmlStreamAttributes atts = xml.attributes();
-                if (atts.hasAttribute(s_rowStretchFactorsSelectedCountAttributeName)) {
-                    numberOfRows = atts.value(s_rowStretchFactorsSelectedCountAttributeName).toInt();
+                if (atts.hasAttribute(s_v1_rowStretchFactorsSelectedCountAttributeName)) {
+                    numberOfRows = atts.value(s_v1_rowStretchFactorsSelectedCountAttributeName).toInt();
                 }
                 
                 AString::toNumbers(xml.readElementText(), rowStretchFactors);
             }
-            else if (tagName == s_columnStretchFactorsTagName) {
+            else if (tagName == s_v1_columnStretchFactorsTagName) {
                 QXmlStreamAttributes atts = xml.attributes();
-                if (atts.hasAttribute(s_columnStretchFactorsSelectedCountAttributeName)) {
-                    numberOfColumns = atts.value(s_columnStretchFactorsSelectedCountAttributeName).toInt();
+                if (atts.hasAttribute(s_v1_columnStretchFactorsSelectedCountAttributeName)) {
+                    numberOfColumns = atts.value(s_v1_columnStretchFactorsSelectedCountAttributeName).toInt();
                 }
                 AString::toNumbers(xml.readElementText(), columnStretchFactors);
             }
@@ -748,23 +782,23 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader&
         uniqueID = SystemUtilities::createUniqueID();
     }
     if (rowStretchFactors.empty()) {
-        message.append(s_rowStretchFactorsTagName
+        message.append(s_v1_rowStretchFactorsTagName
                        + " not found or invalid.  ");
     }
     if (columnStretchFactors.empty()) {
-        message.append(s_columnStretchFactorsTagName
+        message.append(s_v1_columnStretchFactorsTagName
                        + " not found or invalid.  ");
     }
     if (numberOfRows <= 0) {
-        message.append(s_rowStretchFactorsTagName
+        message.append(s_v1_rowStretchFactorsTagName
                        + " attribute "
-                       + s_rowStretchFactorsSelectedCountAttributeName
+                       + s_v1_rowStretchFactorsSelectedCountAttributeName
                        + " is missing or invalid."  );
     }
     if (numberOfRows <= 0) {
-        message.append(s_columnStretchFactorsTagName
+        message.append(s_v1_columnStretchFactorsTagName
                        + " attribute "
-                       + s_columnStretchFactorsSelectedCountAttributeName
+                       + s_v1_columnStretchFactorsSelectedCountAttributeName
                        + " is missing or invalid."  );
     }
     
@@ -783,55 +817,31 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader&
         m_name = name;
         m_uniqueIdentifier = uniqueID;
         
-        setRowStretchFactors(rowStretchFactors,
-                             numberOfRows);
-        setColumnStretchFactors(columnStretchFactors,
-                                numberOfColumns);
+        m_rows.clear();
+        m_columns.clear();
+        
+        for (int32_t i = 0; i < numberOfRows; i++) {
+            TileTabsRowColumnElement element;
+            CaretAssertVectorIndex(rowStretchFactors, i);
+            element.setWeightStretch(rowStretchFactors[i]);
+            element.setContentType(TileTabsRowColumnContentTypeEnum::TAB);
+            element.setStretchType(TileTabsRowColumnStretchTypeEnum::WEIGHT);
+            m_rows.push_back(element);
+        }
+        CaretAssert(numberOfRows == static_cast<int32_t>(m_rows.size()));
+        
+        for (int32_t i = 0; i < numberOfColumns; i++) {
+            TileTabsRowColumnElement element;
+            CaretAssertVectorIndex(columnStretchFactors, i);
+            element.setWeightStretch(columnStretchFactors[i]);
+            element.setContentType(TileTabsRowColumnContentTypeEnum::TAB);
+            element.setStretchType(TileTabsRowColumnStretchTypeEnum::WEIGHT);
+            m_columns.push_back(element);
+        }
+        CaretAssert(numberOfColumns == static_cast<int32_t>(m_columns.size()));
     }
     else {
         xml.raiseError(message);
-    }
-}
-
-/**
- * Set the number of rows.
- *
- * @param stretchFactors
- *     The stretch factors.
- * @param numberOfRows
- *     Number of rows for the configuration.
- */
-void
-TileTabsConfiguration::setRowStretchFactors(const std::vector<float>& stretchFactors,
-                                            const int32_t numberOfRows)
-{
-    setNumberOfRows(numberOfRows);
-    
-    const int32_t maxRowStretchFactors = std::min(static_cast<int32_t>(stretchFactors.size()),
-                                                  static_cast<int32_t>(m_rowStretchFactors.size()));
-    for (int32_t i = 0; i < maxRowStretchFactors; i++) {
-        m_rowStretchFactors[i] = stretchFactors[i];
-    }
-}
-
-/**
- * Set the number of columns.
- *
- * @param stretchFactors
- *     The stretch factors.
- * @param numberOfColumns
- *     Number of columns for the configuration.
- */
-void
-TileTabsConfiguration::setColumnStretchFactors(const std::vector<float>& stretchFactors,
-                                               const int32_t numberOfColumns)
-{
-    setNumberOfColumns(numberOfColumns);
-    
-    const int32_t maxColumnStretchFactors = std::min(static_cast<int32_t>(stretchFactors.size()),
-                                                  static_cast<int32_t>(m_columnStretchFactors.size()));
-    for (int32_t i = 0; i < maxColumnStretchFactors; i++) {
-        m_columnStretchFactors[i] = stretchFactors[i];
     }
 }
 
@@ -842,8 +852,195 @@ TileTabsConfiguration::setColumnStretchFactors(const std::vector<float>& stretch
  *   Stream XML parser.
  */
 void
-TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader& /*xml*/)
+TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader& xml)
 {
+    m_rows.clear();
+    m_columns.clear();
+    m_uniqueIdentifier.clear();
+    
+    std::set<QString> invalidElements;
+    
+    AString name;
+    AString uniqueID;
+    
+    QString message;
+
+    enum class ReadMode {
+        OTHER,
+        COLUMNS,
+        ROWS
+    };
+    ReadMode readMode = ReadMode::OTHER;
+    
+    while ( ! xml.atEnd()) {
+        xml.readNext();
+        
+        if (xml.isStartElement()) {
+            const QStringRef tagName(xml.name());
+            
+            if (tagName == s_nameTagName) {
+                name = xml.readElementText();
+            }
+            else if (tagName == s_uniqueIdentifierTagName) {
+                uniqueID = xml.readElementText();
+            }
+            else if (tagName == s_v2_columnsTagName) {
+                readMode = ReadMode::COLUMNS;
+            }
+            else if (tagName == s_v2_rowsTagName) {
+                readMode = ReadMode::ROWS;
+            }
+            else if (tagName == s_v2_elementTagName) {
+                switch (readMode) {
+                    case ReadMode::OTHER:
+                        CaretAssert(0);
+                        break;
+                    case ReadMode::COLUMNS:
+                    {
+                        AString errorMessage;
+                        TileTabsRowColumnElement e;
+                        if (decodeRowColumnElement(xml, e, errorMessage)) {
+                            m_columns.push_back(e);
+                        }
+                        else {
+                            message.append(errorMessage);
+                        }
+                    }
+                        break;
+                    case ReadMode::ROWS:
+                    {
+                        AString errorMessage;
+                        TileTabsRowColumnElement e;
+                        if (decodeRowColumnElement(xml, e, errorMessage)) {
+                            m_rows.push_back(e);
+                        }
+                        else {
+                            message.append(errorMessage);
+                        }
+                    }
+                        break;
+                }
+            }
+            else {
+                invalidElements.insert(tagName.toString());
+                xml.skipCurrentElement();
+            }
+        }
+        else if (xml.isEndElement()) {
+            const QStringRef tagName(xml.name());
+            
+            if (tagName == s_v2_columnsTagName) {
+                readMode = ReadMode::OTHER;
+            }
+            else if (tagName == s_v2_rowsTagName) {
+                readMode = ReadMode::OTHER;
+            }
+        }
+    }
+    
+    if (name.isEmpty()) {
+        message.append(s_nameTagName
+                       + " not found or invalid.  ");
+    }
+    if (uniqueID.isEmpty()) {
+        uniqueID = SystemUtilities::createUniqueID();
+    }
+    
+    if ( ! invalidElements.empty()) {
+        /*
+         * If invalid elements were encountered, don't throw
+         */
+        AString msg("Invalid element(s) ignored: ");
+        for (const auto s : invalidElements) {
+            msg.append(s + " ");
+        }
+        CaretLogWarning(msg);
+    }
+    
+    if (message.isEmpty()) {
+        m_name = name;
+        m_uniqueIdentifier = uniqueID;
+    }
+    else {
+        xml.raiseError(message);
+    }
+}
+
+/**
+ * Decode elements in a row or column.
+ *
+ * @param reader
+ *     The XML stream reader.
+ * @param element
+ *     row/column element that is read
+ * @param errorMessageOut
+ *     Contains error information.
+ * @return
+ *     True if read successfully, else false.
+ */
+bool
+TileTabsConfiguration::decodeRowColumnElement(QXmlStreamReader& reader,
+                                              TileTabsRowColumnElement& element,
+                                              AString& errorMessageOut)
+{
+    const QXmlStreamAttributes atts = reader.attributes();
+
+    errorMessageOut.clear();
+    
+    if (atts.hasAttribute(s_v2_contentTypeAttributeName)) {
+        bool validFlag(false);
+        const AString s = atts.value(s_v2_contentTypeAttributeName).toString();
+        element.setContentType(TileTabsRowColumnContentTypeEnum::fromName(s, &validFlag));
+        if ( ! validFlag) {
+            errorMessageOut.append("Content type \"" + s + "\" is not valid.  ");
+        }
+    }
+    else {
+        errorMessageOut.append("Content type is missing.  ");
+    }
+    
+    if (atts.hasAttribute(s_v2_stretchTypeAttributeName)) {
+        bool validFlag(false);
+        const AString s = atts.value(s_v2_stretchTypeAttributeName).toString();
+        element.setStretchType(TileTabsRowColumnStretchTypeEnum::fromName(s, &validFlag));
+        if ( ! validFlag) {
+            errorMessageOut.append("Stretch type \"" + s + "\" is not valid.  ");
+        }
+    }
+    else {
+        errorMessageOut.append("Stretch type is missing.  ");
+    }
+    
+    if (atts.hasAttribute(s_v2_percentStretchAttributeName)) {
+        const float f = atts.value(s_v2_percentStretchAttributeName).toFloat();
+        if ((f >= 0.0) && (f < 100.0)) {
+            element.setPercentStretch(f);
+        }
+        else {
+            errorMessageOut.append("Stretch percentage=" + AString::number(f) + " is invalid.");
+        }
+    }
+    else {
+        errorMessageOut.append("Stretch percentage is missing.  ");
+    }
+    
+    if (atts.hasAttribute(s_v2_weightStretchAttributeName)) {
+        const float f = atts.value(s_v2_weightStretchAttributeName).toFloat();
+        if ((f >= 0.0) && (f < 100.0)) {
+            element.setWeightStretch(f);
+        }
+        else {
+            errorMessageOut.append("Stretch weight=" + AString::number(f) + " is invalid.");
+        }
+    }
+    else {
+        errorMessageOut.append("Stretch weight is missing.  ");
+    }
+    
+    if (errorMessageOut.isEmpty()) {
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -872,13 +1069,19 @@ TileTabsConfiguration::decodeFromXML(const AString& xmlString,
 AString
 TileTabsConfiguration::toString() const
 {
-    AString s("Name: %1, Unique ID: %2, Number of Rows: %3, Number of Columns: %4, "
-              "Row Stretch Factors: %5, Columns Stretch Factors: %6");
+    AString s("Name: %1, Unique ID: %2\n");
+    s = s.arg(m_name).arg(m_uniqueIdentifier);
     
-    const AString rs(AString::fromNumbers(m_rowStretchFactors, ", "));
-    const AString cs(AString::fromNumbers(m_columnStretchFactors, ", "));
-    
-    s = s.arg(m_name).arg(m_uniqueIdentifier).arg(m_numberOfRows).arg(m_numberOfColumns).arg(rs).arg(cs);
+    int32_t indx(0);
+    for (const auto item : m_columns) {
+        s.append("   Column " + AString::number(indx) + ": " + item.toString() + "\n");
+        indx++;
+    }
+    indx = 0;
+    for (const auto item : m_rows) {
+        s.append("   Row " + AString::number(indx) + ": " + item.toString() + "\n");
+        indx++;
+    }
     
     return s;
 }

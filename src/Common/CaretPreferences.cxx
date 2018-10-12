@@ -362,7 +362,7 @@ CaretPreferences::writeTileTabsConfigurations()
     for (int32_t i = 0; i < numViews; i++) {
         this->qSettings->setArrayIndex(i);
         this->qSettings->setValue(AString::number(i),
-                                  this->tileTabsConfigurations[i]->encodeInXML());
+                                  this->tileTabsConfigurations[i]->encodeVersionInXML(1));
     }
     this->qSettings->endArray();
     this->qSettings->sync();

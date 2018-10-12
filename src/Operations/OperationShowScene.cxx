@@ -465,8 +465,6 @@ OperationShowScene::useParameters(OperationParameters* myParams,
             
             TileTabsConfiguration* tileTabsConfiguration = bwc->getSelectedTileTabsConfiguration();
             CaretAssert(tileTabsConfiguration);
-            if ((tileTabsConfiguration->getMaximumNumberOfRows() > 0)
-                && (tileTabsConfiguration->getMaximumNumberOfColumns() > 0)) {
                 
                 const std::vector<int32_t> tabIndices = bwc->getSceneTabIndices();
                 if ( ! tabIndices.empty()) {
@@ -534,10 +532,6 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     }
                     viewports.clear();
                 }
-            }
-            else {
-                throw OperationException("Tile tabs configuration is corrupted.");
-            }
         }
         else {
             CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());

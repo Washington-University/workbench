@@ -427,8 +427,15 @@ BrowserWindowContent::saveToScene(const SceneAttributes* sceneAttributes,
                                   sceneClass);
     
     if (m_tileTabsEnabled) {
+        sceneClass->addString("m_customTileTabsConfigurationLatest",
+                              m_customTileTabsConfiguration->encodeInXML(""));
+
+        /*
+         * Add a tile tabs version one so older versions of wb_view
+         * may still load the scene correctly
+         */
         sceneClass->addString("m_customTileTabsConfiguration",
-                              m_customTileTabsConfiguration->encodeInXML());
+                              m_customTileTabsConfiguration->encodeVersionInXML(1));
         
         /*
          * Write the tile tabs configuration a second time using
@@ -437,7 +444,7 @@ BrowserWindowContent::saveToScene(const SceneAttributes* sceneAttributes,
          * tile tabs correctly.
          */
         sceneClass->addString("m_sceneTileTabsConfiguration",
-                              m_customTileTabsConfiguration->encodeInXML());
+                              m_customTileTabsConfiguration->encodeVersionInXML(1));
     }
     sceneClass->addChild(new SceneIntegerArray("m_sceneTabIndices",
                                                m_sceneTabIndices));
@@ -480,7 +487,18 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         sceneTabIndicesArray->integerVectorValues(m_sceneTabIndices);
     }
     
-    AString tileTabsConfig = sceneClass->getStringValue("m_customTileTabsConfiguration");
+    /*
+     * Try restoring newest tile tabs configuration
+     */
+    AString tileTabsConfig = sceneClass->getStringValue("m_customTileTabsConfigurationLatest");
+    if ( ! tileTabsConfig.isEmpty()) {
+        /* Since latest was found, restore, but do not use, older configuration to prevent 'not found' warning */
+        sceneClass->getStringValue("m_customTileTabsConfiguration");
+    }
+    if (tileTabsConfig.isEmpty()) {
+        /* Try version one */
+        tileTabsConfig = sceneClass->getStringValue("m_customTileTabsConfiguration");
+    }
     if (tileTabsConfig.isEmpty()) {
         /* Restore an old name for custom configuration */
         tileTabsConfig = sceneClass->getStringValue("m_tileTabsConfiguration");

@@ -166,6 +166,8 @@ namespace caret {
          * manager.
          */
         CaretPreferences* m_caretPreferences;
+        
+        static const int32_t s_maximumRowsColumns = 50;
     };
     
 #ifdef __TILE_TABS_CONFIGURATION_DIALOG_DECLARE__

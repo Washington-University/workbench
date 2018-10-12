@@ -338,6 +338,7 @@ namespace caret {
         static const AString NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS;
         static const AString NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS;
         static const AString NAME_TILE_TABS_CONFIGURATIONS;
+        static const AString NAME_TILE_TABS_CONFIGURATIONS_TWO;
         static const AString NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON;
         static const AString NAME_YOKING_DEFAULT_ON;
         
@@ -381,6 +382,7 @@ namespace caret {
     const AString CaretPreferences::NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS = "showSurfaceIdentificationSymbols";
     const AString CaretPreferences::NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS = "showVolumeIdentificationSymbols";
     const AString CaretPreferences::NAME_TILE_TABS_CONFIGURATIONS = "tileTabsConfigurations";
+    const AString CaretPreferences::NAME_TILE_TABS_CONFIGURATIONS_TWO = "tileTabsConfigurationsTwo";
     const AString CaretPreferences::NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON = "volumeIdentificationDefaultedOn";
     const AString CaretPreferences::NAME_YOKING_DEFAULT_ON = "yokingDefaultedOn";
 #endif // __CARET_PREFERENCES_DECLARE__
