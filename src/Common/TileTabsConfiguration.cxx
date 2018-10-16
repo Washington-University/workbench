@@ -278,7 +278,7 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
             for (int32_t i = 0; i < numRows; i++) {
                 const TileTabsRowColumnElement* e = getRow(i);
                 switch (e->getStretchType()) {
-                    case TileTabsRowColumnStretchTypeEnum::PERCENTAGE:
+                    case TileTabsRowColumnStretchTypeEnum::PERCENT:
                         break;
                     case TileTabsRowColumnStretchTypeEnum::WEIGHT:
                         rowStretchTotal += e->getWeightStretch();
@@ -290,7 +290,7 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
                 int32_t h = 0;
                 const TileTabsRowColumnElement* e = getRow(i);
                 switch (e->getStretchType()) {
-                    case TileTabsRowColumnStretchTypeEnum::PERCENTAGE:
+                    case TileTabsRowColumnStretchTypeEnum::PERCENT:
                         break;
                     case TileTabsRowColumnStretchTypeEnum::WEIGHT:
                         h = static_cast<int32_t>((e->getWeightStretch() / rowStretchTotal)
@@ -308,7 +308,7 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
             for (int32_t i = 0; i < numCols; i++) {
                 const TileTabsRowColumnElement* e = getColumn(i);
                 switch (e->getStretchType()) {
-                    case TileTabsRowColumnStretchTypeEnum::PERCENTAGE:
+                    case TileTabsRowColumnStretchTypeEnum::PERCENT:
                         break;
                     case TileTabsRowColumnStretchTypeEnum::WEIGHT:
                         columnStretchTotal += e->getWeightStretch();
@@ -320,7 +320,7 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
                 int32_t w = 0;
                 const TileTabsRowColumnElement* e = getColumn(i);
                 switch (e->getStretchType()) {
-                    case TileTabsRowColumnStretchTypeEnum::PERCENTAGE:
+                    case TileTabsRowColumnStretchTypeEnum::PERCENT:
                         break;
                     case TileTabsRowColumnStretchTypeEnum::WEIGHT:
                         w = static_cast<int32_t>((e->getWeightStretch() / columnStretchTotal)
@@ -669,7 +669,7 @@ TileTabsConfiguration::decodeFromXMLWithStreamReader(const AString& xmlString,
                 decodeFromXMLWithStreamReaderVersionTwo(xml);
             }
             else {
-                xml.raiseError("TileTabsConfigurationT invalid version="
+                xml.raiseError("TileTabsConfiguration invalid version="
                                + versionNumberText);
             }
         }

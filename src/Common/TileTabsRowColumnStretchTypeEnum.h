@@ -35,8 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Percentage */
-        PERCENTAGE,
+        /** Percent */
+        PERCENT,
         /** Weight */
         WEIGHT
     };

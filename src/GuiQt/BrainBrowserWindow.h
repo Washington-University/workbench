@@ -46,6 +46,7 @@ namespace caret {
     class BrainOpenGLWidget;
     class BrowserWindowContent;
     class BrowserTabContent;
+    class EventTileTabsConfigurationModification;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
     class TileTabsConfiguration;
@@ -328,6 +329,8 @@ namespace caret {
         
         void saveBrowserWindowContentForScene();
         
+        void modifyTileTabsConfiguration(EventTileTabsConfigurationModification* modEvent);
+
         /** Index of this window */
         const int32_t m_browserWindowIndex;
         

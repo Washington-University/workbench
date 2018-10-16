@@ -106,9 +106,9 @@ TileTabsRowColumnContentTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(TileTabsRowColumnContentTypeEnum(SPACER, 
-                                    "SPACER", 
-                                    "Spacer"));
+    enumData.push_back(TileTabsRowColumnContentTypeEnum(SPACE, 
+                                    "SPACE",
+                                    "Space"));
     
     enumData.push_back(TileTabsRowColumnContentTypeEnum(TAB, 
                                     "TAB", 

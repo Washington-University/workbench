@@ -71,11 +71,12 @@
 #include "EventMacDockMenuUpdate.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
+#include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
-#include "EventGetOrSetUserInputModeProcessor.h"
+#include "EventTileTabsConfigurationModification.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
 #include "FociProjectionDialog.h"
@@ -250,6 +251,7 @@ m_browserWindowIndex(browserWindowIndex)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_VIEWPORT_SIZE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TILE_TABS_MODIFICATION);
 
     if (m_overlayHorizontalToolBox == m_overlayActiveToolBox) {
         /*
@@ -458,6 +460,14 @@ BrainBrowserWindow::receiveEvent(Event* event)
         
         if (viewportValid) {
             viewportSizeEvent->setViewportSize(viewport);
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_TILE_TABS_MODIFICATION) {
+        EventTileTabsConfigurationModification* modEvent = dynamic_cast<EventTileTabsConfigurationModification*>(event);
+        CaretAssert(modEvent);
+        
+        if (modEvent->getWindowIndex() == this->m_browserWindowIndex) {
+            modifyTileTabsConfiguration(modEvent);
         }
     }
     else if ((event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW)
@@ -2312,6 +2322,18 @@ BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsConfiguratio
                             + errorText);
     
     return textLabel;
+}
+
+/**
+ * Modify the tile tabs configuration.
+ *
+ * @param modEvent
+ *     Event with modification information.
+ */
+void
+BrainBrowserWindow::modifyTileTabsConfiguration(EventTileTabsConfigurationModification* modEvent)
+{
+    CaretAssert(modEvent);
 }
 
 /**

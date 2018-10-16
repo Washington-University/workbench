@@ -35,8 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Spacer */
-        SPACER,
+        /** Space */
+        SPACE,
         /** Tab */
         TAB
     };

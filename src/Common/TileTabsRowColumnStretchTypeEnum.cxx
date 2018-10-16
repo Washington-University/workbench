@@ -106,9 +106,9 @@ TileTabsRowColumnStretchTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(TileTabsRowColumnStretchTypeEnum(PERCENTAGE, 
-                                    "PERCENTAGE", 
-                                    "Percentage"));
+    enumData.push_back(TileTabsRowColumnStretchTypeEnum(PERCENT,
+                                    "PERCENT",
+                                    "Percent"));
     
     enumData.push_back(TileTabsRowColumnStretchTypeEnum(WEIGHT, 
                                     "WEIGHT", 

@@ -465,7 +465,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
             
             TileTabsConfiguration* tileTabsConfiguration = bwc->getSelectedTileTabsConfiguration();
             CaretAssert(tileTabsConfiguration);
-                
+            
                 const std::vector<int32_t> tabIndices = bwc->getSceneTabIndices();
                 if ( ! tabIndices.empty()) {
                     std::vector<BrowserTabContent*> allTabContent;

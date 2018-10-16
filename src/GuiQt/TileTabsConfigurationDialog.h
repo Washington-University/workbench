@@ -22,22 +22,31 @@
 /*LICENSE_END*/
 
 #include "EventListenerInterface.h"
+#include "EventTileTabsConfigurationModification.h"
+#include "TileTabsRowColumnContentTypeEnum.h"
+#include "TileTabsRowColumnStretchTypeEnum.h"
 #include "WuQDialogNonModal.h"
 
 class QDoubleSpinBox;
+class QGridLayout;
 class QLabel;
 class QLineEdit;
 class QListWidgetItem;
 class QPushButton;
 class QRadioButton;
 class QSpinBox;
+class QToolButton;
 
 namespace caret {
     class BrainBrowserWindow;
     class BrainBrowserWindowComboBox;
     class BrowserWindowContent;
     class CaretPreferences;
+    class EnumComboBoxTemplate;
     class TileTabsConfiguration;
+    class TileTabElementWidgets;
+    class TileTabsRowColumnElement;
+    class WuQGridLayoutGroup;
     class WuQListWidget;
     
     class TileTabsConfigurationDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -83,6 +92,9 @@ namespace caret {
 
         void automaticCustomButtonClicked(QAbstractButton*);
         
+        void tileTabsModificationRequested(EventTileTabsConfigurationModification& modification);
+        
+
     protected:
         void focusGained();
         
@@ -105,7 +117,13 @@ namespace caret {
         
         QWidget* createActiveConfigurationWidget();
         
-        QWidget* createCustomConfigurationWidget();
+        QWidget* createRowColumnStretchWidget();
+        
+        void updateRowColumnStretchWidgets(TileTabsConfiguration* configuration);
+        
+        void addRowColumnStretchWidget(const EventTileTabsConfigurationModification::RowColumnType rowColumnType,
+                                       QGridLayout* gridLayout,
+                                       std::vector<TileTabElementWidgets*>& elementVector);
         
         void updateStretchFactors();
         
@@ -116,10 +134,6 @@ namespace caret {
         BrainBrowserWindow* getBrowserWindow();
         
         BrowserWindowContent* getBrowserWindowContent();
-        
-        void updatePercentageLabels(const std::vector<QDoubleSpinBox*>& factorSpinBoxes,
-                                    std::vector<QLabel*>& percentageLabels,
-                                    const int32_t validCount);
         
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
@@ -145,17 +159,13 @@ namespace caret {
         
         QSpinBox* m_numberOfColumnsSpinBox;
         
-        std::vector<QLabel*> m_rowStretchFactorIndexLabels;
+        std::vector<TileTabElementWidgets*> m_columnElements;
         
-        std::vector<QDoubleSpinBox*> m_rowStretchFactorSpinBoxes;
+        std::vector<TileTabElementWidgets*> m_rowElements;
         
-        std::vector<QLabel*> m_rowStretchPercentageLabels;
+        QGridLayout* m_rowElementsGridLayout = NULL;
         
-        std::vector<QLabel*> m_columnStretchFactorIndexLabels;
-        
-        std::vector<QDoubleSpinBox*> m_columnStretchFactorSpinBoxes;
-        
-        std::vector<QLabel*> m_columnStretchPercentageLabels;
+        QGridLayout* m_columnElementsGridLayout = NULL;
         
         /** Blocks reading of preferences since that may invalidate data pointers */
         bool m_blockReadConfigurationsFromPreferences;
@@ -168,6 +178,63 @@ namespace caret {
         CaretPreferences* m_caretPreferences;
         
         static const int32_t s_maximumRowsColumns = 50;
+    };
+    
+    
+    /**
+     * Contains widgets for one row or column of stretching.
+     */
+    class TileTabElementWidgets : public QObject {
+        Q_OBJECT
+        
+    public:
+        TileTabElementWidgets(const EventTileTabsConfigurationModification::RowColumnType rowColumnType,
+                              const int32_t index,
+                              QGridLayout* gridLayout,
+                              QObject* parent);
+        
+        virtual ~TileTabElementWidgets();
+
+        void updateContent(TileTabsRowColumnElement* element);
+        
+    signals:
+        void itemChanged();
+        
+        void modificationRequested(EventTileTabsConfigurationModification& modification);
+        
+    private slots:
+        void constructionMenuAboutToShow();
+        
+        void constructionMenuTriggered(QAction*);
+        
+        void contentTypeActivated();
+        
+        void stretchTypeActivated();
+        
+        void stretchValueChanged(double);
+        
+    private:
+        QMenu* createConstructionMenu(QToolButton* toolButton);
+        
+        const EventTileTabsConfigurationModification::RowColumnType m_rowColumnType;
+        const int32_t m_index;
+        TileTabsRowColumnElement* m_element;
+        
+        QLabel* m_indexLabel;
+        QAction* m_constructionAction;
+        QToolButton* m_constructionToolButton;
+        EnumComboBoxTemplate* m_contentTypeComboBox;
+        EnumComboBoxTemplate* m_stretchTypeComboBox;
+        QDoubleSpinBox* m_stretchValueSpinBox;
+        
+        QAction* m_menuDeleteAction;
+        QAction* m_menuDuplicateAfterAction;
+        QAction* m_menuDuplicateBeforeAction;
+        QAction* m_menuMoveAfterAction;
+        QAction* m_menuMoveBeforeAction;
+        
+        WuQGridLayoutGroup* m_gridLayoutGroup;
+        
     };
     
 #ifdef __TILE_TABS_CONFIGURATION_DIALOG_DECLARE__
