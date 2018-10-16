@@ -1158,10 +1158,12 @@ TileTabElementWidgets::updateContent(TileTabsRowColumnElement* element)
         switch (m_element->getStretchType()) {
             case TileTabsRowColumnStretchTypeEnum::PERCENT:
                 m_stretchValueSpinBox->setRange(0.0, 100.0);
+                m_stretchValueSpinBox->setSingleStep(1.0);
                 m_stretchValueSpinBox->setValue(m_element->getPercentStretch());
                 break;
             case TileTabsRowColumnStretchTypeEnum::WEIGHT:
                 m_stretchValueSpinBox->setRange(0.0, 1000.0);
+                m_stretchValueSpinBox->setSingleStep(0.1);
                 m_stretchValueSpinBox->setValue(m_element->getWeightStretch());
                 break;
         }
@@ -1236,7 +1238,7 @@ void
 TileTabElementWidgets::stretchTypeActivated()
 {
     if (m_element != NULL) {
-        m_element->setStretchType(m_contentTypeComboBox->getSelectedItem<TileTabsRowColumnStretchTypeEnum, TileTabsRowColumnStretchTypeEnum::Enum>());
+        m_element->setStretchType(m_stretchTypeComboBox->getSelectedItem<TileTabsRowColumnStretchTypeEnum, TileTabsRowColumnStretchTypeEnum::Enum>());
         emit itemChanged();
     }
 }

@@ -711,8 +711,8 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
      */
     const int32_t windowExtraWidth  = windowWidth  - allTabsWidth;
     const int32_t windowExtraHeight = windowHeight - allTabsHeight;
-    CaretAssert(windowExtraWidth >= 0);
-    CaretAssert(windowExtraHeight >= 0);
+//    CaretAssert(windowExtraWidth >= 0);
+//    CaretAssert(windowExtraHeight >= 0);
 
     /*
      * Set the X and Y-coordinates for the tab viewports

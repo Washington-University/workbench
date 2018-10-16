@@ -274,27 +274,41 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
             /*
              * Determine height of each row
              */
+            float rowPercentTotal = 0.0;
             float rowStretchTotal = 0.0;
             for (int32_t i = 0; i < numRows; i++) {
                 const TileTabsRowColumnElement* e = getRow(i);
                 switch (e->getStretchType()) {
                     case TileTabsRowColumnStretchTypeEnum::PERCENT:
+                        rowPercentTotal += (e->getPercentStretch() / 100.0);
                         break;
                     case TileTabsRowColumnStretchTypeEnum::WEIGHT:
                         rowStretchTotal += e->getWeightStretch();
                         break;
                 }
             }
-            CaretAssert(rowStretchTotal > 0.0);
+            
+            float windowWeightHeight = windowHeight;
+            if (rowPercentTotal > 0.0) {
+                if (rowPercentTotal >= 1.0) {
+                    windowWeightHeight = 0.0;
+                }
+                else {
+                    windowWeightHeight = (1.0 - rowPercentTotal) * windowHeight;
+                }
+            }
             for (int32_t i = 0; i < numRows; i++) {
                 int32_t h = 0;
                 const TileTabsRowColumnElement* e = getRow(i);
                 switch (e->getStretchType()) {
                     case TileTabsRowColumnStretchTypeEnum::PERCENT:
+                        h = (e->getPercentStretch() / 100.0) * windowHeight;
                         break;
                     case TileTabsRowColumnStretchTypeEnum::WEIGHT:
-                        h = static_cast<int32_t>((e->getWeightStretch() / rowStretchTotal)
-                                                 * windowHeight);
+                        if (rowStretchTotal > 0.0) {
+                            h = static_cast<int32_t>((e->getWeightStretch() / rowStretchTotal)
+                                                     * windowWeightHeight);
+                        }
                         break;
                 }
                 
@@ -304,27 +318,42 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
             /*
              * Determine width of each column
              */
+            float columnPercentTotal = 0.0;
             float columnStretchTotal = 0.0;
             for (int32_t i = 0; i < numCols; i++) {
                 const TileTabsRowColumnElement* e = getColumn(i);
                 switch (e->getStretchType()) {
                     case TileTabsRowColumnStretchTypeEnum::PERCENT:
+                        columnPercentTotal += (e->getPercentStretch() / 100.0);
                         break;
                     case TileTabsRowColumnStretchTypeEnum::WEIGHT:
                         columnStretchTotal += e->getWeightStretch();
                         break;
                 }
             }
-            CaretAssert(columnStretchTotal > 0.0);
+            
+            float windowWeightWidth = windowWidth;
+            if (columnPercentTotal > 0.0) {
+                if (columnPercentTotal >= 1.0) {
+                    windowWeightWidth = 0.0;
+                }
+                else {
+                    windowWeightWidth = (1.0 - columnPercentTotal) * windowWidth;
+                }
+            }
+            
             for (int32_t i = 0; i < numCols; i++) {
                 int32_t w = 0;
                 const TileTabsRowColumnElement* e = getColumn(i);
                 switch (e->getStretchType()) {
                     case TileTabsRowColumnStretchTypeEnum::PERCENT:
+                        w = (e->getPercentStretch() / 100.0) * windowWidth;
                         break;
                     case TileTabsRowColumnStretchTypeEnum::WEIGHT:
-                        w = static_cast<int32_t>((e->getWeightStretch() / columnStretchTotal)
-                                                 * windowWidth);
+                        if (columnStretchTotal > 0.0) {
+                            w = static_cast<int32_t>((e->getWeightStretch() / columnStretchTotal)
+                                                     * windowWeightWidth);
+                        }
                         break;
                 }
                 columnWidthsOut.push_back(w);
@@ -334,34 +363,34 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
     
     if ((numRows == static_cast<int32_t>(rowHeightsOut.size()))
         && (numCols == static_cast<int32_t>(columnWidthsOut.size()))) {
-        /*
-         * Verify all rows fit within the window
-         */
-        int32_t rowHeightsSum = 0;
-        for (int32_t i = 0; i < numRows; i++) {
-            rowHeightsSum += rowHeightsOut[i];
-        }
-        if (rowHeightsSum > windowHeight) {
-            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
-            rowHeightsOut[numRows - 1] -= (rowHeightsSum - windowHeight);
-        }
-        
-        /*
-         * Adjust width of last column so that it does not extend beyond viewport
-         */
-        int32_t columnWidthsSum = 0;
-        for (int32_t i = 0; i < numCols; i++) {
-            columnWidthsSum += columnWidthsOut[i];
-        }
-        if (columnWidthsSum > windowWidth) {
-            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
-            columnWidthsOut[numCols - 1] = columnWidthsSum - windowWidth;
-        }
-        
-        CaretLogFiner("Tile Tabs Row Heights: "
-                      + AString::fromNumbers(rowHeightsOut, ", "));
-        CaretLogFiner("Tile Tabs Column Widths: "
-                      + AString::fromNumbers(columnWidthsOut, ", "));
+//        /*
+//         * Verify all rows fit within the window
+//         */
+//        int32_t rowHeightsSum = 0;
+//        for (int32_t i = 0; i < numRows; i++) {
+//            rowHeightsSum += rowHeightsOut[i];
+//        }
+//        if (rowHeightsSum > windowHeight) {
+//            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
+////            rowHeightsOut[numRows - 1] -= (rowHeightsSum - windowHeight);
+//        }
+//        
+//        /*
+//         * Adjust width of last column so that it does not extend beyond viewport
+//         */
+//        int32_t columnWidthsSum = 0;
+//        for (int32_t i = 0; i < numCols; i++) {
+//            columnWidthsSum += columnWidthsOut[i];
+//        }
+//        if (columnWidthsSum > windowWidth) {
+//            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
+////            columnWidthsOut[numCols - 1] = columnWidthsSum - windowWidth;
+//        }
+//        
+//        CaretLogFiner("Tile Tabs Row Heights: "
+//                      + AString::fromNumbers(rowHeightsOut, ", "));
+//        CaretLogFiner("Tile Tabs Column Widths: "
+//                      + AString::fromNumbers(columnWidthsOut, ", "));
         return true;
     }
     
