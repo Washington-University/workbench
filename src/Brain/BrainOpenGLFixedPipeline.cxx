@@ -587,10 +587,51 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     this->checkForOpenGLError(NULL, "At middle of drawModels()");
     
     for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
+        const BrainOpenGLViewportContent* vpContent = viewportContents[i];
+        /*
+         * Don't draw if off-screen
+         */
+        {
+            int32_t windowViewport[4];
+            vpContent->getWindowViewport(windowViewport);
+            
+            int32_t tabViewport[4];
+            vpContent->getTabViewportBeforeApplyingMargins(tabViewport);
+            
+            /*
+             * Test for tab offscreen to right (tabs flow left-to-right)
+             */
+            if (tabViewport[0] > (windowViewport[0] + windowViewport[2])) {
+                continue;
+            }
+            
+            /*
+             * Test for tab offscreen to bottom (tabs flow top-to-bottom)
+             */
+            const int32_t tabTop = tabViewport[1] + tabViewport[3];
+            if (tabTop < 0) {
+                continue;
+            }
+            
+            if (tabViewport[2] <= 0) {
+                CaretLogSevere("Invalid TAB width="
+                               + AString::number(tabViewport[2])
+                               + " for index="
+                               + AString::number(i));
+                continue;
+            }
+            if (tabViewport[3] <= 0) {
+                CaretLogSevere("Invalid TAB height="
+                               + AString::number(tabViewport[3])
+                               + " for index="
+                               + AString::number(i));
+                continue;
+            }
+        }
+        
         /*
          * Viewport of window.
          */
-        const BrainOpenGLViewportContent* vpContent = viewportContents[i];
         setTabViewport(vpContent);
         glViewport(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
         
@@ -3021,7 +3062,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     }
     
     glPopAttrib();
-}//p->
+}
 
 
 /**
@@ -3180,9 +3221,6 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                             colorLabel->getColor(rgbaFloat);
                             focus->setClassRgba(rgbaFloat);
                         }
-//                        else {
-//                            focus->setClassRgba(rgbaFloat);
-//                        }
                     }
                     focus->getClassRgba(rgbaFloat);
                     break;
@@ -3199,9 +3237,6 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                             colorLabel->getColor(rgbaFloat);
                             focus->setNameRgba(rgbaFloat);
                         }
-//                        else {
-//                            focus->setNameRgba(rgbaFloat);
-//                        }
                     }
                     focus->getNameRgba(rgbaFloat);
                     break;
