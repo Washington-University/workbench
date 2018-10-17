@@ -589,6 +589,8 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         return viewportContentsOut;
     }
     
+    const int32_t windowX      = windowViewport[0];
+    const int32_t windowY      = windowViewport[1];
     const int32_t windowWidth  = windowViewport[2];
     const int32_t windowHeight = windowViewport[3];
     
@@ -597,33 +599,24 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
      * rows and columns.  The user may "stretch" rows and/or
      * columns.  Thus, the tabs viewports may not be uniformly sized.
      */
-    std::vector<int32_t> tabConfigRowHeights;
-    std::vector<int32_t> tabConfigColumnWidths;
+    std::vector<int32_t> rowHeights;
+    std::vector<int32_t> columnWidths;
     TileTabsConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
     tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
                                                                      windowHeight,
                                                                      numberOfTabs,
                                                                      browserWindowContent->getTileTabsConfigurationMode(),
-                                                                     tabConfigRowHeights,
-                                                                     tabConfigColumnWidths);
+                                                                     rowHeights,
+                                                                     columnWidths);
     
-    const int32_t numRows    = static_cast<int32_t>(tabConfigRowHeights.size());
-    const int32_t numColumns = static_cast<int32_t>(tabConfigColumnWidths.size());
+    const int32_t numRows    = static_cast<int32_t>(rowHeights.size());
+    const int32_t numColumns = static_cast<int32_t>(columnWidths.size());
     const int32_t numCells   = numRows * numColumns;
     if (numCells <= 0) {
         return viewportContentsOut;
     }
     CaretAssert(numRows > 0);
     CaretAssert(numColumns > 0);
-    
-    /*
-     * Due to aspect ratios, the width or height
-     * of tab viewports may shrink so we will
-     * need to recompute the row heights and column
-     * widths.
-     */
-    std::vector<int32_t> rowHeights(numRows, 0);
-    std::vector<int32_t> columnWidths(numColumns, 0);
     
     const bool allTabsAspectLockedFlag = browserWindowContent->isAllTabsInWindowAspectRatioLocked();
     
@@ -634,11 +627,12 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
     std::vector<TileTabsViewportSizingInfo> tabSizeInfoVector;
     int32_t iTab = 0;
     for (int32_t iRowFromTop = 0; iRowFromTop < numRows; iRowFromTop++) {
-        CaretAssertVectorIndex(tabConfigRowHeights, iRowFromTop);
-        const int32_t vpHeight = tabConfigRowHeights[iRowFromTop];
+        CaretAssertVectorIndex(rowHeights, iRowFromTop);
+        
+        const int32_t vpHeight = rowHeights[iRowFromTop];
         for (int32_t jCol = 0; jCol < numColumns; jCol++) {
-            CaretAssertVectorIndex(tabConfigColumnWidths, jCol);
-            const int32_t vpWidth = tabConfigColumnWidths[jCol];
+            CaretAssertVectorIndex(columnWidths, jCol);
+            const int32_t vpWidth = columnWidths[jCol];
             if (iTab < numberOfTabs) {
                 CaretAssertVectorIndex(tabContents,
                                        iTab);
@@ -675,37 +669,13 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                                   vpWidth,
                                   vpHeight);
                 
-                rowHeights[iRowFromTop] = std::max(rowHeights[iRowFromTop],
-                                                   tsi.m_height);
-                columnWidths[jCol] = std::max(columnWidths[jCol],
-                                              tsi.m_width);
-                
                 tabSizeInfoVector.push_back(tsi);
                 iTab++;
             }
         }
         
-        /*
-         * Needed if a row contains no tabs
-         */
-        CaretAssertVectorIndex(rowHeights, iRowFromTop);
-        if (rowHeights[iRowFromTop] <= 0) {
-            CaretAssertVectorIndex(tabConfigRowHeights, iRowFromTop);
-            rowHeights[iRowFromTop] = tabConfigRowHeights[iRowFromTop];
-        }
     }
 
-    /*
-     * Needed if a column contains no tabs
-     */
-    for (int32_t jCol = 0; jCol < numColumns; jCol++) {
-        CaretAssertVectorIndex(columnWidths, jCol);
-        if (columnWidths[jCol] <= 0) {
-            CaretAssertVectorIndex(tabConfigColumnWidths, jCol);
-            columnWidths[jCol] = tabConfigColumnWidths[jCol];
-        }
-    }
-    
     /*
      * Note: There may be more tabs than there are cells (rows * columns)
      * so some tabs may not be displayed.
@@ -716,11 +686,11 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
      * Set the X and Y-coordinates for the tab viewports
      * We start at the bottom row, left corner.
      */
-    int32_t vpY = windowHeight;
+    int32_t vpY = windowHeight + windowY;
     for (int32_t iRow = 0; iRow < numRows; iRow++) {
         CaretAssertVectorIndex(rowHeights, iRow);
         vpY -= rowHeights[iRow];
-        int32_t vpX = windowViewport[0];
+        int32_t vpX = windowX;
         for (int32_t jCol = 0; jCol < numColumns; jCol++) {
             TileTabsViewportSizingInfo* tabSizePtr = NULL;
             for (int32_t iTab = 0; iTab < numberOfDisplayedTabs; iTab++) {
@@ -735,8 +705,32 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
             if (tabSizePtr != NULL) {
                 CaretAssertVectorIndex(columnWidths, jCol);
                 CaretAssertVectorIndex(rowHeights, iRow);
-                const int32_t tabX = vpX;
-                const int32_t tabY = vpY;
+                int32_t tabX = vpX;
+                int32_t tabY = vpY;
+                
+                /*
+                 * Adjust Tab's X-coord so centered in tab
+                 * when lock aspect causes tab's width to be smaller
+                 * than the column's width
+                 */
+                CaretAssertVectorIndex(columnWidths, jCol);
+                const int32_t extraWidth = columnWidths[jCol] - tabSizePtr->m_width;
+                if (extraWidth > 1) {
+                    const int32_t halfExtraWidth = extraWidth / 2;
+                    tabX += halfExtraWidth;
+                }
+                
+                /*
+                 * Adjust Tab's Y-coord so centered in tab
+                 * when lock aspect causes tab's height to be smaller
+                 * than the row's height
+                 */
+                CaretAssertVectorIndex(rowHeights, iRow);
+                const int32_t extraHeight = rowHeights[iRow] - tabSizePtr->m_height;
+                if (extraHeight > 1) {
+                    const int32_t halfExtraHeight = extraHeight / 2;
+                    tabY += halfExtraHeight;
+                }
                 
                 const int tabViewport[4] = {
                     tabX,
