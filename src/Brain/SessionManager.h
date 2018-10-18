@@ -30,7 +30,7 @@
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
-#include "SpacerTabContent.h"
+#include "SpacerTabIndex.h"
 
 namespace caret {
     
@@ -43,6 +43,7 @@ namespace caret {
     class DataToolTipsManager;
     class ImageCaptureSettings;
     class Model;
+    class SpacerTabContent;
     
     /// Manages a Caret session which contains 'global' brain data.
     class SessionManager : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -135,7 +136,7 @@ namespace caret {
         ImageCaptureSettings* m_imageCaptureDialogSettings;
         
         /** Map to spacer tabs where key is window index, row index, column index */
-        std::map<SpacerTabContent::MapKey, SpacerTabContent*> m_spacerTabsMap;
+        std::map<SpacerTabIndex, SpacerTabContent*> m_spacerTabsMap;
         
     };
     

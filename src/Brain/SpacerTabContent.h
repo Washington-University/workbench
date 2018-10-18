@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "SpacerTabIndex.h"
 #include "TabContentBase.h"
 
 
@@ -34,19 +35,6 @@ namespace caret {
     class SpacerTabContent : public TabContentBase {
         
     public:
-        class MapKey {
-        public:
-            MapKey(const int32_t windowIndex,
-                   const int32_t rowIndex,
-                   const int32_t columnIndex);
-            
-            bool operator<(const MapKey& rhs) const;
-            
-            const int32_t m_windowIndex;
-            const int32_t m_rowIndex;
-            const int32_t m_columnIndex;
-        };
-        
         SpacerTabContent(const int32_t windowIndex,
                          const int32_t rowIndex,
                          const int32_t columnIndex);
@@ -70,7 +58,7 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        MapKey m_key;
+        SpacerTabIndex m_key;
         
         // ADD_NEW_MEMBERS_HERE
 

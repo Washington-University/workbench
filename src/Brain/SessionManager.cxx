@@ -60,6 +60,7 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "ScenePrimitiveArray.h"
+#include "SpacerTabContent.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 
 
@@ -467,10 +468,10 @@ SessionManager::receiveEvent(Event* event)
         
         SpacerTabContent* spacerTabContent = NULL;
         
-        SpacerTabContent::MapKey key(spacerTabEvent->getWindowIndex(),
-                                     spacerTabEvent->getRowIndex(),
-                                     spacerTabEvent->getColumnIndex());
-        auto iter = m_spacerTabsMap.find(key);
+        SpacerTabIndex spacerTabIndex(spacerTabEvent->getWindowIndex(),
+                                      spacerTabEvent->getRowIndex(),
+                                      spacerTabEvent->getColumnIndex());
+        auto iter = m_spacerTabsMap.find(spacerTabIndex);
         if (iter != m_spacerTabsMap.end()) {
             spacerTabContent = iter->second;
             CaretLogFiner("Found Spacer Tab Content: "
@@ -480,7 +481,7 @@ SessionManager::receiveEvent(Event* event)
             spacerTabContent = new SpacerTabContent(spacerTabEvent->getWindowIndex(),
                                                     spacerTabEvent->getRowIndex(),
                                                     spacerTabEvent->getColumnIndex());
-            m_spacerTabsMap.insert(std::make_pair(key,
+            m_spacerTabsMap.insert(std::make_pair(spacerTabIndex,
                                                   spacerTabContent));
             CaretLogFiner("Created Spacer Tab Content: "
                           + spacerTabContent->getTabName());
