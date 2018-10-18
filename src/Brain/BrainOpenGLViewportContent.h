@@ -31,6 +31,7 @@ namespace caret {
     class BrowserTabContent;
     class BrowserWindowContent;
     class GapsAndMargins;
+    class SpacerTabContent;
     class TileTabsConfiguration;
     
     class BrainOpenGLViewportContent : public CaretObject {
@@ -64,6 +65,8 @@ namespace caret {
         
         BrowserTabContent* getBrowserTabContent() const;
         
+        SpacerTabContent* getSpacerTabContent() const;
+        
         int32_t getTabIndex() const;
         
         bool isTabHighlighted() const;
@@ -79,6 +82,7 @@ namespace caret {
                                                                                          BrowserWindowContent* browserWindowContent,
                                                                                          const GapsAndMargins* gapsAndMargins,
                                                                                          const int32_t windowViewport[4],
+                                                                                         const int32_t windowIndex,
                                                                                          const int32_t highlightTabIndex);
         
         static BrainOpenGLViewportContent* createViewportForSingleTab(std::vector<BrowserTabContent*>& allTabContents,
@@ -104,6 +108,7 @@ namespace caret {
         class TileTabsViewportSizingInfo {
         public:
             TileTabsViewportSizingInfo(BrowserTabContent* browserTabContent,
+                                       SpacerTabContent* spacerTabContent,
                                        const int32_t rowIndexFromTop,
                                        const int32_t columnIndex,
                                        const float initialWidth,
@@ -115,6 +120,7 @@ namespace caret {
                        const int32_t y);
             
             BrowserTabContent* m_browserTabContent;
+            SpacerTabContent* m_spacerTabContent;
             int32_t m_rowIndexFromTop;
             int32_t m_columnIndex;
             
@@ -132,7 +138,8 @@ namespace caret {
                                    const int modelViewport[4],
                                    const int windowIndex,
                                    const bool highlightTabFlag,
-                                   BrowserTabContent* browserTabContent);
+                                   BrowserTabContent* browserTabContent,
+                                   SpacerTabContent* spacerTabContent);
         
         void initializeMembersBrainOpenGLViewportContent();
         
@@ -193,6 +200,8 @@ namespace caret {
         int m_windowHeight;
         
         BrowserTabContent* m_browserTabContent;
+        
+        SpacerTabContent* m_spacerTabContent;
         
     public:
         virtual AString toString() const;

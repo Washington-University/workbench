@@ -451,6 +451,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW:
         case EventTypeEnum::EVENT_PALETTE_GET_BY_NAME:
         case EventTypeEnum::EVENT_SHOW_FILE_DATA_READ_WARNING_DIALOG:
+        case EventTypeEnum::EVENT_SPACER_TAB_GET:
         case EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES:
         case EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE:
         case EventTypeEnum::EVENT_SURFACES_GET:

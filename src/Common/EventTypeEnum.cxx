@@ -346,6 +346,10 @@ EventTypeEnum::initialize()
                                      "EVENT_SHOW_FILE_DATA_READ_WARNING_DIALOG",
                                      "Show a dialog with warnings encountered reading data files"));
     
+    enumData.push_back(EventTypeEnum(EVENT_SPACER_TAB_GET,
+                                     "EVENT_SPACER_TAB_GET",
+                                     "Get a spacer tagb"));
+    
     enumData.push_back(EventTypeEnum(EVENT_SPEC_FILE_READ_DATA_FILES,
                                      "EVENT_SPEC_FILE_READ_DATA_FILES",
                                      "Read the selected data files in a spec file"));

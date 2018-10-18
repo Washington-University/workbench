@@ -50,6 +50,7 @@
 #include "EventModelGetAll.h"
 #include "EventModelGetAllDisplayed.h"
 #include "EventProgressUpdate.h"
+#include "EventSpacerTabGet.h"
 #include "ImageCaptureSettings.h"
 #include "LogManager.h"
 #include "MapYokingGroupEnum.h"
@@ -99,6 +100,7 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_GET_ALL_DISPLAYED);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SPACER_TAB_GET);
     
     Brain* brain = new Brain(m_caretPreferences);
     m_brains.push_back(brain);
@@ -120,6 +122,8 @@ SessionManager::~SessionManager()
             m_browserTabs[i] = NULL;
         }
     }
+    
+    clearSpacerTabs();
     
     std::for_each(m_browserWindowContent.begin(),
                   m_browserWindowContent.end(),
@@ -260,6 +264,18 @@ SessionManager::getBrain(const int32_t brainIndex) const
     CaretAssertVectorIndex(m_brains, brainIndex);
     
     return m_brains[brainIndex];
+}
+
+/**
+ * Clear all of the spacer tabs
+ */
+void
+SessionManager::clearSpacerTabs()
+{
+    for (auto st : m_spacerTabsMap) {
+        delete st.second;
+    }
+    m_spacerTabsMap.clear();
 }
 
 /**
@@ -444,6 +460,34 @@ SessionManager::receiveEvent(Event* event)
         }
         
         getDisplayedModelsEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_SPACER_TAB_GET) {
+        EventSpacerTabGet* spacerTabEvent = dynamic_cast<EventSpacerTabGet*>(event);
+        CaretAssert(spacerTabEvent);
+        
+        SpacerTabContent* spacerTabContent = NULL;
+        
+        SpacerTabContent::MapKey key(spacerTabEvent->getWindowIndex(),
+                                     spacerTabEvent->getRowIndex(),
+                                     spacerTabEvent->getColumnIndex());
+        auto iter = m_spacerTabsMap.find(key);
+        if (iter != m_spacerTabsMap.end()) {
+            spacerTabContent = iter->second;
+            CaretLogFiner("Found Spacer Tab Content: "
+                          + spacerTabContent->getTabName());
+        }
+        else {
+            spacerTabContent = new SpacerTabContent(spacerTabEvent->getWindowIndex(),
+                                                    spacerTabEvent->getRowIndex(),
+                                                    spacerTabEvent->getColumnIndex());
+            m_spacerTabsMap.insert(std::make_pair(key,
+                                                  spacerTabContent));
+            CaretLogFiner("Created Spacer Tab Content: "
+                          + spacerTabContent->getTabName());
+        }
+        
+        CaretAssert(spacerTabContent);
+        spacerTabEvent->setSpacerTabContent(spacerTabContent);
     }
 }
 
@@ -803,6 +847,11 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     /*
+     * Remove all spacer tabs
+     */
+    clearSpacerTabs();
+    
+    /*
      * Restore tabs
      */
     const SceneClassArray* browserTabArray = sceneClass->getClassArray("m_browserTabs");
@@ -940,6 +989,8 @@ SessionManager::resetBrains(const bool keepSceneFiles)
         }
     }
 
+    clearSpacerTabs();
+    
     if (numBrains > 1) {
         m_brains.resize(1);
     }
@@ -998,8 +1049,6 @@ SessionManager::getDataToolTipsManager() const
 {
     return m_dataToolTipsManager.get();
 }
-
-
 
 /**
  * @return Image capture settings for image capture dialog.

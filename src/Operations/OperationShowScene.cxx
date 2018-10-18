@@ -506,6 +506,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                                                  bwc,
                                                                                  gapsAndMargins,
                                                                                  windowViewport,
+                                                                                 windowIndex,
                                                                                  tabIndexToHighlight);
                     
                     std::vector<const BrainOpenGLViewportContent*> constViewports(viewports.begin(),

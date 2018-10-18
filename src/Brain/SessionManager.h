@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <array>
+#include <map>
 #include <memory>
 
 #include "ApplicationTypeEnum.h"
@@ -29,6 +30,7 @@
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
+#include "SpacerTabContent.h"
 
 namespace caret {
     
@@ -100,6 +102,8 @@ namespace caret {
         
         void resetBrains(const bool keepSceneFiles);
         
+        void clearSpacerTabs();
+        
         /** The session manager */
         static SessionManager* s_singletonSessionManager;
         
@@ -129,6 +133,9 @@ namespace caret {
         
         /** Settings for image capture dialog */
         ImageCaptureSettings* m_imageCaptureDialogSettings;
+        
+        /** Map to spacer tabs where key is window index, row index, column index */
+        std::map<SpacerTabContent::MapKey, SpacerTabContent*> m_spacerTabsMap;
         
     };
     

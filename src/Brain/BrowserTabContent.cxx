@@ -57,6 +57,7 @@
 #include "EventIdentificationHighlightLocation.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
+#include "EventSpacerTabGet.h"
 #include "FociFile.h"
 #include "IdentificationManager.h"
 #include "LabelFile.h"
@@ -100,7 +101,7 @@ using namespace caret;
  *    Number for this tab.
  */
 BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
-: CaretObject()
+: TabContentBase()
 {
     isExecutingConstructor = true;
     
@@ -228,6 +229,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_SPACER_TAB_GET);
     
     
     isExecutingConstructor = false;
@@ -1398,6 +1401,10 @@ BrowserTabContent::receiveEvent(Event* event)
                 }
             }
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_SPACER_TAB_GET) {
+        EventSpacerTabGet* tabEvent = dynamic_cast<EventSpacerTabGet*>(event);
+        CaretAssert(tabEvent);
     }
 }
 

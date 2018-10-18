@@ -98,6 +98,7 @@ EventModelSurfaceGet.h
 EventNodeDataFilesGet.h
 EventNodeIdentificationColorsGetFromCharts.h
 EventOverlayValidate.h
+EventSpacerTabGet.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
 FeatureColoringTypeEnum.h
@@ -153,6 +154,7 @@ SelectionItemVoxelEditing.h
 SelectionItemVoxelIdentificationSymbol.h
 SelectionManager.h
 SessionManager.h
+SpacerTabContent.h
 Surface.h
 SurfaceDrawingTypeEnum.h
 SurfaceMontageConfigurationAbstract.h
@@ -164,6 +166,7 @@ SurfaceMontageLayoutOrientationEnum.h
 SurfaceMontageViewport.h
 SurfaceNodeColoring.h
 SurfaceSelectionModel.h
+TabContentBase.h
 ViewingTransformations.h
 ViewingTransformationsCerebellum.h
 ViewingTransformationsVolume.h
@@ -247,6 +250,7 @@ EventModelSurfaceGet.cxx
 EventNodeDataFilesGet.cxx
 EventNodeIdentificationColorsGetFromCharts.cxx
 EventOverlayValidate.cxx
+EventSpacerTabGet.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
 FeatureColoringTypeEnum.cxx
@@ -301,6 +305,7 @@ SelectionItemVoxelIdentificationSymbol.cxx
 SelectionItemVoxelEditing.cxx
 SelectionManager.cxx
 SessionManager.cxx
+SpacerTabContent.cxx
 Surface.cxx
 SurfaceDrawingTypeEnum.cxx
 SurfaceMontageConfigurationAbstract.cxx
@@ -312,6 +317,7 @@ SurfaceMontageLayoutOrientationEnum.cxx
 SurfaceMontageViewport.cxx
 SurfaceNodeColoring.cxx
 SurfaceSelectionModel.cxx
+TabContentBase.cxx
 ViewingTransformations.cxx
 ViewingTransformationsCerebellum.cxx
 ViewingTransformationsVolume.cxx

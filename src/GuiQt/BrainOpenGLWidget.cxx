@@ -576,6 +576,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
                                                                                                                                        browserWindowContent,
                                                                                                                                        gapsAndMargins,
                                                                                                                                        windowViewport,
+                                                                                                                                       this->windowIndex,
                                                                                                                                        getModelEvent.getTabIndexForTileTabsHighlighting());
             for (auto tabvp : tabViewportContent) {
                 windowContent.addTabViewport(tabvp);

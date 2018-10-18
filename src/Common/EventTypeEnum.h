@@ -180,6 +180,8 @@ public:
         EVENT_PALETTE_GET_BY_NAME,
         /** Show a dialog containing warnings encountered when reading data files */
         EVENT_SHOW_FILE_DATA_READ_WARNING_DIALOG,
+        /** Get a spacer tab by tab number */
+        EVENT_SPACER_TAB_GET,
         /** Read the selected files in a spec file */
         EVENT_SPEC_FILE_READ_DATA_FILES,
         /** Invalidate surface coloring */

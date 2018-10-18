@@ -31,6 +31,7 @@
 #include "ProjectionViewTypeEnum.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
+#include "TabContentBase.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
@@ -70,7 +71,7 @@ namespace caret {
     class WholeBrainSurfaceSettings;
     
     /// Maintains content in a brower's tab
-    class BrowserTabContent : public CaretObject, public EventListenerInterface, public SceneableInterface {
+    class BrowserTabContent : public TabContentBase, public EventListenerInterface, public SceneableInterface {
         
     public:
         BrowserTabContent(const int32_t tabNumber);
@@ -85,7 +86,7 @@ namespace caret {
         
         virtual AString toString() const;
         
-        AString getTabName() const;
+        AString getTabName() const override;
         
         AString getUserTabName() const;
         
@@ -469,7 +470,7 @@ namespace caret {
         
         AString getDefaultName() const;
         
-        AString getTabNamePrefix() const;
+        AString getTabNamePrefix() const override;
         
         /** Number of this tab */
         int32_t m_tabNumber;

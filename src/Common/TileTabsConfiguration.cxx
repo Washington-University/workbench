@@ -531,7 +531,7 @@ TileTabsConfiguration::updateAutomaticConfigurationRowsAndColumns(const int32_t 
  * @return Encoded tile tabs configuration in XML
  */
 AString
-TileTabsConfiguration::encodeInXML(AString s) const
+TileTabsConfiguration::encodeInXML() const
 {
     return encodeVersionInXML(2);
 }

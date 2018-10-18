@@ -75,7 +75,7 @@ namespace caret {
         
         const TileTabsRowColumnElement* getRow(const int32_t rowIndex) const;
         
-        AString encodeInXML(AString s) const;
+        AString encodeInXML() const;
         
         AString encodeVersionInXML(const int32_t versionNumber) const;
         

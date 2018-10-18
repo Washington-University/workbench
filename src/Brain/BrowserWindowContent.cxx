@@ -428,7 +428,7 @@ BrowserWindowContent::saveToScene(const SceneAttributes* sceneAttributes,
     
     if (m_tileTabsEnabled) {
         sceneClass->addString("m_customTileTabsConfigurationLatest",
-                              m_customTileTabsConfiguration->encodeInXML(""));
+                              m_customTileTabsConfiguration->encodeInXML());
 
         /*
          * Add a tile tabs version one so older versions of wb_view
