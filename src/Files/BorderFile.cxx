@@ -1475,6 +1475,7 @@ void BorderFile::writeFile(const AString& filename, const int& version)
     checkFileWritability(filename);
     
     setFileName(filename);
+    QFile::remove(filename);//delete it if it exists, to play better with file symlinks
     
     switch (version)
     {

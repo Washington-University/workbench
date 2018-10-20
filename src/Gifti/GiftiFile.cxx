@@ -37,6 +37,8 @@
 
 #include "XmlSaxParser.h"
 
+#include <QFile>
+
 using namespace caret;
 
 /**
@@ -894,13 +896,15 @@ GiftiFile::writeFile(const AString& filename)
     try {
         this->setFileName(filename);
         
-        FileInformation fileInfo(filename);
+        QFile::remove(filename);
+        
+        /*FileInformation fileInfo(filename);
         if (fileInfo.exists()) {
             //if (GiftiDataArrayFile.isFileOverwriteAllowed() == false) {
             //    throw new GiftiException(
             //                             "Overwriting of existing files is currently prohibited");
             //}
-        }
+        }//*/
         
         //
         // Create a GIFTI Data Array File Writer

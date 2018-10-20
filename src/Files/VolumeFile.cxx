@@ -406,8 +406,13 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
             int64_t ind3high = ind3low + 1;
             if (!indexValid(ind1low, ind2low, ind3low, brickIndex, component) || !indexValid(ind1high, ind2high, ind3high, brickIndex, component))
             {
-                if (validOut != NULL) *validOut = false;
-                return INVALID_INTERP_VALUE;//check for valid coord before deconvolving the frame
+                if (validOut != NULL) *validOut = false;//check for valid coord before deconvolving the frame
+                if (getType() == SubvolumeAttributes::LABEL)
+                {
+                    return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
+                } else {
+                    return INVALID_INTERP_VALUE;
+                }
             }
             int64_t whichFrame = component * dimensions[3] + brickIndex;
             validateSpline(brickIndex, component);
@@ -427,7 +432,12 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
             if (!indexValid(ind1low, ind2low, ind3low, brickIndex, component) || !indexValid(ind1high, ind2high, ind3high, brickIndex, component))
             {
                 if (validOut != NULL) *validOut = false;
-                return INVALID_INTERP_VALUE;
+                if (getType() == SubvolumeAttributes::LABEL)
+                {
+                    return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
+                } else {
+                    return INVALID_INTERP_VALUE;
+                }
             }
             float xhighWeight = index1 - ind1low;
             float xlowWeight = 1.0f - xhighWeight;
@@ -458,13 +468,23 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
                 return getValue(index1, index2, index3, brickIndex, component);
             } else {
                 if (validOut != NULL) *validOut = false;
-                return INVALID_INTERP_VALUE;
+                if (getType() == SubvolumeAttributes::LABEL)
+                {
+                    return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
+                } else {
+                    return INVALID_INTERP_VALUE;
+                }
             }
         }
         break;
     }
-    if (validOut != NULL) *validOut = false;
-    return INVALID_INTERP_VALUE;
+    if (validOut != NULL) *validOut = false;//this shouldn't be reached unless the enum value is invalid
+    if (getType() == SubvolumeAttributes::LABEL)
+    {
+        return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
+    } else {
+        return INVALID_INTERP_VALUE;
+    }
 }
 
 void VolumeFile::validateSpline(const int64_t brickIndex, const int64_t component) const

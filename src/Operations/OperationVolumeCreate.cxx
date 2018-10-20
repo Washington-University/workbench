@@ -53,9 +53,9 @@ OperationParameters* OperationVolumeCreate::getParameters()
     plumbOpt->addDoubleParameter(2, "x-spacing", "change in x-coordinate from incrementing the relevant index");
     plumbOpt->addDoubleParameter(3, "y-spacing", "change in y-coordinate from incrementing the relevant index");
     plumbOpt->addDoubleParameter(4, "z-spacing", "change in z-coordinate from incrementing the relevant index");
-    plumbOpt->addDoubleParameter(5, "x-offset", "the x-coordinate of the first voxel");
-    plumbOpt->addDoubleParameter(6, "y-offset", "the y-coordinate of the first voxel");
-    plumbOpt->addDoubleParameter(7, "z-offset", "the z-coordinate of the first voxel");
+    plumbOpt->addDoubleParameter(5, "x-offset", "the x-coordinate of the center of the first voxel");
+    plumbOpt->addDoubleParameter(6, "y-offset", "the y-coordinate of the center of the first voxel");
+    plumbOpt->addDoubleParameter(7, "z-offset", "the z-coordinate of the center of the first voxel");
     
     OptionalParameter* sformOpt = ret->createOptionalParameter(6, "-sform", "set via a nifti sform");
     char axisNames[] = "xyz", indexNames[] = "ijk";
