@@ -460,19 +460,6 @@ AString::toNumbers(const AString& s,
             numbersOut.push_back(floatValue);
         }
     }
-
-//    AString copy = s;
-//    QTextStream stream(&copy);
-//    
-//    AString numberString;
-//    bool valid = false;
-//    while (stream.atEnd() == false) {
-//        stream >> numberString;
-//        const float floatValue = numberString.toFloat(&valid);
-//        if (valid) {
-//            numbersOut.push_back(floatValue);
-//        }
-//    }
 }
 
 /**
@@ -495,12 +482,30 @@ AString::toNumbers(const AString& s,
     AString copy = s;
     QTextStream stream(&copy);
     
-    AString numberString;
-    bool valid = false;
+    int intValue;
     while (stream.atEnd() == false) {
-        stream >> numberString;
-        const int32_t intValue = numberString.toInt(&valid);
-        if (valid) {
+        /*
+         * Try to read a int value from the current position
+         */
+        stream >> intValue;
+        
+        /*
+         * If the text stream could not create an int from
+         * the current text position, the corrupt data flag
+         * will be set.
+         */
+        if (stream.status() == QTextStream::ReadCorruptData) {
+            /*
+             * Reset the status of the string (to OK) and
+             * then read one character to remove the character
+             * from the stream since it was not the start
+             * of a number.
+             */
+            stream.resetStatus();
+            QChar oneChar;
+            stream >> oneChar;
+        }
+        else {
             numbersOut.push_back(intValue);
         }
     }
