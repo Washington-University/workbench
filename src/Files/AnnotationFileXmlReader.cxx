@@ -567,6 +567,18 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
     annotation->setWindowIndex(m_streamHelper->getRequiredAttributeIntValue(attributes,
                                                             annotationElementName,
                                                             ATTRIBUTE_WINDOW_INDEX));
+    /*
+     * Spacer Tab Index added as part of WB-668
+     */
+    const AString spacerTabText = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                 annotationElementName,
+                                                                                 ATTRIBUTE_SPACER_TAB_INDEX,
+                                                                                 "");
+    SpacerTabIndex spacerTabIndex;
+    if ( ! spacerTabText.isEmpty()) {
+        spacerTabIndex.setFromXmlAttributeText(spacerTabText);
+    }
+    annotation->setSpacerTabIndex(spacerTabIndex);
     
     /*
      * Unique Key
@@ -669,6 +681,18 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
                                                                                   ELEMENT_GROUP,
                                                                                   ATTRIBUTE_TAB_OR_WINDOW_INDEX);
     
+    /*
+     * Spacer Tab Index added as part of WB-668
+     */
+    const AString spacerTabText = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                  ELEMENT_GROUP,
+                                                                                  ATTRIBUTE_SPACER_TAB_INDEX,
+                                                                                  "");
+    SpacerTabIndex spacerTabIndex;
+    if ( ! spacerTabText.isEmpty()) {
+        spacerTabIndex.setFromXmlAttributeText(spacerTabText);
+    }
+    
     const int32_t uniqueKey = m_streamHelper->getRequiredAttributeIntValue(attributes,
                                                                                   ELEMENT_GROUP,
                                                                                   ATTRIBUTE_UNIQUE_KEY);
@@ -745,6 +769,7 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
         annotationFile->addAnnotationGroupDuringFileReading(groupType,
                                                             coordSpace,
                                                             tabOrWindowIndex,
+                                                            spacerTabIndex,
                                                             uniqueKey,
                                                             annotations);
     }

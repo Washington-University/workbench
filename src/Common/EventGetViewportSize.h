@@ -23,8 +23,7 @@
 
 
 #include "Event.h"
-
-
+#include "SpacerTabIndex.h"
 
 namespace caret {
 
@@ -32,16 +31,18 @@ namespace caret {
         
     public:
         enum Mode {
+            MODE_SPACER_TAB_INDEX,
             MODE_SURFACE_MONTAGE,
             MODE_TAB_BEFORE_MARGINS_INDEX,
             MODE_TAB_AFTER_MARGINS_INDEX,
             MODE_VOLUME_MONTAGE,
             MODE_WINDOW_INDEX,
         };
-//        EventGetViewportSize(const int32_t tabIndex);
         
         EventGetViewportSize(const Mode mode,
-                                       const int32_t index);
+                             const int32_t index);
+        
+        EventGetViewportSize(const SpacerTabIndex& spacerTabIndex);
         
         virtual ~EventGetViewportSize();
         
@@ -64,11 +65,13 @@ namespace caret {
         
         const Mode m_mode;
         
-        const int32_t m_index;
+        const int32_t m_index = -1;
+        
+        SpacerTabIndex m_spacerTabIndex;
+        
+        bool m_viewportValid = false;
         
         int32_t m_viewport[4];
-        
-        bool m_viewportValid;
         
         // ADD_NEW_MEMBERS_HERE
 

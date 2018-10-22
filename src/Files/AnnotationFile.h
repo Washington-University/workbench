@@ -40,6 +40,7 @@ namespace caret {
     class AnnotationGroup;
     class DisplayGroupAndTabItemHelper;
     class SceneClassAssistant;
+    class SpacerTabIndex;
     
     class AnnotationFile
     : public CaretDataFile,
@@ -182,6 +183,7 @@ namespace caret {
         void addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnum::Enum groupType,
                                                  const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                                  const int32_t tabOrWindowIndex,
+                                                 const SpacerTabIndex& spacerTabIndex,
                                                  const int32_t uniqueKey,
                                                  const std::vector<Annotation*>& annotations);
         

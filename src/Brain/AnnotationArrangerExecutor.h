@@ -27,8 +27,7 @@
 #include "AnnotationDistributeEnum.h"
 #include "BoundingBox.h"
 #include "CaretObject.h"
-
-
+#include "SpacerTabIndex.h"
 
 namespace caret {
 
@@ -125,6 +124,9 @@ namespace caret {
         
         void getAnnotationsForArranging(const AnnotationArrangerInputs& arrangerInputs,
                                         std::vector<Annotation*>& annotationsOut) const;
+        
+        void getSpacerTabViewport(const SpacerTabIndex& spacerTabIndex,
+                                  int32_t tabViewportOut[4]);
         
         void getTabViewport(const int32_t tabIndex,
                             int32_t tabViewportOut[4]);

@@ -126,6 +126,8 @@ namespace caret {
                             const float addX,
                             const float addY);
         
+        bool applySpatialModificationSpacerTabSpace(const AnnotationSpatialModification& spatialModification);
+        
         bool applySpatialModificationSurfaceOrStereotaxicSpace(const AnnotationSpatialModification& spatialModification,
                                                                const AnnotationCoordinateSpaceEnum::Enum coordinateSpace);
         

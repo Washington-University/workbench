@@ -280,6 +280,8 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
             case AnnotationCoordinateSpaceEnum::CHART:
                 adjustTextPctSizeFlag = true;
                 break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 adjustTextPctSizeFlag = true;
                 break;
@@ -333,6 +335,8 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
         switch (annotationSpace) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 threeDimSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
                 break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 threeDimSpaceFlag = true;
@@ -977,6 +981,14 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                             }
                             break;
                         }
+                        case AnnotationCoordinateSpaceEnum::SPACER:
+                        {
+                            int viewport[4];
+                            m_mouseEvent.getViewportContent()->getModelViewport(viewport);
+                            viewportWidth = viewport[2];
+                            viewportHeight = viewport[3];
+                        }
+                            break;
                         case AnnotationCoordinateSpaceEnum::TAB:
                         {
                             int viewport[4];

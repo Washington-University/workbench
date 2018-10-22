@@ -401,6 +401,15 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 }
             }
                 break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
+                xMin = percentageMinimum;
+                xMax = percentageMaximum;
+                yMin = percentageMinimum;
+                yMax = percentageMaximum;
+                zMin = zDepthMinimum;
+                zMax = zDepthMaximum;
+                suffix = "%";
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 xMin = coordinateMinimum;
                 xMax = coordinateMaximum;
@@ -560,6 +569,8 @@ AnnotationCoordinateWidget::valueChanged()
         bool surfaceFlag = false;
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
+                break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
                 break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 break;

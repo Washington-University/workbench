@@ -32,6 +32,7 @@
 #include "CaretObject.h"
 #include "CaretOpenGLInclude.h"
 #include "Plane.h"
+#include "SpacerTabIndex.h"
 
 
 namespace caret {
@@ -67,12 +68,14 @@ namespace caret {
                    const float centerToEyeDistance,
                    const int32_t windowIndex,
                    const int32_t tabIndex,
+                   const SpacerTabIndex &spacerTabIndex,
                    const WindowDrawingMode windowDrawingMode)
             : m_brain(brain),
             m_drawingMode(drawingMode),
             m_centerToEyeDistance(centerToEyeDistance),
             m_windowIndex(windowIndex),
             m_tabIndex(tabIndex),
+            m_spacerTabIndex(spacerTabIndex),
             m_windowDrawingMode(windowDrawingMode) {
             }
             
@@ -81,6 +84,7 @@ namespace caret {
             const float m_centerToEyeDistance;
             const int32_t m_windowIndex;
             const int32_t m_tabIndex;
+            const SpacerTabIndex m_spacerTabIndex;
             const WindowDrawingMode m_windowDrawingMode;
         };
         

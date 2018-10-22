@@ -117,6 +117,9 @@ AnnotationChangeCoordinateDialog::createCurrentCoordinateWidget()
     switch (m_annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            spaceText += m_annotation->getSpacerTabIndex().getRowColumnGuiText();
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:

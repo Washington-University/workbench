@@ -37,6 +37,7 @@
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
+#include "SpacerTabContent.h"
 #include "Surface.h"
 
 using namespace caret;
@@ -72,11 +73,12 @@ AnnotationCoordinateInformation::~AnnotationCoordinateInformation()
  */
 void
 AnnotationCoordinateInformation::reset() {
-    m_modelSpaceInfo = ModelSpaceInfo();
-    m_tabSpaceInfo   = TabWindowSpaceInfo();
-    m_windowSpaceInfo = TabWindowSpaceInfo();
-    m_chartSpaceInfo  = ChartSpaceInfo();
+    m_modelSpaceInfo   = ModelSpaceInfo();
+    m_tabSpaceInfo     = TabWindowSpaceInfo();
+    m_windowSpaceInfo  = TabWindowSpaceInfo();
+    m_chartSpaceInfo   = ChartSpaceInfo();
     m_surfaceSpaceInfo = SurfaceSpaceInfo();
+    m_spacerTabSpaceInfo  = SpacerTabSpaceInfo();
 }
 
 bool
@@ -87,6 +89,9 @@ AnnotationCoordinateInformation::isCoordinateSpaceValid(const AnnotationCoordina
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
             validSpaceFlag = m_chartSpaceInfo.m_validFlag;
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            validSpaceFlag = m_spacerTabSpaceInfo.m_spacerTabIndex.isValid();
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             validSpaceFlag = m_modelSpaceInfo.m_validFlag;
@@ -140,6 +145,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
                 break;
             case AnnotationCoordinateSpaceEnum::CHART:
+            case AnnotationCoordinateSpaceEnum::SPACER:
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             case AnnotationCoordinateSpaceEnum::SURFACE:
             case AnnotationCoordinateSpaceEnum::TAB:
@@ -163,6 +169,12 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
                                 if (coordInfoOne->m_tabSpaceInfo.m_index != coordInfoTwo->m_tabSpaceInfo.m_index) {
                                     addItFlag = false;
                                 }
+                                break;
+                            case AnnotationCoordinateSpaceEnum::SPACER:
+                                if (coordInfoOne->m_spacerTabSpaceInfo.m_spacerTabIndex != coordInfoTwo->m_spacerTabSpaceInfo.m_spacerTabIndex) {
+                                    addItFlag = false;
+                                }
+                                break;
                             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                                 /*
                                  * Both coord info's must be in the SAME TAB
@@ -170,6 +182,7 @@ AnnotationCoordinateInformation::getValidCoordinateSpaces(const AnnotationCoordi
                                 if (coordInfoOne->m_tabSpaceInfo.m_index != coordInfoTwo->m_tabSpaceInfo.m_index) {
                                     addItFlag = false;
                                 }
+                                break;
                             case AnnotationCoordinateSpaceEnum::SURFACE:
                                 /*
                                  * Both coord info's must be on same surface and
@@ -361,6 +374,29 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         }
     }
     
+    SpacerTabContent* spacerTabContent = viewportContent->getSpacerTabContent();
+    if (spacerTabContent != NULL) {
+        int tabViewport[4];
+        viewportContent->getModelViewport(tabViewport);
+        const float tabX = 100.0 * (windowX - tabViewport[0]) / static_cast<float>(tabViewport[2]);
+        const float tabY = 100.0 * (windowY - tabViewport[1]) / static_cast<float>(tabViewport[3]);
+        if ((tabX >= 0.0)
+            && (tabX < 100.0)
+            && (tabY >= 0.0)
+            && (tabY <= 100.0)) {
+            coordInfoOut.m_spacerTabSpaceInfo.m_xyz[0] = tabX;
+            coordInfoOut.m_spacerTabSpaceInfo.m_xyz[1] = tabY;
+            coordInfoOut.m_spacerTabSpaceInfo.m_xyz[2] = 0.0;
+            coordInfoOut.m_spacerTabSpaceInfo.m_pixelXYZ[0] = (windowX - tabViewport[0]);
+            coordInfoOut.m_spacerTabSpaceInfo.m_pixelXYZ[1] = (windowY - tabViewport[1]);
+            coordInfoOut.m_spacerTabSpaceInfo.m_pixelXYZ[2] = 0.0;
+            coordInfoOut.m_spacerTabSpaceInfo.m_spacerTabIndex = spacerTabContent->getSpacerTabIndex();
+            coordInfoOut.m_spacerTabSpaceInfo.m_validFlag = spacerTabContent->getSpacerTabIndex().isValid();
+            coordInfoOut.m_spacerTabSpaceInfo.m_width = tabViewport[2];
+            coordInfoOut.m_spacerTabSpaceInfo.m_height = tabViewport[3];
+        }
+    }
+    
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
     coordInfoOut.m_windowSpaceInfo.m_pixelXYZ[0] = windowX - windowViewport[0];
@@ -460,6 +496,40 @@ AnnotationCoordinateInformation::setOneDimAnnotationCoordinatesForSpace(Annotati
                         if (endCoordinate != NULL) {
                             endCoordinate->setXYZ(coordInfoTwo->m_chartSpaceInfo.m_xyz);
                         }
+                    }
+                }
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            if (coordInfoOne->m_spacerTabSpaceInfo.m_spacerTabIndex.isValid()) {
+                startCoordinate->setXYZ(coordInfoOne->m_spacerTabSpaceInfo.m_xyz);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SPACER);
+                annotation->setSpacerTabIndex(coordInfoOne->m_spacerTabSpaceInfo.m_spacerTabIndex);
+                
+                validCoordinateFlag = true;
+                
+                
+                if (coordInfoTwo != NULL) {
+                    if (coordInfoTwo->m_spacerTabSpaceInfo.m_spacerTabIndex.isValid()) {
+                        if (endCoordinate != NULL) {
+                            endCoordinate->setXYZ(coordInfoTwo->m_spacerTabSpaceInfo.m_xyz);
+                        }
+                    }
+                }
+                else if (endCoordinate != NULL) {
+                    double xyz[3] = {
+                        coordInfoOne->m_spacerTabSpaceInfo.m_xyz[0],
+                        coordInfoOne->m_spacerTabSpaceInfo.m_xyz[1],
+                        coordInfoOne->m_spacerTabSpaceInfo.m_xyz[2]
+                    };
+                    if (xyz[1] > 50.0) {
+                        xyz[1] -= 25.0;
+                        endCoordinate->setXYZ(xyz);
+                    }
+                    else {
+                        xyz[1] += 25.0;
+                        endCoordinate->setXYZ(coordInfoOne->m_spacerTabSpaceInfo.m_xyz);
+                        startCoordinate->setXYZ(xyz);
                     }
                 }
             }
@@ -626,6 +696,27 @@ AnnotationCoordinateInformation::setTwoDimAnnotationCoordinatesForSpace(Annotati
                             (float)(coordInfoOne->m_chartSpaceInfo.m_xyz[0] + optionalCoordInfoTwo->m_chartSpaceInfo.m_xyz[0]) / 2.0f,
                             (float)(coordInfoOne->m_chartSpaceInfo.m_xyz[1] + optionalCoordInfoTwo->m_chartSpaceInfo.m_xyz[1]) / 2.0f,
                             (float)(coordInfoOne->m_chartSpaceInfo.m_xyz[2] + optionalCoordInfoTwo->m_chartSpaceInfo.m_xyz[2]) / 2.0f
+                        };
+                        coordinate->setXYZ(centerXYZ);
+                        setWidthHeightWithTabCoordsFlag = true;
+                    }
+                }
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            if (coordInfoOne->m_spacerTabSpaceInfo.m_spacerTabIndex.isValid()) {
+                coordinate->setXYZ(coordInfoOne->m_spacerTabSpaceInfo.m_xyz);
+                annotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SPACER);
+                annotation->setSpacerTabIndex(coordInfoOne->m_spacerTabSpaceInfo.m_spacerTabIndex);
+                
+                validCoordinateFlag = true;
+                
+                if (optionalCoordInfoTwo != NULL) {
+                    if (optionalCoordInfoTwo->m_spacerTabSpaceInfo.m_spacerTabIndex.isValid() == coordInfoOne->m_spacerTabSpaceInfo.m_spacerTabIndex.isValid()) {
+                        float centerXYZ[3] = {
+                            (coordInfoOne->m_spacerTabSpaceInfo.m_xyz[0] + optionalCoordInfoTwo->m_spacerTabSpaceInfo.m_xyz[0]) / 2.0f,
+                            (coordInfoOne->m_spacerTabSpaceInfo.m_xyz[1] + optionalCoordInfoTwo->m_spacerTabSpaceInfo.m_xyz[1]) / 2.0f,
+                            (coordInfoOne->m_spacerTabSpaceInfo.m_xyz[2] + optionalCoordInfoTwo->m_spacerTabSpaceInfo.m_xyz[2]) / 2.0f
                         };
                         coordinate->setXYZ(centerXYZ);
                         setWidthHeightWithTabCoordsFlag = true;

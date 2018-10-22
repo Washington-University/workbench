@@ -237,9 +237,14 @@ AnnotationGroup*
 AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
 {
     const AnnotationCoordinateSpaceEnum::Enum annotationSpace = annotation->getCoordinateSpace();
+    SpacerTabIndex annotationSpacerTabIndex;
+    
     int32_t annotationTabOrWindowIndex = -1;
     switch (annotationSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            annotationSpacerTabIndex = annotation->getSpacerTabIndex();
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
@@ -267,6 +272,11 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
                     case AnnotationCoordinateSpaceEnum::SURFACE:
                         return group;
                         break;
+                    case AnnotationCoordinateSpaceEnum::SPACER:
+                        if (annotationSpacerTabIndex == group->getSpacerTabIndex()) {
+                            return group;
+                        }
+                        break;
                     case AnnotationCoordinateSpaceEnum::VIEWPORT:
                         CaretAssert(0);
                         break;
@@ -290,6 +300,8 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
             CaretAssert((annotationTabOrWindowIndex >= 0)
                         && (annotationTabOrWindowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
             break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
             CaretAssert(0);
             break;
@@ -303,7 +315,8 @@ AnnotationFile::getSpaceAnnotationGroup(const Annotation* annotation)
                                                  AnnotationGroupTypeEnum::SPACE,
                                                  generateUniqueKey(),
                                                  annotationSpace,
-                                                 annotationTabOrWindowIndex);
+                                                 annotationTabOrWindowIndex,
+                                                 annotationSpacerTabIndex);
     group->setItemParent(this);
     m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
     
@@ -638,6 +651,7 @@ void
 AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnum::Enum groupType,
                                                     const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                                     const int32_t tabOrWindowIndex,
+                                                    const SpacerTabIndex& spacerTabIndex,
                                                     const int32_t uniqueKey,
                                                     const std::vector<Annotation*>& annotations)
 {
@@ -653,6 +667,12 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
     
     switch (coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            if ( ! spacerTabIndex.isValid()) {
+                throw DataFileException("Invalid spacer tab index for group while reading annotation file: "
+                                        + spacerTabIndex.toString());
+            }
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
@@ -707,6 +727,15 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
                                                     + AnnotationCoordinateSpaceEnum::toGuiName(coordinateSpace)
                                                     + ".  Only one space group for each space is allowed.");
                             break;
+                        case AnnotationCoordinateSpaceEnum::SPACER:
+                            if (spacerTabIndex == group->getSpacerTabIndex()) {
+                                throw DataFileException("There is more than one annotation space group with space "
+                                                        + AnnotationCoordinateSpaceEnum::toGuiName(coordinateSpace)
+                                                        + " for spacer tab  "
+                                                        + spacerTabIndex.toString()
+                                                        + ".  Only one space group for each space is allowed.");
+                            }
+                            break;
                         case AnnotationCoordinateSpaceEnum::TAB:
                             if (tabOrWindowIndex == group->getTabOrWindowIndex()) {
                                 throw DataFileException("There is more than one annotation space group with space "
@@ -738,7 +767,8 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
                                                  groupType,
                                                  uniqueKey,
                                                  coordinateSpace,
-                                                 tabOrWindowIndex);
+                                                 tabOrWindowIndex,
+                                                 spacerTabIndex);
     for (std::vector<Annotation*>::const_iterator annIter = annotations.begin();
          annIter != annotations.end();
          annIter++) {
@@ -1093,7 +1123,8 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
                                                  AnnotationGroupTypeEnum::USER,
                                                  generateUniqueKey(),
                                                  spaceGroup->getCoordinateSpace(),
-                                                 spaceGroup->getTabOrWindowIndex());
+                                                 spaceGroup->getTabOrWindowIndex(),
+                                                 spaceGroup->getSpacerTabIndex());
     
     for (std::vector<QSharedPointer<Annotation> >::iterator annPtrIter = movedAnnotations.begin();
          annPtrIter != movedAnnotations.end();
@@ -1246,7 +1277,8 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
                                                          AnnotationGroupTypeEnum::USER,
                                                          reuseUniqueKeyOrGenerateNewUniqueKey(userGroupUniqueKey),
                                                          spaceGroup->getCoordinateSpace(),
-                                                         spaceGroup->getTabOrWindowIndex());
+                                                         spaceGroup->getTabOrWindowIndex(),
+                                                         spaceGroup->getSpacerTabIndex());
             
             bool allValidFlag = true;
             std::vector<QSharedPointer<Annotation> > movedAnnotations;
@@ -1760,7 +1792,8 @@ AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveParameter
                                                 AnnotationGroupTypeEnum::USER,
                                                 generateUniqueKey(),
                                                 groupToCopy->getCoordinateSpace(),
-                                                groupToCopy->getTabOrWindowIndex());
+                                                groupToCopy->getTabOrWindowIndex(),
+                                                groupToCopy->getSpacerTabIndex());
                     group->setItemParent(this);
                     m_annotationGroups.push_back(QSharedPointer<AnnotationGroup>(group));
                     break;

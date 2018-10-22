@@ -175,6 +175,8 @@ BrainOpenGLViewportContent::initializeMembersBrainOpenGLViewportContent()
     m_windowY      = 0;
     m_windowWidth  = 0;
     m_windowHeight = 0;
+    m_browserTabContent = NULL;
+    m_spacerTabContent  = NULL;
 }
 
 /**
@@ -206,6 +208,7 @@ BrainOpenGLViewportContent::copyHelperBrainOpenGLViewportContent(const BrainOpen
     m_windowHeight = obj.m_windowHeight;
     
     m_browserTabContent = obj.m_browserTabContent;
+    m_spacerTabContent  = obj.m_spacerTabContent;
 }
 
 /**

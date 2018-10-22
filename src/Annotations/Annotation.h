@@ -33,6 +33,7 @@
 #include "CaretObjectTracksModification.h"
 #include "DisplayGroupAndTabItemInterface.h"
 #include "SceneableInterface.h"
+#include "SpacerTabIndex.h"
 #include "StructureEnum.h"
 
 
@@ -182,6 +183,10 @@ namespace caret {
         int32_t getTabIndex() const;
         
         void setTabIndex(const int32_t tabIndex);
+        
+        SpacerTabIndex getSpacerTabIndex() const;
+        
+        void setSpacerTabIndex(const SpacerTabIndex& spacerTabIndex);
         
         int32_t getWindowIndex() const;
         
@@ -389,6 +394,8 @@ namespace caret {
         DisplayGroupAndTabItemHelper* m_displayGroupAndTabItemHelper;
         
         AnnotationCoordinateSpaceEnum::Enum  m_coordinateSpace;
+        
+        SpacerTabIndex m_spacerTabIndex;
         
         int32_t m_tabIndex;
         

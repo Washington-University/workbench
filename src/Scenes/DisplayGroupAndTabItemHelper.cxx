@@ -121,13 +121,15 @@ DisplayGroupAndTabItemHelper::copyHelperDisplayGroupAndTabItemHelper(const Displ
         m_expandedStatusInDisplayGroup[i] = obj.m_expandedStatusInDisplayGroup[i];
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_selectedInTab[i] = m_selectedInTab[i];
-        m_expandedStatusInTab[i] = m_expandedStatusInTab[i];
+        m_selectedInTab[i] = obj.m_selectedInTab[i];
+        m_expandedStatusInTab[i] = obj.m_expandedStatusInTab[i];
     }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
-        m_selectedInWindow[i] = m_selectedInWindow[i];
-        m_expandedInWindow[i] = m_expandedInWindow[i];
+        m_selectedInWindow[i] = obj.m_selectedInWindow[i];
+        m_expandedInWindow[i] = obj.m_expandedInWindow[i];
     }
+    
+    m_selectedInSpacerTab = obj.m_selectedInSpacerTab;
 }
 
 /**
@@ -151,6 +153,8 @@ DisplayGroupAndTabItemHelper::clearPrivate()
         m_selectedInWindow[i] = TriStateSelectionStatusEnum::SELECTED;
         m_expandedInWindow[i] = defaultExpandStatus;
     }
+    
+    m_selectedInSpacerTab = TriStateSelectionStatusEnum::SELECTED;
 }
 
 /**
@@ -191,6 +195,9 @@ DisplayGroupAndTabItemHelper::initializeNewInstance()
                                m_expandedInWindow,
                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS,
                                m_expandedInWindow[0]);
+    
+    m_sceneAssistant->add<TriStateSelectionStatusEnum,TriStateSelectionStatusEnum::Enum>("m_selectedInSpacerTab",
+                                                                                         &m_selectedInSpacerTab);
 }
 
 /**
@@ -314,6 +321,32 @@ DisplayGroupAndTabItemHelper::setExpandedInWindow(const int32_t windowIndex,
     m_expandedInWindow[windowIndex] = status;
 }
 
+
+/**
+ * Get the selected status of this item in a spacer tab.
+ *
+ * @param windowIndex
+ *    Index of browser window in which item is controlled/viewed.
+ * @return
+ *    The selection status.
+ */
+TriStateSelectionStatusEnum::Enum
+DisplayGroupAndTabItemHelper::getSelectedInSpacerTab() const
+{
+    return m_selectedInSpacerTab;
+}
+
+/**
+ * Set the selected status of this item in a spacer tab.
+ *
+ * @param status
+ *    New selection status.
+*/
+void
+DisplayGroupAndTabItemHelper::setSelectedInSpacerTab(const TriStateSelectionStatusEnum::Enum status)
+{
+    m_selectedInSpacerTab = status;
+}
 
 /**
  * Is this item expanded to display its children in the

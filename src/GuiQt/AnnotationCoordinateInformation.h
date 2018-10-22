@@ -23,6 +23,7 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationSurfaceOffsetVectorTypeEnum.h"
+#include "SpacerTabIndex.h"
 #include "StructureEnum.h"
 
 class QLabel;
@@ -87,7 +88,15 @@ namespace caret {
             float m_xyz[3] = { 0.0f, 0.0f, 0.0f };
             float m_pixelXYZ[3] = { 0.0f, 0.0f, 0.0f };
             int32_t m_index = -1;
-            
+        };
+        
+        class SpacerTabSpaceInfo : public SpaceInfo {
+        public:
+            float m_width = 0.0f;
+            float m_height = 0.0f;
+            float m_xyz[3] = { 0.0f, 0.0f, 0.0f };
+            float m_pixelXYZ[3] = { 0.0f, 0.0f, 0.0f };
+            SpacerTabIndex m_spacerTabIndex;
         };
         
         class ChartSpaceInfo : public SpaceInfo {
@@ -110,6 +119,8 @@ namespace caret {
         TabWindowSpaceInfo m_tabSpaceInfo;
         
         TabWindowSpaceInfo m_windowSpaceInfo;
+        
+        SpacerTabSpaceInfo m_spacerTabSpaceInfo;
         
         ChartSpaceInfo m_chartSpaceInfo;
         

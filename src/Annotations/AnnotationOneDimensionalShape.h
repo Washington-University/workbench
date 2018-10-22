@@ -104,6 +104,8 @@ namespace caret {
         
         bool applySpatialModificationTabOrWindowSpace(const AnnotationSpatialModification& spatialModification);
         
+        bool applySpatialModificationSpacerTabSpace(const AnnotationSpatialModification& spatialModification);
+        
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
         
         CaretPointer<AnnotationCoordinate> m_startCoordinate;

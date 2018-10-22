@@ -140,6 +140,7 @@ ProgressObject.h
 ProgressReportingInterface.h
 ReductionEnum.h
 ReductionOperation.h
+SpacerTabIndex.h
 SpecFileDialogViewFilesTypeEnum.h
 SpeciesEnum.h
 StereotaxicSpaceEnum.h
@@ -240,6 +241,7 @@ ProgramParametersException.cxx
 ProgressObject.cxx
 ReductionEnum.cxx
 ReductionOperation.cxx
+SpacerTabIndex.cxx
 SpecFileDialogViewFilesTypeEnum.cxx
 SpeciesEnum.cxx
 StereotaxicSpaceEnum.cxx

@@ -96,6 +96,7 @@
 #include "SceneFile.h"
 #include "SceneWindowGeometry.h"
 #include "SessionManager.h"
+#include "SpacerTabContent.h"
 #include "SpecFile.h"
 #include "SpecFileManagementDialog.h"
 #include "StructureEnumComboBox.h"
@@ -326,6 +327,21 @@ BrainBrowserWindow::receiveEvent(Event* event)
         bool notBestViewportValid = false;
         
         switch (viewportSizeEvent->getMode()) {
+            case EventGetViewportSize::MODE_SPACER_TAB_INDEX:
+                for (std::vector<const BrainOpenGLViewportContent*>::iterator vpIter = allViewportContent.begin();
+                     vpIter != allViewportContent.end();
+                     vpIter++) {
+                    const BrainOpenGLViewportContent* vpContent = *vpIter;
+                    if (vpContent != NULL) {
+                        SpacerTabContent* stc = vpContent->getSpacerTabContent();
+                        if (stc->getSpacerTabIndex() == vpContent->getSpacerTabContent()->getSpacerTabIndex()) {
+                            vpContent->getTabViewportBeforeApplyingMargins(viewport);
+                            viewportValid = true;
+                            break;
+                        }
+                    }
+                }
+                break;
             case EventGetViewportSize::MODE_SURFACE_MONTAGE:
                 if (viewportSizeEvent->getIndex() == m_browserWindowIndex) {
                     /*

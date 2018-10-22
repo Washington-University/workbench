@@ -27,13 +27,10 @@
 
 #include "CaretObject.h"
 
-#include "SceneableInterface.h"
-
-
 namespace caret {
     class SceneClassAssistant;
 
-    class SpacerTabIndex : public CaretObject, public SceneableInterface {
+    class SpacerTabIndex : public CaretObject {
         
     public:
         SpacerTabIndex();
@@ -50,7 +47,13 @@ namespace caret {
         
         bool operator==(const SpacerTabIndex& obj) const;
         
+        bool operator!=(const SpacerTabIndex& obj) const;
+        
         bool operator<(const SpacerTabIndex& rhs) const;
+        
+        bool isValid() const;
+        
+        void reset();
         
         int32_t getWindowIndex() const;
         
@@ -58,35 +61,20 @@ namespace caret {
         
         int32_t getColumnIndex() const;
         
+        AString getRowColumnGuiText() const;
+        
+        AString getWindowRowColumnGuiText() const;
+        
+        AString getXmlAttributeText() const;
+        
+        void setFromXmlAttributeText(const AString& text);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
-        
-        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
-                                        const AString& instanceName);
-
-        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
-                                      const SceneClass* sceneClass);
-
-          
-          
-          
-          
-          
-// If there will be sub-classes of this class that need to save
-// and restore data from scenes, these pure virtual methods can
-// be uncommented to force their implementation by sub-classes.
-//    protected: 
-//        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-//                                             SceneClass* sceneClass) = 0;
-//
-//        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-//                                                  const SceneClass* sceneClass) = 0;
 
     private:
         void copyHelperSpacerTabIndex(const SpacerTabIndex& obj);
-
-        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         int32_t m_windowIndex;
         int32_t m_rowIndex;

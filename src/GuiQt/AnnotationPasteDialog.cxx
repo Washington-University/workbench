@@ -297,6 +297,8 @@ AnnotationPasteDialog::pasteOneDimensionalShape(AnnotationOneDimensionalShape* o
     switch (oneDimShape->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:

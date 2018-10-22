@@ -115,6 +115,8 @@ m_newAnnotationCreatedByContextMenu(NULL)
             case AnnotationCoordinateSpaceEnum::CHART:
                 threeDimCoordFlag = true;
                 break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 threeDimCoordFlag = true;
                 break;

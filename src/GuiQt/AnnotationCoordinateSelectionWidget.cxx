@@ -553,6 +553,9 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
         case AnnotationCoordinateSpaceEnum::CHART:
             oldViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            oldViewportHeight = m_coordInfo.m_spacerTabSpaceInfo.m_height;
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             oldViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
@@ -588,6 +591,9 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
             case AnnotationCoordinateSpaceEnum::CHART:
                 diffXyzValid = true;
                 break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
+                diffXyzValid = true;
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -618,6 +624,13 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
                 coordinate->setXYZ(m_coordInfo.m_chartSpaceInfo.m_xyz);
                 redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::CHART);
                 newViewportHeight = m_coordInfo.m_tabSpaceInfo.m_height;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            if (m_coordInfo.m_spacerTabSpaceInfo.m_spacerTabIndex.isValid()) {
+                coordinate->setXYZ(m_coordInfo.m_spacerTabSpaceInfo.m_xyz);
+                redoAnnotation->setCoordinateSpace(AnnotationCoordinateSpaceEnum::SPACER);
+                newViewportHeight = m_coordInfo.m_spacerTabSpaceInfo.m_height;
             }
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
@@ -830,6 +843,10 @@ AnnotationCoordinateSelectionWidget::setWidthAndHeightForImage(AnnotationImage* 
             vpWidth  = m_coordInfo.m_tabSpaceInfo.m_width;
             vpHeight = m_coordInfo.m_tabSpaceInfo.m_height;
             break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            vpWidth  = m_coordInfo.m_spacerTabSpaceInfo.m_width;
+            vpHeight = m_coordInfo.m_spacerTabSpaceInfo.m_height;
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             vpWidth  = m_coordInfo.m_tabSpaceInfo.m_width;
             vpHeight = m_coordInfo.m_tabSpaceInfo.m_height;
@@ -900,6 +917,8 @@ AnnotationCoordinateSelectionWidget::updateAnnotationDisplayProperties(const Ann
     
     switch (annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             if (m_coordInfo.m_tabSpaceInfo.m_index >= 0) {

@@ -407,6 +407,10 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     case AnnotationCoordinateSpaceEnum::CHART:
                         changeCoordFlag = true;
                         break;
+                    case AnnotationCoordinateSpaceEnum::SPACER:
+                        changeCoordFlag = true;
+                        moveOnePixelFlag = true;
+                        break;
                     case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                         changeCoordFlag = true;
                         break;
@@ -469,6 +473,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                             bool surfaceFlag = false;
                             switch (selectedAnnotation->getCoordinateSpace()) {
                                 case AnnotationCoordinateSpaceEnum::CHART:
+                                    break;
+                                case AnnotationCoordinateSpaceEnum::SPACER:
                                     break;
                                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                                     break;
@@ -620,6 +626,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
     switch (draggingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -672,6 +680,16 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                     spaceWidth   = chartVP[2];
                     spaceHeight  = chartVP[3];
                 }
+            }
+                break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
+            {
+                int viewport[4];
+                vpContent->getTabViewportBeforeApplyingMargins(viewport);
+                spaceOriginX = viewport[0];
+                spaceOriginY = viewport[1];
+                spaceWidth   = viewport[2];
+                spaceHeight  = viewport[3];
             }
                 break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:

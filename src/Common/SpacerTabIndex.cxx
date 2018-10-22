@@ -24,8 +24,6 @@
 #undef __SPACER_TAB_INDEX_DECLARE__
 
 #include "CaretAssert.h"
-#include "SceneClass.h"
-#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -46,13 +44,6 @@ m_windowIndex(-1),
 m_rowIndex(-1),
 m_columnIndex(-1)
 {
-    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->add("m_windowIndex",
-                          &m_windowIndex);
-    m_sceneAssistant->add("m_rowIndex",
-                          &m_rowIndex);
-    m_sceneAssistant->add("m_columnIndex",
-                          &m_columnIndex);
 }
 
 /**
@@ -66,13 +57,6 @@ m_windowIndex(windowIndex),
 m_rowIndex(rowIndex),
 m_columnIndex(columnIndex)
 {
-    m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->add("m_windowIndex",
-                          &m_windowIndex);
-    m_sceneAssistant->add("m_rowIndex",
-                          &m_rowIndex);
-    m_sceneAssistant->add("m_columnIndex",
-                          &m_columnIndex);
 }
 
 /**
@@ -124,6 +108,19 @@ SpacerTabIndex::copyHelperSpacerTabIndex(const SpacerTabIndex& obj)
 }
 
 /**
+ * Inequality operator.
+ * @param obj
+ *    Instance compared to this for equality.
+ * @return
+ *    True if this instance and 'obj' instance are considered NOT equal.
+ */
+bool
+SpacerTabIndex::operator!=(const SpacerTabIndex& obj) const
+{
+    return ( ! (*this == obj));
+}
+
+/**
  * Equality operator.
  * @param obj
  *    Instance compared to this for equality.
@@ -170,6 +167,22 @@ SpacerTabIndex::operator<(const SpacerTabIndex& rhs) const
 }
 
 /**
+ * @return True if the index is valid, else false.
+ */
+bool
+SpacerTabIndex::isValid() const
+{
+    if ((m_windowIndex >= 0)
+        && (m_rowIndex >= 0)
+        && (m_columnIndex >= 0)) {
+        return true;
+    }
+    
+    return false;
+}
+
+
+/**
  * @return The window index
  */
 int32_t
@@ -196,10 +209,87 @@ SpacerTabIndex::getColumnIndex() const
     return m_columnIndex;
 }
 
+/**
+ * Reset to invalid indices.
+ */
+void
+SpacerTabIndex::reset()
+{
+    m_windowIndex = -1;
+    m_rowIndex    = -1;
+    m_columnIndex = -1;
+}
+
+
+/**
+ * @return Format for XML attribute (window index, row index,
+ * and column index separated by commas).  
+ * NOTE: THESE INDICES START AT ZERO
+ */
+AString
+SpacerTabIndex::getXmlAttributeText() const
+{
+    AString s("%1,%2,%3");
+    s = s.arg(m_windowIndex).arg(m_rowIndex).arg(m_columnIndex);
+    return s;
+}
+
+/**
+ * Set from XML text in the form (w,r,c) where 'w' is the
+ * window index, 'r' is the row index, and 'c' is the 
+ * column index.
+ * NOTE: THESE INDICES START AT ZERO
+ */
+void
+SpacerTabIndex::setFromXmlAttributeText(const AString& text)
+{
+    reset();
+    
+    if ( ! text.isEmpty()) {
+        std::vector<int32_t> indices;
+        AString::toNumbers(text, indices);
+        if (indices.size() >= 3) {
+            m_windowIndex = indices[0];
+            m_rowIndex    = indices[1];
+            m_columnIndex = indices[2];
+        }
+    }
+}
+
+/**
+ * @return Row and column in text form (eg: "Row=2, Column=3")
+ * for use in the GUI and viewed by user.
+ * NOTE: THESE INDICES START AT ONE
+ */
+AString
+SpacerTabIndex::getRowColumnGuiText() const
+{
+    AString s("Row=%1, Column=%2");
+    s = s.arg(m_rowIndex+1).arg(m_columnIndex+1);
+    return s;
+}
+
+/**
+ * @return Window, row, and column in text form (eg: "Window=1, Row=2, Column=3")
+ * for use in the GUI and viewed by user.
+ * NOTE: THESE INDICES START AT ONE
+ */
+AString
+SpacerTabIndex::getWindowRowColumnGuiText() const
+{
+    AString s("Window=%1, ");
+    s = s.arg(m_windowIndex+1);
+    s.append(getRowColumnGuiText());
+    
+    return s;
+}
+
+
 
 /**
  * Get a description of this object's content.
  * @return String describing this object's content.
+ * NOTE: THESE INDICES START AT ZERO
  */
 AString 
 SpacerTabIndex::toString() const
@@ -208,61 +298,5 @@ SpacerTabIndex::toString() const
     s = s.arg(m_windowIndex).arg(m_rowIndex).arg(m_columnIndex);
 
     return s;
-}
-
-/**
- * Save information specific to this type of model to the scene.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    saving the scene.
- *
- * @param instanceName
- *    Name of instance in the scene.
- */
-SceneClass*
-SpacerTabIndex::saveToScene(const SceneAttributes* sceneAttributes,
-                                 const AString& instanceName)
-{
-    SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "SpacerTabIndex",
-                                            1);
-    m_sceneAssistant->saveMembers(sceneAttributes,
-                                  sceneClass);
-    
-    // Uncomment if sub-classes must save to scene
-    //saveSubClassDataToScene(sceneAttributes,
-    //                        sceneClass);
-    
-    return sceneClass;
-}
-
-/**
- * Restore information specific to the type of model from the scene.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    restoring the scene.
- *
- * @param sceneClass
- *     sceneClass from which model specific information is obtained.
- */
-void
-SpacerTabIndex::restoreFromScene(const SceneAttributes* sceneAttributes,
-                                      const SceneClass* sceneClass)
-{
-    if (sceneClass == NULL) {
-        return;
-    }
-    
-    m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);    
-    
-    //Uncomment if sub-classes must restore from scene
-    //restoreSubClassDataFromScene(sceneAttributes,
-    //                             sceneClass);
-    
 }
 

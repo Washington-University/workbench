@@ -450,6 +450,8 @@ namespace caret {
         
         void drawWindowAnnotations(const int windowViewport[4]);
         
+        void drawSpacerAnnotations(const BrainOpenGLViewportContent* tabContent);
+        
         void drawTabAnnotations(const BrainOpenGLViewportContent* tabContent);
         
         void drawChartCoordinateSpaceAnnotations(const BrainOpenGLViewportContent* viewportContent);

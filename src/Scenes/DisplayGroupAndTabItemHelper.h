@@ -72,6 +72,10 @@ namespace caret {
         void setExpandedInWindow(const int32_t windowIndex,
                                  const bool status);
         
+        TriStateSelectionStatusEnum::Enum getSelectedInSpacerTab() const;
+        
+        void setSelectedInSpacerTab(const TriStateSelectionStatusEnum::Enum status);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -122,6 +126,9 @@ namespace caret {
         
         /** Expanded (collapsed) status in window */
         bool m_expandedInWindow[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        
+        /** Selected in Spacer Window/Row/Column */
+        TriStateSelectionStatusEnum::Enum m_selectedInSpacerTab;
         
         // ADD_NEW_MEMBERS_HERE
 

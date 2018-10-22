@@ -125,6 +125,7 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_uniqueKey           = -1;
     m_coordinateSpace     = obj.m_coordinateSpace;
     m_tabIndex            = obj.m_tabIndex;
+    m_spacerTabIndex      = obj.m_spacerTabIndex;
     m_windowIndex         = obj.m_windowIndex;
     m_viewportCoordinateSpaceViewport[0] = obj.m_viewportCoordinateSpaceViewport[0];
     m_viewportCoordinateSpaceViewport[1] = obj.m_viewportCoordinateSpaceViewport[1];
@@ -385,6 +386,7 @@ Annotation::initializeAnnotationMembers()
     m_coordinateSpace = AnnotationCoordinateSpaceEnum::TAB;
     
     m_tabIndex    = -1;
+    m_spacerTabIndex = SpacerTabIndex();
     m_windowIndex = -1;
     m_viewportCoordinateSpaceViewport[0] = 0;
     m_viewportCoordinateSpaceViewport[1] = 0;
@@ -538,8 +540,22 @@ Annotation::initializeAnnotationMembers()
     
     initializeProperties();
     
-    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::VIEWPORT) {
-        setPropertiesForSpecializedUsage(PropertiesSpecializedUsage::VIEWPORT_ANNOTATION);
+    switch (m_coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            setPropertiesForSpecializedUsage(PropertiesSpecializedUsage::VIEWPORT_ANNOTATION);
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
     }
     
     /*
@@ -678,6 +694,8 @@ Annotation::isInSurfaceSpaceWithTangentOffset() const
     
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
@@ -1058,6 +1076,30 @@ Annotation::setTabIndex(const int32_t tabIndex)
 {
     if (tabIndex != m_tabIndex) {
         m_tabIndex = tabIndex;
+        setModified();
+    }
+}
+
+/**
+ * @return Index of the spacer tab.
+ */
+SpacerTabIndex
+Annotation::getSpacerTabIndex() const
+{
+    return m_spacerTabIndex;
+}
+
+/**
+ * Set index of the spacer tab.
+ *
+ * @param spacerTabIndex
+ *     Index of the spacer tab.
+ */
+void
+Annotation::setSpacerTabIndex(const SpacerTabIndex& spacerTabIndex)
+{
+    if (spacerTabIndex != m_spacerTabIndex) {
+        m_spacerTabIndex = spacerTabIndex;
         setModified();
     }
 }
@@ -2295,8 +2337,22 @@ bool
 Annotation::isItemExpanded(const DisplayGroupEnum::Enum displayGroup,
                            const int32_t tabIndex) const
 {
-    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
-        return m_displayGroupAndTabItemHelper->isExpandedInWindow(m_windowIndex);
+    switch (m_coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            return m_displayGroupAndTabItemHelper->isExpandedInWindow(m_windowIndex);
+            break;
     }
     
     const int32_t itemTabIndex = updateDisplayGroupTabIndex(displayGroup,
@@ -2325,19 +2381,32 @@ Annotation::setItemExpanded(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex,
                             const bool status)
 {
-    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
-        m_displayGroupAndTabItemHelper->setExpandedInWindow(m_windowIndex,
-                                                            status);
+    switch (m_coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            m_displayGroupAndTabItemHelper->setExpandedInWindow(m_windowIndex,
+                                                                status);
+            return;
+            break;
     }
-    else {
-        const int32_t itemTabIndex = updateDisplayGroupTabIndex(displayGroup,
+
+    const int32_t itemTabIndex = updateDisplayGroupTabIndex(displayGroup,
                                                                 tabIndex);
         
-        m_displayGroupAndTabItemHelper->setExpanded(displayGroup,
-                                                    itemTabIndex,
-                                                    status);
-    }
-    
+    m_displayGroupAndTabItemHelper->setExpanded(displayGroup,
+                                                itemTabIndex,
+                                                status);
 }
 
 /**
@@ -2357,9 +2426,25 @@ Annotation::getItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex) const
 {
     if (testProperty(Annotation::Property::DISPLAY_GROUP)) {
-        if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
-            return m_displayGroupAndTabItemHelper->getSelectedInWindow(m_windowIndex);
+        switch (m_coordinateSpace) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+                break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
+                return m_displayGroupAndTabItemHelper->getSelectedInSpacerTab();
+                break;
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+                break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                return m_displayGroupAndTabItemHelper->getSelectedInWindow(m_windowIndex);
+                break;
         }
+        
         
         const int32_t itemTabIndex = updateDisplayGroupTabIndex(displayGroup,
                                                                 tabIndex);
@@ -2393,18 +2478,34 @@ Annotation::setItemDisplaySelected(const DisplayGroupEnum::Enum displayGroup,
                              const int32_t tabIndex,
                              const TriStateSelectionStatusEnum::Enum status)
 {
-    if (m_coordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
-        m_displayGroupAndTabItemHelper->setSelectedInWindow(m_windowIndex,
-                                                            status);
+    switch (m_coordinateSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            m_displayGroupAndTabItemHelper->setSelectedInSpacerTab(status);
+            return;
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            m_displayGroupAndTabItemHelper->setSelectedInWindow(m_windowIndex,
+                                                                status);
+            return;
+            break;
     }
-    else {
-        const int32_t itemTabIndex = updateDisplayGroupTabIndex(displayGroup,
-                                                                tabIndex);
-        
-        m_displayGroupAndTabItemHelper->setSelected(displayGroup,
-                                                    itemTabIndex,
-                                                    status);
-    }
+    
+    const int32_t itemTabIndex = updateDisplayGroupTabIndex(displayGroup,
+                                                            tabIndex);
+    
+    m_displayGroupAndTabItemHelper->setSelected(displayGroup,
+                                                itemTabIndex,
+                                                status);
 }
 
 /**

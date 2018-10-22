@@ -117,6 +117,7 @@
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemSurfaceTriangle.h"
 #include "SelectionItemVoxel.h"
+#include "SpacerTabContent.h"
 #include "SurfaceMontageConfigurationCerebellar.h"
 #include "SurfaceMontageConfigurationCerebral.h"
 #include "SurfaceMontageConfigurationFlatMaps.h"
@@ -288,7 +289,12 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
      * everything else.
      */
     glClear(GL_DEPTH_BUFFER_BIT);
-    drawTabAnnotations(viewportContent);
+    if (viewportContent->getSpacerTabContent() != NULL) {
+        drawSpacerAnnotations(viewportContent);
+    }
+    else {
+        drawTabAnnotations(viewportContent);
+    }
     
     int windowViewport[4];
     viewportContent->getWindowViewport(windowViewport);
@@ -708,7 +714,12 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
              */
             updateForegroundAndBackgroundColors(vpContent);
             
-            drawTabAnnotations(vpContent);
+            if (vpContent->getSpacerTabContent() != NULL) {
+                drawSpacerAnnotations(vpContent);
+            }
+            else {
+                drawTabAnnotations(vpContent);
+            }
         }
         
         /*
@@ -858,6 +869,7 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLV
                                                                  BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                  m_windowIndex,
                                                                  this->windowTabIndex,
+                                                                 SpacerTabIndex(),
                                                                  BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
         std::vector<AnnotationColorBar*> emptyColorBars;
         std::vector<Annotation*> emptyViewportAnnotations;
@@ -879,6 +891,63 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLV
     glPopAttrib();
 }
 
+/**
+ * Draw the spacer tag annotations.
+ *
+ * @param tabContent
+ *    Viewport content
+ */
+void
+BrainOpenGLFixedPipeline::drawSpacerAnnotations(const BrainOpenGLViewportContent* tabContent)
+{
+    if (tabContent->getSpacerTabContent() == NULL) {
+        return;
+    }
+    
+    int tabViewport[4];
+    tabContent->getModelViewport(tabViewport);
+    CaretAssertMessage(m_brain, "m_brain must NOT be NULL for drawing spacer tab annotations.");
+    glViewport(tabViewport[0],
+               tabViewport[1],
+               tabViewport[2],
+               tabViewport[3]);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glOrtho(0.0, tabViewport[2], 0.0, tabViewport[3], -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    CaretAssert(m_windowIndex == tabContent->getWindowIndex());
+    this->browserTabContent = NULL;
+    m_clippingPlaneGroup = NULL; //const_cast<ClippingPlaneGroup*>(tabContent->getBrowserTabContent()->getClippingPlaneGroup());
+    
+    this->windowTabIndex = -1;
+    
+    SpacerTabIndex spacerTabIndex;
+    SpacerTabContent* spacerTabContent = tabContent->getSpacerTabContent();
+    CaretAssert(spacerTabContent);
+    spacerTabIndex = spacerTabContent->getSpacerTabIndex();
+    
+    BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                             this->mode,
+                                                             BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                             m_windowIndex,
+                                                             this->windowTabIndex,
+                                                             spacerTabIndex,
+                                                             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
+    m_annotationDrawing->drawAnnotations(&inputs,
+                                         AnnotationCoordinateSpaceEnum::SPACER,
+                                         m_annotationColorBarsForDrawing,
+                                         m_specialCaseGraphicsAnnotations,
+                                         annotationDrawingNullSurface,
+                                         annotationDrawingUnusedSurfaceScaling);
+    
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
 
 /**
  * Draw the tab annotations.
@@ -919,6 +988,7 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              m_windowIndex,
                                                              this->windowTabIndex,
+                                                             SpacerTabIndex(),
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
@@ -979,6 +1049,7 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              m_windowIndex,
                                                              this->windowTabIndex,
+                                                             SpacerTabIndex(),
                                                              windowDrawingMode);
     
     m_annotationDrawing->drawAnnotations(&inputs,
@@ -1943,6 +2014,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_windowIndex,
                                                                      this->windowTabIndex,
+                                                                     SpacerTabIndex(),
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<Annotation*> emptyViewportAnnotations;
@@ -1995,6 +2067,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_windowIndex,
                                                                      this->windowTabIndex,
+                                                                     SpacerTabIndex(),
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<Annotation*> emptyViewportAnnotations;

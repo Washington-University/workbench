@@ -119,6 +119,8 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
             switch (space) {
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
+                case AnnotationCoordinateSpaceEnum::SPACER:
+                    break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:

@@ -69,7 +69,6 @@ SceneWriterInterface.h
 SceneWriterXml.h
 SceneXmlElements.h
 SceneableInterface.h
-SpacerTabIndex.h
 
 BackgroundAndForegroundColorsSceneHelper.cxx
 DisplayGroupAndTabItemHelper.cxx
@@ -104,7 +103,6 @@ SceneTypeEnum.cxx
 SceneUnsignedByte.cxx
 SceneUnsignedByteArray.cxx
 SceneWriterXml.cxx
-SpacerTabIndex.cxx
 )
 
 TARGET_LINK_LIBRARIES(Scenes ${CARET_QT5_LINK})

@@ -239,6 +239,9 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
                              AnnotationGroupTypeEnum::toName(group->getGroupType()));
     m_stream->writeAttribute(ATTRIBUTE_TAB_OR_WINDOW_INDEX,
                              QString::number(group->getTabOrWindowIndex()));
+    m_stream->writeAttribute(ATTRIBUTE_SPACER_TAB_INDEX,
+                             group->getSpacerTabIndex().getXmlAttributeText());
+    
     m_stream->writeAttribute(ATTRIBUTE_UNIQUE_KEY,
                              QString::number(group->getUniqueKey()));
     
@@ -500,6 +503,9 @@ AnnotationFileXmlWriter::getAnnotationPropertiesAsAttributes(const Annotation* a
     attributes.append(ATTRIBUTE_WINDOW_INDEX,
                       QString::number(annotation->getWindowIndex()));
     
+    attributes.append(ATTRIBUTE_SPACER_TAB_INDEX,
+                      annotation->getSpacerTabIndex().getXmlAttributeText());
+
     attributes.append(ATTRIBUTE_UNIQUE_KEY,
                       QString::number(annotation->getUniqueKey()));
 }

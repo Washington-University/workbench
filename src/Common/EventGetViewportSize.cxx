@@ -37,31 +37,15 @@ using namespace caret;
  */
 
 /**
- * Constructor for finding a specific tab index.
- *
- * @param tabIndex
- *     Index of tab for which viewport size is requested.
- */
-//EventGetViewportSize::EventGetViewportSize(const int32_t tabIndex)
-//: Event(EventTypeEnum::EVENT_BROWSER_TAB_GET_VIEWPORT_SIZE),
-//m_mode(MODE_TAB_INDEX),
-//m_tabIndex(tabIndex),
-//m_viewportValid(false)
-//{
-//    m_viewport[0] = 0;
-//    m_viewport[1] = 0;
-//    m_viewport[2] = 0;
-//    m_viewport[3] = 0;
-//}
-
-/**
- * Constructor for finding a surface or volume montage.
+ * Constructor for finding size of a viewport
  *
  * @param mode
  *     The mode.
+ * @param index
+ *     Index of a tab or window.
  */
 EventGetViewportSize::EventGetViewportSize(const Mode mode,
-                                                               const int32_t index)
+                                           const int32_t index)
 : Event(EventTypeEnum::EVENT_GET_VIEWPORT_SIZE),
 m_mode(mode),
 m_index(index),
@@ -71,6 +55,22 @@ m_viewportValid(false)
     m_viewport[1] = 0;
     m_viewport[2] = 0;
     m_viewport[3] = 0;
+}
+
+/**
+ * Constructor for finding size of a viewport
+ *
+ * @param spacerTabIndex
+ *     Index of the spacer tab
+ */
+EventGetViewportSize::EventGetViewportSize(const SpacerTabIndex& spacerTabIndex)
+: Event(EventTypeEnum::EVENT_GET_VIEWPORT_SIZE),
+m_mode(MODE_SPACER_TAB_INDEX),
+m_index(-1),
+m_spacerTabIndex(spacerTabIndex),
+m_viewportValid(false)
+{
+    
 }
 
 /**

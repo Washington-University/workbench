@@ -179,6 +179,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
             modelXYZ[2] = annotationXYZ[2];
             modelXYZValid = true;
             break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            viewportToOpenGLWindowCoordinate(annotationXYZ, drawingSpaceXYZ);
+            drawingSpaceXYZValid = true;
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             modelXYZ[0] = annotationXYZ[0];
             modelXYZ[1] = annotationXYZ[1];
@@ -600,6 +604,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     switch (drawingCoordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            haveDisplayGroupFlag = false;
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -713,6 +720,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             
             switch (drawingCoordinateSpace) {
                 case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SPACER:
                     break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     break;
@@ -847,39 +856,89 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 continue;
             }
             
-            /*
-             * Skip annotation in a different window
-             */
-            if (annotationCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
-                const int32_t annotationWindowIndex = annotation->getWindowIndex();
-                if ((annotationWindowIndex < 0)
-                    || (annotationWindowIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
-                    CaretLogSevere("Annotation has invalid window index="
-                                   + AString::number(annotationWindowIndex)
-                                   + " "
-                                   + annotation->toString());
+            switch (annotationCoordinateSpace) {
+                case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SPACER:
+                {
+                    const SpacerTabIndex spacerTabIndex = annotation->getSpacerTabIndex();
+                    CaretAssert(spacerTabIndex.isValid());
+                    if (m_inputs->m_spacerTabIndex != spacerTabIndex) {
+                        continue;
+                    }
                 }
-                if (m_inputs->m_windowIndex != annotationWindowIndex) {
-                    continue;
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                {
+                    const int32_t annotationTabIndex = annotation->getTabIndex();
+                    if ((annotationTabIndex < 0)
+                        || (annotationTabIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
+                        CaretLogSevere("Annotation has invalid tab index="
+                                       + AString::number(annotationTabIndex)
+                                       + " "
+                                       + annotation->toString());
+                    }
+                    if (m_inputs->m_tabIndex != annotationTabIndex) {
+                        continue;
+                    }
                 }
+                    break;
+                case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                {
+                    const int32_t annotationWindowIndex = annotation->getWindowIndex();
+                    if ((annotationWindowIndex < 0)
+                        || (annotationWindowIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
+                        CaretLogSevere("Annotation has invalid window index="
+                                       + AString::number(annotationWindowIndex)
+                                       + " "
+                                       + annotation->toString());
+                    }
+                    if (m_inputs->m_windowIndex != annotationWindowIndex) {
+                        continue;
+                    }
+                }
+                    break;
             }
             
-            /*
-             * Skip annotations in a different tab
-             */
-            if (annotationCoordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
-                const int32_t annotationTabIndex = annotation->getTabIndex();
-                if ((annotationTabIndex < 0)
-                    || (annotationTabIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
-                    CaretLogSevere("Annotation has invalid tab index="
-                                   + AString::number(annotationTabIndex)
-                                   + " "
-                                   + annotation->toString());
-                }
-                if (m_inputs->m_tabIndex != annotationTabIndex) {
-                    continue;
-                }
-            }
+//            /*
+//             * Skip annotation in a different window
+//             */
+//            if (annotationCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
+//                const int32_t annotationWindowIndex = annotation->getWindowIndex();
+//                if ((annotationWindowIndex < 0)
+//                    || (annotationWindowIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
+//                    CaretLogSevere("Annotation has invalid window index="
+//                                   + AString::number(annotationWindowIndex)
+//                                   + " "
+//                                   + annotation->toString());
+//                }
+//                if (m_inputs->m_windowIndex != annotationWindowIndex) {
+//                    continue;
+//                }
+//            }
+//            
+//            /*
+//             * Skip annotations in a different tab
+//             */
+//            if (annotationCoordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
+//                const int32_t annotationTabIndex = annotation->getTabIndex();
+//                if ((annotationTabIndex < 0)
+//                    || (annotationTabIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
+//                    CaretLogSevere("Annotation has invalid tab index="
+//                                   + AString::number(annotationTabIndex)
+//                                   + " "
+//                                   + annotation->toString());
+//                }
+//                if (m_inputs->m_tabIndex != annotationTabIndex) {
+//                    continue;
+//                }
+//            }
             
             drawAnnotation(annotationFile,
                            annotation,
@@ -4625,6 +4684,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotat
     bool testFlatSurfaceFlag = false;
     switch (annotation->getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             testFlatSurfaceFlag = true;

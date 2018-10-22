@@ -699,6 +699,9 @@ AnnotationTwoDimensionalShape::applySpatialModificationSurfaceOrStereotaxicSpace
         case AnnotationCoordinateSpaceEnum::CHART:
             badSpaceFlag = true;
             break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            badSpaceFlag = true;
+            break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             stereoSpaceFlag = true;
             break;
@@ -924,6 +927,21 @@ AnnotationTwoDimensionalShape::applySpatialModificationSurfaceOrStereotaxicSpace
     
     return validFlag;
 }
+
+/**
+ * Apply a spatial modification to an annotation in spacer tab space.
+ *
+ * @param spatialModification
+ *     Contains information about the spatial modification.
+ * @return
+ *     True if the annotation was modified, else false.
+ */
+bool
+AnnotationTwoDimensionalShape::applySpatialModificationSpacerTabSpace(const AnnotationSpatialModification& spatialModification)
+{
+    return applySpatialModificationTabOrWindowSpace(spatialModification);
+}
+
 
 /**
  * Apply a spatial modification to an annotation in tab or window space.
@@ -1336,6 +1354,9 @@ AnnotationTwoDimensionalShape::applySpatialModification(const AnnotationSpatialM
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
             return applySpatialModificationChartSpace(spatialModification);
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            return applySpatialModificationSpacerTabSpace(spatialModification);
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             return applySpatialModificationSurfaceOrStereotaxicSpace(spatialModification,

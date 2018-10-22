@@ -86,6 +86,15 @@ SpacerTabContent::getTabNamePrefix() const
 }
 
 /**
+ * @return The spacer tab index.
+ */
+SpacerTabIndex
+SpacerTabContent::getSpacerTabIndex() const
+{
+    return m_key;
+}
+
+/**
  * @return The Window index
  */
 int32_t

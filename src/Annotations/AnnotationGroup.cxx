@@ -57,12 +57,15 @@ using namespace caret;
  *     Annotation coordinate space for the group.
  * @param tabOrWindowIndex
  *     Index of tab or window for tab or window space.
+ * @param spacerTabIndex
+ *     Index of a spacer tab.
  */
 AnnotationGroup::AnnotationGroup(AnnotationFile* annotationFile,
                                  const AnnotationGroupTypeEnum::Enum groupType,
                                  const int32_t uniqueKey,
                                  const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
-                                 const int32_t tabOrWindowIndex)
+                                 const int32_t tabOrWindowIndex,
+                                 const SpacerTabIndex& spacerTabIndex)
 : CaretObjectTracksModification(),
 DisplayGroupAndTabItemInterface(),
 SceneableInterface()
@@ -91,9 +94,13 @@ SceneableInterface()
     
     m_coordinateSpace  = coordinateSpace;
     m_tabOrWindowIndex = tabOrWindowIndex;
+    m_spacerTabIndex   = spacerTabIndex;
     
     switch (m_coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            CaretAssert(m_spacerTabIndex.isValid());
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
@@ -169,6 +176,7 @@ AnnotationGroup::copyHelperAnnotationGroup(const AnnotationGroup& obj)
     m_coordinateSpace  = obj.m_coordinateSpace;
     m_name             = obj.m_name;
     m_tabOrWindowIndex = obj.m_tabOrWindowIndex;
+    m_spacerTabIndex   = obj.m_spacerTabIndex;
     *m_displayGroupAndTabItemHelper = *obj.m_displayGroupAndTabItemHelper;
     
     CaretAssertMessage(0, "What to do with annotations remove copy constructor/operator=");
@@ -184,6 +192,7 @@ AnnotationGroup::initializeInstance()
     m_coordinateSpace  = AnnotationCoordinateSpaceEnum::VIEWPORT;
     m_name             = "";
     m_tabOrWindowIndex = -1;
+    m_spacerTabIndex = SpacerTabIndex();
     
     m_displayGroupAndTabItemHelper = new DisplayGroupAndTabItemHelper();
     
@@ -263,6 +272,10 @@ AnnotationGroup::getName() const
         switch (m_coordinateSpace) {
             case AnnotationCoordinateSpaceEnum::CHART:
                 break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
+                spaceName.append(" "
+                                 + m_spacerTabIndex.getWindowRowColumnGuiText());
+                break;
             case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
@@ -312,6 +325,15 @@ int32_t
 AnnotationGroup::getTabOrWindowIndex() const
 {
     return m_tabOrWindowIndex;
+}
+
+/**
+ * Index of a spacer tab.
+ */
+SpacerTabIndex
+AnnotationGroup::getSpacerTabIndex() const
+{
+    return m_spacerTabIndex;
 }
 
 /**
@@ -424,6 +446,13 @@ AnnotationGroup::validateAddedAnnotation(const Annotation* annotation)
     
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            if (m_spacerTabIndex != annotation->getSpacerTabIndex()) {
+                CaretLogSevere("Attempting to add anntation with non-matching spacer tab index");
+                CaretAssert(0);
+                return false;
+            }
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;

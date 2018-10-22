@@ -49,6 +49,8 @@ namespace caret {
         
         virtual AString getTabNamePrefix() const override;
         
+        SpacerTabIndex getSpacerTabIndex() const;
+        
         int32_t getWindowIndex() const;
         
         int32_t getRowIndex() const;

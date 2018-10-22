@@ -369,24 +369,26 @@ AnnotationOneDimensionalShape::setRotationAngle(const float viewportWidth,
 bool
 AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTypeEnum::Enum sizingHandle) const
 {
-    bool chartFlag       = false;
-    bool tabWindowFlag   = false;
+    bool xyPlaneFlag = false;
     
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
-            chartFlag = true;
+            xyPlaneFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            xyPlaneFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             break;
         case AnnotationCoordinateSpaceEnum::TAB:
-            tabWindowFlag = true;
+            xyPlaneFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::VIEWPORT:
             break;
         case AnnotationCoordinateSpaceEnum::WINDOW:
-            tabWindowFlag = true;
+            xyPlaneFlag = true;
             break;
     }
     
@@ -416,13 +418,12 @@ AnnotationOneDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
             validFlag = true;
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-            if (chartFlag
-                || tabWindowFlag) {
+            if (xyPlaneFlag) {
                 validFlag = true;
             }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
-            if (tabWindowFlag) {
+            if (xyPlaneFlag) {
                 validFlag = true;
             }
             break;
@@ -514,6 +515,21 @@ AnnotationOneDimensionalShape::applySpatialModificationSurfaceSpace(const Annota
     
     return validFlag;
 }
+
+/**
+ * Apply a spatial modification to an annotation in spacer tab space.
+ *
+ * @param spatialModification
+ *     Contains information about the spatial modification.
+ * @return
+ *     True if the annotation was modified, else false.
+ */
+bool
+AnnotationOneDimensionalShape::applySpatialModificationSpacerTabSpace(const AnnotationSpatialModification& spatialModification)
+{
+    return applySpatialModificationTabOrWindowSpace(spatialModification);
+}
+
 
 /**
  * Apply a spatial modification to an annotation in tab or window space.
@@ -791,6 +807,9 @@ AnnotationOneDimensionalShape::applySpatialModification(const AnnotationSpatialM
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
             return applySpatialModificationChartSpace(spatialModification);
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            return applySpatialModificationSpacerTabSpace(spatialModification);
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             return applySpatialModificationStereotaxicSpace(spatialModification);

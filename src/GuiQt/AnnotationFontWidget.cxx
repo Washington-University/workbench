@@ -393,6 +393,8 @@ AnnotationFontWidget::updateFontSizeControls()
             switch (ann->getCoordinateSpace()) {
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
+                case AnnotationCoordinateSpaceEnum::SPACER:
+                    break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     sizeValue /= surfaceMontageRowCount;
                     break;

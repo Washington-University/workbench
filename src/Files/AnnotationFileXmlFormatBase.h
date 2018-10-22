@@ -92,6 +92,8 @@ namespace caret {
         
         static const QString ATTRIBUTE_ROTATION_ANGLE;
         
+        static const QString ATTRIBUTE_SPACER_TAB_INDEX;
+        
         static const QString ATTRIBUTE_TAB_INDEX;
         
         static const QString ATTRIBUTE_TAB_OR_WINDOW_INDEX;
@@ -211,6 +213,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_LINE_START_ARROW = "startArrow";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_ROTATION_ANGLE = "rotationAngle";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_SPACER_TAB_INDEX = "spacerTabIndex";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TAB_INDEX = "tabIndex";
     

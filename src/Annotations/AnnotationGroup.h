@@ -28,6 +28,7 @@
 #include "CaretObjectTracksModification.h"
 #include "DisplayGroupAndTabItemInterface.h"
 #include "SceneableInterface.h"
+#include "SpacerTabIndex.h"
 
 
 namespace caret {
@@ -42,7 +43,8 @@ namespace caret {
                         const AnnotationGroupTypeEnum::Enum groupType,
                         const int32_t uniqueKey,
                         const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
-                        const int32_t tabOrWindowIndex);
+                        const int32_t tabOrWindowIndex,
+                        const SpacerTabIndex& spacerTabIndex);
         
         virtual ~AnnotationGroup();
 
@@ -61,6 +63,8 @@ namespace caret {
         AnnotationCoordinateSpaceEnum::Enum getCoordinateSpace() const;
         
         int32_t getTabOrWindowIndex() const;
+        
+        SpacerTabIndex getSpacerTabIndex() const;
         
         int32_t getNumberOfAnnotations() const;
         
@@ -172,6 +176,8 @@ namespace caret {
         AnnotationGroupKey m_groupKey;
         
         AnnotationCoordinateSpaceEnum::Enum m_coordinateSpace;
+        
+        SpacerTabIndex m_spacerTabIndex;
         
         int32_t m_tabOrWindowIndex;
         
