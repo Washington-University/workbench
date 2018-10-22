@@ -542,6 +542,7 @@ AnnotationArrangerExecutor::getAnnotationsForArranging(const AnnotationArrangerI
     annotationsOut.clear();
     
     std::vector<AnnotationCoordinateSpaceEnum::Enum> spaces;
+    spaces.push_back(AnnotationCoordinateSpaceEnum::SPACER);
     spaces.push_back(AnnotationCoordinateSpaceEnum::TAB);
     spaces.push_back(AnnotationCoordinateSpaceEnum::WINDOW);
     
