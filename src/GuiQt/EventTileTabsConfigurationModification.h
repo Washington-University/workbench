@@ -31,6 +31,8 @@
 
 namespace caret {
 
+    class TileTabsConfiguration;
+    
     class EventTileTabsConfigurationModification : public Event {
         
     public:
@@ -53,7 +55,8 @@ namespace caret {
             MOVE_BEFORE
         };
         
-        EventTileTabsConfigurationModification(const int32_t rowColumnIndex,
+        EventTileTabsConfigurationModification(TileTabsConfiguration* tileTabsConfiguration,
+                                               const int32_t rowColumnIndex,
                                                const RowColumnType rowColumnType,
                                                const Operation operation);
         
@@ -62,6 +65,8 @@ namespace caret {
         EventTileTabsConfigurationModification(const EventTileTabsConfigurationModification&) = delete;
 
         EventTileTabsConfigurationModification& operator=(const EventTileTabsConfigurationModification&) = delete;
+        
+        TileTabsConfiguration* getTileTabsConfiguration();
         
         int32_t getRowColumnIndex() const;
         
@@ -76,6 +81,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        TileTabsConfiguration* m_tileTabsConfiguration;
+        
         const int32_t m_rowColumnIndex;
         
         const RowColumnType m_rowColumnType;

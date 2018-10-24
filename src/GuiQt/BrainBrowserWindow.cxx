@@ -104,6 +104,7 @@
 #include "SurfaceMontageConfigurationAbstract.h"
 #include "SurfaceSelectionViewController.h"
 #include "TileTabsConfiguration.h"
+#include "TileTabsConfigurationModifier.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQMessageBox.h"
@@ -2350,6 +2351,32 @@ void
 BrainBrowserWindow::modifyTileTabsConfiguration(EventTileTabsConfigurationModification* modEvent)
 {
     CaretAssert(modEvent);
+    
+    if (modEvent->getWindowIndex() != m_browserWindowIndex) {
+        return;
+    }
+    
+    std::vector<const BrainOpenGLViewportContent*> vpContent;
+    if (isTileTabsSelected()) {
+        vpContent = m_openGLWidget->getViewportContent();
+    }
+    
+    TileTabsConfigurationModifier modifier(vpContent,
+                                           modEvent);
+    
+    AString errorMessage;
+    if (! modifier.run(errorMessage)) {
+        WuQMessageBox::errorOk(this, errorMessage);
+    }
+    
+    /*
+     * Update graphics and GUI
+     */
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+
+    modEvent->setEventProcessed();
 }
 
 /**

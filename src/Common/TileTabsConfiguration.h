@@ -126,8 +126,6 @@ namespace caret {
         /** Unique identifier does not get copied */
         AString m_uniqueIdentifier;
         
-        std::vector<float> m_columnStretchFactors;
-
         std::vector<TileTabsRowColumnElement> m_columns;
         
         std::vector<TileTabsRowColumnElement> m_rows;

@@ -488,7 +488,8 @@ TileTabsConfigurationDialog::addRowColumnStretchWidget(const EventTileTabsConfig
         }
     }
     
-    TileTabElementWidgets* elementWidget = new TileTabElementWidgets(rowColumnType,
+    TileTabElementWidgets* elementWidget = new TileTabElementWidgets(this,
+                                                                     rowColumnType,
                                                                      index,
                                                                      gridLayout,
                                                                      this);
@@ -996,6 +997,10 @@ TileTabsConfigurationDialog::updateGraphicsWindow()
 /**
  * Constructor.
  *
+ * @param tileTabsConfigurationDialog
+ *    The tile tabs configuration dialog.
+ * @param rowColumnType
+ *    'Row' or 'Column'
  * @param index
  *    Index of the row/column
  * @param gridLayout
@@ -1003,11 +1008,13 @@ TileTabsConfigurationDialog::updateGraphicsWindow()
  * @param parent
  *    Parent QObject
  */
-TileTabElementWidgets::TileTabElementWidgets(const EventTileTabsConfigurationModification::RowColumnType rowColumnType,
+TileTabElementWidgets::TileTabElementWidgets(TileTabsConfigurationDialog* tileTabsConfigurationDialog,
+                                             const EventTileTabsConfigurationModification::RowColumnType rowColumnType,
                                              const int32_t index,
                                              QGridLayout* gridLayout,
                                              QObject* parent)
 : QObject(parent),
+m_tileTabsConfigurationDialog(tileTabsConfigurationDialog),
 m_rowColumnType(rowColumnType),
 m_index(index),
 m_element(NULL)
@@ -1201,10 +1208,11 @@ TileTabElementWidgets::constructionMenuTriggered(QAction* action)
             case EventTileTabsConfigurationModification::Operation::MOVE_BEFORE:
                 break;
         }
-
-        EventTileTabsConfigurationModification modification(m_index,
-                                                       m_rowColumnType,
-                                                       operation);
+        
+        EventTileTabsConfigurationModification modification(m_tileTabsConfigurationDialog->getCustomTileTabsConfiguration(),
+                                                            m_index,
+                                                            m_rowColumnType,
+                                                            operation);
         emit modificationRequested(modification);
     }
     

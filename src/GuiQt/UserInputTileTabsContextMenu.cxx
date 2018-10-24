@@ -125,10 +125,12 @@ UserInputTileTabsContextMenu::actionTriggered(QAction* action)
     }
 
     if (validOperationFlag) {
+        std::vector<BrowserTabContent*> emptyBrowserTabs;
         EventBrowserWindowTileTabOperation tileTabOperation(operation,
                                                             m_parentWidget,
                                                             m_windowIndex,
-                                                            m_tabIndex);
+                                                            m_tabIndex,
+                                                            emptyBrowserTabs);
         EventManager::get()->sendEvent(tileTabOperation.getPointer());
     }
 }

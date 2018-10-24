@@ -54,16 +54,30 @@ using namespace caret;
 EventBrowserWindowTileTabOperation::EventBrowserWindowTileTabOperation(const Operation operation,
                                                                        QWidget* parentWidget,
                                                                        const int32_t windowIndex,
-                                                                       const int32_t browserTabIndex)
+                                                                       const int32_t browserTabIndex,
+                                                                       const std::vector<BrowserTabContent*>& browserTabsForReplaceOperation)
 : Event(EventTypeEnum::EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION),
 m_operation(operation),
 m_parentWidget(parentWidget),
 m_windowIndex(windowIndex),
-m_browserTabIndex(browserTabIndex)
+m_browserTabIndex(browserTabIndex),
+m_browserTabsForReplaceOperation(browserTabsForReplaceOperation)
 {
     CaretAssert(m_parentWidget);
     CaretAssert(m_windowIndex >= 0);
-    CaretAssert(m_browserTabIndex >= 0);
+    switch (m_operation) {
+        case OPERATION_NEW_TAB_AFTER:
+            CaretAssert(m_browserTabIndex >= 0);
+            break;
+        case OPERATION_NEW_TAB_BEFORE:
+            CaretAssert(m_browserTabIndex >= 0);
+            break;
+        case OPERATION_REPLACE_TABS:
+            break;
+        case OPERATION_SELECT_TAB:
+            CaretAssert(m_browserTabIndex >= 0);
+            break;
+    }
 }
 
 /**
@@ -88,10 +102,12 @@ EventBrowserWindowTileTabOperation::selectTabInWindow(QWidget* parentWidget,
                                                       const int32_t windowIndex,
                                                       const int32_t browserTabIndex)
 {
+    std::vector<BrowserTabContent*> emptyBrowserTabs;
     EventBrowserWindowTileTabOperation tabOperation(Operation::OPERATION_SELECT_TAB,
                                                     parentWidget,
                                                     windowIndex,
-                                                    browserTabIndex);
+                                                    browserTabIndex,
+                                                    emptyBrowserTabs);
     
     EventManager::get()->sendEvent(tabOperation.getPointer());
     
@@ -126,6 +142,15 @@ int32_t
 EventBrowserWindowTileTabOperation::getBrowserTabIndex() const
 {
     return m_browserTabIndex;
+}
+
+/**
+ * @return Get the browser tabs for a replace tabs operation.
+ */
+const std::vector<BrowserTabContent*>
+EventBrowserWindowTileTabOperation::getBrowserTabsForReplaceOperation() const
+{
+    return m_browserTabsForReplaceOperation;
 }
 
 

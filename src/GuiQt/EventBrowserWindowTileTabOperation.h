@@ -24,6 +24,7 @@
 
 
 #include <memory>
+#include <vector>
 
 #include "Event.h"
 
@@ -31,6 +32,8 @@ class QWidget;
 
 namespace caret {
 
+    class BrowserTabContent;
+    
     class EventBrowserWindowTileTabOperation : public Event {
         
     public:
@@ -40,13 +43,15 @@ namespace caret {
         enum Operation {
             OPERATION_NEW_TAB_AFTER,
             OPERATION_NEW_TAB_BEFORE,
+            OPERATION_REPLACE_TABS,
             OPERATION_SELECT_TAB
         };
         
         EventBrowserWindowTileTabOperation(const Operation operation,
                                            QWidget* parentWidget,
                                            const int32_t windowIndex,
-                                           const int32_t browserTabIndex);
+                                           const int32_t browserTabIndex,
+                                           const std::vector<BrowserTabContent*>& browserTabsForReplaceOperation);
         
         virtual ~EventBrowserWindowTileTabOperation();
 
@@ -55,6 +60,8 @@ namespace caret {
         int32_t getWindowIndex() const;
         
         int32_t getBrowserTabIndex() const;
+        
+        const std::vector<BrowserTabContent*> getBrowserTabsForReplaceOperation() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -70,6 +77,8 @@ namespace caret {
         const int32_t m_windowIndex;
         
         const int32_t m_browserTabIndex;
+        
+        const std::vector<BrowserTabContent*> m_browserTabsForReplaceOperation;
         
         // ADD_NEW_MEMBERS_HERE
 

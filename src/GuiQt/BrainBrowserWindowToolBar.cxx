@@ -660,6 +660,79 @@ BrainBrowserWindowToolBar::addNewTabWithContent(BrowserTabContent* tabContent)
 }
 
 /**
+ * Replace the current browser tabs with the given browser tabs.  Tabs will be added
+ * or removed as needed.
+ *
+ * @param browserTabs
+ *     Browser tabs for this window.
+ */
+void
+BrainBrowserWindowToolBar::replaceBrowserTabs(const std::vector<BrowserTabContent*>& browserTabs)
+{
+    const int32_t numTabs = static_cast<int32_t>(browserTabs.size());
+    if (numTabs <= 0) {
+        return;
+    }
+    
+    QSignalBlocker blocker(this->tabBar);
+    
+    int32_t selectedTabIndex = this->tabBar->currentIndex();
+
+    /*
+     * Remove BrowserTabContent from all tabs since tabs may be
+     * closed and closing the tab will try to delete the BrowserTabContent
+     * in the tab but this BrowserTabContent may still be valid.
+     */
+    const int32_t beforeNumTabs = this->tabBar->count();
+    for (int32_t iTab = 0; iTab < beforeNumTabs; iTab++) {
+        this->tabBar->setTabData(iTab,
+                                 qVariantFromValue((void*)NULL));
+    }
+    
+    /*
+     * Add/remove tabs as needed
+     */
+    if (beforeNumTabs < numTabs) {
+        const int32_t numToAdd = numTabs - beforeNumTabs;
+        for (int32_t i = 0; i < numToAdd; i++) {
+            this->tabBar->addTab("");
+        }
+    }
+    else if (beforeNumTabs > numTabs) {
+        const int32_t numToRemove = beforeNumTabs - numTabs;
+        for (int32_t i = 0; i < numToRemove; i++) {
+            const int32_t lastTabIndex = this->tabBar->count() - 1;
+            this->tabBar->removeTab(lastTabIndex);
+        }
+    }
+    CaretAssert(this->tabBar->count() == numTabs);
+    
+    /*
+     * Set content and update name for each tab
+     */
+    for (int32_t iTab = 0; iTab < numTabs; iTab++) {
+        CaretAssertVectorIndex(browserTabs, iTab);
+        BrowserTabContent* btc = browserTabs[iTab];
+        CaretAssert(btc);
+        this->tabBar->setTabData(iTab,
+                                 qVariantFromValue((void*)btc));
+        this->updateTabName(iTab);
+    }
+    
+    
+    const int32_t numOpenTabs = this->tabBar->count();
+    this->tabBar->setTabsClosable(numOpenTabs > 1);
+    
+    if (selectedTabIndex >= numTabs) {
+        selectedTabIndex = numTabs - 1;
+    }
+    if (selectedTabIndex < 0) {
+        selectedTabIndex = 0;
+    }
+    this->tabBar->setCurrentIndex(selectedTabIndex);
+}
+
+/**
  * Adds a new tab.
  */
 void
@@ -746,31 +819,6 @@ BrainBrowserWindowToolBar::insertTabContentPrivate(const InsertTabMode insertTab
                 newTabIndex = this->tabBar->insertTab(tabBarIndex,
                                                       "NewTab");
             }
-            break;
-        case InsertTabMode::AT_TAB_CONTENTS_INDEX:
-        {
-            const int32_t tabContentIndex = browserTabContent->getTabNumber();
-            
-            const int32_t numTabs = this->tabBar->count();
-            if (numTabs <= 0) {
-                newTabIndex = this->tabBar->addTab("NewTab");
-            }
-            else {
-                int insertIndex = 0;
-                for (int32_t i = 0; i < numTabs; i++) {
-                    if (tabContentIndex > this->getTabContentFromTab(i)->getTabNumber()) {
-                        insertIndex = i + 1;
-                    }
-                }
-                if (insertIndex >= numTabs) {
-                    newTabIndex = this->tabBar->addTab("NewTab");
-                }
-                else {
-                    this->tabBar->insertTab(insertIndex, "NewTab");
-                    newTabIndex = insertIndex;
-                }
-            }
-        }
             break;
     }
     
@@ -4141,21 +4189,28 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         if (tileTabsEvent->getWindowIndex() == this->browserWindowIndex) {
             const int32_t browserTabIndex = tileTabsEvent->getBrowserTabIndex();
             int32_t tabBarIndex = getTabBarIndexWithBrowserTabIndex(browserTabIndex);
-            if (tabBarIndex >= 0) {
-                const EventBrowserWindowTileTabOperation::Operation operation = tileTabsEvent->getOperation();
-                switch (operation) {
-                    case EventBrowserWindowTileTabOperation::OPERATION_NEW_TAB_AFTER:
+            const EventBrowserWindowTileTabOperation::Operation operation = tileTabsEvent->getOperation();
+            switch (operation) {
+                case EventBrowserWindowTileTabOperation::OPERATION_NEW_TAB_AFTER:
+                    if (tabBarIndex >= 0) {
                         insertNewTabAtTabBarIndex(tabBarIndex + 1);
-                        break;
-                    case EventBrowserWindowTileTabOperation::OPERATION_NEW_TAB_BEFORE:
+                    }
+                    break;
+                case EventBrowserWindowTileTabOperation::OPERATION_NEW_TAB_BEFORE:
+                    if (tabBarIndex >= 0) {
                         insertNewTabAtTabBarIndex(tabBarIndex);
-                        break;
-                    case EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB:
+                    }
+                    break;
+                case EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB:
+                    if (tabBarIndex >= 0) {
                         m_tileTabsHighlightingTimerEnabledFlag = false;
                         this->tabBar->setCurrentIndex(tabBarIndex);
                         m_tileTabsHighlightingTimerEnabledFlag = true;
-                        break;
-                }
+                    }
+                    break;
+                case EventBrowserWindowTileTabOperation::OPERATION_REPLACE_TABS:
+                    replaceBrowserTabs(tileTabsEvent->getBrowserTabsForReplaceOperation());
+                    break;
             }
             
             tileTabsEvent->setEventProcessed();

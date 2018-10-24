@@ -261,8 +261,7 @@ namespace caret {
     private:
         enum class InsertTabMode {
             APPEND,
-            AT_TAB_BAR_INDEX,
-            AT_TAB_CONTENTS_INDEX
+            AT_TAB_BAR_INDEX
         };
         
         bool allowAddingNewTab();
@@ -277,6 +276,7 @@ namespace caret {
         void insertNewTabAtTabBarIndex(int32_t tabBarIndex);
         void insertAndCloneTabContentAtTabBarIndex(const BrowserTabContent* tabContentToBeCloned,
                                                  const int32_t tabBarIndex);
+        void replaceBrowserTabs(const std::vector<BrowserTabContent*>& browserTabs);
         
         BrowserTabContent* createNewTab(AString& errorMessage);
         

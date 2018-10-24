@@ -33,16 +33,27 @@ using namespace caret;
 /**
  * \class caret::EventTileTabsConfigurationModification 
  * \brief Event for modifying a tile tabs configuration.
- * \ingroup Common
+ * \ingroup GuiQt
  */
 
 /**
  * Constructor.
+ * 
+ * @param tileTabsConfiguration
+ *     Tile tabs configuration that will be modified
+ * @param rowColumnIndex
+ *     Index of the row or column used for modification
+ * @param rowColumnType
+ *     'Row' or "Column' type
+ * @param operation
+ *     Enumerated type with type of modification.
  */
-EventTileTabsConfigurationModification::EventTileTabsConfigurationModification(const int32_t rowColumnIndex,
+EventTileTabsConfigurationModification::EventTileTabsConfigurationModification(TileTabsConfiguration* tileTabsConfiguration,
+                                                                               const int32_t rowColumnIndex,
                                                                                const RowColumnType rowColumnType,
                                                                                const Operation operation)
 : Event(EventTypeEnum::EVENT_TILE_TABS_MODIFICATION),
+m_tileTabsConfiguration(tileTabsConfiguration),
 m_rowColumnIndex(rowColumnIndex),
 m_rowColumnType(rowColumnType),
 m_operation(operation),
@@ -57,6 +68,16 @@ m_windowIndex(-1)
 EventTileTabsConfigurationModification::~EventTileTabsConfigurationModification()
 {
 }
+
+/**
+ * @return Tile tabs configuration that is modified.
+ */
+TileTabsConfiguration*
+EventTileTabsConfigurationModification::getTileTabsConfiguration()
+{
+    return m_tileTabsConfiguration;
+}
+
 
 /**
  * @return Index of the window.

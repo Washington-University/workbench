@@ -343,6 +343,7 @@ EventOperatingSystemRequestOpenDataFile.h
 EventOverlaySettingsEditorDialogRequest.h
 EventPaletteColorMappingEditorDialogRequest.h
 EventShowDataFileReadWarningsDialog.h
+EventTileTabsConfigurationModification.h
 EventUpdateInformationWindows.h
 EventUpdateVolumeEditingToolBar.h
 EventUpdateYokedWindows.h
@@ -415,6 +416,7 @@ SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 ThresholdingSetMapsDialog.h
 TileTabsConfigurationDialog.h
+TileTabsConfigurationModifier.h
 UserInputModeAbstract.h
 UserInputModeAnnotations.h
 UserInputModeAnnotationsContextMenu.h
@@ -575,6 +577,7 @@ EventOperatingSystemRequestOpenDataFile.cxx
 EventOverlaySettingsEditorDialogRequest.cxx
 EventPaletteColorMappingEditorDialogRequest.cxx
 EventShowDataFileReadWarningsDialog.cxx
+EventTileTabsConfigurationModification.cxx
 EventUpdateInformationWindows.cxx
 EventUpdateVolumeEditingToolBar.cxx
 EventUpdateYokedWindows.cxx
@@ -647,6 +650,7 @@ SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
 ThresholdingSetMapsDialog.cxx
 TileTabsConfigurationDialog.cxx
+TileTabsConfigurationModifier.cxx
 UserInputModeAbstract.cxx
 UserInputModeAnnotations.cxx
 UserInputModeAnnotationsContextMenu.cxx

@@ -177,6 +177,8 @@ namespace caret {
          */
         CaretPreferences* m_caretPreferences;
         
+        friend class TileTabElementWidgets;
+        
         static const int32_t s_maximumRowsColumns = 50;
     };
     
@@ -188,7 +190,8 @@ namespace caret {
         Q_OBJECT
         
     public:
-        TileTabElementWidgets(const EventTileTabsConfigurationModification::RowColumnType rowColumnType,
+        TileTabElementWidgets(TileTabsConfigurationDialog* tileTabsConfigurationDialog,
+                              const EventTileTabsConfigurationModification::RowColumnType rowColumnType,
                               const int32_t index,
                               QGridLayout* gridLayout,
                               QObject* parent);
@@ -216,6 +219,7 @@ namespace caret {
     private:
         QMenu* createConstructionMenu(QToolButton* toolButton);
         
+        TileTabsConfigurationDialog* m_tileTabsConfigurationDialog;
         const EventTileTabsConfigurationModification::RowColumnType m_rowColumnType;
         const int32_t m_index;
         TileTabsRowColumnElement* m_element;

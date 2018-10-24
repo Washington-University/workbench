@@ -105,7 +105,6 @@ EventListenerInterface.h
 EventManager.h
 EventPaletteGetByName.h
 EventProgressUpdate.h
-EventTileTabsConfigurationModification.h
 EventTypeEnum.h
 FastStatistics.h
 FileAdapter.h
@@ -211,7 +210,6 @@ EventListenerInterface.cxx
 EventManager.cxx
 EventPaletteGetByName.cxx
 EventProgressUpdate.cxx
-EventTileTabsConfigurationModification.cxx
 EventTypeEnum.cxx
 FastStatistics.cxx
 FileAdapter.cxx
