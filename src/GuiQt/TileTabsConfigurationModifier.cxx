@@ -41,7 +41,7 @@
 
 using namespace caret;
 
-
+static bool debugFlag = false;
     
 /**
  * \class caret::TileTabsConfigurationModifier 
@@ -86,7 +86,14 @@ TileTabsConfigurationModifier::~TileTabsConfigurationModifier()
 AString 
 TileTabsConfigurationModifier::toString() const
 {
-    return "TileTabsConfigurationModifier";
+    AString s;
+    for (const auto rc : m_rowColumns) {
+        if ( ! s.isEmpty()) {
+            s.append("\n");
+        }
+        s.append(rc->toString());
+    }
+    return s;
 }
 
 /**
@@ -103,8 +110,13 @@ TileTabsConfigurationModifier::run(AString& errorMessageOut)
     errorMessageOut.clear();
     
     loadRowColumnsFromTileTabsConfiguration();
-    
+    if (debugFlag) {
+        std::cout << "Loaded: " << toString() << std::endl;
+    }
     bool validFlag = performModification(errorMessageOut);
+    if (debugFlag) {
+        std::cout << "After Modification: " << toString() << std::endl << std::endl;
+    }
     
     if (validFlag) {
         validFlag = loadRowColumnsIntoTileTabsConfiguration(errorMessageOut);
@@ -226,19 +238,43 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
 bool
 TileTabsConfigurationModifier::loadRowColumnsIntoTileTabsConfiguration(AString& errorMessageOut)
 {
-    TileTabsConfiguration newConfiguration;
+    TileTabsConfiguration newConfiguration(*m_currentTileTabsConfiguration);
     std::vector<BrowserTabContent*> browserTabs;
     
     switch (m_modifyEvent->getRowColumnType()) {
         case EventTileTabsConfigurationModification::RowColumnType::COLUMN:
         {
+            const int32_t numRows = static_cast<int32_t>(m_rowColumns[0]->m_tabElements.size());
+            CaretAssert(numRows == m_currentTileTabsConfiguration->getNumberOfRows());
+            const int32_t numColumns = static_cast<int32_t>(m_rowColumns.size());
             
+            newConfiguration.setNumberOfRows(numRows);
+            newConfiguration.setNumberOfColumns(numColumns);
+            
+            for (int32_t iRow = 0; iRow < numRows; iRow++) {
+                for (int32_t jCol = 0; jCol < numColumns; jCol++) {
+                    RowColumnContent* columnContent = m_rowColumns[jCol];
+                    CaretAssertVectorIndex(columnContent->m_tabElements, iRow);
+                    BrowserTabContent* btc = columnContent->m_tabElements[iRow]->m_browserTabContent;
+                    if (btc != NULL) {
+                        browserTabs.push_back(btc);
+                    }
+                }
+            }
+            
+            for (int32_t jCol = 0; jCol < numColumns; jCol++) {
+                TileTabsRowColumnElement* rce = newConfiguration.getColumn(jCol);
+                CaretAssertVectorIndex(m_rowColumns, jCol);
+                CaretAssert(m_rowColumns[jCol]->m_stretching);
+                *rce = *m_rowColumns[jCol]->m_stretching;
+            }
         }
             break;
         case EventTileTabsConfigurationModification::RowColumnType::ROW:
         {
             const int32_t numRows = static_cast<int32_t>(m_rowColumns.size());
             const int32_t numColumns = static_cast<int32_t>(m_rowColumns[0]->m_tabElements.size());
+            CaretAssert(numColumns == m_currentTileTabsConfiguration->getNumberOfColumns());
             
             newConfiguration.setNumberOfRows(numRows);
             newConfiguration.setNumberOfColumns(numColumns);
@@ -248,7 +284,7 @@ TileTabsConfigurationModifier::loadRowColumnsIntoTileTabsConfiguration(AString& 
                 RowColumnContent* rowContent = m_rowColumns[iRow];
                 for (int32_t jCol = 0; jCol < numColumns; jCol++) {
                     CaretAssertVectorIndex(rowContent->m_tabElements, jCol);
-                    BrowserTabContent* btc = m_rowColumns[iRow]->m_tabElements[jCol]->m_browserTabContent;
+                    BrowserTabContent* btc = rowContent->m_tabElements[jCol]->m_browserTabContent;
                     if (btc != NULL) {
                         browserTabs.push_back(btc);
                     }
@@ -329,7 +365,16 @@ m_browserTabContent(browserTabContent)
     
 }
 
-
+/**
+ * @return String representation of object.
+ */
+AString
+TileTabsConfigurationModifier::Element::toString() const 
+{
+    AString s("(row=%1, column=%2)");
+    s = s.arg(m_sourceRowIndex).arg(m_sourceColumnIndex);
+    return s;
+}
 
 /*
  * Constructor for content of a row/column element that
@@ -403,4 +448,16 @@ TileTabsConfigurationModifier::RowColumnContent::~RowColumnContent()
     m_stretching = NULL;
 }
 
+/**
+ * @return String representation of object.
+ */
+AString
+TileTabsConfigurationModifier::RowColumnContent::toString() const
+{
+    AString s;
+    for (const auto te : m_tabElements) {
+        s += (" " + te->toString());
+    }
+    return s;
+}
 

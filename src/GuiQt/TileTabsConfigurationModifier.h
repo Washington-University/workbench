@@ -63,6 +63,8 @@ namespace caret {
                     const int32_t columnIndex,
                     BrowserTabContent* browserTabContent);
             
+            AString toString() const override;
+            
             int32_t m_targetRowIndex;
             
             int32_t m_targetColumnIndex;
@@ -86,6 +88,8 @@ namespace caret {
                              const bool rowFlag);
             
             ~RowColumnContent();
+            
+            AString toString() const override;
             
             std::vector<Element*> m_tabElements;
             
