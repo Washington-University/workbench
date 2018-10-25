@@ -1224,6 +1224,26 @@ TileTabElementWidgets::constructionMenuTriggered(QAction* action)
 void
 TileTabElementWidgets::constructionMenuAboutToShow()
 {
+    const TileTabsConfiguration* config = m_tileTabsConfigurationDialog->getCustomTileTabsConfiguration();
+    if (config != NULL) {
+        int32_t numItems(-1);
+        switch (m_rowColumnType) {
+            case EventTileTabsConfigurationModification::RowColumnType::COLUMN:
+                numItems = config->getNumberOfColumns();
+                break;
+            case EventTileTabsConfigurationModification::RowColumnType::ROW:
+                numItems = config->getNumberOfRows();
+                break;
+        }
+        
+        m_menuDeleteAction->setEnabled(numItems > 1);
+        m_menuDuplicateAfterAction->setEnabled(numItems >= 1);
+        m_menuDuplicateBeforeAction->setEnabled(numItems >= 1);
+        m_menuMoveAfterAction->setEnabled((numItems > 1)
+                                          && (m_index < (numItems - 1)));
+        m_menuMoveBeforeAction->setEnabled((numItems > 1)
+                                           && (m_index > 0));
+    }
 }
 
 
