@@ -30,6 +30,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventBrowserTabDelete.h"
+#include "EventBrowserTabNew.h"
 #include "EventBrowserWindowTileTabOperation.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
@@ -41,7 +42,7 @@
 
 using namespace caret;
 
-static bool debugFlag = true;
+static bool debugFlag = false;
     
 /**
  * \class caret::TileTabsConfigurationModifier 
@@ -199,8 +200,34 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
             }
             break;
         case EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER:
+            if ((rowColumnIndex >= 0)
+                && (rowColumnIndex < numRowColumns)) {
+                RowColumnContent* rowColumnCopy = m_rowColumns[rowColumnIndex]->clone(errorMessageOut);
+                if (rowColumnCopy != NULL) {
+                    const int32_t insertOffset = (rowColumnIndex + 1);
+                    m_rowColumns.insert(m_rowColumns.begin() +
+                                        insertOffset,
+                                        rowColumnCopy);
+                }
+            }
+            else {
+                errorMessageOut = "Invalid ROWCOL index=RCINDEX when duplicating";
+            }
             break;
         case EventTileTabsConfigurationModification::Operation::DUPLICATE_BEFORE:
+            if ((rowColumnIndex >= 0)
+                && (rowColumnIndex < numRowColumns)) {
+                RowColumnContent* rowColumnCopy = m_rowColumns[rowColumnIndex]->clone(errorMessageOut);
+                if (rowColumnCopy != NULL) {
+                    const int32_t insertOffset = rowColumnIndex;
+                    m_rowColumns.insert(m_rowColumns.begin() +
+                                        insertOffset,
+                                        rowColumnCopy);
+                }
+            }
+            else {
+                errorMessageOut = "Invalid ROWCOL index=RCINDEX when duplicating";
+            }
             break;
         case EventTileTabsConfigurationModification::Operation::MOVE_AFTER:
             if (numRowColumns <= 1) {
@@ -484,6 +511,21 @@ TileTabsConfigurationModifier::RowColumnContent::~RowColumnContent()
 }
 
 /**
+ * Copy constructor.
+ *
+ * @param obj
+ *     Instance that is copied.
+ */
+TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const RowColumnContent& obj)
+{
+    for (auto te : obj.m_tabElements) {
+        m_tabElements.push_back(new Element(*te));
+    }
+    
+    m_stretching = new TileTabsRowColumnElement(*obj.m_stretching);
+}
+
+/**
  * @return String representation of object.
  */
 AString
@@ -494,5 +536,38 @@ TileTabsConfigurationModifier::RowColumnContent::toString() const
         s += (" " + te->toString());
     }
     return s;
+}
+
+/**
+ * Clone this Row/column content instance.
+ *
+ * @param errorMessageOut
+ *     Output with error message.
+ * @return
+ *     True if successful, else false
+ */
+TileTabsConfigurationModifier::RowColumnContent*
+TileTabsConfigurationModifier::RowColumnContent::clone(AString& errorMessageOut) const
+{
+    RowColumnContent* cloned = new RowColumnContent(*this);
+    CaretAssert(cloned);
+    
+    for (auto te : cloned->m_tabElements) {
+        if (te->m_browserTabContent != NULL) {
+            EventBrowserTabNew newTabEvent;
+            EventManager::get()->sendEvent(newTabEvent.getPointer());
+            if (newTabEvent.isError()) {
+                errorMessageOut.appendWithNewLine(newTabEvent.getErrorMessage());
+                te->m_browserTabContent = NULL;
+            }
+            else {
+                BrowserTabContent* copyTab = te->m_browserTabContent;
+                te->m_browserTabContent = newTabEvent.getBrowserTab();
+                te->m_browserTabContent->cloneBrowserTabContent(copyTab);
+            }
+        }
+    }
+
+    return cloned;
 }
 

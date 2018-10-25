@@ -87,7 +87,11 @@ namespace caret {
                              const int32_t rowColumnIndex,
                              const bool rowFlag);
             
+            RowColumnContent(const RowColumnContent& obj);
+            
             ~RowColumnContent();
+            
+            RowColumnContent* clone(AString& errorMessageOut) const;
             
             AString toString() const override;
             
