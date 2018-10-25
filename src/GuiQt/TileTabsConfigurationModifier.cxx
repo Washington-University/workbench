@@ -41,7 +41,7 @@
 
 using namespace caret;
 
-static bool debugFlag = false;
+static bool debugFlag = true;
     
 /**
  * \class caret::TileTabsConfigurationModifier 
@@ -111,11 +111,11 @@ TileTabsConfigurationModifier::run(AString& errorMessageOut)
     
     loadRowColumnsFromTileTabsConfiguration();
     if (debugFlag) {
-        std::cout << "Loaded: " << toString() << std::endl;
+        std::cout << "Loaded: " << toString() << std::endl << std::flush;
     }
     bool validFlag = performModification(errorMessageOut);
     if (debugFlag) {
-        std::cout << "After Modification: " << toString() << std::endl << std::endl;
+        std::cout << "After Modification: " << toString() << std::endl << std::endl << std::flush;
     }
     
     if (validFlag) {
@@ -195,7 +195,7 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
                 }
             }
             else {
-                errorMessageOut = "Invalid ROWCOL index=RCINDEX";
+                errorMessageOut = "Invalid ROWCOL index=RCINDEX when deleting";
             }
             break;
         case EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER:
@@ -203,8 +203,40 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
         case EventTileTabsConfigurationModification::Operation::DUPLICATE_BEFORE:
             break;
         case EventTileTabsConfigurationModification::Operation::MOVE_AFTER:
+            if (numRowColumns <= 1) {
+                errorMessageOut = "Cannot move ROWCOL when there is only one ROWCOL";
+            }
+            else if (rowColumnIndex == (numRowColumns - 1)) {
+                errorMessageOut = "Cannot move last ROWCOL after itself";
+            }
+            else if ((rowColumnIndex >= 0)
+                     && (rowColumnIndex < (numRowColumns - 1))) {
+                CaretAssertVectorIndex(m_rowColumns, rowColumnIndex);
+                CaretAssertVectorIndex(m_rowColumns, rowColumnIndex + 1);
+                std::swap(m_rowColumns[rowColumnIndex],
+                          m_rowColumns[rowColumnIndex + 1]);
+            }
+            else {
+                errorMessageOut = "Invalid ROWCOL index=RCINDEX when moving";
+            }
             break;
         case EventTileTabsConfigurationModification::Operation::MOVE_BEFORE:
+            if (numRowColumns <= 1) {
+                errorMessageOut = "Cannot move ROWCOL when there is only one ROWCOL";
+            }
+            else if (rowColumnIndex == 0) {
+                errorMessageOut = "Cannot move last ROWCOL before itself";
+            }
+            else if ((rowColumnIndex >= 1)
+                     && (rowColumnIndex < numRowColumns)) {
+                CaretAssertVectorIndex(m_rowColumns, rowColumnIndex);
+                CaretAssertVectorIndex(m_rowColumns, rowColumnIndex - 1);
+                std::swap(m_rowColumns[rowColumnIndex],
+                          m_rowColumns[rowColumnIndex - 1]);
+            }
+            else {
+                errorMessageOut = "Invalid ROWCOL index=RCINDEX when moving";
+            }
             break;
     }
 
@@ -219,6 +251,9 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
                 break;
         }
         
+        /*
+         * "substite names"
+         */
         errorMessageOut = errorMessageOut.replace("ROWCOL", nameText);
         errorMessageOut = errorMessageOut.replace("RCINDEX", AString::number(rowColumnIndex + 1));
     }
