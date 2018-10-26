@@ -45,6 +45,7 @@
 #include "EventAnnotationTextSubstitutionInvalidate.h"
 #include "EventBrowserTabDelete.h"
 #include "EventManager.h"
+#include "EventTileTabsConfigurationModification.h"
 #include "GiftiMetaData.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -222,6 +223,9 @@ AnnotationFile::initializeAnnotationFile()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUPING);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
+    
+    /* NEED THIS AFTER Tile Tabs have been modified */
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_TILE_TABS_MODIFICATION);
 }
 
 /**
@@ -476,6 +480,11 @@ AnnotationFile::receiveEvent(Event* event)
         }
         
         textSubEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_TILE_TABS_MODIFICATION) {
+        EventTileTabsConfigurationModification* modEvent = dynamic_cast<EventTileTabsConfigurationModification*>(event);
+        CaretAssert(modEvent);
+        updateSpacerAnnotationsAfterTileTabsModification(modEvent);
     }
 }
 
@@ -2072,4 +2081,208 @@ AnnotationFile::isItemSelectedForEditingInWindow(const int32_t /*windowIndex*/)
      */
     return false;
 }
+
+/**
+ * Update spacer annotations after tile tabs configuration is modified.
+ *
+ * @param modEvent
+ *     The tile tabs modify event.
+ */
+void
+AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTileTabsConfigurationModification* modEvent)
+{
+    const int32_t rowColumnIndex = modEvent->getRowColumnIndex();
+    const bool rowFlag = (modEvent->getRowColumnType() == EventTileTabsConfigurationModification::RowColumnType::ROW);
+    
+    int32_t deleteIndex(-1);
+    int32_t shiftStartIndex(-1);
+    int32_t duplicateFromIndex(-1);
+    int32_t duplicateToIndex(-1);
+    int32_t moveOneIndex(-1);
+    int32_t moveTwoIndex(-1);
+    
+    switch (modEvent->getOperation()) {
+        case EventTileTabsConfigurationModification::Operation::DELETE:
+            deleteIndex     = rowColumnIndex;
+            shiftStartIndex = rowColumnIndex + 1;
+            break;
+        case EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER:
+        {
+            shiftStartIndex = rowColumnIndex + 1;
+            duplicateFromIndex       = rowColumnIndex;
+            duplicateToIndex         = rowColumnIndex + 1;
+        }
+            break;
+        case EventTileTabsConfigurationModification::Operation::DUPLICATE_BEFORE:
+        {
+            shiftStartIndex = rowColumnIndex;
+            duplicateFromIndex       = rowColumnIndex + 1;
+            duplicateToIndex         = rowColumnIndex;
+        }
+            break;
+        case EventTileTabsConfigurationModification::Operation::MOVE_AFTER:
+            moveOneIndex = rowColumnIndex;
+            moveTwoIndex = rowColumnIndex + 1;
+            break;
+        case EventTileTabsConfigurationModification::Operation::MOVE_BEFORE:
+            moveOneIndex = rowColumnIndex;
+            moveTwoIndex = rowColumnIndex - 1;
+            break;
+    }
+
+    std::vector<Annotation*> deleteAnnotations;
+    std::vector<Annotation*> duplicatedAnnotations;
+    std::vector<std::pair<QSharedPointer<AnnotationGroup>, Annotation*>> modifiedAnnotations;
+    
+    std::set<Annotation*> processedAnnotations;
+    
+    const int32_t windowIndex = modEvent->getWindowIndex();
+    for (auto group : m_annotationGroups) {
+        std::vector<QSharedPointer<Annotation>> removeAnnotationsFromGroup;
+        
+        if (group->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SPACER) {
+            const int32_t numAnn = group->getNumberOfAnnotations();
+            for (int32_t iAnn = 0; iAnn < numAnn; iAnn++) {
+                Annotation* ann = group->getAnnotation(iAnn);
+                CaretAssert(ann);
+                SpacerTabIndex spacerTabIndex = ann->getSpacerTabIndex();
+                
+                if (spacerTabIndex.getWindowIndex() == windowIndex) {
+                    int32_t rowIndex = spacerTabIndex.getRowIndex();
+                    int32_t columnIndex = spacerTabIndex.getColumnIndex();
+                    
+                    switch (modEvent->getOperation()) {
+                        case EventTileTabsConfigurationModification::Operation::DELETE:
+                        {
+                            int32_t rcIndex = (rowFlag ? rowIndex : columnIndex);
+                            if (rcIndex == deleteIndex) {
+                                deleteAnnotations.push_back(ann);
+                            }
+                            
+                            /*
+                             * Shift annotations
+                             */
+                            if (rcIndex >= shiftStartIndex) {
+                                rcIndex = rcIndex - 1;
+                                
+                                if (rowFlag) {
+                                    rowIndex = rcIndex;
+                                }
+                                else {
+                                    columnIndex = rcIndex;
+                                }
+                            }
+                        }
+                            break;
+                        case EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER:
+                        case EventTileTabsConfigurationModification::Operation::DUPLICATE_BEFORE:
+                        {
+                            int32_t rcIndex = (rowFlag ? rowIndex : columnIndex);
+                            /*
+                             * Shift annotations
+                             */
+                            if (rcIndex >= shiftStartIndex) {
+                                rcIndex = rcIndex + 1;
+                            }
+                            
+                            /*
+                             * Then duplicate and yes, ok to use rowIndex even though it has changed
+                             */
+                            if (rcIndex == duplicateFromIndex) {
+                                Annotation* dupAnn = ann->clone();
+                                SpacerTabIndex dupAnnSTI = dupAnn->getSpacerTabIndex();
+                                if (rowFlag) {
+                                    dupAnnSTI.setRowIndex(duplicateToIndex);
+                                }
+                                else {
+                                    dupAnnSTI.setColumnIndex(duplicateToIndex);
+                                }
+                                dupAnn->setSpacerTabIndex(dupAnnSTI);
+                                CaretLogFine("Copying from "
+                                             + AString::number(rcIndex) + " to " + AString::number(duplicateToIndex)
+                                             +  " " + ann->toString());
+                                duplicatedAnnotations.push_back(dupAnn);
+                            }
+                            
+                            if (rowFlag) {
+                                rowIndex = rcIndex;
+                            }
+                            else {
+                                columnIndex = rcIndex;
+                            }
+                        }
+                            break;
+                        case EventTileTabsConfigurationModification::Operation::MOVE_AFTER:
+                        case EventTileTabsConfigurationModification::Operation::MOVE_BEFORE:
+                        {
+                            int32_t rcIndex = (rowFlag ? rowIndex : columnIndex);
+                            int32_t newIndex(-1);
+                            if (rcIndex == moveOneIndex) {
+                                newIndex = moveTwoIndex;
+                            }
+                            else if (rcIndex == moveTwoIndex) {
+                                newIndex = moveOneIndex;
+                            }
+                            if (newIndex >= 0) {
+                                if (rowFlag) {
+                                    rowIndex = newIndex;
+                                }
+                                else {
+                                    columnIndex = newIndex;
+                                }
+                            }
+                        }
+                            break;
+                    }
+                    
+                    if ((rowIndex != spacerTabIndex.getRowIndex())
+                        || (columnIndex != spacerTabIndex.getColumnIndex())) {
+                        spacerTabIndex.setRowIndex(rowIndex);
+                        spacerTabIndex.setColumnIndex(columnIndex);
+                        ann->setSpacerTabIndex(spacerTabIndex);
+                        CaretLogFine("Moved from "
+                                     + ann->getSpacerTabIndex().toString()
+                                     + " to " + spacerTabIndex.toString() + " " + ann->toString());
+                        modifiedAnnotations.push_back(std::make_pair(group, ann));
+                    }
+                }
+            }
+        }
+        
+    }
+    
+    /*
+     * Move modified annotations into correct annotation group.
+     */
+    for (auto groupAndAnn : modifiedAnnotations) {
+        QSharedPointer<AnnotationGroup> group = groupAndAnn.first;
+        Annotation* ann = groupAndAnn.second;
+        
+        QSharedPointer<Annotation> annSharedPointer;
+        if (group->removeAnnotation(ann,
+                                    annSharedPointer)) {
+            addAnnotationPrivateSharedPointer(annSharedPointer,
+                                              ann->getUniqueKey());
+        }
+    }
+    
+    /*
+     * Add duplicated anntotations.
+     */
+    for (auto ann : duplicatedAnnotations) {
+        addAnnotationPrivate(ann,
+                             generateUniqueKey());
+    }
+    
+    /*
+     * Delete annotations
+     */
+    for (auto ann : deleteAnnotations) {
+        const bool keepAnnotationForUndoRedoFlag(false);
+        removeAnnotationPrivate(ann,
+                                keepAnnotationForUndoRedoFlag);
+    }
+}
+
+
 

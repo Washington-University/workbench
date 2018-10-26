@@ -33,7 +33,7 @@ using namespace caret;
 /**
  * \class caret::EventTileTabsConfigurationModification 
  * \brief Event for modifying a tile tabs configuration.
- * \ingroup GuiQt
+ * \ingroup Common
  */
 
 /**

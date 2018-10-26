@@ -2366,6 +2366,7 @@ BrainBrowserWindow::modifyTileTabsConfiguration(EventTileTabsConfigurationModifi
     
     AString errorMessage;
     if (! modifier.run(errorMessage)) {
+        modEvent->setErrorMessage(errorMessage);
         WuQMessageBox::errorOk(this, errorMessage);
     }
     

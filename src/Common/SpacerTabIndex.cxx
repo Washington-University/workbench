@@ -210,6 +210,30 @@ SpacerTabIndex::getColumnIndex() const
 }
 
 /**
+ * Set the row index.
+ *
+ * @param rowIndex
+ *     New row index.
+ */
+void
+SpacerTabIndex::setRowIndex(const int32_t rowIndex)
+{
+    m_rowIndex = rowIndex;
+}
+
+/**
+ * Set the column index.
+ *
+ * @param columnIndex
+ *     New column index.
+ */
+void
+SpacerTabIndex::setColumnIndex(const int32_t columnIndex)
+
+{
+    m_columnIndex = columnIndex;
+}
+/**
  * Reset to invalid indices.
  */
 void

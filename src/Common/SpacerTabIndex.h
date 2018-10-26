@@ -69,6 +69,10 @@ namespace caret {
         
         void setFromXmlAttributeText(const AString& text);
         
+        void setRowIndex(const int32_t rowIndex);
+        
+        void setColumnIndex(const int32_t columnIndex);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
