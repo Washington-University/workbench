@@ -29,6 +29,7 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventBrowserTabNewClone.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNew.h"
 #include "EventBrowserWindowTileTabOperation.h"
@@ -554,16 +555,14 @@ TileTabsConfigurationModifier::RowColumnContent::clone(AString& errorMessageOut)
     
     for (auto te : cloned->m_tabElements) {
         if (te->m_browserTabContent != NULL) {
-            EventBrowserTabNew newTabEvent;
-            EventManager::get()->sendEvent(newTabEvent.getPointer());
-            if (newTabEvent.isError()) {
-                errorMessageOut.appendWithNewLine(newTabEvent.getErrorMessage());
+            EventBrowserTabNewClone cloneTabEvent(te->m_browserTabContent->getTabNumber());
+            EventManager::get()->sendEvent(cloneTabEvent.getPointer());
+            if (cloneTabEvent.isError()) {
+                errorMessageOut.appendWithNewLine(cloneTabEvent.getErrorMessage());
                 te->m_browserTabContent = NULL;
             }
             else {
-                BrowserTabContent* copyTab = te->m_browserTabContent;
-                te->m_browserTabContent = newTabEvent.getBrowserTab();
-                te->m_browserTabContent->cloneBrowserTabContent(copyTab);
+                te->m_browserTabContent = cloneTabEvent.getNewBrowserTab();
             }
         }
     }

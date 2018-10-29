@@ -142,6 +142,10 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_TAB_NEW", 
                                      "Create a browser tab"));
     
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_NEW_CLONE,
+                                     "EVENT_BROWSER_TAB_NEW_CLONE",
+                                     "Create a browser tab by cloning an existing browser tab"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_CONTENT,
                                      "EVENT_BROWSER_WINDOW_CONTENT",
                                      "Event for browser window content"));

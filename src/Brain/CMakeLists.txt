@@ -81,7 +81,6 @@ EventBrainStructureGetAll.h
 EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabGetAllViewed.h
-EventBrowserTabNew.h
 EventBrowserWindowContent.h
 EventChartOverlayValidate.h
 EventDataFileAdd.h
@@ -233,7 +232,6 @@ EventBrainStructureGetAll.cxx
 EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
 EventBrowserTabGetAllViewed.cxx
-EventBrowserTabNew.cxx
 EventBrowserWindowContent.cxx
 EventChartOverlayValidate.cxx
 EventDataFileAdd.cxx

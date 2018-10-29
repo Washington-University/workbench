@@ -78,6 +78,7 @@
 #include "CursorDisplayScoped.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesBorders.h"
+#include "EventBrowserTabNewClone.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
@@ -611,15 +612,18 @@ BrainBrowserWindowToolBar::insertAndCloneTabContentAtTabBarIndex(const BrowserTa
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
     
-    AString errorMessage;
-    BrowserTabContent* tabContent = this->createNewTab(errorMessage);
-    if (tabContent == NULL) {
+    EventBrowserTabNewClone cloneTabEvent(browserTabContentToBeCloned->getTabNumber());
+    EventManager::get()->sendEvent(cloneTabEvent.getPointer());
+    if (cloneTabEvent.isError()) {
         cursor.restoreCursor();
         QMessageBox::critical(this,
                               "",
-                              errorMessage);
+                              cloneTabEvent.getErrorMessage());
         return;
     }
+    
+    BrowserTabContent* tabContent = cloneTabEvent.getNewBrowserTab();
+    CaretAssert(tabContent);
     
     if (tabBarIndex >= 0){
         insertTabContentPrivate(InsertTabMode::AT_TAB_BAR_INDEX,
@@ -630,13 +634,6 @@ BrainBrowserWindowToolBar::insertAndCloneTabContentAtTabBarIndex(const BrowserTa
         insertTabContentPrivate(InsertTabMode::APPEND,
                                 tabContent,
                                 -1);
-    }
-    
-    if (browserTabContentToBeCloned != NULL) {
-        /*
-         * New tab is clone of tab that was displayed when the new tab was created.
-         */
-        tabContent->cloneBrowserTabContent(const_cast<BrowserTabContent*>(browserTabContentToBeCloned));
     }
     
     this->updateToolBar();

@@ -203,6 +203,9 @@ namespace caret {
         bool removeAnnotationPrivate(Annotation* annotation,
                                      const bool keepAnnotationForUndoRedoFlag);
         
+        bool cloneAnnotationsFromTabToTab(const int32_t fromTabIndex,
+                                          const int32_t toTabIndex);
+        
         bool removeAnnotationsInTab(const int32_t tabIndex);
         
         int32_t generateUniqueKey();

@@ -44,6 +44,7 @@
 #include "EventAnnotationGrouping.h"
 #include "EventAnnotationTextSubstitutionInvalidate.h"
 #include "EventBrowserTabDelete.h"
+#include "EventBrowserTabNewClone.h"
 #include "EventManager.h"
 #include "EventTileTabsConfigurationModification.h"
 #include "GiftiMetaData.h"
@@ -222,10 +223,11 @@ AnnotationFile::initializeAnnotationFile()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUP_GET_WITH_KEY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUPING);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     
     /* NEED THIS AFTER Tile Tabs have been modified */
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_TILE_TABS_MODIFICATION);
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE);
 }
 
 /**
@@ -462,9 +464,16 @@ AnnotationFile::receiveEvent(Event* event)
         CaretAssert(deleteEvent);
         
         const int32_t tabIndex = deleteEvent->getBrowserTabIndex();
-        if (removeAnnotationsInTab(tabIndex)) {
-            deleteEvent->setEventProcessed();
-        }
+        removeAnnotationsInTab(tabIndex);
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE) {
+        EventBrowserTabNewClone* cloneTabEvent = dynamic_cast<EventBrowserTabNewClone*>(event);
+        CaretAssert(cloneTabEvent);
+        
+        const int32_t cloneToTabIndex   = cloneTabEvent->getNewBrowserTabIndex();
+        const int32_t cloneFromTabIndex = cloneTabEvent->getIndexOfBrowserTabThatWasCloned();
+        cloneAnnotationsFromTabToTab(cloneFromTabIndex,
+                                     cloneToTabIndex);
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE) {
         EventAnnotationTextSubstitutionInvalidate* textSubEvent = dynamic_cast<EventAnnotationTextSubstitutionInvalidate*>(event);
@@ -940,6 +949,50 @@ AnnotationFile::removeAnnotationPrivate(Annotation* annotation,
      */
     return false;
 }
+
+/**
+ * Clone annotations in 'fromTabIndex' to 'toTabIndex'
+ *
+ * @param fromTabIndex
+ *     Clone annotations from this tab index
+ * @param toTabIndex
+ *     Clone annotations into this tab index
+ * @return
+ *     True if any annotations were cloned.
+ */
+bool
+AnnotationFile::cloneAnnotationsFromTabToTab(const int32_t fromTabIndex,
+                                             const int32_t toTabIndex)
+{
+    /*
+     * Find annotation group(s) in tab space
+     * with the given tab index.
+     */
+    bool annotationsWereClonedFlag(false);
+    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+         groupIter != m_annotationGroups.end();
+         groupIter++) {
+        QSharedPointer<AnnotationGroup>& group = *groupIter;
+        if (group->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
+            if (group->getTabOrWindowIndex() == fromTabIndex) {
+                std::vector<Annotation*> annotations;
+                group->getAllAnnotations(annotations);
+                
+                for (auto ann : annotations) {
+                    CaretAssert(ann->getTabIndex() == fromTabIndex);
+                    Annotation* newAnn = ann->clone();
+                    newAnn->setTabIndex(toTabIndex);
+                    addAnnotationPrivate(newAnn,
+                                         generateUniqueKey());
+                    annotationsWereClonedFlag = true;
+                }
+            }
+        }
+    }
+    
+    return annotationsWereClonedFlag;
+}
+
 
 /**
  * Remove all annotations in tab space in the given tab.

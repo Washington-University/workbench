@@ -43,6 +43,7 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabIndicesGetAll.h"
 #include "EventBrowserTabNew.h"
+#include "EventBrowserTabNewClone.h"
 #include "EventBrowserWindowContent.h"
 #include "EventCaretPreferencesGet.h"
 #include "EventModelAdd.h"
@@ -95,6 +96,7 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_PREFERENCES_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_ADD);
@@ -316,8 +318,41 @@ SessionManager::receiveEvent(Event* event)
                 break;
             }
         }
-        if (createdTab == false) {
-            tabEvent->setErrorMessage("Workbench is exhausted.  It cannot create any more tabs.");
+        if ( ! createdTab) {
+            tabEvent->setErrorMessage("Workbench is unable to create tabs, all tabs are in use.");
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE) {
+        EventBrowserTabNewClone* cloneTabEvent = dynamic_cast<EventBrowserTabNewClone*>(event);
+        CaretAssert(cloneTabEvent);
+        
+        cloneTabEvent->setEventProcessed();
+        
+        const int32_t cloneTabIndex = cloneTabEvent->getIndexOfBrowserTabThatWasCloned();
+        if ((cloneTabIndex < 0)
+            || (cloneTabIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
+            cloneTabEvent->setErrorMessage("Invalid tab for cloning index=" + AString::number(cloneTabIndex));
+            return;
+        }
+        
+        int32_t newTabIndex(-1);
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            if (m_browserTabs[i] == NULL) {
+                newTabIndex = i;
+                break;
+            }
+        }
+        if (newTabIndex >= 0) {
+            CaretAssertArrayIndex(m_browserTabs, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, cloneTabIndex);
+            CaretAssertArrayIndex(m_browserTabs, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, newTabIndex);
+            m_browserTabs[newTabIndex] = new BrowserTabContent(newTabIndex);
+            m_browserTabs[newTabIndex]->update(m_models);
+            m_browserTabs[newTabIndex]->cloneBrowserTabContent(m_browserTabs[cloneTabIndex]);
+            cloneTabEvent->setNewBrowserTab(m_browserTabs[newTabIndex],
+                                            newTabIndex);
+        }
+        else {
+            cloneTabEvent->setErrorMessage("Workbench is unable to create tabs, all tabs are in use.");
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE) {

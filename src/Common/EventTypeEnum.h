@@ -76,6 +76,8 @@ public:
         EVENT_BROWSER_TAB_GET_ALL_VIEWED,
         /** Create a new browser tab */
         EVENT_BROWSER_TAB_NEW,
+        /** Create a new browser tab by cloning an existing browser tab */
+        EVENT_BROWSER_TAB_NEW_CLONE,
         /** Event for browser window content */
         EVENT_BROWSER_WINDOW_CONTENT,
         /** Get the content of a browser window */

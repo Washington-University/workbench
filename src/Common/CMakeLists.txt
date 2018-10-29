@@ -99,6 +99,8 @@ Event.h
 EventAlertUser.h
 EventBrowserTabDelete.h
 EventBrowserTabIndicesGetAll.h
+EventBrowserTabNew.h
+EventBrowserTabNewClone.h
 EventCaretPreferencesGet.h
 EventGetViewportSize.h
 EventListenerInterface.h
@@ -205,6 +207,8 @@ Event.cxx
 EventAlertUser.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabIndicesGetAll.cxx
+EventBrowserTabNew.cxx
+EventBrowserTabNewClone.cxx
 EventCaretPreferencesGet.cxx
 EventGetViewportSize.cxx
 EventListenerInterface.cxx
