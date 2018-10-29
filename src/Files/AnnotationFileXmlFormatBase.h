@@ -164,6 +164,8 @@ namespace caret {
         
         static const int32_t XML_VERSION_TWO;
         
+        static const int32_t XML_VERSION_THREE;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
@@ -285,6 +287,8 @@ namespace caret {
     const int32_t AnnotationFileXmlFormatBase::XML_VERSION_ONE = 1;
     
     const int32_t AnnotationFileXmlFormatBase::XML_VERSION_TWO = 2;
+    
+    const int32_t AnnotationFileXmlFormatBase::XML_VERSION_THREE = 3;
     
 #endif // __ANNOTATION_FILE_XML_FORMAT_BASE_DECLARE__
 

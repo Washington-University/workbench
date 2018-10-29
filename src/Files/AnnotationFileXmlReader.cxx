@@ -133,7 +133,7 @@ AnnotationFileXmlReader::readFileFromString(const QString& fileInString,
      */
     m_stream.grabNew(new QXmlStreamReader(fileInString));
     
-    readFileContentFromXmlStreamReader("SceneFileName",
+    readFileContentFromXmlStreamReader("AnnotationsInSceneFile",
                                        annotationFile);
     
     if (m_stream->hasError()) {
@@ -196,6 +196,10 @@ AnnotationFileXmlReader::readFileContentFromXmlStreamReader(const QString& filen
         readVersionOne(annotationFile);
     }
     else if (m_fileVersionNumber == XML_VERSION_TWO) {
+        readVersionTwo(annotationFile);
+    }
+    else if (m_fileVersionNumber == XML_VERSION_THREE) {
+        /* NOTE: version 3 added new coordinate space "SPACER " */
         readVersionTwo(annotationFile);
     }
     else {

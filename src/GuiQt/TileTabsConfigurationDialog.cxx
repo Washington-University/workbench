@@ -265,13 +265,13 @@ TileTabsConfigurationDialog::getBrowserWindow()
 
 /**
  * @return The browser window content for the selected window index.
+ * May be NULL when no tabs are open.
  */
 BrowserWindowContent*
 TileTabsConfigurationDialog::getBrowserWindowContent()
 {
     BrainBrowserWindow* bbw = getBrowserWindow();
     BrowserWindowContent* bwc = bbw->getBrowerWindowContent();
-    CaretAssert(bwc);
     
     return bwc;
 }
@@ -662,6 +662,10 @@ void
 TileTabsConfigurationDialog::updateDialog()
 {
     BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
+    if (browserWindowContent == NULL) {
+        return;
+    }
+    
     switch (browserWindowContent->getTileTabsConfigurationMode()) {
         case TileTabsConfigurationModeEnum::AUTOMATIC:
             m_automaticConfigurationRadioButton->setChecked(true);

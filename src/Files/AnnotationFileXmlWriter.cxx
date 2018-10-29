@@ -168,7 +168,7 @@ AnnotationFileXmlWriter::writeFileContentToXmlStreamWriter(const AnnotationFile*
     
     m_stream->writeStartElement(ELEMENT_ANNOTATION_FILE);
     m_stream->writeAttribute(ATTRIBUTE_VERSION,
-                             AString::number(XML_VERSION_TWO));
+                             AString::number(XML_VERSION_THREE));
     
     m_streamHelper->writeMetaData(annotationFile->getFileMetaData());
     
