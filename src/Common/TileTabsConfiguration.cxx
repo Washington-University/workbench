@@ -967,9 +967,11 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader&
         }
     }
     
+    static int32_t missingNameCounter = 1;
     if (name.isEmpty()) {
-        message.append(s_nameTagName
-                       + " not found or invalid.  ");
+        name = ("Config_"
+                + AString::number(missingNameCounter));
+        missingNameCounter++;
     }
     if (uniqueID.isEmpty()) {
         uniqueID = SystemUtilities::createUniqueID();

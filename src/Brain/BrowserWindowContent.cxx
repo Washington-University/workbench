@@ -513,7 +513,7 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                + "\" from BrowserWindowContent: \""
                                                + tileTabsConfig
                                                + "\"");
-            m_customTileTabsConfiguration.reset();
+            m_customTileTabsConfiguration.reset(new TileTabsConfiguration());
         }
         
         /*
@@ -539,7 +539,7 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                    + "\" from BrowserWindowContent: \""
                                                    + stringTileTabsConfig
                                                    + "\"");
-                m_customTileTabsConfiguration.reset();
+                m_customTileTabsConfiguration.reset(new TileTabsConfiguration());
             }
         }
     }
@@ -629,7 +629,7 @@ BrowserWindowContent::restoreFromOldBrainBrowserWindowScene(const SceneAttribute
                                                + "\" from OLD BrowserWindowContent: \""
                                                + tileTabsConfigString
                                                + "\"");
-            m_customTileTabsConfiguration.reset();
+            m_customTileTabsConfiguration.reset(new TileTabsConfiguration());
         }
     }
     
