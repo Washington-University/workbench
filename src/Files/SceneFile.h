@@ -204,7 +204,7 @@ namespace caret {
     const AString SceneFile::XML_TAG_SCENE_FILE = "SceneFile";
     const AString SceneFile::XML_ATTRIBUTE_VERSION = "Version";
     const AString SceneFile::XML_TAG_SCENE_INFO_DIRECTORY_TAG = "SceneInfoDirectory";
-    const float SceneFile::s_sceneFileVersion = 4.0;
+    const float SceneFile::s_sceneFileVersion = 3.0;
 #endif // __SCENE_FILE_DECLARE__
 
 } // namespace

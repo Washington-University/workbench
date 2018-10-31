@@ -167,8 +167,19 @@ AnnotationFileXmlWriter::writeFileContentToXmlStreamWriter(const AnnotationFile*
     m_stream->writeStartDocument();
     
     m_stream->writeStartElement(ELEMENT_ANNOTATION_FILE);
-    m_stream->writeAttribute(ATTRIBUTE_VERSION,
-                             AString::number(XML_VERSION_THREE));
+    
+    /*
+     * To improve backward compatibility, only write version 3 if there
+     * are annotations in 'spacer' coordinate space.
+     */
+    if (annotationFile->hasAnnotationsInCoordinateSpace(AnnotationCoordinateSpaceEnum::SPACER)) {
+        m_stream->writeAttribute(ATTRIBUTE_VERSION,
+                                 AString::number(XML_VERSION_THREE));
+    }
+    else {
+        m_stream->writeAttribute(ATTRIBUTE_VERSION,
+                                 AString::number(XML_VERSION_TWO));
+    }
     
     m_streamHelper->writeMetaData(annotationFile->getFileMetaData());
     

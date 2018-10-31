@@ -1079,6 +1079,26 @@ AnnotationFile::getAllAnnotationGroups(std::vector<AnnotationGroup*>& annotation
 }
 
 /**
+ * Does this file contain annotations in the given coordinate space?
+ * 
+ * @param coordinateSpace
+ *     The coordinate space.
+ * @return 
+ *     True if there are annotations in the given coordinate space, else false.
+ */
+bool
+AnnotationFile::hasAnnotationsInCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace) const
+{
+    for (const auto groupIter : m_annotationGroups) {
+        if (groupIter->getCoordinateSpace() == coordinateSpace) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
  * Group annotations.
  * 
  * @param groupingEvent

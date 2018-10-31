@@ -648,7 +648,7 @@ SceneFile::writeFile(const AString& filename)
     try {
         //
         // Format the version string so that it ends with at most one zero
-        // Version 2 Added for New Annotation Coordinate Space "SPACER" since annotations
+        // Version 4 Added for New Annotation Coordinate Space "SPACER" since annotations
         // may be saved to scene file.
         //
         const AString versionString = AString::number(SceneFile::getFileVersion(),

@@ -121,6 +121,8 @@ namespace caret {
         
         virtual DataFileContentCopyMoveInterface* newInstanceOfDataFile() const;
         
+        bool hasAnnotationsInCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace) const;
+        
 
         // ADD_NEW_METHODS_HERE
         

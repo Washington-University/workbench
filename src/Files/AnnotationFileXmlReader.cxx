@@ -199,7 +199,10 @@ AnnotationFileXmlReader::readFileContentFromXmlStreamReader(const QString& filen
         readVersionTwo(annotationFile);
     }
     else if (m_fileVersionNumber == XML_VERSION_THREE) {
-        /* NOTE: version 3 added new coordinate space "SPACER " */
+        /* 
+         * NOTE: version 3 added new coordinate space "SPACER "
+         * and otherwise is the same as version 2 format
+         */
         readVersionTwo(annotationFile);
     }
     else {
