@@ -1026,6 +1026,18 @@ m_element(NULL)
     m_indexLabel = new QLabel(QString::number(m_index + 1));
     m_indexLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
+    const AString rowColText((rowColumnType == EventTileTabsConfigurationModification::RowColumnType::ROW)
+                             ? "Row"
+                             : "Column");
+    const AString contructionToolTip(WuQtUtilities::createWordWrappedToolTipText("Delete, Duplicate, or Move "
+                                                                                 + rowColText));
+    const AString contentToolTip(WuQtUtilities::createWordWrappedToolTipText("Content of the "
+                                                                          + rowColText
+                                                                             + ": Spacer (empty space for Annotations) "
+                                                                             "or Tabs (Browser Tabs)"));
+    const AString typeToolTip(WuQtUtilities::createWordWrappedToolTipText("Type of Stretching: Percent or Weight"));
+    const AString stretchToolTip(WuQtUtilities::createWordWrappedToolTipText("Value of Stretching Percentage [0, 100] or Stretching Weight"));
+    
     /*
      * Construction Tool Button
      */
@@ -1048,6 +1060,7 @@ m_element(NULL)
     m_constructionToolButton->setDefaultAction(m_constructionAction);
     m_constructionToolButton->setPopupMode(QToolButton::InstantPopup);
     m_constructionToolButton->setFixedWidth(m_constructionToolButton->sizeHint().width());
+    m_constructionToolButton->setToolTip(contructionToolTip);
     
     /*
      * Content type combo box
@@ -1057,6 +1070,7 @@ m_element(NULL)
     QObject::connect(m_contentTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &TileTabElementWidgets::contentTypeActivated);
     m_contentTypeComboBox->getComboBox()->setFixedWidth(m_contentTypeComboBox->getComboBox()->sizeHint().width());
+    m_contentTypeComboBox->getComboBox()->setToolTip(contentToolTip);
     
     /*
      * Stretch type combo box
@@ -1066,6 +1080,7 @@ m_element(NULL)
     QObject::connect(m_stretchTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &TileTabElementWidgets::stretchTypeActivated);
     m_stretchTypeComboBox->getComboBox()->setFixedWidth(m_stretchTypeComboBox->getComboBox()->sizeHint().width());
+    m_stretchTypeComboBox->getComboBox()->setToolTip(typeToolTip);
     
     /*
      * Stretch value spin box
@@ -1078,6 +1093,7 @@ m_element(NULL)
     QObject::connect(m_stretchValueSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                      this, &TileTabElementWidgets::stretchValueChanged);
     m_stretchValueSpinBox->setFixedWidth(m_stretchValueSpinBox->sizeHint().width());
+    m_stretchValueSpinBox->setToolTip(stretchToolTip);
     
     m_gridLayoutGroup = new WuQGridLayoutGroup(gridLayout);
     const int32_t rowIndex(gridLayout->rowCount());
@@ -1171,11 +1187,13 @@ TileTabElementWidgets::updateContent(TileTabsRowColumnElement* element)
                 m_stretchValueSpinBox->setRange(0.0, 100.0);
                 m_stretchValueSpinBox->setSingleStep(1.0);
                 m_stretchValueSpinBox->setValue(m_element->getPercentStretch());
+                m_stretchValueSpinBox->setSuffix("%");
                 break;
             case TileTabsRowColumnStretchTypeEnum::WEIGHT:
                 m_stretchValueSpinBox->setRange(0.0, 1000.0);
                 m_stretchValueSpinBox->setSingleStep(0.1);
                 m_stretchValueSpinBox->setValue(m_element->getWeightStretch());
+                m_stretchValueSpinBox->setSuffix("");
                 break;
         }
     }
