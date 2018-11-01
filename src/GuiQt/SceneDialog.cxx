@@ -68,6 +68,7 @@
 #include "EventImageCapture.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
+#include "EventHelpViewerDisplay.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventShowDataFileReadWarningsDialog.h"
 #include "FileInformation.h"
@@ -129,9 +130,11 @@ SceneDialog::SceneDialog(QWidget* parent)
     m_testAllScenesDescription = WuQtUtilities::createWordWrappedToolTipText(m_testAllScenesDescription);
     
     /*
-     * No apply buton
+     * No apply buton and show help button
      */
     setApplyButtonText("");
+    setStandardButtonText(QDialogButtonBox::Help,
+                          "Help");
     
     
     /*
@@ -2862,6 +2865,17 @@ SceneDialog::updateSceneFileModifiedStatusLabel()
     m_showFileStructurePushButton->setEnabled(haveScenesFlag);
     m_zipSceneFilePushButton->setEnabled(haveScenesFlag);
     m_uploadSceneFilePushButton->setEnabled(haveScenesFlag);
+}
+
+/**
+ * Called when help button is clicked.
+ */
+void
+SceneDialog::helpButtonClicked()
+{
+    EventHelpViewerDisplay helpViewerEvent(NULL,
+                                           "Scenes_Window");
+    EventManager::get()->sendEvent(helpViewerEvent.getPointer());
 }
 
 

@@ -98,6 +98,8 @@ namespace caret {
     protected:
         void focusGained();
         
+        virtual void helpButtonClicked() override;
+        
     private:
         // ADD_NEW_MEMBERS_HERE
         

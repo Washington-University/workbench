@@ -47,6 +47,7 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventHelpViewerDisplay.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "SessionManager.h"
@@ -82,6 +83,7 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
     m_blockReadConfigurationsFromPreferences = false;
     m_caretPreferences = SessionManager::get()->getCaretPreferences();
     
+    
     QWidget* dialogWidget = new QWidget();
     QHBoxLayout* configurationLayout = new QHBoxLayout(dialogWidget);
     configurationLayout->setSpacing(0);
@@ -94,9 +96,9 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
                                    100,
                                    Qt::AlignTop);
     
-    disableAutoDefaultForAllPushButtons();
-
     setApplyButtonText("");
+    setStandardButtonText(QDialogButtonBox::Help,
+                          "Help");
     
     updateDialogWithSelectedTileTabsFromWindow(parentBrainBrowserWindow);
     
@@ -107,6 +109,8 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
                      WuQDialog::SCROLL_AREA_NEVER);
     resize(750,
            500);
+    
+    disableAutoDefaultForAllPushButtons();
 }
 
 /**
@@ -999,6 +1003,18 @@ TileTabsConfigurationDialog::updateGraphicsWindow()
 }
 
 /**
+ * Called when help button is clicked.
+ */
+void
+TileTabsConfigurationDialog::helpButtonClicked()
+{
+    EventHelpViewerDisplay helpViewerEvent(getBrowserWindow(),
+                                           "Tile_Tabs_Configuration");
+    EventManager::get()->sendEvent(helpViewerEvent.getPointer());
+}
+
+
+/**
  * Constructor.
  *
  * @param tileTabsConfigurationDialog
@@ -1311,3 +1327,4 @@ TileTabElementWidgets::stretchValueChanged(double)
         emit itemChanged();
     }
 }
+

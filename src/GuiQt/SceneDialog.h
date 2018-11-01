@@ -129,6 +129,8 @@ namespace caret {
     protected:
         virtual void closeEvent(QCloseEvent* event);
     
+        virtual void helpButtonClicked() override;
+        
     private:
         SceneFile* getSelectedSceneFile();
         
