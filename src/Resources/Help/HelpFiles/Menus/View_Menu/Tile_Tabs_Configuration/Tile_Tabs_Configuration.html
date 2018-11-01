@@ -20,6 +20,8 @@
 
 
 
+
+
             Tabs</b></u></a> in the <a
         href="../../../Workbench_Window/Viewing_Area/Viewing_Area.html"><u><b>Viewing
 
@@ -42,38 +44,192 @@
 
 
 
+
+
             Area</b></u></a>.&nbsp; <br>
       <br>
+      <img src="Tile_Tabs_Configuration.png" alt="" width="805"
+        height="520"><br>
     </font>
     <h2><font face="Calibri">Tile Tabs Configuration in Workbench Window<br>
       </font></h2>
     <font face="Calibri">This section contains the tile tabs
-      configuration for the selected Workbench Window.&nbsp; When a
-      scene is saved with Tile Tabs enabled, the selected configuration
-      is saved to the scene and is restored when the scene is displayed.<br>
+      configuration for the selected Workbench Window.&nbsp; </font><font
+      face="Calibri"><font face="Calibri">If a Scene is saved, the
+        selected Configuration is saved to the Scene and is restored
+        when the Scene is displayed.<br>
+        <br>
+      </font></font><font face="Calibri"></font> <b>Workbench Window</b>&nbsp;
+    Selects the window for control of the window's Tile Tabs
+    Configuration <br>
+    <font face="Calibri"><br>
     </font>
+    <h3><font face="Calibri">Layout of Tabs in a Tile Tabs Configuration</font></h3>
+    &nbsp;<font face="Calibri">A Tile Tabs Configuration is a grid-type
+      layout that displays all Tabs in the Window.&nbsp; Regardless of
+      the Configuration Type, the first tab will be in the top left
+      corner with subsequent tabs appearing to the right and wrapping to
+      the next row when a row is filled.&nbsp; <br>
+    </font><br>
+    <h3>Configuration Types<br>
+    </h3>
     <ul>
-      <li><b>Workbench Window</b> - Selects the Window for adjusting the
-        Tile Tabs Configuration<br>
-      </li>
       <li><font face="Calibri"><b>Au</b><b>tomat</b><b>ic</b><b>
-            Configuration </b>- When selected, Workbench will adjust
-          the number of rows and columns so that all tabs are displayed.</font></li>
+            Configuration </b>- This is the default selection and
+          Workbench will adjust the number of rows and columns so that
+          all tabs are displayed.&nbsp; </font><font face="Calibri"><font
+            face="Calibri">Use Custom when Automatic does not produce
+            the desired layout of tabs.</font> </font></li>
       <li><font face="Calibri"><b>Custom Con</b><b>figuration</b> -
-          Allows the user to set the number of rows/columns and their
-          stretch factors.<br>
+          Allows the user to customize the configuration of the Tile
+          Tabs layout including number of rows, number of columns,
+          heights of the rows, and widths of the columns.&nbsp; If the
+          Custom Configuration contains insufficient rows and columns
+          for the Window's Tabs, some tabs will not be displayed.&nbsp;
+          Conversely, there will be empty space at the bottom when the
+          Tile Tabs Configuration contains space for more tabs than are
+          currently in the Window.<br>
         </font></li>
-      <li><font face="Calibri"><b>Dimensions (Rows / Columns)</b> -
-          Number of Rows and Columns in the Custom Configuration</font></li>
-      <li><font face="Calibri"><b>Stretch Factors</b> - The Stretch
-          Factors function as weights and are used to allocate space
-          assigned to rows and columns.&nbsp; For example, a row with a
-          stretch factor of 2 is double the height of a row with a
-          stretch factor of 1.&nbsp; The percentage values indicate the
-          height (width) that a row (column) occupies in the graphics
-          region. </font><br>
+    </ul>
+    <h3><font face="Calibri">Custom Configuration Rows/Columns<br>
+      </font></h3>
+    <h3> </h3>
+    <ul>
+      <li><font face="Calibri"><b>Index</b> - The index of the row or
+          column.<br>
+        </font></li>
+      <li><font face="Calibri"><b>Content</b> - The content of the row
+          or column chosen from Space (empty space for used for
+          Annotations in "Spacer Coordinate Space") or Tab (the Window's
+          Browser Tabs).<br>
+        </font></li>
+      <li><font face="Calibri"><b>Type</b> - The type of 'stretching'
+          chosen from Percent and Weight.<br>
+        </font></li>
+      <li><font face="Calibri"><b>Stretch</b> - The stretching
+          value.&nbsp; When the Type is Percent this value is a
+          percentage and when the Type is weight it is the weight for
+          this row/column.<br>
+        </font></li>
+    </ul>
+    <h3> Explanation of Stretching</h3>
+    <br>
+    The space allocated to a row is determined by a combination of the
+    Stretching Type and the Stretching Value.&nbsp; (Note that row and
+    column stretching function identically) as described below.<br>
+    <h4>Percentage Stretching Type</h4>
+    When a row's Type is set to Percentage, that row is allocated the
+    associated Percentage value of the window's height.&nbsp; Thus, if
+    the row's Percentage Height is 20% and the Window is 1000 pixels in
+    height, the row will be 200 pixels in height.&nbsp; The Percentage
+    value for each row should be in the range 0% to 100%.&nbsp; If ALL
+    rows use a Percentage height, wb_view does not verify that the sum
+    of the row percentages is 100%.&nbsp; Therefore, if ALL rows use a
+    Percentage height and the sum of the Percentage is less than 100%,
+    there will be empty space at the bottom of the window and if greater
+    than 100%, rows at the bottom may not visible.<br>
+    <br>
+    <h5>Example of Percentage Stretching</h5>
+    <ul>
+      <li>Row 1: 20%</li>
+      <li>Row 2: 50%</li>
+      <li>Row 3: 30%</li>
+    </ul>
+    <p>Result for a Window 1000 pixels in height:<br>
+    </p>
+    <ul>
+      <li>Row 1 Height: 200 pixels (20% of 1000)</li>
+      <li>Row 2 Height: 500 pixels (50% of 1000)</li>
+      <li>Row 3 Height: 300 pixels (30% of 1000)<br>
       </li>
     </ul>
+    <h4><br>
+    </h4>
+    <h4>Weighted Stretching Type</h4>
+    When a row's Type is set to Weight, the Height of the row is
+    affected by Stretching Values of all Rows with the Stretching Type
+    set to Weight.&nbsp; To determine the height of the a row, the
+    weights from all rows are summed and the row's weight is divided by
+    the sum.&nbsp; This result (row's weight divided by sum) becomes the
+    percentage of the window's height allocated to the row.<br>
+    <br>
+    <h5>Example of Weighted Stretching</h5>
+    <ul>
+      <li>Row 1: 1.0</li>
+      <li>Row 2: 2.0</li>
+      <li>Row 3: 1.0</li>
+    </ul>
+    <p>Result for a Window 1000 pixels in height (Note: sum of weights
+      is 4.0):<br>
+    </p>
+    <ul>
+      <li>Row 1 Height: 250 pixels&nbsp;&nbsp; ((1.0 / 4.0) * 1000 =
+        250)<br>
+      </li>
+      <li>Row 2 Height: 500 pixels &nbsp; ((2.0 / 4.0) * 1000 = 500)</li>
+      <li>Row 3 Height: 250 pixels&nbsp;&nbsp; ((1.0 / 4.0) * 1000 =
+        250)</li>
+    </ul>
+    <br>
+    <h4>Combination of Percentage and Weighted Stretching</h4>
+    When both Percentage and Weighted Stretching are used, rows with
+    Percentage stretching are assigned their requested height percentage
+    and any remaining space is allocated to rows with weighted
+    Stretching.<br>
+    <br>
+    <h5>Example of Percentage and Weighted Stretching</h5>
+    <ul>
+      <li>Row 1: Percentage, 20%</li>
+      <li>Row 2: Percentage, 30%</li>
+      <li>Row 3: Weighted, 1.0</li>
+      <li>Row 4: Weighted, 2.0</li>
+    </ul>
+    <p>Result for a Window 1000 pixels in height (Note: Sum of
+      Percentages is 50% and Sum of Weights is 3.0):<br>
+    </p>
+    <ul>
+      <li>Row 1 Height: 200 pixels (20% of 1000)</li>
+      <li>Row 2 Height: 300 pixels (30% of 1000)</li>
+      <li>Row 3 Height: 166 pixels ((1.0 / 3.0) * 50% * 1000)</li>
+      <li>Row 4 Height: 334 pixels ((2.0 / 3.0) * 50% * 1000)</li>
+    </ul>
+    Now Suppose a 5th row is added with a Weight of 1.0 (the Sum of
+    Weights is 4.0).&nbsp; Notice that the Percentage Type rows remain
+    the same height and the that the Weighted Type rows shrink in height
+    to accommodate the new row:<br>
+    <ul>
+      <li>Row 1 Height: 200 pixels (20% of 1000)</li>
+      <li>Row 2 Height: 300 pixels (30% of 1000)</li>
+      <li>Row 3 Height: 125 pixels ((1.0 / 4.0) * 50% * 1000)</li>
+      <li>Row 4 Height: 250 pixels ((2.0 / 4.0) * 50% * 1000)</li>
+      <li>Row 5 Height: 125 pixels ((1.0 / 4.0) * 50% * 1000)<br>
+      </li>
+    </ul>
+    <h3>Summary of Percentage and Weighted Stretching</h3>
+    <p>The advantage of using Percentage stretching is that the row will
+      be allocated the requested percentage of the window's
+      height.&nbsp; The disadvantage of Percentage Stretching is that if
+      all rows use Percentage Stretching, and a row is added or removed,
+      the user will need to adjust the stretching percentages to ensure
+      all rows are visible (when a row is added) or to remove empty
+      space (when a row is removed).<br>
+    </p>
+    <p>The advantage of Weighted stretching is that all of the vertical
+      space will be used and the available space is automatically
+      reallocated when a row is added or removed.&nbsp; The disadvantage
+      is that if rows use different weights, calculations are required
+      to get the desired row heights.<br>
+    </p>
+    <p>In some instances using both Percentage and Weighted Stretching
+      may be best. &nbsp; One such instance is when the first row's
+      Content is set to Spacer and Annotation are added to the Spacer
+      Row for use as Column Titles.&nbsp; In this case, the
+      recommendation is to use Percentage for this Row and Weight for
+      the Rows below containing the Brain Models.&nbsp; As Rows for
+      Brain Models are added as removed, the Column Titles will remain
+      the same size and the Rows containing the Brain Models will occupy
+      all of the remaining vertical space.<br>
+    </p>
     <h2><font face="Calibri">User Configuration</font></h2>
     <font face="Calibri"> The User Configuration contains Tile Tabs
       Configurations that have been created by the user.&nbsp; These
@@ -88,7 +244,7 @@
       <li><font face="Calibri"><b>Delete</b> - Click this button to
           delete the selected User Configuration</font></li>
     </ul>
-    <h2><font face="Calibri">Copy and Load Push Buttons</font></h2>
+    <h2><font face="Calibri">Replace and Load Push Buttons</font></h2>
     <ul>
       <li><font face="Calibri"><b>Replace</b> - Replaces the selected
           User Configuration with the content of the Custom
@@ -101,8 +257,7 @@
     <blockquote>
       <ul>
       </ul>
-      <img alt="" src="Tile_Tabs_Configuration.png" width="842"
-        height="423"><br>
+      <br>
       <br>
     </blockquote>
     <br>
