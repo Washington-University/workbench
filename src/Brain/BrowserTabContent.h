@@ -48,6 +48,7 @@ namespace caret {
     class ChartTwoMatrixDisplayProperties;
     class ChartTwoOverlaySet;
     class ClippingPlaneGroup;
+    class EventCaretMappableDataFilesAndMapsInDisplayedOverlays;
     class Matrix4x4;
     class ModelChart;
     class ModelChartTwo;
@@ -152,6 +153,8 @@ namespace caret {
         
         void getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayedDataFilesOut);
         
+        void getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAndMapsInDisplayedOverlays* fileAndMapsEvent);
+
         void update(const std::vector<Model*> models);
         
         bool isChartOneModelValid() const;

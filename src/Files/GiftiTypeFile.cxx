@@ -31,6 +31,7 @@
 #include "GiftiMetaDataXmlElements.h"
 #include "Histogram.h"
 #include "LabelFile.h"
+#include "MapFileDataSelector.h"
 #include "MetricFile.h"
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
@@ -996,10 +997,85 @@ GiftiTypeFile::addToDataFileContentInformation(DataFileContentInformation& dataF
  *     Output with data.  Will be empty if data does not support the map file data selector.
  */
 void
-GiftiTypeFile::getDataForSelector(const MapFileDataSelector& /*mapFileDataSelector*/,
+GiftiTypeFile::getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
                                   std::vector<float>& dataOut) const
 {
     dataOut.clear();
+    
+    switch (mapFileDataSelector.getDataSelectionType()) {
+        case MapFileDataSelector::DataSelectionType::INVALID:
+        case MapFileDataSelector::DataSelectionType::COLUMN_DATA:
+        case MapFileDataSelector::DataSelectionType::ROW_DATA:
+            break;
+        case MapFileDataSelector::DataSelectionType::SURFACE_VERTEX:
+        {
+            StructureEnum::Enum structure = StructureEnum::INVALID;
+            int32_t numberOfNodes(-1);
+            int32_t nodeIndex(-1);
+            mapFileDataSelector.getSurfaceVertex(structure, numberOfNodes, nodeIndex);
+            if ((getStructure() == structure)
+                && (getNumberOfNodes() == numberOfNodes)) {
+                const int32_t numberOfMaps = getNumberOfMaps();
+                if (isMappedWithLabelTable()) {
+                    const LabelFile* lf = dynamic_cast<const LabelFile*>(this);
+                    CaretAssert(lf);
+                    for (int32_t mapIndex = 0; mapIndex < numberOfMaps; mapIndex++) {
+                        const int32_t key = lf->getLabelKey(nodeIndex,
+                                                            mapIndex);
+                        dataOut.push_back(key);
+                    }
+                }
+                if (isMappedWithPalette()) {
+                    const MetricFile* mf = dynamic_cast<const MetricFile*>(this);
+                    CaretAssert(mf);
+                    for (int32_t mapIndex = 0; mapIndex < numberOfMaps; mapIndex++) {
+                        const float value = mf->getValue(nodeIndex,
+                                                         mapIndex);
+                        dataOut.push_back(value);
+                    }
+                }
+            }
+        }
+            break;
+        case MapFileDataSelector::DataSelectionType::SURFACE_VERTICES_AVERAGE:
+        {
+            StructureEnum::Enum structure = StructureEnum::INVALID;
+            int32_t numberOfNodes(-1);
+            std::vector<int32_t> nodeIndices;
+            mapFileDataSelector.getSurfaceVertexAverage(structure, numberOfNodes, nodeIndices);
+            if ((getStructure() == structure)
+                && (getNumberOfNodes() == numberOfNodes)) {
+                if (isMappedWithPalette()) {
+                    const MetricFile* mf = dynamic_cast<const MetricFile*>(this);
+                    CaretAssert(mf);
+                    const int32_t numberOfNodeIndices = static_cast<int32_t>(nodeIndices.size());
+                    if (numberOfNodeIndices > 0) {
+                        const int32_t numberOfMaps = getNumberOfMaps();
+                        if (numberOfMaps > 0) {
+                            for (int32_t iNode = 0; iNode < numberOfNodeIndices; iNode++) {
+                                CaretAssertVectorIndex(nodeIndices, iNode);
+                                const int32_t nodeIndex = nodeIndices[iNode];
+                                
+                                float sum(0.0f);
+                                for (int32_t mapIndex = 0; mapIndex < numberOfMaps; mapIndex++) {
+                                    const float value = mf->getValue(nodeIndex,
+                                                                     mapIndex);
+                                    sum += value;
+                                }
+                                
+                                const float value = sum / numberOfMaps;
+                                dataOut.push_back(value);
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+            break;
+        case MapFileDataSelector::DataSelectionType::VOLUME_XYZ:
+            break;
+    }
 }
 
 /**

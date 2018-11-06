@@ -186,6 +186,10 @@ EventTypeEnum::initialize()
                                      "EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS",
                                      "Get Caret Mappable data file maps viewed in overlays"));
 
+    enumData.push_back(EventTypeEnum(EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS,
+                                     "EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS",
+                                     "Get all selected mappable data and map indices in displayed overlays"));
+                       
     enumData.push_back(EventTypeEnum(EVENT_CARET_PREFERENCES_GET,
                                      "EVENT_CARET_PREFERENCES_GET",
                                      "Get the Caret Preferences"));

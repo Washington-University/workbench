@@ -26,6 +26,7 @@
 
 #include <QMenu>
 
+#include "StructureEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VoxelIJK.h"
 
@@ -94,18 +95,19 @@ namespace caret {
         void editChartLabelSelected();
         
     private:
+        enum class ParcelType {
+            PARCEL_TYPE_INVALID,
+            PARCEL_TYPE_SURFACE_NODES,
+            PARCEL_TYPE_VOLUME_VOXELS
+        };
+        
         class ParcelConnectivity {
         public:
-            enum ParcelType {
-                PARCEL_TYPE_INVALID,
-                PARCEL_TYPE_SURFACE_NODES,
-                PARCEL_TYPE_VOLUME_VOXELS
-            };
-            
             ParcelConnectivity(Brain* brain,
                                const ParcelType parcelType,
                                CaretMappableDataFile* mappableLabelFile,
                                const int32_t labelFileMapIndex,
+                               const AString& mapName,
                                const int32_t labelKey,
                                const QString& labelName,
                                Surface* surface,
@@ -125,6 +127,7 @@ namespace caret {
             ParcelType parcelType;
             CaretMappableDataFile* mappableLabelFile;
             int32_t labelFileMapIndex;
+            AString mapName;
             int32_t labelKey;
             QString labelName;
             Surface* surface;
@@ -158,6 +161,8 @@ namespace caret {
         
         void addActionsToMenu(QList<QAction*>& actionsToAdd,
                               const bool addSeparatorBeforeActions);
+        
+        void createParcelConnectivities();
         
         BrainOpenGLWidget* parentOpenGLWidget;
 

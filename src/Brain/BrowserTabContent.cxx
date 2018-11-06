@@ -53,6 +53,7 @@
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFoci.h"
 #include "EventAnnotationColorBarGet.h"
+#include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventCaretMappableDataFileMapsViewedInOverlays.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventModelGetAll.h"
@@ -1848,6 +1849,81 @@ BrowserTabContent::getSurfaceStructuresDisplayed()
     std::vector<StructureEnum::Enum> structuresOut(structures.begin(),
                                                    structures.end());
     return structuresOut;
+}
+
+/**
+ * Get data files and their map indices in all displayed overlays.
+ *
+ * @param fileAndMapsEvent
+ *     File and maps event to which files and maps are added.
+ */
+void
+BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAndMapsInDisplayedOverlays* fileAndMapsEvent)
+{
+    Model* model = getModelForDisplay();
+    if (model == NULL) {
+        return;
+    }
+
+    const int32_t tabIndex = getTabNumber();
+    
+    switch (model->getModelType()) {
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+        {
+            ModelChartTwo* chartTwoModel = getDisplayedChartTwoModel();
+            CaretAssert(chartTwoModel);
+            ChartTwoOverlaySet* chartOverlaySet = chartTwoModel->getChartTwoOverlaySet(tabIndex);
+            const int32_t numOverlays = chartOverlaySet->getNumberOfDisplayedOverlays();
+            for (int32_t i = 0; i < numOverlays; i++) {
+                ChartTwoOverlay* overlay = chartOverlaySet->getOverlay(i);
+                if (overlay->isEnabled()) {
+                    CaretMappableDataFile* overlayDataFile = NULL;
+                    ChartTwoOverlay::SelectedIndexType indexType;
+                    int32_t mapIndex(0);
+                    overlay->getSelectionData(overlayDataFile,
+                                              indexType,
+                                              mapIndex);
+                    
+                    if (overlayDataFile != NULL) {
+                        if (mapIndex >= 0) {
+                            fileAndMapsEvent->addChartFileAndMap(overlayDataFile,
+                                                                 mapIndex);
+                        }
+                    }
+                }
+            }
+        }
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+        {
+            OverlaySet* overlaySet = model->getOverlaySet(tabIndex);
+            const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+            for (int32_t i = 0; i < numOverlays; i++) {
+                Overlay* overlay = overlaySet->getOverlay(i);
+                if (overlay->isEnabled()) {
+                    CaretMappableDataFile* overlayDataFile = NULL;
+                    int32_t mapIndex;
+                    overlay->getSelectionData(overlayDataFile,
+                                              mapIndex);
+                    
+                    if (overlayDataFile != NULL) {
+                        if (mapIndex >= 0) {
+                            fileAndMapsEvent->addBrainordinateFileAndMap(overlayDataFile,
+                                                                         mapIndex);
+                        }
+                    }
+                }
+            }
+        }
+            break;
+    }
+    
 }
 
 /**

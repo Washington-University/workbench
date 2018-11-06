@@ -67,6 +67,7 @@
 #include "EventGetViewportSize.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowContent.h"
+#include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventDataFileRead.h"
 #include "EventMacDockMenuUpdate.h"
 #include "EventManager.h"
@@ -250,6 +251,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_defaultWindowComponentStatus.isToolBarDisplayed = m_showToolBarAction->isChecked();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_VIEWPORT_SIZE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
@@ -313,6 +315,31 @@ BrainBrowserWindow::receiveEvent(Event* event)
         if (m_developMenuAction != NULL) {
             m_developMenuAction->setVisible(prefs->isDevelopMenuEnabled());
             event->setEventProcessed();
+        }
+    }
+    else if (event->getEventType()== EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS) {
+        EventCaretMappableDataFilesAndMapsInDisplayedOverlays* filesEvent = dynamic_cast<EventCaretMappableDataFilesAndMapsInDisplayedOverlays*>(event);
+        CaretAssert(filesEvent);
+        
+        /*
+         * If true, all tabs are included even if tile tabs is off
+         */
+        const bool useAllTabsFlag(true);
+        
+        std::vector<BrowserTabContent*> tabContent;
+        if (isTileTabsSelected()
+            || useAllTabsFlag) {
+            m_toolbar->getAllTabContent(tabContent);
+        }
+        else {
+            BrowserTabContent* btc = m_toolbar->getTabContentFromSelectedTab();
+            if (btc != NULL) {
+                tabContent.push_back(btc);
+            }
+        }
+        
+        for (auto btc : tabContent) {
+            btc->getFilesAndMapIndicesInOverlays(filesEvent);
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GET_VIEWPORT_SIZE) {
