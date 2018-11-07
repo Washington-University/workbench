@@ -260,8 +260,10 @@ BrainBrowserWindow*
 TileTabsConfigurationDialog::getBrowserWindow()
 {
     m_browserWindowComboBox->updateComboBox();
+    /*
+     * This can be NULL when wb_view is closing.
+     */
     BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
-    CaretAssert(bbw);
     return bbw;
 }
 
@@ -274,8 +276,11 @@ TileTabsConfigurationDialog::getBrowserWindow()
 BrowserWindowContent*
 TileTabsConfigurationDialog::getBrowserWindowContent()
 {
+    BrowserWindowContent* bwc(NULL);
     BrainBrowserWindow* bbw = getBrowserWindow();
-    BrowserWindowContent* bwc = bbw->getBrowerWindowContent();
+    if (bbw != NULL) {
+        bwc = bbw->getBrowerWindowContent();
+    }
     
     return bwc;
 }
