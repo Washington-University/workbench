@@ -359,13 +359,16 @@ BrainBrowserWindow::receiveEvent(Event* event)
                 for (std::vector<const BrainOpenGLViewportContent*>::iterator vpIter = allViewportContent.begin();
                      vpIter != allViewportContent.end();
                      vpIter++) {
+                    const SpacerTabIndex requestedSpacerTabIndex = viewportSizeEvent->getSpacerTabIndex();
                     const BrainOpenGLViewportContent* vpContent = *vpIter;
                     if (vpContent != NULL) {
                         SpacerTabContent* stc = vpContent->getSpacerTabContent();
-                        if (stc->getSpacerTabIndex() == vpContent->getSpacerTabContent()->getSpacerTabIndex()) {
-                            vpContent->getTabViewportBeforeApplyingMargins(viewport);
-                            viewportValid = true;
-                            break;
+                        if (stc != NULL) {
+                            if (requestedSpacerTabIndex == stc->getSpacerTabIndex()) {
+                                vpContent->getTabViewportBeforeApplyingMargins(viewport);
+                                viewportValid = true;
+                                break;
+                            }
                         }
                     }
                 }

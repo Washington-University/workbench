@@ -108,6 +108,15 @@ EventGetViewportSize::getIndex() const
 }
 
 /**
+ * @return The spacer tab index.
+ */
+SpacerTabIndex
+EventGetViewportSize::getSpacerTabIndex() const
+{
+    return m_spacerTabIndex;
+}
+
+/**
  * Get the viewport size.
  *
  * @param viewportOut

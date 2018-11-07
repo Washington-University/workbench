@@ -50,6 +50,8 @@ namespace caret {
         
         int32_t getIndex() const;
         
+        SpacerTabIndex getSpacerTabIndex() const;
+        
         bool isViewportSizeValid() const;
         
         void getViewportSize(int32_t viewportOut[4]) const;
