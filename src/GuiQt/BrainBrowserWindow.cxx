@@ -400,15 +400,17 @@ BrainBrowserWindow::receiveEvent(Event* event)
                     const BrainOpenGLViewportContent* vpContent = *vpIter;
                     if (vpContent != NULL) {
                         BrowserTabContent* btc = vpContent->getBrowserTabContent();
-                        if (btc->getTabNumber() == viewportSizeEvent->getIndex()) {
-                            for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
-                                 vpIter != allViewportContent.end();
-                                 vpIter++) {
-                                const BrainOpenGLViewportContent* vpContent = *vpIter;
-                                if (vpContent->getTabIndex() == viewportSizeEvent->getIndex()) {
-                                    vpContent->getTabViewportBeforeApplyingMargins(viewport);
-                                    viewportValid = true;
-                                    break;
+                        if (btc != NULL) {
+                            if (btc->getTabNumber() == viewportSizeEvent->getIndex()) {
+                                for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
+                                     vpIter != allViewportContent.end();
+                                     vpIter++) {
+                                    const BrainOpenGLViewportContent* vpContent = *vpIter;
+                                    if (vpContent->getTabIndex() == viewportSizeEvent->getIndex()) {
+                                        vpContent->getTabViewportBeforeApplyingMargins(viewport);
+                                        viewportValid = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -422,15 +424,17 @@ BrainBrowserWindow::receiveEvent(Event* event)
                     const BrainOpenGLViewportContent* vpContent = *vpIter;
                     if (vpContent != NULL) {
                         BrowserTabContent* btc = vpContent->getBrowserTabContent();
-                        if (btc->getTabNumber() == viewportSizeEvent->getIndex()) {
-                            for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
-                                 vpIter != allViewportContent.end();
-                                 vpIter++) {
-                                const BrainOpenGLViewportContent* vpContent = *vpIter;
-                                if (vpContent->getTabIndex() == viewportSizeEvent->getIndex()) {
-                                    vpContent->getModelViewport(viewport);
-                                    viewportValid = true;
-                                    break;
+                        if (btc != NULL) {
+                            if (btc->getTabNumber() == viewportSizeEvent->getIndex()) {
+                                for (std::vector<const BrainOpenGLViewportContent*>::const_iterator vpIter = allViewportContent.begin();
+                                     vpIter != allViewportContent.end();
+                                     vpIter++) {
+                                    const BrainOpenGLViewportContent* vpContent = *vpIter;
+                                    if (vpContent->getTabIndex() == viewportSizeEvent->getIndex()) {
+                                        vpContent->getModelViewport(viewport);
+                                        viewportValid = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
