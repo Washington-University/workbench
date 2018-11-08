@@ -2175,7 +2175,7 @@ AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTile
     int32_t moveTwoIndex(-1);
     
     switch (modEvent->getOperation()) {
-        case EventTileTabsConfigurationModification::Operation::DELETE:
+        case EventTileTabsConfigurationModification::Operation::DELETE_IT:
             deleteIndex     = rowColumnIndex;
             shiftStartIndex = rowColumnIndex + 1;
             break;
@@ -2225,7 +2225,7 @@ AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTile
                     int32_t columnIndex = spacerTabIndex.getColumnIndex();
                     
                     switch (modEvent->getOperation()) {
-                        case EventTileTabsConfigurationModification::Operation::DELETE:
+                        case EventTileTabsConfigurationModification::Operation::DELETE_IT:
                         {
                             int32_t rcIndex = (rowFlag ? rowIndex : columnIndex);
                             if (rcIndex == deleteIndex) {

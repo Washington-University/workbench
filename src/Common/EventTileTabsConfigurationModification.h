@@ -48,7 +48,7 @@ namespace caret {
          * Operation
          */
         enum class Operation {
-            DELETE,
+            DELETE_IT,  /* DELETE is reserved word on Windows */
             DUPLICATE_AFTER,
             DUPLICATE_BEFORE,
             MOVE_AFTER,

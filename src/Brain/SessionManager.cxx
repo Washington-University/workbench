@@ -524,6 +524,7 @@ SessionManager::receiveEvent(Event* event)
         
         CaretAssert(spacerTabContent);
         spacerTabEvent->setSpacerTabContent(spacerTabContent);
+        spacerTabEvent->setEventProcessed();
     }
 }
 

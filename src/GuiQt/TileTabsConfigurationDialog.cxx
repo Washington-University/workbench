@@ -1164,7 +1164,7 @@ TileTabElementWidgets::createConstructionMenu(QToolButton* toolButton)
                              : "Move this Row Up");
     
     m_menuDeleteAction = new QAction(deleteText);
-    m_menuDeleteAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::DELETE));
+    m_menuDeleteAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::DELETE_IT));
     
     m_menuDuplicateAfterAction = new QAction(duplicateAfterText);
     m_menuDuplicateAfterAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER));
@@ -1240,7 +1240,7 @@ TileTabElementWidgets::constructionMenuTriggered(QAction* action)
          * if the operations are changed.
          */
         switch (operation) {
-            case EventTileTabsConfigurationModification::Operation::DELETE:
+            case EventTileTabsConfigurationModification::Operation::DELETE_IT:
                 break;
             case EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER:
                 break;

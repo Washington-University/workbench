@@ -175,7 +175,7 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
     
     const int32_t numRowColumns = static_cast<int32_t>(m_rowColumns.size());
     switch (m_modifyEvent->getOperation()) {
-        case EventTileTabsConfigurationModification::Operation::DELETE:
+        case EventTileTabsConfigurationModification::Operation::DELETE_IT:
             if (numRowColumns <= 1) {
                 errorMessageOut = "Cannot delete ROWCOL when there is only one ROWCOL";
             }
@@ -480,12 +480,10 @@ TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const std::vec
     else {
         for (int32_t iRow = 0; iRow < numRows; iRow++) {
             BrowserTabContent* browserTabContent(NULL);
-            SpacerTabContent*  spacerTabContent(NULL);
             const int32_t tabIndex = (iRow * numColumns) + rowColumnIndex;
             if (tabIndex < numberOfTabs) {
                 CaretAssertVectorIndex(existingTabs, tabIndex);
                 browserTabContent = existingTabs[tabIndex]->getBrowserTabContent();
-                spacerTabContent  = existingTabs[tabIndex]->getSpacerTabContent();
             }
             
             m_tabElements.push_back(new Element(iRow,
@@ -518,6 +516,7 @@ TileTabsConfigurationModifier::RowColumnContent::~RowColumnContent()
  *     Instance that is copied.
  */
 TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const RowColumnContent& obj)
+: CaretObject(obj)
 {
     for (auto te : obj.m_tabElements) {
         m_tabElements.push_back(new Element(*te));
