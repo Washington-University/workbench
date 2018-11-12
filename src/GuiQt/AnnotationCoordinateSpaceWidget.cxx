@@ -59,6 +59,7 @@ m_browserWindowIndex(browserWindowIndex)
                              "Mouse dragging to move/resize\n"
                              "annotations allowed in Tab or \n"
                              "Window space only.\n"
+                             "   Ch : Chart\n"
                              "   St : Stereotaxic\n"
                              "   Sf : Surface\n"
                              "   T  : Tab\n"
@@ -94,7 +95,7 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
         CaretAssert(annotations[0]);
         AnnotationCoordinateSpaceEnum::Enum space = annotations[0]->getCoordinateSpace();
         
-        std::set<int32_t> tabIndices;
+        std::set<AString> tabIndices;
         bool haveMultipleSpacesFlag = false;
         for (int32_t i = 0; i < static_cast<int32_t>(annotations.size()); i++) {
             CaretAssertVectorIndex(annotations, i);
@@ -107,8 +108,27 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
             }
             
             if (annotations[i]->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
-                tabIndices.insert(ann->getTabIndex());
+                tabIndices.insert(AString::number(ann->getTabIndex() + 1));
             }
+            
+            if (annotations[i]->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SPACER) {
+                const SpacerTabIndex sti = ann->getSpacerTabIndex();
+                tabIndices.insert(AString::number(sti.getRowIndex() + 1)
+                                  + ","
+                                  + AString::number(sti.getColumnIndex() + 1));
+                
+            }
+        }
+        
+        AString indicesString;
+        for (const auto s : tabIndices) {
+            if (indicesString.isEmpty()) {
+                indicesString.append(":");
+            }
+            else {
+                indicesString.append(";");
+            }
+            indicesString.append(s);
         }
         
         if (haveMultipleSpacesFlag) {
@@ -120,28 +140,17 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
                 case AnnotationCoordinateSpaceEnum::SPACER:
+                {
+                    text = AnnotationCoordinateSpaceEnum::toGuiAbbreviatedName(AnnotationCoordinateSpaceEnum::TAB);
+                    text.append(indicesString);
+                }
                     break;
                 case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
                     break;
                 case AnnotationCoordinateSpaceEnum::SURFACE:
                     break;
                 case AnnotationCoordinateSpaceEnum::TAB:
-                {
-                    QString tabString;
-                    for (std::set<int32_t>::iterator iter = tabIndices.begin();
-                         iter != tabIndices.end();
-                         iter++) {
-                        if (tabString.isEmpty()) {
-                            tabString.append(":");
-                        }
-                        else {
-                            tabString.append(",");
-                        }
-                        tabString.append(AString::number(*iter + 1));
-                    }
-                    
-                    text.append(tabString);
-                }
+                    text.append(indicesString);
                     break;
                 case AnnotationCoordinateSpaceEnum::VIEWPORT:
                     break;

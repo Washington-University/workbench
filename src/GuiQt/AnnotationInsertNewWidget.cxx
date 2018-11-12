@@ -101,8 +101,12 @@ m_browserWindowIndex(browserWindowIndex)
                                                               m_spaceActionGroup);
     QToolButton* tabSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::TAB,
                                                             m_spaceActionGroup);
-    QToolButton* spacerTabSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::SPACER,
-                                                                  m_spaceActionGroup);
+    const bool showSpacerToolButtonFlag(false);
+    QToolButton* spacerSpaceToolButton(NULL);
+    if (showSpacerToolButtonFlag) {
+        spacerSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::SPACER,
+                                                         m_spaceActionGroup);
+    }
     QToolButton* stereotaxicSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                                     m_spaceActionGroup);
     QToolButton* surfaceSpaceToolButton = createSpaceToolButton(AnnotationCoordinateSpaceEnum::SURFACE,
@@ -124,7 +128,9 @@ m_browserWindowIndex(browserWindowIndex)
         shapeTextToolButton->setMaximumSize(mw, mh);
 
         chartSpaceToolButton->setMaximumSize(mw, mh);
-        spacerTabSpaceToolButton->setMaximumSize(mw, mh);
+        if (spacerSpaceToolButton != NULL) {
+            spacerSpaceToolButton->setMaximumSize(mw, mh);
+        }
         tabSpaceToolButton->setMaximumSize(mw, mh);
         stereotaxicSpaceToolButton->setMaximumSize(mw, mh);
         surfaceSpaceToolButton->setMaximumSize(mw, mh);
@@ -150,8 +156,11 @@ m_browserWindowIndex(browserWindowIndex)
         
         QLabel* insertLabel = new QLabel("Insert New");
         
+        const int32_t topColumnCount((spacerSpaceToolButton != NULL)
+                                     ? 9
+                                     : 8);
         gridLayout->addWidget(insertLabel,
-                              0, 0, 1, 9,
+                              0, 0, 1, topColumnCount,
                               Qt::AlignHCenter);
         
         gridLayout->addLayout(fileLayout,
@@ -160,20 +169,23 @@ m_browserWindowIndex(browserWindowIndex)
         
         gridLayout->setColumnMinimumWidth(1, 5);
         
+        int32_t topColumn(2);
         gridLayout->addWidget(spaceLabel,
-                              1, 2, Qt::AlignLeft);
+                              1, topColumn++, Qt::AlignLeft);
         gridLayout->addWidget(chartSpaceToolButton,
-                              1, 3);
-        gridLayout->addWidget(spacerTabSpaceToolButton,
-                              1, 4);
+                              1, topColumn++);
+        if (spacerSpaceToolButton != NULL) {
+            gridLayout->addWidget(spacerSpaceToolButton,
+                                  1, topColumn++);
+        }
         gridLayout->addWidget(stereotaxicSpaceToolButton,
-                              1, 5);
+                              1, topColumn++);
         gridLayout->addWidget(surfaceSpaceToolButton,
-                              1, 6);
+                              1, topColumn++);
         gridLayout->addWidget(tabSpaceToolButton,
-                              1, 7);
+                              1, topColumn++);
         gridLayout->addWidget(windowSpaceToolButton,
-                              1, 8);
+                              1, topColumn++);
 
         gridLayout->setRowMinimumHeight(2, 2);
         
@@ -212,7 +224,7 @@ m_browserWindowIndex(browserWindowIndex)
                               1, 2, Qt::AlignLeft);
         gridLayout->addWidget(chartSpaceToolButton,
                               1, 3);
-        gridLayout->addWidget(spacerTabSpaceToolButton,
+        gridLayout->addWidget(spacerSpaceToolButton,
                               1, 4);
         gridLayout->addWidget(stereotaxicSpaceToolButton,
                               1, 5);

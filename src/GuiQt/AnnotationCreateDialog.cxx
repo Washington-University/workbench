@@ -159,7 +159,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mo
 Annotation*
 AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
                                                             const MouseEvent& mouseEvent,
-                                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpaceIn,
                                                             const AnnotationTypeEnum::Enum annotationType,
                                                             AnnotationFile* annotationFile)
 {
@@ -173,7 +173,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
     }
     
     NewAnnotationInfo newInfo(mouseEvent,
-                              annotationSpace,
+                              annotationSpaceIn,
                               annotationType,
                               useBothFlag,
                               annotationFile);
@@ -212,7 +212,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
         }
         else {
             AString errorMessage;
-            Annotation* newAnn = createAnnotation(newInfo, annotationSpace, errorMessage);
+            Annotation* newAnn = createAnnotation(newInfo, newInfo.m_selectedSpace, /*annotationSpace,*/ errorMessage);
             if (newAnn != NULL) {
                 DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
                 dpa->updateForNewAnnotation(newAnn);
@@ -447,6 +447,13 @@ m_imageHeight(0)
              iter++) {
             const AnnotationCoordinateSpaceEnum::Enum space = *iter;
             QRadioButton* rb = new QRadioButton(AnnotationCoordinateSpaceEnum::toGuiName(space));
+            if (space == AnnotationCoordinateSpaceEnum::SPACER) {
+                /*
+                 * Spacer and Tab are presented as 'TAB' to the user.  So show 'TAB' but
+                 * use the integer code for 'SPACER'.
+                 */
+                rb->setText(AnnotationCoordinateSpaceEnum::toGuiName(AnnotationCoordinateSpaceEnum::TAB));
+            }
             m_annotationSpaceButtonGroup->addButton(rb,
                                                     AnnotationCoordinateSpaceEnum::toIntegerCode(space));
             coordGroupLayout->addWidget(rb);
@@ -894,10 +901,30 @@ m_annotationFile(annotationFile)
                                                                   NULL,
                                                                   m_validSpaces);
     }
+    
+    /*
+     * There is not a selection in the GUI for the user to choose 'SPACER' coordinate space.
+     * Instead the user uses 'TAB' space in the GUI.  So, if TAB space is NOT valid, but
+     * SPACER space is valid, change the requested space to 'SPACER'
+     */
+    if (m_selectedSpace == AnnotationCoordinateSpaceEnum::TAB) {
+        const bool haveTabFlag = (std::find(m_validSpaces.begin(),
+                                            m_validSpaces.end(),
+                                            AnnotationCoordinateSpaceEnum::TAB) != m_validSpaces.end());
+        const bool haveSpacerFlag = (std::find(m_validSpaces.begin(),
+                                               m_validSpaces.end(),
+                                               AnnotationCoordinateSpaceEnum::SPACER) != m_validSpaces.end());
+        
+        if (haveSpacerFlag) {
+            if ( ! haveTabFlag) {
+                m_selectedSpace = AnnotationCoordinateSpaceEnum::SPACER;
+            }
+        }
+    }
 }
 
 /**
- * When the user drags to create an annotation, two points are 
+ * When the user drags to create an annotation, two points are
  * used at opposite corners.  For non-linear annotations, we
  * need a center, width, and height.  So for these types,
  * convert the two points to one point with center, width, 

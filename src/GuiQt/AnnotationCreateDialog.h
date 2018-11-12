@@ -91,7 +91,7 @@ namespace caret {
             
             const MouseEvent& m_mouseEvent;
             
-            const AnnotationCoordinateSpaceEnum::Enum m_selectedSpace;
+            AnnotationCoordinateSpaceEnum::Enum m_selectedSpace;
             
             const AnnotationTypeEnum::Enum m_annotationType;
             
