@@ -261,6 +261,14 @@ namespace caret {
         
         virtual void getDimensions(std::vector<int64_t>& dimsOut) const override;
         
+        virtual void getDimensionsForDataLoading(int64_t& dimOut1,
+                                                 int64_t& dimOut2,
+                                                 int64_t& dimOut3,
+                                                 int64_t& dimTimeOut,
+                                                 int64_t& numComponents) const;
+        
+        virtual void getDimensionsForDataLoading(std::vector<int64_t>& dimsOut) const;
+        
         virtual void getMapDimensions(std::vector<int64_t> &dim) const;
 
         virtual const int64_t& getNumberOfComponents() const override;
@@ -287,11 +295,24 @@ namespace caret {
                                     int64_t& indexOut2,
                                     int64_t& indexOut3) const override;
         
+        virtual void enclosingVoxelForDataLoading(const float& coordIn1,
+                                    const float& coordIn2,
+                                    const float& coordIn3,
+                                    int64_t& indexOut1,
+                                    int64_t& indexOut2,
+                                    int64_t& indexOut3) const;
+        
         virtual bool indexValid(const int64_t& indexIn1,
                                 const int64_t& indexIn2,
                                 const int64_t& indexIn3,
                                 const int64_t brickIndex = 0,
                                 const int64_t component = 0) const override;
+        
+        virtual bool indexValidForDataLoading(const int64_t& indexIn1,
+                                const int64_t& indexIn2,
+                                const int64_t& indexIn3,
+                                const int64_t brickIndex = 0,
+                                const int64_t component = 0) const;
         
         virtual const VolumeSpace& getVolumeSpace() const;
         
@@ -777,7 +798,8 @@ namespace caret {
         bool m_fileHistogramLimitedValuesIncludeZeroValues;
         
         /** Fast conversion of IJK to data offset */
-        CaretPointer<SparseVolumeIndexer> m_voxelIndicesToOffset;
+        CaretPointer<SparseVolumeIndexer> m_voxelIndicesToOffsetForDataMapping;
+        CaretPointer<SparseVolumeIndexer> m_voxelIndicesToOffsetForDataReading;
         
         /** Holds class and name hierarchy used for display selection */
         mutable CaretPointer<GroupAndNameHierarchyModel> m_classNameHierarchy;

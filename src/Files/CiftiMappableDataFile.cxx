@@ -81,7 +81,8 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
 : CaretMappableDataFile(dataFileType)
 {
     m_ciftiFile.grabNew(NULL);
-    m_voxelIndicesToOffset.grabNew(NULL);
+    m_voxelIndicesToOffsetForDataReading.grabNew(NULL);
+    m_voxelIndicesToOffsetForDataMapping.grabNew(NULL);
     m_classNameHierarchy.grabNew(NULL);
     m_fileDataReadingType = FILE_READ_DATA_ALL;
     
@@ -970,10 +971,10 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
             break;
         case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
             if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS) {
-                m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN)));
+                m_voxelIndicesToOffsetForDataMapping.grabNew(new SparseVolumeIndexer(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN)));
             }
             else if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::PARCELS) {
-                m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN)));
+                m_voxelIndicesToOffsetForDataMapping.grabNew(new SparseVolumeIndexer(ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN)));
             }
             else {
                 CaretAssertMessage(0, "Invalid mapping type for mapping data to brainordinates");
@@ -983,15 +984,47 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
             break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
             if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::BRAIN_MODELS) {
-                m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW)));
+                m_voxelIndicesToOffsetForDataMapping.grabNew(new SparseVolumeIndexer(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW)));
             }
             else if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::PARCELS) {
-                m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(ciftiXML.getParcelsMap(CiftiXML::ALONG_ROW)));
+                m_voxelIndicesToOffsetForDataMapping.grabNew(new SparseVolumeIndexer(ciftiXML.getParcelsMap(CiftiXML::ALONG_ROW)));
             }
             else {
                 CaretAssertMessage(0, "Invalid mapping type for mapping data to brainordinates");
                 throw DataFileException(filename,
                                         "Invalid mapping type for mapping data to brainordinates");
+            }
+            break;
+    }
+    
+    switch (m_dataReadingAccessMethod) {
+        case DATA_ACCESS_METHOD_INVALID:
+            CaretAssert(0);
+            break;
+        case DATA_ACCESS_NONE:
+            break;
+        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
+            if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS) {
+                m_voxelIndicesToOffsetForDataReading.grabNew(new SparseVolumeIndexer(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN)));
+            }
+            else if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::PARCELS) {
+                m_voxelIndicesToOffsetForDataReading.grabNew(new SparseVolumeIndexer(ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN)));
+            }
+            else {
+                CaretAssertMessage(0, "Invalid mapping type for mapping data to brainordinates");
+                throw DataFileException(filename,
+                                        "Invalid mapping type for mapping data to brainordinates");
+            }
+            break;
+        case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
+            if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::BRAIN_MODELS) {
+                m_voxelIndicesToOffsetForDataReading.grabNew(new SparseVolumeIndexer(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW)));
+            }
+            else if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::PARCELS) {
+                m_voxelIndicesToOffsetForDataReading.grabNew(new SparseVolumeIndexer(ciftiXML.getParcelsMap(CiftiXML::ALONG_ROW)));
+            }
+            else {
+                m_voxelIndicesToOffsetForDataReading.grabNew(new SparseVolumeIndexer());
             }
             break;
     }
@@ -1027,8 +1060,11 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
     /*
      * May not have mappings to voxels
      */
-    if (m_voxelIndicesToOffset == NULL) {
-        m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer());
+    if (m_voxelIndicesToOffsetForDataMapping == NULL) {
+        m_voxelIndicesToOffsetForDataMapping.grabNew(new SparseVolumeIndexer());
+    }
+    if (m_voxelIndicesToOffsetForDataReading == NULL) {
+        m_voxelIndicesToOffsetForDataReading.grabNew(new SparseVolumeIndexer());
     }
     
     int32_t numberOfMaps = 0;
@@ -2683,6 +2719,96 @@ CiftiMappableDataFile::getDimensions(std::vector<int64_t>& dimsOut) const
 }
 
 /**
+ * Get the dimensions of the volume for data loading
+ *
+ * @param dimOut1
+ *     First dimension (i) out.
+ * @param dimOut2
+ *     Second dimension (j) out.
+ * @param dimOut3
+ *     Third dimension (k) out.
+ * @param dimTimeOut
+ *     Time dimensions out (number of maps)
+ * @param numComponentsOut
+ *     Number of components per voxel.
+ */
+void
+CiftiMappableDataFile::getDimensionsForDataLoading(int64_t& dimOut1,
+                                     int64_t& dimOut2,
+                                     int64_t& dimOut3,
+                                     int64_t& dimTimeOut,
+                                     int64_t& numComponentsOut) const
+{
+    CaretAssert(m_ciftiFile);
+    
+    dimOut1 = 0;
+    dimOut2 = 0;
+    dimOut3 = 0;
+    dimTimeOut = 0;
+    numComponentsOut = 0;
+    
+    if (m_dataReadingDirectionForCiftiXML != S_CIFTI_XML_ALONG_INVALID) {
+        switch (m_ciftiFile->getCiftiXML().getMappingType(m_dataReadingDirectionForCiftiXML))
+        {
+            case CiftiMappingType::BRAIN_MODELS:
+            {
+                const CiftiBrainModelsMap& myDenseMap = m_ciftiFile->getCiftiXML().getBrainModelsMap(m_dataReadingDirectionForCiftiXML);
+                if (!myDenseMap.hasVolumeData()) return;
+                const VolumeSpace& mySpace = myDenseMap.getVolumeSpace();
+                const int64_t* dims = mySpace.getDims();
+                dimOut1 = dims[0];
+                dimOut2 = dims[1];
+                dimOut3 = dims[2];
+                dimTimeOut = 1;//???
+                numComponentsOut = 1;
+                break;
+            }
+            case CiftiMappingType::PARCELS:
+            {
+                const CiftiParcelsMap& myParcelMap = m_ciftiFile->getCiftiXML().getParcelsMap(m_dataReadingDirectionForCiftiXML);
+                if (!myParcelMap.hasVolumeData()) return;
+                const VolumeSpace& mySpace = myParcelMap.getVolumeSpace();
+                const int64_t* dims = mySpace.getDims();
+                dimOut1 = dims[0];
+                dimOut2 = dims[1];
+                dimOut3 = dims[2];
+                dimTimeOut = 1;//???
+                numComponentsOut = 1;
+                break;
+            }
+            default://nothing else has volume dimensions
+                break;
+        }
+    }
+}
+
+/**
+ * Get the dimensions of the volume.
+ *
+ * @param dimsOut
+ *     Will contain 5 elements: (0) X-dimension, (1) Y-dimension
+ * (2) Z-dimension, (3) time, (4) components.
+ */
+void
+CiftiMappableDataFile::getDimensionsForDataLoading(std::vector<int64_t>& dimsOut) const
+{
+    dimsOut.resize(5);
+    
+    int64_t dimI, dimJ, dimK, dimTime, dimComp;
+    getDimensionsForDataLoading(dimI,
+                                dimJ,
+                                dimK,
+                                dimTime,
+                                dimComp);
+    
+    dimsOut[0] = dimI;
+    dimsOut[1] = dimJ;
+    dimsOut[2] = dimK;
+    dimsOut[3] = dimTime;
+    dimsOut[4] = dimComp;
+}
+
+/**
  * @return The number of componenents per voxel in the volume data.
  */
 const int64_t&
@@ -2723,8 +2849,8 @@ CiftiMappableDataFile::indexToSpace(const float& indexIn1,
                           float& coordOut2,
                           float& coordOut3) const
 {
-    CaretAssert(m_voxelIndicesToOffset);
-    m_voxelIndicesToOffset->indicesToCoordinate(indexIn1,
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);
+    m_voxelIndicesToOffsetForDataMapping->indicesToCoordinate(indexIn1,
                                                 indexIn2,
                                                 indexIn3,
                                                 coordOut1,
@@ -2750,8 +2876,8 @@ CiftiMappableDataFile::indexToSpace(const float& indexIn1,
                           const float& indexIn3,
                           float* coordOut) const
 {
-    CaretAssert(m_voxelIndicesToOffset);
-    m_voxelIndicesToOffset->indicesToCoordinate(indexIn1,
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);
+    m_voxelIndicesToOffsetForDataMapping->indicesToCoordinate(indexIn1,
                                                 indexIn2,
                                                 indexIn3,
                                                 coordOut[0],
@@ -2771,8 +2897,8 @@ void
 CiftiMappableDataFile::indexToSpace(const int64_t* indexIn,
                           float* coordOut) const
 {
-    CaretAssert(m_voxelIndicesToOffset);
-    m_voxelIndicesToOffset->indicesToCoordinate(indexIn[0],
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);
+    m_voxelIndicesToOffsetForDataMapping->indicesToCoordinate(indexIn[0],
                                                 indexIn[1],
                                                 indexIn[2],
                                                 coordOut[0],
@@ -2805,13 +2931,48 @@ CiftiMappableDataFile::enclosingVoxel(const float& coordIn1,
                                       int64_t& indexOut2,
                                       int64_t& indexOut3) const
 {
-    CaretAssert(m_voxelIndicesToOffset);
-    m_voxelIndicesToOffset->coordinateToIndices(coordIn1,
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);
+    m_voxelIndicesToOffsetForDataMapping->coordinateToIndices(coordIn1,
                                                 coordIn2,
                                                 coordIn3,
                                                 indexOut1,
                                                 indexOut2,
                                                 indexOut3);
+}
+
+/**
+ * Use the method when LOADING data
+ * Convert a coordinate to indices.  Note that output indices
+ * MAY NOT BE WITHIN THE VALID VOXEL DIMENSIONS.
+ *
+ * @param coordIn1
+ *     First (x) input coordinate.
+ * @param coordIn2
+ *     Second (y) input coordinate.
+ * @param coordIn3
+ *     Third (z) input coordinate.
+ * @param indexOut1
+ *     First output index (i).
+ * @param indexOut2
+ *     First output index (j).
+ * @param indexOut3
+ *     First output index (k).
+ */
+void
+CiftiMappableDataFile::enclosingVoxelForDataLoading(const float& coordIn1,
+                                      const float& coordIn2,
+                                      const float& coordIn3,
+                                      int64_t& indexOut1,
+                                      int64_t& indexOut2,
+                                      int64_t& indexOut3) const
+{
+    CaretAssert(m_voxelIndicesToOffsetForDataReading);
+    m_voxelIndicesToOffsetForDataReading->coordinateToIndices(coordIn1,
+                                                              coordIn2,
+                                                              coordIn3,
+                                                              indexOut1,
+                                                              indexOut2,
+                                                              indexOut3);
 }
 
 /**
@@ -2852,10 +3013,48 @@ CiftiMappableDataFile::indexValid(const int64_t& indexIn1,
     return false;
 }
 
+/**
+ * Determine in the given voxel indices are valid (within the volume dimensions).
+ *
+ * @param indexIn1
+ *     First dimension (i).
+ * @param indexIn2
+ *     Second dimension (j).
+ * @param indexIn3
+ *     Third dimension (k).
+ * @param coordOut1
+ *     Output first (x) coordinate.
+ * @param brickIndex
+ *     Time/map index (default 0).
+ * @param component
+ *     Voxel component (default 0).
+ */
+bool
+CiftiMappableDataFile::indexValidForDataLoading(const int64_t& indexIn1,
+                                  const int64_t& indexIn2,
+                                  const int64_t& indexIn3,
+                                  const int64_t /*brickIndex*/,
+                                  const int64_t /*component*/) const
+{
+    std::vector<int64_t> volumeDimensions;
+    getDimensionsForDataLoading(volumeDimensions);
+    CaretAssertVectorIndex(volumeDimensions, 2);
+    if ((indexIn1 >= 0)
+        && (indexIn1 < volumeDimensions[0])
+        && (indexIn2 >= 0)
+        && (indexIn2 < volumeDimensions[1])
+        && (indexIn3 >= 0)
+        && (indexIn3 < volumeDimensions[2])) {
+        return true;
+    }
+    
+    return false;
+}
+
 const VolumeSpace& CiftiMappableDataFile::getVolumeSpace() const
 {
-    CaretAssert(m_voxelIndicesToOffset);//because this is where the other space functions get their volume space from, just roll with it for now
-    return m_voxelIndicesToOffset->getVolumeSpace();
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);//because this is where the other space functions get their volume space from, just roll with it for now
+    return m_voxelIndicesToOffsetForDataMapping->getVolumeSpace();
 }
 
 /**
@@ -2867,7 +3066,7 @@ const VolumeSpace& CiftiMappableDataFile::getVolumeSpace() const
 void
 CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const
 {
-    CaretAssert(m_voxelIndicesToOffset);
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);
     
     boundingBoxOut.resetForUpdate();
     
@@ -2875,7 +3074,7 @@ CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) con
     getDimensions(volumeDimensions);
     CaretAssertVectorIndex(volumeDimensions, 2);
 
-    if (m_voxelIndicesToOffset->isValid()) {
+    if (m_voxelIndicesToOffsetForDataMapping->isValid()) {
         float xyz[3];
         indexToSpace(0,
                      0,
@@ -2992,7 +3191,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
     
     const uint8_t* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
     
-    CaretAssert(m_voxelIndicesToOffset);
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);
 
     /*
      * Data values are only needed when a label volume
@@ -3021,7 +3220,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
         case VolumeSliceViewPlaneEnum::AXIAL:
             for (int64_t j = 0; j < dimJ; j++) {
                 for (int64_t i = 0; i < dimI; i++) {
-                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
+                    const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(i,
                                                                                      j,
                                                                                      sliceIndex);
                     if (dataOffset >= 0) {
@@ -3075,7 +3274,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
         case VolumeSliceViewPlaneEnum::CORONAL:
             for (int64_t k = 0; k < dimK; k++) {
                 for (int64_t i = 0; i < dimI; i++) {
-                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
+                    const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(i,
                                                                                            sliceIndex,
                                                                                            k);
                     if (dataOffset >= 0) {
@@ -3129,7 +3328,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             for (int64_t k = 0; k < dimK; k++) {
                 for (int64_t j = 0; j < dimJ; j++) {
-                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(sliceIndex,
+                    const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(sliceIndex,
                                                                                            j,
                                                                                            k);
                     if (dataOffset >= 0) {
@@ -3241,7 +3440,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
     
     const uint8_t* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
     
-    CaretAssert(m_voxelIndicesToOffset);
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);
     
     /*
      * Data values are only needed when a label volume
@@ -3270,7 +3469,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
         for (int32_t iCol = 0; iCol < numberOfColumns; iCol++) {
             rgba[3] = 0;
             
-            const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(ijk[0], ijk[1], ijk[2]);
+            const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(ijk[0], ijk[1], ijk[2]);
             if (dataOffset >= 0) {
                 const int64_t dataOffset4 = dataOffset * 4;
                 CaretAssert(dataOffset4 < mapRgbaCount);
@@ -3457,7 +3656,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
     
     const uint8_t* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
     
-    CaretAssert(m_voxelIndicesToOffset);
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);
     
     /*
      * Data values are only needed when a label volume 
@@ -3501,7 +3700,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                 int64_t i = iStart;
                 bool iLoopFlag = true;
                 while (iLoopFlag) {
-                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
+                    const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(i,
                                                                                            j,
                                                                                            sliceIndex);
                     if (dataOffset >= 0) {
@@ -3581,7 +3780,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                 bool iLoopFlag = true;
                 while (iLoopFlag) {
             
-                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
+                    const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(i,
                                                                                            sliceIndex,
                                                                                            k);
                     if (dataOffset >= 0) {
@@ -3662,7 +3861,7 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                 while (jLoopFlag) {
                     
                     
-                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(sliceIndex,
+                    const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(sliceIndex,
                                                                                            j,
                                                                                            k);
                     if (dataOffset >= 0) {
@@ -3785,7 +3984,7 @@ CiftiMappableDataFile::getVoxelColorInMapForLabelData(const std::vector<float>& 
             const GiftiLabelTable* labelTable = getMapLabelTable(mapIndex);
             CaretAssert(labelTable);
             
-            const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(indexIn1,
+            const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(indexIn1,
                                                                                    indexIn2,
                                                                                    indexIn3);
             if (dataOffset >= 0) {
@@ -3849,7 +4048,7 @@ CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
         nonConstThis->updateScalarColoringForMap(mapIndex);
     }
     
-    CaretAssert(m_voxelIndicesToOffset);
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);
     
     const int64_t mapRgbaCount = m_mapContent[mapIndex]->m_rgba.size();
     if (mapRgbaCount <= 0) {
@@ -3857,7 +4056,7 @@ CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
     }
     
     const uint8_t* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
-    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(indexIn1,
+    const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(indexIn1,
                                                                            indexIn2,
                                                                            indexIn3);
     if (dataOffset >= 0) {
@@ -5081,7 +5280,7 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
         ijkOut[0] = ijk[0];
         ijkOut[1] = ijk[1];
         ijkOut[2] = ijk[2];
-        const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(ijk[0],
+        const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(ijk[0],
                                                                                ijk[1],
                                                                                ijk[2]);
         if (dataOffset >= 0) {
@@ -5294,7 +5493,7 @@ CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapInd
         ijkOut[0] = ijk[0];
         ijkOut[1] = ijk[1];
         ijkOut[2] = ijk[2];
-        const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(ijk[0],
+        const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(ijk[0],
                                                                                ijk[1],
                                                                                ijk[2]);
         if (dataOffset >= 0) {
@@ -5546,7 +5745,7 @@ CiftiMappableDataFile::getVoxelValue(const float coordinateX,
                    voxelK,
                    mapIndex,
                    component)) {
-        const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(voxelI,
+        const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(voxelI,
                                                                                voxelJ,
                                                                                voxelK);
         if (dataOffset >= 0) {
@@ -5600,7 +5799,7 @@ CiftiMappableDataFile::getMapDataOffsetForVoxelAtCoordinate(const float coordina
                    voxelK,
                    mapIndex,
                    0)) {
-        dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(voxelI,
+        dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(voxelI,
                                                                  voxelJ,
                                                                  voxelK);
     }

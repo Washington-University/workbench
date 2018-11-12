@@ -462,7 +462,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndexForVoxelAtCoordinateWh
     }
     
     int64_t ijk[3];
-    enclosingVoxel(xyz[0], xyz[1], xyz[2], ijk[0], ijk[1], ijk[2]);
+    enclosingVoxelForDataLoading(xyz[0], xyz[1], xyz[2], ijk[0], ijk[1], ijk[2]);
     return getRowColumnIndexForVoxelIndexWhenLoading(ijk,
                                                      rowIndexOut,
                                                      columnIndexOut);
@@ -504,7 +504,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndexForVoxelIndexWhenLoadi
     /*
      * Get the mapping type
      */
-    if (indexValid(ijk[0], ijk[1], ijk[2])) {
+    if (indexValidForDataLoading(ijk[0], ijk[1], ijk[2])) {
         switch (rowMappingType) {
             case CIFTI_INDEX_TYPE_BRAIN_MODELS:
                 rowOrColumnIndex = ciftiXML.getBrainModelsMap(ciftiDirection).getIndexForVoxel(ijk);
