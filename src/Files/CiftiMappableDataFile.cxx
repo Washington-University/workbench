@@ -1011,9 +1011,7 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
                 m_voxelIndicesToOffsetForDataReading.grabNew(new SparseVolumeIndexer(ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN)));
             }
             else {
-                CaretAssertMessage(0, "Invalid mapping type for mapping data to brainordinates");
-                throw DataFileException(filename,
-                                        "Invalid mapping type for mapping data to brainordinates");
+                 m_voxelIndicesToOffsetForDataReading.grabNew(new SparseVolumeIndexer());
             }
             break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
