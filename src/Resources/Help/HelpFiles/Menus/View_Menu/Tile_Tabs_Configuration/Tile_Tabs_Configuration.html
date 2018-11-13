@@ -24,8 +24,10 @@
 
 
 
+
             Tabs</b></u></a> in the <a
         href="../../../Workbench_Window/Viewing_Area/Viewing_Area.html"><u><b>Viewing
+
 
 
 
@@ -64,6 +66,7 @@
         when the Scene is displayed.<br>
         <br>
       </font></font><font face="Calibri"></font> <b>Workbench Window</b>&nbsp;
+
 
 
     Selects the window for control of the window's Tile Tabs
@@ -137,12 +140,11 @@
     associated Percentage value of the window's height.&nbsp; Thus, if
     the row's Percentage Height is 20% and the Window is 1000 pixels in
     height, the row is 200 pixels in height.&nbsp; The Percentage value
-    for each row should be in the range 0% to 100%.&nbsp; If ALL rows
-    use a Percentage height, wb_view does not verify that the sum of the
-    row percentages is 100%.&nbsp; Therefore, if ALL rows use a
-    Percentage height and the sum of the Percentage is less than 100%,
-    there will be empty space at the bottom of the window and if greater
-    than 100%, rows at the bottom may not visible.<br>
+    for each row should be in the range 0% to 100%.&nbsp; If the rows
+    that use Percentage sum to more than 100%, then part or all of the
+    last rows may not be displayed (likewise for columns).&nbsp; If
+    there are no rows/columns that use Weight, then there may be blank
+    unused space, depending on the percentages used."<br>
     <br>
     <h5>Example of Percentage Stretching</h5>
     <ul>
