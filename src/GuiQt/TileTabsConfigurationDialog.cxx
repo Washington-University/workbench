@@ -49,6 +49,7 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventHelpViewerDisplay.h"
 #include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "SessionManager.h"
 #include "TileTabsConfiguration.h"
@@ -1003,6 +1004,7 @@ TileTabsConfigurationDialog::updateGraphicsWindow()
     const BrowserWindowContent* bwc = getBrowserWindowContent();
     if (bwc->isTileTabsEnabled()) {
         const int32_t windowIndex = bwc->getWindowIndex();
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
     }
 }

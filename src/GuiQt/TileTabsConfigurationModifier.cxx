@@ -33,9 +33,7 @@
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNew.h"
 #include "EventBrowserWindowTileTabOperation.h"
-#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
-#include "EventUserInterfaceUpdate.h"
 #include "EventTileTabsConfigurationModification.h"
 #include "GuiManager.h"
 #include "SpacerTabContent.h"
@@ -124,9 +122,6 @@ TileTabsConfigurationModifier::run(AString& errorMessageOut)
         validFlag = loadRowColumnsIntoTileTabsConfiguration(errorMessageOut);
     }
     
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_modifyEvent->getWindowIndex()).getPointer());
-    
     return validFlag;
 }
 
@@ -188,13 +183,13 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
                 CaretAssert(std::find(m_rowColumns.begin(),
                                       m_rowColumns.end(),
                                       deleteRowColumn) == m_rowColumns.end());
-                delete deleteRowColumn;
                 
                 for (auto t : deleteRowColumn->m_tabElements) {
                     if (t->m_browserTabContent != NULL) {
                         m_browserTabsToDelete.push_back(t->m_browserTabContent);
                     }
                 }
+                delete deleteRowColumn;
             }
             else {
                 errorMessageOut = "Invalid ROWCOL index=RCINDEX when deleting";
