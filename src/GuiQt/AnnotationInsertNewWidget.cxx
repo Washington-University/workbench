@@ -317,44 +317,56 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
     if (window == NULL) {
         return;
     }
-    BrowserTabContent* tabContent = window->getBrowserTabContent();
-    if (tabContent == NULL) {
-        return;
+    
+    std::vector<BrowserTabContent*> allTabContent;
+    if (window->isTileTabsSelected()) {
+        window->getAllTabContent(allTabContent);
     }
-    Model* model = tabContent->getModelForDisplay();
-    if (model == NULL) {
-        return;
+    else {
+        BrowserTabContent* tabContent = window->getBrowserTabContent();
+        if (tabContent != NULL) {
+            allTabContent.push_back(tabContent);
+        }
     }
-    const ModelTypeEnum::Enum modelType = model->getModelType();
+    
+    const bool spacerSpaceValidFlag = window->isTileTabsSelected();
+    const bool tabSpaceValidFlag = ( ! allTabContent.empty());
+    const bool windowSpaceValidFlag = ( ! allTabContent.empty());
     
     bool chartSpaceValidFlag       = false;
-    const bool spacerSpaceValidFlag      = window->isTileTabsSelected();
     bool surfaceSpaceValidFlag     = false;
     bool stereotaxicSpaceValidFlag = false;
     
-    switch (modelType) {
-        case ModelTypeEnum::MODEL_TYPE_CHART:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
-            chartSpaceValidFlag = true;
-            break;
-        case ModelTypeEnum::MODEL_TYPE_INVALID:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_SURFACE:
-            stereotaxicSpaceValidFlag = true;
-            surfaceSpaceValidFlag = true;
-            break;
-        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-            stereotaxicSpaceValidFlag = true;
-            surfaceSpaceValidFlag = true;
-            break;
-        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-            stereotaxicSpaceValidFlag = true;
-            break;
-        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-            stereotaxicSpaceValidFlag = true;
-            surfaceSpaceValidFlag = true;
-            break;
+    for (auto tabContent : allTabContent) {
+        Model* model = tabContent->getModelForDisplay();
+        if (model == NULL) {
+            return;
+        }
+        const ModelTypeEnum::Enum modelType = model->getModelType();
+        switch (modelType) {
+            case ModelTypeEnum::MODEL_TYPE_CHART:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                chartSpaceValidFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                stereotaxicSpaceValidFlag = true;
+                surfaceSpaceValidFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                stereotaxicSpaceValidFlag = true;
+                surfaceSpaceValidFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                stereotaxicSpaceValidFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                stereotaxicSpaceValidFlag = true;
+                surfaceSpaceValidFlag = true;
+                break;
+        }
     }
     
     QAction* selectedAction = m_spaceActionGroup->checkedAction();
@@ -384,12 +396,12 @@ AnnotationInsertNewWidget::enableDisableSpaceActions()
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
                 tabSpaceAction = action;
-                enableSpaceFlag = true;
+                enableSpaceFlag = tabSpaceValidFlag;
                 break;
             case AnnotationCoordinateSpaceEnum::VIEWPORT:
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
-                enableSpaceFlag = true;
+                enableSpaceFlag = windowSpaceValidFlag;
                 break;
         }
         
