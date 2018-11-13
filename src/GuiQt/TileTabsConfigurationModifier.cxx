@@ -230,6 +230,27 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
                 errorMessageOut = "Invalid ROWCOL index=RCINDEX when duplicating";
             }
             break;
+        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER:
+        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_BEFORE:
+            if ((rowColumnIndex >= 0)
+                && (rowColumnIndex < numRowColumns)) {
+                CaretAssertVectorIndex(m_rowColumns, 0);
+                const int32_t numberOfElements = m_rowColumns[0]->m_tabElements.size();
+                RowColumnContent* rowColumnSpacer = RowColumnContent::newInstanceContainingSpacers(numberOfElements);
+                if (rowColumnSpacer != NULL) {
+                    int32_t insertOffset = rowColumnIndex;
+                    if (m_modifyEvent->getOperation() == EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER) {
+                        insertOffset++;
+                    }
+                    m_rowColumns.insert(m_rowColumns.begin() +
+                                        insertOffset,
+                                        rowColumnSpacer);
+                }
+            }
+            else {
+                errorMessageOut = "Invalid ROWCOL index=RCINDEX when insert spacer";
+            }
+            break;
         case EventTileTabsConfigurationModification::Operation::MOVE_AFTER:
             if (numRowColumns <= 1) {
                 errorMessageOut = "Cannot move ROWCOL when there is only one ROWCOL";
@@ -493,6 +514,38 @@ TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const std::vec
         
         m_stretching = new TileTabsRowColumnElement(*tileTabsConfiguration->getColumn(rowColumnIndex));
     }
+}
+
+/*
+ * Constructor that creates the given number of elements.
+ * 
+ * @param numberOfElements
+ *     Number of elements for row/column.
+ */
+TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const int32_t numberOfElements)
+{
+    for (int32_t i = 0; i < numberOfElements; i++) {
+        m_tabElements.push_back(new Element(i, i, NULL));
+    }
+    m_stretching = new TileTabsRowColumnElement();
+}
+
+/**
+ * @return New instance containing the given number of elements setup as spacers.
+ *
+ * @param numberOfElements
+ *     Number of elements for row/column.
+ */
+TileTabsConfigurationModifier::RowColumnContent*
+TileTabsConfigurationModifier::RowColumnContent::newInstanceContainingSpacers(const int32_t numberOfElements)
+{
+    RowColumnContent* content = new RowColumnContent(numberOfElements);
+    
+    content->m_stretching->setContentType(TileTabsRowColumnContentTypeEnum::SPACE);
+    content->m_stretching->setStretchType(TileTabsRowColumnStretchTypeEnum::WEIGHT);
+    content->m_stretching->setWeightStretch(1.0);
+    
+    return content;
 }
 
 /**

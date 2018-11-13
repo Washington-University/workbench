@@ -2193,6 +2193,12 @@ AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTile
             duplicateToIndex         = rowColumnIndex;
         }
             break;
+        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_BEFORE:
+            shiftStartIndex = rowColumnIndex;
+            break;
+        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER:
+            shiftStartIndex = rowColumnIndex + 1;
+            break;
         case EventTileTabsConfigurationModification::Operation::MOVE_AFTER:
             moveOneIndex = rowColumnIndex;
             moveTwoIndex = rowColumnIndex + 1;
@@ -2277,6 +2283,21 @@ AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTile
                                 duplicatedAnnotations.push_back(dupAnn);
                             }
                             
+                            if (rowFlag) {
+                                rowIndex = rcIndex;
+                            }
+                            else {
+                                columnIndex = rcIndex;
+                            }
+                        }
+                            break;
+                        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_BEFORE:
+                        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER:
+                        {
+                            int32_t rcIndex = (rowFlag ? rowIndex : columnIndex);
+                            if (rcIndex >= shiftStartIndex) {
+                                rcIndex = rcIndex + 1;
+                            }
                             if (rowFlag) {
                                 rowIndex = rcIndex;
                             }

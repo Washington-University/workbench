@@ -51,6 +51,8 @@ namespace caret {
             DELETE_IT,  /* DELETE is reserved word on Windows */
             DUPLICATE_AFTER,
             DUPLICATE_BEFORE,
+            INSERT_SPACER_BEFORE,
+            INSERT_SPACER_AFTER,
             MOVE_AFTER,
             MOVE_BEFORE
         };

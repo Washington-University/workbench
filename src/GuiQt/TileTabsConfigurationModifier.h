@@ -89,6 +89,8 @@ namespace caret {
             
             RowColumnContent(const RowColumnContent& obj);
             
+            static RowColumnContent* newInstanceContainingSpacers(const int32_t numberOfElements);
+            
             ~RowColumnContent();
             
             RowColumnContent* clone(AString& errorMessageOut) const;
@@ -99,6 +101,8 @@ namespace caret {
             
             TileTabsRowColumnElement* m_stretching;
             
+        private:
+            RowColumnContent(const int32_t numberOfElements);
         };
         
     private:

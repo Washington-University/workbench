@@ -1154,7 +1154,13 @@ TileTabElementWidgets::createConstructionMenu(QToolButton* toolButton)
     const AString duplicateBeforeText((m_rowColumnType == EventTileTabsConfigurationModification::RowColumnType::COLUMN)
                              ? "Duplicate this Column to Left"
                              : "Duplicate this Row Above");
-    
+
+    const AString insertSpacerAfterText((m_rowColumnType == EventTileTabsConfigurationModification::RowColumnType::COLUMN)
+                                         ? "Insert Spacer Column to Right"
+                                         : "Insert Spacer Row Below");
+    const AString insertSpacerBeforeText((m_rowColumnType == EventTileTabsConfigurationModification::RowColumnType::COLUMN)
+                                         ? "Insert Spacer Column to Left"
+                                         : "Insert Spacer Row Above");
     const AString moveAfterText((m_rowColumnType == EventTileTabsConfigurationModification::RowColumnType::COLUMN)
                              ? "Move this Column to Right"
                              : "Move this Row Down");
@@ -1172,6 +1178,12 @@ TileTabElementWidgets::createConstructionMenu(QToolButton* toolButton)
     m_menuDuplicateBeforeAction = new QAction(duplicateBeforeText);
     m_menuDuplicateBeforeAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::DUPLICATE_BEFORE));
     
+    m_insertSpacerAfterAction = new QAction(insertSpacerAfterText);
+    m_insertSpacerAfterAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER));
+
+    m_insertSpacerBeforeAction = new QAction(insertSpacerBeforeText);
+    m_insertSpacerBeforeAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::INSERT_SPACER_BEFORE));
+    
     m_menuMoveAfterAction = new QAction(moveAfterText);
     m_menuMoveAfterAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::MOVE_AFTER));
     
@@ -1181,6 +1193,9 @@ TileTabElementWidgets::createConstructionMenu(QToolButton* toolButton)
     QMenu* menu = new QMenu(toolButton);
     menu->addAction(m_menuDuplicateBeforeAction);
     menu->addAction(m_menuDuplicateAfterAction);
+    menu->addSeparator();
+    menu->addAction(m_insertSpacerBeforeAction);
+    menu->addAction(m_insertSpacerAfterAction);
     menu->addSeparator();
     menu->addAction(m_menuMoveBeforeAction);
     menu->addAction(m_menuMoveAfterAction);
@@ -1245,6 +1260,10 @@ TileTabElementWidgets::constructionMenuTriggered(QAction* action)
             case EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER:
                 break;
             case EventTileTabsConfigurationModification::Operation::DUPLICATE_BEFORE:
+                break;
+            case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_BEFORE:
+                break;
+            case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER:
                 break;
             case EventTileTabsConfigurationModification::Operation::MOVE_AFTER:
                 break;

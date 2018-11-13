@@ -236,6 +236,8 @@ namespace caret {
         QAction* m_menuDeleteAction;
         QAction* m_menuDuplicateAfterAction;
         QAction* m_menuDuplicateBeforeAction;
+        QAction* m_insertSpacerAfterAction;
+        QAction* m_insertSpacerBeforeAction;
         QAction* m_menuMoveAfterAction;
         QAction* m_menuMoveBeforeAction;
         
