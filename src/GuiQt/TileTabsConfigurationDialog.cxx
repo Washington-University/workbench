@@ -750,7 +750,9 @@ TileTabsConfigurationDialog::updateStretchFactors()
     
     const bool editableFlag = ( ! m_automaticConfigurationRadioButton->isChecked());
     
-    m_customConfigurationWidget->setEnabled(editableFlag);
+    // This does not re-enable the construction menu
+    //m_customConfigurationWidget->setEnabled(editableFlag);
+    
     m_loadPushButton->setEnabled(editableFlag);
 }
 
