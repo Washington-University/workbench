@@ -45,6 +45,7 @@
 #include "BrainOpenGLWindowContent.h"
 #include "CaretPointer.h"
 #include "EventListenerInterface.h"
+#include "MacroPrototype.h"
 
 class QMouseEvent;
 class QWidget;
@@ -73,7 +74,7 @@ namespace caret {
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     class BrainOpenGLWidget : public QOpenGLWidget, public EventListenerInterface {
 #else
-    class BrainOpenGLWidget : public QGLWidget, public EventListenerInterface {
+    class BrainOpenGLWidget : public QGLWidget, public EventListenerInterface, public MacroEventMouseInfoWidgetInterface {
 #endif
         Q_OBJECT
         
@@ -115,6 +116,10 @@ namespace caret {
         
         QImage performOffScreenImageCapture(const int32_t imageWidth,
                                             const int32_t imageHeight);
+        
+        virtual void processMouseEvent(QMouseEvent*) override;
+        
+        virtual QSize getSizeOfWidget() const override;
         
     protected:
         virtual void initializeGL();

@@ -30,6 +30,7 @@
 #include <QString>
 
 #include "CaretColorEnum.h"
+#include "MacroPrototype.h"
 
 class QAction;
 class QBoxLayout;
@@ -64,6 +65,19 @@ namespace caret {
              */
             TransparentBackground = 1
         };
+        
+        static QToolButton* createToolButtonWithIcon(const QString& text,
+                                                     const QString& iconFileName,
+                                                     const QString& toolTip,
+                                                     const QString& widgetName,
+                                                     QObject* receiver,
+                                                     const char* method);
+//        static QToolButton* createToolButtonWithIcon(const QString& text,
+//                                                     const QString& iconFileName,
+//                                                     const QString& toolTip,
+//                                                     const QString& widgetName,
+//                                                     QObject* receiver,
+//                                                     WuQObject::QObjectBoolPointerToMemberFunction method);
         
         static QAction* createAction(const QString& text,
                                      const QString& toolAndStatusTipText,

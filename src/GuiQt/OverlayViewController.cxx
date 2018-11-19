@@ -50,6 +50,7 @@
 #include "FileInformation.h"
 #include "FilePathNamePrefixCompactor.h"
 #include "GuiManager.h"
+#include "MacroPrototype.h"
 #include "MapYokingGroupComboBox.h"
 #include "Overlay.h"
 #include "UsernamePasswordWidget.h"
@@ -97,23 +98,37 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     }
     const QComboBox::SizeAdjustPolicy comboSizePolicy = QComboBox::AdjustToContentsOnFirstShow; //QComboBox::AdjustToContents;
 
+    QString objectNamePrefix("Overlay_"
+                             + AString::number(overlayIndex + 1)
+                             + "_"
+                             + ((orientation == Qt::Horizontal)
+                                ? "H_"
+                                : "V_"));
     /*
      * Enabled Check Box
      */
     const QString checkboxText = ((orientation == Qt::Horizontal) ? " " : " ");
     this->enabledCheckBox = new QCheckBox(checkboxText);
-    QObject::connect(this->enabledCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(enabledCheckBoxClicked(bool)));
+    this->enabledCheckBox->setObjectName(objectNamePrefix
+                                         + "OnOff_CheckBox");
+//    QObject::connect(this->enabledCheckBox, SIGNAL(clicked(bool)),
+//                     this, SLOT(enabledCheckBoxClicked(bool)));
+    WuQObject::connect(this->enabledCheckBox, SIGNAL(clicked(bool)),
+                       this, SLOT(enabledCheckBoxClicked(bool)));
     this->enabledCheckBox->setToolTip("Enables display of this overlay");
     
     /*
-     * File Selection Check Box
+     * File Selection Combo Box
      */
     this->fileComboBox = WuQFactory::newComboBox();
+    this->fileComboBox->setObjectName(objectNamePrefix
+                                      + "File_Selection_ComboBox");
     this->fileComboBox->setMinimumWidth(minComboBoxWidth);
     this->fileComboBox->setMaximumWidth(maxComboBoxWidth);
-    QObject::connect(this->fileComboBox, SIGNAL(activated(int)),
-                     this, SLOT(fileComboBoxSelected(int)));
+//    QObject::connect(this->fileComboBox, SIGNAL(activated(int)),
+//                     this, SLOT(fileComboBoxSelected(int)));
+    WuQObject::connect(this->fileComboBox, SIGNAL(activated(int)),
+                       this, SLOT(fileComboBoxSelected(int)));
     this->fileComboBox->setToolTip("Selects file for this overlay");
     this->fileComboBox->setSizeAdjustPolicy(comboSizePolicy);
     
@@ -121,7 +136,11 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
      * Map Index Spin Box
      */
     m_mapIndexSpinBox = WuQFactory::newSpinBox();
-    QObject::connect(m_mapIndexSpinBox, SIGNAL(valueChanged(int)),
+    this->m_mapIndexSpinBox->setObjectName(objectNamePrefix
+                                         + "Map_Index_SpinBox");
+//    QObject::connect(m_mapIndexSpinBox, SIGNAL(valueChanged(int)),
+//                     this, SLOT(mapIndexSpinBoxValueChanged(int)));
+    WuQObject::connect(m_mapIndexSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(mapIndexSpinBoxValueChanged(int)));
     m_mapIndexSpinBox->setToolTip("Select map by its index");
     
@@ -129,9 +148,13 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
      * Map Name Combo Box
      */
     this->mapNameComboBox = WuQFactory::newComboBox();
+    this->mapNameComboBox->setObjectName(objectNamePrefix
+                                      + "Map_Selection_ComboBox");
     this->mapNameComboBox->setMinimumWidth(minComboBoxWidth);
     this->mapNameComboBox->setMaximumWidth(maxComboBoxWidth);
-    QObject::connect(this->mapNameComboBox, SIGNAL(activated(int)),
+//    QObject::connect(this->mapNameComboBox, SIGNAL(activated(int)),
+//                     this, SLOT(mapNameComboBoxSelected(int)));
+    WuQObject::connect(this->mapNameComboBox, SIGNAL(activated(int)),
                      this, SLOT(mapNameComboBoxSelected(int)));
     this->mapNameComboBox->setToolTip("Select map by its name");
     this->mapNameComboBox->setSizeAdjustPolicy(comboSizePolicy);
@@ -140,32 +163,48 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
      * Opacity double spin box
      */
     this->opacityDoubleSpinBox = WuQFactory::newDoubleSpinBox();
+    this->opacityDoubleSpinBox->setObjectName(objectNamePrefix
+                                              + "Opacity_SpinBox");
     this->opacityDoubleSpinBox->setMinimum(0.0);
     this->opacityDoubleSpinBox->setMaximum(1.0);
     this->opacityDoubleSpinBox->setSingleStep(0.10);
     this->opacityDoubleSpinBox->setDecimals(1);
     this->opacityDoubleSpinBox->setFixedWidth(50);
-    QObject::connect(this->opacityDoubleSpinBox, SIGNAL(valueChanged(double)),
+//    QObject::connect(this->opacityDoubleSpinBox, SIGNAL(valueChanged(double)),
+//                     this, SLOT(opacityDoubleSpinBoxValueChanged(double)));
+    WuQObject::connect(this->opacityDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(opacityDoubleSpinBoxValueChanged(double)));
     this->opacityDoubleSpinBox->setToolTip("Opacity (0.0=transparent, 1.0=opaque)");
     
     /*
      * ColorBar Tool Button
      */
-    QIcon colorBarIcon;
-    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/LayersPanel/colorbar.png",
-                                                           colorBarIcon);
-    this->colorBarAction = WuQtUtilities::createAction("CB", 
-                                                       "Display color bar for this overlay", 
-                                                       this, 
-                                                       this, 
-                                                       SLOT(colorBarActionTriggered(bool)));
-    this->colorBarAction->setCheckable(true);
-    if (colorBarIconValid) {
-        this->colorBarAction->setIcon(colorBarIcon);
-    }
-    QToolButton* colorBarToolButton = new QToolButton();
-    colorBarToolButton->setDefaultAction(this->colorBarAction);
+    m_colorBarToolButton = WuQtUtilities::createToolButtonWithIcon("CB",
+                                                                   ":/LayersPanel/colorbar.png",
+                                                                   "Display color bar for this overlay",
+                                                                   (objectNamePrefix
+                                                                   + "Show_Color_Bar"),
+                                                                   this,
+                                                                   SLOT(colorBarActionTriggered(bool)));
+    m_colorBarToolButton->setCheckable(true);
+    
+//    /*
+//     * ColorBar Tool Button
+//     */
+//    QIcon colorBarIcon;
+//    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/LayersPanel/colorbar.png",
+//                                                           colorBarIcon);
+//    this->colorBarAction = WuQtUtilities::createAction("CB", 
+//                                                       "Display color bar for this overlay", 
+//                                                       this, 
+//                                                       this, 
+//                                                       SLOT(colorBarActionTriggered(bool)));
+//    this->colorBarAction->setCheckable(true);
+//    if (colorBarIconValid) {
+//        this->colorBarAction->setIcon(colorBarIcon);
+//    }
+//    QToolButton* colorBarToolButton = new QToolButton();
+//    colorBarToolButton->setDefaultAction(this->colorBarAction);
     
     /*
      * Settings Tool Button
@@ -215,7 +254,9 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     /*
      * Yoking Group
      */
-    m_mapYokingGroupComboBox = new MapYokingGroupComboBox(this);
+    m_mapYokingGroupComboBox = new MapYokingGroupComboBox(this,
+                                                          (objectNamePrefix
+                                                           + "Map_Yoking_Selection"));
     m_mapYokingGroupComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
     m_mapYokingGroupComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
 #ifdef CARET_OS_MACOSX
@@ -237,7 +278,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         this->gridLayoutGroup->addWidget(settingsToolButton,
                                          row, 1,
                                          Qt::AlignHCenter);
-        this->gridLayoutGroup->addWidget(colorBarToolButton,
+        this->gridLayoutGroup->addWidget(m_colorBarToolButton, //colorBarToolButton,
                                          row, 2);
         this->gridLayoutGroup->addWidget(m_constructionToolButton,
                                          row, 3);
@@ -268,7 +309,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                          row, 0);
         this->gridLayoutGroup->addWidget(settingsToolButton,
                                          row, 1);
-        this->gridLayoutGroup->addWidget(colorBarToolButton,
+        this->gridLayoutGroup->addWidget(m_colorBarToolButton, //colorBarToolButton,
                                          row, 2);
         this->gridLayoutGroup->addWidget(m_constructionToolButton,
                                          row, 3);
@@ -687,9 +728,10 @@ OverlayViewController::updateViewController(Overlay* overlay)
     
     m_mapYokingGroupComboBox->setMapYokingGroup(overlay->getMapYokingGroup());
     
-    this->colorBarAction->blockSignals(true);
-    this->colorBarAction->setChecked(overlay->getColorBar()->isDisplayed());
-    this->colorBarAction->blockSignals(false);
+    m_colorBarToolButton->setChecked(overlay->getColorBar()->isDisplayed());
+//    this->colorBarAction->blockSignals(true);
+//    this->colorBarAction->setChecked(overlay->getColorBar()->isDisplayed());
+//    this->colorBarAction->blockSignals(false);
     
     this->opacityDoubleSpinBox->blockSignals(true);
     this->opacityDoubleSpinBox->setValue(overlay->getOpacity());
@@ -758,7 +800,8 @@ OverlayViewController::updateViewController(Overlay* overlay)
     this->constructionAction->setEnabled(true);
     this->opacityDoubleSpinBox->setEnabled(haveOpacity);
     this->m_mapYokingGroupComboBox->getWidget()->setEnabled(haveYoking);
-    this->colorBarAction->setEnabled(dataIsMappedWithPalette);
+    //this->colorBarAction->setEnabled(dataIsMappedWithPalette);
+    this->m_colorBarToolButton->setEnabled(dataIsMappedWithPalette);
     this->settingsAction->setEnabled(true);
 }
 

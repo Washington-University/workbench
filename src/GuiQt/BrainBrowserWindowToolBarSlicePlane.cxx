@@ -34,6 +34,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "MacroPrototype.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -77,6 +78,8 @@ m_parentToolBar(parentToolBar)
     if (parasagittalIconValid) {
         m_volumePlaneParasagittalToolButtonAction->setIcon(parasagittalIcon);
     }
+    m_volumePlaneParasagittalToolButtonAction->setObjectName("ToolBar_Volume_Parasagittal_Slice_View");
+    WuQObject::watchObjectForMacroRecording(m_volumePlaneParasagittalToolButtonAction);
     
     m_volumePlaneCoronalToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::CORONAL),
                                                                            "View the CORONAL slice",
@@ -85,6 +88,8 @@ m_parentToolBar(parentToolBar)
     if (coronalIconValid) {
         m_volumePlaneCoronalToolButtonAction->setIcon(coronalIcon);
     }
+    m_volumePlaneCoronalToolButtonAction->setObjectName("ToolBar_Volume_Coronal_Slice_View");
+    WuQObject::watchObjectForMacroRecording(m_volumePlaneCoronalToolButtonAction);
     
     m_volumePlaneAxialToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::AXIAL),
                                                                          "View the AXIAL slice",
@@ -93,6 +98,8 @@ m_parentToolBar(parentToolBar)
     if (axialIconValid) {
         m_volumePlaneAxialToolButtonAction->setIcon(axialIcon);
     }
+    m_volumePlaneAxialToolButtonAction->setObjectName("ToolBar_Volume_Axial_Slice_View");
+    WuQObject::watchObjectForMacroRecording(m_volumePlaneAxialToolButtonAction);
     
     m_volumePlaneAllToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::ALL),
                                                                    "View the PARASAGITTAL, CORONAL, and AXIAL slices\n"
@@ -100,6 +107,8 @@ m_parentToolBar(parentToolBar)
                                                                        this);
     m_volumePlaneAllToolButtonAction->setCheckable(true);
     m_volumePlaneAllToolButtonAction->setMenu(createViewAllSlicesLayoutMenu());
+    m_volumePlaneAllToolButtonAction->setObjectName("ToolBar_Volume_All_Slices_View");
+    WuQObject::watchObjectForMacroRecording(m_volumePlaneAllToolButtonAction);
     
     
     m_volumePlaneActionGroup = new QActionGroup(this);
@@ -122,18 +131,22 @@ m_parentToolBar(parentToolBar)
     QToolButton* volumePlaneParasagittalToolButton = new QToolButton();
     volumePlaneParasagittalToolButton->setDefaultAction(m_volumePlaneParasagittalToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneParasagittalToolButton);
+    m_volumePlaneParasagittalToolButtonAction->setParent(volumePlaneParasagittalToolButton);
     
     QToolButton* volumePlaneCoronalToolButton = new QToolButton();
     volumePlaneCoronalToolButton->setDefaultAction(m_volumePlaneCoronalToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneCoronalToolButton);
+    m_volumePlaneCoronalToolButtonAction->setParent(volumePlaneCoronalToolButton);
     
     QToolButton* volumePlaneAxialToolButton = new QToolButton();
     volumePlaneAxialToolButton->setDefaultAction(m_volumePlaneAxialToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneAxialToolButton);
+    m_volumePlaneAxialToolButtonAction->setParent(volumePlaneAxialToolButton);
     
     QToolButton* volumePlaneAllToolButton = new QToolButton();
     volumePlaneAllToolButton->setDefaultAction(m_volumePlaneAllToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneAllToolButton);
+    m_volumePlaneAllToolButtonAction->setParent(volumePlaneAllToolButton);
     
     QToolButton* volumePlaneResetToolButton = new QToolButton();
     volumePlaneResetToolButton->setDefaultAction(m_volumePlaneResetToolButtonAction);

@@ -414,6 +414,8 @@ namespace caret {
         QAction* m_developerGraphicsTimingAction;
         QAction* m_developerExportVtkFileAction;
         
+        QAction* m_macroMenuAction;
+        
         QAction* m_overlayToolBoxAction;
         
         QAction* m_windowMenuLockWindowAspectRatioAction;

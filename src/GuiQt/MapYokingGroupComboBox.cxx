@@ -32,6 +32,7 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
 #include "EventMapYokingValidation.h"
+#include "MacroPrototype.h"
 #include "Overlay.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -48,6 +49,29 @@ using namespace caret;
  * Constructor.
  */
 MapYokingGroupComboBox::MapYokingGroupComboBox(QObject* parent)
+: MapYokingGroupComboBox(parent,
+                       "")
+{
+}
+//: WuQWidget(parent)
+//{
+//    m_comboBox = new EnumComboBoxTemplate(this);
+//    m_comboBox->setup<MapYokingGroupEnum, MapYokingGroupEnum::Enum>();
+//    m_comboBox->getWidget()->setStatusTip("Synchronize selected map indices (and selection status for overlays)");
+//    m_comboBox->getWidget()->setToolTip("Synchronize selected map indices (and selection status for overlays)");
+//#ifdef CARET_OS_MACOSX
+//    m_comboBox->getComboBox()->setFixedWidth(m_comboBox->getComboBox()->sizeHint().width() - 20);
+//#endif // CARET_OS_MACOSX
+//    QObject::connect(m_comboBox, SIGNAL(itemActivated()),
+//                     this, SLOT(comboBoxActivated()));
+//    WuQObject::watchObjectForMacroRecording(m_comboBox);
+//}
+
+/**
+ * Constructor.
+ */
+MapYokingGroupComboBox::MapYokingGroupComboBox(QObject* parent,
+                                               const QString& objectName)
 : WuQWidget(parent)
 {
     m_comboBox = new EnumComboBoxTemplate(this);
@@ -59,6 +83,11 @@ MapYokingGroupComboBox::MapYokingGroupComboBox(QObject* parent)
 #endif // CARET_OS_MACOSX
     QObject::connect(m_comboBox, SIGNAL(itemActivated()),
                      this, SLOT(comboBoxActivated()));
+    if ( ! objectName.isEmpty()) {
+        QWidget* encapsulatedComboBox = m_comboBox->getWidget();
+        encapsulatedComboBox->setObjectName(objectName);
+        WuQObject::watchObjectForMacroRecording(encapsulatedComboBox);
+    }
 }
 
 /**

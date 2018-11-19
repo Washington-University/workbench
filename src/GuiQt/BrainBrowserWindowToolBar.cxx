@@ -2063,6 +2063,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationLeftOrLateralToolButtonAction->setIconText("L");
     }
+    this->orientationLeftOrLateralToolButtonAction->setObjectName("ToolBar_Left_Or_LateralView");
+    WuQObject::watchObjectForMacroRecording(this->orientationLeftOrLateralToolButtonAction);
     
     this->orientationRightOrMedialToolButtonAction = WuQtUtilities::createAction("R", 
                                                                          "View from a RIGHT perspective", 
@@ -2075,6 +2077,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationRightOrMedialToolButtonAction->setIconText("R");
     }
+    this->orientationRightOrMedialToolButtonAction->setObjectName("ToolBar_Right_Or_Medial_View");
+    WuQObject::watchObjectForMacroRecording(this->orientationRightOrMedialToolButtonAction);
     
     this->orientationAnteriorToolButtonAction = WuQtUtilities::createAction("A", 
                                                                             "View from an ANTERIOR perspective", 
@@ -2087,6 +2091,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationAnteriorToolButtonAction->setIconText("A");
     }
+    this->orientationAnteriorToolButtonAction->setObjectName("ToolBar_Anterior_View");
+    WuQObject::watchObjectForMacroRecording(this->orientationAnteriorToolButtonAction);
     
     this->orientationPosteriorToolButtonAction = WuQtUtilities::createAction("P", 
                                                                              "View from a POSTERIOR perspective", 
@@ -2099,6 +2105,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationPosteriorToolButtonAction->setIconText("P");
     }
+    this->orientationPosteriorToolButtonAction->setObjectName("ToolBar_Posterior_View");
+    WuQObject::watchObjectForMacroRecording(this->orientationPosteriorToolButtonAction);
     
     this->orientationDorsalToolButtonAction = WuQtUtilities::createAction("D", 
                                                                           "View from a DORSAL perspective", 
@@ -2111,6 +2119,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationDorsalToolButtonAction->setIconText("D");
     }
+    this->orientationDorsalToolButtonAction->setObjectName("ToolBar_Dorsal_View");
+    WuQObject::watchObjectForMacroRecording(this->orientationDorsalToolButtonAction);
     
     this->orientationVentralToolButtonAction = WuQtUtilities::createAction("V", 
                                                                            "View from a VENTRAL perspective", 
@@ -2123,6 +2133,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationVentralToolButtonAction->setIconText("V");
     }
+    this->orientationVentralToolButtonAction->setObjectName("ToolBar_Ventral_View");
+    WuQObject::watchObjectForMacroRecording(this->orientationVentralToolButtonAction);
     
     
     this->orientationLateralMedialToolButtonAction = WuQtUtilities::createAction("LM",
@@ -2130,24 +2142,32 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                                  this, 
                                                                                  this, 
                                                                                  SLOT(orientationLateralMedialToolButtonTriggered(bool)));
+    this->orientationLateralMedialToolButtonAction->setObjectName("ToolBar_Lateral_Medial_View");
+    WuQObject::watchObjectForMacroRecording(this->orientationLateralMedialToolButtonAction);
     
     this->orientationDorsalVentralToolButtonAction = WuQtUtilities::createAction("DV",
                                                                                     "View from a Dorsal/Ventral perspective", 
                                                                                     this, 
                                                                                     this, 
                                                                                     SLOT(orientationDorsalVentralToolButtonTriggered(bool)));
+    this->orientationDorsalVentralToolButtonAction->setObjectName("ToolBar_Dorsal_Ventral_View");
+    WuQObject::watchObjectForMacroRecording(this->orientationDorsalVentralToolButtonAction);
     
     this->orientationAnteriorPosteriorToolButtonAction = WuQtUtilities::createAction("AP", 
                                                                                         "View from a Anterior/Posterior perspective", 
                                                                                         this, 
                                                                                         this, 
                                                                                         SLOT(orientationAnteriorPosteriorToolButtonTriggered(bool)));
+    this->orientationAnteriorPosteriorToolButtonAction->setObjectName("ToolBar_Anterior_Posterior_View");
+    WuQObject::watchObjectForMacroRecording(this->orientationAnteriorPosteriorToolButtonAction);
     
     this->orientationResetToolButtonAction = WuQtUtilities::createAction("R\nE\nS\nE\nT",
                                                                          "Reset the view to dorsal and remove any panning or zooming", 
                                                                          this, 
                                                                          this, 
                                                                          SLOT(orientationResetToolButtonTriggered(bool)));
+    this->orientationResetToolButtonAction->setObjectName("ToolBar_Reset_View");
+    WuQObject::watchObjectForMacroRecording(this->orientationResetToolButtonAction);
     
     this->orientationLeftOrLateralToolButton = new QToolButton();
     this->orientationLeftOrLateralToolButton->setDefaultAction(this->orientationLeftOrLateralToolButtonAction);
@@ -2156,6 +2176,7 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     this->orientationRightOrMedialToolButton = new QToolButton();
     this->orientationRightOrMedialToolButton->setDefaultAction(this->orientationRightOrMedialToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationRightOrMedialToolButton);
+    orientationRightOrMedialToolButtonAction->setParent(orientationRightOrMedialToolButton);
     
     this->orientationAnteriorToolButton = new QToolButton();
     this->orientationAnteriorToolButton->setDefaultAction(this->orientationAnteriorToolButtonAction);
@@ -2176,14 +2197,17 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     this->orientationLateralMedialToolButton = new QToolButton();
     this->orientationLateralMedialToolButton->setDefaultAction(this->orientationLateralMedialToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationLateralMedialToolButton);
+    orientationLateralMedialToolButtonAction->setParent(orientationLateralMedialToolButton);
     
     this->orientationDorsalVentralToolButton = new QToolButton();
     this->orientationDorsalVentralToolButton->setDefaultAction(this->orientationDorsalVentralToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationDorsalVentralToolButton);
+    orientationDorsalVentralToolButtonAction->setParent(orientationDorsalVentralToolButton);
     
     this->orientationAnteriorPosteriorToolButton = new QToolButton();
     this->orientationAnteriorPosteriorToolButton->setDefaultAction(this->orientationAnteriorPosteriorToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationAnteriorPosteriorToolButton);
+    orientationAnteriorPosteriorToolButtonAction->setParent(orientationAnteriorPosteriorToolButton);
     
     WuQtUtilities::matchWidgetWidths(this->orientationLateralMedialToolButton,
                                      this->orientationDorsalVentralToolButton,

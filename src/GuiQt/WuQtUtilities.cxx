@@ -43,6 +43,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "MacroPrototype.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -215,12 +216,70 @@ WuQtUtilities::createPushButton(const QString& text,
     return pb;
 }
 
+//QToolButton*
+//WuQtUtilities::createToolButtonWithIcon(const QString& text,
+//                                             const QString& iconFileName,
+//                                             const QString& toolTip,
+//                                             const QString& widgetName,
+//                                             QObject* receiver,
+//                                             WuQObject::QObjectBoolPointerToMemberFunction method)
+//{
+//    QIcon icon;
+//    const bool iconValid = WuQtUtilities::loadIcon(iconFileName,
+//                                                   icon);
+//    
+//    QToolButton* toolButton = new QToolButton();
+//    if (iconValid) {
+//        toolButton->setIcon(icon);
+//    }
+//    else {
+//        toolButton->setText(text);
+//    }
+//    toolButton->setToolTip(toolTip);
+//    toolButton->setObjectName(widgetName);
+//    
+//    WuQObject::connectFP(toolButton,
+//                         static_cast<void (QObject::*)(bool)>(&QToolButton::clicked),
+//                           receiver,
+//                           method);
+//    
+//    return toolButton;
+//}
+
+QToolButton*
+WuQtUtilities::createToolButtonWithIcon(const QString& text,
+                                        const QString& iconFileName,
+                                        const QString& toolTip,
+                                        const QString& widgetName,
+                                        QObject* receiver,
+                                        const char* method)
+{
+    QIcon icon;
+    const bool iconValid = WuQtUtilities::loadIcon(iconFileName,
+                                                   icon);
+
+    QToolButton* toolButton = new QToolButton();
+    if (iconValid) {
+        toolButton->setIcon(icon);
+    }
+    else {
+        toolButton->setText(text);
+    }
+    toolButton->setToolTip(toolTip);
+    toolButton->setObjectName(widgetName);
+
+    WuQObject::connect(toolButton, SIGNAL(clicked(bool)),
+                     receiver, method);
+    
+    return toolButton;
+}
+
 /**
  * Create a horizontal line widget used as a separator.
  *
  * @return  A horizontal line widget used as a separator.
  */
-QWidget* 
+QWidget*
 WuQtUtilities::createHorizontalLineWidget()
 {
     QFrame* frame = new QFrame();

@@ -108,6 +108,8 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 #endif
 windowIndex(windowIndex)
 {
+    setObjectName("m_openGLWidget");
+
     this->borderBeingDrawn = new Border();
     
     m_mousePositionValid = false;
@@ -863,6 +865,8 @@ BrainOpenGLWidget::keyReleaseEvent(QKeyEvent* e)
 void 
 BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 {
+    MacroManager::get()->recordMouseEvent(this, me);
+    
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
     Qt::MouseButtons mouseButtons = me->buttons();
@@ -948,6 +952,8 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 void 
 BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 {
+    MacroManager::get()->recordMouseEvent(this, me);
+    
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
     Qt::MouseButtons mouseButtons = me->buttons();
@@ -1043,6 +1049,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 void
 BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
 {
+    MacroManager::get()->recordMouseEvent(this, me);
+
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
     Qt::MouseButtons mouseButtons = me->buttons();
@@ -1385,6 +1393,8 @@ BrainOpenGLWidget::performProjection(const int x,
 void 
 BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 {
+    MacroManager::get()->recordMouseEvent(this, me);
+    
     /*
      * Tooltip will remain displayed for several seconds.
      * So if the user moves the mouse, remove the tooltip.
@@ -1850,3 +1860,36 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
     
     s_defaultGLFormatInitialized = true;
 }
+
+QSize
+BrainOpenGLWidget::getSizeOfWidget() const
+{
+    return size();
+}
+
+
+void
+BrainOpenGLWidget::processMouseEvent(QMouseEvent* me)
+{
+    m_mousePositionValid = true;
+    switch (me->type()) {
+        case QEvent::MouseButtonDblClick:
+            mouseDoubleClickEvent(me);
+            break;
+        case QEvent::MouseButtonPress:
+            mousePressEvent(me);
+            break;
+        case QEvent::MouseButtonRelease:
+            mouseReleaseEvent(me);
+            break;
+        case QEvent::MouseMove:
+            mouseMoveEvent(me);
+            break;
+        default:
+            CaretAssert(0);
+            break;
+    }
+    m_mousePositionValid = false;
+}
+
+
