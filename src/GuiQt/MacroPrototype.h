@@ -46,7 +46,7 @@ namespace caret {
         CHECK_BOX,
         COMBO_BOX,
         DOUBLE_SPIN_BOX,
-        MOUSE_EVENT,
+        MOUSE_USER_EVENT,
         SPIN_BOX,
         TOOL_BUTTON,
     };

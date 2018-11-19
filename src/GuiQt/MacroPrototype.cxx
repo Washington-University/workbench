@@ -478,7 +478,7 @@ m_widgetName(widgetName)
             break;
         case INVALID:
             break;
-        case MOUSE_EVENT:
+        case MOUSE_USER_EVENT:
             CaretAssert(0);
             break;
         case SPIN_BOX:
@@ -494,7 +494,7 @@ MacroEvent::MacroEvent(QMouseEvent* me,
                        const QString& widgetName,
                        const int32_t widgetWidth,
                        const int32_t widgetHeight)
-: m_widgetType(WidgetWatcherType::MOUSE_EVENT),
+: m_widgetType(WidgetWatcherType::MOUSE_USER_EVENT),
 m_widgetName(widgetName)
 {
     m_valueType = ValueType::MOUSE;
@@ -528,7 +528,7 @@ MacroEvent::toString() const
             break;
         case INVALID:
             break;
-        case MOUSE_EVENT:
+        case MOUSE_USER_EVENT:
             widgetTypeString = "MOUSE";
             break;
         case SPIN_BOX:
@@ -592,7 +592,7 @@ MacroEvent::fromString(const QString& s)
             widgetType = WidgetWatcherType::DOUBLE_SPIN_BOX;
         }
         else if (widgetTypeName == "MOUSE") {
-            widgetType = WidgetWatcherType::MOUSE_EVENT;
+            widgetType = WidgetWatcherType::MOUSE_USER_EVENT;
         }
         else if (widgetTypeName == "SPIN_BOX") {
             widgetType = WidgetWatcherType::SPIN_BOX;
@@ -608,7 +608,7 @@ MacroEvent::fromString(const QString& s)
         if (validFlag) {
             m_widgetName = widgetName;
             m_widgetType = widgetType;
-            if (widgetType == WidgetWatcherType::MOUSE_EVENT) {
+            if (widgetType == WidgetWatcherType::MOUSE_USER_EVENT) {
                 validFlag = m_mouseEventInfo.fromString(valueString);
             }
             else {
@@ -789,7 +789,7 @@ MacroManager::runMacro(QObject* window,
             }
         }
         
-        const bool mouseEventFlag = (me->m_widgetType == WidgetWatcherType::MOUSE_EVENT);
+        const bool mouseEventFlag = (me->m_widgetType == WidgetWatcherType::MOUSE_USER_EVENT);
         if (widgetToMoveMouse != NULL) {
             if ( ! mouseEventFlag) {
                 const bool highlightFlag = ( ! mouseEventFlag);
@@ -857,7 +857,7 @@ MacroManager::runMacro(QObject* window,
                 }
             }
                 break;
-            case WidgetWatcherType::MOUSE_EVENT:
+            case WidgetWatcherType::MOUSE_USER_EVENT:
             {
                 QWidget* widget = window->findChild<QWidget*>(me->m_widgetName);
                 if (widget != NULL) {
@@ -1301,7 +1301,7 @@ WidgetWatcher::WidgetWatcher(const WidgetWatcherType widgetType,
                              this, &WidgetWatcher::doubleSpinBoxValueChanged);
         }
             break;
-        case MOUSE_EVENT:
+        case MOUSE_USER_EVENT:
             break;
         case SPIN_BOX:
         {
