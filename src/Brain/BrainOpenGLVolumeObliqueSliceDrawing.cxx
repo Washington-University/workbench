@@ -2907,6 +2907,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
         const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
         
+        bool haveAlphaBlendingFlag(false);
         std::vector<ObliqueSlice*> slices;
         for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
             const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
@@ -2918,6 +2919,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                     volumeEditDrawAllVoxelsFlag = true;
                 }
             }
+            
+            const bool bottomLayerFlag(iVol == 0);
             ObliqueSlice* slice = new ObliqueSlice(m_fixedPipelineDrawing,
                                                    volInter,
                                                    m_volumeDrawInfo[iVol].opacity,
@@ -2933,16 +2936,28 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                                                    m_obliqueSliceMaskingType,
                                                    voxelEditingValue,
                                                    volumeEditDrawAllVoxelsFlag,
-                                                   m_identificationModeFlag);
+                                                   m_identificationModeFlag,
+                                                   bottomLayerFlag);
             slices.push_back(slice);
+            
+            if (m_volumeDrawInfo[iVol].opacity < 1.0) {
+                haveAlphaBlendingFlag = true;
+            }
         }
         
         const int32_t numSlices = static_cast<int32_t>(slices.size());
         if (numSlices > 0) {
-            bool drawAllSlicesFlag = true;
-            const bool compositeFlag = true;
-            if (compositeFlag
-                && ( ! m_identificationModeFlag)) {
+            bool drawEachSliceFlag = true;
+            bool compositeFlag = true;
+            if (haveAlphaBlendingFlag
+                || m_identificationModeFlag) {
+                /*
+                 * Do not composite slices if blending is used
+                 * or if in identification mode
+                 */
+                compositeFlag = false;
+            }
+            if (compositeFlag) {
                 CaretAssertVectorIndex(slices, 0);
                 ObliqueSlice* underlaySlice = slices[0];
                 if (numSlices > 1) {
@@ -2953,12 +2968,12 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                     }
                     if (underlaySlice->compositeSlicesRGBA(overlaySlices)) {
                         underlaySlice->draw(m_fixedPipelineDrawing);
-                        drawAllSlicesFlag = false;
+                        drawEachSliceFlag = false;
                     }
                 }
             }
             
-            if (drawAllSlicesFlag) {
+            if (drawEachSliceFlag) {
                 for (auto s : slices) {
                     s->draw(m_fixedPipelineDrawing);
                 }
@@ -3007,6 +3022,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
  *    Draw all voxels when editing a volume.
  * @param identificationModeFlag
  *    True if identification mode is active.
+ * @param bottomLayerFlag
+ *    True if bottom layer.
  */
 BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::ObliqueSlice(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                                  VolumeMappableInterface* volumeInterface,
@@ -3023,7 +3040,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::ObliqueSlice(BrainOpenGLFixe
                                                                  const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskingType,
                                                                  const float voxelEditingValue,
                                                                  const bool volumeEditingDrawAllVoxelsFlag,
-                                                                 const bool identificationModeFlag)
+                                                                 const bool identificationModeFlag,
+                                                                 const bool bottomLayerFlag)
 :
 m_volumeInterface(volumeInterface),
 m_opacity(opacity),
@@ -3036,7 +3054,8 @@ m_displayPropertiesLabels(displayPropertiesLabels),
 m_displayGroup(displayGroup),
 m_identificationX(fixedPipelineDrawing->mouseX),
 m_identificationY(fixedPipelineDrawing->mouseY),
-m_identificationModeFlag(identificationModeFlag)
+m_identificationModeFlag(identificationModeFlag),
+m_bottomLayerFlag(bottomLayerFlag)
 {
     CaretAssert(volumeInterface);
     CaretAssert(m_mapFile);
@@ -3774,6 +3793,15 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
         m_originXYZ[2]
     };
     
+    uint8_t sliceAlpha = 255;
+    bool drawWithBlendingFlag(false);
+//    if (m_bottomLayerFlag) {
+        if (m_opacity < 1.0) {
+            sliceAlpha = static_cast<uint8_t>(m_opacity * 255.0);
+            drawWithBlendingFlag = true;
+        }
+//    }
+    
     std::vector<int64_t> selectionIJK;
     for (int32_t iRow = 0; iRow < m_numberOfRows; iRow++) {
         float voxelXYZ[3] = {
@@ -3804,7 +3832,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
                     nextXYZ[1] + m_bottomToTopStepXYZ[1],
                     nextXYZ[2] + m_bottomToTopStepXYZ[2]
                 };
-                const uint8_t* rgba = &m_rgba[rgbaIndex];
+                uint8_t* rgba = &m_rgba[rgbaIndex];
+                if (drawWithBlendingFlag) {
+                    if ((rgba[0] > 0)
+                        || (rgba[1] > 0)
+                        || (rgba[2] > 0)) {
+                        rgba[3] = sliceAlpha;
+                    }
+                }
                 
                 /*
                  * Each voxel is drawn with two triangles because:
@@ -3922,7 +3957,13 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
             }
         }
         else {
+            glPushAttrib(GL_COLOR_BUFFER_BIT);
+            if (drawWithBlendingFlag) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            }
             GraphicsEngineDataOpenGL::draw(primitive.get());
+            glPopAttrib();
         }
     }
 }

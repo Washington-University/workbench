@@ -3661,9 +3661,6 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                     VolumeMappableInterface* vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
                     if (vf != NULL) {
                         float opacity = overlay->getOpacity();
-                        if (volumeDrawInfoOut.empty()) {
-                            opacity = 1.0;
-                        }
                         
                         WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode = overlay->getWholeBrainVoxelDrawingMode();
                         
