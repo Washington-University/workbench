@@ -80,7 +80,7 @@ OperationParameters* AlgorithmCiftiAverageROICorrelation::getParameters()
     ciftiOpt->addCiftiParameter(1, "cifti-in", "a cifti file to average across");
     
     ret->setHelpText(
-        AString("Averages rows for each map of the ROI(s), takes the correlation of each ROI average to the rest of the rows in the same file, then averages the results across all files.  ") +
+        AString("Averages rows for each map of the ROI(s), takes the correlation of each ROI average to the rest of the rows in the same file, applies the fisher small z transform, then averages the results across all files.  ") +
         "ROIs are always treated as weighting functions, including negative values.  " +
         "For efficiency, ensure that everything that is not intended to be used is zero in the ROI map.  " +
         "If -cifti-roi is specified, -left-roi, -right-roi, -cerebellum-roi, and -vol-roi must not be specified.  " +

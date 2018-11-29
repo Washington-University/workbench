@@ -165,6 +165,7 @@ CopyPaletteColorMappingToFilesDialog::okButtonClicked()
             
             if (checkBox->isChecked()) {
                 if (mapFile != m_selectedMapFile) {
+                    ++checkedCount;
                     mapFile->setPaletteNormalizationMode(m_selectedMapFile->getPaletteNormalizationMode());
                     
                     const int32_t numMaps = mapFile->getNumberOfMaps();
@@ -172,9 +173,8 @@ CopyPaletteColorMappingToFilesDialog::okButtonClicked()
                         PaletteColorMapping* pcm = mapFile->getMapPaletteColorMapping(iMap);
                         pcm->copy(*m_selectedPaletteColorMapping,
                                   false);
-                        mapFile->updateScalarColoringForAllMaps();
-                        ++checkedCount;
                     }
+                    mapFile->updateScalarColoringForAllMaps();
                 }
                 else {
                     sourceFileFlag = true;
