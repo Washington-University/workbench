@@ -43,13 +43,13 @@
 #include "EventManager.h"
 #include "EventUpdateVolumeEditingToolBar.h"
 #include "GuiManager.h"
-#include "MacroPrototype.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "VolumeFile.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "WuQFactory.h"
+#include "WuQMacroManager.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -70,6 +70,12 @@ BrainBrowserWindowToolBarSliceSelection::BrainBrowserWindowToolBarSliceSelection
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    CaretAssert(macroManager);
+    const QString objectNamePrefix("Window_"
+                                   + QString::number(m_parentToolBar->browserWindowIndex + 1)
+                                   + ":ToolBar:SliceSelection:");
+    
     QAction* volumeIndicesOriginToolButtonAction = WuQtUtilities::createAction("O\nR\nI\nG\nI\nN",
                                                                                "Set the slice indices to the origin, \n"
                                                                                "stereotaxic coordinate (0, 0, 0)",
@@ -79,9 +85,10 @@ m_parentToolBar(parentToolBar)
     QToolButton* volumeIndicesOriginToolButton = new QToolButton;
     volumeIndicesOriginToolButton->setDefaultAction(volumeIndicesOriginToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumeIndicesOriginToolButton);
-    volumeIndicesOriginToolButtonAction->setObjectName("ToolBar_Move_Volume_Slices_to_Origin");
+    volumeIndicesOriginToolButtonAction->setObjectName(objectNamePrefix
+                                                       + "Move_Volume_Slices_to_Origin:Action");
     volumeIndicesOriginToolButtonAction->setParent(volumeIndicesOriginToolButton);
-    WuQObject::watchObjectForMacroRecording(volumeIndicesOriginToolButtonAction);
+    macroManager->addMacroSupportToObject(volumeIndicesOriginToolButtonAction);
     
     QLabel* parasagittalLabel = new QLabel("P:");
     QLabel* coronalLabel = new QLabel("C:");
@@ -90,21 +97,30 @@ m_parentToolBar(parentToolBar)
     m_volumeIndicesParasagittalCheckBox = new QCheckBox(" ");
     WuQtUtilities::setToolTipAndStatusTip(m_volumeIndicesParasagittalCheckBox,
                                           "Enable/Disable display of PARASAGITTAL slice");
+    m_volumeIndicesParasagittalCheckBox->setObjectName(objectNamePrefix
+                                                       + "Enable_Parasagittal_Slice:CheckBox");
     QObject::connect(m_volumeIndicesParasagittalCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(volumeIndicesParasagittalCheckBoxStateChanged(int)));
+    macroManager->addMacroSupportToObject(m_volumeIndicesParasagittalCheckBox);
     
     m_volumeIndicesCoronalCheckBox = new QCheckBox(" ");
     WuQtUtilities::setToolTipAndStatusTip(m_volumeIndicesCoronalCheckBox,
                                           "Enable/Disable display of CORONAL slice");
+    m_volumeIndicesCoronalCheckBox->setObjectName(objectNamePrefix
+                                                       + "Enable_Coronal_Slice:CheckBox");
     QObject::connect(m_volumeIndicesCoronalCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(volumeIndicesCoronalCheckBoxStateChanged(int)));
+    macroManager->addMacroSupportToObject(m_volumeIndicesCoronalCheckBox);
     
     m_volumeIndicesAxialCheckBox = new QCheckBox(" ");
     WuQtUtilities::setToolTipAndStatusTip(m_volumeIndicesAxialCheckBox,
                                           "Enable/Disable display of AXIAL slice");
     
+    m_volumeIndicesAxialCheckBox->setObjectName(objectNamePrefix
+                                                       + "Enable_Axial_Slice:CheckBox");
     QObject::connect(m_volumeIndicesAxialCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(volumeIndicesAxialCheckBoxStateChanged(int)));
+    macroManager->addMacroSupportToObject(m_volumeIndicesAxialCheckBox);
     
     const int sliceIndexSpinBoxWidth = 55;
     const int sliceCoordinateSpinBoxWidth = 60;
@@ -113,64 +129,64 @@ m_parentToolBar(parentToolBar)
     m_volumeIndicesParasagittalSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(m_volumeIndicesParasagittalSpinBox,
                                           "Change the selected PARASAGITTAL slice");
-//    QObject::connect(m_volumeIndicesParasagittalSpinBox, SIGNAL(valueChanged(int)),
-//                     this, SLOT(volumeIndicesParasagittalSpinBoxValueChanged(int)));
-    m_volumeIndicesParasagittalSpinBox->setObjectName("ToolBar_Volume_Parasagittal_Slice_Index");
-    WuQObject::connect(m_volumeIndicesParasagittalSpinBox, SIGNAL(valueChanged(int)),
+    QObject::connect(m_volumeIndicesParasagittalSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(volumeIndicesParasagittalSpinBoxValueChanged(int)));
+    m_volumeIndicesParasagittalSpinBox->setObjectName(objectNamePrefix
+                                                      + "Volume_Parasagittal_Slice_Index:SpinBox");
+    macroManager->addMacroSupportToObject(m_volumeIndicesParasagittalSpinBox);
     
     m_volumeIndicesCoronalSpinBox = WuQFactory::newSpinBox();
     m_volumeIndicesCoronalSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(m_volumeIndicesCoronalSpinBox,
                                           "Change the selected CORONAL slice");
-//    QObject::connect(m_volumeIndicesCoronalSpinBox, SIGNAL(valueChanged(int)),
-//                     this, SLOT(volumeIndicesCoronalSpinBoxValueChanged(int)));
-    m_volumeIndicesCoronalSpinBox->setObjectName("ToolBar_Volume_Coronal_Slice_Index");
-    WuQObject::connect(m_volumeIndicesCoronalSpinBox, SIGNAL(valueChanged(int)),
+    QObject::connect(m_volumeIndicesCoronalSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(volumeIndicesCoronalSpinBoxValueChanged(int)));
+    m_volumeIndicesCoronalSpinBox->setObjectName(objectNamePrefix
+                                                 + "Volume_Coronal_Slice_Index:SpinBox");
+    macroManager->addMacroSupportToObject(m_volumeIndicesCoronalSpinBox);
     
     m_volumeIndicesAxialSpinBox = WuQFactory::newSpinBox();
     m_volumeIndicesAxialSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(m_volumeIndicesAxialSpinBox,
                                           "Change the selected AXIAL slice");
-//    QObject::connect(m_volumeIndicesAxialSpinBox, SIGNAL(valueChanged(int)),
-//                     this, SLOT(volumeIndicesAxialSpinBoxValueChanged(int)));
-    m_volumeIndicesAxialSpinBox->setObjectName("ToolBar_Volume_Axial_Slice_Index");
-    WuQObject::connect(m_volumeIndicesAxialSpinBox, SIGNAL(valueChanged(int)),
+    QObject::connect(m_volumeIndicesAxialSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(volumeIndicesAxialSpinBoxValueChanged(int)));
+    m_volumeIndicesAxialSpinBox->setObjectName(objectNamePrefix
+                                               + "Volume_Axial_Slice_Index:SpinBox");
+    macroManager->addMacroSupportToObject(m_volumeIndicesAxialSpinBox);
     
     m_volumeIndicesXcoordSpinBox = WuQFactory::newDoubleSpinBox();
     m_volumeIndicesXcoordSpinBox->setDecimals(1);
     m_volumeIndicesXcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(m_volumeIndicesXcoordSpinBox,
                                           "Adjust coordinate to select PARASAGITTAL slice");
-//    QObject::connect(m_volumeIndicesXcoordSpinBox, SIGNAL(valueChanged(double)),
-//                     this, SLOT(volumeIndicesXcoordSpinBoxValueChanged(double)));
-    m_volumeIndicesXcoordSpinBox->setObjectName("ToolBar_Volume_Parasagittal_Coordinate");
-    WuQObject::connect(m_volumeIndicesXcoordSpinBox, SIGNAL(valueChanged(double)),
+    QObject::connect(m_volumeIndicesXcoordSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(volumeIndicesXcoordSpinBoxValueChanged(double)));
+    m_volumeIndicesXcoordSpinBox->setObjectName(objectNamePrefix
+                                                + "Volume_Parasagittal_Coordinate:DoubleSpinBox");
+    macroManager->addMacroSupportToObject(m_volumeIndicesXcoordSpinBox);
     
     m_volumeIndicesYcoordSpinBox = WuQFactory::newDoubleSpinBox();
     m_volumeIndicesYcoordSpinBox->setDecimals(1);
     m_volumeIndicesYcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(m_volumeIndicesYcoordSpinBox,
                                           "Adjust coordinate to select CORONAL slice");
-//    QObject::connect(m_volumeIndicesYcoordSpinBox, SIGNAL(valueChanged(double)),
-//                     this, SLOT(volumeIndicesYcoordSpinBoxValueChanged(double)));
-    m_volumeIndicesYcoordSpinBox->setObjectName("ToolBar_Volume_Coronal_Coordinate");
-    WuQObject::connect(m_volumeIndicesYcoordSpinBox, SIGNAL(valueChanged(double)),
+    QObject::connect(m_volumeIndicesYcoordSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(volumeIndicesYcoordSpinBoxValueChanged(double)));
+    m_volumeIndicesYcoordSpinBox->setObjectName(objectNamePrefix
+                                                + "Volume_Coronal_Coordinate:DoubleSpinBox");
+    macroManager->addMacroSupportToObject(m_volumeIndicesYcoordSpinBox);
     
     m_volumeIndicesZcoordSpinBox = WuQFactory::newDoubleSpinBox();
     m_volumeIndicesZcoordSpinBox->setDecimals(1);
     m_volumeIndicesZcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(m_volumeIndicesZcoordSpinBox,
                                           "Adjust coordinate to select AXIAL slice");
-//    QObject::connect(m_volumeIndicesZcoordSpinBox, SIGNAL(valueChanged(double)),
-//                     this, SLOT(volumeIndicesZcoordSpinBoxValueChanged(double)));
-    m_volumeIndicesZcoordSpinBox->setObjectName("ToolBar_Volume_Axial_Coordinate");
-    WuQObject::connect(m_volumeIndicesZcoordSpinBox, SIGNAL(valueChanged(double)),
+    QObject::connect(m_volumeIndicesZcoordSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(volumeIndicesZcoordSpinBoxValueChanged(double)));
+    m_volumeIndicesZcoordSpinBox->setObjectName(objectNamePrefix
+                                                + "Volume_Axial_Coordinate:DoubleSpinBox");
+    macroManager->addMacroSupportToObject(m_volumeIndicesZcoordSpinBox);
     
     const AString idToolTipText = ("When selected: If there is an identification operation "
                                    "in ths tab or any other tab with the same yoking status "
@@ -196,6 +212,9 @@ m_parentToolBar(parentToolBar)
     }
     volumeIDToolButton->setDefaultAction(m_volumeIdentificationUpdatesSlicesAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumeIDToolButton);
+    m_volumeIdentificationUpdatesSlicesAction->setObjectName(objectNamePrefix
+                                                             + "Move_Slice_to_ID:Action");
+    macroManager->addMacroSupportToObject(m_volumeIdentificationUpdatesSlicesAction);
     
     m_volumeSliceProjectionTypeEnumComboBox = new EnumComboBoxTemplate(this);
     m_volumeSliceProjectionTypeEnumComboBox->setup<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>();
@@ -204,15 +223,23 @@ m_parentToolBar(parentToolBar)
                      this, SLOT(volumeSliceProjectionTypeEnumComboBoxItemActivated()));
     WuQtUtilities::setToolTipAndStatusTip(m_volumeSliceProjectionTypeEnumComboBox->getWidget(),
                                           "Chooses viewing orientation (oblique or orthogonal)");
+    m_volumeSliceProjectionTypeEnumComboBox->getComboBox()->setObjectName(objectNamePrefix
+                                                                          + "Orthogonal/Oblique:ComboBox");
+    macroManager->addMacroSupportToObject(m_volumeSliceProjectionTypeEnumComboBox->getComboBox());
     
     m_obliqueMaskingAction = new QAction("M", this);
     m_obliqueMaskingAction->setToolTip(VolumeSliceInterpolationEdgeEffectsMaskingEnum::getToolTip());
     m_obliqueMaskingAction->setCheckable(true);
     QObject::connect(m_obliqueMaskingAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered);
+    m_obliqueMaskingAction->setObjectName(objectNamePrefix
+                                          + "Oblique_Masking:Action");
+    macroManager->addMacroSupportToObject(m_obliqueMaskingAction);
+    
     QToolButton* obliqueMaskingToolButton = new QToolButton();
     obliqueMaskingToolButton->setDefaultAction(m_obliqueMaskingAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(obliqueMaskingToolButton);
+    
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);

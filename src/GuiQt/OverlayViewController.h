@@ -36,6 +36,7 @@ class QToolButton;
 
 namespace caret {
 
+    class AString;
     class MapYokingGroupComboBox;
     class Overlay;
     class WuQGridLayoutGroup;
@@ -114,7 +115,8 @@ namespace caret {
         
         void updateGraphicsWindow();
         
-        QMenu* createConstructionMenu(QWidget* parent);
+        QMenu* createConstructionMenu(QWidget* parent,
+                                      const AString& menuActionNamePrefix);
         
         void validateYokingSelection();
         

@@ -84,7 +84,6 @@
 #include "GapsAndMargins.h"
 #include "GuiManager.h"
 #include "LockAspectWarningDialog.h"
-#include "MacroPrototype.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelWholeBrain.h"
@@ -109,6 +108,7 @@
 #include "TileTabsConfigurationModifier.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDoubleSpinBox.h"
+#include "WuQMacroMenu.h"
 #include "WuQMessageBox.h"
 #include "WuQTabBar.h"
 #include "WuQtUtilities.h"
@@ -1534,13 +1534,12 @@ BrainBrowserWindow::createMenus()
         menubar->addMenu(connectMenu);
     }
     
+    menubar->addMenu(new WuQMacroMenu(this,
+                                      menubar));
+    
     QMenu* developMenu = createMenuDevelop();
     m_developMenuAction = menubar->addMenu(developMenu);
     m_developMenuAction->setVisible(prefs->isDevelopMenuEnabled());
-    
-    QMenu* macroMenu = new MacroMenu(this);
-    m_macroMenuAction = menubar->addMenu(macroMenu);
-    m_macroMenuAction->setVisible(prefs->isDevelopMenuEnabled());
     
     menubar->addMenu(createMenuWindow());
     

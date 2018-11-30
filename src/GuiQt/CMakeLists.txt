@@ -204,6 +204,13 @@ ELSE()
         WuQGroupBoxExclusiveWidget.h
         WuQImageLabel.h
         WuQListWidget.h
+        WuQMacroCreateDialog.h
+        WuQMacroDialog.h
+        WuQMacroExecutor.h
+        WuQMacroManager.h
+        WuQMacroMenu.h
+        WuQMacroSignalEmitter.h
+        WuQMacroSignalWatcher.h
         WuQMessageBox.h
         WuQwtPlot.h
         WuQSpecialIncrementDoubleSpinBox.h
@@ -452,6 +459,13 @@ WuQGridLayoutGroup.h
 WuQGroupBoxExclusiveWidget.h
 WuQImageLabel.h
 WuQListWidget.h
+WuQMacroCreateDialog.h
+WuQMacroDialog.h
+WuQMacroExecutor.h
+WuQMacroManager.h
+WuQMacroMenu.h
+WuQMacroSignalEmitter.h
+WuQMacroSignalWatcher.h
 WuQMessageBox.h
 WuQwtPlot.h
 WuQSpecialIncrementDoubleSpinBox.h
@@ -686,6 +700,13 @@ WuQGridLayoutGroup.cxx
 WuQGroupBoxExclusiveWidget.cxx
 WuQImageLabel.cxx
 WuQListWidget.cxx
+WuQMacroCreateDialog.cxx
+WuQMacroDialog.cxx
+WuQMacroExecutor.cxx
+WuQMacroManager.cxx
+WuQMacroMenu.cxx
+WuQMacroSignalEmitter.cxx
+WuQMacroSignalWatcher.cxx
 WuQMessageBox.cxx
 WuQwtPlot.cxx
 WuQSpecialIncrementDoubleSpinBox.cxx

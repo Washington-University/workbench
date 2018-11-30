@@ -33,11 +33,10 @@
 #include "CaretLogger.h"
 #include "ModelTransform.h"
 #include "TileTabsConfiguration.h"
+#include "WuQMacroGroup.h"
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::CaretPreferences 
  * \brief Preferences for use in Caret.
@@ -53,6 +52,8 @@ using namespace caret;
 CaretPreferences::CaretPreferences()
 : CaretObject()
 {
+    m_macros.reset(new WuQMacroGroup("Preferences"));
+    
     this->qSettings = new QSettings("brainvis.wustl.edu",
                                     "Caret7");
     this->readPreferences();
@@ -1324,6 +1325,24 @@ void CaretPreferences::setVolumeIdentificationDefaultedOn(const bool status)
     this->setBoolean(CaretPreferences::NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON,
                      this->volumeIdentificationDefaultedOn);
     this->qSettings->sync();
+}
+
+/**
+ * @return Pointer to the macros.
+ */
+WuQMacroGroup*
+CaretPreferences::getMacros()
+{
+    return m_macros.get();
+}
+
+/**
+ * @return Const pointer to the macros.
+ */
+const WuQMacroGroup*
+CaretPreferences::getMacros() const
+{
+    return m_macros.get();
 }
 
 /**

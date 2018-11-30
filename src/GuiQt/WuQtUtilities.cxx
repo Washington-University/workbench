@@ -43,7 +43,6 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "MacroPrototype.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;

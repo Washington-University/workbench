@@ -160,6 +160,11 @@ Vector3D.h
 VectorOperation.h
 VoxelIJK.h
 WorkbenchSpecialVersionEnum.h
+WuQMacro.h
+WuQMacroCommand.h
+WuQMacroGroup.h
+WuQMacroModeEnum.h
+WuQMacroObjectTypeEnum.h
 YokingGroupEnum.h
 
 ${MOC_SOURCE_FILES}
@@ -261,6 +266,11 @@ TriStateSelectionStatusEnum.cxx
 Vector3D.cxx
 VectorOperation.cxx
 WorkbenchSpecialVersionEnum.cxx
+WuQMacro.cxx
+WuQMacroCommand.cxx
+WuQMacroGroup.cxx
+WuQMacroModeEnum.cxx
+WuQMacroObjectTypeEnum.cxx
 YokingGroupEnum.cxx
 )
 

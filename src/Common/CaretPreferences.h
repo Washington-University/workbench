@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 #include <utility>
 
 #include "BackgroundAndForegroundColors.h"
@@ -38,6 +39,7 @@ namespace caret {
 
     class ModelTransform;
     class TileTabsConfiguration;
+    class WuQMacroGroup;
     
     class CaretPreferences : public CaretObject {
         
@@ -194,6 +196,10 @@ namespace caret {
         
         void setDynamicConnectivityDefaultedOn(const bool defaultedOn);
         
+        WuQMacroGroup* getMacros();
+        
+        const WuQMacroGroup* getMacros() const;
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -300,6 +306,8 @@ namespace caret {
         AString balsaUserName;
         
         SpecFileDialogViewFilesTypeEnum::Enum manageFilesViewFileType;
+        
+        std::unique_ptr<WuQMacroGroup> m_macros;
         
         static const AString NAME_ANIMATION_START_TIME;
         static const AString NAME_BALSA_USER_NAME;

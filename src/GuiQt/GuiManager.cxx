@@ -121,6 +121,7 @@
 #include "Surface.h"
 #include "TileTabsConfigurationDialog.h"
 #include "VolumeMappableInterface.h"
+#include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -1151,6 +1152,13 @@ GuiManager::processBringAllWindowsToFront()
             w->raise();
         }
     }
+    
+    std::vector<QWidget*> macroDialogs = WuQMacroManager::instance()->getNonModalDialogs();
+    for (auto md : macroDialogs) {
+        if (md->isVisible()) {
+            md->raise();
+        }
+    }
 }
 
 /**
@@ -1639,8 +1647,15 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
                                                    ? NULL
                                                    : *(validWindows.begin()));
     
+    std::vector<QWidget*> allNonModalDialogs(this->nonModalDialogs.begin(),
+                                             this->nonModalDialogs.end());
+    std::vector<QWidget*> macroDialogs = WuQMacroManager::instance()->getNonModalDialogs();
+    allNonModalDialogs.insert(allNonModalDialogs.end(),
+                              macroDialogs.begin(),
+                              macroDialogs.end());
+    
     if (firstBrainBrowserWindow != NULL) {
-        for (auto dialog : this->nonModalDialogs) {
+        for (auto dialog : allNonModalDialogs) {
             QWidget* dialogParent = dialog->parentWidget();
             if (validWindows.find(dialogParent) == validWindows.end()) {
                 const bool wasVisible = dialog->isVisible();
@@ -1654,16 +1669,10 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
                     dialog->hide();
                 }
             }
-            
-            /*
-             * Update any dialogs that are WuQ non modal dialogs.
-             */
-            WuQDialogNonModal* wuqNonModalDialog = dynamic_cast<WuQDialogNonModal*>(dialog);
-            if (wuqNonModalDialog != NULL) {
-                wuqNonModalDialog->updateDialog();
-            }
         }
     }
+    
+    updateNonModalDialogs();
 }
 
 /**
@@ -1672,7 +1681,13 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
 void
 GuiManager::updateNonModalDialogs()
 {
-    reparentNonModalDialogs(NULL);
+    for (auto dialog : this->nonModalDialogs) {
+        WuQDialogNonModal* wuqNonModalDialog = dynamic_cast<WuQDialogNonModal*>(dialog);
+        if (wuqNonModalDialog != NULL) {
+            wuqNonModalDialog->updateDialog();
+        }
+    }
+    WuQMacroManager::instance()->updateNonModalDialogs();
 }
 
 /**

@@ -32,8 +32,8 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
 #include "EventMapYokingValidation.h"
-#include "MacroPrototype.h"
 #include "Overlay.h"
+#include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -86,7 +86,7 @@ MapYokingGroupComboBox::MapYokingGroupComboBox(QObject* parent,
     if ( ! objectName.isEmpty()) {
         QWidget* encapsulatedComboBox = m_comboBox->getWidget();
         encapsulatedComboBox->setObjectName(objectName);
-        WuQObject::watchObjectForMacroRecording(encapsulatedComboBox);
+        WuQMacroManager::instance()->addMacroSupportToObject(encapsulatedComboBox);
     }
 }
 
