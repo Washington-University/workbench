@@ -492,3 +492,16 @@ WuQMacroSignalWatcher::toolButtonClicked(bool checked)
     createAndSendMacroCommand(checked);
 }
 
+/**
+ * @return String containing description of this signal watcher
+ */
+QString
+WuQMacroSignalWatcher::toString() const
+{
+    QString s(m_objectName
+              + " type="
+              + WuQMacroObjectTypeEnum::toGuiName(m_objectType));
+    return s;
+}
+
+

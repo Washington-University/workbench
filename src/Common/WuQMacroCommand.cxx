@@ -41,6 +41,8 @@
 //#include <QToolButton>
 
 #include "CaretAssert.h"
+#include "WuQMacroMouseEventInfo.h"
+
 //#include "WuQMacroSignalEmitter.h"
 
 using namespace caret;
@@ -52,7 +54,7 @@ using namespace caret;
  */
 
 /**
- * Constructor.
+ * Constructor for a macro command
  *
  * @param objectType
  *    Type of object
@@ -64,15 +66,41 @@ using namespace caret;
  *    Value for the command.
  */
 WuQMacroCommand::WuQMacroCommand(const WuQMacroObjectTypeEnum::Enum objectType,
-                                 const QString objectName,
-                                 const QString objectToolTip,
+                                 const QString& objectName,
+                                 const QString& objectToolTip,
                                  const QVariant value)
 : CaretObjectTracksModification(),
 m_objectType(objectType),
 m_objectName(objectName),
 m_objectToolTip(objectToolTip),
-m_value(value)
+m_value(value),
+m_macroMouseEvent(NULL)
 {
+}
+
+/**
+ * Constructor for a macro command containing a mouse event
+ *
+ * @param objectType
+ *    Type of object
+ * @param objectName
+ *    Name of object
+ * @param objectToolTip
+ *    Tooltip of object
+ * @param value
+ *    Value for the command.
+ */
+WuQMacroCommand::WuQMacroCommand(const QString& objectName,
+                                 const QString& objectToolTip,
+                                 WuQMacroMouseEventInfo* mouseEventInfo)
+: CaretObjectTracksModification(),
+m_objectType(WuQMacroObjectTypeEnum::MOUSE_USER_EVENT),
+m_objectName(objectName),
+m_objectToolTip(objectToolTip),
+m_value((int)0),
+m_macroMouseEvent(mouseEventInfo)
+{
+    
 }
 
 /**
@@ -80,6 +108,9 @@ m_value(value)
  */
 WuQMacroCommand::~WuQMacroCommand()
 {
+    if (m_macroMouseEvent != NULL) {
+        delete m_macroMouseEvent;
+    }
 }
 
 /**
@@ -116,6 +147,15 @@ QVariant
 WuQMacroCommand::getObjectValue() const
 {
     return m_value;
+}
+
+/**
+ * @return Point to mouse event information
+ */
+const WuQMacroMouseEventInfo*
+WuQMacroCommand::getMouseEventInfo() const
+{
+    return m_macroMouseEvent;
 }
 
 ///**

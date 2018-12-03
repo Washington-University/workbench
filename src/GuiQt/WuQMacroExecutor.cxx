@@ -34,6 +34,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMenu>
+#include <QMouseEvent>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QSlider>
@@ -45,6 +46,8 @@
 #include "CaretAssert.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
+#include "WuQMacroMouseEventInfo.h"
+#include "WuQMacroMouseEventWidgetInterface.h"
 #include "WuQMacroSignalEmitter.h"
 
 using namespace caret;
@@ -317,7 +320,60 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         }
             break;
         case WuQMacroObjectTypeEnum::MOUSE_USER_EVENT:
-            CaretAssertToDoFatal();
+        {
+            QWidget* widget = qobject_cast<QWidget*>(object);
+            if (widget != NULL) {
+                WuQMacroMouseEventWidgetInterface* mouseInterface = dynamic_cast<WuQMacroMouseEventWidgetInterface*>(widget);
+                if (mouseInterface != NULL) {
+                    const QSize currentWidgetSize = widget->size();
+                    const WuQMacroMouseEventInfo* mouseEventInfo = macroCommand->getMouseEventInfo();
+                    CaretAssert(mouseEventInfo);
+                    
+                    int32_t adjustedLocalX(0);
+                    int32_t adjustedLocalY(0);
+                    mouseEventInfo->getLocalPositionRescaledToWidgetSize(currentWidgetSize.width(),
+                                                                         currentWidgetSize.height(),
+                                                                         adjustedLocalX,
+                                                                         adjustedLocalY);
+                    
+                    QEvent::Type qtEventType = QEvent::None;
+                    switch (mouseEventInfo->getMouseEventType()) {
+                        case WuQMacroMouseEventTypeEnum::BUTTON_PRESS:
+                            qtEventType = QEvent::MouseButtonPress;
+                            break;
+                        case WuQMacroMouseEventTypeEnum::BUTTON_RELEASE:
+                            qtEventType = QEvent::MouseButtonRelease;
+                            break;
+                        case WuQMacroMouseEventTypeEnum::DOUBLE_CLICK:
+                            qtEventType = QEvent::MouseButtonDblClick;
+                            break;
+                        case WuQMacroMouseEventTypeEnum::MOVE:
+                            qtEventType = QEvent::MouseMove;
+                            break;
+                    }
+                    
+                    QMouseEvent qtMouseEvent(qtEventType,
+                                             QPointF(adjustedLocalX,
+                                                     adjustedLocalY),
+                                             static_cast<Qt::MouseButton>(mouseEventInfo->getMouseButton()),
+                                             static_cast<Qt::MouseButtons>(mouseEventInfo->getMouseButtonsMask()),
+                                             static_cast<Qt::KeyboardModifiers>(mouseEventInfo->getKeyboardModifiersMask()));
+                    mouseInterface->processMouseEventFromMacro(&qtMouseEvent);
+                }
+                else {
+                    errorMessageOut = ("ERROR: Unable to cast object named "
+                                       + object->objectName()
+                                       + " to WuQMacroMouseEventWidgetInterface");
+                    return false;
+                }
+            }
+            else {
+                errorMessageOut = ("ERROR: Unable to cast object named "
+                                   + object->objectName()
+                                   + " to QWidget");
+                return false;
+            }
+        }
             break;
         case WuQMacroObjectTypeEnum::PUSH_BUTTON:
         {

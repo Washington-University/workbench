@@ -168,12 +168,6 @@ WuQtUtilities::createAction(const QString& text,
     QAction* action = WuQtUtilities::createAction(text,
                                                   toolAndStatusTipText,
                                                   parent);
-//    QAction* action = new QAction(parent);
-//    action->setText(text);
-//    if (toolAndStatusTipText.isEmpty() == false) {
-//        action->setStatusTip(toolAndStatusTipText);
-//        action->setToolTip(toolAndStatusTipText);
-//    }
     QObject::connect(action,
                      SIGNAL(triggered(bool)),
                      receiver,
@@ -215,41 +209,27 @@ WuQtUtilities::createPushButton(const QString& text,
     return pb;
 }
 
-//QToolButton*
-//WuQtUtilities::createToolButtonWithIcon(const QString& text,
-//                                             const QString& iconFileName,
-//                                             const QString& toolTip,
-//                                             const QString& widgetName,
-//                                             QObject* receiver,
-//                                             WuQObject::QObjectBoolPointerToMemberFunction method)
-//{
-//    QIcon icon;
-//    const bool iconValid = WuQtUtilities::loadIcon(iconFileName,
-//                                                   icon);
-//    
-//    QToolButton* toolButton = new QToolButton();
-//    if (iconValid) {
-//        toolButton->setIcon(icon);
-//    }
-//    else {
-//        toolButton->setText(text);
-//    }
-//    toolButton->setToolTip(toolTip);
-//    toolButton->setObjectName(widgetName);
-//    
-//    WuQObject::connectFP(toolButton,
-//                         static_cast<void (QObject::*)(bool)>(&QToolButton::clicked),
-//                           receiver,
-//                           method);
-//    
-//    return toolButton;
-//}
-
+/**
+ * Create a tool button with the specified text, icon,
+ * tooltip and slot.
+ *
+ * @param text
+ *    Text for the action.
+ * @param iconFileName
+ *    Name of file containing the icon.
+ * @param tooltip
+ *    Tooltip for the button
+ * @param receiver
+ *    Owner of method that is called when button is clicked.
+ * @param method
+ *    method in receiver that is called when button is clicked.
+ * @return
+ *    Toolbutton that was created.
+ */
 QToolButton*
 WuQtUtilities::createToolButtonWithIcon(const QString& text,
                                         const QString& iconFileName,
                                         const QString& toolTip,
-                                        const QString& widgetName,
                                         QObject* receiver,
                                         const char* method)
 {
@@ -265,9 +245,8 @@ WuQtUtilities::createToolButtonWithIcon(const QString& text,
         toolButton->setText(text);
     }
     toolButton->setToolTip(toolTip);
-    toolButton->setObjectName(widgetName);
 
-    WuQObject::connect(toolButton, SIGNAL(clicked(bool)),
+    QObject::connect(toolButton, SIGNAL(clicked(bool)),
                      receiver, method);
     
     return toolButton;

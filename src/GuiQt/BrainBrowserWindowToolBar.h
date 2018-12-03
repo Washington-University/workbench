@@ -437,6 +437,8 @@ namespace caret {
         QTimer* m_tileTabsHighlightingTimer = NULL;
         bool m_tileTabsHighlightingTimerEnabledFlag = true;
         
+        QString m_objectNamePrefix;
+        
         bool isContructorFinished;
         bool isDestructionInProgress;
         

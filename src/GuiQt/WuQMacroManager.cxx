@@ -23,9 +23,12 @@
 #include "WuQMacroManager.h"
 #undef __WU_Q_MACRO_MANAGER_DECLARE__
 
+#include <set>
+
 #include <QAction>
 #include <QApplication>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QWidget>
 
 #include "CaretAssert.h"
@@ -33,9 +36,11 @@
 #include "CaretPreferences.h"
 #include "SessionManager.h"
 #include "WuQMacro.h"
+#include "WuQMacroCommand.h"
 #include "WuQMacroCreateDialog.h"
 #include "WuQMacroDialog.h"
 #include "WuQMacroExecutor.h"
+#include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroSignalWatcher.h"
 
 using namespace caret;
@@ -189,7 +194,8 @@ WuQMacroManager::addMacroSupportToObject(QObject* object)
     
     const QString name = object->objectName();
     if (name.isEmpty()) {
-        CaretLogSevere("Object name is empty, will be ignored for macros");
+        CaretLogSevere("Object name is empty, will be ignored for macros\n"
+                       + SystemUtilities::getBackTrace());
         return;
     }
     
@@ -213,7 +219,9 @@ WuQMacroManager::addMacroSupportToObject(QObject* object)
     if (existingWatcher != m_signalWatchers.end()) {
         CaretLogSevere("Object named \""
                         + name
-                        + "\" has already been connected for macros");
+                       + "\" has already been connected for macros\n"
+                       + SystemUtilities::getBackTrace()
+                       + "\n");
     }
     else {
         AString errorMessage;
@@ -256,6 +264,75 @@ WuQMacroManager::addMacroCommandToRecording(WuQMacroCommand* macroCommand)
     
     return false;
 }
+
+/**
+ * Adds a mouse event to the macro that is currently being
+ * recorded.  If no macro is being recorded, no action is taken.
+ *
+ * @param widget
+ *     Widget where mouse event occurred
+ * @param me
+ *     The Qt Mouse Event
+ * @return 
+ *     True if the mouse event was recorded or false if there is an error.
+ */
+bool
+WuQMacroManager::addMouseEventToRecording(QWidget* widget,
+                                          const QMouseEvent* me)
+{
+    CaretAssert(widget);
+    CaretAssert(me);
+    
+    if (isModeRecording()) {
+        const QString name(widget->objectName());
+        if (name.isEmpty()) {
+            CaretLogSevere("Widget name is empty for recording of mouse event\n"
+                           + SystemUtilities::getBackTrace());
+            return false;
+        }
+        CaretAssert(m_macroBeingRecorded);
+
+        WuQMacroMouseEventTypeEnum::Enum mouseEventType = WuQMacroMouseEventTypeEnum::MOVE;
+        switch (me->type()) {
+            case QEvent::MouseButtonPress:
+                mouseEventType = WuQMacroMouseEventTypeEnum::BUTTON_PRESS;
+                break;
+            case QEvent::MouseButtonRelease:
+                mouseEventType = WuQMacroMouseEventTypeEnum::BUTTON_RELEASE;
+                break;
+            case QEvent::MouseButtonDblClick:
+                mouseEventType = WuQMacroMouseEventTypeEnum::DOUBLE_CLICK;
+                break;
+            case QEvent::MouseMove:
+                mouseEventType = WuQMacroMouseEventTypeEnum::MOVE;
+                break;
+            default:
+                CaretAssertMessage(0, ("Unknown mouse event type integer cast="
+                                       + QString::number(static_cast<int>(me->type()))));
+                break;
+        }
+        WuQMacroMouseEventInfo* mouseInfo = new WuQMacroMouseEventInfo(mouseEventType,
+                                                                       me->localPos().x(),
+                                                                       me->localPos().y(),
+                                                                       me->windowPos().x(),
+                                                                       me->windowPos().y(),
+                                                                       me->screenPos().x(),
+                                                                       me->screenPos().y(),
+                                                                       static_cast<uint32_t>(me->button()),
+                                                                       static_cast<uint32_t>(me->buttons()),
+                                                                       static_cast<uint32_t>(me->modifiers()),
+                                                                       widget->width(),
+                                                                       widget->height());
+        
+        m_macroBeingRecorded->addMacroCommand(new WuQMacroCommand(name,
+                                                                  widget->toolTip(),
+                                                                  mouseInfo));
+        return true;
+    }
+    
+    return false;
+}
+
 
 /**
  * @return Vector containing all Macro Groups.
@@ -378,6 +455,35 @@ WuQMacroManager::runMacro(QWidget* widget,
                               errorMessage,
                               QMessageBox::Ok,
                               QMessageBox::NoButton);
+    }
+}
+
+/**
+ * Print supported widgets to the terminal window.
+ */
+void
+WuQMacroManager::printSupportedWidgetsToTerminal()
+{
+    std::set<QString> allList;
+    std::set<QString> duplicateList;
+    for (auto iter : m_signalWatchers) {
+        const QString s(iter.second->toString());
+     
+        const auto existIter = allList.find(s);
+        if (existIter != allList.end()) {
+            duplicateList.insert(s);
+        }
+        else {
+            allList.insert(s);
+        }
+    }
+    
+    for (auto& iter : allList) {
+        std::cout << iter << std::endl;
+    }
+    
+    for (auto& iter : duplicateList) {
+        std::cout << "DUPLICTE: " << iter << std::endl;
     }
 }
 

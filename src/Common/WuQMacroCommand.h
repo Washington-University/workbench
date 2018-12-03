@@ -34,14 +34,20 @@ class QObject;
 
 namespace caret {
 
+    class WuQMacroMouseEventInfo;
+    
     class WuQMacroCommand : public CaretObjectTracksModification {
         
     public:
         
         WuQMacroCommand(const WuQMacroObjectTypeEnum::Enum objectType,
-                        const QString objectName,
-                        const QString objectToolTip,
+                        const QString& objectName,
+                        const QString& objectToolTip,
                         const QVariant value);
+        
+        WuQMacroCommand(const QString& objectName,
+                        const QString& objectToolTip,
+                        WuQMacroMouseEventInfo* mouseEventInfo);
         
         virtual ~WuQMacroCommand();
         
@@ -57,6 +63,8 @@ namespace caret {
         
         QVariant getObjectValue() const;
 
+        const WuQMacroMouseEventInfo* getMouseEventInfo() const;
+        
 //        bool runMacro(QObject* object,
 //                      QString& errorMessageOut) const;
         
@@ -73,6 +81,8 @@ namespace caret {
         const QString m_objectToolTip;
         
         const QVariant m_value;
+        
+        const WuQMacroMouseEventInfo* m_macroMouseEvent;
         
         // ADD_NEW_MEMBERS_HERE
 

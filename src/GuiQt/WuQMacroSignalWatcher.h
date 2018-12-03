@@ -51,6 +51,8 @@ namespace caret {
 
         WuQMacroSignalWatcher& operator=(const WuQMacroSignalWatcher&) = delete;
 
+        QString toString() const;
+        
     private slots:
         void actionTriggered(bool);
         
@@ -79,7 +81,6 @@ namespace caret {
         void tabWidgetCurrentChanged(int);
         
         void toolButtonClicked(bool);
-        
 
         // ADD_NEW_METHODS_HERE
 

@@ -29,6 +29,7 @@
 
 #include "WuQMacroModeEnum.h"
 
+class QMouseEvent;
 class QWidget;
 
 namespace caret {
@@ -59,6 +60,9 @@ namespace caret {
         
         bool addMacroCommandToRecording(WuQMacroCommand* macroCommand);
         
+        bool addMouseEventToRecording(QWidget* widget,
+                                      const QMouseEvent* me);
+        
         WuQMacroModeEnum::Enum getMode() const;
         
         void setMode(const WuQMacroModeEnum::Enum mode);
@@ -79,6 +83,8 @@ namespace caret {
         
         void runMacro(QWidget* window,
                       const WuQMacro* macro);
+        
+        void printSupportedWidgetsToTerminal();
         
         // ADD_NEW_METHODS_HERE
         

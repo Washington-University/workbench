@@ -1,5 +1,5 @@
-#ifndef __WU_Q_MACRO_MENU_H__
-#define __WU_Q_MACRO_MENU_H__
+#ifndef __WU_Q_MACRO_MOUSE_EVENT_WIDGET_INTERFACE_H__
+#define __WU_Q_MACRO_MOUSE_EVENT_WIDGET_INTERFACE_H__
 
 /*LICENSE_START*/
 /*
@@ -21,52 +21,31 @@
  */
 /*LICENSE_END*/
 
-
-
-#include <memory>
-
-#include <QMenu>
+class QMouseEvent;
 
 namespace caret {
 
-    class WuQMacroMenu : public QMenu {
+    class WuQMacroMouseEventWidgetInterface {
         
-        Q_OBJECT
-
     public:
-        WuQMacroMenu(QWidget* windowParent,
-                     QWidget* parent = 0);
+        WuQMacroMouseEventWidgetInterface() { }
         
-        virtual ~WuQMacroMenu();
+        virtual ~WuQMacroMouseEventWidgetInterface() { }
         
-        WuQMacroMenu(const WuQMacroMenu&) = delete;
+        WuQMacroMouseEventWidgetInterface(const WuQMacroMouseEventWidgetInterface&) = delete;
 
-        WuQMacroMenu& operator=(const WuQMacroMenu&) = delete;
+        WuQMacroMouseEventWidgetInterface& operator=(const WuQMacroMouseEventWidgetInterface&) = delete;
         
-        // ADD_NEW_METHODS_HERE
-
-    private slots:
-        void macroMenuAboutToShow();
-        
-        void macroRecordSelected();
-        
-        void macroDialogSelected();
-        
-        void macroPrintAllSelected();
+        virtual void processMouseEventFromMacro(QMouseEvent* me) = 0;
         
     private:
         // ADD_NEW_MEMBERS_HERE
 
-        QWidget* m_windowParent;
-
-        QAction* m_macroDialogAction;
-        
-        QAction* m_recordMacroAction;
     };
     
-#ifdef __WU_Q_MACRO_MENU_DECLARE__
+#ifdef __WU_Q_MACRO_MOUSE_EVENT_WIDGET_INTERFACE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_MACRO_MENU_DECLARE__
+#endif // __WU_Q_MACRO_MOUSE_EVENT_WIDGET_INTERFACE_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_MACRO_MENU_H__
+#endif  //__WU_Q_MACRO_MOUSE_EVENT_WIDGET_INTERFACE_H__

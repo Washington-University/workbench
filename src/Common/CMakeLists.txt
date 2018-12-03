@@ -164,6 +164,8 @@ WuQMacro.h
 WuQMacroCommand.h
 WuQMacroGroup.h
 WuQMacroModeEnum.h
+WuQMacroMouseEventInfo.h
+WuQMacroMouseEventTypeEnum.h
 WuQMacroObjectTypeEnum.h
 YokingGroupEnum.h
 
@@ -270,6 +272,8 @@ WuQMacro.cxx
 WuQMacroCommand.cxx
 WuQMacroGroup.cxx
 WuQMacroModeEnum.cxx
+WuQMacroMouseEventInfo.cxx
+WuQMacroMouseEventTypeEnum.cxx
 WuQMacroObjectTypeEnum.cxx
 YokingGroupEnum.cxx
 )

@@ -51,7 +51,7 @@ m_windowParent(windowParent)
 {
     CaretAssert(windowParent);
     
-    setTitle("Macro New");
+    setTitle("Macro");
     
     m_macroDialogAction = addAction("Macros...");
     QObject::connect(m_macroDialogAction, &QAction::triggered,
@@ -60,6 +60,11 @@ m_windowParent(windowParent)
     m_recordMacroAction = addAction("Record Macro...");
     QObject::connect(m_recordMacroAction, &QAction::triggered,
                      this, &WuQMacroMenu::macroRecordSelected);
+    
+    addSeparator();
+    QAction* printAction = addAction("Print Supported Widgets");
+    QObject::connect(printAction, &QAction::triggered,
+                     this, &WuQMacroMenu::macroPrintAllSelected);
     
     QObject::connect(this, &QMenu::aboutToShow,
                      this, &WuQMacroMenu::macroMenuAboutToShow);
@@ -135,3 +140,14 @@ WuQMacroMenu::macroDialogSelected()
 {
     WuQMacroManager::instance()->showMacrosDialog(m_windowParent);
 }
+
+/**
+ * Print all watched widgets to terminal
+ */
+void
+WuQMacroMenu::macroPrintAllSelected()
+{
+    WuQMacroManager::instance()->printSupportedWidgetsToTerminal();
+}
+
+

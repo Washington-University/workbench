@@ -124,6 +124,7 @@
 #include "VolumeSurfaceOutlineSetModel.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
+#include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 #include "WuQTabBar.h"
 #include "WuQWidgetObjectGroup.h"
@@ -177,8 +178,10 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     /*
      * Needed for saving and restoring window state in main window
      */
-    setObjectName("BrainBrowserWindowToolBar_"
-                  + AString::number(browserWindowIndex));
+    m_objectNamePrefix = ("Window_"
+                          + QString::number(this->browserWindowIndex + 1)
+                          + ":ToolBar");
+    setObjectName(m_objectNamePrefix);
     
     /*
      * Create tab bar that displays models.
@@ -256,6 +259,9 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                                          this,
                                                          this,
                                                          SLOT(customViewActionTriggered()));
+    this->customViewAction->setObjectName(m_objectNamePrefix
+                                          + ":CustomView");
+    WuQMacroManager::instance()->addMacroSupportToObject(this->customViewAction);
     
     /*
      * Actions at right side of toolbar
@@ -2041,6 +2047,11 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
 QWidget* 
 BrainBrowserWindowToolBar::createOrientationWidget()
 {
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    CaretAssert(macroManager);
+    const QString objectNamePrefix(m_objectNamePrefix
+                                   + ":Orientation:");
+    
     this->viewOrientationLeftIcon = WuQtUtilities::loadIcon(":/ToolBar/view-left.png");
     this->viewOrientationRightIcon = WuQtUtilities::loadIcon(":/ToolBar/view-right.png");
     this->viewOrientationAnteriorIcon = WuQtUtilities::loadIcon(":/ToolBar/view-anterior.png");
@@ -2063,8 +2074,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationLeftOrLateralToolButtonAction->setIconText("L");
     }
-    this->orientationLeftOrLateralToolButtonAction->setObjectName("ToolBar_Left_Or_LateralView");
-    WuQObject::watchObjectForMacroRecording(this->orientationLeftOrLateralToolButtonAction);
+    this->orientationLeftOrLateralToolButtonAction->setObjectName(objectNamePrefix
+                                                                  + "Left_Or_LateralView");
+    macroManager->addMacroSupportToObject(this->orientationLeftOrLateralToolButtonAction);
     
     this->orientationRightOrMedialToolButtonAction = WuQtUtilities::createAction("R", 
                                                                          "View from a RIGHT perspective", 
@@ -2077,8 +2089,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationRightOrMedialToolButtonAction->setIconText("R");
     }
-    this->orientationRightOrMedialToolButtonAction->setObjectName("ToolBar_Right_Or_Medial_View");
-    WuQObject::watchObjectForMacroRecording(this->orientationRightOrMedialToolButtonAction);
+    this->orientationRightOrMedialToolButtonAction->setObjectName(objectNamePrefix
+                                                                  + "Right_Or_Medial_View");
+    macroManager->addMacroSupportToObject(this->orientationRightOrMedialToolButtonAction);
     
     this->orientationAnteriorToolButtonAction = WuQtUtilities::createAction("A", 
                                                                             "View from an ANTERIOR perspective", 
@@ -2091,8 +2104,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationAnteriorToolButtonAction->setIconText("A");
     }
-    this->orientationAnteriorToolButtonAction->setObjectName("ToolBar_Anterior_View");
-    WuQObject::watchObjectForMacroRecording(this->orientationAnteriorToolButtonAction);
+    this->orientationAnteriorToolButtonAction->setObjectName(objectNamePrefix
+                                                             + "Anterior_View");
+    macroManager->addMacroSupportToObject(this->orientationAnteriorToolButtonAction);
     
     this->orientationPosteriorToolButtonAction = WuQtUtilities::createAction("P", 
                                                                              "View from a POSTERIOR perspective", 
@@ -2105,8 +2119,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationPosteriorToolButtonAction->setIconText("P");
     }
-    this->orientationPosteriorToolButtonAction->setObjectName("ToolBar_Posterior_View");
-    WuQObject::watchObjectForMacroRecording(this->orientationPosteriorToolButtonAction);
+    this->orientationPosteriorToolButtonAction->setObjectName(objectNamePrefix
+                                                              + "Posterior_View");
+    macroManager->addMacroSupportToObject(this->orientationPosteriorToolButtonAction);
     
     this->orientationDorsalToolButtonAction = WuQtUtilities::createAction("D", 
                                                                           "View from a DORSAL perspective", 
@@ -2119,8 +2134,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationDorsalToolButtonAction->setIconText("D");
     }
-    this->orientationDorsalToolButtonAction->setObjectName("ToolBar_Dorsal_View");
-    WuQObject::watchObjectForMacroRecording(this->orientationDorsalToolButtonAction);
+    this->orientationDorsalToolButtonAction->setObjectName(objectNamePrefix
+                                                           + "Dorsal_View");
+    macroManager->addMacroSupportToObject(this->orientationDorsalToolButtonAction);
     
     this->orientationVentralToolButtonAction = WuQtUtilities::createAction("V", 
                                                                            "View from a VENTRAL perspective", 
@@ -2133,8 +2149,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     else {
         this->orientationVentralToolButtonAction->setIconText("V");
     }
-    this->orientationVentralToolButtonAction->setObjectName("ToolBar_Ventral_View");
-    WuQObject::watchObjectForMacroRecording(this->orientationVentralToolButtonAction);
+    this->orientationVentralToolButtonAction->setObjectName(objectNamePrefix
+                                                            + "Ventral_View");
+    macroManager->addMacroSupportToObject(this->orientationVentralToolButtonAction);
     
     
     this->orientationLateralMedialToolButtonAction = WuQtUtilities::createAction("LM",
@@ -2142,32 +2159,36 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                                  this, 
                                                                                  this, 
                                                                                  SLOT(orientationLateralMedialToolButtonTriggered(bool)));
-    this->orientationLateralMedialToolButtonAction->setObjectName("ToolBar_Lateral_Medial_View");
-    WuQObject::watchObjectForMacroRecording(this->orientationLateralMedialToolButtonAction);
+    this->orientationLateralMedialToolButtonAction->setObjectName(objectNamePrefix
+                                                                  + "Lateral_Medial_View");
+    macroManager->addMacroSupportToObject(this->orientationLateralMedialToolButtonAction);
     
     this->orientationDorsalVentralToolButtonAction = WuQtUtilities::createAction("DV",
                                                                                     "View from a Dorsal/Ventral perspective", 
                                                                                     this, 
                                                                                     this, 
                                                                                     SLOT(orientationDorsalVentralToolButtonTriggered(bool)));
-    this->orientationDorsalVentralToolButtonAction->setObjectName("ToolBar_Dorsal_Ventral_View");
-    WuQObject::watchObjectForMacroRecording(this->orientationDorsalVentralToolButtonAction);
+    this->orientationDorsalVentralToolButtonAction->setObjectName(objectNamePrefix
+                                                                  + "Dorsal_Ventral_View");
+    macroManager->addMacroSupportToObject(this->orientationDorsalVentralToolButtonAction);
     
     this->orientationAnteriorPosteriorToolButtonAction = WuQtUtilities::createAction("AP", 
                                                                                         "View from a Anterior/Posterior perspective", 
                                                                                         this, 
                                                                                         this, 
                                                                                         SLOT(orientationAnteriorPosteriorToolButtonTriggered(bool)));
-    this->orientationAnteriorPosteriorToolButtonAction->setObjectName("ToolBar_Anterior_Posterior_View");
-    WuQObject::watchObjectForMacroRecording(this->orientationAnteriorPosteriorToolButtonAction);
+    this->orientationAnteriorPosteriorToolButtonAction->setObjectName(objectNamePrefix
+                                                                      + "Anterior_Posterior_View");
+    macroManager->addMacroSupportToObject(this->orientationAnteriorPosteriorToolButtonAction);
     
     this->orientationResetToolButtonAction = WuQtUtilities::createAction("R\nE\nS\nE\nT",
                                                                          "Reset the view to dorsal and remove any panning or zooming", 
                                                                          this, 
                                                                          this, 
                                                                          SLOT(orientationResetToolButtonTriggered(bool)));
-    this->orientationResetToolButtonAction->setObjectName("ToolBar_Reset_View");
-    WuQObject::watchObjectForMacroRecording(this->orientationResetToolButtonAction);
+    this->orientationResetToolButtonAction->setObjectName(objectNamePrefix
+                                                          + "Reset_View");
+    macroManager->addMacroSupportToObject(this->orientationResetToolButtonAction);
     
     this->orientationLeftOrLateralToolButton = new QToolButton();
     this->orientationLeftOrLateralToolButton->setDefaultAction(this->orientationLeftOrLateralToolButtonAction);

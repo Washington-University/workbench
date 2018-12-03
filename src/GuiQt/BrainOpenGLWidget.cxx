@@ -82,6 +82,7 @@
 #include "UserInputModeImage.h"
 #include "UserInputModeView.h"
 #include "UserInputModeVolumeEdit.h"
+#include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 
 using namespace caret;
@@ -108,7 +109,9 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 #endif
 windowIndex(windowIndex)
 {
-    setObjectName("m_openGLWidget");
+    setObjectName("Window_"
+                  + AString::number(windowIndex + 1)
+                  + ":OpenGLWidget");
 
     this->borderBeingDrawn = new Border();
     
@@ -865,7 +868,8 @@ BrainOpenGLWidget::keyReleaseEvent(QKeyEvent* e)
 void 
 BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 {
-    MacroManager::get()->recordMouseEvent(this, me);
+    WuQMacroManager::instance()->addMouseEventToRecording(this,
+                                                          me);
     
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
@@ -952,7 +956,8 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 void 
 BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 {
-    MacroManager::get()->recordMouseEvent(this, me);
+    WuQMacroManager::instance()->addMouseEventToRecording(this,
+                                                          me);
     
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
@@ -1049,7 +1054,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 void
 BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
 {
-    MacroManager::get()->recordMouseEvent(this, me);
+    WuQMacroManager::instance()->addMouseEventToRecording(this,
+                                                          me);
 
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
@@ -1393,7 +1399,8 @@ BrainOpenGLWidget::performProjection(const int x,
 void 
 BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 {
-    MacroManager::get()->recordMouseEvent(this, me);
+    WuQMacroManager::instance()->addMouseEventToRecording(this,
+                                                          me);
     
     /*
      * Tooltip will remain displayed for several seconds.
@@ -1861,15 +1868,14 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
     s_defaultGLFormatInitialized = true;
 }
 
-QSize
-BrainOpenGLWidget::getSizeOfWidget() const
-{
-    return size();
-}
-
-
+/**
+ * Process a mouse event from the macro system.
+ *
+ * @param me
+ *     The mouse event
+ */
 void
-BrainOpenGLWidget::processMouseEvent(QMouseEvent* me)
+BrainOpenGLWidget::processMouseEventFromMacro(QMouseEvent* me)
 {
     m_mousePositionValid = true;
     switch (me->type()) {
