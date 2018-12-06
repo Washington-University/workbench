@@ -72,9 +72,17 @@ namespace caret {
         
         void editButtonClicked();
         
-        void runSelectedMacro();
+        void importButtonClicked();
+        
+        void exportButtonClicked();
         
     private:
+        QWidget* createMacroButtonsWidget();
+        
+        QWidget* createRunOptionsWidget();
+        
+        void runSelectedMacro();
+        
         WuQMacroGroup* getSelectedMacroGroup();
         
         WuQMacro* getSelectedMacro();
@@ -96,6 +104,10 @@ namespace caret {
         QPushButton* m_editPushButton;
         
         QPushButton* m_attributesPushButton;
+        
+        QPushButton* m_importPushButton;
+        
+        QPushButton* m_exportPushButton;
         
         QCheckBox* m_runOptionLoopCheckBox;
         

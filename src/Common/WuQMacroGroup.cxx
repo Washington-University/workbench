@@ -159,6 +159,24 @@ WuQMacroGroup::addMacro(WuQMacro* macro)
 }
 
 /**
+ * Append macros in the given group to this group
+ *
+ * @param macroGroup
+ *     The macro group whose macros are appended to this macro group
+ */
+void
+WuQMacroGroup::appendMacroGroup(const WuQMacroGroup* macroGroup)
+{
+    const int32_t numMacros = macroGroup->getNumberOfMacros();
+    for (int32_t i = 0; i < numMacros; i++) {
+        const WuQMacro* macro = macroGroup->getMacroAtIndex(i);
+        CaretAssert(macro);
+        addMacro(new WuQMacro(*macro));
+    }
+    setModified();
+}
+
+/**
  * @return Number of macros in group
  */
 int32_t

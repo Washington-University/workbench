@@ -90,6 +90,13 @@ namespace caret {
         bool editMacroCommands(QWidget* parent,
                                WuQMacro* macro);
         
+        bool importMacros(QWidget* parent,
+                          WuQMacroGroup* appendToMacroGroup);
+        
+        bool exportMacros(QWidget* parent,
+                          WuQMacroGroup* macroGroup,
+                          WuQMacro* macro);
+        
         void runMacro(QWidget* window,
                       const WuQMacroExecutor::RunOptions& runOptions,
                       const WuQMacro* macro);

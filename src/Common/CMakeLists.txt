@@ -163,6 +163,7 @@ WorkbenchSpecialVersionEnum.h
 WuQMacro.h
 WuQMacroCommand.h
 WuQMacroDataValueTypeEnum.h
+WuQMacroFile.h
 WuQMacroGroup.h
 WuQMacroGroupXmlFormatBase.h
 WuQMacroGroupXmlReader.h
@@ -275,6 +276,7 @@ WorkbenchSpecialVersionEnum.cxx
 WuQMacro.cxx
 WuQMacroCommand.cxx
 WuQMacroDataValueTypeEnum.cxx
+WuQMacroFile.cxx
 WuQMacroGroup.cxx
 WuQMacroGroupXmlFormatBase.cxx
 WuQMacroGroupXmlReader.cxx

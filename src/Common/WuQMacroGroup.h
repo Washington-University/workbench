@@ -52,6 +52,8 @@ namespace caret {
         
         void addMacro(WuQMacro* macro);
         
+        void appendMacroGroup(const WuQMacroGroup* macroGroup);
+        
         int32_t getNumberOfMacros() const;
         
         WuQMacro* getMacroByName(const QString& name);

@@ -188,8 +188,23 @@ WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
     m_objectName = obj.m_objectName;
     m_objectToolTip = obj.m_objectToolTip;
     m_value = obj.m_value;
-    m_macroMouseEvent = new WuQMacroMouseEventInfo(*obj.m_macroMouseEvent);
-    m_objectDataValueType = m_objectDataValueType;
+    m_macroMouseEvent = NULL;
+    m_objectDataValueType = obj.m_objectDataValueType;
+    
+    switch (m_objectDataValueType) {
+        case WuQMacroDataValueTypeEnum::BOOLEAN:
+            break;
+        case WuQMacroDataValueTypeEnum::FLOAT:
+            break;
+        case WuQMacroDataValueTypeEnum::INTEGER:
+            break;
+        case WuQMacroDataValueTypeEnum::MOUSE:
+            CaretAssert(obj.m_macroMouseEvent);
+            m_macroMouseEvent = new WuQMacroMouseEventInfo(*obj.m_macroMouseEvent);
+            break;
+        case WuQMacroDataValueTypeEnum::STRING:
+            break;
+    }
 }
 
 /**

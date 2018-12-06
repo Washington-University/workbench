@@ -33,16 +33,20 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretFileDialog.h"
 #include "CaretPreferences.h"
+#include "DataFileException.h"
 #include "SessionManager.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCreateDialog.h"
 #include "WuQMacroDialog.h"
 #include "WuQMacroExecutor.h"
+#include "WuQMacroFile.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroAttributesDialog.h"
+#include "WuQMacroEditorDialog.h"
 #include "WuQMacroSignalWatcher.h"
 
 using namespace caret;
@@ -503,6 +507,104 @@ WuQMacroManager::deleteMacro(QWidget* parent,
 }
 
 /**
+ * Import macros from a file
+ *
+ * @param parent
+ *     Parent widget for dialog
+ * @param macroGroup
+ *     Group to which macros are appended
+ * @return
+ *     True if macro(s) were successfully imported
+ */
+bool
+WuQMacroManager::importMacros(QWidget* parent,
+                              WuQMacroGroup* appendToMacroGroup)
+{
+    QString fileFilterString(WuQMacroFile::getFileDialogFilter());
+    const QString filename = CaretFileDialog::getOpenFileNameDialog(parent,
+                                                                    "Import Macros",
+                                                                    "",
+                                                                    fileFilterString,
+                                                                    &fileFilterString);
+    if ( ! filename.isEmpty()) {
+        WuQMacroFile macroFile;
+        try {
+            macroFile.readFile(filename);
+            
+            const WuQMacroGroup* fileMacroGroup = macroFile.getMacroGroup();
+            if (fileMacroGroup->getNumberOfMacros() > 0) {
+                appendToMacroGroup->appendMacroGroup(fileMacroGroup);
+                return true;
+            }
+            else {
+                throw DataFileException("File is empty, no macros to import");
+            }
+        }
+        catch (const DataFileException& dfe) {
+            QMessageBox::critical(parent,
+                                  "File Error",
+                                  dfe.whatString(),
+                                  QMessageBox::Ok,
+                                  QMessageBox::Ok);
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Export macro(s)
+ *
+ * @param parent
+ *     Parent widget for dialog
+ * @param macroGroup
+ *     Group for export (if non-NULL)
+ * @param macro
+ *     Macro for export (if non-NULL)
+ * @return
+ *     True if macro was successfully exported
+ */
+bool
+WuQMacroManager::exportMacros(QWidget* parent,
+                              WuQMacroGroup* macroGroup,
+                              WuQMacro* macro)
+{
+    QString fileFilterString(WuQMacroFile::getFileDialogFilter());
+    const QString filename = CaretFileDialog::getSaveFileNameDialog(parent,
+                                                                    "Export Macros",
+                                                                    "",
+                                                                    fileFilterString,
+                                                                    &fileFilterString);
+    if ( ! filename.isEmpty()) {
+        try {
+            WuQMacroFile macroFile;
+            
+            if (macroGroup != NULL) {
+                macroFile.appendMacroGroup(macroGroup);
+            }
+            else if (macro != NULL) {
+                macroFile.addMacro(new WuQMacro(*macro));
+            }
+            else {
+                throw DataFileException("No macro group or macro for export");
+            }
+            
+            macroFile.writeFile(filename);
+            return true;
+        }
+        catch (const DataFileException& dfe) {
+            QMessageBox::critical(parent,
+                                  "File Error",
+                                  dfe.whatString(),
+                                  QMessageBox::Ok,
+                                  QMessageBox::Ok);
+        }
+    }
+    
+    return false;
+}
+
+/**
  * Edit a macros commands
  *
  * @param parent
@@ -514,13 +616,21 @@ WuQMacroManager::deleteMacro(QWidget* parent,
  */
 bool
 WuQMacroManager::editMacroCommands(QWidget* parent,
-                                   WuQMacro* /*macro*/)
+                                   WuQMacro* macro)
 {
-    QMessageBox::information(parent,
-                             "Info",
-                             "Edit button has not been implemented",
-                             QMessageBox::Ok,
-                             QMessageBox::Ok);
+    if (macro != NULL) {
+        WuQMacroEditorDialog editorDialog(macro,
+                                          parent);
+        if (editorDialog.exec() == WuQMacroDialog::Accepted) {
+            if (editorDialog.isMacroModified()) {
+                CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+                CaretAssert(preferences);
+                preferences->writeMacros();
+                return true;
+            }
+        }
+    }
+    
     return false;
 }
 

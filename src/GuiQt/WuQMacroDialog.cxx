@@ -67,7 +67,7 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     m_macroGroups = WuQMacroManager::instance()->getMacroGroups();
     
     QLabel* macrosLabel = new QLabel("Macro:");
-    QLabel* descriptionLabel = new QLabel("Description:");
+    QLabel* descriptionLabel = new QLabel("Macro Description:");
     QLabel* macroGroupLabel = new QLabel("Macros in:");
     
     m_macroGroupComboBox = new QComboBox();
@@ -84,53 +84,6 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     m_macroDescriptionLabel->setAlignment(Qt::AlignTop
                                           | Qt::AlignLeft);
     
-    m_attributesPushButton = new QPushButton("Attributes...");
-    m_attributesPushButton->setToolTip("Edit the selected macro's name, description, etc");
-    QObject::connect(m_attributesPushButton, &QPushButton::clicked,
-                     this, &WuQMacroDialog::attributesButtonClicked);
-    
-    m_deletePushButton = new QPushButton("Delete...");
-    m_deletePushButton->setToolTip("Delete the selected macro");
-    QObject::connect(m_deletePushButton, &QPushButton::clicked,
-                     this, &WuQMacroDialog::deleteButtonClicked);
-    
-    m_editPushButton = new QPushButton("Edit...");
-    m_editPushButton->setToolTip("Edit the steps (commands) in the selected macro");
-    QObject::connect(m_editPushButton, &QPushButton::clicked,
-                     this, &WuQMacroDialog::editButtonClicked);
-    
-    QVBoxLayout* macroButtonsLayout = new QVBoxLayout();
-    macroButtonsLayout->addWidget(m_attributesPushButton);
-    macroButtonsLayout->addWidget(m_editPushButton);
-    macroButtonsLayout->addSpacing(20);
-    macroButtonsLayout->addWidget(m_deletePushButton);
-    macroButtonsLayout->addStretch();
-    
-    QLabel* runOptionsLabel = new QLabel("Run Macro Options: ");
-    m_runOptionLoopCheckBox = new QCheckBox("Loop");
-    m_runOptionLoopCheckBox->setChecked(false);
-    m_runOptionLoopCheckBox->setEnabled(false);
-    m_runOptionMoveMouseCheckBox = new QCheckBox("Move mouse to to highlight controls");
-    m_runOptionMoveMouseCheckBox->setChecked(true);
-    m_runOptionMoveMouseCheckBox->setToolTip("As macro runs, the mouse is moved to\n"
-                                             "highlight user-interface controls");
-    QLabel* runOptionsDelayLabel = new QLabel("Delay (seconds) between commands");
-    m_runOptionDelayBetweenCommandsSpinBox = new QDoubleSpinBox();
-    m_runOptionDelayBetweenCommandsSpinBox->setMinimum(0.0);
-    m_runOptionDelayBetweenCommandsSpinBox->setMaximum(1000.0);
-    m_runOptionDelayBetweenCommandsSpinBox->setSingleStep(0.1);
-    m_runOptionDelayBetweenCommandsSpinBox->setDecimals(1);
-    m_runOptionDelayBetweenCommandsSpinBox->setValue(1.0);
-    m_runOptionDelayBetweenCommandsSpinBox->setToolTip("Pause for this amount of time");
-    m_runOptionDelayBetweenCommandsSpinBox->setFixedWidth(80);
-    QGridLayout* runOptionsLayout = new QGridLayout();
-    runOptionsLayout->setColumnMinimumWidth(0, 10);
-    runOptionsLayout->addWidget(runOptionsLabel, 0, 0, 1, 3);
-    runOptionsLayout->addWidget(m_runOptionLoopCheckBox, 1, 1, 1, 2);
-    runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, 2, 1, 1, 2);
-    runOptionsLayout->addWidget(m_runOptionDelayBetweenCommandsSpinBox, 3, 1);
-    runOptionsLayout->addWidget(runOptionsDelayLabel, 3, 2);
-
     QFrame* horizontalLine = new QFrame();
     horizontalLine->setMidLineWidth(1);
     horizontalLine->setLineWidth(1);
@@ -145,7 +98,7 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
                                                 | Qt::AlignLeft));
     gridLayout->addWidget(m_macrosListWidget, row, 1, 2, 1);
     row++;
-    gridLayout->addLayout(macroButtonsLayout, row, 0);
+    gridLayout->addWidget(createMacroButtonsWidget(), row, 0);
     row++;
     
     for (int32_t iRow = 0; iRow < gridLayout->rowCount(); iRow++) {
@@ -164,7 +117,7 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     dialogLayout->addWidget(descriptionLabel);
     dialogLayout->addWidget(m_macroDescriptionLabel);
     dialogLayout->addWidget(horizontalLine);
-    dialogLayout->addLayout(runOptionsLayout);
+    dialogLayout->addWidget(createRunOptionsWidget());
     dialogLayout->addWidget(m_dialogButtonBox);
     
     updateDialogContents();
@@ -179,6 +132,89 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
  */
 WuQMacroDialog::~WuQMacroDialog()
 {
+}
+
+/**
+ * @return New instance of widget containing macro buttons
+ */
+QWidget*
+WuQMacroDialog::createMacroButtonsWidget()
+{
+    QWidget* widget = new QWidget();
+    
+    m_attributesPushButton = new QPushButton("Attributes...");
+    m_attributesPushButton->setToolTip("Edit the selected macro's name, description, etc");
+    QObject::connect(m_attributesPushButton, &QPushButton::clicked,
+                     this, &WuQMacroDialog::attributesButtonClicked);
+    
+    m_deletePushButton = new QPushButton("Delete...");
+    m_deletePushButton->setToolTip("Delete the selected macro");
+    QObject::connect(m_deletePushButton, &QPushButton::clicked,
+                     this, &WuQMacroDialog::deleteButtonClicked);
+    
+    m_editPushButton = new QPushButton("Edit...");
+    m_editPushButton->setToolTip("Edit the steps (commands) in the selected macro");
+    QObject::connect(m_editPushButton, &QPushButton::clicked,
+                     this, &WuQMacroDialog::editButtonClicked);
+    
+    m_importPushButton = new QPushButton("Import...");
+    m_importPushButton->setToolTip("Import a macro");
+    QObject::connect(m_importPushButton, &QPushButton::clicked,
+                     this, &WuQMacroDialog::importButtonClicked);
+    
+    m_exportPushButton = new QPushButton("Export...");
+    m_exportPushButton->setToolTip("Import a macro");
+    QObject::connect(m_exportPushButton, &QPushButton::clicked,
+                     this, &WuQMacroDialog::exportButtonClicked);
+    
+    QVBoxLayout* macroButtonsLayout = new QVBoxLayout(widget);
+    macroButtonsLayout->setSpacing(4);
+    macroButtonsLayout->addWidget(m_attributesPushButton);
+    macroButtonsLayout->addWidget(m_editPushButton);
+    macroButtonsLayout->addSpacing(15);
+    macroButtonsLayout->addWidget(m_deletePushButton);
+    macroButtonsLayout->addSpacing(15);
+    macroButtonsLayout->addWidget(m_importPushButton);
+    macroButtonsLayout->addWidget(m_exportPushButton);
+    macroButtonsLayout->addStretch();
+    
+    return widget;
+}
+
+/**
+ * @return New instance of widget containing macro run options
+ */
+QWidget*
+WuQMacroDialog::createRunOptionsWidget()
+{
+    QWidget* widget = new QWidget();
+    
+    QLabel* runOptionsLabel = new QLabel("Run Macro Options: ");
+    m_runOptionLoopCheckBox = new QCheckBox("Loop");
+    m_runOptionLoopCheckBox->setChecked(false);
+    m_runOptionLoopCheckBox->setEnabled(false);
+    m_runOptionMoveMouseCheckBox = new QCheckBox("Move mouse to to highlight controls");
+    m_runOptionMoveMouseCheckBox->setChecked(true);
+    m_runOptionMoveMouseCheckBox->setToolTip("As macro runs, the mouse is moved to\n"
+                                             "highlight user-interface controls");
+    QLabel* runOptionsDelayLabel = new QLabel("Delay (seconds) between commands");
+    m_runOptionDelayBetweenCommandsSpinBox = new QDoubleSpinBox();
+    m_runOptionDelayBetweenCommandsSpinBox->setMinimum(0.0);
+    m_runOptionDelayBetweenCommandsSpinBox->setMaximum(1000.0);
+    m_runOptionDelayBetweenCommandsSpinBox->setSingleStep(0.1);
+    m_runOptionDelayBetweenCommandsSpinBox->setDecimals(1);
+    m_runOptionDelayBetweenCommandsSpinBox->setValue(1.0);
+    m_runOptionDelayBetweenCommandsSpinBox->setToolTip("Pause for this amount of time");
+    m_runOptionDelayBetweenCommandsSpinBox->setFixedWidth(80);
+    QGridLayout* runOptionsLayout = new QGridLayout(widget);
+    runOptionsLayout->setColumnMinimumWidth(0, 10);
+    runOptionsLayout->addWidget(runOptionsLabel, 0, 0, 1, 3);
+    runOptionsLayout->addWidget(m_runOptionLoopCheckBox, 1, 1, 1, 2);
+    runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, 2, 1, 1, 2);
+    runOptionsLayout->addWidget(m_runOptionDelayBetweenCommandsSpinBox, 3, 1);
+    runOptionsLayout->addWidget(runOptionsDelayLabel, 3, 2);
+    
+    return widget;
 }
 
 /**
@@ -372,11 +408,41 @@ WuQMacroDialog::editButtonClicked()
 {
     WuQMacro* macro = getSelectedMacro();
     if (macro != NULL) {
-        if (WuQMacroManager::instance()->editMacroAttributes(m_editPushButton, macro)) {
+        if (WuQMacroManager::instance()->editMacroCommands(m_editPushButton, macro)) {
             updateDialogContents();
         }
     }
 }
 
+/**
+ * Called when import button is clicked
+ */
+void
+WuQMacroDialog::importButtonClicked()
+{
+    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
+    if (macroGroup != NULL) {
+        if (WuQMacroManager::instance()->importMacros(m_importPushButton,
+                                                      macroGroup)) {
+            updateDialogContents();
+        }
+    }
+}
+
+/**
+ * Called when export button is clicked
+ */
+void
+WuQMacroDialog::exportButtonClicked()
+{
+    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
+    WuQMacro* macro = getSelectedMacro();
+
+    if (WuQMacroManager::instance()->exportMacros(m_importPushButton,
+                                                  macroGroup,
+                                                  macro)) {
+        updateDialogContents();
+    }
+}
 
 
