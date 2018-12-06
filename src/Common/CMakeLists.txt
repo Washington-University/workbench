@@ -162,7 +162,11 @@ VoxelIJK.h
 WorkbenchSpecialVersionEnum.h
 WuQMacro.h
 WuQMacroCommand.h
+WuQMacroDataValueTypeEnum.h
 WuQMacroGroup.h
+WuQMacroGroupXmlFormatBase.h
+WuQMacroGroupXmlReader.h
+WuQMacroGroupXmlWriter.h
 WuQMacroModeEnum.h
 WuQMacroMouseEventInfo.h
 WuQMacroMouseEventTypeEnum.h
@@ -270,7 +274,11 @@ VectorOperation.cxx
 WorkbenchSpecialVersionEnum.cxx
 WuQMacro.cxx
 WuQMacroCommand.cxx
+WuQMacroDataValueTypeEnum.cxx
 WuQMacroGroup.cxx
+WuQMacroGroupXmlFormatBase.cxx
+WuQMacroGroupXmlReader.cxx
+WuQMacroGroupXmlWriter.cxx
 WuQMacroModeEnum.cxx
 WuQMacroMouseEventInfo.cxx
 WuQMacroMouseEventTypeEnum.cxx

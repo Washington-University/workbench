@@ -37,10 +37,6 @@ namespace caret {
         WuQMacroMouseEventInfo(const WuQMacroMouseEventTypeEnum::Enum mouseEventType,
                                const int32_t localX,
                                const int32_t localY,
-                               const int32_t windowX,
-                               const int32_t windowY,
-                               const int32_t screenX,
-                               const int32_t screenY,
                                const uint32_t mouseButton,
                                const uint32_t mouseButtonsMask,
                                const uint32_t keyboardModifiersMask,
@@ -49,9 +45,9 @@ namespace caret {
         
         virtual ~WuQMacroMouseEventInfo();
         
-        WuQMacroMouseEventInfo(const WuQMacroMouseEventInfo&) = delete;
+        WuQMacroMouseEventInfo(const WuQMacroMouseEventInfo&);
 
-        WuQMacroMouseEventInfo& operator=(const WuQMacroMouseEventInfo&) = delete;
+        WuQMacroMouseEventInfo& operator=(const WuQMacroMouseEventInfo&);
         
         void getLocalPositionRescaledToWidgetSize(const int32_t widgetWidth,
                                                   const int32_t widgetHeight,
@@ -63,14 +59,6 @@ namespace caret {
         int32_t getLocalX() const;
         
         int32_t getLocalY() const;
-        
-        int32_t getWindowX() const;
-        
-        int32_t getWindowY() const;
-        
-        int32_t getScreenX() const;
-        
-        int32_t getScreenY() const;
         
         uint32_t getMouseButton() const;
         
@@ -87,41 +75,31 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        void copyHelperWuQMacroMouseEventInfo(const WuQMacroMouseEventInfo& obj);
+        
         /** Type of mouse event */
-        const WuQMacroMouseEventTypeEnum::Enum m_mouseEventType;
+        WuQMacroMouseEventTypeEnum::Enum m_mouseEventType;
         
         /** Position of mouse relative to widget */
-        const int32_t m_localX;
+        int32_t m_localX;
         
         /** Position of mouse relative to widget */
-        const int32_t m_localY;
-        
-        /** Position of mouse relative to window */
-        const int32_t m_windowX;
-        
-        /** Position of mouse relative to window */
-        const int32_t m_windowY;
-        
-        /** Position of mouse relative to screen */
-        const int32_t m_screenX;
-        
-        /** Position of mouse relative to screen */
-        const int32_t m_screenY;
+        int32_t m_localY;
         
         /** Button that caused the event */
-        const uint32_t m_mouseButton;
+        uint32_t m_mouseButton;
         
         /** Mask with buttons down during mouse event */
-        const uint32_t m_mouseButtonsMask;
+        uint32_t m_mouseButtonsMask;
         
         /** Mask with any keys down during mouse event */
-        const uint32_t m_keyboardModifiersMask;
+        uint32_t m_keyboardModifiersMask;
 
         /** Width of widget where mouse event occurred */
-        const int32_t m_widgetWidth;
+        int32_t m_widgetWidth;
         
         /** Width of widget where mouse event occurred */
-        const int32_t m_widgetHeight;
+        int32_t m_widgetHeight;
         
         
         // ADD_NEW_MEMBERS_HERE

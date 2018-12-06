@@ -27,9 +27,6 @@
 
 #include "CaretObjectTracksModification.h"
 
-//class QObject;
-//class QWidget;
-
 namespace caret {
 
     class WuQMacroCommand;
@@ -41,9 +38,9 @@ namespace caret {
         
         virtual ~WuQMacro();
         
-        WuQMacro(const WuQMacro&) = delete;
-
-        WuQMacro& operator=(const WuQMacro&) = delete;
+        WuQMacro(const WuQMacro& obj);
+        
+        WuQMacro& operator=(const WuQMacro& obj);
         
         void addMacroCommand(WuQMacroCommand* macroCommand);
         
@@ -53,10 +50,6 @@ namespace caret {
         
         WuQMacroCommand* getMacroCommandAtIndex(const int32_t index);
         
-//        bool runMacro(QObject* window,
-//                      const bool stopOnErrorFlag,
-//                      QString& errorMessageOut);
-        
         QString getName() const;
         
         void setName(const QString& name);
@@ -65,22 +58,30 @@ namespace caret {
         
         void setDescription(const QString& description);
         
+        QString getFunctionKey() const;
+        
+        void setFunctionKey(const QString& functionKey);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
+
+        virtual bool isModified() const override;
+        
+        virtual void clearModified() override;
         
     private:
-//        void emitActionChecked(QAction* action,
-//                               const bool checked);
+        void copyHelperWuQMacro(const WuQMacro& obj);
         
-//        void moveMouse(QWidget* widget,
-//                       const bool highlightFlag);
+        void clearCommands();
         
         std::vector<WuQMacroCommand*> m_macroCommands;
         
         QString m_name;
         
         QString m_description;
+        
+        QString m_functionKey;
         
         // ADD_NEW_MEMBERS_HERE
 

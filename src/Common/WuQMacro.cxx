@@ -23,14 +23,8 @@
 #include "WuQMacro.h"
 #undef __WU_Q_MACRO_DECLARE__
 
-//#include <cmath>
-//
-//#include <QApplication>
-//#include <QWidget>
-
 #include "CaretAssert.h"
 #include "WuQMacroCommand.h"
-//#include "WuQMacroSignalEmitter.h"
 
 using namespace caret;
 
@@ -57,10 +51,66 @@ WuQMacro::WuQMacro()
  */
 WuQMacro::~WuQMacro()
 {
+    clearCommands();
+}
+
+/**
+ * Clear (remove) all commands in this macro
+ */
+void
+WuQMacro::clearCommands()
+{
     for (auto mc : m_macroCommands) {
         delete mc;
     }
     m_macroCommands.clear();
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+WuQMacro::WuQMacro(const WuQMacro& obj)
+: CaretObjectTracksModification(obj)
+{
+    this->copyHelperWuQMacro(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+WuQMacro&
+WuQMacro::operator=(const WuQMacro& obj)
+{
+    if (this != &obj) {
+        CaretObjectTracksModification::operator=(obj);
+        this->copyHelperWuQMacro(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+WuQMacro::copyHelperWuQMacro(const WuQMacro& obj)
+{
+    clearCommands();
+    
+    for (auto mc : obj.m_macroCommands) {
+        addMacroCommand(new WuQMacroCommand(*mc));
+    }
+
+    m_name = obj.m_name;
+    m_description = obj.m_description;
+    m_functionKey = obj.m_functionKey;
 }
 
 void
@@ -119,6 +169,30 @@ WuQMacro::setDescription(const QString& description)
 }
 
 /**
+ * @return The function key
+ */
+QString
+WuQMacro::getFunctionKey() const
+{
+    return m_functionKey;
+}
+
+/**
+ * Set the function key
+ *
+ * @param functionKey
+ *    New function key
+ */
+void
+WuQMacro::setFunctionKey(const QString& functionKey)
+{
+    if (m_functionKey != functionKey) {
+        m_functionKey = functionKey;
+        setModified();
+    }
+}
+
+/**
  * @return The number of macro commands in this macro
  */
 int32_t
@@ -153,110 +227,37 @@ WuQMacro::getMacroCommandAtIndex(const int32_t index)
     return m_macroCommands[index];
 }
 
+/**
+ * @return True if this instance is modified
+ */
+bool
+WuQMacro::isModified() const
+{
+    if (CaretObjectTracksModification::isModified()) {
+        return true;
+    }
+    
+    for (const auto mc : m_macroCommands) {
+        if (mc->isModified()) {
+            return true;
+        }
+    }
+    
+    return false;
+}
 
-//void
-//WuQMacro::moveMouse(QWidget* widget,
-//                        const bool highlightFlag)
-//{
-//    CaretAssert(widget);
-//    
-//    const QPoint widgetCenter = widget->rect().center();
-//    const QPoint windowPoint = widget->mapToGlobal(widgetCenter);
-//    
-//    if (highlightFlag) {
-//        const float radius = 15.0;
-//        for (float angle = 0.0; angle < 6.28; angle += 0.314) {
-//            const float x = windowPoint.x() + (std::cos(angle) * radius);
-//            const float y = windowPoint.y() + (std::sin(angle) * radius);
-//            QCursor::setPos(x, y);
-//            //SystemUtilities::sleepSeconds(0.025);
-//        }
-//    }
-//    
-//    QCursor::setPos(windowPoint);
-//}
-//
-///**
-// * Run the commands in this macro.
-// *
-// * @param window
-// *    The window from which macro was launched
-// * @param stopOnErrorFlag
-// *    If true, stop running the commands if there is an error
-// * @param errorMessageOut
-// *    Output containing any error messages
-// * @return
-// *    True if the macro completed without errors, else false.
-// */
-//bool
-//WuQMacro::runMacro(QObject* window,
-//                   const bool stopOnErrorFlag,
-//                   QString& errorMessageOut)
-//{
-//    errorMessageOut.clear();
-//    
-//    for (auto mc : m_macroCommands) {
-//        CaretAssert(mc);
-//        
-//        const QString objectName(mc->getObjectName());
-//        QObject* object = window->findChild<QObject*>(objectName);
-//        if (object == NULL) {
-//            errorMessageOut.append("Unable to find object named "
-//                                   + objectName
-//                                   + "\n");
-//            continue;
-//        }
-//        
-//        if (object->signalsBlocked()) {
-//            errorMessageOut.append("Object named "
-//                                   + objectName
-//                                   + " has signals blocked");
-//            continue;
-//        }
-//        
-//        QWidget* widgetToMoveMouse = qobject_cast<QWidget*>(object);
-//        
-//        if (widgetToMoveMouse == NULL) {
-//            QObject* object = window->findChild<QObject*>(objectName);
-//            if (object != NULL) {
-//                QObject* parent = object->parent();
-//                if (parent != NULL) {
-//                    widgetToMoveMouse = qobject_cast<QWidget*>(parent);
-//                }
-//            }
-//        }
-//        
-//        const WuQMacroObjectTypeEnum::Enum objectType = mc->getObjectType();
-//        
-//        const bool mouseEventFlag = (objectType == WuQMacroObjectTypeEnum::MOUSE_USER_EVENT);
-//        if (widgetToMoveMouse != NULL) {
-//            if ( ! mouseEventFlag) {
-//                const bool highlightFlag = ( ! mouseEventFlag);
-//                moveMouse(widgetToMoveMouse,
-//                          highlightFlag);
-//            }
-//        }
-//        
-//        QString commandErrorMessage;
-//        if ( ! mc->runMacro(object,
-//                            commandErrorMessage)) {
-//            errorMessageOut.append(commandErrorMessage + "\n");
-//            if (stopOnErrorFlag) {
-//                return false;
-//            }
-//        }
-//        
-//        QGuiApplication::processEvents();
-//        if ( ! mouseEventFlag) {
-//            SystemUtilities::sleepSeconds(1);
-//        }
-//        QGuiApplication::processEvents();
-//    }
-//    
-//    return (errorMessageOut.isEmpty());
-//    
-//    
-//}
+/**
+ * Clear the modified status
+ */
+void
+WuQMacro::clearModified()
+{
+    CaretObjectTracksModification::clearModified();
+    
+    for (auto mc : m_macroCommands) {
+        mc->clearModified();
+    }
+}
 
 /**
  * Get a description of this object's content.
@@ -269,6 +270,7 @@ WuQMacro::toString() const
     
     s.append("Name=" + m_name + "\n");
     s.append("Description=" + m_description + "\n");
+    s.append("Function Key=" + m_functionKey + "\n");
     
     for (auto mc : m_macroCommands) {
         s.append(mc->toString() + "\n");

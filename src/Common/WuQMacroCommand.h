@@ -28,6 +28,7 @@
 #include <QVariant>
 
 #include "CaretObjectTracksModification.h"
+#include "WuQMacroDataValueTypeEnum.h"
 #include "WuQMacroObjectTypeEnum.h"
 
 class QObject;
@@ -51,11 +52,13 @@ namespace caret {
         
         virtual ~WuQMacroCommand();
         
-        WuQMacroCommand(const WuQMacroCommand&) = delete;
-
-        WuQMacroCommand& operator=(const WuQMacroCommand&) = delete;
+        WuQMacroCommand(const WuQMacroCommand& obj);
+        
+        WuQMacroCommand& operator=(const WuQMacroCommand& obj);
         
         WuQMacroObjectTypeEnum::Enum getObjectType() const;
+        
+        WuQMacroDataValueTypeEnum::Enum getObjectDataValueType() const;
         
         QString getObjectName() const;
         
@@ -65,24 +68,24 @@ namespace caret {
 
         const WuQMacroMouseEventInfo* getMouseEventInfo() const;
         
-//        bool runMacro(QObject* object,
-//                      QString& errorMessageOut) const;
-        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
         
     private:
+        void copyHelperWuQMacroCommand(const WuQMacroCommand& obj);
+                
+        WuQMacroObjectTypeEnum::Enum m_objectType;
         
-        const WuQMacroObjectTypeEnum::Enum m_objectType;
+        QString m_objectName;
         
-        const QString m_objectName;
+        QString m_objectToolTip;
         
-        const QString m_objectToolTip;
+        QVariant m_value;
         
-        const QVariant m_value;
+        WuQMacroMouseEventInfo* m_macroMouseEvent;
         
-        const WuQMacroMouseEventInfo* m_macroMouseEvent;
+        WuQMacroDataValueTypeEnum::Enum m_objectDataValueType;
         
         // ADD_NEW_MEMBERS_HERE
 

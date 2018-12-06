@@ -61,10 +61,15 @@ m_windowParent(windowParent)
     QObject::connect(m_recordMacroAction, &QAction::triggered,
                      this, &WuQMacroMenu::macroRecordSelected);
     
-    addSeparator();
-    QAction* printAction = addAction("Print Supported Widgets");
-    QObject::connect(printAction, &QAction::triggered,
-                     this, &WuQMacroMenu::macroPrintAllSelected);
+    {
+        QMenu* developmentMenu = new QMenu("Development");
+        QAction* printAction = developmentMenu->addAction("Development - Print Supported Widgets");
+        QObject::connect(printAction, &QAction::triggered,
+                         this, &WuQMacroMenu::macroPrintAllSelected);
+
+        addSeparator();
+        addMenu(developmentMenu);
+    }
     
     QObject::connect(this, &QMenu::aboutToShow,
                      this, &WuQMacroMenu::macroMenuAboutToShow);

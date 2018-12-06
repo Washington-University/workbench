@@ -40,13 +40,15 @@ namespace caret {
         
         virtual ~WuQMacroGroup();
         
-        WuQMacroGroup(const WuQMacroGroup&) = delete;
+        WuQMacroGroup(const WuQMacroGroup& obj);
+        
+        WuQMacroGroup& operator=(const WuQMacroGroup& obj);
+        
+        void clear();
+        
+        QString getName() const;
 
-        WuQMacroGroup& operator=(const WuQMacroGroup&) = delete;
-
-        QString getGroupName() const;
-
-        void setGroupName(const QString& groupName);
+        void setName(const QString& name);
         
         void addMacro(WuQMacro* macro);
         
@@ -64,12 +66,25 @@ namespace caret {
         
         void deleteMacroAtIndex(const int32_t index);
         
+        virtual bool isModified() const override;
+        
+        virtual void clearModified() override;
+        
+        bool readXmlFromString(const QString& xmlString,
+                               QString& errorMessageOut,
+                               QString& nonFatalWarningMessageOut);
+        
+        bool writeXmlToString(QString& xmlString,
+                              QString& errorMessageOut);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
         
     private:
-        QString m_groupName;
+        void copyHelperWuQMacroGroup(const WuQMacroGroup& obj);
+        
+        QString m_name;
         
         std::vector<WuQMacro*> m_macros;
         

@@ -200,6 +200,10 @@ namespace caret {
         
         const WuQMacroGroup* getMacros() const;
         
+        void readMacros(const bool performSync = true);
+        
+        void writeMacros();
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -333,6 +337,7 @@ namespace caret {
         static const AString NAME_DYNAMIC_CONNECTIVITY_ON;
         static const AString NAME_IMAGE_CAPTURE_METHOD;
         static const AString NAME_LOGGING_LEVEL;
+        static const AString NAME_MACROS;
         static const AString NAME_MANAGE_FILES_VIEW_FILE_TYPE;
         static const AString NAME_OPENGL_DRAWING_METHOD;
         static const AString NAME_PREVIOUS_SCENE_FILES;
@@ -377,6 +382,7 @@ namespace caret {
     const AString CaretPreferences::NAME_DYNAMIC_CONNECTIVITY_ON = "dynamicConnectivityDefaultedOn";
     const AString CaretPreferences::NAME_IMAGE_CAPTURE_METHOD = "imageCaptureMethod";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
+    const AString CaretPreferences::NAME_MACROS = "macros";
     const AString CaretPreferences::NAME_MANAGE_FILES_VIEW_FILE_TYPE     = "manageFilesViewFileType";
     const AString CaretPreferences::NAME_OPENGL_DRAWING_METHOD     = "openGLDrawingMethod";
     const AString CaretPreferences::NAME_PREVIOUS_SCENE_FILES     = "previousSceneFiles";

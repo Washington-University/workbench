@@ -39,6 +39,27 @@ namespace caret {
         Q_OBJECT
 
     public:
+        class RunOptions {
+        public:
+            RunOptions(const float secondsDelayBetweenCommands,
+                       const bool showMouseMovementFlag,
+                       const bool loopFlag)
+            : m_secondsDelayBetweenCommands(secondsDelayBetweenCommands),
+            m_showMouseMovementFlag(showMouseMovementFlag),
+            m_stopOnErrorFlag(true),
+            m_loopFlag(loopFlag)
+            {
+            }
+            
+            const float m_secondsDelayBetweenCommands;
+            
+            const bool m_showMouseMovementFlag;
+            
+            const bool m_stopOnErrorFlag;
+            
+            const bool m_loopFlag;
+        };
+        
         WuQMacroExecutor();
         
         virtual ~WuQMacroExecutor();
@@ -49,7 +70,7 @@ namespace caret {
         
         bool runMacro(const WuQMacro* macro,
                       QObject* window,
-                      const bool stopOnErrorFlag,
+                      const RunOptions& options,
                       QString& errorMessageOut) const;
         
         

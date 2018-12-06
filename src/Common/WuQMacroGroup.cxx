@@ -25,6 +25,8 @@
 
 #include "CaretAssert.h"
 #include "WuQMacro.h"
+#include "WuQMacroGroupXmlReader.h"
+#include "WuQMacroGroupXmlWriter.h"
 
 using namespace caret;
 
@@ -39,12 +41,12 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @param groupName
+ * @param name
  *     Name of group
  */
-WuQMacroGroup::WuQMacroGroup(const QString& groupName)
+WuQMacroGroup::WuQMacroGroup(const QString& name)
 : CaretObjectTracksModification(),
-m_groupName(groupName)
+m_name(name)
 {
     
 }
@@ -54,32 +56,91 @@ m_groupName(groupName)
  */
 WuQMacroGroup::~WuQMacroGroup()
 {
+    clear();
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+WuQMacroGroup::WuQMacroGroup(const WuQMacroGroup& obj)
+: CaretObjectTracksModification(obj)
+{
+    this->copyHelperWuQMacroGroup(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+WuQMacroGroup&
+WuQMacroGroup::operator=(const WuQMacroGroup& obj)
+{
+    if (this != &obj) {
+        CaretObjectTracksModification::operator=(obj);
+        this->copyHelperWuQMacroGroup(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+WuQMacroGroup::copyHelperWuQMacroGroup(const WuQMacroGroup& obj)
+{
+    clear();
+    
+    m_name = obj.m_name;
+    
+    for (auto m : obj.m_macros) {
+        addMacro(new WuQMacro(*m));
+    }
+}
+
+/**
+ * Clear (remove all macros)
+ */
+void
+WuQMacroGroup::clear()
+{
+    if (m_macros.empty()) {
+        return;
+    }
+    
     for (auto m : m_macros) {
         delete m;
     }
     m_macros.clear();
+    setModified();
 }
 
 /**
  * @return Name of group
  */
 QString
-WuQMacroGroup::getGroupName() const
+WuQMacroGroup::getName() const
 {
-    return m_groupName;
+    return m_name;
 }
 
 /**
  * Set name of group
  *
- * @param groupName
+ * @param name
  *     Name of group
  */
 void
-WuQMacroGroup::setGroupName(const QString& groupName)
+WuQMacroGroup::setName(const QString& name)
 {
-    if (m_groupName != groupName) {
-        m_groupName = groupName;
+    if (m_name != name) {
+        m_name = name;
         setModified();
     }
 }
@@ -205,6 +266,101 @@ WuQMacroGroup::deleteMacroAtIndex(const int32_t index)
     setModified();
 }
 
+/**
+ * @return True if this instance is modified
+ */
+bool
+WuQMacroGroup::isModified() const
+{
+    if (CaretObjectTracksModification::isModified()) {
+        return true;
+    }
+    
+    for (const auto m : m_macros) {
+        if (m->isModified()) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Clear the modified status
+ */
+void
+WuQMacroGroup::clearModified()
+{
+    CaretObjectTracksModification::clearModified();
+    
+    for (auto m : m_macros) {
+        m->clearModified();
+    }
+}
+
+/**
+ * Read from a string containing XML.  If successful,
+ * the modified status is cleared.
+ *
+ * @param xmlString
+ *     String containing XML
+ * @param errorMessageOut
+ *     Contains error information if reading fails
+ * @param nonFatalWarningMessageOut
+ *     May contain non-fatal warnings when reading is successful
+ * @return
+ *     True if successful, else false
+ */
+bool
+WuQMacroGroup::readXmlFromString(const QString& xmlString,
+                                 QString& errorMessageOut,
+                                 QString& nonFatalWarningMessageOut)
+{
+    errorMessageOut.clear();
+    nonFatalWarningMessageOut.clear();
+    
+    WuQMacroGroupXmlReader reader;
+    reader.readFromString(xmlString,
+                          this);
+    if (reader.hasError()) {
+        errorMessageOut = reader.getErrorMessage();
+        return false;
+    }
+    else {
+        if (reader.hasWarnings()) {
+            nonFatalWarningMessageOut = reader.getWarningMessage();
+        }
+    }
+    clearModified();
+    
+    return true;
+}
+
+/**
+ * Write to a string containing XML.  If successful,
+ * the modified status is cleared.
+ *
+ * @param xmlString
+ *     String to which XML is written
+ * @param errorMessageOut
+ *     Contains error information if reading fails
+ * @return
+ *     True if successful, else false
+ */
+bool
+WuQMacroGroup::writeXmlToString(QString& xmlString,
+                                QString& errorMessageOut)
+{
+    xmlString.clear();
+    errorMessageOut.clear();
+    
+    WuQMacroGroupXmlWriter writer;
+    writer.writeToString(this,
+                         xmlString);
+    clearModified();
+    
+    return true;
+}
 
 /**
  * Get a description of this object's content.
@@ -213,7 +369,7 @@ WuQMacroGroup::deleteMacroAtIndex(const int32_t index)
 AString 
 WuQMacroGroup::toString() const
 {
-    QString s("WuQMacroGroup name=" + m_groupName + "\n");
+    QString s("WuQMacroGroup name=" + m_name + "\n");
     for (auto m : m_macros) {
         s.append(m->toString() + "\n");
     }

@@ -1,5 +1,5 @@
-#ifndef __WU_Q_MACRO_CREATE_DIALOG_H__
-#define __WU_Q_MACRO_CREATE_DIALOG_H__
+#ifndef __WU_Q_MACRO_ATTRIBUTES_DIALOG_H__
+#define __WU_Q_MACRO_ATTRIBUTES_DIALOG_H__
 
 /*LICENSE_START*/
 /*
@@ -27,7 +27,6 @@
 
 #include <QDialog>
 
-class QComboBox;
 class QDialogButtonBox;
 class QLineEdit;
 class QPlainTextEdit;
@@ -38,32 +37,31 @@ namespace caret {
     class WuQMacro;
     class WuQMacroGroup;
     
-    class WuQMacroCreateDialog : public QDialog {
+    class WuQMacroAttributesDialog : public QDialog {
         
         Q_OBJECT
 
     public:
-        WuQMacroCreateDialog(QWidget* parent = 0);
+        WuQMacroAttributesDialog(WuQMacro* macro,
+                              QWidget* parent = 0);
         
-        virtual ~WuQMacroCreateDialog();
+        virtual ~WuQMacroAttributesDialog();
         
-        WuQMacroCreateDialog(const WuQMacroCreateDialog&) = delete;
+        WuQMacroAttributesDialog(const WuQMacroAttributesDialog&) = delete;
 
-        WuQMacroCreateDialog& operator=(const WuQMacroCreateDialog&) = delete;
+        WuQMacroAttributesDialog& operator=(const WuQMacroAttributesDialog&) = delete;
 
-        WuQMacro* getNewMacro() const;
-
+        bool isMacroModified() const;
+        
         // ADD_NEW_METHODS_HERE
         
     public slots:
         virtual void done(int r) override;
         
     private:
-        QString getDefaultMacroName() const;
+        WuQMacro* m_macro;
         
-        std::vector<WuQMacroGroup*> m_macroGroups;
-        
-        QComboBox* m_macroGroupComboBox;
+        bool m_macroWasModifiedFlag = false;
         
         QLineEdit* m_macroNameLineEdit;
         
@@ -72,14 +70,12 @@ namespace caret {
         QPlainTextEdit* m_macroDescriptionTextEdit;
         
         QDialogButtonBox* m_dialogButtonBox;
-        
-        WuQMacro* m_macro = NULL;
 
     };
     
-#ifdef __WU_Q_MACRO_CREATE_DIALOG_DECLARE__
+#ifdef __WU_Q_MACRO_ATTRIBUTES_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_MACRO_CREATE_DIALOG_DECLARE__
+#endif // __WU_Q_MACRO_ATTRIBUTES_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_MACRO_CREATE_DIALOG_H__
+#endif  //__WU_Q_MACRO_ATTRIBUTES_DIALOG_H__

@@ -97,7 +97,7 @@ WuQMacroExecutor::moveMouse(QWidget* widget,
             const float x = windowPoint.x() + (std::cos(angle) * radius);
             const float y = windowPoint.y() + (std::sin(angle) * radius);
             QCursor::setPos(x, y);
-            //SystemUtilities::sleepSeconds(0.025);
+            SystemUtilities::sleepSeconds(0.025);
         }
     }
     
@@ -111,8 +111,8 @@ WuQMacroExecutor::moveMouse(QWidget* widget,
  *    Macro that is run
  * @param window
  *    The window from which macro was launched
- * @param stopOnErrorFlag
- *    If true, stop running the commands if there is an error
+ * @param options
+ *    Executor options
  * @param errorMessageOut
  *    Output containing any error messages
  * @return
@@ -121,7 +121,7 @@ WuQMacroExecutor::moveMouse(QWidget* widget,
 bool
 WuQMacroExecutor::runMacro(const WuQMacro* macro,
                            QObject* window,
-                           const bool stopOnErrorFlag,
+                           const RunOptions& options,
                            QString& errorMessageOut) const
 {
     errorMessageOut.clear();
@@ -137,7 +137,7 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
             errorMessageOut.append("Unable to find object named "
                                    + objectName
                                    + "\n");
-            if (stopOnErrorFlag) {
+            if (options.m_stopOnErrorFlag) {
                 return false;
             }
             continue;
@@ -147,7 +147,7 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
             errorMessageOut.append("Object named "
                                    + objectName
                                    + " has signals blocked");
-            if (stopOnErrorFlag) {
+            if (options.m_stopOnErrorFlag) {
                 return false;
             }
             continue;
@@ -166,13 +166,15 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
         }
         
         const WuQMacroObjectTypeEnum::Enum objectType = mc->getObjectType();
-        
         const bool mouseEventFlag = (objectType == WuQMacroObjectTypeEnum::MOUSE_USER_EVENT);
-        if (widgetToMoveMouse != NULL) {
-            if ( ! mouseEventFlag) {
-                const bool highlightFlag = ( ! mouseEventFlag);
-                moveMouse(widgetToMoveMouse,
-                          highlightFlag);
+        
+        if (options.m_showMouseMovementFlag) {
+            if (widgetToMoveMouse != NULL) {
+                if ( ! mouseEventFlag) {
+                    const bool highlightFlag = ( ! mouseEventFlag);
+                    moveMouse(widgetToMoveMouse,
+                              highlightFlag);
+                }
             }
         }
         
@@ -181,15 +183,18 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
                                object,
                                commandErrorMessage)) {
             errorMessageOut.append(commandErrorMessage + "\n");
-            if (stopOnErrorFlag) {
+            if (options.m_stopOnErrorFlag) {
                 return false;
             }
         }
         
         QGuiApplication::processEvents();
         if ( ! mouseEventFlag) {
-            SystemUtilities::sleepSeconds(1);
+            if (options.m_secondsDelayBetweenCommands > 0.0) {
+                SystemUtilities::sleepSeconds(options.m_secondsDelayBetweenCommands);
+            }
         }
+        
         QGuiApplication::processEvents();
     }
     
@@ -221,6 +226,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
     CaretAssert(object);
     
     const WuQMacroObjectTypeEnum::Enum objectType = macroCommand->getObjectType();
+    const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getObjectDataValueType();
     const QVariant objectValue = macroCommand->getObjectValue();
     
     bool notFoundFlag(false);
@@ -229,6 +235,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QAction* action = qobject_cast<QAction*>(object);
             if (action != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQActionSignal(action,
                                                 objectValue.toBool());
@@ -242,6 +249,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QCheckBox* checkBox = qobject_cast<QCheckBox*>(object);
             if (checkBox != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQCheckBoxSignal(checkBox,
                                                   objectValue.toBool());
@@ -255,6 +263,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QComboBox* comboBox = qobject_cast<QComboBox*>(object);
             if (comboBox != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQComboBoxSignal(comboBox,
                                                   objectValue.toInt());
@@ -268,6 +277,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QDoubleSpinBox* doubleSpinBox = qobject_cast<QDoubleSpinBox*>(object);
             if (doubleSpinBox != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::FLOAT);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQDoubleSpinBoxSignal(doubleSpinBox,
                                                        objectValue.toDouble());
@@ -284,6 +294,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QLineEdit* lineEdit = qobject_cast<QLineEdit*>(object);
             if (lineEdit != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQLineEditSignal(lineEdit,
                                                   objectValue.toString());
@@ -297,6 +308,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QListWidget* listWidget = qobject_cast<QListWidget*>(object);
             if (listWidget != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQListWidgetSignal(listWidget,
                                                     objectValue.toString());
@@ -310,6 +322,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QMenu* menu = qobject_cast<QMenu*>(object);
             if (menu != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQMenuTriggered(menu,
                                                  objectValue.toString());
@@ -379,6 +392,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QPushButton* pushButton = qobject_cast<QPushButton*>(object);
             if (pushButton != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQPushButtonSignal(pushButton,
                                                     objectValue.toBool());
@@ -392,6 +406,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QRadioButton* radioButton = qobject_cast<QRadioButton*>(object);
             if (radioButton != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQRadioButtonSignal(radioButton,
                                                      objectValue.toBool());
@@ -405,6 +420,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QSlider* slider = qobject_cast<QSlider*>(object);
             if (slider != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQSliderSignal(slider,
                                                 objectValue.toInt());
@@ -418,6 +434,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QSpinBox* spinBox = qobject_cast<QSpinBox*>(object);
             if (spinBox != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQSpinBoxSignal(spinBox,
                                                  objectValue.toInt());
@@ -431,6 +448,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QTabBar* tabBar = qobject_cast<QTabBar*>(object);
             if (tabBar != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQTabBarSignal(tabBar,
                                                 objectValue.toInt());
@@ -444,6 +462,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QTabWidget* tabWidget = qobject_cast<QTabWidget*>(object);
             if (tabWidget != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQTabWidgetSignal(tabWidget,
                                                    objectValue.toInt());
@@ -457,6 +476,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QToolButton* toolButton = qobject_cast<QToolButton*>(object);
             if (toolButton != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQToolButtonSignal(toolButton,
                                                     objectValue.toBool());

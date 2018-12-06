@@ -40,13 +40,14 @@
 #include "WuQMacroCreateDialog.h"
 #include "WuQMacroDialog.h"
 #include "WuQMacroExecutor.h"
+#include "WuQMacroGroup.h"
 #include "WuQMacroMouseEventInfo.h"
+#include "WuQMacroAttributesDialog.h"
 #include "WuQMacroSignalWatcher.h"
 
 using namespace caret;
 
 
-    
 /**
  * \class caret::WuQMacroManager 
  * \brief Manages the macro system.
@@ -89,33 +90,6 @@ WuQMacroManager::~WuQMacroManager()
     }
 }
 
-///**
-// * Create the singleton Macro Manager.  This method MUST be called before
-// * calling instance() and this method should only be called once.  When
-// * the given 'parent' is deleted, it will result in the singletone instance
-// * being deleted.
-// *
-// * @param name
-// *     Name of macro manager
-// * @parent
-// *     Parent of the macro manager.
-// */
-//WuQMacroManager*
-//WuQMacroManager::createMacroManagerSingleton(const QString& name,
-//                                                    QObject* parent)
-//{
-//    if (s_singletonMacroManager == NULL) {
-//        s_singletonMacroManager = new WuQMacroManager(name,
-//                                                      parent);
-//    }
-//    else {
-//        CaretLogSevere("WuQMacroManager::createMacroManagerSingleton() has already been "
-//                       "called, this should never be called more than once.");
-//    }
-//    
-//    return s_singletonMacroManager;
-//}
-
 /**
  * @return The instance of the Macro Manager.  Before calling this method,
  * the createMacroManagerSingleton() must have been called to create the
@@ -131,9 +105,6 @@ WuQMacroManager::instance()
          */
         s_singletonMacroManager = new WuQMacroManager("MacroManager",
                                                       qApp);
-//        CaretLogSevere("A macro manager has not been created with createMacroManagerSingleton().  "
-//                       "That method MUST be called before this method.");
-//        std::abort();
     }
     
     return s_singletonMacroManager;
@@ -292,6 +263,7 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
         }
         CaretAssert(m_macroBeingRecorded);
 
+        bool validMouseEventFlag(true);
         WuQMacroMouseEventTypeEnum::Enum mouseEventType = WuQMacroMouseEventTypeEnum::MOVE;
         switch (me->type()) {
             case QEvent::MouseButtonPress:
@@ -305,29 +277,35 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
                 break;
             case QEvent::MouseMove:
                 mouseEventType = WuQMacroMouseEventTypeEnum::MOVE;
+                
+                /*
+                 * Only track move events if a button is down
+                 */
+                if (me->button() == Qt::NoButton) {
+                    validMouseEventFlag = false;
+                }
                 break;
             default:
                 CaretAssertMessage(0, ("Unknown mouse event type integer cast="
                                        + QString::number(static_cast<int>(me->type()))));
                 break;
         }
-        WuQMacroMouseEventInfo* mouseInfo = new WuQMacroMouseEventInfo(mouseEventType,
-                                                                       me->localPos().x(),
-                                                                       me->localPos().y(),
-                                                                       me->windowPos().x(),
-                                                                       me->windowPos().y(),
-                                                                       me->screenPos().x(),
-                                                                       me->screenPos().y(),
-                                                                       static_cast<uint32_t>(me->button()),
-                                                                       static_cast<uint32_t>(me->buttons()),
-                                                                       static_cast<uint32_t>(me->modifiers()),
-                                                                       widget->width(),
-                                                                       widget->height());
+        if (validMouseEventFlag) {
+            WuQMacroMouseEventInfo* mouseInfo = new WuQMacroMouseEventInfo(mouseEventType,
+                                                                           me->localPos().x(),
+                                                                           me->localPos().y(),
+                                                                           static_cast<uint32_t>(me->button()),
+                                                                           static_cast<uint32_t>(me->buttons()),
+                                                                           static_cast<uint32_t>(me->modifiers()),
+                                                                           widget->width(),
+                                                                           widget->height());
         
-        m_macroBeingRecorded->addMacroCommand(new WuQMacroCommand(name,
+            m_macroBeingRecorded->addMacroCommand(new WuQMacroCommand(name,
                                                                   widget->toolTip(),
                                                                   mouseInfo));
-        return true;
+            return true;
+
+        }
     }
     
     return false;
@@ -377,6 +355,11 @@ WuQMacroManager::stopRecordingNewMacro()
     CaretAssert(m_mode == WuQMacroModeEnum::RECORDING);
     m_mode = WuQMacroModeEnum::OFF;
     m_macroBeingRecorded = NULL;
+    
+    CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+    CaretAssert(preferences);
+    preferences->writeMacros();
+    
     updateNonModalDialogs();
 }
 
@@ -395,18 +378,6 @@ WuQMacroManager::showMacrosDialog(QWidget* parent)
     m_macrosDialog->updateDialogContents();
     m_macrosDialog->show();
     m_macrosDialog->raise();
-    
-    //    switch (macroManager->getMode()) {
-    //        case WuQMacroModeEnum::OFF:
-    //            break;
-    //        case WuQMacroModeEnum::RECORDING:
-    //            CaretAssert(0);
-    //            break;
-    //        case WuQMacroModeEnum::RUNNING:
-    //            CaretAssert(0);
-    //            break;
-    //    }
-    
 }
 
 /**
@@ -436,8 +407,19 @@ WuQMacroManager::updateNonModalDialogs()
     }
 }
 
+/**
+ * Run the given macro
+ * 
+ * @param widget
+ *     Widget used for parent of dialogs
+ * @param runOptions
+ *     Options used when running the macro
+ * @param macro
+ *     Macro that is run
+ */
 void
 WuQMacroManager::runMacro(QWidget* widget,
+                          const WuQMacroExecutor::RunOptions& runOptions,
                           const WuQMacro* macro)
 {
     CaretAssert(widget);
@@ -448,7 +430,7 @@ WuQMacroManager::runMacro(QWidget* widget,
     WuQMacroExecutor executor;
     if ( ! executor.runMacro(macro,
                              widget,
-                             true,
+                             runOptions,
                              errorMessage)) {
         QMessageBox::critical(widget,
                               "Run Macro Error",
@@ -457,6 +439,91 @@ WuQMacroManager::runMacro(QWidget* widget,
                               QMessageBox::NoButton);
     }
 }
+
+/**
+ * Edit a macros attributes (name, description)
+ *
+ * @param parent
+ *     Parent widget for dialog
+ * @param macro
+ *     Macro to edit
+ * @return
+ *     True if macro was modified.
+ */
+bool
+WuQMacroManager::editMacroAttributes(QWidget* parent,
+                                  WuQMacro* macro)
+{
+    if (macro != NULL) {
+        WuQMacroAttributesDialog attributesDialog(macro,
+                                               parent);
+        if (attributesDialog.exec() == WuQMacroDialog::Accepted) {
+            if (attributesDialog.isMacroModified()) {
+                CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+                CaretAssert(preferences);
+                preferences->writeMacros();
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Delete a macro
+ *
+ * @param parent
+ *     Parent widget for dialog
+ * @param macroGroup
+ *     Group containing macro for deletion
+ * @param macro
+ *     Macro to delete
+ * @return
+ *     True if macro was deleted.
+ */
+bool
+WuQMacroManager::deleteMacro(QWidget* parent,
+                             WuQMacroGroup* macroGroup,
+                             WuQMacro* macro)
+{
+    if (QMessageBox::warning(parent,
+                             "Warning",
+                             ("Delete the macro " + macro->getName()),
+                             QMessageBox::Ok | QMessageBox::Cancel,
+                             QMessageBox::Ok) == QMessageBox::Ok) {
+        macroGroup->deleteMacro(macro);
+        CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+        CaretAssert(preferences);
+        preferences->writeMacros();
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Edit a macros commands
+ *
+ * @param parent
+ *     Parent widget for dialog
+ * @param macro
+ *     Macro to edit
+ * @return
+ *     True if macro was modified.
+ */
+bool
+WuQMacroManager::editMacroCommands(QWidget* parent,
+                                   WuQMacro* /*macro*/)
+{
+    QMessageBox::information(parent,
+                             "Info",
+                             "Edit button has not been implemented",
+                             QMessageBox::Ok,
+                             QMessageBox::Ok);
+    return false;
+}
+
 
 /**
  * Print supported widgets to the terminal window.

@@ -337,6 +337,64 @@ CaretPreferences::writeCustomViews()
     this->qSettings->sync();
 }
 
+/**
+ * Read macros from preferences
+ *
+ * @param performSync
+ *     If true, synchronize preferences before reading macros
+ */
+void
+CaretPreferences::readMacros(const bool performSync)
+{
+    if (performSync) {
+        this->qSettings->sync();
+    }
+ 
+    const QString macrosXmlString = this->getString(NAME_MACROS);
+    if (macrosXmlString.isEmpty()) {
+        m_macros->clear();
+    }
+    else {
+        QString errorMessage;
+        QString warningMessage;
+        if ( ! m_macros->readXmlFromString(macrosXmlString,
+                                           errorMessage,
+                                           warningMessage)) {
+            CaretLogSevere("Reading macros from preferences: "
+                            + errorMessage);
+        }
+        else if ( ! warningMessage.isEmpty()) {
+            CaretLogWarning(warningMessage);
+        }
+    }
+}
+
+/**
+ * Write macros to preferences
+ */
+void
+CaretPreferences::writeMacros()
+{
+    if ( ! m_macros->isModified()) {
+        return;
+    }
+    
+    QString macrosXmlString;
+    
+    if (m_macros->getNumberOfMacros() > 0) {
+        QString errorMessage;
+        if ( ! m_macros->writeXmlToString(macrosXmlString,
+                                          errorMessage)) {
+            CaretLogSevere("Writing macros to preferences: "
+                            + errorMessage);
+        }
+    }
+    
+    this->setString(NAME_MACROS,
+                    macrosXmlString);
+    this->qSettings->sync();
+}
+
 
 /**
  * Remove all of the tile tabs configurations.
@@ -1491,7 +1549,9 @@ CaretPreferences::readPreferences()
     
     this->readCustomViews(false);
     
-    this->readTileTabsConfigurations();
+    this->readTileTabsConfigurations(false);
+    
+    this->readMacros(false);
 
     AString levelName = this->qSettings->value(NAME_LOGGING_LEVEL,
                                           LogLevelEnum::toName(LogLevelEnum::INFO)).toString();

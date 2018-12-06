@@ -246,55 +246,6 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
                                                           object,
                                                           objectType);
     return ww;
-
-//    if (qobject_cast<QAction*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::ACTION;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QComboBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
-//    else if (qobject_cast<QCheckBox*>(object) != NULL) {
-//        objectType = WuQMacroObjectTypeEnum::CHECK_BOX;
-//    }
 }
 
 /**

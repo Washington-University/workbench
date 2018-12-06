@@ -27,6 +27,7 @@
 
 #include <QObject>
 
+#include "WuQMacroExecutor.h"
 #include "WuQMacroModeEnum.h"
 
 class QMouseEvent;
@@ -44,8 +45,6 @@ namespace caret {
         Q_OBJECT
         
     public:
-//        static WuQMacroManager* createMacroManagerSingleton(const QString& name,
-//                                                            QObject* parent);
         static WuQMacroManager* instance();
         
         virtual ~WuQMacroManager();
@@ -81,7 +80,18 @@ namespace caret {
         
         void updateNonModalDialogs();
         
+        bool editMacroAttributes(QWidget* parent,
+                                 WuQMacro* macro);
+        
+        bool deleteMacro(QWidget* parent,
+                         WuQMacroGroup* macroGroup,
+                         WuQMacro* macro);
+        
+        bool editMacroCommands(QWidget* parent,
+                               WuQMacro* macro);
+        
         void runMacro(QWidget* window,
+                      const WuQMacroExecutor::RunOptions& runOptions,
                       const WuQMacro* macro);
         
         void printSupportedWidgetsToTerminal();

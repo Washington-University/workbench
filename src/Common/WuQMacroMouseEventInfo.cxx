@@ -42,14 +42,6 @@ using namespace caret;
  *     Position of mouse relative to widget
  * @param  localY
  *     Position of mouse relative to widget
- * @param  windowX
- *     Position of mouse relative to window
- * @param  windowY
- *     Position of mouse relative to window
- * @param  screenX
- *     Position of mouse relative to screen
- * @param  screenY
- *     Position of mouse relative to screen
  * @param  mouseButton
  *     Button that caused the event
  * @param  mouseButtonsMask
@@ -64,10 +56,6 @@ using namespace caret;
 WuQMacroMouseEventInfo::WuQMacroMouseEventInfo(const WuQMacroMouseEventTypeEnum::Enum mouseEventType,
                                                const int32_t localX,
                                                const int32_t localY,
-                                               const int32_t windowX,
-                                               const int32_t windowY,
-                                               const int32_t screenX,
-                                               const int32_t screenY,
                                                const uint32_t mouseButton,
                                                const uint32_t mouseButtonsMask,
                                                const uint32_t keyboardModifiersMask,
@@ -77,10 +65,6 @@ WuQMacroMouseEventInfo::WuQMacroMouseEventInfo(const WuQMacroMouseEventTypeEnum:
 m_mouseEventType(mouseEventType),
 m_localX(localX),
 m_localY(localY),
-m_windowX(windowX),
-m_windowY(windowY),
-m_screenX(screenX),
-m_screenY(screenY),
 m_mouseButton(mouseButton),
 m_mouseButtonsMask(mouseButtonsMask),
 m_keyboardModifiersMask(keyboardModifiersMask),
@@ -95,6 +79,52 @@ m_widgetHeight(widgetHeight)
  */
 WuQMacroMouseEventInfo::~WuQMacroMouseEventInfo()
 {
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+WuQMacroMouseEventInfo::WuQMacroMouseEventInfo(const WuQMacroMouseEventInfo& obj)
+: CaretObject(obj)
+{
+    this->copyHelperWuQMacroMouseEventInfo(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+WuQMacroMouseEventInfo&
+WuQMacroMouseEventInfo::operator=(const WuQMacroMouseEventInfo& obj)
+{
+    if (this != &obj) {
+        CaretObject::operator=(obj);
+        this->copyHelperWuQMacroMouseEventInfo(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+WuQMacroMouseEventInfo::copyHelperWuQMacroMouseEventInfo(const WuQMacroMouseEventInfo& obj)
+{
+    m_mouseEventType = obj.m_mouseEventType;
+    m_localX = obj.m_localX;
+    m_localY = obj.m_localY;
+    m_mouseButton = obj.m_mouseButton;
+    m_mouseButtonsMask = obj.m_mouseButtonsMask;
+    m_keyboardModifiersMask = obj.m_keyboardModifiersMask;
+    m_widgetWidth = obj.m_widgetWidth;
+    m_widgetHeight = obj.m_widgetHeight;
 }
 
 /**
@@ -155,42 +185,6 @@ int32_t
 WuQMacroMouseEventInfo::getLocalY() const
 {
     return m_localY;
-}
-
-/** 
- * @return Position of mouse relative to window
- */
-int32_t
-WuQMacroMouseEventInfo::getWindowX() const
-{
-    return m_windowX;
-}
-
-/** 
- * @return Position of mouse relative to window 
- */
-int32_t
-WuQMacroMouseEventInfo::getWindowY() const
-{
-    return m_windowY;
-}
-
-/** 
- * @return Position of mouse relative to screen 
- */
-int32_t
-WuQMacroMouseEventInfo::getScreenX() const
-{
-    return m_screenX;
-}
-
-/** 
- * @return Position of mouse relative to screen
- */
-int32_t
-WuQMacroMouseEventInfo::getScreenY() const
-{
-    return m_screenY;
 }
 
 /** 

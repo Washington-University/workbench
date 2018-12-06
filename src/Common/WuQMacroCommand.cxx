@@ -23,27 +23,8 @@
 #include "WuQMacroCommand.h"
 #undef __WU_Q_MACRO_COMMAND_DECLARE__
 
-//#include <QAction>
-//#include <QApplication>
-//#include <QCheckBox>
-//#include <QComboBox>
-//#include <QCursor>
-//#include <QDoubleSpinBox>
-//#include <QLineEdit>
-//#include <QListWidget>
-//#include <QMenu>
-//#include <QPushButton>
-//#include <QRadioButton>
-//#include <QSlider>
-//#include <QSpinBox>
-//#include <QTabBar>
-//#include <QTabWidget>
-//#include <QToolButton>
-
 #include "CaretAssert.h"
 #include "WuQMacroMouseEventInfo.h"
-
-//#include "WuQMacroSignalEmitter.h"
 
 using namespace caret;
 
@@ -76,6 +57,58 @@ m_objectToolTip(objectToolTip),
 m_value(value),
 m_macroMouseEvent(NULL)
 {
+    switch (m_objectType) {
+        case WuQMacroObjectTypeEnum::ACTION:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            break;
+        case WuQMacroObjectTypeEnum::CHECK_BOX:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            break;
+        case WuQMacroObjectTypeEnum::COMBO_BOX:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::INTEGER;
+            break;
+        case WuQMacroObjectTypeEnum::DOUBLE_SPIN_BOX:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::FLOAT;
+            break;
+        case WuQMacroObjectTypeEnum::INVALID:
+            break;
+        case WuQMacroObjectTypeEnum::LINE_EDIT:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::STRING;
+            break;
+        case WuQMacroObjectTypeEnum::LIST_WIDGET:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::STRING;
+            break;
+        case WuQMacroObjectTypeEnum::MENU:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::STRING;
+            break;
+        case WuQMacroObjectTypeEnum::MOUSE_USER_EVENT:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::MOUSE;
+            CaretAssertMessage(0, "Must use constructor for mouse event");
+            break;
+        case WuQMacroObjectTypeEnum::PUSH_BUTTON:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            break;
+        case WuQMacroObjectTypeEnum::RADIO_BUTTON:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            break;
+        case WuQMacroObjectTypeEnum::SLIDER:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::INTEGER;
+            break;
+        case WuQMacroObjectTypeEnum::SPIN_BOX:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::INTEGER;
+            break;
+        case WuQMacroObjectTypeEnum::TAB_BAR:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::INTEGER;
+            break;
+        case WuQMacroObjectTypeEnum::TAB_WIDGET:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::INTEGER;
+            break;
+        case WuQMacroObjectTypeEnum::TOOL_BUTTON:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            break;
+    }
+    
+    setModified();
 }
 
 /**
@@ -100,7 +133,9 @@ m_objectToolTip(objectToolTip),
 m_value((int)0),
 m_macroMouseEvent(mouseEventInfo)
 {
+    m_objectDataValueType = WuQMacroDataValueTypeEnum::MOUSE;
     
+    setModified();
 }
 
 /**
@@ -114,12 +149,65 @@ WuQMacroCommand::~WuQMacroCommand()
 }
 
 /**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+WuQMacroCommand::WuQMacroCommand(const WuQMacroCommand& obj)
+: CaretObjectTracksModification(obj)
+{
+    this->copyHelperWuQMacroCommand(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+WuQMacroCommand&
+WuQMacroCommand::operator=(const WuQMacroCommand& obj)
+{
+    if (this != &obj) {
+        CaretObjectTracksModification::operator=(obj);
+        this->copyHelperWuQMacroCommand(obj);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
+{
+    m_objectType = obj.m_objectType;
+    m_objectName = obj.m_objectName;
+    m_objectToolTip = obj.m_objectToolTip;
+    m_value = obj.m_value;
+    m_macroMouseEvent = new WuQMacroMouseEventInfo(*obj.m_macroMouseEvent);
+    m_objectDataValueType = m_objectDataValueType;
+}
+
+/**
  * @return The object' type
  */
 WuQMacroObjectTypeEnum::Enum
 WuQMacroCommand::getObjectType() const
 {
     return m_objectType;
+}
+
+/**
+ * @return Type of data value for object
+ */
+WuQMacroDataValueTypeEnum::Enum
+WuQMacroCommand::getObjectDataValueType() const
+{
+    return m_objectDataValueType;
 }
 
 /**
@@ -157,225 +245,6 @@ WuQMacroCommand::getMouseEventInfo() const
 {
     return m_macroMouseEvent;
 }
-
-///**
-// * Run the command.
-// *
-// * @param object
-// *    The object that must be cast to a specific type
-// * @param errorMessageOut
-// *    Output containing any error messages
-// * @return
-// *    True if the macro completed without errors, else false.
-// */
-//bool
-//WuQMacroCommand::runMacro(QObject* object,
-//                          QString& errorMessageOut) const
-//{
-//    errorMessageOut.clear();
-//    
-//    bool notFoundFlag(false);
-//    switch (m_objectType) {
-//        case WuQMacroObjectTypeEnum::ACTION:
-//        {
-//            QAction* action = qobject_cast<QAction*>(object);
-//            if (action != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQActionSignal(action,
-//                                                m_value.toBool());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::CHECK_BOX:
-//        {
-//            QCheckBox* checkBox = qobject_cast<QCheckBox*>(object);
-//            if (checkBox != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQCheckBoxSignal(checkBox,
-//                                                  m_value.toBool());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::COMBO_BOX:
-//        {
-//            QComboBox* comboBox = qobject_cast<QComboBox*>(object);
-//            if (comboBox != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQComboBoxSignal(comboBox,
-//                                                  m_value.toInt());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::DOUBLE_SPIN_BOX:
-//        {
-//            QDoubleSpinBox* doubleSpinBox = qobject_cast<QDoubleSpinBox*>(object);
-//            if (doubleSpinBox != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQDoubleSpinBoxSignal(doubleSpinBox,
-//                                                       m_value.toDouble());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::INVALID:
-//            CaretAssert(0);
-//            break;
-//        case WuQMacroObjectTypeEnum::LINE_EDIT:
-//        {
-//            QLineEdit* lineEdit = qobject_cast<QLineEdit*>(object);
-//            if (lineEdit != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQLineEditSignal(lineEdit,
-//                                                  m_value.toString());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::LIST_WIDGET:
-//        {
-//            QListWidget* listWidget = qobject_cast<QListWidget*>(object);
-//            if (listWidget != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQListWidgetSignal(listWidget,
-//                                                    m_value.toString());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::MENU:
-//        {
-//            QMenu* menu = qobject_cast<QMenu*>(object);
-//            if (menu != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQMenuTriggered(menu,
-//                                                 m_value.toString());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::MOUSE_USER_EVENT:
-//            CaretAssertToDoFatal();
-//            break;
-//        case WuQMacroObjectTypeEnum::PUSH_BUTTON:
-//        {
-//            QPushButton* pushButton = qobject_cast<QPushButton*>(object);
-//            if (pushButton != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQPushButtonSignal(pushButton,
-//                                                    m_value.toBool());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::RADIO_BUTTON:
-//        {
-//            QRadioButton* radioButton = qobject_cast<QRadioButton*>(object);
-//            if (radioButton != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQRadioButtonSignal(radioButton,
-//                                                     m_value.toBool());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::SLIDER:
-//        {
-//            QSlider* slider = qobject_cast<QSlider*>(object);
-//            if (slider != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQSliderSignal(slider,
-//                                                m_value.toInt());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::SPIN_BOX:
-//        {
-//            QSpinBox* spinBox = qobject_cast<QSpinBox*>(object);
-//            if (spinBox != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQSpinBoxSignal(spinBox,
-//                                                 m_value.toInt());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::TAB_BAR:
-//        {
-//            QTabBar* tabBar = qobject_cast<QTabBar*>(object);
-//            if (tabBar != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQTabBarSignal(tabBar,
-//                                                m_value.toInt());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::TAB_WIDGET:
-//        {
-//            QTabWidget* tabWidget = qobject_cast<QTabWidget*>(object);
-//            if (tabWidget != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQTabWidgetSignal(tabWidget,
-//                                                   m_value.toInt());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//        case WuQMacroObjectTypeEnum::TOOL_BUTTON:
-//        {
-//            QToolButton* toolButton = qobject_cast<QToolButton*>(object);
-//            if (toolButton != NULL) {
-//                WuQMacroSignalEmitter signalEmitter;
-//                signalEmitter.emitQToolButtonSignal(toolButton,
-//                                                    m_value.toBool());
-//            }
-//            else {
-//                notFoundFlag = true;
-//            }
-//        }
-//            break;
-//    }
-//    
-//    if (notFoundFlag) {
-//        errorMessageOut = ("ERROR: Unable to cast object named "
-//                           + m_objectName
-//                           + " to "
-//                           + WuQMacroObjectTypeEnum::toGuiName(m_objectType));
-//        return false;
-//    }
-//    
-//    return true;
-//}
 
 /**
  * Get a description of this object's content.

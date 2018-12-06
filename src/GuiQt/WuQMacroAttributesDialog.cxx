@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __WU_Q_MACRO_CREATE_DIALOG_DECLARE__
-#include "WuQMacroCreateDialog.h"
-#undef __WU_Q_MACRO_CREATE_DIALOG_DECLARE__
+#define __WU_Q_MACRO_ATTRIBUTES_DIALOG_DECLARE__
+#include "WuQMacroAttributesDialog.h"
+#undef __WU_Q_MACRO_ATTRIBUTES_DIALOG_DECLARE__
 
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -43,7 +43,7 @@ using namespace caret;
 
     
 /**
- * \class caret::WuQMacroCreateDialog 
+ * \class caret::WuQMacroAttributesDialog 
  * \brief Dialog for creating a new macro
  * \ingroup WuQMacro
  */
@@ -51,32 +51,33 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param macro
+ *     The macro being edited
  * @param parent
  *     The parent widget
  */
-WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
-: QDialog(parent)
+WuQMacroAttributesDialog::WuQMacroAttributesDialog(WuQMacro* macro,
+                                             QWidget* parent)
+: QDialog(parent),
+m_macro(macro),
+m_macroWasModifiedFlag(false)
 {
-    setWindowTitle("Record Macro");
+    CaretAssert(m_macro);
     
-    m_macroGroups = WuQMacroManager::instance()->getMacroGroups();
+    setWindowTitle("Macro Attributes");
     
     QLabel* nameLabel = new QLabel("Macro name:");
-    QLabel* functionKeyLabel = new QLabel("Function Key");
+    QLabel* functionKeyLabel = new QLabel("Function Key:");
     QLabel* descriptionLabel = new QLabel("Description:");
-    QLabel* macroGroupLabel = new QLabel("Store macro in:");
     
     m_macroNameLineEdit = new QLineEdit();
-    m_macroNameLineEdit->setText(getDefaultMacroName());
+    m_macroNameLineEdit->setText(m_macro->getName());
     m_macroFunctionKeyLineEdit = new QLineEdit();
     m_macroFunctionKeyLineEdit->setFixedWidth(40);
+    m_macroFunctionKeyLineEdit->setText(m_macro->getFunctionKey());
     m_macroDescriptionTextEdit = new QPlainTextEdit();
     m_macroDescriptionTextEdit->setFixedHeight(100);
-    
-    m_macroGroupComboBox = new QComboBox();
-    for (auto mg : m_macroGroups) {
-        m_macroGroupComboBox->addItem(mg->getName());
-    }
+    m_macroDescriptionTextEdit->setPlainText(m_macro->getDescription());
     
     QGridLayout* gridLayout = new QGridLayout();
     int row = 0;
@@ -89,16 +90,13 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     gridLayout->addWidget(descriptionLabel, row, 0);
     gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1);
     row++;
-    gridLayout->addWidget(macroGroupLabel, row, 0);
-    gridLayout->addWidget(m_macroGroupComboBox, row, 1);
-    row++;
     
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok
                                              | QDialogButtonBox::Cancel);
     QObject::connect(m_dialogButtonBox, &QDialogButtonBox::accepted,
-                     this, &WuQMacroCreateDialog::accept);
+                     this, &WuQMacroAttributesDialog::accept);
     QObject::connect(m_dialogButtonBox, &QDialogButtonBox::rejected,
-                     this, &WuQMacroCreateDialog::reject);
+                     this, &WuQMacroAttributesDialog::reject);
     
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
     dialogLayout->addLayout(gridLayout);
@@ -108,42 +106,8 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
 /**
  * Destructor.
  */
-WuQMacroCreateDialog::~WuQMacroCreateDialog()
+WuQMacroAttributesDialog::~WuQMacroAttributesDialog()
 {
-}
-
-/**
- * @return A default name for a macro
- */
-QString
-WuQMacroCreateDialog::getDefaultMacroName() const
-{
-    QString name("");
-    bool foundFlag(false);
-    static int32_t minimumIndex = 1;
-    
-    for (int32_t i = minimumIndex; i < 10000; i++) {
-        name = ("Macro "
-                + QString::number(i));
-        foundFlag = false;
-        for (auto mg : m_macroGroups) {
-            if (mg->getMacroByName(name) != NULL) {
-                foundFlag = true;
-                break;
-            }
-        }
-        
-        if ( ! foundFlag) {
-            /* 
-             * If a default name was created, do not allow a "lower-numbered"
-             * default name.  Start with same index since user may not use it.
-             */
-            minimumIndex = i;
-            break;
-        }
-    }
-    
-    return name;
 }
 
 /**
@@ -153,7 +117,7 @@ WuQMacroCreateDialog::getDefaultMacroName() const
  *     The dialog code (Accepted or Rejected)
  */
 void
-WuQMacroCreateDialog::done(int r)
+WuQMacroAttributesDialog::done(int r)
 {
     if (r == QDialog::Accepted) {
         const QString name(m_macroNameLineEdit->text().trimmed());
@@ -166,15 +130,22 @@ WuQMacroCreateDialog::done(int r)
             return;
         }
         
-        m_macro = new WuQMacro();
-        m_macro->setName(name);
-        m_macro->setFunctionKey(m_macroFunctionKeyLineEdit->text().trimmed());
-        m_macro->setDescription(m_macroDescriptionTextEdit->toPlainText());
+        const QString newName = m_macroNameLineEdit->text().trimmed();
+        if (m_macro->getName() != newName) {
+            m_macro->setName(newName);
+            m_macroWasModifiedFlag = true;
+        }
         
-        const int32_t groupIndex = m_macroGroupComboBox->currentIndex();
-        if (groupIndex >= 0) {
-            WuQMacroGroup* macroGroup = m_macroGroups[groupIndex];
-            macroGroup->addMacro(m_macro);
+        const QString newFunctionKey = m_macroFunctionKeyLineEdit->text().trimmed();
+        if (m_macro->getFunctionKey() != newFunctionKey) {
+            m_macro->setFunctionKey(newFunctionKey);
+            m_macroWasModifiedFlag = true;
+        }
+        
+        const QString newDescription = m_macroDescriptionTextEdit->toPlainText().trimmed();
+        if (m_macro->getDescription() != newDescription) {
+            m_macro->setDescription(newDescription);
+            m_macroWasModifiedFlag = true;
         }
     }
     
@@ -182,12 +153,12 @@ WuQMacroCreateDialog::done(int r)
 }
 
 /**
- * @return Pointer to new macro.  Macro has been added to a group.
- *  Do not delete the pointer.
+ * @return True if the macro was modified and may need to be saved,
+ * else false
  */
-WuQMacro*
-WuQMacroCreateDialog::getNewMacro() const
+bool
+WuQMacroAttributesDialog::isMacroModified() const
 {
-    return m_macro;
+    return m_macroWasModifiedFlag;
 }
 

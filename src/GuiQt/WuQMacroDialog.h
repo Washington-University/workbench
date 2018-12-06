@@ -28,10 +28,12 @@
 #include <QDialog>
 
 class QAbstractButton;
+class QCheckBox;
 class QComboBox;
 class QDialogButtonBox;
+class QDoubleSpinBox;
+class QLabel;
 class QListWidget;
-class QPlainTextEdit;
 
 namespace caret {
 
@@ -60,9 +62,15 @@ namespace caret {
         
         void macrosListWidgetCurrentRowChanged(int);
         
-        void buttonClicked(QAbstractButton* button);
+        void buttonBoxButtonClicked(QAbstractButton* button);
         
         void editSelectedMacro();
+        
+        void attributesButtonClicked();
+        
+        void deleteButtonClicked();
+        
+        void editButtonClicked();
         
         void runSelectedMacro();
         
@@ -77,13 +85,23 @@ namespace caret {
         
         QListWidget* m_macrosListWidget;
         
-        QPlainTextEdit* m_macroDescriptionTextEdit;
+        QLabel* m_macroDescriptionLabel;
         
         QDialogButtonBox* m_dialogButtonBox;
         
         QAbstractButton* m_runButton;
         
-        QAbstractButton* m_editButton;
+        QPushButton* m_deletePushButton;
+        
+        QPushButton* m_editPushButton;
+        
+        QPushButton* m_attributesPushButton;
+        
+        QCheckBox* m_runOptionLoopCheckBox;
+        
+        QCheckBox* m_runOptionMoveMouseCheckBox;
+        
+        QDoubleSpinBox* m_runOptionDelayBetweenCommandsSpinBox;
         
         WuQMacro* m_macro = NULL;
         
