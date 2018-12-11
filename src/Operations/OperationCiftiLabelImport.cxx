@@ -67,13 +67,12 @@ OperationParameters* OperationCiftiLabelImport::getParameters()
     
     ret->setHelpText(
         AString("Creates a cifti label file from a cifti file with label-like values.  ") +
-        "You may specify the empty string ('' will work on linux/mac) for <label-list-file>, which will be treated as if it is an empty file.  " +
-        "It is assumed that a value of 0 in the input file means \"unlabeled\", unless -unlabeled-value is specified.  " +
-        "Do not specify the \"unlabeled\" label in the text file.\n\n" +
+        "You may specify the empty string (use \"\") for <label-list-file>, which will be treated as if it is an empty file.  " +
         "The label list file must have the following format (2 lines per label):\n\n" +
         "<labelname>\n<key> <red> <green> <blue> <alpha>\n...\n\n" +
         "Label names are specified on a separate line from their value and color, in order to let label names contain spaces.  " +
         "Whitespace is trimmed from both ends of the label name, but is kept if it is in the middle of a label.  " +
+        "Do not specify the \"unlabeled\" key in the file, it is assumed that 0 means not labeled unless -unlabeled-value is specified.  " +
         "The value of <key> specifies what value in the imported file should be used as this label.  " +
         "The values of <red>, <green>, <blue> and <alpha> must be integers from 0 to 255, and will specify the color the label is drawn as " +
         "(alpha of 255 means fully opaque, which is probably what you want).\n\n" +

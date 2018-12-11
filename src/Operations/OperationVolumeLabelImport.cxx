@@ -67,18 +67,19 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
     ret->createOptionalParameter(7, "-drop-unused-labels", "remove any unused label values from the label table");
     
     ret->setHelpText(
-        AString("Creates a new label volume from an integer-valued volume file.  ") +
+        AString("Creates a label volume from an integer-valued volume file.  ") +
         "The label name and color information is stored in the volume header in a nifti extension, with a similar format as in caret5, see -volume-help.  " +
-        "You may specify the empty string ('' will work on linux/mac) for <label-list-file>, which will be treated as if it is an empty file.  " +
-        "The label list file must have pairs of lines of the following format:\n\n" +
-        "<labelname>\n<value> <red> <green> <blue> <alpha>\n\n" +
-        "Do not specify the \"unlabeled\" key in the file, it is assumed that 0 means not labeled unless -unlabeled-value is specified.  " +
-        "Label names must be on a separate line, but may contain spaces or other unusual characters (but not newline).  " +
+        "You may specify the empty string (use \"\") for <label-list-file>, which will be treated as if it is an empty file.  " +
+        "The label list file must have the following format (2 lines per label):\n\n" +
+        "<labelname>\n<key> <red> <green> <blue> <alpha>\n...\n\n" +
+        "Label names are specified on a separate line from their value and color, in order to let label names contain spaces.  " +
         "Whitespace is trimmed from both ends of the label name, but is kept if it is in the middle of a label.  " +
-        "The values of red, green, blue and alpha must be integers from 0 to 255, and will specify the color the label is drawn as " +
-        "(alpha of 255 means opaque, which is probably what you want).  " +
-        "By default, it will set new label names with names of LABEL_# for any values encountered that are not mentioned in the " +
-        "list file, specify -discard-others to instead set these voxels to the \"unlabeled\" key."
+        "Do not specify the \"unlabeled\" key in the file, it is assumed that 0 means not labeled unless -unlabeled-value is specified.  " +
+        "The value of <key> specifies what value in the imported file should be used as this label.  " +
+        "The values of <red>, <green>, <blue> and <alpha> must be integers from 0 to 255, and will specify the color the label is drawn as " +
+        "(alpha of 255 means fully opaque, which is probably what you want).\n\n" +
+        "By default, it will create new label names with names like LABEL_5 for any values encountered that are not mentioned in the " +
+        "list file, specify -discard-others to instead set these values to the \"unlabeled\" key."
     );
     return ret;
 }
