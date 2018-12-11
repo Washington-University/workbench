@@ -47,9 +47,10 @@ namespace caret {
 
     public:
         ChartTwoOverlayViewController(const Qt::Orientation orientation,
-                                   const int32_t browserWindowIndex,
-                                   const int32_t chartOverlayIndex,
-                                   QObject* parent);
+                                      const int32_t browserWindowIndex,
+                                      const int32_t chartOverlayIndex,
+                                      const QString& parentObjectName,
+                                      QObject* parent);
         
         virtual ~ChartTwoOverlayViewController();
 
@@ -119,11 +120,14 @@ namespace caret {
         
         void updateGraphicsWindow();
         
-        QMenu* createConstructionMenu(QWidget* parent);
+        QMenu* createConstructionMenu(QWidget* parent,
+                                      const QString& parentObjectName);
         
-        QMenu* createMatrixTriangularViewModeMenu(QWidget* widget);
+        QMenu* createMatrixTriangularViewModeMenu(QWidget* widget,
+                                                  const QString& parentObjectName);
         
-        QMenu* createAxisLocationMenu(QWidget* widget);
+        QMenu* createAxisLocationMenu(QWidget* widget,
+                                      const QString& parentObjectName);
         
         void validateYokingSelection();
         

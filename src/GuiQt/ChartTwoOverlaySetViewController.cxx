@@ -63,12 +63,15 @@ using namespace caret;
  *    Orientation for layout
  * @param browserWindowIndex
  *    Index of browser window that contains this view controller.
+ * @param parentObjectName
+ *    Name of parent object for macros
  * @param parent
  *    Parent widget.
  */
 ChartTwoOverlaySetViewController::ChartTwoOverlaySetViewController(const Qt::Orientation orientation,
-                                                             const int32_t browserWindowIndex,
-                                                             QWidget* parent)
+                                                                   const int32_t browserWindowIndex,
+                                                                   const QString& parentObjectName,
+                                                                   QWidget* parent)
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
@@ -77,10 +80,11 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 4, 2);
     
    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        ChartTwoOverlayViewController* ovc = new ChartTwoOverlayViewController(orientation,
-                                                                         m_browserWindowIndex,
-                                                                         i,
-                                                                         this);
+       ChartTwoOverlayViewController* ovc = new ChartTwoOverlayViewController(orientation,
+                                                                              m_browserWindowIndex,
+                                                                              i,
+                                                                              parentObjectName,
+                                                                              this);
         m_chartOverlayViewControllers.push_back(ovc);
         m_chartOverlayGridLayoutGroups.push_back(new WuQGridLayoutGroup(gridLayout,
                                                                         this));

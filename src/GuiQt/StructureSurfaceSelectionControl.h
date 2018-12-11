@@ -39,7 +39,9 @@ namespace caret {
         Q_OBJECT
 
     public:
-        StructureSurfaceSelectionControl(const bool showLabels);
+        StructureSurfaceSelectionControl(const bool showLabels,
+                                         const QString& objectNamePrefix,
+                                         QWidget* parent);
         
         virtual ~StructureSurfaceSelectionControl();
 

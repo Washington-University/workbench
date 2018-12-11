@@ -50,6 +50,7 @@ namespace caret {
                               QGridLayout* gridLayout,
                               const int32_t browserWindowIndex,
                               const int32_t overlayIndex,
+                              const QString& parentObjectName,
                               QObject* parent);
         
         virtual ~OverlayViewController();

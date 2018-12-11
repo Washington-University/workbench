@@ -33,6 +33,7 @@
 #include "EventManager.h"
 #include "ModelChartTwo.h"
 #include "SessionManager.h"
+#include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -48,30 +49,40 @@ using namespace caret;
 /**
  * Constructor.
  */
-BrainBrowserWindowToolBarChartTwoOrientation::BrainBrowserWindowToolBarChartTwoOrientation(BrainBrowserWindowToolBar* parentToolBar)
+BrainBrowserWindowToolBarChartTwoOrientation::BrainBrowserWindowToolBarChartTwoOrientation(BrainBrowserWindowToolBar* parentToolBar,
+                                                                                           const QString& parentObjectName)
 : BrainBrowserWindowToolBarComponent(parentToolBar)
 {
+    const QString objectNamePrefix(parentObjectName
+                                   + ":ChartOrientation");
+    
+    QToolButton* orientationResetToolButton = new QToolButton();
     m_orientationResetToolButtonAction = WuQtUtilities::createAction("Reset",
                                                                          "Reset the view to remove any panning or zooming",
-                                                                         this,
+                                                                         orientationResetToolButton,
                                                                          this,
                                                                          SLOT(orientationResetToolButtonTriggered(bool)));
+    m_orientationResetToolButtonAction->setObjectName(objectNamePrefix
+                                                      + ":ResetButton");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_orientationResetToolButtonAction);
 
     const QString customToolTip = ("Pressing the \"Custom\" button displays a dialog for creating and editing orientations.\n"
                                    "Note that custom orientations are stored in your Workbench's preferences and thus\n"
                                    "will be availble in any concurrent or future instances of Workbench.");
+    m_orientationCustomViewSelectToolButton = new QToolButton();
     m_customViewAction = WuQtUtilities::createAction("Custom",
                                                          customToolTip,
-                                                         this,
+                                                         m_orientationCustomViewSelectToolButton,
                                                          this,
                                                          SLOT(customViewActionTriggered()));
+    m_customViewAction->setObjectName(objectNamePrefix
+                                      + ":ShowCustomViewDialog");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_customViewAction);
 
     
-    QToolButton* orientationResetToolButton = new QToolButton();
     orientationResetToolButton->setDefaultAction(m_orientationResetToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(orientationResetToolButton);
     
-    m_orientationCustomViewSelectToolButton = new QToolButton();
     m_orientationCustomViewSelectToolButton->setDefaultAction(m_customViewAction);
     m_orientationCustomViewSelectToolButton->setSizePolicy(QSizePolicy::Minimum,
                                                                QSizePolicy::Fixed);

@@ -36,7 +36,8 @@ namespace caret {
         Q_OBJECT
         
     public:
-        BrainBrowserWindowToolBarSlicePlane(BrainBrowserWindowToolBar* parentToolBar);
+        BrainBrowserWindowToolBarSlicePlane(const QString& parentObjectName,
+                                            BrainBrowserWindowToolBar* parentToolBar);
         
         virtual ~BrainBrowserWindowToolBarSlicePlane();
         
@@ -58,7 +59,7 @@ namespace caret {
 
         BrainBrowserWindowToolBarSlicePlane& operator=(const BrainBrowserWindowToolBarSlicePlane&);
         
-        QMenu* createViewAllSlicesLayoutMenu();
+        QMenu* createViewAllSlicesLayoutMenu(const QString& objectNamePrefix);
         
         void updateViewAllSlicesLayoutMenu(BrowserTabContent* browserTabContent);
         

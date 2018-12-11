@@ -48,6 +48,7 @@ namespace caret {
     public:
         ChartHistoryViewController(const Qt::Orientation orientation,
                                    const int32_t browserWindowIndex,
+                                   const QString& parentObjectName,
                                    QWidget* parent);
         
         virtual ~ChartHistoryViewController();
@@ -89,6 +90,8 @@ namespace caret {
         const Qt::Orientation m_orientation;
         
         const int32_t m_browserWindowIndex;
+        
+        const QString m_objectNamePrefix;
         
         QCheckBox* m_averageCheckBox;
         

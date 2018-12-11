@@ -49,6 +49,7 @@
 #include "FiberTrajectoryMapProperties.h"
 #include "FilePathNamePrefixCompactor.h"
 #include "GuiManager.h"
+#include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -63,10 +64,17 @@ static const char* FILE_POINTER_PROPERTY_NAME = "filePointer";
  */
 /**
  * Constructor.
+ *
+ * @param parentObjectName
+ *    Name of parent object for macros
+ * @param parent
+ *    The parent widget
  */
-CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(const Qt::Orientation /*orientation*/,
+CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(const QString& parentObjectName,
                                                                              QWidget* parent)
-: QWidget(parent)
+: QWidget(parent),
+m_objectNamePrefix(parentObjectName
+                   + ":Connectivity")
 {
     m_gridLayout = new QGridLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(m_gridLayout, 2, 2);
@@ -147,16 +155,11 @@ CiftiConnectivityMatrixViewController::updateViewController()
          matrixIter++) {
         files.push_back(*matrixIter);
     }
-    
+
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
     
     const int32_t numFiles = static_cast<int32_t>(files.size());
 
-//    std::vector<AString> displayNames;
-//    FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(files,
-//                                                                            displayNames);
-//    
-//    CaretAssert(files.size() == displayNames.size());
-    
     for (int32_t i = 0; i < numFiles; i++) {
         QCheckBox* checkBox = NULL;
         QCheckBox* layerCheckBox = NULL;
@@ -172,10 +175,17 @@ CiftiConnectivityMatrixViewController::updateViewController()
             comboBox = m_fiberOrientationFileComboBoxes[i];
         }
         else {
+            
+            const QString objectNamePrefix(m_objectNamePrefix
+                                           + QString("%1").arg((int)i+1, 2, 10, QLatin1Char('0'))
+                                           + ":");
             checkBox = new QCheckBox("");
             checkBox->setToolTip("When selected, load data during\n"
                                  "an identification operation");
             m_fileEnableCheckBoxes.push_back(checkBox);
+            checkBox->setObjectName(objectNamePrefix
+                                         + "Enable");
+            macroManager->addMacroSupportToObject(checkBox);
             
             const AString dynToolTip("This option is enabled only for .dynconn.nii (dynamic connectivity) files.  "
                                      "When checked, this dynamic connectivity file will appear in the Overlay Layers' File selection combo box.  "
@@ -187,6 +197,9 @@ CiftiConnectivityMatrixViewController::updateViewController()
             layerCheckBox = new QCheckBox("");
             WuQtUtilities::setWordWrappedToolTip(layerCheckBox, dynToolTip);
             m_layerCheckBoxes.push_back(layerCheckBox);
+            layerCheckBox->setObjectName(objectNamePrefix
+                                         + "EnableLayer");
+            macroManager->addMacroSupportToObject(layerCheckBox);
             
             lineEdit = new QLineEdit();
             lineEdit->setReadOnly(true);
@@ -196,9 +209,16 @@ CiftiConnectivityMatrixViewController::updateViewController()
             copyToolButton->setText("Copy");
             copyToolButton->setToolTip("Copy loaded row data to a new CIFTI Scalar File");
             m_fileCopyToolButtons.push_back(copyToolButton);
+            copyToolButton->setObjectName(objectNamePrefix
+                                         + "CopyButton");
+            macroManager->addMacroSupportToObject(copyToolButton);
             
             comboBox = new QComboBox();
             m_fiberOrientationFileComboBoxes.push_back(comboBox);
+            comboBox->setToolTip("Select Fiber Orientation File");
+            comboBox->setObjectName(objectNamePrefix
+                                         + "FiberOrientationFile");
+            macroManager->addMacroSupportToObject(comboBox);
             
             QObject::connect(copyToolButton, SIGNAL(clicked()),
                              m_signalMapperFileCopyToolButton, SLOT(map()));

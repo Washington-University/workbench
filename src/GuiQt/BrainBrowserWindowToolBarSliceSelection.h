@@ -39,7 +39,8 @@ namespace caret {
         Q_OBJECT
         
     public:
-        BrainBrowserWindowToolBarSliceSelection(BrainBrowserWindowToolBar* parentToolBar);
+        BrainBrowserWindowToolBarSliceSelection(BrainBrowserWindowToolBar* parentToolBar,
+                                                const QString parentObjectName);
         
         virtual ~BrainBrowserWindowToolBarSliceSelection();
         

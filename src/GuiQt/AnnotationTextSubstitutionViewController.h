@@ -44,7 +44,8 @@ namespace caret {
         
     public:
         AnnotationTextSubstitutionViewController(const int32_t browserWindowIndex,
-                                          QWidget* parent);
+                                                 const QString& parentObjectName,
+                                                 QWidget* parent);
         
         virtual ~AnnotationTextSubstitutionViewController();
         

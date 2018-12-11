@@ -35,7 +35,8 @@ namespace caret {
         Q_OBJECT
         
     public:
-        BrainBrowserWindowToolBarVolumeMontage(BrainBrowserWindowToolBar* parentToolBar);
+        BrainBrowserWindowToolBarVolumeMontage(const QString& parentObjectName,
+                                               BrainBrowserWindowToolBar* parentToolBar);
         
         virtual ~BrainBrowserWindowToolBarVolumeMontage();
         

@@ -41,7 +41,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        BrainBrowserWindowToolBarSurfaceMontage(BrainBrowserWindowToolBar* parentToolBar);
+        BrainBrowserWindowToolBarSurfaceMontage(BrainBrowserWindowToolBar* parentToolBar,
+                                                const QString& parentObjectNamePrefix);
         
         virtual ~BrainBrowserWindowToolBarSurfaceMontage();
         
@@ -84,7 +85,8 @@ namespace caret {
         Q_OBJECT
         
     public:
-        SurfaceMontageCerebralComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage);
+        SurfaceMontageCerebralComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage,
+                                        const QString& parentObjectNamePrefix);
         
         ~SurfaceMontageCerebralComponent();
         
@@ -121,7 +123,8 @@ namespace caret {
         Q_OBJECT
         
     public:
-        SurfaceMontageCerebellarComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage);
+        SurfaceMontageCerebellarComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage,
+                                          const QString& parentObjectNamePrefix);
         
         ~SurfaceMontageCerebellarComponent();
         
@@ -154,7 +157,8 @@ namespace caret {
         Q_OBJECT
         
     public:
-        SurfaceMontageFlatMapsComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage);
+        SurfaceMontageFlatMapsComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage,
+                                        const QString& parentObjectNamePrefix);
         
         ~SurfaceMontageFlatMapsComponent();
         

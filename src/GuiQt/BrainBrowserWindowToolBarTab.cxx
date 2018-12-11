@@ -41,6 +41,7 @@
 #include "WuQWidgetObjectGroup.h"
 #include "YokingGroupEnum.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -60,10 +61,13 @@ using namespace caret;
  *     Button for locking window and all tab aspect ratio.
  * @param parentToolBar
  *     Parent toolbar.
+ * @param objectNamePrefix
+       Prefix for naming objects
  */
 BrainBrowserWindowToolBarTab::BrainBrowserWindowToolBarTab(const int32_t browserWindowIndex,
                                                            QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
-                                                           BrainBrowserWindowToolBar* parentToolBar)
+                                                           BrainBrowserWindowToolBar* parentToolBar,
+                                                           const QString& objectNamePrefix)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_browserWindowIndex(browserWindowIndex),
 m_parentToolBar(parentToolBar),
@@ -76,6 +80,10 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
                                                     "Models yoked to a group are displayed in the same view.\n"
                                                     "Surface Yoking is applied to Surface, Surface Montage\n"
                                                     "and Whole Brain.  Volume Yoking is applied to Volumes."));
+    QComboBox* encapComboBox = m_yokingGroupComboBox->getComboBox();
+    encapComboBox->setObjectName(objectNamePrefix
+                                 + ":Tab:YokingGroup");
+    WuQMacroManager::instance()->addMacroSupportToObject(encapComboBox);
     
     m_yokeToLabel = new QLabel("Yoking:");
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
@@ -86,8 +94,11 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
                                                                              "may be helpful to turn shading off.");
     m_lightingEnabledCheckBox = new QCheckBox("Shading");
     m_lightingEnabledCheckBox->setToolTip(lightToolTip);
-    QObject::connect(m_lightingEnabledCheckBox, &QCheckBox::toggled,
-                     this, &BrainBrowserWindowToolBarTab::lightingEnabledCheckBoxToggled);
+    QObject::connect(m_lightingEnabledCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarTab::lightingEnabledCheckBoxChecked);
+    m_lightingEnabledCheckBox->setObjectName(objectNamePrefix
+                                 + ":Tab:EnableShading");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_lightingEnabledCheckBox);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
@@ -158,13 +169,13 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
 }
 
 /**
- * Called when lighting checkbox is toggled by user
+ * Called when lighting checkbox is checked by user
  *
  * @param checked
  *     New status of lighting.
  */
 void
-BrainBrowserWindowToolBarTab::lightingEnabledCheckBoxToggled(bool checked)
+BrainBrowserWindowToolBarTab::lightingEnabledCheckBoxChecked(bool checked)
 {
     BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
     if (browserTabContent == NULL) {

@@ -54,15 +54,15 @@ using namespace caret;
  * @param parentToolBar
  *     The parent toolbar
  */
-BrainBrowserWindowToolBarSlicePlane::BrainBrowserWindowToolBarSlicePlane(BrainBrowserWindowToolBar* parentToolBar)
+BrainBrowserWindowToolBarSlicePlane::BrainBrowserWindowToolBarSlicePlane(const QString& parentObjectName,
+                                                                         BrainBrowserWindowToolBar* parentToolBar)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
     WuQMacroManager* macroManager = WuQMacroManager::instance();
     CaretAssert(macroManager);
-    const QString objectNamePrefix("Window_"
-                                   + QString::number(m_parentToolBar->browserWindowIndex + 1)
-                                   + ":ToolBar:SlicePlane:");
+    const QString objectNamePrefix(parentObjectName
+                                   + ":SlicePlane:");
     
     QIcon parasagittalIcon;
     const bool parasagittalIconValid =
@@ -88,7 +88,7 @@ m_parentToolBar(parentToolBar)
         m_volumePlaneParasagittalToolButtonAction->setIcon(parasagittalIcon);
     }
     m_volumePlaneParasagittalToolButtonAction->setObjectName(objectNamePrefix
-                                                             + "Parasagittal_Slice_View");
+                                                             + "ParasagittalSliceView");
     macroManager->addMacroSupportToObject(m_volumePlaneParasagittalToolButtonAction);
     
     m_volumePlaneCoronalToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::CORONAL),
@@ -99,7 +99,7 @@ m_parentToolBar(parentToolBar)
         m_volumePlaneCoronalToolButtonAction->setIcon(coronalIcon);
     }
     m_volumePlaneCoronalToolButtonAction->setObjectName(objectNamePrefix
-                                                        + "Coronal_Slice_View");
+                                                        + "CoronalSliceView");
     macroManager->addMacroSupportToObject(m_volumePlaneCoronalToolButtonAction);
     
     m_volumePlaneAxialToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::AXIAL),
@@ -110,7 +110,7 @@ m_parentToolBar(parentToolBar)
         m_volumePlaneAxialToolButtonAction->setIcon(axialIcon);
     }
     m_volumePlaneAxialToolButtonAction->setObjectName(objectNamePrefix
-                                                      + "Axial_Slice_View");
+                                                      + "AxialSliceView");
     macroManager->addMacroSupportToObject(m_volumePlaneAxialToolButtonAction);
     
     m_volumePlaneAllToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::ALL),
@@ -118,9 +118,9 @@ m_parentToolBar(parentToolBar)
                                                                    "Press arrow to display menu for layout selection",
                                                                        this);
     m_volumePlaneAllToolButtonAction->setCheckable(true);
-    m_volumePlaneAllToolButtonAction->setMenu(createViewAllSlicesLayoutMenu());
+    m_volumePlaneAllToolButtonAction->setMenu(createViewAllSlicesLayoutMenu(objectNamePrefix));
     m_volumePlaneAllToolButtonAction->setObjectName(objectNamePrefix
-                                                    + "All_Slices_View");
+                                                    + "AllSlicesView");
     macroManager->addMacroSupportToObject(m_volumePlaneAllToolButtonAction);
     
     
@@ -140,7 +140,7 @@ m_parentToolBar(parentToolBar)
                                                                          this,
                                                                          SLOT(volumePlaneResetToolButtonTriggered(bool)));
     m_volumePlaneResetToolButtonAction->setObjectName(objectNamePrefix
-                                                      + "Reset_View");
+                                                      + "ResetView");
     macroManager->addMacroSupportToObject(m_volumePlaneResetToolButtonAction);
     
     
@@ -189,7 +189,7 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_volumeAxisCrosshairsToolButtonAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairsTriggered);
     m_volumeAxisCrosshairsToolButtonAction->setObjectName(objectNamePrefix
-                                                          + "Show_Volume_Slice_Crosshairs");
+                                                          + "ShowVolumeSliceCrosshairs");
     macroManager->addMacroSupportToObject(m_volumeAxisCrosshairsToolButtonAction);
     
     QToolButton* volumeCrosshairsToolButton = new QToolButton();
@@ -205,7 +205,7 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_volumeAxisCrosshairLabelsToolButtonAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairLabelsTriggered);
     m_volumeAxisCrosshairLabelsToolButtonAction->setObjectName(objectNamePrefix
-                                                               + "Show_Volume_Slice_Labels");
+                                                               + "ShowVolumeSliceLabels");
     macroManager->addMacroSupportToObject(m_volumeAxisCrosshairLabelsToolButtonAction);
     
     QToolButton* volumeCrosshairLabelsToolButton = new QToolButton();
@@ -280,14 +280,19 @@ BrainBrowserWindowToolBarSlicePlane::updateContent(BrowserTabContent* browserTab
 
 /**
  * @return A new instance of the view all slices layout menu.
+ * @param objectNamePrefix
+ *     Prefix for object names in macro system
  */
 QMenu*
-BrainBrowserWindowToolBarSlicePlane::createViewAllSlicesLayoutMenu()
+BrainBrowserWindowToolBarSlicePlane::createViewAllSlicesLayoutMenu(const QString& objectNamePrefix)
 {
     std::vector<VolumeSliceViewAllPlanesLayoutEnum::Enum> allLayouts;
     VolumeSliceViewAllPlanesLayoutEnum::getAllEnums(allLayouts);
     
-    QMenu* menu = new QMenu();
+    QMenu* menu = new QMenu(this);
+    menu->setObjectName(objectNamePrefix
+                        + "LayoutMenu");
+    menu->setToolTip("Selects layout of volume slices (column, grid, row)");
     QActionGroup* actionGroup = new QActionGroup(this);
     
     for (auto layout : allLayouts) {
@@ -301,6 +306,7 @@ BrainBrowserWindowToolBarSlicePlane::createViewAllSlicesLayoutMenu()
 
     QObject::connect(menu, &QMenu::triggered,
                      this, &BrainBrowserWindowToolBarSlicePlane::viewAllSliceLayoutMenuTriggered);
+    WuQMacroManager::instance()->addMacroSupportToObject(menu);
     return menu;
 }
 

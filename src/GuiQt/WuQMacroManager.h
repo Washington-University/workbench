@@ -55,7 +55,10 @@ namespace caret {
         
         QString getName() const;
 
-        void addMacroSupportToObject(QObject* object);
+        bool addMacroSupportToObject(QObject* object);
+        
+        bool addMacroSupportToObjectWithToolTip(QObject* object,
+                                                const QString& toolTipOverride);
         
         bool addMacroCommandToRecording(WuQMacroCommand* macroCommand);
         
@@ -103,11 +106,15 @@ namespace caret {
         
         void printSupportedWidgetsToTerminal();
         
+        void addParentObject(QObject* parentObject);
+        
         // ADD_NEW_METHODS_HERE
         
     private:
         WuQMacroManager(const QString& name,
                         QObject* parent = NULL);
+        
+        std::vector<QObject*> m_parentObjects;
         
         const QString m_name;
         

@@ -70,6 +70,7 @@ namespace caret {
         
         bool runMacro(const WuQMacro* macro,
                       QObject* window,
+                      std::vector<QObject*>& otherObjectParents,
                       const RunOptions& options,
                       QString& errorMessageOut) const;
         

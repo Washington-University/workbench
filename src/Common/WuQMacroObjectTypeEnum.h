@@ -39,6 +39,10 @@ public:
         INVALID,
         /** a QAction */
         ACTION,
+        /** a QAction Group */
+        ACTION_GROUP,
+        /** a QButtonGroup */
+        BUTTON_GROUP,
         /** a QCheckBox */
         CHECK_BOX,
         /** a QComboBox */
@@ -126,6 +130,9 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static void addWidgetClassNameAlias(const QString& widgetName,
+                                        const QString& aliasWidgetName);
+    
 private:
     WuQMacroObjectTypeEnum(const Enum enumValue, 
                  const AString& name,
@@ -156,12 +163,16 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** Aliases for widget 'first' is QWidget, 'second' is alias */
+    static std::vector<std::pair<QString, QString>> s_widgetClassNameAliases;
 };
 
 #ifdef __WU_Q_MACRO_OBJECT_TYPE_ENUM_DECLARE__
-std::vector<WuQMacroObjectTypeEnum> WuQMacroObjectTypeEnum::enumData;
-bool WuQMacroObjectTypeEnum::initializedFlag = false;
-int32_t WuQMacroObjectTypeEnum::integerCodeCounter = 0; 
+    std::vector<WuQMacroObjectTypeEnum> WuQMacroObjectTypeEnum::enumData;
+    bool WuQMacroObjectTypeEnum::initializedFlag = false;
+    int32_t WuQMacroObjectTypeEnum::integerCodeCounter = 0;
+    std::vector<std::pair<QString, QString>> WuQMacroObjectTypeEnum::s_widgetClassNameAliases;
 #endif // __WU_Q_MACRO_OBJECT_TYPE_ENUM_DECLARE__
 
 } // namespace

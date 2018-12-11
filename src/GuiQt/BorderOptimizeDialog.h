@@ -114,6 +114,8 @@ namespace caret {
         
         void preserveDialogSizeAndPositionWhenReOpened();
         
+        QString m_objectNamePrefix;
+        
         QWidget* m_dialogWidget;
         
         Surface* m_surface;

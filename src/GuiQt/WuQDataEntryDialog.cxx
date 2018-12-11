@@ -587,7 +587,8 @@ WuQDataEntryDialog::addSurfaceSelectionViewController(const QString& labelText,
 {
     SurfaceSelectionViewController* surfaceSelectionViewController =
     new SurfaceSelectionViewController(this,
-                                brainStructure);
+                                brainStructure,
+                                       "DataEntryDialogSurfaceComboBox");
     
     this->addWidget(labelText,
                     surfaceSelectionViewController->getWidget());

@@ -49,6 +49,7 @@
 #include "SceneClass.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
+#include "WuQMacroManager.h"
 #include "WuQTabWidget.h"
 #include "WuQtUtilities.h"
 
@@ -66,12 +67,24 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param browserWindowIndex
+ *    Index of browser window
+ * @param parentObjectName
+ *    Name of parent object
+ * @param parent
+ *    The parent object
  */
 BorderSelectionViewController::BorderSelectionViewController(const int32_t browserWindowIndex,
-                                             QWidget* parent)
-: QWidget(parent)
+                                                             const QString& parentObjectName,
+                                                             QWidget* parent)
+: QWidget(parent),
+m_objectNamePrefix(parentObjectName
+                   + ":Borders")
 {
     m_browserWindowIndex = browserWindowIndex;
+    
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
     
     QLabel* groupLabel = new QLabel("Group");
     m_bordersDisplayGroupComboBox = new DisplayGroupEnumComboBox(this);
@@ -86,6 +99,10 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
     m_bordersDisplayCheckBox = new QCheckBox("Display Borders");
     QObject::connect(m_bordersDisplayCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
+    m_bordersDisplayCheckBox->setObjectName(m_objectNamePrefix
+                                            + ":DisplayBorders");
+    m_bordersDisplayCheckBox->setToolTip("Display Borders on Surfaces");
+    macroManager->addMacroSupportToObject(m_bordersDisplayCheckBox);
     
     QWidget* attributesWidget = this->createAttributesWidget();
     QWidget* selectionWidget = this->createSelectionWidget();
@@ -97,6 +114,9 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
     m_tabWidget->addTab(selectionWidget, 
                       "Selection");
     m_tabWidget->setCurrentWidget(attributesWidget);
+    m_tabWidget->getTabBar()->setObjectName(m_objectNamePrefix
+                                            + ":Tab");
+    macroManager->addMacroSupportToObjectWithToolTip(m_tabWidget->getTabBar(), "");
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(m_bordersDisplayCheckBox);
@@ -124,7 +144,10 @@ BorderSelectionViewController::~BorderSelectionViewController()
 QWidget* 
 BorderSelectionViewController::createSelectionWidget()
 {
-    m_borderClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
+    m_borderClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex,
+                                                                                       (m_objectNamePrefix
+                                                                                        + ":Selection"),
+                                                                                       this);
     
     return m_borderClassNameHierarchyViewController;
 }
@@ -135,9 +158,15 @@ BorderSelectionViewController::createSelectionWidget()
 QWidget* 
 BorderSelectionViewController::createAttributesWidget()
 {
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    
     m_bordersContralateralCheckBox = new QCheckBox("Contralateral");
     QObject::connect(m_bordersContralateralCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
+    m_bordersContralateralCheckBox->setObjectName(m_objectNamePrefix
+                                                  + ":Contralateral");
+    m_bordersContralateralCheckBox->setToolTip("Show Contralateral Borders");
+    macroManager->addMacroSupportToObject(m_bordersContralateralCheckBox);
     
     std::vector<BorderDrawingTypeEnum::Enum> drawingTypeEnums;
     BorderDrawingTypeEnum::getAllEnums(drawingTypeEnums);
@@ -155,6 +184,9 @@ BorderSelectionViewController::createAttributesWidget()
                                    "Polylines are slower but have unlimited width");
     QObject::connect(m_drawTypeComboBox, SIGNAL(activated(int)),
                      this, SLOT(processAttributesChanges()));
+    m_drawTypeComboBox->setObjectName(m_objectNamePrefix
+                                      + ":DrawingType");
+    macroManager->addMacroSupportToObject(m_drawTypeComboBox);
     
     QLabel* coloringLabel = new QLabel("Coloring");
     m_coloringTypeComboBox = new EnumComboBoxTemplate(this);
@@ -163,9 +195,16 @@ BorderSelectionViewController::createAttributesWidget()
     m_coloringTypeComboBox->getWidget()->setToolTip("Select the coloring assignment for borders");
     QObject::connect(m_coloringTypeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(processAttributesChanges()));
+    m_coloringTypeComboBox->getWidget()->setObjectName(m_objectNamePrefix
+                                      + ":ColoringType");
+    macroManager->addMacroSupportToObject(m_coloringTypeComboBox->getWidget());
     
     QLabel* standardColorLabel = new QLabel("Standard Color");
-    m_standardColorComboBox = new CaretColorEnumComboBox(this);
+    m_standardColorComboBox = new CaretColorEnumComboBox("",
+                                                         QIcon(),
+                                                         (m_objectNamePrefix
+                                                          + ":Color"),
+                                                         this);
     m_standardColorComboBox->getWidget()->setToolTip("Select the standard color");
     QObject::connect(m_standardColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(processAttributesChanges()));
@@ -190,6 +229,9 @@ BorderSelectionViewController::createAttributesWidget()
                                    "value of this control is changing");
     QObject::connect(m_lineWidthSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
+    m_lineWidthSpinBox->setObjectName(m_objectNamePrefix
+                                                       + ":LineWidth");
+    macroManager->addMacroSupportToObject(m_lineWidthSpinBox);
     
     QLabel* pointSizeLabel = new QLabel("Symbol Diameter");
     m_pointSizeSpinBox = WuQFactory::newDoubleSpinBox();
@@ -202,10 +244,17 @@ BorderSelectionViewController::createAttributesWidget()
     m_pointSizeSpinBox->setSuffix("mm");
     QObject::connect(m_pointSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
+    m_pointSizeSpinBox->setObjectName(m_objectNamePrefix
+                                                       + ":PointSize");
+    macroManager->addMacroSupportToObject(m_pointSizeSpinBox);
     
     m_enableUnstretchedLinesCheckBox = new QCheckBox("Unstretched Lines");
     QObject::connect(m_enableUnstretchedLinesCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
+    m_enableUnstretchedLinesCheckBox->setToolTip("Disable lines that are invalid due to cuts in flat surface");
+    m_enableUnstretchedLinesCheckBox->setObjectName(m_objectNamePrefix
+                                      + ":UnstretchedLines");
+    macroManager->addMacroSupportToObject(m_enableUnstretchedLinesCheckBox);
     
     m_unstretchedLinesLengthSpinBox = WuQFactory::newDoubleSpinBox();
     m_unstretchedLinesLengthSpinBox->setFixedWidth(80);
@@ -218,6 +267,9 @@ BorderSelectionViewController::createAttributesWidget()
     m_unstretchedLinesLengthSpinBox->setSuffix("mm");
     QObject::connect(m_unstretchedLinesLengthSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
+    m_unstretchedLinesLengthSpinBox->setObjectName(m_objectNamePrefix
+                                                    + ":UnstretchedLinesLength");
+    macroManager->addMacroSupportToObject(m_unstretchedLinesLengthSpinBox);
     
     QLabel* aboveSurfaceLabel = new QLabel("Above Offset");
     m_aboveSurfaceOffsetSpinBox =WuQFactory::newDoubleSpinBox();
@@ -230,6 +282,9 @@ BorderSelectionViewController::createAttributesWidget()
                                                                                         "Use with caution."));
     QObject::connect(m_aboveSurfaceOffsetSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
+    m_aboveSurfaceOffsetSpinBox->setObjectName(m_objectNamePrefix
+                                                   + ":AboveSurfaceOffset");
+    macroManager->addMacroSupportToObject(m_aboveSurfaceOffsetSpinBox);
     
     QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);

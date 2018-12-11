@@ -161,9 +161,15 @@ WuQMacroManager::isModeRecording() const
  *
  * @param object
  *     Object that is monitored.
+ * @param toolTipTextOverride
+ *     Override of object's tooltip.  This is primarily used when
+ *     an object of a particular class does not support a tooltip
+ *     such as a QButtonGroup.  This can also be empty to avoid
+ *     the "no tooltip" message.
  */
-void
-WuQMacroManager::addMacroSupportToObject(QObject* object)
+bool
+WuQMacroManager::addMacroSupportToObjectWithToolTip(QObject* object,
+                                        const QString& toolTipOverride)
 {
     CaretAssert(object);
     
@@ -171,10 +177,56 @@ WuQMacroManager::addMacroSupportToObject(QObject* object)
     if (name.isEmpty()) {
         CaretLogSevere("Object name is empty, will be ignored for macros\n"
                        + SystemUtilities::getBackTrace());
-        return;
+        return false;
     }
     
-    {
+    auto existingWatcher = m_signalWatchers.find(name);
+    if (existingWatcher != m_signalWatchers.end()) {
+        CaretLogSevere("Object named \""
+                       + name
+                       + "\" has already been connected for macros\n"
+                       + SystemUtilities::getBackTrace()
+                       + "\n");
+        return false;
+    }
+    
+    AString errorMessage;
+    WuQMacroSignalWatcher* widgetWatcher = WuQMacroSignalWatcher::newInstance(this,
+                                                                              object,
+                                                                              toolTipOverride,
+                                                                              errorMessage);
+    if (widgetWatcher != NULL) {
+        widgetWatcher->setParent(this);
+        m_signalWatchers.insert(std::make_pair(name,
+                                               widgetWatcher));
+        return true;
+    }
+    else {
+        CaretLogWarning(errorMessage);
+        return false;
+    }
+}
+
+/**
+ * Add macro support to the given object.  When recording,
+ * The object's 'value changed' signal will be monitored so
+ * that the new value can be part of a macro command.
+ *
+ * @param object
+ *     Object that is monitored.
+ * @param toolTipTextOverride
+ *     Override of object's tooltip.  This is primarily used when
+ *     an object of a particular class does not support a tooltip
+ *     such as a QButtonGroup
+ */
+bool
+WuQMacroManager::addMacroSupportToObject(QObject* object)
+{
+    CaretAssert(object);
+    
+    const bool resultFlag = addMacroSupportToObjectWithToolTip(object,
+                                                               "");
+    if (resultFlag) {
         QString toolTipText;
         QAction* action = qobject_cast<QAction*>(object);
         if (action != NULL) {
@@ -184,34 +236,67 @@ WuQMacroManager::addMacroSupportToObject(QObject* object)
         if (widget != NULL) {
             toolTipText = widget->toolTip();
         }
+        
         if (toolTipText.isEmpty()) {
             CaretLogWarning("Object named \""
-                            + name
+                            + object->objectName()
                             + "\" is missing a tooltip");
         }
     }
-    auto existingWatcher = m_signalWatchers.find(name);
-    if (existingWatcher != m_signalWatchers.end()) {
-        CaretLogSevere("Object named \""
-                        + name
-                       + "\" has already been connected for macros\n"
-                       + SystemUtilities::getBackTrace()
-                       + "\n");
-    }
-    else {
-        AString errorMessage;
-        WuQMacroSignalWatcher* widgetWatcher = WuQMacroSignalWatcher::newInstance(this,
-                                                                                  object,
-                                                                                  errorMessage);
-        if (widgetWatcher != NULL) {
-            widgetWatcher->setParent(this);
-            m_signalWatchers.insert(std::make_pair(name,
-                                                   widgetWatcher));
-        }
-        else {
-            CaretLogWarning(errorMessage);
-        }
-    }
+    
+    return resultFlag;
+    
+//    const QString name = object->objectName();
+//    if (name.isEmpty()) {
+//        CaretLogSevere("Object name is empty, will be ignored for macros\n"
+//                       + SystemUtilities::getBackTrace());
+//        return false;
+//    }
+//    
+//    
+//    {
+//        QString toolTipText;
+//        if (toolTipTextOverride.isEmpty()) {
+//            QAction* action = qobject_cast<QAction*>(object);
+//            if (action != NULL) {
+//                toolTipText = action->toolTip();
+//            }
+//            QWidget* widget = qobject_cast<QWidget*>(object);
+//            if (widget != NULL) {
+//                toolTipText = widget->toolTip();
+//            }
+//            if (toolTipText.isEmpty()) {
+//                CaretLogWarning("Object named \""
+//                                + name
+//                                + "\" is missing a tooltip");
+//            }
+//        }
+//        else {
+//            toolTipText = toolTipTextOverride;
+//        }
+//    }
+//    auto existingWatcher = m_signalWatchers.find(name);
+//    if (existingWatcher != m_signalWatchers.end()) {
+//        CaretLogSevere("Object named \""
+//                        + name
+//                       + "\" has already been connected for macros\n"
+//                       + SystemUtilities::getBackTrace()
+//                       + "\n");
+//    }
+//    else {
+//        AString errorMessage;
+//        WuQMacroSignalWatcher* widgetWatcher = WuQMacroSignalWatcher::newInstance(this,
+//                                                                                  object,
+//                                                                                  errorMessage);
+//        if (widgetWatcher != NULL) {
+//            widgetWatcher->setParent(this);
+//            m_signalWatchers.insert(std::make_pair(name,
+//                                                   widgetWatcher));
+//        }
+//        else {
+//            CaretLogWarning(errorMessage);
+//        }
+//    }
 }
 
 /**
@@ -434,6 +519,7 @@ WuQMacroManager::runMacro(QWidget* widget,
     WuQMacroExecutor executor;
     if ( ! executor.runMacro(macro,
                              widget,
+                             m_parentObjects,
                              runOptions,
                              errorMessage)) {
         QMessageBox::critical(widget,
@@ -443,6 +529,22 @@ WuQMacroManager::runMacro(QWidget* widget,
                               QMessageBox::NoButton);
     }
 }
+
+/**
+ * Add a parent object that will be searched during macro
+ * execution to find objects by name that are contained
+ * in a macro command
+ *
+ * @param parentObject
+ *     Object used to find objects
+ */
+void
+WuQMacroManager::addParentObject(QObject* parentObject)
+{
+    CaretAssert(parentObject);
+    m_parentObjects.push_back(parentObject);
+}
+
 
 /**
  * Edit a macros attributes (name, description)

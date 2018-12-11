@@ -41,6 +41,7 @@
 #include "GuiManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -58,17 +59,26 @@ using namespace caret;
  *
  * @param browserWindowIndex
  *     Index of the browser window.
+ * @param parentObjectName
+ *     Name of parent object
  * @param parent
  *     The parent widget.
  */
 AnnotationSelectionViewController::AnnotationSelectionViewController(const int32_t browserWindowIndex,
+                                                                     const QString& parentObjectName,
                                                                      QWidget* parent)
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
+    const QString objectNamePrefix(parentObjectName
+                                   + ":AnnotationSelection");
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    
     QLabel* groupLabel = new QLabel("Group");
     
-    m_displayGroupComboBox = new DisplayGroupEnumComboBox(this);
+    m_displayGroupComboBox = new DisplayGroupEnumComboBox(this,
+                                                          (objectNamePrefix
+                                                           + ":DisplayGroup"));
     QObject::connect(m_displayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
                      this, SLOT(displayGroupSelected(const DisplayGroupEnum::Enum)));
     
@@ -84,20 +94,30 @@ m_browserWindowIndex(browserWindowIndex)
     m_displayAnnotationsCheckBox->setToolTip("Disables/enables display of annotations in all windows");
     QObject::connect(m_displayAnnotationsCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(checkBoxToggled()));
+    m_displayAnnotationsCheckBox->setObjectName(objectNamePrefix
+                                                + "DisplayAnnotatons");
+    macroManager->addMacroSupportToObject(m_displayAnnotationsCheckBox);
+    
     
     m_displayTextAnnotationsCheckBox = new QCheckBox("Display Text Annotations");
     m_displayTextAnnotationsCheckBox->setToolTip("Disables/enables display of text annotations in all windows");
     QObject::connect(m_displayTextAnnotationsCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(checkBoxToggled()));
+    m_displayTextAnnotationsCheckBox->setObjectName(objectNamePrefix
+                                                    + "DisplayTextAnnotatons");
+    macroManager->addMacroSupportToObject(m_displayTextAnnotationsCheckBox);
     
     m_displayWindowAnnotationInSingleTabViewsCheckBox = new QCheckBox("Show Window "
                                                                       + QString::number(m_browserWindowIndex + 1)
                                                                       + " Annotations in Single Tab View");
-    const QString singTT(WuQtUtilities::createWordWrappedToolTipText("When checked, window annotations are always displayed."
+    const QString singTT(WuQtUtilities::createWordWrappedToolTipText("When checked, window annotations are always displayed.\n"
                                                                      "When unchecked, window annotations are only displayed when tile tabs is enabled."));
     m_displayWindowAnnotationInSingleTabViewsCheckBox->setToolTip(singTT);
     QObject::connect(m_displayWindowAnnotationInSingleTabViewsCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(checkBoxToggled()));
+    m_displayWindowAnnotationInSingleTabViewsCheckBox->setObjectName(objectNamePrefix
+                                                    + "DisplayWindowAnnotatonsInSingleTabView");
+    macroManager->addMacroSupportToObject(m_displayWindowAnnotationInSingleTabViewsCheckBox);
     
     m_sceneAssistant = new SceneClassAssistant();
     

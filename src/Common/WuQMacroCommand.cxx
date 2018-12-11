@@ -61,6 +61,12 @@ m_macroMouseEvent(NULL)
         case WuQMacroObjectTypeEnum::ACTION:
             m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
             break;
+        case WuQMacroObjectTypeEnum::ACTION_GROUP:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::STRING;
+            break;
+        case WuQMacroObjectTypeEnum::BUTTON_GROUP:
+            m_objectDataValueType = WuQMacroDataValueTypeEnum::STRING;
+            break;
         case WuQMacroObjectTypeEnum::CHECK_BOX:
             m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
             break;

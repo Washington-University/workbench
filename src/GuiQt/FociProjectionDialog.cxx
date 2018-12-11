@@ -61,6 +61,8 @@ FociProjectionDialog::FociProjectionDialog(QWidget* parent)
 : WuQDialogModal("Project Foci",
                  parent)
 {
+    m_objectNamePrefix = "FociProjectDialog";
+    
     QWidget* surfaceWidget = NULL; //createSurfaceSelectionWidget();
     
     QWidget* fociFileWidget = createFociFileSelectionWidget();
@@ -205,7 +207,8 @@ FociProjectionDialog::createSurfaceSelectionWidget()
     if (leftBrainStructure != NULL) {
         m_leftSurfaceCheckBox = new QCheckBox("Left: ");
         m_leftSurfaceCheckBox->setChecked(true);
-        m_leftSurfaceViewController = new SurfaceSelectionViewController(this, leftBrainStructure);
+        m_leftSurfaceViewController = new SurfaceSelectionViewController(this, leftBrainStructure,
+                                                                         (m_objectNamePrefix + ":LeftSurface"));
         m_leftSurfaceViewController->updateControl();
     }
     
@@ -214,7 +217,8 @@ FociProjectionDialog::createSurfaceSelectionWidget()
     if (rightBrainStructure != NULL) {
         m_rightSurfaceCheckBox = new QCheckBox("Right: ");
         m_rightSurfaceCheckBox->setChecked(true);
-        m_rightSurfaceViewController = new SurfaceSelectionViewController(this, rightBrainStructure);
+        m_rightSurfaceViewController = new SurfaceSelectionViewController(this, rightBrainStructure,
+                                                                          (m_objectNamePrefix + ":RightSurface"));
         m_rightSurfaceViewController->updateControl();
     }
     
@@ -224,7 +228,8 @@ FociProjectionDialog::createSurfaceSelectionWidget()
         m_cerebellumSurfaceCheckBox = new QCheckBox("Cerebellum: ");
         m_cerebellumSurfaceCheckBox->setChecked(true);
         m_cerebellumSurfaceViewController = new SurfaceSelectionViewController(this,
-                                                                               cerebellumBrainStructure);
+                                                                               cerebellumBrainStructure,
+                                                                               (m_objectNamePrefix + ":CerebellumSurface"));
         m_cerebellumSurfaceViewController->updateControl();
     }
     

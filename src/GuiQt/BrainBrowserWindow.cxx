@@ -108,6 +108,7 @@
 #include "TileTabsConfigurationModifier.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDoubleSpinBox.h"
+#include "WuQMacroManager.h"
 #include "WuQMacroMenu.h"
 #include "WuQMessageBox.h"
 #include "WuQTabBar.h"
@@ -139,6 +140,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
 m_browserWindowIndex(browserWindowIndex)
 {
     m_developMenuAction = NULL;
+    
+    m_objectNamePrefix = QString("Window%1").arg((int)(browserWindowIndex + 1), 2, 10, QLatin1Char('0'));
     
     std::unique_ptr<EventBrowserWindowContent> bwc = EventBrowserWindowContent::newWindowContent(m_browserWindowIndex);
     EventManager::get()->sendEvent(bwc->getPointer());
@@ -179,6 +182,7 @@ m_browserWindowIndex(browserWindowIndex)
     new BrainBrowserWindowOrientedToolBox(m_browserWindowIndex,
                                           "Overlay ToolBox",
                                           BrainBrowserWindowOrientedToolBox::TOOL_BOX_OVERLAYS_VERTICAL,
+                                          m_objectNamePrefix,
                                           this);
     m_overlayVerticalToolBox->setAllowedAreas(Qt::LeftDockWidgetArea);
     
@@ -186,6 +190,7 @@ m_browserWindowIndex(browserWindowIndex)
     new BrainBrowserWindowOrientedToolBox(m_browserWindowIndex,
                                           "Overlay ToolBox ",
                                           BrainBrowserWindowOrientedToolBox::TOOL_BOX_OVERLAYS_HORIZONTAL,
+                                          m_objectNamePrefix,
                                           this);
     m_overlayHorizontalToolBox->setAllowedAreas(Qt::BottomDockWidgetArea);
 
@@ -209,6 +214,7 @@ m_browserWindowIndex(browserWindowIndex)
     new BrainBrowserWindowOrientedToolBox(m_browserWindowIndex,
                                           "Features ToolBox",
                                           BrainBrowserWindowOrientedToolBox::TOOL_BOX_FEATURES,
+                                          m_objectNamePrefix,
                                           this);
     m_featuresToolBox->setAllowedAreas(Qt::RightDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, m_featuresToolBox);
@@ -226,7 +232,8 @@ m_browserWindowIndex(browserWindowIndex)
                                               m_overlayToolBoxAction,
                                               m_featuresToolBoxAction,
                                               m_toolBarLockWindowAndAllTabAspectRatioButton,
-                                                  this);
+                                              m_objectNamePrefix,
+                                              this);
     m_showToolBarAction = m_toolbar->toolBarToolButtonAction;
     addToolBar(m_toolbar);
     
@@ -816,6 +823,9 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     else {
         m_overlayToolBoxAction->setIconText("OT");
     }
+    m_overlayToolBoxAction->setObjectName(m_objectNamePrefix
+                                           + ":ToolBar:ShowOverlayToolBox");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_overlayToolBoxAction);
 
     /*
      * Note: The name of a dock widget becomes its
@@ -834,8 +844,9 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     else {
         m_featuresToolBoxAction->setIconText("LT");
     }
-    
-    
+    m_featuresToolBoxAction->setObjectName(m_objectNamePrefix
+                                           + ":ToolBar:ShowFeaturesToolBox");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_featuresToolBoxAction);
     
     m_windowMenuLockWindowAspectRatioAction = new QAction(this);
     m_windowMenuLockWindowAspectRatioAction->setCheckable(true);
@@ -871,6 +882,9 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     m_toolBarLockWindowAndAllTabAspectRatioAction->setToolTip(aspectButtonToolTipText);
     QObject::connect(m_toolBarLockWindowAndAllTabAspectRatioAction, &QAction::triggered,
                      this, &BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectTriggered);
+    m_toolBarLockWindowAndAllTabAspectRatioAction->setObjectName(m_objectNamePrefix
+                                                                 + ":ToolBar:LockAspectRatio");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_toolBarLockWindowAndAllTabAspectRatioAction);
 
     /*
      * Button for locking aspect is passed to ToolBar's constructor

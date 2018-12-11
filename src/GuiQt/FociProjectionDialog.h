@@ -57,6 +57,8 @@ namespace caret {
         
         QWidget* createOptionsWidget();
         
+        QString m_objectNamePrefix;
+        
         QCheckBox* m_leftSurfaceCheckBox;
         
         SurfaceSelectionViewController* m_leftSurfaceViewController;

@@ -29,6 +29,7 @@
 
 #include "WuQMacroObjectTypeEnum.h"
 
+class QAbstractButton;
 class QAction;
 class QListWidgetItem;
 
@@ -43,6 +44,7 @@ namespace caret {
     public:
         static WuQMacroSignalWatcher* newInstance(WuQMacroManager* parentMacroManager,
                                                   QObject* object,
+                                                  const QString& toolTipTextOverride,
                                                   QString& errorMessageOut);
         
         virtual ~WuQMacroSignalWatcher();
@@ -55,6 +57,10 @@ namespace caret {
         
     private slots:
         void actionTriggered(bool);
+        
+        void actionGroupTriggered(QAction* action);
+        
+        void buttonGroupButtonClicked(QAbstractButton* button);
         
         void checkBoxClicked(bool);
         
@@ -82,12 +88,17 @@ namespace caret {
         
         void toolButtonClicked(bool);
 
+        void objectWasDestroyed(QObject* obj);
+        
+        void objectNameWasChanged(const QString& name);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
         WuQMacroSignalWatcher(WuQMacroManager* parentMacroManager,
                               QObject* object,
-                              const WuQMacroObjectTypeEnum::Enum objectType);
+                              const WuQMacroObjectTypeEnum::Enum objectType,
+                              const QString& toolTipTextOverride);
         
         WuQMacroManager* m_parentMacroManager;
         

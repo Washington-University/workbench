@@ -122,6 +122,7 @@
 #include "TileTabsConfigurationDialog.h"
 #include "VolumeMappableInterface.h"
 #include "WuQMacroManager.h"
+#include "WuQMacroObjectTypeEnum.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -187,6 +188,17 @@ GuiManager::initializeGuiManager()
     this->cursorManager = new CursorManager();
     
     /*
+     * When running macro commands, some object may be child
+     * of GuiManager and not found when searching a window
+     * for children objects
+     */
+    WuQMacroObjectTypeEnum::addWidgetClassNameAlias("QTabWidget",
+                                                    "caret::WuQTabWidgetWithSizeHint");
+    WuQMacroObjectTypeEnum::addWidgetClassNameAlias("QTabBar",
+                                                    "caret::WuQTabBar");
+    WuQMacroManager::instance()->addParentObject(this);
+    
+    /*
      * Windows vector never changes size
      */
     m_brainBrowserWindows.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, NULL);
@@ -221,6 +233,8 @@ GuiManager::initializeGuiManager()
     this->showHideInfoWindowSelected(m_informationDisplayDialogEnabledAction->isChecked());
     m_informationDisplayDialogEnabledAction->setIconText("Info"); 
     m_informationDisplayDialogEnabledAction->blockSignals(false);
+    m_informationDisplayDialogEnabledAction->setObjectName("ToolBar:ShowInformationWindow");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_informationDisplayDialogEnabledAction);
     
     /*
      * Identify brainordinate window
@@ -247,6 +261,8 @@ GuiManager::initializeGuiManager()
     m_identifyBrainordinateDialogEnabledAction->setCheckable(true);
     m_identifyBrainordinateDialogEnabledAction->setChecked(false);
     m_identifyBrainordinateDialogEnabledAction->blockSignals(false);
+    m_identifyBrainordinateDialogEnabledAction->setObjectName("ToolBar:ShowIdentifyBrainordinateWindow");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_identifyBrainordinateDialogEnabledAction);
     
     /*
      * Scene dialog action
@@ -270,6 +286,8 @@ GuiManager::initializeGuiManager()
     m_sceneDialogDisplayAction->setCheckable(true);
     m_sceneDialogDisplayAction->setChecked(false);
     m_sceneDialogDisplayAction->blockSignals(false);
+    m_sceneDialogDisplayAction->setObjectName("ToolBar:ShowScenesWindow");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_sceneDialogDisplayAction);
     
     /*
      * Help dialog action
@@ -294,6 +312,8 @@ GuiManager::initializeGuiManager()
     m_helpViewerDialogDisplayAction->setCheckable(true);
     m_helpViewerDialogDisplayAction->setChecked(false);
     m_helpViewerDialogDisplayAction->blockSignals(false);
+    m_helpViewerDialogDisplayAction->setObjectName("ToolBar:ShowHelpWindow");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_helpViewerDialogDisplayAction);
     
     /*
      * Data tooltip action is created when requested by a toolbar
@@ -1911,6 +1931,9 @@ GuiManager::getDataToolTipsAction(QWidget* buttonWidget)
         m_dataToolTipsEnabledAction->setIconVisibleInMenu(false);
         m_dataToolTipsEnabledAction->setCheckable(true);
         m_dataToolTipsEnabledAction->setChecked(SessionManager::get()->getDataToolTipsManager()->isEnabled());
+        
+        m_dataToolTipsEnabledAction->setObjectName("ToolBar:DataToolTipsEnabled");
+        WuQMacroManager::instance()->addMacroSupportToObject(m_dataToolTipsEnabledAction);
     }
     
     return m_dataToolTipsEnabledAction;

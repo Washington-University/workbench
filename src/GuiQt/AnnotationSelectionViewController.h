@@ -41,6 +41,7 @@ namespace caret {
         
     public:
         AnnotationSelectionViewController(const int32_t browserWindowIndex,
+                                          const QString& parentObjectName,
                                           QWidget* parent);
         
         virtual ~AnnotationSelectionViewController();

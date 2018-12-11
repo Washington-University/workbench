@@ -117,6 +117,16 @@ WuQTabWidget::getWidget()
 }
 
 /**
+ * @return The embedded tab bar
+ */
+QTabBar*
+WuQTabWidget::getTabBar() const
+{
+    return m_tabBar;
+}
+
+
+/**
  * Adds a tab with the given page and label to the tab widget, and returns
  * the index of the tab in the tab bar.  If the tab's label contains an 
  * ampersand, the letter following the ampersand is used as a shortcut

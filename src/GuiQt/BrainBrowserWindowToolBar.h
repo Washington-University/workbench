@@ -86,6 +86,7 @@ namespace caret {
                                   QAction* overlayToolBoxAction,
                                   QAction* layersToolBoxAction,
                                   QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
+                                  const QString& objectNamePrefix,
                                   BrainBrowserWindow* parentBrainBrowserWindow);
         
         ~BrainBrowserWindowToolBar();

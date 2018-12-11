@@ -49,6 +49,7 @@
 #include "SceneClass.h"
 #include "VolumeFile.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQMacroManager.h"
 #include "WuQTabWidget.h"
 #include "WuQtUtilities.h"
 
@@ -67,15 +68,27 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param browserWindowIndex
+ *    Index of browser window
+ * @param parentObjectName
+ *    Name of parent object
+ * @param parent
+ *    The parent object
  */
 LabelSelectionViewController::LabelSelectionViewController(const int32_t browserWindowIndex,
-                                             QWidget* parent)
-: QWidget(parent)
+                                                           const QString& parentObjectName,
+                                                           QWidget* parent)
+: QWidget(parent),
+m_objectNamePrefix(parentObjectName
+                   + ":Label")
 {
     m_browserWindowIndex = browserWindowIndex;
     
     QLabel* groupLabel = new QLabel("Group");
-    m_labelsDisplayGroupComboBox = new DisplayGroupEnumComboBox(this);
+    m_labelsDisplayGroupComboBox = new DisplayGroupEnumComboBox(this,
+                                                                (m_objectNamePrefix
+                                                                 + ":DisplayGroup"));
     QObject::connect(m_labelsDisplayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
                      this, SLOT(labelDisplayGroupSelected(const DisplayGroupEnum::Enum)));
     
@@ -110,7 +123,10 @@ LabelSelectionViewController::~LabelSelectionViewController()
 QWidget* 
 LabelSelectionViewController::createSelectionWidget()
 {
-    m_labelClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex);
+    m_labelClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex,
+                                                                                      (m_objectNamePrefix
+                                                                                       + ":Selection"),
+                                                                                      this);
     
     return m_labelClassNameHierarchyViewController;
 }

@@ -59,6 +59,7 @@
 #include "SessionManager.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineSetViewController.h"
+#include "WuQMacroManager.h"
 #include "WuQTabWidgetWithSizeHint.h"
 #include "WuQtUtilities.h"
 
@@ -71,12 +72,17 @@ using namespace caret;
  *    Index of browser window that contains this toolbox.
  * @param title
  *    Title for the toolbox.
- * @param location
- *    Locations allowed for this toolbox.
+ * @param toolBoxType
+ *    Type of toolbox
+ * @param parentObjectName
+ *    Name of parent for macro objets
+ * @param parent
+ *    The parent widget
  */
 BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32_t browserWindowIndex,
                                                                      const QString& title,
                                                                      const ToolBoxType toolBoxType,
+                                                                     const QString& parentObjectNamePrefix,
                                                                      QWidget* parent)
 :   QDockWidget(parent)
 {
@@ -87,8 +93,10 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_toolBoxTitle = title;
     setWindowTitle(m_toolBoxTitle);
     
+                                
     bool isFeaturesToolBox  = false;
     bool isOverlayToolBox = false;
+    QString typeSuffix;
     Qt::Orientation orientation = Qt::Horizontal;
     AString toolboxTypeName = "";
     switch (toolBoxType) {
@@ -97,21 +105,30 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
             isFeaturesToolBox = true;
             toggleViewAction()->setText("Features Toolbox");
             toolboxTypeName = "Features";
+            typeSuffix = "Features";
             break;
         case TOOL_BOX_OVERLAYS_HORIZONTAL:
             orientation = Qt::Horizontal;
             isOverlayToolBox = true;
             toolboxTypeName = "OverlayHorizontal";
+            typeSuffix = "ToolBoxH";
             break;
         case TOOL_BOX_OVERLAYS_VERTICAL:
             orientation = Qt::Vertical;
             isOverlayToolBox = true;
             toolboxTypeName = "OverlayVertical";
+            typeSuffix = "ToolBoxV";
             break;
     }
     
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    QString objectNamePrefix = (parentObjectNamePrefix
+                                + ":"
+                                + typeSuffix);
+    
     /*
      * Needed for saving and restoring window state in main window
+     * CHANGING THIS WILL BREAK SCENES !!!
      */
     CaretAssert(toolboxTypeName.length() > 0);
     setObjectName("BrainBrowserWindowOrientedToolBox_"
@@ -152,6 +169,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
             break;
     }
 #endif
+    m_tabWidget->setObjectName(objectNamePrefix
+                               + ":Tab");
+    macroManager->addMacroSupportToObjectWithToolTip(m_tabWidget, "");
     
     m_annotationTabIndex = -1;
     m_borderTabIndex = -1;
@@ -167,47 +187,57 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     if (isOverlayToolBox) {
         m_overlaySetViewController = new OverlaySetViewController(orientation,
-                                                                      browserWindowIndex,
-                                                                      this);  
+                                                                  browserWindowIndex,
+                                                                  objectNamePrefix,
+                                                                  this);  
         m_overlayTabIndex = addToTabWidget(m_overlaySetViewController,
                        "Layers");
     }
     if (isOverlayToolBox) {
         m_chartOverlaySetViewController = new ChartTwoOverlaySetViewController(orientation,
-                                                                         browserWindowIndex,
-                                                                         this);
+                                                                               browserWindowIndex,
+                                                                               objectNamePrefix,
+                                                                               this);
         m_chartOverlayTabIndex = addToTabWidget(m_chartOverlaySetViewController,
                                                 "Chart Layers");
     }
     if (isOverlayToolBox) {
         m_chartToolBoxViewController = new ChartToolBoxViewController(orientation,
                                                                       browserWindowIndex,
+                                                                      objectNamePrefix,
                                                                       this);
         m_chartTabIndex = addToTabWidget(m_chartToolBoxViewController,
                                          "Charting");
     }
     if (isOverlayToolBox) {
-        m_connectivityMatrixViewController = new CiftiConnectivityMatrixViewController(orientation,
+        m_connectivityMatrixViewController = new CiftiConnectivityMatrixViewController(objectNamePrefix,
                                                                                        this);
         m_connectivityTabIndex = addToTabWidget(m_connectivityMatrixViewController,
                              "Connectivity");
     }
     if (isFeaturesToolBox) {
         m_annotationViewController = new AnnotationSelectionViewController(browserWindowIndex,
+                                                                           objectNamePrefix,
                                                                            this);
         m_annotationTextSubstitutionViewController = new AnnotationTextSubstitutionViewController(browserWindowIndex,
+                                                                                                  objectNamePrefix,
                                                                                                   this);
         
         m_annotationTabWidget = new QTabWidget();
         m_annotationTabWidget->addTab(m_annotationViewController, "Annotations");
         m_annotationTabWidget->addTab(m_annotationTextSubstitutionViewController, "Substitutions");
+        m_annotationTabWidget->setObjectName(objectNamePrefix
+                                             + ":AnnotationTab");
+        macroManager->addMacroSupportToObjectWithToolTip(m_annotationTabWidget, "");
+        
         m_annotationTabIndex = addToTabWidget(m_annotationTabWidget,
                                               "Annot");
         m_annotationTabWidget->setCurrentIndex(0);
     }
     if (isFeaturesToolBox) {
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
-                                                                                this);
+                                                                            objectNamePrefix,
+                                                                            this);
         m_borderTabIndex = addToTabWidget(m_borderSelectionViewController,
                              "Borders");
     }
@@ -221,6 +251,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     if (isFeaturesToolBox) {
         m_fociSelectionViewController = new FociSelectionViewController(browserWindowIndex,
+                                                                        objectNamePrefix,
                                                                                 this);
         m_fociTabIndex = addToTabWidget(m_fociSelectionViewController,
                              "Foci");
@@ -228,6 +259,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     if (isFeaturesToolBox) {
         m_imageSelectionViewController = new ImageSelectionViewController(browserWindowIndex,
+                                                                          objectNamePrefix,
                                                                           this);
         m_imageTabIndex = addToTabWidget(m_imageSelectionViewController,
                                          "Images");
@@ -235,6 +267,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     if (isFeaturesToolBox) {
         m_labelSelectionViewController = new LabelSelectionViewController(browserWindowIndex,
+                                                                          objectNamePrefix,
                                                                           this);
         m_labelTabIndex = addToTabWidget(m_labelSelectionViewController,
                        "Labels");
@@ -242,7 +275,8 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     if (isOverlayToolBox) {
         m_volumeSurfaceOutlineSetViewController = new VolumeSurfaceOutlineSetViewController(orientation,
-                                                                                                m_browserWindowIndex);
+                                                                                            m_browserWindowIndex,
+                                                                                            objectNamePrefix);
         m_volumeSurfaceOutlineTabIndex = addToTabWidget(m_volumeSurfaceOutlineSetViewController,
                              "Vol/Surf Outline");
     }

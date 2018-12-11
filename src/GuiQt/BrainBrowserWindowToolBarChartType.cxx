@@ -33,6 +33,7 @@
 #include "ChartModel.h"
 #include "EnumComboBoxTemplate.h"
 #include "ModelChart.h"
+#include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -51,10 +52,12 @@ using namespace caret;
  * @param parentToolBar
  *    parent toolbar.
  */
-BrainBrowserWindowToolBarChartType::BrainBrowserWindowToolBarChartType(BrainBrowserWindowToolBar* parentToolBar)
+BrainBrowserWindowToolBarChartType::BrainBrowserWindowToolBarChartType(BrainBrowserWindowToolBar* parentToolBar,
+                                                                       const QString& parentObjectName)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
+    
     m_chartTypeButtonGroup = new QButtonGroup(this);
     
     QVBoxLayout* radioButtonLayout = new QVBoxLayout(this);
@@ -73,6 +76,16 @@ m_parentToolBar(parentToolBar)
         QRadioButton* rb = new QRadioButton(ChartOneDataTypeEnum::toGuiName(ct));
         m_chartTypeButtonGroup->addButton(rb,
                                           m_chartTypeRadioButtons.size());
+        
+        rb->setToolTip("Set chart to "
+                       + rb->text());
+        
+        QString chartTypeName = rb->text();
+        chartTypeName = chartTypeName.replace(" ", "");
+        rb->setObjectName(parentObjectName
+                          + ":ChartOneType:"
+                          + chartTypeName);
+        WuQMacroManager::instance()->addMacroSupportToObject(rb);
         
         radioButtonLayout->addWidget(rb);
         

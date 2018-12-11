@@ -30,6 +30,7 @@
 #include "EventModelGetAll.h"
 #include "WuQFactory.h"
 #include "GuiManager.h"
+#include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
 #define __STRUCTURE_SURFACE_SELECTION_CONTROL_DECLARE__
@@ -50,9 +51,16 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param showLabels
+ *     Show labels on controls
+ * @param objectNamePrefix
+ *     Object name prefix used for macros
  */
-StructureSurfaceSelectionControl::StructureSurfaceSelectionControl(const bool showLabels)
-: QWidget()
+StructureSurfaceSelectionControl::StructureSurfaceSelectionControl(const bool showLabels,
+                                                                   const QString& objectNamePrefix,
+                                                                   QWidget* parent)
+: QWidget(parent)
 {
     this->surfaceControllerSelector = NULL;
 
@@ -60,11 +68,19 @@ StructureSurfaceSelectionControl::StructureSurfaceSelectionControl(const bool sh
     this->structureSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     QObject::connect(this->structureSelectionComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(structureSelected(int)));
+    this->structureSelectionComboBox->setToolTip("Selects Structure of Surface");
+    this->structureSelectionComboBox->setObjectName(objectNamePrefix
+                                                    + ":StructureSelection");
+    WuQMacroManager::instance()->addMacroSupportToObject(this->structureSelectionComboBox);
     
     this->surfaceControllerSelectionComboBox = WuQFactory::newComboBox();
     this->surfaceControllerSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     QObject::connect(this->surfaceControllerSelectionComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(surfaceControllerSelected(int)));
+    this->surfaceControllerSelectionComboBox->setToolTip("Selects Surface");
+    this->surfaceControllerSelectionComboBox->setObjectName(objectNamePrefix
+                                                    + ":SurfaceSelection");
+    WuQMacroManager::instance()->addMacroSupportToObject(this->surfaceControllerSelectionComboBox);
 
     QGridLayout* layout = new QGridLayout(this);
     layout->setColumnStretch(0, 0);

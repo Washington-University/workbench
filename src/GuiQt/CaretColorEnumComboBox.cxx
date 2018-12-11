@@ -26,6 +26,7 @@
 #include <QComboBox>
 
 #include "CaretAssert.h"
+#include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -89,6 +90,34 @@ CaretColorEnumComboBox::CaretColorEnumComboBox(const AString& customColorSelecti
     CaretAssert( ! customColorSelectionName.isEmpty());
     initializeCaretColorComboBox(customColorSelectionName,
                                  &customColorSelectionIcon);
+}
+
+/**
+ * Constructor.
+ *
+ * @param customColorSelectionName
+ *     If not empty, CaretColorEnum::CUSTOM is added to the combo with this name as the text.
+ * @param customColorSelectionIcon
+ *     Icon for custom color.
+ * @param objectNameForMacros
+ *     If not empty, name is used to set this combo box for macro support
+ * @param parent
+ *     Parent object.
+ */
+CaretColorEnumComboBox::CaretColorEnumComboBox(const AString& customColorSelectionName,
+                                               const QIcon& customColorSelectionIcon,
+                                               const QString& objectNameForMacros,
+                                               QObject* parent)
+: WuQWidget(parent)
+{
+    initializeCaretColorComboBox(customColorSelectionName,
+                                 &customColorSelectionIcon);
+    
+    if ( ! objectNameForMacros.isEmpty()) {
+        this->colorComboBox->setObjectName(objectNameForMacros);
+        this->colorComboBox->setToolTip("Select Color");
+        WuQMacroManager::instance()->addMacroSupportToObject(this->colorComboBox);
+    }
 }
 
 /**

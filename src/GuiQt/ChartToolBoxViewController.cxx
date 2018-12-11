@@ -42,6 +42,7 @@
 #include "ModelChart.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "WuQMacroManager.h"
 
 using namespace caret;
 
@@ -56,28 +57,47 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param orientation
+ *    Orientation of toolbox
+ * @param browserWindowIndex
+ *    Index of browser window
+ * @param parentObjectName
+ *    Name of parent object for macros
+ * @param parent
+ *    Parent widget
  */
 ChartToolBoxViewController::ChartToolBoxViewController(const Qt::Orientation orientation,
                                                        const int32_t browserWindowIndex,
+                                                       const QString& parentObjectName,
                                                        QWidget* parent)
 : QWidget(parent),
 EventListenerInterface(),
 m_browserWindowIndex(browserWindowIndex)
 {
+    const QString objectNamePrefix(parentObjectName
+                                   + ":Chart");
+    
     /*
      * Data series widgets
      */
     m_chartSelectionViewController = new ChartSelectionViewController(orientation,
-                                                                           browserWindowIndex,
-                                                                           NULL);
+                                                                      browserWindowIndex,
+                                                                      objectNamePrefix,
+                                                                      NULL);
     m_chartHistoryViewController = new ChartHistoryViewController(orientation,
-                                                                       browserWindowIndex,
-                                                                       NULL);
+                                                                  browserWindowIndex,
+                                                                  objectNamePrefix,
+                                                                  NULL);
     m_tabWidget = new QTabWidget();
     m_tabWidget->addTab(m_chartSelectionViewController,
                                   "Loading");
     m_tabWidget->addTab(m_chartHistoryViewController,
                                   "History");
+    m_tabWidget->setObjectName(objectNamePrefix
+                               + ":Tab");
+    WuQMacroManager::instance()->addMacroSupportToObjectWithToolTip(m_tabWidget, "");
+    
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(m_tabWidget);

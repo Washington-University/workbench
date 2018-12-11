@@ -44,7 +44,7 @@ namespace caret {
         Q_OBJECT
 
     public:
-        CiftiConnectivityMatrixViewController(const Qt::Orientation orientation,
+        CiftiConnectivityMatrixViewController(const QString& parentObjectName,
                                               QWidget* parent);
         
         virtual ~CiftiConnectivityMatrixViewController();
@@ -76,6 +76,8 @@ namespace caret {
         void getFileAtIndex(const int32_t indx,
                             CiftiMappableConnectivityMatrixDataFile* &ciftiMatrixFileOut,
                             CiftiFiberTrajectoryFile* &ciftiTrajFileOut);
+        
+        const QString m_objectNamePrefix;
         
         std::vector<QCheckBox*> m_fileEnableCheckBoxes;
         

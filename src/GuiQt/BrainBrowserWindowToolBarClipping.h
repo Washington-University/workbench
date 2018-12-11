@@ -35,7 +35,8 @@ namespace caret {
         
     public:
         BrainBrowserWindowToolBarClipping(const int32_t browserWindowIndex,
-                                          BrainBrowserWindowToolBar* parentToolBar);
+                                          BrainBrowserWindowToolBar* parentToolBar,
+                                          const QString& objectNamePrefix);
         
         virtual ~BrainBrowserWindowToolBarClipping();
         

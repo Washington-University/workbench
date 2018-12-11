@@ -55,6 +55,8 @@ namespace caret {
         
         QWidget* currentWidget() const;
         
+        QTabBar* getTabBar() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         

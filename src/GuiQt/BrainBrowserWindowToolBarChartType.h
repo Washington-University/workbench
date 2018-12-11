@@ -36,7 +36,8 @@ namespace caret {
         Q_OBJECT
         
     public:
-        BrainBrowserWindowToolBarChartType(BrainBrowserWindowToolBar* parentToolBar);
+        BrainBrowserWindowToolBarChartType(BrainBrowserWindowToolBar* parentToolBar,
+                                           const QString& parentObjectName);
         
         virtual ~BrainBrowserWindowToolBarChartType();
         

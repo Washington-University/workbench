@@ -33,6 +33,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "WuQFactory.h"
+#include "WuQMacroManager.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -48,11 +49,19 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param parentObjectName
+ *     Name of parent for macros
+ * @param parentToolBar
+ *     The parent toolbar
  */
-BrainBrowserWindowToolBarVolumeMontage::BrainBrowserWindowToolBarVolumeMontage(BrainBrowserWindowToolBar* parentToolBar)
+BrainBrowserWindowToolBarVolumeMontage::BrainBrowserWindowToolBarVolumeMontage(const QString& parentObjectName,
+                                                                               BrainBrowserWindowToolBar* parentToolBar)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
+    const QString objectNamePrefix(parentObjectName
+                                   + ":VolumeSliceMontage:");
     
     const int spinBoxWidth = 48;
     
@@ -64,6 +73,10 @@ m_parentToolBar(parentToolBar)
     m_montageRowsSpinBox->setToolTip(rowsLabel->toolTip());
     QObject::connect(m_montageRowsSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageRowsSpinBoxValueChanged(int)));
+    m_montageRowsSpinBox->setObjectName(objectNamePrefix
+                                        + "Rows");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_montageRowsSpinBox);
+    
     
     QLabel* columnsLabel = new QLabel("Cols:");
     columnsLabel->setToolTip("Select the number of columns in montage of volume slices");
@@ -73,6 +86,9 @@ m_parentToolBar(parentToolBar)
     m_montageColumnsSpinBox->setToolTip(columnsLabel->toolTip());
     QObject::connect(m_montageColumnsSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageColumnsSpinBoxValueChanged(int)));
+    m_montageColumnsSpinBox->setObjectName(objectNamePrefix
+                                           + "Columns");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_montageColumnsSpinBox);
     
     QLabel* spacingLabel = new QLabel("Step:");
     spacingLabel->setToolTip("Select the number of slices stepped (incremented) between displayed montage slices");
@@ -82,6 +98,9 @@ m_parentToolBar(parentToolBar)
     m_montageSpacingSpinBox->setToolTip(spacingLabel->toolTip());
     QObject::connect(m_montageSpacingSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageSpacingSpinBoxValueChanged(int)));
+    m_montageSpacingSpinBox->setObjectName(objectNamePrefix
+                                           + "Step");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_montageSpacingSpinBox);
     
     m_showSliceCoordinateAction = new QAction("XYZ", this);
     m_showSliceCoordinateAction->setText("XYZ");
@@ -89,6 +108,9 @@ m_parentToolBar(parentToolBar)
     m_showSliceCoordinateAction->setToolTip("Show coordinates on slices");
     QObject::connect(m_showSliceCoordinateAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarVolumeMontage::showSliceCoordinateToolButtonClicked);
+    m_showSliceCoordinateAction->setObjectName(objectNamePrefix
+                                               + "ShowCoordinateOnSlice");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_showSliceCoordinateAction);
 
     QToolButton* showSliceCoordToolButton = new QToolButton;
     showSliceCoordToolButton->setDefaultAction(m_showSliceCoordinateAction);
@@ -102,17 +124,23 @@ m_parentToolBar(parentToolBar)
     m_sliceCoordinatePrecisionSpinBox->setToolTip(decimalsLabel->toolTip());
     QObject::connect(m_sliceCoordinatePrecisionSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarVolumeMontage::slicePrecisionSpinBoxValueChanged);
+    m_sliceCoordinatePrecisionSpinBox->setObjectName(objectNamePrefix
+                                                     + "Precision");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_sliceCoordinatePrecisionSpinBox);
 
 
+    QToolButton* montageEnabledToolButton = new QToolButton();
     m_montageEnabledAction = WuQtUtilities::createAction("On",
                                                          "View a montage of parallel slices",
-                                                         this,
+                                                         montageEnabledToolButton,
                                                          this,
                                                          SLOT(montageEnabledActionToggled(bool)));
     m_montageEnabledAction->setCheckable(true);
-    QToolButton* montageEnabledToolButton = new QToolButton();
     montageEnabledToolButton->setDefaultAction(m_montageEnabledAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(montageEnabledToolButton);
+    m_montageEnabledAction->setObjectName(objectNamePrefix
+                                          + "Enable");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_montageEnabledAction);
 
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
@@ -127,7 +155,6 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(m_sliceCoordinatePrecisionSpinBox, 3, 1);
     gridLayout->addWidget(showSliceCoordToolButton, 4, 0);
     gridLayout->addWidget(montageEnabledToolButton, 4, 1);
-//    gridLayout->addWidget(montageEnabledToolButton, 4, 0, 1, 2, Qt::AlignHCenter);
     
     m_volumeMontageWidgetGroup = new WuQWidgetObjectGroup(this);
     m_volumeMontageWidgetGroup->add(m_montageRowsSpinBox);

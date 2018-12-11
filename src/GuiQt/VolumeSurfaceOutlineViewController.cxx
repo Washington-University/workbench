@@ -40,6 +40,7 @@
 #include "WuQDoubleSpinBox.h"
 #include "WuQFactory.h"
 #include "WuQGridLayoutGroup.h"
+#include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -56,18 +57,25 @@ using namespace caret;
  */
 VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt::Orientation orientation,
                                                                        QGridLayout* gridLayout,
+                                                                       const QString& objectNamePrefix,
                                                                        QObject* parent)
 : QObject(parent)
 {
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    
     this->outlineModel = NULL;
     
     this->enabledCheckBox = new QCheckBox(" ");
     QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(enabledCheckBoxStateChanged(int)));
     this->enabledCheckBox->setToolTip("Enables display of this volume surface outline");
+    this->enabledCheckBox->setObjectName(objectNamePrefix
+                                         + ":Enable");
+    macroManager->addMacroSupportToObject(this->enabledCheckBox);
     
-    
-    this->surfaceSelectionViewController = new SurfaceSelectionViewController(this);
+    this->surfaceSelectionViewController = new SurfaceSelectionViewController(this,
+                                                                              (objectNamePrefix
+                                                                               + ":Surface"));
     QObject::connect(this->surfaceSelectionViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(surfaceSelected(Surface*)));
     this->surfaceSelectionViewController->getWidget()->setToolTip("Select surface drawn as outline over volume slices");
@@ -78,13 +86,20 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     this->colorOrTabSelectionControl->getWidget()->setToolTip("Select coloring for surface outline.\n"
                                                               "If tab, coloring assigned to selected surface\n"
                                                               "in the selected tab is used.\n");
+    this->colorOrTabSelectionControl->getWidget()->setObjectName(objectNamePrefix
+                                                                 + ":ColorSource");
+    macroManager->addMacroSupportToObject(this->colorOrTabSelectionControl->getWidget());
+    
     this->thicknessSpinBox = new WuQDoubleSpinBox(this);
     this->thicknessSpinBox->setRange(0.0, 100.0);
     this->thicknessSpinBox->setSingleStep(0.10);
     this->thicknessSpinBox->setSuffix("%");
     QObject::connect(this->thicknessSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &VolumeSurfaceOutlineViewController::thicknessSpinBoxValueChanged);
-    this->thicknessSpinBox->setToolTip("Thickness of surface outline as percentage of viewport height");
+    this->thicknessSpinBox->getWidget()->setToolTip("Thickness of surface outline as percentage of viewport height");
+    this->thicknessSpinBox->getWidget()->setObjectName(objectNamePrefix
+                                          + ":Thickness");
+    macroManager->addMacroSupportToObject(this->thicknessSpinBox->getWidget());
     
     
     if (orientation == Qt::Horizontal) {

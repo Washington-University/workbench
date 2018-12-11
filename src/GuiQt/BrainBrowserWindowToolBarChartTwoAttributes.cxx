@@ -44,6 +44,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "ModelChartTwo.h"
 #include "WuQFactory.h"
+#include "WuQMacroManager.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -62,13 +63,21 @@ using namespace caret;
  *
  * @param parentToolBar
  *   The parent toolbar.
+ * @param parentObjectName
+ *   Name of parent for macros
  */
-BrainBrowserWindowToolBarChartTwoAttributes::BrainBrowserWindowToolBarChartTwoAttributes(BrainBrowserWindowToolBar* parentToolBar)
+BrainBrowserWindowToolBarChartTwoAttributes::BrainBrowserWindowToolBarChartTwoAttributes(BrainBrowserWindowToolBar* parentToolBar,
+                                                                                         const QString& parentObjectName)
 : BrainBrowserWindowToolBarComponent(parentToolBar)
 {
-    m_cartesianChartAttributesWidget = new CartesianChartTwoAttributesWidget(this);
+    const QString objectNamePrefix(parentObjectName
+                                   + ":ChartTwoAttributes");
     
-    m_matrixChartTwoAttributesWidget = new MatrixChartTwoAttributesWidget(this);
+    m_cartesianChartAttributesWidget = new CartesianChartTwoAttributesWidget(this,
+                                                                             objectNamePrefix);
+    
+    m_matrixChartTwoAttributesWidget = new MatrixChartTwoAttributesWidget(this,
+                                                                          objectNamePrefix);
     
     m_stackedWidget = new QStackedWidget();
     m_stackedWidget->addWidget(m_cartesianChartAttributesWidget);
@@ -162,7 +171,8 @@ BrainBrowserWindowToolBarChartTwoAttributes::updateGraphics()
  * @param brainBrowserWindowToolBarChartAttributes
  *   The parent attributes widget.
  */
-CartesianChartTwoAttributesWidget::CartesianChartTwoAttributesWidget(BrainBrowserWindowToolBarChartTwoAttributes* brainBrowserWindowToolBarChartAttributes)
+CartesianChartTwoAttributesWidget::CartesianChartTwoAttributesWidget(BrainBrowserWindowToolBarChartTwoAttributes* brainBrowserWindowToolBarChartAttributes,
+                                                                     const QString& parentObjectName)
 : QWidget(brainBrowserWindowToolBarChartAttributes)
 {
     m_brainBrowserWindowToolBarChartAttributes = brainBrowserWindowToolBarChartAttributes;
@@ -175,6 +185,11 @@ CartesianChartTwoAttributesWidget::CartesianChartTwoAttributesWidget(BrainBrowse
                                                                                                        this,
                                                                                                        SLOT(cartesianLineWidthValueChanged(double)));
     m_cartesianLineWidthDoubleSpinBox->setFixedWidth(65);
+    m_cartesianLineWidthDoubleSpinBox->setToolTip("Width of line");
+    m_cartesianLineWidthDoubleSpinBox->setObjectName(parentObjectName
+                                                     + ":LineWidth");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_cartesianLineWidthDoubleSpinBox);
+    
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
@@ -232,7 +247,8 @@ CartesianChartTwoAttributesWidget::cartesianLineWidthValueChanged(double /*value
  * @param brainBrowserWindowToolBarChartAttributes
  *   The parent attributes widget.
  */
-MatrixChartTwoAttributesWidget::MatrixChartTwoAttributesWidget(BrainBrowserWindowToolBarChartTwoAttributes* brainBrowserWindowToolBarChartAttributes)
+MatrixChartTwoAttributesWidget::MatrixChartTwoAttributesWidget(BrainBrowserWindowToolBarChartTwoAttributes* brainBrowserWindowToolBarChartAttributes,
+                                                               const QString& parentObjectName)
 : QWidget(brainBrowserWindowToolBarChartAttributes),
 EventListenerInterface()
 {
@@ -250,6 +266,9 @@ EventListenerInterface()
     m_cellWidthPercentageSpinBox->setToolTip("Percentage of tab width filled with matrix");
     m_cellWidthPercentageSpinBox->setKeyboardTracking(false);
     m_cellWidthPercentageSpinBox->setSuffix("%");
+    m_cellWidthPercentageSpinBox->setObjectName(parentObjectName
+                                                     + ":CellWidth");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_cellWidthPercentageSpinBox);
     
     QLabel* cellHeightLabel = new QLabel("Cell Height");
     m_cellHeightPercentageSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minPercent,
@@ -261,6 +280,9 @@ EventListenerInterface()
     m_cellHeightPercentageSpinBox->setToolTip("Percentage of tab height filled with matrix");
     m_cellHeightPercentageSpinBox->setKeyboardTracking(false);
     m_cellHeightPercentageSpinBox->setSuffix("%");
+    m_cellHeightPercentageSpinBox->setObjectName(parentObjectName
+                                                     + ":CellHeight");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_cellHeightPercentageSpinBox);
     
     WuQtUtilities::matchWidgetWidths(m_cellHeightPercentageSpinBox,
                                      m_cellWidthPercentageSpinBox);
@@ -269,11 +291,17 @@ EventListenerInterface()
     m_highlightSelectionCheckBox->setToolTip("Highlight selected row/column in the matrix");
     QObject::connect(m_highlightSelectionCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(valueChanged()));
+    m_highlightSelectionCheckBox->setObjectName(parentObjectName
+                                                     + ":HighlightSelection");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_highlightSelectionCheckBox);
     
     m_displayGridLinesCheckBox = new QCheckBox("Show Grid Outline");
     QObject::connect(m_displayGridLinesCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(valueChanged()));
     m_displayGridLinesCheckBox->setToolTip("Outline cells in the matrix");
+    m_displayGridLinesCheckBox->setObjectName(parentObjectName
+                                                     + ":EnableGridOutline");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_displayGridLinesCheckBox);
     
     m_manualWidgetsGroup = new WuQWidgetObjectGroup(this);
     m_manualWidgetsGroup->add(m_cellWidthPercentageSpinBox);

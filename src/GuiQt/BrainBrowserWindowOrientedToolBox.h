@@ -56,9 +56,10 @@ namespace caret {
         };
         
         BrainBrowserWindowOrientedToolBox(const int32_t browserWindowIndex,
-                                  const QString& title,
-                                  const ToolBoxType toolBoxType,
-                                  QWidget* parent = 0);
+                                          const QString& title,
+                                          const ToolBoxType toolBoxType,
+                                          const QString& parentObjectName,
+                                          QWidget* parent = 0);
         
         ~BrainBrowserWindowOrientedToolBox();
 

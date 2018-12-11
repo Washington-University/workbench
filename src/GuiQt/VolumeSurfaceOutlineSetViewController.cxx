@@ -53,11 +53,14 @@ using namespace caret;
  *    Orientation for layout
  * @param browserWindowIndex
  *    Index of browser window that contains this view controller.
+ * @param parentObjectNamePrefix
+ *    Name of parent object for macros
  * @param parent
  *    Parent widget.
  */
 VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(const Qt::Orientation orientation,
                                                                              const int32_t browserWindowIndex,
+                                                                             const QString& parentObjectNamePrefix,
                                                                              QWidget* parent)
 : QWidget(parent)
 {    
@@ -91,8 +94,11 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
     }
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
+        const QString name = QString(parentObjectNamePrefix
+                                     + ":VolumeSurfaceOutline%1").arg((int)(i + 1), 2, 10, QLatin1Char('0'));
         VolumeSurfaceOutlineViewController* ovc = new VolumeSurfaceOutlineViewController(orientation,
-                                                               gridLayout);
+                                                                                         gridLayout,
+                                                                                         name);
         this->outlineViewControllers.push_back(ovc);
     }
     

@@ -24,6 +24,8 @@
 #undef __WU_Q_MACRO_SIGNAL_WATCHER_DECLARE__
 
 #include <QAction>
+#include <QActionGroup>
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -39,6 +41,7 @@
 #include <QToolButton>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroManager.h"
 
@@ -59,10 +62,14 @@ using namespace caret;
  *     Object that is watched for a "value changed" signal
  * @param objectType
  *     The type of the object.
+ * @param toolTipTextOverride
+ *     Used to override tool tip or for when object does not
+ *     support a tool tip.
  */
 WuQMacroSignalWatcher::WuQMacroSignalWatcher(WuQMacroManager* parentMacroManager,
                                              QObject* object,
-                                             const WuQMacroObjectTypeEnum::Enum objectType)
+                                             const WuQMacroObjectTypeEnum::Enum objectType,
+                                             const QString& toolTipTextOverride)
 : QObject(),
 m_parentMacroManager(parentMacroManager),
 m_objectType(objectType),
@@ -84,6 +91,22 @@ m_objectName(object->objectName())
             QObject::connect(action, &QAction::triggered,
                              this, &WuQMacroSignalWatcher::actionTriggered);
             m_toolTipText = action->toolTip();
+        }
+            break;
+        case WuQMacroObjectTypeEnum::ACTION_GROUP:
+        {
+            QActionGroup* actionGroup = qobject_cast<QActionGroup*>(object);
+            CaretAssert(actionGroup);
+            QObject::connect(actionGroup, &QActionGroup::triggered,
+                             this, &WuQMacroSignalWatcher::actionGroupTriggered);
+        }
+            break;
+        case WuQMacroObjectTypeEnum::BUTTON_GROUP:
+        {
+            QButtonGroup* buttonGroup = qobject_cast<QButtonGroup*>(object);
+            CaretAssert(buttonGroup);
+            QObject::connect(buttonGroup, static_cast<void (QButtonGroup::*)(QAbstractButton*)>(&QButtonGroup::buttonClicked),
+                             this, &WuQMacroSignalWatcher::buttonGroupButtonClicked);
         }
             break;
         case WuQMacroObjectTypeEnum::CHECK_BOX:
@@ -197,6 +220,18 @@ m_objectName(object->objectName())
         }
             break;
     }
+    
+    /*
+     * Override the tool tip text
+     */
+    if ( ! toolTipTextOverride.isEmpty()) {
+        m_toolTipText = toolTipTextOverride;
+    }
+    
+    QObject::connect(object, &QObject::destroyed,
+                     this, &WuQMacroSignalWatcher::objectWasDestroyed);
+    QObject::connect(object, &QObject::objectNameChanged,
+                     this, &WuQMacroSignalWatcher::objectNameWasChanged);
 }
 
 /**
@@ -207,6 +242,38 @@ WuQMacroSignalWatcher::~WuQMacroSignalWatcher()
 }
 
 /**
+ * Called if the object whose signal is being monitored is destroyed
+ *
+ * @obj
+ *    Pointer to object that was destroyed
+ */
+void
+WuQMacroSignalWatcher::objectWasDestroyed(QObject* /*obj*/)
+{
+    /*
+     * Log object destroyed only when NOT debug
+     */
+#ifndef NDEBUG
+    CaretLogWarning("Object was destroyed: "
+                    + m_objectName);
+#endif
+}
+
+/**
+ * Called if the object whose signal is being monitored 
+ * has its name changed
+ *
+ * @name
+ *    New name
+ */
+void
+WuQMacroSignalWatcher::objectNameWasChanged(const QString& name)
+{
+    std::cout << "Object name changed from "
+    << m_objectName << " to " << name << std::endl;
+}
+
+/**
  * Create an new instance of a widget signal watcher for
  * the given object.
  *
@@ -214,6 +281,9 @@ WuQMacroSignalWatcher::~WuQMacroSignalWatcher()
  *     Parent macro manager.
  * @param object
  *     Object that will have a widget signal watcher.
+ * @param toolTipTextOverride
+ *     Used to override tool tip or for when object does not
+ *     support a tool tip.
  * @param errorMessageOut
  *     Output containing error information if failure.
  * @return
@@ -222,11 +292,12 @@ WuQMacroSignalWatcher::~WuQMacroSignalWatcher()
 WuQMacroSignalWatcher*
 WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
                                    QObject* object,
+                                   const QString& toolTipTextOverride,
                                    QString& errorMessageOut)
 {
     errorMessageOut.clear();
     
-    const QString objectClassName = object->metaObject()->className();
+    QString objectClassName = object->metaObject()->className();
     
     bool validFlag(false);
     WuQMacroObjectTypeEnum::Enum objectType = WuQMacroObjectTypeEnum::fromGuiName(objectClassName,
@@ -244,7 +315,8 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
     
     WuQMacroSignalWatcher* ww = new WuQMacroSignalWatcher(parentMacroManager,
                                                           object,
-                                                          objectType);
+                                                          objectType,
+                                                          toolTipTextOverride);
     return ww;
 }
 
@@ -270,6 +342,22 @@ WuQMacroSignalWatcher::createAndSendMacroCommand(const QVariant value)
 }
 
 /**
+ * Called when a action group has an item triggered
+ *
+ * @param action
+ *     ActionGroup action that was triggered
+ */
+void
+WuQMacroSignalWatcher::actionGroupTriggered(QAction* action)
+{
+    const QString text((action != NULL)
+                       ? action->text()
+                       : "");
+    createAndSendMacroCommand(text);
+}
+
+
+/**
  * Called when an action is triggered
  *
  * @param checked
@@ -280,6 +368,22 @@ WuQMacroSignalWatcher::actionTriggered(bool checked)
 {
     createAndSendMacroCommand(checked);
 }
+
+/**
+ * Called when a button group button is clicked
+ *
+ * @param button
+ *     Button that was clicked
+ */
+void
+WuQMacroSignalWatcher::buttonGroupButtonClicked(QAbstractButton* button)
+{
+    const QString text((button != NULL)
+                       ? button->text()
+                       : "");
+    createAndSendMacroCommand(text);
+}
+
 
 /**
  * Called when a check box is clicked

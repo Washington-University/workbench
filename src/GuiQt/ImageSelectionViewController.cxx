@@ -46,6 +46,7 @@
 #include "ImageFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "WuQMacroManager.h"
 #include "WuQSpinBoxGroup.h"
 #include "WuQtUtilities.h"
 #include "WuQTabWidget.h"
@@ -64,16 +65,23 @@ static const int COLUMN_RADIO_BUTTON = 0;
  * Constructor.
  */
 ImageSelectionViewController::ImageSelectionViewController(const int32_t browserWindowIndex,
+                                                           const QString& parentObjectName,
                                                            QWidget* parent)
 : QWidget(parent),
-m_browserWindowIndex(browserWindowIndex)
+m_browserWindowIndex(browserWindowIndex),
+m_objectNamePrefix(parentObjectName
+                   + ":Image")
 {
     setWindowTitle("Images");
+    
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
     
     m_sceneAssistant = new SceneClassAssistant();
     
     QLabel* groupLabel = new QLabel("Group");
-    m_imagesDisplayGroupComboBox = new DisplayGroupEnumComboBox(this);
+    m_imagesDisplayGroupComboBox = new DisplayGroupEnumComboBox(this,
+                                                                (m_objectNamePrefix
+                                                                 + ":DisplayGroup"));
     QObject::connect(m_imagesDisplayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
                      this, SLOT(imageDisplayGroupSelected(const DisplayGroupEnum::Enum)));
     
@@ -85,10 +93,18 @@ m_browserWindowIndex(browserWindowIndex)
     m_imageDisplayCheckBox = new QCheckBox("Display Image");
     QObject::connect(m_imageDisplayCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
+    m_imageDisplayCheckBox->setToolTip("Display Image");
+    m_imageDisplayCheckBox->setObjectName(m_objectNamePrefix
+                                          + ":Display");
+    macroManager->addMacroSupportToObject(m_imageDisplayCheckBox);
     
     m_controlPointsDisplayCheckBox = new QCheckBox("Display Control Points");
     QObject::connect(m_controlPointsDisplayCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
+    m_controlPointsDisplayCheckBox->setToolTip("Display Control Points");
+    m_controlPointsDisplayCheckBox->setObjectName(m_objectNamePrefix
+                                          + ":DisplayControlPoints");
+    macroManager->addMacroSupportToObject(m_controlPointsDisplayCheckBox);
     
     QWidget* attributesWidget = this->createAttributesWidget();
     QWidget* selectionWidget = this->createSelectionWidget();
@@ -100,6 +116,9 @@ m_browserWindowIndex(browserWindowIndex)
     m_tabWidget->addTab(selectionWidget,
                         "Selection");
     m_tabWidget->setCurrentWidget(attributesWidget);
+    m_tabWidget->getTabBar()->setObjectName(m_objectNamePrefix
+                               + ":Tab");
+    macroManager->addMacroSupportToObjectWithToolTip(m_tabWidget->getTabBar(), "");
     
     QVBoxLayout* layout = new QVBoxLayout(this);
 //    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
@@ -189,12 +208,19 @@ ImageSelectionViewController::createSelectionWidget()
 QWidget*
 ImageSelectionViewController::createAttributesWidget()
 {
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    const QString objectNamePrefix(m_objectNamePrefix
+                                   + ":Attributes");
+    
     QLabel* depthLabel = new QLabel("Depth");
     m_depthComboBox = new EnumComboBoxTemplate(this);
     m_depthComboBox->setup<ImageDepthPositionEnum, ImageDepthPositionEnum::Enum>();
     m_depthComboBox->getWidget()->setToolTip("Set the depth position of the image3");
     QObject::connect(m_depthComboBox, SIGNAL(itemActivated()),
                      this, SLOT(processAttributesChanges()));
+    m_depthComboBox->getComboBox()->setObjectName(objectNamePrefix
+                                                  + ":DepthPosition");
+    macroManager->addMacroSupportToObject(m_depthComboBox->getComboBox());
 
     const float threshMin = -1.0;
     const float threshMax = 100000.0;
@@ -209,6 +235,9 @@ ImageSelectionViewController::createAttributesWidget()
     m_thresholdMinimumSpinBox->setToolTip("Do not display image pixels containing a color component less than this value");
     QObject::connect(m_thresholdMinimumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
+    m_thresholdMinimumSpinBox->setObjectName(objectNamePrefix
+                                             + "MinimumThreshold");
+    macroManager->addMacroSupportToObject(m_thresholdMinimumSpinBox);
     
     QLabel* thresholdMaximumLabel = new QLabel("Maximum Threshold");
     m_thresholdMaximumSpinBox = WuQFactory::newDoubleSpinBox();
@@ -220,6 +249,9 @@ ImageSelectionViewController::createAttributesWidget()
     m_thresholdMaximumSpinBox->setToolTip("Do not display image pixels containing a color component greater than this value");
     QObject::connect(m_thresholdMaximumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
+    m_thresholdMaximumSpinBox->setObjectName(objectNamePrefix
+                                             + "MaximumThreshold");
+    macroManager->addMacroSupportToObject(m_thresholdMaximumSpinBox);
     
     const float minOpacity = 0.0;
     const float maxOpacity = 1.0;
@@ -233,6 +265,9 @@ ImageSelectionViewController::createAttributesWidget()
     m_opacitySpinBox->setToolTip("Opacity for image");
     QObject::connect(m_opacitySpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
+    m_opacitySpinBox->setObjectName(objectNamePrefix
+                                    + ":Opacity");
+    macroManager->addMacroSupportToObject(m_opacitySpinBox);
     
     
     QWidget* gridWidget = new QWidget();
@@ -251,17 +286,6 @@ ImageSelectionViewController::createAttributesWidget()
     gridLayout->addWidget(opacityLabel, row, 0);
     gridLayout->addWidget(m_opacitySpinBox, row, 1);
     row++;
-//    gridLayout->addWidget(pointSizeLabel, row, 0);
-//    gridLayout->addWidget(m_pointSizeSpinBox, row, 1);
-//    row++;
-//    gridLayout->addWidget(m_enableUnstretchedLinesCheckBox, row, 0);
-//    gridLayout->addWidget(m_unstretchedLinesLengthSpinBox, row, 1);
-//    row++;
-//    gridLayout->addWidget(aboveSurfaceLabel, row, 0);
-//    gridLayout->addWidget(m_aboveSurfaceOffsetSpinBox, row, 1);
-//    
-//    gridWidget->setSizePolicy(QSizePolicy::Fixed,
-//                              QSizePolicy::Fixed);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -417,6 +441,12 @@ ImageSelectionViewController::updateImageViewController()
             
             m_imageRadioButtonGroup->addButton(rb,
                                                buttonID);
+            
+            const QString buttonName(m_objectNamePrefix
+                                     + ":Selection:Image"
+                                     + QString("%1").arg((int)i+1, 2, 10, QLatin1Char('0')));
+            rb->setObjectName(buttonName);
+            WuQMacroManager::instance()->addMacroSupportToObjectWithToolTip(rb, "");
         }
         
         numRadioButtons = static_cast<int32_t>(m_imageRadioButtons.size());

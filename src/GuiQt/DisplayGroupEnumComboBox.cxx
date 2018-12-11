@@ -25,6 +25,8 @@
 #include "DisplayGroupEnumComboBox.h"
 #undef __DISPLAY_GROUP_ENUM_COMBO_BOX_DECLARE__
 
+#include "WuQMacroManager.h"
+
 using namespace caret;
 
 
@@ -46,6 +48,36 @@ using namespace caret;
  *    Parent object.
  */
 DisplayGroupEnumComboBox::DisplayGroupEnumComboBox(QObject* parent)
+: DisplayGroupEnumComboBox(parent,
+                           "")
+{
+    
+}
+//: WuQWidget(parent)
+//{
+//    std::vector<DisplayGroupEnum::Enum> allDisplayGroups;
+//    DisplayGroupEnum::getAllEnums(allDisplayGroups);
+//    const int32_t numStructures = static_cast<int32_t>(allDisplayGroups.size());
+//    
+//    this->displayGroupComboBox = new QComboBox();
+//    for (int32_t i = 0; i < numStructures; i++) {
+//        this->displayGroupComboBox->addItem(DisplayGroupEnum::toGuiName(allDisplayGroups[i]));
+//        this->displayGroupComboBox->setItemData(i, DisplayGroupEnum::toIntegerCode(allDisplayGroups[i]));
+//    }
+//    
+//    QObject::connect(this->displayGroupComboBox, SIGNAL(activated(int)),
+//                     this, SLOT(displayGroupComboBoxSelection(int)));
+//}
+
+/**
+ * Constructor.
+ * @param Parent
+ *    Parent object.
+ * @param objectNameForMacros
+ *    Name of object for macros
+ */
+DisplayGroupEnumComboBox::DisplayGroupEnumComboBox(QObject* parent,
+                                                   const QString& objectNameForMacros)
 : WuQWidget(parent)
 {
     std::vector<DisplayGroupEnum::Enum> allDisplayGroups;
@@ -60,6 +92,12 @@ DisplayGroupEnumComboBox::DisplayGroupEnumComboBox(QObject* parent)
     
     QObject::connect(this->displayGroupComboBox, SIGNAL(activated(int)),
                      this, SLOT(displayGroupComboBoxSelection(int)));
+    
+    if ( ! objectNameForMacros.isEmpty()) {
+        this->displayGroupComboBox->setToolTip("Select Display Group");
+        this->displayGroupComboBox->setObjectName(objectNameForMacros);
+        WuQMacroManager::instance()->addMacroSupportToObject(this->displayGroupComboBox);
+    }
 }
 
 /**

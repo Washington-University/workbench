@@ -100,6 +100,7 @@ m_browserTabIndex(-1),
 m_upsamplingSurfaceSelectionModel(NULL),
 m_upsamplingSurfaceStructure(StructureEnum::INVALID)
 {
+    m_objectNamePrefix + "BorderOptimizeDialog";
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE);
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
     m_optimizeDataFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
@@ -1015,7 +1016,9 @@ BorderOptimizeDialog::isKeepBoundaryBorderSelected() const
 QWidget*
 BorderOptimizeDialog::createSurfaceSelectionWidget()
 {
-    m_surfaceSelectionControl = new SurfaceSelectionViewController(this);
+    m_surfaceSelectionControl = new SurfaceSelectionViewController(this,
+                                                                   (m_objectNamePrefix
+                                                                    + ":SurfaceSelectionComboBox"));
     QObject::connect(m_surfaceSelectionControl, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(gradientComputatonSurfaceSelected(Surface*)));
     
@@ -1035,7 +1038,9 @@ QWidget*
 BorderOptimizeDialog::createSphericalUpsamplingWidget()
 {
     QLabel* surfaceLabel = new QLabel("Current Sphere");
-    m_upsamplingSurfaceSelectionControl = new SurfaceSelectionViewController(this);
+    m_upsamplingSurfaceSelectionControl = new SurfaceSelectionViewController(this,
+                                                                             (m_objectNamePrefix
+                                                                              + ":SphericalSurfaceSelectionComboBox"));
     
     QLabel* resolutionLabel = new QLabel("Upsampling Resolution");
     m_upsamplingResolutionSpinBox = new QSpinBox();

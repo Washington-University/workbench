@@ -26,7 +26,9 @@
 #include <cmath>
 
 #include <QAction>
+#include <QActionGroup>
 #include <QApplication>
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCursor>
@@ -44,6 +46,7 @@
 #include <QToolButton>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroMouseEventInfo.h"
@@ -110,7 +113,11 @@ WuQMacroExecutor::moveMouse(QWidget* widget,
  * @param macro
  *    Macro that is run
  * @param window
- *    The window from which macro was launched
+ *    The window from which macro was launched and is searched for 
+ *    objects contained in the macro commands
+ * @param 
+ *    Additional objects that are searched for objects contained
+ *    in the macro commands
  * @param options
  *    Executor options
  * @param errorMessageOut
@@ -121,6 +128,7 @@ WuQMacroExecutor::moveMouse(QWidget* widget,
 bool
 WuQMacroExecutor::runMacro(const WuQMacro* macro,
                            QObject* window,
+                           std::vector<QObject*>& otherObjectParents,
                            const RunOptions& options,
                            QString& errorMessageOut) const
 {
@@ -134,13 +142,54 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
         const QString objectName(mc->getObjectName());
         QObject* object = window->findChild<QObject*>(objectName);
         if (object == NULL) {
-            errorMessageOut.append("Unable to find object named "
-                                   + objectName
-                                   + "\n");
-            if (options.m_stopOnErrorFlag) {
-                return false;
+            object = qApp->findChild<QObject*>(objectName);
+            if (object != NULL) {
+                CaretLogWarning("Found "
+                                + objectName
+                                + " in the app");
             }
-            continue;
+            else {
+                for (auto other : otherObjectParents) {
+                    object = other->findChild<QObject*>(objectName);
+                    if (object != NULL) {
+                        break;
+                    }
+                }
+                    const bool extraFindFlag(false);
+                    if (extraFindFlag) {
+                        static bool firstTime = true;
+                        if (firstTime) {
+                            QWidgetList topLevelWs = QApplication::topLevelWidgets();
+                            std::cout << "Top level widget count: " << topLevelWs.size() << std::endl;
+                            for (QObject* w : topLevelWs) {
+                                if (w->objectName() == objectName) {
+                                    std::cout << objectName << " is a top level widget" << std::endl;
+                                    break;
+                                }
+                                object = w->findChild<QObject*>(objectName);
+                                if (object != NULL) {
+                                    QString parentName;
+                                    QObject* parent = object->parent();
+                                    if (parent != NULL) {
+                                        parentName = parent->objectName();
+                                    }
+                                    std::cout << "Found object in top level widget: \"" << parentName << "\"" << std::endl;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                
+                if (object == NULL) {
+                    errorMessageOut.append("Unable to find object named "
+                                           + objectName
+                                           + "\n");
+                    if (options.m_stopOnErrorFlag) {
+                        return false;
+                    }
+                    continue;
+                }
+            }
         }
         
         if (object->signalsBlocked()) {
@@ -245,6 +294,34 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
             }
         }
             break;
+        case WuQMacroObjectTypeEnum::ACTION_GROUP:
+        {
+            QActionGroup* actionGroup = qobject_cast<QActionGroup*>(object);
+            if (actionGroup != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
+                WuQMacroSignalEmitter signalEmitter;
+                signalEmitter.emitActionGroupSignal(actionGroup,
+                                                     objectValue.toString());
+            }
+            else {
+                notFoundFlag = true;
+            }
+        }
+            break;
+        case WuQMacroObjectTypeEnum::BUTTON_GROUP:
+        {
+            QButtonGroup* buttonGroup = qobject_cast<QButtonGroup*>(object);
+            if (buttonGroup != NULL) {
+                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
+                WuQMacroSignalEmitter signalEmitter;
+                signalEmitter.emitQButtonGroupSignal(buttonGroup,
+                                                     objectValue.toString());
+            }
+            else {
+                notFoundFlag = true;
+            }
+        }
+            break;
         case WuQMacroObjectTypeEnum::CHECK_BOX:
         {
             QCheckBox* checkBox = qobject_cast<QCheckBox*>(object);
@@ -324,8 +401,8 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
             if (menu != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
                 WuQMacroSignalEmitter signalEmitter;
-                signalEmitter.emitQMenuTriggered(menu,
-                                                 objectValue.toString());
+                signalEmitter.emitQMenuSignal(menu,
+                                              objectValue.toString());
             }
             else {
                 notFoundFlag = true;

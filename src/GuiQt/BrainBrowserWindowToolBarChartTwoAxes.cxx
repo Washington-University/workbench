@@ -55,6 +55,7 @@
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
 #include "WuQDoubleSpinBox.h"
+#include "WuQMacroManager.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -73,12 +74,19 @@ using namespace caret;
  *
  * @param parentToolBar
  *   The parent toolbar.
+ * @param parentObjectName
+ *   Name of parent object for macros
  */
-BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(BrainBrowserWindowToolBar* parentToolBar)
+BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(BrainBrowserWindowToolBar* parentToolBar,
+                                                                             const QString& parentObjectName)
 : BrainBrowserWindowToolBarComponent(parentToolBar)
 {
     m_chartOverlaySet = NULL;
     m_chartAxis = NULL;
+    
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    const QString objectNamePrefix(parentObjectName
+                                   + ":ChartAxes:");
     
     /*
      * 'Show' checkboxes
@@ -87,26 +95,42 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_axisDisplayedByUserCheckBox->setToolTip("Show/hide the axis");
     QObject::connect(m_axisDisplayedByUserCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
+    m_axisDisplayedByUserCheckBox->setObjectName(objectNamePrefix
+                                                 + "ShowAxis");
+    macroManager->addMacroSupportToObject(m_axisDisplayedByUserCheckBox);
+    
 
     m_showTickMarksCheckBox = new QCheckBox("Ticks");
     QObject::connect(m_showTickMarksCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
     m_showTickMarksCheckBox->setToolTip("Show ticks along the axis");
+    m_showTickMarksCheckBox->setObjectName(objectNamePrefix
+                                                 + "ShowTicks");
+    macroManager->addMacroSupportToObject(m_showTickMarksCheckBox);
     
     m_showLabelCheckBox = new QCheckBox("Label");
     QObject::connect(m_showLabelCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
     m_showLabelCheckBox->setToolTip("Show label on axis");
+    m_showLabelCheckBox->setObjectName(objectNamePrefix
+                                                 + "ShowLabel");
+    macroManager->addMacroSupportToObject(m_showLabelCheckBox);
     
     m_showNumericsCheckBox = new QCheckBox("Nums");
     QObject::connect(m_showNumericsCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
     m_showNumericsCheckBox->setToolTip("Show numeric scale values on axis");
+    m_showNumericsCheckBox->setObjectName(objectNamePrefix
+                                                 + "ShowNumerics");
+    macroManager->addMacroSupportToObject(m_showNumericsCheckBox);
     
     m_rotateNumericsCheckBox = new QCheckBox("Rotate");
     QObject::connect(m_rotateNumericsCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedBool);
     m_rotateNumericsCheckBox->setToolTip("Rotate numeric scale values on axis");
+    m_rotateNumericsCheckBox->setObjectName(objectNamePrefix
+                                                 + "EnableNumericsRotate");
+    macroManager->addMacroSupportToObject(m_rotateNumericsCheckBox);
     
     /*
      * Axes selection
@@ -116,6 +140,9 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QObject::connect(m_axisComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisChanged);
     m_axisComboBox->getWidget()->setToolTip("Choose axis for editing");
+    m_axisComboBox->getWidget()->setObjectName(objectNamePrefix
+                                                 + "ChooseAxis");
+    macroManager->addMacroSupportToObject(m_axisComboBox->getComboBox());
     
     /*
      * Controls for layer selection and label editing
@@ -126,12 +153,18 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisLabelToolButtonClicked);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_axisLabelToolButton);
     m_axisLabelToolButton->setToolTip("Edit the axis name for the file in the selected overlay");
+    m_axisLabelToolButton->setObjectName(objectNamePrefix
+                                                 + "EditAxis");
+    macroManager->addMacroSupportToObject(m_axisLabelToolButton);
     
     QLabel* axisLabelFromOverlayLabel = new QLabel("Label From File In");
     m_axisLabelFromOverlayComboBox = new QComboBox();
     m_axisLabelFromOverlayComboBox->setToolTip("Label for axis is from file in selected layer");
     QObject::connect(m_axisLabelFromOverlayComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt);
+    m_axisLabelFromOverlayComboBox->setObjectName(objectNamePrefix
+                                                 + "LabelFromOverlay");
+    macroManager->addMacroSupportToObject(m_axisLabelFromOverlayComboBox);
     
     /*
      * Range controls
@@ -147,6 +180,9 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QObject::connect(m_autoUserRangeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
     m_autoUserRangeComboBox->getWidget()->setToolTip(rangeTooltip);
+    m_autoUserRangeComboBox->getWidget()->setObjectName(objectNamePrefix
+                                                 + "RangeMode");
+    macroManager->addMacroSupportToObject(m_autoUserRangeComboBox->getWidget());
     
     m_userMinimumValueSpinBox = new WuQDoubleSpinBox(this);
     m_userMinimumValueSpinBox->setDecimalsModeAuto();
@@ -154,6 +190,9 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QObject::connect(m_userMinimumValueSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisMinimumValueChanged);
     m_userMinimumValueSpinBox->setToolTip("Set user scaling axis minimum value");
+    m_userMinimumValueSpinBox->getWidget()->setObjectName(objectNamePrefix
+                                                 + "ScaleMinimum");
+    macroManager->addMacroSupportToObject(m_userMinimumValueSpinBox->getWidget());
     
     m_userMaximumValueSpinBox = new WuQDoubleSpinBox(this);
     m_userMaximumValueSpinBox->setDecimalsModeAuto();
@@ -161,6 +200,9 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QObject::connect(m_userMaximumValueSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisMaximumValueChanged);
     m_userMaximumValueSpinBox->setToolTip("Set user scaling axis maximum value");
+    m_userMaximumValueSpinBox->getWidget()->setObjectName(objectNamePrefix
+                                                 + "ScaleMaximum");
+    macroManager->addMacroSupportToObject(m_userMaximumValueSpinBox->getWidget());
     
     /*
      * Format controls
@@ -170,22 +212,34 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QObject::connect(m_userNumericFormatComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
     m_userNumericFormatComboBox->getWidget()->setToolTip("Choose format of axis scale numeric values");
+    m_userNumericFormatComboBox->getWidget()->setObjectName(objectNamePrefix
+                                                 + "Format");
+    macroManager->addMacroSupportToObject(m_userNumericFormatComboBox->getWidget());
     
     m_userDigitsRightOfDecimalSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0, 10, 1);
     QObject::connect(m_userDigitsRightOfDecimalSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt);
     m_userDigitsRightOfDecimalSpinBox->setToolTip("Set digits right of decimal for\ndecimal or scientific format");
+    m_userDigitsRightOfDecimalSpinBox->setObjectName(objectNamePrefix
+                                                 + "DigitsRightOfDecimal");
+    macroManager->addMacroSupportToObject(m_userDigitsRightOfDecimalSpinBox);
     
     m_numericSubdivisionsModeComboBox = new EnumComboBoxTemplate(this);
     m_numericSubdivisionsModeComboBox->setup<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>();
     QObject::connect(m_numericSubdivisionsModeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
     m_numericSubdivisionsModeComboBox->getWidget()->setToolTip("Numeric subdivisions mode");
+    m_numericSubdivisionsModeComboBox->getWidget()->setObjectName(objectNamePrefix
+                                                 + "NumericSubdivisionsMode");
+    macroManager->addMacroSupportToObject(m_numericSubdivisionsModeComboBox->getWidget());
     
     m_userSubdivisionsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0, 100, 1);
     QObject::connect(m_userSubdivisionsSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt); 
     m_userSubdivisionsSpinBox->setToolTip("Set subdivisions on the axis when Auto is not checked");
+    m_userSubdivisionsSpinBox->setObjectName(objectNamePrefix
+                                                 + "NumberOfSubdivisions");
+    macroManager->addMacroSupportToObject(m_userSubdivisionsSpinBox);
     
     /*
      * Size spin boxes
@@ -195,24 +249,36 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     QObject::connect(m_labelSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_labelSizeSpinBox->setToolTip("Set height of label as percentage of tab height for selected axis");
+    m_labelSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
+                                                 + "LabelHeight");
+    macroManager->addMacroSupportToObject(m_labelSizeSpinBox->getWidget());
     
     m_numericsSizeSpinBox = new WuQDoubleSpinBox(this);
     m_numericsSizeSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_numericsSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_numericsSizeSpinBox->setToolTip("Set height of numeric values as percentage of tab height for selected axis");
+    m_numericsSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
+                                                 + "NumericValueHeight");
+    macroManager->addMacroSupportToObject(m_numericsSizeSpinBox->getWidget());
     
     m_linesTicksSizeSpinBox = new WuQDoubleSpinBox(this);
     m_linesTicksSizeSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_linesTicksSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisLineThicknessChanged);
     m_linesTicksSizeSpinBox->setToolTip("Set thickness of axis lines as percentage of tab height for ALL axes");
+    m_linesTicksSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
+                                                 + "TicksSize");
+    macroManager->addMacroSupportToObject(m_linesTicksSizeSpinBox->getWidget());
     
     m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
     m_paddingSizeSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_paddingSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height for selected axis");
+    m_paddingSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
+                                                 + "PaddingSize");
+    macroManager->addMacroSupportToObject(m_paddingSizeSpinBox->getWidget());
     
     /*
      * Group widgets for blocking signals

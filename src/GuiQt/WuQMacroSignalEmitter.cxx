@@ -24,6 +24,8 @@
 #undef __WU_Q_MACRO_SIGNAL_EMITTER_DECLARE__
 
 #include <QAction>
+#include <QActionGroup>
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -90,6 +92,111 @@ WuQMacroSignalEmitter::emitQActionSignal(QAction* action,
 }
 
 /**
+ * Update a QActionGroup's selected action and cause emission
+ * of its triggered() signal
+ *
+ * @param actionGroup
+ *    The QActionGroup
+ * @param text
+ *    Text of selected action
+ */
+void
+WuQMacroSignalEmitter::emitActionGroupSignal(QActionGroup* actionGroup,
+                                             const QString& text)
+{
+    CaretAssert(actionGroup);
+    
+    QList<QAction*> actions = actionGroup->actions();
+    if (actions.isEmpty()) {
+        CaretLogWarning("Menu "
+                        + actionGroup->objectName()
+                        + " does not contain any actions when trying to select menu item with text: "
+                        + text);
+        return;
+    }
+    
+    QAction* actionSelected = NULL;
+    const int32_t numActions = actions.size();
+    for (int32_t i = 0; i < numActions; i++) {
+        if (actions.at(i)->text() == text) {
+            actionSelected = actions.at(i);
+        }
+    }
+    
+    if (actionSelected == NULL) {
+        CaretLogWarning("Unable to find QAction with text \""
+                        + text
+                        + "\" for menu "
+                        + actionGroup->objectName());
+        return;
+    }
+    
+    QSignalBlocker blocker(actionGroup);
+    actionSelected->trigger();
+    blocker.unblock();
+    
+    
+    QObject::connect(this, &WuQMacroSignalEmitter::valueChangedSignalActionGroupAction,
+                     actionGroup, &QActionGroup::triggered);
+    
+    emit valueChangeSignalMenuAction(actionSelected);
+    
+    QObject::disconnect(this, &WuQMacroSignalEmitter::valueChangedSignalActionGroupAction, 0, 0);
+}
+
+/**
+ * Update a QButtonGroup and cause emission
+ * of its buttonClicked() signal
+ *
+ * @param buttonGroup
+ *    The QButtonGroup
+ * @param text
+ *    Text of button
+ */
+void
+WuQMacroSignalEmitter::emitQButtonGroupSignal(QButtonGroup* buttonGroup,
+                                              const QString& text)
+{
+    CaretAssert(buttonGroup);
+    
+    QAbstractButton* buttonSelected = NULL;
+    
+    QList<QAbstractButton*> allButtons = buttonGroup->buttons();
+    if (allButtons.isEmpty()) {
+        CaretLogWarning("ButtonGroup "
+                        + buttonGroup->objectName()
+                        + " does not contain any buttons when trying to select button item with text: "
+                        + text);
+        return;
+    }
+    
+    for (auto b : allButtons) {
+        if (b->text() == text) {
+            buttonSelected = b;
+            break;
+        }
+    }
+    if (buttonSelected == NULL) {
+        CaretLogWarning("Unable to find QAbstactButton with text \""
+                        + text
+                        + "\" for button group "
+                        + buttonGroup->objectName());
+        return;
+    }
+    
+    QSignalBlocker blocker(buttonGroup);
+    buttonSelected->click();
+    blocker.unblock();
+    
+    QObject::connect(this, &WuQMacroSignalEmitter::valueChangedSignalAbstractButton,
+                     buttonGroup, static_cast<void (QButtonGroup::*)(QAbstractButton*)>(&QButtonGroup::buttonClicked));
+    
+    emit valueChangedSignalAbstractButton(buttonSelected);
+    
+    QObject::disconnect(this, &WuQMacroSignalEmitter::valueChangedSignalBool, 0, 0);
+}
+
+/**
  * Update a QCheckBox's checked status and cause emission
  * of its clicked() signal
  *
@@ -103,7 +210,7 @@ WuQMacroSignalEmitter::emitQCheckBoxSignal(QCheckBox* checkBox,
                                            const bool checked)
 {
     CaretAssert(checkBox);
-    checkBox->setChecked(checkBox);
+    checkBox->setChecked(checked);
     
     QObject::connect(this, &WuQMacroSignalEmitter::valueChangedSignalBool,
                      checkBox, &QCheckBox::clicked);
@@ -226,24 +333,39 @@ WuQMacroSignalEmitter::emitQLineEditSignal(QLineEdit* lineEdit,
 }
 
 /**
- * Update a QLineEdit's text and cause emission
- * of its textChanged() signal
+ * Select an item from a menu using the item's text
  *
  * @param lineEdit
  *    The QLineEdit
- * @param text
- *    New text
+ * @param menuActionText
+ *    Text of menu item for selection
  */
 void
-WuQMacroSignalEmitter::emitQMenuTriggered(QMenu* menu,
-                        const QString& text)
+WuQMacroSignalEmitter::emitQMenuSignal(QMenu* menu,
+                                       const QString& menuActionText)
 {
     CaretAssert(menu);
     
     QList<QAction*> actions = menu->actions();
     if (actions.isEmpty()) {
+        CaretLogWarning("Menu "
+                        + menu->objectName()
+                        + " does not contain any actions when trying to select menu item with text: "
+                        + menuActionText);
+        return;
+    }
+    
+    QAction* actionSelected = NULL;
+    const int32_t numActions = actions.size();
+    for (int32_t i = 0; i < numActions; i++) {
+        if (actions.at(i)->text() == menuActionText) {
+            actionSelected = actions.at(i);
+        }
+    }
+
+    if (actionSelected == NULL) {
         CaretLogWarning("Unable to find QAction with text \""
-                        + text
+                        + menuActionText
                         + "\" for menu "
                         + menu->objectName());
         return;
@@ -252,7 +374,7 @@ WuQMacroSignalEmitter::emitQMenuTriggered(QMenu* menu,
     QObject::connect(this, &WuQMacroSignalEmitter::valueChangeSignalMenuAction,
                      menu, &QMenu::triggered);
     
-    emit valueChangeSignalMenuAction(actions.at(0));
+    emit valueChangeSignalMenuAction(actionSelected);
     
     QObject::disconnect(this, &WuQMacroSignalEmitter::valueChangeSignalMenuAction, 0, 0);
 }
@@ -296,12 +418,26 @@ WuQMacroSignalEmitter::emitQRadioButtonSignal(QRadioButton* radioButton,
                                               const bool checked)
 {
     CaretAssert(radioButton);
-    radioButton->setChecked(checked);
     
     QObject::connect(this, &WuQMacroSignalEmitter::valueChangedSignalBool,
                      radioButton, &QRadioButton::clicked);
     
-    emit valueChangedSignalBool(checked);
+    const bool useClickFlag(true);
+    if (useClickFlag) {
+        QSignalBlocker blocker(radioButton);
+        radioButton->setChecked( !checked);
+        blocker.unblock();
+        radioButton->click();
+    }
+    else {
+        /*
+         * This does not work for a radio button in a button group
+         * as either click() or animateClick() is needed for the
+         * button group to emit a signal
+         */
+        radioButton->setChecked(checked);
+        emit valueChangedSignalBool(checked);
+    }
     
     QObject::disconnect(this, &WuQMacroSignalEmitter::valueChangedSignalBool, 0, 0);
 }

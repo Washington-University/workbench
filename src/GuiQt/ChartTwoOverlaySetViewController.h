@@ -40,8 +40,9 @@ namespace caret {
 
     public:
         ChartTwoOverlaySetViewController(const Qt::Orientation orientation,
-                                      const int32_t browserWindowIndex,
-                                      QWidget* parent = 0);
+                                         const int32_t browserWindowIndex,
+                                         const QString& parentObjectName,
+                                         QWidget* parent = 0);
         
         virtual ~ChartTwoOverlaySetViewController();
         

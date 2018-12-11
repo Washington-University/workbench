@@ -49,7 +49,8 @@ namespace caret {
 
     public:
         BorderSelectionViewController(const int32_t browserWindowIndex,
-                              QWidget* parent = 0);
+                                      const QString& parentObjectName,
+                                      QWidget* parent = 0);
         
         virtual ~BorderSelectionViewController();
         
@@ -82,6 +83,8 @@ namespace caret {
         QWidget* createSelectionWidget();
         
         QWidget* createAttributesWidget();
+        
+        const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex;
         

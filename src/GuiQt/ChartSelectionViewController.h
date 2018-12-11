@@ -41,6 +41,7 @@ namespace caret {
     public:
         ChartSelectionViewController(const Qt::Orientation orientation,
                                      const int32_t browserWindowIndex,
+                                     const QString& parentObjectName,
                                      QWidget* parent);
         
         virtual ~ChartSelectionViewController();

@@ -28,6 +28,9 @@
 #include <QObject>
 
 class QAction;
+class QActionGroup;
+class QAbstractButton;
+class QButtonGroup;
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
@@ -61,8 +64,14 @@ namespace caret {
         void emitQActionSignal(QAction* action,
                               const bool checked);
 
+        void emitActionGroupSignal(QActionGroup* actionGroup,
+                                      const QString& text);
+        
         void emitQCheckBoxSignal(QCheckBox* checkBox,
                                  const bool checked);
+        
+        void emitQButtonGroupSignal(QButtonGroup* buttonGroup,
+                                    const QString& text);
         
         void emitQComboBoxSignal(QComboBox* comboBox,
                                  const int32_t index);
@@ -76,7 +85,7 @@ namespace caret {
         void emitQListWidgetSignal(QListWidget* listWidget,
                                    const QString& text);
         
-        void emitQMenuTriggered(QMenu* menu,
+        void emitQMenuSignal(QMenu* menu,
                                 const QString& text);
         
         void emitQPushButtonSignal(QPushButton* pushButton,
@@ -103,9 +112,13 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     signals:
+        void valueChangedSignalActionGroupAction(QAction*);
+        
         void valueChangeSignalMenuAction(QAction*);
         
         void valueChangedSignalBool(bool);
+        
+        void valueChangedSignalAbstractButton(QAbstractButton* button);
         
         void valueChangedSignalInt(int);
         

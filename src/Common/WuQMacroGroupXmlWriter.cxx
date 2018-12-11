@@ -162,6 +162,10 @@ WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroComma
     switch (macroCommand->getObjectType()) {
         case WuQMacroObjectTypeEnum::ACTION:
             break;
+        case WuQMacroObjectTypeEnum::ACTION_GROUP:
+            break;
+        case WuQMacroObjectTypeEnum::BUTTON_GROUP:
+            break;
         case WuQMacroObjectTypeEnum::CHECK_BOX:
             break;
         case WuQMacroObjectTypeEnum::COMBO_BOX:

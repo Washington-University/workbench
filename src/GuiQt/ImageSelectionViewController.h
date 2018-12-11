@@ -49,6 +49,7 @@ namespace caret {
 
     public:
         ImageSelectionViewController(const int32_t browserWindowIndex,
+                                     const QString& parentObjectName,
                                      QWidget* parent = 0);
         
         virtual ~ImageSelectionViewController();
@@ -96,6 +97,8 @@ namespace caret {
         QWidget* createAttributesWidget();
         
         const int32_t m_browserWindowIndex;
+        
+        const QString m_objectNamePrefix;
         
         WuQTabWidget* m_tabWidget;
         

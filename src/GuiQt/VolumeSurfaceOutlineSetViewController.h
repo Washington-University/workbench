@@ -42,6 +42,7 @@ namespace caret {
     public:
         VolumeSurfaceOutlineSetViewController(const Qt::Orientation orientation,
                                               const int32_t browserWindowIndex,
+                                              const QString& parentObjectNamePrefix,
                                               QWidget* parent = 0);
         
         virtual ~VolumeSurfaceOutlineSetViewController();

@@ -42,6 +42,7 @@
 #include "ModelChartTwo.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDoubleSpinBox.h"
+#include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -56,21 +57,36 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param parentToolBar
+ *    The parent toolbar
+ * @param parentObjectName
+ *    Name of parent object for macros
  */
-BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(BrainBrowserWindowToolBar* parentToolBar)
+BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(BrainBrowserWindowToolBar* parentToolBar,
+                                                                               const QString& parentObjectName)
 : BrainBrowserWindowToolBarComponent(parentToolBar)
 {
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    const QString objectNamePrefix(parentObjectName
+                                   + ":ChartTitle:");
+    
     m_showTitleCheckBox = new QCheckBox("Show Title");
     m_showTitleCheckBox->setToolTip("Show the title at the top of the chart");
     QObject::connect(m_showTitleCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarChartTwoTitle::showTitleCheckBoxClicked);
+    m_showTitleCheckBox->setObjectName(objectNamePrefix
+                                       + "Show");
+    macroManager->addMacroSupportToObject(m_showTitleCheckBox);
     
-    QAction* editTitleAction = new QAction("Edit Title...", this);
+    QToolButton* editTitleToolButton = new QToolButton;
+    QAction* editTitleAction = new QAction("Edit Title...", editTitleToolButton);
     editTitleAction->setToolTip("Edit the chart title in a dialog");
     QObject::connect(editTitleAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarChartTwoTitle::editTitleActionTriggered);
-    
-    QToolButton* editTitleToolButton = new QToolButton;
+    editTitleAction->setObjectName(objectNamePrefix
+                                       + "Edit");
+    macroManager->addMacroSupportToObject(editTitleAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(editTitleToolButton);
     editTitleToolButton->setDefaultAction(editTitleAction);
     
@@ -79,11 +95,17 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
     QObject::connect(m_titleSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged);
     m_titleSizeSpinBox->setToolTip("Set height of title as percentage of tab height");
+    m_titleSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
+                                       + "Height");
+    macroManager->addMacroSupportToObject(m_titleSizeSpinBox->getWidget());
     
     m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
     m_paddingSizeSpinBox->setRangePercentage(0.0, 100.0);
     QObject::connect(m_paddingSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged);
+    m_paddingSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
+                                                     + "Padding");
+    macroManager->addMacroSupportToObject(m_paddingSizeSpinBox->getWidget());
     
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height");
     QGridLayout* layout = new QGridLayout(this);

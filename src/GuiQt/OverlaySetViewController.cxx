@@ -60,11 +60,14 @@ using namespace caret;
  *    Orientation for layout
  * @param browserWindowIndex
  *    Index of browser window that contains this view controller.
+ * @param parentObjectName
+ *    Name of parent
  * @param parent
  *    Parent widget.
  */
 OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orientation,
                                                    const int32_t browserWindowIndex,
+                                                   const QString& parentObjectName,
                                                    QWidget* parent)
 : QWidget(parent)
 {
@@ -114,6 +117,7 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
                                                                gridLayout,
                                                                browserWindowIndex,
                                                                i,
+                                                               parentObjectName,
                                                                this);
         this->overlayViewControllers.push_back(ovc);
         

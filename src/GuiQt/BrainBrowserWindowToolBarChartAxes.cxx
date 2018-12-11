@@ -39,6 +39,7 @@
 #include "ChartModelFrequencySeries.h"
 #include "ChartModelTimeSeries.h"
 #include "ModelChart.h"
+#include "WuQMacroManager.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -58,10 +59,15 @@ using namespace caret;
  * @param parentToolBar
  *    parent toolbar.
  */
-BrainBrowserWindowToolBarChartAxes::BrainBrowserWindowToolBarChartAxes(BrainBrowserWindowToolBar* parentToolBar)
+BrainBrowserWindowToolBarChartAxes::BrainBrowserWindowToolBarChartAxes(BrainBrowserWindowToolBar* parentToolBar,
+                                                                       const QString& parentObjectName)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
+    const QString objectNamePrefix(parentObjectName
+                                   + ":ChartOneAxes:");
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
     gridLayout->addWidget(new QLabel("Axis"),
@@ -91,6 +97,16 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_bottomAxisMaximumValueSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(bottomAxisValueChanged(double)));
     
+    m_bottomAxisAutoRangeScaleCheckBox->setObjectName(objectNamePrefix
+                                                      + "EnableBottomAxis");
+    macroManager->addMacroSupportToObject(m_bottomAxisAutoRangeScaleCheckBox);
+    m_bottomAxisMinimumValueSpinBox->setObjectName(objectNamePrefix
+                                                      + "BottomAxisMinimumValue");
+    macroManager->addMacroSupportToObject(m_bottomAxisMinimumValueSpinBox);
+    m_bottomAxisMaximumValueSpinBox->setObjectName(objectNamePrefix
+                                                      + "BottomAxisMaximumValue");
+    macroManager->addMacroSupportToObject(m_bottomAxisMaximumValueSpinBox);
+    
     createAxisWidgets(gridLayout,
                       m_leftAxisLabel,
                       m_leftAxisAutoRangeScaleCheckBox,
@@ -104,6 +120,16 @@ m_parentToolBar(parentToolBar)
                      this, SLOT(leftAxisValueChanged(double)));
     QObject::connect(m_leftAxisMaximumValueSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(leftAxisValueChanged(double)));
+    
+    m_leftAxisAutoRangeScaleCheckBox->setObjectName(objectNamePrefix
+                                                      + "EnableLeftAxis");
+    macroManager->addMacroSupportToObject(m_leftAxisAutoRangeScaleCheckBox);
+    m_leftAxisMinimumValueSpinBox->setObjectName(objectNamePrefix
+                                                   + "LeftAxisMinimumValue");
+    macroManager->addMacroSupportToObject(m_leftAxisMinimumValueSpinBox);
+    m_leftAxisMaximumValueSpinBox->setObjectName(objectNamePrefix
+                                                   + "LeftAxisMaximumValue");
+    macroManager->addMacroSupportToObject(m_leftAxisMaximumValueSpinBox);
     
 //    createAxisWidgets(gridLayout,
 //                      m_topAxisLabel,

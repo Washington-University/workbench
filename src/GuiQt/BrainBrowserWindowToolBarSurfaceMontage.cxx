@@ -41,6 +41,7 @@
 #include "SurfaceMontageLayoutOrientationEnum.h"
 #include "SurfaceSelectionModel.h"
 #include "SurfaceSelectionViewController.h"
+#include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 
@@ -59,8 +60,11 @@ using namespace caret;
  *
  * @param parentToolBar
  *    parent toolbar.
+ * @param objectNamePrefix
+ *    Prefix name for naming objects
  */
-BrainBrowserWindowToolBarSurfaceMontage::BrainBrowserWindowToolBarSurfaceMontage(BrainBrowserWindowToolBar* parentToolBar)
+BrainBrowserWindowToolBarSurfaceMontage::BrainBrowserWindowToolBarSurfaceMontage(BrainBrowserWindowToolBar* parentToolBar,
+                                                                                 const QString& objectNamePrefix)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
@@ -74,6 +78,9 @@ m_parentToolBar(parentToolBar)
                                           "   Cerebellar Cortex\n"
                                           "   Cerebral Cortex\n"
                                           "   Flat Maps"));
+    m_surfaceMontageConfigurationTypeEnumComboBox->getComboBox()->setObjectName(objectNamePrefix
+                                                                                + ":SurfaceMontageConfiguration");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_surfaceMontageConfigurationTypeEnumComboBox->getComboBox());
 
     m_surfaceMontageLayoutOrientationEnumComboBox = new EnumComboBoxTemplate(this);
     m_surfaceMontageLayoutOrientationEnumComboBox->setup<SurfaceMontageLayoutOrientationEnum,SurfaceMontageLayoutOrientationEnum::Enum>();
@@ -84,12 +91,18 @@ m_parentToolBar(parentToolBar)
                                          ("Selects Surface Layout:\n"
                                           "   Landscape (Layout left-to-right)\n"
                                           "   Portrait  (Layout top-to-bottom)"));
+    m_surfaceMontageLayoutOrientationEnumComboBox->getComboBox()->setObjectName(objectNamePrefix
+                                                                                + ":SurfaceMontageOrientation");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_surfaceMontageLayoutOrientationEnumComboBox->getComboBox());
     
-    m_cerebellarComponent = new SurfaceMontageCerebellarComponent(this);
+    m_cerebellarComponent = new SurfaceMontageCerebellarComponent(this,
+                                                                  objectNamePrefix);
     
-    m_cerebralComponent = new SurfaceMontageCerebralComponent(this);
+    m_cerebralComponent = new SurfaceMontageCerebralComponent(this,
+                                                              objectNamePrefix);
     
-    m_flatMapsComponent = new SurfaceMontageFlatMapsComponent(this);
+    m_flatMapsComponent = new SurfaceMontageFlatMapsComponent(this,
+                                                              objectNamePrefix);
     
     QHBoxLayout* configOrientationLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(configOrientationLayout, 2, 0);
@@ -221,49 +234,89 @@ BrainBrowserWindowToolBarSurfaceMontage::updateContent(BrowserTabContent* browse
  *
  * @param parentToolBar
  *    parent toolbar.
+ * @param objectNamePrefix
+ *    Prefix name for naming objects
  */
-SurfaceMontageCerebralComponent::SurfaceMontageCerebralComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage)
+SurfaceMontageCerebralComponent::SurfaceMontageCerebralComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage,
+                                                                 const QString& parentObjectNamePrefix)
 : QWidget(parentToolBarMontage)
 {
+    const QString objectNamePrefix(parentObjectNamePrefix
+                                   + ":SurfaceMontage");
+    
     m_parentToolBarMontage = parentToolBarMontage;
+    
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
     
     m_leftCheckBox = new QCheckBox("Left");
     QObject::connect(m_leftCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_leftCheckBox->setObjectName(objectNamePrefix
+                                  + ":EnableLeft");
+    m_leftCheckBox->setToolTip("Enable Left Surfaces");
+    macroManager->addMacroSupportToObject(m_leftCheckBox);
     
     m_rightCheckBox = new QCheckBox("Right");
     QObject::connect(m_rightCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_rightCheckBox->setObjectName(objectNamePrefix
+                                  + ":EnableRight");
+    m_rightCheckBox->setToolTip("Enable Right Surface");
+    macroManager->addMacroSupportToObject(m_rightCheckBox);
     
     m_lateralCheckBox = new QCheckBox("Lateral");
     QObject::connect(m_lateralCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_lateralCheckBox->setObjectName(objectNamePrefix
+                                  + ":EnableLateralView");
+    m_lateralCheckBox->setToolTip("Enable Lateral View");
+    macroManager->addMacroSupportToObject(m_lateralCheckBox);
     
     m_medialCheckBox = new QCheckBox("Medial");
     QObject::connect(m_medialCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_medialCheckBox->setObjectName(objectNamePrefix
+                                  + ":EnableMedialView");
+    m_medialCheckBox->setToolTip("Enable Medial View");
+    macroManager->addMacroSupportToObject(m_medialCheckBox);
     
     m_surfaceMontageFirstSurfaceCheckBox = new QCheckBox(" ");
     QObject::connect(m_surfaceMontageFirstSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_surfaceMontageFirstSurfaceCheckBox->setObjectName(objectNamePrefix
+                                  + ":EnableFirstRowSurfaces");
+    m_surfaceMontageFirstSurfaceCheckBox->setToolTip("Enable First Surfaces");
+    macroManager->addMacroSupportToObject(m_surfaceMontageFirstSurfaceCheckBox);
     
     m_surfaceMontageSecondSurfaceCheckBox = new QCheckBox(" ");
     QObject::connect(m_surfaceMontageSecondSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_surfaceMontageSecondSurfaceCheckBox->setObjectName(objectNamePrefix
+                                  + ":EnableSecondRowSurfaces");
+    m_surfaceMontageSecondSurfaceCheckBox->setToolTip("Enable Second Surfaces");
+    macroManager->addMacroSupportToObject(m_surfaceMontageSecondSurfaceCheckBox);
     
-    m_leftSurfaceViewController = new SurfaceSelectionViewController(this);
+    m_leftSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                     objectNamePrefix
+                                                                     + ":SurfaceLeftTop");
     QObject::connect(m_leftSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(leftSurfaceSelected(Surface*)));
     
-    m_leftSecondSurfaceViewController = new SurfaceSelectionViewController(this);
+    m_leftSecondSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                           objectNamePrefix
+                                                                           + ":SurfaceLeftBottom");
     QObject::connect(m_leftSecondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(leftSecondSurfaceSelected(Surface*)));
     
-    m_rightSurfaceViewController = new SurfaceSelectionViewController(this);
+    m_rightSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                      objectNamePrefix
+                                                                      + ":SurfaceRightTop");
     QObject::connect(m_rightSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(rightSurfaceSelected(Surface*)));
     
-    m_rightSecondSurfaceViewController = new SurfaceSelectionViewController(this);
+    m_rightSecondSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                            objectNamePrefix
+                                                                            + ":SurfaceRightBottom");
     QObject::connect(m_rightSecondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(rightSecondSurfaceSelected(Surface*)));
     
@@ -468,41 +521,77 @@ SurfaceMontageCerebralComponent::checkBoxSelected(bool /*status*/)
  *
  * @param parentToolBar
  *    parent toolbar.
+ * @param objectNamePrefix
+ *    Prefix name for naming objects
  */
-SurfaceMontageCerebellarComponent::SurfaceMontageCerebellarComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage)
+SurfaceMontageCerebellarComponent::SurfaceMontageCerebellarComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage,
+                                                                     const QString& parentObjectNamePrefix)
 : QWidget(parentToolBarMontage)
 {
+    const QString objectNamePrefix(parentObjectNamePrefix
+                                   + ":SurfaceMontageCerebellum");
+    
     m_parentToolBarMontage = parentToolBarMontage;
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
     
     m_dorsalCheckBox = new QCheckBox("Dorsal");
     QObject::connect(m_dorsalCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_dorsalCheckBox->setObjectName(objectNamePrefix
+                                    + ":EnableDorsalView");
+    m_dorsalCheckBox->setToolTip("Enable Dorsal View");
+    macroManager->addMacroSupportToObject(m_dorsalCheckBox);
     
     m_ventralCheckBox = new QCheckBox("Ventral");
     QObject::connect(m_ventralCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_ventralCheckBox->setObjectName(objectNamePrefix
+                                    + ":EnableVentralView");
+    m_ventralCheckBox->setToolTip("Enable Ventral View");
+    macroManager->addMacroSupportToObject(m_ventralCheckBox);
     
     m_anteriorCheckBox = new QCheckBox("Anterior");
     QObject::connect(m_anteriorCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_anteriorCheckBox->setObjectName(objectNamePrefix
+                                    + ":EnableAnteriorView");
+    m_anteriorCheckBox->setToolTip("Enable Anterior View");
+    macroManager->addMacroSupportToObject(m_anteriorCheckBox);
     
     m_posteriorCheckBox = new QCheckBox("Posterior");
     QObject::connect(m_posteriorCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_posteriorCheckBox->setObjectName(objectNamePrefix
+                                    + ":EnablePosteriorView");
+    m_posteriorCheckBox->setToolTip("Enable Posterior View");
+    macroManager->addMacroSupportToObject(m_posteriorCheckBox);
     
     m_firstSurfaceCheckBox = new QCheckBox(" ");
     QObject::connect(m_firstSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_firstSurfaceCheckBox->setObjectName(objectNamePrefix
+                                    + ":EnableFirstSurface");
+    m_firstSurfaceCheckBox->setToolTip("Enable First Cerebellar Surface");
+    macroManager->addMacroSupportToObject(m_firstSurfaceCheckBox);
     
     m_secondSurfaceCheckBox = new QCheckBox(" ");
     QObject::connect(m_secondSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_secondSurfaceCheckBox->setObjectName(objectNamePrefix
+                                    + ":EnableSecondSurface");
+    m_secondSurfaceCheckBox->setToolTip("Enable Second Cerebellar Surface");
+    macroManager->addMacroSupportToObject(m_secondSurfaceCheckBox);
     
-    m_firstSurfaceViewController = new SurfaceSelectionViewController(this);
+    m_firstSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                      objectNamePrefix
+                                                                      + ":SurfaceFirst");
     QObject::connect(m_firstSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(firstSurfaceSelected(Surface*)));
     
-    m_secondSurfaceViewController = new SurfaceSelectionViewController(this);
+    m_secondSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                       objectNamePrefix
+                                                                       + ":SecondSurface");
+    
     QObject::connect(m_secondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(secondSurfaceSelected(Surface*)));
     
@@ -669,47 +758,61 @@ SurfaceMontageCerebellarComponent::checkBoxSelected(bool /*status*/)
  *
  * @param parentToolBar
  *    parent toolbar.
+ * @param objectNamePrefix
+ *    Prefix name for naming objects
  */
-SurfaceMontageFlatMapsComponent::SurfaceMontageFlatMapsComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage)
+SurfaceMontageFlatMapsComponent::SurfaceMontageFlatMapsComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage,
+                                                                 const QString& parentObjectNamePrefix)
 : QWidget(parentToolBarMontage)
 {
+    const QString objectNamePrefix(parentObjectNamePrefix
+                                   + ":SurfaceMontageFlat");
+    
     m_parentToolBarMontage = parentToolBarMontage;
+    
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
     
     m_leftSurfaceCheckBox = new QCheckBox("Left");
     QObject::connect(m_leftSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_leftSurfaceCheckBox->setObjectName(objectNamePrefix
+                                         + ":EnableLeft");
+    m_leftSurfaceCheckBox->setToolTip("Enable Left Flat Surface");
+    macroManager->addMacroSupportToObject(m_leftSurfaceCheckBox);
     
     m_rightSurfaceCheckBox = new QCheckBox("Right");
     QObject::connect(m_rightSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_rightSurfaceCheckBox->setObjectName(objectNamePrefix
+                                         + ":EnableRight");
+    m_rightSurfaceCheckBox->setToolTip("Enable Right Flat Surface");
+    macroManager->addMacroSupportToObject(m_rightSurfaceCheckBox);
     
     m_cerebellumSurfaceCheckBox = new QCheckBox("Cerebellum ");
     QObject::connect(m_cerebellumSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
+    m_cerebellumSurfaceCheckBox->setObjectName(objectNamePrefix
+                                         + ":EnableCerebellum");
+    m_cerebellumSurfaceCheckBox->setToolTip("Enable Cerebellum Flat Surface");
+    macroManager->addMacroSupportToObject(m_cerebellumSurfaceCheckBox);
     
-    m_leftSurfaceViewController = new SurfaceSelectionViewController(this);
+    m_leftSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                     objectNamePrefix
+                                                                     + ":LeftFlatSurface");
     QObject::connect(m_leftSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(leftSurfaceSelected(Surface*)));
     
-    m_rightSurfaceViewController = new SurfaceSelectionViewController(this);
+    m_rightSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                      objectNamePrefix
+                                                                      + ":RightFlatSurface");
     QObject::connect(m_rightSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(rightSurfaceSelected(Surface*)));
     
-    m_cerebellumSurfaceViewController = new SurfaceSelectionViewController(this);
+    m_cerebellumSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                           objectNamePrefix
+                                                                           + ":CerebellumSurface");
     QObject::connect(m_cerebellumSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(cerebellumSurfaceSelected(Surface*)));
-    
-//    QHBoxLayout* checkBoxLayout = new QHBoxLayout();
-//    WuQtUtilities::setLayoutSpacingAndMargins(checkBoxLayout, 2, 0);
-//    checkBoxLayout->addStretch();
-//    checkBoxLayout->addWidget(m_leftSurfaceCheckBox);
-//    checkBoxLayout->addSpacing(5);
-//    checkBoxLayout->addStretch();
-//    checkBoxLayout->addWidget(m_rightSurfaceCheckBox);
-//    checkBoxLayout->addSpacing(5);
-//    checkBoxLayout->addStretch();
-//    checkBoxLayout->addWidget(m_cerebellumSurfaceCheckBox);
-//    checkBoxLayout->addStretch();
     
     int32_t columnIndex = 0;
     const int32_t COLUMN_CHECKBOX  = columnIndex++;
@@ -729,10 +832,6 @@ SurfaceMontageFlatMapsComponent::SurfaceMontageFlatMapsComponent(BrainBrowserWin
     layout->addWidget(m_cerebellumSurfaceCheckBox, row, COLUMN_CHECKBOX);
     layout->addWidget(m_cerebellumSurfaceViewController->getWidget(), row, COLUMN_SELECTION);
     row = layout->rowCount();
-//    layout->addLayout(checkBoxLayout,
-//                      row, COLUMN_CHECKBOX,
-//                      1, 2);
-//    row = layout->rowCount();
     
     m_widgetGroup = new WuQWidgetObjectGroup(this);
     m_widgetGroup->add(m_leftSurfaceViewController->getWidget());

@@ -114,11 +114,19 @@ WuQMacroObjectTypeEnum::initialize()
                                     "ACTION", 
                                     "QAction"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(CHECK_BOX, 
-                                    "CHECK_BOX", 
-                                    "QCheckBox"));
+    enumData.push_back(WuQMacroObjectTypeEnum(ACTION_GROUP,
+                                              "ACTION_GROUP",
+                                              "QActionGroup"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(COMBO_BOX, 
+    enumData.push_back(WuQMacroObjectTypeEnum(BUTTON_GROUP,
+                                              "BUTTON_GROUP",
+                                              "QButtonGroup"));
+    
+    enumData.push_back(WuQMacroObjectTypeEnum(CHECK_BOX,
+                                              "CHECK_BOX",
+                                              "QCheckBox"));
+    
+    enumData.push_back(WuQMacroObjectTypeEnum(COMBO_BOX,
                                     "COMBO_BOX", 
                                     "QComboBox"));
     
@@ -264,7 +272,7 @@ WuQMacroObjectTypeEnum::toGuiName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its GUI name.
- * @param s 
+ * @param guiNameIn
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -273,9 +281,20 @@ WuQMacroObjectTypeEnum::toGuiName(Enum enumValue) {
  *     Enumerated value.
  */
 WuQMacroObjectTypeEnum::Enum 
-WuQMacroObjectTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+WuQMacroObjectTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+    
+    /*
+     * Some widgets are extended from Qt Widgets and end with the Qt Name
+     */
+    AString guiName(guiNameIn);
+    for (auto alias : s_widgetClassNameAliases) {
+        if (alias.second == guiName) {
+            guiName = alias.first;
+            break;
+        }
+    }
     
     bool validFlag = false;
     Enum enumValue = WuQMacroObjectTypeEnum::enumData[0].enumValue;
@@ -425,4 +444,21 @@ WuQMacroObjectTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const 
         std::sort(allGuiNames.begin(), allGuiNames.end());
     }
 }
+
+/**
+ * Add a widget alias for class names
+ *
+ * @param widgetName
+ *     The name of a Qt widget class
+ * @param aliasWidgetName
+ *     Name of class that is derived from Qt widget with name 'widgetName'
+ */
+void
+WuQMacroObjectTypeEnum::addWidgetClassNameAlias(const QString& widgetName,
+                                                const QString& aliasWidgetName)
+{
+    s_widgetClassNameAliases.push_back(std::make_pair(widgetName,
+                                                      aliasWidgetName));
+}
+
 

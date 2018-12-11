@@ -37,6 +37,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ModelChart.h"
+#include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -52,10 +53,15 @@ using namespace caret;
  */
 ChartSelectionViewController::ChartSelectionViewController(const Qt::Orientation orientation,
                                                            const int32_t browserWindowIndex,
+                                                           const QString& parentObjectName,
                                                            QWidget* parent)
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
+
 {
+    const QString objectNamePrefix(parentObjectName
+                                   + ":History");
+    
     m_mode = MODE_INVALID;
     
     m_brainordinateChartWidget = new ChartLinesSelectionViewController(orientation,

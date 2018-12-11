@@ -41,7 +41,8 @@ namespace caret {
         Q_OBJECT
         
     public:
-        BrainBrowserWindowToolBarChartTwoAttributes(BrainBrowserWindowToolBar* parentToolBar);
+        BrainBrowserWindowToolBarChartTwoAttributes(BrainBrowserWindowToolBar* parentToolBar,
+                                                    const QString& parentObjectName);
         
         virtual ~BrainBrowserWindowToolBarChartTwoAttributes();
         
@@ -80,7 +81,8 @@ namespace caret {
         Q_OBJECT
     
     public:
-        CartesianChartTwoAttributesWidget(BrainBrowserWindowToolBarChartTwoAttributes* brainBrowserWindowToolBarChartAttributes);
+        CartesianChartTwoAttributesWidget(BrainBrowserWindowToolBarChartTwoAttributes* brainBrowserWindowToolBarChartAttributes,
+                                          const QString& parentObjectName);
         
         ~CartesianChartTwoAttributesWidget();
         
@@ -104,7 +106,8 @@ namespace caret {
         Q_OBJECT
         
     public:
-        MatrixChartTwoAttributesWidget(BrainBrowserWindowToolBarChartTwoAttributes* brainBrowserWindowToolBarChartAttributes);
+        MatrixChartTwoAttributesWidget(BrainBrowserWindowToolBarChartTwoAttributes* brainBrowserWindowToolBarChartAttributes,
+                                       const QString& parentObjectName);
         
         ~MatrixChartTwoAttributesWidget();
         

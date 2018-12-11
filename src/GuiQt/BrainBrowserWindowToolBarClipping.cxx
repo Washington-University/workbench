@@ -33,6 +33,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "GuiManager.h"
+#include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -47,45 +48,86 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param browserWindowIndex
+ *     Index of window
+ * @param parentToolBar
+ *     The parent toolbar
+ * @param parentObjectNamePrefix
+ *     Name of parent object
  */
 BrainBrowserWindowToolBarClipping::BrainBrowserWindowToolBarClipping(const int32_t browserWindowIndex,
-                                                                     BrainBrowserWindowToolBar* parentToolBar)
+                                                                     BrainBrowserWindowToolBar* parentToolBar,
+                                                                     const QString& parentObjectNamePrefix)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_browserWindowIndex(browserWindowIndex),
 m_parentToolBar(parentToolBar)
 {
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    CaretAssert(macroManager);
+    
+    const QString objectNamePrefix(parentObjectNamePrefix
+                                   + ":Clipping");
+    
     m_xClippingEnabledCheckBox = new QCheckBox("X");
     QObject::connect(m_xClippingEnabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(clippingCheckBoxCheckStatusChanged()));
+    m_xClippingEnabledCheckBox->setToolTip("Enable X clipping plane");
+    m_xClippingEnabledCheckBox->setObjectName(objectNamePrefix
+                                              + ":EnableX");
+    macroManager->addMacroSupportToObject(m_xClippingEnabledCheckBox);
 
     m_yClippingEnabledCheckBox = new QCheckBox("Y");
     QObject::connect(m_yClippingEnabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(clippingCheckBoxCheckStatusChanged()));
+    m_yClippingEnabledCheckBox->setToolTip("Enable Y clipping plane");
+    m_yClippingEnabledCheckBox->setObjectName(objectNamePrefix
+                                              + ":EnableY");
+    macroManager->addMacroSupportToObject(m_yClippingEnabledCheckBox);
     
     m_zClippingEnabledCheckBox = new QCheckBox("Z");
     QObject::connect(m_zClippingEnabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(clippingCheckBoxCheckStatusChanged()));
+    m_zClippingEnabledCheckBox->setToolTip("Enable Z clipping plane");
+    m_zClippingEnabledCheckBox->setObjectName(objectNamePrefix
+                                              + ":EnableZ");
+    macroManager->addMacroSupportToObject(m_zClippingEnabledCheckBox);
     
     m_surfaceClippingEnabledCheckBox = new QCheckBox("Surface");
     QObject::connect(m_surfaceClippingEnabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(clippingCheckBoxCheckStatusChanged()));
+    m_surfaceClippingEnabledCheckBox->setToolTip("Enable Clipping of Surface");
+    m_surfaceClippingEnabledCheckBox->setObjectName(objectNamePrefix
+                                                    + ":EnableSurface");
+    macroManager->addMacroSupportToObject(m_surfaceClippingEnabledCheckBox);
     
     m_volumeClippingEnabledCheckBox = new QCheckBox("Volume");
     QObject::connect(m_volumeClippingEnabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(clippingCheckBoxCheckStatusChanged()));
+    m_volumeClippingEnabledCheckBox->setToolTip("Enable Clipping of Volume Slices");
+    m_volumeClippingEnabledCheckBox->setObjectName(objectNamePrefix
+                                              + ":EnableVolume");
+    macroManager->addMacroSupportToObject(m_volumeClippingEnabledCheckBox);
     
     m_featuresClippingEnabledCheckBox = new QCheckBox("Features");
     QObject::connect(m_featuresClippingEnabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(clippingCheckBoxCheckStatusChanged()));
+    m_featuresClippingEnabledCheckBox->setToolTip("Enable Clipping of Features");
+    m_featuresClippingEnabledCheckBox->setObjectName(objectNamePrefix
+                                              + ":EnableFeatures");
+    macroManager->addMacroSupportToObject(m_featuresClippingEnabledCheckBox);
     
     QToolButton* setupToolButton = new QToolButton();
     setupToolButton->setText("Setup");
     QObject::connect(setupToolButton, SIGNAL(clicked()),
                      this, SLOT(setupClippingPushButtonClicked()));
     WuQtUtilities::setToolButtonStyleForQt5Mac(setupToolButton);
+    setupToolButton->setToolTip("Display Clipping Planes Setup Dialog");
+    setupToolButton->setObjectName(objectNamePrefix
+                                   + ":ShowSetupDialog");
+    macroManager->addMacroSupportToObject(setupToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
-//    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
     gridLayout->setHorizontalSpacing(6);
     gridLayout->setVerticalSpacing(4);
     gridLayout->setContentsMargins(1, 1, 1, 1);
@@ -101,31 +143,6 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(m_volumeClippingEnabledCheckBox, rowIndex, 0, 1, 3);
     rowIndex++;
     gridLayout->addWidget(setupToolButton, rowIndex, 0, 1, 3, Qt::AlignHCenter);
-    
-//    /*
-//     * Layout:
-//     *   Column 1: Clipping X, Y, Z
-//     *   Column 2: Nothing but used as space
-//     *   Column 3: Type of data clipped.
-//     */
-//    QGridLayout* checkboxGridLayout = new QGridLayout();
-//    WuQtUtilities::setLayoutSpacingAndMargins(checkboxGridLayout, 4, 0);
-//    checkboxGridLayout->setColumnMinimumWidth(1, 15);
-//    checkboxGridLayout->setColumnStretch(0, 0);
-//    checkboxGridLayout->setColumnStretch(0, 1);
-//    checkboxGridLayout->setColumnStretch(0, 2);
-//    checkboxGridLayout->addWidget(m_xClippingEnabledCheckBox, 0, 0);
-//    checkboxGridLayout->addWidget(m_yClippingEnabledCheckBox, 1, 0);
-//    checkboxGridLayout->addWidget(m_zClippingEnabledCheckBox, 2, 0);
-//    checkboxGridLayout->addWidget(m_surfaceClippingEnabledCheckBox, 0, 2);
-//    checkboxGridLayout->addWidget(m_volumeClippingEnabledCheckBox, 1, 2);
-//    checkboxGridLayout->addWidget(m_featuresClippingEnabledCheckBox, 2, 2);
-//    
-//    QVBoxLayout* layout = new QVBoxLayout(this);
-//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-//    layout->addLayout(checkboxGridLayout);
-//    layout->addWidget(setupToolButton, 0, Qt::AlignHCenter);
-//    layout->addStretch();
 }
 
 /**
