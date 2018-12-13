@@ -29,7 +29,7 @@
 
 #include "CaretObjectTracksModification.h"
 #include "WuQMacroDataValueTypeEnum.h"
-#include "WuQMacroObjectTypeEnum.h"
+#include "WuQMacroClassTypeEnum.h"
 
 class QObject;
 
@@ -41,13 +41,12 @@ namespace caret {
         
     public:
         
-        WuQMacroCommand(const WuQMacroObjectTypeEnum::Enum objectType,
-                        const QString& objectName,
-                        const QString& objectToolTip,
-                        const QVariant value);
+        WuQMacroCommand(const WuQMacroClassTypeEnum::Enum objectClassType,
+                        const QString& objectClassName,
+                        const QVariant dataValue,
+                        const QVariant dataValueTwo);
         
-        WuQMacroCommand(const QString& objectName,
-                        const QString& objectToolTip,
+        WuQMacroCommand(const QString& objectClassName,
                         WuQMacroMouseEventInfo* mouseEventInfo);
         
         virtual ~WuQMacroCommand();
@@ -56,16 +55,18 @@ namespace caret {
         
         WuQMacroCommand& operator=(const WuQMacroCommand& obj);
         
-        WuQMacroObjectTypeEnum::Enum getObjectType() const;
-        
-        WuQMacroDataValueTypeEnum::Enum getObjectDataValueType() const;
+        WuQMacroClassTypeEnum::Enum getClassType() const;
         
         QString getObjectName() const;
         
-        QString getObjectToolTip() const;
+        WuQMacroDataValueTypeEnum::Enum getDataType() const;
         
-        QVariant getObjectValue() const;
+        QVariant getDataValue() const;
 
+        WuQMacroDataValueTypeEnum::Enum getDataTypeTwo() const;
+        
+        QVariant getDataValueTwo() const;
+        
         const WuQMacroMouseEventInfo* getMouseEventInfo() const;
         
         // ADD_NEW_METHODS_HERE
@@ -75,17 +76,19 @@ namespace caret {
     private:
         void copyHelperWuQMacroCommand(const WuQMacroCommand& obj);
                 
-        WuQMacroObjectTypeEnum::Enum m_objectType;
+        WuQMacroClassTypeEnum::Enum m_classType;
         
         QString m_objectName;
         
-        QString m_objectToolTip;
+        QVariant m_dataValue;
         
-        QVariant m_value;
+        WuQMacroDataValueTypeEnum::Enum m_dataType;
+        
+        QVariant m_dataValueTwo;
+        
+        WuQMacroDataValueTypeEnum::Enum m_dataTypeTwo;
         
         WuQMacroMouseEventInfo* m_macroMouseEvent;
-        
-        WuQMacroDataValueTypeEnum::Enum m_objectDataValueType;
         
         // ADD_NEW_MEMBERS_HERE
 

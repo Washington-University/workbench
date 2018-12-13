@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __WU_Q_MACRO_OBJECT_TYPE_ENUM_DECLARE__
-#include "WuQMacroObjectTypeEnum.h"
-#undef __WU_Q_MACRO_OBJECT_TYPE_ENUM_DECLARE__
+#define __WU_Q_MACRO_CLASS_TYPE_ENUM_DECLARE__
+#include "WuQMacroClassTypeEnum.h"
+#undef __WU_Q_MACRO_CLASS_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::WuQMacroObjectTypeEnum 
+ * \class caret::WuQMacroClassTypeEnum 
  * \brief Enumerated type for specific type of object in macro
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_wuQMacroObjectTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_WuQMacroClassTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void wuQMacroObjectTypeEnumComboBoxItemActivated();
+ *             void WuQMacroClassTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "WuQMacroObjectTypeEnum.h"
+ *         #include "WuQMacroClassTypeEnum.h"
  * 
  *     Instatiate:
- *         m_wuQMacroObjectTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_wuQMacroObjectTypeEnumComboBox->setup<WuQMacroObjectTypeEnum,WuQMacroObjectTypeEnum::Enum>();
+ *         m_WuQMacroClassTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_WuQMacroClassTypeEnumComboBox->setup<WuQMacroClassTypeEnum,WuQMacroClassTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_wuQMacroObjectTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(wuQMacroObjectTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_WuQMacroClassTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(WuQMacroClassTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_wuQMacroObjectTypeEnumComboBox->setSelectedItem<WuQMacroObjectTypeEnum,WuQMacroObjectTypeEnum::Enum>(NEW_VALUE);
+ *         m_WuQMacroClassTypeEnumComboBox->setSelectedItem<WuQMacroClassTypeEnum,WuQMacroClassTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const WuQMacroObjectTypeEnum::Enum VARIABLE = m_wuQMacroObjectTypeEnumComboBox->getSelectedItem<WuQMacroObjectTypeEnum,WuQMacroObjectTypeEnum::Enum>();
+ *         const WuQMacroClassTypeEnum::Enum VARIABLE = m_WuQMacroClassTypeEnumComboBox->getSelectedItem<WuQMacroClassTypeEnum,WuQMacroClassTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-WuQMacroObjectTypeEnum::WuQMacroObjectTypeEnum(const Enum enumValue,
+WuQMacroClassTypeEnum::WuQMacroClassTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ WuQMacroObjectTypeEnum::WuQMacroObjectTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-WuQMacroObjectTypeEnum::~WuQMacroObjectTypeEnum()
+WuQMacroClassTypeEnum::~WuQMacroClassTypeEnum()
 {
 }
 
@@ -99,82 +99,82 @@ WuQMacroObjectTypeEnum::~WuQMacroObjectTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-WuQMacroObjectTypeEnum::initialize()
+WuQMacroClassTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(WuQMacroObjectTypeEnum(INVALID, 
+    enumData.push_back(WuQMacroClassTypeEnum(INVALID, 
                                     "INVALID", 
                                     "Invalid"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(ACTION, 
+    enumData.push_back(WuQMacroClassTypeEnum(ACTION, 
                                     "ACTION", 
                                     "QAction"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(ACTION_GROUP,
+    enumData.push_back(WuQMacroClassTypeEnum(ACTION_GROUP,
                                               "ACTION_GROUP",
                                               "QActionGroup"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(BUTTON_GROUP,
+    enumData.push_back(WuQMacroClassTypeEnum(BUTTON_GROUP,
                                               "BUTTON_GROUP",
                                               "QButtonGroup"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(CHECK_BOX,
+    enumData.push_back(WuQMacroClassTypeEnum(CHECK_BOX,
                                               "CHECK_BOX",
                                               "QCheckBox"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(COMBO_BOX,
+    enumData.push_back(WuQMacroClassTypeEnum(COMBO_BOX,
                                     "COMBO_BOX", 
                                     "QComboBox"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(DOUBLE_SPIN_BOX, 
+    enumData.push_back(WuQMacroClassTypeEnum(DOUBLE_SPIN_BOX, 
                                     "DOUBLE_SPIN_BOX", 
                                     "QDoubleSpinBox"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(LINE_EDIT, 
+    enumData.push_back(WuQMacroClassTypeEnum(LINE_EDIT, 
                                     "LINE_EDIT", 
                                     "QLineEdit"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(LIST_WIDGET, 
+    enumData.push_back(WuQMacroClassTypeEnum(LIST_WIDGET, 
                                     "LIST_WIDGET", 
                                     "QListWidget"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(MENU, 
+    enumData.push_back(WuQMacroClassTypeEnum(MENU, 
                                     "MENU", 
                                     "QMenu"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(MOUSE_USER_EVENT,
+    enumData.push_back(WuQMacroClassTypeEnum(MOUSE_USER_EVENT,
                                               "MOUSE_USER_EVENT",
                                               "QMouseEvent"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(PUSH_BUTTON,
+    enumData.push_back(WuQMacroClassTypeEnum(PUSH_BUTTON,
                                     "PUSH_BUTTON", 
                                     "QPushButton"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(RADIO_BUTTON, 
+    enumData.push_back(WuQMacroClassTypeEnum(RADIO_BUTTON, 
                                     "RADIO_BUTTON", 
                                     "QRadioButton"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(SLIDER, 
+    enumData.push_back(WuQMacroClassTypeEnum(SLIDER, 
                                     "SLIDER", 
                                     "QSlider"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(SPIN_BOX, 
+    enumData.push_back(WuQMacroClassTypeEnum(SPIN_BOX, 
                                     "SPIN_BOX", 
                                     "QSpinBox"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(TAB_BAR, 
+    enumData.push_back(WuQMacroClassTypeEnum(TAB_BAR, 
                                     "TAB_BAR", 
                                     "QTabBar"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(TAB_WIDGET, 
+    enumData.push_back(WuQMacroClassTypeEnum(TAB_WIDGET, 
                                     "TAB_WIDGET", 
                                     "QTabWidget"));
     
-    enumData.push_back(WuQMacroObjectTypeEnum(TOOL_BUTTON, 
+    enumData.push_back(WuQMacroClassTypeEnum(TOOL_BUTTON, 
                                     "TOOL_BUTTON", 
                                     "QToolButton"));
 }
@@ -186,14 +186,14 @@ WuQMacroObjectTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const WuQMacroObjectTypeEnum*
-WuQMacroObjectTypeEnum::findData(const Enum enumValue)
+const WuQMacroClassTypeEnum*
+WuQMacroClassTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const WuQMacroObjectTypeEnum* d = &enumData[i];
+        const WuQMacroClassTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -210,10 +210,10 @@ WuQMacroObjectTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-WuQMacroObjectTypeEnum::toName(Enum enumValue) {
+WuQMacroClassTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const WuQMacroObjectTypeEnum* enumInstance = findData(enumValue);
+    const WuQMacroClassTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -227,18 +227,18 @@ WuQMacroObjectTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-WuQMacroObjectTypeEnum::Enum 
-WuQMacroObjectTypeEnum::fromName(const AString& name, bool* isValidOut)
+WuQMacroClassTypeEnum::Enum 
+WuQMacroClassTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = WuQMacroObjectTypeEnum::enumData[0].enumValue;
+    Enum enumValue = WuQMacroClassTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<WuQMacroObjectTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WuQMacroClassTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const WuQMacroObjectTypeEnum& d = *iter;
+        const WuQMacroClassTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -250,7 +250,7 @@ WuQMacroObjectTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type WuQMacroObjectTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type WuQMacroClassTypeEnum"));
     }
     return enumValue;
 }
@@ -263,10 +263,10 @@ WuQMacroObjectTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-WuQMacroObjectTypeEnum::toGuiName(Enum enumValue) {
+WuQMacroClassTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const WuQMacroObjectTypeEnum* enumInstance = findData(enumValue);
+    const WuQMacroClassTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -280,8 +280,8 @@ WuQMacroObjectTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-WuQMacroObjectTypeEnum::Enum 
-WuQMacroObjectTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValidOut)
+WuQMacroClassTypeEnum::Enum 
+WuQMacroClassTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
@@ -297,12 +297,12 @@ WuQMacroObjectTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValidOut)
     }
     
     bool validFlag = false;
-    Enum enumValue = WuQMacroObjectTypeEnum::enumData[0].enumValue;
+    Enum enumValue = WuQMacroClassTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<WuQMacroObjectTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WuQMacroClassTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const WuQMacroObjectTypeEnum& d = *iter;
+        const WuQMacroClassTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -314,7 +314,7 @@ WuQMacroObjectTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type WuQMacroObjectTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type WuQMacroClassTypeEnum"));
     }
     return enumValue;
 }
@@ -326,10 +326,10 @@ WuQMacroObjectTypeEnum::fromGuiName(const AString& guiNameIn, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-WuQMacroObjectTypeEnum::toIntegerCode(Enum enumValue)
+WuQMacroClassTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const WuQMacroObjectTypeEnum* enumInstance = findData(enumValue);
+    const WuQMacroClassTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -344,18 +344,18 @@ WuQMacroObjectTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-WuQMacroObjectTypeEnum::Enum
-WuQMacroObjectTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+WuQMacroClassTypeEnum::Enum
+WuQMacroClassTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = WuQMacroObjectTypeEnum::enumData[0].enumValue;
+    Enum enumValue = WuQMacroClassTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<WuQMacroObjectTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WuQMacroClassTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const WuQMacroObjectTypeEnum& enumInstance = *iter;
+        const WuQMacroClassTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -367,7 +367,7 @@ WuQMacroObjectTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValid
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type WuQMacroObjectTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type WuQMacroClassTypeEnum"));
     }
     return enumValue;
 }
@@ -380,13 +380,13 @@ WuQMacroObjectTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValid
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-WuQMacroObjectTypeEnum::getAllEnums(std::vector<WuQMacroObjectTypeEnum::Enum>& allEnums)
+WuQMacroClassTypeEnum::getAllEnums(std::vector<WuQMacroClassTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<WuQMacroObjectTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WuQMacroClassTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -402,16 +402,16 @@ WuQMacroObjectTypeEnum::getAllEnums(std::vector<WuQMacroObjectTypeEnum::Enum>& a
  *     If true, the names are sorted in alphabetical order.
  */
 void
-WuQMacroObjectTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+WuQMacroClassTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<WuQMacroObjectTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WuQMacroClassTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(WuQMacroObjectTypeEnum::toName(iter->enumValue));
+        allNames.push_back(WuQMacroClassTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -428,16 +428,16 @@ WuQMacroObjectTypeEnum::getAllNames(std::vector<AString>& allNames, const bool i
  *     If true, the names are sorted in alphabetical order.
  */
 void
-WuQMacroObjectTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+WuQMacroClassTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<WuQMacroObjectTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WuQMacroClassTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(WuQMacroObjectTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(WuQMacroClassTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -454,7 +454,7 @@ WuQMacroObjectTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const 
  *     Name of class that is derived from Qt widget with name 'widgetName'
  */
 void
-WuQMacroObjectTypeEnum::addWidgetClassNameAlias(const QString& widgetName,
+WuQMacroClassTypeEnum::addWidgetClassNameAlias(const QString& widgetName,
                                                 const QString& aliasWidgetName)
 {
     s_widgetClassNameAliases.push_back(std::make_pair(widgetName,

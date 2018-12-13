@@ -108,6 +108,8 @@ namespace caret {
         
         void addParentObject(QObject* parentObject);
         
+        QString getToolTipForObjectName(const QString& objectName) const;
+        
         // ADD_NEW_METHODS_HERE
         
     private:

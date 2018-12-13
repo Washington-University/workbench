@@ -139,6 +139,8 @@ WuQMacroEditorDialog::createTableWidget()
     columnNames << "Name";
     CaretAssert(COLUMN_VALUE      == 3);
     columnNames << "Value";
+    CaretAssert(COLUMN_TOOLTIP    == 4);
+    columnNames << "ToolTip";
     CaretAssert(columnNames.size() == NUMBER_OF_COLUMNS);
     
     tableWidget->setHorizontalHeaderLabels(columnNames);
@@ -160,12 +162,15 @@ WuQMacroEditorDialog::loadTableWidget()
     
     for (int32_t i = 0; i < numberOfCommands; i++) {
         const WuQMacroCommand* command = m_macro->getMacroCommandAtIndex(i);
-        QTableWidgetItem* classItem = new QTableWidgetItem(WuQMacroObjectTypeEnum::toGuiName(command->getObjectType()));
-        QTableWidgetItem* valueTypeItem = new QTableWidgetItem(WuQMacroDataValueTypeEnum::toGuiName(command->getObjectDataValueType()));
+        QTableWidgetItem* classItem = new QTableWidgetItem(WuQMacroClassTypeEnum::toGuiName(command->getClassType()));
+        QTableWidgetItem* valueTypeItem = new QTableWidgetItem(WuQMacroDataValueTypeEnum::toGuiName(command->getDataType()));
         QTableWidgetItem* nameItem = new QTableWidgetItem(command->getObjectName());
-        QTableWidgetItem* valueItem = new QTableWidgetItem(command->getObjectValue().toString());
+        QTableWidgetItem* valueItem = new QTableWidgetItem(command->getDataValue().toString());
         
-        switch (command->getObjectDataValueType()) {
+        const QString toolTip = WuQMacroManager::instance()->getToolTipForObjectName(command->getObjectName());
+        QTableWidgetItem* toolTipItem = new QTableWidgetItem(toolTip);
+        
+        switch (command->getDataType()) {
             case WuQMacroDataValueTypeEnum::BOOLEAN:
                 break;
             case WuQMacroDataValueTypeEnum::FLOAT:
@@ -183,7 +188,23 @@ WuQMacroEditorDialog::loadTableWidget()
         m_tableWidget->setItem(i, COLUMN_VALUE_TYPE, valueTypeItem);
         m_tableWidget->setItem(i, COLUMN_NAME, nameItem);
         m_tableWidget->setItem(i, COLUMN_VALUE, valueItem);
+        m_tableWidget->setItem(i, COLUMN_TOOLTIP, toolTipItem);
     }
+
+    QStringList columnNames;
+    CaretAssert(COLUMN_TYPE       == 0);
+    columnNames << "Class";
+    CaretAssert(COLUMN_VALUE_TYPE == 1);
+    columnNames << "Value-Type";
+    CaretAssert(COLUMN_NAME       == 2);
+    columnNames << "Name";
+    CaretAssert(COLUMN_VALUE      == 3);
+    columnNames << "Value";
+    CaretAssert(COLUMN_TOOLTIP    == 4);
+    columnNames << "ToolTip";
+    CaretAssert(columnNames.size() == NUMBER_OF_COLUMNS);
+    
+    m_tableWidget->setHorizontalHeaderLabels(columnNames);
 }
 
 

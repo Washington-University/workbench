@@ -161,6 +161,7 @@ VectorOperation.h
 VoxelIJK.h
 WorkbenchSpecialVersionEnum.h
 WuQMacro.h
+WuQMacroClassTypeEnum.h
 WuQMacroCommand.h
 WuQMacroDataValueTypeEnum.h
 WuQMacroFile.h
@@ -171,7 +172,6 @@ WuQMacroGroupXmlWriter.h
 WuQMacroModeEnum.h
 WuQMacroMouseEventInfo.h
 WuQMacroMouseEventTypeEnum.h
-WuQMacroObjectTypeEnum.h
 YokingGroupEnum.h
 
 ${MOC_SOURCE_FILES}
@@ -274,6 +274,7 @@ Vector3D.cxx
 VectorOperation.cxx
 WorkbenchSpecialVersionEnum.cxx
 WuQMacro.cxx
+WuQMacroClassTypeEnum.cxx
 WuQMacroCommand.cxx
 WuQMacroDataValueTypeEnum.cxx
 WuQMacroFile.cxx
@@ -284,7 +285,6 @@ WuQMacroGroupXmlWriter.cxx
 WuQMacroModeEnum.cxx
 WuQMacroMouseEventInfo.cxx
 WuQMacroMouseEventTypeEnum.cxx
-WuQMacroObjectTypeEnum.cxx
 YokingGroupEnum.cxx
 )
 

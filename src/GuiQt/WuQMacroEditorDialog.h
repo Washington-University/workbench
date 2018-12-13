@@ -65,7 +65,8 @@ namespace caret {
             COLUMN_VALUE_TYPE = 1,
             COLUMN_NAME       = 2,
             COLUMN_VALUE      = 3,
-            NUMBER_OF_COLUMNS = 4
+            COLUMN_TOOLTIP    = 4,
+            NUMBER_OF_COLUMNS = 5
         };
         
         QTableWidget* createTableWidget();

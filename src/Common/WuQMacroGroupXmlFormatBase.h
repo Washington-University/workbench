@@ -51,10 +51,12 @@ namespace caret {
     protected:
         
         static const QString ATTRIBUTE_NAME;
+        static const QString ATTRIBUTE_OBJECT_CLASS;
+        static const QString ATTRIBUTE_OBJECT_DATA_TYPE;
+        static const QString ATTRIBUTE_OBJECT_DATA_TYPE_TWO;
         static const QString ATTRIBUTE_FUNCTION_KEY;
-        static const QString ATTRIBUTE_OBJECT_DATA_VALUE_TYPE;
-        static const QString ATTRIBUTE_OBJECT_TYPE;
         static const QString ATTRIBUTE_OBJECT_VALUE;
+        static const QString ATTRIBUTE_OBJECT_VALUE_TWO;
         static const QString ATTRIBUTE_VERSION;
         
         static const QString ATTRIBUTE_MOUSE_BUTTON;
@@ -88,10 +90,12 @@ namespace caret {
     
 #ifdef __WU_Q_MACRO_GROUP_XML_FORMAT_BASE_DECLARE__
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_NAME = "Name";
+    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_OBJECT_CLASS = "ObjectClass";
+    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_OBJECT_DATA_TYPE = "DataType";
+    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_OBJECT_DATA_TYPE_TWO = "DataTypeTwo";
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_FUNCTION_KEY = "FunctionKey";
-    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_OBJECT_DATA_VALUE_TYPE = "ValueType";
-    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_OBJECT_TYPE = "ObjectType";
-    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_OBJECT_VALUE = "Value";
+    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_OBJECT_VALUE = "DataValue";
+    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_OBJECT_VALUE_TWO = "DataValueTwo";
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_VERSION = "Version";
     
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_MOUSE_BUTTON = "MouseButton";
@@ -104,8 +108,8 @@ namespace caret {
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_MOUSE_SCREEN_Y = "ScreenY";
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_MOUSE_WIDGET_WIDTH = "WidgetWidth";
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_MOUSE_WIDGET_HEIGHT = "WidgetHeight";
-    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_MOUSE_WINDOW_X = "WINDOW_X";
-    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_MOUSE_WINDOW_Y = "WINDOW_Y";
+    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_MOUSE_WINDOW_X = "WindowX";
+    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_MOUSE_WINDOW_Y = "WindowY";
     
     const QString WuQMacroGroupXmlFormatBase::ELEMENT_DESCRIPTION      = "Description";
     const QString WuQMacroGroupXmlFormatBase::ELEMENT_MACRO            = "Macro";

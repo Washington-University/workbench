@@ -132,70 +132,100 @@ WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroComma
     m_xmlStreamWriter->writeStartElement(ELEMENT_MACRO_COMMAND);
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_NAME,
                                       macroCommand->getObjectName());
-    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_DATA_VALUE_TYPE,
-                                      WuQMacroDataValueTypeEnum::toName(macroCommand->getObjectDataValueType()));
-    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_TYPE,
-                                      WuQMacroObjectTypeEnum::toName(macroCommand->getObjectType()));
-    const QVariant objectValue(macroCommand->getObjectValue());
-    QString stringValue;
-    switch (macroCommand->getObjectDataValueType()) {
-        case WuQMacroDataValueTypeEnum::BOOLEAN:
-            stringValue = (objectValue.toBool() ? VALUE_BOOL_TRUE : VALUE_BOOL_FALSE);
-            break;
-        case WuQMacroDataValueTypeEnum::FLOAT:
-            stringValue = QString::number(objectValue.toFloat());
-            break;
-        case WuQMacroDataValueTypeEnum::INTEGER:
-            stringValue = QString::number(objectValue.toInt());
-            break;
-        case WuQMacroDataValueTypeEnum::MOUSE:
-            stringValue = "MouseEvent";
-            break;
-        case WuQMacroDataValueTypeEnum::STRING:
-            stringValue = objectValue.toString();
-            break;
+    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_CLASS,
+                                      WuQMacroClassTypeEnum::toName(macroCommand->getClassType()));
+    {
+        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_DATA_TYPE,
+                                          WuQMacroDataValueTypeEnum::toName(macroCommand->getDataType()));
+        
+        const QVariant dataValue(macroCommand->getDataValue());
+        QString stringValue;
+        switch (macroCommand->getDataType()) {
+            case WuQMacroDataValueTypeEnum::BOOLEAN:
+                stringValue = (dataValue.toBool() ? VALUE_BOOL_TRUE : VALUE_BOOL_FALSE);
+                break;
+            case WuQMacroDataValueTypeEnum::FLOAT:
+                stringValue = QString::number(dataValue.toFloat());
+                break;
+            case WuQMacroDataValueTypeEnum::INTEGER:
+                stringValue = QString::number(dataValue.toInt());
+                break;
+            case WuQMacroDataValueTypeEnum::MOUSE:
+                stringValue = "MouseEvent";
+                break;
+            case WuQMacroDataValueTypeEnum::STRING:
+                stringValue = dataValue.toString();
+                break;
+        }
+        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_VALUE,
+                                          stringValue);
     }
-    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_VALUE,
-                                      stringValue);
+    
+    {
+        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_DATA_TYPE_TWO,
+                                          WuQMacroDataValueTypeEnum::toName(macroCommand->getDataTypeTwo()));
+        
+        const QVariant dataValueTwo(macroCommand->getDataValueTwo());
+        QString stringValue;
+        switch (macroCommand->getDataTypeTwo()) {
+            case WuQMacroDataValueTypeEnum::BOOLEAN:
+                stringValue = (dataValueTwo.toBool() ? VALUE_BOOL_TRUE : VALUE_BOOL_FALSE);
+                break;
+            case WuQMacroDataValueTypeEnum::FLOAT:
+                stringValue = QString::number(dataValueTwo.toFloat());
+                break;
+            case WuQMacroDataValueTypeEnum::INTEGER:
+                stringValue = QString::number(dataValueTwo.toInt());
+                break;
+            case WuQMacroDataValueTypeEnum::MOUSE:
+                stringValue = "MouseEvent";
+                break;
+            case WuQMacroDataValueTypeEnum::STRING:
+                stringValue = dataValueTwo.toString();
+                break;
+        }
+        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_VALUE_TWO,
+                                          stringValue);
+    }
     
     
-    switch (macroCommand->getObjectType()) {
-        case WuQMacroObjectTypeEnum::ACTION:
+    switch (macroCommand->getClassType()) {
+        case WuQMacroClassTypeEnum::ACTION:
             break;
-        case WuQMacroObjectTypeEnum::ACTION_GROUP:
+        case WuQMacroClassTypeEnum::ACTION_GROUP:
             break;
-        case WuQMacroObjectTypeEnum::BUTTON_GROUP:
+        case WuQMacroClassTypeEnum::BUTTON_GROUP:
             break;
-        case WuQMacroObjectTypeEnum::CHECK_BOX:
+        case WuQMacroClassTypeEnum::CHECK_BOX:
             break;
-        case WuQMacroObjectTypeEnum::COMBO_BOX:
+        case WuQMacroClassTypeEnum::COMBO_BOX:
             break;
-        case WuQMacroObjectTypeEnum::DOUBLE_SPIN_BOX:
+        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
             break;
-        case WuQMacroObjectTypeEnum::INVALID:
+        case WuQMacroClassTypeEnum::INVALID:
             break;
-        case WuQMacroObjectTypeEnum::LINE_EDIT:
+        case WuQMacroClassTypeEnum::LINE_EDIT:
             break;
-        case WuQMacroObjectTypeEnum::LIST_WIDGET:
+        case WuQMacroClassTypeEnum::LIST_WIDGET:
             break;
-        case WuQMacroObjectTypeEnum::MENU:
+        case WuQMacroClassTypeEnum::MENU:
             break;
-        case WuQMacroObjectTypeEnum::MOUSE_USER_EVENT:
+        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
             writeMacroMouseEventInfo(macroCommand->getMouseEventInfo());
             break;
-        case WuQMacroObjectTypeEnum::PUSH_BUTTON:
+        case WuQMacroClassTypeEnum::PUSH_BUTTON:
             break;
-        case WuQMacroObjectTypeEnum::RADIO_BUTTON:
+        case WuQMacroClassTypeEnum::RADIO_BUTTON:
             break;
-        case WuQMacroObjectTypeEnum::SLIDER:
+        case WuQMacroClassTypeEnum::SLIDER:
             break;
-        case WuQMacroObjectTypeEnum::SPIN_BOX:
+        case WuQMacroClassTypeEnum::SPIN_BOX:
             break;
-        case WuQMacroObjectTypeEnum::TAB_BAR:
+        case WuQMacroClassTypeEnum::TAB_BAR:
             break;
-        case WuQMacroObjectTypeEnum::TAB_WIDGET:
+        case WuQMacroClassTypeEnum::TAB_WIDGET:
             break;
-        case WuQMacroObjectTypeEnum::TOOL_BUTTON:
+        case WuQMacroClassTypeEnum::TOOL_BUTTON:
             break;
     }
     

@@ -266,8 +266,13 @@ WuQMacroDialog::updateDialogContents()
 void
 WuQMacroDialog::macroGroupBoxActivated(int)
 {
+    const QString emptySuffix(" (Empty)");
     QListWidgetItem* selectedItem = m_macrosListWidget->currentItem();
     QString selectedName = ((selectedItem != NULL) ? selectedItem->text() : "");
+    const int emptyIndex = selectedName.indexOf(emptySuffix);
+    if (emptyIndex >= 0) {
+        selectedName = selectedName.left(emptyIndex);
+    }
     
     m_macrosListWidget->clear();
 
@@ -275,11 +280,14 @@ WuQMacroDialog::macroGroupBoxActivated(int)
     WuQMacroGroup* selectedGroup = getSelectedMacroGroup();
     const int32_t numMacros = selectedGroup->getNumberOfMacros();
     for (int32_t i = 0; i < numMacros; i++) {
-        const QString macroName = selectedGroup->getMacroAtIndex(i)->getName();
-        m_macrosListWidget->addItem(macroName);
+        QString macroName = selectedGroup->getMacroAtIndex(i)->getName();
         if (selectedName == macroName) {
             selectedIndex = i;
         }
+        if (selectedGroup->getMacroAtIndex(i)->getNumberOfMacroCommands() <= 0) {
+            macroName.append(emptySuffix);
+        }
+        m_macrosListWidget->addItem(macroName);
     }
     
     if ((selectedIndex >= 0)
@@ -360,6 +368,15 @@ WuQMacroDialog::runSelectedMacro()
 {
     WuQMacro* macro = getSelectedMacro();
     if (macro != NULL) {
+        if (macro->getNumberOfMacroCommands() <= 0) {
+            QMessageBox::critical(m_runButton,
+                                  "Error",
+                                  "Macro does not contain any commands",
+                                  QMessageBox::Ok,
+                                  QMessageBox::NoButton);
+            return;
+        }
+        
         WuQMacroExecutor::RunOptions runOptions(m_runOptionDelayBetweenCommandsSpinBox->value(),
                                                 m_runOptionMoveMouseCheckBox->isChecked(),
                                                 m_runOptionLoopCheckBox->isChecked());

@@ -224,18 +224,19 @@ WuQMacroManager::addMacroSupportToObject(QObject* object)
 {
     CaretAssert(object);
     
+    QString toolTipText;
+    QAction* action = qobject_cast<QAction*>(object);
+    if (action != NULL) {
+        toolTipText = action->toolTip();
+    }
+    QWidget* widget = qobject_cast<QWidget*>(object);
+    if (widget != NULL) {
+        toolTipText = widget->toolTip();
+    }
+    
     const bool resultFlag = addMacroSupportToObjectWithToolTip(object,
-                                                               "");
+                                                               toolTipText);
     if (resultFlag) {
-        QString toolTipText;
-        QAction* action = qobject_cast<QAction*>(object);
-        if (action != NULL) {
-            toolTipText = action->toolTip();
-        }
-        QWidget* widget = qobject_cast<QWidget*>(object);
-        if (widget != NULL) {
-            toolTipText = widget->toolTip();
-        }
         
         if (toolTipText.isEmpty()) {
             CaretLogWarning("Object named \""
@@ -390,7 +391,6 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
                                                                            widget->height());
         
             m_macroBeingRecorded->addMacroCommand(new WuQMacroCommand(name,
-                                                                  widget->toolTip(),
                                                                   mouseInfo));
             return true;
 
@@ -764,6 +764,27 @@ WuQMacroManager::printSupportedWidgetsToTerminal()
     for (auto& iter : duplicateList) {
         std::cout << "DUPLICTE: " << iter << std::endl;
     }
+}
+
+/**
+ * Get the tooltip for the object with the given name
+ *
+ * @param objectName
+ *     Name of object
+ * @return 
+ *     Tooltip for object or empty if not found.
+ */
+QString
+WuQMacroManager::getToolTipForObjectName(const QString& objectName) const
+{
+    QString tooltip;
+
+    const auto existingWatcher = m_signalWatchers.find(objectName);
+    if (existingWatcher != m_signalWatchers.end()) {
+        tooltip = existingWatcher->second->getToolTip();
+    }
+    
+    return tooltip;
 }
 
 

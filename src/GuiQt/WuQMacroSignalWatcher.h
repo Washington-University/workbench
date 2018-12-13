@@ -27,7 +27,7 @@
 
 #include <QObject>
 
-#include "WuQMacroObjectTypeEnum.h"
+#include "WuQMacroClassTypeEnum.h"
 
 class QAbstractButton;
 class QAction;
@@ -54,6 +54,8 @@ namespace caret {
         WuQMacroSignalWatcher& operator=(const WuQMacroSignalWatcher&) = delete;
 
         QString toString() const;
+        
+        QString getToolTip() const;
         
     private slots:
         void actionTriggered(bool);
@@ -97,14 +99,17 @@ namespace caret {
     private:
         WuQMacroSignalWatcher(WuQMacroManager* parentMacroManager,
                               QObject* object,
-                              const WuQMacroObjectTypeEnum::Enum objectType,
+                              const WuQMacroClassTypeEnum::Enum objectType,
                               const QString& toolTipTextOverride);
         
         WuQMacroManager* m_parentMacroManager;
         
-        void createAndSendMacroCommand(const QVariant value);
+        void createAndSendMacroCommand(const QVariant& value,
+                                       const QVariant& valueTwo);
         
-        const WuQMacroObjectTypeEnum::Enum m_objectType;
+        QObject* m_object;
+        
+        const WuQMacroClassTypeEnum::Enum m_objectType;
         
         const QString m_objectName;
         

@@ -1,5 +1,5 @@
-#ifndef __WU_Q_MACRO_OBJECT_TYPE_ENUM_H__
-#define __WU_Q_MACRO_OBJECT_TYPE_ENUM_H__
+#ifndef __WU_Q_MACRO_CLASS_TYPE_ENUM_H__
+#define __WU_Q_MACRO_CLASS_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class WuQMacroObjectTypeEnum {
+class WuQMacroClassTypeEnum {
 
 public:
     /**
@@ -75,42 +75,42 @@ public:
 
 /*
  switch (m_objectType) {
- case WuQMacroObjectTypeEnum::ACTION:
+ case WuQMacroClassTypeEnum::ACTION:
  break;
- case WuQMacroObjectTypeEnum::CHECK_BOX:
+ case WuQMacroClassTypeEnum::CHECK_BOX:
  break;
- case WuQMacroObjectTypeEnum::COMBO_BOX:
+ case WuQMacroClassTypeEnum::COMBO_BOX:
  break;
- case WuQMacroObjectTypeEnum::DOUBLE_SPIN_BOX:
+ case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
  break;
- case WuQMacroObjectTypeEnum::INVALID:
+ case WuQMacroClassTypeEnum::INVALID:
  break;
- case WuQMacroObjectTypeEnum::LINE_EDIT:
+ case WuQMacroClassTypeEnum::LINE_EDIT:
  break;
- case WuQMacroObjectTypeEnum::LIST_WIDGET:
+ case WuQMacroClassTypeEnum::LIST_WIDGET:
  break;
- case WuQMacroObjectTypeEnum::MENU:
+ case WuQMacroClassTypeEnum::MENU:
  break;
- case WuQMacroObjectTypeEnum::MOUSE_USER_EVENT:
+ case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
  break;
- case WuQMacroObjectTypeEnum::PUSH_BUTTON:
+ case WuQMacroClassTypeEnum::PUSH_BUTTON:
  break;
- case WuQMacroObjectTypeEnum::RADIO_BUTTON:
+ case WuQMacroClassTypeEnum::RADIO_BUTTON:
  break;
- case WuQMacroObjectTypeEnum::SLIDER:
+ case WuQMacroClassTypeEnum::SLIDER:
  break;
- case WuQMacroObjectTypeEnum::SPIN_BOX:
+ case WuQMacroClassTypeEnum::SPIN_BOX:
  break;
- case WuQMacroObjectTypeEnum::TAB_BAR:
+ case WuQMacroClassTypeEnum::TAB_BAR:
  break;
- case WuQMacroObjectTypeEnum::TAB_WIDGET:
+ case WuQMacroClassTypeEnum::TAB_WIDGET:
  break;
- case WuQMacroObjectTypeEnum::TOOL_BUTTON:
+ case WuQMacroClassTypeEnum::TOOL_BUTTON:
  break;
  }
  */
 
-    ~WuQMacroObjectTypeEnum();
+    ~WuQMacroClassTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -134,14 +134,14 @@ public:
                                         const QString& aliasWidgetName);
     
 private:
-    WuQMacroObjectTypeEnum(const Enum enumValue, 
+    WuQMacroClassTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const WuQMacroObjectTypeEnum* findData(const Enum enumValue);
+    static const WuQMacroClassTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<WuQMacroObjectTypeEnum> enumData;
+    static std::vector<WuQMacroClassTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -168,12 +168,12 @@ private:
     static std::vector<std::pair<QString, QString>> s_widgetClassNameAliases;
 };
 
-#ifdef __WU_Q_MACRO_OBJECT_TYPE_ENUM_DECLARE__
-    std::vector<WuQMacroObjectTypeEnum> WuQMacroObjectTypeEnum::enumData;
-    bool WuQMacroObjectTypeEnum::initializedFlag = false;
-    int32_t WuQMacroObjectTypeEnum::integerCodeCounter = 0;
-    std::vector<std::pair<QString, QString>> WuQMacroObjectTypeEnum::s_widgetClassNameAliases;
-#endif // __WU_Q_MACRO_OBJECT_TYPE_ENUM_DECLARE__
+#ifdef __WU_Q_MACRO_CLASS_TYPE_ENUM_DECLARE__
+    std::vector<WuQMacroClassTypeEnum> WuQMacroClassTypeEnum::enumData;
+    bool WuQMacroClassTypeEnum::initializedFlag = false;
+    int32_t WuQMacroClassTypeEnum::integerCodeCounter = 0;
+    std::vector<std::pair<QString, QString>> WuQMacroClassTypeEnum::s_widgetClassNameAliases;
+#endif // __WU_Q_MACRO_CLASS_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_MACRO_OBJECT_TYPE_ENUM_H__
+#endif  //__WU_Q_MACRO_CLASS_TYPE_ENUM_H__

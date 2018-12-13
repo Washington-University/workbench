@@ -68,152 +68,153 @@ using namespace caret;
  */
 WuQMacroSignalWatcher::WuQMacroSignalWatcher(WuQMacroManager* parentMacroManager,
                                              QObject* object,
-                                             const WuQMacroObjectTypeEnum::Enum objectType,
+                                             const WuQMacroClassTypeEnum::Enum objectType,
                                              const QString& toolTipTextOverride)
 : QObject(),
 m_parentMacroManager(parentMacroManager),
+m_object(object),
 m_objectType(objectType),
 m_objectName(object->objectName())
 {
     CaretAssert(m_parentMacroManager);
-    CaretAssert(object);
+    CaretAssert(m_object);
     
-    QWidget* widget = qobject_cast<QWidget*>(object);
+    QWidget* widget = qobject_cast<QWidget*>(m_object);
     if (widget != NULL) {
         m_toolTipText = widget->toolTip();
     }
     
     switch (m_objectType) {
-        case WuQMacroObjectTypeEnum::ACTION:
+        case WuQMacroClassTypeEnum::ACTION:
         {
-            QAction* action = qobject_cast<QAction*>(object);
+            QAction* action = qobject_cast<QAction*>(m_object);
             CaretAssert(action);
             QObject::connect(action, &QAction::triggered,
                              this, &WuQMacroSignalWatcher::actionTriggered);
             m_toolTipText = action->toolTip();
         }
             break;
-        case WuQMacroObjectTypeEnum::ACTION_GROUP:
+        case WuQMacroClassTypeEnum::ACTION_GROUP:
         {
-            QActionGroup* actionGroup = qobject_cast<QActionGroup*>(object);
+            QActionGroup* actionGroup = qobject_cast<QActionGroup*>(m_object);
             CaretAssert(actionGroup);
             QObject::connect(actionGroup, &QActionGroup::triggered,
                              this, &WuQMacroSignalWatcher::actionGroupTriggered);
         }
             break;
-        case WuQMacroObjectTypeEnum::BUTTON_GROUP:
+        case WuQMacroClassTypeEnum::BUTTON_GROUP:
         {
-            QButtonGroup* buttonGroup = qobject_cast<QButtonGroup*>(object);
+            QButtonGroup* buttonGroup = qobject_cast<QButtonGroup*>(m_object);
             CaretAssert(buttonGroup);
             QObject::connect(buttonGroup, static_cast<void (QButtonGroup::*)(QAbstractButton*)>(&QButtonGroup::buttonClicked),
                              this, &WuQMacroSignalWatcher::buttonGroupButtonClicked);
         }
             break;
-        case WuQMacroObjectTypeEnum::CHECK_BOX:
+        case WuQMacroClassTypeEnum::CHECK_BOX:
         {
-            QCheckBox* checkBox = qobject_cast<QCheckBox*>(object);
+            QCheckBox* checkBox = qobject_cast<QCheckBox*>(m_object);
             CaretAssert(checkBox);
             QObject::connect(checkBox, &QCheckBox::clicked,
                              this, &WuQMacroSignalWatcher::checkBoxClicked);
         }
             break;
-        case WuQMacroObjectTypeEnum::COMBO_BOX:
+        case WuQMacroClassTypeEnum::COMBO_BOX:
         {
-            QComboBox* comboBox = qobject_cast<QComboBox*>(object);
+            QComboBox* comboBox = qobject_cast<QComboBox*>(m_object);
             CaretAssert(comboBox);
             QObject::connect(comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
                              this, &WuQMacroSignalWatcher::comboBoxActivated);
         }
             break;
-        case WuQMacroObjectTypeEnum::DOUBLE_SPIN_BOX:
+        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
         {
-            QDoubleSpinBox* spinBox = qobject_cast<QDoubleSpinBox*>(object);
+            QDoubleSpinBox* spinBox = qobject_cast<QDoubleSpinBox*>(m_object);
             CaretAssert(spinBox);
             QObject::connect(spinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                              this, &WuQMacroSignalWatcher::doubleSpinBoxValueChanged);
         }
             break;
-        case WuQMacroObjectTypeEnum::INVALID:
+        case WuQMacroClassTypeEnum::INVALID:
             CaretAssert(0);
             break;
-        case WuQMacroObjectTypeEnum::LINE_EDIT:
+        case WuQMacroClassTypeEnum::LINE_EDIT:
         {
-            QLineEdit* lineEdit = qobject_cast<QLineEdit*>(object);
+            QLineEdit* lineEdit = qobject_cast<QLineEdit*>(m_object);
             CaretAssert(lineEdit);
             QObject::connect(lineEdit, &QLineEdit::textEdited,
                              this, &WuQMacroSignalWatcher::lineEditTextEdited);
         }
             break;
-        case WuQMacroObjectTypeEnum::LIST_WIDGET:
+        case WuQMacroClassTypeEnum::LIST_WIDGET:
         {
-            QListWidget* listWidget = qobject_cast<QListWidget*>(object);
+            QListWidget* listWidget = qobject_cast<QListWidget*>(m_object);
             CaretAssert(listWidget);
             QObject::connect(listWidget, &QListWidget::itemActivated,
                              this, &WuQMacroSignalWatcher::listWidgetItemActivated);
         }
             break;
-        case WuQMacroObjectTypeEnum::MENU:
+        case WuQMacroClassTypeEnum::MENU:
         {
-            QMenu* menu = qobject_cast<QMenu*>(object);
+            QMenu* menu = qobject_cast<QMenu*>(m_object);
             CaretAssert(menu);
             QObject::connect(menu, &QMenu::triggered,
                              this, &WuQMacroSignalWatcher::menuTriggered);
         }
             break;
-        case WuQMacroObjectTypeEnum::MOUSE_USER_EVENT:
+        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
             CaretAssertToDoFatal();
             break;
-        case WuQMacroObjectTypeEnum::PUSH_BUTTON:
+        case WuQMacroClassTypeEnum::PUSH_BUTTON:
         {
-            QPushButton* pushButton = qobject_cast<QPushButton*>(object);
+            QPushButton* pushButton = qobject_cast<QPushButton*>(m_object);
             CaretAssert(pushButton);
             QObject::connect(pushButton, &QPushButton::clicked,
                              this, &WuQMacroSignalWatcher::pushButtonClicked);
         }
             break;
-        case WuQMacroObjectTypeEnum::RADIO_BUTTON:
+        case WuQMacroClassTypeEnum::RADIO_BUTTON:
         {
-            QRadioButton* radioButton = qobject_cast<QRadioButton*>(object);
+            QRadioButton* radioButton = qobject_cast<QRadioButton*>(m_object);
             CaretAssert(radioButton);
             QObject::connect(radioButton, &QRadioButton::clicked,
                              this, &WuQMacroSignalWatcher::radioButtonClicked);
         }
             break;
-        case WuQMacroObjectTypeEnum::SLIDER:
+        case WuQMacroClassTypeEnum::SLIDER:
         {
-            QSlider* slider = qobject_cast<QSlider*>(object);
+            QSlider* slider = qobject_cast<QSlider*>(m_object);
             CaretAssert(slider);
             QObject::connect(slider, &QSlider::valueChanged,
                              this, &WuQMacroSignalWatcher::sliderValueChanged);
         }
             break;
-        case WuQMacroObjectTypeEnum::SPIN_BOX:
+        case WuQMacroClassTypeEnum::SPIN_BOX:
         {
-            QSpinBox* spinBox = qobject_cast<QSpinBox*>(object);
+            QSpinBox* spinBox = qobject_cast<QSpinBox*>(m_object);
             CaretAssert(spinBox);
             QObject::connect(spinBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),
                              this, &WuQMacroSignalWatcher::spinBoxValueChanged);
         }
             break;
-        case WuQMacroObjectTypeEnum::TAB_BAR:
+        case WuQMacroClassTypeEnum::TAB_BAR:
         {
-            QTabBar* tabBar = qobject_cast<QTabBar*>(object);
+            QTabBar* tabBar = qobject_cast<QTabBar*>(m_object);
             CaretAssert(tabBar);
-            QObject::connect(tabBar, &QTabBar::currentChanged,
+            QObject::connect(tabBar, &QTabBar::tabBarClicked,  //&QTabBar::currentChanged,
                              this, &WuQMacroSignalWatcher::tabBarCurrentChanged);
         }
             break;
-        case WuQMacroObjectTypeEnum::TAB_WIDGET:
+        case WuQMacroClassTypeEnum::TAB_WIDGET:
         {
-            QTabWidget* tabWidget = qobject_cast<QTabWidget*>(object);
+            QTabWidget* tabWidget = qobject_cast<QTabWidget*>(m_object);
             CaretAssert(tabWidget);
-            QObject::connect(tabWidget, &QTabWidget::currentChanged,
+            QObject::connect(tabWidget, &QTabWidget::tabBarClicked, //&QTabWidget::currentChanged,
                              this, &WuQMacroSignalWatcher::tabWidgetCurrentChanged);
         }
             break;
-        case WuQMacroObjectTypeEnum::TOOL_BUTTON:
+        case WuQMacroClassTypeEnum::TOOL_BUTTON:
         {
-            QToolButton* toolButton = qobject_cast<QToolButton*>(object);
+            QToolButton* toolButton = qobject_cast<QToolButton*>(m_object);
             CaretAssert(toolButton);
             QObject::connect(toolButton, &QCheckBox::clicked,
                              this, &WuQMacroSignalWatcher::toolButtonClicked);
@@ -228,9 +229,9 @@ m_objectName(object->objectName())
         m_toolTipText = toolTipTextOverride;
     }
     
-    QObject::connect(object, &QObject::destroyed,
+    QObject::connect(m_object, &QObject::destroyed,
                      this, &WuQMacroSignalWatcher::objectWasDestroyed);
-    QObject::connect(object, &QObject::objectNameChanged,
+    QObject::connect(m_object, &QObject::objectNameChanged,
                      this, &WuQMacroSignalWatcher::objectNameWasChanged);
 }
 
@@ -300,10 +301,10 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
     QString objectClassName = object->metaObject()->className();
     
     bool validFlag(false);
-    WuQMacroObjectTypeEnum::Enum objectType = WuQMacroObjectTypeEnum::fromGuiName(objectClassName,
+    WuQMacroClassTypeEnum::Enum objectType = WuQMacroClassTypeEnum::fromGuiName(objectClassName,
                                                                                   &validFlag);
 
-    if ((objectType == WuQMacroObjectTypeEnum::INVALID)
+    if ((objectType == WuQMacroClassTypeEnum::INVALID)
         || ( ! validFlag)) {
         errorMessageOut = ("Widget named \""
                            + object->objectName()
@@ -321,20 +322,32 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
 }
 
 /**
+ * @return Tooltip for this signal watcher
+ */
+QString
+WuQMacroSignalWatcher::getToolTip() const
+{
+    return m_toolTipText;
+}
+
+/**
  * If recording mode is enabled, create and send a macro command
  * to the macro manager.
  *
  * @param value
  *     QVariant containing the data value.
+ * @param valueTwo
+ *     QVariant containing the second data value.
  */
 void
-WuQMacroSignalWatcher::createAndSendMacroCommand(const QVariant value)
+WuQMacroSignalWatcher::createAndSendMacroCommand(const QVariant& value,
+                                                 const QVariant& valueTwo)
 {
     if (m_parentMacroManager->isModeRecording()) {
         WuQMacroCommand* mc = new WuQMacroCommand(m_objectType,
                                                   m_objectName,
-                                                  m_toolTipText,
-                                                  value);
+                                                  value,
+                                                  valueTwo);
         if ( ! m_parentMacroManager->addMacroCommandToRecording(mc)) {
             delete mc;
         }
@@ -350,10 +363,23 @@ WuQMacroSignalWatcher::createAndSendMacroCommand(const QVariant value)
 void
 WuQMacroSignalWatcher::actionGroupTriggered(QAction* action)
 {
-    const QString text((action != NULL)
-                       ? action->text()
-                       : "");
-    createAndSendMacroCommand(text);
+    QActionGroup* actionGroup = qobject_cast<QActionGroup*>(m_object);
+    CaretAssert(actionGroup);
+    
+    int actionIndex(-1);
+    QList<QAction*> actionList = actionGroup->actions();
+    for (int32_t i = 0; i < actionList.size(); i++) {
+        if (actionList.at(i) == action) {
+            actionIndex = i;
+            break;
+        }
+    }
+    
+    const QString actionText((action != NULL)
+                             ? action->text()
+                             : "");
+    createAndSendMacroCommand(actionIndex,
+                              actionText);
 }
 
 
@@ -366,7 +392,8 @@ WuQMacroSignalWatcher::actionGroupTriggered(QAction* action)
 void
 WuQMacroSignalWatcher::actionTriggered(bool checked)
 {
-    createAndSendMacroCommand(checked);
+    createAndSendMacroCommand(checked,
+                              "");
 }
 
 /**
@@ -378,10 +405,23 @@ WuQMacroSignalWatcher::actionTriggered(bool checked)
 void
 WuQMacroSignalWatcher::buttonGroupButtonClicked(QAbstractButton* button)
 {
-    const QString text((button != NULL)
+    QButtonGroup* buttonGroup = qobject_cast<QButtonGroup*>(m_object);
+    CaretAssert(buttonGroup);
+    
+    int buttonIndex(-1);
+    QList<QAbstractButton*> buttonList = buttonGroup->buttons();
+    for (int32_t i = 0; i < buttonList.size(); i++) {
+        if (buttonList.at(i) == button) {
+            buttonIndex = i;
+            break;
+        }
+    }
+
+    const QString buttonText((button != NULL)
                        ? button->text()
                        : "");
-    createAndSendMacroCommand(text);
+    createAndSendMacroCommand(buttonIndex,
+                              buttonText);
 }
 
 
@@ -394,7 +434,8 @@ WuQMacroSignalWatcher::buttonGroupButtonClicked(QAbstractButton* button)
 void
 WuQMacroSignalWatcher::checkBoxClicked(bool checked)
 {
-    createAndSendMacroCommand(checked);
+    createAndSendMacroCommand(checked,
+                              "");
 }
 
 /**
@@ -406,7 +447,17 @@ WuQMacroSignalWatcher::checkBoxClicked(bool checked)
 void
 WuQMacroSignalWatcher::comboBoxActivated(int index)
 {
-    createAndSendMacroCommand(index);
+    QComboBox* comboBox = qobject_cast<QComboBox*>(m_object);
+    CaretAssert(comboBox);
+
+    QString text;
+    if ((index >= 0)
+        && (index < comboBox->count())) {
+        text = comboBox->itemText(index);
+    }
+    
+    createAndSendMacroCommand(index,
+                              text);
 }
 
 /**
@@ -418,7 +469,8 @@ WuQMacroSignalWatcher::comboBoxActivated(int index)
 void
 WuQMacroSignalWatcher::doubleSpinBoxValueChanged(double value)
 {
-    createAndSendMacroCommand(value);
+    createAndSendMacroCommand(value,
+                              "");
 }
 
 /**
@@ -430,7 +482,8 @@ WuQMacroSignalWatcher::doubleSpinBoxValueChanged(double value)
 void
 WuQMacroSignalWatcher::lineEditTextEdited(const QString& text)
 {
-    createAndSendMacroCommand(text);
+    createAndSendMacroCommand(text,
+                              "");
 }
 
 /**
@@ -442,10 +495,16 @@ WuQMacroSignalWatcher::lineEditTextEdited(const QString& text)
 void
 WuQMacroSignalWatcher::listWidgetItemActivated(QListWidgetItem* item)
 {
+    QListWidget* listWidget = qobject_cast<QListWidget*>(m_object);
+    CaretAssert(listWidget);
+    
+    const int rowIndex = listWidget->row(item);
+    
     const QString text((item != NULL)
                        ? item->text()
                        : "");
-    createAndSendMacroCommand(text);
+    createAndSendMacroCommand(rowIndex,
+                              text);
 }
 
 /**
@@ -457,10 +516,23 @@ WuQMacroSignalWatcher::listWidgetItemActivated(QListWidgetItem* item)
 void
 WuQMacroSignalWatcher::menuTriggered(QAction* action)
 {
+    QMenu* menu = qobject_cast<QMenu*>(m_object);
+    CaretAssert(menu);
+    
+    int actionIndex(-1);
+    QList<QAction*> actionList = menu->actions();
+    for (int32_t i = 0; i < actionList.size(); i++) {
+        if (actionList.at(i) == action) {
+            actionIndex = i;
+            break;
+        }
+    }
+    
     const QString text((action != NULL)
                        ? action->text()
                        : "");
-    createAndSendMacroCommand(text);
+    createAndSendMacroCommand(actionIndex,
+                              text);
 }
 
 /**
@@ -472,7 +544,8 @@ WuQMacroSignalWatcher::menuTriggered(QAction* action)
 void
 WuQMacroSignalWatcher::pushButtonClicked(bool checked)
 {
-    createAndSendMacroCommand(checked);
+    createAndSendMacroCommand(checked,
+                              "");
 }
 
 /**
@@ -484,7 +557,8 @@ WuQMacroSignalWatcher::pushButtonClicked(bool checked)
 void
 WuQMacroSignalWatcher::radioButtonClicked(bool checked)
 {
-    createAndSendMacroCommand(checked);
+    createAndSendMacroCommand(checked,
+                              "");
 }
 
 /**
@@ -496,7 +570,8 @@ WuQMacroSignalWatcher::radioButtonClicked(bool checked)
 void
 WuQMacroSignalWatcher::sliderValueChanged(int value)
 {
-    createAndSendMacroCommand(value);
+    createAndSendMacroCommand(value,
+                              "");
 }
 
 /**
@@ -508,7 +583,8 @@ WuQMacroSignalWatcher::sliderValueChanged(int value)
 void
 WuQMacroSignalWatcher::spinBoxValueChanged(int value)
 {
-    createAndSendMacroCommand(value);
+    createAndSendMacroCommand(value,
+                              "");
 }
 
 /**
@@ -520,7 +596,8 @@ WuQMacroSignalWatcher::spinBoxValueChanged(int value)
 void
 WuQMacroSignalWatcher::tabBarCurrentChanged(int index)
 {
-    createAndSendMacroCommand(index);
+    createAndSendMacroCommand(index,
+                              "");
 }
 
 /**
@@ -532,7 +609,8 @@ WuQMacroSignalWatcher::tabBarCurrentChanged(int index)
 void
 WuQMacroSignalWatcher::tabWidgetCurrentChanged(int index)
 {
-    createAndSendMacroCommand(index);
+    createAndSendMacroCommand(index,
+                              "");
 }
 
 /**
@@ -544,7 +622,8 @@ WuQMacroSignalWatcher::tabWidgetCurrentChanged(int index)
 void
 WuQMacroSignalWatcher::toolButtonClicked(bool checked)
 {
-    createAndSendMacroCommand(checked);
+    createAndSendMacroCommand(checked,
+                              "");
 }
 
 /**
@@ -555,7 +634,7 @@ WuQMacroSignalWatcher::toString() const
 {
     QString s(m_objectName
               + " type="
-              + WuQMacroObjectTypeEnum::toGuiName(m_objectType));
+              + WuQMacroClassTypeEnum::toGuiName(m_objectType));
     return s;
 }
 

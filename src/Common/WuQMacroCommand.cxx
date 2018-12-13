@@ -37,80 +37,90 @@ using namespace caret;
 /**
  * Constructor for a macro command
  *
- * @param objectType
- *    Type of object
+ * @param classType
+ *    Type of object class
  * @param objectName
  *    Name of object
- * @param objectToolTip
- *    Tooltip of object
- * @param value
- *    Value for the command.
+ * @param dataValue
+ *    Data value for the command.
+ * @param dataValueTwo
+ *    Second Data value for the command.
  */
-WuQMacroCommand::WuQMacroCommand(const WuQMacroObjectTypeEnum::Enum objectType,
+WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
                                  const QString& objectName,
-                                 const QString& objectToolTip,
-                                 const QVariant value)
+                                 const QVariant dataValue,
+                                 const QVariant dataValueTwo)
 : CaretObjectTracksModification(),
-m_objectType(objectType),
+m_classType(classType),
 m_objectName(objectName),
-m_objectToolTip(objectToolTip),
-m_value(value),
+m_dataValue(dataValue),
+m_dataValueTwo(dataValueTwo),
 m_macroMouseEvent(NULL)
 {
-    switch (m_objectType) {
-        case WuQMacroObjectTypeEnum::ACTION:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
+    /*
+     * Second data value is used by only some commands
+     */
+    m_dataTypeTwo = WuQMacroDataValueTypeEnum::STRING;
+    
+    switch (m_classType) {
+        case WuQMacroClassTypeEnum::ACTION:
+            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
             break;
-        case WuQMacroObjectTypeEnum::ACTION_GROUP:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::STRING;
+        case WuQMacroClassTypeEnum::ACTION_GROUP:
+            m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataTypeTwo = WuQMacroDataValueTypeEnum::STRING;
             break;
-        case WuQMacroObjectTypeEnum::BUTTON_GROUP:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::STRING;
+        case WuQMacroClassTypeEnum::BUTTON_GROUP:
+            m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataTypeTwo = WuQMacroDataValueTypeEnum::STRING;
             break;
-        case WuQMacroObjectTypeEnum::CHECK_BOX:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
+        case WuQMacroClassTypeEnum::CHECK_BOX:
+            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
             break;
-        case WuQMacroObjectTypeEnum::COMBO_BOX:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::INTEGER;
+        case WuQMacroClassTypeEnum::COMBO_BOX:
+            m_dataType    = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataTypeTwo = WuQMacroDataValueTypeEnum::STRING;
             break;
-        case WuQMacroObjectTypeEnum::DOUBLE_SPIN_BOX:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::FLOAT;
+        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
+            m_dataType = WuQMacroDataValueTypeEnum::FLOAT;
             break;
-        case WuQMacroObjectTypeEnum::INVALID:
+        case WuQMacroClassTypeEnum::INVALID:
             break;
-        case WuQMacroObjectTypeEnum::LINE_EDIT:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::STRING;
+        case WuQMacroClassTypeEnum::LINE_EDIT:
+            m_dataType = WuQMacroDataValueTypeEnum::STRING;
             break;
-        case WuQMacroObjectTypeEnum::LIST_WIDGET:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::STRING;
+        case WuQMacroClassTypeEnum::LIST_WIDGET:
+            m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataTypeTwo = WuQMacroDataValueTypeEnum::STRING;
             break;
-        case WuQMacroObjectTypeEnum::MENU:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::STRING;
+        case WuQMacroClassTypeEnum::MENU:
+            m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataTypeTwo = WuQMacroDataValueTypeEnum::STRING;
             break;
-        case WuQMacroObjectTypeEnum::MOUSE_USER_EVENT:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::MOUSE;
+        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
+            m_dataType = WuQMacroDataValueTypeEnum::MOUSE;
             CaretAssertMessage(0, "Must use constructor for mouse event");
             break;
-        case WuQMacroObjectTypeEnum::PUSH_BUTTON:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
+        case WuQMacroClassTypeEnum::PUSH_BUTTON:
+            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
             break;
-        case WuQMacroObjectTypeEnum::RADIO_BUTTON:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
+        case WuQMacroClassTypeEnum::RADIO_BUTTON:
+            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
             break;
-        case WuQMacroObjectTypeEnum::SLIDER:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::INTEGER;
+        case WuQMacroClassTypeEnum::SLIDER:
+            m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
             break;
-        case WuQMacroObjectTypeEnum::SPIN_BOX:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::INTEGER;
+        case WuQMacroClassTypeEnum::SPIN_BOX:
+            m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
             break;
-        case WuQMacroObjectTypeEnum::TAB_BAR:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::INTEGER;
+        case WuQMacroClassTypeEnum::TAB_BAR:
+            m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
             break;
-        case WuQMacroObjectTypeEnum::TAB_WIDGET:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::INTEGER;
+        case WuQMacroClassTypeEnum::TAB_WIDGET:
+            m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
             break;
-        case WuQMacroObjectTypeEnum::TOOL_BUTTON:
-            m_objectDataValueType = WuQMacroDataValueTypeEnum::BOOLEAN;
+        case WuQMacroClassTypeEnum::TOOL_BUTTON:
+            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
             break;
     }
     
@@ -124,22 +134,19 @@ m_macroMouseEvent(NULL)
  *    Type of object
  * @param objectName
  *    Name of object
- * @param objectToolTip
- *    Tooltip of object
  * @param value
  *    Value for the command.
  */
 WuQMacroCommand::WuQMacroCommand(const QString& objectName,
-                                 const QString& objectToolTip,
                                  WuQMacroMouseEventInfo* mouseEventInfo)
 : CaretObjectTracksModification(),
-m_objectType(WuQMacroObjectTypeEnum::MOUSE_USER_EVENT),
+m_classType(WuQMacroClassTypeEnum::MOUSE_USER_EVENT),
 m_objectName(objectName),
-m_objectToolTip(objectToolTip),
-m_value((int)0),
+m_dataValue((int)0),
+m_dataValueTwo(""),
 m_macroMouseEvent(mouseEventInfo)
 {
-    m_objectDataValueType = WuQMacroDataValueTypeEnum::MOUSE;
+    m_dataType = WuQMacroDataValueTypeEnum::MOUSE;
     
     setModified();
 }
@@ -190,14 +197,15 @@ WuQMacroCommand::operator=(const WuQMacroCommand& obj)
 void
 WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
 {
-    m_objectType = obj.m_objectType;
-    m_objectName = obj.m_objectName;
-    m_objectToolTip = obj.m_objectToolTip;
-    m_value = obj.m_value;
+    m_classType = obj.m_classType;
+    m_objectName   = obj.m_objectName;
+    m_dataValue    = obj.m_dataValue;
+    m_dataType     = obj.m_dataType;
+    m_dataTypeTwo  = obj.m_dataTypeTwo;
+    m_dataValueTwo = obj.m_dataValueTwo;
     m_macroMouseEvent = NULL;
-    m_objectDataValueType = obj.m_objectDataValueType;
     
-    switch (m_objectDataValueType) {
+    switch (m_dataType) {
         case WuQMacroDataValueTypeEnum::BOOLEAN:
             break;
         case WuQMacroDataValueTypeEnum::FLOAT:
@@ -214,21 +222,30 @@ WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
 }
 
 /**
- * @return The object' type
+ * @return The object' class type
  */
-WuQMacroObjectTypeEnum::Enum
-WuQMacroCommand::getObjectType() const
+WuQMacroClassTypeEnum::Enum
+WuQMacroCommand::getClassType() const
 {
-    return m_objectType;
+    return m_classType;
 }
 
 /**
  * @return Type of data value for object
  */
 WuQMacroDataValueTypeEnum::Enum
-WuQMacroCommand::getObjectDataValueType() const
+WuQMacroCommand::getDataType() const
 {
-    return m_objectDataValueType;
+    return m_dataType;
+}
+
+/**
+ * @return Type of second data value for object
+ */
+WuQMacroDataValueTypeEnum::Enum
+WuQMacroCommand::getDataTypeTwo() const
+{
+    return m_dataTypeTwo;
 }
 
 /**
@@ -241,21 +258,21 @@ WuQMacroCommand::getObjectName() const
 }
 
 /**
- * @return The object's tooltip
+ * @return The object's data value.
  */
-QString
-WuQMacroCommand::getObjectToolTip() const
+QVariant
+WuQMacroCommand::getDataValue() const
 {
-    return m_objectToolTip;
+    return m_dataValue;
 }
 
 /**
- * @return The object's value.
+ * @return The object's second data value.
  */
 QVariant
-WuQMacroCommand::getObjectValue() const
+WuQMacroCommand::getDataValueTwo() const
 {
-    return m_value;
+    return m_dataValueTwo;
 }
 
 /**
@@ -274,11 +291,11 @@ WuQMacroCommand::getMouseEventInfo() const
 AString
 WuQMacroCommand::toString() const
 {
-    QString s("WuQMacroCommand name=%1, type=%2, tooltip=%3, value=%4");
+    QString s("WuQMacroCommand name=%1, type=%2, value=%3, valueTwo=%4");
     s = s.arg(m_objectName
-              ).arg(WuQMacroObjectTypeEnum::toGuiName(m_objectType)
-                    ).arg(m_objectToolTip
-                    ).arg(m_value.toString());
+              ).arg(WuQMacroClassTypeEnum::toGuiName(m_classType)
+                    ).arg(m_dataValue.toString()
+                    ).arg(m_dataValueTwo.toString());
     return s;
 }
 

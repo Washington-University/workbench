@@ -214,8 +214,8 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
             }
         }
         
-        const WuQMacroObjectTypeEnum::Enum objectType = mc->getObjectType();
-        const bool mouseEventFlag = (objectType == WuQMacroObjectTypeEnum::MOUSE_USER_EVENT);
+        const WuQMacroClassTypeEnum::Enum classType = mc->getClassType();
+        const bool mouseEventFlag = (classType == WuQMacroClassTypeEnum::MOUSE_USER_EVENT);
         
         if (options.m_showMouseMovementFlag) {
             if (widgetToMoveMouse != NULL) {
@@ -274,142 +274,285 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
     CaretAssert(macroCommand);
     CaretAssert(object);
     
-    const WuQMacroObjectTypeEnum::Enum objectType = macroCommand->getObjectType();
-    const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getObjectDataValueType();
-    const QVariant objectValue = macroCommand->getObjectValue();
+    const WuQMacroClassTypeEnum::Enum classType = macroCommand->getClassType();
+    const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
+    const QVariant dataValue = macroCommand->getDataValue();
+    const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = macroCommand->getDataTypeTwo();
+    const QVariant dataValueTwo = macroCommand->getDataValueTwo();
     
+    QString valueNotFoundErrorMessage;
     bool notFoundFlag(false);
-    switch (objectType) {
-        case WuQMacroObjectTypeEnum::ACTION:
+    switch (classType) {
+        case WuQMacroClassTypeEnum::ACTION:
         {
             QAction* action = qobject_cast<QAction*>(object);
             if (action != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQActionSignal(action,
-                                                objectValue.toBool());
+                                                dataValue.toBool());
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::ACTION_GROUP:
+        case WuQMacroClassTypeEnum::ACTION_GROUP:
         {
             QActionGroup* actionGroup = qobject_cast<QActionGroup*>(object);
             if (actionGroup != NULL) {
-                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
+                CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::INTEGER);
+                CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::STRING);
+                
+                QAction* textAction(NULL);
+                QAction* indexAction(NULL);
+                QList<QAction*> actions = actionGroup->actions();
+                for (int32_t i = 0; i < actions.size(); i++) {
+                    QAction* actionAtIndex = actions.at(i);
+                    if (actionAtIndex->text() == dataValueTwo.toString()) {
+                        textAction = actionAtIndex;
+                    }
+                    if (dataValue.toInt() == i) {
+                        indexAction = actionAtIndex;
+                    }
+                }
+                
                 WuQMacroSignalEmitter signalEmitter;
-                signalEmitter.emitActionGroupSignal(actionGroup,
-                                                     objectValue.toString());
+                if (textAction != NULL) {
+                    signalEmitter.emitActionGroupSignal(actionGroup,
+                                                        textAction->text());
+                }
+                else if (indexAction != NULL) {
+                    signalEmitter.emitActionGroupSignal(actionGroup,
+                                                        indexAction->text());
+                }
+                else {
+                    valueNotFoundErrorMessage = ("For QActionGroup \""
+                                                 + object->objectName()
+                                                 + "\", unable to find action with text \""
+                                                 + dataValueTwo.toString()
+                                                 + "\" or index="
+                                                 + dataValue.toInt());
+                }
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::BUTTON_GROUP:
+        case WuQMacroClassTypeEnum::BUTTON_GROUP:
         {
             QButtonGroup* buttonGroup = qobject_cast<QButtonGroup*>(object);
             if (buttonGroup != NULL) {
-                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
+                CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::INTEGER);
+                CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::STRING);
+                
+                QAbstractButton* textButton(NULL);
+                QAbstractButton* indexButton(NULL);
+                QList<QAbstractButton*> buttons = buttonGroup->buttons();
+                for (int32_t i = 0; i < buttons.size(); i++) {
+                    QAbstractButton* buttonAtIndex = buttons.at(i);
+                    if (buttonAtIndex->text() == dataValueTwo.toString()) {
+                        textButton = buttonAtIndex;
+                    }
+                    if (dataValue.toInt() == i) {
+                        indexButton = buttonAtIndex;
+                    }
+                }
+                
                 WuQMacroSignalEmitter signalEmitter;
-                signalEmitter.emitQButtonGroupSignal(buttonGroup,
-                                                     objectValue.toString());
+                if (textButton != NULL) {
+                    signalEmitter.emitQButtonGroupSignal(buttonGroup,
+                                                        textButton->text());
+                }
+                else if (indexButton != NULL) {
+                    signalEmitter.emitQButtonGroupSignal(buttonGroup,
+                                                        indexButton->text());
+                }
+                else {
+                    valueNotFoundErrorMessage = ("For QButtonGroup \""
+                                                 + object->objectName()
+                                                 + "\", unable to find button with text \""
+                                                 + dataValueTwo.toString()
+                                                 + "\" or index="
+                                                 + dataValue.toInt());
+                }
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::CHECK_BOX:
+        case WuQMacroClassTypeEnum::CHECK_BOX:
         {
             QCheckBox* checkBox = qobject_cast<QCheckBox*>(object);
             if (checkBox != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQCheckBoxSignal(checkBox,
-                                                  objectValue.toBool());
+                                                  dataValue.toBool());
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::COMBO_BOX:
+        case WuQMacroClassTypeEnum::COMBO_BOX:
         {
             QComboBox* comboBox = qobject_cast<QComboBox*>(object);
             if (comboBox != NULL) {
-                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
+                CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::INTEGER);
+                CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::STRING);
+                int textIndex(-1);
+                int indexIndex(-1);
+                for (int32_t i = 0; i < comboBox->count(); i++) {
+                    if (comboBox->itemText(i) == dataValueTwo.toString()) {
+                        textIndex = i;
+                    }
+                    else if (i == dataValue.toInt()) {
+                        indexIndex = i;
+                    }
+                }
                 WuQMacroSignalEmitter signalEmitter;
-                signalEmitter.emitQComboBoxSignal(comboBox,
-                                                  objectValue.toInt());
+                if (textIndex >= 0) {
+                    signalEmitter.emitQComboBoxSignal(comboBox,
+                                                      textIndex);
+                }
+                else if (indexIndex >= 0) {
+                    signalEmitter.emitQComboBoxSignal(comboBox,
+                                                      indexIndex);
+                }
+                else {
+                    valueNotFoundErrorMessage = ("For ComboBox \""
+                                                 + object->objectName()
+                                                 + "\", unable to find item with text \""
+                                                 + dataValueTwo.toString()
+                                                 + "\" or index="
+                                                 + dataValue.toInt());
+                }
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::DOUBLE_SPIN_BOX:
+        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
         {
             QDoubleSpinBox* doubleSpinBox = qobject_cast<QDoubleSpinBox*>(object);
             if (doubleSpinBox != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::FLOAT);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQDoubleSpinBoxSignal(doubleSpinBox,
-                                                       objectValue.toDouble());
+                                                       dataValue.toDouble());
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::INVALID:
+        case WuQMacroClassTypeEnum::INVALID:
             CaretAssert(0);
             break;
-        case WuQMacroObjectTypeEnum::LINE_EDIT:
+        case WuQMacroClassTypeEnum::LINE_EDIT:
         {
             QLineEdit* lineEdit = qobject_cast<QLineEdit*>(object);
             if (lineEdit != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQLineEditSignal(lineEdit,
-                                                  objectValue.toString());
+                                                  dataValue.toString());
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::LIST_WIDGET:
+        case WuQMacroClassTypeEnum::LIST_WIDGET:
         {
             QListWidget* listWidget = qobject_cast<QListWidget*>(object);
             if (listWidget != NULL) {
-                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
+                CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::INTEGER);
+                CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::STRING);
+                
+                QListWidgetItem* textItem(NULL);
+                QListWidgetItem* indexItem(NULL);
+                for (int32_t i = 0; i < listWidget->count(); i++) {
+                    QListWidgetItem* itemAtIndex = listWidget->item(i);
+                    if (itemAtIndex->text() == dataValueTwo.toString()) {
+                        textItem = itemAtIndex;
+                    }
+                    if (dataValue.toInt() == i) {
+                        indexItem = itemAtIndex;
+                    }
+                }
+                
                 WuQMacroSignalEmitter signalEmitter;
-                signalEmitter.emitQListWidgetSignal(listWidget,
-                                                    objectValue.toString());
+                if (textItem != NULL) {
+                    signalEmitter.emitQListWidgetSignal(listWidget,
+                                                        textItem->text());
+                }
+                else if (indexItem != NULL) {
+                    signalEmitter.emitQListWidgetSignal(listWidget,
+                                                        indexItem->text());
+                }
+                else {
+                    valueNotFoundErrorMessage = ("For QListWidget \""
+                                                 + object->objectName()
+                                                 + "\", unable to find item with text \""
+                                                 + dataValueTwo.toString()
+                                                 + "\" or index="
+                                                 + dataValue.toInt());
+                }
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::MENU:
+        case WuQMacroClassTypeEnum::MENU:
         {
             QMenu* menu = qobject_cast<QMenu*>(object);
             if (menu != NULL) {
-                CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
+                CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::INTEGER);
+                CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::STRING);
+                
+                QAction* textAction(NULL);
+                QAction* indexAction(NULL);
+                QList<QAction*> actions = menu->actions();
+                for (int32_t i = 0; i < actions.size(); i++) {
+                    QAction* actionAtIndex = actions.at(i);
+                    if (actionAtIndex->text() == dataValueTwo.toString()) {
+                        textAction = actionAtIndex;
+                    }
+                    if (dataValue.toInt() == i) {
+                        indexAction = actionAtIndex;
+                    }
+                }
+                
                 WuQMacroSignalEmitter signalEmitter;
-                signalEmitter.emitQMenuSignal(menu,
-                                              objectValue.toString());
+                if (textAction != NULL) {
+                    signalEmitter.emitQMenuSignal(menu,
+                                                  textAction->text());
+                }
+                else if (indexAction != NULL) {
+                    signalEmitter.emitQMenuSignal(menu,
+                                                  indexAction->text());
+                }
+                else {
+                    valueNotFoundErrorMessage = ("For QMenu \""
+                                                 + object->objectName()
+                                                 + "\", unable to find action with text \""
+                                                 + dataValueTwo.toString()
+                                                 + "\" or index="
+                                                 + dataValue.toInt());
+                }
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::MOUSE_USER_EVENT:
+        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
         {
             QWidget* widget = qobject_cast<QWidget*>(object);
             if (widget != NULL) {
@@ -465,98 +608,98 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::PUSH_BUTTON:
+        case WuQMacroClassTypeEnum::PUSH_BUTTON:
         {
             QPushButton* pushButton = qobject_cast<QPushButton*>(object);
             if (pushButton != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQPushButtonSignal(pushButton,
-                                                    objectValue.toBool());
+                                                    dataValue.toBool());
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::RADIO_BUTTON:
+        case WuQMacroClassTypeEnum::RADIO_BUTTON:
         {
             QRadioButton* radioButton = qobject_cast<QRadioButton*>(object);
             if (radioButton != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQRadioButtonSignal(radioButton,
-                                                     objectValue.toBool());
+                                                     dataValue.toBool());
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::SLIDER:
+        case WuQMacroClassTypeEnum::SLIDER:
         {
             QSlider* slider = qobject_cast<QSlider*>(object);
             if (slider != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQSliderSignal(slider,
-                                                objectValue.toInt());
+                                                dataValue.toInt());
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::SPIN_BOX:
+        case WuQMacroClassTypeEnum::SPIN_BOX:
         {
             QSpinBox* spinBox = qobject_cast<QSpinBox*>(object);
             if (spinBox != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQSpinBoxSignal(spinBox,
-                                                 objectValue.toInt());
+                                                 dataValue.toInt());
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::TAB_BAR:
+        case WuQMacroClassTypeEnum::TAB_BAR:
         {
             QTabBar* tabBar = qobject_cast<QTabBar*>(object);
             if (tabBar != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQTabBarSignal(tabBar,
-                                                objectValue.toInt());
+                                                dataValue.toInt());
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::TAB_WIDGET:
+        case WuQMacroClassTypeEnum::TAB_WIDGET:
         {
             QTabWidget* tabWidget = qobject_cast<QTabWidget*>(object);
             if (tabWidget != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQTabWidgetSignal(tabWidget,
-                                                   objectValue.toInt());
+                                                   dataValue.toInt());
             }
             else {
                 notFoundFlag = true;
             }
         }
             break;
-        case WuQMacroObjectTypeEnum::TOOL_BUTTON:
+        case WuQMacroClassTypeEnum::TOOL_BUTTON:
         {
             QToolButton* toolButton = qobject_cast<QToolButton*>(object);
             if (toolButton != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQToolButtonSignal(toolButton,
-                                                    objectValue.toBool());
+                                                    dataValue.toBool());
             }
             else {
                 notFoundFlag = true;
@@ -569,7 +712,11 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         errorMessageOut = ("ERROR: Unable to cast object named "
                            + object->objectName()
                            + " to "
-                           + WuQMacroObjectTypeEnum::toGuiName(objectType));
+                           + WuQMacroClassTypeEnum::toGuiName(classType));
+        return false;
+    }
+    else if ( ! valueNotFoundErrorMessage.isEmpty()) {
+        errorMessageOut = valueNotFoundErrorMessage;
         return false;
     }
     

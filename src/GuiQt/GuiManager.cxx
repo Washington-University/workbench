@@ -122,7 +122,7 @@
 #include "TileTabsConfigurationDialog.h"
 #include "VolumeMappableInterface.h"
 #include "WuQMacroManager.h"
-#include "WuQMacroObjectTypeEnum.h"
+#include "WuQMacroClassTypeEnum.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -192,9 +192,9 @@ GuiManager::initializeGuiManager()
      * of GuiManager and not found when searching a window
      * for children objects
      */
-    WuQMacroObjectTypeEnum::addWidgetClassNameAlias("QTabWidget",
+    WuQMacroClassTypeEnum::addWidgetClassNameAlias("QTabWidget",
                                                     "caret::WuQTabWidgetWithSizeHint");
-    WuQMacroObjectTypeEnum::addWidgetClassNameAlias("QTabBar",
+    WuQMacroClassTypeEnum::addWidgetClassNameAlias("QTabBar",
                                                     "caret::WuQTabBar");
     WuQMacroManager::instance()->addParentObject(this);
     

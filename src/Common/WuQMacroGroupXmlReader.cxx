@@ -226,15 +226,18 @@ WuQMacroGroupXmlReader::readMacroCommandVersionOne()
     
     const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
     const QStringRef objectName = attributes.value(ATTRIBUTE_NAME);
-    const QStringRef dataTypeString = attributes.value(ATTRIBUTE_OBJECT_DATA_VALUE_TYPE);
-    const QStringRef typeString = attributes.value(ATTRIBUTE_OBJECT_TYPE);
+    const QStringRef dataTypeString = attributes.value(ATTRIBUTE_OBJECT_DATA_TYPE);
+    const QStringRef classString = attributes.value(ATTRIBUTE_OBJECT_CLASS);
     const QStringRef valueString = attributes.value(ATTRIBUTE_OBJECT_VALUE);
+    const QStringRef dataTypeTwoString = attributes.value(ATTRIBUTE_OBJECT_DATA_TYPE_TWO);
+    const QStringRef valueTwoString = attributes.value(ATTRIBUTE_OBJECT_VALUE_TWO);
     
     QString es;
     if (objectName.isEmpty()) es.append(ATTRIBUTE_NAME + " ");
-    if (dataTypeString.isEmpty()) es.append(ATTRIBUTE_OBJECT_DATA_VALUE_TYPE + " ");
-    if (typeString.isEmpty()) es.append(ATTRIBUTE_OBJECT_TYPE + " ");
-    if (valueString.isEmpty()) es.append(ATTRIBUTE_OBJECT_VALUE + " ");
+    if (dataTypeString.isEmpty()) es.append(ATTRIBUTE_OBJECT_DATA_TYPE + " ");
+    if (dataTypeTwoString.isEmpty()) es.append(ATTRIBUTE_OBJECT_DATA_TYPE + " ");
+    if (classString.isEmpty()) es.append(ATTRIBUTE_OBJECT_CLASS + " ");
+// empty could be valid for line edit    if (valueString.isEmpty()) es.append(ATTRIBUTE_OBJECT_VALUE + " ");
     if ( ! es.isEmpty()) {
         addToWarnings(ELEMENT_MACRO_COMMAND
                       + " is missing attribute(s): "
@@ -242,25 +245,40 @@ WuQMacroGroupXmlReader::readMacroCommandVersionOne()
         return NULL;
     }
     
+    
+    bool objectTypeValid(false);
+    WuQMacroClassTypeEnum::Enum objectClass = WuQMacroClassTypeEnum::fromName(classString.toString(),
+                                                                               &objectTypeValid);
+    if (! objectTypeValid) {
+        es.append(classString.toString()
+                  + " is not valid for attribute "
+                  + ATTRIBUTE_OBJECT_CLASS
+                  + " ");
+        return NULL;
+    }
+    
     bool dataTypeValid(false);
     WuQMacroDataValueTypeEnum::Enum dataValueType = WuQMacroDataValueTypeEnum::fromName(dataTypeString.toString(),
                                                                                         &dataTypeValid);
-    if ( ! dataTypeValid) {
+    if (! dataTypeValid) {
         es.append(dataTypeString.toString()
                   + " is not valid for attribute "
-                  + ATTRIBUTE_OBJECT_DATA_VALUE_TYPE
+                  + ATTRIBUTE_OBJECT_DATA_TYPE
                   + " ");
+        return NULL;
     }
     
-    bool objectTypeValid(false);
-    WuQMacroObjectTypeEnum::Enum objectType = WuQMacroObjectTypeEnum::fromName(typeString.toString(),
-                                                                               &objectTypeValid);
-    if ( ! objectTypeValid) {
-        es.append(typeString.toString()
+    bool dataTypeTwoValid(false);
+    WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = WuQMacroDataValueTypeEnum::fromName(dataTypeTwoString.toString(),
+                                                                                           &dataTypeTwoValid);
+    if (! dataTypeTwoValid) {
+        es.append(dataTypeTwoString.toString()
                   + " is not valid for attribute "
-                  + ATTRIBUTE_OBJECT_TYPE
+                  + ATTRIBUTE_OBJECT_DATA_TYPE_TWO
                   + " ");
+        return NULL;
     }
+    
     
     if ( ! es.isEmpty()) {
         addToWarnings(ELEMENT_MACRO_COMMAND
@@ -269,11 +287,10 @@ WuQMacroGroupXmlReader::readMacroCommandVersionOne()
         return NULL;
     }
     
-    if (objectType == WuQMacroObjectTypeEnum::MOUSE_USER_EVENT) {
+    if (objectClass == WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
         WuQMacroMouseEventInfo* mouseEventInfo = readMacroMouseEventInfo();
         if (mouseEventInfo != NULL) {
             macroCommand = new WuQMacroCommand(objectName.toString(),
-                                               "",
                                                mouseEventInfo);
         }
     }
@@ -305,10 +322,39 @@ WuQMacroGroupXmlReader::readMacroCommandVersionOne()
                 value.setValue(valueString.toString());
                 break;
         }
-        macroCommand = new WuQMacroCommand(objectType,
+        
+        QVariant valueTwo;
+        switch (dataValueTypeTwo) {
+            case WuQMacroDataValueTypeEnum::BOOLEAN:
+            {
+                const bool boolValue = ((valueTwoString == VALUE_BOOL_TRUE) ? true : false);
+                valueTwo.setValue(boolValue);
+            }
+                break;
+            case WuQMacroDataValueTypeEnum::FLOAT:
+            {
+                const double floatValue = valueTwoString.toFloat();
+                valueTwo.setValue(floatValue);
+            }
+                break;
+            case WuQMacroDataValueTypeEnum::INTEGER:
+            {
+                const int32_t intValue = valueTwoString.toInt();
+                valueTwo.setValue(intValue);
+            }
+                break;
+            case WuQMacroDataValueTypeEnum::MOUSE:
+                CaretAssertMessage(0, "Mouse is special case handled above");
+                break;
+            case WuQMacroDataValueTypeEnum::STRING:
+                valueTwo.setValue(valueTwoString.toString());
+                break;
+        }
+        
+        macroCommand = new WuQMacroCommand(objectClass,
                                            objectName.toString(),
-                                           "",
-                                           value);
+                                           value,
+                                           valueTwo);
     }
     
     return macroCommand;
