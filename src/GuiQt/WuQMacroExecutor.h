@@ -27,6 +27,7 @@
 
 #include <QObject>
 
+class QTabBar;
 class QWidget;
 
 namespace caret {
@@ -41,6 +42,14 @@ namespace caret {
     public:
         class RunOptions {
         public:
+            RunOptions()
+            : m_secondsDelayBetweenCommands(1.0),
+            m_showMouseMovementFlag(true),
+            m_stopOnErrorFlag(true),
+            m_loopFlag(false)
+            {
+                
+            }
             RunOptions(const float secondsDelayBetweenCommands,
                        const bool showMouseMovementFlag,
                        const bool loopFlag)
@@ -51,13 +60,13 @@ namespace caret {
             {
             }
             
-            const float m_secondsDelayBetweenCommands;
+            float m_secondsDelayBetweenCommands;
             
-            const bool m_showMouseMovementFlag;
+            bool m_showMouseMovementFlag;
             
-            const bool m_stopOnErrorFlag;
+            bool m_stopOnErrorFlag;
             
-            const bool m_loopFlag;
+            bool m_loopFlag;
         };
         
         WuQMacroExecutor();
@@ -78,12 +87,21 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
     private:
-        void moveMouse(QWidget* widget,
-                       const bool highlightFlag) const;
+        void moveMouseToTabBarTab(QTabBar* tabBar,
+                                  const int32_t tabIndex) const;
+        
+        void moveMouseToWidget(QObject* moveToObject,
+                               const QRect* objectRect = NULL) const;
         
         bool runMacroCommand(const WuQMacroCommand* macroCommand,
                              QObject* object,
                              QString& errorMessageOut) const;
+        
+        QObject* findObjectByName(const QString& objectName) const;
+        
+        mutable RunOptions m_runOptions;
+        
+        mutable std::vector<QObject*> m_parentObjects;
         
         // ADD_NEW_MEMBERS_HERE
 

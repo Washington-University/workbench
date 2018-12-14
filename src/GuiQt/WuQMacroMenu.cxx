@@ -63,9 +63,12 @@ m_windowParent(windowParent)
     
     {
         QMenu* developmentMenu = new QMenu("Development");
-        QAction* printAction = developmentMenu->addAction("Development - Print Supported Widgets");
+        QAction* printAction = developmentMenu->addAction("Print Supported Widgets");
         QObject::connect(printAction, &QAction::triggered,
                          this, &WuQMacroMenu::macroPrintAllSelected);
+        QAction* printTopLevelWidgetsAction = developmentMenu->addAction("Print Top-Level Widgets");
+        QObject::connect(printTopLevelWidgetsAction, &QAction::triggered,
+                         this, &WuQMacroMenu::macroPrintTopLevelWidgets);
 
         addSeparator();
         addMenu(developmentMenu);
@@ -155,4 +158,11 @@ WuQMacroMenu::macroPrintAllSelected()
     WuQMacroManager::instance()->printSupportedWidgetsToTerminal();
 }
 
-
+/**
+ * Print all top level widgets name and class name
+ */
+void
+WuQMacroMenu::macroPrintTopLevelWidgets()
+{
+    WuQMacroManager::instance()->printToLevelWidgetsToTerminal();
+}

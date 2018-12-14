@@ -62,11 +62,13 @@ namespace caret {
     private:
         enum {
             COLUMN_TYPE       = 0,
-            COLUMN_VALUE_TYPE = 1,
-            COLUMN_NAME       = 2,
+            COLUMN_NAME       = 1,
+            COLUMN_VALUE_TYPE = 2,
             COLUMN_VALUE      = 3,
-            COLUMN_TOOLTIP    = 4,
-            NUMBER_OF_COLUMNS = 5
+            COLUMN_VALUE_TWO_TYPE = 4,
+            COLUMN_VALUE_TWO  = 5,
+            COLUMN_TOOLTIP    = 6,
+            NUMBER_OF_COLUMNS = 7
         };
         
         QTableWidget* createTableWidget();

@@ -130,20 +130,24 @@ WuQMacroEditorDialog::createTableWidget()
 {
     QTableWidget* tableWidget = new QTableWidget();
     
-    QStringList columnNames;
-    CaretAssert(COLUMN_TYPE       == 0);
-    columnNames << "Class";
-    CaretAssert(COLUMN_VALUE_TYPE == 1);
-    columnNames << "Value-Type";
-    CaretAssert(COLUMN_NAME       == 2);
-    columnNames << "Name";
-    CaretAssert(COLUMN_VALUE      == 3);
-    columnNames << "Value";
-    CaretAssert(COLUMN_TOOLTIP    == 4);
-    columnNames << "ToolTip";
-    CaretAssert(columnNames.size() == NUMBER_OF_COLUMNS);
-    
-    tableWidget->setHorizontalHeaderLabels(columnNames);
+//    QStringList columnNames;
+//    CaretAssert(COLUMN_TYPE       == 0);
+//    columnNames << "Class";
+//    CaretAssert(COLUMN_NAME       == 1);
+//    columnNames << "Name";
+//    CaretAssert(COLUMN_VALUE_TYPE == 2);
+//    columnNames << "Value-Type";
+//    CaretAssert(COLUMN_VALUE      == 3);
+//    columnNames << "Value";
+//    CaretAssert(COLUMN_VALUE_TWO_TYPE == 4);
+//    columnNames << "Value-Two-Type";
+//    CaretAssert(COLUMN_VALUE_TWO      == 5);
+//    columnNames << "Value-Two";
+//    CaretAssert(COLUMN_TOOLTIP    == 6);
+//    columnNames << "ToolTip";
+//    CaretAssert(columnNames.size() == NUMBER_OF_COLUMNS);
+//    
+//    tableWidget->setHorizontalHeaderLabels(columnNames);
     
     return tableWidget;
 }
@@ -163,9 +167,11 @@ WuQMacroEditorDialog::loadTableWidget()
     for (int32_t i = 0; i < numberOfCommands; i++) {
         const WuQMacroCommand* command = m_macro->getMacroCommandAtIndex(i);
         QTableWidgetItem* classItem = new QTableWidgetItem(WuQMacroClassTypeEnum::toGuiName(command->getClassType()));
-        QTableWidgetItem* valueTypeItem = new QTableWidgetItem(WuQMacroDataValueTypeEnum::toGuiName(command->getDataType()));
         QTableWidgetItem* nameItem = new QTableWidgetItem(command->getObjectName());
+        QTableWidgetItem* valueTypeItem = new QTableWidgetItem(WuQMacroDataValueTypeEnum::toGuiName(command->getDataType()));
         QTableWidgetItem* valueItem = new QTableWidgetItem(command->getDataValue().toString());
+        QTableWidgetItem* valueTwoTypeItem = new QTableWidgetItem(WuQMacroDataValueTypeEnum::toGuiName(command->getDataTypeTwo()));
+        QTableWidgetItem* valueTwoItem = new QTableWidgetItem(command->getDataValueTwo().toString());
         
         const QString toolTip = WuQMacroManager::instance()->getToolTipForObjectName(command->getObjectName());
         QTableWidgetItem* toolTipItem = new QTableWidgetItem(toolTip);
@@ -185,22 +191,28 @@ WuQMacroEditorDialog::loadTableWidget()
         }
         
         m_tableWidget->setItem(i, COLUMN_TYPE, classItem);
-        m_tableWidget->setItem(i, COLUMN_VALUE_TYPE, valueTypeItem);
         m_tableWidget->setItem(i, COLUMN_NAME, nameItem);
+        m_tableWidget->setItem(i, COLUMN_VALUE_TYPE, valueTypeItem);
         m_tableWidget->setItem(i, COLUMN_VALUE, valueItem);
+        m_tableWidget->setItem(i, COLUMN_VALUE_TWO_TYPE, valueTwoTypeItem);
+        m_tableWidget->setItem(i, COLUMN_VALUE_TWO, valueTwoItem);
         m_tableWidget->setItem(i, COLUMN_TOOLTIP, toolTipItem);
     }
 
     QStringList columnNames;
     CaretAssert(COLUMN_TYPE       == 0);
     columnNames << "Class";
-    CaretAssert(COLUMN_VALUE_TYPE == 1);
-    columnNames << "Value-Type";
-    CaretAssert(COLUMN_NAME       == 2);
+    CaretAssert(COLUMN_NAME       == 1);
     columnNames << "Name";
+    CaretAssert(COLUMN_VALUE_TYPE == 2);
+    columnNames << "Value-Type";
     CaretAssert(COLUMN_VALUE      == 3);
     columnNames << "Value";
-    CaretAssert(COLUMN_TOOLTIP    == 4);
+    CaretAssert(COLUMN_VALUE_TWO_TYPE == 4);
+    columnNames << "Value-Two-Type";
+    CaretAssert(COLUMN_VALUE_TWO  == 5);
+    columnNames << "Value-Two";
+    CaretAssert(COLUMN_TOOLTIP    == 6);
     columnNames << "ToolTip";
     CaretAssert(columnNames.size() == NUMBER_OF_COLUMNS);
     

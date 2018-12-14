@@ -255,8 +255,12 @@ WuQMacroSignalWatcher::objectWasDestroyed(QObject* /*obj*/)
      * Log object destroyed only when NOT debug
      */
 #ifndef NDEBUG
-    CaretLogWarning("Object was destroyed: "
-                    + m_objectName);
+    /* disable as need way to disallow this while a window is closing or application exiting */
+    const bool allowMessageFlag(false);
+    if (allowMessageFlag) {
+        CaretLogWarning("Object was destroyed: "
+                        + m_objectName);
+    }
 #endif
 }
 

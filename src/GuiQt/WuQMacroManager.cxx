@@ -767,6 +767,20 @@ WuQMacroManager::printSupportedWidgetsToTerminal()
 }
 
 /**
+ * Print top level widgets
+ */
+void
+WuQMacroManager::printToLevelWidgetsToTerminal()
+{
+    std::cout << "Top Level Widgets: " << std::endl;
+    QWidgetList widgetList = qApp->topLevelWidgets();
+    foreach (QWidget* widget, widgetList) {
+        std::cout << "   " << widget->objectName()
+        << ",  " << widget->metaObject()->className() << std::endl;
+    }
+    std::cout << std::endl;
+}
+/**
  * Get the tooltip for the object with the given name
  *
  * @param objectName

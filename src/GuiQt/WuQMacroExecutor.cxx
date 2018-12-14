@@ -78,22 +78,82 @@ WuQMacroExecutor::~WuQMacroExecutor()
 }
 
 /**
- * Move the mouse around the given widget
+ * Move the mouse to the tab bar's tab with the given tab index
  *
- * @param widget
- *     Widget to where mouse should be moved
- * @param highlightFlag
- *     Highlights widget by having mouse circle around widget center
+ * @param tabBar
+ *     The tab bar
+ * @param tabIndex
+ *     Index of the tab
  */
 void
-WuQMacroExecutor::moveMouse(QWidget* widget,
-                            const bool highlightFlag) const
+WuQMacroExecutor::moveMouseToTabBarTab(QTabBar* tabBar,
+                                       const int32_t tabIndex) const
 {
-    CaretAssert(widget);
+    QRect tabRect = tabBar->tabRect(tabIndex);
+    if (tabRect.isNull()) {
+        moveMouseToWidget(tabBar);
+    }
+    else {
+        moveMouseToWidget(tabBar,
+                          &tabRect);
+    }
+}
+
+/**
+ * Move the mouse around the given widget
+ *
+ * @param moveToObject
+ *     Object to where mouse should be moved
+ * @param objectRect
+ *     Optional, if not NULL, rectangle of object used for positioning mouse
+ */
+void
+WuQMacroExecutor::moveMouseToWidget(QObject* moveToObject,
+                                    const QRect* objectRect) const
+{
+    if ( ! m_runOptions.m_showMouseMovementFlag) {
+        return;
+    }
+    CaretAssert(moveToObject);
+    const QString objectName = moveToObject->objectName();
     
-    const QPoint widgetCenter = widget->rect().center();
-    const QPoint windowPoint = widget->mapToGlobal(widgetCenter);
+    /*
+     * Object may not be a widget so find ancestor
+     * that is a widget
+     */
+    bool usingParentFlag(false);
+    QWidget* moveToWidget(NULL);
+    while ((moveToWidget == NULL)
+           && (moveToObject != NULL)) {
+        moveToWidget = qobject_cast<QWidget*>(moveToObject);
+        if (moveToWidget == NULL) {
+            moveToObject = moveToObject->parent();
+            usingParentFlag = true;
+        }
+    }
     
+    if (moveToWidget == NULL) {
+        return;
+        
+    }
+    
+    if (usingParentFlag) {
+        std::cout << "For mouse, using parent " << moveToWidget->objectName()
+        << " for object " << objectName << std::endl;
+    }
+    
+    CaretAssert(moveToWidget);
+    
+    const QRect widgetRect = ((objectRect != NULL)
+                              ? *objectRect
+                              : moveToWidget->rect());
+    const QPoint widgetCenter = widgetRect.center();
+    const QPoint windowPoint = moveToWidget->mapToGlobal(widgetCenter);
+    
+    QCursor::setPos(windowPoint);
+    SystemUtilities::sleepSeconds(0.025);
+    
+    const bool highlightFlag(true);
     if (highlightFlag) {
         const float radius = 15.0;
         for (float angle = 0.0; angle < 6.28; angle += 0.314) {
@@ -108,14 +168,36 @@ WuQMacroExecutor::moveMouse(QWidget* widget,
 }
 
 /**
+ * Find an object, by name, in the parent objects
+ *
+ * @param objectName
+ *     Name of object
+ * @return
+ *     Pointer to object with name or NULL if not found
+ */
+QObject*
+WuQMacroExecutor::findObjectByName(const QString& objectName) const
+{
+    QObject* object(NULL);
+    
+    for (auto po : m_parentObjects) {
+        object = po->findChild<QObject*>(objectName);
+        if (object != NULL) {
+            break;
+        }
+    }
+    
+    return object;
+}
+
+/**
  * Run the commands in the given macro.
  *
  * @param macro
  *    Macro that is run
- * @param window
- *    The window from which macro was launched and is searched for 
- *    objects contained in the macro commands
- * @param 
+ * @param topLevelObject
+ *     Top level object for finding children objects
+ * @param
  *    Additional objects that are searched for objects contained
  *    in the macro commands
  * @param options
@@ -127,11 +209,18 @@ WuQMacroExecutor::moveMouse(QWidget* widget,
  */
 bool
 WuQMacroExecutor::runMacro(const WuQMacro* macro,
-                           QObject* window,
+                           QObject* topLevelObject,
                            std::vector<QObject*>& otherObjectParents,
                            const RunOptions& options,
                            QString& errorMessageOut) const
 {
+    m_parentObjects.clear();
+    m_parentObjects.push_back(topLevelObject);
+    m_parentObjects.insert(m_parentObjects.end(),
+                           otherObjectParents.begin(), otherObjectParents.end());
+    
+    m_runOptions = options;
+    
     errorMessageOut.clear();
     
     const int32_t numberOfMacroCommands = macro->getNumberOfMacroCommands();
@@ -140,91 +229,25 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
         CaretAssert(mc);
         
         const QString objectName(mc->getObjectName());
-        QObject* object = window->findChild<QObject*>(objectName);
+        QObject* object = findObjectByName(objectName);
         if (object == NULL) {
-            object = qApp->findChild<QObject*>(objectName);
-            if (object != NULL) {
-                CaretLogWarning("Found "
-                                + objectName
-                                + " in the app");
-            }
-            else {
-                for (auto other : otherObjectParents) {
-                    object = other->findChild<QObject*>(objectName);
-                    if (object != NULL) {
-                        break;
-                    }
-                }
-                    const bool extraFindFlag(false);
-                    if (extraFindFlag) {
-                        static bool firstTime = true;
-                        if (firstTime) {
-                            QWidgetList topLevelWs = QApplication::topLevelWidgets();
-                            std::cout << "Top level widget count: " << topLevelWs.size() << std::endl;
-                            for (QObject* w : topLevelWs) {
-                                if (w->objectName() == objectName) {
-                                    std::cout << objectName << " is a top level widget" << std::endl;
-                                    break;
-                                }
-                                object = w->findChild<QObject*>(objectName);
-                                if (object != NULL) {
-                                    QString parentName;
-                                    QObject* parent = object->parent();
-                                    if (parent != NULL) {
-                                        parentName = parent->objectName();
-                                    }
-                                    std::cout << "Found object in top level widget: \"" << parentName << "\"" << std::endl;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                
-                if (object == NULL) {
-                    errorMessageOut.append("Unable to find object named "
-                                           + objectName
-                                           + "\n");
-                    if (options.m_stopOnErrorFlag) {
-                        return false;
-                    }
-                    continue;
-                }
-            }
-        }
-        
-        if (object->signalsBlocked()) {
-            errorMessageOut.append("Object named "
+            errorMessageOut.append("Unable to find object named "
                                    + objectName
-                                   + " has signals blocked");
-            if (options.m_stopOnErrorFlag) {
+                                   + "\n");
+            if (m_runOptions.m_stopOnErrorFlag) {
                 return false;
             }
             continue;
         }
-        
-        QWidget* widgetToMoveMouse = qobject_cast<QWidget*>(object);
-        
-        if (widgetToMoveMouse == NULL) {
-            QObject* object = window->findChild<QObject*>(objectName);
-            if (object != NULL) {
-                QObject* parent = object->parent();
-                if (parent != NULL) {
-                    widgetToMoveMouse = qobject_cast<QWidget*>(parent);
-                }
+
+        if (object->signalsBlocked()) {
+            errorMessageOut.append("Object named "
+                                   + objectName
+                                   + " has signals blocked");
+            if (m_runOptions.m_stopOnErrorFlag) {
+                return false;
             }
-        }
-        
-        const WuQMacroClassTypeEnum::Enum classType = mc->getClassType();
-        const bool mouseEventFlag = (classType == WuQMacroClassTypeEnum::MOUSE_USER_EVENT);
-        
-        if (options.m_showMouseMovementFlag) {
-            if (widgetToMoveMouse != NULL) {
-                if ( ! mouseEventFlag) {
-                    const bool highlightFlag = ( ! mouseEventFlag);
-                    moveMouse(widgetToMoveMouse,
-                              highlightFlag);
-                }
-            }
+            continue;
         }
         
         QString commandErrorMessage;
@@ -232,15 +255,15 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
                                object,
                                commandErrorMessage)) {
             errorMessageOut.append(commandErrorMessage + "\n");
-            if (options.m_stopOnErrorFlag) {
+            if (m_runOptions.m_stopOnErrorFlag) {
                 return false;
             }
         }
         
         QGuiApplication::processEvents();
-        if ( ! mouseEventFlag) {
-            if (options.m_secondsDelayBetweenCommands > 0.0) {
-                SystemUtilities::sleepSeconds(options.m_secondsDelayBetweenCommands);
+        if (mc->getClassType() != WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
+            if (m_runOptions.m_secondsDelayBetweenCommands > 0.0) {
+                SystemUtilities::sleepSeconds(m_runOptions.m_secondsDelayBetweenCommands);
             }
         }
         
@@ -280,13 +303,14 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
     const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = macroCommand->getDataTypeTwo();
     const QVariant dataValueTwo = macroCommand->getDataValueTwo();
     
-    QString valueNotFoundErrorMessage;
+    QString objectErrorMessage;
     bool notFoundFlag(false);
     switch (classType) {
         case WuQMacroClassTypeEnum::ACTION:
         {
             QAction* action = qobject_cast<QAction*>(object);
             if (action != NULL) {
+                moveMouseToWidget(action);
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQActionSignal(action,
@@ -301,6 +325,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QActionGroup* actionGroup = qobject_cast<QActionGroup*>(object);
             if (actionGroup != NULL) {
+                moveMouseToWidget(actionGroup);
                 CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::INTEGER);
                 CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::STRING);
                 
@@ -327,7 +352,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
                                                         indexAction->text());
                 }
                 else {
-                    valueNotFoundErrorMessage = ("For QActionGroup \""
+                    objectErrorMessage = ("For QActionGroup \""
                                                  + object->objectName()
                                                  + "\", unable to find action with text \""
                                                  + dataValueTwo.toString()
@@ -362,15 +387,17 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
                 
                 WuQMacroSignalEmitter signalEmitter;
                 if (textButton != NULL) {
+                    moveMouseToWidget(textButton);
                     signalEmitter.emitQButtonGroupSignal(buttonGroup,
                                                         textButton->text());
                 }
                 else if (indexButton != NULL) {
+                    moveMouseToWidget(indexButton);
                     signalEmitter.emitQButtonGroupSignal(buttonGroup,
                                                         indexButton->text());
                 }
                 else {
-                    valueNotFoundErrorMessage = ("For QButtonGroup \""
+                    objectErrorMessage = ("For QButtonGroup \""
                                                  + object->objectName()
                                                  + "\", unable to find button with text \""
                                                  + dataValueTwo.toString()
@@ -387,6 +414,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QCheckBox* checkBox = qobject_cast<QCheckBox*>(object);
             if (checkBox != NULL) {
+                moveMouseToWidget(checkBox);
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQCheckBoxSignal(checkBox,
@@ -413,6 +441,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
                         indexIndex = i;
                     }
                 }
+                moveMouseToWidget(comboBox);
                 WuQMacroSignalEmitter signalEmitter;
                 if (textIndex >= 0) {
                     signalEmitter.emitQComboBoxSignal(comboBox,
@@ -423,7 +452,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
                                                       indexIndex);
                 }
                 else {
-                    valueNotFoundErrorMessage = ("For ComboBox \""
+                    objectErrorMessage = ("For ComboBox \""
                                                  + object->objectName()
                                                  + "\", unable to find item with text \""
                                                  + dataValueTwo.toString()
@@ -441,6 +470,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
             QDoubleSpinBox* doubleSpinBox = qobject_cast<QDoubleSpinBox*>(object);
             if (doubleSpinBox != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::FLOAT);
+                moveMouseToWidget(doubleSpinBox);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQDoubleSpinBoxSignal(doubleSpinBox,
                                                        dataValue.toDouble());
@@ -457,6 +487,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QLineEdit* lineEdit = qobject_cast<QLineEdit*>(object);
             if (lineEdit != NULL) {
+                moveMouseToWidget(lineEdit);
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQLineEditSignal(lineEdit,
@@ -485,6 +516,8 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
                         indexItem = itemAtIndex;
                     }
                 }
+
+                moveMouseToWidget(listWidget);
                 
                 WuQMacroSignalEmitter signalEmitter;
                 if (textItem != NULL) {
@@ -492,11 +525,12 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
                                                         textItem->text());
                 }
                 else if (indexItem != NULL) {
+                    
                     signalEmitter.emitQListWidgetSignal(listWidget,
                                                         indexItem->text());
                 }
                 else {
-                    valueNotFoundErrorMessage = ("For QListWidget \""
+                    objectErrorMessage = ("For QListWidget \""
                                                  + object->objectName()
                                                  + "\", unable to find item with text \""
                                                  + dataValueTwo.toString()
@@ -529,6 +563,8 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
                     }
                 }
                 
+                moveMouseToWidget(menu);
+                
                 WuQMacroSignalEmitter signalEmitter;
                 if (textAction != NULL) {
                     signalEmitter.emitQMenuSignal(menu,
@@ -539,7 +575,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
                                                   indexAction->text());
                 }
                 else {
-                    valueNotFoundErrorMessage = ("For QMenu \""
+                    objectErrorMessage = ("For QMenu \""
                                                  + object->objectName()
                                                  + "\", unable to find action with text \""
                                                  + dataValueTwo.toString()
@@ -612,6 +648,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QPushButton* pushButton = qobject_cast<QPushButton*>(object);
             if (pushButton != NULL) {
+                moveMouseToWidget(pushButton);
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQPushButtonSignal(pushButton,
@@ -626,6 +663,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QRadioButton* radioButton = qobject_cast<QRadioButton*>(object);
             if (radioButton != NULL) {
+                moveMouseToWidget(radioButton);
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQRadioButtonSignal(radioButton,
@@ -640,6 +678,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QSlider* slider = qobject_cast<QSlider*>(object);
             if (slider != NULL) {
+                moveMouseToWidget(slider);
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQSliderSignal(slider,
@@ -654,6 +693,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QSpinBox* spinBox = qobject_cast<QSpinBox*>(object);
             if (spinBox != NULL) {
+                moveMouseToWidget(spinBox);
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQSpinBoxSignal(spinBox,
@@ -669,9 +709,23 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
             QTabBar* tabBar = qobject_cast<QTabBar*>(object);
             if (tabBar != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
-                WuQMacroSignalEmitter signalEmitter;
-                signalEmitter.emitQTabBarSignal(tabBar,
-                                                dataValue.toInt());
+                const int32_t tabIndex = dataValue.toInt();
+                if (tabBar->isTabEnabled(tabIndex)) {
+                    moveMouseToTabBarTab(tabBar, tabIndex);
+                    WuQMacroSignalEmitter signalEmitter;
+                    signalEmitter.emitQTabBarSignal(tabBar,
+                                                    tabIndex);
+                }
+                else {
+                    objectErrorMessage = ("QTabWidget \""
+                                          + object->objectName()
+                                          + "\", tab \""
+                                          + QString::number(tabIndex + 1)
+                                          + "\" with text \""
+                                          + tabBar->tabText(tabIndex)
+                                          + "\" is disabled");
+                }
+                
             }
             else {
                 notFoundFlag = true;
@@ -683,9 +737,25 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
             QTabWidget* tabWidget = qobject_cast<QTabWidget*>(object);
             if (tabWidget != NULL) {
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
-                WuQMacroSignalEmitter signalEmitter;
-                signalEmitter.emitQTabWidgetSignal(tabWidget,
-                                                   dataValue.toInt());
+                QTabBar* tabBar = tabWidget->tabBar();
+                CaretAssert(tabBar);
+                const int32_t tabIndex = dataValue.toInt();
+                if (tabWidget->isTabEnabled(tabIndex)) {
+                    moveMouseToTabBarTab(tabBar,
+                                         tabIndex);
+                    WuQMacroSignalEmitter signalEmitter;
+                    signalEmitter.emitQTabWidgetSignal(tabWidget,
+                                                       tabIndex);
+                }
+                else {
+                    objectErrorMessage = ("QTabWidget \""
+                                          + object->objectName()
+                                          + "\", tab \""
+                                          + QString::number(tabIndex + 1)
+                                          + "\" with text \""
+                                          + tabWidget->tabText(tabIndex)
+                                          + "\" is disabled");
+                }
             }
             else {
                 notFoundFlag = true;
@@ -696,6 +766,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         {
             QToolButton* toolButton = qobject_cast<QToolButton*>(object);
             if (toolButton != NULL) {
+                moveMouseToWidget(toolButton);
                 CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
                 WuQMacroSignalEmitter signalEmitter;
                 signalEmitter.emitQToolButtonSignal(toolButton,
@@ -715,8 +786,8 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
                            + WuQMacroClassTypeEnum::toGuiName(classType));
         return false;
     }
-    else if ( ! valueNotFoundErrorMessage.isEmpty()) {
-        errorMessageOut = valueNotFoundErrorMessage;
+    else if ( ! objectErrorMessage.isEmpty()) {
+        errorMessageOut = objectErrorMessage;
         return false;
     }
     

@@ -106,6 +106,8 @@ namespace caret {
         
         void printSupportedWidgetsToTerminal();
         
+        void printToLevelWidgetsToTerminal();
+        
         void addParentObject(QObject* parentObject);
         
         QString getToolTipForObjectName(const QString& objectName) const;

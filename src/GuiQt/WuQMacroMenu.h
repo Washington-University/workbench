@@ -54,6 +54,8 @@ namespace caret {
         
         void macroPrintAllSelected();
         
+        void macroPrintTopLevelWidgets();
+        
     private:
         // ADD_NEW_MEMBERS_HERE
 
