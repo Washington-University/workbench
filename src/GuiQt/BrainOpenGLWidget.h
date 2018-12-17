@@ -72,7 +72,7 @@ namespace caret {
     class VolumeFile;
     
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-    class BrainOpenGLWidget : public QOpenGLWidget, public EventListenerInterface {
+    class BrainOpenGLWidget : public QOpenGLWidget, public EventListenerInterface, public WuQMacroMouseEventWidgetInterface {
 #else
     class BrainOpenGLWidget : public QGLWidget, public EventListenerInterface, public WuQMacroMouseEventWidgetInterface {
 #endif

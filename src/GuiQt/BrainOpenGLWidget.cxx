@@ -1835,7 +1835,12 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
     glfmt.setProfile(QSurfaceFormat::CompatibilityProfile);
     glfmt.setRedBufferSize(8);
     glfmt.setRenderableType(QSurfaceFormat::OpenGL);
-    glfmt.setSamples(6);
+    /*
+     * Values greater than zero for setSamples() cause an OpenGL error in
+     * glReadPixels().
+     * QtBug-43127
+     */
+    glfmt.setSamples(0); //6);
     glfmt.setStereo(false);
     glfmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
     
