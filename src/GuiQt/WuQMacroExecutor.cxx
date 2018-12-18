@@ -94,8 +94,11 @@ WuQMacroExecutor::moveMouseToTabBarTab(QTabBar* tabBar,
         moveMouseToWidget(tabBar);
     }
     else {
-        moveMouseToWidget(tabBar,
-                          &tabRect);
+        moveMouseToWidgetImplementation(tabBar,
+                                        -1,
+                                        -1,
+                                        &tabRect,
+                                        true);
     }
 }
 
@@ -104,12 +107,72 @@ WuQMacroExecutor::moveMouseToTabBarTab(QTabBar* tabBar,
  *
  * @param moveToObject
  *     Object to where mouse should be moved
- * @param objectRect
- *     Optional, if not NULL, rectangle of object used for positioning mouse
+ * @param highlightFlag
+ *     If true, highlight mouse location by moving mouse in 
+ *     a circular orientation
  */
 void
 WuQMacroExecutor::moveMouseToWidget(QObject* moveToObject,
-                                    const QRect* objectRect) const
+                                    const bool highlightFlag) const
+{
+    moveMouseToWidgetImplementation(moveToObject,
+                                    -1,
+                                    -1,
+                                    NULL,
+                                    highlightFlag);
+}
+
+/**
+ * Move the mouse to and around the given widget
+ * at the given X/Y
+ *
+ * @param moveToObject
+ *     Object to where mouse should be moved
+ * @param x
+ *     Move to this X in widget
+ * @param y
+ *     Move to this Y in widget
+ * @param highlightFlag
+ *     If true, highlight mouse location by moving mouse in
+ *     a circular orientation
+ */
+void
+WuQMacroExecutor::moveMouseToWidgetXY(QObject* moveToObject,
+                                      const int x,
+                                      const int y,
+                                      const bool highlightFlag) const
+{
+    moveMouseToWidgetImplementation(moveToObject,
+                                    x,
+                                    y,
+                                    NULL,
+                                    highlightFlag);
+}
+
+
+/**
+ * Move the mouse around the given widget.  If the given X/Y are
+ * non-negative, mouse is moved to that location instead of center
+ * of widget
+ *
+ * @param moveToObject
+ *     Object to where mouse should be moved
+ * @param x
+ *     Move to this X in widget
+ * @param y
+ *     Move to this Y in widget
+ * @param objectRect
+ *     Optional, if not NULL, rectangle of object used for positioning mouse
+ * @param highlightFlag
+ *     If true, highlight mouse location by moving mouse in
+ *     a circular orientation
+ */
+void
+WuQMacroExecutor::moveMouseToWidgetImplementation(QObject* moveToObject,
+                                                  const int x,
+                                                  const int y,
+                                                  const QRect* objectRect,
+                                                  const bool highlightFlag) const
 {
     if ( ! m_runOptions.m_showMouseMovementFlag) {
         return;
@@ -147,13 +210,15 @@ WuQMacroExecutor::moveMouseToWidget(QObject* moveToObject,
     const QRect widgetRect = ((objectRect != NULL)
                               ? *objectRect
                               : moveToWidget->rect());
-    const QPoint widgetCenter = widgetRect.center();
-    const QPoint windowPoint = moveToWidget->mapToGlobal(widgetCenter);
-    
+    QPoint widgetPoint = widgetRect.center();
+    if ((x >= 0) && (y >= 0)) {
+        widgetPoint.setX(x);
+        widgetPoint.setY(y);
+    }
+    const QPoint windowPoint = moveToWidget->mapToGlobal(widgetPoint);
     QCursor::setPos(windowPoint);
     SystemUtilities::sleepSeconds(0.025);
     
-    const bool highlightFlag(true);
     if (highlightFlag) {
         const float radius = 15.0;
         for (float angle = 0.0; angle < 6.28; angle += 0.314) {
@@ -620,6 +685,11 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
                             qtEventType = QEvent::MouseMove;
                             break;
                     }
+                    
+                    moveMouseToWidgetXY(widget,
+                                        adjustedLocalX,
+                                        adjustedLocalY,
+                                        false);
                     
                     QMouseEvent qtMouseEvent(qtEventType,
                                              QPointF(adjustedLocalX,

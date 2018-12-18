@@ -89,9 +89,20 @@ namespace caret {
     private:
         void moveMouseToTabBarTab(QTabBar* tabBar,
                                   const int32_t tabIndex) const;
-        
+
         void moveMouseToWidget(QObject* moveToObject,
-                               const QRect* objectRect = NULL) const;
+                               const bool highlightFlag = true) const;
+
+        void moveMouseToWidgetXY(QObject* moveToObject,
+                                 const int x,
+                                 const int y,
+                                 const bool highlightFlag = true) const;
+        
+        void moveMouseToWidgetImplementation(QObject* moveToObject,
+                                             const int x,
+                                             const int y,
+                                             const QRect* objectRect = NULL,
+                                             const bool hightlightFlag = false) const;
         
         bool runMacroCommand(const WuQMacroCommand* macroCommand,
                              QObject* object,
