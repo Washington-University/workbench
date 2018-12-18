@@ -370,8 +370,9 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
                 
                 /*
                  * Only track move events if a button is down
+                 * Note: Use "buttons()" mask, not button()
                  */
-                if (me->button() == Qt::NoButton) {
+                if (me->buttons() == Qt::NoButton) {
                     validMouseEventFlag = false;
                 }
                 break;

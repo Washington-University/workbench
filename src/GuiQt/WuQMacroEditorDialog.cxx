@@ -83,6 +83,11 @@ m_macroWasModifiedFlag(false)
     m_macroDescriptionTextEdit->setFixedHeight(60);
     m_macroDescriptionTextEdit->setPlainText(m_macro->getDescription());
     
+    /*
+     * DISABLE FUNCTION KEY UNTIL IMPLEMENTED
+     */
+    m_macroFunctionKeyLineEdit->setEnabled(false);
+    
     m_tableWidget = createTableWidget();
     
     QGridLayout* gridLayout = new QGridLayout();

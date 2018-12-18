@@ -73,6 +73,11 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     m_macroDescriptionTextEdit = new QPlainTextEdit();
     m_macroDescriptionTextEdit->setFixedHeight(100);
     
+    /*
+     * DISABLE FUNCTION KEY UNTIL IMPLEMENTED
+     */
+    m_macroFunctionKeyLineEdit->setEnabled(false);
+    
     m_macroGroupComboBox = new QComboBox();
     for (auto mg : m_macroGroups) {
         m_macroGroupComboBox->addItem(mg->getName());

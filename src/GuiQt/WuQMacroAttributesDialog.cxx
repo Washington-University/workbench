@@ -79,6 +79,11 @@ m_macroWasModifiedFlag(false)
     m_macroDescriptionTextEdit->setFixedHeight(100);
     m_macroDescriptionTextEdit->setPlainText(m_macro->getDescription());
     
+    /*
+     * DISABLE FUNCTION KEY UNTIL IMPLEMENTED
+     */
+    m_macroFunctionKeyLineEdit->setEnabled(false);
+    
     QGridLayout* gridLayout = new QGridLayout();
     int row = 0;
     gridLayout->addWidget(nameLabel, row, 0);

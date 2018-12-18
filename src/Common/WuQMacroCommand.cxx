@@ -146,7 +146,8 @@ m_dataValue((int)0),
 m_dataValueTwo(""),
 m_macroMouseEvent(mouseEventInfo)
 {
-    m_dataType = WuQMacroDataValueTypeEnum::MOUSE;
+    m_dataType    = WuQMacroDataValueTypeEnum::MOUSE;
+    m_dataTypeTwo = WuQMacroDataValueTypeEnum::STRING;
     
     setModified();
 }
