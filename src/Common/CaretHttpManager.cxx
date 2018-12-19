@@ -400,7 +400,9 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
         AString s("QNetworkReply::NetworkError Code="
                   + AString::number((int)myReply->error())
                   + ", Error="
-                  + myReply->errorString());
+                  + myReply->errorString()
+                  + "\nURL="
+                  + myUrl.toString(QUrl::None));
         response.m_errorMessage = s;
     }
     
