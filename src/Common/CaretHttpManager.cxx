@@ -136,14 +136,25 @@ logHeadersFromReply(const QNetworkReply& reply,
 {
     AString infoText;
     infoText.appendWithNewLine("Reply " + caretHttpRequestToName(caretHttpRequest) + " URL (" + QString::number(caretHttpResponse.m_responseCode) + ") Header: ");
+    bool errorFlag(false);
     if ( ! caretHttpResponse.m_responseCodeValid) {
         infoText.appendWithNewLine("RESPONSE CODE IS NOT VALID.");
+        errorFlag = true;
     }
     const QNetworkReply::NetworkError networkErrorCode = reply.error();
     if (networkErrorCode != QNetworkReply::NoError) {
         infoText.appendWithNewLine("Network Error Code (See QNetworkReply::NetworkError for description): "
-                                   + QString::number(static_cast<int>(networkErrorCode)));
+                                   + QString::number(static_cast<int>(networkErrorCode))
+                                   + "\nDescription: "
+                                   + reply.errorString());
+        errorFlag = true;
     }
+    
+    if (errorFlag) {
+        CaretLogWarning(infoText);
+        return;
+    }
+    
     QList<QByteArray> readHeaderList = reply.rawHeaderList();
     const int numItems = readHeaderList.size();
     if (numItems > 0) {
@@ -354,6 +365,7 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
     response.m_responseCode = -1;
     response.m_responseCodeValid = false;
     response.m_headers.clear();
+    response.m_errorMessage.clear();
     const QVariant responseCodeVariant = myReply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     if ( ! responseCodeVariant.isNull()) {
         response.m_responseCode = myReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -383,6 +395,13 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
         logHeadersFromReply(*myReply,
                             request,
                             response);
+    }
+    if (response.m_responseCode != 200) {
+        AString s("QNetworkReply::NetworkError Code="
+                  + AString::number((int)myReply->error())
+                  + ", Error="
+                  + myReply->errorString());
+        response.m_errorMessage = s;
     }
     
     QByteArray myBody = myReply->readAll();

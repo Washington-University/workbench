@@ -177,6 +177,9 @@ BalsaDatabaseManager::login(const AString& databaseURL,
     errorMessageOut = ("Login has failed.\n"
                        "HTTP Code: " + AString::number(loginResponse.m_responseCode)
                        + " Content: " + responseContent);
+    if (loginResponse.m_responseCode < 0) {
+        errorMessageOut.appendWithNewLine(loginResponse.m_errorMessage);
+    }
     logout();
 
     return false;
@@ -303,9 +306,10 @@ BalsaDatabaseManager::uploadFileWithCaretHttpManager(const AString& uploadURL,
 
     
     return verifyUploadFileResponse(uploadResponse.m_headers,
-                                 responseContentOut,
-                                 uploadResponse.m_responseCode,
-                                 errorMessageOut);
+                                    responseContentOut,
+                                    uploadResponse.m_responseCode,
+                                    uploadResponse.m_errorMessage,
+                                    errorMessageOut);
 }
 
 /**
@@ -317,6 +321,8 @@ BalsaDatabaseManager::uploadFileWithCaretHttpManager(const AString& uploadURL,
  *     Content from the response.
  * @param responseHttpCode
  *     HTTP code from response.
+ * @param responseErrorMessage
+ *
  * @param errorMessageOut
  *     Contains description of error.
  * @return
@@ -324,9 +330,10 @@ BalsaDatabaseManager::uploadFileWithCaretHttpManager(const AString& uploadURL,
  */
 bool
 BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>& responseHeaders,
-                                            const AString& responseContent,
-                                            const int32_t responseHttpCode,
-                                            AString& errorMessageOut) const
+                                               const AString& responseContent,
+                                               const int32_t responseHttpCode,
+                                               const AString& responseErrorMessage,
+                                               AString& errorMessageOut) const
 {
     if (responseHttpCode != 200) {
         if (responseHttpCode == 403) {
@@ -336,7 +343,20 @@ BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>&
         }
         else {
             errorMessageOut = ("Upload failed.  Http Code="
-                               + AString::number(responseHttpCode));
+                               + AString::number(responseHttpCode)
+                               + ".\n"
+                               + responseErrorMessage);
+//            if (responseHttpCode < 0) {
+//                const QString s(responseContent.isEmpty()
+//                                ? "Response content is empty !!!"
+//                                : ("Response content:\n"
+//                                   + responseContent));
+//                CaretLogSevere("Invalid http response="
+//                               + AString::number(responseHttpCode)
+//                               + "\n"
+//                               + s
+//                               + "\n");
+//            }
         }
         return false;
     }
@@ -619,8 +639,10 @@ BalsaDatabaseManager::processUploadedFile(SceneFile* sceneFile,
     
     if (uploadResponse.m_responseCode != 200) {
         errorMessageOut = ("Process Upload failed code: "
-                           + QString::number(uploadResponse.m_responseCode)
-                           + "\n");
+                           + QString::number(uploadResponse.m_responseCode));
+        if (uploadResponse.m_responseCode < 0) {
+            errorMessageOut.appendWithNewLine(uploadResponse.m_errorMessage);
+        }
         
         return false;
     }
@@ -879,6 +901,9 @@ BalsaDatabaseManager::getSceneIDs(const int32_t numberOfSceneIDs,
         errorMessageOut = ("Requesting Scene IDs failed with HTTP code="
                            + AString::number(response.m_responseCode)
                            + ".  This error may be caused by failure to agree to data use terms.");
+        if (response.m_responseCode < 0) {
+            errorMessageOut.appendWithNewLine(response.m_errorMessage);
+        }
         return false;
     }
     
@@ -978,6 +1003,9 @@ BalsaDatabaseManager::requestStudyID(const AString& databaseURL,
         errorMessageOut = ("Requesting study ID failed with HTTP code="
                            + AString::number(studyResponse.m_responseCode)
                            + ".  This error may be caused by failure to agree to data use terms.");
+        if (studyResponse.m_responseCode < 0) {
+            errorMessageOut.appendWithNewLine(studyResponse.m_errorMessage);
+        }
         return false;
     }
     
@@ -1104,12 +1132,15 @@ BalsaDatabaseManager::getUserRoles(BalsaUserRoles& userRolesOut,
     CaretHttpManager::httpRequest(caretRequest, studyResponse);
     
     if (m_debugFlag) {
-        std::cout << "Request rolese response Code: " << studyResponse.m_responseCode << std::endl;
+        std::cout << "Request roles response Code: " << studyResponse.m_responseCode << std::endl;
     }
     
     if (studyResponse.m_responseCode != 200) {
         errorMessageOut = ("Requesting roles failed with HTTP code="
                            + AString::number(studyResponse.m_responseCode));
+        if (studyResponse.m_responseCode < 0) {
+            errorMessageOut.appendWithNewLine(studyResponse.m_errorMessage);
+        }
         return false;
     }
     
@@ -1213,6 +1244,9 @@ BalsaDatabaseManager::getStudyExtractDirectoryPrefix(const AString& studyID,
     if (studyResponse.m_responseCode != 200) {
         errorMessageOut = ("Requesting extract directory failed with HTTP code="
                            + AString::number(studyResponse.m_responseCode));
+        if (studyResponse.m_responseCode < 0) {
+            errorMessageOut.appendWithNewLine(studyResponse.m_errorMessage);
+        }
         return false;
     }
     
@@ -1291,6 +1325,9 @@ BalsaDatabaseManager::getAllStudyInformation(std::vector<BalsaStudyInformation>&
         errorMessageOut = ("Requesting all study information failed with HTTP code="
                            + AString::number(idResponse.m_responseCode)
                            + ".  This error may be caused by failure to agree to data use terms.");
+        if (idResponse.m_responseCode < 0) {
+            errorMessageOut.appendWithNewLine(idResponse.m_errorMessage);
+        }
         return false;
     }
     

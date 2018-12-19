@@ -76,6 +76,7 @@ namespace caret {
         bool m_responseCodeValid;
         QUrl m_redirectionUrl;
         bool m_redirectionUrlValid;
+        AString m_errorMessage;
         std::map<AString, AString> m_headers; // map so that newer values replace older values
     };
 

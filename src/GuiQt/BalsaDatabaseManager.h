@@ -140,9 +140,10 @@ namespace caret {
                         AString& errorMessageOut);
         
         bool verifyUploadFileResponse(const std::map<AString, AString>& responseHeaders,
-                                   const AString& responseContent,
-                                   const int32_t responseHttpCode,
-                                   AString& errorMessageOut) const;
+                                      const AString& responseContent,
+                                      const int32_t responseHttpCode,
+                                      const AString& responseErrorMessage,
+                                      AString& errorMessageOut) const;
         
         AString getHeaderValue(const CaretHttpResponse& httpResponse,
                                const AString& headerName) const;
