@@ -1420,92 +1420,87 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     const int mouseX = me->x();
     const int mouseY = this->windowHeight[this->windowIndex] - me->y();
     
-    if (button == Qt::NoButton) {
+    if (mouseButtons == Qt::LeftButton) {
+        this->mouseMovementMinimumX = std::min(this->mouseMovementMinimumX, mouseX);
+        this->mouseMovementMaximumX = std::max(this->mouseMovementMaximumX, mouseX);
+        this->mouseMovementMinimumY = std::min(this->mouseMovementMinimumY, mouseY);
+        this->mouseMovementMaximumY = std::max(this->mouseMovementMaximumY, mouseY);
         
-        if (mouseButtons == Qt::LeftButton) {
-            
-            this->mouseMovementMinimumX = std::min(this->mouseMovementMinimumX, mouseX);
-            this->mouseMovementMaximumX = std::max(this->mouseMovementMaximumX, mouseX);
-            this->mouseMovementMinimumY = std::min(this->mouseMovementMinimumY, mouseY);
-            this->mouseMovementMaximumY = std::max(this->mouseMovementMaximumY, mouseY);
-            
-            const int dx = mouseX - this->lastMouseX;
-            const int dy = mouseY - this->lastMouseY;
-            const int absDX = (dx >= 0) ? dx : -dx;
-            const int absDY = (dy >= 0) ? dy : -dy;
-            
-            if ((absDX > 0) 
-                || (absDY > 0)) { 
-                /*
-                 * Use location of mouse press so that the model
-                 * being manipulated does not change if mouse moves
-                 * out of its viewport without releasing the mouse
-                 * button.
-                 */
-                const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(this->mousePressX,
-                                                                                           this->mousePressY);
-                if (viewportContent != NULL) {
-                    MouseEvent mouseEvent(viewportContent,
-                                          this,
-                                          this->windowIndex,
-                                          mouseX,
-                                          mouseY,
-                                          dx,
-                                          dy,
-                                          this->mousePressX,
-                                          this->mousePressY,
-                                          this->mouseNewDraggingStartedFlag);
-                    
-                    if (keyModifiers == Qt::NoModifier) {
-                        this->selectedUserInputProcessor->mouseLeftDrag(mouseEvent);
-                    }
-                    else if (keyModifiers == Qt::ControlModifier) {
-                        this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
-                    }
-                    else if (keyModifiers == Qt::ShiftModifier) {
-                        this->selectedUserInputProcessor->mouseLeftDragWithShift(mouseEvent);
-                    }
-                    else if (keyModifiers == Qt::AltModifier) {
-                        this->selectedUserInputProcessor->mouseLeftDragWithAlt(mouseEvent);
-                    }
-                    else if (keyModifiers == (Qt::ShiftModifier
-                                              | Qt::ControlModifier)) {
-                        this->selectedUserInputProcessor->mouseLeftDragWithCtrlShift(mouseEvent);
-                    }
-                    
-                    this->mouseNewDraggingStartedFlag = false;
-                }
-            }
-            
-            this->lastMouseX = mouseX;
-            this->lastMouseY = mouseY;
-        }
-        else if (mouseButtons == Qt::NoButton) {
-            const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
-                                                                                       mouseY);
+        const int dx = mouseX - this->lastMouseX;
+        const int dy = mouseY - this->lastMouseY;
+        const int absDX = (dx >= 0) ? dx : -dx;
+        const int absDY = (dy >= 0) ? dy : -dy;
+        
+        if ((absDX > 0)
+            || (absDY > 0)) {
+            /*
+             * Use location of mouse press so that the model
+             * being manipulated does not change if mouse moves
+             * out of its viewport without releasing the mouse
+             * button.
+             */
+            const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(this->mousePressX,
+                                                                                             this->mousePressY);
             if (viewportContent != NULL) {
                 MouseEvent mouseEvent(viewportContent,
                                       this,
                                       this->windowIndex,
                                       mouseX,
                                       mouseY,
-                                      0,
-                                      0,
+                                      dx,
+                                      dy,
                                       this->mousePressX,
                                       this->mousePressY,
                                       this->mouseNewDraggingStartedFlag);
                 
                 if (keyModifiers == Qt::NoModifier) {
-                    this->selectedUserInputProcessor->mouseMove(mouseEvent);
+                    this->selectedUserInputProcessor->mouseLeftDrag(mouseEvent);
+                }
+                else if (keyModifiers == Qt::ControlModifier) {
+                    this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
                 }
                 else if (keyModifiers == Qt::ShiftModifier) {
-                    this->selectedUserInputProcessor->mouseMoveWithShift(mouseEvent);
+                    this->selectedUserInputProcessor->mouseLeftDragWithShift(mouseEvent);
                 }
+                else if (keyModifiers == Qt::AltModifier) {
+                    this->selectedUserInputProcessor->mouseLeftDragWithAlt(mouseEvent);
+                }
+                else if (keyModifiers == (Qt::ShiftModifier
+                                          | Qt::ControlModifier)) {
+                    this->selectedUserInputProcessor->mouseLeftDragWithCtrlShift(mouseEvent);
+                }
+                
+                this->mouseNewDraggingStartedFlag = false;
             }
+        }
+        
+        this->lastMouseX = mouseX;
+        this->lastMouseY = mouseY;
+    }
+    else if (mouseButtons == Qt::NoButton) {
+        const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+                                                                                         mouseY);
+        if (viewportContent != NULL) {
+            MouseEvent mouseEvent(viewportContent,
+                                  this,
+                                  this->windowIndex,
+                                  mouseX,
+                                  mouseY,
+                                  0,
+                                  0,
+                                  this->mousePressX,
+                                  this->mousePressY,
+                                  this->mouseNewDraggingStartedFlag);
             
+            if (keyModifiers == Qt::NoModifier) {
+                this->selectedUserInputProcessor->mouseMove(mouseEvent);
+            }
+            else if (keyModifiers == Qt::ShiftModifier) {
+                this->selectedUserInputProcessor->mouseMoveWithShift(mouseEvent);
+            }
         }
     }
-    
+
     const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
                                                                                mouseY);
     if (viewportContent != NULL) {
