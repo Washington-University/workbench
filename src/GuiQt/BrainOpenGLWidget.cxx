@@ -97,9 +97,20 @@ using namespace caret;
  *
  * @param
  *   The parent widget.
+ * @param shareWidget
+ *   Widget used for sharing OpenGL contexts when the deprecated
+ *   QGLWidget is used.  Note that with QOpenGLWidget,
+ *   sharing is enabled by calling QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts)
+ *   in desktop.cxx
+ * @param windowIndex
+ *   Index of this window
  */
 BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+                                     const BrainOpenGLWidget* /*shareWidget*/,
+#else
                                      const BrainOpenGLWidget* shareWidget,
+#endif
                                      const int32_t windowIndex)
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
 : QOpenGLWidget(parent),
