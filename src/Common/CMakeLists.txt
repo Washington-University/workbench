@@ -172,6 +172,7 @@ WuQMacroGroupXmlWriter.h
 WuQMacroModeEnum.h
 WuQMacroMouseEventInfo.h
 WuQMacroMouseEventTypeEnum.h
+WuQMacroShortCutKeyEnum.h
 YokingGroupEnum.h
 
 ${MOC_SOURCE_FILES}
@@ -285,6 +286,7 @@ WuQMacroGroupXmlWriter.cxx
 WuQMacroModeEnum.cxx
 WuQMacroMouseEventInfo.cxx
 WuQMacroMouseEventTypeEnum.cxx
+WuQMacroShortCutKeyEnum.cxx
 YokingGroupEnum.cxx
 )
 

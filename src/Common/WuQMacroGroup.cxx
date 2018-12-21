@@ -224,6 +224,44 @@ WuQMacroGroup::getMacroByName(const QString& name) const
 }
 
 /**
+ * Get the macro with the given short cut key
+ *
+ * @param name
+ *     Name of the macro
+ * @return
+ *     Pointer to macro with the short cut key or NULL if not found
+ */
+WuQMacro*
+WuQMacroGroup::getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey)
+{
+    for (auto m : m_macros) {
+        if (m->getShortCutKey() == shortCutKey) {
+            return m;
+        }
+    }
+    return NULL;
+}
+
+/**
+ * Get the macro with the given short cut key
+ *
+ * @param name
+ *     Name of the macro
+ * @return
+ *     Pointer to macro with the short cut key or NULL if not found
+ */
+const WuQMacro*
+WuQMacroGroup::getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey) const
+{
+    for (auto m : m_macros) {
+        if (m->getShortCutKey() == shortCutKey) {
+            return m;
+        }
+    }
+    return NULL;
+}
+
+/**
  * @return
  *    Macro at the given index
  * @param index

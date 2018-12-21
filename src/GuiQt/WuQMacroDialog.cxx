@@ -193,10 +193,16 @@ WuQMacroDialog::createRunOptionsWidget()
     m_runOptionLoopCheckBox = new QCheckBox("Loop");
     m_runOptionLoopCheckBox->setChecked(false);
     m_runOptionLoopCheckBox->setEnabled(false);
+    QObject::connect(m_runOptionLoopCheckBox, &QCheckBox::clicked,
+                     this, &WuQMacroDialog::runOptionLoopCheckBoxClicked);
+
     m_runOptionMoveMouseCheckBox = new QCheckBox("Move mouse to to highlight controls");
     m_runOptionMoveMouseCheckBox->setChecked(true);
     m_runOptionMoveMouseCheckBox->setToolTip("As macro runs, the mouse is moved to\n"
                                              "highlight user-interface controls");
+    QObject::connect(m_runOptionMoveMouseCheckBox, &QCheckBox::clicked,
+                     this, &WuQMacroDialog::runOptionMoveMouseCheckBoxClicked);
+
     QLabel* runOptionsDelayLabel = new QLabel("Delay (seconds) between commands");
     m_runOptionDelayBetweenCommandsSpinBox = new QDoubleSpinBox();
     m_runOptionDelayBetweenCommandsSpinBox->setMinimum(0.0);
@@ -206,6 +212,9 @@ WuQMacroDialog::createRunOptionsWidget()
     m_runOptionDelayBetweenCommandsSpinBox->setValue(1.0);
     m_runOptionDelayBetweenCommandsSpinBox->setToolTip("Pause for this amount of time");
     m_runOptionDelayBetweenCommandsSpinBox->setFixedWidth(80);
+    QObject::connect(m_runOptionDelayBetweenCommandsSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &WuQMacroDialog::runOptionDelaySpinBoxValueChanged);
+    
     QGridLayout* runOptionsLayout = new QGridLayout(widget);
     runOptionsLayout->setColumnMinimumWidth(0, 10);
     runOptionsLayout->addWidget(runOptionsLabel, 0, 0, 1, 3);
@@ -215,6 +224,48 @@ WuQMacroDialog::createRunOptionsWidget()
     runOptionsLayout->addWidget(runOptionsDelayLabel, 3, 2);
     
     return widget;
+}
+
+/**
+ * Called when run options delay between commands spin box value changed
+ *
+ * @param value
+ *     New value.
+ */
+void
+WuQMacroDialog::runOptionDelaySpinBoxValueChanged(float value)
+{
+    WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
+    CaretAssert(options);
+    options->setSecondsDelayBetweenCommands(value);
+}
+
+/**
+ * Called when run options move mouse checkbox is changed
+ *
+ * @param value
+ *     New value.
+ */
+void
+WuQMacroDialog::runOptionMoveMouseCheckBoxClicked(bool checked)
+{
+    WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
+    CaretAssert(options);
+    options->setShowMouseMovement(checked);
+}
+
+/**
+ * Called when run options loop checkbox is changed
+ *
+ * @param value
+ *     New value.
+ */
+void
+WuQMacroDialog::runOptionLoopCheckBoxClicked(bool checked)
+{
+    WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
+    CaretAssert(options);
+    options->setLooping(checked);
 }
 
 /**
@@ -257,6 +308,12 @@ WuQMacroDialog::updateDialogContents()
         m_macroGroupComboBox->setCurrentIndex(selectedIndex);
     }
     
+    const WuQMacroExecutorOptions* runOptions = WuQMacroManager::instance()->getExecutorOptions();
+    CaretAssert(runOptions);
+    QSignalBlocker delaySpinBoxBlocker(m_runOptionDelayBetweenCommandsSpinBox);
+    m_runOptionDelayBetweenCommandsSpinBox->setValue(runOptions->getSecondsDelayBetweenCommands());
+    m_runOptionMoveMouseCheckBox->setChecked(runOptions->isShowMouseMovement());
+    m_runOptionLoopCheckBox->setChecked(runOptions->isLooping());
     macroGroupBoxActivated(selectedIndex);
 }
 
@@ -377,11 +434,7 @@ WuQMacroDialog::runSelectedMacro()
             return;
         }
         
-        WuQMacroExecutor::RunOptions runOptions(m_runOptionDelayBetweenCommandsSpinBox->value(),
-                                                m_runOptionMoveMouseCheckBox->isChecked(),
-                                                m_runOptionLoopCheckBox->isChecked());
         WuQMacroManager::instance()->runMacro(parentWidget(),
-                                              runOptions,
                                               macro);
     }
 }

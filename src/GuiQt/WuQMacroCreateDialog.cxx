@@ -37,6 +37,7 @@
 #include "WuQMacro.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroManager.h"
+#include "WuQMacroShortCutKeyComboBox.h"
 
 using namespace caret;
 
@@ -62,21 +63,16 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     m_macroGroups = WuQMacroManager::instance()->getMacroGroups();
     
     QLabel* nameLabel = new QLabel("Macro name:");
-    QLabel* functionKeyLabel = new QLabel("Function Key");
+    QLabel* shortCutKeyLabel = new QLabel("Short Cut Key:");
+    QLabel* shortCutKeyMaskLabel = new QLabel(WuQMacroManager::getShortCutKeysMask());
     QLabel* descriptionLabel = new QLabel("Description:");
     QLabel* macroGroupLabel = new QLabel("Store macro in:");
     
     m_macroNameLineEdit = new QLineEdit();
     m_macroNameLineEdit->setText(getDefaultMacroName());
-    m_macroFunctionKeyLineEdit = new QLineEdit();
-    m_macroFunctionKeyLineEdit->setFixedWidth(40);
+    m_macroShortCutKeyComboBox = new WuQMacroShortCutKeyComboBox(this);
     m_macroDescriptionTextEdit = new QPlainTextEdit();
     m_macroDescriptionTextEdit->setFixedHeight(100);
-    
-    /*
-     * DISABLE FUNCTION KEY UNTIL IMPLEMENTED
-     */
-    m_macroFunctionKeyLineEdit->setEnabled(false);
     
     m_macroGroupComboBox = new QComboBox();
     for (auto mg : m_macroGroups) {
@@ -86,16 +82,17 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     QGridLayout* gridLayout = new QGridLayout();
     int row = 0;
     gridLayout->addWidget(nameLabel, row, 0);
-    gridLayout->addWidget(m_macroNameLineEdit, row, 1);
+    gridLayout->addWidget(m_macroNameLineEdit, row, 1, 1, 2);
     row++;
-    gridLayout->addWidget(functionKeyLabel, row, 0);
-    gridLayout->addWidget(m_macroFunctionKeyLineEdit, row, 1);
+    gridLayout->addWidget(shortCutKeyLabel, row, 0);
+    gridLayout->addWidget(shortCutKeyMaskLabel, row, 1);
+    gridLayout->addWidget(m_macroShortCutKeyComboBox->getWidget(), row, 2, Qt::AlignLeft);
     row++;
     gridLayout->addWidget(descriptionLabel, row, 0);
-    gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1);
+    gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1, 1, 2);
     row++;
     gridLayout->addWidget(macroGroupLabel, row, 0);
-    gridLayout->addWidget(m_macroGroupComboBox, row, 1);
+    gridLayout->addWidget(m_macroGroupComboBox, row, 1, 1, 2);
     row++;
     
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok
@@ -173,7 +170,7 @@ WuQMacroCreateDialog::done(int r)
         
         m_macro = new WuQMacro();
         m_macro->setName(name);
-        m_macro->setFunctionKey(m_macroFunctionKeyLineEdit->text().trimmed());
+        m_macro->setShortCutKey(m_macroShortCutKeyComboBox->getSelectedShortCutKey());
         m_macro->setDescription(m_macroDescriptionTextEdit->toPlainText());
         
         const int32_t groupIndex = m_macroGroupComboBox->currentIndex();
@@ -194,5 +191,24 @@ WuQMacro*
 WuQMacroCreateDialog::getNewMacro() const
 {
     return m_macro;
+}
+
+/**
+ * @return Create a combo box with valid function keys.
+ * Method is static so that other classes may use it.
+ */
+QComboBox*
+WuQMacroCreateDialog::createFunctionKeyComboBox()
+{
+    QComboBox* comboBox = new QComboBox();
+    comboBox->addItem(" ");
+    
+    const char firstChar = 'A';
+    const char lastChar  = 'Z';
+    for (char ch = firstChar; ch <= lastChar; ch++) {
+        comboBox->addItem(QString(ch));
+    }
+    
+    return comboBox;
 }
 

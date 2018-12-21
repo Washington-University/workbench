@@ -37,7 +37,8 @@ namespace caret {
 
     class WuQMacro;
     class WuQMacroGroup;
-    
+    class WuQMacroShortCutKeyComboBox;
+
     class WuQMacroCreateDialog : public QDialog {
         
         Q_OBJECT
@@ -55,6 +56,8 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
         
+        static QComboBox* createFunctionKeyComboBox();
+        
     public slots:
         virtual void done(int r) override;
         
@@ -67,8 +70,8 @@ namespace caret {
         
         QLineEdit* m_macroNameLineEdit;
         
-        QLineEdit* m_macroFunctionKeyLineEdit;
-        
+        WuQMacroShortCutKeyComboBox* m_macroShortCutKeyComboBox;
+
         QPlainTextEdit* m_macroDescriptionTextEdit;
         
         QDialogButtonBox* m_dialogButtonBox;

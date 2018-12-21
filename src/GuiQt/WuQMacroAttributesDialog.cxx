@@ -37,6 +37,7 @@
 #include "WuQMacro.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroManager.h"
+#include "WuQMacroShortCutKeyComboBox.h"
 
 using namespace caret;
 
@@ -67,33 +68,29 @@ m_macroWasModifiedFlag(false)
     setWindowTitle("Macro Attributes");
     
     QLabel* nameLabel = new QLabel("Macro name:");
-    QLabel* functionKeyLabel = new QLabel("Function Key:");
+    QLabel* shortCutKeyLabel = new QLabel("Short Cut Key:");
+    QLabel* shortCutKeyMaskLabel = new QLabel(WuQMacroManager::getShortCutKeysMask());
     QLabel* descriptionLabel = new QLabel("Description:");
     
     m_macroNameLineEdit = new QLineEdit();
     m_macroNameLineEdit->setText(m_macro->getName());
-    m_macroFunctionKeyLineEdit = new QLineEdit();
-    m_macroFunctionKeyLineEdit->setFixedWidth(40);
-    m_macroFunctionKeyLineEdit->setText(m_macro->getFunctionKey());
+    m_macroShortCutKeyComboBox = new WuQMacroShortCutKeyComboBox(this);
+    m_macroShortCutKeyComboBox->setSelectedShortCutKey(m_macro->getShortCutKey());
     m_macroDescriptionTextEdit = new QPlainTextEdit();
     m_macroDescriptionTextEdit->setFixedHeight(100);
     m_macroDescriptionTextEdit->setPlainText(m_macro->getDescription());
     
-    /*
-     * DISABLE FUNCTION KEY UNTIL IMPLEMENTED
-     */
-    m_macroFunctionKeyLineEdit->setEnabled(false);
-    
     QGridLayout* gridLayout = new QGridLayout();
     int row = 0;
     gridLayout->addWidget(nameLabel, row, 0);
-    gridLayout->addWidget(m_macroNameLineEdit, row, 1);
+    gridLayout->addWidget(m_macroNameLineEdit, row, 1, 1, 2);
     row++;
-    gridLayout->addWidget(functionKeyLabel, row, 0);
-    gridLayout->addWidget(m_macroFunctionKeyLineEdit, row, 1);
+    gridLayout->addWidget(shortCutKeyLabel, row, 0);
+    gridLayout->addWidget(shortCutKeyMaskLabel, row, 1);
+    gridLayout->addWidget(m_macroShortCutKeyComboBox->getWidget(), row, 2, Qt::AlignLeft);
     row++;
     gridLayout->addWidget(descriptionLabel, row, 0);
-    gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1);
+    gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1, 1, 2);
     row++;
     
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok
@@ -141,9 +138,9 @@ WuQMacroAttributesDialog::done(int r)
             m_macroWasModifiedFlag = true;
         }
         
-        const QString newFunctionKey = m_macroFunctionKeyLineEdit->text().trimmed();
-        if (m_macro->getFunctionKey() != newFunctionKey) {
-            m_macro->setFunctionKey(newFunctionKey);
+        const WuQMacroShortCutKeyEnum::Enum newShortCutKey = m_macroShortCutKeyComboBox->getSelectedShortCutKey();
+        if (m_macro->getShortCutKey() != newShortCutKey) {
+            m_macro->setShortCutKey(newShortCutKey);
             m_macroWasModifiedFlag = true;
         }
         

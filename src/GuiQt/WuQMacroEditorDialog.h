@@ -37,7 +37,8 @@ namespace caret {
 
     class WuQMacro;
     class WuQMacroGroup;
-    
+    class WuQMacroShortCutKeyComboBox;
+
     class WuQMacroEditorDialog : public QDialog {
         
         Q_OBJECT
@@ -81,7 +82,7 @@ namespace caret {
         
         QLineEdit* m_macroNameLineEdit;
         
-        QLineEdit* m_macroFunctionKeyLineEdit;
+        WuQMacroShortCutKeyComboBox* m_macroShortCutKeyComboBox;
         
         QPlainTextEdit* m_macroDescriptionTextEdit;
         

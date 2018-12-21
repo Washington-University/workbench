@@ -110,7 +110,7 @@ WuQMacro::copyHelperWuQMacro(const WuQMacro& obj)
 
     m_name = obj.m_name;
     m_description = obj.m_description;
-    m_functionKey = obj.m_functionKey;
+    m_shortCutKey = obj.m_shortCutKey;
 }
 
 void
@@ -169,25 +169,25 @@ WuQMacro::setDescription(const QString& description)
 }
 
 /**
- * @return The function key
+ * @return The short cut key
  */
-QString
-WuQMacro::getFunctionKey() const
+WuQMacroShortCutKeyEnum::Enum
+WuQMacro::getShortCutKey() const
 {
-    return m_functionKey;
+    return m_shortCutKey;
 }
 
 /**
- * Set the function key
+ * Set the short cut key
  *
- * @param functionKey
- *    New function key
+ * @param shortCutKey
+ *    New short cut key
  */
 void
-WuQMacro::setFunctionKey(const QString& functionKey)
+WuQMacro::setShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey)
 {
-    if (m_functionKey != functionKey) {
-        m_functionKey = functionKey;
+    if (m_shortCutKey != shortCutKey) {
+        m_shortCutKey = shortCutKey;
         setModified();
     }
 }
@@ -270,7 +270,7 @@ WuQMacro::toString() const
     
     s.append("Name=" + m_name + "\n");
     s.append("Description=" + m_description + "\n");
-    s.append("Function Key=" + m_functionKey + "\n");
+    s.append("ShortCutKey=" + WuQMacroShortCutKeyEnum::toGuiName(m_shortCutKey) + "\n");
     
     for (auto mc : m_macroCommands) {
         s.append(mc->toString() + "\n");

@@ -103,8 +103,9 @@ WuQMacroGroupXmlWriter::writeMacroToXML(const WuQMacro* macro)
     m_xmlStreamWriter->writeStartElement(ELEMENT_MACRO);
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_NAME,
                                       macro->getName());
-    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_FUNCTION_KEY,
-                                      macro->getFunctionKey());
+    const QString shortCutText = WuQMacroShortCutKeyEnum::toName(macro->getShortCutKey());
+    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_SHORT_CUT_KEY,
+                                      shortCutText);
     m_xmlStreamWriter->writeTextElement(ELEMENT_DESCRIPTION,
                                         macro->getDescription());
     

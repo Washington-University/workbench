@@ -174,7 +174,7 @@ WuQMacroExecutor::moveMouseToWidgetImplementation(QObject* moveToObject,
                                                   const QRect* objectRect,
                                                   const bool highlightFlag) const
 {
-    if ( ! m_runOptions.m_showMouseMovementFlag) {
+    if ( ! m_runOptions.isShowMouseMovement()) {
         return;
     }
     CaretAssert(moveToObject);
@@ -262,10 +262,10 @@ WuQMacroExecutor::findObjectByName(const QString& objectName) const
  *    Macro that is run
  * @param topLevelObject
  *     Top level object for finding children objects
- * @param
+ * @param otherObjectParents
  *    Additional objects that are searched for objects contained
  *    in the macro commands
- * @param options
+ * @param executorOptions
  *    Executor options
  * @param errorMessageOut
  *    Output containing any error messages
@@ -274,17 +274,20 @@ WuQMacroExecutor::findObjectByName(const QString& objectName) const
  */
 bool
 WuQMacroExecutor::runMacro(const WuQMacro* macro,
-                           QObject* topLevelObject,
+                           QObject* window,
                            std::vector<QObject*>& otherObjectParents,
-                           const RunOptions& options,
+                           const WuQMacroExecutorOptions* executorOptions,
                            QString& errorMessageOut) const
 {
+    CaretAssert(macro);
+    CaretAssert(executorOptions);
+    
     m_parentObjects.clear();
-    m_parentObjects.push_back(topLevelObject);
+    m_parentObjects.push_back(window);
     m_parentObjects.insert(m_parentObjects.end(),
                            otherObjectParents.begin(), otherObjectParents.end());
     
-    m_runOptions = options;
+    m_runOptions = *executorOptions;
     
     errorMessageOut.clear();
     
@@ -299,7 +302,7 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
             errorMessageOut.append("Unable to find object named "
                                    + objectName
                                    + "\n");
-            if (m_runOptions.m_stopOnErrorFlag) {
+            if (m_runOptions.isStopOnError()) {
                 return false;
             }
             continue;
@@ -309,7 +312,7 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
             errorMessageOut.append("Object named "
                                    + objectName
                                    + " has signals blocked");
-            if (m_runOptions.m_stopOnErrorFlag) {
+            if (m_runOptions.isStopOnError()) {
                 return false;
             }
             continue;
@@ -320,15 +323,15 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
                                object,
                                commandErrorMessage)) {
             errorMessageOut.append(commandErrorMessage + "\n");
-            if (m_runOptions.m_stopOnErrorFlag) {
+            if (m_runOptions.isStopOnError()) {
                 return false;
             }
         }
         
         QGuiApplication::processEvents();
         if (mc->getClassType() != WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
-            if (m_runOptions.m_secondsDelayBetweenCommands > 0.0) {
-                SystemUtilities::sleepSeconds(m_runOptions.m_secondsDelayBetweenCommands);
+            if (m_runOptions.getSecondsDelayBetweenCommands() > 0.0) {
+                SystemUtilities::sleepSeconds(m_runOptions.getSecondsDelayBetweenCommands());
             }
         }
         

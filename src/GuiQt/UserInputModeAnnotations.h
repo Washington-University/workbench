@@ -80,7 +80,7 @@ namespace caret {
         
         Mode getMode() const;
         
-        virtual void keyPressEvent(const KeyEvent& /*keyEvent*/);
+        virtual bool keyPressEvent(const KeyEvent& /*keyEvent*/) override;
         
         virtual void mouseLeftDoubleClick(const MouseEvent& mouseEvent);
         

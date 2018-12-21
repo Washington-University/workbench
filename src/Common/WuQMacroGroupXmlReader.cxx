@@ -196,7 +196,26 @@ WuQMacroGroupXmlReader::readMacroVersionOne()
     
     const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
     QString macroName = attributes.value(ATTRIBUTE_NAME).toString();
-    const QStringRef functionKey = attributes.value(ATTRIBUTE_FUNCTION_KEY);
+    QString shortCutKeyString = attributes.value(ATTRIBUTE_SHORT_CUT_KEY).toString();
+    if (shortCutKeyString.isEmpty()) {
+        shortCutKeyString = WuQMacroShortCutKeyEnum::toName(WuQMacroShortCutKeyEnum::Key_None);
+        addToWarnings(ELEMENT_MACRO
+                      + " is missing attribute or value is empty: "
+                      + ATTRIBUTE_SHORT_CUT_KEY);
+    }
+    
+    bool validShortCutKey(false);
+    WuQMacroShortCutKeyEnum::Enum shortCutKey = WuQMacroShortCutKeyEnum::fromName(shortCutKeyString,
+                                                                                  &validShortCutKey);
+    if ( ! validShortCutKey) {
+        shortCutKey = WuQMacroShortCutKeyEnum::Key_None;
+        addToWarnings(ELEMENT_MACRO
+                      + " attribute "
+                      + ATTRIBUTE_SHORT_CUT_KEY
+                      + " has invalid value "
+                      + shortCutKeyString);
+    }
+
     
     if (macroName.isEmpty()) {
         addToWarnings(ELEMENT_MACRO
@@ -209,7 +228,7 @@ WuQMacroGroupXmlReader::readMacroVersionOne()
     
     macro = new WuQMacro();
     macro->setName(macroName);
-    macro->setFunctionKey(functionKey.toString());
+    macro->setShortCutKey(shortCutKey);
     
     return macro;
 }

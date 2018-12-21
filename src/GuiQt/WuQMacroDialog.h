@@ -76,6 +76,12 @@ namespace caret {
         
         void exportButtonClicked();
         
+        void runOptionDelaySpinBoxValueChanged(float);
+        
+        void runOptionMoveMouseCheckBoxClicked(bool);
+        
+        void runOptionLoopCheckBoxClicked(bool);
+        
     private:
         QWidget* createMacroButtonsWidget();
         

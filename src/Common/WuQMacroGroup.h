@@ -26,8 +26,7 @@
 #include <memory>
 
 #include "CaretObjectTracksModification.h"
-
-
+#include "WuQMacroShortCutKeyEnum.h"
 
 namespace caret {
 
@@ -64,6 +63,10 @@ namespace caret {
         
         const WuQMacro* getMacroAtIndex(const int32_t index) const;
         
+        WuQMacro* getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey);
+        
+        const WuQMacro* getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey) const;
+
         void deleteMacro(const WuQMacro* macro);
         
         void deleteMacroAtIndex(const int32_t index);

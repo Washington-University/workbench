@@ -29,7 +29,9 @@
 
 #include "WuQMacroExecutor.h"
 #include "WuQMacroModeEnum.h"
+#include "WuQMacroShortCutKeyEnum.h"
 
+class QKeyEvent;
 class QMouseEvent;
 class QWidget;
 
@@ -38,6 +40,7 @@ namespace caret {
     class WuQMacro;
     class WuQMacroCommand;
     class WuQMacroDialog;
+    class WuQMacroExecutorOptions;
     class WuQMacroGroup;
     class WuQMacroSignalWatcher;
     
@@ -81,6 +84,10 @@ namespace caret {
         
         std::vector<QWidget*> getNonModalDialogs();
         
+        WuQMacroExecutorOptions* getExecutorOptions();
+        
+        const WuQMacroExecutorOptions* getExecutorOptions() const;
+        
         void updateNonModalDialogs();
         
         bool editMacroAttributes(QWidget* parent,
@@ -101,8 +108,10 @@ namespace caret {
                           WuQMacro* macro);
         
         void runMacro(QWidget* window,
-                      const WuQMacroExecutor::RunOptions& runOptions,
                       const WuQMacro* macro);
+        
+        bool runMacroWithShortCutKeyEvent(QWidget* window,
+                                          const QKeyEvent* keyEvent);
         
         void printSupportedWidgetsToTerminal();
         
@@ -111,6 +120,10 @@ namespace caret {
         void addParentObject(QObject* parentObject);
         
         QString getToolTipForObjectName(const QString& objectName) const;
+        
+        WuQMacro* getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey) const;
+        
+        static QString getShortCutKeysMask();
         
         // ADD_NEW_METHODS_HERE
         
@@ -131,6 +144,8 @@ namespace caret {
         WuQMacroDialog* m_macrosDialog = NULL;
         
         static WuQMacroManager* s_singletonMacroManager;
+        
+        std::unique_ptr<WuQMacroExecutorOptions> m_executorOptions;
         
         // ADD_NEW_MEMBERS_HERE
 

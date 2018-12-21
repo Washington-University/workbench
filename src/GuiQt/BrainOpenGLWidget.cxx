@@ -851,11 +851,19 @@ BrainOpenGLWidget::keyPressEvent(QKeyEvent* e)
                       m_newKeyPressStartedFlag,
                       shiftKeyDownFlag);
     
-    this->selectedUserInputProcessor->keyPressEvent(keyEvent);
+    const bool keyWasProcessedFlag = this->selectedUserInputProcessor->keyPressEvent(keyEvent);
     
     e->accept();
     
     m_newKeyPressStartedFlag = false;
+    
+    if ( ! keyWasProcessedFlag) {
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+        QOpenGLWidget::keyPressEvent(e);
+#else
+        QGLWidget::keyPressEvent(e);
+#endif
+    }
 }
 
 /**

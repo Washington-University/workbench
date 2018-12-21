@@ -337,10 +337,16 @@ UserInputModeAnnotations::deleteSelectedAnnotations()
  *
  * @param keyEvent
  *     Key event information.
+ * @return
+ *     True if the input process recognized the key event
+ *     and the key event SHOULD NOT be propagated to parent
+ *     widgets
  */
-void
+bool
 UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
 {
+    bool keyWasProcessedFlag(false);
+    
     const int32_t keyCode = keyEvent.getKeyCode();
     switch (keyCode) {
         case Qt::Key_Backspace:
@@ -357,6 +363,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     break;
                 case MODE_SELECT:
                     deleteSelectedAnnotations();
+                    keyWasProcessedFlag = true;
                     break;
                 case MODE_SET_COORDINATE_ONE:
                     break;
@@ -391,6 +398,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
             if (selectModeFlag) {
                 setMode(MODE_SELECT);
                 EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                keyWasProcessedFlag = true;
             }
         }
             break;
@@ -429,6 +437,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                 }
                 
                 if (changeCoordFlag) {
+                    keyWasProcessedFlag = true;
+                    
                     float distanceX = 1.0;
                     float distanceY = 1.0;
                     if (moveOnePixelFlag) {
@@ -548,6 +558,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
         }
             break;
     }
+    
+    return keyWasProcessedFlag;
 }
 
 /**

@@ -27,6 +27,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QKeyEvent>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QWidget>
@@ -47,6 +48,7 @@
 #include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroAttributesDialog.h"
 #include "WuQMacroEditorDialog.h"
+#include "WuQMacroExecutorOptions.h"
 #include "WuQMacroSignalWatcher.h"
 
 using namespace caret;
@@ -70,6 +72,7 @@ WuQMacroManager::WuQMacroManager(const QString& name,
 m_name(name)
 {
     setObjectName(name);
+    m_executorOptions.reset(new WuQMacroExecutorOptions());
 }
 
 /**
@@ -502,14 +505,11 @@ WuQMacroManager::updateNonModalDialogs()
  * 
  * @param widget
  *     Widget used for parent of dialogs
- * @param runOptions
- *     Options used when running the macro
  * @param macro
  *     Macro that is run
  */
 void
 WuQMacroManager::runMacro(QWidget* widget,
-                          const WuQMacroExecutor::RunOptions& runOptions,
                           const WuQMacro* macro)
 {
     CaretAssert(widget);
@@ -521,7 +521,7 @@ WuQMacroManager::runMacro(QWidget* widget,
     if ( ! executor.runMacro(macro,
                              widget,
                              m_parentObjects,
-                             runOptions,
+                             m_executorOptions.get(),
                              errorMessage)) {
         QMessageBox::critical(widget,
                               "Run Macro Error",
@@ -559,7 +559,7 @@ WuQMacroManager::addParentObject(QObject* parentObject)
  */
 bool
 WuQMacroManager::editMacroAttributes(QWidget* parent,
-                                  WuQMacro* macro)
+                                     WuQMacro* macro)
 {
     if (macro != NULL) {
         WuQMacroAttributesDialog attributesDialog(macro,
@@ -802,6 +802,104 @@ WuQMacroManager::getToolTipForObjectName(const QString& objectName) const
     return tooltip;
 }
 
+/**
+ * @return Pointer to the executor's run options (const method)
+ */
+const WuQMacroExecutorOptions*
+WuQMacroManager::getExecutorOptions() const
+{
+    return m_executorOptions.get();
+}
+
+/**
+ * @return Pointer to the executor's run options
+ */
+WuQMacroExecutorOptions*
+WuQMacroManager::getExecutorOptions()
+{
+    return m_executorOptions.get();
+}
+
+/**
+ * Process a key press event for macro shortcut
+ *
+ * @param keyEvent
+ *     Key event information.
+ * @return
+ *     True if the input process recognized the key event
+ *     and the key event SHOULD NOT be propagated to parent
+ *     widgets
+ */
+bool
+WuQMacroManager::runMacroWithShortCutKeyEvent(QWidget* window,
+                                              const QKeyEvent* keyEvent)
+{
+    CaretAssert(keyEvent);
+    
+    /*
+     * On Mac, SHIFT, CONTROL, COMMANDS
+     * On Linux/Windows: SHIFT CTRL META
+     */
+    Qt::KeyboardModifiers mods;
+#ifdef CARET_OS_MACOSX
+    mods.setFlag(Qt::ShiftModifier);
+    mods.setFlag(Qt::MetaModifier);
+    mods.setFlag(Qt::ControlModifier);
+#else
+    mods.setFlag(Qt::ShiftModifier);
+    mods.setFlag(Qt::ControlModifier);
+    mods.setFlag(Qt::AltModifier);
+#endif
+    if (keyEvent->modifiers() == mods) {
+        const int qtKeyCode = keyEvent->key();
+        const WuQMacroShortCutKeyEnum::Enum shortCutKey = WuQMacroShortCutKeyEnum::fromQtKeyEnum(qtKeyCode);
+        if (shortCutKey != WuQMacroShortCutKeyEnum::Key_None) {
+            const WuQMacro* macro = getMacroWithShortCutKey(shortCutKey);
+            if (macro != NULL) {
+                runMacro(window,
+                         macro);
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * @return the macro with the given short cut key or NULL if not found
+ *
+ * @param shortCutKey
+ *     The short cut key
+ */
+WuQMacro*
+WuQMacroManager::getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey) const
+{
+    WuQMacro* macro(NULL);
+    
+    const auto macroGroups = getMacroGroups();
+    for (const auto mg : macroGroups) {
+        macro = mg->getMacroWithShortCutKey(shortCutKey);
+        if (macro != NULL) {
+            break;
+        }
+    }
+    
+    return macro;
+}
+
+QString
+WuQMacroManager::getShortCutKeysMask()
+{
+    QString mask;
+#ifdef CARET_OS_MACOSX
+    mask = "shift/control/command";
+#else
+    mask = "shift/ctrl/alt";
+#endif
+    
+    return mask;
+}
 
 
 

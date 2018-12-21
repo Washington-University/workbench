@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "CaretObjectTracksModification.h"
+#include "WuQMacroShortCutKeyEnum.h"
 
 namespace caret {
 
@@ -58,17 +59,17 @@ namespace caret {
         
         void setDescription(const QString& description);
         
-        QString getFunctionKey() const;
+        WuQMacroShortCutKeyEnum::Enum getShortCutKey() const;
         
-        void setFunctionKey(const QString& functionKey);
+        void setShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey);
         
-        // ADD_NEW_METHODS_HERE
-
         virtual AString toString() const;
 
         virtual bool isModified() const override;
         
         virtual void clearModified() override;
+        
+        // ADD_NEW_METHODS_HERE
         
     private:
         void copyHelperWuQMacro(const WuQMacro& obj);
@@ -81,7 +82,7 @@ namespace caret {
         
         QString m_description;
         
-        QString m_functionKey;
+        WuQMacroShortCutKeyEnum::Enum m_shortCutKey = WuQMacroShortCutKeyEnum::Key_None;
         
         // ADD_NEW_MEMBERS_HERE
 

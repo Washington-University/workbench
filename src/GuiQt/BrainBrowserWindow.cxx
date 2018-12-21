@@ -288,6 +288,11 @@ m_browserWindowIndex(browserWindowIndex)
     gapsAndMargins->setSurfaceMontageVerticalGapForWindow(m_browserWindowIndex, 0.0f);
     gapsAndMargins->setVolumeMontageHorizontalGapForWindow(m_browserWindowIndex, 0.0f);
     gapsAndMargins->setVolumeMontageVerticalGapForWindow(m_browserWindowIndex, 0.0f);
+    
+    /*
+     * Allows keyboard events
+     */
+    setFocusPolicy(Qt::StrongFocus);
 }
 
 /**
@@ -777,6 +782,11 @@ BrainBrowserWindow::keyPressEvent(QKeyEvent* event)
                 keyEventWasProcessed = true;
             }
         }
+    }
+    
+    if ( ! keyEventWasProcessed) {
+        keyEventWasProcessed = WuQMacroManager::instance()->runMacroWithShortCutKeyEvent(this,
+                                                                                         event);
     }
     
     /*

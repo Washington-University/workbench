@@ -210,6 +210,7 @@ ELSE()
         WuQMacroExecutor.h
         WuQMacroManager.h
         WuQMacroMenu.h
+	WuQMacroShortCutKeyComboBox.h
         WuQMacroSignalEmitter.h
         WuQMacroSignalWatcher.h
         WuQMessageBox.h
@@ -464,9 +465,11 @@ WuQMacroCreateDialog.h
 WuQMacroDialog.h
 WuQMacroEditorDialog.h
 WuQMacroExecutor.h
+WuQMacroExecutorOptions.h
 WuQMacroManager.h
 WuQMacroMenu.h
 WuQMacroMouseEventWidgetInterface.h
+WuQMacroShortCutKeyComboBox.h
 WuQMacroSignalEmitter.h
 WuQMacroSignalWatcher.h
 WuQMessageBox.h
@@ -707,8 +710,10 @@ WuQMacroCreateDialog.cxx
 WuQMacroDialog.cxx
 WuQMacroEditorDialog.cxx
 WuQMacroExecutor.cxx
+WuQMacroExecutorOptions.cxx
 WuQMacroManager.cxx
 WuQMacroMenu.cxx
+WuQMacroShortCutKeyComboBox.cxx
 WuQMacroSignalEmitter.cxx
 WuQMacroSignalWatcher.cxx
 WuQMessageBox.cxx

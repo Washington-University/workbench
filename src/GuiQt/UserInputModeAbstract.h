@@ -96,8 +96,12 @@ namespace caret {
          *
          * @param keyEvent
          *     Key event information.
+         * @return
+         *     True if the input process recognized the key event
+         *     and the key event SHOULD NOT be propagated to parent
+         *     widgets
          */
-        virtual void keyPressEvent(const KeyEvent& /*keyEvent*/) { }
+        virtual bool keyPressEvent(const KeyEvent& /*keyEvent*/) { return false; }
         
         /**
          * Process a mouse left double-click event.

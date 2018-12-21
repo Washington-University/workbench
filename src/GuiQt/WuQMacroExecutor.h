@@ -27,6 +27,7 @@
 
 #include <QObject>
 
+#include "WuQMacroExecutorOptions.h"
 class QTabBar;
 class QWidget;
 
@@ -34,41 +35,13 @@ namespace caret {
 
     class WuQMacro;
     class WuQMacroCommand;
+    class WuQMacroExecutorOptions;
     
     class WuQMacroExecutor : public QObject {
         
         Q_OBJECT
 
     public:
-        class RunOptions {
-        public:
-            RunOptions()
-            : m_secondsDelayBetweenCommands(1.0),
-            m_showMouseMovementFlag(true),
-            m_stopOnErrorFlag(true),
-            m_loopFlag(false)
-            {
-                
-            }
-            RunOptions(const float secondsDelayBetweenCommands,
-                       const bool showMouseMovementFlag,
-                       const bool loopFlag)
-            : m_secondsDelayBetweenCommands(secondsDelayBetweenCommands),
-            m_showMouseMovementFlag(showMouseMovementFlag),
-            m_stopOnErrorFlag(true),
-            m_loopFlag(loopFlag)
-            {
-            }
-            
-            float m_secondsDelayBetweenCommands;
-            
-            bool m_showMouseMovementFlag;
-            
-            bool m_stopOnErrorFlag;
-            
-            bool m_loopFlag;
-        };
-        
         WuQMacroExecutor();
         
         virtual ~WuQMacroExecutor();
@@ -80,7 +53,7 @@ namespace caret {
         bool runMacro(const WuQMacro* macro,
                       QObject* window,
                       std::vector<QObject*>& otherObjectParents,
-                      const RunOptions& options,
+                      const WuQMacroExecutorOptions* executorOptions,
                       QString& errorMessageOut) const;
         
         
@@ -110,7 +83,7 @@ namespace caret {
         
         QObject* findObjectByName(const QString& objectName) const;
         
-        mutable RunOptions m_runOptions;
+        mutable WuQMacroExecutorOptions m_runOptions;
         
         mutable std::vector<QObject*> m_parentObjects;
         
