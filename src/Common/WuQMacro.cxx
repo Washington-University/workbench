@@ -23,6 +23,8 @@
 #include "WuQMacro.h"
 #undef __WU_Q_MACRO_DECLARE__
 
+#include <QUuid>
+
 #include "CaretAssert.h"
 #include "WuQMacroCommand.h"
 
@@ -43,7 +45,7 @@ using namespace caret;
 WuQMacro::WuQMacro()
 : CaretObjectTracksModification()
 {
-    
+    m_uniqueIdentifier = QUuid::createUuid().toString();
 }
 
 /**
@@ -74,6 +76,8 @@ WuQMacro::clearCommands()
 WuQMacro::WuQMacro(const WuQMacro& obj)
 : CaretObjectTracksModification(obj)
 {
+    m_uniqueIdentifier = QUuid::createUuid().toString();
+    
     this->copyHelperWuQMacro(obj);
 }
 
@@ -102,6 +106,8 @@ WuQMacro::operator=(const WuQMacro& obj)
 void
 WuQMacro::copyHelperWuQMacro(const WuQMacro& obj)
 {
+    /* Note: unique identifier is NOT copied */
+    
     clearCommands();
     
     for (auto mc : obj.m_macroCommands) {
@@ -118,6 +124,32 @@ WuQMacro::addMacroCommand(WuQMacroCommand* macroCommand)
 {
     m_macroCommands.push_back(macroCommand);
     setModified();
+}
+
+/**
+ * @return The unique identifier
+ */
+QString
+WuQMacro::getUniqueIdentifier() const
+{
+    return m_uniqueIdentifier;
+}
+
+/**
+ * Set unique identifier of macro
+ *
+ * @param uniqueIdentifier
+ *    New unique identifier
+ */void
+WuQMacro::setUniqueIdentifier(const QString& uniqueIdentifier)
+{
+    if (uniqueIdentifier.isEmpty()) {
+        return;
+    }
+    if (m_uniqueIdentifier != uniqueIdentifier) {
+        m_uniqueIdentifier = uniqueIdentifier;
+        setModified();
+    }
 }
 
 /**

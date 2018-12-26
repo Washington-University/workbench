@@ -23,6 +23,8 @@
 #include "WuQMacroGroup.h"
 #undef __WU_Q_MACRO_GROUP_DECLARE__
 
+#include <QUuid>
+
 #include "CaretAssert.h"
 #include "WuQMacro.h"
 #include "WuQMacroGroupXmlReader.h"
@@ -48,7 +50,7 @@ WuQMacroGroup::WuQMacroGroup(const QString& name)
 : CaretObjectTracksModification(),
 m_name(name)
 {
-    
+    m_uniqueIdentifier = QUuid::createUuid().toString();
 }
 
 /**
@@ -67,6 +69,8 @@ WuQMacroGroup::~WuQMacroGroup()
 WuQMacroGroup::WuQMacroGroup(const WuQMacroGroup& obj)
 : CaretObjectTracksModification(obj)
 {
+    m_uniqueIdentifier = QUuid::createUuid().toString();
+    
     this->copyHelperWuQMacroGroup(obj);
 }
 
@@ -95,6 +99,8 @@ WuQMacroGroup::operator=(const WuQMacroGroup& obj)
 void
 WuQMacroGroup::copyHelperWuQMacroGroup(const WuQMacroGroup& obj)
 {
+    /* Note: unique identifier is NOT copied */
+    
     clear();
     
     m_name = obj.m_name;
@@ -110,10 +116,8 @@ WuQMacroGroup::copyHelperWuQMacroGroup(const WuQMacroGroup& obj)
 void
 WuQMacroGroup::clear()
 {
-    if (m_macros.empty()) {
-        return;
-    }
-    
+    /* Note: Do not clear unique identifier */
+
     for (auto m : m_macros) {
         delete m;
     }
@@ -141,6 +145,32 @@ WuQMacroGroup::setName(const QString& name)
 {
     if (m_name != name) {
         m_name = name;
+        setModified();
+    }
+}
+
+/**
+ * @return The unique identifier
+ */
+QString
+WuQMacroGroup::getUniqueIdentifier() const
+{
+    return m_uniqueIdentifier;
+}
+
+/**
+ * Set unique identifier of macro
+ *
+ * @param uniqueIdentifier
+ *    New unique identifier
+ */void
+WuQMacroGroup::setUniqueIdentifier(const QString& uniqueIdentifier)
+{
+    if (uniqueIdentifier.isEmpty()) {
+        return;
+    }
+    if (m_uniqueIdentifier != uniqueIdentifier) {
+        m_uniqueIdentifier = uniqueIdentifier;
         setModified();
     }
 }
@@ -217,6 +247,44 @@ WuQMacroGroup::getMacroByName(const QString& name) const
 {
     for (auto m : m_macros) {
         if (m->getName() == name) {
+            return m;
+        }
+    }
+    return NULL;
+}
+
+/**
+ * Get the macro with the given unique identifier
+ *
+ * @param uniqueIdentifier
+ *     Unique identifier of the macro
+ * @return
+ *     Pointer to macro with the unique identifier or NULL if not found
+ */
+WuQMacro*
+WuQMacroGroup::getMacroWithUniqueIdentifier(const QString& uniqueIdentifier)
+{
+    for (auto m : m_macros) {
+        if (m->getUniqueIdentifier() == uniqueIdentifier) {
+            return m;
+        }
+    }
+    return NULL;
+}
+
+/**
+ * Get the macro with the given unique identifier (const method)
+ *
+ * @param uniqueIdentifier
+ *     Unique identifier of the macro
+ * @return
+ *     Pointer to macro with the unique identifier or NULL if not found
+ */
+const WuQMacro*
+WuQMacroGroup::getMacroWithUniqueIdentifier(const QString& uniqueIdentifier) const
+{
+    for (auto m : m_macros) {
+        if (m->getUniqueIdentifier() == uniqueIdentifier) {
             return m;
         }
     }

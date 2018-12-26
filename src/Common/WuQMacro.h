@@ -51,6 +51,10 @@ namespace caret {
         
         WuQMacroCommand* getMacroCommandAtIndex(const int32_t index);
         
+        QString getUniqueIdentifier() const;
+        
+        void setUniqueIdentifier(const QString& uniqueIdentifier);
+        
         QString getName() const;
         
         void setName(const QString& name);
@@ -77,6 +81,8 @@ namespace caret {
         void clearCommands();
         
         std::vector<WuQMacroCommand*> m_macroCommands;
+        
+        QString m_uniqueIdentifier;
         
         QString m_name;
         

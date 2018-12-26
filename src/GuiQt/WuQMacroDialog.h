@@ -64,8 +64,6 @@ namespace caret {
         
         void buttonBoxButtonClicked(QAbstractButton* button);
         
-        void editSelectedMacro();
-        
         void attributesButtonClicked();
         
         void deleteButtonClicked();
@@ -120,8 +118,6 @@ namespace caret {
         QCheckBox* m_runOptionMoveMouseCheckBox;
         
         QDoubleSpinBox* m_runOptionDelayBetweenCommandsSpinBox;
-        
-        WuQMacro* m_macro = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -49,6 +49,10 @@ namespace caret {
 
         void setName(const QString& name);
         
+        QString getUniqueIdentifier() const;
+        
+        void setUniqueIdentifier(const QString& uniqueIdentifier);
+        
         void addMacro(WuQMacro* macro);
         
         void appendMacroGroup(const WuQMacroGroup* macroGroup);
@@ -63,6 +67,10 @@ namespace caret {
         
         const WuQMacro* getMacroAtIndex(const int32_t index) const;
         
+        WuQMacro* getMacroWithUniqueIdentifier(const QString& uniqueIdentifier);
+        
+        const WuQMacro* getMacroWithUniqueIdentifier(const QString& uniqueIdentifier) const;
+
         WuQMacro* getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey);
         
         const WuQMacro* getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey) const;
@@ -88,6 +96,8 @@ namespace caret {
         
     private:
         void copyHelperWuQMacroGroup(const WuQMacroGroup& obj);
+        
+        QString m_uniqueIdentifier;
         
         QString m_name;
         

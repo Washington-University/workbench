@@ -89,6 +89,12 @@ WuQMacroGroupXmlReader::readFromString(const QString& xmlString,
                 const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
                 const QStringRef name = attributes.value(ATTRIBUTE_NAME);
                 const QStringRef versionText = attributes.value(ATTRIBUTE_VERSION);
+                QString uniqueIdentifier = attributes.value(ATTRIBUTE_UNIQUE_IDENTIFIER).toString();
+                if (uniqueIdentifier.isEmpty()) {
+                    addToWarnings(ELEMENT_MACRO_GROUP
+                                  + " is missing attribute or value is empty: "
+                                  + ATTRIBUTE_UNIQUE_IDENTIFIER);
+                }
                 if (versionText.isEmpty()) {
                     m_xmlStreamReader->raiseError(ATTRIBUTE_VERSION
                                                   + " is missing from element "
@@ -96,6 +102,7 @@ WuQMacroGroupXmlReader::readFromString(const QString& xmlString,
                 }
                 else if (versionText == VALUE_VERSION_ONE) {
                     macroGroup->setName(name.toString());
+                    macroGroup->setUniqueIdentifier(uniqueIdentifier);
                     readVersionOne(macroGroup);
                 }
                 else {
@@ -203,6 +210,12 @@ WuQMacroGroupXmlReader::readMacroVersionOne()
                       + " is missing attribute or value is empty: "
                       + ATTRIBUTE_SHORT_CUT_KEY);
     }
+    QString uniqueIdentifier = attributes.value(ATTRIBUTE_UNIQUE_IDENTIFIER).toString();
+    if (uniqueIdentifier.isEmpty()) {
+        addToWarnings(ELEMENT_MACRO
+                      + " is missing attribute or value is empty: "
+                      + ATTRIBUTE_UNIQUE_IDENTIFIER);
+    }
     
     bool validShortCutKey(false);
     WuQMacroShortCutKeyEnum::Enum shortCutKey = WuQMacroShortCutKeyEnum::fromName(shortCutKeyString,
@@ -229,6 +242,7 @@ WuQMacroGroupXmlReader::readMacroVersionOne()
     macro = new WuQMacro();
     macro->setName(macroName);
     macro->setShortCutKey(shortCutKey);
+    macro->setUniqueIdentifier(uniqueIdentifier);
     
     return macro;
 }

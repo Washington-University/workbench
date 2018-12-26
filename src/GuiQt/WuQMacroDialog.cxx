@@ -106,7 +106,7 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     }
     
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Close);
-    m_runButton = m_dialogButtonBox->addButton("Run...", QDialogButtonBox::ApplyRole);
+    m_runButton = m_dialogButtonBox->addButton("Run", QDialogButtonBox::ApplyRole);
     QObject::connect(m_dialogButtonBox, &QDialogButtonBox::rejected,
                      this, &WuQMacroDialog::close);
     QObject::connect(m_dialogButtonBox, &QDialogButtonBox::clicked,
@@ -288,21 +288,26 @@ WuQMacroDialog::buttonBoxButtonClicked(QAbstractButton* button)
 void
 WuQMacroDialog::updateDialogContents()
 {
-    QString selectedGroupName = m_macroGroupComboBox->currentText();
-    
+    QString selectedUniqueIdentifer;
+    const QVariant dataSelected = m_macroGroupComboBox->currentData();
+    if (dataSelected.isValid()) {
+        if (dataSelected.type() == QVariant::String) {
+            selectedUniqueIdentifer = dataSelected.toString();
+        }
+    }
+
     m_macroGroups = WuQMacroManager::instance()->getMacroGroups();
     
-    int32_t selectedIndex = 0;
-    int32_t groupCounter(0);
     m_macroGroupComboBox->clear();
     for (auto mg : m_macroGroups) {
-        m_macroGroupComboBox->addItem(mg->getName());
-        if (selectedGroupName == mg->getName()) {
-            selectedIndex = groupCounter;
-        }
-        groupCounter++;
+        m_macroGroupComboBox->addItem(mg->getName(),
+                                      mg->getUniqueIdentifier());
     }
     
+    int32_t selectedIndex = m_macroGroupComboBox->findData(selectedUniqueIdentifer);
+    if (selectedIndex < 0) {
+        selectedIndex = 0;
+    }
     if ((selectedIndex >= 0)
         && (selectedIndex < m_macroGroupComboBox->count())) {
         m_macroGroupComboBox->setCurrentIndex(selectedIndex);
@@ -314,6 +319,7 @@ WuQMacroDialog::updateDialogContents()
     m_runOptionDelayBetweenCommandsSpinBox->setValue(runOptions->getSecondsDelayBetweenCommands());
     m_runOptionMoveMouseCheckBox->setChecked(runOptions->isShowMouseMovement());
     m_runOptionLoopCheckBox->setChecked(runOptions->isLooping());
+    
     macroGroupBoxActivated(selectedIndex);
 }
 
@@ -325,32 +331,40 @@ WuQMacroDialog::macroGroupBoxActivated(int)
 {
     const QString emptySuffix(" (Empty)");
     QListWidgetItem* selectedItem = m_macrosListWidget->currentItem();
-    QString selectedName = ((selectedItem != NULL) ? selectedItem->text() : "");
-    const int emptyIndex = selectedName.indexOf(emptySuffix);
-    if (emptyIndex >= 0) {
-        selectedName = selectedName.left(emptyIndex);
+    QString selectedUniqueIdentifier;
+    if (selectedItem != NULL) {
+        selectedUniqueIdentifier = selectedItem->data(Qt::UserRole).toString();
     }
     
     m_macrosListWidget->clear();
 
     int32_t selectedIndex = 0;
     WuQMacroGroup* selectedGroup = getSelectedMacroGroup();
-    const int32_t numMacros = selectedGroup->getNumberOfMacros();
-    for (int32_t i = 0; i < numMacros; i++) {
-        QString macroName = selectedGroup->getMacroAtIndex(i)->getName();
-        if (selectedName == macroName) {
-            selectedIndex = i;
+    if (selectedGroup != NULL) {
+        const int32_t numMacros = selectedGroup->getNumberOfMacros();
+        for (int32_t i = 0; i < numMacros; i++) {
+            const WuQMacro* macro = selectedGroup->getMacroAtIndex(i);
+            if (macro->getUniqueIdentifier() == selectedUniqueIdentifier) {
+                selectedIndex = i;
+            }
+            
+            QString macroName = macro->getName();
+            if (selectedGroup->getMacroAtIndex(i)->getNumberOfMacroCommands() <= 0) {
+                macroName.append(emptySuffix);
+            }
+            
+            QListWidgetItem* item = new QListWidgetItem(macroName);
+            item->setData(Qt::UserRole,
+                          macro->getUniqueIdentifier());
+            m_macrosListWidget->addItem(item);
         }
-        if (selectedGroup->getMacroAtIndex(i)->getNumberOfMacroCommands() <= 0) {
-            macroName.append(emptySuffix);
+        
+        if ((selectedIndex >= 0)
+            && (selectedIndex < numMacros)) {
+            m_macrosListWidget->setCurrentRow(selectedIndex);
         }
-        m_macrosListWidget->addItem(macroName);
     }
-    
-    if ((selectedIndex >= 0)
-        && (selectedIndex < numMacros)) {
-        m_macrosListWidget->setCurrentRow(selectedIndex);
-    }
+
     macrosListWidgetCurrentRowChanged(selectedIndex);
 }
 
@@ -403,18 +417,6 @@ WuQMacroDialog::getSelectedMacro()
         }
     }
     return NULL;
-}
-
-/**
- * Edit the selected macro
- */
-void
-WuQMacroDialog::editSelectedMacro()
-{
-    WuQMacro* macro = getSelectedMacro();
-    if (macro != NULL) {
-        std::cout << "Edit macro: " << macro->getName() << std::endl;
-    }
 }
 
 /**
@@ -508,7 +510,7 @@ WuQMacroDialog::exportButtonClicked()
     WuQMacroGroup* macroGroup = getSelectedMacroGroup();
     WuQMacro* macro = getSelectedMacro();
 
-    if (WuQMacroManager::instance()->exportMacros(m_importPushButton,
+    if (WuQMacroManager::instance()->exportMacros(m_exportPushButton,
                                                   macroGroup,
                                                   macro)) {
         updateDialogContents();

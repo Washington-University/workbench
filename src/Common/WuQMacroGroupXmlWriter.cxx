@@ -76,6 +76,8 @@ WuQMacroGroupXmlWriter::writeToString(const WuQMacroGroup* macroGroup,
     m_xmlStreamWriter->writeStartElement(ELEMENT_MACRO_GROUP);
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_NAME, macroGroup->getName());
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_VERSION, "1");
+    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_UNIQUE_IDENTIFIER,
+                                      macroGroup->getUniqueIdentifier());
     
     const int32_t numMacros = macroGroup->getNumberOfMacros();
     for (int32_t i = 0; i < numMacros; i++) {
@@ -106,6 +108,8 @@ WuQMacroGroupXmlWriter::writeMacroToXML(const WuQMacro* macro)
     const QString shortCutText = WuQMacroShortCutKeyEnum::toName(macro->getShortCutKey());
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_SHORT_CUT_KEY,
                                       shortCutText);
+    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_UNIQUE_IDENTIFIER,
+                                      macro->getUniqueIdentifier());
     m_xmlStreamWriter->writeTextElement(ELEMENT_DESCRIPTION,
                                         macro->getDescription());
     

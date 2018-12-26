@@ -57,6 +57,7 @@ namespace caret {
         static const QString ATTRIBUTE_OBJECT_VALUE;
         static const QString ATTRIBUTE_OBJECT_VALUE_TWO;
         static const QString ATTRIBUTE_SHORT_CUT_KEY;
+        static const QString ATTRIBUTE_UNIQUE_IDENTIFIER;
         static const QString ATTRIBUTE_VERSION;
         
         static const QString ATTRIBUTE_MOUSE_BUTTON;
@@ -96,6 +97,7 @@ namespace caret {
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_OBJECT_VALUE = "DataValue";
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_OBJECT_VALUE_TWO = "DataValueTwo";
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_SHORT_CUT_KEY = "ShortCutKey";
+    const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_UNIQUE_IDENTIFIER = "UniqueIdentifier";
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_VERSION = "Version";
     
     const QString WuQMacroGroupXmlFormatBase::ATTRIBUTE_MOUSE_BUTTON = "MouseButton";
