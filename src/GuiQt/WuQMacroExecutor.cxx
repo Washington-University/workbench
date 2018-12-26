@@ -197,7 +197,14 @@ WuQMacroExecutor::moveMouseToWidgetImplementation(QObject* moveToObject,
     
     if (moveToWidget == NULL) {
         return;
-        
+    }
+    
+    /*
+     * Test visibility of widget.
+     * Note: Cannot use isHidden(), see Qt documentation.
+     */
+    if ( ! moveToWidget->isVisible()) {
+        return;
     }
     
     if (usingParentFlag) {
@@ -215,6 +222,7 @@ WuQMacroExecutor::moveMouseToWidgetImplementation(QObject* moveToObject,
         widgetPoint.setX(x);
         widgetPoint.setY(y);
     }
+
     const QPoint windowPoint = moveToWidget->mapToGlobal(widgetPoint);
     QCursor::setPos(windowPoint);
     SystemUtilities::sleepSeconds(0.025);
