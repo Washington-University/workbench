@@ -78,10 +78,11 @@ namespace caret {
         
         WuQMacro* m_macro = NULL;
 
+        static QString s_lastSelectedMacroGroupIdentifier;
     };
     
 #ifdef __WU_Q_MACRO_CREATE_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    QString WuQMacroCreateDialog::s_lastSelectedMacroGroupIdentifier = "";
 #endif // __WU_Q_MACRO_CREATE_DIALOG_DECLARE__
 
 } // namespace

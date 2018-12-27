@@ -32,10 +32,10 @@
 #include "SceneInfoSaxReader.h"
 #include "ScenePathName.h"
 #include "SceneXmlElements.h"
-
 #include "XmlAttributes.h"
 #include "XmlException.h"
 #include "XmlUtilities.h"
+#include "WuQMacroGroupXmlReader.h"
 
 using namespace caret;
 
@@ -121,6 +121,8 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
                 throw e;
             }
             break;
+        case STATE_SCENE_FILE_MACRO_GROUP:
+            break;
         case STATE_SCENE_INFO_DIRECTORY:
             if (qName == SceneXmlElements::SCENE_INFO_TAG) {
                 m_state = STATE_SCENE_INFO;
@@ -200,6 +202,10 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
                                                       m_scene);
                 m_sceneSaxReader->startElement(namespaceURI, localName, qName, attributes);
             }
+            else if (qName == SceneXmlElements::SCENE_FILE_MACRO_GROUP) {
+                m_state = STATE_SCENE_FILE_MACRO_GROUP;
+                break;
+            }
             else {
                 const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::SCENE_TAG, 
                                                                                    qName);
@@ -243,6 +249,20 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
                 delete m_sceneSaxReader;
                 m_sceneSaxReader = NULL;
             }
+            break;
+        case STATE_SCENE_FILE_MACRO_GROUP:
+        {
+            WuQMacroGroup* macroGroup = m_sceneFile->getMacroGroup();
+            WuQMacroGroupXmlReader reader;
+            reader.readFromString(m_elementText,
+                                  macroGroup);
+            if (reader.hasError()) {
+                CaretLogSevere(reader.getErrorMessage());
+            }
+            else if (reader.hasWarnings()) {
+                CaretLogWarning(reader.getWarningMessage());
+            }
+        }
             break;
         case STATE_SCENE_INFO_DIRECTORY:
             break;

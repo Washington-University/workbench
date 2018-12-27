@@ -48,7 +48,10 @@
 #include "SceneWriterXml.h"
 #include "SpecFile.h"
 #include "SystemUtilities.h"
+#include "WuQMacroGroup.h"
+#include "WuQMacroGroupXmlWriter.h"
 #include "XmlSaxParser.h"
+#include "XmlUtilities.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -72,6 +75,11 @@ SceneFile::SceneFile()
     m_balsaExtractToDirectoryName = "";
     m_basePathType = SceneFileBasePathTypeEnum::AUTOMATIC;
     m_metadata = new GiftiMetaData();
+    
+    static int counter = 1;
+    const AString macroGroupName("SceneFile_"
+                                 + AString::number(counter));
+    m_macroGroup.reset(new WuQMacroGroup(macroGroupName));
 }
 
 /**
@@ -98,6 +106,7 @@ SceneFile::clear()
     CaretDataFile::clear();
     
     m_metadata->clear();
+    m_macroGroup->clear();
     
     m_balsaStudyID = "";
     m_balsaStudyTitle = "";
@@ -570,6 +579,20 @@ void SceneFile::setBasePathType(const SceneFileBasePathTypeEnum::Enum basePathTy
     }
 }
 
+/**
+ * Set the name of the file.
+ *
+ * @param filename
+ *    New name of file
+ */
+void
+SceneFile::setFileName(const AString& filename)
+{
+    CaretDataFile::setFileName(filename);
+    
+    FileInformation fileInfo(filename);
+    m_macroGroup->setName(fileInfo.getFileName());
+}
 
 /**
  * Read the scene file.
@@ -751,6 +774,21 @@ SceneFile::writeFile(const AString& filename)
                                                         i);
         }
         xmlWriter.writeEndElement();
+        
+        /*
+         * Write macro group
+         */
+        if (m_macroGroup->getNumberOfMacros() > 0) {
+            QString textString;
+            WuQMacroGroupXmlWriter macroWriter;
+            macroWriter.writeToString(m_macroGroup.get(),
+                                      textString);
+            textString = XmlUtilities::encodeXmlSpecialCharacters(textString);
+            xmlWriter.writeElementCharacters(SceneXmlElements::SCENE_FILE_MACRO_GROUP,
+                                             textString);
+//            xmlWriter.writeElementCData(SceneXmlElements::SCENE_FILE_MACRO_GROUP,
+//                                        textString);
+        }
         
         //
         // Write scenes
@@ -1263,6 +1301,9 @@ SceneFile::isModified() const
             return true;
         }
     }
+    if (m_macroGroup->isModified()) {
+        return true;
+    }
     
     return false;
 }
@@ -1277,4 +1318,24 @@ SceneFile::clearModified()
     for (auto scene : m_scenes) {
         scene->clearModified();
     }
+    m_macroGroup->clearModified();
 }
+
+/**
+ * @return The macro group
+ */
+WuQMacroGroup*
+SceneFile::getMacroGroup()
+{
+    return m_macroGroup.get();
+}
+
+/**
+ * @return The macro group (const method)
+ */
+const WuQMacroGroup*
+SceneFile::getMacroGroup() const
+{
+    return m_macroGroup.get();
+}
+

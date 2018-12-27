@@ -75,6 +75,8 @@ namespace caret {
         
         const WuQMacro* getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey) const;
 
+        bool containsMacro(const WuQMacro* macro);
+        
         void deleteMacro(const WuQMacro* macro);
         
         void deleteMacroAtIndex(const int32_t index);

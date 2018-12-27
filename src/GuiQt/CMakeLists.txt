@@ -367,6 +367,7 @@ GiftiLabelTableEditor.h
 GiftiLabelTableSelectionComboBox.h
 GroupAndNameHierarchyTreeWidgetItem.h
 GroupAndNameHierarchyViewController.h
+GuiMacroHelper.h
 GuiManager.h
 HelpViewerDialog.h
 HyperLinkTextBrowser.h
@@ -466,6 +467,7 @@ WuQMacroDialog.h
 WuQMacroEditorDialog.h
 WuQMacroExecutor.h
 WuQMacroExecutorOptions.h
+WuQMacroHelperInterface.h
 WuQMacroManager.h
 WuQMacroMenu.h
 WuQMacroMouseEventWidgetInterface.h
@@ -612,6 +614,7 @@ GiftiLabelTableEditor.cxx
 GiftiLabelTableSelectionComboBox.cxx
 GroupAndNameHierarchyTreeWidgetItem.cxx
 GroupAndNameHierarchyViewController.cxx
+GuiMacroHelper.cxx
 GuiManager.cxx
 HelpViewerDialog.cxx
 HyperLinkTextBrowser.cxx

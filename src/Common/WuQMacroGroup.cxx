@@ -356,6 +356,25 @@ WuQMacroGroup::getMacroAtIndex(const int32_t index) const
 }
 
 /**
+ * @return True if this macro group contains the given macro
+ *
+ * @param macro
+ *     Macro for inclusion testing
+ */
+bool
+WuQMacroGroup::containsMacro(const WuQMacro* macro)
+{
+    const int32_t count = getNumberOfMacros();
+    for (int32_t i = 0; i < count; i++) {
+        if (getMacroAtIndex(i) == macro) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
  * Delete the given macro from this group
  *
  * @param macro

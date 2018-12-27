@@ -35,9 +35,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretFileDialog.h"
-#include "CaretPreferences.h"
 #include "DataFileException.h"
-#include "SessionManager.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCreateDialog.h"
@@ -47,6 +45,7 @@
 #include "WuQMacroGroup.h"
 #include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroAttributesDialog.h"
+#include "WuQMacroHelperInterface.h"
 #include "WuQMacroEditorDialog.h"
 #include "WuQMacroExecutorOptions.h"
 #include "WuQMacroSignalWatcher.h"
@@ -117,6 +116,18 @@ WuQMacroManager::instance()
     return s_singletonMacroManager;
 }
 
+/**
+ * Set the macro helper that provides the macro groups
+ *
+ * @param macroHelper
+ *     The macro helper.  Ownership will be taken of macro helper
+ *     and it will be destoryed when this instance is destroyed.
+ */
+void
+WuQMacroManager::setMacroHelper(WuQMacroHelperInterface* macroHelper)
+{
+    m_macroHelper.reset(macroHelper);
+}
 
 /**
  * @return Name of this macro manager
@@ -412,11 +423,9 @@ std::vector<WuQMacroGroup*>
 WuQMacroManager::getMacroGroups() const
 {
     std::vector<WuQMacroGroup*> macroGroups;
-    
-    CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-    CaretAssert(preferences);
-    macroGroups.push_back(preferences->getMacros());
-    
+    if (m_macroHelper) {
+        macroGroups = m_macroHelper->getMacroGroups();
+    }
     return macroGroups;
 }
 
@@ -447,11 +456,11 @@ WuQMacroManager::stopRecordingNewMacro()
 {
     CaretAssert(m_mode == WuQMacroModeEnum::RECORDING);
     m_mode = WuQMacroModeEnum::OFF;
-    m_macroBeingRecorded = NULL;
     
-    CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-    CaretAssert(preferences);
-    preferences->writeMacros();
+    if (m_macroHelper) {
+        m_macroHelper->macroWasModified(m_macroBeingRecorded);
+    }
+    m_macroBeingRecorded = NULL;
     
     updateNonModalDialogs();
 }
@@ -566,9 +575,9 @@ WuQMacroManager::editMacroAttributes(QWidget* parent,
                                                parent);
         if (attributesDialog.exec() == WuQMacroDialog::Accepted) {
             if (attributesDialog.isMacroModified()) {
-                CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-                CaretAssert(preferences);
-                preferences->writeMacros();
+                if (m_macroHelper) {
+                    m_macroHelper->macroWasModified(macro);
+                }
                 return true;
             }
         }
@@ -600,9 +609,9 @@ WuQMacroManager::deleteMacro(QWidget* parent,
                              QMessageBox::Ok | QMessageBox::Cancel,
                              QMessageBox::Ok) == QMessageBox::Ok) {
         macroGroup->deleteMacro(macro);
-        CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-        CaretAssert(preferences);
-        preferences->writeMacros();
+        if (m_macroHelper) {
+            m_macroHelper->macroGroupWasModified(macroGroup);
+        }
         return true;
     }
     
@@ -726,9 +735,9 @@ WuQMacroManager::editMacroCommands(QWidget* parent,
                                           parent);
         if (editorDialog.exec() == WuQMacroDialog::Accepted) {
             if (editorDialog.isMacroModified()) {
-                CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-                CaretAssert(preferences);
-                preferences->writeMacros();
+                if (m_macroHelper) {
+                    m_macroHelper->macroWasModified(macro);
+                }
                 return true;
             }
         }

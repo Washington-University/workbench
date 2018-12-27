@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 #include <set>
 
 #include "CaretDataFile.h"
@@ -30,6 +31,7 @@
 namespace caret {
 
     class Scene;
+    class WuQMacroGroup;
     
     class SceneFile : public CaretDataFile {
         
@@ -49,6 +51,8 @@ namespace caret {
         
         void clear();
         
+        virtual void setFileName(const AString& filename) override;
+
         void readFile(const AString& filename);
         
         void writeFile(const AString& filename);
@@ -155,6 +159,10 @@ namespace caret {
         
         virtual void clearModified() override;
         
+        WuQMacroGroup* getMacroGroup();
+        
+        const WuQMacroGroup* getMacroGroup() const;
+        
         // ADD_NEW_METHODS_HERE
 
         /** Version of file */
@@ -193,6 +201,8 @@ namespace caret {
         
         /** The "extract to" directory name */
         AString m_balsaExtractToDirectoryName;
+        
+        std::unique_ptr<WuQMacroGroup> m_macroGroup;
         
         // ADD_NEW_MEMBERS_HERE
 

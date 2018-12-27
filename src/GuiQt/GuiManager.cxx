@@ -86,6 +86,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
 #include "GapsAndMarginsDialog.h"
+#include "GuiMacroHelper.h"
 #include "HelpViewerDialog.h"
 #include "IdentifiedItemNode.h"
 #include "IdentifiedItemVoxel.h"
@@ -197,6 +198,7 @@ GuiManager::initializeGuiManager()
     WuQMacroClassTypeEnum::addWidgetClassNameAlias("QTabBar",
                                                     "caret::WuQTabBar");
     WuQMacroManager::instance()->addParentObject(this);
+    WuQMacroManager::instance()->setMacroHelper(new GuiMacroHelper());
     
     /*
      * Windows vector never changes size

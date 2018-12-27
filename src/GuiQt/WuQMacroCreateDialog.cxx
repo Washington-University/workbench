@@ -74,13 +74,24 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     m_macroDescriptionTextEdit = new QPlainTextEdit();
     m_macroDescriptionTextEdit->setFixedHeight(100);
     
+    int32_t selectedMacroGroupIndex(0);
     m_macroGroupComboBox = new QComboBox();
     for (auto mg : m_macroGroups) {
+        if (mg->getUniqueIdentifier() == s_lastSelectedMacroGroupIdentifier) {
+            selectedMacroGroupIndex = m_macroGroupComboBox->count();
+        }
         m_macroGroupComboBox->addItem(mg->getName());
+    }
+    if ((selectedMacroGroupIndex >= 0)
+        && (selectedMacroGroupIndex < m_macroGroupComboBox->count())) {
+        m_macroGroupComboBox->setCurrentIndex(selectedMacroGroupIndex);
     }
     
     QGridLayout* gridLayout = new QGridLayout();
     int row = 0;
+    gridLayout->addWidget(macroGroupLabel, row, 0);
+    gridLayout->addWidget(m_macroGroupComboBox, row, 1, 1, 2);
+    row++;
     gridLayout->addWidget(nameLabel, row, 0);
     gridLayout->addWidget(m_macroNameLineEdit, row, 1, 1, 2);
     row++;
@@ -90,9 +101,6 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     row++;
     gridLayout->addWidget(descriptionLabel, row, 0);
     gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1, 1, 2);
-    row++;
-    gridLayout->addWidget(macroGroupLabel, row, 0);
-    gridLayout->addWidget(m_macroGroupComboBox, row, 1, 1, 2);
     row++;
     
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok
@@ -177,6 +185,7 @@ WuQMacroCreateDialog::done(int r)
         if (groupIndex >= 0) {
             WuQMacroGroup* macroGroup = m_macroGroups[groupIndex];
             macroGroup->addMacro(m_macro);
+            s_lastSelectedMacroGroupIdentifier = macroGroup->getUniqueIdentifier();
         }
     }
     

@@ -42,6 +42,7 @@ namespace caret {
     class WuQMacroDialog;
     class WuQMacroExecutorOptions;
     class WuQMacroGroup;
+    class WuQMacroHelperInterface;
     class WuQMacroSignalWatcher;
     
     class WuQMacroManager : public QObject {
@@ -55,6 +56,8 @@ namespace caret {
         WuQMacroManager(const WuQMacroManager&) = delete;
 
         WuQMacroManager& operator=(const WuQMacroManager&) = delete;
+        
+        void setMacroHelper(WuQMacroHelperInterface* macroHelper);
         
         QString getName() const;
 
@@ -146,6 +149,8 @@ namespace caret {
         static WuQMacroManager* s_singletonMacroManager;
         
         std::unique_ptr<WuQMacroExecutorOptions> m_executorOptions;
+        
+        std::unique_ptr<WuQMacroHelperInterface> m_macroHelper;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -177,6 +177,11 @@ namespace caret {
          */
         static const AString SCENE_INFO_BASE_PATH_TYPE = "BasePathType";
         
+        /**
+         * XML Tag for Macros in Scene File
+         */
+        static const AString SCENE_FILE_MACRO_GROUP = "SceneFileMacroGroup";
+        
     } // namespace SceneXmlElements
     
 } // namespace caret
