@@ -200,7 +200,7 @@ m_objectName(object->objectName())
         {
             QTabBar* tabBar = qobject_cast<QTabBar*>(m_object);
             CaretAssert(tabBar);
-            QObject::connect(tabBar, &QTabBar::tabBarClicked,  //&QTabBar::currentChanged,
+            QObject::connect(tabBar, &QTabBar::tabBarClicked,
                              this, &WuQMacroSignalWatcher::tabBarCurrentChanged);
         }
             break;
@@ -208,7 +208,7 @@ m_objectName(object->objectName())
         {
             QTabWidget* tabWidget = qobject_cast<QTabWidget*>(m_object);
             CaretAssert(tabWidget);
-            QObject::connect(tabWidget, &QTabWidget::tabBarClicked, //&QTabWidget::currentChanged,
+            QObject::connect(tabWidget, &QTabWidget::tabBarClicked,
                              this, &WuQMacroSignalWatcher::tabWidgetCurrentChanged);
         }
             break;
@@ -600,8 +600,11 @@ WuQMacroSignalWatcher::spinBoxValueChanged(int value)
 void
 WuQMacroSignalWatcher::tabBarCurrentChanged(int index)
 {
+    QTabBar* tabBar = qobject_cast<QTabBar*>(m_object);
+    CaretAssert(tabBar);
+    const QString tabText = tabBar->tabText(index);
     createAndSendMacroCommand(index,
-                              "");
+                              tabText);
 }
 
 /**
@@ -613,8 +616,11 @@ WuQMacroSignalWatcher::tabBarCurrentChanged(int index)
 void
 WuQMacroSignalWatcher::tabWidgetCurrentChanged(int index)
 {
+    QTabWidget* tabWidget = qobject_cast<QTabWidget*>(m_object);
+    CaretAssert(tabWidget);
+    const QString tabText = tabWidget->tabText(index);
     createAndSendMacroCommand(index,
-                              "");
+                              tabText);
 }
 
 /**

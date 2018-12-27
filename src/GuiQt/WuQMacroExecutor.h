@@ -83,17 +83,102 @@ namespace caret {
         
         QObject* findObjectByName(const QString& objectName) const;
         
+        void runActionCommand(const WuQMacroCommand* macroCommand,
+                              QObject* object,
+                              QString& errorMessageOut,
+                              bool& castFailureFlagOut) const;
+        
+        void runActionGroupCommand(const WuQMacroCommand* macroCommand,
+                                   QObject* object,
+                                   QString& errorMessageOut,
+                                   bool& castFailureFlagOut) const;
+        
+        void runButtonGroupCommand(const WuQMacroCommand* macroCommand,
+                                   QObject* object,
+                                   QString& errorMessageOut,
+                                   bool& castFailureFlagOut) const;
+        
+        void runCheckBoxCommand(const WuQMacroCommand* macroCommand,
+                                QObject* object,
+                                QString& errorMessageOut,
+                                bool& castFailureFlagOut) const;
+        
+        void runComboBoxCommand(const WuQMacroCommand* macroCommand,
+                                QObject* object,
+                                QString& errorMessageOut,
+                                bool& castFailureFlagOut) const;
+        
+        void runDoubleSpinBoxCommand(const WuQMacroCommand* macroCommand,
+                                     QObject* object,
+                                     QString& errorMessageOut,
+                                     bool& castFailureFlagOut) const;
+        
+        void runLineEditCommand(const WuQMacroCommand* macroCommand,
+                                QObject* object,
+                                QString& errorMessageOut,
+                                bool& castFailureFlagOut) const;
+        
+        void runListWidgetCommand(const WuQMacroCommand* macroCommand,
+                                  QObject* object,
+                                  QString& errorMessageOut,
+                                  bool& castFailureFlagOut) const;
+        
+        void runMenuCommand(const WuQMacroCommand* macroCommand,
+                            QObject* object,
+                            QString& errorMessageOut,
+                            bool& castFailureFlagOut) const;
+        
+        bool runMouseCommand(const WuQMacroCommand* macroCommand,
+                             QObject* object,
+                             QString& errorMessageOut,
+                             bool& castFailureFlagOut) const;
+        
+        void runPushButtonCommand(const WuQMacroCommand* macroCommand,
+                                  QObject* object,
+                                  QString& errorMessageOut,
+                                  bool& castFailureFlagOut) const;
+        
+        void runRadioButtonCommand(const WuQMacroCommand* macroCommand,
+                                   QObject* object,
+                                   QString& errorMessageOut,
+                                   bool& castFailureFlagOut) const;
+        
+        void runSliderCommand(const WuQMacroCommand* macroCommand,
+                              QObject* object,
+                              QString& errorMessageOut,
+                              bool& castFailureFlagOut) const;
+        
+        void runSpinBoxCommand(const WuQMacroCommand* macroCommand,
+                               QObject* object,
+                               QString& errorMessageOut,
+                               bool& castFailureFlagOut) const;
+        
+        void runTabBarCommand(const WuQMacroCommand* macroCommand,
+                              QObject* object,
+                              QString& errorMessageOut,
+                              bool& castFailureFlagOut) const;
+        
+        void runTabWidgetCommand(const WuQMacroCommand* macroCommand,
+                                 QObject* object,
+                                 QString& errorMessageOut,
+                                 bool& castFailureFlagOut) const;
+        
+        void runToolButtonCommand(const WuQMacroCommand* macroCommand,
+                                  QObject* object,
+                                  QString& errorMessageOut,
+                                  bool& castFailureFlagOut) const;
+        
         mutable WuQMacroExecutorOptions m_runOptions;
         
         mutable std::vector<QObject*> m_parentObjects;
         
         // ADD_NEW_MEMBERS_HERE
-
+        
     };
     
 #ifdef __WU_Q_MACRO_EXECUTOR_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __WU_Q_MACRO_EXECUTOR_DECLARE__
-
+    
 } // namespace
 #endif  //__WU_Q_MACRO_EXECUTOR_H__

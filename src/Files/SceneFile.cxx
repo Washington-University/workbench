@@ -786,8 +786,6 @@ SceneFile::writeFile(const AString& filename)
             textString = XmlUtilities::encodeXmlSpecialCharacters(textString);
             xmlWriter.writeElementCharacters(SceneXmlElements::SCENE_FILE_MACRO_GROUP,
                                              textString);
-//            xmlWriter.writeElementCData(SceneXmlElements::SCENE_FILE_MACRO_GROUP,
-//                                        textString);
         }
         
         //
