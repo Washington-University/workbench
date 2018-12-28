@@ -81,6 +81,7 @@ ReductionEnum::initialize()
     enumData.push_back(ReductionEnum(VARIANCE, "VARIANCE", "the variance of the data"));
     enumData.push_back(ReductionEnum(TSNR, "TSNR", "mean divided by sample standard deviation (N-1 denominator)"));
     enumData.push_back(ReductionEnum(COV, "COV", "sample standard deviation (N-1 denominator) divided by mean"));
+    enumData.push_back(ReductionEnum(L2NORM, "L2NORM", "square root of sum of squares"));
     enumData.push_back(ReductionEnum(MEDIAN, "MEDIAN", "the median of the data"));
     enumData.push_back(ReductionEnum(MODE, "MODE", "the mode of the data"));
     enumData.push_back(ReductionEnum(COUNT_NONZERO, "COUNT_NONZERO", "the number of nonzero elements in the data"));

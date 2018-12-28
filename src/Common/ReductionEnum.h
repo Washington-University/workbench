@@ -52,6 +52,7 @@ public:
             VARIANCE,
             TSNR,
             COV,
+            L2NORM,
             PRODUCT,
             MEDIAN,
             MODE,

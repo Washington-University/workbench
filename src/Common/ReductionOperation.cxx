@@ -83,6 +83,12 @@ float ReductionOperation::reduce(const float* data, const int64_t& numElems, con
                 }
             }
         }
+        case ReductionEnum::L2NORM:
+        {
+            double sum = 0.0;
+            for (int64_t i = 0; i < numElems; ++i) sum += data[i] * data[i];
+            return sqrt(sum);
+        }
         case ReductionEnum::PRODUCT:
         {
             double prod = 1.0;
@@ -183,6 +189,7 @@ float ReductionOperation::reduce(const float* data, const int64_t& numElems, con
             return count;
         }
     }
+    CaretAssertMessage(false, "unhandled reduction type");
     return 0.0f;
 }
 
@@ -387,6 +394,12 @@ float ReductionOperation::reduceWeighted(const float* data, const float* weights
                     return 0.0f;
             }
         }
+        case ReductionEnum::L2NORM:
+        {
+            double sum = 0.0;
+            for (int64_t i = 0; i < numElems; ++i) sum += weights[i] * data[i] * data[i];
+            return sqrt(sum);//if all weights are 1, this should match unweighted, so don't divide by sum of weights
+        }
         case ReductionEnum::MEDIAN:
         {
             vector<ValWeight> toSort;
@@ -446,6 +459,7 @@ float ReductionOperation::reduceWeighted(const float* data, const float* weights
             return bestval;
         }
     }
+    CaretAssertMessage(false, "unhandled reduction type");
     return 0.0f;
 }
 
