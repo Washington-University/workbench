@@ -447,9 +447,14 @@ BalsaDatabaseUploadSceneFileDialog::createUploadTab()
 QWidget*
 BalsaDatabaseUploadSceneFileDialog::createBalsaDatabaseSelectionWidget()
 {
-    QString hostName = SystemUtilities::getLocalHostName();
-    const bool isWustlDomainFlag = hostName.endsWith(".wustl.edu");
-    
+    bool isWustlDomainFlag = false;
+    /* DOES NOT WORK ON MACOS 10.14, See note in: SystemUtilities::getLocalHostName()
+       QString hostName = SystemUtilities::getLocalHostName();
+       bool isWustlDomainFlag = hostName.endsWith(".wustl.edu");
+     */
+#ifndef NDEBUG
+    isWustlDomainFlag = true;
+#endif
     /*
      * Database selection
      */

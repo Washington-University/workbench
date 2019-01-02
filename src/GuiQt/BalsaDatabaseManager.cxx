@@ -639,10 +639,9 @@ BalsaDatabaseManager::processUploadedFile(SceneFile* sceneFile,
     
     if (uploadResponse.m_responseCode != 200) {
         errorMessageOut = ("Process Upload failed code: "
-                           + QString::number(uploadResponse.m_responseCode));
-        if (uploadResponse.m_responseCode < 0) {
-            errorMessageOut.appendWithNewLine(uploadResponse.m_errorMessage);
-        }
+                           + QString::number(uploadResponse.m_responseCode)
+                           + ".  ");
+        errorMessageOut.appendWithNewLine(uploadResponse.m_errorMessage);
         
         return false;
     }
@@ -900,10 +899,8 @@ BalsaDatabaseManager::getSceneIDs(const int32_t numberOfSceneIDs,
     if (response.m_responseCode != 200) {
         errorMessageOut = ("Requesting Scene IDs failed with HTTP code="
                            + AString::number(response.m_responseCode)
-                           + ".  This error may be caused by failure to agree to data use terms.");
-        if (response.m_responseCode < 0) {
-            errorMessageOut.appendWithNewLine(response.m_errorMessage);
-        }
+                           + ".  This error may be caused by failure to agree to data use terms.  ");
+        errorMessageOut.appendWithNewLine(response.m_errorMessage);
         return false;
     }
     
@@ -1002,10 +999,8 @@ BalsaDatabaseManager::requestStudyID(const AString& databaseURL,
     if (studyResponse.m_responseCode != 200) {
         errorMessageOut = ("Requesting study ID failed with HTTP code="
                            + AString::number(studyResponse.m_responseCode)
-                           + ".  This error may be caused by failure to agree to data use terms.");
-        if (studyResponse.m_responseCode < 0) {
-            errorMessageOut.appendWithNewLine(studyResponse.m_errorMessage);
-        }
+                           + ".  This error may be caused by failure to agree to data use terms.  ");
+        errorMessageOut.appendWithNewLine(studyResponse.m_errorMessage);
         return false;
     }
     
@@ -1137,10 +1132,9 @@ BalsaDatabaseManager::getUserRoles(BalsaUserRoles& userRolesOut,
     
     if (studyResponse.m_responseCode != 200) {
         errorMessageOut = ("Requesting roles failed with HTTP code="
-                           + AString::number(studyResponse.m_responseCode));
-        if (studyResponse.m_responseCode < 0) {
-            errorMessageOut.appendWithNewLine(studyResponse.m_errorMessage);
-        }
+                           + AString::number(studyResponse.m_responseCode)
+                           + ".  ");
+        errorMessageOut.appendWithNewLine(studyResponse.m_errorMessage);
         return false;
     }
     
@@ -1243,10 +1237,9 @@ BalsaDatabaseManager::getStudyExtractDirectoryPrefix(const AString& studyID,
     
     if (studyResponse.m_responseCode != 200) {
         errorMessageOut = ("Requesting extract directory failed with HTTP code="
-                           + AString::number(studyResponse.m_responseCode));
-        if (studyResponse.m_responseCode < 0) {
-            errorMessageOut.appendWithNewLine(studyResponse.m_errorMessage);
-        }
+                           + AString::number(studyResponse.m_responseCode)
+                           + ".  ");
+        errorMessageOut.appendWithNewLine(studyResponse.m_errorMessage);
         return false;
     }
     
@@ -1324,10 +1317,8 @@ BalsaDatabaseManager::getAllStudyInformation(std::vector<BalsaStudyInformation>&
     if (idResponse.m_responseCode != 200) {
         errorMessageOut = ("Requesting all study information failed with HTTP code="
                            + AString::number(idResponse.m_responseCode)
-                           + ".  This error may be caused by failure to agree to data use terms.");
-        if (idResponse.m_responseCode < 0) {
-            errorMessageOut.appendWithNewLine(idResponse.m_errorMessage);
-        }
+                           + ".  This error may be caused by failure to agree to data use terms.  ");
+        errorMessageOut.appendWithNewLine(idResponse.m_errorMessage);
         return false;
     }
     

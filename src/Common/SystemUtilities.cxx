@@ -672,6 +672,11 @@ SystemUtilities::getWorkbenchHome()
 AString
 SystemUtilities::getLocalHostName()
 {
+    /*
+     * NOTE: THIS FUNCTION DOES NOT SEEM TO WORK ON MACOS 10.14 MOJAVE.
+     * THE LOCALHOST NAME IS <XXX>.LOCAL WHERE <XXX> IS THE COMPUTER'NAME
+     * AND QHostInfo::fromName() DOES NOT MAKE IT FULLY QUALIFIED
+     */
     QString hostName;
     
     QHostInfo hostInfo = QHostInfo::fromName(QHostInfo::localHostName());
