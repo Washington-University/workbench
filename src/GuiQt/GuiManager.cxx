@@ -198,7 +198,7 @@ GuiManager::initializeGuiManager()
     WuQMacroClassTypeEnum::addWidgetClassNameAlias("QTabBar",
                                                     "caret::WuQTabBar");
     WuQMacroManager::instance()->addParentObject(this);
-    WuQMacroManager::instance()->setMacroHelper(new GuiMacroHelper());
+    WuQMacroManager::instance()->setMacroHelper(new GuiMacroHelper(this));
     
     /*
      * Windows vector never changes size

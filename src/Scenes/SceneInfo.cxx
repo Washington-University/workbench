@@ -26,9 +26,13 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "SceneXmlElements.h"
+#include "WuQMacroGroup.h"
+#include "WuQMacroGroupXmlWriter.h"
 #include "XmlAttributes.h"
+#include "XmlUtilities.h"
 #include "XmlWriter.h"
 using namespace caret;
+
 
 
     
@@ -44,7 +48,11 @@ using namespace caret;
 SceneInfo::SceneInfo()
 : CaretObjectTracksModification()
 {
-    
+    static int counter = 1;
+    const AString macroGroupName("SceneFile_"
+                                 + AString::number(counter));
+    m_macroGroup.reset(new WuQMacroGroup(macroGroupName));
+    m_macroGroup->clearModified();
 }
 
 SceneInfo::SceneInfo(const SceneInfo& rhs) : CaretObjectTracksModification()
@@ -61,6 +69,34 @@ SceneInfo::SceneInfo(const SceneInfo& rhs) : CaretObjectTracksModification()
  */
 SceneInfo::~SceneInfo()
 {
+}
+
+/**
+ * @return True if this scene info is modified
+ */
+bool
+SceneInfo::isModified() const
+{
+    if (CaretObjectTracksModification::isModified()) {
+        return true;
+    }
+    
+    if (m_macroGroup->isModified()) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * @return Is this instance modified?
+ */
+void
+SceneInfo::clearModified()
+{
+    CaretObjectTracksModification::clearModified();
+    
+    m_macroGroup->clearModified();
 }
 
 /**
@@ -82,6 +118,8 @@ SceneInfo::setName(const AString& sceneName)
 {
     if (sceneName != m_sceneName) {
         m_sceneName = sceneName;
+        m_macroGroup->setName("Scene: "
+                              + m_sceneName);
         setModified();
     }
 }
@@ -140,8 +178,8 @@ void
 SceneInfo::getImageBytes(QByteArray& imageBytesOut,
                                   AString& imageFormatOut) const
 {
-    imageBytesOut = m_imageBytes;
-    imageFormatOut         = m_imageFormat;
+    imageBytesOut  = m_imageBytes;
+    imageFormatOut = m_imageFormat;
 }
 
 /**
@@ -185,6 +223,24 @@ SceneInfo::setBalsaSceneID(const AString& balsaSceneID)
 }
 
 /**
+ * @return The macro group
+ */
+WuQMacroGroup*
+SceneInfo::getMacroGroup()
+{
+    return m_macroGroup.get();
+}
+
+/**
+ * @return The macro group (const method)
+ */
+const WuQMacroGroup*
+SceneInfo::getMacroGroup() const
+{
+    return m_macroGroup.get();
+}
+
+/**
  * Write the scene info element.
  *
  * @param sceneInfo
@@ -211,6 +267,19 @@ SceneInfo::writeSceneInfo(XmlWriter& xmlWriter,
     
     xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_DESCRIPTION_TAG,
                                        m_sceneDescription);
+    
+    /*
+     * Write macro group
+     */
+    if (m_macroGroup->getNumberOfMacros() > 0) {
+        QString textString;
+        WuQMacroGroupXmlWriter macroWriter;
+        macroWriter.writeToString(m_macroGroup.get(),
+                                  textString);
+        textString = XmlUtilities::encodeXmlSpecialCharacters(textString);
+        xmlWriter.writeElementCharacters(SceneXmlElements::SCENE_INFO_MACRO_GROUP,
+                                         textString);
+    }
     
     writeSceneInfoImage(xmlWriter,
                         SceneXmlElements::SCENE_INFO_IMAGE_TAG,

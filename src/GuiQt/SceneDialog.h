@@ -274,7 +274,8 @@ namespace caret {
         ~SceneClassInfoWidget();
         
         void updateContent(Scene* scene,
-                           const int32_t sceneIndex);
+                           const int32_t sceneIndex,
+                           const bool activeSceneFlag);
         
         void setBackgroundForSelected(const bool selected);
         
@@ -316,6 +317,8 @@ namespace caret {
         QWidget* m_rightSideWidget;
         
         QLabel* m_previewImageLabel;
+        
+        QLabel* m_activeSceneLabel;
         
         QLabel* m_nameLabel;
         

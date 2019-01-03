@@ -81,6 +81,8 @@ namespace caret {
             STATE_SCENE_INFO_DESCRIPTION,
             /// processing Scene Info thumbnail tag
             STATE_SCENE_INFO_IMAGE_THUMBNAIL,
+            /// processing Scene Info macro group tag
+            STATE_SCENE_INFO_MACRO_GROUP,
             /// process an unrecognized element in Scene Info
             STATE_SCENE_INFO_UNRECOGNIZED
         };

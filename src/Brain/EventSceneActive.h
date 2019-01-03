@@ -1,9 +1,9 @@
-#ifndef __GUI_MACRO_HELPER_H__
-#define __GUI_MACRO_HELPER_H__
+#ifndef __EVENT_SCENE_ACTIVE_H__
+#define __EVENT_SCENE_ACTIVE_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2018 Washington University School of Medicine
+ *  Copyright (C) 2019 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,44 +22,57 @@
 /*LICENSE_END*/
 
 
+
 #include <memory>
 
-#include "EventListenerInterface.h"
-#include "WuQMacroHelperInterface.h"
+#include "Event.h"
+
 
 
 namespace caret {
 
-    class GuiMacroHelper : public WuQMacroHelperInterface, public EventListenerInterface {
-        Q_OBJECT
+    class Scene;
+    
+    class EventSceneActive : public Event {
         
     public:
-        GuiMacroHelper(QObject* parent);
+        /** The mode of the event */
+        enum Mode {
+            /** Get the active scene */
+            MODE_GET,
+            /** Set the active scene */
+            MODE_SET
+        };
         
-        virtual ~GuiMacroHelper();
+        EventSceneActive(const Mode mode);
         
-        GuiMacroHelper(const GuiMacroHelper&) = delete;
+        virtual ~EventSceneActive();
+        
+        Mode getMode() const;
+        
+        Scene* getScene() const;
+        
+        void setScene(Scene* scene);
+        
+        EventSceneActive(const EventSceneActive&) = delete;
 
-        GuiMacroHelper& operator=(const GuiMacroHelper&) = delete;
+        EventSceneActive& operator=(const EventSceneActive&) = delete;
         
-        void receiveEvent(Event* event) override;
-        
-        virtual std::vector<WuQMacroGroup*> getMacroGroups();
-        
-        virtual void macroWasModified(WuQMacro* macro);
-        
-        virtual void macroGroupWasModified(WuQMacroGroup* macroGroup);
 
         // ADD_NEW_METHODS_HERE
-        
+
     private:
+        const Mode m_mode;
+        
+        Scene* m_scene = NULL;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __GUI_MACRO_HELPER_DECLARE__
+#ifdef __EVENT_SCENE_ACTIVE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GUI_MACRO_HELPER_DECLARE__
+#endif // __EVENT_SCENE_ACTIVE_DECLARE__
 
 } // namespace
-#endif  //__GUI_MACRO_HELPER_H__
+#endif  //__EVENT_SCENE_ACTIVE_H__

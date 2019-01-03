@@ -71,6 +71,7 @@
 #include "EventHelpViewerDisplay.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventShowDataFileReadWarningsDialog.h"
+#include "EventSceneActive.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
@@ -417,13 +418,18 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
         selectedScene = getSelectedScene();
     }
     
+    EventSceneActive activeSceneEvent(EventSceneActive::MODE_GET);
+    EventManager::get()->sendEvent(activeSceneEvent.getPointer());
+    const Scene* activeScene = activeSceneEvent.getScene();
+    
     for (std::vector<SceneClassInfoWidget*>::iterator iter = m_sceneClassInfoWidgets.begin();
          iter != m_sceneClassInfoWidgets.end();
          iter++) {
         SceneClassInfoWidget* sciw = *iter;
         sciw->blockSignals(true);
         sciw->updateContent(NULL,
-                            -1);
+                            -1,
+                            false);
     }
     
     int32_t numberOfValidSceneInfoWidgets = 0;
@@ -455,8 +461,10 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
                 sciw = m_sceneClassInfoWidgets[i];
             }
             
+            const bool activeSceneFlag(scene == activeScene);
             sciw->updateContent(scene,
-                                i);
+                                i,
+                                activeSceneFlag);
             
             sciw->setBackgroundForSelected(i == 1);
             
@@ -1109,6 +1117,12 @@ SceneDialog::sceneFileSelected(int /*index*/)
     updateSceneFileModifiedStatusLabel();
 }
 
+//Modified status for both scenes and _LIBCPP_POP_MACROS
+//In Scene info panel indicate if scene is the active scene
+//Add macro group to Scene
+//Remove macro group from scene FILE
+//List active scene file on macros Dialog
+
 /**
  * Called when add new scene button clicked.
  */
@@ -1130,13 +1144,22 @@ SceneDialog::addNewSceneButtonClicked()
                                                                    sceneFile);
         if (newScene != NULL) {
             s_informUserAboutScenesOnExitFlag = false;
+
+            /*
+             * Set the active scene
+             */
+            EventSceneActive activeSceneEvent(EventSceneActive::MODE_SET);
+            activeSceneEvent.setScene(newScene);
+            EventManager::get()->sendEvent(activeSceneEvent.getPointer());
         }
         
         loadScenesIntoDialog(newScene);
     }
     
-    
     updateSceneFileModifiedStatusLabel();
+
+    /* Ensures macros dialog gets updated with active scene */
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**
@@ -1163,6 +1186,13 @@ SceneDialog::insertSceneButtonClicked()
                                                                                        scene);
             if (newScene != NULL) {
                 s_informUserAboutScenesOnExitFlag = false;
+
+                /*
+                 * Set the active scene
+                 */
+                EventSceneActive activeSceneEvent(EventSceneActive::MODE_SET);
+                activeSceneEvent.setScene(newScene);
+                EventManager::get()->sendEvent(activeSceneEvent.getPointer());
             }
             
             loadScenesIntoDialog(newScene);
@@ -1170,6 +1200,9 @@ SceneDialog::insertSceneButtonClicked()
     }
     
     updateSceneFileModifiedStatusLabel();
+
+    /* Ensures macros dialog gets updated with active scene */
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**
@@ -1347,6 +1380,13 @@ SceneDialog::replaceAllScenesPushButtonClicked()
             newScene->setBalsaSceneID(origScene->getBalsaSceneID());
             
             /*
+             * Set the active scene
+             */
+            EventSceneActive activeSceneEvent(EventSceneActive::MODE_SET);
+            activeSceneEvent.setScene(newScene);
+            EventManager::get()->sendEvent(activeSceneEvent.getPointer());
+            
+            /*
              * Process options
              */
             if (replaceDialog.isChangeSurfaceAnnotationOffsetToOffset()) {
@@ -1392,7 +1432,10 @@ SceneDialog::replaceAllScenesPushButtonClicked()
             getSelectedSceneFile()->replaceScene(newScene,
                                                  origScene);
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-            
+
+            /* Ensures macros dialog gets updated with active scene */
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+
             loadScenesIntoDialog(newScene);
             const QImage* newImage = getQImageFromSceneInfo(newScene->getSceneInfo());
             if (newImage != NULL) {
@@ -1411,6 +1454,7 @@ SceneDialog::replaceAllScenesPushButtonClicked()
         }
     }
     
+
     progressDialog.close();
     
     CaretAssert(sceneNames.size() == sceneErrors.size());
@@ -1617,8 +1661,18 @@ SceneDialog::testScenesPushButtonClicked()
                                                 origScene,
                                                 false,
                                                 errorMessage);
+            /*
+             * Set the active scene
+             */
+            EventSceneActive activeSceneEvent(EventSceneActive::MODE_SET);
+            activeSceneEvent.setScene(origScene);
+            EventManager::get()->sendEvent(activeSceneEvent.getPointer());
+
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-        
+
+            /* Ensures macros dialog gets updated with active scene */
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+
             /*
              * Always generate an image, even if the scene fails and failure may 
              * be a very minor error.
@@ -1811,6 +1865,13 @@ SceneDialog::replaceSceneButtonClicked()
                                                                              scene);
             if (newScene != NULL) {
                 s_informUserAboutScenesOnExitFlag = false;
+                
+                /*
+                 * Set the active scene
+                 */
+                EventSceneActive activeSceneEvent(EventSceneActive::MODE_SET);
+                activeSceneEvent.setScene(newScene);
+                EventManager::get()->sendEvent(activeSceneEvent.getPointer());
             }
             
             loadScenesIntoDialog(newScene);
@@ -1818,6 +1879,9 @@ SceneDialog::replaceSceneButtonClicked()
             updateSceneFileModifiedStatusLabel();
         }
     }
+
+    /* Ensures macros dialog gets updated with active scene */
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**
@@ -2336,6 +2400,9 @@ SceneDialog::deleteSceneButtonClicked()
             SceneFile* sceneFile = getSelectedSceneFile();
             sceneFile->removeScene(scene);
             updateDialog();
+
+            /* Ensures macros dialog gets updated with active scene */
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
     }
 }
@@ -2389,6 +2456,9 @@ SceneDialog::showSceneButtonClicked()
                             scene,
                             false);
     }
+
+    /* Ensures macros dialog gets updated with active scene */
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**
@@ -2533,6 +2603,9 @@ SceneDialog::displayScene(SceneFile* sceneFile,
                         true);
     loadSceneFileComboBox(sceneFile);
     loadScenesIntoDialog(scene);
+    
+    /* Ensures macros dialog gets updated with active scene */
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     
     return isSuccessful;
 }
@@ -2679,6 +2752,13 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
             prefs->addToPreviousSceneFiles(sceneFile->getFileName());
         }
+        
+        /*
+         * Set the active scene
+         */
+        EventSceneActive activeSceneEvent(EventSceneActive::MODE_SET);
+        activeSceneEvent.setScene(scene);
+        EventManager::get()->sendEvent(activeSceneEvent.getPointer());
     }
     else {
         errorMessageOut = sceneErrorMessage;
@@ -2899,6 +2979,7 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     m_defaultBackgroundRole = backgroundRole();
     m_defaultAutoFillBackgroundStatus = autoFillBackground();
     
+    m_activeSceneLabel = new QLabel();
     m_nameLabel = new QLabel();
     m_nameLabel->setWordWrap(true);
     
@@ -2914,6 +2995,7 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     QVBoxLayout* rightLayout = new QVBoxLayout(m_rightSideWidget);
     rightLayout->setContentsMargins(0, 0, 0, 0);
     rightLayout->setSpacing(3);
+    rightLayout->addWidget(m_activeSceneLabel);
     rightLayout->addWidget(m_nameLabel,1);
     rightLayout->addWidget(m_sceneIdLabel);
     rightLayout->addWidget(m_descriptionLabel, 100);
@@ -2968,10 +3050,13 @@ SceneClassInfoWidget::setBackgroundForSelected(const bool selected)
  *     Scene for display.
  * @param sceneIndex
  *     Index of the scene.
+ * @param activeSceneFlag
+ *     True if this is the active scene
  */
 void
 SceneClassInfoWidget::updateContent(Scene* scene,
-                                    const int32_t sceneIndex)
+                                    const int32_t sceneIndex,
+                                    const bool activeSceneFlag)
 {
     m_scene = scene;
     m_sceneIndex = sceneIndex;
@@ -2989,6 +3074,14 @@ SceneClassInfoWidget::updateContent(Scene* scene,
                                                                          descriptionText,
                                                                          numLinesToDisplay);
         
+        if (activeSceneFlag) {
+            m_activeSceneLabel->setText("<html><font color=\"red\">Current Scene</font></html>");
+            m_activeSceneLabel->setVisible(true);
+        }
+        else {
+            m_activeSceneLabel->setText("");
+            m_activeSceneLabel->setVisible(false);
+        }
         m_nameLabel->setText(nameText);
         m_sceneIdLabel->setText(sceneIdText);
         m_descriptionLabel->setText(descriptionText);

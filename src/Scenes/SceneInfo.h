@@ -27,6 +27,8 @@
 
 
 namespace caret {
+    class WuQMacroGroup;
+    
     class XmlWriter;
     
     class SceneInfo : public CaretObjectTracksModification {
@@ -37,6 +39,10 @@ namespace caret {
         SceneInfo(const SceneInfo& rhs);
 
         virtual ~SceneInfo();
+        
+        bool isModified() const override;
+        
+        void clearModified() override;
         
         AString getName() const;
         
@@ -70,6 +76,10 @@ namespace caret {
                                  const QByteArray& imageBytes,
                                  const AString& imageFormat) const;
         
+        WuQMacroGroup* getMacroGroup();
+        
+        const WuQMacroGroup* getMacroGroup() const;
+        
     private:
         SceneInfo& operator=(const SceneInfo&);
         
@@ -87,6 +97,8 @@ namespace caret {
         
         /** format of thumbnail image (eg: jpg, ppm, etc.) */
         AString m_imageFormat;
+        
+        std::unique_ptr<WuQMacroGroup> m_macroGroup;
         
         // ADD_NEW_MEMBERS_HERE
 

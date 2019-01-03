@@ -91,8 +91,6 @@ namespace caret {
         
         const WuQMacroExecutorOptions* getExecutorOptions() const;
         
-        void updateNonModalDialogs();
-        
         bool editMacroAttributes(QWidget* parent,
                                  WuQMacro* macro);
         
@@ -130,6 +128,9 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
         
+    public slots:
+        void updateNonModalDialogs();
+        
     private:
         WuQMacroManager(const QString& name,
                         QObject* parent = NULL);
@@ -150,7 +151,7 @@ namespace caret {
         
         std::unique_ptr<WuQMacroExecutorOptions> m_executorOptions;
         
-        std::unique_ptr<WuQMacroHelperInterface> m_macroHelper;
+        WuQMacroHelperInterface* m_macroHelper;
         
         // ADD_NEW_MEMBERS_HERE
 

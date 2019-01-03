@@ -126,7 +126,12 @@ WuQMacroManager::instance()
 void
 WuQMacroManager::setMacroHelper(WuQMacroHelperInterface* macroHelper)
 {
-    m_macroHelper.reset(macroHelper);
+    m_macroHelper = macroHelper;
+    
+    if (macroHelper != NULL) {
+        QObject::connect(macroHelper, &WuQMacroHelperInterface::requestDialogsUpdate,
+                         this, &WuQMacroManager::updateNonModalDialogs);
+    }
 }
 
 /**

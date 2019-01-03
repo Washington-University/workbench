@@ -82,6 +82,7 @@
 #include "EventModelGetAllDisplayed.h"
 #include "EventPaletteGetByName.h"
 #include "EventProgressUpdate.h"
+#include "EventSceneActive.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventManager.h"
 #include "FiberOrientationSamplesLoader.h"
@@ -104,6 +105,7 @@
 #include "OverlaySet.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
+#include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -200,6 +202,8 @@ Brain::Brain(const CaretPreferences* caretPreferences)
                                           EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_PALETTE_GET_BY_NAME);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_SCENE_ACTIVE);
     
     m_isSpecFileBeingRead = false;
     
@@ -491,6 +495,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
                   const ResetBrainKeepSpecFile keepSpecFile)
 {
     m_isSpecFileBeingRead = false;
+    m_activeScene = NULL;
     
     /*
      * Clear the counters used to prevent duplicate file names.
@@ -6131,6 +6136,43 @@ Brain::receiveEvent(Event* event)
                 paletteGetByName->setPalette(palette);
                 paletteGetByName->setEventProcessed();
             }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_SCENE_ACTIVE) {
+        EventSceneActive* sceneEvent = dynamic_cast<EventSceneActive*>(event);
+        CaretAssert(sceneEvent);
+        
+        switch (sceneEvent->getMode()) {
+            case EventSceneActive::MODE_GET:
+            {
+                if (m_activeScene != NULL) {
+                    bool sceneFoundFlag = false;
+                    
+                    for (auto sf : m_sceneFiles) {
+                        const int32_t numScenes = sf->getNumberOfScenes();
+                        for (int32_t i = 0; i < numScenes; i++) {
+                            if (sf->getSceneAtIndex(i) == m_activeScene) {
+                                sceneFoundFlag = true;
+                                break;
+                            }
+                        }
+                        if (sceneFoundFlag) {
+                            break;
+                        }
+                    }
+                    
+                    if ( ! sceneFoundFlag) {
+                        m_activeScene = NULL;
+                    }
+                }
+                
+                sceneEvent->setScene(m_activeScene);
+                sceneEvent->setEventProcessed();
+            }
+                break;
+            case EventSceneActive::MODE_SET:
+                m_activeScene = sceneEvent->getScene();
+                break;
         }
     }
 }

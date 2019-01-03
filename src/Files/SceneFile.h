@@ -31,7 +31,6 @@
 namespace caret {
 
     class Scene;
-    class WuQMacroGroup;
     
     class SceneFile : public CaretDataFile {
         
@@ -159,10 +158,6 @@ namespace caret {
         
         virtual void clearModified() override;
         
-        WuQMacroGroup* getMacroGroup();
-        
-        const WuQMacroGroup* getMacroGroup() const;
-        
         // ADD_NEW_METHODS_HERE
 
         /** Version of file */
@@ -201,8 +196,6 @@ namespace caret {
         
         /** The "extract to" directory name */
         AString m_balsaExtractToDirectoryName;
-        
-        std::unique_ptr<WuQMacroGroup> m_macroGroup;
         
         // ADD_NEW_MEMBERS_HERE
 

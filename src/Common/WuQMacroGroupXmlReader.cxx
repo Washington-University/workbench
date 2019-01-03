@@ -130,6 +130,8 @@ WuQMacroGroupXmlReader::readFromString(const QString& xmlString,
     if (m_xmlStreamReader->hasError()) {
         macroGroup->clear();
     }
+    
+    macroGroup->clearModified();
 }
 
 /**

@@ -27,9 +27,12 @@
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "EventManager.h"
+#include "EventSceneActive.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "Scene.h"
 #include "SceneFile.h"
+#include "SceneInfo.h"
 #include "SessionManager.h"
 #include "WuQMacroGroup.h"
 
@@ -46,11 +49,10 @@ using namespace caret;
 /**
  * Constructor.
  */
-GuiMacroHelper::GuiMacroHelper()
-: CaretObject(),
-WuQMacroHelperInterface()
+GuiMacroHelper::GuiMacroHelper(QObject* parent)
+: WuQMacroHelperInterface(parent)
 {
-    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -58,16 +60,23 @@ WuQMacroHelperInterface()
  */
 GuiMacroHelper::~GuiMacroHelper()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
- * Get a description of this object's content.
- * @return String describing this object's content.
+ * Receive an event
+ *
+ * @param event
+ *     The event.
  */
-AString 
-GuiMacroHelper::toString() const
+void
+GuiMacroHelper::receiveEvent(Event* event)
 {
-    return "GuiMacroHelper";
+    CaretAssert(event);
+    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        event->setEventProcessed();
+        emit requestDialogsUpdate();
+    }
 }
 
 /**
@@ -82,9 +91,13 @@ GuiMacroHelper::getMacroGroups()
     CaretAssert(preferences);
     macroGroups.push_back(preferences->getMacros());
     
-    const int32_t numSceneFiles = GuiManager::get()->getBrain()->getNumberOfSceneFiles();
-    for (int32_t i = 0; i < numSceneFiles; i++) {
-        macroGroups.push_back(GuiManager::get()->getBrain()->getSceneFile(i)->getMacroGroup());
+    EventSceneActive activeSceneEvent(EventSceneActive::MODE_GET);
+    EventManager::get()->sendEvent(activeSceneEvent.getPointer());
+    if ( ! activeSceneEvent.isError()) {
+        Scene* activeScene = activeSceneEvent.getScene();
+        if (activeScene != NULL) {
+            macroGroups.push_back(activeScene->getSceneInfo()->getMacroGroup());
+        }
     }
     
     return macroGroups;

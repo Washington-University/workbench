@@ -98,6 +98,7 @@ EventModelSurfaceGet.h
 EventNodeDataFilesGet.h
 EventNodeIdentificationColorsGetFromCharts.h
 EventOverlayValidate.h
+EventSceneActive.h
 EventSpacerTabGet.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
@@ -250,6 +251,7 @@ EventModelSurfaceGet.cxx
 EventNodeDataFilesGet.cxx
 EventNodeIdentificationColorsGetFromCharts.cxx
 EventOverlayValidate.cxx
+EventSceneActive.cxx
 EventSpacerTabGet.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx

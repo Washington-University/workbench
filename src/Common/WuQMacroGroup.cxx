@@ -118,11 +118,18 @@ WuQMacroGroup::clear()
 {
     /* Note: Do not clear unique identifier */
 
+    bool hadMacrosFlag = ( ! m_macros.empty());
     for (auto m : m_macros) {
         delete m;
     }
     m_macros.clear();
-    setModified();
+    
+    if (hadMacrosFlag) {
+        setModified();
+    }
+    else {
+        clearModified();
+    }
 }
 
 /**

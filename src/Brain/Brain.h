@@ -94,6 +94,7 @@ namespace caret {
     class PaletteFile;
     class RgbaFile;
     class SceneClassAssistant;
+    class Scene;
     class SceneFile;
     class SelectionManager;
     class SpecFile;
@@ -868,6 +869,8 @@ namespace caret {
         std::map<DataFileTypeEnum::Enum, int32_t> m_duplicateFileNameCounter;
         
         GapsAndMargins* m_gapsAndMargins;
+        
+        Scene* m_activeScene = NULL;
     };
 
 } // namespace

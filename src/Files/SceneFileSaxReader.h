@@ -78,8 +78,6 @@ namespace caret {
             STATE_NONE,
             /// processing SceneFile tag
             STATE_SCENE_FILE,
-            /// processing scene file macro group
-            STATE_SCENE_FILE_MACRO_GROUP,
             /// processing MetaData tag
             STATE_METADATA,
             /// processing SceneInfoDirectory tag

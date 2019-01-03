@@ -24,7 +24,7 @@
 #include "SceneInfo.h"
 #include "SceneInfoSaxReader.h"
 #include "SceneXmlElements.h"
-
+#include "WuQMacroGroupXmlReader.h"
 #include "XmlAttributes.h"
 #include "XmlException.h"
 #include "XmlUtilities.h"
@@ -104,6 +104,10 @@ SceneInfoSaxReader::startElement(const AString& /* namespaceURI */,
             else if (qName == SceneXmlElements::SCENE_INFO_BALSA_SCENE_ID_TAG) {
                 m_state = STATE_SCENE_INFO_BALSA_ID;
             }
+            else if (qName == SceneXmlElements::SCENE_INFO_MACRO_GROUP) {
+                m_state = STATE_SCENE_INFO_MACRO_GROUP;
+                break;
+            }
             else {
                 const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::SCENE_INFO_TAG,
                                                                                    qName);
@@ -111,6 +115,8 @@ SceneInfoSaxReader::startElement(const AString& /* namespaceURI */,
                 warning(e);
                 m_state = STATE_SCENE_INFO_UNRECOGNIZED;
             }
+            break;
+        case STATE_SCENE_INFO_MACRO_GROUP:
             break;
         case STATE_SCENE_INFO_NAME:
             break;
@@ -169,6 +175,20 @@ SceneInfoSaxReader::endElement(const AString& /* namspaceURI */,
         }
             break;
         case STATE_SCENE_INFO_UNRECOGNIZED:
+            break;
+        case STATE_SCENE_INFO_MACRO_GROUP:
+        {
+            WuQMacroGroup* macroGroup = m_sceneInfo->getMacroGroup();
+            WuQMacroGroupXmlReader reader;
+            reader.readFromString(m_elementText,
+                                  macroGroup);
+            if (reader.hasError()) {
+                CaretLogSevere(reader.getErrorMessage());
+            }
+            else if (reader.hasWarnings()) {
+                CaretLogWarning(reader.getWarningMessage());
+            }
+        }
             break;
     }
     

@@ -27,16 +27,18 @@
  * \ingroup GuiQt
  */
 
+#include <QObject>
 #include <vector>
 
 namespace caret {
     class WuQMacro;
     class WuQMacroGroup;
 
-    class WuQMacroHelperInterface {
+    class WuQMacroHelperInterface : public QObject {
+        Q_OBJECT
         
     public:
-        WuQMacroHelperInterface() { }
+        WuQMacroHelperInterface(QObject* parent) : QObject(parent) { }
         
         virtual ~WuQMacroHelperInterface() { }
         
@@ -67,6 +69,9 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+    signals:
+        void requestDialogsUpdate();
+        
     private:
         // ADD_NEW_MEMBERS_HERE
 
