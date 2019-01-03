@@ -74,13 +74,16 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     m_macroDescriptionTextEdit = new QPlainTextEdit();
     m_macroDescriptionTextEdit->setFixedHeight(100);
     
-    int32_t selectedMacroGroupIndex(0);
+    int32_t selectedMacroGroupIndex(-1);
     m_macroGroupComboBox = new QComboBox();
     for (auto mg : m_macroGroups) {
         if (mg->getUniqueIdentifier() == s_lastSelectedMacroGroupIdentifier) {
             selectedMacroGroupIndex = m_macroGroupComboBox->count();
         }
         m_macroGroupComboBox->addItem(mg->getName());
+    }
+    if (selectedMacroGroupIndex < 0) {
+        selectedMacroGroupIndex = m_macroGroupComboBox->count() - 1;
     }
     if ((selectedMacroGroupIndex >= 0)
         && (selectedMacroGroupIndex < m_macroGroupComboBox->count())) {

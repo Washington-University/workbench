@@ -306,7 +306,7 @@ WuQMacroDialog::updateDialogContents()
     
     int32_t selectedIndex = m_macroGroupComboBox->findData(selectedUniqueIdentifer);
     if (selectedIndex < 0) {
-        selectedIndex = 0;
+        selectedIndex = m_macroGroupComboBox->count() - 1;
     }
     if ((selectedIndex >= 0)
         && (selectedIndex < m_macroGroupComboBox->count())) {
