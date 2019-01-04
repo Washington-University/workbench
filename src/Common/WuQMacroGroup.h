@@ -19,31 +19,27 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+
 /*LICENSE_END*/
-
-
 
 #include <memory>
 
+#include <QStandardItemModel>
+
 #include "CaretObjectTracksModification.h"
+#include "TracksModificationInterface.h"
 #include "WuQMacroShortCutKeyEnum.h"
 
 namespace caret {
 
     class WuQMacro;
     
-    class WuQMacroGroup : public CaretObjectTracksModification {
+    class WuQMacroGroup : public QStandardItemModel, public TracksModificationInterface {
         
     public:
         WuQMacroGroup(const QString& groupName);
         
         virtual ~WuQMacroGroup();
-        
-        WuQMacroGroup(const WuQMacroGroup& obj);
-        
-        WuQMacroGroup& operator=(const WuQMacroGroup& obj);
-        
-        void clear();
         
         QString getName() const;
 
@@ -85,6 +81,8 @@ namespace caret {
         
         virtual void clearModified() override;
         
+        virtual void setModified() override;
+        
         bool readXmlFromString(const QString& xmlString,
                                QString& errorMessageOut,
                                QString& nonFatalWarningMessageOut);
@@ -97,13 +95,13 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void copyHelperWuQMacroGroup(const WuQMacroGroup& obj);
+        void clearPrivate();
         
         QString m_uniqueIdentifier;
         
         QString m_name;
         
-        std::vector<WuQMacro*> m_macros;
+        bool m_modifiedStatusFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

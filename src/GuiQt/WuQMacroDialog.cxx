@@ -29,18 +29,21 @@
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
-#include <QListWidget>
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QStackedWidget>
+#include <QTreeView>
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "WuQMacro.h"
+#include "WuQMacroCommand.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroExecutor.h"
 #include "WuQMacroManager.h"
+#include "WuQMacroStandardItemTypes.h"
 
 using namespace caret;
 
@@ -67,28 +70,17 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     m_macroGroups = WuQMacroManager::instance()->getMacroGroups();
     
     QLabel* macrosLabel = new QLabel("Macro:");
-    QLabel* descriptionLabel = new QLabel("Macro Description:");
     QLabel* macroGroupLabel = new QLabel("Macros in:");
     
     m_macroGroupComboBox = new QComboBox();
     QObject::connect(m_macroGroupComboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
-                     this, &WuQMacroDialog::macroGroupBoxActivated);
+                     this, &WuQMacroDialog::macroGroupComboBoxActivated);
     
-    m_macrosListWidget = new QListWidget();
-    QObject::connect(m_macrosListWidget, &QListWidget::currentRowChanged,
-                     this, &WuQMacroDialog::macrosListWidgetCurrentRowChanged);
+    m_treeView = new QTreeView();
+    m_treeView->setHeaderHidden(true);
+    QObject::connect(m_treeView, &QTreeView::clicked,
+                     this, &WuQMacroDialog::treeViewItemClicked);
     
-    m_macroDescriptionLabel = new QLabel("");
-    m_macroDescriptionLabel->setWordWrap(true);
-    m_macroDescriptionLabel->setMinimumHeight(40);
-    m_macroDescriptionLabel->setAlignment(Qt::AlignTop
-                                          | Qt::AlignLeft);
-    
-    QFrame* horizontalLine = new QFrame();
-    horizontalLine->setMidLineWidth(1);
-    horizontalLine->setLineWidth(1);
-    horizontalLine->setFrameStyle(QFrame::HLine | QFrame::Sunken);
-
     QGridLayout* gridLayout = new QGridLayout();
     int row = 0;
     gridLayout->addWidget(macroGroupLabel, row, 0);
@@ -96,7 +88,7 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     row++;
     gridLayout->addWidget(macrosLabel, row, 0, (Qt::AlignTop
                                                 | Qt::AlignLeft));
-    gridLayout->addWidget(m_macrosListWidget, row, 1, 2, 1);
+    gridLayout->addWidget(m_treeView, row, 1, 2, 1);
     row++;
     gridLayout->addWidget(createMacroButtonsWidget(), row, 0);
     row++;
@@ -104,6 +96,13 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     for (int32_t iRow = 0; iRow < gridLayout->rowCount(); iRow++) {
         gridLayout->setRowStretch(iRow, 0);
     }
+    
+    m_macroWidget = createMacroWidget();
+    m_commandWidget = createCommandWidget();
+    m_stackedWidget = new QStackedWidget();
+    m_stackedWidget->addWidget(m_macroWidget);
+    m_stackedWidget->addWidget(m_commandWidget);
+    m_stackedWidget->setCurrentWidget(m_macroWidget);
     
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Close);
     m_runButton = m_dialogButtonBox->addButton("Run", QDialogButtonBox::ApplyRole);
@@ -114,10 +113,7 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
     dialogLayout->addLayout(gridLayout);
-    dialogLayout->addWidget(descriptionLabel);
-    dialogLayout->addWidget(m_macroDescriptionLabel);
-    dialogLayout->addWidget(horizontalLine);
-    dialogLayout->addWidget(createRunOptionsWidget());
+    dialogLayout->addWidget(m_stackedWidget);
     dialogLayout->addWidget(m_dialogButtonBox);
     
     updateDialogContents();
@@ -180,6 +176,35 @@ WuQMacroDialog::createMacroButtonsWidget()
     
     return widget;
 }
+
+/**
+ * @return The widget displayed when a macro is selected
+ */
+QWidget*
+WuQMacroDialog::createMacroWidget()
+{
+    QLabel* descriptionLabel = new QLabel("Macro Description:");
+    m_macroDescriptionLabel = new QLabel("");
+    m_macroDescriptionLabel->setWordWrap(true);
+    m_macroDescriptionLabel->setMinimumHeight(40);
+    m_macroDescriptionLabel->setAlignment(Qt::AlignTop
+                                          | Qt::AlignLeft);
+    
+    QFrame* horizontalLine = new QFrame();
+    horizontalLine->setMidLineWidth(1);
+    horizontalLine->setLineWidth(1);
+    horizontalLine->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+
+    QWidget* widget = new QWidget();
+    QVBoxLayout* dialogLayout = new QVBoxLayout(widget);
+    dialogLayout->addWidget(descriptionLabel);
+    dialogLayout->addWidget(m_macroDescriptionLabel);
+    dialogLayout->addWidget(horizontalLine);
+    dialogLayout->addWidget(createRunOptionsWidget());
+
+    return widget;
+}
+
 
 /**
  * @return New instance of widget containing macro run options
@@ -283,6 +308,24 @@ WuQMacroDialog::buttonBoxButtonClicked(QAbstractButton* button)
 }
 
 /**
+ * @return The widget displayed when a commnand is selected
+ */
+QWidget*
+WuQMacroDialog::createCommandWidget()
+{
+    QLabel* titleLabel  = new QLabel("Title");
+    m_commandTitleLabel = new QLabel();
+    
+    QWidget* widget = new QWidget();
+    QGridLayout* layout = new QGridLayout(widget);
+    int row = 0;
+    layout->addWidget(titleLabel, row, 0);
+    layout->addWidget(m_commandTitleLabel, row, 1);
+    
+    return widget;
+}
+
+/**
  * Update content of the dialog
  */
 void
@@ -320,69 +363,96 @@ WuQMacroDialog::updateDialogContents()
     m_runOptionMoveMouseCheckBox->setChecked(runOptions->isShowMouseMovement());
     m_runOptionLoopCheckBox->setChecked(runOptions->isLooping());
     
-    macroGroupBoxActivated(selectedIndex);
+    macroGroupComboBoxActivated(selectedIndex);
+}
+
+/**
+ * Called when an item in the tree view is clicked
+ */
+void
+WuQMacroDialog::treeViewItemClicked(const QModelIndex& modelIndex)
+{
+
+    QStandardItemModel* selectedModel = NULL;
+    if (modelIndex.isValid()) {
+        const QAbstractItemModel* abstractModel = modelIndex.model();
+        if (abstractModel != NULL) {
+            const QStandardItemModel* constModel = qobject_cast<const QStandardItemModel*>(abstractModel);
+            if (constModel != NULL) {
+                selectedModel = const_cast<QStandardItemModel*>(constModel);
+            }
+        }
+    }
+    
+    WuQMacro* macro(NULL);
+    WuQMacroCommand* macroCommand(NULL);
+    
+    if (selectedModel != NULL) {
+        QStandardItem* selectedItem = selectedModel->itemFromIndex(modelIndex);
+        if (selectedItem->type() == WuQMacroStandardItemTypes::typeWuQMacro()) {
+            macro = dynamic_cast<WuQMacro*>(selectedItem);
+            CaretAssert(macro);
+            m_stackedWidget->setCurrentWidget(m_macroWidget);
+        }
+        else if (selectedItem->type() == WuQMacroStandardItemTypes::typeWuQMacroCommand()) {
+            macroCommand = dynamic_cast<WuQMacroCommand*>(selectedItem);
+            CaretAssert(macroCommand);
+            m_stackedWidget->setCurrentWidget(m_commandWidget);
+        }
+    }
+    
+    updateMacroWidget(macro);
+    updateCommandWidget(macroCommand);
 }
 
 /**
  * Called when macro group combo box selection is made
  */
 void
-WuQMacroDialog::macroGroupBoxActivated(int)
+WuQMacroDialog::macroGroupComboBoxActivated(int)
 {
-    const QString emptySuffix(" (Empty)");
-    QListWidgetItem* selectedItem = m_macrosListWidget->currentItem();
-    QString selectedUniqueIdentifier;
-    if (selectedItem != NULL) {
-        selectedUniqueIdentifier = selectedItem->data(Qt::UserRole).toString();
-    }
-    
-    m_macrosListWidget->clear();
-
-    int32_t selectedIndex = 0;
     WuQMacroGroup* selectedGroup = getSelectedMacroGroup();
-    if (selectedGroup != NULL) {
-        const int32_t numMacros = selectedGroup->getNumberOfMacros();
-        for (int32_t i = 0; i < numMacros; i++) {
-            const WuQMacro* macro = selectedGroup->getMacroAtIndex(i);
-            if (macro->getUniqueIdentifier() == selectedUniqueIdentifier) {
-                selectedIndex = i;
-            }
-            
-            QString macroName = macro->getName();
-            if (selectedGroup->getMacroAtIndex(i)->getNumberOfMacroCommands() <= 0) {
-                macroName.append(emptySuffix);
-            }
-            
-            QListWidgetItem* item = new QListWidgetItem(macroName);
-            item->setData(Qt::UserRole,
-                          macro->getUniqueIdentifier());
-            m_macrosListWidget->addItem(item);
-        }
-        
-        if ((selectedIndex >= 0)
-            && (selectedIndex < numMacros)) {
-            m_macrosListWidget->setCurrentRow(selectedIndex);
-        }
-    }
 
-    macrosListWidgetCurrentRowChanged(selectedIndex);
+    if (selectedGroup != NULL) {
+        m_treeView->setModel(selectedGroup);
+        treeViewItemClicked(m_treeView->currentIndex());
+    }
+    else {
+        m_treeView->setModel(new QStandardItemModel());
+    }
 }
 
 /**
- * Called when item is selected in the macros list widget
+ * Update the macro widget with the given macro
+ *
+ * @param macro
+ *     The macro (may be NULL)
  */
 void
-WuQMacroDialog::macrosListWidgetCurrentRowChanged(int rowIndex)
+WuQMacroDialog::updateMacroWidget(WuQMacro* macro)
 {
-    m_macroDescriptionLabel->clear();
-    
-    WuQMacroGroup* selectedGroup = getSelectedMacroGroup();
-    if ((rowIndex >= 0)
-        && (rowIndex < selectedGroup->getNumberOfMacros())) {
-        WuQMacro* macro = selectedGroup->getMacroAtIndex(rowIndex);
-        CaretAssert(macro);
-        m_macroDescriptionLabel->setText(macro->getDescription());
+    QString text;
+    if (macro != NULL) {
+        text = macro->getDescription();
     }
+
+    m_macroDescriptionLabel->setText(text);
+}
+
+/**
+ * Update the command widget with the given macommandcro
+ *
+ * @param command
+ *     The command (may be NULL)
+ */
+void
+WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
+{
+    QString text;
+    if (command != NULL) {
+        text = command->text();
+    }
+    m_commandTitleLabel->setText(text);
 }
 
 /**
@@ -407,16 +477,41 @@ WuQMacroDialog::getSelectedMacroGroup()
 WuQMacro*
 WuQMacroDialog::getSelectedMacro()
 {
-    WuQMacroGroup* selectedGroup = getSelectedMacroGroup();
-    if (selectedGroup != NULL) {
-        const int32_t selectedMacroIndex = m_macrosListWidget->currentRow();
-        if ((selectedMacroIndex >= 0)
-            && (selectedMacroIndex < selectedGroup->getNumberOfMacros())) {
-            WuQMacro* macro = selectedGroup->getMacroAtIndex(selectedMacroIndex);
-            return macro;
+    WuQMacro* macro(NULL);
+    
+    QModelIndex modelIndex = m_treeView->currentIndex();
+    if (modelIndex.isValid()) {
+        QStandardItemModel* selectedModel = NULL;
+        if (modelIndex.isValid()) {
+            const QAbstractItemModel* abstractModel = modelIndex.model();
+            if (abstractModel != NULL) {
+                const QStandardItemModel* constModel = qobject_cast<const QStandardItemModel*>(abstractModel);
+                if (constModel != NULL) {
+                    selectedModel = const_cast<QStandardItemModel*>(constModel);
+                }
+            }
+        }
+        
+        
+        if (selectedModel != NULL) {
+            QStandardItem* selectedItem = selectedModel->itemFromIndex(modelIndex);
+            
+            if (selectedItem->type() == WuQMacroStandardItemTypes::typeWuQMacroCommand()) {
+                /*
+                 * Parent should be WuQMacro
+                 */
+                selectedItem = selectedItem->parent();
+                CaretAssert(selectedItem);
+            }
+
+            if (selectedItem->type() == WuQMacroStandardItemTypes::typeWuQMacro()) {
+                macro = dynamic_cast<WuQMacro*>(selectedItem);
+                CaretAssert(macro);
+            }
         }
     }
-    return NULL;
+    
+    return macro;
 }
 
 /**

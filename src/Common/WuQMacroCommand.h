@@ -25,9 +25,10 @@
 
 #include <memory>
 
+#include <QStandardItem>
 #include <QVariant>
 
-#include "CaretObjectTracksModification.h"
+#include "TracksModificationInterface.h"
 #include "WuQMacroDataValueTypeEnum.h"
 #include "WuQMacroClassTypeEnum.h"
 
@@ -37,7 +38,7 @@ namespace caret {
 
     class WuQMacroMouseEventInfo;
     
-    class WuQMacroCommand : public CaretObjectTracksModification {
+    class WuQMacroCommand : public QStandardItem, public TracksModificationInterface {
         
     public:
         
@@ -71,7 +72,15 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+        virtual bool isModified() const override;
+        
+        virtual void clearModified() override;
+        
+        virtual void setModified() override;
+        
         virtual AString toString() const;
+        
+        virtual int type() const override;
         
     private:
         void copyHelperWuQMacroCommand(const WuQMacroCommand& obj);
@@ -89,6 +98,8 @@ namespace caret {
         WuQMacroDataValueTypeEnum::Enum m_dataTypeTwo;
         
         WuQMacroMouseEventInfo* m_macroMouseEvent;
+        
+        bool m_modifiedStatusFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

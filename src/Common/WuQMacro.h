@@ -22,17 +22,18 @@
 /*LICENSE_END*/
 
 
-
 #include <memory>
 
-#include "CaretObjectTracksModification.h"
+#include <QStandardItem>
+
+#include "TracksModificationInterface.h"
 #include "WuQMacroShortCutKeyEnum.h"
 
 namespace caret {
 
     class WuQMacroCommand;
     
-    class WuQMacro : public CaretObjectTracksModification {
+    class WuQMacro : public QStandardItem, public TracksModificationInterface {
         
     public:
         WuQMacro();
@@ -73,6 +74,10 @@ namespace caret {
         
         virtual void clearModified() override;
         
+        virtual void setModified() override;
+        
+        virtual int type() const override;
+        
         // ADD_NEW_METHODS_HERE
         
     private:
@@ -80,15 +85,13 @@ namespace caret {
         
         void clearCommands();
         
-        std::vector<WuQMacroCommand*> m_macroCommands;
-        
         QString m_uniqueIdentifier;
-        
-        QString m_name;
         
         QString m_description;
         
         WuQMacroShortCutKeyEnum::Enum m_shortCutKey = WuQMacroShortCutKeyEnum::Key_None;
+        
+        bool m_modifiedStatusFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

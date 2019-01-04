@@ -14,6 +14,7 @@ SET(QT_USE_QTNETWORK TRUE)
 
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
+    include_directories(${Qt5Gui_INCLUDE_DIRS})
     include_directories(${Qt5Network_INCLUDE_DIRS})
     include_directories(${Qt5Xml_INCLUDE_DIRS})
 endif()
@@ -173,6 +174,7 @@ WuQMacroModeEnum.h
 WuQMacroMouseEventInfo.h
 WuQMacroMouseEventTypeEnum.h
 WuQMacroShortCutKeyEnum.h
+WuQMacroStandardItemTypes.h
 YokingGroupEnum.h
 
 ${MOC_SOURCE_FILES}
@@ -287,6 +289,7 @@ WuQMacroModeEnum.cxx
 WuQMacroMouseEventInfo.cxx
 WuQMacroMouseEventTypeEnum.cxx
 WuQMacroShortCutKeyEnum.cxx
+WuQMacroStandardItemTypes.cxx
 YokingGroupEnum.cxx
 )
 

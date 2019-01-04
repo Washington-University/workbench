@@ -27,6 +27,7 @@
 
 #include "CaretAssert.h"
 #include "WuQMacroCommand.h"
+#include "WuQMacroStandardItemTypes.h"
 
 using namespace caret;
 
@@ -37,14 +38,18 @@ using namespace caret;
  * \brief Contains a sequence of WuQMacroCommand's
  * \ingroup WuQMacro
  *
+ * Subclasses QStandardItem so that instance can be in a tree widget
  */
 
 /**
  * Constructor.
  */
 WuQMacro::WuQMacro()
-: CaretObjectTracksModification()
+: QStandardItem(),
+TracksModificationInterface()
 {
+    setFlags(Qt::ItemIsEnabled
+             | Qt::ItemIsSelectable);
     m_uniqueIdentifier = QUuid::createUuid().toString();
 }
 
@@ -62,10 +67,9 @@ WuQMacro::~WuQMacro()
 void
 WuQMacro::clearCommands()
 {
-    for (auto mc : m_macroCommands) {
-        delete mc;
-    }
-    m_macroCommands.clear();
+    const int32_t numItems = rowCount();
+    removeRows(0, numItems);
+    CaretAssert(rowCount() == 0);
 }
 
 /**
@@ -74,8 +78,11 @@ WuQMacro::clearCommands()
  *    Object that is copied.
  */
 WuQMacro::WuQMacro(const WuQMacro& obj)
-: CaretObjectTracksModification(obj)
+: QStandardItem(obj),
+TracksModificationInterface()
 {
+    setFlags(Qt::ItemIsEnabled
+             | Qt::ItemIsSelectable);
     m_uniqueIdentifier = QUuid::createUuid().toString();
     
     this->copyHelperWuQMacro(obj);
@@ -92,7 +99,7 @@ WuQMacro&
 WuQMacro::operator=(const WuQMacro& obj)
 {
     if (this != &obj) {
-        CaretObjectTracksModification::operator=(obj);
+        QStandardItem::operator=(obj);
         this->copyHelperWuQMacro(obj);
     }
     return *this;
@@ -110,19 +117,39 @@ WuQMacro::copyHelperWuQMacro(const WuQMacro& obj)
     
     clearCommands();
     
-    for (auto mc : obj.m_macroCommands) {
-        addMacroCommand(new WuQMacroCommand(*mc));
+    const int32_t numRows = obj.rowCount();
+    for (int32_t i = 0; i < numRows; i++) {
+        const QStandardItem* item = obj.child(i);
+        CaretAssert(item);
+        const WuQMacroCommand* command = dynamic_cast<const WuQMacroCommand*>(item);
+        CaretAssert(command);
+        WuQMacroCommand* commandCopy = new WuQMacroCommand(*command);
+        CaretAssert(commandCopy);
+        addMacroCommand(commandCopy);
     }
 
-    m_name = obj.m_name;
+    setText(obj.text());
     m_description = obj.m_description;
     m_shortCutKey = obj.m_shortCutKey;
+}
+
+/**
+ * @return The type of this item for Qt
+ */
+int
+WuQMacro::type() const
+{
+    /*
+     * This must be different than the type returned by of macro
+     subclasses of QStandardItem
+     */
+    return WuQMacroStandardItemTypes::typeWuQMacro();
 }
 
 void
 WuQMacro::addMacroCommand(WuQMacroCommand* macroCommand)
 {
-    m_macroCommands.push_back(macroCommand);
+    appendRow(macroCommand);
     setModified();
 }
 
@@ -158,7 +185,7 @@ WuQMacro::setUniqueIdentifier(const QString& uniqueIdentifier)
 QString
 WuQMacro::getName() const
 {
-    return m_name;
+    return text();
 }
 
 /**
@@ -170,8 +197,8 @@ WuQMacro::getName() const
 void
 WuQMacro::setName(const QString& name)
 {
-    if (m_name != name) {
-        m_name = name;
+    if (name != text()) {
+        setText(name);
         setModified();
     }
 }
@@ -230,7 +257,7 @@ WuQMacro::setShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey)
 int32_t
 WuQMacro::getNumberOfMacroCommands() const
 {
-    return m_macroCommands.size();
+    return rowCount();
 }
 
 /**
@@ -242,8 +269,13 @@ WuQMacro::getNumberOfMacroCommands() const
 const WuQMacroCommand*
 WuQMacro::getMacroCommandAtIndex(const int32_t index) const
 {
-    CaretAssertVectorIndex(m_macroCommands, index);
-    return m_macroCommands[index];
+    CaretAssert((index >= 0)
+                && (index < rowCount()));
+    QStandardItem* item = child(index);
+    CaretAssert(item);
+    WuQMacroCommand* command = dynamic_cast<WuQMacroCommand*>(item);
+    CaretAssert(command);
+    return command;
 }
 
 /**
@@ -255,8 +287,13 @@ WuQMacro::getMacroCommandAtIndex(const int32_t index) const
 WuQMacroCommand*
 WuQMacro::getMacroCommandAtIndex(const int32_t index)
 {
-    CaretAssertVectorIndex(m_macroCommands, index);
-    return m_macroCommands[index];
+    CaretAssert((index >= 0)
+                && (index < rowCount()));
+    QStandardItem* item = child(index);
+    CaretAssert(item);
+    WuQMacroCommand* command = dynamic_cast<WuQMacroCommand*>(item);
+    CaretAssert(command);
+    return command;
 }
 
 /**
@@ -265,12 +302,13 @@ WuQMacro::getMacroCommandAtIndex(const int32_t index)
 bool
 WuQMacro::isModified() const
 {
-    if (CaretObjectTracksModification::isModified()) {
+    if (m_modifiedStatusFlag) {
         return true;
     }
     
-    for (const auto mc : m_macroCommands) {
-        if (mc->isModified()) {
+    const int32_t numItems = getNumberOfMacroCommands();
+    for (int32_t i = 0; i < numItems; i++) {
+        if (getMacroCommandAtIndex(i)->isModified()) {
             return true;
         }
     }
@@ -284,11 +322,21 @@ WuQMacro::isModified() const
 void
 WuQMacro::clearModified()
 {
-    CaretObjectTracksModification::clearModified();
+    m_modifiedStatusFlag = false;
     
-    for (auto mc : m_macroCommands) {
-        mc->clearModified();
+    const int32_t numItems = getNumberOfMacroCommands();
+    for (int32_t i = 0; i < numItems; i++) {
+        getMacroCommandAtIndex(i)->clearModified();
     }
+}
+
+/**
+ * Set the modification status to modified
+ */
+void
+WuQMacro::setModified()
+{
+    m_modifiedStatusFlag = true;
 }
 
 /**
@@ -300,12 +348,14 @@ WuQMacro::toString() const
 {
     QString s("WuQMacro\n");
     
-    s.append("Name=" + m_name + "\n");
+    s.append("Name=" + text() + "\n");
     s.append("Description=" + m_description + "\n");
     s.append("ShortCutKey=" + WuQMacroShortCutKeyEnum::toGuiName(m_shortCutKey) + "\n");
+    s.append("UUID=" + m_uniqueIdentifier + "\n");
     
-    for (auto mc : m_macroCommands) {
-        s.append(mc->toString() + "\n");
+    const int32_t numItems = getNumberOfMacroCommands();
+    for (int32_t i = 0; i < numItems; i++) {
+        s.append(getMacroCommandAtIndex(i)->toString());
     }
     
     return s;

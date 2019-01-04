@@ -47,7 +47,7 @@ using namespace caret;
  *     Name of group
  */
 WuQMacroGroup::WuQMacroGroup(const QString& name)
-: CaretObjectTracksModification(),
+: QStandardItemModel(), TracksModificationInterface(),
 m_name(name)
 {
     m_uniqueIdentifier = QUuid::createUuid().toString();
@@ -58,78 +58,16 @@ m_name(name)
  */
 WuQMacroGroup::~WuQMacroGroup()
 {
-    clear();
-}
-
-/**
- * Copy constructor.
- * @param obj
- *    Object that is copied.
- */
-WuQMacroGroup::WuQMacroGroup(const WuQMacroGroup& obj)
-: CaretObjectTracksModification(obj)
-{
-    m_uniqueIdentifier = QUuid::createUuid().toString();
-    
-    this->copyHelperWuQMacroGroup(obj);
-}
-
-/**
- * Assignment operator.
- * @param obj
- *    Data copied from obj to this.
- * @return
- *    Reference to this object.
- */
-WuQMacroGroup&
-WuQMacroGroup::operator=(const WuQMacroGroup& obj)
-{
-    if (this != &obj) {
-        CaretObjectTracksModification::operator=(obj);
-        this->copyHelperWuQMacroGroup(obj);
-    }
-    return *this;
-}
-
-/**
- * Helps with copying an object of this type.
- * @param obj
- *    Object that is copied.
- */
-void
-WuQMacroGroup::copyHelperWuQMacroGroup(const WuQMacroGroup& obj)
-{
-    /* Note: unique identifier is NOT copied */
-    
-    clear();
-    
-    m_name = obj.m_name;
-    
-    for (auto m : obj.m_macros) {
-        addMacro(new WuQMacro(*m));
-    }
+    clearPrivate();
 }
 
 /**
  * Clear (remove all macros)
  */
 void
-WuQMacroGroup::clear()
+WuQMacroGroup::clearPrivate()
 {
     /* Note: Do not clear unique identifier */
-
-    bool hadMacrosFlag = ( ! m_macros.empty());
-    for (auto m : m_macros) {
-        delete m;
-    }
-    m_macros.clear();
-    
-    if (hadMacrosFlag) {
-        setModified();
-    }
-    else {
-        clearModified();
-    }
 }
 
 /**
@@ -191,7 +129,7 @@ WuQMacroGroup::setUniqueIdentifier(const QString& uniqueIdentifier)
 void
 WuQMacroGroup::addMacro(WuQMacro* macro)
 {
-    m_macros.push_back(macro);
+    appendRow(macro);
     setModified();
 }
 
@@ -208,7 +146,7 @@ WuQMacroGroup::appendMacroGroup(const WuQMacroGroup* macroGroup)
     for (int32_t i = 0; i < numMacros; i++) {
         const WuQMacro* macro = macroGroup->getMacroAtIndex(i);
         CaretAssert(macro);
-        addMacro(new WuQMacro(*macro));
+        appendRow(new WuQMacro(*macro));
     }
     setModified();
 }
@@ -219,7 +157,7 @@ WuQMacroGroup::appendMacroGroup(const WuQMacroGroup* macroGroup)
 int32_t
 WuQMacroGroup::getNumberOfMacros() const
 {
-    return m_macros.size();
+    return rowCount();
 }
 
 /**
@@ -233,11 +171,14 @@ WuQMacroGroup::getNumberOfMacros() const
 WuQMacro*
 WuQMacroGroup::getMacroByName(const QString& name)
 {
-    for (auto m : m_macros) {
-        if (m->getName() == name) {
-            return m;
+    const int32_t numItems = rowCount();
+    for (int32_t i = 0; i < numItems; i++) {
+        WuQMacro* macro = getMacroAtIndex(i);
+        if (macro->getName() == name) {
+            return macro;
         }
     }
+
     return NULL;
 }
 
@@ -252,11 +193,14 @@ WuQMacroGroup::getMacroByName(const QString& name)
 const WuQMacro*
 WuQMacroGroup::getMacroByName(const QString& name) const
 {
-    for (auto m : m_macros) {
-        if (m->getName() == name) {
-            return m;
+    const int32_t numItems = rowCount();
+    for (int32_t i = 0; i < numItems; i++) {
+        const WuQMacro* macro = getMacroAtIndex(i);
+        if (macro->getName() == name) {
+            return macro;
         }
     }
+    
     return NULL;
 }
 
@@ -271,11 +215,14 @@ WuQMacroGroup::getMacroByName(const QString& name) const
 WuQMacro*
 WuQMacroGroup::getMacroWithUniqueIdentifier(const QString& uniqueIdentifier)
 {
-    for (auto m : m_macros) {
-        if (m->getUniqueIdentifier() == uniqueIdentifier) {
-            return m;
+    const int32_t numItems = rowCount();
+    for (int32_t i = 0; i < numItems; i++) {
+        WuQMacro* macro = getMacroAtIndex(i);
+        if (macro->getUniqueIdentifier() == uniqueIdentifier) {
+            return macro;
         }
     }
+
     return NULL;
 }
 
@@ -290,11 +237,14 @@ WuQMacroGroup::getMacroWithUniqueIdentifier(const QString& uniqueIdentifier)
 const WuQMacro*
 WuQMacroGroup::getMacroWithUniqueIdentifier(const QString& uniqueIdentifier) const
 {
-    for (auto m : m_macros) {
-        if (m->getUniqueIdentifier() == uniqueIdentifier) {
-            return m;
+    const int32_t numItems = rowCount();
+    for (int32_t i = 0; i < numItems; i++) {
+        const WuQMacro* macro = getMacroAtIndex(i);
+        if (macro->getUniqueIdentifier() == uniqueIdentifier) {
+            return macro;
         }
     }
+    
     return NULL;
 }
 
@@ -309,11 +259,14 @@ WuQMacroGroup::getMacroWithUniqueIdentifier(const QString& uniqueIdentifier) con
 WuQMacro*
 WuQMacroGroup::getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey)
 {
-    for (auto m : m_macros) {
-        if (m->getShortCutKey() == shortCutKey) {
-            return m;
+    const int32_t numItems = rowCount();
+    for (int32_t i = 0; i < numItems; i++) {
+        WuQMacro* macro = getMacroAtIndex(i);
+        if (macro->getShortCutKey() == shortCutKey) {
+            return macro;
         }
     }
+
     return NULL;
 }
 
@@ -328,11 +281,14 @@ WuQMacroGroup::getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum short
 const WuQMacro*
 WuQMacroGroup::getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum shortCutKey) const
 {
-    for (auto m : m_macros) {
-        if (m->getShortCutKey() == shortCutKey) {
-            return m;
+    const int32_t numItems = rowCount();
+    for (int32_t i = 0; i < numItems; i++) {
+        const WuQMacro* macro = getMacroAtIndex(i);
+        if (macro->getShortCutKey() == shortCutKey) {
+            return macro;
         }
     }
+    
     return NULL;
 }
 
@@ -345,8 +301,13 @@ WuQMacroGroup::getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum short
 WuQMacro*
 WuQMacroGroup::getMacroAtIndex(const int32_t index)
 {
-    CaretAssertVectorIndex(m_macros, index);
-    return m_macros[index];
+    CaretAssert((index >= 0)
+                && (index < rowCount()));
+    QStandardItem* standardItem = item(index);
+    CaretAssert(standardItem);
+    WuQMacro* macro = dynamic_cast<WuQMacro*>(standardItem);
+    CaretAssert(macro);
+    return macro;
 }
 
 /**
@@ -358,8 +319,14 @@ WuQMacroGroup::getMacroAtIndex(const int32_t index)
 const WuQMacro*
 WuQMacroGroup::getMacroAtIndex(const int32_t index) const
 {
-    CaretAssertVectorIndex(m_macros, index);
-    return m_macros[index];
+    CaretAssert((index >= 0)
+                && (index < rowCount()));
+    QStandardItem* standardItem = item(index);
+    CaretAssert(standardItem);
+    WuQMacro* macro = dynamic_cast<WuQMacro*>(standardItem);
+    CaretAssert(macro);
+    return macro;
+
 }
 
 /**
@@ -408,10 +375,10 @@ WuQMacroGroup::deleteMacro(const WuQMacro* macro)
 void
 WuQMacroGroup::deleteMacroAtIndex(const int32_t index)
 {
-    CaretAssertVectorIndex(m_macros, index);
-    WuQMacro* macro = m_macros[index];
-    m_macros.erase(m_macros.begin() + index);
-    delete macro;
+    CaretAssert((index >= 0)
+                && (index < rowCount()));
+    QStandardItem* item = takeItem(index);
+    delete item;
     
     setModified();
 }
@@ -422,16 +389,18 @@ WuQMacroGroup::deleteMacroAtIndex(const int32_t index)
 bool
 WuQMacroGroup::isModified() const
 {
-    if (CaretObjectTracksModification::isModified()) {
+    if (m_modifiedStatusFlag) {
         return true;
     }
     
-    for (const auto m : m_macros) {
-        if (m->isModified()) {
-            return true;
+    
+    const int32_t count = getNumberOfMacros();
+    for (int32_t i = 0; i < count; i++) {
+        if (getMacroAtIndex(i)->isModified()) {
+            break;
         }
     }
-    
+
     return false;
 }
 
@@ -441,12 +410,23 @@ WuQMacroGroup::isModified() const
 void
 WuQMacroGroup::clearModified()
 {
-    CaretObjectTracksModification::clearModified();
+    m_modifiedStatusFlag = false;
     
-    for (auto m : m_macros) {
-        m->clearModified();
+    const int32_t count = getNumberOfMacros();
+    for (int32_t i = 0; i < count; i++) {
+        getMacroAtIndex(i)->clearModified();
     }
 }
+
+/**
+ * Set the modification status to modified
+ */
+void
+WuQMacroGroup::setModified()
+{
+    m_modifiedStatusFlag = true;
+}
+
 
 /**
  * Read from a string containing XML.  If successful,
@@ -520,8 +500,9 @@ AString
 WuQMacroGroup::toString() const
 {
     QString s("WuQMacroGroup name=" + m_name + "\n");
-    for (auto m : m_macros) {
-        s.append(m->toString() + "\n");
+    const int32_t count = getNumberOfMacros();
+    for (int32_t i = 0; i < count; i++) {
+        s.append(getMacroAtIndex(i)->toString() + "\n");
     }
     return s;
 }

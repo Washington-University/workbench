@@ -33,11 +33,13 @@ class QComboBox;
 class QDialogButtonBox;
 class QDoubleSpinBox;
 class QLabel;
-class QListWidget;
+class QStackedWidget;
+class QTreeView;
 
 namespace caret {
 
     class WuQMacro;
+    class WuQMacroCommand;
     class WuQMacroGroup;
 
     class WuQMacroDialog : public QDialog {
@@ -58,9 +60,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void macroGroupBoxActivated(int);
+        void treeViewItemClicked(const QModelIndex& modelIndex);
         
-        void macrosListWidgetCurrentRowChanged(int);
+        void macroGroupComboBoxActivated(int);
         
         void buttonBoxButtonClicked(QAbstractButton* button);
         
@@ -85,6 +87,14 @@ namespace caret {
         
         QWidget* createRunOptionsWidget();
         
+        QWidget* createMacroWidget();
+        
+        QWidget* createCommandWidget();
+        
+        void updateMacroWidget(WuQMacro* macro);
+        
+        void updateCommandWidget(WuQMacroCommand* command);
+        
         void runSelectedMacro();
         
         WuQMacroGroup* getSelectedMacroGroup();
@@ -95,9 +105,15 @@ namespace caret {
         
         QComboBox* m_macroGroupComboBox;
         
-        QListWidget* m_macrosListWidget;
+        QTreeView* m_treeView;
         
         QLabel* m_macroDescriptionLabel;
+        
+        QWidget* m_macroWidget;
+        
+        QWidget* m_commandWidget;
+        
+        QStackedWidget* m_stackedWidget;
         
         QDialogButtonBox* m_dialogButtonBox;
         
@@ -118,6 +134,8 @@ namespace caret {
         QCheckBox* m_runOptionMoveMouseCheckBox;
         
         QDoubleSpinBox* m_runOptionDelayBetweenCommandsSpinBox;
+        
+        QLabel* m_commandTitleLabel;
         
         // ADD_NEW_MEMBERS_HERE
 

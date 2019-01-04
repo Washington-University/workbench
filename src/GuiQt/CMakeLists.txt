@@ -110,7 +110,7 @@ ELSE()
         CiftiParcelSelectionComboBox.h
         ClippingPlanesDialog.h
         ColorEditorWidget.h
-	    CopyPaletteColorMappingToFilesDialog.h
+        CopyPaletteColorMappingToFilesDialog.h
         CustomViewDialog.h
         DataFileContentCopyMoveDialog.h
         DisplayGroupAndTabItemViewController.h
@@ -140,7 +140,7 @@ ELSE()
         MacApplication.h
         MacDockMenu.h
         MapSettingsChartTwoLineHistoryWidget.h
-	    MapSettingsColorBarPaletteOptionsWidget.h
+        MapSettingsColorBarPaletteOptionsWidget.h
         MapSettingsColorBarWidget.h
         MapSettingsFiberTrajectoryWidget.h
         MapSettingsLabelsWidget.h
@@ -151,7 +151,7 @@ ELSE()
         MetaDataEditorDialog.h
         MetaDataEditorWidget.h
         MovieDialog.h
-	    OffScreenOpenGLRenderer.h
+        OffScreenOpenGLRenderer.h
         OverlaySetViewController.h
         OverlaySettingsEditorDialog.h
         OverlayViewController.h
@@ -166,8 +166,8 @@ ELSE()
         SceneBasePathWidget.h
         SceneCreateReplaceDialog.h
         SceneDialog.h
-	    SceneFileInformationDialog.h
-	    SceneDataFileTreeItemModel.h
+        SceneFileInformationDialog.h
+        SceneDataFileTreeItemModel.h
         ScenePreviewDialog.h
         SceneReplaceAllDialog.h
         SceneShowOptionsDialog.h
@@ -177,7 +177,7 @@ ELSE()
         StructureSurfaceSelectionControl.h
         SurfacePropertiesEditorDialog.h
         SurfaceSelectionViewController.h
-	    ThresholdingSetMapsDialog.h
+        ThresholdingSetMapsDialog.h
         TileTabsConfigurationDialog.h
         UserInputModeAnnotationsContextMenu.h
         UserInputModeAnnotationsWidget.h
@@ -212,7 +212,7 @@ ELSE()
         WuQMacroHelperInterface.h
         WuQMacroManager.h
         WuQMacroMenu.h
-	    WuQMacroShortCutKeyComboBox.h
+        WuQMacroShortCutKeyComboBox.h
         WuQMacroSignalEmitter.h
         WuQMacroSignalWatcher.h
         WuQMessageBox.h
@@ -220,10 +220,10 @@ ELSE()
         WuQSpecialIncrementDoubleSpinBox.h
         WuQSpinBoxGroup.h
         WuQSpinBoxOddValue.h
-	    WuQTabBar.h
+        WuQTabBar.h
         WuQTabWidget.h
-	    WuQTabWidgetWithSizeHint.h
-	    WuQTextEditorDialog.h
+        WuQTabWidgetWithSizeHint.h
+        WuQTextEditorDialog.h
         WuQTimedMessageDisplay.h
         WuQTreeWidget.h
         WuQTrueFalseComboBox.h
