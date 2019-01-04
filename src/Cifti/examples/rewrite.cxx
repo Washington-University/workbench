@@ -63,7 +63,7 @@ int main(int argc, char** argv)
         }
         outputFile.writeFile(argv[2]);//because we called setWritingFile with this filename (and default cifti version), this will return immediately
         //NOTE: if you call writeFile with a different writing version (takes its default from CiftiVersion constructor) than setWritingFile, it will rewrite the entire file after reading it into memory
-    } catch (CiftiException& e) {
+    } catch (CaretException& e) {
         cerr << "Caught CaretException: " + e.whatString() << endl;
         return 1;
     }

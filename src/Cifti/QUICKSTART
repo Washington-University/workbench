@@ -1,6 +1,6 @@
 The entry point for reading and writing Cifti data is the object CiftiFile.  To get a handle to a Cifti File, use the following syntax:
 CiftiFile cf("testciftifile.dtseries.nii"), cf2;//starts on-disk reading, and makes an uninitialized second object
-cf2.setWritingFile(testoutcifti.dtseries.nii");//prepare on-disk writing mode
+cf2.setWritingFile("testoutcifti.dtseries.nii");//prepare on-disk writing mode
 //cf.convertToInMemory();//if you want to read entire file into memory now
 
 CiftiFile gives access to the file in two parts, the Cifti XML, and the Cifti Matrix data.  To access the data use the following functions:
