@@ -35,7 +35,6 @@
 #include "XmlAttributes.h"
 #include "XmlException.h"
 #include "XmlUtilities.h"
-#include "WuQMacroGroupXmlReader.h"
 
 using namespace caret;
 

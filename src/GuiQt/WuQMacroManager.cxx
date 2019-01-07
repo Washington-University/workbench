@@ -46,7 +46,6 @@
 #include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroAttributesDialog.h"
 #include "WuQMacroHelperInterface.h"
-#include "WuQMacroEditorDialog.h"
 #include "WuQMacroExecutorOptions.h"
 #include "WuQMacroSignalWatcher.h"
 
@@ -720,37 +719,6 @@ WuQMacroManager::exportMacros(QWidget* parent,
     
     return false;
 }
-
-/**
- * Edit a macros commands
- *
- * @param parent
- *     Parent widget for dialog
- * @param macro
- *     Macro to edit
- * @return
- *     True if macro was modified.
- */
-bool
-WuQMacroManager::editMacroCommands(QWidget* parent,
-                                   WuQMacro* macro)
-{
-    if (macro != NULL) {
-        WuQMacroEditorDialog editorDialog(macro,
-                                          parent);
-        if (editorDialog.exec() == WuQMacroDialog::Accepted) {
-            if (editorDialog.isMacroModified()) {
-                if (m_macroHelper) {
-                    m_macroHelper->macroWasModified(macro);
-                }
-                return true;
-            }
-        }
-    }
-    
-    return false;
-}
-
 
 /**
  * Print supported widgets to the terminal window.

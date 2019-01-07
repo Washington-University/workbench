@@ -25,7 +25,7 @@
 
 #include "CaretAssert.h"
 #include "WuQMacroMouseEventInfo.h"
-#include "WuQMacroStandardItemTypes.h"
+#include "WuQMacroStandardItemTypeEnum.h"
 
 using namespace caret;
 
@@ -36,12 +36,32 @@ using namespace caret;
  */
 
 /**
+ * Constructor for a macro command, usually a mouse command
+ *
+ * @param classType
+ *    Type of object class
+ * @param objectName
+ *    Name of object
+ */
+WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
+                                 const QString& objectName)
+: WuQMacroCommand(classType,
+                  objectName,
+                  "",
+                  "",
+                  "")
+{
+}
+
+/**
  * Constructor for a macro command
  *
  * @param classType
  *    Type of object class
  * @param objectName
  *    Name of object
+ * @param objectToolTip
+ *    ToolTip for object
  * @param dataValue
  *    Data value for the command.
  * @param dataValueTwo
@@ -49,6 +69,7 @@ using namespace caret;
  */
 WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
                                  const QString& objectName,
+                                 const QString& objectToolTip,
                                  const QVariant dataValue,
                                  const QVariant dataValueTwo)
 : QStandardItem(),
@@ -61,6 +82,7 @@ m_macroMouseEvent(NULL)
 {
     setFlags(Qt::ItemIsEnabled
              | Qt::ItemIsSelectable);
+    setToolTip(objectToolTip);
     
     /*
      * Second data value is used by only some commands
@@ -140,8 +162,7 @@ m_macroMouseEvent(NULL)
             break;
         case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
             m_dataType = WuQMacroDataValueTypeEnum::MOUSE;
-            title = "";
-            CaretAssertMessage(0, "Must use constructor for mouse event");
+            title = "MouseEvent";
             break;
         case WuQMacroClassTypeEnum::PUSH_BUTTON:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
@@ -270,9 +291,9 @@ WuQMacroCommand::type() const
 {
     /*
      * This must be different than the type returned by of macro
-     subclasses of QStandardItem
+     * subclasses of QStandardItem
      */
-    return WuQMacroStandardItemTypes::typeWuQMacroCommand();
+    return WuQMacroStandardItemTypeEnum::toIntegerCode(WuQMacroStandardItemTypeEnum::MACRO_COMMAND);
 }
 
 /**
@@ -299,8 +320,9 @@ WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
         case WuQMacroDataValueTypeEnum::INTEGER:
             break;
         case WuQMacroDataValueTypeEnum::MOUSE:
-            CaretAssert(obj.m_macroMouseEvent);
-            m_macroMouseEvent = new WuQMacroMouseEventInfo(*obj.m_macroMouseEvent);
+            if (obj.m_macroMouseEvent != NULL) {
+                m_macroMouseEvent = new WuQMacroMouseEventInfo(*obj.m_macroMouseEvent);
+            }
             break;
         case WuQMacroDataValueTypeEnum::STRING:
             break;
@@ -345,6 +367,30 @@ WuQMacroCommand::getObjectName() const
 }
 
 /**
+ * @return ToolTip for the object
+ */
+QString
+WuQMacroCommand::getObjectToolTip() const
+{
+    return toolTip();
+}
+
+/**
+ * Set the object's tooltip
+ *
+ * @param objectToolTip
+ *     New value for object tooltip
+ */
+void
+WuQMacroCommand::setObjectToolTip(const QString& objectToolTip)
+{
+    if (toolTip() != objectToolTip) {
+        setToolTip(objectToolTip);
+        setModified();
+    }
+}
+
+/**
  * @return The object's data value.
  */
 QVariant
@@ -369,6 +415,23 @@ const WuQMacroMouseEventInfo*
 WuQMacroCommand::getMouseEventInfo() const
 {
     return m_macroMouseEvent;
+}
+
+/**
+ * Set the mouse event info
+ *
+ * @param mouseEventInfo
+ *     The new mouse event info
+ */
+void
+WuQMacroCommand::setMouseEventInfo(WuQMacroMouseEventInfo* mouseEventInfo)
+{
+    if (m_macroMouseEvent != NULL) {
+        delete m_macroMouseEvent;
+        m_macroMouseEvent = NULL;
+    }
+    
+    m_macroMouseEvent = mouseEventInfo;
 }
 
 /**

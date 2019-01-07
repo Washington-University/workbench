@@ -68,6 +68,8 @@ namespace caret {
         
         WuQMacro* readMacroVersionOne();
         
+        WuQMacroCommand* readMacroCommandAttributesVersionOne();
+        
         WuQMacroCommand* readMacroCommandVersionOne();
         
         void addToWarnings(const QString& warning);

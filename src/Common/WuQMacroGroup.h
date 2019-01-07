@@ -83,7 +83,7 @@ namespace caret {
         
         virtual void setModified() override;
         
-        bool readXmlFromString(const QString& xmlString,
+        bool readXmlFromStringOld(const QString& xmlString,
                                QString& errorMessageOut,
                                QString& nonFatalWarningMessageOut);
         

@@ -375,9 +375,15 @@ WuQMacroGroup::deleteMacro(const WuQMacro* macro)
 void
 WuQMacroGroup::deleteMacroAtIndex(const int32_t index)
 {
+    /*
+     * Note that 'takeItem' removes the item and the
+     * row becomes NULL so also need to remove the row.
+     */
     CaretAssert((index >= 0)
                 && (index < rowCount()));
     QStandardItem* item = takeItem(index);
+    CaretAssert(item);
+    removeRow(index);
     delete item;
     
     setModified();
@@ -442,7 +448,7 @@ WuQMacroGroup::setModified()
  *     True if successful, else false
  */
 bool
-WuQMacroGroup::readXmlFromString(const QString& xmlString,
+WuQMacroGroup::readXmlFromStringOld(const QString& xmlString,
                                  QString& errorMessageOut,
                                  QString& nonFatalWarningMessageOut)
 {

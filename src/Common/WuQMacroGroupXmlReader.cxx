@@ -146,6 +146,7 @@ WuQMacroGroupXmlReader::readVersionOne(WuQMacroGroup* macroGroup)
     CaretAssert(macroGroup);
     
     WuQMacro* macro(NULL);
+    WuQMacroCommand* macroCommand(NULL);
     
     while ( ! m_xmlStreamReader->atEnd()) {
         m_xmlStreamReader->readNext();
@@ -157,6 +158,7 @@ WuQMacroGroupXmlReader::readVersionOne(WuQMacroGroup* macroGroup)
                 if (macro != NULL) {
                     macroGroup->addMacro(macro);
                 }
+                macroCommand = NULL;
             }
             else if (elementName == ELEMENT_DESCRIPTION) {
                 const QString text = m_xmlStreamReader->readElementText();
@@ -165,7 +167,7 @@ WuQMacroGroupXmlReader::readVersionOne(WuQMacroGroup* macroGroup)
                 }
             }
             else if (elementName == ELEMENT_MACRO_COMMAND) {
-                WuQMacroCommand* macroCommand = readMacroCommandVersionOne();
+                macroCommand = readMacroCommandAttributesVersionOne();
                 if (macroCommand != NULL) {
                     if (macro != NULL) {
                         macro->addMacroCommand(macroCommand);
@@ -177,7 +179,14 @@ WuQMacroGroupXmlReader::readVersionOne(WuQMacroGroup* macroGroup)
                 }
             }
             else if (elementName == ELEMENT_MOUSE_EVENT_INFO) {
-                CaretAssert(0);
+                WuQMacroMouseEventInfo* mouseEventInfo = readMacroMouseEventInfo();
+                macroCommand->setMouseEventInfo(mouseEventInfo);
+            }
+            else if (elementName == ELEMENT_TOOL_TIP) {
+                const QString text = m_xmlStreamReader->readElementText();
+                if (macroCommand != NULL) {
+                    macroCommand->setToolTip(text);
+                }
             }
             else {
                 addToWarnings("Unexpected element="
@@ -250,12 +259,12 @@ WuQMacroGroupXmlReader::readMacroVersionOne()
 }
 
 /**
- * Read version one of macro command
+ * Read version one of macro command attributes
  *
  * @Return The macro group
  */
 WuQMacroCommand*
-WuQMacroGroupXmlReader::readMacroCommandVersionOne()
+WuQMacroGroupXmlReader::readMacroCommandAttributesVersionOne()
 {
     WuQMacroCommand* macroCommand(NULL);
     
@@ -272,7 +281,7 @@ WuQMacroGroupXmlReader::readMacroCommandVersionOne()
     if (dataTypeString.isEmpty()) es.append(ATTRIBUTE_OBJECT_DATA_TYPE + " ");
     if (dataTypeTwoString.isEmpty()) es.append(ATTRIBUTE_OBJECT_DATA_TYPE + " ");
     if (classString.isEmpty()) es.append(ATTRIBUTE_OBJECT_CLASS + " ");
-// empty could be valid for line edit    if (valueString.isEmpty()) es.append(ATTRIBUTE_OBJECT_VALUE + " ");
+    // empty could be valid for line edit    if (valueString.isEmpty()) es.append(ATTRIBUTE_OBJECT_VALUE + " ");
     if ( ! es.isEmpty()) {
         addToWarnings(ELEMENT_MACRO_COMMAND
                       + " is missing attribute(s): "
@@ -283,7 +292,7 @@ WuQMacroGroupXmlReader::readMacroCommandVersionOne()
     
     bool objectTypeValid(false);
     WuQMacroClassTypeEnum::Enum objectClass = WuQMacroClassTypeEnum::fromName(classString.toString(),
-                                                                               &objectTypeValid);
+                                                                              &objectTypeValid);
     if (! objectTypeValid) {
         es.append(classString.toString()
                   + " is not valid for attribute "
@@ -323,11 +332,8 @@ WuQMacroGroupXmlReader::readMacroCommandVersionOne()
     }
     
     if (objectClass == WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
-        WuQMacroMouseEventInfo* mouseEventInfo = readMacroMouseEventInfo();
-        if (mouseEventInfo != NULL) {
-            macroCommand = new WuQMacroCommand(objectName.toString(),
-                                               mouseEventInfo);
-        }
+        macroCommand = new WuQMacroCommand(WuQMacroClassTypeEnum::MOUSE_USER_EVENT,
+                                           objectName.toString());
     }
     else {
         QVariant value;
@@ -379,15 +385,16 @@ WuQMacroGroupXmlReader::readMacroCommandVersionOne()
             }
                 break;
             case WuQMacroDataValueTypeEnum::MOUSE:
-                CaretAssertMessage(0, "Mouse is special case handled above");
                 break;
             case WuQMacroDataValueTypeEnum::STRING:
                 valueTwo.setValue(valueTwoString.toString());
                 break;
         }
         
+        QString tooltip;
         macroCommand = new WuQMacroCommand(objectClass,
                                            objectName.toString(),
+                                           tooltip,
                                            value,
                                            valueTwo);
     }
@@ -395,17 +402,167 @@ WuQMacroGroupXmlReader::readMacroCommandVersionOne()
     return macroCommand;
 }
 
+
+///**
+// * Read version one of macro command
+// *
+// * @Return The macro group
+// */
+//WuQMacroCommand*
+//WuQMacroGroupXmlReader::readMacroCommandVersionOne()
+//{
+//    WuQMacroCommand* macroCommand(NULL);
+//
+//    const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
+//    const QStringRef objectName = attributes.value(ATTRIBUTE_NAME);
+//    const QStringRef dataTypeString = attributes.value(ATTRIBUTE_OBJECT_DATA_TYPE);
+//    const QStringRef classString = attributes.value(ATTRIBUTE_OBJECT_CLASS);
+//    const QStringRef valueString = attributes.value(ATTRIBUTE_OBJECT_VALUE);
+//    const QStringRef dataTypeTwoString = attributes.value(ATTRIBUTE_OBJECT_DATA_TYPE_TWO);
+//    const QStringRef valueTwoString = attributes.value(ATTRIBUTE_OBJECT_VALUE_TWO);
+//
+//    QString es;
+//    if (objectName.isEmpty()) es.append(ATTRIBUTE_NAME + " ");
+//    if (dataTypeString.isEmpty()) es.append(ATTRIBUTE_OBJECT_DATA_TYPE + " ");
+//    if (dataTypeTwoString.isEmpty()) es.append(ATTRIBUTE_OBJECT_DATA_TYPE + " ");
+//    if (classString.isEmpty()) es.append(ATTRIBUTE_OBJECT_CLASS + " ");
+//// empty could be valid for line edit    if (valueString.isEmpty()) es.append(ATTRIBUTE_OBJECT_VALUE + " ");
+//    if ( ! es.isEmpty()) {
+//        addToWarnings(ELEMENT_MACRO_COMMAND
+//                      + " is missing attribute(s): "
+//                      + es);
+//        return NULL;
+//    }
+//
+//
+//    bool objectTypeValid(false);
+//    WuQMacroClassTypeEnum::Enum objectClass = WuQMacroClassTypeEnum::fromName(classString.toString(),
+//                                                                               &objectTypeValid);
+//    if (! objectTypeValid) {
+//        es.append(classString.toString()
+//                  + " is not valid for attribute "
+//                  + ATTRIBUTE_OBJECT_CLASS
+//                  + " ");
+//        return NULL;
+//    }
+//
+//    bool dataTypeValid(false);
+//    WuQMacroDataValueTypeEnum::Enum dataValueType = WuQMacroDataValueTypeEnum::fromName(dataTypeString.toString(),
+//                                                                                        &dataTypeValid);
+//    if (! dataTypeValid) {
+//        es.append(dataTypeString.toString()
+//                  + " is not valid for attribute "
+//                  + ATTRIBUTE_OBJECT_DATA_TYPE
+//                  + " ");
+//        return NULL;
+//    }
+//
+//    bool dataTypeTwoValid(false);
+//    WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = WuQMacroDataValueTypeEnum::fromName(dataTypeTwoString.toString(),
+//                                                                                           &dataTypeTwoValid);
+//    if (! dataTypeTwoValid) {
+//        es.append(dataTypeTwoString.toString()
+//                  + " is not valid for attribute "
+//                  + ATTRIBUTE_OBJECT_DATA_TYPE_TWO
+//                  + " ");
+//        return NULL;
+//    }
+//
+//
+//    if ( ! es.isEmpty()) {
+//        addToWarnings(ELEMENT_MACRO_COMMAND
+//                      + " has invalid attributes: "
+//                      + es);
+//        return NULL;
+//    }
+//
+//    if (objectClass == WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
+//        WuQMacroMouseEventInfo* mouseEventInfo = readMacroMouseEventInfo();
+//        if (mouseEventInfo != NULL) {
+//            macroCommand = new WuQMacroCommand(objectName.toString(),
+//                                               mouseEventInfo);
+//        }
+//    }
+//    else {
+//        QVariant value;
+//        switch (dataValueType) {
+//            case WuQMacroDataValueTypeEnum::BOOLEAN:
+//            {
+//                const bool boolValue = ((valueString == VALUE_BOOL_TRUE) ? true : false);
+//                value.setValue(boolValue);
+//            }
+//                break;
+//            case WuQMacroDataValueTypeEnum::FLOAT:
+//            {
+//                const double floatValue = valueString.toFloat();
+//                value.setValue(floatValue);
+//            }
+//                break;
+//            case WuQMacroDataValueTypeEnum::INTEGER:
+//            {
+//                const int32_t intValue = valueString.toInt();
+//                value.setValue(intValue);
+//            }
+//                break;
+//            case WuQMacroDataValueTypeEnum::MOUSE:
+//                CaretAssertMessage(0, "Mouse is special case handled above");
+//                break;
+//            case WuQMacroDataValueTypeEnum::STRING:
+//                value.setValue(valueString.toString());
+//                break;
+//        }
+//
+//        QVariant valueTwo;
+//        switch (dataValueTypeTwo) {
+//            case WuQMacroDataValueTypeEnum::BOOLEAN:
+//            {
+//                const bool boolValue = ((valueTwoString == VALUE_BOOL_TRUE) ? true : false);
+//                valueTwo.setValue(boolValue);
+//            }
+//                break;
+//            case WuQMacroDataValueTypeEnum::FLOAT:
+//            {
+//                const double floatValue = valueTwoString.toFloat();
+//                valueTwo.setValue(floatValue);
+//            }
+//                break;
+//            case WuQMacroDataValueTypeEnum::INTEGER:
+//            {
+//                const int32_t intValue = valueTwoString.toInt();
+//                valueTwo.setValue(intValue);
+//            }
+//                break;
+//            case WuQMacroDataValueTypeEnum::MOUSE:
+//                CaretAssertMessage(0, "Mouse is special case handled above");
+//                break;
+//            case WuQMacroDataValueTypeEnum::STRING:
+//                valueTwo.setValue(valueTwoString.toString());
+//                break;
+//        }
+//
+//        QString tooltip;
+//        CaretAssertToDoWarning();
+//        macroCommand = new WuQMacroCommand(objectClass,
+//                                           objectName.toString(),
+//                                           tooltip,
+//                                           value,
+//                                           valueTwo);
+//    }
+//
+//    return macroCommand;
+//}
+
 /**
  * @return Read and return the mouse event information
  */
 WuQMacroMouseEventInfo*
 WuQMacroGroupXmlReader::readMacroMouseEventInfo()
 {
-    if ( ! m_xmlStreamReader->readNextStartElement()) {
-        addToWarnings("Failed to read start element for element "
-                      + ELEMENT_MOUSE_EVENT_INFO);
-        return NULL;
-    }
+//    if ( ! m_xmlStreamReader->readNextStartElement()) {
+//        addToWarnings("Failed to read start element for element "
+//                      + ELEMENT_MOUSE_EVENT_INFO);
+//        return NULL;
+//    }
     
     const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
     const QString mouseEventTypeString = attributes.value(ATTRIBUTE_MOUSE_EVENT_TYPE).toString();

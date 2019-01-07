@@ -70,8 +70,6 @@ namespace caret {
         
         void deleteButtonClicked();
         
-        void editButtonClicked();
-        
         void importButtonClicked();
         
         void exportButtonClicked();
@@ -121,8 +119,6 @@ namespace caret {
         
         QPushButton* m_deletePushButton;
         
-        QPushButton* m_editPushButton;
-        
         QPushButton* m_attributesPushButton;
         
         QPushButton* m_importPushButton;
@@ -136,6 +132,8 @@ namespace caret {
         QDoubleSpinBox* m_runOptionDelayBetweenCommandsSpinBox;
         
         QLabel* m_commandTitleLabel;
+        
+        QLabel* m_commandToolTip;
         
         // ADD_NEW_MEMBERS_HERE
 

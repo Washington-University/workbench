@@ -80,6 +80,7 @@ namespace caret {
         static const QString ELEMENT_MACRO_COMMAND;
         static const QString ELEMENT_MACRO_GROUP;
         static const QString ELEMENT_MOUSE_EVENT_INFO;
+        static const QString ELEMENT_TOOL_TIP;
         static const QString VALUE_BOOL_FALSE;
         static const QString VALUE_BOOL_TRUE;
         static const QString VALUE_VERSION_ONE;
@@ -118,7 +119,8 @@ namespace caret {
     const QString WuQMacroGroupXmlFormatBase::ELEMENT_MACRO_COMMAND    = "MacroCommand";
     const QString WuQMacroGroupXmlFormatBase::ELEMENT_MACRO_GROUP      = "MacroGroup";
     const QString WuQMacroGroupXmlFormatBase::ELEMENT_MOUSE_EVENT_INFO = "MouseEventInfo";
-    
+    const QString WuQMacroGroupXmlFormatBase::ELEMENT_TOOL_TIP         = "ToolTip";
+
     const QString WuQMacroGroupXmlFormatBase::VALUE_BOOL_FALSE   = "false";
     const QString WuQMacroGroupXmlFormatBase::VALUE_BOOL_TRUE    = "true";
     const QString WuQMacroGroupXmlFormatBase::VALUE_VERSION_ONE  = "1";

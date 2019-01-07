@@ -357,7 +357,7 @@ CaretPreferences::readMacros(const bool performSync)
     else {
         QString errorMessage;
         QString warningMessage;
-        if ( ! m_macros->readXmlFromString(macrosXmlString,
+        if ( ! m_macros->readXmlFromStringOld(macrosXmlString,
                                            errorMessage,
                                            warningMessage)) {
             CaretLogSevere("Reading macros from preferences: "

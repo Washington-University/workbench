@@ -207,7 +207,6 @@ ELSE()
         WuQMacroAttributesDialog.h
         WuQMacroCreateDialog.h
         WuQMacroDialog.h
-        WuQMacroEditorDialog.h
         WuQMacroExecutor.h
         WuQMacroHelperInterface.h
         WuQMacroManager.h
@@ -466,7 +465,6 @@ WuQListWidget.h
 WuQMacroAttributesDialog.h
 WuQMacroCreateDialog.h
 WuQMacroDialog.h
-WuQMacroEditorDialog.h
 WuQMacroExecutor.h
 WuQMacroExecutorOptions.h
 WuQMacroHelperInterface.h
@@ -713,7 +711,6 @@ WuQListWidget.cxx
 WuQMacroAttributesDialog.cxx
 WuQMacroCreateDialog.cxx
 WuQMacroDialog.cxx
-WuQMacroEditorDialog.cxx
 WuQMacroExecutor.cxx
 WuQMacroExecutorOptions.cxx
 WuQMacroManager.cxx

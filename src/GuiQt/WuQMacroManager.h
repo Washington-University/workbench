@@ -98,9 +98,6 @@ namespace caret {
                          WuQMacroGroup* macroGroup,
                          WuQMacro* macro);
         
-        bool editMacroCommands(QWidget* parent,
-                               WuQMacro* macro);
-        
         bool importMacros(QWidget* parent,
                           WuQMacroGroup* appendToMacroGroup);
         

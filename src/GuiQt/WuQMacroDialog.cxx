@@ -43,7 +43,7 @@
 #include "WuQMacroGroup.h"
 #include "WuQMacroExecutor.h"
 #include "WuQMacroManager.h"
-#include "WuQMacroStandardItemTypes.h"
+#include "WuQMacroStandardItemTypeEnum.h"
 
 using namespace caret;
 
@@ -148,11 +148,6 @@ WuQMacroDialog::createMacroButtonsWidget()
     QObject::connect(m_deletePushButton, &QPushButton::clicked,
                      this, &WuQMacroDialog::deleteButtonClicked);
     
-    m_editPushButton = new QPushButton("Edit...");
-    m_editPushButton->setToolTip("Edit the steps (commands) in the selected macro");
-    QObject::connect(m_editPushButton, &QPushButton::clicked,
-                     this, &WuQMacroDialog::editButtonClicked);
-    
     m_importPushButton = new QPushButton("Import...");
     m_importPushButton->setToolTip("Import a macro");
     QObject::connect(m_importPushButton, &QPushButton::clicked,
@@ -166,7 +161,6 @@ WuQMacroDialog::createMacroButtonsWidget()
     QVBoxLayout* macroButtonsLayout = new QVBoxLayout(widget);
     macroButtonsLayout->setSpacing(4);
     macroButtonsLayout->addWidget(m_attributesPushButton);
-    macroButtonsLayout->addWidget(m_editPushButton);
     macroButtonsLayout->addSpacing(15);
     macroButtonsLayout->addWidget(m_deletePushButton);
     macroButtonsLayout->addSpacing(15);
@@ -316,11 +310,22 @@ WuQMacroDialog::createCommandWidget()
     QLabel* titleLabel  = new QLabel("Title");
     m_commandTitleLabel = new QLabel();
     
-    QWidget* widget = new QWidget();
-    QGridLayout* layout = new QGridLayout(widget);
+    QLabel* toolTipLabel = new QLabel("ToolTip");
+    m_commandToolTip     = new QLabel();
+    m_commandToolTip->setWordWrap(true);
+    
+    QGridLayout* layout = new QGridLayout();
     int row = 0;
     layout->addWidget(titleLabel, row, 0);
     layout->addWidget(m_commandTitleLabel, row, 1);
+    row++;
+    layout->addWidget(toolTipLabel, row, 0);
+    layout->addWidget(m_commandToolTip, row, 1);
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
+    widgetLayout->addLayout(layout);
+    widgetLayout->addStretch();
     
     return widget;
 }
@@ -389,15 +394,26 @@ WuQMacroDialog::treeViewItemClicked(const QModelIndex& modelIndex)
     
     if (selectedModel != NULL) {
         QStandardItem* selectedItem = selectedModel->itemFromIndex(modelIndex);
-        if (selectedItem->type() == WuQMacroStandardItemTypes::typeWuQMacro()) {
-            macro = dynamic_cast<WuQMacro*>(selectedItem);
-            CaretAssert(macro);
-            m_stackedWidget->setCurrentWidget(m_macroWidget);
+        bool validFlag(false);
+        const WuQMacroStandardItemTypeEnum::Enum itemType = WuQMacroStandardItemTypeEnum::fromIntegerCode(selectedItem->type(),
+                                                                                                          &validFlag);
+        if (validFlag) {
+            switch (itemType) {
+                case WuQMacroStandardItemTypeEnum::MACRO:
+                    macro = dynamic_cast<WuQMacro*>(selectedItem);
+                    CaretAssert(macro);
+                    m_stackedWidget->setCurrentWidget(m_macroWidget);
+                    break;
+                case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+                    macroCommand = dynamic_cast<WuQMacroCommand*>(selectedItem);
+                    CaretAssert(macroCommand);
+                    m_stackedWidget->setCurrentWidget(m_commandWidget);
+                    break;
+            }
         }
-        else if (selectedItem->type() == WuQMacroStandardItemTypes::typeWuQMacroCommand()) {
-            macroCommand = dynamic_cast<WuQMacroCommand*>(selectedItem);
-            CaretAssert(macroCommand);
-            m_stackedWidget->setCurrentWidget(m_commandWidget);
+        else {
+            CaretAssertMessage(0,
+                               ("Invalid StandardItemModel type=" + AString::number(selectedItem->type())));
         }
     }
     
@@ -449,10 +465,13 @@ void
 WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
 {
     QString text;
+    QString toolTip;
     if (command != NULL) {
-        text = command->text();
+        text    = command->text();
+        toolTip = command->getObjectToolTip();
     }
     m_commandTitleLabel->setText(text);
+    m_commandToolTip->setText(toolTip);
 }
 
 /**
@@ -496,17 +515,31 @@ WuQMacroDialog::getSelectedMacro()
         if (selectedModel != NULL) {
             QStandardItem* selectedItem = selectedModel->itemFromIndex(modelIndex);
             
-            if (selectedItem->type() == WuQMacroStandardItemTypes::typeWuQMacroCommand()) {
-                /*
-                 * Parent should be WuQMacro
-                 */
-                selectedItem = selectedItem->parent();
-                CaretAssert(selectedItem);
+            bool validFlag(false);
+            const WuQMacroStandardItemTypeEnum::Enum itemType = WuQMacroStandardItemTypeEnum::fromIntegerCode(selectedItem->type(),
+                                                                                                              &validFlag);
+            if (validFlag) {
+                switch (itemType) {
+                    case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+                    {
+                        /*
+                         * Parent should be WuQMacro
+                         */
+                        QStandardItem* selectedItemParent = selectedItem->parent();
+                        CaretAssert(selectedItemParent);
+                        macro = dynamic_cast<WuQMacro*>(selectedItemParent);
+                        CaretAssert(macro);
+                    }
+                        break;
+                    case WuQMacroStandardItemTypeEnum::MACRO:
+                        macro = dynamic_cast<WuQMacro*>(selectedItem);
+                        CaretAssert(macro);
+                        break;
+                }
             }
-
-            if (selectedItem->type() == WuQMacroStandardItemTypes::typeWuQMacro()) {
-                macro = dynamic_cast<WuQMacro*>(selectedItem);
-                CaretAssert(macro);
+            else {
+                CaretAssertMessage(0,
+                                   ("Invalid StandardItemModel type=" + AString::number(selectedItem->type())));
             }
         }
     }
@@ -562,20 +595,6 @@ WuQMacroDialog::deleteButtonClicked()
     if ((macroGroup != NULL)
         && (macro != NULL)) {
         if (WuQMacroManager::instance()->deleteMacro(m_deletePushButton, macroGroup, macro)) {
-            updateDialogContents();
-        }
-    }
-}
-
-/**
- * Called when the edit button is clicked
- */
-void
-WuQMacroDialog::editButtonClicked()
-{
-    WuQMacro* macro = getSelectedMacro();
-    if (macro != NULL) {
-        if (WuQMacroManager::instance()->editMacroCommands(m_editPushButton, macro)) {
             updateDialogContents();
         }
     }

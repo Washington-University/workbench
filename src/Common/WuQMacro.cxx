@@ -27,7 +27,7 @@
 
 #include "CaretAssert.h"
 #include "WuQMacroCommand.h"
-#include "WuQMacroStandardItemTypes.h"
+#include "WuQMacroStandardItemTypeEnum.h"
 
 using namespace caret;
 
@@ -141,9 +141,9 @@ WuQMacro::type() const
 {
     /*
      * This must be different than the type returned by of macro
-     subclasses of QStandardItem
+     * subclasses of QStandardItem
      */
-    return WuQMacroStandardItemTypes::typeWuQMacro();
+    return WuQMacroStandardItemTypeEnum::toIntegerCode(WuQMacroStandardItemTypeEnum::MACRO);
 }
 
 void

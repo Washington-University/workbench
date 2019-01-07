@@ -234,6 +234,11 @@ WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroComma
             break;
     }
     
+    const QString toolTip = macroCommand->getObjectToolTip();
+    if (toolTip != NULL) {
+        m_xmlStreamWriter->writeTextElement(ELEMENT_TOOL_TIP,
+                                            toolTip);
+    }
     m_xmlStreamWriter->writeEndElement();
 }
 

@@ -350,6 +350,7 @@ WuQMacroSignalWatcher::createAndSendMacroCommand(const QVariant& value,
     if (m_parentMacroManager->isModeRecording()) {
         WuQMacroCommand* mc = new WuQMacroCommand(m_objectType,
                                                   m_objectName,
+                                                  m_toolTipText,
                                                   value,
                                                   valueTwo);
         if ( ! m_parentMacroManager->addMacroCommandToRecording(mc)) {
