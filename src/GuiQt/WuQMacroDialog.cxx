@@ -553,6 +553,15 @@ WuQMacroDialog::getSelectedMacro()
 void
 WuQMacroDialog::runSelectedMacro()
 {
+    if (WuQMacroManager::instance()->isModeRecording()) {
+        QMessageBox::critical(m_runButton,
+                              "Error",
+                              "A macro is being recorded.  Finish recording of macro.",
+                              QMessageBox::Ok,
+                              QMessageBox::NoButton);
+        return;
+    }
+    
     WuQMacro* macro = getSelectedMacro();
     if (macro != NULL) {
         if (macro->getNumberOfMacroCommands() <= 0) {

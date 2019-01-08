@@ -71,6 +71,8 @@ namespace caret {
         
         QCheckBox* m_lightingEnabledCheckBox;
         
+        QLabel* m_macroRecordingLabel;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

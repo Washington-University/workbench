@@ -41,10 +41,6 @@ namespace caret {
         
         virtual ~WuQMacroFile();
         
-//        WuQMacroFile(const WuQMacroFile& obj);
-//
-//        WuQMacroFile& operator=(const WuQMacroFile& obj);
-        
         virtual bool isEmpty() const override;
         
         WuQMacroGroup* getMacroGroup();
@@ -72,8 +68,6 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-//        void copyHelperWuQMacroFile(const WuQMacroFile& obj);
-
         void setMacroGroupName(const QString& filename);
         
         std::unique_ptr<WuQMacroGroup> m_macroGroup;

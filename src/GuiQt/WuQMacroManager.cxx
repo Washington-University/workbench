@@ -36,6 +36,8 @@
 #include "CaretLogger.h"
 #include "CaretFileDialog.h"
 #include "DataFileException.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCreateDialog.h"
@@ -264,58 +266,6 @@ WuQMacroManager::addMacroSupportToObject(QObject* object)
     }
     
     return resultFlag;
-    
-//    const QString name = object->objectName();
-//    if (name.isEmpty()) {
-//        CaretLogSevere("Object name is empty, will be ignored for macros\n"
-//                       + SystemUtilities::getBackTrace());
-//        return false;
-//    }
-//    
-//    
-//    {
-//        QString toolTipText;
-//        if (toolTipTextOverride.isEmpty()) {
-//            QAction* action = qobject_cast<QAction*>(object);
-//            if (action != NULL) {
-//                toolTipText = action->toolTip();
-//            }
-//            QWidget* widget = qobject_cast<QWidget*>(object);
-//            if (widget != NULL) {
-//                toolTipText = widget->toolTip();
-//            }
-//            if (toolTipText.isEmpty()) {
-//                CaretLogWarning("Object named \""
-//                                + name
-//                                + "\" is missing a tooltip");
-//            }
-//        }
-//        else {
-//            toolTipText = toolTipTextOverride;
-//        }
-//    }
-//    auto existingWatcher = m_signalWatchers.find(name);
-//    if (existingWatcher != m_signalWatchers.end()) {
-//        CaretLogSevere("Object named \""
-//                        + name
-//                       + "\" has already been connected for macros\n"
-//                       + SystemUtilities::getBackTrace()
-//                       + "\n");
-//    }
-//    else {
-//        AString errorMessage;
-//        WuQMacroSignalWatcher* widgetWatcher = WuQMacroSignalWatcher::newInstance(this,
-//                                                                                  object,
-//                                                                                  errorMessage);
-//        if (widgetWatcher != NULL) {
-//            widgetWatcher->setParent(this);
-//            m_signalWatchers.insert(std::make_pair(name,
-//                                                   widgetWatcher));
-//        }
-//        else {
-//            CaretLogWarning(errorMessage);
-//        }
-//    }
 }
 
 /**
@@ -449,6 +399,8 @@ WuQMacroManager::startRecordingNewMacro(QWidget* parent)
         m_mode = WuQMacroModeEnum::RECORDING;
         m_macroBeingRecorded = createMacroDialog.getNewMacro();
         CaretAssert(m_macroBeingRecorded);
+        
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
 }
 

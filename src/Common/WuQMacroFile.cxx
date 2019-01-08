@@ -61,47 +61,6 @@ WuQMacroFile::~WuQMacroFile()
 {
 }
 
-///**
-// * Copy constructor.
-// * @param obj
-// *    Object that is copied.
-// */
-//WuQMacroFile::WuQMacroFile(const WuQMacroFile& obj)
-//: DataFile(obj)
-//{
-//    this->copyHelperWuQMacroFile(obj);
-//}
-//
-///**
-// * Assignment operator.
-// * @param obj
-// *    Data copied from obj to this.
-// * @return 
-// *    Reference to this object.
-// */
-//WuQMacroFile&
-//WuQMacroFile::operator=(const WuQMacroFile& obj)
-//{
-//    if (this != &obj) {
-//        DataFile::operator=(obj);
-//        this->copyHelperWuQMacroFile(obj);
-//    }
-//    return *this;    
-//}
-//
-///**
-// * Helps with copying an object of this type.
-// * @param obj
-// *    Object that is copied.
-// */
-//void 
-//WuQMacroFile::copyHelperWuQMacroFile(const WuQMacroFile& obj)
-//{
-//    *m_macroGroup = *obj.m_macroGroup;
-//    
-//    setMacroGroupName(getFileName());
-//}
-
 /**
  * @return True if this file is empty (has no macros)
  */
@@ -325,8 +284,6 @@ WuQMacroFile::writeFile(const AString& filename)
         throw DataFileException("Unable to open file for writing: "
                                 + filename);
     }
-    
-    
 }
 
 

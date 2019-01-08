@@ -100,16 +100,20 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
                                  + ":Tab:EnableShading");
     WuQMacroManager::instance()->addMacroSupportToObject(m_lightingEnabledCheckBox);
     
+    m_macroRecordingLabel = new QLabel("");
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
     layout->addWidget(m_yokeToLabel);
     layout->addWidget(m_yokingGroupComboBox->getWidget());
     layout->addWidget(m_lockWindowAndAllTabAspectButton);
     layout->addWidget(m_lightingEnabledCheckBox);
+    layout->addWidget(m_macroRecordingLabel);
     
     addToWidgetGroup(m_yokeToLabel);
     addToWidgetGroup(m_yokingGroupComboBox->getWidget());
     addToWidgetGroup(m_lightingEnabledCheckBox);
+    addToWidgetGroup(m_macroRecordingLabel);
 }
 
 /**
@@ -164,6 +168,13 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     }
     
     m_lightingEnabledCheckBox->setChecked(browserTabContent->isLightingEnabled());
+    
+    if (WuQMacroManager::instance()->isModeRecording()) {
+        m_macroRecordingLabel->setText("<html><font color=red>Recording</font></html>");
+    }
+    else {
+        m_macroRecordingLabel->setText("");
+    }
     
     blockAllSignals(false);
 }
