@@ -23,6 +23,7 @@
 #include "WuQMacroGroupXmlWriter.h"
 #undef __WU_Q_MACRO_GROUP_XML_WRITER_DECLARE__
 
+#include <QTextStream>
 #include <QXmlStreamWriter>
 
 #include "CaretAssert.h"
@@ -259,10 +260,18 @@ WuQMacroGroupXmlWriter::writeMacroMouseEventInfo(const WuQMacroMouseEventInfo* m
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MOUSE_BUTTONS_MASK, QString::number(mouseEventInfo->getMouseButtonsMask()));
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MOUSE_EVENT_TYPE, WuQMacroMouseEventTypeEnum::toName(mouseEventInfo->getMouseEventType()));
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MOUSE_KEYBOARD_MODIFIERS_MASK, QString::number(mouseEventInfo->getKeyboardModifiersMask()));
-    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MOUSE_LOCAL_X, QString::number(mouseEventInfo->getLocalX()));
-    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MOUSE_LOCAL_Y, QString::number(mouseEventInfo->getLocalY()));
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MOUSE_WIDGET_WIDTH, QString::number(mouseEventInfo->getWidgetWidth()));
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MOUSE_WIDGET_HEIGHT, QString::number(mouseEventInfo->getWidgetHeight()));
+    
+    QString xyString;
+    QTextStream textStream(&xyString);
+    const int32_t numXY = mouseEventInfo->getNumberOfLocalXY();
+    for (int32_t i = 0; i < numXY; i++) {
+        textStream << mouseEventInfo->getLocalX(i) << " "
+        << mouseEventInfo->getLocalY(i) << " ";
+    }
+    
+    m_xmlStreamWriter->writeCharacters(xyString);
     
     m_xmlStreamWriter->writeEndElement();
 }

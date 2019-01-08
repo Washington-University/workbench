@@ -337,7 +337,7 @@ WuQMacroManager::addMacroCommandToRecording(WuQMacroCommand* macroCommand)
     
     if (isModeRecording()) {
         CaretAssert(m_macroBeingRecorded);
-        m_macroBeingRecorded->addMacroCommand(macroCommand);
+        m_macroBeingRecorded->appendMacroCommand(macroCommand);
         return true;
     }
     
@@ -401,15 +401,15 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
         }
         if (validMouseEventFlag) {
             WuQMacroMouseEventInfo* mouseInfo = new WuQMacroMouseEventInfo(mouseEventType,
-                                                                           me->localPos().x(),
-                                                                           me->localPos().y(),
                                                                            static_cast<uint32_t>(me->button()),
                                                                            static_cast<uint32_t>(me->buttons()),
                                                                            static_cast<uint32_t>(me->modifiers()),
                                                                            widget->width(),
                                                                            widget->height());
+            mouseInfo->addLocalXY(me->localPos().x(),
+                                  me->localPos().y());
         
-            m_macroBeingRecorded->addMacroCommand(new WuQMacroCommand(name,
+            m_macroBeingRecorded->appendMacroCommand(new WuQMacroCommand(name,
                                                                   mouseInfo));
             return true;
 

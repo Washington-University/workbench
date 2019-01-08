@@ -44,7 +44,7 @@ namespace caret {
         
         WuQMacro& operator=(const WuQMacro& obj);
         
-        void addMacroCommand(WuQMacroCommand* macroCommand);
+        void appendMacroCommand(WuQMacroCommand* macroCommand);
         
         int32_t getNumberOfMacroCommands() const;
         

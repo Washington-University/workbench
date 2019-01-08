@@ -418,6 +418,15 @@ WuQMacroCommand::getMouseEventInfo() const
 }
 
 /**
+ * @return Point to mouse event information
+ */
+WuQMacroMouseEventInfo*
+WuQMacroCommand::getMouseEventInfo()
+{
+    return m_macroMouseEvent;
+}
+
+/**
  * Set the mouse event info
  *
  * @param mouseEventInfo
@@ -432,7 +441,62 @@ WuQMacroCommand::setMouseEventInfo(WuQMacroMouseEventInfo* mouseEventInfo)
     }
     
     m_macroMouseEvent = mouseEventInfo;
+    
+    if (m_macroMouseEvent != NULL) {
+        QString title;
+        
+        switch (m_macroMouseEvent->getMouseEventType()) {
+            case WuQMacroMouseEventTypeEnum::BUTTON_PRESS:
+                title = "Mouse Press ";
+                break;
+            case WuQMacroMouseEventTypeEnum::BUTTON_RELEASE:
+                title = "Mouse Release ";
+                break;
+            case WuQMacroMouseEventTypeEnum::DOUBLE_CLICK:
+                title = "Mouse Double Click ";
+                break;
+            case WuQMacroMouseEventTypeEnum::MOVE:
+                title = "Mouse Move ";
+                break;
+        }
+        
+        title.append(m_objectName);
+        setText(title);
+    }
 }
+
+/**
+ * @return True if this command the same mouse event type as the given command.
+ *         Must be mouse move events only.
+ *
+ * @param command
+ *     The other command
+ */
+bool
+WuQMacroCommand::isMouseEventMatch(const WuQMacroCommand* command) const
+{
+    if (getClassType() == WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
+        if (command->getClassType() == WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
+            const WuQMacroMouseEventInfo* myMouse = getMouseEventInfo();
+            CaretAssert(myMouse);
+            const WuQMacroMouseEventInfo* otherMouse = command->getMouseEventInfo();
+            CaretAssert(otherMouse);
+            if ((myMouse->getMouseEventType() == WuQMacroMouseEventTypeEnum::MOVE)
+                && (myMouse->getMouseEventType() == WuQMacroMouseEventTypeEnum::MOVE)) {
+                if ((myMouse->getMouseButton() == otherMouse->getMouseButton())
+                    && (myMouse->getMouseButtonsMask() == otherMouse->getMouseButtonsMask())
+                    && (myMouse->getKeyboardModifiersMask() == otherMouse->getKeyboardModifiersMask())
+                    && (myMouse->getWidgetWidth() == otherMouse->getWidgetWidth())
+                    && (myMouse->getWidgetHeight() == otherMouse->getWidgetHeight())) {
+                    return true;
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
 
 /**
  * @return True if this instance is modified

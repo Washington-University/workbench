@@ -25,6 +25,7 @@
 
 #include <QXmlStreamAttributes>
 #include <QXmlStreamReader>
+#include <QTextStream>
 
 #include "CaretAssert.h"
 #include "WuQMacro.h"
@@ -155,10 +156,6 @@ WuQMacroGroupXmlReader::readVersionOne(WuQMacroGroup* macroGroup)
         
             if (elementName == ELEMENT_MACRO) {
                 macro = readMacroVersionOne();
-                if (macro != NULL) {
-                    macroGroup->addMacro(macro);
-                }
-                macroCommand = NULL;
             }
             else if (elementName == ELEMENT_DESCRIPTION) {
                 const QString text = m_xmlStreamReader->readElementText();
@@ -168,19 +165,28 @@ WuQMacroGroupXmlReader::readVersionOne(WuQMacroGroup* macroGroup)
             }
             else if (elementName == ELEMENT_MACRO_COMMAND) {
                 macroCommand = readMacroCommandAttributesVersionOne();
-                if (macroCommand != NULL) {
-                    if (macro != NULL) {
-                        macro->addMacroCommand(macroCommand);
-                    }
-                    else {
-                        delete macroCommand;
-                        m_xmlStreamReader->skipCurrentElement();
-                    }
-                }
             }
             else if (elementName == ELEMENT_MOUSE_EVENT_INFO) {
                 WuQMacroMouseEventInfo* mouseEventInfo = readMacroMouseEventInfo();
-                macroCommand->setMouseEventInfo(mouseEventInfo);
+                if (mouseEventInfo != NULL) {
+                    if (macroCommand != NULL) {
+                        macroCommand->setMouseEventInfo(mouseEventInfo);
+                    }
+                    else {
+                        addToWarnings("Read WuQMacroMouseEventInfo but macroCommand is NULL");
+                        delete mouseEventInfo;
+                        mouseEventInfo = NULL;
+                    }
+                }
+                else {
+                    if (macroCommand != NULL) {
+                        /*
+                         * Command is invalid
+                         */
+                        delete macroCommand;
+                        macroCommand = NULL;
+                    }
+                }
             }
             else if (elementName == ELEMENT_TOOL_TIP) {
                 const QString text = m_xmlStreamReader->readElementText();
@@ -193,6 +199,22 @@ WuQMacroGroupXmlReader::readVersionOne(WuQMacroGroup* macroGroup)
                               + elementName
                               + "\"");
                 m_xmlStreamReader->skipCurrentElement();
+            }
+        }
+        else if (m_xmlStreamReader->isEndElement()) {
+            const QString elementName = m_xmlStreamReader->name().toString();
+            if (elementName == ELEMENT_MACRO) {
+                if (macro != NULL) {
+                    macroGroup->addMacro(macro);
+                }
+            }
+            else if (elementName == ELEMENT_MACRO_COMMAND) {
+                if (macro != NULL) {
+                    if (macroCommand != NULL) {
+                        macro->appendMacroCommand(macroCommand);
+                    }
+                }
+                macroCommand = NULL;
             }
         }
         
@@ -558,12 +580,6 @@ WuQMacroGroupXmlReader::readMacroCommandAttributesVersionOne()
 WuQMacroMouseEventInfo*
 WuQMacroGroupXmlReader::readMacroMouseEventInfo()
 {
-//    if ( ! m_xmlStreamReader->readNextStartElement()) {
-//        addToWarnings("Failed to read start element for element "
-//                      + ELEMENT_MOUSE_EVENT_INFO);
-//        return NULL;
-//    }
-    
     const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
     const QString mouseEventTypeString = attributes.value(ATTRIBUTE_MOUSE_EVENT_TYPE).toString();
     const QString xLocalString = attributes.value(ATTRIBUTE_MOUSE_LOCAL_X).toString();
@@ -576,8 +592,6 @@ WuQMacroGroupXmlReader::readMacroMouseEventInfo()
     
     QString es;
     if (mouseEventTypeString.isEmpty()) es.append(ATTRIBUTE_MOUSE_EVENT_TYPE + " ");
-    if (xLocalString.isEmpty()) es.append(ATTRIBUTE_MOUSE_LOCAL_X + " ");
-    if (yLocalString.isEmpty()) es.append(ATTRIBUTE_MOUSE_LOCAL_Y + " ");
     if (mouseButtonString.isEmpty()) es.append(ATTRIBUTE_MOUSE_BUTTON + " ");
     if (mouseButtonsMaskString.isEmpty()) es.append(ATTRIBUTE_MOUSE_BUTTONS_MASK + " ");
     if (keyboardModifiersMaskString.isEmpty()) es.append(ATTRIBUTE_MOUSE_KEYBOARD_MODIFIERS_MASK + " ");
@@ -585,7 +599,7 @@ WuQMacroGroupXmlReader::readMacroMouseEventInfo()
     if (widgetHeightString.isEmpty()) es.append(ATTRIBUTE_MOUSE_WIDGET_HEIGHT + " ");
     if ( ! es.isEmpty()) {
         addToWarnings(ELEMENT_MOUSE_EVENT_INFO
-                      + " is missing attribute(s): "
+                      + " is missing required attribute(s): "
                       + es);
         return NULL;
     }
@@ -601,13 +615,30 @@ WuQMacroGroupXmlReader::readMacroMouseEventInfo()
     }
     
     WuQMacroMouseEventInfo* mouseInfo = new WuQMacroMouseEventInfo(mouseEventType,
-                                                                   xLocalString.toInt(),
-                                                                   yLocalString.toInt(),
                                                                    mouseButtonString.toUInt(),
                                                                    mouseButtonsMaskString.toUInt(),
                                                                    keyboardModifiersMaskString.toUInt(),
                                                                    widgetWidthString.toInt(),
                                                                    widgetHeightString.toInt());
+    if (( ! xLocalString.isEmpty())
+        && ( ! yLocalString.isEmpty())) {
+        mouseInfo->addLocalXY(xLocalString.toInt(),
+                              yLocalString.toInt());
+    }
+    
+    QString xyString = m_xmlStreamReader->readElementText();
+    if ( ! xyString.isEmpty()) {
+        QTextStream stream(&xyString);
+        while ( ! stream.atEnd()) {
+            int32_t x, y;
+            stream >> x;
+            if ( ! stream.atEnd()) {
+                stream >> y;
+                mouseInfo->addLocalXY(x, y);
+            }
+        }
+    }
+    
     return mouseInfo;
 }
 

@@ -76,9 +76,13 @@ namespace caret {
         
         QVariant getDataValueTwo() const;
         
+        WuQMacroMouseEventInfo* getMouseEventInfo();
+        
         const WuQMacroMouseEventInfo* getMouseEventInfo() const;
         
         void setMouseEventInfo(WuQMacroMouseEventInfo* mouseEventInfo);
+        
+        bool isMouseEventMatch(const WuQMacroCommand* command) const;
         
         // ADD_NEW_METHODS_HERE
 

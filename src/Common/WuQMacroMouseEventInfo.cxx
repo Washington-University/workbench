@@ -38,10 +38,6 @@ using namespace caret;
  * Constructor.
  * @param mouseEventType
  *     Type of mouse event
- * @param localX
- *     Position of mouse relative to widget
- * @param  localY
- *     Position of mouse relative to widget
  * @param  mouseButton
  *     Button that caused the event
  * @param  mouseButtonsMask
@@ -54,8 +50,6 @@ using namespace caret;
  *    Width of widget where mouse event occurred
  */
 WuQMacroMouseEventInfo::WuQMacroMouseEventInfo(const WuQMacroMouseEventTypeEnum::Enum mouseEventType,
-                                               const int32_t localX,
-                                               const int32_t localY,
                                                const uint32_t mouseButton,
                                                const uint32_t mouseButtonsMask,
                                                const uint32_t keyboardModifiersMask,
@@ -63,15 +57,12 @@ WuQMacroMouseEventInfo::WuQMacroMouseEventInfo(const WuQMacroMouseEventTypeEnum:
                                                const int32_t widgetHeight)
 : CaretObject(),
 m_mouseEventType(mouseEventType),
-m_localX(localX),
-m_localY(localY),
 m_mouseButton(mouseButton),
 m_mouseButtonsMask(mouseButtonsMask),
 m_keyboardModifiersMask(keyboardModifiersMask),
 m_widgetWidth(widgetWidth),
 m_widgetHeight(widgetHeight)
 {
-    
 }
 
 /**
@@ -118,8 +109,7 @@ void
 WuQMacroMouseEventInfo::copyHelperWuQMacroMouseEventInfo(const WuQMacroMouseEventInfo& obj)
 {
     m_mouseEventType = obj.m_mouseEventType;
-    m_localX = obj.m_localX;
-    m_localY = obj.m_localY;
+    m_localXY = obj.m_localXY;
     m_mouseButton = obj.m_mouseButton;
     m_mouseButtonsMask = obj.m_mouseButtonsMask;
     m_keyboardModifiersMask = obj.m_keyboardModifiersMask;
@@ -134,6 +124,10 @@ WuQMacroMouseEventInfo::copyHelperWuQMacroMouseEventInfo(const WuQMacroMouseEven
  *    Current width of widget
  * @param newHeight
  *    Current height of widget
+ * @param localX
+ *    Local X position
+ * @param localY
+ *    Local Y position
  * @param xLocalOut
  *    Output with adjusted local-X position
  * @param yLocalOut
@@ -142,17 +136,19 @@ WuQMacroMouseEventInfo::copyHelperWuQMacroMouseEventInfo(const WuQMacroMouseEven
 void
 WuQMacroMouseEventInfo::getLocalPositionRescaledToWidgetSize(const int32_t newWidth,
                                                              const int32_t newHeight,
+                                                             const int32_t localX,
+                                                             const int32_t localY,
                                                              int32_t& xLocalOut,
                                                              int32_t& yLocalOut) const
 {
-    xLocalOut = m_localX;
-    yLocalOut = m_localY;
+    xLocalOut = localX;
+    yLocalOut = localY;
     
     if ((newWidth != m_widgetWidth)
         || (newHeight != m_widgetHeight)) {
-        const float normalizedWidth = (static_cast<float>(m_localX)
+        const float normalizedWidth = (static_cast<float>(localX)
                                        / static_cast<float>(m_widgetWidth));
-        const float normalizedHeight = (static_cast<float>(m_localY)
+        const float normalizedHeight = (static_cast<float>(localY)
                                         / static_cast<float>(m_widgetHeight));
         
         xLocalOut = (newWidth * normalizedWidth);
@@ -170,21 +166,54 @@ WuQMacroMouseEventInfo::getMouseEventType() const
 }
 
 /**
- * @return Position of mouse relative to widget
+ * Append local mouse X/Y coordinates
+ *
+ * @param localX
+ *    The local X-coordinate
+ * @param localY
+ *    The local Y-coordinate
+ */
+void
+WuQMacroMouseEventInfo::addLocalXY(const int32_t localX,
+                                   const int32_t localY)
+{
+    m_localXY.push_back(localX);
+    m_localXY.push_back(localY);
+}
+
+int32_t
+WuQMacroMouseEventInfo::getNumberOfLocalXY() const
+{
+    const int32_t num = (m_localXY.size() / 2);
+    return num;
+}
+
+/**
+ * @return X-coordinate of mouse relative to widget at the given index
+ *
+ * @param index
+ *     Index of the coordinate
  */
 int32_t
-WuQMacroMouseEventInfo::getLocalX() const
+WuQMacroMouseEventInfo::getLocalX(const int32_t index) const
 {
-    return m_localX;
+    const int32_t offset = (index * 2);
+    CaretAssertVectorIndex(m_localXY, offset);
+    return m_localXY[offset];
 }
 
 /** 
- * @return Position of mouse relative to widget
+ * @return Y-coordinate of mouse relative to widget at the given index
+ *
+ * @param index
+ *     Index of the coordinate
  */
 int32_t
-WuQMacroMouseEventInfo::getLocalY() const
+WuQMacroMouseEventInfo::getLocalY(const int32_t index) const
 {
-    return m_localY;
+    const int32_t offset = (index * 2) + 1;
+    CaretAssertVectorIndex(m_localXY, offset);
+    return m_localXY[offset];
 }
 
 /** 

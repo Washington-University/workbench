@@ -924,41 +924,47 @@ WuQMacroExecutor::runMouseCommand(const WuQMacroCommand* macroCommand,
             const WuQMacroMouseEventInfo* mouseEventInfo = macroCommand->getMouseEventInfo();
             CaretAssert(mouseEventInfo);
             
-            int32_t adjustedLocalX(0);
-            int32_t adjustedLocalY(0);
-            mouseEventInfo->getLocalPositionRescaledToWidgetSize(currentWidgetSize.width(),
-                                                                 currentWidgetSize.height(),
-                                                                 adjustedLocalX,
-                                                                 adjustedLocalY);
-            
-            QEvent::Type qtEventType = QEvent::None;
-            switch (mouseEventInfo->getMouseEventType()) {
-                case WuQMacroMouseEventTypeEnum::BUTTON_PRESS:
-                    qtEventType = QEvent::MouseButtonPress;
-                    break;
-                case WuQMacroMouseEventTypeEnum::BUTTON_RELEASE:
-                    qtEventType = QEvent::MouseButtonRelease;
-                    break;
-                case WuQMacroMouseEventTypeEnum::DOUBLE_CLICK:
-                    qtEventType = QEvent::MouseButtonDblClick;
-                    break;
-                case WuQMacroMouseEventTypeEnum::MOVE:
-                    qtEventType = QEvent::MouseMove;
-                    break;
+            const int32_t numXY = mouseEventInfo->getNumberOfLocalXY();
+            for (int32_t i = 0; i < numXY; i++) {
+                int32_t adjustedLocalX(0);
+                int32_t adjustedLocalY(0);
+                mouseEventInfo->getLocalPositionRescaledToWidgetSize(currentWidgetSize.width(),
+                                                                     currentWidgetSize.height(),
+                                                                     mouseEventInfo->getLocalX(i),
+                                                                     mouseEventInfo->getLocalY(i),
+                                                                     adjustedLocalX,
+                                                                     adjustedLocalY);
+                
+                QEvent::Type qtEventType = QEvent::None;
+                switch (mouseEventInfo->getMouseEventType()) {
+                    case WuQMacroMouseEventTypeEnum::BUTTON_PRESS:
+                        qtEventType = QEvent::MouseButtonPress;
+                        break;
+                    case WuQMacroMouseEventTypeEnum::BUTTON_RELEASE:
+                        qtEventType = QEvent::MouseButtonRelease;
+                        break;
+                    case WuQMacroMouseEventTypeEnum::DOUBLE_CLICK:
+                        qtEventType = QEvent::MouseButtonDblClick;
+                        break;
+                    case WuQMacroMouseEventTypeEnum::MOVE:
+                        qtEventType = QEvent::MouseMove;
+                        break;
+                }
+                
+                moveMouseToWidgetXY(widget,
+                                    adjustedLocalX,
+                                    adjustedLocalY,
+                                    false);
+                
+                QMouseEvent qtMouseEvent(qtEventType,
+                                         QPointF(adjustedLocalX,
+                                                 adjustedLocalY),
+                                         static_cast<Qt::MouseButton>(mouseEventInfo->getMouseButton()),
+                                         static_cast<Qt::MouseButtons>(mouseEventInfo->getMouseButtonsMask()),
+                                         static_cast<Qt::KeyboardModifiers>(mouseEventInfo->getKeyboardModifiersMask()));
+                mouseInterface->processMouseEventFromMacro(&qtMouseEvent);
+                QGuiApplication::processEvents();
             }
-            
-            moveMouseToWidgetXY(widget,
-                                adjustedLocalX,
-                                adjustedLocalY,
-                                false);
-            
-            QMouseEvent qtMouseEvent(qtEventType,
-                                     QPointF(adjustedLocalX,
-                                             adjustedLocalY),
-                                     static_cast<Qt::MouseButton>(mouseEventInfo->getMouseButton()),
-                                     static_cast<Qt::MouseButtons>(mouseEventInfo->getMouseButtonsMask()),
-                                     static_cast<Qt::KeyboardModifiers>(mouseEventInfo->getKeyboardModifiersMask()));
-            mouseInterface->processMouseEventFromMacro(&qtMouseEvent);
         }
         else {
             errorMessageOut = ("ERROR: Unable to cast object named "

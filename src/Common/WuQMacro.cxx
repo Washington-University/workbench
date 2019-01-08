@@ -27,6 +27,7 @@
 
 #include "CaretAssert.h"
 #include "WuQMacroCommand.h"
+#include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroStandardItemTypeEnum.h"
 
 using namespace caret;
@@ -125,7 +126,7 @@ WuQMacro::copyHelperWuQMacro(const WuQMacro& obj)
         CaretAssert(command);
         WuQMacroCommand* commandCopy = new WuQMacroCommand(*command);
         CaretAssert(commandCopy);
-        addMacroCommand(commandCopy);
+        appendMacroCommand(commandCopy);
     }
 
     setText(obj.text());
@@ -146,10 +147,46 @@ WuQMacro::type() const
     return WuQMacroStandardItemTypeEnum::toIntegerCode(WuQMacroStandardItemTypeEnum::MACRO);
 }
 
+/**
+ * Append a macro command to this macro
+ *
+ * @param macroCommand
+ *     The macro command.
+ */
 void
-WuQMacro::addMacroCommand(WuQMacroCommand* macroCommand)
+WuQMacro::appendMacroCommand(WuQMacroCommand* macroCommand)
 {
-    appendRow(macroCommand);
+    CaretAssert(macroCommand);
+    const int32_t numCommands = getNumberOfMacroCommands();
+    if (numCommands > 0) {
+        WuQMacroCommand* lastCommand = getMacroCommandAtIndex(numCommands - 1);
+        /*
+         * 'Compact' macro commands for mouse events
+         */
+        if (lastCommand->isMouseEventMatch(macroCommand)) {
+            WuQMacroMouseEventInfo* lastMouseInfo = lastCommand->getMouseEventInfo();
+            CaretAssert(lastMouseInfo);
+            
+            const WuQMacroMouseEventInfo* mouseInfo = macroCommand->getMouseEventInfo();
+            CaretAssert(mouseInfo);
+            const int32_t numXY = mouseInfo->getNumberOfLocalXY();
+            for (int32_t i = 0; i < numXY; i++) {
+                lastMouseInfo->addLocalXY(mouseInfo->getLocalX(i),
+                                          mouseInfo->getLocalY(i));
+            }
+            
+            /*
+             * No longer needed since mouse x/y appended to last command
+             */
+            delete macroCommand;
+            macroCommand = NULL;
+        }
+    }
+    
+    if (macroCommand != NULL) {
+        appendRow(macroCommand);
+    }
+    
     setModified();
 }
 

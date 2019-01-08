@@ -35,8 +35,6 @@ namespace caret {
         
     public:
         WuQMacroMouseEventInfo(const WuQMacroMouseEventTypeEnum::Enum mouseEventType,
-                               const int32_t localX,
-                               const int32_t localY,
                                const uint32_t mouseButton,
                                const uint32_t mouseButtonsMask,
                                const uint32_t keyboardModifiersMask,
@@ -51,14 +49,21 @@ namespace caret {
         
         void getLocalPositionRescaledToWidgetSize(const int32_t widgetWidth,
                                                   const int32_t widgetHeight,
+                                                  const int32_t localX,
+                                                  const int32_t localY,
                                                   int32_t& xOut,
                                                   int32_t& yOut) const;
         
         WuQMacroMouseEventTypeEnum::Enum getMouseEventType() const;
         
-        int32_t getLocalX() const;
+        void addLocalXY(const int32_t localX,
+                        const int32_t localY);
         
-        int32_t getLocalY() const;
+        int32_t getNumberOfLocalXY() const;
+        
+        int32_t getLocalX(const int32_t index) const;
+        
+        int32_t getLocalY(const int32_t index) const;
         
         uint32_t getMouseButton() const;
         
@@ -80,11 +85,8 @@ namespace caret {
         /** Type of mouse event */
         WuQMacroMouseEventTypeEnum::Enum m_mouseEventType;
         
-        /** Position of mouse relative to widget */
-        int32_t m_localX;
-        
-        /** Position of mouse relative to widget */
-        int32_t m_localY;
+        /** Positions of mouse relative to widget */
+        std::vector<int32_t> m_localXY;
         
         /** Button that caused the event */
         uint32_t m_mouseButton;
