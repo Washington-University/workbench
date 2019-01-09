@@ -35,15 +35,17 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Invalid */
+        INVALID,
+        /** Boolean */
         BOOLEAN,
-        /** */
+        /** Float */
         FLOAT,
-        /** */
+        /** Integer */
         INTEGER,
-        /** */
+        /** Mouse */
         MOUSE,
-        /** */
+        /** String */
         STRING
     };
 

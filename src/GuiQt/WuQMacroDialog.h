@@ -27,6 +27,8 @@
 
 #include <QDialog>
 
+#include "WuQMacroStandardItemTypeEnum.h"
+
 class QAbstractButton;
 class QCheckBox;
 class QComboBox;
@@ -34,6 +36,7 @@ class QDialogButtonBox;
 class QDoubleSpinBox;
 class QLabel;
 class QStackedWidget;
+class QStandardItem; 
 class QTreeView;
 
 namespace caret {
@@ -81,6 +84,11 @@ namespace caret {
         void runOptionLoopCheckBoxClicked(bool);
         
     private:
+        enum class ValueIndex {
+            ONE,
+            TWO
+        };
+        
         QWidget* createMacroButtonsWidget();
         
         QWidget* createRunOptionsWidget();
@@ -95,9 +103,19 @@ namespace caret {
         
         void runSelectedMacro();
         
+        void updateButtons();
+        
+        void setMacroCommandValue(const ValueIndex valueIndex);
+        
         WuQMacroGroup* getSelectedMacroGroup();
         
         WuQMacro* getSelectedMacro();
+        
+        WuQMacroCommand* getSelectedMacroCommand();
+        
+        WuQMacroStandardItemTypeEnum::Enum getSelectedItemType() const;
+        
+        QStandardItem* getSelectedItem() const;
         
         std::vector<WuQMacroGroup*> m_macroGroups;
         
@@ -132,6 +150,18 @@ namespace caret {
         QDoubleSpinBox* m_runOptionDelayBetweenCommandsSpinBox;
         
         QLabel* m_commandTitleLabel;
+        
+        QLabel* m_commandTypeLabel;
+        
+        QLabel* m_commandNameLabel;
+        
+        QPushButton* m_commandValueOnePushButton;
+        
+        QLabel* m_commandValueOneLabel;
+        
+        QPushButton* m_commandValueTwoPushButton;
+        
+        QLabel* m_commandValueTwoLabel;
         
         QLabel* m_commandToolTip;
         

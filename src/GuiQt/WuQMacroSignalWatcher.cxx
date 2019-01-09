@@ -383,8 +383,8 @@ WuQMacroSignalWatcher::actionGroupTriggered(QAction* action)
     const QString actionText((action != NULL)
                              ? action->text()
                              : "");
-    createAndSendMacroCommand(actionIndex,
-                              actionText);
+    createAndSendMacroCommand(actionText,
+                              actionIndex);
 }
 
 
@@ -425,8 +425,8 @@ WuQMacroSignalWatcher::buttonGroupButtonClicked(QAbstractButton* button)
     const QString buttonText((button != NULL)
                        ? button->text()
                        : "");
-    createAndSendMacroCommand(buttonIndex,
-                              buttonText);
+    createAndSendMacroCommand(buttonText,
+                              buttonIndex);
 }
 
 
@@ -461,8 +461,8 @@ WuQMacroSignalWatcher::comboBoxActivated(int index)
         text = comboBox->itemText(index);
     }
     
-    createAndSendMacroCommand(index,
-                              text);
+    createAndSendMacroCommand(text,
+                              index);
 }
 
 /**
@@ -508,8 +508,8 @@ WuQMacroSignalWatcher::listWidgetItemActivated(QListWidgetItem* item)
     const QString text((item != NULL)
                        ? item->text()
                        : "");
-    createAndSendMacroCommand(rowIndex,
-                              text);
+    createAndSendMacroCommand(text,
+                              rowIndex);
 }
 
 /**
@@ -536,8 +536,8 @@ WuQMacroSignalWatcher::menuTriggered(QAction* action)
     const QString text((action != NULL)
                        ? action->text()
                        : "");
-    createAndSendMacroCommand(actionIndex,
-                              text);
+    createAndSendMacroCommand(text,
+                              actionIndex);
 }
 
 /**
@@ -604,8 +604,8 @@ WuQMacroSignalWatcher::tabBarCurrentChanged(int index)
     QTabBar* tabBar = qobject_cast<QTabBar*>(m_object);
     CaretAssert(tabBar);
     const QString tabText = tabBar->tabText(index);
-    createAndSendMacroCommand(index,
-                              tabText);
+    createAndSendMacroCommand(tabText,
+                              index);
 }
 
 /**
@@ -620,8 +620,8 @@ WuQMacroSignalWatcher::tabWidgetCurrentChanged(int index)
     QTabWidget* tabWidget = qobject_cast<QTabWidget*>(m_object);
     CaretAssert(tabWidget);
     const QString tabText = tabWidget->tabText(index);
-    createAndSendMacroCommand(index,
-                              tabText);
+    createAndSendMacroCommand(tabText,
+                              index);
 }
 
 /**

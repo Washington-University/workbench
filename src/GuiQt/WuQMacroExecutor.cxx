@@ -207,13 +207,7 @@ WuQMacroExecutor::moveMouseToWidgetImplementation(QObject* moveToObject,
         return;
     }
     
-    if (usingParentFlag) {
-        std::cout << "For mouse, using parent " << moveToWidget->objectName()
-        << " for object " << objectName << std::endl;
-    }
-    
-    CaretAssert(moveToWidget);
-    
+    CaretAssert(moveToWidget);    
     const QRect widgetRect = ((objectRect != NULL)
                               ? *objectRect
                               : moveToWidget->rect());
@@ -503,18 +497,18 @@ WuQMacroExecutor::runActionGroupCommand(const WuQMacroCommand* macroCommand,
     QActionGroup* actionGroup = qobject_cast<QActionGroup*>(object);
     if (actionGroup != NULL) {
         moveMouseToWidget(actionGroup);
-        CaretAssert(macroCommand->getDataType()    == WuQMacroDataValueTypeEnum::INTEGER);
-        CaretAssert(macroCommand->getDataTypeTwo() == WuQMacroDataValueTypeEnum::STRING);
-        
+        CaretAssert(macroCommand->getDataType()    == WuQMacroDataValueTypeEnum::STRING);
+        CaretAssert(macroCommand->getDataTypeTwo() == WuQMacroDataValueTypeEnum::INTEGER);
+
         QAction* textAction(NULL);
         QAction* indexAction(NULL);
         QList<QAction*> actions = actionGroup->actions();
         for (int32_t i = 0; i < actions.size(); i++) {
             QAction* actionAtIndex = actions.at(i);
-            if (actionAtIndex->text() == macroCommand->getDataValueTwo().toString()) {
+            if (actionAtIndex->text() == macroCommand->getDataValue().toString()) {
                 textAction = actionAtIndex;
             }
-            if (macroCommand->getDataValue().toInt() == i) {
+            if (macroCommand->getDataValueTwo().toInt() == i) {
                 indexAction = actionAtIndex;
             }
         }
@@ -532,9 +526,9 @@ WuQMacroExecutor::runActionGroupCommand(const WuQMacroCommand* macroCommand,
             errorMessageOut = ("For QActionGroup \""
                                   + object->objectName()
                                   + "\", unable to find action with text \""
-                                  + macroCommand->getDataValueTwo().toString()
+                                  + macroCommand->getDataValue().toString()
                                   + "\" or index="
-                                  + macroCommand->getDataValue().toInt());
+                                  + macroCommand->getDataValueTwo().toInt());
         }
     }
     else {
@@ -562,9 +556,9 @@ WuQMacroExecutor::runButtonGroupCommand(const WuQMacroCommand* macroCommand,
 {
     QButtonGroup* buttonGroup = qobject_cast<QButtonGroup*>(object);
     if (buttonGroup != NULL) {
-        CaretAssert(macroCommand->getDataType()    == WuQMacroDataValueTypeEnum::INTEGER);
-        CaretAssert(macroCommand->getDataTypeTwo() == WuQMacroDataValueTypeEnum::STRING);
-        const QVariant dataValue = macroCommand->getDataValue();
+        CaretAssert(macroCommand->getDataType()    == WuQMacroDataValueTypeEnum::STRING);
+        CaretAssert(macroCommand->getDataTypeTwo() == WuQMacroDataValueTypeEnum::INTEGER);
+        const QVariant dataValue    = macroCommand->getDataValue();
         const QVariant dataValueTwo = macroCommand->getDataValueTwo();
         
         QAbstractButton* textButton(NULL);
@@ -572,10 +566,10 @@ WuQMacroExecutor::runButtonGroupCommand(const WuQMacroCommand* macroCommand,
         QList<QAbstractButton*> buttons = buttonGroup->buttons();
         for (int32_t i = 0; i < buttons.size(); i++) {
             QAbstractButton* buttonAtIndex = buttons.at(i);
-            if (buttonAtIndex->text() == dataValueTwo.toString()) {
+            if (buttonAtIndex->text() == dataValue.toString()) {
                 textButton = buttonAtIndex;
             }
-            if (dataValue.toInt() == i) {
+            if (dataValueTwo.toInt() == i) {
                 indexButton = buttonAtIndex;
             }
         }
@@ -595,9 +589,9 @@ WuQMacroExecutor::runButtonGroupCommand(const WuQMacroCommand* macroCommand,
             errorMessageOut = ("For QButtonGroup \""
                                   + object->objectName()
                                   + "\", unable to find button with text \""
-                                  + dataValueTwo.toString()
+                                  + dataValue.toString()
                                   + "\" or index="
-                                  + dataValue.toInt());
+                                  + dataValueTwo.toInt());
         }
     }
     else {
@@ -657,17 +651,17 @@ WuQMacroExecutor::runComboBoxCommand(const WuQMacroCommand* macroCommand,
 {
     QComboBox* comboBox = qobject_cast<QComboBox*>(object);
     if (comboBox != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
+        const QVariant dataValue    = macroCommand->getDataValue();
         const QVariant dataValueTwo = macroCommand->getDataValueTwo();
-        CaretAssert(macroCommand->getDataType()    == WuQMacroDataValueTypeEnum::INTEGER);
-        CaretAssert(macroCommand->getDataTypeTwo() == WuQMacroDataValueTypeEnum::STRING);
+        CaretAssert(macroCommand->getDataType()    == WuQMacroDataValueTypeEnum::STRING);
+        CaretAssert(macroCommand->getDataTypeTwo() == WuQMacroDataValueTypeEnum::INTEGER);
         int textIndex(-1);
         int indexIndex(-1);
         for (int32_t i = 0; i < comboBox->count(); i++) {
-            if (comboBox->itemText(i) == dataValueTwo.toString()) {
+            if (comboBox->itemText(i) == dataValue.toString()) {
                 textIndex = i;
             }
-            else if (i == dataValue.toInt()) {
+            else if (i == dataValueTwo.toInt()) {
                 indexIndex = i;
             }
         }
@@ -685,9 +679,9 @@ WuQMacroExecutor::runComboBoxCommand(const WuQMacroCommand* macroCommand,
             errorMessageOut = ("For ComboBox \""
                                   + object->objectName()
                                   + "\", unable to find item with text \""
-                                  + dataValueTwo.toString()
+                                  + dataValue.toString()
                                   + "\" or index="
-                                  + dataValue.toInt());
+                                  + dataValueTwo.toInt());
         }
     }
     else {
@@ -789,17 +783,17 @@ WuQMacroExecutor::runListWidgetCommand(const WuQMacroCommand* macroCommand,
         const QVariant dataValueTwo = macroCommand->getDataValueTwo();
         const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = macroCommand->getDataTypeTwo();
         
-        CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::INTEGER);
-        CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::STRING);
+        CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::STRING);
+        CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::INTEGER);
         
         QListWidgetItem* textItem(NULL);
         QListWidgetItem* indexItem(NULL);
         for (int32_t i = 0; i < listWidget->count(); i++) {
             QListWidgetItem* itemAtIndex = listWidget->item(i);
-            if (itemAtIndex->text() == dataValueTwo.toString()) {
+            if (itemAtIndex->text() == dataValue.toString()) {
                 textItem = itemAtIndex;
             }
-            if (dataValue.toInt() == i) {
+            if (dataValueTwo.toInt() == i) {
                 indexItem = itemAtIndex;
             }
         }
@@ -812,7 +806,6 @@ WuQMacroExecutor::runListWidgetCommand(const WuQMacroCommand* macroCommand,
                                                 textItem->text());
         }
         else if (indexItem != NULL) {
-            
             signalEmitter.emitQListWidgetSignal(listWidget,
                                                 indexItem->text());
         }
@@ -820,9 +813,9 @@ WuQMacroExecutor::runListWidgetCommand(const WuQMacroCommand* macroCommand,
             errorMessageOut = ("For QListWidget \""
                                   + object->objectName()
                                   + "\", unable to find item with text \""
-                                  + dataValueTwo.toString()
+                                  + dataValue.toString()
                                   + "\" or index="
-                                  + dataValue.toInt());
+                                  + dataValueTwo.toInt());
         }
     }
     else {
@@ -855,18 +848,18 @@ WuQMacroExecutor::runMenuCommand(const WuQMacroCommand* macroCommand,
         const QVariant dataValueTwo = macroCommand->getDataValueTwo();
         const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = macroCommand->getDataTypeTwo();
 
-        CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::INTEGER);
-        CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::STRING);
+        CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::STRING);
+        CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::INTEGER);
         
         QAction* textAction(NULL);
         QAction* indexAction(NULL);
         QList<QAction*> actions = menu->actions();
         for (int32_t i = 0; i < actions.size(); i++) {
             QAction* actionAtIndex = actions.at(i);
-            if (actionAtIndex->text() == dataValueTwo.toString()) {
+            if (actionAtIndex->text() == dataValue.toString()) {
                 textAction = actionAtIndex;
             }
-            if (dataValue.toInt() == i) {
+            if (dataValueTwo.toInt() == i) {
                 indexAction = actionAtIndex;
             }
         }
@@ -886,9 +879,9 @@ WuQMacroExecutor::runMenuCommand(const WuQMacroCommand* macroCommand,
             errorMessageOut = ("For QMenu \""
                                   + object->objectName()
                                   + "\", unable to find action with text \""
-                                  + dataValueTwo.toString()
+                                  + dataValue.toString()
                                   + "\" or index="
-                                  + dataValue.toInt());
+                                  + dataValueTwo.toInt());
         }
     }
     else {
@@ -1144,13 +1137,13 @@ WuQMacroExecutor::runTabBarCommand(const WuQMacroCommand* macroCommand,
         const QVariant dataValueTwo = macroCommand->getDataValueTwo();
         const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = macroCommand->getDataTypeTwo();
         
-        CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
-        int32_t tabIndex = dataValue.toInt();
-        if (dataValueTypeTwo == WuQMacroDataValueTypeEnum::STRING) {
+        CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::INTEGER);
+        int32_t tabIndex = dataValueTwo.toInt();
+        if (dataValueType == WuQMacroDataValueTypeEnum::STRING) {
             /*
              * Allow tab name to override tab index
              */
-            const QString tabName = dataValueTwo.toString();
+            const QString tabName = dataValue.toString();
             if ( ! tabName.isEmpty()) {
                 for (int32_t i = 0; i < tabBar->count(); i++) {
                     if (tabName == tabBar->tabText(i)) {
@@ -1207,15 +1200,15 @@ WuQMacroExecutor::runTabWidgetCommand(const WuQMacroCommand* macroCommand,
         const QVariant dataValueTwo = macroCommand->getDataValueTwo();
         const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = macroCommand->getDataTypeTwo();
         
-        CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
+        CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::INTEGER);
         QTabBar* tabBar = tabWidget->tabBar();
         CaretAssert(tabBar);
-        int32_t tabIndex = dataValue.toInt();
-        if (dataValueTypeTwo == WuQMacroDataValueTypeEnum::STRING) {
+        int32_t tabIndex = dataValueTwo.toInt();
+        if (dataValueType == WuQMacroDataValueTypeEnum::STRING) {
             /*
              * Allow tab name to override tab index
              */
-            const QString tabName = dataValueTwo.toString();
+            const QString tabName = dataValue.toString();
             if ( ! tabName.isEmpty()) {
                 for (int32_t i = 0; i < tabWidget->count(); i++) {
                     if (tabName == tabWidget->tabText(i)) {

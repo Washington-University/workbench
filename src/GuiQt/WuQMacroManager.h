@@ -123,6 +123,8 @@ namespace caret {
         
         static QString getShortCutKeysMask();
         
+        void macroWasModified(WuQMacro* macro);
+        
         // ADD_NEW_METHODS_HERE
         
     public slots:

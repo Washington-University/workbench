@@ -359,6 +359,9 @@ WuQMacroGroupXmlReader::readMacroCommandAttributesVersionOne()
     else {
         QVariant value;
         switch (dataValueType) {
+            case WuQMacroDataValueTypeEnum::INVALID:
+                value.setValue(QString(""));
+                break;
             case WuQMacroDataValueTypeEnum::BOOLEAN:
             {
                 const bool boolValue = ((valueString == VALUE_BOOL_TRUE) ? true : false);
@@ -387,6 +390,9 @@ WuQMacroGroupXmlReader::readMacroCommandAttributesVersionOne()
         
         QVariant valueTwo;
         switch (dataValueTypeTwo) {
+            case WuQMacroDataValueTypeEnum::INVALID:
+                valueTwo.setValue(QString(""));
+                break;
             case WuQMacroDataValueTypeEnum::BOOLEAN:
             {
                 const bool boolValue = ((valueTwoString == VALUE_BOOL_TRUE) ? true : false);

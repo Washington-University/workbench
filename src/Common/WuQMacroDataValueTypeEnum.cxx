@@ -31,9 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::WuQMacroDataValueTypeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \brief Enumerated type for macro data values
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -108,11 +106,15 @@ WuQMacroDataValueTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(WuQMacroDataValueTypeEnum(BOOLEAN, 
-                                    "BOOLEAN", 
-                                    "Boolean"));
+    enumData.push_back(WuQMacroDataValueTypeEnum(INVALID,
+                                    "INVALID",
+                                    "Invalid"));
     
-    enumData.push_back(WuQMacroDataValueTypeEnum(FLOAT, 
+    enumData.push_back(WuQMacroDataValueTypeEnum(BOOLEAN,
+                                                 "BOOLEAN",
+                                                 "Boolean"));
+    
+    enumData.push_back(WuQMacroDataValueTypeEnum(FLOAT,
                                     "FLOAT", 
                                     "Float"));
     

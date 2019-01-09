@@ -118,16 +118,25 @@ WuQMacroStandardItemTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(WuQMacroStandardItemTypeEnum(MACRO, 
-                                    QStandardItem::UserType + 1,
-                                    "MACRO", 
-                                    "Macro"));
+    int32_t typeOffset = QStandardItem::UserType + 1;
+    const int32_t invalidType(typeOffset++);
+    const int32_t macroType(typeOffset++);
+    const int32_t macroCommandType(typeOffset++);
     
-    enumData.push_back(WuQMacroStandardItemTypeEnum(MACRO_COMMAND, 
-                                    QStandardItem::UserType + 2, 
-                                    "MACRO_COMMAND", 
-                                    "Macro Command"));
+    enumData.push_back(WuQMacroStandardItemTypeEnum(INVALID,
+                                                    invalidType,
+                                                    "INVALID",
+                                                    "Invalid"));
     
+    enumData.push_back(WuQMacroStandardItemTypeEnum(MACRO,
+                                                    macroType,
+                                                    "MACRO",
+                                                    "Macro"));
+    
+    enumData.push_back(WuQMacroStandardItemTypeEnum(MACRO_COMMAND,
+                                                    macroCommandType,
+                                                    "MACRO_COMMAND",
+                                                    "Macro Command"));
 }
 
 /**

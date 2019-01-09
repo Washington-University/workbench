@@ -35,6 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Type that is invalid */
+        INVALID,
         /** Type for a macro */
         MACRO,
         /** Type for a macro command */

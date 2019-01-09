@@ -147,6 +147,8 @@ WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroComma
         const QVariant dataValue(macroCommand->getDataValue());
         QString stringValue;
         switch (macroCommand->getDataType()) {
+            case WuQMacroDataValueTypeEnum::INVALID:
+                break;
             case WuQMacroDataValueTypeEnum::BOOLEAN:
                 stringValue = (dataValue.toBool() ? VALUE_BOOL_TRUE : VALUE_BOOL_FALSE);
                 break;
@@ -174,6 +176,8 @@ WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroComma
         const QVariant dataValueTwo(macroCommand->getDataValueTwo());
         QString stringValue;
         switch (macroCommand->getDataTypeTwo()) {
+            case WuQMacroDataValueTypeEnum::INVALID:
+                break;
             case WuQMacroDataValueTypeEnum::BOOLEAN:
                 stringValue = (dataValueTwo.toBool() ? VALUE_BOOL_TRUE : VALUE_BOOL_FALSE);
                 break;

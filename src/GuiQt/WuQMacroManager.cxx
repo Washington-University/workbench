@@ -531,9 +531,7 @@ WuQMacroManager::editMacroAttributes(QWidget* parent,
                                                parent);
         if (attributesDialog.exec() == WuQMacroDialog::Accepted) {
             if (attributesDialog.isMacroModified()) {
-                if (m_macroHelper) {
-                    m_macroHelper->macroWasModified(macro);
-                }
+                macroWasModified(macro);
                 return true;
             }
         }
@@ -541,6 +539,21 @@ WuQMacroManager::editMacroAttributes(QWidget* parent,
     
     return false;
 }
+
+/**
+ * Can be called to indicate that a macro was modified
+ *
+ * @param macro
+ *     Macro that was modified
+ */
+void
+WuQMacroManager::macroWasModified(WuQMacro* macro)
+{
+    if (m_macroHelper) {
+        m_macroHelper->macroWasModified(macro);
+    }
+}
+
 
 /**
  * Delete a macro

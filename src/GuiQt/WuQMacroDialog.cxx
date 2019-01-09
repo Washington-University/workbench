@@ -28,7 +28,9 @@
 #include <QDialogButtonBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QInputDialog>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
@@ -172,6 +174,28 @@ WuQMacroDialog::createMacroButtonsWidget()
 }
 
 /**
+ * Update buttons based upon selected item(s)
+ */
+void
+WuQMacroDialog::updateButtons()
+{
+    bool macroSelected(false);
+    WuQMacroStandardItemTypeEnum::Enum itemType = getSelectedItemType();
+    switch (itemType) {
+        case WuQMacroStandardItemTypeEnum::INVALID:
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO:
+            macroSelected = true;
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+            break;
+    }
+    
+    m_attributesPushButton->setEnabled(macroSelected);
+    m_deletePushButton->setEnabled(macroSelected);
+}
+
+/**
  * @return The widget displayed when a macro is selected
  */
 QWidget*
@@ -310,17 +334,56 @@ WuQMacroDialog::createCommandWidget()
     QLabel* titleLabel  = new QLabel("Title");
     m_commandTitleLabel = new QLabel();
     
+    QLabel* nameLabel  = new QLabel("Name");
+    m_commandNameLabel = new QLabel();
+    
+    QLabel* typeLabel = new QLabel("Type");
+    m_commandTypeLabel = new QLabel();
+    
+    QLabel* valueOneLabel = new QLabel("Value");
+    m_commandValueOnePushButton = new QPushButton("Set...");
+    m_commandValueOnePushButton->setSizePolicy(QSizePolicy::Fixed,
+                                               m_commandValueOnePushButton->sizePolicy().verticalPolicy());
+    QObject::connect(m_commandValueOnePushButton, &QPushButton::clicked,
+                     [=] { setMacroCommandValue(ValueIndex::ONE); });
+    m_commandValueOneLabel  = new QLabel();
+    
+    QLabel* valueTwoLabel = new QLabel("Alt Value");
+    m_commandValueTwoPushButton = new QPushButton("Set...");
+    m_commandValueTwoPushButton->setSizePolicy(QSizePolicy::Fixed,
+                                               m_commandValueTwoPushButton->sizePolicy().verticalPolicy());
+    QObject::connect(m_commandValueTwoPushButton, &QPushButton::clicked,
+                     [=] { setMacroCommandValue(ValueIndex::TWO); });
+    m_commandValueTwoLabel  = new QLabel();
+    
     QLabel* toolTipLabel = new QLabel("ToolTip");
     m_commandToolTip     = new QLabel();
     m_commandToolTip->setWordWrap(true);
     
     QGridLayout* layout = new QGridLayout();
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 0);
+    layout->setColumnStretch(2, 100);
     int row = 0;
     layout->addWidget(titleLabel, row, 0);
-    layout->addWidget(m_commandTitleLabel, row, 1);
+    layout->addWidget(m_commandTitleLabel, row, 1, 1, 2);
+    row++;
+    layout->addWidget(nameLabel, row, 0);
+    layout->addWidget(m_commandNameLabel, row, 1, 1, 2);
+    row++;
+    layout->addWidget(typeLabel, row, 0);
+    layout->addWidget(m_commandTypeLabel, row, 1, 1, 2);
+    row++;
+    layout->addWidget(valueOneLabel, row, 0);
+    layout->addWidget(m_commandValueOnePushButton, row, 1);
+    layout->addWidget(m_commandValueOneLabel, row, 2);
+    row++;
+    layout->addWidget(valueTwoLabel, row, 0);
+    layout->addWidget(m_commandValueTwoPushButton, row, 1);
+    layout->addWidget(m_commandValueTwoLabel, row, 2);
     row++;
     layout->addWidget(toolTipLabel, row, 0);
-    layout->addWidget(m_commandToolTip, row, 1);
+    layout->addWidget(m_commandToolTip, row, 1, 1, 2);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
@@ -369,6 +432,7 @@ WuQMacroDialog::updateDialogContents()
     m_runOptionLoopCheckBox->setChecked(runOptions->isLooping());
     
     macroGroupComboBoxActivated(selectedIndex);
+    updateButtons();
 }
 
 /**
@@ -377,7 +441,6 @@ WuQMacroDialog::updateDialogContents()
 void
 WuQMacroDialog::treeViewItemClicked(const QModelIndex& modelIndex)
 {
-
     QStandardItemModel* selectedModel = NULL;
     if (modelIndex.isValid()) {
         const QAbstractItemModel* abstractModel = modelIndex.model();
@@ -399,6 +462,9 @@ WuQMacroDialog::treeViewItemClicked(const QModelIndex& modelIndex)
                                                                                                           &validFlag);
         if (validFlag) {
             switch (itemType) {
+                case WuQMacroStandardItemTypeEnum::INVALID:
+                    CaretAssertMessage(0, "Type should never be invalid");
+                    break;
                 case WuQMacroStandardItemTypeEnum::MACRO:
                     macro = dynamic_cast<WuQMacro*>(selectedItem);
                     CaretAssert(macro);
@@ -419,6 +485,7 @@ WuQMacroDialog::treeViewItemClicked(const QModelIndex& modelIndex)
     
     updateMacroWidget(macro);
     updateCommandWidget(macroCommand);
+    updateButtons();
 }
 
 /**
@@ -464,13 +531,91 @@ WuQMacroDialog::updateMacroWidget(WuQMacro* macro)
 void
 WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
 {
-    QString text;
+    bool validOneFlag = false;
+    QString newDataValueOne;
+    if (command != NULL) {
+        newDataValueOne = command->getDataValue().toString();
+        
+        switch (command->getDataType()) {
+            case WuQMacroDataValueTypeEnum::INVALID:
+                break;
+            case WuQMacroDataValueTypeEnum::BOOLEAN:
+                if (command->getDataValue().toBool()) {
+                    newDataValueOne = "On";
+                }
+                else {
+                    newDataValueOne = "Off";
+                }
+                validOneFlag = true;
+                break;
+            case WuQMacroDataValueTypeEnum::FLOAT:
+                validOneFlag = true;
+                break;
+            case WuQMacroDataValueTypeEnum::INTEGER:
+                validOneFlag = true;
+                break;
+            case WuQMacroDataValueTypeEnum::MOUSE:
+                break;
+            case WuQMacroDataValueTypeEnum::STRING:
+                validOneFlag = true;
+                break;
+        }
+    }
+    
+    bool validTwoFlag = false;
+    QString newDataValueTwo;
+    if (command != NULL) {
+        newDataValueTwo = command->getDataValueTwo().toString();
+        
+        switch (command->getDataTypeTwo()) {
+            case WuQMacroDataValueTypeEnum::INVALID:
+                break;
+            case WuQMacroDataValueTypeEnum::BOOLEAN:
+                if (command->getDataValueTwo().toBool()) {
+                    newDataValueTwo = "On";
+                }
+                else {
+                    newDataValueTwo = "Off";
+                }
+                validTwoFlag = true;
+                break;
+            case WuQMacroDataValueTypeEnum::FLOAT:
+                validTwoFlag = true;
+                break;
+            case WuQMacroDataValueTypeEnum::INTEGER:
+                validTwoFlag = true;
+                break;
+            case WuQMacroDataValueTypeEnum::MOUSE:
+                break;
+            case WuQMacroDataValueTypeEnum::STRING:
+                validTwoFlag = true;
+                break;
+        }
+    }
+    
+    QString title;
+    QString name;
+    QString type;
+    QString newDataTypeTwo;
     QString toolTip;
     if (command != NULL) {
-        text    = command->text();
-        toolTip = command->getObjectToolTip();
+        title           = command->text();
+        name            = command->getObjectName();
+        type            = WuQMacroClassTypeEnum::toGuiName(command->getClassType());
+        newDataTypeTwo  = WuQMacroDataValueTypeEnum::toGuiName(command->getDataTypeTwo());
+        toolTip         = command->getObjectToolTip();
     }
-    m_commandTitleLabel->setText(text);
+    m_commandTitleLabel->setText(title);
+    m_commandNameLabel->setText(name);
+    m_commandTypeLabel->setText(type);
+    m_commandValueOneLabel->setText(newDataValueOne);
+    m_commandValueOnePushButton->setEnabled(validOneFlag);
+    m_commandValueTwoLabel->setText("");
+    m_commandValueTwoPushButton->setEnabled(false);
+    if (validTwoFlag) {
+        m_commandValueTwoLabel->setText(newDataValueTwo);
+        m_commandValueTwoPushButton->setEnabled(true);
+    }
     m_commandToolTip->setText(toolTip);
 }
 
@@ -491,60 +636,121 @@ WuQMacroDialog::getSelectedMacroGroup()
 }
 
 /**
- * @return Pointer to selected macro
+ * @return Pointer to selected macro.  If a macro command is selected, its parent
+ * macro is returned (NULL if no macro is selected)
  */
 WuQMacro*
 WuQMacroDialog::getSelectedMacro()
 {
     WuQMacro* macro(NULL);
     
-    QModelIndex modelIndex = m_treeView->currentIndex();
-    if (modelIndex.isValid()) {
-        QStandardItemModel* selectedModel = NULL;
-        if (modelIndex.isValid()) {
-            const QAbstractItemModel* abstractModel = modelIndex.model();
-            if (abstractModel != NULL) {
-                const QStandardItemModel* constModel = qobject_cast<const QStandardItemModel*>(abstractModel);
-                if (constModel != NULL) {
-                    selectedModel = const_cast<QStandardItemModel*>(constModel);
+    QStandardItem* selectedItem = getSelectedItem();
+    if (selectedItem != NULL) {
+        bool validFlag(false);
+        const WuQMacroStandardItemTypeEnum::Enum itemType = WuQMacroStandardItemTypeEnum::fromIntegerCode(selectedItem->type(),
+                                                                                                          &validFlag);
+        if (validFlag) {
+            switch (itemType) {
+                case WuQMacroStandardItemTypeEnum::INVALID:
+                    CaretAssertMessage(0, "Type should never be invalid");
+                    break;
+                case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+                {
+                    /*
+                     * Parent should be WuQMacro
+                     */
+                    QStandardItem* selectedItemParent = selectedItem->parent();
+                    CaretAssert(selectedItemParent);
+                    macro = dynamic_cast<WuQMacro*>(selectedItemParent);
+                    CaretAssert(macro);
                 }
+                    break;
+                case WuQMacroStandardItemTypeEnum::MACRO:
+                    macro = dynamic_cast<WuQMacro*>(selectedItem);
+                    CaretAssert(macro);
+                    break;
             }
         }
-        
-        
-        if (selectedModel != NULL) {
-            QStandardItem* selectedItem = selectedModel->itemFromIndex(modelIndex);
-            
-            bool validFlag(false);
-            const WuQMacroStandardItemTypeEnum::Enum itemType = WuQMacroStandardItemTypeEnum::fromIntegerCode(selectedItem->type(),
-                                                                                                              &validFlag);
-            if (validFlag) {
-                switch (itemType) {
-                    case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
-                    {
-                        /*
-                         * Parent should be WuQMacro
-                         */
-                        QStandardItem* selectedItemParent = selectedItem->parent();
-                        CaretAssert(selectedItemParent);
-                        macro = dynamic_cast<WuQMacro*>(selectedItemParent);
-                        CaretAssert(macro);
-                    }
-                        break;
-                    case WuQMacroStandardItemTypeEnum::MACRO:
-                        macro = dynamic_cast<WuQMacro*>(selectedItem);
-                        CaretAssert(macro);
-                        break;
-                }
-            }
-            else {
-                CaretAssertMessage(0,
-                                   ("Invalid StandardItemModel type=" + AString::number(selectedItem->type())));
-            }
+        else {
+            CaretAssertMessage(0,
+                               ("Invalid StandardItemModel type=" + AString::number(selectedItem->type())));
         }
     }
     
     return macro;
+}
+
+/**
+ * @return Pointer to selected macro command (NULL if no macro command is selected)
+ */
+WuQMacroCommand*
+WuQMacroDialog::getSelectedMacroCommand()
+{
+    WuQMacroCommand* macroCommand(NULL);
+    
+    QStandardItem* selectedItem = getSelectedItem();
+    if (selectedItem != NULL) {
+        bool validFlag(false);
+        const WuQMacroStandardItemTypeEnum::Enum itemType = WuQMacroStandardItemTypeEnum::fromIntegerCode(selectedItem->type(),
+                                                                                                          &validFlag);
+        if (validFlag) {
+            switch (itemType) {
+                case WuQMacroStandardItemTypeEnum::INVALID:
+                    CaretAssertMessage(0, "Type should never be invalid");
+                    break;
+                case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+                    macroCommand = dynamic_cast<WuQMacroCommand*>(selectedItem);
+                    CaretAssert(macroCommand);
+                    break;
+                case WuQMacroStandardItemTypeEnum::MACRO:
+                    break;
+            }
+        }
+        else {
+            CaretAssertMessage(0,
+                               ("Invalid StandardItemModel type=" + AString::number(selectedItem->type())));
+        }
+    }
+    
+    return macroCommand;
+}
+
+/**
+ * @return The selected item (NULL if invalid)
+ */
+QStandardItem*
+WuQMacroDialog::getSelectedItem() const
+{
+    QModelIndex modelIndex = m_treeView->currentIndex();
+    if (modelIndex.isValid()) {
+        QAbstractItemModel* abstractModel = m_treeView->model();
+        if (abstractModel != NULL) {
+            QStandardItemModel* model = qobject_cast<QStandardItemModel*>(abstractModel);
+            if (model != NULL) {
+                QStandardItem* item = model->itemFromIndex(modelIndex);
+                return item;
+            }
+        }
+    }
+    
+    return NULL;
+}
+
+/**
+ * @return The selected item type
+ */
+WuQMacroStandardItemTypeEnum::Enum
+WuQMacroDialog::getSelectedItemType() const
+{
+    WuQMacroStandardItemTypeEnum::Enum itemType = WuQMacroStandardItemTypeEnum::INVALID;
+    QStandardItem* item = getSelectedItem();
+    if (item != NULL) {
+        bool validFlag(false);
+        itemType = WuQMacroStandardItemTypeEnum::fromIntegerCode(item->type(),
+                                                                 &validFlag);
+    }
+    
+    return itemType;
 }
 
 /**
@@ -638,6 +844,135 @@ WuQMacroDialog::exportButtonClicked()
                                                   macro)) {
         updateDialogContents();
     }
+}
+
+/**
+ * Set the command value for the given value index
+ *
+ * @param valueIndex
+ *    Value one or two
+ */
+void
+WuQMacroDialog::setMacroCommandValue(const ValueIndex valueIndex)
+{
+    WuQMacroCommand* macroCommand = getSelectedMacroCommand();
+    if (macroCommand == NULL) {
+        return;
+    }
+    
+    WuQMacroDataValueTypeEnum::Enum dataType = WuQMacroDataValueTypeEnum::INVALID;
+    QVariant dataValue;
+    QWidget* parentWidget(NULL);
+    switch (valueIndex) {
+        case ValueIndex::ONE:
+            dataType = macroCommand->getDataType();
+            dataValue = macroCommand->getDataValue();
+            parentWidget = m_commandValueOnePushButton;
+            break;
+        case ValueIndex::TWO:
+            dataType = macroCommand->getDataTypeTwo();
+            dataValue = macroCommand->getDataValueTwo();
+            parentWidget = m_commandValueTwoPushButton;
+            break;
+    }
+    
+    bool validFlag(false);
+    switch (dataType) {
+        case WuQMacroDataValueTypeEnum::BOOLEAN:
+        {
+            QStringList items;
+            items.push_back("On");
+            items.push_back("Off");
+            
+            bool ok(false);
+            int defaultIndex = (dataValue.toBool() ? 0 : 1);
+            const QString text = QInputDialog::getItem(parentWidget,
+                                                       "New Status",
+                                                       "New Status",
+                                                       items,
+                                                       defaultIndex,
+                                                       false,
+                                                       &ok);
+            if (ok
+                && ( ! text.isEmpty())) {
+                bool result(text == items.at(0));
+                dataValue.setValue(result);
+                validFlag = true;
+            }
+        }
+            break;
+        case WuQMacroDataValueTypeEnum::FLOAT:
+        {
+            bool ok(false);
+            const float f = QInputDialog::getDouble(parentWidget,
+                                                    "New Value",
+                                                    "New Value",
+                                                    dataValue.toDouble(),
+                                                    -2147483647,
+                                                    2147483647,
+                                                    3,
+                                                    &ok);
+            if (ok) {
+                dataValue.setValue(f);
+                validFlag = true;
+            }
+        }
+            break;
+        case WuQMacroDataValueTypeEnum::INTEGER:
+        {
+            bool ok(false);
+            const int i = QInputDialog::getInt(parentWidget,
+                                               "New Value",
+                                               "New Value",
+                                               dataValue.toInt(),
+                                               -2147483647,
+                                               2147483647,
+                                               1,
+                                               &ok);
+            if (ok) {
+                dataValue.setValue(i);
+                validFlag = true;
+            }
+        }
+            break;
+        case WuQMacroDataValueTypeEnum::INVALID:
+            break;
+        case WuQMacroDataValueTypeEnum::MOUSE:
+            break;
+        case WuQMacroDataValueTypeEnum::STRING:
+        {
+            bool ok(false);
+            const QString text = QInputDialog::getText(parentWidget,
+                                                       "New Text",
+                                                       "New Text",
+                                                       QLineEdit::Normal,
+                                                       dataValue.toString(),
+                                                       &ok);
+            if (ok) {
+                dataValue.setValue(text);
+                validFlag = true;
+            }
+        }
+            break;
+    }
+
+    if (validFlag) {
+        switch (valueIndex) {
+            case ValueIndex::ONE:
+                macroCommand->setDataValue(dataValue);
+                break;
+            case ValueIndex::TWO:
+                macroCommand->setDataValueTwo(dataValue);
+                break;
+        }
+        
+        WuQMacro* macro = getSelectedMacro();
+        if (macro != NULL) {
+            WuQMacroManager::instance()->macroWasModified(macro);
+        }
+    }
+    
+    updateCommandWidget(macroCommand);
 }
 
 
