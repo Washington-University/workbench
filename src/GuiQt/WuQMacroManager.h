@@ -91,9 +91,6 @@ namespace caret {
         
         const WuQMacroExecutorOptions* getExecutorOptions() const;
         
-        bool editMacroAttributes(QWidget* parent,
-                                 WuQMacro* macro);
-        
         bool deleteMacro(QWidget* parent,
                          WuQMacroGroup* macroGroup,
                          WuQMacro* macro);

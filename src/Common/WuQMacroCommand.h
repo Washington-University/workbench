@@ -104,7 +104,9 @@ namespace caret {
         
     private:
         void copyHelperWuQMacroCommand(const WuQMacroCommand& obj);
-                
+        
+        void updateTitle();
+        
         WuQMacroClassTypeEnum::Enum m_classType;
         
         QString m_objectName;

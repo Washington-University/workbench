@@ -27,6 +27,7 @@
 
 #include <QDialog>
 
+#include "WuQMacroShortCutKeyEnum.h"
 #include "WuQMacroStandardItemTypeEnum.h"
 
 class QAbstractButton;
@@ -44,6 +45,7 @@ namespace caret {
     class WuQMacro;
     class WuQMacroCommand;
     class WuQMacroGroup;
+    class WuQMacroShortCutKeyComboBox;
 
     class WuQMacroDialog : public QDialog {
         
@@ -69,13 +71,17 @@ namespace caret {
         
         void buttonBoxButtonClicked(QAbstractButton* button);
         
-        void attributesButtonClicked();
-        
         void deleteButtonClicked();
         
         void importButtonClicked();
         
         void exportButtonClicked();
+        
+        void macroNameEditButtonClicked();
+        
+        void macroDescriptionEditButtonClicked();
+        
+        void macroShortCutKeySelected(const WuQMacroShortCutKeyEnum::Enum);
         
         void runOptionDelaySpinBoxValueChanged(float);
         
@@ -123,6 +129,10 @@ namespace caret {
         
         QTreeView* m_treeView;
         
+        QLabel* m_macroNameLabel;
+        
+        WuQMacroShortCutKeyComboBox* m_macroShortCutKeyComboBox;
+        
         QLabel* m_macroDescriptionLabel;
         
         QWidget* m_macroWidget;
@@ -136,8 +146,6 @@ namespace caret {
         QAbstractButton* m_runButton;
         
         QPushButton* m_deletePushButton;
-        
-        QPushButton* m_attributesPushButton;
         
         QPushButton* m_importPushButton;
         

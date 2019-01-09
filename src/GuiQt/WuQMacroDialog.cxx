@@ -45,6 +45,7 @@
 #include "WuQMacroGroup.h"
 #include "WuQMacroExecutor.h"
 #include "WuQMacroManager.h"
+#include "WuQMacroShortCutKeyComboBox.h"
 #include "WuQMacroStandardItemTypeEnum.h"
 
 using namespace caret;
@@ -140,11 +141,6 @@ WuQMacroDialog::createMacroButtonsWidget()
 {
     QWidget* widget = new QWidget();
     
-    m_attributesPushButton = new QPushButton("Attributes...");
-    m_attributesPushButton->setToolTip("Edit the selected macro's name, description, etc");
-    QObject::connect(m_attributesPushButton, &QPushButton::clicked,
-                     this, &WuQMacroDialog::attributesButtonClicked);
-    
     m_deletePushButton = new QPushButton("Delete...");
     m_deletePushButton->setToolTip("Delete the selected macro");
     QObject::connect(m_deletePushButton, &QPushButton::clicked,
@@ -162,8 +158,6 @@ WuQMacroDialog::createMacroButtonsWidget()
     
     QVBoxLayout* macroButtonsLayout = new QVBoxLayout(widget);
     macroButtonsLayout->setSpacing(4);
-    macroButtonsLayout->addWidget(m_attributesPushButton);
-    macroButtonsLayout->addSpacing(15);
     macroButtonsLayout->addWidget(m_deletePushButton);
     macroButtonsLayout->addSpacing(15);
     macroButtonsLayout->addWidget(m_importPushButton);
@@ -191,7 +185,6 @@ WuQMacroDialog::updateButtons()
             break;
     }
     
-    m_attributesPushButton->setEnabled(macroSelected);
     m_deletePushButton->setEnabled(macroSelected);
 }
 
@@ -201,28 +194,133 @@ WuQMacroDialog::updateButtons()
 QWidget*
 WuQMacroDialog::createMacroWidget()
 {
-    QLabel* descriptionLabel = new QLabel("Macro Description:");
+    QLabel* nameLabel = new QLabel("Name:");
+    m_macroNameLabel = new QLabel();
+    QPushButton* nameEditPushButton = new QPushButton("Edit...");
+    nameEditPushButton->setSizePolicy(QSizePolicy::Fixed,
+                                      nameEditPushButton->sizePolicy().verticalPolicy());
+    QObject::connect(nameEditPushButton, &QPushButton::clicked,
+                     this, &WuQMacroDialog::macroNameEditButtonClicked);
+    
+    QLabel* shortCutKeyLabel = new QLabel("Short Cut Key:");
+    QLabel* shortCutKeyMaskLabel = new QLabel(WuQMacroManager::getShortCutKeysMask());
+    m_macroShortCutKeyComboBox = new WuQMacroShortCutKeyComboBox(this);
+    QObject::connect(m_macroShortCutKeyComboBox, &WuQMacroShortCutKeyComboBox::shortCutKeySelected,
+                     this, &WuQMacroDialog::macroShortCutKeySelected);
+
+    QLabel* descriptionLabel = new QLabel("Description:");
     m_macroDescriptionLabel = new QLabel("");
     m_macroDescriptionLabel->setWordWrap(true);
     m_macroDescriptionLabel->setMinimumHeight(40);
     m_macroDescriptionLabel->setAlignment(Qt::AlignTop
                                           | Qt::AlignLeft);
     
+    QPushButton* descriptionEditPushButton = new QPushButton("Edit...");
+    descriptionEditPushButton->setSizePolicy(QSizePolicy::Fixed,
+                                             descriptionEditPushButton->sizePolicy().verticalPolicy());
+    QObject::connect(descriptionEditPushButton, &QPushButton::clicked,
+                     this, &WuQMacroDialog::macroDescriptionEditButtonClicked);
+
     QFrame* horizontalLine = new QFrame();
     horizontalLine->setMidLineWidth(1);
     horizontalLine->setLineWidth(1);
     horizontalLine->setFrameStyle(QFrame::HLine | QFrame::Sunken);
 
+    QGridLayout* gridLayout = new QGridLayout();
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 0);
+    gridLayout->setColumnStretch(2, 0);
+    gridLayout->setColumnStretch(3, 100);
+    int row = 0;
+    gridLayout->addWidget(nameLabel, row, 0);
+    gridLayout->addWidget(nameEditPushButton, row, 1);
+    gridLayout->addWidget(m_macroNameLabel, row, 2, 1, 2);
+    row++;
+    gridLayout->addWidget(shortCutKeyLabel, row, 0, 1, 2);
+    gridLayout->addWidget(shortCutKeyMaskLabel, row, 2);
+    gridLayout->addWidget(m_macroShortCutKeyComboBox->getWidget(), row, 3, Qt::AlignLeft);
+    row++;
+    gridLayout->addWidget(descriptionLabel, row, 0, 1, 2);
+    gridLayout->addWidget(m_macroDescriptionLabel, row, 2, 2, 2);
+    row++;
+    gridLayout->addWidget(descriptionEditPushButton, row, 0, 1, 2);
+    row++;
+
     QWidget* widget = new QWidget();
-    QVBoxLayout* dialogLayout = new QVBoxLayout(widget);
-    dialogLayout->addWidget(descriptionLabel);
-    dialogLayout->addWidget(m_macroDescriptionLabel);
-    dialogLayout->addWidget(horizontalLine);
-    dialogLayout->addWidget(createRunOptionsWidget());
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(gridLayout);
+    layout->addWidget(horizontalLine);
+    layout->addWidget(createRunOptionsWidget());
+    layout->addStretch();
 
     return widget;
 }
 
+/**
+ * Called to edit macro name
+ */
+void
+WuQMacroDialog::macroNameEditButtonClicked()
+{
+    WuQMacro* macro = getSelectedMacro();
+    if (macro != NULL) {
+        bool ok(false);
+        const QString text = QInputDialog::getText(this,
+                                                   "New Macro Name",
+                                                   "Name",
+                                                   QLineEdit::Normal,
+                                                   macro->getName(),
+                                                   &ok);
+        if (ok) {
+            if ( ! text.isEmpty()) {
+                macro->setName(text);
+                WuQMacroManager::instance()->macroWasModified(macro);
+                updateMacroWidget(macro);
+            }
+        }
+    }
+}
+
+/**
+ * Called when macro short cut key is selected
+ *
+ * @param shortCutKey
+ *     Shortcut key that was selected
+ */
+void
+WuQMacroDialog::macroShortCutKeySelected(const WuQMacroShortCutKeyEnum::Enum shortCutKey)
+{
+    WuQMacro* macro = getSelectedMacro();
+    if (macro != NULL) {
+        macro->setShortCutKey(shortCutKey);
+        WuQMacroManager::instance()->macroWasModified(macro);
+        updateMacroWidget(macro);
+    }
+}
+
+/**
+ * Called to edit macro description
+ */
+void
+WuQMacroDialog::macroDescriptionEditButtonClicked()
+{
+    WuQMacro* macro = getSelectedMacro();
+    if (macro != NULL) {
+        bool ok(false);
+        const QString text = QInputDialog::getMultiLineText(this,
+                                                            "New Macro Description",
+                                                            "Description",
+                                                            macro->getDescription(),
+                                                            &ok);
+        if (ok) {
+            if ( ! text.isEmpty()) {
+                macro->setDescription(text);
+                WuQMacroManager::instance()->macroWasModified(macro);
+                updateMacroWidget(macro);
+            }
+        }
+    }
+}
 
 /**
  * @return New instance of widget containing macro run options
@@ -331,16 +429,16 @@ WuQMacroDialog::buttonBoxButtonClicked(QAbstractButton* button)
 QWidget*
 WuQMacroDialog::createCommandWidget()
 {
-    QLabel* titleLabel  = new QLabel("Title");
+    QLabel* titleLabel  = new QLabel("Title:");
     m_commandTitleLabel = new QLabel();
     
-    QLabel* nameLabel  = new QLabel("Name");
+    QLabel* nameLabel  = new QLabel("Name:");
     m_commandNameLabel = new QLabel();
     
-    QLabel* typeLabel = new QLabel("Type");
+    QLabel* typeLabel = new QLabel("Type:");
     m_commandTypeLabel = new QLabel();
     
-    QLabel* valueOneLabel = new QLabel("Value");
+    QLabel* valueOneLabel = new QLabel("Value:");
     m_commandValueOnePushButton = new QPushButton("Set...");
     m_commandValueOnePushButton->setSizePolicy(QSizePolicy::Fixed,
                                                m_commandValueOnePushButton->sizePolicy().verticalPolicy());
@@ -348,7 +446,7 @@ WuQMacroDialog::createCommandWidget()
                      [=] { setMacroCommandValue(ValueIndex::ONE); });
     m_commandValueOneLabel  = new QLabel();
     
-    QLabel* valueTwoLabel = new QLabel("Alt Value");
+    QLabel* valueTwoLabel = new QLabel("Alt Value:");
     m_commandValueTwoPushButton = new QPushButton("Set...");
     m_commandValueTwoPushButton->setSizePolicy(QSizePolicy::Fixed,
                                                m_commandValueTwoPushButton->sizePolicy().verticalPolicy());
@@ -356,7 +454,7 @@ WuQMacroDialog::createCommandWidget()
                      [=] { setMacroCommandValue(ValueIndex::TWO); });
     m_commandValueTwoLabel  = new QLabel();
     
-    QLabel* toolTipLabel = new QLabel("ToolTip");
+    QLabel* toolTipLabel = new QLabel("ToolTip:");
     m_commandToolTip     = new QLabel();
     m_commandToolTip->setWordWrap(true);
     
@@ -514,11 +612,17 @@ WuQMacroDialog::macroGroupComboBoxActivated(int)
 void
 WuQMacroDialog::updateMacroWidget(WuQMacro* macro)
 {
+    QString name;
+    WuQMacroShortCutKeyEnum::Enum shortCutKey = WuQMacroShortCutKeyEnum::Key_None;
     QString text;
     if (macro != NULL) {
+        name = macro->getName();
         text = macro->getDescription();
+        shortCutKey = macro->getShortCutKey();
     }
 
+    m_macroNameLabel->setText(name);
+    m_macroShortCutKeyComboBox->setSelectedShortCutKey(shortCutKey);
     m_macroDescriptionLabel->setText(text);
 }
 
@@ -785,21 +889,6 @@ WuQMacroDialog::runSelectedMacro()
 }
 
 /**
- * Called when the attributes button is clicked
- */
-void
-WuQMacroDialog::attributesButtonClicked()
-{
-    WuQMacro* macro = getSelectedMacro();
-    if (macro != NULL) {
-        if (WuQMacroManager::instance()->editMacroAttributes(this,
-                                                             macro)) {
-            updateDialogContents();
-        }
-    }
-}
-
-/**
  * Called when the delete button is clicked
  */
 void
@@ -972,7 +1061,7 @@ WuQMacroDialog::setMacroCommandValue(const ValueIndex valueIndex)
         }
     }
     
-    updateCommandWidget(macroCommand);
+    updateDialogContents();
 }
 
 

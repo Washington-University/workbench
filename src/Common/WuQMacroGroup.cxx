@@ -403,6 +403,7 @@ WuQMacroGroup::isModified() const
     const int32_t count = getNumberOfMacros();
     for (int32_t i = 0; i < count; i++) {
         if (getMacroAtIndex(i)->isModified()) {
+            return true;
             break;
         }
     }

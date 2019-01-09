@@ -90,136 +90,79 @@ m_macroMouseEvent(NULL)
     m_dataType    = WuQMacroDataValueTypeEnum::INVALID;
     m_dataTypeTwo = WuQMacroDataValueTypeEnum::INVALID;
     
-    QString title = "Unknown";
-    
     switch (m_classType) {
         case WuQMacroClassTypeEnum::ACTION:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
-            title = ("Turn "
-                       + QString((m_dataValue.toBool() ? "On" : "Off")));
             break;
         case WuQMacroClassTypeEnum::ACTION_GROUP:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
             m_dataValueTwoValidFlag = true;
-            title = ("Select Name "
-                       + m_dataValue.toString()
-                       + " else "
-                       + " index "
-                       + QString::number(m_dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::BUTTON_GROUP:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
             m_dataValueTwoValidFlag = true;
-            title = ("Select Name "
-                       + m_dataValue.toString()
-                       + " else "
-                       + " index "
-                       + QString::number(m_dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::CHECK_BOX:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
-            title = ("Turn "
-                       + QString((m_dataValue.toBool() ? "On" : "Off")));
             break;
         case WuQMacroClassTypeEnum::COMBO_BOX:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
             m_dataValueTwoValidFlag = true;
-            title = ("Select Name "
-                       + m_dataValue.toString()
-                       + " else "
-                       + " index "
-                       + QString::number(m_dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
             m_dataType = WuQMacroDataValueTypeEnum::FLOAT;
-            title = ("Set to value "
-                       + QString::number(m_dataValue.toFloat()));
             break;
         case WuQMacroClassTypeEnum::INVALID:
-            title = "";
             break;
         case WuQMacroClassTypeEnum::LINE_EDIT:
             m_dataType = WuQMacroDataValueTypeEnum::STRING;
-            title = ("Set to text "
-                       + m_dataValue.toString());
             break;
         case WuQMacroClassTypeEnum::LIST_WIDGET:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
             m_dataValueTwoValidFlag = true;
-            title = ("Select Name "
-                       + m_dataValue.toString()
-                       + " else "
-                       + " index "
-                       + QString::number(m_dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::MENU:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
             m_dataValueTwoValidFlag = true;
-            title = ("Select Name "
-                       + m_dataValue.toString()
-                       + " else "
-                       + " index "
-                       + QString::number(m_dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
             m_dataType = WuQMacroDataValueTypeEnum::MOUSE;
-            title = "MouseEvent";
             break;
         case WuQMacroClassTypeEnum::PUSH_BUTTON:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
-            title = ("Click Button");
             break;
         case WuQMacroClassTypeEnum::RADIO_BUTTON:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
-            title = ("Turn "
-                       + QString((m_dataValue.toBool() ? "On" : "Off")));
             break;
         case WuQMacroClassTypeEnum::SLIDER:
             m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
-            title = ("Move to "
-                       + AString::number(m_dataValue.toInt()));
             break;
         case WuQMacroClassTypeEnum::SPIN_BOX:
             m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
-            title = ("Set to "
-                       + AString::number(m_dataValue.toInt()));
             break;
         case WuQMacroClassTypeEnum::TAB_BAR:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
             m_dataValueTwoValidFlag = true;
-            title = ("Select Name "
-                       + m_dataValue.toString()
-                       + " else "
-                       + " index "
-                       + QString::number(m_dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::TAB_WIDGET:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
             m_dataValueTwoValidFlag = true;
-            title = ("Select Name "
-                       + m_dataValue.toString()
-                       + " else "
-                       + " index "
-                       + QString::number(m_dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::TOOL_BUTTON:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
-            title = ("Click Button");
             break;
     }
     
     CaretAssert(m_dataType != WuQMacroDataValueTypeEnum::INVALID);
-    
-    setText(title
-            + " "
-            + m_objectName);
+
+    updateTitle();
     setModified();
 }
 
@@ -340,6 +283,112 @@ WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
             break;
     }
     setText(obj.text());
+    updateTitle();
+}
+
+/**
+ * Update the title for this command
+ */
+void
+WuQMacroCommand::updateTitle()
+{
+    QString title = "Unknown";
+    
+    switch (m_classType) {
+        case WuQMacroClassTypeEnum::ACTION:
+            title = ("Turn "
+                     + QString((m_dataValue.toBool() ? "On" : "Off")));
+            break;
+        case WuQMacroClassTypeEnum::ACTION_GROUP:
+            title = ("Select Name "
+                     + m_dataValue.toString()
+                     + " else "
+                     + " index "
+                     + QString::number(m_dataValueTwo.toInt()));
+            break;
+        case WuQMacroClassTypeEnum::BUTTON_GROUP:
+            title = ("Select Name "
+                     + m_dataValue.toString()
+                     + " else "
+                     + " index "
+                     + QString::number(m_dataValueTwo.toInt()));
+            break;
+        case WuQMacroClassTypeEnum::CHECK_BOX:
+            title = ("Turn "
+                     + QString((m_dataValue.toBool() ? "On" : "Off")));
+            break;
+        case WuQMacroClassTypeEnum::COMBO_BOX:
+            title = ("Select Name "
+                     + m_dataValue.toString()
+                     + " else "
+                     + " index "
+                     + QString::number(m_dataValueTwo.toInt()));
+            break;
+        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
+            title = ("Set to value "
+                     + QString::number(m_dataValue.toFloat()));
+            break;
+        case WuQMacroClassTypeEnum::INVALID:
+            title = "";
+            break;
+        case WuQMacroClassTypeEnum::LINE_EDIT:
+            title = ("Set to text "
+                     + m_dataValue.toString());
+            break;
+        case WuQMacroClassTypeEnum::LIST_WIDGET:
+            title = ("Select Name "
+                     + m_dataValue.toString()
+                     + " else "
+                     + " index "
+                     + QString::number(m_dataValueTwo.toInt()));
+            break;
+        case WuQMacroClassTypeEnum::MENU:
+            title = ("Select Name "
+                     + m_dataValue.toString()
+                     + " else "
+                     + " index "
+                     + QString::number(m_dataValueTwo.toInt()));
+            break;
+        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
+            title = "MouseEvent";
+            break;
+        case WuQMacroClassTypeEnum::PUSH_BUTTON:
+            title = ("Click Button");
+            break;
+        case WuQMacroClassTypeEnum::RADIO_BUTTON:
+            title = ("Turn "
+                     + QString((m_dataValue.toBool() ? "On" : "Off")));
+            break;
+        case WuQMacroClassTypeEnum::SLIDER:
+            title = ("Move to "
+                     + AString::number(m_dataValue.toInt()));
+            break;
+        case WuQMacroClassTypeEnum::SPIN_BOX:
+            title = ("Set to "
+                     + AString::number(m_dataValue.toInt()));
+            break;
+        case WuQMacroClassTypeEnum::TAB_BAR:
+            title = ("Select Name "
+                     + m_dataValue.toString()
+                     + " else "
+                     + " index "
+                     + QString::number(m_dataValueTwo.toInt()));
+            break;
+        case WuQMacroClassTypeEnum::TAB_WIDGET:
+            title = ("Select Name "
+                     + m_dataValue.toString()
+                     + " else "
+                     + " index "
+                     + QString::number(m_dataValueTwo.toInt()));
+            break;
+        case WuQMacroClassTypeEnum::TOOL_BUTTON:
+            title = ("Click Button");
+            break;
+    }
+    
+    setText(title
+            + " "
+            + m_objectName);
 }
 
 /**
@@ -422,6 +471,7 @@ WuQMacroCommand::setDataValue(const QVariant& dataValue)
 {
     if (m_dataValue != dataValue) {
         m_dataValue = dataValue;
+        updateTitle();
         setModified();
     }
 }
@@ -446,6 +496,7 @@ WuQMacroCommand::setDataValueTwo(const QVariant& dataValue)
 {
     if (m_dataValueTwo != dataValue) {
         m_dataValueTwo = dataValue;
+        updateTitle();
         setModified();
     }
 }

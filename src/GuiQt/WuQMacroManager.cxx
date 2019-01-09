@@ -46,7 +46,6 @@
 #include "WuQMacroFile.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroMouseEventInfo.h"
-#include "WuQMacroAttributesDialog.h"
 #include "WuQMacroHelperInterface.h"
 #include "WuQMacroExecutorOptions.h"
 #include "WuQMacroSignalWatcher.h"
@@ -509,35 +508,6 @@ WuQMacroManager::addParentObject(QObject* parentObject)
 {
     CaretAssert(parentObject);
     m_parentObjects.push_back(parentObject);
-}
-
-
-/**
- * Edit a macros attributes (name, description)
- *
- * @param parent
- *     Parent widget for dialog
- * @param macro
- *     Macro to edit
- * @return
- *     True if macro was modified.
- */
-bool
-WuQMacroManager::editMacroAttributes(QWidget* parent,
-                                     WuQMacro* macro)
-{
-    if (macro != NULL) {
-        WuQMacroAttributesDialog attributesDialog(macro,
-                                               parent);
-        if (attributesDialog.exec() == WuQMacroDialog::Accepted) {
-            if (attributesDialog.isMacroModified()) {
-                macroWasModified(macro);
-                return true;
-            }
-        }
-    }
-    
-    return false;
 }
 
 /**
