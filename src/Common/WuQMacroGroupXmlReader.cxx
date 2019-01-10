@@ -293,6 +293,7 @@ WuQMacroGroupXmlReader::readMacroCommandAttributesVersionOne()
     const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
     const QStringRef objectName = attributes.value(ATTRIBUTE_NAME);
     const QStringRef dataTypeString = attributes.value(ATTRIBUTE_OBJECT_DATA_TYPE);
+    const QStringRef descriptiveNameString = attributes.value(ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME);
     const QStringRef classString = attributes.value(ATTRIBUTE_OBJECT_CLASS);
     const QStringRef valueString = attributes.value(ATTRIBUTE_OBJECT_VALUE);
     const QStringRef dataTypeTwoString = attributes.value(ATTRIBUTE_OBJECT_DATA_TYPE_TWO);
@@ -354,7 +355,8 @@ WuQMacroGroupXmlReader::readMacroCommandAttributesVersionOne()
     
     if (objectClass == WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
         macroCommand = new WuQMacroCommand(WuQMacroClassTypeEnum::MOUSE_USER_EVENT,
-                                           objectName.toString());
+                                           objectName.toString(),
+                                           descriptiveNameString.toString());
     }
     else {
         QVariant value;
@@ -421,6 +423,7 @@ WuQMacroGroupXmlReader::readMacroCommandAttributesVersionOne()
         QString tooltip;
         macroCommand = new WuQMacroCommand(objectClass,
                                            objectName.toString(),
+                                           descriptiveNameString.toString(),
                                            tooltip,
                                            value,
                                            valueTwo);

@@ -49,6 +49,7 @@ using namespace caret;
  */
 DisplayGroupEnumComboBox::DisplayGroupEnumComboBox(QObject* parent)
 : DisplayGroupEnumComboBox(parent,
+                           "",
                            "")
 {
     
@@ -75,9 +76,12 @@ DisplayGroupEnumComboBox::DisplayGroupEnumComboBox(QObject* parent)
  *    Parent object.
  * @param objectNameForMacros
  *    Name of object for macros
+ * @param descriptiveNameForMacros
+ *    Descriptive name for macros
  */
 DisplayGroupEnumComboBox::DisplayGroupEnumComboBox(QObject* parent,
-                                                   const QString& objectNameForMacros)
+                                                   const QString& objectNameForMacros,
+                                                   const QString& descriptiveNameForMacros)
 : WuQWidget(parent)
 {
     std::vector<DisplayGroupEnum::Enum> allDisplayGroups;
@@ -96,7 +100,8 @@ DisplayGroupEnumComboBox::DisplayGroupEnumComboBox(QObject* parent,
     if ( ! objectNameForMacros.isEmpty()) {
         this->displayGroupComboBox->setToolTip("Select Display Group");
         this->displayGroupComboBox->setObjectName(objectNameForMacros);
-        WuQMacroManager::instance()->addMacroSupportToObject(this->displayGroupComboBox);
+        WuQMacroManager::instance()->addMacroSupportToObject(this->displayGroupComboBox,
+                                                             "Select display group for " + descriptiveNameForMacros);
     }
 }
 

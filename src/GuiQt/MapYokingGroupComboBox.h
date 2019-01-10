@@ -40,7 +40,8 @@ namespace caret {
         MapYokingGroupComboBox(QObject* parent);
         
         MapYokingGroupComboBox(QObject* parent,
-                               const QString& objectName);
+                               const QString& objectName,
+                               const QString& descriptiveName);
         
         virtual ~MapYokingGroupComboBox();
         

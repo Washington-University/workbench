@@ -243,6 +243,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                 + ":Tab");
     
     WuQMacroManager::instance()->addMacroSupportToObjectWithToolTip(qobject_cast<QTabBar*>(this->tabBar),
+                                                                    "ToolBar Tab",
                                                                     "Select Tab");
 
     /*
@@ -268,7 +269,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                                          SLOT(customViewActionTriggered()));
     this->customViewAction->setObjectName(m_objectNamePrefix
                                           + ":CustomView");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->customViewAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(this->customViewAction,
+                                                         "Display custom view dialog");
     
     /*
      * Actions at right side of toolbar
@@ -313,7 +315,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     toolBarToolButton->setDefaultAction(this->toolBarToolButtonAction);
     toolBarToolButtonAction->setObjectName(m_objectNamePrefix
                                            + ":ShowToolBar");
-    WuQMacroManager::instance()->addMacroSupportToObject(toolBarToolButtonAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(toolBarToolButtonAction,
+                                                         "Show toolbar");
     
     /*
      * Toolbox control at right of the tab bar
@@ -1944,37 +1947,43 @@ BrainBrowserWindowToolBar::createViewWidget()
     this->viewModeChartOneRadioButton->setToolTip("Show Old Chart View");
     this->viewModeChartOneRadioButton->setObjectName(objectNamePrefix
                                                      + ":ChartOld");
-    macroManager->addMacroSupportToObject(this->viewModeChartOneRadioButton);
+    macroManager->addMacroSupportToObject(this->viewModeChartOneRadioButton,
+                                          "Select Chart Old View");
     
     this->viewModeChartTwoRadioButton = new QRadioButton("Chart");
     this->viewModeChartTwoRadioButton->setToolTip("Show Chart View");
     this->viewModeChartTwoRadioButton->setObjectName(objectNamePrefix
                                                      + ":Chart");
-    macroManager->addMacroSupportToObject(this->viewModeChartTwoRadioButton);
+    macroManager->addMacroSupportToObject(this->viewModeChartTwoRadioButton,
+                                          "Select Chart View");
     
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
     this->viewModeSurfaceRadioButton->setToolTip("Show Surace View");
     this->viewModeSurfaceRadioButton->setObjectName(objectNamePrefix
                                                      + ":Surface");
-    macroManager->addMacroSupportToObject(this->viewModeSurfaceRadioButton);
+    macroManager->addMacroSupportToObject(this->viewModeSurfaceRadioButton,
+                                          "Select surface view");
 
     this->viewModeSurfaceMontageRadioButton = new QRadioButton("Montage");
     this->viewModeSurfaceMontageRadioButton->setToolTip("Show Montage View");
     this->viewModeSurfaceMontageRadioButton->setObjectName(objectNamePrefix
                                                      + ":Montage");
-    macroManager->addMacroSupportToObject(this->viewModeSurfaceMontageRadioButton);
+    macroManager->addMacroSupportToObject(this->viewModeSurfaceMontageRadioButton,
+                                          "Select surface montage view");
     
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeVolumeRadioButton->setToolTip("Show Volume View");
     this->viewModeVolumeRadioButton->setObjectName(objectNamePrefix
                                                      + ":Volume");
-    macroManager->addMacroSupportToObject(this->viewModeVolumeRadioButton);
+    macroManager->addMacroSupportToObject(this->viewModeVolumeRadioButton,
+                                          "Select volume view");
     
     this->viewModeWholeBrainRadioButton = new QRadioButton("All");
     this->viewModeWholeBrainRadioButton->setToolTip("Show All View");
     this->viewModeWholeBrainRadioButton->setObjectName(objectNamePrefix
                                                      + ":All");
-    macroManager->addMacroSupportToObject(this->viewModeWholeBrainRadioButton);
+    macroManager->addMacroSupportToObject(this->viewModeWholeBrainRadioButton,
+                                          "Select all view");
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -2119,7 +2128,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     }
     this->orientationLeftOrLateralToolButtonAction->setObjectName(objectNamePrefix
                                                                   + "LeftOrLateralView");
-    macroManager->addMacroSupportToObject(this->orientationLeftOrLateralToolButtonAction);
+    macroManager->addMacroSupportToObject(this->orientationLeftOrLateralToolButtonAction,
+                                          "Select left or lateral orientation");
     
     this->orientationRightOrMedialToolButtonAction = WuQtUtilities::createAction("R", 
                                                                          "View from a RIGHT perspective", 
@@ -2134,7 +2144,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     }
     this->orientationRightOrMedialToolButtonAction->setObjectName(objectNamePrefix
                                                                   + "RightOrMedialView");
-    macroManager->addMacroSupportToObject(this->orientationRightOrMedialToolButtonAction);
+    macroManager->addMacroSupportToObject(this->orientationRightOrMedialToolButtonAction,
+                                          "Select right or medial orientation");
     
     this->orientationAnteriorToolButtonAction = WuQtUtilities::createAction("A", 
                                                                             "View from an ANTERIOR perspective", 
@@ -2149,7 +2160,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     }
     this->orientationAnteriorToolButtonAction->setObjectName(objectNamePrefix
                                                              + "AnteriorView");
-    macroManager->addMacroSupportToObject(this->orientationAnteriorToolButtonAction);
+    macroManager->addMacroSupportToObject(this->orientationAnteriorToolButtonAction,
+                                          "Select anterior orientation");
     
     this->orientationPosteriorToolButtonAction = WuQtUtilities::createAction("P", 
                                                                              "View from a POSTERIOR perspective", 
@@ -2164,7 +2176,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     }
     this->orientationPosteriorToolButtonAction->setObjectName(objectNamePrefix
                                                               + "PosteriorView");
-    macroManager->addMacroSupportToObject(this->orientationPosteriorToolButtonAction);
+    macroManager->addMacroSupportToObject(this->orientationPosteriorToolButtonAction,
+                                          "Select posterior orientation");
     
     this->orientationDorsalToolButtonAction = WuQtUtilities::createAction("D", 
                                                                           "View from a DORSAL perspective", 
@@ -2179,7 +2192,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     }
     this->orientationDorsalToolButtonAction->setObjectName(objectNamePrefix
                                                            + "DorsalView");
-    macroManager->addMacroSupportToObject(this->orientationDorsalToolButtonAction);
+    macroManager->addMacroSupportToObject(this->orientationDorsalToolButtonAction,
+                                          "Select dorsal orientation");
     
     this->orientationVentralToolButtonAction = WuQtUtilities::createAction("V", 
                                                                            "View from a VENTRAL perspective", 
@@ -2194,7 +2208,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     }
     this->orientationVentralToolButtonAction->setObjectName(objectNamePrefix
                                                             + "VentralView");
-    macroManager->addMacroSupportToObject(this->orientationVentralToolButtonAction);
+    macroManager->addMacroSupportToObject(this->orientationVentralToolButtonAction,
+                                          "Select ventral orientation");
     
     
     this->orientationLateralMedialToolButtonAction = WuQtUtilities::createAction("LM",
@@ -2204,7 +2219,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                                  SLOT(orientationLateralMedialToolButtonTriggered(bool)));
     this->orientationLateralMedialToolButtonAction->setObjectName(objectNamePrefix
                                                                   + "LateralMedialView");
-    macroManager->addMacroSupportToObject(this->orientationLateralMedialToolButtonAction);
+    macroManager->addMacroSupportToObject(this->orientationLateralMedialToolButtonAction,
+                                          "Select lateral/medial orientation");
     
     this->orientationDorsalVentralToolButtonAction = WuQtUtilities::createAction("DV",
                                                                                     "View from a Dorsal/Ventral perspective", 
@@ -2213,7 +2229,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                                     SLOT(orientationDorsalVentralToolButtonTriggered(bool)));
     this->orientationDorsalVentralToolButtonAction->setObjectName(objectNamePrefix
                                                                   + "DorsalVentralView");
-    macroManager->addMacroSupportToObject(this->orientationDorsalVentralToolButtonAction);
+    macroManager->addMacroSupportToObject(this->orientationDorsalVentralToolButtonAction,
+                                          "Select dorsal/ventral orientation");
     
     this->orientationAnteriorPosteriorToolButtonAction = WuQtUtilities::createAction("AP", 
                                                                                         "View from a Anterior/Posterior perspective", 
@@ -2222,7 +2239,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                                         SLOT(orientationAnteriorPosteriorToolButtonTriggered(bool)));
     this->orientationAnteriorPosteriorToolButtonAction->setObjectName(objectNamePrefix
                                                                       + "AnteriorPosteriorView");
-    macroManager->addMacroSupportToObject(this->orientationAnteriorPosteriorToolButtonAction);
+    macroManager->addMacroSupportToObject(this->orientationAnteriorPosteriorToolButtonAction,
+                                          "Select anterior/posterior orientation");
     
     this->orientationResetToolButtonAction = WuQtUtilities::createAction("R\nE\nS\nE\nT",
                                                                          "Reset the view to dorsal and remove any panning or zooming", 
@@ -2231,7 +2249,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                          SLOT(orientationResetToolButtonTriggered(bool)));
     this->orientationResetToolButtonAction->setObjectName(objectNamePrefix
                                                           + "ResetView");
-    macroManager->addMacroSupportToObject(this->orientationResetToolButtonAction);
+    macroManager->addMacroSupportToObject(this->orientationResetToolButtonAction,
+                                          "Reset to default orientation");
     
     this->orientationLeftOrLateralToolButton = new QToolButton();
     this->orientationLeftOrLateralToolButton->setDefaultAction(this->orientationLeftOrLateralToolButtonAction);
@@ -2503,7 +2522,8 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                      this, SLOT(wholeBrainSurfaceTypeComboBoxIndexChanged(int)));
     this->wholeBrainSurfaceTypeComboBox->setObjectName(objectNamePrefix
                                                        + "SurfaceType");
-    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceTypeComboBox);
+    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceTypeComboBox,
+                                          "Select all view surface type");
     
     /*
      * Left
@@ -2515,7 +2535,8 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                      this, SLOT(wholeBrainSurfaceLeftCheckBoxStateChanged(int)));
     this->wholeBrainSurfaceLeftCheckBox->setObjectName(objectNamePrefix
                                                        + "EnableLeft");
-    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceLeftCheckBox);
+    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceLeftCheckBox,
+                                          "Enable all view left surface");
     
     QToolButton* wholeBrainLeftSurfaceToolButton = new QToolButton();
     QAction* leftSurfaceAction = WuQtUtilities::createAction("Left",
@@ -2527,7 +2548,8 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     wholeBrainLeftSurfaceToolButton->setDefaultAction(leftSurfaceAction);
     leftSurfaceAction->setObjectName(objectNamePrefix
                                      + "SelectLeft");
-    macroManager->addMacroSupportToObject(leftSurfaceAction);
+    macroManager->addMacroSupportToObject(leftSurfaceAction,
+                                          "Select all view left surface");
     
     /*
      * Right
@@ -2539,7 +2561,8 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                      this, SLOT(wholeBrainSurfaceRightCheckBoxStateChanged(int)));
     this->wholeBrainSurfaceRightCheckBox->setObjectName(objectNamePrefix
                                                         + "EnableRight");
-    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceRightCheckBox);
+    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceRightCheckBox,
+                                          "Enable all view right surface");
     
     QToolButton* wholeBrainRightSurfaceToolButton = new QToolButton();
     QAction* rightSurfaceAction = WuQtUtilities::createAction("Right",
@@ -2551,7 +2574,8 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     wholeBrainRightSurfaceToolButton->setDefaultAction(rightSurfaceAction);
     rightSurfaceAction->setObjectName(objectNamePrefix
                                       + "SelectRight");
-    macroManager->addMacroSupportToObject(rightSurfaceAction);
+    macroManager->addMacroSupportToObject(rightSurfaceAction,
+                                          "Select all view right surface");
     
     /*
      * Cerebellum
@@ -2563,7 +2587,8 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                      this, SLOT(wholeBrainSurfaceCerebellumCheckBoxStateChanged(int)));
     this->wholeBrainSurfaceCerebellumCheckBox->setObjectName(objectNamePrefix
                                                              + "EnableCerebellum");
-    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceCerebellumCheckBox);
+    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceCerebellumCheckBox,
+                                          "Enable all view cerebellum");
     
     QToolButton* wholeBrainCerebellumSurfaceToolButton = new QToolButton();
     QAction* cerebellumSurfaceAction = WuQtUtilities::createAction("Cerebellum",
@@ -2575,7 +2600,8 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     wholeBrainCerebellumSurfaceToolButton->setDefaultAction(cerebellumSurfaceAction);
     cerebellumSurfaceAction->setObjectName(objectNamePrefix
                                            + "SurfaceCerebellum");
-    macroManager->addMacroSupportToObject(cerebellumSurfaceAction);
+    macroManager->addMacroSupportToObject(cerebellumSurfaceAction,
+                                          "Select all view cerebellum surface");
 
     /*
      * Left/Right separation
@@ -2592,7 +2618,8 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                      this, SLOT(wholeBrainSurfaceSeparationLeftRightSpinBoxValueChanged(double)));
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setObjectName(objectNamePrefix
                                                                      + "LeftRightSeparation");
-    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceSeparationLeftRightSpinBox);
+    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceSeparationLeftRightSpinBox,
+                                          "Set all view left/right separation");
     
     /*
      * Cerebellum separation
@@ -2608,7 +2635,8 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                      this, SLOT(wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(double)));
     this->wholeBrainSurfaceSeparationCerebellumSpinBox->setObjectName(objectNamePrefix
                                                                       + "CortexCerebellumSeparation");
-    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceSeparationCerebellumSpinBox);
+    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceSeparationCerebellumSpinBox,
+                                          "Set all view cerebral/cerebellum separation");
     
     
 
@@ -2778,7 +2806,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeAnnotationsToolButton);
     this->modeInputModeAnnotationsAction->setObjectName(m_objectNamePrefix
                                                   + ":Mode:Annotate");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeAnnotationsAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeAnnotationsAction,
+                                                         "Select annotate mode");
     
     
     /*
@@ -2793,7 +2822,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeBordersToolButton);
     this->modeInputModeBordersAction->setObjectName(m_objectNamePrefix
                                                         + ":Mode:Border");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeBordersAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeBordersAction,
+                                                         "Select border mode");
     
     /*
      * Foci
@@ -2807,7 +2837,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeFociToolButton);
     this->modeInputModeFociAction->setObjectName(m_objectNamePrefix
                                                         + ":Mode:Foci");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeFociAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeFociAction,
+                                                         "Select foci mode");
     
     /*
      * Image
@@ -2825,7 +2856,8 @@ BrainBrowserWindowToolBar::createModeWidget()
         WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeImageToolButton);
         this->modeInputModeImageAction->setObjectName(m_objectNamePrefix
                                                             + ":Mode:Image");
-        WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeImageAction);
+        WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeImageAction,
+                                                             "Select image mode");
     }
     
     /*
@@ -2840,7 +2872,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeVolumeEditButton);
     this->modeInputVolumeEditAction->setObjectName(m_objectNamePrefix
                                                         + ":Mode:Volume");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputVolumeEditAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputVolumeEditAction,
+                                                         "Select volume mode");
     
     /*
      * View Mode
@@ -2868,7 +2901,8 @@ BrainBrowserWindowToolBar::createModeWidget()
     WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeViewToolButton);
     this->modeInputModeViewAction->setObjectName(m_objectNamePrefix
                                                         + ":Mode:View");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeViewAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeViewAction,
+                                                         "Select view mode");
     
     WuQtUtilities::matchWidgetWidths(inputModeAnnotationsToolButton,
                                      inputModeBordersToolButton,
@@ -3470,6 +3504,7 @@ BrainBrowserWindowToolBar::createSingleSurfaceOptionsWidget()
     this->surfaceSurfaceSelectionControl = new StructureSurfaceSelectionControl(false,
                                                                                 m_objectNamePrefix
                                                                                 + ":Surface",
+                                                                                "surface view",
                                                                                 this);
     QObject::connect(this->surfaceSurfaceSelectionControl, 
                      SIGNAL(selectionChanged(const StructureEnum::Enum,

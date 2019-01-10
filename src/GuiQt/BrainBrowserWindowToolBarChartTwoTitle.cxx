@@ -77,7 +77,8 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
                      this, &BrainBrowserWindowToolBarChartTwoTitle::showTitleCheckBoxClicked);
     m_showTitleCheckBox->setObjectName(objectNamePrefix
                                        + "Show");
-    macroManager->addMacroSupportToObject(m_showTitleCheckBox);
+    macroManager->addMacroSupportToObject(m_showTitleCheckBox,
+                                          "Show chart title");
     
     QToolButton* editTitleToolButton = new QToolButton;
     QAction* editTitleAction = new QAction("Edit Title...", editTitleToolButton);
@@ -86,7 +87,8 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
                      this, &BrainBrowserWindowToolBarChartTwoTitle::editTitleActionTriggered);
     editTitleAction->setObjectName(objectNamePrefix
                                        + "Edit");
-    macroManager->addMacroSupportToObject(editTitleAction);
+    macroManager->addMacroSupportToObject(editTitleAction,
+                                          "Display dialog to edit chart title");
     WuQtUtilities::setToolButtonStyleForQt5Mac(editTitleToolButton);
     editTitleToolButton->setDefaultAction(editTitleAction);
     
@@ -97,7 +99,8 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
     m_titleSizeSpinBox->setToolTip("Set height of title as percentage of tab height");
     m_titleSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                        + "Height");
-    macroManager->addMacroSupportToObject(m_titleSizeSpinBox->getWidget());
+    macroManager->addMacroSupportToObject(m_titleSizeSpinBox->getWidget(),
+                                          "Set chart title height");
     
     m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
     m_paddingSizeSpinBox->setRangePercentage(0.0, 100.0);
@@ -105,7 +108,8 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
                      this, &BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged);
     m_paddingSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                      + "Padding");
-    macroManager->addMacroSupportToObject(m_paddingSizeSpinBox->getWidget());
+    macroManager->addMacroSupportToObject(m_paddingSizeSpinBox->getWidget(),
+                                          "Set chart padding");
     
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height");
     QGridLayout* layout = new QGridLayout(this);

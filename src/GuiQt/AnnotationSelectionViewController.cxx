@@ -78,7 +78,8 @@ m_browserWindowIndex(browserWindowIndex)
     
     m_displayGroupComboBox = new DisplayGroupEnumComboBox(this,
                                                           (objectNamePrefix
-                                                           + ":DisplayGroup"));
+                                                           + ":DisplayGroup"),
+                                                          "annotations");
     QObject::connect(m_displayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
                      this, SLOT(displayGroupSelected(const DisplayGroupEnum::Enum)));
     
@@ -96,7 +97,8 @@ m_browserWindowIndex(browserWindowIndex)
                      this, SLOT(checkBoxToggled()));
     m_displayAnnotationsCheckBox->setObjectName(objectNamePrefix
                                                 + "DisplayAnnotatons");
-    macroManager->addMacroSupportToObject(m_displayAnnotationsCheckBox);
+    macroManager->addMacroSupportToObject(m_displayAnnotationsCheckBox,
+                                          "Enable display of annotations");
     
     
     m_displayTextAnnotationsCheckBox = new QCheckBox("Display Text Annotations");
@@ -105,7 +107,8 @@ m_browserWindowIndex(browserWindowIndex)
                      this, SLOT(checkBoxToggled()));
     m_displayTextAnnotationsCheckBox->setObjectName(objectNamePrefix
                                                     + "DisplayTextAnnotatons");
-    macroManager->addMacroSupportToObject(m_displayTextAnnotationsCheckBox);
+    macroManager->addMacroSupportToObject(m_displayTextAnnotationsCheckBox,
+                                          "Enable display of text annotations");
     
     m_displayWindowAnnotationInSingleTabViewsCheckBox = new QCheckBox("Show Window "
                                                                       + QString::number(m_browserWindowIndex + 1)
@@ -117,7 +120,8 @@ m_browserWindowIndex(browserWindowIndex)
                      this, SLOT(checkBoxToggled()));
     m_displayWindowAnnotationInSingleTabViewsCheckBox->setObjectName(objectNamePrefix
                                                     + "DisplayWindowAnnotatonsInSingleTabView");
-    macroManager->addMacroSupportToObject(m_displayWindowAnnotationInSingleTabViewsCheckBox);
+    macroManager->addMacroSupportToObject(m_displayWindowAnnotationInSingleTabViewsCheckBox,
+                                          "Enable display window annotations in single tab view");
     
     m_sceneAssistant = new SceneClassAssistant();
     

@@ -64,7 +64,8 @@ BrainBrowserWindowToolBarChartTwoOrientation::BrainBrowserWindowToolBarChartTwoO
                                                                          SLOT(orientationResetToolButtonTriggered(bool)));
     m_orientationResetToolButtonAction->setObjectName(objectNamePrefix
                                                       + ":ResetButton");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_orientationResetToolButtonAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_orientationResetToolButtonAction,
+                                                         "Reset chart panning and zooming");
 
     const QString customToolTip = ("Pressing the \"Custom\" button displays a dialog for creating and editing orientations.\n"
                                    "Note that custom orientations are stored in your Workbench's preferences and thus\n"
@@ -77,7 +78,8 @@ BrainBrowserWindowToolBarChartTwoOrientation::BrainBrowserWindowToolBarChartTwoO
                                                          SLOT(customViewActionTriggered()));
     m_customViewAction->setObjectName(objectNamePrefix
                                       + ":ShowCustomViewDialog");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_customViewAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_customViewAction,
+                                                         "Display chart custom view dialog");
 
     
     orientationResetToolButton->setDefaultAction(m_orientationResetToolButtonAction);

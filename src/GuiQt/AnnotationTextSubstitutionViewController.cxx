@@ -86,7 +86,8 @@ m_browserWindowIndex(browserWindowIndex)
     m_enableSubstitutionsCheckBox->setObjectName(parentObjectName
                                                  + ":Substitutions:Enable");
     m_enableSubstitutionsCheckBox->setToolTip("Enable Text Annotation Substitutions");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_enableSubstitutionsCheckBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_enableSubstitutionsCheckBox,
+                                                         "Enable annotation subsitutions");
     
     QButtonGroup* buttonGroup = new QButtonGroup();
     

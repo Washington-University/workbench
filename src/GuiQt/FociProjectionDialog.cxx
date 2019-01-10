@@ -208,7 +208,8 @@ FociProjectionDialog::createSurfaceSelectionWidget()
         m_leftSurfaceCheckBox = new QCheckBox("Left: ");
         m_leftSurfaceCheckBox->setChecked(true);
         m_leftSurfaceViewController = new SurfaceSelectionViewController(this, leftBrainStructure,
-                                                                         (m_objectNamePrefix + ":LeftSurface"));
+                                                                         (m_objectNamePrefix + ":LeftSurface"),
+                                                                         "foci projection left");
         m_leftSurfaceViewController->updateControl();
     }
     
@@ -218,7 +219,8 @@ FociProjectionDialog::createSurfaceSelectionWidget()
         m_rightSurfaceCheckBox = new QCheckBox("Right: ");
         m_rightSurfaceCheckBox->setChecked(true);
         m_rightSurfaceViewController = new SurfaceSelectionViewController(this, rightBrainStructure,
-                                                                          (m_objectNamePrefix + ":RightSurface"));
+                                                                          (m_objectNamePrefix + ":RightSurface"),
+                                                                          "foci projection right");
         m_rightSurfaceViewController->updateControl();
     }
     
@@ -229,7 +231,8 @@ FociProjectionDialog::createSurfaceSelectionWidget()
         m_cerebellumSurfaceCheckBox->setChecked(true);
         m_cerebellumSurfaceViewController = new SurfaceSelectionViewController(this,
                                                                                cerebellumBrainStructure,
-                                                                               (m_objectNamePrefix + ":CerebellumSurface"));
+                                                                               (m_objectNamePrefix + ":CerebellumSurface"),
+                                                                               "foci projection cerebellum");
         m_cerebellumSurfaceViewController->updateControl();
     }
     

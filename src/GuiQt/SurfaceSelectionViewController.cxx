@@ -53,15 +53,19 @@ using namespace caret;
  *    Surface selection that is controlled through this control.
  * @param objectName
  *    Name for combo box
+ * @param descriptiveName
+ *    Descriptive name for macros
  */
 SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
                                                                SurfaceSelectionModel* surfaceSelectionModel,
-                                                               const QString& objectName)
+                                                               const QString& objectName,
+                                                               const QString& descriptiveName)
 : WuQWidget(parent)
 {
     this->initializeControl(MODE_SELECTION_MODEL_STATIC,
                             surfaceSelectionModel,
-                            objectName);
+                            objectName,
+                            descriptiveName);
 }
 
 /**
@@ -72,10 +76,13 @@ SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
  *   Allows selection of any surface with the specified brain structure.
  * @param objectName
  *    Name for combo box
+ * @param descriptiveName
+ *    Descriptive name for macros
  */
 SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
                                                                BrainStructure* brainStructure,
-                                                               const QString& objectName)
+                                                               const QString& objectName,
+                                                               const QString& descriptiveName)
 : WuQWidget(parent)
 {
     std::vector<SurfaceTypeEnum::Enum> allSurfaceTypes;
@@ -85,7 +92,8 @@ SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
                                                           allSurfaceTypes);
     this->initializeControl(MODE_BRAIN_STRUCTURE,
                             ss,
-                            objectName);
+                            objectName,
+                            descriptiveName);
 }
 
 /**
@@ -121,12 +129,14 @@ SurfaceSelectionViewController::~SurfaceSelectionViewController()
  *    Name for combo box
  */
 SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
-                                                               const QString& objectName)
+                                                               const QString& objectName,
+                                                               const QString& descriptiveName)
 : WuQWidget(parent)
 {
     this->initializeControl(MODE_SELECTION_MODEL_DYNAMIC,
                             NULL,
-                            objectName);
+                            objectName,
+                            descriptiveName);
 }
 
 /**
@@ -136,12 +146,14 @@ SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
  *   Model for surface selection
  * @param objectName
  *    Name for combo box
-
+ * @param descriptiveName
+ *    Descriptive name for macros
  */
 void 
 SurfaceSelectionViewController::initializeControl(const Mode mode,
                                                   SurfaceSelectionModel* surfaceSelectionModel,
-                                                  const QString& objectName)
+                                                  const QString& objectName,
+                                                  const QString& descriptiveName)
 {
     this->mode = mode;
     this->surfaceComboBox = WuQFactory::newComboBox();
@@ -151,7 +163,8 @@ SurfaceSelectionViewController::initializeControl(const Mode mode,
     
     this->surfaceComboBox->setToolTip("Selects a surface in a combo box");
     this->surfaceComboBox->setObjectName(objectName);
-    WuQMacroManager::instance()->addMacroSupportToObject(this->surfaceComboBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(this->surfaceComboBox,
+                                                         "Select surface for " + descriptiveName);
     
 
 //#ifdef CARET_OS_MACOSX

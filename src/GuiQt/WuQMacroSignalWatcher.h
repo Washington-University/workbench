@@ -44,6 +44,7 @@ namespace caret {
     public:
         static WuQMacroSignalWatcher* newInstance(WuQMacroManager* parentMacroManager,
                                                   QObject* object,
+                                                  const QString& descriptiveName,
                                                   const QString& toolTipTextOverride,
                                                   QString& errorMessageOut);
         
@@ -100,6 +101,7 @@ namespace caret {
         WuQMacroSignalWatcher(WuQMacroManager* parentMacroManager,
                               QObject* object,
                               const WuQMacroClassTypeEnum::Enum objectType,
+                              const QString& descriptiveName,
                               const QString& toolTipTextOverride);
         
         WuQMacroManager* m_parentMacroManager;
@@ -110,6 +112,8 @@ namespace caret {
         QObject* m_object;
         
         const WuQMacroClassTypeEnum::Enum m_objectType;
+        
+        const QString m_descriptiveName;
         
         const QString m_objectName;
         

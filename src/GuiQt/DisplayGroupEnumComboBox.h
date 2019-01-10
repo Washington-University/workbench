@@ -35,7 +35,8 @@ namespace caret {
         DisplayGroupEnumComboBox(QObject* parent);
         
         DisplayGroupEnumComboBox(QObject* parent,
-                                 const QString& objectNameForMacros);
+                                 const QString& objectNameForMacros,
+                                 const QString& descriptiveNameForMacros);
         
         virtual ~DisplayGroupEnumComboBox();
         

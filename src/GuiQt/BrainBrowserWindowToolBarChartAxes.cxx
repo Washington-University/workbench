@@ -99,13 +99,16 @@ m_parentToolBar(parentToolBar)
     
     m_bottomAxisAutoRangeScaleCheckBox->setObjectName(objectNamePrefix
                                                       + "EnableBottomAxis");
-    macroManager->addMacroSupportToObject(m_bottomAxisAutoRangeScaleCheckBox);
+    macroManager->addMacroSupportToObject(m_bottomAxisAutoRangeScaleCheckBox,
+                                          "Enable chart bottom axis auto scale");
     m_bottomAxisMinimumValueSpinBox->setObjectName(objectNamePrefix
                                                       + "BottomAxisMinimumValue");
-    macroManager->addMacroSupportToObject(m_bottomAxisMinimumValueSpinBox);
+    macroManager->addMacroSupportToObject(m_bottomAxisMinimumValueSpinBox,
+                                          "Set chart bottom axis minimum");
     m_bottomAxisMaximumValueSpinBox->setObjectName(objectNamePrefix
                                                       + "BottomAxisMaximumValue");
-    macroManager->addMacroSupportToObject(m_bottomAxisMaximumValueSpinBox);
+    macroManager->addMacroSupportToObject(m_bottomAxisMaximumValueSpinBox,
+                                          "Set chart bottom axis maximum");
     
     createAxisWidgets(gridLayout,
                       m_leftAxisLabel,
@@ -123,13 +126,16 @@ m_parentToolBar(parentToolBar)
     
     m_leftAxisAutoRangeScaleCheckBox->setObjectName(objectNamePrefix
                                                       + "EnableLeftAxis");
-    macroManager->addMacroSupportToObject(m_leftAxisAutoRangeScaleCheckBox);
+    macroManager->addMacroSupportToObject(m_leftAxisAutoRangeScaleCheckBox,
+                                          "Enable chart left axis auto scale");
     m_leftAxisMinimumValueSpinBox->setObjectName(objectNamePrefix
                                                    + "LeftAxisMinimumValue");
-    macroManager->addMacroSupportToObject(m_leftAxisMinimumValueSpinBox);
+    macroManager->addMacroSupportToObject(m_leftAxisMinimumValueSpinBox,
+                                          "Set chart left axis minimum value");
     m_leftAxisMaximumValueSpinBox->setObjectName(objectNamePrefix
                                                    + "LeftAxisMaximumValue");
-    macroManager->addMacroSupportToObject(m_leftAxisMaximumValueSpinBox);
+    macroManager->addMacroSupportToObject(m_leftAxisMaximumValueSpinBox,
+                                          "Set chart left axis maximum value");
     
 //    createAxisWidgets(gridLayout,
 //                      m_topAxisLabel,

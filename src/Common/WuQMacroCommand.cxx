@@ -24,6 +24,7 @@
 #undef __WU_Q_MACRO_COMMAND_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroStandardItemTypeEnum.h"
 
@@ -42,15 +43,23 @@ using namespace caret;
  *    Type of object class
  * @param objectName
  *    Name of object
+ * @param objectDescriptiveName
+ *    Descriptive name of macro command
  */
 WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
-                                 const QString& objectName)
+                                 const QString& objectName,
+                                 const QString& objectDescriptiveName)
 : WuQMacroCommand(classType,
                   objectName,
+                  objectDescriptiveName,
                   "",
                   "",
                   "")
 {
+    if (objectDescriptiveName.isEmpty()) {
+        CaretLogWarning("Empty descriptive name for "
+                        + objectName);
+    }
 }
 
 /**
@@ -60,6 +69,8 @@ WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
  *    Type of object class
  * @param objectName
  *    Name of object
+ * @param objectDescriptiveName
+ *    Descriptive name of macro command
  * @param objectToolTip
  *    ToolTip for object
  * @param dataValue
@@ -69,6 +80,7 @@ WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
  */
 WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
                                  const QString& objectName,
+                                 const QString& objectDescriptiveName,
                                  const QString& objectToolTip,
                                  const QVariant dataValue,
                                  const QVariant dataValueTwo)
@@ -76,10 +88,16 @@ WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
 TracksModificationInterface(),
 m_classType(classType),
 m_objectName(objectName),
+m_descriptiveName(objectDescriptiveName),
 m_dataValue(dataValue),
 m_dataValueTwo(dataValueTwo),
 m_macroMouseEvent(NULL)
 {
+    if (objectDescriptiveName.isEmpty()) {
+        CaretLogWarning("Empty descriptive name for "
+                        + objectName);
+    }
+    
     setFlags(Qt::ItemIsEnabled
              | Qt::ItemIsSelectable);
     setToolTip(objectToolTip);
@@ -169,23 +187,30 @@ m_macroMouseEvent(NULL)
 /**
  * Constructor for a macro command containing a mouse event
  *
- * @param objectType
- *    Type of object
  * @param objectName
  *    Name of object
- * @param value
- *    Value for the command.
+ * @param objectDescriptiveName
+ *    Descriptive name of macro command
+ * @param mouseEventInfo
+ *    Information about mouse event.
  */
 WuQMacroCommand::WuQMacroCommand(const QString& objectName,
+                                 const QString& objectDescriptiveName,
                                  WuQMacroMouseEventInfo* mouseEventInfo)
 : QStandardItem(),
 TracksModificationInterface(),
 m_classType(WuQMacroClassTypeEnum::MOUSE_USER_EVENT),
 m_objectName(objectName),
+m_descriptiveName(objectDescriptiveName),
 m_dataValue((int)0),
 m_dataValueTwo(""),
 m_macroMouseEvent(mouseEventInfo)
 {
+    if (objectDescriptiveName.isEmpty()) {
+        CaretLogWarning("Empty descriptive name for "
+                        + objectName);
+    }
+
     setFlags(Qt::ItemIsEnabled
              | Qt::ItemIsSelectable);
     m_dataType    = WuQMacroDataValueTypeEnum::MOUSE;
@@ -386,9 +411,14 @@ WuQMacroCommand::updateTitle()
             break;
     }
     
-    setText(title
-            + " "
-            + m_objectName);
+    if ( ! m_descriptiveName.isEmpty()) {
+        setText(m_descriptiveName);
+    }
+    else {
+        setText(title
+                + " "
+                + m_objectName);
+    }
 }
 
 /**
@@ -425,6 +455,15 @@ QString
 WuQMacroCommand::getObjectName() const
 {
     return m_objectName;
+}
+
+/**
+ * @return The object's descriptive name
+ */
+QString
+WuQMacroCommand::getDescriptiveName() const
+{
+    return m_descriptiveName;
 }
 
 /**

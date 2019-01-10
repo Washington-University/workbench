@@ -188,7 +188,8 @@ CartesianChartTwoAttributesWidget::CartesianChartTwoAttributesWidget(BrainBrowse
     m_cartesianLineWidthDoubleSpinBox->setToolTip("Width of line");
     m_cartesianLineWidthDoubleSpinBox->setObjectName(parentObjectName
                                                      + ":LineWidth");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_cartesianLineWidthDoubleSpinBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_cartesianLineWidthDoubleSpinBox,
+                                                         "Set cartesian chart line width");
     
     
     QGridLayout* gridLayout = new QGridLayout(this);
@@ -268,7 +269,8 @@ EventListenerInterface()
     m_cellWidthPercentageSpinBox->setSuffix("%");
     m_cellWidthPercentageSpinBox->setObjectName(parentObjectName
                                                      + ":CellWidth");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_cellWidthPercentageSpinBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_cellWidthPercentageSpinBox,
+                                                         "Set matrix chart cell width");
     
     QLabel* cellHeightLabel = new QLabel("Cell Height");
     m_cellHeightPercentageSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(minPercent,
@@ -282,7 +284,8 @@ EventListenerInterface()
     m_cellHeightPercentageSpinBox->setSuffix("%");
     m_cellHeightPercentageSpinBox->setObjectName(parentObjectName
                                                      + ":CellHeight");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_cellHeightPercentageSpinBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_cellHeightPercentageSpinBox,
+                                                         "Set matrix chart cell height");
     
     WuQtUtilities::matchWidgetWidths(m_cellHeightPercentageSpinBox,
                                      m_cellWidthPercentageSpinBox);
@@ -293,7 +296,8 @@ EventListenerInterface()
                      this, SLOT(valueChanged()));
     m_highlightSelectionCheckBox->setObjectName(parentObjectName
                                                      + ":HighlightSelection");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_highlightSelectionCheckBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_highlightSelectionCheckBox,
+                                                         "Enable outline of selected chart matrix row/column");
     
     m_displayGridLinesCheckBox = new QCheckBox("Show Grid Outline");
     QObject::connect(m_displayGridLinesCheckBox, SIGNAL(clicked(bool)),
@@ -301,7 +305,8 @@ EventListenerInterface()
     m_displayGridLinesCheckBox->setToolTip("Outline cells in the matrix");
     m_displayGridLinesCheckBox->setObjectName(parentObjectName
                                                      + ":EnableGridOutline");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_displayGridLinesCheckBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_displayGridLinesCheckBox,
+                                                         "Enable matrix chart grid outline");
     
     m_manualWidgetsGroup = new WuQWidgetObjectGroup(this);
     m_manualWidgetsGroup->add(m_cellWidthPercentageSpinBox);

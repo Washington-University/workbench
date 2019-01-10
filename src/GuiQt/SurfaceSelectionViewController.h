@@ -36,15 +36,18 @@ namespace caret {
 
     public:
         SurfaceSelectionViewController(QObject* parent,
-                                SurfaceSelectionModel* surfaceSelectionModel,
-                                       const QString& objectName);
+                                       SurfaceSelectionModel* surfaceSelectionModel,
+                                       const QString& objectName,
+                                       const QString& descriptiveName);
         
         SurfaceSelectionViewController(QObject* parent,
                                        BrainStructure* brainStructure,
-                                       const QString& objectName);
+                                       const QString& objectName,
+                                       const QString& descriptiveName);
         
         SurfaceSelectionViewController(QObject* parent,
-                                       const QString& objectName);
+                                       const QString& objectName,
+                                       const QString& descriptiveName);
         
         virtual ~SurfaceSelectionViewController();
         
@@ -82,7 +85,8 @@ namespace caret {
         
         void initializeControl(const Mode mode,
                                SurfaceSelectionModel* surfaceSelectionModel,
-                               const QString& objectName);
+                               const QString& objectName,
+                               const QString& descriptiveName);
         
         Mode mode;
         

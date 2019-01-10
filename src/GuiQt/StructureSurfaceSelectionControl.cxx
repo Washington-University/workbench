@@ -56,9 +56,14 @@ using namespace caret;
  *     Show labels on controls
  * @param objectNamePrefix
  *     Object name prefix used for macros
+ * @param descriptivePrefix
+ *     Descriptive prefix for macros
+ * @param parent
+ *     Parent widget for controls
  */
 StructureSurfaceSelectionControl::StructureSurfaceSelectionControl(const bool showLabels,
                                                                    const QString& objectNamePrefix,
+                                                                   const QString& descriptivePrefix,
                                                                    QWidget* parent)
 : QWidget(parent)
 {
@@ -71,7 +76,8 @@ StructureSurfaceSelectionControl::StructureSurfaceSelectionControl(const bool sh
     this->structureSelectionComboBox->setToolTip("Selects Structure of Surface");
     this->structureSelectionComboBox->setObjectName(objectNamePrefix
                                                     + ":StructureSelection");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->structureSelectionComboBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(this->structureSelectionComboBox,
+                                                         "Select structure for " + descriptivePrefix);
     
     this->surfaceControllerSelectionComboBox = WuQFactory::newComboBox();
     this->surfaceControllerSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -80,7 +86,8 @@ StructureSurfaceSelectionControl::StructureSurfaceSelectionControl(const bool sh
     this->surfaceControllerSelectionComboBox->setToolTip("Selects Surface");
     this->surfaceControllerSelectionComboBox->setObjectName(objectNamePrefix
                                                     + ":SurfaceSelection");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->surfaceControllerSelectionComboBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(this->surfaceControllerSelectionComboBox,
+                                                         "Select surface for " + descriptivePrefix);
 
     QGridLayout* layout = new QGridLayout(this);
     layout->setColumnStretch(0, 0);

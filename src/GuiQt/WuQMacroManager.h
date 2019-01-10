@@ -61,14 +61,19 @@ namespace caret {
         
         QString getName() const;
 
-        bool addMacroSupportToObject(QObject* object);
+//        bool addMacroSupportToObject(QObject* object);
+//        
+        bool addMacroSupportToObject(QObject* object,
+                                     const QString& descriptiveName);
         
         bool addMacroSupportToObjectWithToolTip(QObject* object,
+                                                const QString& descriptiveName,
                                                 const QString& toolTipOverride);
         
         bool addMacroCommandToRecording(WuQMacroCommand* macroCommand);
         
         bool addMouseEventToRecording(QWidget* widget,
+                                      const QString& descriptiveName,
                                       const QMouseEvent* me);
         
         WuQMacroModeEnum::Enum getMode() const;

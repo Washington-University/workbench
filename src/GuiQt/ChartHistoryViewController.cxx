@@ -86,7 +86,8 @@ m_objectNamePrefix(parentObjectName
                      this, SLOT(averageCheckBoxClicked(bool)));
     m_averageCheckBox->setObjectName(m_objectNamePrefix
                                      + ":ShowAverage");
-    macroManager->addMacroSupportToObject(m_averageCheckBox);
+    macroManager->addMacroSupportToObject(m_averageCheckBox,
+                                          "Enable linew chart history average");
     
     QPushButton* clearPushButton = new QPushButton("Clear");
     clearPushButton->setFixedWidth(clearPushButton->sizeHint().width() + 20);
@@ -96,7 +97,8 @@ m_objectNamePrefix(parentObjectName
                                          "Remove all charts of the selected type in this tab");
     clearPushButton->setObjectName(m_objectNamePrefix
                                    + ":ClearButton");
-    macroManager->addMacroSupportToObject(clearPushButton);
+    macroManager->addMacroSupportToObject(clearPushButton,
+                                          "Remove line charts in tab");
     
     
     QLabel* maximumDisplayedLabel = new QLabel("Show last ");
@@ -108,7 +110,8 @@ m_objectNamePrefix(parentObjectName
     m_maximumDisplayedSpinBox->setToolTip("Show Last Lines");
     m_maximumDisplayedSpinBox->setObjectName(m_objectNamePrefix
                                              + ":ShowLastCount");
-    macroManager->addMacroSupportToObject(m_maximumDisplayedSpinBox);
+    macroManager->addMacroSupportToObject(m_maximumDisplayedSpinBox,
+                                          "Set maximum line charts");
     
     QHBoxLayout* maxDisplayedLayout = new QHBoxLayout();
     maxDisplayedLayout->addWidget(maximumDisplayedLabel);
@@ -323,7 +326,8 @@ ChartHistoryViewController::updateHistoryViewController()
             checkBox->setObjectName(m_objectNamePrefix
                                     + ":ShowChartLine"
                                     + numberString);
-            macroManager->addMacroSupportToObject(checkBox);
+            macroManager->addMacroSupportToObject(checkBox,
+                                                  "Show line chart " + numberString);
             
 
             /*
@@ -356,7 +360,8 @@ ChartHistoryViewController::updateHistoryViewController()
             colorComboBox->getWidget()->setObjectName(m_objectNamePrefix
                                                         + ":Color"
                                                         + numberString);
-            macroManager->addMacroSupportToObject(colorComboBox->getWidget());
+            macroManager->addMacroSupportToObject(colorComboBox->getWidget(),
+                                                  "Set line chart " + numberString + " color");
             
             /*
              * Label

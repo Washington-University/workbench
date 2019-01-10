@@ -179,13 +179,16 @@ CiftiConnectivityMatrixViewController::updateViewController()
             const QString objectNamePrefix(m_objectNamePrefix
                                            + QString("%1").arg((int)i+1, 2, 10, QLatin1Char('0'))
                                            + ":");
+            const QString descriptivePrefix("connectivity file " + QString::number(i+1));
+            
             checkBox = new QCheckBox("");
             checkBox->setToolTip("When selected, load data during\n"
                                  "an identification operation");
             m_fileEnableCheckBoxes.push_back(checkBox);
             checkBox->setObjectName(objectNamePrefix
                                          + "Enable");
-            macroManager->addMacroSupportToObject(checkBox);
+            macroManager->addMacroSupportToObject(checkBox,
+                                                  "Enable " + descriptivePrefix);
             
             const AString dynToolTip("This option is enabled only for .dynconn.nii (dynamic connectivity) files.  "
                                      "When checked, this dynamic connectivity file will appear in the Overlay Layers' File selection combo box.  "
@@ -199,7 +202,8 @@ CiftiConnectivityMatrixViewController::updateViewController()
             m_layerCheckBoxes.push_back(layerCheckBox);
             layerCheckBox->setObjectName(objectNamePrefix
                                          + "EnableLayer");
-            macroManager->addMacroSupportToObject(layerCheckBox);
+            macroManager->addMacroSupportToObject(layerCheckBox,
+                                                  "Enable dynamic connectivity for " + descriptivePrefix);
             
             lineEdit = new QLineEdit();
             lineEdit->setReadOnly(true);
@@ -211,14 +215,16 @@ CiftiConnectivityMatrixViewController::updateViewController()
             m_fileCopyToolButtons.push_back(copyToolButton);
             copyToolButton->setObjectName(objectNamePrefix
                                          + "CopyButton");
-            macroManager->addMacroSupportToObject(copyToolButton);
+            macroManager->addMacroSupportToObject(copyToolButton,
+                                                  "Copy load row to new CIFTI scalar file for " + descriptivePrefix);
             
             comboBox = new QComboBox();
             m_fiberOrientationFileComboBoxes.push_back(comboBox);
             comboBox->setToolTip("Select Fiber Orientation File");
             comboBox->setObjectName(objectNamePrefix
                                          + "FiberOrientationFile");
-            macroManager->addMacroSupportToObject(comboBox);
+            macroManager->addMacroSupportToObject(comboBox,
+                                                  "Select fiber orientation for " + descriptivePrefix);
             
             QObject::connect(copyToolButton, SIGNAL(clicked()),
                              m_signalMapperFileCopyToolButton, SLOT(map()));

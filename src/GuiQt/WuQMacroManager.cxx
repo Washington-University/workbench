@@ -180,6 +180,8 @@ WuQMacroManager::isModeRecording() const
  *
  * @param object
  *     Object that is monitored.
+ * @param descriptiveName
+ *     Descriptive name for user
  * @param toolTipTextOverride
  *     Override of object's tooltip.  This is primarily used when
  *     an object of a particular class does not support a tooltip
@@ -188,7 +190,8 @@ WuQMacroManager::isModeRecording() const
  */
 bool
 WuQMacroManager::addMacroSupportToObjectWithToolTip(QObject* object,
-                                        const QString& toolTipOverride)
+                                                    const QString& descriptiveName,
+                                                    const QString& toolTipOverride)
 {
     CaretAssert(object);
     
@@ -197,6 +200,12 @@ WuQMacroManager::addMacroSupportToObjectWithToolTip(QObject* object,
         CaretLogSevere("Object name is empty, will be ignored for macros\n"
                        + SystemUtilities::getBackTrace());
         return false;
+    }
+    if (descriptiveName.isEmpty()) {
+        CaretLogSevere("Descriptive name is empty for "
+                       + name
+                       + "\n"
+                       + SystemUtilities::getBackTrace());
     }
     
     auto existingWatcher = m_signalWatchers.find(name);
@@ -212,6 +221,7 @@ WuQMacroManager::addMacroSupportToObjectWithToolTip(QObject* object,
     AString errorMessage;
     WuQMacroSignalWatcher* widgetWatcher = WuQMacroSignalWatcher::newInstance(this,
                                                                               object,
+                                                                              descriptiveName,
                                                                               toolTipOverride,
                                                                               errorMessage);
     if (widgetWatcher != NULL) {
@@ -226,6 +236,25 @@ WuQMacroManager::addMacroSupportToObjectWithToolTip(QObject* object,
     }
 }
 
+///**
+// * Add macro support to the given object.  When recording,
+// * The object's 'value changed' signal will be monitored so
+// * that the new value can be part of a macro command.
+// *
+// * @param object
+// *     Object that is monitored.
+// * @param toolTipTextOverride
+// *     Override of object's tooltip.  This is primarily used when
+// *     an object of a particular class does not support a tooltip
+// *     such as a QButtonGroup
+// */
+//bool
+//WuQMacroManager::addMacroSupportToObject(QObject* object)
+//{
+//    return addMacroSupportToObject(object,
+//                                   "IN WORK");
+//}
+
 /**
  * Add macro support to the given object.  When recording,
  * The object's 'value changed' signal will be monitored so
@@ -233,13 +262,12 @@ WuQMacroManager::addMacroSupportToObjectWithToolTip(QObject* object,
  *
  * @param object
  *     Object that is monitored.
- * @param toolTipTextOverride
- *     Override of object's tooltip.  This is primarily used when
- *     an object of a particular class does not support a tooltip
- *     such as a QButtonGroup
+ * @param descriptiveName
+ *     Descriptive name for user
  */
 bool
-WuQMacroManager::addMacroSupportToObject(QObject* object)
+WuQMacroManager::addMacroSupportToObject(QObject* object,
+                                         const QString& descriptiveName)
 {
     CaretAssert(object);
     
@@ -254,6 +282,7 @@ WuQMacroManager::addMacroSupportToObject(QObject* object)
     }
     
     const bool resultFlag = addMacroSupportToObjectWithToolTip(object,
+                                                               descriptiveName,
                                                                toolTipText);
     if (resultFlag) {
         
@@ -299,6 +328,8 @@ WuQMacroManager::addMacroCommandToRecording(WuQMacroCommand* macroCommand)
  *
  * @param widget
  *     Widget where mouse event occurred
+ * @param descriptiveName
+ *     Descriptive name for user
  * @param me
  *     The Qt Mouse Event
  * @return 
@@ -306,6 +337,7 @@ WuQMacroManager::addMacroCommandToRecording(WuQMacroCommand* macroCommand)
  */
 bool
 WuQMacroManager::addMouseEventToRecording(QWidget* widget,
+                                          const QString& descriptiveName,
                                           const QMouseEvent* me)
 {
     CaretAssert(widget);
@@ -317,6 +349,12 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
             CaretLogSevere("Widget name is empty for recording of mouse event\n"
                            + SystemUtilities::getBackTrace());
             return false;
+        }
+        if (descriptiveName.isEmpty()) {
+            CaretLogSevere("Descriptive name is empty for "
+                           + name
+                           + "\n"
+                           + SystemUtilities::getBackTrace());
         }
         CaretAssert(m_macroBeingRecorded);
 
@@ -359,7 +397,8 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
                                   me->localPos().y());
         
             m_macroBeingRecorded->appendMacroCommand(new WuQMacroCommand(name,
-                                                                  mouseInfo));
+                                                                         descriptiveName,
+                                                                         mouseInfo));
             return true;
 
         }

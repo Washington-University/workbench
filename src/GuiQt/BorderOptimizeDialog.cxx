@@ -1018,7 +1018,8 @@ BorderOptimizeDialog::createSurfaceSelectionWidget()
 {
     m_surfaceSelectionControl = new SurfaceSelectionViewController(this,
                                                                    (m_objectNamePrefix
-                                                                    + ":SurfaceSelectionComboBox"));
+                                                                    + ":SurfaceSelectionComboBox"),
+                                                                   "border sampling");
     QObject::connect(m_surfaceSelectionControl, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(gradientComputatonSurfaceSelected(Surface*)));
     
@@ -1040,7 +1041,8 @@ BorderOptimizeDialog::createSphericalUpsamplingWidget()
     QLabel* surfaceLabel = new QLabel("Current Sphere");
     m_upsamplingSurfaceSelectionControl = new SurfaceSelectionViewController(this,
                                                                              (m_objectNamePrefix
-                                                                              + ":SphericalSurfaceSelectionComboBox"));
+                                                                              + ":UpSamplingSurfaceSelection"),
+                                                                             "border upsampling");
     
     QLabel* resolutionLabel = new QLabel("Upsampling Resolution");
     m_upsamplingResolutionSpinBox = new QSpinBox();

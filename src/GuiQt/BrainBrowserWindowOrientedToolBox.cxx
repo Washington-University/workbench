@@ -171,7 +171,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
 #endif
     m_tabWidget->setObjectName(objectNamePrefix
                                + ":Tab");
-    macroManager->addMacroSupportToObjectWithToolTip(m_tabWidget, "");
+    macroManager->addMacroSupportToObjectWithToolTip(m_tabWidget, "Toolbox tab", "");
     
     m_annotationTabIndex = -1;
     m_borderTabIndex = -1;
@@ -228,7 +228,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_annotationTabWidget->addTab(m_annotationTextSubstitutionViewController, "Substitutions");
         m_annotationTabWidget->setObjectName(objectNamePrefix
                                              + ":AnnotationTab");
-        macroManager->addMacroSupportToObjectWithToolTip(m_annotationTabWidget, "");
+        macroManager->addMacroSupportToObjectWithToolTip(m_annotationTabWidget,
+                                                         "Features ToolBox Annotation Tab",
+                                                         "");
         
         m_annotationTabIndex = addToTabWidget(m_annotationTabWidget,
                                               "Annot");
@@ -276,7 +278,8 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     if (isOverlayToolBox) {
         m_volumeSurfaceOutlineSetViewController = new VolumeSurfaceOutlineSetViewController(orientation,
                                                                                             m_browserWindowIndex,
-                                                                                            objectNamePrefix);
+                                                                                            objectNamePrefix,
+                                                                                            "toolbox");
         m_volumeSurfaceOutlineTabIndex = addToTabWidget(m_volumeSurfaceOutlineSetViewController,
                              "Vol/Surf Outline");
     }

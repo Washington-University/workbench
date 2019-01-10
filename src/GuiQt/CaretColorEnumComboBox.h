@@ -46,6 +46,7 @@ namespace caret {
         CaretColorEnumComboBox(const AString& customColorSelectionName,
                                const QIcon& customColorSelectionIcon,
                                const QString& objectNameForMacros,
+                               const QString& objectDescriptiveNameForMacros,
                                QObject* parent);
         
         virtual ~CaretColorEnumComboBox();

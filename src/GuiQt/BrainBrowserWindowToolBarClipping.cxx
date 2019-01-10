@@ -75,7 +75,8 @@ m_parentToolBar(parentToolBar)
     m_xClippingEnabledCheckBox->setToolTip("Enable X clipping plane");
     m_xClippingEnabledCheckBox->setObjectName(objectNamePrefix
                                               + ":EnableX");
-    macroManager->addMacroSupportToObject(m_xClippingEnabledCheckBox);
+    macroManager->addMacroSupportToObject(m_xClippingEnabledCheckBox,
+                                          "Enable X clipping plane");
 
     m_yClippingEnabledCheckBox = new QCheckBox("Y");
     QObject::connect(m_yClippingEnabledCheckBox, SIGNAL(clicked(bool)),
@@ -83,7 +84,8 @@ m_parentToolBar(parentToolBar)
     m_yClippingEnabledCheckBox->setToolTip("Enable Y clipping plane");
     m_yClippingEnabledCheckBox->setObjectName(objectNamePrefix
                                               + ":EnableY");
-    macroManager->addMacroSupportToObject(m_yClippingEnabledCheckBox);
+    macroManager->addMacroSupportToObject(m_yClippingEnabledCheckBox,
+                                          "Enable Y clipping plane");
     
     m_zClippingEnabledCheckBox = new QCheckBox("Z");
     QObject::connect(m_zClippingEnabledCheckBox, SIGNAL(clicked(bool)),
@@ -91,7 +93,8 @@ m_parentToolBar(parentToolBar)
     m_zClippingEnabledCheckBox->setToolTip("Enable Z clipping plane");
     m_zClippingEnabledCheckBox->setObjectName(objectNamePrefix
                                               + ":EnableZ");
-    macroManager->addMacroSupportToObject(m_zClippingEnabledCheckBox);
+    macroManager->addMacroSupportToObject(m_zClippingEnabledCheckBox,
+                                          "Enable Z clipping");
     
     m_surfaceClippingEnabledCheckBox = new QCheckBox("Surface");
     QObject::connect(m_surfaceClippingEnabledCheckBox, SIGNAL(clicked(bool)),
@@ -99,7 +102,8 @@ m_parentToolBar(parentToolBar)
     m_surfaceClippingEnabledCheckBox->setToolTip("Enable Clipping of Surface");
     m_surfaceClippingEnabledCheckBox->setObjectName(objectNamePrefix
                                                     + ":EnableSurface");
-    macroManager->addMacroSupportToObject(m_surfaceClippingEnabledCheckBox);
+    macroManager->addMacroSupportToObject(m_surfaceClippingEnabledCheckBox,
+                                          "Enable surface clipping");
     
     m_volumeClippingEnabledCheckBox = new QCheckBox("Volume");
     QObject::connect(m_volumeClippingEnabledCheckBox, SIGNAL(clicked(bool)),
@@ -107,7 +111,8 @@ m_parentToolBar(parentToolBar)
     m_volumeClippingEnabledCheckBox->setToolTip("Enable Clipping of Volume Slices");
     m_volumeClippingEnabledCheckBox->setObjectName(objectNamePrefix
                                               + ":EnableVolume");
-    macroManager->addMacroSupportToObject(m_volumeClippingEnabledCheckBox);
+    macroManager->addMacroSupportToObject(m_volumeClippingEnabledCheckBox,
+                                          "Enable volume clipping");
     
     m_featuresClippingEnabledCheckBox = new QCheckBox("Features");
     QObject::connect(m_featuresClippingEnabledCheckBox, SIGNAL(clicked(bool)),
@@ -115,7 +120,8 @@ m_parentToolBar(parentToolBar)
     m_featuresClippingEnabledCheckBox->setToolTip("Enable Clipping of Features");
     m_featuresClippingEnabledCheckBox->setObjectName(objectNamePrefix
                                               + ":EnableFeatures");
-    macroManager->addMacroSupportToObject(m_featuresClippingEnabledCheckBox);
+    macroManager->addMacroSupportToObject(m_featuresClippingEnabledCheckBox,
+                                          "Enable features clipping");
     
     QToolButton* setupToolButton = new QToolButton();
     setupToolButton->setText("Setup");
@@ -125,7 +131,8 @@ m_parentToolBar(parentToolBar)
     setupToolButton->setToolTip("Display Clipping Planes Setup Dialog");
     setupToolButton->setObjectName(objectNamePrefix
                                    + ":ShowSetupDialog");
-    macroManager->addMacroSupportToObject(setupToolButton);
+    macroManager->addMacroSupportToObject(setupToolButton,
+                                          "Display clipping planes dialog");
     
     QGridLayout* gridLayout = new QGridLayout(this);
     gridLayout->setHorizontalSpacing(6);

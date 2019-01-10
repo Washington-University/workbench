@@ -50,7 +50,8 @@ using namespace caret;
  */
 MapYokingGroupComboBox::MapYokingGroupComboBox(QObject* parent)
 : MapYokingGroupComboBox(parent,
-                       "")
+                         "",
+                         "")
 {
 }
 //: WuQWidget(parent)
@@ -69,9 +70,17 @@ MapYokingGroupComboBox::MapYokingGroupComboBox(QObject* parent)
 
 /**
  * Constructor.
+ *
+ * @param parent
+ *     Parent of this combo box
+ * @param objectName
+ *     Object name for macros
+ * @param descriptiveName
+       Descriptive name for macros
  */
 MapYokingGroupComboBox::MapYokingGroupComboBox(QObject* parent,
-                                               const QString& objectName)
+                                               const QString& objectName,
+                                               const QString& descriptiveName)
 : WuQWidget(parent)
 {
     m_comboBox = new EnumComboBoxTemplate(this);
@@ -86,7 +95,8 @@ MapYokingGroupComboBox::MapYokingGroupComboBox(QObject* parent,
     if ( ! objectName.isEmpty()) {
         QWidget* encapsulatedComboBox = m_comboBox->getWidget();
         encapsulatedComboBox->setObjectName(objectName);
-        WuQMacroManager::instance()->addMacroSupportToObject(encapsulatedComboBox);
+        WuQMacroManager::instance()->addMacroSupportToObject(encapsulatedComboBox,
+                                                             "Select map yoking for " + descriptiveName);
     }
 }
 

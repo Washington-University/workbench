@@ -888,6 +888,7 @@ void
 BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 {
     WuQMacroManager::instance()->addMouseEventToRecording(this,
+                                                          "Mouse Press in Window" + AString::number(this->windowIndex + 1),
                                                           me);
     
     Qt::MouseButton button = me->button();
@@ -976,6 +977,7 @@ void
 BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 {
     WuQMacroManager::instance()->addMouseEventToRecording(this,
+                                                          "Mouse Release in Window" + AString::number(this->windowIndex + 1),
                                                           me);
     
     Qt::MouseButton button = me->button();
@@ -1074,6 +1076,7 @@ void
 BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
 {
     WuQMacroManager::instance()->addMouseEventToRecording(this,
+                                                          "Mouse Double Click in Window" + AString::number(this->windowIndex + 1),
                                                           me);
 
     Qt::MouseButton button = me->button();
@@ -1419,6 +1422,7 @@ void
 BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 {
     WuQMacroManager::instance()->addMouseEventToRecording(this,
+                                                          "Mouse Move in Window" + AString::number(this->windowIndex + 1),
                                                           me);
     
     /*

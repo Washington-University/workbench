@@ -97,7 +97,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChanged);
     m_axisDisplayedByUserCheckBox->setObjectName(objectNamePrefix
                                                  + "ShowAxis");
-    macroManager->addMacroSupportToObject(m_axisDisplayedByUserCheckBox);
+    macroManager->addMacroSupportToObject(m_axisDisplayedByUserCheckBox,
+                                          "Enable chart axis");
     
 
     m_showTickMarksCheckBox = new QCheckBox("Ticks");
@@ -106,7 +107,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_showTickMarksCheckBox->setToolTip("Show ticks along the axis");
     m_showTickMarksCheckBox->setObjectName(objectNamePrefix
                                                  + "ShowTicks");
-    macroManager->addMacroSupportToObject(m_showTickMarksCheckBox);
+    macroManager->addMacroSupportToObject(m_showTickMarksCheckBox,
+                                          "Enable chart axis ticks");
     
     m_showLabelCheckBox = new QCheckBox("Label");
     QObject::connect(m_showLabelCheckBox, &QCheckBox::clicked,
@@ -114,7 +116,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_showLabelCheckBox->setToolTip("Show label on axis");
     m_showLabelCheckBox->setObjectName(objectNamePrefix
                                                  + "ShowLabel");
-    macroManager->addMacroSupportToObject(m_showLabelCheckBox);
+    macroManager->addMacroSupportToObject(m_showLabelCheckBox,
+                                          "Enable chart axis label");
     
     m_showNumericsCheckBox = new QCheckBox("Nums");
     QObject::connect(m_showNumericsCheckBox, &QCheckBox::clicked,
@@ -122,7 +125,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_showNumericsCheckBox->setToolTip("Show numeric scale values on axis");
     m_showNumericsCheckBox->setObjectName(objectNamePrefix
                                                  + "ShowNumerics");
-    macroManager->addMacroSupportToObject(m_showNumericsCheckBox);
+    macroManager->addMacroSupportToObject(m_showNumericsCheckBox,
+                                          "Enable chart axis numerics");
     
     m_rotateNumericsCheckBox = new QCheckBox("Rotate");
     QObject::connect(m_rotateNumericsCheckBox, &QCheckBox::clicked,
@@ -130,7 +134,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_rotateNumericsCheckBox->setToolTip("Rotate numeric scale values on axis");
     m_rotateNumericsCheckBox->setObjectName(objectNamePrefix
                                                  + "EnableNumericsRotate");
-    macroManager->addMacroSupportToObject(m_rotateNumericsCheckBox);
+    macroManager->addMacroSupportToObject(m_rotateNumericsCheckBox,
+                                          "Enable rotation of chart axis numerics");
     
     /*
      * Axes selection
@@ -142,7 +147,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_axisComboBox->getWidget()->setToolTip("Choose axis for editing");
     m_axisComboBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "ChooseAxis");
-    macroManager->addMacroSupportToObject(m_axisComboBox->getComboBox());
+    macroManager->addMacroSupportToObject(m_axisComboBox->getComboBox(),
+                                          "Select chart axis");
     
     /*
      * Controls for layer selection and label editing
@@ -155,7 +161,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_axisLabelToolButton->setToolTip("Edit the axis name for the file in the selected overlay");
     m_axisLabelToolButton->setObjectName(objectNamePrefix
                                                  + "EditAxis");
-    macroManager->addMacroSupportToObject(m_axisLabelToolButton);
+    macroManager->addMacroSupportToObject(m_axisLabelToolButton,
+                                          "Edit chart axis label");
     
     QLabel* axisLabelFromOverlayLabel = new QLabel("Label From File In");
     m_axisLabelFromOverlayComboBox = new QComboBox();
@@ -164,7 +171,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt);
     m_axisLabelFromOverlayComboBox->setObjectName(objectNamePrefix
                                                  + "LabelFromOverlay");
-    macroManager->addMacroSupportToObject(m_axisLabelFromOverlayComboBox);
+    macroManager->addMacroSupportToObject(m_axisLabelFromOverlayComboBox,
+                                          "Select chart axis overlay source");
     
     /*
      * Range controls
@@ -182,7 +190,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_autoUserRangeComboBox->getWidget()->setToolTip(rangeTooltip);
     m_autoUserRangeComboBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "RangeMode");
-    macroManager->addMacroSupportToObject(m_autoUserRangeComboBox->getWidget());
+    macroManager->addMacroSupportToObject(m_autoUserRangeComboBox->getWidget(),
+                                          "Select chart axis range mode");
     
     m_userMinimumValueSpinBox = new WuQDoubleSpinBox(this);
     m_userMinimumValueSpinBox->setDecimalsModeAuto();
@@ -192,7 +201,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_userMinimumValueSpinBox->setToolTip("Set user scaling axis minimum value");
     m_userMinimumValueSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "ScaleMinimum");
-    macroManager->addMacroSupportToObject(m_userMinimumValueSpinBox->getWidget());
+    macroManager->addMacroSupportToObject(m_userMinimumValueSpinBox->getWidget(),
+                                          "Set chart axis minimum");
     
     m_userMaximumValueSpinBox = new WuQDoubleSpinBox(this);
     m_userMaximumValueSpinBox->setDecimalsModeAuto();
@@ -202,7 +212,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_userMaximumValueSpinBox->setToolTip("Set user scaling axis maximum value");
     m_userMaximumValueSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "ScaleMaximum");
-    macroManager->addMacroSupportToObject(m_userMaximumValueSpinBox->getWidget());
+    macroManager->addMacroSupportToObject(m_userMaximumValueSpinBox->getWidget(),
+                                          "See chart axis maximum");
     
     /*
      * Format controls
@@ -214,7 +225,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_userNumericFormatComboBox->getWidget()->setToolTip("Choose format of axis scale numeric values");
     m_userNumericFormatComboBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "Format");
-    macroManager->addMacroSupportToObject(m_userNumericFormatComboBox->getWidget());
+    macroManager->addMacroSupportToObject(m_userNumericFormatComboBox->getWidget(),
+                                          "Select chart axis numeric format");
     
     m_userDigitsRightOfDecimalSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0, 10, 1);
     QObject::connect(m_userDigitsRightOfDecimalSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
@@ -222,7 +234,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_userDigitsRightOfDecimalSpinBox->setToolTip("Set digits right of decimal for\ndecimal or scientific format");
     m_userDigitsRightOfDecimalSpinBox->setObjectName(objectNamePrefix
                                                  + "DigitsRightOfDecimal");
-    macroManager->addMacroSupportToObject(m_userDigitsRightOfDecimalSpinBox);
+    macroManager->addMacroSupportToObject(m_userDigitsRightOfDecimalSpinBox,
+                                          "Set chart axis digits right of decimal");
     
     m_numericSubdivisionsModeComboBox = new EnumComboBoxTemplate(this);
     m_numericSubdivisionsModeComboBox->setup<ChartTwoNumericSubdivisionsModeEnum, ChartTwoNumericSubdivisionsModeEnum::Enum>();
@@ -231,7 +244,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_numericSubdivisionsModeComboBox->getWidget()->setToolTip("Numeric subdivisions mode");
     m_numericSubdivisionsModeComboBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "NumericSubdivisionsMode");
-    macroManager->addMacroSupportToObject(m_numericSubdivisionsModeComboBox->getWidget());
+    macroManager->addMacroSupportToObject(m_numericSubdivisionsModeComboBox->getWidget(),
+                                          "Set chart axis numeric subdivisions mode");
     
     m_userSubdivisionsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0, 100, 1);
     QObject::connect(m_userSubdivisionsSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
@@ -239,7 +253,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_userSubdivisionsSpinBox->setToolTip("Set subdivisions on the axis when Auto is not checked");
     m_userSubdivisionsSpinBox->setObjectName(objectNamePrefix
                                                  + "NumberOfSubdivisions");
-    macroManager->addMacroSupportToObject(m_userSubdivisionsSpinBox);
+    macroManager->addMacroSupportToObject(m_userSubdivisionsSpinBox,
+                                          "Set chart axis number of subivisions");
     
     /*
      * Size spin boxes
@@ -251,7 +266,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_labelSizeSpinBox->setToolTip("Set height of label as percentage of tab height for selected axis");
     m_labelSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "LabelHeight");
-    macroManager->addMacroSupportToObject(m_labelSizeSpinBox->getWidget());
+    macroManager->addMacroSupportToObject(m_labelSizeSpinBox->getWidget(),
+                                          "Set chart axis label height");
     
     m_numericsSizeSpinBox = new WuQDoubleSpinBox(this);
     m_numericsSizeSpinBox->setRangePercentage(0.0, 100.0);
@@ -260,7 +276,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_numericsSizeSpinBox->setToolTip("Set height of numeric values as percentage of tab height for selected axis");
     m_numericsSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "NumericValueHeight");
-    macroManager->addMacroSupportToObject(m_numericsSizeSpinBox->getWidget());
+    macroManager->addMacroSupportToObject(m_numericsSizeSpinBox->getWidget(),
+                                          "Set chart axis numerics height");
     
     m_linesTicksSizeSpinBox = new WuQDoubleSpinBox(this);
     m_linesTicksSizeSpinBox->setRangePercentage(0.0, 100.0);
@@ -269,7 +286,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_linesTicksSizeSpinBox->setToolTip("Set thickness of axis lines as percentage of tab height for ALL axes");
     m_linesTicksSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "TicksSize");
-    macroManager->addMacroSupportToObject(m_linesTicksSizeSpinBox->getWidget());
+    macroManager->addMacroSupportToObject(m_linesTicksSizeSpinBox->getWidget(),
+                                          "Set chart axis ticks height");
     
     m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
     m_paddingSizeSpinBox->setRangePercentage(0.0, 100.0);
@@ -278,7 +296,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height for selected axis");
     m_paddingSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                  + "PaddingSize");
-    macroManager->addMacroSupportToObject(m_paddingSizeSpinBox->getWidget());
+    macroManager->addMacroSupportToObject(m_paddingSizeSpinBox->getWidget(),
+                                          "Set chart axis padding height");
     
     /*
      * Group widgets for blocking signals

@@ -236,7 +236,8 @@ GuiManager::initializeGuiManager()
     m_informationDisplayDialogEnabledAction->setIconText("Info"); 
     m_informationDisplayDialogEnabledAction->blockSignals(false);
     m_informationDisplayDialogEnabledAction->setObjectName("ToolBar:ShowInformationWindow");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_informationDisplayDialogEnabledAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_informationDisplayDialogEnabledAction,
+                                                         "Display information window");
     
     /*
      * Identify brainordinate window
@@ -264,7 +265,8 @@ GuiManager::initializeGuiManager()
     m_identifyBrainordinateDialogEnabledAction->setChecked(false);
     m_identifyBrainordinateDialogEnabledAction->blockSignals(false);
     m_identifyBrainordinateDialogEnabledAction->setObjectName("ToolBar:ShowIdentifyBrainordinateWindow");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_identifyBrainordinateDialogEnabledAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_identifyBrainordinateDialogEnabledAction,
+                                                         "Display Identify Brainordinate Window");
     
     /*
      * Scene dialog action
@@ -289,7 +291,8 @@ GuiManager::initializeGuiManager()
     m_sceneDialogDisplayAction->setChecked(false);
     m_sceneDialogDisplayAction->blockSignals(false);
     m_sceneDialogDisplayAction->setObjectName("ToolBar:ShowScenesWindow");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_sceneDialogDisplayAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_sceneDialogDisplayAction,
+                                                         "Display Scene Dialog");
     
     /*
      * Help dialog action
@@ -315,7 +318,8 @@ GuiManager::initializeGuiManager()
     m_helpViewerDialogDisplayAction->setChecked(false);
     m_helpViewerDialogDisplayAction->blockSignals(false);
     m_helpViewerDialogDisplayAction->setObjectName("ToolBar:ShowHelpWindow");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_helpViewerDialogDisplayAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_helpViewerDialogDisplayAction,
+                                                         "Display Help Dialog");
     
     /*
      * Data tooltip action is created when requested by a toolbar
@@ -1935,7 +1939,8 @@ GuiManager::getDataToolTipsAction(QWidget* buttonWidget)
         m_dataToolTipsEnabledAction->setChecked(SessionManager::get()->getDataToolTipsManager()->isEnabled());
         
         m_dataToolTipsEnabledAction->setObjectName("ToolBar:DataToolTipsEnabled");
-        WuQMacroManager::instance()->addMacroSupportToObject(m_dataToolTipsEnabledAction);
+        WuQMacroManager::instance()->addMacroSupportToObject(m_dataToolTipsEnabledAction,
+                                                             "Enable data tool tips");
     }
     
     return m_dataToolTipsEnabledAction;

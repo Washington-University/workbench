@@ -83,7 +83,8 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     QComboBox* encapComboBox = m_yokingGroupComboBox->getComboBox();
     encapComboBox->setObjectName(objectNamePrefix
                                  + ":Tab:YokingGroup");
-    WuQMacroManager::instance()->addMacroSupportToObject(encapComboBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(encapComboBox,
+                                                         "Select yoking group");
     
     m_yokeToLabel = new QLabel("Yoking:");
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
@@ -98,7 +99,8 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
                      this, &BrainBrowserWindowToolBarTab::lightingEnabledCheckBoxChecked);
     m_lightingEnabledCheckBox->setObjectName(objectNamePrefix
                                  + ":Tab:EnableShading");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_lightingEnabledCheckBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_lightingEnabledCheckBox,
+                                                         "Enable shading");
     
     m_macroRecordingLabel = new QLabel("");
     

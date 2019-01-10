@@ -44,14 +44,17 @@ namespace caret {
         
         WuQMacroCommand(const WuQMacroClassTypeEnum::Enum objectClassType,
                         const QString& objectName,
+                        const QString& objectDescriptiveName,
                         const QString& objectToolTip,
                         const QVariant dataValue,
                         const QVariant dataValueTwo);
         
         WuQMacroCommand(const WuQMacroClassTypeEnum::Enum objectClassType,
-                        const QString& objectName);
+                        const QString& objectName,
+                        const QString& objectDescriptiveName);
         
         WuQMacroCommand(const QString& objectName,
+                        const QString& objectDescriptiveName,
                         WuQMacroMouseEventInfo* mouseEventInfo);
         
         virtual ~WuQMacroCommand();
@@ -63,6 +66,8 @@ namespace caret {
         WuQMacroClassTypeEnum::Enum getClassType() const;
         
         QString getObjectName() const;
+        
+        QString getDescriptiveName() const;
         
         QString getObjectToolTip() const;
         
@@ -110,6 +115,8 @@ namespace caret {
         WuQMacroClassTypeEnum::Enum m_classType;
         
         QString m_objectName;
+        
+        QString m_descriptiveName;
         
         QVariant m_dataValue;
         

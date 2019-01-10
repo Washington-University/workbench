@@ -89,7 +89,8 @@ m_parentToolBar(parentToolBar)
     }
     m_volumePlaneParasagittalToolButtonAction->setObjectName(objectNamePrefix
                                                              + "ParasagittalSliceView");
-    macroManager->addMacroSupportToObject(m_volumePlaneParasagittalToolButtonAction);
+    macroManager->addMacroSupportToObject(m_volumePlaneParasagittalToolButtonAction,
+                                          "Select parasagittal slice view");
     
     m_volumePlaneCoronalToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::CORONAL),
                                                                            "View the CORONAL slice",
@@ -100,7 +101,8 @@ m_parentToolBar(parentToolBar)
     }
     m_volumePlaneCoronalToolButtonAction->setObjectName(objectNamePrefix
                                                         + "CoronalSliceView");
-    macroManager->addMacroSupportToObject(m_volumePlaneCoronalToolButtonAction);
+    macroManager->addMacroSupportToObject(m_volumePlaneCoronalToolButtonAction,
+                                          "Select coronal slice view");
     
     m_volumePlaneAxialToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::AXIAL),
                                                                          "View the AXIAL slice",
@@ -111,7 +113,8 @@ m_parentToolBar(parentToolBar)
     }
     m_volumePlaneAxialToolButtonAction->setObjectName(objectNamePrefix
                                                       + "AxialSliceView");
-    macroManager->addMacroSupportToObject(m_volumePlaneAxialToolButtonAction);
+    macroManager->addMacroSupportToObject(m_volumePlaneAxialToolButtonAction,
+                                          "Select axial slice view");
     
     m_volumePlaneAllToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::ALL),
                                                                    "View the PARASAGITTAL, CORONAL, and AXIAL slices\n"
@@ -121,7 +124,8 @@ m_parentToolBar(parentToolBar)
     m_volumePlaneAllToolButtonAction->setMenu(createViewAllSlicesLayoutMenu(objectNamePrefix));
     m_volumePlaneAllToolButtonAction->setObjectName(objectNamePrefix
                                                     + "AllSlicesView");
-    macroManager->addMacroSupportToObject(m_volumePlaneAllToolButtonAction);
+    macroManager->addMacroSupportToObject(m_volumePlaneAllToolButtonAction,
+                                          "Select all planes view");
     
     
     m_volumePlaneActionGroup = new QActionGroup(this);
@@ -141,7 +145,8 @@ m_parentToolBar(parentToolBar)
                                                                          SLOT(volumePlaneResetToolButtonTriggered(bool)));
     m_volumePlaneResetToolButtonAction->setObjectName(objectNamePrefix
                                                       + "ResetView");
-    macroManager->addMacroSupportToObject(m_volumePlaneResetToolButtonAction);
+    macroManager->addMacroSupportToObject(m_volumePlaneResetToolButtonAction,
+                                          "Reset slice view pan/rotate/zoom");
     
     
     QToolButton* volumePlaneParasagittalToolButton = new QToolButton();
@@ -190,7 +195,8 @@ m_parentToolBar(parentToolBar)
                      this, &BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairsTriggered);
     m_volumeAxisCrosshairsToolButtonAction->setObjectName(objectNamePrefix
                                                           + "ShowVolumeSliceCrosshairs");
-    macroManager->addMacroSupportToObject(m_volumeAxisCrosshairsToolButtonAction);
+    macroManager->addMacroSupportToObject(m_volumeAxisCrosshairsToolButtonAction,
+                                          "Show slice axis crosshairs");
     
     QToolButton* volumeCrosshairsToolButton = new QToolButton();
     QPixmap xhairPixmap = createCrosshairsIcon(volumeCrosshairsToolButton);
@@ -206,7 +212,8 @@ m_parentToolBar(parentToolBar)
                      this, &BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairLabelsTriggered);
     m_volumeAxisCrosshairLabelsToolButtonAction->setObjectName(objectNamePrefix
                                                                + "ShowVolumeSliceLabels");
-    macroManager->addMacroSupportToObject(m_volumeAxisCrosshairLabelsToolButtonAction);
+    macroManager->addMacroSupportToObject(m_volumeAxisCrosshairLabelsToolButtonAction,
+                                          "Show slice axis labels");
     
     QToolButton* volumeCrosshairLabelsToolButton = new QToolButton();
     volumeCrosshairLabelsToolButton->setDefaultAction(m_volumeAxisCrosshairLabelsToolButtonAction);
@@ -299,14 +306,20 @@ BrainBrowserWindowToolBarSlicePlane::createViewAllSlicesLayoutMenu(const QString
         QAction* action = menu->addAction(VolumeSliceViewAllPlanesLayoutEnum::toGuiName(layout));
         action->setData((int)VolumeSliceViewAllPlanesLayoutEnum::toIntegerCode(layout));
         action->setCheckable(true);
+        action->setObjectName(objectNamePrefix
+                              + ":Layout:"
+                              + VolumeSliceViewAllPlanesLayoutEnum::toName(layout));
         m_viewAllSliceLayoutMenuActions.push_back(action);
-        
         actionGroup->addAction(action);
+
+        WuQMacroManager::instance()->addMacroSupportToObject(action,
+                                                             "Select "
+                                                             + VolumeSliceViewAllPlanesLayoutEnum::toGuiName(layout)
+                                                             + " volume slice layout");
     }
 
     QObject::connect(menu, &QMenu::triggered,
                      this, &BrainBrowserWindowToolBarSlicePlane::viewAllSliceLayoutMenuTriggered);
-    WuQMacroManager::instance()->addMacroSupportToObject(menu);
     return menu;
 }
 

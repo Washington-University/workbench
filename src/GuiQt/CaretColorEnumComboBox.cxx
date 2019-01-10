@@ -101,12 +101,15 @@ CaretColorEnumComboBox::CaretColorEnumComboBox(const AString& customColorSelecti
  *     Icon for custom color.
  * @param objectNameForMacros
  *     If not empty, name is used to set this combo box for macro support
+ * @param objectDescriptiveNameForMacros
+ *     Descriptive name for macros
  * @param parent
  *     Parent object.
  */
 CaretColorEnumComboBox::CaretColorEnumComboBox(const AString& customColorSelectionName,
                                                const QIcon& customColorSelectionIcon,
                                                const QString& objectNameForMacros,
+                                               const QString& objectDescriptiveNameForMacros,
                                                QObject* parent)
 : WuQWidget(parent)
 {
@@ -116,7 +119,8 @@ CaretColorEnumComboBox::CaretColorEnumComboBox(const AString& customColorSelecti
     if ( ! objectNameForMacros.isEmpty()) {
         this->colorComboBox->setObjectName(objectNameForMacros);
         this->colorComboBox->setToolTip("Select Color");
-        WuQMacroManager::instance()->addMacroSupportToObject(this->colorComboBox);
+        WuQMacroManager::instance()->addMacroSupportToObject(this->colorComboBox,
+                                                             objectDescriptiveNameForMacros);
     }
 }
 

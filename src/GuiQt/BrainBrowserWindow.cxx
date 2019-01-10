@@ -835,7 +835,8 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     }
     m_overlayToolBoxAction->setObjectName(m_objectNamePrefix
                                            + ":ToolBar:ShowOverlayToolBox");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_overlayToolBoxAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_overlayToolBoxAction,
+                                                         ("Show overlay toolbox in window " + QString::number(m_browserWindowIndex + 1)));
 
     /*
      * Note: The name of a dock widget becomes its
@@ -856,7 +857,8 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     }
     m_featuresToolBoxAction->setObjectName(m_objectNamePrefix
                                            + ":ToolBar:ShowFeaturesToolBox");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_featuresToolBoxAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_featuresToolBoxAction,
+                                                         ("Show features toolbox in window " + QString::number(m_browserWindowIndex + 1)));
     
     m_windowMenuLockWindowAspectRatioAction = new QAction(this);
     m_windowMenuLockWindowAspectRatioAction->setCheckable(true);
@@ -894,7 +896,8 @@ BrainBrowserWindow::createActionsUsedByToolBar()
                      this, &BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectTriggered);
     m_toolBarLockWindowAndAllTabAspectRatioAction->setObjectName(m_objectNamePrefix
                                                                  + ":ToolBar:LockAspectRatio");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_toolBarLockWindowAndAllTabAspectRatioAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_toolBarLockWindowAndAllTabAspectRatioAction,
+                                                         ("Lock aspect ratio in window " + QString::number(m_browserWindowIndex + 1)));
 
     /*
      * Button for locking aspect is passed to ToolBar's constructor

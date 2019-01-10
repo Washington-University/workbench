@@ -121,13 +121,16 @@ namespace caret {
         void updateGraphicsWindow();
         
         QMenu* createConstructionMenu(QWidget* parent,
-                                      const QString& parentObjectName);
+                                      const QString& parentObjectName,
+                                      const QString& descriptivePrefix);
         
         QMenu* createMatrixTriangularViewModeMenu(QWidget* widget,
-                                                  const QString& parentObjectName);
+                                                  const QString& parentObjectName,
+                                                  const QString& descriptivePrefix);
         
         QMenu* createAxisLocationMenu(QWidget* widget,
-                                      const QString& parentObjectName);
+                                      const QString& parentObjectName,
+                                      const QString& descriptivePrefix);
         
         void validateYokingSelection();
         

@@ -85,7 +85,8 @@ m_parentToolBar(parentToolBar)
         rb->setObjectName(parentObjectName
                           + ":ChartOneType:"
                           + chartTypeName);
-        WuQMacroManager::instance()->addMacroSupportToObject(rb);
+        WuQMacroManager::instance()->addMacroSupportToObject(rb,
+                                                             "Select " + chartTypeName + " chart");
         
         radioButtonLayout->addWidget(rb);
         

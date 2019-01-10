@@ -106,6 +106,8 @@ m_chartOverlay(NULL)
     QString objectNamePrefix = QString(parentObjectName
                                        + ":ChartOverlay%1"
                                        + ":").arg((int)(chartOverlayIndex + 1), 2, 10, QLatin1Char('0'));
+    QString descriptivePrefix = QString("chart overlay "
+                                        + QString::number(chartOverlayIndex + 1));
 
     /*
      * Enabled Check Box
@@ -117,7 +119,8 @@ m_chartOverlay(NULL)
     QObject::connect(m_enabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(enabledCheckBoxClicked(bool)));
     m_enabledCheckBox->setToolTip("Display line charts from the selected file");
-    macroManager->addMacroSupportToObject(m_enabledCheckBox);
+    macroManager->addMacroSupportToObject(m_enabledCheckBox,
+                                          "Enable line chart display for " + descriptivePrefix);
     
     /*
      * Line Series Enabled Check Box
@@ -129,7 +132,8 @@ m_chartOverlay(NULL)
     m_lineSeriesLoadingEnabledCheckBox->setToolTip("Enable loading of line charts for the selected file");
     m_lineSeriesLoadingEnabledCheckBox->setObjectName(objectNamePrefix
                                                       + "EnableLoading");
-    macroManager->addMacroSupportToObject(m_lineSeriesLoadingEnabledCheckBox);
+    macroManager->addMacroSupportToObject(m_lineSeriesLoadingEnabledCheckBox,
+                                          "Enable line chart loading for " + descriptivePrefix);
     
     /*
      * Settings Tool Button
@@ -149,7 +153,8 @@ m_chartOverlay(NULL)
     }
     m_settingsAction->setObjectName(objectNamePrefix
                                     + "ShowSettingsDialog");
-    macroManager->addMacroSupportToObject(m_settingsAction);
+    macroManager->addMacroSupportToObject(m_settingsAction,
+                                          "Show settings dialog for " + descriptivePrefix);
     m_settingsToolButton->setDefaultAction(m_settingsAction);
     
     /*
@@ -170,7 +175,8 @@ m_chartOverlay(NULL)
     }
     m_colorBarAction->setObjectName(objectNamePrefix
                                         + "ShowColorBar");
-    macroManager->addMacroSupportToObject(m_colorBarAction);
+    macroManager->addMacroSupportToObject(m_colorBarAction,
+                                          "Enable color bar for " + descriptivePrefix);
     m_colorBarToolButton->setDefaultAction(m_colorBarAction);
     
     /*
@@ -189,7 +195,8 @@ m_chartOverlay(NULL)
     m_constructionToolButton = new QToolButton();
     QMenu* constructionMenu = createConstructionMenu(m_constructionToolButton,
                                                      (objectNamePrefix
-                                                      + "ConstructionMenu:"));
+                                                      + "ConstructionMenu:"),
+                                                     descriptivePrefix);
     m_constructionAction->setMenu(constructionMenu);
     m_constructionToolButton->setDefaultAction(m_constructionAction);
     m_constructionToolButton->setPopupMode(QToolButton::InstantPopup);
@@ -204,7 +211,8 @@ m_chartOverlay(NULL)
                                                        m_matrixTriangularViewModeToolButton);
     QMenu* matrixTriangularViewModeMenu = createMatrixTriangularViewModeMenu(m_matrixTriangularViewModeToolButton,
                                                                              (objectNamePrefix
-                                                                              + "TriangularViewMenu:"));
+                                                                              + "TriangularViewMenu:"),
+                                                                             descriptivePrefix);
     m_matrixTriangularViewModeAction->setMenu(matrixTriangularViewModeMenu);
     m_matrixTriangularViewModeToolButton->setDefaultAction(m_matrixTriangularViewModeAction);
     m_matrixTriangularViewModeToolButton->setPopupMode(QToolButton::InstantPopup);
@@ -220,7 +228,8 @@ m_chartOverlay(NULL)
                                                        m_axisLocationToolButton);
     QMenu* axisLocationMenu = createAxisLocationMenu(m_axisLocationToolButton,
                                                      (objectNamePrefix
-                                                      + "VerticalAxisLocationMenu:"));
+                                                      + "VerticalAxisLocationMenu:"),
+                                                     descriptivePrefix);
     m_axisLocationAction->setMenu(axisLocationMenu);
     m_axisLocationToolButton->setDefaultAction(m_axisLocationAction);
     m_axisLocationToolButton->setPopupMode(QToolButton::InstantPopup);
@@ -237,7 +246,8 @@ m_chartOverlay(NULL)
     m_mapFileComboBox->setSizeAdjustPolicy(comboSizePolicy);
     m_mapFileComboBox->setObjectName(objectNamePrefix
                                      + "FileSelection");
-    macroManager->addMacroSupportToObject(m_mapFileComboBox);
+    macroManager->addMacroSupportToObject(m_mapFileComboBox,
+                                          "Select file in " + descriptivePrefix);
     
     /*
      * Yoking Group
@@ -270,7 +280,8 @@ m_chartOverlay(NULL)
                      this, SLOT(allMapsCheckBoxClicked(bool)));
     m_allMapsCheckBox->setObjectName(objectNamePrefix
                                      + "AllMaps");
-    macroManager->addMacroSupportToObject(m_allMapsCheckBox);
+    macroManager->addMacroSupportToObject(m_allMapsCheckBox,
+                                          "Enable all maps in " + descriptivePrefix);
     
     /*
      * Map/Row/Column Index Spin Box
@@ -285,7 +296,8 @@ m_chartOverlay(NULL)
     m_mapRowOrColumnIndexSpinBox->setValue(1);
     m_mapRowOrColumnIndexSpinBox->setObjectName(objectNamePrefix
                                            + "MapIndex");
-    macroManager->addMacroSupportToObject(m_mapRowOrColumnIndexSpinBox);
+    macroManager->addMacroSupportToObject(m_mapRowOrColumnIndexSpinBox,
+                                          "Select map by index in " + descriptivePrefix);
 
     
     /*
@@ -300,7 +312,8 @@ m_chartOverlay(NULL)
     m_mapRowOrColumnNameComboBox->setSizeAdjustPolicy(comboSizePolicy);
     m_mapRowOrColumnNameComboBox->setObjectName(objectNamePrefix
                                          + "MapSelection");
-    macroManager->addMacroSupportToObject(m_mapRowOrColumnNameComboBox);
+    macroManager->addMacroSupportToObject(m_mapRowOrColumnNameComboBox,
+                                          "Select map name in " + descriptivePrefix);
 }
 
 /**
@@ -978,10 +991,13 @@ ChartTwoOverlayViewController::updateGraphicsWindow()
  *    Parent widget.
  * @param parentObjectName
  *    Name of parent object for macros
+ * @param descriptivePrefix
+ *    Descriptive prefix for macros
  */
 QMenu*
 ChartTwoOverlayViewController::createMatrixTriangularViewModeMenu(QWidget* parent,
-                                                                  const QString& parentObjectName)
+                                                                  const QString& parentObjectName,
+                                                                  const QString& descriptivePrefix)
 {
     std::vector<ChartTwoMatrixTriangularViewingModeEnum::Enum> allViewModes;
     ChartTwoMatrixTriangularViewingModeEnum::getAllEnums(allViewModes);
@@ -1005,7 +1021,8 @@ ChartTwoOverlayViewController::createMatrixTriangularViewModeMenu(QWidget* paren
                            + ChartTwoMatrixTriangularViewingModeEnum::toGuiName(viewMode));
         objName = objName.replace(" ", "");
         action->setObjectName(objName);
-        WuQMacroManager::instance()->addMacroSupportToObject(action);
+        WuQMacroManager::instance()->addMacroSupportToObject(action,
+                                                             "Set triangular view in " + descriptivePrefix);
         
         m_matrixViewMenuData.push_back(std::make_tuple(viewMode, action, pixmap));
     }
@@ -1052,7 +1069,8 @@ ChartTwoOverlayViewController::menuMatrixTriangularViewModeTriggered(QAction* ac
  */
 QMenu*
 ChartTwoOverlayViewController::createAxisLocationMenu(QWidget* widget,
-                                                      const QString& parentObjectName)
+                                                      const QString& parentObjectName,
+                                                      const QString& descriptivePrefix)
 {
     std::vector<ChartAxisLocationEnum::Enum> axisLocations;
     axisLocations.push_back(ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
@@ -1077,7 +1095,8 @@ ChartTwoOverlayViewController::createAxisLocationMenu(QWidget* widget,
                            + ChartAxisLocationEnum::toGuiName(axis));
         objName = objName.replace(" ", "");
         action->setObjectName(objName);
-        WuQMacroManager::instance()->addMacroSupportToObject(action);
+        WuQMacroManager::instance()->addMacroSupportToObject(action,
+                                                             "Select chart axis location for " + descriptivePrefix);
         
         m_axisLocationMenuData.push_back(std::make_tuple(axis, action, pixmap));
     }
@@ -1112,10 +1131,13 @@ ChartTwoOverlayViewController::menuAxisLocationTriggered(QAction* action)
  *    Parent widget.
  * @param parentObjectName
  *    Name of parent object for macros
+ * @param descriptivePrefix
+ *    Descriptive name for macros
  */
 QMenu*
 ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent,
-                                                      const QString& menuActionNamePrefix)
+                                                      const QString& menuActionNamePrefix,
+                                                      const QString& descriptivePrefix)
 {
     WuQMacroManager* macroManager = WuQMacroManager::instance();
     CaretAssert(macroManager);
@@ -1130,7 +1152,8 @@ ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent,
     addAboveAction->setObjectName(menuActionNamePrefix
                                   + "AddOverlayAbove");
     addAboveAction->setToolTip("Add an overlay above this overlay");
-    macroManager->addMacroSupportToObject(addAboveAction);
+    macroManager->addMacroSupportToObject(addAboveAction,
+                                          "Add overlay above " + descriptivePrefix);
     
     QAction* addBelowAction = menu->addAction("Add Overlay Below",
                     this,
@@ -1138,7 +1161,8 @@ ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent,
     addBelowAction->setObjectName(menuActionNamePrefix
                                   + "AddOverlayBelow");
     addBelowAction->setToolTip("Add an overlay below this overlay");
-    macroManager->addMacroSupportToObject(addBelowAction);
+    macroManager->addMacroSupportToObject(addBelowAction,
+                                          "Add overlay below " + descriptivePrefix);
     
     menu->addSeparator();
     
@@ -1148,7 +1172,8 @@ ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent,
     moveUpAction->setObjectName(menuActionNamePrefix
                                 + "MoveOverlayUp");
     moveUpAction->setToolTip("Move this overlay up");
-    macroManager->addMacroSupportToObject(moveUpAction);
+    macroManager->addMacroSupportToObject(moveUpAction,
+                                          "Move " + descriptivePrefix + " up");
     
     QAction* moveDownAction = menu->addAction("Move Overlay Down",
                     this,
@@ -1156,7 +1181,8 @@ ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent,
     moveDownAction->setObjectName(menuActionNamePrefix
                                   + "MoveOverlayDown");
     moveDownAction->setToolTip("Move this overlay down");
-    macroManager->addMacroSupportToObject(moveDownAction);
+    macroManager->addMacroSupportToObject(moveDownAction,
+                                          "Move " + descriptivePrefix + " down");
     
     menu->addSeparator();
     
@@ -1166,7 +1192,8 @@ ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent,
     removeAction->setObjectName(menuActionNamePrefix
                                 + "RemoveOverlay");
     removeAction->setToolTip("Remove this overlay");
-    macroManager->addMacroSupportToObject(removeAction);
+    macroManager->addMacroSupportToObject(removeAction,
+                                          "Remove " + descriptivePrefix + " overlay");
     
     menu->addSeparator();
     
@@ -1176,7 +1203,8 @@ ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent,
     m_constructionReloadFileAction->setObjectName(menuActionNamePrefix
                                                   + "ReloadSelectedFile");
     m_constructionReloadFileAction->setToolTip("Reload file in this overlay");
-    macroManager->addMacroSupportToObject(m_constructionReloadFileAction);
+    macroManager->addMacroSupportToObject(m_constructionReloadFileAction,
+                                          "Reload file in " + descriptivePrefix);
     
     menu->addSeparator();
     
@@ -1186,7 +1214,8 @@ ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent,
     copyPathFileNameAction->setObjectName(menuActionNamePrefix
                                                           + "CopyPathAndFileNameToClipboard");
     copyPathFileNameAction->setToolTip("Copy path and file name of file in this overlay to clipboard");
-    macroManager->addMacroSupportToObject(copyPathFileNameAction);
+    macroManager->addMacroSupportToObject(copyPathFileNameAction,
+                                          "Copy path and name to clipboard from " + descriptivePrefix);
     
     QAction* copyMapNameAction = menu->addAction("Copy Map Name to Clipboard",
                     this,
@@ -1194,7 +1223,8 @@ ChartTwoOverlayViewController::createConstructionMenu(QWidget* parent,
     copyMapNameAction->setObjectName(menuActionNamePrefix
                                      + "CopyMapNameToClipboard");
     copyMapNameAction->setToolTip("Copy name of selected map to the clipboard");
-    macroManager->addMacroSupportToObject(copyMapNameAction);
+    macroManager->addMacroSupportToObject(copyMapNameAction,
+                                          "Copy map name to clipboard from " + descriptivePrefix);
     
     return menu;
     

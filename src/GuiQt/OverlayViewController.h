@@ -117,6 +117,7 @@ namespace caret {
         void updateGraphicsWindow();
         
         QMenu* createConstructionMenu(QWidget* parent,
+                                      const AString& descriptivePrefix,
                                       const AString& menuActionNamePrefix);
         
         void validateYokingSelection();

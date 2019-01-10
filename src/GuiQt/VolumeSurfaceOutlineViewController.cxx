@@ -54,10 +54,20 @@ using namespace caret;
  */
 /**
  * Constructor.
+ *
+ * @param orientation
+ *     Orientation for controller
+ * @param gridLayout
+ *     Layout for widgets
+ * @param objectNamePrefix
+ *     Object name prefix for macros
+ * @param descriptivePrefix
+ *     Descriptive name prefix for macros
  */
 VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt::Orientation orientation,
                                                                        QGridLayout* gridLayout,
                                                                        const QString& objectNamePrefix,
+                                                                       const QString& descriptivePrefix,
                                                                        QObject* parent)
 : QObject(parent)
 {
@@ -71,11 +81,13 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     this->enabledCheckBox->setToolTip("Enables display of this volume surface outline");
     this->enabledCheckBox->setObjectName(objectNamePrefix
                                          + ":Enable");
-    macroManager->addMacroSupportToObject(this->enabledCheckBox);
+    macroManager->addMacroSupportToObject(this->enabledCheckBox,
+                                          "Enable volume surface outline for " + descriptivePrefix);
     
     this->surfaceSelectionViewController = new SurfaceSelectionViewController(this,
                                                                               (objectNamePrefix
-                                                                               + ":Surface"));
+                                                                               + ":Surface"),
+                                                                              "Select volume surface outline surface for " + descriptivePrefix);
     QObject::connect(this->surfaceSelectionViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(surfaceSelected(Surface*)));
     this->surfaceSelectionViewController->getWidget()->setToolTip("Select surface drawn as outline over volume slices");
@@ -88,7 +100,8 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
                                                               "in the selected tab is used.\n");
     this->colorOrTabSelectionControl->getWidget()->setObjectName(objectNamePrefix
                                                                  + ":ColorSource");
-    macroManager->addMacroSupportToObject(this->colorOrTabSelectionControl->getWidget());
+    macroManager->addMacroSupportToObject(this->colorOrTabSelectionControl->getWidget(),
+                                          "Set surface outline color for " + descriptivePrefix);
     
     this->thicknessSpinBox = new WuQDoubleSpinBox(this);
     this->thicknessSpinBox->setRange(0.0, 100.0);
@@ -99,7 +112,8 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     this->thicknessSpinBox->getWidget()->setToolTip("Thickness of surface outline as percentage of viewport height");
     this->thicknessSpinBox->getWidget()->setObjectName(objectNamePrefix
                                           + ":Thickness");
-    macroManager->addMacroSupportToObject(this->thicknessSpinBox->getWidget());
+    macroManager->addMacroSupportToObject(this->thicknessSpinBox->getWidget(),
+                                          "Set thickness for volume surface outline for " + descriptivePrefix);
     
     
     if (orientation == Qt::Horizontal) {

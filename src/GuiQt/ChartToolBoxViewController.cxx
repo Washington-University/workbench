@@ -96,7 +96,9 @@ m_browserWindowIndex(browserWindowIndex)
                                   "History");
     m_tabWidget->setObjectName(objectNamePrefix
                                + ":Tab");
-    WuQMacroManager::instance()->addMacroSupportToObjectWithToolTip(m_tabWidget, "");
+    WuQMacroManager::instance()->addMacroSupportToObjectWithToolTip(m_tabWidget,
+                                                                    "Overlay ToolBox Chart Tab",
+                                                                    "");
     
     
     QVBoxLayout* layout = new QVBoxLayout(this);

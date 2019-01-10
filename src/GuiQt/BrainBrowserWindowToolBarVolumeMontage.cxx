@@ -75,7 +75,8 @@ m_parentToolBar(parentToolBar)
                      this, SLOT(montageRowsSpinBoxValueChanged(int)));
     m_montageRowsSpinBox->setObjectName(objectNamePrefix
                                         + "Rows");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_montageRowsSpinBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_montageRowsSpinBox,
+                                                         "Set volume montage rows");
     
     
     QLabel* columnsLabel = new QLabel("Cols:");
@@ -88,7 +89,8 @@ m_parentToolBar(parentToolBar)
                      this, SLOT(montageColumnsSpinBoxValueChanged(int)));
     m_montageColumnsSpinBox->setObjectName(objectNamePrefix
                                            + "Columns");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_montageColumnsSpinBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_montageColumnsSpinBox,
+                                                         "Set volume montage columns");
     
     QLabel* spacingLabel = new QLabel("Step:");
     spacingLabel->setToolTip("Select the number of slices stepped (incremented) between displayed montage slices");
@@ -100,7 +102,8 @@ m_parentToolBar(parentToolBar)
                      this, SLOT(montageSpacingSpinBoxValueChanged(int)));
     m_montageSpacingSpinBox->setObjectName(objectNamePrefix
                                            + "Step");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_montageSpacingSpinBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_montageSpacingSpinBox,
+                                                         "Set volume montage spacing");
     
     m_showSliceCoordinateAction = new QAction("XYZ", this);
     m_showSliceCoordinateAction->setText("XYZ");
@@ -110,7 +113,8 @@ m_parentToolBar(parentToolBar)
                      this, &BrainBrowserWindowToolBarVolumeMontage::showSliceCoordinateToolButtonClicked);
     m_showSliceCoordinateAction->setObjectName(objectNamePrefix
                                                + "ShowCoordinateOnSlice");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_showSliceCoordinateAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_showSliceCoordinateAction,
+                                                         "Enable coordinates in volume montage");
 
     QToolButton* showSliceCoordToolButton = new QToolButton;
     showSliceCoordToolButton->setDefaultAction(m_showSliceCoordinateAction);
@@ -126,7 +130,8 @@ m_parentToolBar(parentToolBar)
                      this, &BrainBrowserWindowToolBarVolumeMontage::slicePrecisionSpinBoxValueChanged);
     m_sliceCoordinatePrecisionSpinBox->setObjectName(objectNamePrefix
                                                      + "Precision");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_sliceCoordinatePrecisionSpinBox);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_sliceCoordinatePrecisionSpinBox,
+                                                         "Set volume montage coordinate precision");
 
 
     QToolButton* montageEnabledToolButton = new QToolButton();
@@ -140,7 +145,8 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolButtonStyleForQt5Mac(montageEnabledToolButton);
     m_montageEnabledAction->setObjectName(objectNamePrefix
                                           + "Enable");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_montageEnabledAction);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_montageEnabledAction,
+                                                         "Enable volume slice montage");
 
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);

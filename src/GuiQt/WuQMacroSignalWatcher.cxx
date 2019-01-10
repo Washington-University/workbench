@@ -62,6 +62,8 @@ using namespace caret;
  *     Object that is watched for a "value changed" signal
  * @param objectType
  *     The type of the object.
+ * @param descriptiveName
+ *     Descriptive name shown to user in macro command
  * @param toolTipTextOverride
  *     Used to override tool tip or for when object does not
  *     support a tool tip.
@@ -69,11 +71,13 @@ using namespace caret;
 WuQMacroSignalWatcher::WuQMacroSignalWatcher(WuQMacroManager* parentMacroManager,
                                              QObject* object,
                                              const WuQMacroClassTypeEnum::Enum objectType,
+                                             const QString& descriptiveName,
                                              const QString& toolTipTextOverride)
 : QObject(),
 m_parentMacroManager(parentMacroManager),
 m_object(object),
 m_objectType(objectType),
+m_descriptiveName(descriptiveName),
 m_objectName(object->objectName())
 {
     CaretAssert(m_parentMacroManager);
@@ -286,6 +290,8 @@ WuQMacroSignalWatcher::objectNameWasChanged(const QString& name)
  *     Parent macro manager.
  * @param object
  *     Object that will have a widget signal watcher.
+ * @param descriptiveName
+ *     Descriptive name shown to user in macro command
  * @param toolTipTextOverride
  *     Used to override tool tip or for when object does not
  *     support a tool tip.
@@ -297,6 +303,7 @@ WuQMacroSignalWatcher::objectNameWasChanged(const QString& name)
 WuQMacroSignalWatcher*
 WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
                                    QObject* object,
+                                   const QString& descriptiveName,
                                    const QString& toolTipTextOverride,
                                    QString& errorMessageOut)
 {
@@ -321,6 +328,7 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
     WuQMacroSignalWatcher* ww = new WuQMacroSignalWatcher(parentMacroManager,
                                                           object,
                                                           objectType,
+                                                          descriptiveName,
                                                           toolTipTextOverride);
     return ww;
 }
@@ -350,6 +358,7 @@ WuQMacroSignalWatcher::createAndSendMacroCommand(const QVariant& value,
     if (m_parentMacroManager->isModeRecording()) {
         WuQMacroCommand* mc = new WuQMacroCommand(m_objectType,
                                                   m_objectName,
+                                                  m_descriptiveName,
                                                   m_toolTipText,
                                                   value,
                                                   valueTwo);

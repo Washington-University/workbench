@@ -110,6 +110,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     QString objectNamePrefix = QString(parentObjectName
                                        + ":Overlay%1"
                                        + ":").arg((int)(overlayIndex + 1), 2, 10, QLatin1Char('0'));
+    const QString descriptivePrefix = QString("overlay %1").arg(overlayIndex + 1);
     /*
      * Enabled Check Box
      */
@@ -120,7 +121,8 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     QObject::connect(this->enabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(enabledCheckBoxClicked(bool)));
     this->enabledCheckBox->setToolTip("Enables display of this overlay");
-    macroManager->addMacroSupportToObject(this->enabledCheckBox);
+    macroManager->addMacroSupportToObject(this->enabledCheckBox,
+                                          "Enable " + descriptivePrefix);
     
     /*
      * File Selection Combo Box
@@ -134,7 +136,8 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                      this, SLOT(fileComboBoxSelected(int)));
     this->fileComboBox->setToolTip("Selects file for this overlay");
     this->fileComboBox->setSizeAdjustPolicy(comboSizePolicy);
-    macroManager->addMacroSupportToObject(this->fileComboBox);
+    macroManager->addMacroSupportToObject(this->fileComboBox,
+                                          ("Select file in " + descriptivePrefix));
     
     /*
      * Map Index Spin Box
@@ -145,7 +148,8 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     QObject::connect(m_mapIndexSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(mapIndexSpinBoxValueChanged(int)));
     m_mapIndexSpinBox->setToolTip("Select map by its index");
-    macroManager->addMacroSupportToObject(m_mapIndexSpinBox);
+    macroManager->addMacroSupportToObject(m_mapIndexSpinBox,
+                                          ("Select " + descriptivePrefix + " map index"));
     
     /*
      * Map Name Combo Box
@@ -159,7 +163,8 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                      this, SLOT(mapNameComboBoxSelected(int)));
     this->mapNameComboBox->setToolTip("Select map by its name");
     this->mapNameComboBox->setSizeAdjustPolicy(comboSizePolicy);
-    macroManager->addMacroSupportToObject(this->mapNameComboBox);
+    macroManager->addMacroSupportToObject(this->mapNameComboBox,
+                                          ("Select " + descriptivePrefix + " map name"));
     
     /*
      * Opacity double spin box
@@ -175,7 +180,8 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     QObject::connect(this->opacityDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(opacityDoubleSpinBoxValueChanged(double)));
     this->opacityDoubleSpinBox->setToolTip("Opacity (0.0=transparent, 1.0=opaque)");
-    macroManager->addMacroSupportToObject(this->opacityDoubleSpinBox);
+    macroManager->addMacroSupportToObject(this->opacityDoubleSpinBox,
+                                          ("Set " + descriptivePrefix + " opacity"));
     
     /*
      * ColorBar Tool Button
@@ -188,7 +194,8 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     m_colorBarToolButton->setCheckable(true);
     m_colorBarToolButton->setObjectName(objectNamePrefix
                                         + "ShowColorBar");
-    macroManager->addMacroSupportToObject(m_colorBarToolButton);
+    macroManager->addMacroSupportToObject(m_colorBarToolButton,
+                                          ("Enable " + descriptivePrefix + " colorbar"));
     
 //    /*
 //     * ColorBar Tool Button
@@ -227,7 +234,8 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     }
     QToolButton* settingsToolButton = new QToolButton();
     settingsToolButton->setDefaultAction(this->settingsAction);
-    macroManager->addMacroSupportToObject(this->settingsAction);
+    macroManager->addMacroSupportToObject(this->settingsAction,
+                                          ("Display " + descriptivePrefix + " palette settings"));
     
     /*
      * Construction Tool Button
@@ -244,6 +252,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     }
     m_constructionToolButton = new QToolButton();
     QMenu* constructionMenu = createConstructionMenu(m_constructionToolButton,
+                                                     descriptivePrefix,
                                                      (objectNamePrefix
                                                       + "ConstructionMenu:"));
     this->constructionAction->setMenu(constructionMenu);
@@ -265,7 +274,8 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
      */
     m_mapYokingGroupComboBox = new MapYokingGroupComboBox(this,
                                                           (objectNamePrefix
-                                                           + "MapYokingSelection"));
+                                                           + "MapYokingSelection"),
+                                                          descriptivePrefix);
     m_mapYokingGroupComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
     m_mapYokingGroupComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
 #ifdef CARET_OS_MACOSX
@@ -857,11 +867,14 @@ OverlayViewController::updateGraphicsWindow()
  * Create the construction menu.
  * @param parent
  *    Parent widget.
+ * @param descriptivePrefix
+ *    Descriptive prefix
  * @param menuActionNamePrefix
  *    Prefix for macros
  */
 QMenu* 
 OverlayViewController::createConstructionMenu(QWidget* parent,
+                                              const AString& descriptivePrefix,
                                               const AString& menuActionNamePrefix)
 {
     WuQMacroManager* macroManager = WuQMacroManager::instance();
@@ -877,7 +890,8 @@ OverlayViewController::createConstructionMenu(QWidget* parent,
     addAboveAction->setObjectName(menuActionNamePrefix
                                   + "AddOverlayAbove");
     addAboveAction->setToolTip("Add an overlay above this overlay");
-    macroManager->addMacroSupportToObject(addAboveAction);
+    macroManager->addMacroSupportToObject(addAboveAction,
+                                          ("Add overlay above " + descriptivePrefix));
     
     QAction* addBelowAction = menu->addAction("Add Overlay Below",
                                               this,
@@ -885,7 +899,8 @@ OverlayViewController::createConstructionMenu(QWidget* parent,
     addBelowAction->setObjectName(menuActionNamePrefix
                                   + "AddOverlayBelow");
     addBelowAction->setToolTip("Add an overlay below this overlay");
-    macroManager->addMacroSupportToObject(addBelowAction);
+    macroManager->addMacroSupportToObject(addBelowAction,
+                                          ("Add overlay below " + descriptivePrefix));
     
     menu->addSeparator();
     
@@ -895,7 +910,8 @@ OverlayViewController::createConstructionMenu(QWidget* parent,
     moveUpAction->setObjectName(menuActionNamePrefix
                                 + "MoveOverlayUp");
     moveUpAction->setToolTip("Move this overlay up");
-    macroManager->addMacroSupportToObject(moveUpAction);
+    macroManager->addMacroSupportToObject(moveUpAction,
+                                          ("Move " + descriptivePrefix + " up"));
     
     QAction* moveDownAction = menu->addAction("Move Overlay Down",
                                               this,
@@ -903,7 +919,8 @@ OverlayViewController::createConstructionMenu(QWidget* parent,
     moveDownAction->setObjectName(menuActionNamePrefix
                                   + "MoveOverlayDown");
     moveDownAction->setToolTip("Move this overlay down");
-    macroManager->addMacroSupportToObject(moveDownAction);
+    macroManager->addMacroSupportToObject(moveDownAction,
+                                          ("Move " + descriptivePrefix + " down"));
     
     menu->addSeparator();
     
@@ -913,7 +930,8 @@ OverlayViewController::createConstructionMenu(QWidget* parent,
     removeAction->setObjectName(menuActionNamePrefix
                                 + "RemoveOverlay");
     removeAction->setToolTip("Remove this overlay");
-    macroManager->addMacroSupportToObject(removeAction);
+    macroManager->addMacroSupportToObject(removeAction,
+                                          ("Remove " + descriptivePrefix));
     
     menu->addSeparator();
     
@@ -923,7 +941,8 @@ OverlayViewController::createConstructionMenu(QWidget* parent,
     m_constructionReloadFileAction->setObjectName(menuActionNamePrefix
                                                   + "ReloadSelectedFile");
     m_constructionReloadFileAction->setToolTip("Reload file in this overlay");
-    macroManager->addMacroSupportToObject(m_constructionReloadFileAction);
+    macroManager->addMacroSupportToObject(m_constructionReloadFileAction,
+                                          ("Reload file in " + descriptivePrefix));
     
     menu->addSeparator();
     
@@ -933,7 +952,8 @@ OverlayViewController::createConstructionMenu(QWidget* parent,
     m_copyPathAndFileNameToClipboardAction->setObjectName(menuActionNamePrefix
                                                           + "CopyPathAndFileNameToClipboard");
     m_copyPathAndFileNameToClipboardAction->setToolTip("Copy path and file name of file in this overlay to clipboard");
-    macroManager->addMacroSupportToObject(m_copyPathAndFileNameToClipboardAction);
+    macroManager->addMacroSupportToObject(m_copyPathAndFileNameToClipboardAction,
+                                          ("Copy path and filename from " + descriptivePrefix + " to clipboard"));
     
     QAction* copyMapNameAction = menu->addAction("Copy Map Name to Clipboard",
                                                  this,
@@ -941,7 +961,8 @@ OverlayViewController::createConstructionMenu(QWidget* parent,
     copyMapNameAction->setObjectName(menuActionNamePrefix
                                      + "CopyMapNameToClipboard");
     copyMapNameAction->setToolTip("Copy name of selected map to the clipboard");
-    macroManager->addMacroSupportToObject(copyMapNameAction);
+    macroManager->addMacroSupportToObject(copyMapNameAction,
+                                          ("Copy map namne in " + descriptivePrefix + " to clipboard"));
     
     return menu;
     

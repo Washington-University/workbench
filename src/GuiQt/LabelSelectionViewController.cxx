@@ -88,7 +88,8 @@ m_objectNamePrefix(parentObjectName
     QLabel* groupLabel = new QLabel("Group");
     m_labelsDisplayGroupComboBox = new DisplayGroupEnumComboBox(this,
                                                                 (m_objectNamePrefix
-                                                                 + ":DisplayGroup"));
+                                                                 + ":DisplayGroup"),
+                                                                "labels");
     QObject::connect(m_labelsDisplayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
                      this, SLOT(labelDisplayGroupSelected(const DisplayGroupEnum::Enum)));
     
@@ -126,6 +127,7 @@ LabelSelectionViewController::createSelectionWidget()
     m_labelClassNameHierarchyViewController = new GroupAndNameHierarchyViewController(m_browserWindowIndex,
                                                                                       (m_objectNamePrefix
                                                                                        + ":Selection"),
+                                                                                      "labels",
                                                                                       this);
     
     return m_labelClassNameHierarchyViewController;
