@@ -36,9 +36,11 @@ class QComboBox;
 class QDialogButtonBox;
 class QDoubleSpinBox;
 class QLabel;
+class QMenu;
 class QStackedWidget;
 class QStandardItem; 
 class QTreeView;
+class QToolButton;
 
 namespace caret {
 
@@ -71,11 +73,11 @@ namespace caret {
         
         void buttonBoxButtonClicked(QAbstractButton* button);
         
-        void deleteButtonClicked();
+        void importMacroGroupActionTriggered();
         
-        void importButtonClicked();
+        void exportMacroGroupActionTriggered();
         
-        void exportButtonClicked();
+        void macroGroupToolButtonClicked();
         
         void macroNameEditButtonClicked();
         
@@ -89,27 +91,41 @@ namespace caret {
         
         void runOptionLoopCheckBoxClicked(bool);
         
+        void editingMoveUpToolButtonClicked();
+
+        void editingMoveDownToolButtonClicked();
+
+        void editingDeleteToolButtonClicked();
+
+        void editingInsertToolButtonClicked();
+        
+        void runMacroToolButtonClicked();
+
     private:
         enum class ValueIndex {
             ONE,
             TWO
         };
         
-        QWidget* createMacroButtonsWidget();
+        enum class EditButton {
+            DELETER,  /* "DELETE" does not compile on an operating system */
+            INSERTER,
+            MOVE_DOWN,
+            MOVE_UP,
+            RUN
+        };
+        
+        QWidget* createMacroAndCommandSelectionWidget();
         
         QWidget* createRunOptionsWidget();
         
-        QWidget* createMacroWidget();
+        QWidget* createMacroDisplayWidget();
         
-        QWidget* createCommandWidget();
+        QWidget* createCommandDisplayWidget();
         
         void updateMacroWidget(WuQMacro* macro);
         
         void updateCommandWidget(WuQMacroCommand* command);
-        
-        void runSelectedMacro();
-        
-        void updateButtons();
         
         void setMacroCommandValue(const ValueIndex valueIndex);
         
@@ -123,9 +139,22 @@ namespace caret {
         
         QStandardItem* getSelectedItem() const;
         
+        QWidget* createHorizontalLine() const;
+        
+        QMenu* createMacroGroupMenu();
+        
+        QWidget* createMacroRunAndEditingToolButtons();
+        
+        QPixmap createEditingToolButtonPixmap(const QWidget* widget,
+                                              const EditButton editButton);
+        
+        void updateEditingToolButtons();
+        
         std::vector<WuQMacroGroup*> m_macroGroups;
         
         QComboBox* m_macroGroupComboBox;
+        
+        QToolButton* m_macroGroupToolButton;
         
         QTreeView* m_treeView;
         
@@ -142,14 +171,6 @@ namespace caret {
         QStackedWidget* m_stackedWidget;
         
         QDialogButtonBox* m_dialogButtonBox;
-        
-        QAbstractButton* m_runButton;
-        
-        QPushButton* m_deletePushButton;
-        
-        QPushButton* m_importPushButton;
-        
-        QPushButton* m_exportPushButton;
         
         QCheckBox* m_runOptionLoopCheckBox;
         
@@ -172,6 +193,16 @@ namespace caret {
         QLabel* m_commandValueTwoLabel;
         
         QLabel* m_commandToolTip;
+        
+        QToolButton* m_runMacroToolButton;
+        
+        QToolButton* m_editingMoveUpToolButton;
+        
+        QToolButton* m_editingMoveDownToolButton;
+        
+        QToolButton* m_editingDeleteToolButton;
+        
+        QToolButton* m_editingInsertToolButton;
         
         // ADD_NEW_MEMBERS_HERE
 

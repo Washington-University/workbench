@@ -191,6 +191,27 @@ WuQMacro::appendMacroCommand(WuQMacroCommand* macroCommand)
 }
 
 /**
+ * Insert the given macro command at the given index
+ *
+ * @param index
+ *     Index of where to insert the macro command
+ * @param macroCommand
+ *     Macro command to insert.
+ */
+void
+WuQMacro::insertMacroCommandAtIndex(const int32_t index,
+                                    WuQMacroCommand* macroCommand)
+{
+    CaretAssert((index >= 0)
+                && (index <= getNumberOfMacroCommands()));
+    CaretAssert(macroCommand);
+    
+    insertRow(index,
+              macroCommand);
+    setModified();
+}
+
+/**
  * @return The unique identifier
  */
 QString
@@ -331,6 +352,96 @@ WuQMacro::getMacroCommandAtIndex(const int32_t index)
     WuQMacroCommand* command = dynamic_cast<WuQMacroCommand*>(item);
     CaretAssert(command);
     return command;
+}
+
+/**
+ * @return
+ *     Index of the given macro command
+ * @param macroCommand
+ *     The macro command
+ */
+int32_t
+WuQMacro::getIndexOfMacroCommand(const WuQMacroCommand* macroCommand) const
+{
+    CaretAssert(macroCommand);
+    
+    const int32_t num = getNumberOfMacroCommands();
+    for (int32_t i = 0; i < num; i++) {
+        if (getMacroCommandAtIndex(i) == macroCommand) {
+            return i;
+            break;
+        }
+    }
+    return -1;
+}
+
+/**
+ * Delete macro command at the given index
+ *
+ * @param index
+ *    Index of macro command
+ */
+void
+WuQMacro::deleteMacroCommandAtIndex(const int32_t index)
+{
+    CaretAssert((index >= 0)
+                && (index < getNumberOfMacroCommands()));
+    removeRow(index);
+    setModified();
+}
+
+/**
+ * Delete the given macro command
+ 
+ * @param macroCommand
+ */
+void
+WuQMacro::deleteMacroCommand(WuQMacroCommand* macroCommand)
+{
+    const int32_t index = getIndexOfMacroCommand(macroCommand);
+    if (index >= 0) {
+        deleteMacroCommandAtIndex(index);
+    }
+}
+
+/**
+ * Move the given macro command down one position
+ *
+ * @param macroCommand
+ */
+void
+WuQMacro::moveMacroCommandDown(WuQMacroCommand* macroCommand)
+{
+    const int32_t index = getIndexOfMacroCommand(macroCommand);
+    if ((index >= 0)
+        && (index < getNumberOfMacroCommands() - 1)) {
+        /* Note that take child removes item but does not remove row */
+        QStandardItem* item = takeChild(index);
+        removeRow(index);
+        CaretAssert(item);
+        insertMacroCommandAtIndex(index + 1,
+                                  dynamic_cast<WuQMacroCommand*>(item));
+    }
+}
+
+/**
+ * Move the given macro command up one position
+ *
+ * @param macroCommand
+ */
+void
+WuQMacro::moveMacroCommandUp(WuQMacroCommand* macroCommand)
+{
+    const int32_t index = getIndexOfMacroCommand(macroCommand);
+    if ((index > 0)
+        && (index < getNumberOfMacroCommands())) {
+        /* Note that take child removes item but does not remove row */
+        QStandardItem* item = takeChild(index);
+        removeRow(index);
+        CaretAssert(item);
+        insertMacroCommandAtIndex(index - 1,
+                                  dynamic_cast<WuQMacroCommand*>(item));
+    }
 }
 
 /**

@@ -134,6 +134,27 @@ WuQMacroGroup::addMacro(WuQMacro* macro)
 }
 
 /**
+ * Insert the given macro at the given index
+ *
+ * @param index
+ *     Index of where to insert the macro
+ * @param macro
+ *     Macro to insert.
+ */
+void
+WuQMacroGroup::insertMacroAtIndex(const int32_t index,
+                                  WuQMacro* macro)
+{
+    CaretAssert((index >= 0)
+                && (index <= getNumberOfMacros()));
+    CaretAssert(macro);
+    
+    insertRow(index,
+              macro);
+    setModified();
+}
+
+/**
  * Append macros in the given group to this group
  *
  * @param macroGroup
@@ -330,6 +351,27 @@ WuQMacroGroup::getMacroAtIndex(const int32_t index) const
 }
 
 /**
+ * Get the index of the given macro
+ *
+ * @param macro
+ *     The macro for index
+ * @return
+ *     Index of macro or -1 if not found
+ */
+int32_t
+WuQMacroGroup::getIndexOfMacro(const WuQMacro* macro)
+{
+    const int32_t count = getNumberOfMacros();
+    for (int32_t i = 0; i < count; i++) {
+        if (getMacroAtIndex(i) == macro) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+/**
  * @return True if this macro group contains the given macro
  *
  * @param macro
@@ -338,14 +380,13 @@ WuQMacroGroup::getMacroAtIndex(const int32_t index) const
 bool
 WuQMacroGroup::containsMacro(const WuQMacro* macro)
 {
-    const int32_t count = getNumberOfMacros();
-    for (int32_t i = 0; i < count; i++) {
-        if (getMacroAtIndex(i) == macro) {
-            return true;
-        }
+    const int32_t index = getIndexOfMacro(macro);
+    if (index >= 0) {
+        return true;
     }
-    
-    return false;
+    else {
+        return false;
+    }
 }
 
 /**
@@ -357,12 +398,9 @@ WuQMacroGroup::containsMacro(const WuQMacro* macro)
 void
 WuQMacroGroup::deleteMacro(const WuQMacro* macro)
 {
-    const int32_t count = getNumberOfMacros();
-    for (int32_t i = 0; i < count; i++) {
-        if (getMacroAtIndex(i) == macro) {
-            deleteMacroAtIndex(i);
-            break;
-        }
+    const int32_t index = getIndexOfMacro(macro);
+    if (index >= 0) {
+        deleteMacroAtIndex(index);
     }
 }
 
@@ -387,6 +425,46 @@ WuQMacroGroup::deleteMacroAtIndex(const int32_t index)
     delete item;
     
     setModified();
+}
+
+/**
+ * Move the given macro down one position
+ *
+ * @param macro
+ */
+void
+WuQMacroGroup::moveMacroDown(WuQMacro* macro)
+{
+    const int32_t index = getIndexOfMacro(macro);
+    if ((index >= 0)
+        && (index < getNumberOfMacros() - 1)) {
+        /* Note that take item removes item but does not remove row */
+        QStandardItem* item = takeItem(index);
+        removeRow(index);
+        CaretAssert(item);
+        insertMacroAtIndex(index + 1,
+                           dynamic_cast<WuQMacro*>(item));
+    }
+}
+
+/**
+ * Move the given macro up one position
+ *
+ * @param macro
+ */
+void
+WuQMacroGroup::moveMacroUp(WuQMacro* macro)
+{
+    const int32_t index = getIndexOfMacro(macro);
+    if ((index > 0)
+        && (index < getNumberOfMacros())) {
+        /* Note that take child removes item but does not remove row */
+        QStandardItem* item = takeItem(index);
+        removeRow(index);
+        CaretAssert(item);
+        insertMacroAtIndex(index - 1,
+                             dynamic_cast<WuQMacro*>(item));
+    }
 }
 
 /**

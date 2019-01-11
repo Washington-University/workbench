@@ -46,11 +46,24 @@ namespace caret {
         
         void appendMacroCommand(WuQMacroCommand* macroCommand);
         
+        void insertMacroCommandAtIndex(const int32_t index,
+                                       WuQMacroCommand* macroCommand);
+        
         int32_t getNumberOfMacroCommands() const;
         
         const WuQMacroCommand* getMacroCommandAtIndex(const int32_t index) const;
         
         WuQMacroCommand* getMacroCommandAtIndex(const int32_t index);
+        
+        int32_t getIndexOfMacroCommand(const WuQMacroCommand* macroCommand) const;
+        
+        void deleteMacroCommandAtIndex(const int32_t index);
+        
+        void deleteMacroCommand(WuQMacroCommand* macroCommand);
+        
+        void moveMacroCommandDown(WuQMacroCommand* macroCommand);
+        
+        void moveMacroCommandUp(WuQMacroCommand* macroCommand);
         
         QString getUniqueIdentifier() const;
         

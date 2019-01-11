@@ -23,6 +23,7 @@
 #include "WuQMacroDialog.h"
 #undef __WU_Q_MACRO_DIALOG_DECLARE__
 
+#include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -31,11 +32,14 @@
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenu>
 #include <QMessageBox>
+#include <QPainter>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QStackedWidget>
 #include <QTreeView>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
@@ -47,6 +51,7 @@
 #include "WuQMacroManager.h"
 #include "WuQMacroShortCutKeyComboBox.h"
 #include "WuQMacroStandardItemTypeEnum.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -72,43 +77,49 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     
     m_macroGroups = WuQMacroManager::instance()->getMacroGroups();
     
-    QLabel* macrosLabel = new QLabel("Macro:");
+//    QLabel* macrosLabel = new QLabel("Macro:");
     QLabel* macroGroupLabel = new QLabel("Macros in:");
     
     m_macroGroupComboBox = new QComboBox();
     QObject::connect(m_macroGroupComboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
                      this, &WuQMacroDialog::macroGroupComboBoxActivated);
     
-    m_treeView = new QTreeView();
-    m_treeView->setHeaderHidden(true);
-    QObject::connect(m_treeView, &QTreeView::clicked,
-                     this, &WuQMacroDialog::treeViewItemClicked);
+    m_macroGroupToolButton = new QToolButton();
+    m_macroGroupToolButton->setText("...");
+    m_macroGroupToolButton->setToolTip("Export and import macro groups");
+    QObject::connect(m_macroGroupToolButton, &QToolButton::clicked,
+                     this, &WuQMacroDialog::macroGroupToolButtonClicked);
     
     QGridLayout* gridLayout = new QGridLayout();
+    gridLayout->setContentsMargins(0, 0, 0, 0);
+    gridLayout->setRowStretch(0, 0);
+    gridLayout->setRowStretch(1, 0);
+    gridLayout->setRowStretch(2, 100);
     int row = 0;
     gridLayout->addWidget(macroGroupLabel, row, 0);
     gridLayout->addWidget(m_macroGroupComboBox, row, 1);
+    gridLayout->addWidget(m_macroGroupToolButton, row, 2);
     row++;
-    gridLayout->addWidget(macrosLabel, row, 0, (Qt::AlignTop
-                                                | Qt::AlignLeft));
-    gridLayout->addWidget(m_treeView, row, 1, 2, 1);
+    gridLayout->addWidget(createHorizontalLine(), row, 0, 1, 3);
     row++;
-    gridLayout->addWidget(createMacroButtonsWidget(), row, 0);
+    gridLayout->addWidget(createMacroRunAndEditingToolButtons(), row, 0, 1, 3);
+//    gridLayout->addWidget(macrosLabel, row, 0, (Qt::AlignTop| Qt::AlignLeft));
+    row++;
+    gridLayout->addWidget(createMacroAndCommandSelectionWidget(), row, 0, 1, 3);
     row++;
     
     for (int32_t iRow = 0; iRow < gridLayout->rowCount(); iRow++) {
         gridLayout->setRowStretch(iRow, 0);
     }
     
-    m_macroWidget = createMacroWidget();
-    m_commandWidget = createCommandWidget();
+    m_macroWidget = createMacroDisplayWidget();
+    m_commandWidget = createCommandDisplayWidget();
     m_stackedWidget = new QStackedWidget();
     m_stackedWidget->addWidget(m_macroWidget);
     m_stackedWidget->addWidget(m_commandWidget);
     m_stackedWidget->setCurrentWidget(m_macroWidget);
     
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Close);
-    m_runButton = m_dialogButtonBox->addButton("Run", QDialogButtonBox::ApplyRole);
     QObject::connect(m_dialogButtonBox, &QDialogButtonBox::rejected,
                      this, &WuQMacroDialog::close);
     QObject::connect(m_dialogButtonBox, &QDialogButtonBox::clicked,
@@ -133,66 +144,84 @@ WuQMacroDialog::~WuQMacroDialog()
 {
 }
 
-/**
- * @return New instance of widget containing macro buttons
- */
 QWidget*
-WuQMacroDialog::createMacroButtonsWidget()
+WuQMacroDialog::createMacroRunAndEditingToolButtons()
 {
+    m_runMacroToolButton = new QToolButton();
+    m_runMacroToolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    m_runMacroToolButton->setText("Run");
+    QPixmap runPixmap = createEditingToolButtonPixmap(m_runMacroToolButton,
+                                                         EditButton::RUN);
+    m_runMacroToolButton->setIcon(runPixmap);
+    m_runMacroToolButton->setToolTip("Run the selected macro");
+    QObject::connect(m_runMacroToolButton, &QToolButton::clicked,
+                     this, &WuQMacroDialog::runMacroToolButtonClicked);
+    
+    m_editingMoveUpToolButton = new QToolButton();
+    QPixmap moveUpPixmap = createEditingToolButtonPixmap(m_editingMoveUpToolButton,
+                                                         EditButton::MOVE_UP);
+    m_editingMoveUpToolButton->setIcon(moveUpPixmap);
+    m_editingMoveUpToolButton->setToolTip("Move selected macro/command up");
+    QObject::connect(m_editingMoveUpToolButton, &QToolButton::clicked,
+                     this, &WuQMacroDialog::editingMoveUpToolButtonClicked);
+    
+    m_editingMoveDownToolButton = new QToolButton();
+    QPixmap moveDownPixmap = createEditingToolButtonPixmap(m_editingMoveDownToolButton,
+                                                         EditButton::MOVE_DOWN);
+    m_editingMoveDownToolButton->setIcon(moveDownPixmap);
+    m_editingMoveDownToolButton->setToolTip("Move selected macro/command down");
+    QObject::connect(m_editingMoveDownToolButton, &QToolButton::clicked,
+                     this, &WuQMacroDialog::editingMoveDownToolButtonClicked);
+    
+    m_editingDeleteToolButton = new QToolButton();
+    QPixmap deletePixmap = createEditingToolButtonPixmap(m_editingDeleteToolButton,
+                                                         EditButton::DELETER);
+    m_editingDeleteToolButton->setIcon(deletePixmap);
+    m_editingDeleteToolButton->setToolTip("Delete the selected macro/command");
+    QObject::connect(m_editingDeleteToolButton, &QToolButton::clicked,
+                     this, &WuQMacroDialog::editingDeleteToolButtonClicked);
+    
+    m_editingInsertToolButton = new QToolButton();
+    QPixmap insertPixmap = createEditingToolButtonPixmap(m_editingInsertToolButton,
+                                                         EditButton::INSERTER);
+    m_editingInsertToolButton->setIcon(insertPixmap);
+    m_editingInsertToolButton->setToolTip("Insert a macro command");
+    QObject::connect(m_editingInsertToolButton, &QToolButton::clicked,
+                     this, &WuQMacroDialog::editingInsertToolButtonClicked);
+    
     QWidget* widget = new QWidget();
-    
-    m_deletePushButton = new QPushButton("Delete...");
-    m_deletePushButton->setToolTip("Delete the selected macro");
-    QObject::connect(m_deletePushButton, &QPushButton::clicked,
-                     this, &WuQMacroDialog::deleteButtonClicked);
-    
-    m_importPushButton = new QPushButton("Import...");
-    m_importPushButton->setToolTip("Import a macro");
-    QObject::connect(m_importPushButton, &QPushButton::clicked,
-                     this, &WuQMacroDialog::importButtonClicked);
-    
-    m_exportPushButton = new QPushButton("Export...");
-    m_exportPushButton->setToolTip("Import a macro");
-    QObject::connect(m_exportPushButton, &QPushButton::clicked,
-                     this, &WuQMacroDialog::exportButtonClicked);
-    
-    QVBoxLayout* macroButtonsLayout = new QVBoxLayout(widget);
-    macroButtonsLayout->setSpacing(4);
-    macroButtonsLayout->addWidget(m_deletePushButton);
-    macroButtonsLayout->addSpacing(15);
-    macroButtonsLayout->addWidget(m_importPushButton);
-    macroButtonsLayout->addWidget(m_exportPushButton);
-    macroButtonsLayout->addStretch();
+    QHBoxLayout* toolButtonLayout = new QHBoxLayout(widget);
+    toolButtonLayout->setContentsMargins(0, 0, 0, 0);
+    toolButtonLayout->addWidget(m_runMacroToolButton);
+    toolButtonLayout->addStretch();
+    toolButtonLayout->addWidget(m_editingMoveUpToolButton);
+    toolButtonLayout->addWidget(m_editingMoveDownToolButton);
+    toolButtonLayout->addWidget(m_editingInsertToolButton);
+    toolButtonLayout->addSpacing(15);
+    toolButtonLayout->addWidget(m_editingDeleteToolButton);
     
     return widget;
 }
 
 /**
- * Update buttons based upon selected item(s)
+ * @return the macro and command selection widget
  */
-void
-WuQMacroDialog::updateButtons()
+QWidget*
+WuQMacroDialog::createMacroAndCommandSelectionWidget()
 {
-    bool macroSelected(false);
-    WuQMacroStandardItemTypeEnum::Enum itemType = getSelectedItemType();
-    switch (itemType) {
-        case WuQMacroStandardItemTypeEnum::INVALID:
-            break;
-        case WuQMacroStandardItemTypeEnum::MACRO:
-            macroSelected = true;
-            break;
-        case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
-            break;
-    }
-    
-    m_deletePushButton->setEnabled(macroSelected);
+    m_treeView = new QTreeView();
+    m_treeView->setHeaderHidden(true);
+    QObject::connect(m_treeView, &QTreeView::clicked,
+                     this, &WuQMacroDialog::treeViewItemClicked);
+
+    return m_treeView;
 }
 
 /**
  * @return The widget displayed when a macro is selected
  */
 QWidget*
-WuQMacroDialog::createMacroWidget()
+WuQMacroDialog::createMacroDisplayWidget()
 {
     QLabel* nameLabel = new QLabel("Name:");
     m_macroNameLabel = new QLabel();
@@ -221,12 +250,8 @@ WuQMacroDialog::createMacroWidget()
     QObject::connect(descriptionEditPushButton, &QPushButton::clicked,
                      this, &WuQMacroDialog::macroDescriptionEditButtonClicked);
 
-    QFrame* horizontalLine = new QFrame();
-    horizontalLine->setMidLineWidth(1);
-    horizontalLine->setLineWidth(1);
-    horizontalLine->setFrameStyle(QFrame::HLine | QFrame::Sunken);
-
     QGridLayout* gridLayout = new QGridLayout();
+    gridLayout->setContentsMargins(0, 0, 0, 0);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 0);
     gridLayout->setColumnStretch(2, 0);
@@ -246,10 +271,22 @@ WuQMacroDialog::createMacroWidget()
     gridLayout->addWidget(descriptionEditPushButton, row, 0, 1, 2);
     row++;
 
+    QHBoxLayout* titleLayout = new QHBoxLayout();
+    titleLayout->setContentsMargins(0, 0, 0, 0);
+    titleLayout->addWidget(new QLabel("Macro "));
+    titleLayout->addWidget(createHorizontalLine(), 100);
+    
+    QHBoxLayout* runOptionsTitleLayout = new QHBoxLayout();
+    runOptionsTitleLayout->setContentsMargins(0, 0, 0, 0);
+    runOptionsTitleLayout->setContentsMargins(0, 0, 0, 0);
+    runOptionsTitleLayout->addWidget(new QLabel("Run Macro Options "));
+    runOptionsTitleLayout->addWidget(createHorizontalLine(), 100);
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(titleLayout);
     layout->addLayout(gridLayout);
-    layout->addWidget(horizontalLine);
+    layout->addLayout(runOptionsTitleLayout);
     layout->addWidget(createRunOptionsWidget());
     layout->addStretch();
 
@@ -330,7 +367,6 @@ WuQMacroDialog::createRunOptionsWidget()
 {
     QWidget* widget = new QWidget();
     
-    QLabel* runOptionsLabel = new QLabel("Run Macro Options: ");
     m_runOptionLoopCheckBox = new QCheckBox("Loop");
     m_runOptionLoopCheckBox->setChecked(false);
     m_runOptionLoopCheckBox->setEnabled(false);
@@ -358,7 +394,6 @@ WuQMacroDialog::createRunOptionsWidget()
     
     QGridLayout* runOptionsLayout = new QGridLayout(widget);
     runOptionsLayout->setColumnMinimumWidth(0, 10);
-    runOptionsLayout->addWidget(runOptionsLabel, 0, 0, 1, 3);
     runOptionsLayout->addWidget(m_runOptionLoopCheckBox, 1, 1, 1, 2);
     runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, 2, 1, 1, 2);
     runOptionsLayout->addWidget(m_runOptionDelayBetweenCommandsSpinBox, 3, 1);
@@ -416,18 +451,15 @@ WuQMacroDialog::runOptionLoopCheckBoxClicked(bool checked)
  *     Button that was clicked.
  */
 void
-WuQMacroDialog::buttonBoxButtonClicked(QAbstractButton* button)
+WuQMacroDialog::buttonBoxButtonClicked(QAbstractButton* /*button*/)
 {
-    if (button == m_runButton) {
-        runSelectedMacro();
-    }
 }
 
 /**
  * @return The widget displayed when a commnand is selected
  */
 QWidget*
-WuQMacroDialog::createCommandWidget()
+WuQMacroDialog::createCommandDisplayWidget()
 {
     QLabel* titleLabel  = new QLabel("Title:");
     m_commandTitleLabel = new QLabel();
@@ -459,18 +491,13 @@ WuQMacroDialog::createCommandWidget()
     m_commandToolTip->setWordWrap(true);
     
     QGridLayout* layout = new QGridLayout();
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 0);
     layout->setColumnStretch(2, 100);
     int row = 0;
     layout->addWidget(titleLabel, row, 0);
     layout->addWidget(m_commandTitleLabel, row, 1, 1, 2);
-    row++;
-    layout->addWidget(nameLabel, row, 0);
-    layout->addWidget(m_commandNameLabel, row, 1, 1, 2);
-    row++;
-    layout->addWidget(typeLabel, row, 0);
-    layout->addWidget(m_commandTypeLabel, row, 1, 1, 2);
     row++;
     layout->addWidget(valueOneLabel, row, 0);
     layout->addWidget(m_commandValueOnePushButton, row, 1);
@@ -480,11 +507,24 @@ WuQMacroDialog::createCommandWidget()
     layout->addWidget(m_commandValueTwoPushButton, row, 1);
     layout->addWidget(m_commandValueTwoLabel, row, 2);
     row++;
+    layout->addWidget(nameLabel, row, 0);
+    layout->addWidget(m_commandNameLabel, row, 1, 1, 2);
+    row++;
+    layout->addWidget(typeLabel, row, 0);
+    layout->addWidget(m_commandTypeLabel, row, 1, 1, 2);
+    row++;
     layout->addWidget(toolTipLabel, row, 0);
     layout->addWidget(m_commandToolTip, row, 1, 1, 2);
+    row++;
+    
+    QHBoxLayout* titleLayout = new QHBoxLayout();
+    titleLayout->setContentsMargins(0, 0, 0, 0);
+    titleLayout->addWidget(new QLabel("Command"));
+    titleLayout->addWidget(createHorizontalLine(), 100);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
+    widgetLayout->addLayout(titleLayout);
     widgetLayout->addLayout(layout);
     widgetLayout->addStretch();
     
@@ -530,7 +570,6 @@ WuQMacroDialog::updateDialogContents()
     m_runOptionLoopCheckBox->setChecked(runOptions->isLooping());
     
     macroGroupComboBoxActivated(selectedIndex);
-    updateButtons();
 }
 
 /**
@@ -583,7 +622,7 @@ WuQMacroDialog::treeViewItemClicked(const QModelIndex& modelIndex)
     
     updateMacroWidget(macro);
     updateCommandWidget(macroCommand);
-    updateButtons();
+    updateEditingToolButtons();
 }
 
 /**
@@ -595,7 +634,24 @@ WuQMacroDialog::macroGroupComboBoxActivated(int)
     WuQMacroGroup* selectedGroup = getSelectedMacroGroup();
 
     if (selectedGroup != NULL) {
+        QModelIndex selectedIndex;
+        if (m_treeView->model() != selectedGroup) {
+            /*
+             * Model has changed, select first macro
+             */
+            if (selectedGroup->getNumberOfMacros() > 0) {
+                selectedIndex = selectedGroup->indexFromItem(selectedGroup->getMacroAtIndex(0));
+            }
+        }
+        else {
+            selectedIndex = m_treeView->currentIndex();
+        }
+        
         m_treeView->setModel(selectedGroup);
+    
+        if (selectedIndex.isValid()) {
+            m_treeView->setCurrentIndex(selectedIndex);
+        }
         treeViewItemClicked(m_treeView->currentIndex());
     }
     else {
@@ -858,13 +914,13 @@ WuQMacroDialog::getSelectedItemType() const
 }
 
 /**
- * Run the selected macro
+ * Called when run button is clicked
  */
 void
-WuQMacroDialog::runSelectedMacro()
+WuQMacroDialog::runMacroToolButtonClicked()
 {
     if (WuQMacroManager::instance()->isModeRecording()) {
-        QMessageBox::critical(m_runButton,
+        QMessageBox::critical(m_runMacroToolButton,
                               "Error",
                               "A macro is being recorded.  Finish recording of macro.",
                               QMessageBox::Ok,
@@ -875,7 +931,7 @@ WuQMacroDialog::runSelectedMacro()
     WuQMacro* macro = getSelectedMacro();
     if (macro != NULL) {
         if (macro->getNumberOfMacroCommands() <= 0) {
-            QMessageBox::critical(m_runButton,
+            QMessageBox::critical(m_runMacroToolButton,
                                   "Error",
                                   "Macro does not contain any commands",
                                   QMessageBox::Ok,
@@ -889,30 +945,14 @@ WuQMacroDialog::runSelectedMacro()
 }
 
 /**
- * Called when the delete button is clicked
+ * Called when import item is selected
  */
 void
-WuQMacroDialog::deleteButtonClicked()
-{
-    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
-    WuQMacro* macro = getSelectedMacro();
-    if ((macroGroup != NULL)
-        && (macro != NULL)) {
-        if (WuQMacroManager::instance()->deleteMacro(m_deletePushButton, macroGroup, macro)) {
-            updateDialogContents();
-        }
-    }
-}
-
-/**
- * Called when import button is clicked
- */
-void
-WuQMacroDialog::importButtonClicked()
+WuQMacroDialog::importMacroGroupActionTriggered()
 {
     WuQMacroGroup* macroGroup = getSelectedMacroGroup();
     if (macroGroup != NULL) {
-        if (WuQMacroManager::instance()->importMacros(m_importPushButton,
+        if (WuQMacroManager::instance()->importMacros(m_macroGroupToolButton,
                                                       macroGroup)) {
             updateDialogContents();
         }
@@ -920,15 +960,15 @@ WuQMacroDialog::importButtonClicked()
 }
 
 /**
- * Called when export button is clicked
+ * Called when export item is selected
  */
 void
-WuQMacroDialog::exportButtonClicked()
+WuQMacroDialog::exportMacroGroupActionTriggered()
 {
     WuQMacroGroup* macroGroup = getSelectedMacroGroup();
     WuQMacro* macro = getSelectedMacro();
 
-    if (WuQMacroManager::instance()->exportMacros(m_exportPushButton,
+    if (WuQMacroManager::instance()->exportMacros(m_macroGroupToolButton,
                                                   macroGroup,
                                                   macro)) {
         updateDialogContents();
@@ -1063,5 +1103,315 @@ WuQMacroDialog::setMacroCommandValue(const ValueIndex valueIndex)
     
     updateDialogContents();
 }
+
+/**
+ * @return a horizontal line
+ */
+QWidget*
+WuQMacroDialog::createHorizontalLine() const
+{
+    QFrame* horizontalLine = new QFrame();
+    horizontalLine->setMidLineWidth(1);
+    horizontalLine->setLineWidth(1);
+    horizontalLine->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+    return horizontalLine;
+}
+
+/**
+ * Called when macro group tool button is clicked
+ */
+void
+WuQMacroDialog::macroGroupToolButtonClicked()
+{
+    QMenu* menu = new QMenu(this);
+    
+    QAction* importAction = menu->addAction("Import...");
+    QObject::connect(importAction, &QAction::triggered,
+                     this, &WuQMacroDialog::importMacroGroupActionTriggered);
+    
+    QAction* exportAction = menu->addAction("Export...");
+    QObject::connect(exportAction, &QAction::triggered,
+                     this, &WuQMacroDialog::exportMacroGroupActionTriggered);
+    
+    menu->exec(mapToGlobal(m_macroGroupToolButton->pos()));
+    
+    delete menu;
+}
+
+/**
+ * @return Instance of macro group menu
+ */
+QMenu*
+WuQMacroDialog::createMacroGroupMenu()
+{
+    QMenu* menu = new QMenu(this);
+    
+    QAction* importAction = menu->addAction("Import...");
+    QObject::connect(importAction, &QAction::triggered,
+                     this, &WuQMacroDialog::importMacroGroupActionTriggered);
+    
+    QAction* exportAction = menu->addAction("Export...");
+    QObject::connect(exportAction, &QAction::triggered,
+                     this, &WuQMacroDialog::exportMacroGroupActionTriggered);
+    
+    return menu;
+}
+
+/**
+ * Called when editing move up button clicked
+ */
+void
+WuQMacroDialog::editingMoveUpToolButtonClicked()
+{
+    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
+    WuQMacro* macro = getSelectedMacro();
+    WuQMacroCommand* command = getSelectedMacroCommand();
+    
+    switch (getSelectedItemType()) {
+        case WuQMacroStandardItemTypeEnum::INVALID:
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO:
+            if (macroGroup != NULL) {
+                if (macro != NULL) {
+                    macroGroup->moveMacroUp(macro);
+//                    updateMacroWidget(macro);
+                    m_treeView->setCurrentIndex(macro->index());
+                    treeViewItemClicked(macro->index());
+                }
+            }
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+            if ((macro != NULL)
+                && (command != NULL)) {
+                macro->moveMacroCommandUp(command);
+//                updateCommandWidget(command);
+                m_treeView->setCurrentIndex(command->index());
+                treeViewItemClicked(command->index());
+            }
+            break;
+    }
+}
+
+/**
+ * Called when editing move down button clicked
+ */
+void
+WuQMacroDialog::editingMoveDownToolButtonClicked()
+{
+    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
+    WuQMacro* macro = getSelectedMacro();
+    WuQMacroCommand* command = getSelectedMacroCommand();
+    
+    switch (getSelectedItemType()) {
+        case WuQMacroStandardItemTypeEnum::INVALID:
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO:
+            if (macroGroup != NULL) {
+               if (macro != NULL) {
+                   macroGroup->moveMacroDown(macro);
+//                   updateMacroWidget(macro);
+                   m_treeView->setCurrentIndex(macro->index());
+                   treeViewItemClicked(macro->index());
+               }
+            }
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+            if ((macro != NULL)
+                && (command != NULL)) {
+                macro->moveMacroCommandDown(command);
+//                updateCommandWidget(command);
+                m_treeView->setCurrentIndex(command->index());
+                treeViewItemClicked(command->index());
+            }
+            break;
+    }
+}
+
+/**
+ * Called when editing delete button clicked
+ */
+void
+WuQMacroDialog::editingDeleteToolButtonClicked()
+{
+    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
+    WuQMacro* macro = getSelectedMacro();
+    WuQMacroCommand* command = getSelectedMacroCommand();
+    
+    switch (getSelectedItemType()) {
+        case WuQMacroStandardItemTypeEnum::INVALID:
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO:
+            if ((macroGroup != NULL)
+                && (macro != NULL)) {
+                int32_t macroIndex = macroGroup->getIndexOfMacro(macro);
+                if (WuQMacroManager::instance()->deleteMacro(m_editingDeleteToolButton,
+                                                             macroGroup,
+                                                             macro)) {
+                    updateDialogContents();
+                    
+                    if (macroIndex < macroGroup->getNumberOfMacros()) {
+                        macroIndex = macroGroup->getNumberOfMacros() - 1;
+                    }
+                    if ((macroIndex >= 0)
+                        && (macroIndex < macroGroup->getNumberOfMacros())) {
+                        QModelIndex modelIndex = macroGroup->getMacroAtIndex(macroIndex)->index();
+                        m_treeView->setCurrentIndex(modelIndex);
+                        treeViewItemClicked(modelIndex);
+                    }
+                }
+            }
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+            if ((macro != NULL)
+                && (command != NULL)) {
+                macro->deleteMacroCommand(command);
+                updateDialogContents();
+            }
+            break;
+    }
+}
+
+/**
+ * Called when editing insert button clicked
+ */
+void
+WuQMacroDialog::editingInsertToolButtonClicked()
+{
+    std::cout << "Inserrt button clicked" << std::endl;
+}
+
+/**
+ * Update editing buttons after item selected
+ * in macro/command tree view
+ */
+void
+WuQMacroDialog::updateEditingToolButtons()
+{
+    bool runValid(false);
+    bool insertValid(false);
+    bool deleteValid(false);
+    bool moveUpValid(false);
+    bool moveDownValid(false);
+
+    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
+    WuQMacro* macro = getSelectedMacro();
+    WuQMacroCommand* command = getSelectedMacroCommand();
+    
+    switch (getSelectedItemType()) {
+        case WuQMacroStandardItemTypeEnum::INVALID:
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO:
+            if (macroGroup != NULL) {
+                if (macro != NULL) {
+                    const int32_t macroIndex = macroGroup->getIndexOfMacro(macro);
+                    deleteValid = true;
+                    moveUpValid = (macroIndex > 0);
+                    moveDownValid = (macroIndex < (macroGroup->getNumberOfMacros() - 1));
+                    runValid = true;
+                }
+            }
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+        {
+            if ((macro != NULL)
+                && (command != NULL)) {
+                const int32_t commandIndex = macro->getIndexOfMacroCommand(command);
+                deleteValid   = true;
+                moveUpValid   = (commandIndex > 0);
+                moveDownValid = (commandIndex < (macro->getNumberOfMacroCommands() - 1));
+            }
+        }
+            break;
+    }
+    
+    m_runMacroToolButton->setEnabled(runValid);
+    m_editingDeleteToolButton->setEnabled(deleteValid);
+    m_editingInsertToolButton->setEnabled(insertValid);
+    m_editingMoveDownToolButton->setEnabled(moveDownValid);
+    m_editingMoveUpToolButton->setEnabled(moveUpValid);
+}
+
+/**
+ * Create a pixmap for the given editing tool button
+ *
+ * @param editButton
+ *     The edit button identifier
+ * @return
+ *     Pixmap for the given button
+ */
+QPixmap
+WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
+                                              const EditButton editButton)
+{
+    CaretAssert(widget);
+    const qreal pixmapSize = 22.0;
+    const qreal maxValue = pixmapSize / 2.0 - 1.0;
+    const qreal arrowTip = maxValue * (2.0 / 3.0);
+
+    uint32_t pixmapOptions(static_cast<uint32_t>(WuQtUtilities::PixMapCreationOptions::TransparentBackground));
+    switch (editButton) {
+        case EditButton::DELETER:
+            break;
+        case EditButton::INSERTER:
+            break;
+        case EditButton::MOVE_DOWN:
+            break;
+        case EditButton::MOVE_UP:
+            break;
+        case EditButton::RUN:
+            /* allow background */
+            pixmapOptions = 0;
+            break;
+    }
+
+    QPixmap pixmap(static_cast<int>(pixmapSize),
+                   static_cast<int>(pixmapSize));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginCenter(widget,
+                                                                                            pixmap,
+                                                                                            pixmapOptions);
+    QPen pen(painter->pen());
+    pen.setWidth(3);
+    painter->setPen(pen);
+    
+    switch (editButton) {
+        case EditButton::DELETER:
+            pen.setColor(Qt::red);
+            painter->setPen(pen);
+            painter->drawLine(QPointF(-maxValue,  maxValue),  QPointF(maxValue, -maxValue));
+            painter->drawLine(QPointF(-maxValue,  -maxValue), QPointF(maxValue, maxValue));
+            break;
+        case EditButton::INSERTER:
+            painter->drawLine(QPointF(0,  maxValue), QPointF(0, -maxValue));
+            painter->drawLine(QPointF(-maxValue, 0), QPointF(maxValue, 0));
+            break;
+        case EditButton::MOVE_DOWN:
+            painter->drawLine(QPointF(0, maxValue), QPointF(0, -maxValue));
+            painter->drawLine(QPointF(0, -maxValue), QPointF(arrowTip,  -maxValue + arrowTip));
+            painter->drawLine(QPointF(0, -maxValue), QPointF(-arrowTip, -maxValue + arrowTip));
+            break;
+        case EditButton::MOVE_UP:
+            painter->drawLine(QPointF(0, maxValue), QPointF(0, -maxValue));
+            painter->drawLine(QPointF(0, maxValue), QPointF(arrowTip,  maxValue - arrowTip));
+            painter->drawLine(QPointF(0, maxValue), QPointF(-arrowTip, maxValue - arrowTip));
+            break;
+        case EditButton::RUN:
+        {
+            painter->setPen(Qt::green);
+            painter->setBrush(Qt::green);
+            const qreal p = pixmapSize / 3;
+            const QPointF points[3] = {
+                QPointF(-p, -maxValue),
+                QPointF( p, 0.0),
+                QPointF(-p,  maxValue)
+            };
+            painter->drawConvexPolygon(points, 3);
+        }
+            break;
+    }
+    
+    return pixmap;
+}
+
+
 
 

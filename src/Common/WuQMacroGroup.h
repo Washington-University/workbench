@@ -51,6 +51,9 @@ namespace caret {
         
         void addMacro(WuQMacro* macro);
         
+        void insertMacroAtIndex(const int32_t index,
+                                WuQMacro* macro);
+        
         void appendMacroGroup(const WuQMacroGroup* macroGroup);
         
         int32_t getNumberOfMacros() const;
@@ -62,6 +65,8 @@ namespace caret {
         WuQMacro* getMacroAtIndex(const int32_t index);
         
         const WuQMacro* getMacroAtIndex(const int32_t index) const;
+        
+        int32_t getIndexOfMacro(const WuQMacro* macro);
         
         WuQMacro* getMacroWithUniqueIdentifier(const QString& uniqueIdentifier);
         
@@ -76,6 +81,10 @@ namespace caret {
         void deleteMacro(const WuQMacro* macro);
         
         void deleteMacroAtIndex(const int32_t index);
+        
+        void moveMacroDown(WuQMacro* macro);
+        
+        void moveMacroUp(WuQMacro* macro);
         
         virtual bool isModified() const override;
         
