@@ -111,41 +111,55 @@ m_macroMouseEvent(NULL)
     switch (m_classType) {
         case WuQMacroClassTypeEnum::ACTION:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            m_dataValueUpdateLabelText = "New Status";
             break;
         case WuQMacroClassTypeEnum::ACTION_GROUP:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataValueUpdateLabelText = "Select name";
+            m_dataValueTwoUpdateLabelText = "Select by index";
             m_dataValueTwoValidFlag = true;
             break;
         case WuQMacroClassTypeEnum::BUTTON_GROUP:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataValueUpdateLabelText = "Select button with name";
+            m_dataValueTwoUpdateLabelText = "Select button at index";
             m_dataValueTwoValidFlag = true;
             break;
         case WuQMacroClassTypeEnum::CHECK_BOX:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            m_dataValueUpdateLabelText = "Check On/Off";
             break;
         case WuQMacroClassTypeEnum::COMBO_BOX:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
+            m_dataValueUpdateLabelText = "Select item with name";
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataValueTwoUpdateLabelText = "Select item at index";
             m_dataValueTwoValidFlag = true;
             break;
         case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
+            m_dataValueUpdateLabelText = "New Value";
             m_dataType = WuQMacroDataValueTypeEnum::FLOAT;
             break;
         case WuQMacroClassTypeEnum::INVALID:
             break;
         case WuQMacroClassTypeEnum::LINE_EDIT:
             m_dataType = WuQMacroDataValueTypeEnum::STRING;
+            m_dataValueUpdateLabelText = "New Text";
             break;
         case WuQMacroClassTypeEnum::LIST_WIDGET:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
+            m_dataValueUpdateLabelText = "Select item with name";
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataValueTwoUpdateLabelText = "Select item at index";
             m_dataValueTwoValidFlag = true;
             break;
         case WuQMacroClassTypeEnum::MENU:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
+            m_dataValueUpdateLabelText = "Select item with name";
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataValueTwoUpdateLabelText = "Select menu item at index";
             m_dataValueTwoValidFlag = true;
             break;
         case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
@@ -153,28 +167,37 @@ m_macroMouseEvent(NULL)
             break;
         case WuQMacroClassTypeEnum::PUSH_BUTTON:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            m_dataValueUpdateLabelText = "Select button";
             break;
         case WuQMacroClassTypeEnum::RADIO_BUTTON:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            m_dataValueUpdateLabelText = "Select button";
             break;
         case WuQMacroClassTypeEnum::SLIDER:
             m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataValueUpdateLabelText = "Move slider to";
             break;
         case WuQMacroClassTypeEnum::SPIN_BOX:
             m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
+            m_dataValueUpdateLabelText = "Enter value";
             break;
         case WuQMacroClassTypeEnum::TAB_BAR:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
             m_dataValueTwoValidFlag = true;
+            m_dataValueUpdateLabelText = "Select tab with name";
+            m_dataValueTwoUpdateLabelText = "Select tab at index";
             break;
         case WuQMacroClassTypeEnum::TAB_WIDGET:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
             m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
             m_dataValueTwoValidFlag = true;
+            m_dataValueUpdateLabelText = "Select tab with name";
+            m_dataValueTwoUpdateLabelText = "Select tab at index";
             break;
         case WuQMacroClassTypeEnum::TOOL_BUTTON:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            m_dataValueUpdateLabelText = "Select button";
             break;
     }
     
@@ -285,9 +308,11 @@ WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
     m_classType    = obj.m_classType;
     m_objectName   = obj.m_objectName;
     m_dataValue    = obj.m_dataValue;
+    m_dataValueUpdateLabelText = obj.m_dataValueUpdateLabelText;
     m_dataType     = obj.m_dataType;
     m_dataTypeTwo  = obj.m_dataTypeTwo;
     m_dataValueTwo = obj.m_dataValueTwo;
+    m_dataValueTwoUpdateLabelText = obj.m_dataValueTwoUpdateLabelText;
     m_macroMouseEvent = NULL;
     
     switch (m_dataType) {
@@ -516,6 +541,15 @@ WuQMacroCommand::setDataValue(const QVariant& dataValue)
 }
 
 /**
+ * @return Text used in dialog for updates the data value
+ */
+QString
+WuQMacroCommand::getDataValueUpdateLabelText() const
+{
+    return m_dataValueUpdateLabelText;
+}
+
+/**
  * @return The object's second data value.
  */
 QVariant
@@ -547,6 +581,15 @@ bool
 WuQMacroCommand::isDataValueTwoValid() const
 {
     return m_dataValueTwoValidFlag;
+}
+
+/**
+ * @return Text used in dialog for updates the data value
+ */
+QString
+WuQMacroCommand::getDataValueTwoUpdateLabelText() const
+{
+    return m_dataValueTwoUpdateLabelText;
 }
 
 /**

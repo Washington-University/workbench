@@ -989,18 +989,23 @@ WuQMacroDialog::setMacroCommandValue(const ValueIndex valueIndex)
         return;
     }
     
+    const WuQMacroClassTypeEnum::Enum classType = macroCommand->getClassType();
+    
     WuQMacroDataValueTypeEnum::Enum dataType = WuQMacroDataValueTypeEnum::INVALID;
     QVariant dataValue;
     QWidget* parentWidget(NULL);
+    QString dataValueUpdateText;
     switch (valueIndex) {
         case ValueIndex::ONE:
             dataType = macroCommand->getDataType();
             dataValue = macroCommand->getDataValue();
+            dataValueUpdateText = macroCommand->getDataValueUpdateLabelText();
             parentWidget = m_commandValueOnePushButton;
             break;
         case ValueIndex::TWO:
             dataType = macroCommand->getDataTypeTwo();
             dataValue = macroCommand->getDataValueTwo();
+            dataValueUpdateText = macroCommand->getDataValueTwoUpdateLabelText();
             parentWidget = m_commandValueTwoPushButton;
             break;
     }
@@ -1017,7 +1022,7 @@ WuQMacroDialog::setMacroCommandValue(const ValueIndex valueIndex)
             int defaultIndex = (dataValue.toBool() ? 0 : 1);
             const QString text = QInputDialog::getItem(parentWidget,
                                                        "New Status",
-                                                       "New Status",
+                                                       dataValueUpdateText,
                                                        items,
                                                        defaultIndex,
                                                        false,
@@ -1035,7 +1040,7 @@ WuQMacroDialog::setMacroCommandValue(const ValueIndex valueIndex)
             bool ok(false);
             const float f = QInputDialog::getDouble(parentWidget,
                                                     "New Value",
-                                                    "New Value",
+                                                    dataValueUpdateText,
                                                     dataValue.toDouble(),
                                                     -2147483647,
                                                     2147483647,
@@ -1052,7 +1057,7 @@ WuQMacroDialog::setMacroCommandValue(const ValueIndex valueIndex)
             bool ok(false);
             const int i = QInputDialog::getInt(parentWidget,
                                                "New Value",
-                                               "New Value",
+                                               dataValueUpdateText,
                                                dataValue.toInt(),
                                                -2147483647,
                                                2147483647,
@@ -1073,7 +1078,7 @@ WuQMacroDialog::setMacroCommandValue(const ValueIndex valueIndex)
             bool ok(false);
             const QString text = QInputDialog::getText(parentWidget,
                                                        "New Text",
-                                                       "New Text",
+                                                       dataValueUpdateText,
                                                        QLineEdit::Normal,
                                                        dataValue.toString(),
                                                        &ok);
@@ -1247,9 +1252,11 @@ WuQMacroDialog::editingDeleteToolButtonClicked()
                 if (WuQMacroManager::instance()->deleteMacro(m_editingDeleteToolButton,
                                                              macroGroup,
                                                              macro)) {
+                    
                     updateDialogContents();
                     
-                    if (macroIndex < macroGroup->getNumberOfMacros()) {
+                    CaretAssert(macroIndex >= 0);
+                    if (macroIndex >= macroGroup->getNumberOfMacros()) {
                         macroIndex = macroGroup->getNumberOfMacros() - 1;
                     }
                     if ((macroIndex >= 0)
@@ -1264,8 +1271,12 @@ WuQMacroDialog::editingDeleteToolButtonClicked()
         case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
             if ((macro != NULL)
                 && (command != NULL)) {
-                macro->deleteMacroCommand(command);
-                updateDialogContents();
+                if (WuQMacroManager::instance()->deleteMacroCommand(m_editingDeleteToolButton,
+                                                                    macroGroup,
+                                                                    macro,
+                                                                    command)) {
+                    updateDialogContents();
+                }
             }
             break;
     }

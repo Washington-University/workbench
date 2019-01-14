@@ -79,6 +79,8 @@ namespace caret {
 
         void setDataValue(const QVariant& dataValue);
         
+        QString getDataValueUpdateLabelText() const;
+        
         WuQMacroDataValueTypeEnum::Enum getDataTypeTwo() const;
         
         QVariant getDataValueTwo() const;
@@ -86,6 +88,8 @@ namespace caret {
         void setDataValueTwo(const QVariant& dataValue);
         
         bool isDataValueTwoValid() const;
+        
+        QString getDataValueTwoUpdateLabelText() const;
         
         WuQMacroMouseEventInfo* getMouseEventInfo();
         
@@ -122,9 +126,13 @@ namespace caret {
         
         WuQMacroDataValueTypeEnum::Enum m_dataType;
         
+        QString m_dataValueUpdateLabelText;
+        
         QVariant m_dataValueTwo;
         
         WuQMacroDataValueTypeEnum::Enum m_dataTypeTwo;
+        
+        QString m_dataValueTwoUpdateLabelText;
         
         WuQMacroMouseEventInfo* m_macroMouseEvent;
         

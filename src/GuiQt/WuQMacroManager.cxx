@@ -581,12 +581,52 @@ WuQMacroManager::deleteMacro(QWidget* parent,
                              WuQMacroGroup* macroGroup,
                              WuQMacro* macro)
 {
+    CaretAssert(macroGroup);
+    CaretAssert(macro);
     if (QMessageBox::warning(parent,
                              "Warning",
-                             ("Delete the macro " + macro->getName()),
+                             ("Delete the macro: " + macro->getName()),
                              QMessageBox::Ok | QMessageBox::Cancel,
                              QMessageBox::Ok) == QMessageBox::Ok) {
         macroGroup->deleteMacro(macro);
+        if (m_macroHelper) {
+            m_macroHelper->macroGroupWasModified(macroGroup);
+        }
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Delete a macro command
+ *
+ * @param parent
+ *     Parent widget for dialog
+ * @param macroGroup
+ *     Group containing macro
+ * @param macro
+ *     Macro containing command to be deleted
+ * @param macroCommand
+ *     Macro command for deletion
+ * @return
+ *     True if macro was deleted.
+ */
+bool
+WuQMacroManager::deleteMacroCommand(QWidget* parent,
+                                    WuQMacroGroup* macroGroup,
+                                    WuQMacro* macro,
+                                    WuQMacroCommand* macroCommand)
+{
+    CaretAssert(macroGroup);
+    CaretAssert(macro);
+    CaretAssert(macroCommand);
+    if (QMessageBox::warning(parent,
+                             "Warning",
+                             ("Delete the macro command: " + macroCommand->getDescriptiveName()),
+                             QMessageBox::Ok | QMessageBox::Cancel,
+                             QMessageBox::Ok) == QMessageBox::Ok) {
+        macro->deleteMacroCommand(macroCommand);
         if (m_macroHelper) {
             m_macroHelper->macroGroupWasModified(macroGroup);
         }
