@@ -377,6 +377,9 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         case WuQMacroClassTypeEnum::ACTION:
             runActionCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
+        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
+            runActionCheckableCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
+            break;
         case WuQMacroClassTypeEnum::ACTION_GROUP:
             runActionGroupCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
@@ -410,6 +413,9 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         case WuQMacroClassTypeEnum::PUSH_BUTTON:
             runPushButtonCommand(macroCommand, object, errorMessageOut, notFoundFlag);
             break;
+        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
+            runPushButtonCheckableCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+            break;
         case WuQMacroClassTypeEnum::RADIO_BUTTON:
             runRadioButtonCommand(macroCommand, object, errorMessageOut, notFoundFlag);
             break;
@@ -427,6 +433,9 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
             break;
         case WuQMacroClassTypeEnum::TOOL_BUTTON:
             runToolButtonCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+            break;
+        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
+            runToolButtonCheckableCommand(macroCommand, object, errorMessageOut, notFoundFlag);
             break;
     }
     
@@ -446,7 +455,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a QAction selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -466,6 +475,37 @@ WuQMacroExecutor::runActionCommand(const WuQMacroCommand* macroCommand,
     QAction* action = qobject_cast<QAction*>(object);
     if (action != NULL) {
         moveMouseToWidget(action);
+        CaretAssert(macroCommand->getDataType() == WuQMacroDataValueTypeEnum::NONE);
+        WuQMacroSignalEmitter signalEmitter;
+        signalEmitter.emitQActionSignal(action,
+                                        true);
+    }
+    else {
+        castFailureFlagOut = true;
+    }
+}
+
+/**
+ * Run a checkable QAction selection command
+ *
+ * @param macroCommand
+ *    Macro command that is run
+ * @param object
+ *     The object that is cast to specific object/widget
+ * @param errorMessageOut
+ *     Error message from execution
+ * @param castFailureFlagOut
+ *     Set to true if unable to cast object to widget type
+ */
+void
+WuQMacroExecutor::runActionCheckableCommand(const WuQMacroCommand* macroCommand,
+                                            QObject* object,
+                                            QString& /*errorMessageOut*/,
+                                            bool& castFailureFlagOut) const
+{
+    QAction* action = qobject_cast<QAction*>(object);
+    if (action != NULL) {
+        moveMouseToWidget(action);
         CaretAssert(macroCommand->getDataType() == WuQMacroDataValueTypeEnum::BOOLEAN);
         WuQMacroSignalEmitter signalEmitter;
         signalEmitter.emitQActionSignal(action,
@@ -476,8 +516,9 @@ WuQMacroExecutor::runActionCommand(const WuQMacroCommand* macroCommand,
     }
 }
 
+
 /**
- * Run a  selection command
+ * Run a action group selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -537,7 +578,7 @@ WuQMacroExecutor::runActionGroupCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a button group selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -600,7 +641,7 @@ WuQMacroExecutor::runButtonGroupCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a check box selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -632,7 +673,7 @@ WuQMacroExecutor::runCheckBoxCommand(const WuQMacroCommand* macroCommand,
 
 
 /**
- * Run a  selection command
+ * Run a combo box selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -690,7 +731,7 @@ WuQMacroExecutor::runComboBoxCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a double spin box selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -724,7 +765,7 @@ WuQMacroExecutor::runDoubleSpinBoxCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a line edit selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -759,7 +800,7 @@ WuQMacroExecutor::runLineEditCommand(const WuQMacroCommand* macroCommand,
 
 
 /**
- * Run a  selection command
+ * Run a list widget selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -824,7 +865,7 @@ WuQMacroExecutor::runListWidgetCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a menu selection selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -890,7 +931,7 @@ WuQMacroExecutor::runMenuCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a mouse command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -977,7 +1018,7 @@ WuQMacroExecutor::runMouseCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a pushbutton selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -1000,6 +1041,40 @@ WuQMacroExecutor::runPushButtonCommand(const WuQMacroCommand* macroCommand,
         const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
         
         moveMouseToWidget(pushButton);
+        CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::NONE);
+        WuQMacroSignalEmitter signalEmitter;
+        signalEmitter.emitQPushButtonSignal(pushButton,
+                                            true);
+    }
+    else {
+        castFailureFlagOut = true;
+    }
+}
+
+/**
+ * Run a checkable pushbutton selection command
+ *
+ * @param macroCommand
+ *    Macro command that is run
+ * @param object
+ *     The object that is cast to specific object/widget
+ * @param errorMessageOut
+ *     Error message from execution
+ * @param castFailureFlagOut
+ *     Set to true if unable to cast object to widget type
+ */
+void
+WuQMacroExecutor::runPushButtonCheckableCommand(const WuQMacroCommand* macroCommand,
+                                                QObject* object,
+                                                QString& /*errorMessageOut*/,
+                                                bool& castFailureFlagOut) const
+{
+    QPushButton* pushButton = qobject_cast<QPushButton*>(object);
+    if (pushButton != NULL) {
+        const QVariant dataValue = macroCommand->getDataValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
+        
+        moveMouseToWidget(pushButton);
         CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
         WuQMacroSignalEmitter signalEmitter;
         signalEmitter.emitQPushButtonSignal(pushButton,
@@ -1011,7 +1086,7 @@ WuQMacroExecutor::runPushButtonCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a radio button selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -1034,10 +1109,11 @@ WuQMacroExecutor::runRadioButtonCommand(const WuQMacroCommand* macroCommand,
         const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
 
         moveMouseToWidget(radioButton);
-        CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
+        CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::NONE);
         WuQMacroSignalEmitter signalEmitter;
+        /* Note: Radio buttons are always exclusive so always use a true value */
         signalEmitter.emitQRadioButtonSignal(radioButton,
-                                             dataValue.toBool());
+                                             true);
     }
     else {
         castFailureFlagOut = true;
@@ -1045,7 +1121,7 @@ WuQMacroExecutor::runRadioButtonCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a slider selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -1079,7 +1155,7 @@ WuQMacroExecutor::runSliderCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a spin box selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -1113,7 +1189,7 @@ WuQMacroExecutor::runSpinBoxCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a tab bar selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -1176,7 +1252,7 @@ WuQMacroExecutor::runTabBarCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a tab widget selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -1242,7 +1318,7 @@ WuQMacroExecutor::runTabWidgetCommand(const WuQMacroCommand* macroCommand,
 }
 
 /**
- * Run a  selection command
+ * Run a toolbutton selection command
  *
  * @param macroCommand
  *    Macro command that is run
@@ -1266,6 +1342,41 @@ WuQMacroExecutor::runToolButtonCommand(const WuQMacroCommand* macroCommand,
         const QVariant dataValueTwo = macroCommand->getDataValueTwo();
         
         moveMouseToWidget(toolButton);
+        CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::NONE);
+        WuQMacroSignalEmitter signalEmitter;
+        signalEmitter.emitQToolButtonSignal(toolButton,
+                                            true);
+    }
+    else {
+        castFailureFlagOut = true;
+    }
+}
+
+/**
+ * Run a checkable toolbutton selection command
+ *
+ * @param macroCommand
+ *    Macro command that is run
+ * @param object
+ *     The object that is cast to specific object/widget
+ * @param errorMessageOut
+ *     Error message from execution
+ * @param castFailureFlagOut
+ *     Set to true if unable to cast object to widget type
+ */
+void
+WuQMacroExecutor::runToolButtonCheckableCommand(const WuQMacroCommand* macroCommand,
+                                                QObject* object,
+                                                QString& /*errorMessageOut*/,
+                                                bool& castFailureFlagOut) const
+{
+    QToolButton* toolButton = qobject_cast<QToolButton*>(object);
+    if (toolButton != NULL) {
+        const QVariant dataValue = macroCommand->getDataValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
+        const QVariant dataValueTwo = macroCommand->getDataValueTwo();
+        
+        moveMouseToWidget(toolButton);
         CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
         WuQMacroSignalEmitter signalEmitter;
         signalEmitter.emitQToolButtonSignal(toolButton,
@@ -1275,4 +1386,3 @@ WuQMacroExecutor::runToolButtonCommand(const WuQMacroCommand* macroCommand,
         castFailureFlagOut = true;
     }
 }
-

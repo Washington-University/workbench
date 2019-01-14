@@ -716,6 +716,9 @@ WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
                 break;
             case WuQMacroDataValueTypeEnum::MOUSE:
                 break;
+            case WuQMacroDataValueTypeEnum::NONE:
+                newDataValueOne = "";
+                break;
             case WuQMacroDataValueTypeEnum::STRING:
                 validOneFlag = true;
                 break;
@@ -746,6 +749,9 @@ WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
                 validTwoFlag = true;
                 break;
             case WuQMacroDataValueTypeEnum::MOUSE:
+                break;
+            case WuQMacroDataValueTypeEnum::NONE:
+                newDataValueTwo = "";
                 break;
             case WuQMacroDataValueTypeEnum::STRING:
                 validTwoFlag = true;
@@ -989,8 +995,6 @@ WuQMacroDialog::setMacroCommandValue(const ValueIndex valueIndex)
         return;
     }
     
-    const WuQMacroClassTypeEnum::Enum classType = macroCommand->getClassType();
-    
     WuQMacroDataValueTypeEnum::Enum dataType = WuQMacroDataValueTypeEnum::INVALID;
     QVariant dataValue;
     QWidget* parentWidget(NULL);
@@ -1072,6 +1076,8 @@ WuQMacroDialog::setMacroCommandValue(const ValueIndex valueIndex)
         case WuQMacroDataValueTypeEnum::INVALID:
             break;
         case WuQMacroDataValueTypeEnum::MOUSE:
+            break;
+        case WuQMacroDataValueTypeEnum::NONE:
             break;
         case WuQMacroDataValueTypeEnum::STRING:
         {

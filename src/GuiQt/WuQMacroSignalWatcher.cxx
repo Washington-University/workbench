@@ -98,6 +98,15 @@ m_objectName(object->objectName())
             m_toolTipText = action->toolTip();
         }
             break;
+        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
+        {
+            QAction* action = qobject_cast<QAction*>(m_object);
+            CaretAssert(action);
+            QObject::connect(action, &QAction::triggered,
+                             this, &WuQMacroSignalWatcher::actionTriggered);
+            m_toolTipText = action->toolTip();
+        }
+            break;
         case WuQMacroClassTypeEnum::ACTION_GROUP:
         {
             QActionGroup* actionGroup = qobject_cast<QActionGroup*>(m_object);
@@ -176,6 +185,14 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::pushButtonClicked);
         }
             break;
+        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
+        {
+            QPushButton* pushButton = qobject_cast<QPushButton*>(m_object);
+            CaretAssert(pushButton);
+            QObject::connect(pushButton, &QPushButton::clicked,
+                             this, &WuQMacroSignalWatcher::pushButtonClicked);
+        }
+            break;
         case WuQMacroClassTypeEnum::RADIO_BUTTON:
         {
             QRadioButton* radioButton = qobject_cast<QRadioButton*>(m_object);
@@ -217,6 +234,14 @@ m_objectName(object->objectName())
         }
             break;
         case WuQMacroClassTypeEnum::TOOL_BUTTON:
+        {
+            QToolButton* toolButton = qobject_cast<QToolButton*>(m_object);
+            CaretAssert(toolButton);
+            QObject::connect(toolButton, &QCheckBox::clicked,
+                             this, &WuQMacroSignalWatcher::toolButtonClicked);
+        }
+            break;
+        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
         {
             QToolButton* toolButton = qobject_cast<QToolButton*>(m_object);
             CaretAssert(toolButton);
@@ -314,6 +339,149 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
     bool validFlag(false);
     WuQMacroClassTypeEnum::Enum objectType = WuQMacroClassTypeEnum::fromGuiName(objectClassName,
                                                                                   &validFlag);
+
+    /*
+     * Some Qt Widgets may have a 'checkable' state
+     * and the 'checkable' and 'non-checkable' states
+     * must be handled differently.
+     */
+    switch (objectType) {
+        case WuQMacroClassTypeEnum::ACTION:
+        {
+            /*
+             * Actions may have a 'checkable' status enabled
+             * Actions may also be in a QActionGroup and the
+             * QActionGroup may have an 'exclusive' status.
+             *
+             * NOTE: For this logic to work, the actions must have
+             * macro support added after the actions are placed
+             * in an exclusive action group
+             */
+            QAction* action = qobject_cast<QAction*>(object);
+            CaretAssert(action);
+            if (action->isCheckable()) {
+                /*
+                 * Probably checkable
+                 */
+                objectType = WuQMacroClassTypeEnum::ACTION_CHECKABLE;
+                
+                const QActionGroup* actionGroup = action->actionGroup();
+                if (actionGroup != NULL) {
+                    if (actionGroup->isExclusive()) {
+                        /*
+                         * In an exclusive group, actions CANNOT be
+                         * uchecked so treat as non-checkable action
+                         */
+                        objectType = WuQMacroClassTypeEnum::ACTION;
+                    }
+                }
+            }
+        }
+            break;
+        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
+            CaretAssertMessage(0, "ACTION_CHECKABLE is created by ACTION above");
+            break;
+        case WuQMacroClassTypeEnum::ACTION_GROUP:
+            break;
+        case WuQMacroClassTypeEnum::BUTTON_GROUP:
+            break;
+        case WuQMacroClassTypeEnum::CHECK_BOX:
+            break;
+        case WuQMacroClassTypeEnum::COMBO_BOX:
+            break;
+        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
+            break;
+        case WuQMacroClassTypeEnum::INVALID:
+            break;
+        case WuQMacroClassTypeEnum::LINE_EDIT:
+            break;
+        case WuQMacroClassTypeEnum::LIST_WIDGET:
+            break;
+        case WuQMacroClassTypeEnum::MENU:
+            break;
+        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
+            break;
+        case WuQMacroClassTypeEnum::PUSH_BUTTON:
+        {
+            /*
+             * Buttons may have a 'checkable' status enabled
+             * Buttons may also be in a QButtonGroup and the
+             * QButtonGroup may have an 'exclusive' status.
+             *
+             * NOTE: For this logic to work, the buttons must have
+             * macro support added after the buttons are placed
+             * in an exclusive button group
+             */
+            QAbstractButton* button = qobject_cast<QAbstractButton*>(object);
+            CaretAssert(button);
+            if (button->isCheckable()) {
+                /*
+                 * Probably checkable
+                 */
+                objectType = WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE;
+                
+                const QButtonGroup* buttonGroup = button->group();
+                if (buttonGroup != NULL) {
+                    if (buttonGroup->exclusive()) {
+                        /*
+                         * In an exclusive group, buttons CANNOT be
+                         * uchecked so treat as non-checkable button
+                         */
+                        objectType = WuQMacroClassTypeEnum::PUSH_BUTTON;
+                    }
+                }
+            }
+        }
+            break;
+        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
+            CaretAssertMessage(0, "PUSH_BUTTON_CHECKABLE is created by PUSH_BUTTON case above");
+            break;
+        case WuQMacroClassTypeEnum::RADIO_BUTTON:
+            break;
+        case WuQMacroClassTypeEnum::SLIDER:
+            break;
+        case WuQMacroClassTypeEnum::SPIN_BOX:
+            break;
+        case WuQMacroClassTypeEnum::TAB_BAR:
+            break;
+        case WuQMacroClassTypeEnum::TAB_WIDGET:
+            break;
+        case WuQMacroClassTypeEnum::TOOL_BUTTON:
+        {
+            /*
+             * Buttons may have a 'checkable' status enabled
+             * Buttons may also be in a QButtonGroup and the
+             * QButtonGroup may have an 'exclusive' status.
+             *
+             * NOTE: For this logic to work, the buttons must have
+             * macro support added after the buttons are placed
+             * in an exclusive button group
+             */
+            QAbstractButton* button = qobject_cast<QAbstractButton*>(object);
+            CaretAssert(button);
+            if (button->isCheckable()) {
+                /*
+                 * Probably checkable
+                 */
+                objectType = WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE;
+                
+                const QButtonGroup* buttonGroup = button->group();
+                if (buttonGroup != NULL) {
+                    if (buttonGroup->exclusive()) {
+                        /*
+                         * In an exclusive group, buttons CANNOT be
+                         * uchecked so treat as non-checkable button
+                         */
+                        objectType = WuQMacroClassTypeEnum::TOOL_BUTTON;
+                    }
+                }
+            }
+        }
+            break;
+        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
+            CaretAssertMessage(0, "TOOL_BUTTON_CHECKABLE is created by TOOL_BUTTON case above");
+            break;
+    }
 
     if ((objectType == WuQMacroClassTypeEnum::INVALID)
         || ( ! validFlag)) {

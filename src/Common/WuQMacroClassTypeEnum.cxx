@@ -114,6 +114,10 @@ WuQMacroClassTypeEnum::initialize()
                                     "ACTION", 
                                     "QAction"));
     
+    enumData.push_back(WuQMacroClassTypeEnum(ACTION_CHECKABLE,
+                                             "ACTION_CHECKABLE",
+                                             "QActionCheckable"));
+    
     enumData.push_back(WuQMacroClassTypeEnum(ACTION_GROUP,
                                               "ACTION_GROUP",
                                               "QActionGroup"));
@@ -154,7 +158,11 @@ WuQMacroClassTypeEnum::initialize()
                                     "PUSH_BUTTON", 
                                     "QPushButton"));
     
-    enumData.push_back(WuQMacroClassTypeEnum(RADIO_BUTTON, 
+    enumData.push_back(WuQMacroClassTypeEnum(PUSH_BUTTON_CHECKABLE,
+                                             "PUSH_BUTTON_CHECKABLE",
+                                             "QPushButtonCheckable"));
+    
+    enumData.push_back(WuQMacroClassTypeEnum(RADIO_BUTTON,
                                     "RADIO_BUTTON", 
                                     "QRadioButton"));
     
@@ -177,6 +185,10 @@ WuQMacroClassTypeEnum::initialize()
     enumData.push_back(WuQMacroClassTypeEnum(TOOL_BUTTON, 
                                     "TOOL_BUTTON", 
                                     "QToolButton"));
+    
+    enumData.push_back(WuQMacroClassTypeEnum(TOOL_BUTTON_CHECKABLE,
+                                             "TOOL_BUTTON_CHECKABLE",
+                                             "QToolButtonCheckable"));
 }
 
 /**

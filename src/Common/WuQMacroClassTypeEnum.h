@@ -37,8 +37,10 @@ public:
     enum Enum {
         /** Invalid type */
         INVALID,
-        /** a QAction */
+        /** a QAction (not checkable) */
         ACTION,
+        /** a Checkable QAction */
+        ACTION_CHECKABLE,
         /** a QAction Group */
         ACTION_GROUP,
         /** a QButtonGroup */
@@ -57,8 +59,10 @@ public:
         MENU,
         /** a Mouse Event */
         MOUSE_USER_EVENT,
-        /** a QPushButton */
+        /** a QPushButton(not checkable) */
         PUSH_BUTTON,
+        /** a Checkable QPushButton */
+        PUSH_BUTTON_CHECKABLE,
         /** a QRadioButton */
         RADIO_BUTTON,
         /** a QSlider */
@@ -69,8 +73,10 @@ public:
         TAB_BAR,
         /** a QTabWidget */
         TAB_WIDGET,
-        /** a QToolButton */
-        TOOL_BUTTON
+        /** a QToolButton (not checkable) */
+        TOOL_BUTTON,
+        /** a Checkable QToolButton */
+        TOOL_BUTTON_CHECKABLE
     };
 
 /*

@@ -163,6 +163,9 @@ WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroComma
             case WuQMacroDataValueTypeEnum::MOUSE:
                 stringValue = "MouseEvent";
                 break;
+            case WuQMacroDataValueTypeEnum::NONE:
+                stringValue = "";
+                break;
             case WuQMacroDataValueTypeEnum::STRING:
                 stringValue = dataValue.toString();
                 break;
@@ -192,6 +195,9 @@ WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroComma
             case WuQMacroDataValueTypeEnum::MOUSE:
                 stringValue = "MouseEvent";
                 break;
+            case WuQMacroDataValueTypeEnum::NONE:
+                stringValue = "";
+                break;
             case WuQMacroDataValueTypeEnum::STRING:
                 stringValue = dataValueTwo.toString();
                 break;
@@ -203,6 +209,8 @@ WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroComma
     
     switch (macroCommand->getClassType()) {
         case WuQMacroClassTypeEnum::ACTION:
+            break;
+        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
             break;
         case WuQMacroClassTypeEnum::ACTION_GROUP:
             break;
@@ -227,6 +235,8 @@ WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroComma
             break;
         case WuQMacroClassTypeEnum::PUSH_BUTTON:
             break;
+        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
+            break;
         case WuQMacroClassTypeEnum::RADIO_BUTTON:
             break;
         case WuQMacroClassTypeEnum::SLIDER:
@@ -238,6 +248,8 @@ WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroComma
         case WuQMacroClassTypeEnum::TAB_WIDGET:
             break;
         case WuQMacroClassTypeEnum::TOOL_BUTTON:
+            break;
+        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
             break;
     }
     

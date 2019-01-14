@@ -110,8 +110,12 @@ m_macroMouseEvent(NULL)
     
     switch (m_classType) {
         case WuQMacroClassTypeEnum::ACTION:
+            m_dataType = WuQMacroDataValueTypeEnum::NONE;
+            m_dataValueUpdateLabelText = "Click/Select";
+            break;
+        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
-            m_dataValueUpdateLabelText = "New Status";
+            m_dataValueUpdateLabelText = "On/Off";
             break;
         case WuQMacroClassTypeEnum::ACTION_GROUP:
             m_dataType    = WuQMacroDataValueTypeEnum::STRING;
@@ -166,11 +170,16 @@ m_macroMouseEvent(NULL)
             m_dataType = WuQMacroDataValueTypeEnum::MOUSE;
             break;
         case WuQMacroClassTypeEnum::PUSH_BUTTON:
+            m_dataType = WuQMacroDataValueTypeEnum::NONE;
+            m_dataValueUpdateLabelText = "Click button";
+            break;
+        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
             m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
-            m_dataValueUpdateLabelText = "Select button";
+            m_dataValueUpdateLabelText = "On/Off";
             break;
         case WuQMacroClassTypeEnum::RADIO_BUTTON:
-            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            /* Note: Radio buttons cannot be "unselected" */
+            m_dataType = WuQMacroDataValueTypeEnum::NONE;
             m_dataValueUpdateLabelText = "Select button";
             break;
         case WuQMacroClassTypeEnum::SLIDER:
@@ -196,8 +205,12 @@ m_macroMouseEvent(NULL)
             m_dataValueTwoUpdateLabelText = "Select tab at index";
             break;
         case WuQMacroClassTypeEnum::TOOL_BUTTON:
-            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            m_dataType = WuQMacroDataValueTypeEnum::NONE;
             m_dataValueUpdateLabelText = "Select button";
+            break;
+        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
+            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
+            m_dataValueUpdateLabelText = "On/Off";
             break;
     }
     
@@ -329,6 +342,8 @@ WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
                 m_macroMouseEvent = new WuQMacroMouseEventInfo(*obj.m_macroMouseEvent);
             }
             break;
+        case WuQMacroDataValueTypeEnum::NONE:
+            break;
         case WuQMacroDataValueTypeEnum::STRING:
             break;
     }
@@ -346,6 +361,10 @@ WuQMacroCommand::updateTitle()
     
     switch (m_classType) {
         case WuQMacroClassTypeEnum::ACTION:
+            title = ("Turn "
+                     + QString((m_dataValue.toBool() ? "On" : "Off")));
+            break;
+        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
             title = ("Turn "
                      + QString((m_dataValue.toBool() ? "On" : "Off")));
             break;
@@ -405,9 +424,12 @@ WuQMacroCommand::updateTitle()
         case WuQMacroClassTypeEnum::PUSH_BUTTON:
             title = ("Click Button");
             break;
-        case WuQMacroClassTypeEnum::RADIO_BUTTON:
+        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
             title = ("Turn "
                      + QString((m_dataValue.toBool() ? "On" : "Off")));
+            break;
+        case WuQMacroClassTypeEnum::RADIO_BUTTON:
+            title = "Click Button";
             break;
         case WuQMacroClassTypeEnum::SLIDER:
             title = ("Move to "
@@ -433,6 +455,10 @@ WuQMacroCommand::updateTitle()
             break;
         case WuQMacroClassTypeEnum::TOOL_BUTTON:
             title = ("Click Button");
+            break;
+        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
+            title = ("Turn "
+                     + QString((m_dataValue.toBool() ? "On" : "Off")));
             break;
     }
     

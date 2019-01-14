@@ -88,6 +88,11 @@ namespace caret {
                               QString& errorMessageOut,
                               bool& castFailureFlagOut) const;
         
+        void runActionCheckableCommand(const WuQMacroCommand* macroCommand,
+                                       QObject* object,
+                                       QString& errorMessageOut,
+                                       bool& castFailureFlagOut) const;
+
         void runActionGroupCommand(const WuQMacroCommand* macroCommand,
                                    QObject* object,
                                    QString& errorMessageOut,
@@ -138,6 +143,11 @@ namespace caret {
                                   QString& errorMessageOut,
                                   bool& castFailureFlagOut) const;
         
+        void runPushButtonCheckableCommand(const WuQMacroCommand* macroCommand,
+                                           QObject* object,
+                                           QString& errorMessageOut,
+                                           bool& castFailureFlagOut) const;
+
         void runRadioButtonCommand(const WuQMacroCommand* macroCommand,
                                    QObject* object,
                                    QString& errorMessageOut,
@@ -168,6 +178,11 @@ namespace caret {
                                   QString& errorMessageOut,
                                   bool& castFailureFlagOut) const;
         
+        void runToolButtonCheckableCommand(const WuQMacroCommand* macroCommand,
+                                           QObject* object,
+                                           QString& errorMessageOut,
+                                           bool& castFailureFlagOut) const;
+
         mutable WuQMacroExecutorOptions m_runOptions;
         
         mutable std::vector<QObject*> m_parentObjects;

@@ -2255,6 +2255,7 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     this->orientationLeftOrLateralToolButton = new QToolButton();
     this->orientationLeftOrLateralToolButton->setDefaultAction(this->orientationLeftOrLateralToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationLeftOrLateralToolButton);
+    this->orientationLeftOrLateralToolButtonAction->setParent(this->orientationLeftOrLateralToolButton);
     
     this->orientationRightOrMedialToolButton = new QToolButton();
     this->orientationRightOrMedialToolButton->setDefaultAction(this->orientationRightOrMedialToolButtonAction);
@@ -2264,18 +2265,22 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     this->orientationAnteriorToolButton = new QToolButton();
     this->orientationAnteriorToolButton->setDefaultAction(this->orientationAnteriorToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationAnteriorToolButton);
+    this->orientationAnteriorToolButtonAction->setParent(this->orientationAnteriorToolButton);
     
     this->orientationPosteriorToolButton = new QToolButton();
     this->orientationPosteriorToolButton->setDefaultAction(this->orientationPosteriorToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationPosteriorToolButton);
+    this->orientationPosteriorToolButtonAction->setParent(this->orientationPosteriorToolButton);
     
     this->orientationDorsalToolButton = new QToolButton();
     this->orientationDorsalToolButton->setDefaultAction(this->orientationDorsalToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationDorsalToolButton);
+    this->orientationDorsalToolButtonAction->setParent(this->orientationDorsalToolButton);
     
     this->orientationVentralToolButton = new QToolButton();
     this->orientationVentralToolButton->setDefaultAction(this->orientationVentralToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationVentralToolButton);
+    this->orientationVentralToolButtonAction->setParent(this->orientationVentralToolButton);
     
     this->orientationLateralMedialToolButton = new QToolButton();
     this->orientationLateralMedialToolButton->setDefaultAction(this->orientationLateralMedialToolButtonAction);
@@ -2806,8 +2811,6 @@ BrainBrowserWindowToolBar::createModeWidget()
     WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeAnnotationsToolButton);
     this->modeInputModeAnnotationsAction->setObjectName(m_objectNamePrefix
                                                   + ":Mode:Annotate");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeAnnotationsAction,
-                                                         "Select annotate mode");
     
     
     /*
@@ -2822,8 +2825,6 @@ BrainBrowserWindowToolBar::createModeWidget()
     WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeBordersToolButton);
     this->modeInputModeBordersAction->setObjectName(m_objectNamePrefix
                                                         + ":Mode:Border");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeBordersAction,
-                                                         "Select border mode");
     
     /*
      * Foci
@@ -2837,8 +2838,6 @@ BrainBrowserWindowToolBar::createModeWidget()
     WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeFociToolButton);
     this->modeInputModeFociAction->setObjectName(m_objectNamePrefix
                                                         + ":Mode:Foci");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeFociAction,
-                                                         "Select foci mode");
     
     /*
      * Image
@@ -2856,8 +2855,6 @@ BrainBrowserWindowToolBar::createModeWidget()
         WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeImageToolButton);
         this->modeInputModeImageAction->setObjectName(m_objectNamePrefix
                                                             + ":Mode:Image");
-        WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeImageAction,
-                                                             "Select image mode");
     }
     
     /*
@@ -2872,8 +2869,6 @@ BrainBrowserWindowToolBar::createModeWidget()
     WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeVolumeEditButton);
     this->modeInputVolumeEditAction->setObjectName(m_objectNamePrefix
                                                         + ":Mode:Volume");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputVolumeEditAction,
-                                                         "Select volume mode");
     
     /*
      * View Mode
@@ -2901,8 +2896,6 @@ BrainBrowserWindowToolBar::createModeWidget()
     WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeViewToolButton);
     this->modeInputModeViewAction->setObjectName(m_objectNamePrefix
                                                         + ":Mode:View");
-    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeViewAction,
-                                                         "Select view mode");
     
     WuQtUtilities::matchWidgetWidths(inputModeAnnotationsToolButton,
                                      inputModeBordersToolButton,
@@ -2951,6 +2944,21 @@ BrainBrowserWindowToolBar::createModeWidget()
     QObject::connect(this->modeInputModeActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(modeInputModeActionTriggered(QAction*)));
     this->modeInputModeActionGroup->setExclusive(true);
+    
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeAnnotationsAction,
+                                                         "Select annotate mode");
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeBordersAction,
+                                                         "Select border mode");
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeFociAction,
+                                                         "Select foci mode");
+    if (modeInputModeImageAction != NULL) {
+        WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeImageAction,
+                                                             "Select image mode");
+    }
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeViewAction,
+                                                         "Select view mode");
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputVolumeEditAction,
+                                                         "Select volume mode");
 //    this->modeInputModeActionGroup->setObjectName(m_objectNamePrefix
 //                                                  + ":Mode_Action_Group");
 //    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeActionGroup,

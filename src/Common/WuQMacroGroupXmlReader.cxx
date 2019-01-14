@@ -385,6 +385,9 @@ WuQMacroGroupXmlReader::readMacroCommandAttributesVersionOne()
             case WuQMacroDataValueTypeEnum::MOUSE:
                 CaretAssertMessage(0, "Mouse is special case handled above");
                 break;
+            case WuQMacroDataValueTypeEnum::NONE:
+                value.setValue(QString());
+                break;
             case WuQMacroDataValueTypeEnum::STRING:
                 value.setValue(valueString.toString());
                 break;
@@ -414,6 +417,9 @@ WuQMacroGroupXmlReader::readMacroCommandAttributesVersionOne()
             }
                 break;
             case WuQMacroDataValueTypeEnum::MOUSE:
+                break;
+            case WuQMacroDataValueTypeEnum::NONE:
+                value.setValue(QString());
                 break;
             case WuQMacroDataValueTypeEnum::STRING:
                 valueTwo.setValue(valueTwoString.toString());

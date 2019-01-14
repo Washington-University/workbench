@@ -126,7 +126,11 @@ WuQMacroDataValueTypeEnum::initialize()
                                     "MOUSE", 
                                     "Mouse"));
     
-    enumData.push_back(WuQMacroDataValueTypeEnum(STRING, 
+    enumData.push_back(WuQMacroDataValueTypeEnum(NONE,
+                                                 "NONE",
+                                                 "None"));
+    
+    enumData.push_back(WuQMacroDataValueTypeEnum(STRING,
                                     "STRING", 
                                     "String"));
     

@@ -45,6 +45,8 @@ public:
         INTEGER,
         /** Mouse */
         MOUSE,
+        /** None (no data value associated with object */
+        NONE,
         /** String */
         STRING
     };
