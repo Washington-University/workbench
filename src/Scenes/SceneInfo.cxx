@@ -27,7 +27,7 @@
 #include "CaretLogger.h"
 #include "SceneXmlElements.h"
 #include "WuQMacroGroup.h"
-#include "WuQMacroGroupXmlWriter.h"
+#include "WuQMacroGroupXmlStreamWriter.h"
 #include "XmlAttributes.h"
 #include "XmlUtilities.h"
 #include "XmlWriter.h"
@@ -273,7 +273,7 @@ SceneInfo::writeSceneInfo(XmlWriter& xmlWriter,
      */
     if (m_macroGroup->getNumberOfMacros() > 0) {
         QString textString;
-        WuQMacroGroupXmlWriter macroWriter;
+        WuQMacroGroupXmlStreamWriter macroWriter;
         macroWriter.writeToString(m_macroGroup.get(),
                                   textString);
         textString = XmlUtilities::encodeXmlSpecialCharacters(textString);

@@ -27,8 +27,8 @@
 
 #include "CaretAssert.h"
 #include "WuQMacro.h"
-#include "WuQMacroGroupXmlReader.h"
-#include "WuQMacroGroupXmlWriter.h"
+#include "WuQMacroGroupXmlStreamReader.h"
+#include "WuQMacroGroupXmlStreamWriter.h"
 
 using namespace caret;
 
@@ -534,7 +534,7 @@ WuQMacroGroup::readXmlFromStringOld(const QString& xmlString,
     errorMessageOut.clear();
     nonFatalWarningMessageOut.clear();
     
-    WuQMacroGroupXmlReader reader;
+    WuQMacroGroupXmlStreamReader reader;
     reader.readFromString(xmlString,
                           this);
     if (reader.hasError()) {
@@ -569,7 +569,7 @@ WuQMacroGroup::writeXmlToString(QString& xmlString,
     xmlString.clear();
     errorMessageOut.clear();
     
-    WuQMacroGroupXmlWriter writer;
+    WuQMacroGroupXmlStreamWriter writer;
     writer.writeToString(this,
                          xmlString);
     clearModified();

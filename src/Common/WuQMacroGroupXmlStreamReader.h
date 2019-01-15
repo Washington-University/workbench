@@ -1,5 +1,5 @@
-#ifndef __WU_Q_MACRO_GROUP_XML_READER_H__
-#define __WU_Q_MACRO_GROUP_XML_READER_H__
+#ifndef __WU_Q_MACRO_GROUP_XML_STREAM_READER_H__
+#define __WU_Q_MACRO_GROUP_XML_STREAM_READER_H__
 
 /*LICENSE_START*/
 /*
@@ -25,7 +25,7 @@
 
 #include <memory>
 
-#include "WuQMacroGroupXmlFormatBase.h"
+#include "WuQMacroGroupXmlStreamBase.h"
 
 class QXmlStreamReader;
 
@@ -37,16 +37,16 @@ namespace caret {
     class WuQMacroGroup;
     class WuQMacroMouseEventInfo;
     
-    class WuQMacroGroupXmlReader : public WuQMacroGroupXmlFormatBase {
+    class WuQMacroGroupXmlStreamReader : public WuQMacroGroupXmlStreamBase {
 
     public:
-        WuQMacroGroupXmlReader();
+        WuQMacroGroupXmlStreamReader();
         
-        virtual ~WuQMacroGroupXmlReader();
+        virtual ~WuQMacroGroupXmlStreamReader();
         
-        WuQMacroGroupXmlReader(const WuQMacroGroupXmlReader&) = delete;
+        WuQMacroGroupXmlStreamReader(const WuQMacroGroupXmlStreamReader&) = delete;
 
-        WuQMacroGroupXmlReader& operator=(const WuQMacroGroupXmlReader&) = delete;
+        WuQMacroGroupXmlStreamReader& operator=(const WuQMacroGroupXmlStreamReader&) = delete;
 
         bool hasError() const;
         
@@ -82,9 +82,9 @@ namespace caret {
 
     };
     
-#ifdef __WU_Q_MACRO_GROUP_XML_READER_DECLARE__
+#ifdef __WU_Q_MACRO_GROUP_XML_STREAM_READER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_MACRO_GROUP_XML_READER_DECLARE__
+#endif // __WU_Q_MACRO_GROUP_XML_STREAM_READER_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_MACRO_GROUP_XML_READER_H__
+#endif  //__WU_Q_MACRO_GROUP_XML_STREAM_READER_H__

@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __WU_Q_MACRO_GROUP_XML_WRITER_DECLARE__
-#include "WuQMacroGroupXmlWriter.h"
-#undef __WU_Q_MACRO_GROUP_XML_WRITER_DECLARE__
+#define __WU_Q_MACRO_GROUP_XML_STREAM_WRITER_DECLARE__
+#include "WuQMacroGroupXmlStreamWriter.h"
+#undef __WU_Q_MACRO_GROUP_XML_STREAM_WRITER_DECLARE__
 
 #include <QTextStream>
 #include <QXmlStreamWriter>
@@ -37,7 +37,7 @@ using namespace caret;
 
     
 /**
- * \class caret::WuQMacroGroupXmlWriter 
+ * \class caret::WuQMacroGroupXmlStreamWriter
  * \brief Writes contents of macro group to XML format
  * \ingroup Common
  */
@@ -45,15 +45,15 @@ using namespace caret;
 /**
  * Constructor
  */
-WuQMacroGroupXmlWriter::WuQMacroGroupXmlWriter()
-: WuQMacroGroupXmlFormatBase()
+WuQMacroGroupXmlStreamWriter::WuQMacroGroupXmlStreamWriter()
+: WuQMacroGroupXmlStreamBase()
 {
 }
 
 /**
  * Destructor.
  */
-WuQMacroGroupXmlWriter::~WuQMacroGroupXmlWriter()
+WuQMacroGroupXmlStreamWriter::~WuQMacroGroupXmlStreamWriter()
 {
 }
 
@@ -66,7 +66,7 @@ WuQMacroGroupXmlWriter::~WuQMacroGroupXmlWriter()
  *     Pointer to string to which XML is written
  */
 void
-WuQMacroGroupXmlWriter::writeToString(const WuQMacroGroup* macroGroup,
+WuQMacroGroupXmlStreamWriter::writeToString(const WuQMacroGroup* macroGroup,
                                       QString& contentTextString)
 {
     CaretAssert(macroGroup);
@@ -99,7 +99,7 @@ WuQMacroGroupXmlWriter::writeToString(const WuQMacroGroup* macroGroup,
  *     The macro
  */
 void
-WuQMacroGroupXmlWriter::writeMacroToXML(const WuQMacro* macro)
+WuQMacroGroupXmlStreamWriter::writeMacroToXML(const WuQMacro* macro)
 {
     CaretAssert(macro);
     
@@ -131,7 +131,7 @@ WuQMacroGroupXmlWriter::writeMacroToXML(const WuQMacro* macro)
  *     The macro command
  */
 void
-WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroCommand)
+WuQMacroGroupXmlStreamWriter::writeMacroCommandToXML(const WuQMacroCommand* macroCommand)
 {
     CaretAssert(macroCommand);
     
@@ -268,7 +268,7 @@ WuQMacroGroupXmlWriter::writeMacroCommandToXML(const WuQMacroCommand* macroComma
  *     The macro mouse event info
  */
 void
-WuQMacroGroupXmlWriter::writeMacroMouseEventInfo(const WuQMacroMouseEventInfo* mouseEventInfo)
+WuQMacroGroupXmlStreamWriter::writeMacroMouseEventInfo(const WuQMacroMouseEventInfo* mouseEventInfo)
 {
     CaretAssert(mouseEventInfo);
     

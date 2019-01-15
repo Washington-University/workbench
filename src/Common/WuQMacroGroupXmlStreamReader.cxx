@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __WU_Q_MACRO_GROUP_XML_READER_DECLARE__
-#include "WuQMacroGroupXmlReader.h"
-#undef __WU_Q_MACRO_GROUP_XML_READER_DECLARE__
+#define __WU_Q_MACRO_GROUP_XML_STREAM_READER_DECLARE__
+#include "WuQMacroGroupXmlStreamReader.h"
+#undef __WU_Q_MACRO_GROUP_XML_STREAM_READER_DECLARE__
 
 #include <QXmlStreamAttributes>
 #include <QXmlStreamReader>
@@ -38,7 +38,7 @@ using namespace caret;
 
 
 /**
- * \class caret::WuQMacroGroupXmlReader
+ * \class caret::WuQMacroGroupXmlStreamReader
  * \brief Reads macro group from XML format
  * \ingroup Common
  */
@@ -46,15 +46,15 @@ using namespace caret;
 /**
  * Constructor.
  */
-WuQMacroGroupXmlReader::WuQMacroGroupXmlReader()
-: WuQMacroGroupXmlFormatBase()
+WuQMacroGroupXmlStreamReader::WuQMacroGroupXmlStreamReader()
+: WuQMacroGroupXmlStreamBase()
 {
 }
 
 /**
  * Destructor.
  */
-WuQMacroGroupXmlReader::~WuQMacroGroupXmlReader()
+WuQMacroGroupXmlStreamReader::~WuQMacroGroupXmlStreamReader()
 {
 }
 
@@ -67,7 +67,7 @@ WuQMacroGroupXmlReader::~WuQMacroGroupXmlReader()
  *    The macro group
  */
 void
-WuQMacroGroupXmlReader::readFromString(const QString& xmlString,
+WuQMacroGroupXmlStreamReader::readFromString(const QString& xmlString,
                                        WuQMacroGroup* macroGroup)
 {
     CaretAssert(macroGroup);
@@ -142,7 +142,7 @@ WuQMacroGroupXmlReader::readFromString(const QString& xmlString,
  *    The macro group
  */
 void
-WuQMacroGroupXmlReader::readVersionOne(WuQMacroGroup* macroGroup)
+WuQMacroGroupXmlStreamReader::readVersionOne(WuQMacroGroup* macroGroup)
 {
     CaretAssert(macroGroup);
     
@@ -230,7 +230,7 @@ WuQMacroGroupXmlReader::readVersionOne(WuQMacroGroup* macroGroup)
  * @return The macro
  */
 WuQMacro*
-WuQMacroGroupXmlReader::readMacroVersionOne()
+WuQMacroGroupXmlStreamReader::readMacroVersionOne()
 {
     WuQMacro* macro(NULL);
     
@@ -286,7 +286,7 @@ WuQMacroGroupXmlReader::readMacroVersionOne()
  * @Return The macro group
  */
 WuQMacroCommand*
-WuQMacroGroupXmlReader::readMacroCommandAttributesVersionOne()
+WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne()
 {
     WuQMacroCommand* macroCommand(NULL);
     
@@ -442,7 +442,7 @@ WuQMacroGroupXmlReader::readMacroCommandAttributesVersionOne()
  * @return Read and return the mouse event information
  */
 WuQMacroMouseEventInfo*
-WuQMacroGroupXmlReader::readMacroMouseEventInfo()
+WuQMacroGroupXmlStreamReader::readMacroMouseEventInfo()
 {
     const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
     const QString mouseEventTypeString = attributes.value(ATTRIBUTE_MOUSE_EVENT_TYPE).toString();
@@ -507,7 +507,7 @@ WuQMacroGroupXmlReader::readMacroMouseEventInfo()
 }
 
 void
-WuQMacroGroupXmlReader::addToWarnings(const QString& warning)
+WuQMacroGroupXmlStreamReader::addToWarnings(const QString& warning)
 {
     if ( ! m_warningMessage.isEmpty()) {
         m_warningMessage.append("\n");
@@ -525,7 +525,7 @@ WuQMacroGroupXmlReader::addToWarnings(const QString& warning)
  * @return True if there are non-fatal warnings
  */
 bool
-WuQMacroGroupXmlReader::hasWarnings() const
+WuQMacroGroupXmlStreamReader::hasWarnings() const
 {
     return ( ! m_warningMessage.isEmpty());
 }
@@ -534,7 +534,7 @@ WuQMacroGroupXmlReader::hasWarnings() const
  * @return The warning message
  */
 QString
-WuQMacroGroupXmlReader::getWarningMessage() const
+WuQMacroGroupXmlStreamReader::getWarningMessage() const
 {
     return m_warningMessage;
 }
@@ -543,7 +543,7 @@ WuQMacroGroupXmlReader::getWarningMessage() const
  * @return True if there is an error
  */
 bool
-WuQMacroGroupXmlReader::hasError() const
+WuQMacroGroupXmlStreamReader::hasError() const
 {
     if (m_xmlStreamReader != NULL) {
         return m_xmlStreamReader->hasError();
@@ -555,7 +555,7 @@ WuQMacroGroupXmlReader::hasError() const
  * @return The error message
  */
 QString
-WuQMacroGroupXmlReader::getErrorMessage() const
+WuQMacroGroupXmlStreamReader::getErrorMessage() const
 {
     QString errorMessage;
     

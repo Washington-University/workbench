@@ -32,8 +32,8 @@
 #include "DataFileException.h"
 #include "WuQMacro.h"
 #include "WuQMacroGroup.h"
-#include "WuQMacroGroupXmlReader.h"
-#include "WuQMacroGroupXmlWriter.h"
+#include "WuQMacroGroupXmlStreamReader.h"
+#include "WuQMacroGroupXmlStreamWriter.h"
 
 using namespace caret;
 
@@ -220,7 +220,7 @@ WuQMacroFile::readFile(const AString& filename)
         QTextStream textStream(&file);
         const QString fileContentString = textStream.readAll();
         
-        WuQMacroGroupXmlReader reader;
+        WuQMacroGroupXmlStreamReader reader;
         reader.readFromString(fileContentString,
                               m_macroGroup.get());
         file.close();
@@ -266,7 +266,7 @@ WuQMacroFile::writeFile(const AString& filename)
          * Place the macro group into a string
          */
         QString fileContentString;
-        WuQMacroGroupXmlWriter writer;
+        WuQMacroGroupXmlStreamWriter writer;
         writer.writeToString(m_macroGroup.get(),
                              fileContentString);
         

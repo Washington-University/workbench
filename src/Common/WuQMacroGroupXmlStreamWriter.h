@@ -1,5 +1,5 @@
-#ifndef __WU_Q_MACRO_GROUP_XML_WRITER_H__
-#define __WU_Q_MACRO_GROUP_XML_WRITER_H__
+#ifndef __WU_Q_MACRO_GROUP_XML_STREAM_WRITER_H__
+#define __WU_Q_MACRO_GROUP_XML_STREAM_WRITER_H__
 
 /*LICENSE_START*/
 /*
@@ -25,7 +25,7 @@
 
 #include <memory>
 
-#include "WuQMacroGroupXmlFormatBase.h"
+#include "WuQMacroGroupXmlStreamBase.h"
 
 class QXmlStreamWriter;
 
@@ -36,19 +36,19 @@ namespace caret {
     class WuQMacroGroup;
     class WuQMacroMouseEventInfo;
     
-    class WuQMacroGroupXmlWriter : public WuQMacroGroupXmlFormatBase {
+    class WuQMacroGroupXmlStreamWriter : public WuQMacroGroupXmlStreamBase {
 
     public:
-        WuQMacroGroupXmlWriter();
+        WuQMacroGroupXmlStreamWriter();
         
-        virtual ~WuQMacroGroupXmlWriter();
+        virtual ~WuQMacroGroupXmlStreamWriter();
         
         void writeToString(const WuQMacroGroup* macroGroup,
                            QString& contentTextString);
         
-        WuQMacroGroupXmlWriter(const WuQMacroGroupXmlWriter&) = delete;
+        WuQMacroGroupXmlStreamWriter(const WuQMacroGroupXmlStreamWriter&) = delete;
 
-        WuQMacroGroupXmlWriter& operator=(const WuQMacroGroupXmlWriter&) = delete;
+        WuQMacroGroupXmlStreamWriter& operator=(const WuQMacroGroupXmlStreamWriter&) = delete;
         
 
         // ADD_NEW_METHODS_HERE
@@ -66,9 +66,9 @@ namespace caret {
 
     };
     
-#ifdef __WU_Q_MACRO_GROUP_XML_WRITER_DECLARE__
+#ifdef __WU_Q_MACRO_GROUP_XML_STREAM_WRITER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_MACRO_GROUP_XML_WRITER_DECLARE__
+#endif // __WU_Q_MACRO_GROUP_XML_STREAM_WRITER_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_MACRO_GROUP_XML_WRITER_H__
+#endif  //__WU_Q_MACRO_GROUP_XML_STREAM_WRITER_H__

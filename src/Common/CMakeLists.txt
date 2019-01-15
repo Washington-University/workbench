@@ -167,9 +167,9 @@ WuQMacroCommand.h
 WuQMacroDataValueTypeEnum.h
 WuQMacroFile.h
 WuQMacroGroup.h
-WuQMacroGroupXmlFormatBase.h
-WuQMacroGroupXmlReader.h
-WuQMacroGroupXmlWriter.h
+WuQMacroGroupXmlStreamBase.h
+WuQMacroGroupXmlStreamReader.h
+WuQMacroGroupXmlStreamWriter.h
 WuQMacroModeEnum.h
 WuQMacroMouseEventInfo.h
 WuQMacroMouseEventTypeEnum.h
@@ -282,9 +282,9 @@ WuQMacroCommand.cxx
 WuQMacroDataValueTypeEnum.cxx
 WuQMacroFile.cxx
 WuQMacroGroup.cxx
-WuQMacroGroupXmlFormatBase.cxx
-WuQMacroGroupXmlReader.cxx
-WuQMacroGroupXmlWriter.cxx
+WuQMacroGroupXmlStreamBase.cxx
+WuQMacroGroupXmlStreamReader.cxx
+WuQMacroGroupXmlStreamWriter.cxx
 WuQMacroModeEnum.cxx
 WuQMacroMouseEventInfo.cxx
 WuQMacroMouseEventTypeEnum.cxx

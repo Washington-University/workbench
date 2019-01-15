@@ -24,7 +24,7 @@
 #include "SceneInfo.h"
 #include "SceneInfoSaxReader.h"
 #include "SceneXmlElements.h"
-#include "WuQMacroGroupXmlReader.h"
+#include "WuQMacroGroupXmlStreamReader.h"
 #include "XmlAttributes.h"
 #include "XmlException.h"
 #include "XmlUtilities.h"
@@ -179,7 +179,7 @@ SceneInfoSaxReader::endElement(const AString& /* namspaceURI */,
         case STATE_SCENE_INFO_MACRO_GROUP:
         {
             WuQMacroGroup* macroGroup = m_sceneInfo->getMacroGroup();
-            WuQMacroGroupXmlReader reader;
+            WuQMacroGroupXmlStreamReader reader;
             reader.readFromString(m_elementText,
                                   macroGroup);
             if (reader.hasError()) {

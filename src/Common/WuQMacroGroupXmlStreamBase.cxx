@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __WU_Q_MACRO_GROUP_XML_FORMAT_BASE_DECLARE__
-#include "WuQMacroGroupXmlFormatBase.h"
-#undef __WU_Q_MACRO_GROUP_XML_FORMAT_BASE_DECLARE__
+#define __WU_Q_MACRO_GROUP_XML_STREAM_BASE_DECLARE__
+#include "WuQMacroGroupXmlStreamBase.h"
+#undef __WU_Q_MACRO_GROUP_XML_STREAM_BASE_DECLARE__
 
 #include "CaretAssert.h"
 using namespace caret;
@@ -29,7 +29,7 @@ using namespace caret;
 
     
 /**
- * \class caret::WuQMacroGroupXmlFormatBase 
+ * \class caret::WuQMacroGroupXmlStreamBase
  * \brief Base class for reading/writing macro group in XML
  * \ingroup Common
  */
@@ -37,7 +37,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-WuQMacroGroupXmlFormatBase::WuQMacroGroupXmlFormatBase()
+WuQMacroGroupXmlStreamBase::WuQMacroGroupXmlStreamBase()
 : CaretObject()
 {
     
@@ -46,7 +46,7 @@ WuQMacroGroupXmlFormatBase::WuQMacroGroupXmlFormatBase()
 /**
  * Destructor.
  */
-WuQMacroGroupXmlFormatBase::~WuQMacroGroupXmlFormatBase()
+WuQMacroGroupXmlStreamBase::~WuQMacroGroupXmlStreamBase()
 {
 }
 
@@ -55,8 +55,8 @@ WuQMacroGroupXmlFormatBase::~WuQMacroGroupXmlFormatBase()
  * @return String describing this object's content.
  */
 AString 
-WuQMacroGroupXmlFormatBase::toString() const
+WuQMacroGroupXmlStreamBase::toString() const
 {
-    return "WuQMacroGroupXmlFormatBase";
+    return "WuQMacroGroupXmlStreamBase";
 }
 
