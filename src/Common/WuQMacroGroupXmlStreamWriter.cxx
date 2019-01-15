@@ -142,6 +142,8 @@ WuQMacroGroupXmlStreamWriter::writeMacroCommandToXML(const WuQMacroCommand* macr
                                       WuQMacroClassTypeEnum::toName(macroCommand->getClassType()));
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME,
                                       macroCommand->getDescriptiveName());
+    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_DELAY,
+                                      QString::number(macroCommand->getDelayInSeconds(), 'f', 2));
     {
         m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_DATA_TYPE,
                                           WuQMacroDataValueTypeEnum::toName(macroCommand->getDataType()));

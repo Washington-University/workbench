@@ -327,6 +327,7 @@ WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
     m_dataValueTwo = obj.m_dataValueTwo;
     m_dataValueTwoUpdateLabelText = obj.m_dataValueTwoUpdateLabelText;
     m_macroMouseEvent = NULL;
+    m_delayInSeconds = obj.m_delayInSeconds;
     
     switch (m_dataType) {
         case WuQMacroDataValueTypeEnum::INVALID:
@@ -707,6 +708,29 @@ WuQMacroCommand::isMouseEventMatch(const WuQMacroCommand* command) const
     return false;
 }
 
+/**
+ * @return Delay in seconds
+ */
+float
+WuQMacroCommand::getDelayInSeconds() const
+{
+    return m_delayInSeconds;
+}
+
+/**
+ * Set delay in seconds
+ *
+ * @param seconds
+ *     New delay value
+ */
+void
+WuQMacroCommand::setDelayInSeconds(const float seconds)
+{
+    if (seconds != m_delayInSeconds) {
+        m_delayInSeconds = seconds;
+        setModified();
+    }
+}
 
 /**
  * @return True if this instance is modified

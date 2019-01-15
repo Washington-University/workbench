@@ -37,8 +37,9 @@ class QDialogButtonBox;
 class QDoubleSpinBox;
 class QLabel;
 class QMenu;
+class QPlainTextEdit;
 class QStackedWidget;
-class QStandardItem; 
+class QStandardItem;
 class QTreeView;
 class QToolButton;
 
@@ -85,8 +86,6 @@ namespace caret {
         
         void macroShortCutKeySelected(const WuQMacroShortCutKeyEnum::Enum);
         
-        void runOptionDelaySpinBoxValueChanged(float);
-        
         void runOptionMoveMouseCheckBoxClicked(bool);
         
         void runOptionLoopCheckBoxClicked(bool);
@@ -101,6 +100,8 @@ namespace caret {
         
         void runMacroToolButtonClicked();
 
+        void macroCommandDelaySpinBoxValueChanged(double);
+        
     private:
         enum class ValueIndex {
             ONE,
@@ -162,7 +163,7 @@ namespace caret {
         
         WuQMacroShortCutKeyComboBox* m_macroShortCutKeyComboBox;
         
-        QLabel* m_macroDescriptionLabel;
+        QPlainTextEdit* m_macroDescriptionTextEdit;
         
         QWidget* m_macroWidget;
         
@@ -175,8 +176,6 @@ namespace caret {
         QCheckBox* m_runOptionLoopCheckBox;
         
         QCheckBox* m_runOptionMoveMouseCheckBox;
-        
-        QDoubleSpinBox* m_runOptionDelayBetweenCommandsSpinBox;
         
         QLabel* m_commandTitleLabel;
         
@@ -192,7 +191,9 @@ namespace caret {
         
         QLabel* m_commandValueTwoLabel;
         
-        QLabel* m_commandToolTip;
+        QDoubleSpinBox* m_commandDelaySpinBox;
+        
+        QPlainTextEdit* m_commandToolTipTextEdit;
         
         QToolButton* m_runMacroToolButton;
         

@@ -134,7 +134,17 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     
     QPushButton* closeButton = m_dialogButtonBox->button(QDialogButtonBox::Close);
     CaretAssert(closeButton);
-    closeButton->setDefault(true);
+
+    /*
+     * Disable auto default for all push buttons
+     */
+    QList<QPushButton*> allChildPushButtons = findChildren<QPushButton*>(QRegExp(".*"));
+    QListIterator<QPushButton*> allChildPushButtonsIterator(allChildPushButtons);
+    while (allChildPushButtonsIterator.hasNext()) {
+        QPushButton* pushButton = allChildPushButtonsIterator.next();
+        pushButton->setAutoDefault(false);
+        pushButton->setDefault(false);
+    }
 }
 
 /**
@@ -223,9 +233,8 @@ WuQMacroDialog::createMacroAndCommandSelectionWidget()
 QWidget*
 WuQMacroDialog::createMacroDisplayWidget()
 {
-    QLabel* nameLabel = new QLabel("Name:");
     m_macroNameLabel = new QLabel();
-    QPushButton* nameEditPushButton = new QPushButton("Edit...");
+    QPushButton* nameEditPushButton = new QPushButton("Name...");
     nameEditPushButton->setSizePolicy(QSizePolicy::Fixed,
                                       nameEditPushButton->sizePolicy().verticalPolicy());
     QObject::connect(nameEditPushButton, &QPushButton::clicked,
@@ -237,14 +246,11 @@ WuQMacroDialog::createMacroDisplayWidget()
     QObject::connect(m_macroShortCutKeyComboBox, &WuQMacroShortCutKeyComboBox::shortCutKeySelected,
                      this, &WuQMacroDialog::macroShortCutKeySelected);
 
-    QLabel* descriptionLabel = new QLabel("Description:");
-    m_macroDescriptionLabel = new QLabel("");
-    m_macroDescriptionLabel->setWordWrap(true);
-    m_macroDescriptionLabel->setMinimumHeight(40);
-    m_macroDescriptionLabel->setAlignment(Qt::AlignTop
-                                          | Qt::AlignLeft);
+    m_macroDescriptionTextEdit = new QPlainTextEdit();
+    m_macroDescriptionTextEdit->setReadOnly(true);
+    m_macroDescriptionTextEdit->setFixedHeight(100);
     
-    QPushButton* descriptionEditPushButton = new QPushButton("Edit...");
+    QPushButton* descriptionEditPushButton = new QPushButton("Description...");
     descriptionEditPushButton->setSizePolicy(QSizePolicy::Fixed,
                                              descriptionEditPushButton->sizePolicy().verticalPolicy());
     QObject::connect(descriptionEditPushButton, &QPushButton::clicked,
@@ -254,21 +260,17 @@ WuQMacroDialog::createMacroDisplayWidget()
     gridLayout->setContentsMargins(0, 0, 0, 0);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 0);
-    gridLayout->setColumnStretch(2, 0);
-    gridLayout->setColumnStretch(3, 100);
+    gridLayout->setColumnStretch(2, 100);
     int row = 0;
-    gridLayout->addWidget(nameLabel, row, 0);
-    gridLayout->addWidget(nameEditPushButton, row, 1);
-    gridLayout->addWidget(m_macroNameLabel, row, 2, 1, 2);
+    gridLayout->addWidget(nameEditPushButton, row, 0);
+    gridLayout->addWidget(m_macroNameLabel, row, 1, 1, 2, Qt::AlignLeft);
     row++;
-    gridLayout->addWidget(shortCutKeyLabel, row, 0, 1, 2);
-    gridLayout->addWidget(shortCutKeyMaskLabel, row, 2);
-    gridLayout->addWidget(m_macroShortCutKeyComboBox->getWidget(), row, 3, Qt::AlignLeft);
+    gridLayout->addWidget(shortCutKeyLabel, row, 0);
+    gridLayout->addWidget(shortCutKeyMaskLabel, row, 1);
+    gridLayout->addWidget(m_macroShortCutKeyComboBox->getWidget(), row, 2, Qt::AlignLeft);
     row++;
-    gridLayout->addWidget(descriptionLabel, row, 0, 1, 2);
-    gridLayout->addWidget(m_macroDescriptionLabel, row, 2, 2, 2);
-    row++;
-    gridLayout->addWidget(descriptionEditPushButton, row, 0, 1, 2);
+    gridLayout->addWidget(descriptionEditPushButton, row, 0, Qt::AlignTop);
+    gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1, 1, 2);
     row++;
 
     QHBoxLayout* titleLayout = new QHBoxLayout();
@@ -380,40 +382,14 @@ WuQMacroDialog::createRunOptionsWidget()
     QObject::connect(m_runOptionMoveMouseCheckBox, &QCheckBox::clicked,
                      this, &WuQMacroDialog::runOptionMoveMouseCheckBoxClicked);
 
-    QLabel* runOptionsDelayLabel = new QLabel("Delay (seconds) between commands");
-    m_runOptionDelayBetweenCommandsSpinBox = new QDoubleSpinBox();
-    m_runOptionDelayBetweenCommandsSpinBox->setMinimum(0.0);
-    m_runOptionDelayBetweenCommandsSpinBox->setMaximum(1000.0);
-    m_runOptionDelayBetweenCommandsSpinBox->setSingleStep(0.1);
-    m_runOptionDelayBetweenCommandsSpinBox->setDecimals(1);
-    m_runOptionDelayBetweenCommandsSpinBox->setValue(1.0);
-    m_runOptionDelayBetweenCommandsSpinBox->setToolTip("Pause for this amount of time");
-    m_runOptionDelayBetweenCommandsSpinBox->setFixedWidth(80);
-    QObject::connect(m_runOptionDelayBetweenCommandsSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-                     this, &WuQMacroDialog::runOptionDelaySpinBoxValueChanged);
-    
     QGridLayout* runOptionsLayout = new QGridLayout(widget);
-    runOptionsLayout->setColumnMinimumWidth(0, 10);
-    runOptionsLayout->addWidget(m_runOptionLoopCheckBox, 1, 1, 1, 2);
-    runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, 2, 1, 1, 2);
-    runOptionsLayout->addWidget(m_runOptionDelayBetweenCommandsSpinBox, 3, 1);
-    runOptionsLayout->addWidget(runOptionsDelayLabel, 3, 2);
+    int row = 0;
+    runOptionsLayout->addWidget(m_runOptionLoopCheckBox, row, 0);
+    row++;
+    runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, row, 0);
+    row++;
     
     return widget;
-}
-
-/**
- * Called when run options delay between commands spin box value changed
- *
- * @param value
- *     New value.
- */
-void
-WuQMacroDialog::runOptionDelaySpinBoxValueChanged(float value)
-{
-    WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
-    CaretAssert(options);
-    options->setSecondsDelayBetweenCommands(value);
 }
 
 /**
@@ -470,25 +446,36 @@ WuQMacroDialog::createCommandDisplayWidget()
     QLabel* typeLabel = new QLabel("Type:");
     m_commandTypeLabel = new QLabel();
     
-    QLabel* valueOneLabel = new QLabel("Value:");
-    m_commandValueOnePushButton = new QPushButton("Set...");
+    m_commandValueOnePushButton = new QPushButton("Value...");
     m_commandValueOnePushButton->setSizePolicy(QSizePolicy::Fixed,
                                                m_commandValueOnePushButton->sizePolicy().verticalPolicy());
     QObject::connect(m_commandValueOnePushButton, &QPushButton::clicked,
                      [=] { setMacroCommandValue(ValueIndex::ONE); });
     m_commandValueOneLabel  = new QLabel();
     
-    QLabel* valueTwoLabel = new QLabel("Alt Value:");
-    m_commandValueTwoPushButton = new QPushButton("Set...");
+    m_commandValueTwoPushButton = new QPushButton("Alt Value...");
     m_commandValueTwoPushButton->setSizePolicy(QSizePolicy::Fixed,
                                                m_commandValueTwoPushButton->sizePolicy().verticalPolicy());
     QObject::connect(m_commandValueTwoPushButton, &QPushButton::clicked,
                      [=] { setMacroCommandValue(ValueIndex::TWO); });
     m_commandValueTwoLabel  = new QLabel();
     
+    QLabel* delayLabel = new QLabel("Delay:");
+    m_commandDelaySpinBox = new QDoubleSpinBox();
+    m_commandDelaySpinBox->setMinimum(0.0);
+    m_commandDelaySpinBox->setMaximum(1000.0);
+    m_commandDelaySpinBox->setSingleStep(1.0);
+    m_commandDelaySpinBox->setDecimals(1);
+    m_commandDelaySpinBox->setToolTip("Delay, in seconds, after running command");
+    m_commandDelaySpinBox->setFixedWidth(150);
+    m_commandDelaySpinBox->setSuffix(" seconds");
+    QObject::connect(m_commandDelaySpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &WuQMacroDialog::macroCommandDelaySpinBoxValueChanged);
+    
     QLabel* toolTipLabel = new QLabel("ToolTip:");
-    m_commandToolTip     = new QLabel();
-    m_commandToolTip->setWordWrap(true);
+    m_commandToolTipTextEdit     = new QPlainTextEdit();
+    m_commandToolTipTextEdit->setReadOnly(true);
+    m_commandToolTipTextEdit->setMaximumHeight(100);
     
     QGridLayout* layout = new QGridLayout();
     layout->setContentsMargins(0, 0, 0, 0);
@@ -497,24 +484,25 @@ WuQMacroDialog::createCommandDisplayWidget()
     layout->setColumnStretch(2, 100);
     int row = 0;
     layout->addWidget(titleLabel, row, 0);
-    layout->addWidget(m_commandTitleLabel, row, 1, 1, 2);
+    layout->addWidget(m_commandTitleLabel, row, 1);
     row++;
-    layout->addWidget(valueOneLabel, row, 0);
-    layout->addWidget(m_commandValueOnePushButton, row, 1);
-    layout->addWidget(m_commandValueOneLabel, row, 2);
+    layout->addWidget(m_commandValueOnePushButton, row, 0);
+    layout->addWidget(m_commandValueOneLabel, row, 1);
     row++;
-    layout->addWidget(valueTwoLabel, row, 0);
-    layout->addWidget(m_commandValueTwoPushButton, row, 1);
-    layout->addWidget(m_commandValueTwoLabel, row, 2);
+    layout->addWidget(m_commandValueTwoPushButton, row, 0);
+    layout->addWidget(m_commandValueTwoLabel, row, 1);
     row++;
     layout->addWidget(nameLabel, row, 0);
-    layout->addWidget(m_commandNameLabel, row, 1, 1, 2);
+    layout->addWidget(m_commandNameLabel, row, 1);
     row++;
     layout->addWidget(typeLabel, row, 0);
-    layout->addWidget(m_commandTypeLabel, row, 1, 1, 2);
+    layout->addWidget(m_commandTypeLabel, row, 1);
     row++;
-    layout->addWidget(toolTipLabel, row, 0);
-    layout->addWidget(m_commandToolTip, row, 1, 1, 2);
+    layout->addWidget(delayLabel, row, 0);
+    layout->addWidget(m_commandDelaySpinBox, row, 1);
+    row++;
+    layout->addWidget(toolTipLabel, row, 0, (Qt::AlignLeft | Qt::AlignTop));
+    layout->addWidget(m_commandToolTipTextEdit, row, 1);
     row++;
     
     QHBoxLayout* titleLayout = new QHBoxLayout();
@@ -564,8 +552,6 @@ WuQMacroDialog::updateDialogContents()
     
     const WuQMacroExecutorOptions* runOptions = WuQMacroManager::instance()->getExecutorOptions();
     CaretAssert(runOptions);
-    QSignalBlocker delaySpinBoxBlocker(m_runOptionDelayBetweenCommandsSpinBox);
-    m_runOptionDelayBetweenCommandsSpinBox->setValue(runOptions->getSecondsDelayBetweenCommands());
     m_runOptionMoveMouseCheckBox->setChecked(runOptions->isShowMouseMovement());
     m_runOptionLoopCheckBox->setChecked(runOptions->isLooping());
     
@@ -679,7 +665,7 @@ WuQMacroDialog::updateMacroWidget(WuQMacro* macro)
 
     m_macroNameLabel->setText(name);
     m_macroShortCutKeyComboBox->setSelectedShortCutKey(shortCutKey);
-    m_macroDescriptionLabel->setText(text);
+    m_macroDescriptionTextEdit->setPlainText(text);
 }
 
 /**
@@ -764,12 +750,14 @@ WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
     QString type;
     QString newDataTypeTwo;
     QString toolTip;
+    float delay(0.0f);
     if (command != NULL) {
         title           = command->text();
         name            = command->getObjectName();
         type            = WuQMacroClassTypeEnum::toGuiName(command->getClassType());
         newDataTypeTwo  = WuQMacroDataValueTypeEnum::toGuiName(command->getDataTypeTwo());
         toolTip         = command->getObjectToolTip();
+        delay           = command->getDelayInSeconds();
     }
     m_commandTitleLabel->setText(title);
     m_commandNameLabel->setText(name);
@@ -782,7 +770,10 @@ WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
         m_commandValueTwoLabel->setText(newDataValueTwo);
         m_commandValueTwoPushButton->setEnabled(true);
     }
-    m_commandToolTip->setText(toolTip);
+    QSignalBlocker delayBlocker(m_commandDelaySpinBox);
+    m_commandDelaySpinBox->setValue(delay);
+
+    m_commandToolTipTextEdit->setPlainText(toolTip);
 }
 
 /**
@@ -978,6 +969,25 @@ WuQMacroDialog::exportMacroGroupActionTriggered()
                                                   macroGroup,
                                                   macro)) {
         updateDialogContents();
+    }
+}
+
+/**
+ * Called when macro commands delay value is changed
+ *
+ * @param value
+ *     New value
+ */
+void
+WuQMacroDialog::macroCommandDelaySpinBoxValueChanged(double value)
+{
+    WuQMacroCommand* command = getSelectedMacroCommand();
+    CaretAssert(command);
+    command->setDelayInSeconds(value);
+
+    WuQMacro* macro = getSelectedMacro();
+    if (macro != NULL) {
+        WuQMacroManager::instance()->macroWasModified(macro);
     }
 }
 

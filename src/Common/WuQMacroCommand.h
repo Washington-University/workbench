@@ -99,6 +99,10 @@ namespace caret {
         
         bool isMouseEventMatch(const WuQMacroCommand* command) const;
         
+        float getDelayInSeconds() const;
+        
+        void setDelayInSeconds(const float seconds);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual bool isModified() const override;
@@ -135,6 +139,8 @@ namespace caret {
         QString m_dataValueTwoUpdateLabelText;
         
         WuQMacroMouseEventInfo* m_macroMouseEvent;
+        
+        float m_delayInSeconds = 1.0f;
         
         bool m_modifiedStatusFlag = false;
         

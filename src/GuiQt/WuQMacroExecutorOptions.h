@@ -42,10 +42,6 @@ namespace caret {
 
         WuQMacroExecutorOptions& operator=(const WuQMacroExecutorOptions& obj);
 
-        float getSecondsDelayBetweenCommands() const;
-        
-        void setSecondsDelayBetweenCommands(const float seconds);
-        
         bool isShowMouseMovement() const;
         
         void setShowMouseMovement(const bool status);
@@ -65,8 +61,6 @@ namespace caret {
     private:
         void copyHelperWuQMacroExecutorOptions(const WuQMacroExecutorOptions& obj);
 
-        float m_secondsDelayBetweenCommands = 1.0f;
-        
         bool m_showMouseMovementFlag = true;
         
         bool m_stopOnErrorFlag = true;

@@ -293,6 +293,7 @@ WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne()
     const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
     const QStringRef objectName = attributes.value(ATTRIBUTE_NAME);
     const QStringRef dataTypeString = attributes.value(ATTRIBUTE_OBJECT_DATA_TYPE);
+    const QStringRef delayString = attributes.value(ATTRIBUTE_DELAY);
     const QStringRef descriptiveNameString = attributes.value(ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME);
     const QStringRef classString = attributes.value(ATTRIBUTE_OBJECT_CLASS);
     const QStringRef valueString = attributes.value(ATTRIBUTE_OBJECT_VALUE);
@@ -433,6 +434,15 @@ WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne()
                                            tooltip,
                                            value,
                                            valueTwo);
+        
+        if ( ! delayString.isEmpty()) {
+            bool valid(false);
+            float delayValue = delayString.toFloat(&valid);
+            if ( ! valid) {
+                delayValue = 1.0;
+            }
+            macroCommand->setDelayInSeconds(delayValue);
+        }
     }
     
     return macroCommand;

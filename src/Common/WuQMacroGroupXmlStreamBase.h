@@ -57,6 +57,7 @@ namespace caret {
         static const QString ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME;
         static const QString ATTRIBUTE_OBJECT_VALUE;
         static const QString ATTRIBUTE_OBJECT_VALUE_TWO;
+        static const QString ATTRIBUTE_DELAY;
         static const QString ATTRIBUTE_SHORT_CUT_KEY;
         static const QString ATTRIBUTE_UNIQUE_IDENTIFIER;
         static const QString ATTRIBUTE_VERSION;
@@ -99,6 +100,7 @@ namespace caret {
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME = "DescriptiveName";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_VALUE = "DataValue";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_VALUE_TWO = "DataValueTwo";
+    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_DELAY = "Delay";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_SHORT_CUT_KEY = "ShortCutKey";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_UNIQUE_IDENTIFIER = "UniqueIdentifier";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_VERSION = "Version";

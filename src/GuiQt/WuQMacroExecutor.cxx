@@ -332,8 +332,8 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
         
         QGuiApplication::processEvents();
         if (mc->getClassType() != WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
-            if (m_runOptions.getSecondsDelayBetweenCommands() > 0.0) {
-                SystemUtilities::sleepSeconds(m_runOptions.getSecondsDelayBetweenCommands());
+            if (mc->getDelayInSeconds() > 0.0) {
+                SystemUtilities::sleepSeconds(mc->getDelayInSeconds());
             }
         }
         

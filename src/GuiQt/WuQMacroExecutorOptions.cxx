@@ -86,7 +86,6 @@ WuQMacroExecutorOptions::operator=(const WuQMacroExecutorOptions& obj)
 void 
 WuQMacroExecutorOptions::copyHelperWuQMacroExecutorOptions(const WuQMacroExecutorOptions& obj)
 {
-    m_secondsDelayBetweenCommands = obj.m_secondsDelayBetweenCommands;
     m_loopingFlag                 = obj.m_loopingFlag;
     m_stopOnErrorFlag             = obj.m_stopOnErrorFlag;
     m_showMouseMovementFlag       = obj.m_showMouseMovementFlag;
@@ -100,27 +99,6 @@ AString
 WuQMacroExecutorOptions::toString() const
 {
     return "WuQMacroExecutorOptions";
-}
-
-/**
- * @return Seconds delay between macro commands
- */
-float
-WuQMacroExecutorOptions::getSecondsDelayBetweenCommands() const
-{
-    return m_secondsDelayBetweenCommands;
-}
-
-/**
- * Set seconds delay between macro commands
- *
- * @parm seconds
- *    Number of seconds
- */
-void
-WuQMacroExecutorOptions::setSecondsDelayBetweenCommands(const float seconds)
-{
-    m_secondsDelayBetweenCommands = seconds;
 }
 
 /**
