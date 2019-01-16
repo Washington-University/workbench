@@ -36,6 +36,8 @@ namespace caret {
 
         virtual ~ScenePathName();
         
+        virtual const ScenePathName* castToScenePathName() const;
+        
         void setValue(const AString& value);
         
         virtual AString stringValue() const;

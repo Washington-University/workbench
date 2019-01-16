@@ -45,6 +45,8 @@ namespace caret {
 
         virtual ~SceneClassArray();
         
+        virtual const SceneClassArray* castToSceneClassArray() const;
+
         void setClassAtIndex(const int32_t arrayIndex,
                       SceneClass* sceneClass);
         

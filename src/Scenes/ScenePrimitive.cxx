@@ -47,7 +47,9 @@ using namespace caret;
  */
 ScenePrimitive::ScenePrimitive(const QString& name,
                                const SceneObjectDataTypeEnum::Enum dataType)
-: SceneObject(name, dataType)
+: SceneObject(name,
+              SceneObjectContainerTypeEnum::SINGLE,
+              dataType)
 {
     
 }
@@ -58,6 +60,18 @@ ScenePrimitive::ScenePrimitive(const QString& name,
 ScenePrimitive::~ScenePrimitive()
 {
     
+}
+
+/**
+ * Cast an instance of SceneObject to a ScenePrimitive.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is ScenePrimitive
+ */
+const ScenePrimitive*
+ScenePrimitive::castToScenePrimitive() const
+{
+    return this;
 }
 
 /**

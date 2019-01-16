@@ -123,6 +123,18 @@ ScenePathNameArray::~ScenePathNameArray()
 }
 
 /**
+ * Cast an instance of SceneObjectArray to a ScenePathNameArray.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneClass
+ */
+const ScenePathNameArray*
+ScenePathNameArray::castToScenePathNameArray() const
+{
+    return this;
+}
+
+/**
  * @return All descendant SceneClasses (children, grandchildren, etc.) of this instance.
  */
 std::vector<SceneObject*>

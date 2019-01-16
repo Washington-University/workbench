@@ -62,12 +62,16 @@ using namespace caret;
 ScenePathName::ScenePathName(const AString& name,
                              const AString& value)
 : SceneObject(name,
+              SceneObjectContainerTypeEnum::SINGLE,
               SceneObjectDataTypeEnum::SCENE_PATH_NAME)
 {
     setValue(value);
 }
 
-ScenePathName::ScenePathName(const ScenePathName& rhs): SceneObject(rhs.getName(), SceneObjectDataTypeEnum::SCENE_PATH_NAME)
+ScenePathName::ScenePathName(const ScenePathName& rhs)
+: SceneObject(rhs.getName(),
+              SceneObjectContainerTypeEnum::SINGLE,
+              SceneObjectDataTypeEnum::SCENE_PATH_NAME)
 {
     m_value = rhs.m_value;
 }
@@ -83,6 +87,18 @@ SceneObject* ScenePathName::clone() const
 ScenePathName::~ScenePathName()
 {
     
+}
+
+/**
+ * Cast an instance of SceneObject to a ScenePathName.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is ScenePathName
+ */
+const ScenePathName*
+ScenePathName::castToScenePathName() const
+{
+    return this;
 }
 
 /**

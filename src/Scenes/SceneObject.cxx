@@ -42,15 +42,18 @@ using namespace caret;
  * Constructor.
  * @param name
  *    Name of the item.
+ * @param containerType
+ *    Type of container of object (array, map, single).
  * @param dataType
  *    Data type of the primitive.
  */
 SceneObject::SceneObject(const QString& name,
+                         const SceneObjectContainerTypeEnum::Enum containerType,
                          const SceneObjectDataTypeEnum::Enum dataType)
 #ifdef CARET_SCENE_DEBUG
-: CaretObject(), m_name(name), m_dataType(dataType), m_restoredFlag(false)
+: CaretObject(), m_name(name), m_containerType(containerType), m_dataType(dataType), m_restoredFlag(false)
 #else   // CARET_SCENE_DEBUG
-: m_name(name), m_dataType(dataType), m_restoredFlag(false)
+: m_name(name), m_containerType(containerType), m_dataType(dataType), m_restoredFlag(false)
 #endif  // CARET_SCENE_DEBUG
 {
     CaretAssert(name.isEmpty() == false);
@@ -71,6 +74,15 @@ QString
 SceneObject::getName() const
 {
     return m_name;
+}
+
+/**
+ * @return Type of container of object (array, map, single)
+ */
+SceneObjectContainerTypeEnum::Enum
+SceneObject::getContainerType() const
+{
+    return m_containerType;
 }
 
 /**
@@ -202,4 +214,76 @@ SceneObject::toString() const
                        + " name="
                        + m_name);
     return objectInfo;
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneClass.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneClass
+ */
+const SceneClass*
+SceneObject::castToSceneClass() const
+{
+    return NULL;
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneEnumeratedType.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneEnumeratedType
+ */
+const SceneEnumeratedType*
+SceneObject::castToSceneEnumeratedType() const
+{
+    return NULL;
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneObjectArray.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneObjectArray
+ */
+const SceneObjectArray*
+SceneObject::castToSceneObjectArray() const
+{
+    return NULL;
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneObjectMapIntegerKey.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneObjectMapIntegerKey
+ */
+const SceneObjectMapIntegerKey*
+SceneObject::castToSceneObjectMapIntegerKey() const
+{
+    return NULL;
+}
+
+/**
+ * Cast an instance of SceneObject to a ScenePathName.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is ScenePathName
+ */
+const ScenePathName*
+SceneObject::castToScenePathName() const
+{
+    return NULL;
+}
+
+/**
+ * Cast an instance of SceneObject to a ScenePrimitive.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is ScenePrimitive
+ */
+const ScenePrimitive*
+SceneObject::castToScenePrimitive() const
+{
+    return NULL;
 }

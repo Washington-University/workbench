@@ -58,22 +58,27 @@ WuQMacroGroupXmlStreamWriter::~WuQMacroGroupXmlStreamWriter()
 }
 
 /**
- * Constructor for writing the macro group to a text string
+ * Wite the given macro group to the given xml writer
  *
+ * @param xmlWriter
+ *     The XML stream writer
  * @param macroGroup
  *     Macro group that is written to XML
- * @param contentTextString
- *     Pointer to string to which XML is written
  */
 void
-WuQMacroGroupXmlStreamWriter::writeToString(const WuQMacroGroup* macroGroup,
-                                      QString& contentTextString)
+WuQMacroGroupXmlStreamWriter::writeXml(QXmlStreamWriter* xmlWriter,
+                                       const WuQMacroGroup* macroGroup)
 {
+    CaretAssert(xmlWriter);
     CaretAssert(macroGroup);
-    contentTextString.clear();
     
-    m_xmlStreamWriter.reset(new QXmlStreamWriter(&contentTextString));
-    m_xmlStreamWriter->setAutoFormatting(true);
+    if (macroGroup->getNumberOfMacros() <= 0) {
+        xmlWriter->writeEmptyElement(ELEMENT_MACRO_GROUP);
+        return;
+    }
+    
+    m_xmlStreamWriter = xmlWriter;
+    
     m_xmlStreamWriter->writeStartElement(ELEMENT_MACRO_GROUP);
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_NAME, macroGroup->getName());
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_VERSION, "1");
@@ -88,7 +93,28 @@ WuQMacroGroupXmlStreamWriter::writeToString(const WuQMacroGroup* macroGroup,
     }
     m_xmlStreamWriter->writeEndElement();
     
-    m_xmlStreamWriter.reset();
+    m_xmlStreamWriter = NULL;
+}
+
+/**
+ * Write the macro group to a text string
+ *
+ * @param macroGroup
+ *     Macro group that is written to XML
+ * @param contentTextString
+ *     Pointer to string to which XML is written
+ */
+void
+WuQMacroGroupXmlStreamWriter::writeToString(const WuQMacroGroup* macroGroup,
+                                           QString& contentTextString)
+{
+    CaretAssert(macroGroup);
+    contentTextString.clear();
+    
+    std::unique_ptr<QXmlStreamWriter> xmlWriter(new QXmlStreamWriter(&contentTextString));
+    xmlWriter->setAutoFormatting(true);
+    writeXml(xmlWriter.get(),
+             macroGroup);
 }
 
 

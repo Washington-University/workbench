@@ -42,7 +42,10 @@ namespace caret {
         WuQMacroGroupXmlStreamWriter();
         
         virtual ~WuQMacroGroupXmlStreamWriter();
-        
+
+        void writeXml(QXmlStreamWriter* xmlStreamWriter,
+                      const WuQMacroGroup* macroGroup);        
+
         void writeToString(const WuQMacroGroup* macroGroup,
                            QString& contentTextString);
         
@@ -60,7 +63,7 @@ namespace caret {
         
         void writeMacroMouseEventInfo(const WuQMacroMouseEventInfo* mouseEventInfo);
 
-        std::unique_ptr<QXmlStreamWriter> m_xmlStreamWriter;
+        QXmlStreamWriter* m_xmlStreamWriter;
 
         // ADD_NEW_MEMBERS_HERE
 

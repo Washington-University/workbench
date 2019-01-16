@@ -70,6 +70,7 @@ SceneClass::SceneClass(const AString& name,
                        const AString& className,
                        const int32_t versionNumber)
 : SceneObject(name,
+              SceneObjectContainerTypeEnum::SINGLE,
               SceneObjectDataTypeEnum::SCENE_CLASS),
   m_className(className),
   m_versionNumber(versionNumber)
@@ -77,7 +78,10 @@ SceneClass::SceneClass(const AString& name,
       
 }
 
-SceneClass::SceneClass(const SceneClass& rhs): SceneObject(rhs.getName(), SceneObjectDataTypeEnum::SCENE_CLASS),
+SceneClass::SceneClass(const SceneClass& rhs)
+: SceneObject(rhs.getName(),
+              SceneObjectContainerTypeEnum::SINGLE,
+              SceneObjectDataTypeEnum::SCENE_CLASS),
   m_className(rhs.m_className),
   m_versionNumber(rhs.m_versionNumber)
 {
@@ -103,6 +107,18 @@ SceneClass::~SceneClass()
         delete *iter;
     }
     m_childObjects.clear();
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneClass.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneClass
+ */
+const SceneClass*
+SceneClass::castToSceneClass() const
+{
+    return this;
 }
 
 /**

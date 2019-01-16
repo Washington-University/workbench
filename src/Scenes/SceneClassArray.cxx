@@ -117,6 +117,18 @@ SceneClassArray::~SceneClassArray()
 }
 
 /**
+ * Cast an instance of SceneObjectArray to a SceneClassArray.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneClass
+ */
+const SceneClassArray*
+SceneClassArray::castToSceneClassArray() const
+{
+    return this;
+}
+
+/**
  * @return All descendant SceneClasses (children, grandchildren, etc.) of this instance.
  */
 std::vector<SceneObject*>

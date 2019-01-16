@@ -31,6 +31,8 @@ namespace caret {
     public:
         virtual ~ScenePrimitive();
 
+        virtual const ScenePrimitive* castToScenePrimitive() const;
+        
     protected:
         ScenePrimitive(const QString& name,
                        const SceneObjectDataTypeEnum::Enum dataType);

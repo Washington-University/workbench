@@ -45,6 +45,7 @@
 #include "SceneInfo.h"
 #include "ScenePathName.h"
 #include "SceneXmlElements.h"
+#include "SceneFileXmlStreamWriter.h"
 #include "SceneWriterXml.h"
 #include "SpecFile.h"
 #include "SystemUtilities.h"
@@ -786,6 +787,17 @@ SceneFile::writeFile(const AString& filename)
     }
     catch (const XmlException& e) {
         throw DataFileException(e);
+    }
+    
+    try {
+        CaretAssertToDoWarning();
+        SceneFileXmlStreamWriter xmlStreamWriter;
+        xmlStreamWriter.writeFile(this);
+    }
+    catch (const DataFileException& e) {
+        const QString msg("Xml Stream Writer failed: "
+                          + e.whatString());
+        throw DataFileException(msg);
     }
 }
 

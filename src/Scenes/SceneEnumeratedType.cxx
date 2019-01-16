@@ -41,6 +41,7 @@ using namespace caret;
 SceneEnumeratedType::SceneEnumeratedType(const AString& name,
                                          const AString& enumeratedValueAsString)
 : SceneObject(name,
+              SceneObjectContainerTypeEnum::SINGLE,
               SceneObjectDataTypeEnum::SCENE_ENUMERATED_TYPE)
 {
     m_enumeratedValueAsString = enumeratedValueAsString;
@@ -52,6 +53,18 @@ SceneEnumeratedType::SceneEnumeratedType(const AString& name,
 SceneEnumeratedType::~SceneEnumeratedType()
 {
     
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneEnumeratedType.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneEnumeratedType
+ */
+const SceneEnumeratedType*
+SceneEnumeratedType::castToSceneEnumeratedType() const
+{
+    return this;
 }
 
 /**

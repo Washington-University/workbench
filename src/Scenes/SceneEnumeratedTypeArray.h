@@ -43,6 +43,8 @@ namespace caret {
 
         virtual ~SceneEnumeratedTypeArray();
         
+        virtual const SceneEnumeratedTypeArray* castToSceneEnumeratedTypeArray() const;
+        
         void setValue(const int32_t arrayIndex,
                       const AString enumeratedValueAsString);
         

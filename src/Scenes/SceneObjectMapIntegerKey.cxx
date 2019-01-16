@@ -60,7 +60,8 @@ using namespace caret;
  */
 SceneObjectMapIntegerKey::SceneObjectMapIntegerKey(const QString& name,
                                        const SceneObjectDataTypeEnum::Enum valueDataType)
-: SceneObject(name, 
+: SceneObject(name,
+              SceneObjectContainerTypeEnum::MAP,
               valueDataType)
 {
     
@@ -76,6 +77,18 @@ SceneObjectMapIntegerKey::~SceneObjectMapIntegerKey()
          iter++) {
         delete iter->second;
     }
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneObjectMapIntegerKey.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneObjectMapIntegerKey
+ */
+const SceneObjectMapIntegerKey*
+SceneObjectMapIntegerKey::castToSceneObjectMapIntegerKey() const
+{
+    return this;
 }
 
 /**

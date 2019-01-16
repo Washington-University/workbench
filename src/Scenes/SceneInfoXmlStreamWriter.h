@@ -1,9 +1,9 @@
-#ifndef __SCENE_ENUMERATED_TYPE__H_
-#define __SCENE_ENUMERATED_TYPE__H_
+#ifndef __SCENE_INFO_XML_STREAM_WRITER_H__
+#define __SCENE_INFO_XML_STREAM_WRITER_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2019 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,45 +22,47 @@
 /*LICENSE_END*/
 
 
-#include "SceneObject.h"
+
+#include <memory>
+
+#include "SceneInfoXmlStreamBase.h"
+
+class QXmlStreamWriter;
 
 namespace caret {
 
-    class SceneEnumeratedType : public SceneObject {
+    class SceneInfo;
+    
+    class SceneInfoXmlStreamWriter : public SceneInfoXmlStreamBase {
         
     public:
-        SceneEnumeratedType(const AString& name,
-                            const AString& enumeratedValueAsString);
+        SceneInfoXmlStreamWriter();
         
-        virtual ~SceneEnumeratedType();
+        virtual ~SceneInfoXmlStreamWriter();
         
-        virtual const SceneEnumeratedType* castToSceneEnumeratedType() const;
+        void writeXML(QXmlStreamWriter* xmlWriter,
+                      const SceneInfo* sceneInfo,
+                      const int32_t sceneInfoIndex);
         
-        void setValue(const AString& enumeratedValueAsString);
-        
-        AString stringValue() const;
-        
-    private:
-        SceneEnumeratedType(const SceneEnumeratedType&);
+        SceneInfoXmlStreamWriter(const SceneInfoXmlStreamWriter&) = delete;
 
-        SceneEnumeratedType& operator=(const SceneEnumeratedType&);
+        SceneInfoXmlStreamWriter& operator=(const SceneInfoXmlStreamWriter&) = delete;
         
-    public:
 
         // ADD_NEW_METHODS_HERE
-        
-        virtual SceneObject* clone() const;
 
     private:
-
+        void writeImageElement(const SceneInfo* sceneInfo);
+        
+        QXmlStreamWriter* m_xmlWriter = NULL;
+        
         // ADD_NEW_MEMBERS_HERE
 
-        AString m_enumeratedValueAsString;
     };
     
-#ifdef __SCENE_ENUMERATED_TYPE_DECLARE__
+#ifdef __SCENE_INFO_XML_STREAM_WRITER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_ENUMERATED_TYPE_DECLARE__
+#endif // __SCENE_INFO_XML_STREAM_WRITER_DECLARE__
 
 } // namespace
-#endif  //__SCENE_ENUMERATED_TYPE__H_
+#endif  //__SCENE_INFO_XML_STREAM_WRITER_H__

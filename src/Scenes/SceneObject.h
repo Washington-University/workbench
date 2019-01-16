@@ -23,10 +23,18 @@
 
 
 #include "CaretObject.h"
+#include "SceneObjectContainerTypeEnum.h"
 #include "SceneObjectDataTypeEnum.h"
 
 namespace caret {
 
+    class SceneClass;
+    class SceneEnumeratedType;
+    class SceneObjectArray;
+    class SceneObjectMapIntegerKey;
+    class ScenePathName;
+    class ScenePrimitive;
+    
 #ifdef CARET_SCENE_DEBUG
     class SceneObject : public CaretObject {
 #else   // CARET_SCENE_DEBUG
@@ -37,6 +45,8 @@ namespace caret {
         virtual ~SceneObject();
         
         QString getName() const;
+        
+        SceneObjectContainerTypeEnum::Enum getContainerType() const;
         
         SceneObjectDataTypeEnum::Enum getDataType() const;
         
@@ -55,8 +65,21 @@ namespace caret {
         /// Should be overridden by any sub-classes that have children
         virtual std::vector<SceneObject*> getDescendants() const;
         
+        virtual const SceneClass* castToSceneClass() const;
+        
+        virtual const SceneEnumeratedType* castToSceneEnumeratedType() const;
+        
+        virtual const SceneObjectArray* castToSceneObjectArray() const;
+        
+        virtual const SceneObjectMapIntegerKey* castToSceneObjectMapIntegerKey() const;
+        
+        virtual const ScenePathName* castToScenePathName() const;
+        
+        virtual const ScenePrimitive* castToScenePrimitive() const;
+        
     protected:
         SceneObject(const QString& name,
+                    const SceneObjectContainerTypeEnum::Enum containerType,
                     const SceneObjectDataTypeEnum::Enum dataType);
         
     private:
@@ -77,6 +100,9 @@ namespace caret {
 
         /** Name of the item*/
         const QString m_name;
+        
+        /** Container type of object */
+        const SceneObjectContainerTypeEnum::Enum m_containerType;
         
         /** Type of object */
         const SceneObjectDataTypeEnum::Enum m_dataType;

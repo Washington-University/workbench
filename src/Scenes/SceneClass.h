@@ -46,6 +46,8 @@ namespace caret {
         
         virtual ~SceneClass();
         
+        virtual const SceneClass* castToSceneClass() const;
+
         AString getClassName() const;
         
         int32_t getVersionNumber() const;

@@ -50,10 +50,14 @@ SceneFloat.h
 SceneFloatArray.h
 SceneInfo.h
 SceneInfoSaxReader.h
+SceneInfoXmlStreamBase.h
+SceneInfoXmlStreamReader.h
+SceneInfoXmlStreamWriter.h
 SceneInteger.h
 SceneIntegerArray.h
 SceneObject.h
 SceneObjectArray.h
+SceneObjectContainerTypeEnum.h
 SceneObjectDataTypeEnum.h
 SceneObjectMapIntegerKey.h
 ScenePathName.h
@@ -69,6 +73,9 @@ SceneUnsignedByteArray.h
 SceneWriterInterface.h
 SceneWriterXml.h
 SceneXmlElements.h
+SceneXmlStreamBase.h
+SceneXmlStreamReader.h
+SceneXmlStreamWriter.h
 SceneableInterface.h
 
 BackgroundAndForegroundColorsSceneHelper.cxx
@@ -87,10 +94,14 @@ SceneFloat.cxx
 SceneFloatArray.cxx
 SceneInfo.cxx
 SceneInfoSaxReader.cxx
+SceneInfoXmlStreamBase.cxx
+SceneInfoXmlStreamReader.cxx
+SceneInfoXmlStreamWriter.cxx
 SceneInteger.cxx
 SceneIntegerArray.cxx
 SceneObject.cxx
 SceneObjectArray.cxx
+SceneObjectContainerTypeEnum.cxx
 SceneObjectDataTypeEnum.cxx
 SceneObjectMapIntegerKey.cxx
 ScenePathName.cxx
@@ -104,6 +115,9 @@ SceneTypeEnum.cxx
 SceneUnsignedByte.cxx
 SceneUnsignedByteArray.cxx
 SceneWriterXml.cxx
+SceneXmlStreamBase.cxx
+SceneXmlStreamReader.cxx
+SceneXmlStreamWriter.cxx
 )
 
 TARGET_LINK_LIBRARIES(Scenes ${CARET_QT5_LINK})

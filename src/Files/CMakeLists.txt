@@ -119,6 +119,9 @@ RibbonMappingHelper.h
 SceneDataFileInfo.h
 SceneFile.h
 SceneFileSaxReader.h
+SceneFileXmlStreamBase.h
+SceneFileXmlStreamReader.h
+SceneFileXmlStreamWriter.h
 SignedDistanceHelper.h
 SparseVolumeIndexer.h
 SpecFile.h
@@ -248,6 +251,9 @@ RibbonMappingHelper.cxx
 SceneDataFileInfo.cxx
 SceneFile.cxx
 SceneFileSaxReader.cxx
+SceneFileXmlStreamBase.cxx
+SceneFileXmlStreamReader.cxx
+SceneFileXmlStreamWriter.cxx
 SignedDistanceHelper.cxx
 SparseVolumeIndexer.cxx
 SpecFile.cxx

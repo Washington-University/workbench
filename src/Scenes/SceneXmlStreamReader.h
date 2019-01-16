@@ -1,9 +1,9 @@
-#ifndef __SCENE_ENUMERATED_TYPE__H_
-#define __SCENE_ENUMERATED_TYPE__H_
+#ifndef __SCENE_XML_STREAM_READER_H__
+#define __SCENE_XML_STREAM_READER_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2019 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,45 +22,37 @@
 /*LICENSE_END*/
 
 
-#include "SceneObject.h"
+
+#include <memory>
+
+#include "SceneXmlStreamBase.h"
+
+
 
 namespace caret {
 
-    class SceneEnumeratedType : public SceneObject {
+    class SceneXmlStreamReader : public SceneXmlStreamBase {
         
     public:
-        SceneEnumeratedType(const AString& name,
-                            const AString& enumeratedValueAsString);
+        SceneXmlStreamReader();
         
-        virtual ~SceneEnumeratedType();
+        virtual ~SceneXmlStreamReader();
         
-        virtual const SceneEnumeratedType* castToSceneEnumeratedType() const;
-        
-        void setValue(const AString& enumeratedValueAsString);
-        
-        AString stringValue() const;
-        
-    private:
-        SceneEnumeratedType(const SceneEnumeratedType&);
+        SceneXmlStreamReader(const SceneXmlStreamReader&) = delete;
 
-        SceneEnumeratedType& operator=(const SceneEnumeratedType&);
+        SceneXmlStreamReader& operator=(const SceneXmlStreamReader&) = delete;
         
-    public:
 
         // ADD_NEW_METHODS_HERE
-        
-        virtual SceneObject* clone() const;
 
     private:
-
         // ADD_NEW_MEMBERS_HERE
 
-        AString m_enumeratedValueAsString;
     };
     
-#ifdef __SCENE_ENUMERATED_TYPE_DECLARE__
+#ifdef __SCENE_XML_STREAM_READER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SCENE_ENUMERATED_TYPE_DECLARE__
+#endif // __SCENE_XML_STREAM_READER_DECLARE__
 
 } // namespace
-#endif  //__SCENE_ENUMERATED_TYPE__H_
+#endif  //__SCENE_XML_STREAM_READER_H__
