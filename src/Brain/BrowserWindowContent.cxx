@@ -426,26 +426,25 @@ BrowserWindowContent::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    if (m_tileTabsEnabled) {
-        sceneClass->addString("m_customTileTabsConfigurationLatest",
-                              m_customTileTabsConfiguration->encodeInXML());
+    sceneClass->addString("m_customTileTabsConfigurationLatest",
+                          m_customTileTabsConfiguration->encodeInXML());
+    
+    /*
+     * Add a tile tabs version one so older versions of wb_view
+     * may still load the scene correctly
+     */
+    sceneClass->addString("m_customTileTabsConfiguration",
+                          m_customTileTabsConfiguration->encodeVersionInXML(1));
+    
+    /*
+     * Write the tile tabs configuration a second time using
+     * the old name 'm_sceneTileTabsConfiguration'.  This will
+     * allow the previous version of Workbench to display
+     * tile tabs correctly.
+     */
+    sceneClass->addString("m_sceneTileTabsConfiguration",
+                          m_customTileTabsConfiguration->encodeVersionInXML(1));
 
-        /*
-         * Add a tile tabs version one so older versions of wb_view
-         * may still load the scene correctly
-         */
-        sceneClass->addString("m_customTileTabsConfiguration",
-                              m_customTileTabsConfiguration->encodeVersionInXML(1));
-        
-        /*
-         * Write the tile tabs configuration a second time using
-         * the old name 'm_sceneTileTabsConfiguration'.  This will
-         * allow the previous version of Workbench to display
-         * tile tabs correctly.
-         */
-        sceneClass->addString("m_sceneTileTabsConfiguration",
-                              m_customTileTabsConfiguration->encodeVersionInXML(1));
-    }
     sceneClass->addChild(new SceneIntegerArray("m_sceneTabIndices",
                                                m_sceneTabIndices));
 
