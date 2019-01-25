@@ -557,6 +557,11 @@ void GiftiMetaData::writeBorderFileXML3(QXmlStreamWriter& xmlWriter) const
     writeCiftiXML1(xmlWriter);
 }
 
+void GiftiMetaData::writeSceneFile3(QXmlStreamWriter& xmlWriter) const
+{
+    writeCiftiXML1(xmlWriter);
+}
+
 void GiftiMetaData::readCiftiXML1(QXmlStreamReader& xml)
 {
     clear(false);
@@ -589,6 +594,11 @@ void GiftiMetaData::readBorderFileXML1(QXmlStreamReader& xml)
 }
 
 void GiftiMetaData::readBorderFileXML3(QXmlStreamReader& xml)
+{
+    readCiftiXML1(xml);
+}
+
+void GiftiMetaData::readSceneFile3(QXmlStreamReader& xml)
 {
     readCiftiXML1(xml);
 }

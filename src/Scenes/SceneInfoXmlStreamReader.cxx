@@ -23,7 +23,13 @@
 #include "SceneInfoXmlStreamReader.h"
 #undef __SCENE_INFO_XML_STREAM_READER_DECLARE__
 
+#include <QXmlStreamAttributes>
+#include <QXmlStreamReader>
+
 #include "CaretAssert.h"
+#include "SceneInfo.h"
+#include "WuQMacroGroupXmlStreamReader.h"
+
 using namespace caret;
 
 
@@ -50,3 +56,87 @@ SceneInfoXmlStreamReader::~SceneInfoXmlStreamReader()
 {
 }
 
+/**
+ * Read the scene info.
+ * If, after calling this method, xmlReader.hasError() return true,
+ * there was an error reading the SceneInfo.
+ *
+ * @param xmlReader
+ *     The XML stream reader
+ * @param sceneInfo
+ *     Read into this sceneInfo
+ */
+void
+SceneInfoXmlStreamReader::readSceneInfo(QXmlStreamReader& xmlReader,
+                                        SceneInfo* sceneInfo)
+{
+    CaretAssert(sceneInfo);
+    if (sceneInfo == NULL) {
+        return;
+    }
+    
+    if (xmlReader.name() != ELEMENT_SCENE_INFO) {
+        xmlReader.raiseError("First element is \""
+                             + xmlReader.name()
+                             + "\" but should be "
+                             + ELEMENT_SCENE_INFO);
+        return;
+    }
+    
+    /*
+     * Gets set when ending scene info directory element is read
+     */
+    bool endElementFound(false);
+
+    while ( (! xmlReader.atEnd())
+           && ( ! endElementFound)) {
+        xmlReader.readNext();
+        switch (xmlReader.tokenType()) {
+            case QXmlStreamReader::StartElement:
+                if (xmlReader.name() == ELEMENT_NAME) {
+                    sceneInfo->setName(xmlReader.readElementText());
+                }
+                else if (xmlReader.name() == ELEMENT_BALSA_SCENE_ID) {
+                    sceneInfo->setBalsaSceneID(xmlReader.readElementText());
+                }
+                else if (xmlReader.name() == ELEMENT_DESCRIPTION) {
+                    sceneInfo->setDescription(xmlReader.readElementText());
+                }
+                else if (xmlReader.name() == ELEMENT_IMAGE) {
+                    const QXmlStreamAttributes atts = xmlReader.attributes();
+                    const QString encodingName = atts.value(ATTRIBUTE_IMAGE_ENCODING).toString();
+                    const QString formatName   = atts.value(ATTRIBUTE_IMAGE_FORMAT).toString();
+                    sceneInfo->setImageFromText(xmlReader.readElementText(),
+                                                encodingName,
+                                                formatName);
+                }
+                else if (xmlReader.name() == WuQMacroGroupXmlStreamReader::ELEMENT_MACRO_GROUP) {
+                    WuQMacroGroupXmlStreamReader macroGroupReader;
+                    macroGroupReader.readMacroGroup(xmlReader,
+                                                    sceneInfo->getMacroGroup());
+                }
+                else {
+                    m_unexpectedXmlElements.insert(xmlReader.name().toString());
+                    xmlReader.skipCurrentElement();
+                }
+                break;
+            case QXmlStreamReader::EndElement:
+                if (xmlReader.name() == ELEMENT_SCENE_INFO) {
+                    endElementFound = true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+/**
+ * @return Any unexpected elements that were found,
+ * and ignored, while reading the SceneInfo XML.
+ */
+std::set<AString>
+SceneInfoXmlStreamReader::getUnexpectedElements() const
+{
+    return m_unexpectedXmlElements;
+}

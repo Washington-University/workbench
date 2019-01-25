@@ -115,6 +115,18 @@ SceneEnumeratedTypeArray::~SceneEnumeratedTypeArray()
  *
  * @return Valid pointer (non-NULL) this is SceneClass
  */
+SceneEnumeratedTypeArray*
+SceneEnumeratedTypeArray::castToSceneEnumeratedTypeArray()
+{
+    return this;
+}
+
+/**
+ * Cast an instance of SceneObjectArray to a SceneEnumeratedTypeArray.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneClass
+ */
 const SceneEnumeratedTypeArray*
 SceneEnumeratedTypeArray::castToSceneEnumeratedTypeArray() const
 {

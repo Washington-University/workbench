@@ -535,17 +535,12 @@ WuQMacroGroup::readXmlFromStringOld(const QString& xmlString,
     nonFatalWarningMessageOut.clear();
     
     WuQMacroGroupXmlStreamReader reader;
-    reader.readFromString(xmlString,
-                          this);
-    if (reader.hasError()) {
-        errorMessageOut = reader.getErrorMessage();
+    if ( ! reader.readFromString(xmlString,
+                                 this,
+                                 errorMessageOut)) {
         return false;
     }
-    else {
-        if (reader.hasWarnings()) {
-            nonFatalWarningMessageOut = reader.getWarningMessage();
-        }
-    }
+
     clearModified();
     
     return true;

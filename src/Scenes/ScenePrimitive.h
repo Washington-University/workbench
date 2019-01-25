@@ -31,6 +31,8 @@ namespace caret {
     public:
         virtual ~ScenePrimitive();
 
+        virtual ScenePrimitive* castToScenePrimitive();
+        
         virtual const ScenePrimitive* castToScenePrimitive() const;
         
     protected:

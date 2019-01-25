@@ -37,6 +37,8 @@ namespace caret {
         SceneObjectMapIntegerKey(const QString& name,
                            const SceneObjectDataTypeEnum::Enum valueDataType);
         
+        virtual SceneObjectMapIntegerKey* castToSceneObjectMapIntegerKey();
+        
         virtual const SceneObjectMapIntegerKey* castToSceneObjectMapIntegerKey() const;
         
         virtual std::vector<SceneObject*> getDescendants() const;

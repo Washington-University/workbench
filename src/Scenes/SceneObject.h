@@ -65,15 +65,27 @@ namespace caret {
         /// Should be overridden by any sub-classes that have children
         virtual std::vector<SceneObject*> getDescendants() const;
         
+        virtual SceneClass* castToSceneClass();
+        
         virtual const SceneClass* castToSceneClass() const;
+        
+        virtual SceneEnumeratedType* castToSceneEnumeratedType();
         
         virtual const SceneEnumeratedType* castToSceneEnumeratedType() const;
         
+        virtual SceneObjectArray* castToSceneObjectArray();
+        
         virtual const SceneObjectArray* castToSceneObjectArray() const;
+        
+        virtual SceneObjectMapIntegerKey* castToSceneObjectMapIntegerKey();
         
         virtual const SceneObjectMapIntegerKey* castToSceneObjectMapIntegerKey() const;
         
+        virtual ScenePathName* castToScenePathName();
+        
         virtual const ScenePathName* castToScenePathName() const;
+        
+        virtual ScenePrimitive* castToScenePrimitive();
         
         virtual const ScenePrimitive* castToScenePrimitive() const;
         

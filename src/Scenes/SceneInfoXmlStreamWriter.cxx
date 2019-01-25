@@ -75,7 +75,7 @@ SceneInfoXmlStreamWriter::writeXML(QXmlStreamWriter* xmlWriter,
     m_xmlWriter = xmlWriter;
     
     m_xmlWriter->writeStartElement(ELEMENT_SCENE_INFO);
-    m_xmlWriter->writeAttribute(ATTRIBUTE_INDEX,
+    m_xmlWriter->writeAttribute(ATTRIBUTE_SCENE_INDEX,
                                 QString::number(sceneInfoIndex));
     
     m_xmlWriter->writeTextElement(ELEMENT_NAME,
@@ -116,8 +116,8 @@ SceneInfoXmlStreamWriter::writeImageElement(const SceneInfo* sceneInfo)
         QString base64String = QString::fromLatin1(base64ByteArray.constData(),
                                                    base64ByteArray.size());
         m_xmlWriter->writeStartElement(ELEMENT_IMAGE);
-        m_xmlWriter->writeAttribute(ATTRIBUTE_ENCODING, VALUE_ENCODING_BASE64);
-        m_xmlWriter->writeAttribute(ATTRIBUTE_FORMAT, imageFormat);
+        m_xmlWriter->writeAttribute(ATTRIBUTE_IMAGE_ENCODING, VALUE_ENCODING_BASE64);
+        m_xmlWriter->writeAttribute(ATTRIBUTE_IMAGE_FORMAT, imageFormat);
         m_xmlWriter->writeCharacters(base64String);
         m_xmlWriter->writeEndElement();
     }

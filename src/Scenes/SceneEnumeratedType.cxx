@@ -61,11 +61,24 @@ SceneEnumeratedType::~SceneEnumeratedType()
  *
  * @return Valid pointer (non-NULL) this is SceneEnumeratedType
  */
+SceneEnumeratedType*
+SceneEnumeratedType::castToSceneEnumeratedType()
+{
+    return this;
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneEnumeratedType.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneEnumeratedType
+ */
 const SceneEnumeratedType*
 SceneEnumeratedType::castToSceneEnumeratedType() const
 {
     return this;
 }
+
 
 /**
  * @param enumeratedValueAsString

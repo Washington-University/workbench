@@ -1434,7 +1434,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
     Qt::MouseButtons mouseButtons = me->buttons();
-    
+
     checkForMiddleMouseButton(mouseButtons,
                               button,
                               keyModifiers,

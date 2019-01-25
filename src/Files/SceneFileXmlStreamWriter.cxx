@@ -76,7 +76,7 @@ SceneFileXmlStreamWriter::writeFile(const SceneFile* sceneFile)
 {
     CaretAssert(sceneFile);
     
-    const QString filename = "TestSceneXmlStream.scene"; //sceneFile->getFileName();
+    const QString filename = sceneFile->getFileName();
     if (filename.isEmpty()) {
         throw DataFileException("Name for writing annotation file is empty.");
     }
@@ -133,7 +133,7 @@ SceneFileXmlStreamWriter::writeFileContentToXmlStreamWriter(QXmlStreamWriter& xm
     
     const GiftiMetaData* metaData = sceneFile->getFileMetaData();
     if ( ! metaData->isEmpty()) {
-        metaData->writeCiftiXML1(xmlWriter);
+        metaData->writeSceneFile3(xmlWriter);
     }
     
     writeSceneInfoDirectory(xmlWriter,

@@ -48,9 +48,9 @@ namespace caret {
         static const AString ELEMENT_NAME;
         static const AString ELEMENT_SCENE_INFO;
         
-        static const AString ATTRIBUTE_ENCODING;
-        static const AString ATTRIBUTE_FORMAT;
-        static const AString ATTRIBUTE_INDEX;
+        static const AString ATTRIBUTE_IMAGE_ENCODING;
+        static const AString ATTRIBUTE_IMAGE_FORMAT;
+        static const AString ATTRIBUTE_SCENE_INDEX;
         
         static const AString VALUE_ENCODING_BASE64;
         
@@ -70,9 +70,9 @@ namespace caret {
     const AString SceneInfoXmlStreamBase::ELEMENT_NAME           = "Name";
     const AString SceneInfoXmlStreamBase::ELEMENT_SCENE_INFO     = "SceneInfo";
     
-    const AString SceneInfoXmlStreamBase::ATTRIBUTE_ENCODING = "Encoding";
-    const AString SceneInfoXmlStreamBase::ATTRIBUTE_FORMAT   = "Format";
-    const AString SceneInfoXmlStreamBase::ATTRIBUTE_INDEX    = "Index";
+    const AString SceneInfoXmlStreamBase::ATTRIBUTE_IMAGE_ENCODING = "Encoding";
+    const AString SceneInfoXmlStreamBase::ATTRIBUTE_IMAGE_FORMAT   = "Format";
+    const AString SceneInfoXmlStreamBase::ATTRIBUTE_SCENE_INDEX    = "Index";
     
     const AString SceneInfoXmlStreamBase::VALUE_ENCODING_BASE64 = "Base64";
 #endif // __SCENE_INFO_XML_STREAM_BASE_DECLARE__

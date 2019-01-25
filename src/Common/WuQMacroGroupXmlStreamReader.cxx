@@ -28,6 +28,7 @@
 #include <QTextStream>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroGroup.h"
@@ -65,115 +66,159 @@ WuQMacroGroupXmlStreamReader::~WuQMacroGroupXmlStreamReader()
  *    The string containing XML
  * @param macroGroup
  *    The macro group
+ * @param errorMessageOut
+ *    Output error message
+ * @return
+ *    True if successful, else false is returned and description in errorMessageOut
  */
-void
+bool
 WuQMacroGroupXmlStreamReader::readFromString(const QString& xmlString,
-                                       WuQMacroGroup* macroGroup)
+                                             WuQMacroGroup* macroGroup,
+                                             QString& errorMessageOut)
 {
+    errorMessageOut.clear();
     CaretAssert(macroGroup);
     macroGroup->clear();
     
+    
     if (xmlString.isEmpty()) {
-        m_xmlStreamReader->raiseError("String that should contain XML is empty.");
-        return;
+        errorMessageOut = "String that should contain XML is empty.";
+        return false;
     }
     
-    m_xmlStreamReader.reset(new QXmlStreamReader(xmlString));
+    QXmlStreamReader xmlReader(xmlString);
     
-    if (m_xmlStreamReader->atEnd()) {
-        m_xmlStreamReader->raiseError("At end when trying to start reading.  Appears to have no XML content.");
+    if (xmlReader.atEnd()) {
+        xmlReader.raiseError("At end when trying to start reading.  Appears to have no XML content.");
     }
     else {
-        if (m_xmlStreamReader->readNextStartElement()) {
-            const QStringRef groupElement = m_xmlStreamReader->name();
-            if (groupElement == ELEMENT_MACRO_GROUP) {
-                const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
-                const QStringRef name = attributes.value(ATTRIBUTE_NAME);
-                const QStringRef versionText = attributes.value(ATTRIBUTE_VERSION);
-                QString uniqueIdentifier = attributes.value(ATTRIBUTE_UNIQUE_IDENTIFIER).toString();
-                if (uniqueIdentifier.isEmpty()) {
-                    addToWarnings(ELEMENT_MACRO_GROUP
-                                  + " is missing attribute or value is empty: "
-                                  + ATTRIBUTE_UNIQUE_IDENTIFIER);
-                }
-                if (versionText.isEmpty()) {
-                    m_xmlStreamReader->raiseError(ATTRIBUTE_VERSION
-                                                  + " is missing from element "
-                                                  + ELEMENT_MACRO_GROUP);
-                }
-                else if (versionText == VALUE_VERSION_ONE) {
-                    macroGroup->setName(name.toString());
-                    macroGroup->setUniqueIdentifier(uniqueIdentifier);
-                    readVersionOne(macroGroup);
-                }
-                else {
-                    m_xmlStreamReader->raiseError(ATTRIBUTE_VERSION
-                                                  + "="
-                                                  + versionText.toString()
-                                                  + " is not supported by "
-                                                  + ELEMENT_MACRO_GROUP
-                                                  + ".  Check for software update.");
-                }
-            }
-            else {
-                m_xmlStreamReader->raiseError("First XML element is \""
-                                              + m_xmlStreamReader->name().toString()
-                                              + "\" but should be \""
-                                              + ELEMENT_MACRO_GROUP
-                                              + "\"");
-            }
-        }
-        else {
-            m_xmlStreamReader->raiseError("No XML elements found");
-        }
+        xmlReader.readNextStartElement();
+        readMacroGroup(xmlReader,
+                       macroGroup);
     }
     
-    if (m_xmlStreamReader->hasError()) {
+    if (xmlReader.hasError()) {
+        errorMessageOut = xmlReader.errorString();
         macroGroup->clear();
+        return false;
     }
     
     macroGroup->clearModified();
+
+    return true;
+}
+
+/**
+ * Read macro group from the given XML stream reader.  It assumes that
+ * the start element for the macro group has already been read and is
+ * the current element.  If xmlReader.hasError() is set after this
+ * method is called, there was an error reading the macro group.
+ *
+ * @param xmlReader
+ *    The XML stream reader
+ * @param macroGroup
+ *    The macro group
+ */
+void
+WuQMacroGroupXmlStreamReader::readMacroGroup(QXmlStreamReader& xmlReader,
+                                             WuQMacroGroup* macroGroup)
+{
+    if (xmlReader.name() == ELEMENT_MACRO_GROUP) {
+        const QXmlStreamAttributes attributes = xmlReader.attributes();
+        const QStringRef name = attributes.value(ATTRIBUTE_NAME);
+        const QStringRef versionText = attributes.value(ATTRIBUTE_VERSION);
+        QString uniqueIdentifier = attributes.value(ATTRIBUTE_UNIQUE_IDENTIFIER).toString();
+        if (uniqueIdentifier.isEmpty()) {
+            addToWarnings(xmlReader,
+                          ELEMENT_MACRO_GROUP
+                          + " is missing attribute or value is empty: "
+                          + ATTRIBUTE_UNIQUE_IDENTIFIER);
+        }
+        if (versionText.isEmpty()) {
+            xmlReader.raiseError(ATTRIBUTE_VERSION
+                                          + " is missing from element "
+                                          + ELEMENT_MACRO_GROUP);
+        }
+        else if (versionText == VALUE_VERSION_ONE) {
+            macroGroup->setName(name.toString());
+            macroGroup->setUniqueIdentifier(uniqueIdentifier);
+            
+            readVersionOne(xmlReader,
+                           macroGroup);
+        }
+        else {
+            xmlReader.raiseError(ATTRIBUTE_VERSION
+                                          + "="
+                                          + versionText.toString()
+                                          + " is not supported by "
+                                          + ELEMENT_MACRO_GROUP
+                                          + ".  Check for software update.");
+        }
+    }
+    else {
+        xmlReader.raiseError("Element should be \""
+                             + ELEMENT_MACRO_GROUP
+                             + "\" but is \""
+                             + xmlReader.text().toString()
+                             + "\" while reading MacroGroup");
+    }
+    
+    if ( ! m_warningMessage.isEmpty()) {
+        CaretLogWarning("Reading Macro's Warnings:  "
+                        + m_warningMessage);
+        m_warningMessage.clear();
+    }
 }
 
 /**
  * Read version one of macro group
  *
+ * @param xmlReader
+ *    The XML stream reader
  * @param macroGroup
  *    The macro group
  */
 void
-WuQMacroGroupXmlStreamReader::readVersionOne(WuQMacroGroup* macroGroup)
+WuQMacroGroupXmlStreamReader::readVersionOne(QXmlStreamReader& xmlReader,
+                                             WuQMacroGroup* macroGroup)
 {
     CaretAssert(macroGroup);
     
     WuQMacro* macro(NULL);
     WuQMacroCommand* macroCommand(NULL);
     
-    while ( ! m_xmlStreamReader->atEnd()) {
-        m_xmlStreamReader->readNext();
-        if (m_xmlStreamReader->isStartElement()) {
-            const QString elementName = m_xmlStreamReader->name().toString();
+    /*
+     * Gets set when ending scene info directory element is read
+     */
+    bool endElementFound(false);
+    
+    while ( (! xmlReader.atEnd())
+           && ( ! endElementFound)) {
+        xmlReader.readNext();
+        if (xmlReader.isStartElement()) {
+            const QString elementName = xmlReader.name().toString();
         
             if (elementName == ELEMENT_MACRO) {
-                macro = readMacroVersionOne();
+                macro = readMacroVersionOne(xmlReader);
             }
             else if (elementName == ELEMENT_DESCRIPTION) {
-                const QString text = m_xmlStreamReader->readElementText();
+                const QString text = xmlReader.readElementText();
                 if (macro != NULL) {
                     macro->setDescription(text);
                 }
             }
             else if (elementName == ELEMENT_MACRO_COMMAND) {
-                macroCommand = readMacroCommandAttributesVersionOne();
+                macroCommand = readMacroCommandAttributesVersionOne(xmlReader);
             }
             else if (elementName == ELEMENT_MOUSE_EVENT_INFO) {
-                WuQMacroMouseEventInfo* mouseEventInfo = readMacroMouseEventInfo();
+                WuQMacroMouseEventInfo* mouseEventInfo = readMacroMouseEventInfo(xmlReader);
                 if (mouseEventInfo != NULL) {
                     if (macroCommand != NULL) {
                         macroCommand->setMouseEventInfo(mouseEventInfo);
                     }
                     else {
-                        addToWarnings("Read WuQMacroMouseEventInfo but macroCommand is NULL");
+                        addToWarnings(xmlReader,
+                                      "Read WuQMacroMouseEventInfo but macroCommand is NULL");
                         delete mouseEventInfo;
                         mouseEventInfo = NULL;
                     }
@@ -188,21 +233,22 @@ WuQMacroGroupXmlStreamReader::readVersionOne(WuQMacroGroup* macroGroup)
                     }
                 }
             }
-            else if (elementName == ELEMENT_TOOL_TIP) {
-                const QString text = m_xmlStreamReader->readElementText();
+            else if (elementName == ELEMENT_MACRO_COMMAND_TOOL_TIP) {
+                const QString text = xmlReader.readElementText();
                 if (macroCommand != NULL) {
                     macroCommand->setToolTip(text);
                 }
             }
             else {
-                addToWarnings("Unexpected element="
+                addToWarnings(xmlReader,
+                              "Unexpected element="
                               + elementName
                               + "\"");
-                m_xmlStreamReader->skipCurrentElement();
+                xmlReader.skipCurrentElement();
             }
         }
-        else if (m_xmlStreamReader->isEndElement()) {
-            const QString elementName = m_xmlStreamReader->name().toString();
+        else if (xmlReader.isEndElement()) {
+            const QString elementName = xmlReader.name().toString();
             if (elementName == ELEMENT_MACRO) {
                 if (macro != NULL) {
                     macroGroup->addMacro(macro);
@@ -216,10 +262,9 @@ WuQMacroGroupXmlStreamReader::readVersionOne(WuQMacroGroup* macroGroup)
                 }
                 macroCommand = NULL;
             }
-        }
-        
-        if (m_xmlStreamReader->hasError()) {
-            break;
+            else if (elementName == ELEMENT_MACRO_GROUP) {
+                endElementFound = true;
+            }
         }
     }
 }
@@ -227,25 +272,29 @@ WuQMacroGroupXmlStreamReader::readVersionOne(WuQMacroGroup* macroGroup)
 /**
  * Read version one of macro
  *
+ * @param xmlReader
+ *    The XML stream reader
  * @return The macro
  */
 WuQMacro*
-WuQMacroGroupXmlStreamReader::readMacroVersionOne()
+WuQMacroGroupXmlStreamReader::readMacroVersionOne(QXmlStreamReader& xmlReader)
 {
     WuQMacro* macro(NULL);
     
-    const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
+    const QXmlStreamAttributes attributes = xmlReader.attributes();
     QString macroName = attributes.value(ATTRIBUTE_NAME).toString();
     QString shortCutKeyString = attributes.value(ATTRIBUTE_SHORT_CUT_KEY).toString();
     if (shortCutKeyString.isEmpty()) {
         shortCutKeyString = WuQMacroShortCutKeyEnum::toName(WuQMacroShortCutKeyEnum::Key_None);
-        addToWarnings(ELEMENT_MACRO
+        addToWarnings(xmlReader,
+                      ELEMENT_MACRO
                       + " is missing attribute or value is empty: "
                       + ATTRIBUTE_SHORT_CUT_KEY);
     }
     QString uniqueIdentifier = attributes.value(ATTRIBUTE_UNIQUE_IDENTIFIER).toString();
     if (uniqueIdentifier.isEmpty()) {
-        addToWarnings(ELEMENT_MACRO
+        addToWarnings(xmlReader,
+                      ELEMENT_MACRO
                       + " is missing attribute or value is empty: "
                       + ATTRIBUTE_UNIQUE_IDENTIFIER);
     }
@@ -255,7 +304,8 @@ WuQMacroGroupXmlStreamReader::readMacroVersionOne()
                                                                                   &validShortCutKey);
     if ( ! validShortCutKey) {
         shortCutKey = WuQMacroShortCutKeyEnum::Key_None;
-        addToWarnings(ELEMENT_MACRO
+        addToWarnings(xmlReader,
+                      ELEMENT_MACRO
                       + " attribute "
                       + ATTRIBUTE_SHORT_CUT_KEY
                       + " has invalid value "
@@ -264,7 +314,8 @@ WuQMacroGroupXmlStreamReader::readMacroVersionOne()
 
     
     if (macroName.isEmpty()) {
-        addToWarnings(ELEMENT_MACRO
+        addToWarnings(xmlReader,
+                      ELEMENT_MACRO
                       + " is missing attribute or value is empty: "
                       + ATTRIBUTE_NAME);
         static uint32_t missingCounter = 1;
@@ -283,14 +334,16 @@ WuQMacroGroupXmlStreamReader::readMacroVersionOne()
 /**
  * Read version one of macro command attributes
  *
+ * @param xmlReader
+ *    The XML stream reader
  * @Return The macro group
  */
 WuQMacroCommand*
-WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne()
+WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne(QXmlStreamReader& xmlReader)
 {
     WuQMacroCommand* macroCommand(NULL);
     
-    const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
+    const QXmlStreamAttributes attributes = xmlReader.attributes();
     const QStringRef objectName = attributes.value(ATTRIBUTE_NAME);
     const QStringRef dataTypeString = attributes.value(ATTRIBUTE_OBJECT_DATA_TYPE);
     const QStringRef delayString = attributes.value(ATTRIBUTE_DELAY);
@@ -306,7 +359,8 @@ WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne()
     if (dataTypeTwoString.isEmpty()) es.append(ATTRIBUTE_OBJECT_DATA_TYPE + " ");
     if (classString.isEmpty()) es.append(ATTRIBUTE_OBJECT_CLASS + " ");
     if ( ! es.isEmpty()) {
-        addToWarnings(ELEMENT_MACRO_COMMAND
+        addToWarnings(xmlReader,
+                      ELEMENT_MACRO_COMMAND
                       + " is missing attribute(s): "
                       + es);
         return NULL;
@@ -348,7 +402,8 @@ WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne()
     
     
     if ( ! es.isEmpty()) {
-        addToWarnings(ELEMENT_MACRO_COMMAND
+        addToWarnings(xmlReader,
+                      ELEMENT_MACRO_COMMAND
                       + " has invalid attributes: "
                       + es);
         return NULL;
@@ -449,12 +504,14 @@ WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne()
 }
 
 /**
+ * @param xmlReader
+ *    The XML stream reader
  * @return Read and return the mouse event information
  */
 WuQMacroMouseEventInfo*
-WuQMacroGroupXmlStreamReader::readMacroMouseEventInfo()
+WuQMacroGroupXmlStreamReader::readMacroMouseEventInfo(QXmlStreamReader& xmlReader)
 {
-    const QXmlStreamAttributes attributes = m_xmlStreamReader->attributes();
+    const QXmlStreamAttributes attributes = xmlReader.attributes();
     const QString mouseEventTypeString = attributes.value(ATTRIBUTE_MOUSE_EVENT_TYPE).toString();
     const QString xLocalString = attributes.value(ATTRIBUTE_MOUSE_LOCAL_X).toString();
     const QString yLocalString = attributes.value(ATTRIBUTE_MOUSE_LOCAL_Y).toString();
@@ -472,7 +529,8 @@ WuQMacroGroupXmlStreamReader::readMacroMouseEventInfo()
     if (widgetWidthString.isEmpty()) es.append(ATTRIBUTE_MOUSE_WIDGET_WIDTH + " ");
     if (widgetHeightString.isEmpty()) es.append(ATTRIBUTE_MOUSE_WIDGET_HEIGHT + " ");
     if ( ! es.isEmpty()) {
-        addToWarnings(ELEMENT_MOUSE_EVENT_INFO
+        addToWarnings(xmlReader,
+                      ELEMENT_MOUSE_EVENT_INFO
                       + " is missing required attribute(s): "
                       + es);
         return NULL;
@@ -482,7 +540,8 @@ WuQMacroGroupXmlStreamReader::readMacroMouseEventInfo()
     const WuQMacroMouseEventTypeEnum::Enum mouseEventType = WuQMacroMouseEventTypeEnum::fromName(mouseEventTypeString,
                                                                                                  &validMouseEventTypeFlag);
     if ( ! validMouseEventTypeFlag) {
-        addToWarnings(mouseEventTypeString
+        addToWarnings(xmlReader,
+                      mouseEventTypeString
                       + " is not valid for attribute "
                       + ATTRIBUTE_MOUSE_EVENT_TYPE);
         return NULL;
@@ -500,7 +559,7 @@ WuQMacroGroupXmlStreamReader::readMacroMouseEventInfo()
                               yLocalString.toInt());
     }
     
-    QString xyString = m_xmlStreamReader->readElementText();
+    QString xyString = xmlReader.readElementText();
     if ( ! xyString.isEmpty()) {
         QTextStream stream(&xyString);
         while ( ! stream.atEnd()) {
@@ -516,69 +575,29 @@ WuQMacroGroupXmlStreamReader::readMacroMouseEventInfo()
     return mouseInfo;
 }
 
+/**
+ * Add to the warning message.  Warnings are used to skip over invalid
+ * elements instead of declaring the entire XML invalid.
+ *
+ * @param xmlReader
+ *    The XML stream reader
+ * @param warning
+ *    The warning message
+ */
 void
-WuQMacroGroupXmlStreamReader::addToWarnings(const QString& warning)
+WuQMacroGroupXmlStreamReader::addToWarnings(QXmlStreamReader& xmlReader,
+                                            const QString& warning)
 {
     if ( ! m_warningMessage.isEmpty()) {
         m_warningMessage.append("\n");
     }
     m_warningMessage.append("Line="
-                      + QString::number(m_xmlStreamReader->lineNumber())
+                      + QString::number(xmlReader.lineNumber())
                       + ", Column="
-                      + QString::number(m_xmlStreamReader->columnNumber())
+                      + QString::number(xmlReader.columnNumber())
                       + ": "
                       + warning);
 }
 
-
-/**
- * @return True if there are non-fatal warnings
- */
-bool
-WuQMacroGroupXmlStreamReader::hasWarnings() const
-{
-    return ( ! m_warningMessage.isEmpty());
-}
-
-/**
- * @return The warning message
- */
-QString
-WuQMacroGroupXmlStreamReader::getWarningMessage() const
-{
-    return m_warningMessage;
-}
-
-/**
- * @return True if there is an error
- */
-bool
-WuQMacroGroupXmlStreamReader::hasError() const
-{
-    if (m_xmlStreamReader != NULL) {
-        return m_xmlStreamReader->hasError();
-    }
-    return false;
-}
-
-/**
- * @return The error message
- */
-QString
-WuQMacroGroupXmlStreamReader::getErrorMessage() const
-{
-    QString errorMessage;
-    
-    if (m_xmlStreamReader != NULL) {
-        errorMessage.append("Line Number="
-                            + QString::number(m_xmlStreamReader->lineNumber())
-                            + ", Column Number="
-                            + QString::number(m_xmlStreamReader->columnNumber())
-                            + ".  ");
-        errorMessage.append(m_xmlStreamReader->errorString());
-    }
-    
-    return errorMessage;
-}
 
 

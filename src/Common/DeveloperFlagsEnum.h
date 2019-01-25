@@ -36,7 +36,11 @@ public:
      */
     enum Enum {
         DEVELOPER_FLAG_UNUSED,
-        DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA
+        DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA,
+        DEVELOPER_FLAG_NEW_SCENE_FILE_READ_WRITE,
+        DEVELOPER_FLAG_TEST_SCENE_FILE_READ_WRITE,
+        DEVELOPER_FLAG_TIME_SCENE_FILE_READ_WRITE,
+        DEVELOPER_FLAG_TEST_ALL_SCENE_FILES_IN_DIRECTORY
     };
 
     ~DeveloperFlagsEnum();
@@ -64,10 +68,18 @@ public:
     static void setFlag(const Enum enumValue,
                         const bool flagStatus);
     
+    static bool isCheckable(const Enum enumValue);
+    
 private:
+    enum class CheckableEnum {
+        NO,
+        YES
+    };
+    
     DeveloperFlagsEnum(const Enum enumValue,
                        const AString& name,
                        const AString& guiName,
+                       const CheckableEnum checkable,
                        const bool defaultValue);
 
     static DeveloperFlagsEnum* findData(const Enum enumValue);
@@ -98,6 +110,9 @@ private:
     
     /** Flag status */
     bool flagStatus;
+    
+    /** Checkable status */
+    CheckableEnum checkable;
 };
 
 #ifdef __DEVELOPER_FLAGS_ENUM_DECLARE__

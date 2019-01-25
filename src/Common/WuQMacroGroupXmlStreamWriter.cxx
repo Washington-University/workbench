@@ -73,7 +73,7 @@ WuQMacroGroupXmlStreamWriter::writeXml(QXmlStreamWriter* xmlWriter,
     CaretAssert(macroGroup);
     
     if (macroGroup->getNumberOfMacros() <= 0) {
-        xmlWriter->writeEmptyElement(ELEMENT_MACRO_GROUP);
+//        xmlWriter->writeEmptyElement(ELEMENT_MACRO_GROUP);
         return;
     }
     
@@ -283,7 +283,7 @@ WuQMacroGroupXmlStreamWriter::writeMacroCommandToXML(const WuQMacroCommand* macr
     
     const QString toolTip = macroCommand->getObjectToolTip();
     if (toolTip != NULL) {
-        m_xmlStreamWriter->writeTextElement(ELEMENT_TOOL_TIP,
+        m_xmlStreamWriter->writeTextElement(ELEMENT_MACRO_COMMAND_TOOL_TIP,
                                             toolTip);
     }
     m_xmlStreamWriter->writeEndElement();

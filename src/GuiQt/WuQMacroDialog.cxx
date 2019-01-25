@@ -154,6 +154,9 @@ WuQMacroDialog::~WuQMacroDialog()
 {
 }
 
+/**
+ * @return Widget with run and editing buttons
+ */
 QWidget*
 WuQMacroDialog::createMacroRunAndEditingToolButtons()
 {

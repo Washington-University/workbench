@@ -122,6 +122,18 @@ SceneClassArray::~SceneClassArray()
  *
  * @return Valid pointer (non-NULL) this is SceneClass
  */
+SceneClassArray*
+SceneClassArray::castToSceneClassArray()
+{
+    return this;
+}
+
+/**
+ * Cast an instance of SceneObjectArray to a SceneClassArray.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneClass
+ */
 const SceneClassArray*
 SceneClassArray::castToSceneClassArray() const
 {

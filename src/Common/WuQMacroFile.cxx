@@ -220,22 +220,17 @@ WuQMacroFile::readFile(const AString& filename)
         QTextStream textStream(&file);
         const QString fileContentString = textStream.readAll();
         
+        QString errorMessage;
         WuQMacroGroupXmlStreamReader reader;
-        reader.readFromString(fileContentString,
-                              m_macroGroup.get());
-        file.close();
-        if (reader.hasError()) {
-            throw DataFileException(reader.getErrorMessage());
+        if ( ! reader.readFromString(fileContentString,
+                                     m_macroGroup.get(),
+                                     errorMessage)) {
+            file.close();
+            throw DataFileException(errorMessage);
         }
+
         setFileName(filename);
-        clearModified();
-        
-        if (reader.hasWarnings()) {
-            CaretLogWarning("When reading "
-                            + filename
-                            + ": "
-                            + reader.getWarningMessage());
-        }
+        clearModified();        
     }
     else {
         throw DataFileException("Unable to open file for writing: "

@@ -318,6 +318,7 @@ WuQMacroCommand::type() const
 void
 WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
 {
+    m_descriptiveName = obj.m_descriptiveName;
     m_classType    = obj.m_classType;
     m_objectName   = obj.m_objectName;
     m_dataValue    = obj.m_dataValue;

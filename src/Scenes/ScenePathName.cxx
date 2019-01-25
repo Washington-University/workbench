@@ -95,6 +95,18 @@ ScenePathName::~ScenePathName()
  *
  * @return Valid pointer (non-NULL) this is ScenePathName
  */
+ScenePathName*
+ScenePathName::castToScenePathName()
+{
+    return this;
+}
+
+/**
+ * Cast an instance of SceneObject to a ScenePathName.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is ScenePathName
+ */
 const ScenePathName*
 ScenePathName::castToScenePathName() const
 {

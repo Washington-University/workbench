@@ -121,6 +121,9 @@ public:
     void readBorderFileXML1(QXmlStreamReader& xml);
     void readBorderFileXML3(QXmlStreamReader& xml);
     
+    void readSceneFile3(QXmlStreamReader& xml);
+    void writeSceneFile3(QXmlStreamWriter& xmlWriter) const;
+
     void setModified();
 
     void clearModified();

@@ -24,13 +24,17 @@
 
 
 #include <memory>
+#include <set>
 
 #include "SceneFileXmlStreamBase.h"
 
-
+class QXmlStreamReader;
 
 namespace caret {
 
+    class SceneFile;
+    class SceneInfo;
+    
     class SceneFileXmlStreamReader : public SceneFileXmlStreamBase {
         
     public:
@@ -41,11 +45,27 @@ namespace caret {
         SceneFileXmlStreamReader(const SceneFileXmlStreamReader&) = delete;
 
         SceneFileXmlStreamReader& operator=(const SceneFileXmlStreamReader&) = delete;
-        
+
+        void readFile(const AString& filename,
+                      SceneFile* sceneFile);
 
         // ADD_NEW_METHODS_HERE
 
     private:
+        void readFileContent(QXmlStreamReader& xmlReader,
+                             SceneFile* sceneFile);
+        
+        void readSceneInfoDirectory(QXmlStreamReader& xmlReader,
+                                    SceneFile* sceneFile);
+        
+        AString m_filename;
+        
+        int32_t m_fileVersion = -1;
+        
+        std::set<AString> m_unexpectedXmlElements;
+        
+        std::map<int32_t, SceneInfo*> m_sceneInfoMap;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

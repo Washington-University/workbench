@@ -179,14 +179,12 @@ SceneInfoSaxReader::endElement(const AString& /* namspaceURI */,
         case STATE_SCENE_INFO_MACRO_GROUP:
         {
             WuQMacroGroup* macroGroup = m_sceneInfo->getMacroGroup();
+            QString errorMessage;
             WuQMacroGroupXmlStreamReader reader;
-            reader.readFromString(m_elementText,
-                                  macroGroup);
-            if (reader.hasError()) {
-                CaretLogSevere(reader.getErrorMessage());
-            }
-            else if (reader.hasWarnings()) {
-                CaretLogWarning(reader.getWarningMessage());
+            if ( ! reader.readFromString(m_elementText,
+                                         macroGroup,
+                                         errorMessage)) {
+                CaretLogSevere(errorMessage);
             }
         }
             break;

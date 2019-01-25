@@ -68,6 +68,18 @@ ScenePrimitive::~ScenePrimitive()
  *
  * @return Valid pointer (non-NULL) this is ScenePrimitive
  */
+ScenePrimitive*
+ScenePrimitive::castToScenePrimitive()
+{
+    return this;
+}
+
+/**
+ * Cast an instance of SceneObject to a ScenePrimitive.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is ScenePrimitive
+ */
 const ScenePrimitive*
 ScenePrimitive::castToScenePrimitive() const
 {

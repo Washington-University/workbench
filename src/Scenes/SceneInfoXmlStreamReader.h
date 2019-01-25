@@ -24,13 +24,16 @@
 
 
 #include <memory>
+#include <set>
 
 #include "SceneInfoXmlStreamBase.h"
 
-
+class QXmlStreamReader;
 
 namespace caret {
 
+    class SceneInfo;
+    
     class SceneInfoXmlStreamReader : public SceneInfoXmlStreamBase {
         
     public:
@@ -42,10 +45,15 @@ namespace caret {
 
         SceneInfoXmlStreamReader& operator=(const SceneInfoXmlStreamReader&) = delete;
         
+        void readSceneInfo(QXmlStreamReader& xmlReader,
+                           SceneInfo* sceneInfo);
 
+        std::set<AString> getUnexpectedElements() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:
+        std::set<AString> m_unexpectedXmlElements;
         // ADD_NEW_MEMBERS_HERE
 
     };

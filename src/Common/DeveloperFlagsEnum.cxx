@@ -76,18 +76,22 @@ using namespace caret;
  *    Name of enumerated value.
  * @param guiName
  *    User-friendly name for use in user-interface.
+ * @param checkable
+ *    Checkable status (NO, YES)
  * @param defaultValue
  *    Default value for flag
  */
 DeveloperFlagsEnum::DeveloperFlagsEnum(const Enum enumValue,
                                        const AString& name,
                                        const AString& guiName,
+                                       const CheckableEnum checkable,
                                        const bool defaultValue)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
+    this->checkable = checkable;
     this->flagStatus = defaultValue;
 }
 
@@ -109,14 +113,44 @@ DeveloperFlagsEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_UNUSED,
-                                          "DEVELOPER_FLAG_UNUSED",
-                                          "Developer Flag Unused",
-                                          false));
-    enumData.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA,
-                                          "DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA",
-                                          "Flip Palette Not Data",
-                                          false));
+    std::vector<DeveloperFlagsEnum> checkableItems;
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_UNUSED,
+                                                "DEVELOPER_FLAG_UNUSED",
+                                                "Developer Flag Unused",
+                                                CheckableEnum::YES,
+                                                false));
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA,
+                                                "DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA",
+                                                "Flip Palette Not Data",
+                                                CheckableEnum::YES,
+                                                false));
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_NEW_SCENE_FILE_READ_WRITE,
+                                                "DEVELOPER_FLAG_NEW_SCENE_FILE_READ_WRITE",
+                                                "Use New Scene File Reader and Writer",
+                                                CheckableEnum::YES,
+                                                true));
+    
+    std::vector<DeveloperFlagsEnum> notCheckableItems;
+    notCheckableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TEST_SCENE_FILE_READ_WRITE,
+                                                   "DEVELOPER_FLAG_TEST_SCENE_FILE_READ_WRITE",
+                                                   "Test Scene File Xml Stream Reading/Writing...",
+                                                   CheckableEnum::NO,
+                                                   false));
+    notCheckableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TIME_SCENE_FILE_READ_WRITE,
+                                                   "DEVELOPER_FLAG_TIME_SCENE_FILE_READ_WRITE",
+                                                   "Time Scene File Xml Stream Timing...",
+                                                   CheckableEnum::NO,
+                                                   false));
+    notCheckableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TEST_ALL_SCENE_FILES_IN_DIRECTORY,
+                                                   "DEVELOPER_FLAG_TEST_ALL_SCENE_FILES_IN_DIRECTORY",
+                                                   "Test Xml Stream Read/Write for All Scene Files in Directory...",
+                                                   CheckableEnum::NO,
+                                                   false));
+
+    enumData.insert(enumData.end(),
+                    checkableItems.begin(), checkableItems.end());
+    enumData.insert(enumData.end(),
+                    notCheckableItems.begin(), notCheckableItems.end());
 }
 
 /**
@@ -405,6 +439,28 @@ DeveloperFlagsEnum::setFlag(const Enum enumValue,
     if (initializedFlag == false) initialize();
     DeveloperFlagsEnum* enumInstance = findData(enumValue);
     enumInstance->flagStatus = flagStatus;
+}
+
+/**
+ * @return True if the developer flag is checkable
+ */
+bool
+DeveloperFlagsEnum::isCheckable(const Enum enumValue)
+{
+    bool checkableStatus(false);
+    
+    if (initializedFlag == false) initialize();
+    DeveloperFlagsEnum* enumInstance = findData(enumValue);
+    switch (enumInstance->checkable) {
+        case CheckableEnum::NO:
+            checkableStatus = false;
+            break;
+        case CheckableEnum::YES:
+            checkableStatus = true;
+            break;
+    }
+    
+    return checkableStatus;
 }
 
 

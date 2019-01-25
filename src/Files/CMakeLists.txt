@@ -128,6 +128,7 @@ SpecFile.h
 SpecFileDataFileTypeGroup.h
 SpecFileDataFile.h
 SpecFileSaxReader.h
+SceneFileXmlStreamFormatTester.h
 StudyMetaDataLink.h
 StudyMetaDataLinkSet.h
 StudyMetaDataLinkSetSaxReader.h
@@ -252,6 +253,7 @@ SceneDataFileInfo.cxx
 SceneFile.cxx
 SceneFileSaxReader.cxx
 SceneFileXmlStreamBase.cxx
+SceneFileXmlStreamFormatTester.cxx
 SceneFileXmlStreamReader.cxx
 SceneFileXmlStreamWriter.cxx
 SignedDistanceHelper.cxx

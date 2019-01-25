@@ -85,6 +85,18 @@ SceneObjectMapIntegerKey::~SceneObjectMapIntegerKey()
  *
  * @return Valid pointer (non-NULL) this is SceneObjectMapIntegerKey
  */
+SceneObjectMapIntegerKey*
+SceneObjectMapIntegerKey::castToSceneObjectMapIntegerKey()
+{
+    return this;
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneObjectMapIntegerKey.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneObjectMapIntegerKey
+ */
 const SceneObjectMapIntegerKey*
 SceneObjectMapIntegerKey::castToSceneObjectMapIntegerKey() const
 {

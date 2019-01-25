@@ -29,7 +29,6 @@
 
 class QXmlStreamReader;
 
-
 namespace caret {
 
     class WuQMacro;
@@ -47,35 +46,31 @@ namespace caret {
         WuQMacroGroupXmlStreamReader(const WuQMacroGroupXmlStreamReader&) = delete;
 
         WuQMacroGroupXmlStreamReader& operator=(const WuQMacroGroupXmlStreamReader&) = delete;
+        
+        bool readFromString(const QString& xmlString,
+                            WuQMacroGroup* macroGroup,
+                            QString& errorMessageOut);
 
-        bool hasError() const;
-        
-        QString getErrorMessage() const;
-        
-        bool hasWarnings() const;
-        
-        QString getWarningMessage() const;
-        
-        void readFromString(const QString& xmlString,
+        void readMacroGroup(QXmlStreamReader& xmlReader,
                             WuQMacroGroup* macroGroup);
-
+        
         // ADD_NEW_METHODS_HERE
 
     private:
-        WuQMacroMouseEventInfo* readMacroMouseEventInfo();
+        WuQMacroMouseEventInfo* readMacroMouseEventInfo(QXmlStreamReader& xmlReader);
         
-        void readVersionOne(WuQMacroGroup* macroGroup);
+        void readVersionOne(QXmlStreamReader& xmlReader,
+                            WuQMacroGroup* macroGroup);
         
-        WuQMacro* readMacroVersionOne();
+        WuQMacro* readMacroVersionOne(QXmlStreamReader& xmlReader);
         
-        WuQMacroCommand* readMacroCommandAttributesVersionOne();
+        WuQMacroCommand* readMacroCommandAttributesVersionOne(QXmlStreamReader& xmlReader);
         
-        WuQMacroCommand* readMacroCommandVersionOne();
+        WuQMacroCommand* readMacroCommandVersionOne(QXmlStreamReader& xmlReader);
         
-        void addToWarnings(const QString& warning);
+        void addToWarnings(QXmlStreamReader& xmlReader,
+                           const QString& warning);
         
-        std::unique_ptr<QXmlStreamReader> m_xmlStreamReader;
-
         QString m_warningMessage;
         
         // ADD_NEW_MEMBERS_HERE

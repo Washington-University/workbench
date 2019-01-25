@@ -122,6 +122,18 @@ SceneClass::castToSceneClass() const
 }
 
 /**
+ * Cast an instance of SceneObject to a SceneClass.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneClass
+ */
+SceneClass*
+SceneClass::castToSceneClass()
+{
+    return this;
+}
+
+/**
  * @return Name of the class (NOT the instance).
  */
 AString 

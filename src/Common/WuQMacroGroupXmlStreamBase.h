@@ -48,8 +48,6 @@ namespace caret {
 
         virtual AString toString() const;
         
-    protected:
-        
         static const QString ATTRIBUTE_NAME;
         static const QString ATTRIBUTE_OBJECT_CLASS;
         static const QString ATTRIBUTE_OBJECT_DATA_TYPE;
@@ -80,9 +78,9 @@ namespace caret {
         static const QString ELEMENT_DESCRIPTION;
         static const QString ELEMENT_MACRO;
         static const QString ELEMENT_MACRO_COMMAND;
+        static const QString ELEMENT_MACRO_COMMAND_TOOL_TIP;
         static const QString ELEMENT_MACRO_GROUP;
         static const QString ELEMENT_MOUSE_EVENT_INFO;
-        static const QString ELEMENT_TOOL_TIP;
         static const QString VALUE_BOOL_FALSE;
         static const QString VALUE_BOOL_TRUE;
         static const QString VALUE_VERSION_ONE;
@@ -121,9 +119,9 @@ namespace caret {
     const QString WuQMacroGroupXmlStreamBase::ELEMENT_DESCRIPTION      = "Description";
     const QString WuQMacroGroupXmlStreamBase::ELEMENT_MACRO            = "Macro";
     const QString WuQMacroGroupXmlStreamBase::ELEMENT_MACRO_COMMAND    = "MacroCommand";
+    const QString WuQMacroGroupXmlStreamBase::ELEMENT_MACRO_COMMAND_TOOL_TIP = "ToolTip";
     const QString WuQMacroGroupXmlStreamBase::ELEMENT_MACRO_GROUP      = "MacroGroup";
     const QString WuQMacroGroupXmlStreamBase::ELEMENT_MOUSE_EVENT_INFO = "MouseEventInfo";
-    const QString WuQMacroGroupXmlStreamBase::ELEMENT_TOOL_TIP         = "ToolTip";
 
     const QString WuQMacroGroupXmlStreamBase::VALUE_BOOL_FALSE   = "false";
     const QString WuQMacroGroupXmlStreamBase::VALUE_BOOL_TRUE    = "true";

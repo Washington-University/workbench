@@ -229,6 +229,18 @@ SceneObject::castToSceneClass() const
 }
 
 /**
+ * Cast an instance of SceneObject to a SceneClass.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneClass
+ */
+SceneClass*
+SceneObject::castToSceneClass()
+{
+    return NULL;
+}
+
+/**
  * Cast an instance of SceneObject to a SceneEnumeratedType.
  * Is used to avoid dynamic casting and overridden by the class.
  *
@@ -241,6 +253,18 @@ SceneObject::castToSceneEnumeratedType() const
 }
 
 /**
+ * Cast an instance of SceneObject to a SceneEnumeratedType.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneEnumeratedType
+ */
+SceneEnumeratedType*
+SceneObject::castToSceneEnumeratedType()
+{
+    return NULL;
+}
+
+/**
  * Cast an instance of SceneObject to a SceneObjectArray.
  * Is used to avoid dynamic casting and overridden by the class.
  *
@@ -248,6 +272,30 @@ SceneObject::castToSceneEnumeratedType() const
  */
 const SceneObjectArray*
 SceneObject::castToSceneObjectArray() const
+{
+    return NULL;
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneObjectArray.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneObjectArray
+ */
+SceneObjectArray*
+SceneObject::castToSceneObjectArray()
+{
+    return NULL;
+}
+
+/**
+ * Cast an instance of SceneObject to a SceneObjectMapIntegerKey.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is SceneObjectMapIntegerKey
+ */
+SceneObjectMapIntegerKey*
+SceneObject::castToSceneObjectMapIntegerKey()
 {
     return NULL;
 }
@@ -270,8 +318,32 @@ SceneObject::castToSceneObjectMapIntegerKey() const
  *
  * @return Valid pointer (non-NULL) this is ScenePathName
  */
+ScenePathName*
+SceneObject::castToScenePathName()
+{
+    return NULL;
+}
+
+/**
+ * Cast an instance of SceneObject to a ScenePathName.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is ScenePathName
+ */
 const ScenePathName*
 SceneObject::castToScenePathName() const
+{
+    return NULL;
+}
+
+/**
+ * Cast an instance of SceneObject to a ScenePrimitive.
+ * Is used to avoid dynamic casting and overridden by the class.
+ *
+ * @return Valid pointer (non-NULL) this is ScenePrimitive
+ */
+ScenePrimitive*
+SceneObject::castToScenePrimitive()
 {
     return NULL;
 }
@@ -287,3 +359,4 @@ SceneObject::castToScenePrimitive() const
 {
     return NULL;
 }
+

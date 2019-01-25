@@ -45,6 +45,8 @@ namespace caret {
 
         virtual ~ScenePathNameArray();
         
+        virtual ScenePathNameArray* castToScenePathNameArray();
+        
         virtual const ScenePathNameArray* castToScenePathNameArray() const;
         
         void setScenePathNameAtIndex(const int32_t arrayIndex,

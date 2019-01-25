@@ -95,6 +95,7 @@
 #include "SceneClassAssistant.h"
 #include "SceneEnumeratedType.h"
 #include "SceneFile.h"
+#include "SceneFileXmlStreamFormatTester.h"
 #include "SceneWindowGeometry.h"
 #include "SessionManager.h"
 #include "SpacerTabContent.h"
@@ -1605,15 +1606,23 @@ BrainBrowserWindow::createMenuDevelop()
         QObject::connect(m_developerFlagsActionGroup, SIGNAL(triggered(QAction*)),
                          this, SLOT(developerMenuFlagTriggered(QAction*)));
         
+        bool lastItemCheckableFlag(true);
         for (std::vector<DeveloperFlagsEnum::Enum>::iterator iter = developerFlags.begin();
              iter != developerFlags.end();
              iter++) {
             const DeveloperFlagsEnum::Enum flag = *iter;
-            
+
+            const bool itemCheckableFlag = DeveloperFlagsEnum::isCheckable(flag);
+            if (itemCheckableFlag != lastItemCheckableFlag) {
+                menu->addSeparator();
+            }
+
             QAction* action = menu->addAction(DeveloperFlagsEnum::toGuiName(flag));
-            action->setCheckable(true);
+            action->setCheckable(itemCheckableFlag);
             action->setData(static_cast<int>(DeveloperFlagsEnum::toIntegerCode(flag)));
             m_developerFlagsActionGroup->addAction(action);
+
+            lastItemCheckableFlag = itemCheckableFlag;
         }
     }
     
@@ -1667,6 +1676,27 @@ BrainBrowserWindow::developerMenuFlagTriggered(QAction* action)
         DeveloperFlagsEnum::setFlag(enumValue,
                                     action->isChecked());
 
+        if (enumValue == DeveloperFlagsEnum::DEVELOPER_FLAG_TEST_SCENE_FILE_READ_WRITE) {
+            QString filename = CaretFileDialog::getOpenFileNameDialog(DataFileTypeEnum::SCENE);
+            if ( ! filename.isEmpty()) {
+                SceneFileXmlStreamFormatTester::testReadingAndWriting(filename,
+                                                                      true);
+            }
+        }
+        else if (enumValue == DeveloperFlagsEnum::DEVELOPER_FLAG_TIME_SCENE_FILE_READ_WRITE) {
+            QString filename = CaretFileDialog::getOpenFileNameDialog(DataFileTypeEnum::SCENE);
+            if ( ! filename.isEmpty()) {
+                SceneFileXmlStreamFormatTester::timeReadingAndWriting(filename);
+            }
+        }
+        else if (enumValue == DeveloperFlagsEnum::DEVELOPER_FLAG_TEST_ALL_SCENE_FILES_IN_DIRECTORY) {
+            QString dirName = CaretFileDialog::getExistingDirectoryDialog();
+            if ( ! dirName.isEmpty()) {
+                SceneFileXmlStreamFormatTester::testReadingAndWritingInDirectory(dirName,
+                                                                                 false);
+            }
+        }
+        
         /*
          * Update graphics and GUI
          */
