@@ -38,6 +38,8 @@ namespace caret {
 
         BackgroundAndForegroundColors& operator=(const BackgroundAndForegroundColors& obj);
 
+        bool operator==(const BackgroundAndForegroundColors& obj) const;
+        
         void reset();
 
         // ADD_NEW_METHODS_HERE

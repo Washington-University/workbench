@@ -637,6 +637,10 @@ CaretPreferences::getUserBackgroundAndForegroundColors()
 void
 CaretPreferences::setUserBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors)
 {
+    if (this->userColors == colors) {
+        return;
+    }
+    
     /*
      * "in memory" colors
      */
@@ -912,6 +916,10 @@ CaretPreferences::getLoggingLevel() const
 void 
 CaretPreferences::setLoggingLevel(const LogLevelEnum::Enum loggingLevel)
 {
+    if (this->loggingLevel == loggingLevel) {
+        return;
+    }
+    
     this->loggingLevel = loggingLevel;
     
     const AString name = LogLevelEnum::toName(this->loggingLevel);
@@ -945,6 +953,10 @@ CaretPreferences::getOpenDrawingMethod() const
 void
 CaretPreferences::setOpenGLDrawingMethod(const OpenGLDrawingMethodEnum::Enum openGLDrawingMethod)
 {
+    if (this->openGLDrawingMethod == openGLDrawingMethod) {
+        return;
+    }
+    
     this->openGLDrawingMethod = openGLDrawingMethod;
     this->setString(NAME_OPENGL_DRAWING_METHOD,
                     OpenGLDrawingMethodEnum::toName(this->openGLDrawingMethod));
@@ -968,6 +980,10 @@ CaretPreferences::getManageFilesViewFileType() const
 void
 CaretPreferences::setManageFilesViewFileType(const SpecFileDialogViewFilesTypeEnum::Enum manageFilesViewFileType)
 {
+    if (this->manageFilesViewFileType == manageFilesViewFileType) {
+        return;
+    }
+    
     this->manageFilesViewFileType = manageFilesViewFileType;
     this->setString(NAME_MANAGE_FILES_VIEW_FILE_TYPE,
                     SpecFileDialogViewFilesTypeEnum::toName(this->manageFilesViewFileType));
@@ -991,6 +1007,10 @@ CaretPreferences::isShowSurfaceIdentificationSymbols() const
 void
 CaretPreferences::setShowSurfaceIdentificationSymbols(const bool showSymbols)
 {
+    if (this->showSurfaceIdentificationSymbols == showSymbols) {
+        return;
+    }
+    
     this->showSurfaceIdentificationSymbols = showSymbols;
     this->setBoolean(NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS,
                      this->showSurfaceIdentificationSymbols);
@@ -1014,6 +1034,10 @@ CaretPreferences::isShowVolumeIdentificationSymbols() const
 void
 CaretPreferences::setShowVolumeIdentificationSymbols(const bool showSymbols)
 {
+    if (this->showVolumeIdentificationSymbols == showSymbols) {
+        return;
+    }
+    
     this->showVolumeIdentificationSymbols = showSymbols;
     this->setBoolean(NAME_SHOW_VOLUME_IDENTIFICATION_SYMBOLS,
                      this->showVolumeIdentificationSymbols);
@@ -1037,6 +1061,10 @@ CaretPreferences::isDynamicConnectivityDefaultedOn() const
 void
 CaretPreferences::setDynamicConnectivityDefaultedOn(const bool defaultedOn)
 {
+    if (this->dynamicConnectivityDefaultedOn == defaultedOn) {
+        return;
+    }
+    
     this->dynamicConnectivityDefaultedOn = defaultedOn;
     this->setBoolean(NAME_DYNAMIC_CONNECTIVITY_ON,
                      defaultedOn);
@@ -1061,6 +1089,10 @@ CaretPreferences::getImageCaptureMethod() const
 void
 CaretPreferences::setImageCaptureMethod(const ImageCaptureMethodEnum::Enum imageCaptureMethod)
 {
+    if (this->imageCaptureMethod == imageCaptureMethod) {
+        return;
+    }
+    
     this->imageCaptureMethod = imageCaptureMethod;
     this->setString(NAME_IMAGE_CAPTURE_METHOD,
                     ImageCaptureMethodEnum::toName(this->imageCaptureMethod));
@@ -1085,6 +1117,10 @@ CaretPreferences::isRemoteFilePasswordSaved()
 void
 CaretPreferences::setRemoteFilePasswordSaved(const bool saveRemotePasswordToPreferences)
 {
+    if (this->remoteFileLoginSaved == saveRemotePasswordToPreferences) {
+        return;
+    }
+    
     this->remoteFileLoginSaved = saveRemotePasswordToPreferences;
     this->setBoolean(NAME_REMOTE_FILE_LOGIN_SAVED,
                      this->remoteFileLoginSaved);
@@ -1120,6 +1156,11 @@ void
 CaretPreferences::setRemoteFileUserNameAndPassword(const AString& userName,
                                                    const AString& password)
 {
+    if ((this->remoteFileUserName == userName)
+        && (this->remoteFilePassword == password)) {
+        return;
+    }
+    
     this->remoteFileUserName = userName;
     this->remoteFilePassword = password;
     
@@ -1148,6 +1189,10 @@ CaretPreferences::getBalsaUserName() const
 void
 CaretPreferences::setBalsaUserName(const AString& userName)
 {
+    if (this->balsaUserName == userName) {
+        return;
+    }
+    
     this->balsaUserName = userName;
     this->setString(NAME_BALSA_USER_NAME,
                     userName);
@@ -1170,8 +1215,12 @@ CaretPreferences::isVolumeAxesCrosshairsDisplayed() const
 void 
 CaretPreferences::setVolumeAxesCrosshairsDisplayed(const bool displayed)
 {
+    if (this->displayVolumeAxesCrosshairs == displayed) {
+        return;
+    }
+
     this->displayVolumeAxesCrosshairs = displayed;
-    this->setBoolean(CaretPreferences::NAME_VOLUME_AXES_CROSSHAIRS, 
+    this->setBoolean(CaretPreferences::NAME_VOLUME_AXES_CROSSHAIRS,
                      this->displayVolumeAxesCrosshairs);
     this->qSettings->sync();
 }
@@ -1193,6 +1242,10 @@ CaretPreferences::isVolumeAxesLabelsDisplayed() const
 void 
 CaretPreferences::setVolumeAxesLabelsDisplayed(const bool displayed)
 {
+    if (this->displayVolumeAxesLabels == displayed) {
+        return;
+    }
+    
     this->displayVolumeAxesLabels = displayed;
     this->setBoolean(CaretPreferences::NAME_VOLUME_AXES_LABELS, 
                      this->displayVolumeAxesLabels);
@@ -1217,6 +1270,10 @@ CaretPreferences::isVolumeMontageAxesCoordinatesDisplayed() const
 void
 CaretPreferences::setVolumeMontageAxesCoordinatesDisplayed(const bool displayed)
 {
+    if (this->displayVolumeAxesCoordinates == displayed) {
+        return;
+    }
+    
     this->displayVolumeAxesCoordinates = displayed;
     this->setBoolean(CaretPreferences::NAME_VOLUME_AXES_COORDINATE,
                      this->displayVolumeAxesCoordinates);
@@ -1241,6 +1298,10 @@ CaretPreferences::getVolumeMontageGap() const
 void
 CaretPreferences::setVolumeMontageGap(const int32_t volumeMontageGap)
 {
+    if (this->volumeMontageGap == volumeMontageGap) {
+        return;
+    }
+    
     this->volumeMontageGap = volumeMontageGap;
     this->setInteger(CaretPreferences::NAME_VOLUME_MONTAGE_GAP,
                      this->volumeMontageGap);
@@ -1265,6 +1326,10 @@ CaretPreferences::getVolumeMontageCoordinatePrecision() const
 void
 CaretPreferences::setVolumeMontageCoordinatePrecision(const int32_t volumeMontageCoordinatePrecision)
 {
+    if (this->volumeMontageCoordinatePrecision == volumeMontageCoordinatePrecision) {
+        return;
+    }
+    
     this->volumeMontageCoordinatePrecision = volumeMontageCoordinatePrecision;
     this->setInteger(CaretPreferences::NAME_VOLUME_MONTAGE_COORDINATE_PRECISION,
                      this->volumeMontageCoordinatePrecision);
@@ -1288,8 +1353,12 @@ CaretPreferences::isSplashScreenEnabled() const
 void 
 CaretPreferences::setSplashScreenEnabled(const bool enabled)
 {
+    if (this->splashScreenEnabled == enabled) {
+        return;
+    }
+    
     this->splashScreenEnabled = enabled;
-    this->setBoolean(CaretPreferences::NAME_SPLASH_SCREEN, 
+    this->setBoolean(CaretPreferences::NAME_SPLASH_SCREEN,
                      this->splashScreenEnabled);
     this->qSettings->sync();
 }
@@ -1311,6 +1380,10 @@ CaretPreferences::isDevelopMenuEnabled() const
 void
 CaretPreferences::setDevelopMenuEnabled(const bool enabled)
 {
+    if (this->developMenuEnabled == enabled) {
+        return;
+    }
+    
     this->developMenuEnabled = enabled;
     this->setBoolean(CaretPreferences::NAME_DEVELOP_MENU,
                      this->developMenuEnabled);
@@ -1334,6 +1407,10 @@ CaretPreferences::isShowDataToolTipsEnabled() const
 void
 CaretPreferences::setShowDataToolTipsEnabled(const bool enabled)
 {
+    if (this->dataToolTipsEnabled == enabled) {
+        return;
+    }
+    
     this->dataToolTipsEnabled = enabled;
     this->setBoolean(CaretPreferences::NAME_DATA_TOOL_TIPS,
                      this->dataToolTipsEnabled);
@@ -1357,6 +1434,10 @@ bool CaretPreferences::isYokingDefaultedOn() const
  */
 void CaretPreferences::setYokingDefaultedOn(const bool status)
 {
+    if (this->yokingDefaultedOn == status) {
+        return;
+    }
+    
     this->yokingDefaultedOn = status;
     this->setBoolean(CaretPreferences::NAME_YOKING_DEFAULT_ON,
                      this->yokingDefaultedOn);
@@ -1379,6 +1460,10 @@ bool CaretPreferences::isVolumeIdentificationDefaultedOn() const
  */
 void CaretPreferences::setVolumeIdentificationDefaultedOn(const bool status)
 {
+    if (this->volumeIdentificationDefaultedOn == status) {
+        return;
+    }
+    
     this->volumeIdentificationDefaultedOn = status;
     this->setBoolean(CaretPreferences::NAME_VOLUME_IDENTIFICATION_DEFAULTED_ON,
                      this->volumeIdentificationDefaultedOn);
@@ -1560,7 +1645,8 @@ CaretPreferences::readPreferences()
     if (valid == false) {
         logLevel = LogLevelEnum::INFO;
     }
-    this->setLoggingLevel(logLevel);
+    /* Do not call setLoggingLevel() as it will cause preferences to sync */
+    this->loggingLevel = logLevel;
     
     ImageCaptureMethodEnum::Enum defaultCaptureType = ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP;
     AString imageCaptureMethodName = this->qSettings->value(NAME_IMAGE_CAPTURE_METHOD,

@@ -79,6 +79,65 @@ BackgroundAndForegroundColors::operator=(const BackgroundAndForegroundColors& ob
 }
 
 /**
+ * Equality operator
+ *
+ * @param obj
+ *    Compare 'this' to 'obj' for equality
+ * @return
+ *    True if 'this' is equal to 'obj', else false.
+ */
+bool
+BackgroundAndForegroundColors::operator==(const BackgroundAndForegroundColors& obj) const
+{
+    bool equalFlag(true);
+    
+    for (int32_t i = 0; i < 3; i++) {
+        if (m_colorForegroundAll[i]           != obj.m_colorForegroundAll[i]) {
+            equalFlag = false;
+            break;
+        }
+        if (m_colorBackgroundAll[i]           !=obj.m_colorBackgroundAll[i]) {
+            equalFlag = false;
+            break;
+        }
+        if (m_colorForegroundChart[i]         != obj.m_colorForegroundChart[i]) {
+            equalFlag = false;
+            break;
+        }
+        if (m_colorBackgroundChart[i]         != obj.m_colorBackgroundChart[i]) {
+            equalFlag = false;
+            break;
+        }
+        if (m_colorForegroundSurface[i]       != obj.m_colorForegroundSurface[i]) {
+            equalFlag = false;
+            break;
+        }
+        if (m_colorBackgroundSurface[i]       != obj.m_colorBackgroundSurface[i]) {
+            equalFlag = false;
+            break;
+        }
+        if (m_colorForegroundVolume[i]        != obj.m_colorForegroundVolume[i]) {
+            equalFlag = false;
+            break;
+        }
+        if (m_colorBackgroundVolume[i]        != obj.m_colorBackgroundVolume[i]) {
+            equalFlag = false;
+            break;
+        }
+        if (m_colorChartMatrixGridLines[i]    != obj.m_colorChartMatrixGridLines[i]) {
+            equalFlag = false;
+            break;
+        }
+        if (m_colorChartHistogramThreshold[i] != obj.m_colorChartHistogramThreshold[i])  {
+            equalFlag = false;
+            break;
+        }
+    }
+    
+    return equalFlag;
+}
+
+/**
  * Helps with copying an object of this type.
  * @param obj
  *    Object that is copied.
