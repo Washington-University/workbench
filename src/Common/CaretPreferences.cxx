@@ -1647,6 +1647,7 @@ CaretPreferences::readPreferences()
     }
     /* Do not call setLoggingLevel() as it will cause preferences to sync */
     this->loggingLevel = logLevel;
+    CaretLogger::getLogger()->setLevel(this->loggingLevel);
     
     ImageCaptureMethodEnum::Enum defaultCaptureType = ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP;
     AString imageCaptureMethodName = this->qSettings->value(NAME_IMAGE_CAPTURE_METHOD,
