@@ -103,9 +103,10 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
                 //
                 // Check version of file being read
                 //
-                const float version = attributes.getValueAsFloat(SceneFile::XML_ATTRIBUTE_VERSION);
-                if (version > SceneFile::getFileVersion()) {
-                    AString msg = XmlUtilities::createInvalidVersionMessage(SceneFile::getFileVersion(), 
+                const float versionFloat = attributes.getValueAsFloat(SceneFile::XML_ATTRIBUTE_VERSION);
+                const int32_t version = static_cast<int32_t>(versionFloat);
+                if (version > SceneFile::getSceneFileVersionBeforeMacros()) {
+                    AString msg = XmlUtilities::createInvalidVersionMessage(SceneFile::getSceneFileVersionBeforeMacros(), 
                                                                             version);
                     XmlSaxParserException e(msg);
                     CaretLogThrowing(e);

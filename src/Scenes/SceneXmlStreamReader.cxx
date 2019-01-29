@@ -51,6 +51,8 @@
 #include "SceneUnsignedByte.h"
 #include "SceneUnsignedByteArray.h"
 #include "SceneXmlElements.h"
+#include "WuQMacroGroup.h"
+#include "WuQMacroGroupXmlStreamReader.h"
 
 using namespace caret;
 
@@ -97,6 +99,10 @@ SceneXmlStreamReader::readScene(QXmlStreamReader& xmlReader,
                                 const AString& sceneFileName)
 {
     CaretAssert(scene);
+    if (scene == NULL) {
+        return;
+    }
+    
     m_filename = sceneFileName;
     
     if (xmlReader.name() == ELEMENT_SCENE) {
@@ -117,6 +123,11 @@ SceneXmlStreamReader::readScene(QXmlStreamReader& xmlReader,
                     }
                     else if (xmlReader.name() == ELEMENT_SCENE_DESCRIPTION) {
                         scene->setDescription(xmlReader.readElementText());
+                    }
+                    else if (xmlReader.name() == WuQMacroGroupXmlStreamReader::ELEMENT_MACRO_GROUP) {
+                        WuQMacroGroupXmlStreamReader macroGroupReader;
+                        macroGroupReader.readMacroGroup(xmlReader,
+                                                        scene->getMacroGroup());
                     }
                     else if (xmlReader.name() == ELEMENT_OBJECT) {
                         SceneObject* object = readSceneObject(xmlReader);
@@ -144,6 +155,15 @@ SceneXmlStreamReader::readScene(QXmlStreamReader& xmlReader,
                 default:
                     break;
             }
+        }
+        
+        if ( ! xmlReader.hasError()) {
+            /*
+             * This will cause update of the macro's name
+             * using the scene's name that is actually
+             * inside of SceneInfo.
+             */
+            scene->setName(scene->getName());
         }
     }
     else {

@@ -40,6 +40,8 @@
 #include "ScenePrimitive.h"
 #include "ScenePrimitiveArray.h"
 #include "SceneXmlElements.h"
+#include "WuQMacroGroup.h"
+#include "WuQMacroGroupXmlStreamWriter.h"
 
 using namespace caret;
 
@@ -106,6 +108,12 @@ SceneXmlStreamWriter::writeXML(QXmlStreamWriter* xmlWriter,
                                   scene->getName());
     m_xmlWriter->writeTextElement(ELEMENT_SCENE_DESCRIPTION,
                                   scene->getDescription());
+    
+    if (scene->getMacroGroup()->getNumberOfMacros() > 0) {
+        WuQMacroGroupXmlStreamWriter macroGroupXmlWriter;
+        macroGroupXmlWriter.writeXml(xmlWriter,
+                                     scene->getMacroGroup());
+    }
     
     const int32_t numClasses = scene->getNumberOfClasses();
     for (int32_t i = 0; i < numClasses; i++) {

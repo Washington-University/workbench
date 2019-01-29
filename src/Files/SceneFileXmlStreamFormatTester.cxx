@@ -153,7 +153,7 @@ SceneFileXmlStreamFormatTester::testReading(const QString& filename,
         
         if (printResultsFlag) {
             const QString resultString(successFlag
-                                       ? "MATCHED"
+                                       ? "READING MATCHED"
                                        : "FAILED");
             std::cout << resultString << std::endl;
             std::cout << "   Original File: " << origFileInfo.getFileName() << std::endl;
@@ -225,7 +225,7 @@ SceneFileXmlStreamFormatTester::testWriting(const QString& filename,
         
         if (printResultsFlag) {
             const QString resultString(successFlag
-                                       ? "MATCHED"
+                                       ? "WRITING MATCHED"
                                        : "FAILED");
             std::cout << resultString << std::endl;
             std::cout << "   Original File: " << origFileInfo.getFileName() << std::endl;
@@ -284,10 +284,9 @@ SceneFileXmlStreamFormatTester::timeReadingAndWriting(const QString& filename)
     FileInformation fileInfo(filename);
     fileInfo.getFileComponents(path, name, ext);
     
-    try {
         std::cout << "Timing (seconds) for " << fileInfo.getFileName() << std::endl;
         
-        {
+    try {
             SceneFile sceneFile;
             ElapsedTimer timer;
             timer.start();
@@ -301,9 +300,12 @@ SceneFileXmlStreamFormatTester::timeReadingAndWriting(const QString& filename)
             timer.start();
             sceneFile.writeFileSaxWriter(tempName);
             std::cout << "   Write OLD: " << timer.getElapsedTimeSeconds() << std::endl;
-        }
+    }
+    catch (const DataFileException& dfe) {
+        std::cout << "Test OLD Failed: " << dfe.whatString() << std::endl;
+    }
 
-        {
+    try {
             SceneFile sceneFile;
             ElapsedTimer timer;
             timer.start();
@@ -318,10 +320,9 @@ SceneFileXmlStreamFormatTester::timeReadingAndWriting(const QString& filename)
             sceneFile.writeFileStreamWriter(tempName);
             std::cout << "   Write NEW: " << timer.getElapsedTimeSeconds() << std::endl;
         }
-    }
     catch (const DataFileException& dfe) {
-        std::cout << "Failed: " << dfe.whatString() << std::endl;
+        std::cout << "Test New Failed: " << dfe.whatString() << std::endl;
     }
-    
+
     return successFlag;
 }

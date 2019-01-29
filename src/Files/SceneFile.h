@@ -168,8 +168,11 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
-        /** Version of file */
-        static float getFileVersion() { return s_sceneFileVersion; }
+        int32_t getSceneFileVersionForWriting() const;
+        
+        static int32_t getSceneFileVersionBeforeMacros();
+        
+        static int32_t getMaxiumSupportedSceneFileVersion();
         
         /** XML Tag for scene file */
         static const AString XML_TAG_SCENE_FILE;
@@ -207,15 +210,26 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
-        /** Version of this SceneFile */
-        static const float s_sceneFileVersion;
+        /** Version of this SceneFile before addition of macros */
+        static const int32_t s_sceneFileVersionBeforeMacros;
+        
+        /** Version of this SceneFile containing macros */
+        static const int32_t s_sceneFileVersionContainingMacros;
     };
     
 #ifdef __SCENE_FILE_DECLARE__
     const AString SceneFile::XML_TAG_SCENE_FILE = "SceneFile";
     const AString SceneFile::XML_ATTRIBUTE_VERSION = "Version";
     const AString SceneFile::XML_TAG_SCENE_INFO_DIRECTORY_TAG = "SceneInfoDirectory";
-    const float SceneFile::s_sceneFileVersion = 3.0;
+    
+    /*
+     * NOTE: If these scene file versions change, getSupportedSceneFileVersion()
+     * will need to be updated with the maximum scene file version that
+     * can be read
+     */
+    const int32_t SceneFile::s_sceneFileVersionBeforeMacros     = 3;
+    const int32_t SceneFile::s_sceneFileVersionContainingMacros = 4;
+    
 #endif // __SCENE_FILE_DECLARE__
 
 } // namespace

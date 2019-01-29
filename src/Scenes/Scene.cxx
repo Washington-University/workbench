@@ -27,6 +27,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneInfo.h"
+#include "WuQMacroGroup.h"
 
 using namespace caret;
 
@@ -237,6 +238,12 @@ Scene::Scene(const SceneTypeEnum::Enum sceneType)
                                             this);
     m_hasFilesWithRemotePaths = false;
     m_sceneInfo = new SceneInfo();
+
+    static int counter = 1;
+    const AString macroGroupName("SceneFile_"
+                                 + AString::number(counter));
+    m_macroGroup.reset(new WuQMacroGroup(macroGroupName));
+    m_macroGroup->clearModified();
 }
 
 Scene::Scene(const Scene& rhs)
@@ -378,6 +385,8 @@ void
 Scene::setName(const AString& sceneName)
 {
     m_sceneInfo->setName(sceneName);
+    m_macroGroup->setName("Scene: "
+                          + sceneName);
 }
 
 /**
@@ -512,6 +521,10 @@ Scene::isModified() const
         return true;
     }
     
+    if (m_macroGroup->isModified()) {
+        return true;
+    }
+
     return false;
 }
 
@@ -523,6 +536,26 @@ Scene::clearModified()
 {
     CaretObjectTracksModification::clearModified();
     m_sceneInfo->clearModified();
+    m_macroGroup->clearModified();
 }
+
+/**
+ * @return The macro group
+ */
+WuQMacroGroup*
+Scene::getMacroGroup()
+{
+    return m_macroGroup.get();
+}
+
+/**
+ * @return The macro group (const method)
+ */
+const WuQMacroGroup*
+Scene::getMacroGroup() const
+{
+    return m_macroGroup.get();
+}
+
 
 

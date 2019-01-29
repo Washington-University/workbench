@@ -24,7 +24,6 @@
 #include "SceneInfo.h"
 #include "SceneInfoSaxReader.h"
 #include "SceneXmlElements.h"
-#include "WuQMacroGroupXmlStreamReader.h"
 #include "XmlAttributes.h"
 #include "XmlException.h"
 #include "XmlUtilities.h"
@@ -177,16 +176,8 @@ SceneInfoSaxReader::endElement(const AString& /* namspaceURI */,
         case STATE_SCENE_INFO_UNRECOGNIZED:
             break;
         case STATE_SCENE_INFO_MACRO_GROUP:
-        {
-            WuQMacroGroup* macroGroup = m_sceneInfo->getMacroGroup();
-            QString errorMessage;
-            WuQMacroGroupXmlStreamReader reader;
-            if ( ! reader.readFromString(m_elementText,
-                                         macroGroup,
-                                         errorMessage)) {
-                CaretLogSevere(errorMessage);
-            }
-        }
+            /* Should skip over macro group */
+            CaretLogSevere("Encountered WuQMacroGroup while reading.  Need to use newer stream reader.");
             break;
     }
     

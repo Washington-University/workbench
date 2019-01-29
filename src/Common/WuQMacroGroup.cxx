@@ -182,6 +182,15 @@ WuQMacroGroup::getNumberOfMacros() const
 }
 
 /**
+ * @return Is this empty (contains no macros) ?
+ */
+bool
+WuQMacroGroup::isEmpty() const
+{
+    return (getNumberOfMacros() <= 0);
+}
+
+/**
  * Get the macro with the given name
  *
  * @param name

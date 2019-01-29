@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 
 #include "CaretObjectTracksModification.h"
 #include "SceneTypeEnum.h"
@@ -30,6 +31,7 @@ namespace caret {
     class SceneClass;
     class SceneInfo;
     class SceneObject;
+    class WuQMacroGroup;
     
     class Scene : public CaretObjectTracksModification {
         
@@ -91,6 +93,10 @@ namespace caret {
         
         static void setSceneBeingCreatedHasFilesWithRemotePaths();
         
+        WuQMacroGroup* getMacroGroup();
+        
+        const WuQMacroGroup* getMacroGroup() const;
+        
     private:
 
         /** Attributes of the scene*/
@@ -104,6 +110,8 @@ namespace caret {
         
         /** True if it found a ScenePathName with a remote file */
         bool m_hasFilesWithRemotePaths;
+        
+        std::unique_ptr<WuQMacroGroup> m_macroGroup;
         
         /** When a scene is being created, this will be set */
         static Scene* s_sceneBeingCreated;

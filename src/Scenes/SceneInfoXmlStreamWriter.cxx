@@ -87,10 +87,6 @@ SceneInfoXmlStreamWriter::writeXML(QXmlStreamWriter* xmlWriter,
     m_xmlWriter->writeTextElement(ELEMENT_DESCRIPTION,
                                   sceneInfo->getDescription());
     
-    WuQMacroGroupXmlStreamWriter macroGroupXmlWriter;
-    macroGroupXmlWriter.writeXml(xmlWriter,
-                                 sceneInfo->getMacroGroup());
-    
     writeImageElement(sceneInfo);
     
     m_xmlWriter->writeEndElement();

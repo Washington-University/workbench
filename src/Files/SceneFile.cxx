@@ -51,6 +51,7 @@
 #include "SceneWriterXml.h"
 #include "SpecFile.h"
 #include "SystemUtilities.h"
+#include "WuQMacroGroup.h"
 #include "XmlSaxParser.h"
 #include "XmlUtilities.h"
 #include "XmlWriter.h"
@@ -779,126 +780,124 @@ SceneFile::writeFile(const AString& filename)
             xmlStreamWriter.writeFile(this);
         }
         else {
-            //
-            // Format the version string so that it ends with at most one zero
-            // Version 4 Added for New Annotation Coordinate Space "SPACER" since annotations
-            // may be saved to scene file.
-            //
-            const AString versionString = AString::number(SceneFile::getFileVersion(),
-                                                          'f',
-                                                          1);
+            writeFileSaxWriter(filename);
             
-            //
-            // Open the file
-            //
-            FileAdapter file;
-            AString errorMessage;
-            QTextStream* textStream = file.openQTextStreamForWritingFile(this->getFileName(),
-                                                                         errorMessage);
-            if (textStream == NULL) {
-                throw DataFileException(filename,
-                                        errorMessage);
-            }
-            
-            //
-            // Create the xml writer
-            //
-            XmlWriter xmlWriter(*textStream);
-            
-            //
-            // Write header info
-            //
-            xmlWriter.writeStartDocument("1.0");
-            
-            //
-            // Write root element
-            //
-            XmlAttributes attributes;
-            
-            //attributes.addAttribute("xmlns:xsi",
-            //                        "http://www.w3.org/2001/XMLSchema-instance");
-            //attributes.addAttribute("xsi:noNamespaceSchemaLocation",
-            //                        "http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd");
-            attributes.addAttribute(SceneFile::XML_ATTRIBUTE_VERSION,
-                                    versionString);
-            xmlWriter.writeStartElement(SceneFile::XML_TAG_SCENE_FILE,
-                                        attributes);
-            
-            //
-            // Write Metadata
-            //
-            if (m_metadata != NULL) {
-                m_metadata->writeAsXML(xmlWriter);
-            }
-            
-            const int32_t numScenes = this->getNumberOfScenes();
-            
-            /*
-             * Write the scene info directory
-             */
-            xmlWriter.writeStartElement(SceneFile::XML_TAG_SCENE_INFO_DIRECTORY_TAG);
-            xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_STUDY_ID_TAG,
-                                        getBalsaStudyID());
-            xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_STUDY_TITLE_TAG,
-                                        getBalsaStudyTitle());
-            switch (getBasePathType()) {
-                case SceneFileBasePathTypeEnum::AUTOMATIC:
-                    xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_BASE_DIRECTORY_TAG,
-                                                "");
-                    break;
-                case SceneFileBasePathTypeEnum::CUSTOM:
-                {
-                    /*
-                     * Write base path as a path RELATIVE to the scene file
-                     * but only when base path type is CUSTOM
-                     * Note: we do not use FileInformation::getCanonicalFilePath()
-                     * because it returns an empty string if the file DOES NOT exist
-                     * and this may occur since the file may be new and has not
-                     * been closed.
-                     */
-                    if ( ! getBalsaCustomBaseDirectory().isEmpty()) {
-                        const AString baseDirAbsPath = FileInformation(getBalsaCustomBaseDirectory()).getAbsoluteFilePath();
-                        const AString sceneFileAbsPath = FileInformation(filename).getAbsoluteFilePath();
-                        ScenePathName basePathName("basePathName",
-                                                   baseDirAbsPath);
-                        
-                        const AString relativeBasePath = basePathName.getRelativePathToSceneFile(sceneFileAbsPath);
-                        
-                        //std::cout << "baseDirAbsPath: " << baseDirAbsPath << std::endl;
-                        //std::cout << "sceneFileAbsPath: " << sceneFileAbsPath << std::endl;
-                        //std::cout << "relativeTempFileName: " << relativeBasePath << std::endl;
-                        
-                        xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_BASE_DIRECTORY_TAG,
-                                                    relativeBasePath);
-                    }
-                }
-                    break;
-            }
-            xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY_TAG,
-                                        getBalsaExtractToDirectoryName());
-            xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BASE_PATH_TYPE,
-                                        SceneFileBasePathTypeEnum::toName(getBasePathType()));
-            
-            for (int32_t i = 0; i < numScenes; i++) {
-                m_scenes[i]->getSceneInfo()->writeSceneInfo(xmlWriter,
-                                                            i);
-            }
-            xmlWriter.writeEndElement();
-            
-            //
-            // Write scenes
-            //
-            SceneWriterXml sceneWriter(xmlWriter,
-                                       this->getFileName());
-            for (int32_t i = 0; i < numScenes; i++) {
-                sceneWriter.writeScene(*m_scenes[i],
-                                       i);
-            }
-            
-            xmlWriter.writeEndElement();
-            xmlWriter.writeEndDocument();
-            
-            file.close();
+//            /*
+//             * This writes an old file format that does not support macros
+//             */
+//            const AString versionString = AString::number(getSceneFileVersionBeforeMacros());
+//
+//            //
+//            // Open the file
+//            //
+//            FileAdapter file;
+//            AString errorMessage;
+//            QTextStream* textStream = file.openQTextStreamForWritingFile(this->getFileName(),
+//                                                                         errorMessage);
+//            if (textStream == NULL) {
+//                throw DataFileException(filename,
+//                                        errorMessage);
+//            }
+//
+//            //
+//            // Create the xml writer
+//            //
+//            XmlWriter xmlWriter(*textStream);
+//
+//            //
+//            // Write header info
+//            //
+//            xmlWriter.writeStartDocument("1.0");
+//
+//            //
+//            // Write root element
+//            //
+//            XmlAttributes attributes;
+//
+//            //attributes.addAttribute("xmlns:xsi",
+//            //                        "http://www.w3.org/2001/XMLSchema-instance");
+//            //attributes.addAttribute("xsi:noNamespaceSchemaLocation",
+//            //                        "http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd");
+//            attributes.addAttribute(SceneFile::XML_ATTRIBUTE_VERSION,
+//                                    versionString);
+//            xmlWriter.writeStartElement(SceneFile::XML_TAG_SCENE_FILE,
+//                                        attributes);
+//
+//            //
+//            // Write Metadata
+//            //
+//            if (m_metadata != NULL) {
+//                m_metadata->writeAsXML(xmlWriter);
+//            }
+//
+//            const int32_t numScenes = this->getNumberOfScenes();
+//
+//            /*
+//             * Write the scene info directory
+//             */
+//            xmlWriter.writeStartElement(SceneFile::XML_TAG_SCENE_INFO_DIRECTORY_TAG);
+//            xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_STUDY_ID_TAG,
+//                                        getBalsaStudyID());
+//            xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_STUDY_TITLE_TAG,
+//                                        getBalsaStudyTitle());
+//            switch (getBasePathType()) {
+//                case SceneFileBasePathTypeEnum::AUTOMATIC:
+//                    xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_BASE_DIRECTORY_TAG,
+//                                                "");
+//                    break;
+//                case SceneFileBasePathTypeEnum::CUSTOM:
+//                {
+//                    /*
+//                     * Write base path as a path RELATIVE to the scene file
+//                     * but only when base path type is CUSTOM
+//                     * Note: we do not use FileInformation::getCanonicalFilePath()
+//                     * because it returns an empty string if the file DOES NOT exist
+//                     * and this may occur since the file may be new and has not
+//                     * been closed.
+//                     */
+//                    if ( ! getBalsaCustomBaseDirectory().isEmpty()) {
+//                        const AString baseDirAbsPath = FileInformation(getBalsaCustomBaseDirectory()).getAbsoluteFilePath();
+//                        const AString sceneFileAbsPath = FileInformation(filename).getAbsoluteFilePath();
+//                        ScenePathName basePathName("basePathName",
+//                                                   baseDirAbsPath);
+//
+//                        const AString relativeBasePath = basePathName.getRelativePathToSceneFile(sceneFileAbsPath);
+//
+//                        //std::cout << "baseDirAbsPath: " << baseDirAbsPath << std::endl;
+//                        //std::cout << "sceneFileAbsPath: " << sceneFileAbsPath << std::endl;
+//                        //std::cout << "relativeTempFileName: " << relativeBasePath << std::endl;
+//
+//                        xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_BASE_DIRECTORY_TAG,
+//                                                    relativeBasePath);
+//                    }
+//                }
+//                    break;
+//            }
+//            xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BALSA_EXTRACT_TO_DIRECTORY_TAG,
+//                                        getBalsaExtractToDirectoryName());
+//            xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_BASE_PATH_TYPE,
+//                                        SceneFileBasePathTypeEnum::toName(getBasePathType()));
+//
+//            for (int32_t i = 0; i < numScenes; i++) {
+//                m_scenes[i]->getSceneInfo()->writeSceneInfo(xmlWriter,
+//                                                            i);
+//            }
+//            xmlWriter.writeEndElement();
+//
+//            //
+//            // Write scenes
+//            //
+//            SceneWriterXml sceneWriter(xmlWriter,
+//                                       this->getFileName());
+//            for (int32_t i = 0; i < numScenes; i++) {
+//                sceneWriter.writeScene(*m_scenes[i],
+//                                       i);
+//            }
+//
+//            xmlWriter.writeEndElement();
+//            xmlWriter.writeEndDocument();
+//
+//            file.close();
         }
         
         this->clearModified();
@@ -925,19 +924,22 @@ SceneFile::writeFileSaxWriter(const AString& filename)
     {
         CaretLogWarning("scene file '" + filename + "' should be saved ending in .scene");
     }
+
+    for (const auto s : m_scenes) {
+        if ( ! s->getMacroGroup()->isEmpty()) {
+            throw DataFileException("OLD scene writer does not support scene files containing macros.  Use stream writer");
+        }
+    }
+    
     checkFileWritability(filename);
     
     this->setFileName(filename);
     
     try {
-        //
-        // Format the version string so that it ends with at most one zero
-        // Version 4 Added for New Annotation Coordinate Space "SPACER" since annotations
-        // may be saved to scene file.
-        //
-        const AString versionString = AString::number(SceneFile::getFileVersion(),
-                                                      'f',
-                                                      1);
+        /*
+         * This writes an old file format that does not support macros
+         */
+        const AString versionString = AString::number(getSceneFileVersionBeforeMacros());
         
         //
         // Open the file
@@ -1050,7 +1052,7 @@ SceneFile::writeFileSaxWriter(const AString& filename)
         xmlWriter.writeEndDocument();
         
         file.close();
-        
+
         this->clearModified();
     }
     catch (const GiftiException& e) {
@@ -1594,5 +1596,46 @@ SceneFile::clearModified()
         scene->clearModified();
     }
 }
+
+/**
+ * @return The version number to use when writing
+ * an instance of a scene.  This number returned
+ * may version depending upon the content of the scene
+ * and may allow older versions of wb_view to read
+ * the scene file when it does not contain new stuff.
+ */
+int32_t
+SceneFile::getSceneFileVersionForWriting() const
+{
+    int32_t version = s_sceneFileVersionBeforeMacros;
+    
+    for (const auto s : m_scenes) {
+        if ( ! s->getMacroGroup()->isEmpty()) {
+            version = s_sceneFileVersionContainingMacros;
+            break;
+        }
+    }
+    return version;
+}
+
+/**
+ * @return The maximum scene file version supported
+ * by the scene file.
+ */
+int32_t
+SceneFile::getMaxiumSupportedSceneFileVersion()
+{
+    return s_sceneFileVersionContainingMacros;
+}
+
+/**
+ * @return The scene file version before macros were added.
+ */
+int32_t
+SceneFile::getSceneFileVersionBeforeMacros()
+{
+    return s_sceneFileVersionBeforeMacros;
+}
+
 
 

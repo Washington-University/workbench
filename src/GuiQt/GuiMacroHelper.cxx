@@ -96,7 +96,7 @@ GuiMacroHelper::getMacroGroups()
     if ( ! activeSceneEvent.isError()) {
         Scene* activeScene = activeSceneEvent.getScene();
         if (activeScene != NULL) {
-            macroGroups.push_back(activeScene->getSceneInfo()->getMacroGroup());
+            macroGroups.push_back(activeScene->getMacroGroup());
         }
     }
     

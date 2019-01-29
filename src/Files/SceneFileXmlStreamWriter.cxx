@@ -119,9 +119,7 @@ SceneFileXmlStreamWriter::writeFileContentToXmlStreamWriter(QXmlStreamWriter& xm
 {
     CaretAssert(sceneFile);
     
-    const AString versionString = AString::number(SceneFile::getFileVersion(),
-                                                  'f',
-                                                  1);
+    const AString versionString = AString::number(sceneFile->getSceneFileVersionForWriting());
 
     xmlWriter.setAutoFormatting(true);
     

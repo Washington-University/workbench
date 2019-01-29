@@ -28,7 +28,6 @@
 
 #include "CaretAssert.h"
 #include "SceneInfo.h"
-#include "WuQMacroGroupXmlStreamReader.h"
 
 using namespace caret;
 
@@ -109,11 +108,6 @@ SceneInfoXmlStreamReader::readSceneInfo(QXmlStreamReader& xmlReader,
                     sceneInfo->setImageFromText(xmlReader.readElementText(),
                                                 encodingName,
                                                 formatName);
-                }
-                else if (xmlReader.name() == WuQMacroGroupXmlStreamReader::ELEMENT_MACRO_GROUP) {
-                    WuQMacroGroupXmlStreamReader macroGroupReader;
-                    macroGroupReader.readMacroGroup(xmlReader,
-                                                    sceneInfo->getMacroGroup());
                 }
                 else {
                     m_unexpectedXmlElements.insert(xmlReader.name().toString());

@@ -27,8 +27,6 @@
 
 
 namespace caret {
-    class WuQMacroGroup;
-    
     class XmlWriter;
     
     class SceneInfo : public CaretObjectTracksModification {
@@ -45,8 +43,6 @@ namespace caret {
         void clearModified() override;
         
         AString getName() const;
-        
-        void setName(const AString& sceneName);
         
         AString getDescription() const;
         
@@ -76,11 +72,13 @@ namespace caret {
                                  const QByteArray& imageBytes,
                                  const AString& imageFormat) const;
         
-        WuQMacroGroup* getMacroGroup();
-        
-        const WuQMacroGroup* getMacroGroup() const;
-        
     private:
+        /*
+         * setName() is private as users  should call Scene::setName()
+         * but the XML readers are allowed to call setName()
+         */
+        void setName(const AString& sceneName);
+        
         SceneInfo& operator=(const SceneInfo&);
         
         /** name of scene*/
@@ -98,10 +96,11 @@ namespace caret {
         /** format of thumbnail image (eg: jpg, ppm, etc.) */
         AString m_imageFormat;
         
-        std::unique_ptr<WuQMacroGroup> m_macroGroup;
-        
         // ADD_NEW_MEMBERS_HERE
 
+        friend class Scene;
+        friend class SceneInfoSaxReader;
+        friend class SceneInfoXmlStreamReader;
     };
     
 #ifdef __SCENE_INFO_DECLARE__

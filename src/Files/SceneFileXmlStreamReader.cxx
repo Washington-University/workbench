@@ -150,6 +150,9 @@ SceneFileXmlStreamReader::readFileContent(QXmlStreamReader& xmlReader,
     const QStringRef versionAtt     = atts.value(ATTRIBUTE_SCENE_FILE_VERSION);
     m_fileVersion = 1;
     if ( ! versionAtt.isEmpty()) {
+        /*
+         * Note: version was float in previous versions, so get as float and convert to int
+         */
         m_fileVersion = static_cast<int32_t>(versionAtt.toFloat());
     }
     

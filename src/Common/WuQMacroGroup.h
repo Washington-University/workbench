@@ -58,6 +58,8 @@ namespace caret {
         
         int32_t getNumberOfMacros() const;
         
+        bool isEmpty() const;
+        
         WuQMacro* getMacroByName(const QString& name);
         
         const WuQMacro* getMacroByName(const QString& name) const;

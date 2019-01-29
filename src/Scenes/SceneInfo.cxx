@@ -26,16 +26,12 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "SceneXmlElements.h"
-#include "WuQMacroGroup.h"
-#include "WuQMacroGroupXmlStreamWriter.h"
 #include "XmlAttributes.h"
 #include "XmlUtilities.h"
 #include "XmlWriter.h"
+
 using namespace caret;
 
-
-
-    
 /**
  * \class caret::SceneInfo 
  * \brief Contains information about a scene.
@@ -48,11 +44,6 @@ using namespace caret;
 SceneInfo::SceneInfo()
 : CaretObjectTracksModification()
 {
-    static int counter = 1;
-    const AString macroGroupName("SceneFile_"
-                                 + AString::number(counter));
-    m_macroGroup.reset(new WuQMacroGroup(macroGroupName));
-    m_macroGroup->clearModified();
 }
 
 SceneInfo::SceneInfo(const SceneInfo& rhs) : CaretObjectTracksModification()
@@ -81,10 +72,6 @@ SceneInfo::isModified() const
         return true;
     }
     
-    if (m_macroGroup->isModified()) {
-        return true;
-    }
-    
     return false;
 }
 
@@ -95,8 +82,6 @@ void
 SceneInfo::clearModified()
 {
     CaretObjectTracksModification::clearModified();
-    
-    m_macroGroup->clearModified();
 }
 
 /**
@@ -118,8 +103,6 @@ SceneInfo::setName(const AString& sceneName)
 {
     if (sceneName != m_sceneName) {
         m_sceneName = sceneName;
-        m_macroGroup->setName("Scene: "
-                              + m_sceneName);
         setModified();
     }
 }
@@ -223,24 +206,6 @@ SceneInfo::setBalsaSceneID(const AString& balsaSceneID)
 }
 
 /**
- * @return The macro group
- */
-WuQMacroGroup*
-SceneInfo::getMacroGroup()
-{
-    return m_macroGroup.get();
-}
-
-/**
- * @return The macro group (const method)
- */
-const WuQMacroGroup*
-SceneInfo::getMacroGroup() const
-{
-    return m_macroGroup.get();
-}
-
-/**
  * Write the scene info element.
  *
  * @param sceneInfo
@@ -267,19 +232,6 @@ SceneInfo::writeSceneInfo(XmlWriter& xmlWriter,
     
     xmlWriter.writeElementCData(SceneXmlElements::SCENE_INFO_DESCRIPTION_TAG,
                                        m_sceneDescription);
-    
-    /*
-     * Write macro group
-     */
-    if (m_macroGroup->getNumberOfMacros() > 0) {
-        QString textString;
-        WuQMacroGroupXmlStreamWriter macroWriter;
-        macroWriter.writeToString(m_macroGroup.get(),
-                                  textString);
-        textString = XmlUtilities::encodeXmlSpecialCharacters(textString);
-        xmlWriter.writeElementCharacters(SceneXmlElements::SCENE_INFO_MACRO_GROUP,
-                                         textString);
-    }
     
     writeSceneInfoImage(xmlWriter,
                         SceneXmlElements::SCENE_INFO_IMAGE_TAG,
