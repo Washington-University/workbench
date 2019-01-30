@@ -31,6 +31,7 @@
 #include "CaretLogger.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
+#include "WuQMacroCommandParameter.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroMouseEventInfo.h"
 
@@ -185,7 +186,6 @@ WuQMacroGroupXmlStreamReader::readVersionOne(QXmlStreamReader& xmlReader,
     CaretAssert(macroGroup);
     
     WuQMacro* macro(NULL);
-    WuQMacroCommand* macroCommand(NULL);
     
     /*
      * Gets set when ending scene info directory element is read
@@ -200,43 +200,8 @@ WuQMacroGroupXmlStreamReader::readVersionOne(QXmlStreamReader& xmlReader,
         
             if (elementName == ELEMENT_MACRO) {
                 macro = readMacroVersionOne(xmlReader);
-            }
-            else if (elementName == ELEMENT_DESCRIPTION) {
-                const QString text = xmlReader.readElementText();
                 if (macro != NULL) {
-                    macro->setDescription(text);
-                }
-            }
-            else if (elementName == ELEMENT_MACRO_COMMAND) {
-                macroCommand = readMacroCommandAttributesVersionOne(xmlReader);
-            }
-            else if (elementName == ELEMENT_MOUSE_EVENT_INFO) {
-                WuQMacroMouseEventInfo* mouseEventInfo = readMacroMouseEventInfo(xmlReader);
-                if (mouseEventInfo != NULL) {
-                    if (macroCommand != NULL) {
-                        macroCommand->setMouseEventInfo(mouseEventInfo);
-                    }
-                    else {
-                        addToWarnings(xmlReader,
-                                      "Read WuQMacroMouseEventInfo but macroCommand is NULL");
-                        delete mouseEventInfo;
-                        mouseEventInfo = NULL;
-                    }
-                }
-                else {
-                    if (macroCommand != NULL) {
-                        /*
-                         * Command is invalid
-                         */
-                        delete macroCommand;
-                        macroCommand = NULL;
-                    }
-                }
-            }
-            else if (elementName == ELEMENT_MACRO_COMMAND_TOOL_TIP) {
-                const QString text = xmlReader.readElementText();
-                if (macroCommand != NULL) {
-                    macroCommand->setToolTip(text);
+                    macroGroup->addMacro(macro);
                 }
             }
             else {
@@ -248,21 +213,7 @@ WuQMacroGroupXmlStreamReader::readVersionOne(QXmlStreamReader& xmlReader,
             }
         }
         else if (xmlReader.isEndElement()) {
-            const QString elementName = xmlReader.name().toString();
-            if (elementName == ELEMENT_MACRO) {
-                if (macro != NULL) {
-                    macroGroup->addMacro(macro);
-                }
-            }
-            else if (elementName == ELEMENT_MACRO_COMMAND) {
-                if (macro != NULL) {
-                    if (macroCommand != NULL) {
-                        macro->appendMacroCommand(macroCommand);
-                    }
-                }
-                macroCommand = NULL;
-            }
-            else if (elementName == ELEMENT_MACRO_GROUP) {
+            if (xmlReader.name() == ELEMENT_MACRO_GROUP) {
                 endElementFound = true;
             }
         }
@@ -328,15 +279,183 @@ WuQMacroGroupXmlStreamReader::readMacroVersionOne(QXmlStreamReader& xmlReader)
     macro->setShortCutKey(shortCutKey);
     macro->setUniqueIdentifier(uniqueIdentifier);
     
+    /*
+     * Gets set when ending scene info directory element is read
+     */
+    bool endElementFound(false);
+    
+    while ( (! xmlReader.atEnd())
+           && ( ! endElementFound)) {
+        xmlReader.readNext();
+        if (xmlReader.isStartElement()) {
+            const QString elementName = xmlReader.name().toString();
+            
+            if (elementName == ELEMENT_MACRO_COMMAND) {
+                WuQMacroCommand* command = readMacroCommandVersionOne(xmlReader);
+                if (command != NULL) {
+                    macro->appendMacroCommand(command);
+                }
+            }
+            else if (elementName == ELEMENT_DESCRIPTION) {
+                const QString text = xmlReader.readElementText();
+                macro->setDescription(text);
+            }
+            else {
+                addToWarnings(xmlReader,
+                              "Unexpected element="
+                              + elementName
+                              + "\"");
+                xmlReader.skipCurrentElement();
+            }
+        }
+        else if (xmlReader.isEndElement()) {
+            if (xmlReader.name() == ELEMENT_MACRO) {
+                endElementFound = true;
+            }
+        }
+    }
+    
     return macro;
 }
 
+WuQMacroCommand*
+WuQMacroGroupXmlStreamReader::readMacroCommandVersionOne(QXmlStreamReader& xmlReader)
+{
+    WuQMacroCommand* command = readMacroCommandAttributesVersionOne(xmlReader);
+    
+    if (command != NULL) {
+        /*
+         * Gets set when ending scene info directory element is read
+         */
+        bool endElementFound(false);
+        
+        while ( (! xmlReader.atEnd())
+               && ( ! endElementFound)) {
+            xmlReader.readNext();
+            if (xmlReader.isStartElement()) {
+                const QString elementName = xmlReader.name().toString();
+                
+                if (elementName == ELEMENT_MACRO_COMMAND_MOUSE_EVENT_INFO) {
+                    WuQMacroMouseEventInfo* mouseEventInfo = readMacroMouseEventInfo(xmlReader);
+                    if (mouseEventInfo != NULL) {
+                        command->setMouseEventInfo(mouseEventInfo);
+                    }
+                }
+                else if (elementName == ELEMENT_MACRO_COMMAND_TOOL_TIP) {
+                    const QString text = xmlReader.readElementText();
+                    command->setToolTip(text);
+                }
+                else if (elementName == ELEMENT_MACRO_COMMAND_PARAMETER) {
+                    WuQMacroCommandParameter* parameter = readMacroCommandParameter(xmlReader);
+                    if (parameter != NULL) {
+                        command->addParameter(parameter);
+                    }
+                }
+                else {
+                    addToWarnings(xmlReader,
+                                  "Unexpected element="
+                                  + elementName
+                                  + "\"");
+                    xmlReader.skipCurrentElement();
+                }
+            }
+            else if (xmlReader.isEndElement()) {
+                if (xmlReader.name() == ELEMENT_MACRO_COMMAND) {
+                    endElementFound = true;
+                }
+            }
+        }
+    }
+    else {
+        xmlReader.skipCurrentElement();
+    }
+    
+    return command;
+}
+
 /**
- * Read version one of macro command attributes
+ * Read version one of macro command parameter
  *
  * @param xmlReader
  *    The XML stream reader
- * @Return The macro group
+ * @Return The macro parameter
+ */
+WuQMacroCommandParameter*
+WuQMacroGroupXmlStreamReader::readMacroCommandParameter(QXmlStreamReader& xmlReader)
+{
+    const QXmlStreamAttributes attributes = xmlReader.attributes();
+    const QStringRef dataTypeString    = attributes.value(ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE);
+    const QStringRef valueString       = attributes.value(ATTRIBUTE_MACRO_COMMAND_PARAMETER_VALUE);
+    const QString    parameterName     = attributes.value(ATTRIBUTE_MACRO_COMMAND_PARAMETER_NAME).toString();
+    
+    QString es;
+    if (dataTypeString.isEmpty()) es.append(ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE + " ");
+    if ( ! es.isEmpty()) {
+        addToWarnings(xmlReader,
+                      ELEMENT_MACRO_COMMAND_PARAMETER
+                      + " is missing attribute(s): "
+                      + es);
+        return NULL;
+    }
+    
+    bool dataTypeValid(false);
+    WuQMacroDataValueTypeEnum::Enum dataType = WuQMacroDataValueTypeEnum::fromName(dataTypeString.toString(),
+                                                                                   &dataTypeValid);
+    if (! dataTypeValid) {
+        es.append(dataTypeString.toString()
+                  + " is not valid for attribute "
+                  + ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE
+                  + " ");
+        return NULL;
+    }
+    
+    QVariant value;
+    switch (dataType) {
+        case WuQMacroDataValueTypeEnum::INVALID:
+            value.setValue(QString(""));
+            break;
+        case WuQMacroDataValueTypeEnum::BOOLEAN:
+        {
+            const bool boolValue = ((valueString == VALUE_BOOL_TRUE) ? true : false);
+            value.setValue(boolValue);
+        }
+            break;
+        case WuQMacroDataValueTypeEnum::FLOAT:
+        {
+            const double floatValue = valueString.toFloat();
+            value.setValue(floatValue);
+        }
+            break;
+        case WuQMacroDataValueTypeEnum::INTEGER:
+        {
+            const int32_t intValue = valueString.toInt();
+            value.setValue(intValue);
+        }
+            break;
+        case WuQMacroDataValueTypeEnum::MOUSE:
+            CaretAssertMessage(0, "Mouse is special case handled above");
+            break;
+        case WuQMacroDataValueTypeEnum::NONE:
+            value.setValue(QString());
+            break;
+        case WuQMacroDataValueTypeEnum::STRING:
+            value.setValue(valueString.toString());
+            break;
+    }
+
+    WuQMacroCommandParameter* parameter = new WuQMacroCommandParameter(dataType,
+                                                                       parameterName,
+                                                                       value);
+    
+    return parameter;
+}
+
+/**
+ * Read version one of macro command attributes into a command
+ *
+ * @param xmlReader
+ *    The XML stream reader
+ * @Return The macro command
  */
 WuQMacroCommand*
 WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne(QXmlStreamReader& xmlReader)
@@ -345,18 +464,12 @@ WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne(QXmlStreamRea
     
     const QXmlStreamAttributes attributes = xmlReader.attributes();
     const QStringRef objectName = attributes.value(ATTRIBUTE_NAME);
-    const QStringRef dataTypeString = attributes.value(ATTRIBUTE_OBJECT_DATA_TYPE);
     const QStringRef delayString = attributes.value(ATTRIBUTE_DELAY);
     const QStringRef descriptiveNameString = attributes.value(ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME);
     const QStringRef classString = attributes.value(ATTRIBUTE_OBJECT_CLASS);
-    const QStringRef valueString = attributes.value(ATTRIBUTE_OBJECT_VALUE);
-    const QStringRef dataTypeTwoString = attributes.value(ATTRIBUTE_OBJECT_DATA_TYPE_TWO);
-    const QStringRef valueTwoString = attributes.value(ATTRIBUTE_OBJECT_VALUE_TWO);
     
     QString es;
     if (objectName.isEmpty()) es.append(ATTRIBUTE_NAME + " ");
-    if (dataTypeString.isEmpty()) es.append(ATTRIBUTE_OBJECT_DATA_TYPE + " ");
-    if (dataTypeTwoString.isEmpty()) es.append(ATTRIBUTE_OBJECT_DATA_TYPE + " ");
     if (classString.isEmpty()) es.append(ATTRIBUTE_OBJECT_CLASS + " ");
     if ( ! es.isEmpty()) {
         addToWarnings(xmlReader,
@@ -378,29 +491,6 @@ WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne(QXmlStreamRea
         return NULL;
     }
     
-    bool dataTypeValid(false);
-    WuQMacroDataValueTypeEnum::Enum dataValueType = WuQMacroDataValueTypeEnum::fromName(dataTypeString.toString(),
-                                                                                        &dataTypeValid);
-    if (! dataTypeValid) {
-        es.append(dataTypeString.toString()
-                  + " is not valid for attribute "
-                  + ATTRIBUTE_OBJECT_DATA_TYPE
-                  + " ");
-        return NULL;
-    }
-    
-    bool dataTypeTwoValid(false);
-    WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = WuQMacroDataValueTypeEnum::fromName(dataTypeTwoString.toString(),
-                                                                                           &dataTypeTwoValid);
-    if (! dataTypeTwoValid) {
-        es.append(dataTypeTwoString.toString()
-                  + " is not valid for attribute "
-                  + ATTRIBUTE_OBJECT_DATA_TYPE_TWO
-                  + " ");
-        return NULL;
-    }
-    
-    
     if ( ! es.isEmpty()) {
         addToWarnings(xmlReader,
                       ELEMENT_MACRO_COMMAND
@@ -415,80 +505,11 @@ WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne(QXmlStreamRea
                                            descriptiveNameString.toString());
     }
     else {
-        QVariant value;
-        switch (dataValueType) {
-            case WuQMacroDataValueTypeEnum::INVALID:
-                value.setValue(QString(""));
-                break;
-            case WuQMacroDataValueTypeEnum::BOOLEAN:
-            {
-                const bool boolValue = ((valueString == VALUE_BOOL_TRUE) ? true : false);
-                value.setValue(boolValue);
-            }
-                break;
-            case WuQMacroDataValueTypeEnum::FLOAT:
-            {
-                const double floatValue = valueString.toFloat();
-                value.setValue(floatValue);
-            }
-                break;
-            case WuQMacroDataValueTypeEnum::INTEGER:
-            {
-                const int32_t intValue = valueString.toInt();
-                value.setValue(intValue);
-            }
-                break;
-            case WuQMacroDataValueTypeEnum::MOUSE:
-                CaretAssertMessage(0, "Mouse is special case handled above");
-                break;
-            case WuQMacroDataValueTypeEnum::NONE:
-                value.setValue(QString());
-                break;
-            case WuQMacroDataValueTypeEnum::STRING:
-                value.setValue(valueString.toString());
-                break;
-        }
-        
-        QVariant valueTwo;
-        switch (dataValueTypeTwo) {
-            case WuQMacroDataValueTypeEnum::INVALID:
-                valueTwo.setValue(QString(""));
-                break;
-            case WuQMacroDataValueTypeEnum::BOOLEAN:
-            {
-                const bool boolValue = ((valueTwoString == VALUE_BOOL_TRUE) ? true : false);
-                valueTwo.setValue(boolValue);
-            }
-                break;
-            case WuQMacroDataValueTypeEnum::FLOAT:
-            {
-                const double floatValue = valueTwoString.toFloat();
-                valueTwo.setValue(floatValue);
-            }
-                break;
-            case WuQMacroDataValueTypeEnum::INTEGER:
-            {
-                const int32_t intValue = valueTwoString.toInt();
-                valueTwo.setValue(intValue);
-            }
-                break;
-            case WuQMacroDataValueTypeEnum::MOUSE:
-                break;
-            case WuQMacroDataValueTypeEnum::NONE:
-                value.setValue(QString());
-                break;
-            case WuQMacroDataValueTypeEnum::STRING:
-                valueTwo.setValue(valueTwoString.toString());
-                break;
-        }
-        
         QString tooltip;
         macroCommand = new WuQMacroCommand(objectClass,
                                            objectName.toString(),
                                            descriptiveNameString.toString(),
-                                           tooltip,
-                                           value,
-                                           valueTwo);
+                                           tooltip);
         
         if ( ! delayString.isEmpty()) {
             bool valid(false);
@@ -530,7 +551,7 @@ WuQMacroGroupXmlStreamReader::readMacroMouseEventInfo(QXmlStreamReader& xmlReade
     if (widgetHeightString.isEmpty()) es.append(ATTRIBUTE_MOUSE_WIDGET_HEIGHT + " ");
     if ( ! es.isEmpty()) {
         addToWarnings(xmlReader,
-                      ELEMENT_MOUSE_EVENT_INFO
+                      ELEMENT_MACRO_COMMAND_MOUSE_EVENT_INFO
                       + " is missing required attribute(s): "
                       + es);
         return NULL;

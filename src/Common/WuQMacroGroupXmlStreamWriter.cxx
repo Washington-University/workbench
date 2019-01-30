@@ -29,6 +29,7 @@
 #include "CaretAssert.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
+#include "WuQMacroCommandParameter.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroMouseEventInfo.h"
 
@@ -170,70 +171,6 @@ WuQMacroGroupXmlStreamWriter::writeMacroCommandToXML(const WuQMacroCommand* macr
                                       macroCommand->getDescriptiveName());
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_DELAY,
                                       QString::number(macroCommand->getDelayInSeconds(), 'f', 2));
-    {
-        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_DATA_TYPE,
-                                          WuQMacroDataValueTypeEnum::toName(macroCommand->getDataType()));
-        
-        const QVariant dataValue(macroCommand->getDataValue());
-        QString stringValue;
-        switch (macroCommand->getDataType()) {
-            case WuQMacroDataValueTypeEnum::INVALID:
-                break;
-            case WuQMacroDataValueTypeEnum::BOOLEAN:
-                stringValue = (dataValue.toBool() ? VALUE_BOOL_TRUE : VALUE_BOOL_FALSE);
-                break;
-            case WuQMacroDataValueTypeEnum::FLOAT:
-                stringValue = QString::number(dataValue.toFloat());
-                break;
-            case WuQMacroDataValueTypeEnum::INTEGER:
-                stringValue = QString::number(dataValue.toInt());
-                break;
-            case WuQMacroDataValueTypeEnum::MOUSE:
-                stringValue = "MouseEvent";
-                break;
-            case WuQMacroDataValueTypeEnum::NONE:
-                stringValue = "";
-                break;
-            case WuQMacroDataValueTypeEnum::STRING:
-                stringValue = dataValue.toString();
-                break;
-        }
-        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_VALUE,
-                                          stringValue);
-    }
-    
-    {
-        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_DATA_TYPE_TWO,
-                                          WuQMacroDataValueTypeEnum::toName(macroCommand->getDataTypeTwo()));
-        
-        const QVariant dataValueTwo(macroCommand->getDataValueTwo());
-        QString stringValue;
-        switch (macroCommand->getDataTypeTwo()) {
-            case WuQMacroDataValueTypeEnum::INVALID:
-                break;
-            case WuQMacroDataValueTypeEnum::BOOLEAN:
-                stringValue = (dataValueTwo.toBool() ? VALUE_BOOL_TRUE : VALUE_BOOL_FALSE);
-                break;
-            case WuQMacroDataValueTypeEnum::FLOAT:
-                stringValue = QString::number(dataValueTwo.toFloat());
-                break;
-            case WuQMacroDataValueTypeEnum::INTEGER:
-                stringValue = QString::number(dataValueTwo.toInt());
-                break;
-            case WuQMacroDataValueTypeEnum::MOUSE:
-                stringValue = "MouseEvent";
-                break;
-            case WuQMacroDataValueTypeEnum::NONE:
-                stringValue = "";
-                break;
-            case WuQMacroDataValueTypeEnum::STRING:
-                stringValue = dataValueTwo.toString();
-                break;
-        }
-        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_VALUE_TWO,
-                                          stringValue);
-    }
-    
     
     switch (macroCommand->getClassType()) {
         case WuQMacroClassTypeEnum::ACTION:
@@ -286,6 +223,48 @@ WuQMacroGroupXmlStreamWriter::writeMacroCommandToXML(const WuQMacroCommand* macr
         m_xmlStreamWriter->writeTextElement(ELEMENT_MACRO_COMMAND_TOOL_TIP,
                                             toolTip);
     }
+    
+    const int32_t numberOfParameters = macroCommand->getNumberOfParameters();
+    for (int32_t i = 0; i < numberOfParameters; i++) {
+        const WuQMacroCommandParameter* parameter = macroCommand->getParameterAtIndex(i);
+        CaretAssert(parameter);
+        
+        m_xmlStreamWriter->writeStartElement(ELEMENT_MACRO_COMMAND_PARAMETER);
+        
+        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE,
+                                          WuQMacroDataValueTypeEnum::toName(parameter->getDataType()));
+        
+        const QVariant value(parameter->getValue());
+        QString stringValue;
+        switch (parameter->getDataType()) {
+            case WuQMacroDataValueTypeEnum::INVALID:
+                break;
+            case WuQMacroDataValueTypeEnum::BOOLEAN:
+                stringValue = (value.toBool() ? VALUE_BOOL_TRUE : VALUE_BOOL_FALSE);
+                break;
+            case WuQMacroDataValueTypeEnum::FLOAT:
+                stringValue = QString::number(value.toFloat());
+                break;
+            case WuQMacroDataValueTypeEnum::INTEGER:
+                stringValue = QString::number(value.toInt());
+                break;
+            case WuQMacroDataValueTypeEnum::MOUSE:
+                stringValue = "MouseEvent";
+                break;
+            case WuQMacroDataValueTypeEnum::NONE:
+                stringValue = "";
+                break;
+            case WuQMacroDataValueTypeEnum::STRING:
+                stringValue = value.toString();
+                break;
+        }
+        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MACRO_COMMAND_PARAMETER_VALUE,
+                                          stringValue);
+        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MACRO_COMMAND_PARAMETER_NAME,
+                                          parameter->getName());
+        m_xmlStreamWriter->writeEndElement();
+    }
+    
     m_xmlStreamWriter->writeEndElement();
 }
 
@@ -300,7 +279,7 @@ WuQMacroGroupXmlStreamWriter::writeMacroMouseEventInfo(const WuQMacroMouseEventI
 {
     CaretAssert(mouseEventInfo);
     
-    m_xmlStreamWriter->writeStartElement(ELEMENT_MOUSE_EVENT_INFO);
+    m_xmlStreamWriter->writeStartElement(ELEMENT_MACRO_COMMAND_MOUSE_EVENT_INFO);
     
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MOUSE_BUTTON, QString::number(mouseEventInfo->getMouseButton()));
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MOUSE_BUTTONS_MASK, QString::number(mouseEventInfo->getMouseButtonsMask()));

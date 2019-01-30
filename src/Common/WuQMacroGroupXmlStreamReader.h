@@ -33,6 +33,7 @@ namespace caret {
 
     class WuQMacro;
     class WuQMacroCommand;
+    class WuQMacroCommandParameter;
     class WuQMacroGroup;
     class WuQMacroMouseEventInfo;
     
@@ -67,6 +68,8 @@ namespace caret {
         WuQMacroCommand* readMacroCommandAttributesVersionOne(QXmlStreamReader& xmlReader);
         
         WuQMacroCommand* readMacroCommandVersionOne(QXmlStreamReader& xmlReader);
+        
+        WuQMacroCommandParameter* readMacroCommandParameter(QXmlStreamReader& xmlReader);
         
         void addToWarnings(QXmlStreamReader& xmlReader,
                            const QString& warning);

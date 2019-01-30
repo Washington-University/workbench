@@ -27,6 +27,7 @@
 
 #include <QDialog>
 
+#include "WuQMacroCommandParameter.h"
 #include "WuQMacroShortCutKeyEnum.h"
 #include "WuQMacroStandardItemTypeEnum.h"
 
@@ -35,6 +36,7 @@ class QCheckBox;
 class QComboBox;
 class QDialogButtonBox;
 class QDoubleSpinBox;
+class QGridLayout;
 class QLabel;
 class QMenu;
 class QPlainTextEdit;
@@ -45,6 +47,7 @@ class QToolButton;
 
 namespace caret {
 
+    class CommandParameterWidget;
     class WuQMacro;
     class WuQMacroCommand;
     class WuQMacroGroup;
@@ -102,6 +105,8 @@ namespace caret {
 
         void macroCommandDelaySpinBoxValueChanged(double);
         
+        void commandParamaterDataChanged(int);
+        
     private:
         enum class ValueIndex {
             ONE,
@@ -127,8 +132,6 @@ namespace caret {
         void updateMacroWidget(WuQMacro* macro);
         
         void updateCommandWidget(WuQMacroCommand* command);
-        
-        void setMacroCommandValue(const ValueIndex valueIndex);
         
         WuQMacroGroup* getSelectedMacroGroup();
         
@@ -183,17 +186,13 @@ namespace caret {
         
         QLabel* m_commandNameLabel;
         
-        QPushButton* m_commandValueOnePushButton;
-        
-        QLabel* m_commandValueOneLabel;
-        
-        QPushButton* m_commandValueTwoPushButton;
-        
-        QLabel* m_commandValueTwoLabel;
-        
         QDoubleSpinBox* m_commandDelaySpinBox;
         
         QPlainTextEdit* m_commandToolTipTextEdit;
+        
+        std::vector<CommandParameterWidget*> m_parameterWidgets;
+        
+        QGridLayout* m_parameterWidgetsGridLayout;
         
         QToolButton* m_runMacroToolButton;
         
@@ -209,6 +208,33 @@ namespace caret {
 
     };
     
+    class CommandParameterWidget : public QObject {
+        Q_OBJECT
+        
+    public:
+        CommandParameterWidget(const int32_t index,
+                               QGridLayout* gridLayout,
+                               QWidget* parent);
+        
+        void updateContent(WuQMacroCommandParameter* parameter);
+        
+        QLabel* m_label;
+        
+        QPushButton* m_pushButton;
+
+    signals:
+        void dataChanged(const int index);
+        
+    private slots:
+        void pushButtonClicked();
+        
+    private:
+        const int32_t m_index;
+        
+        WuQMacroCommandParameter* m_parameter = NULL;
+    };
+    
+
 #ifdef __WU_Q_MACRO_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __WU_Q_MACRO_DIALOG_DECLARE__

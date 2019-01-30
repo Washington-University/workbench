@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "WuQMacroCommandParameter.h"
 #include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroStandardItemTypeEnum.h"
 
@@ -52,8 +53,6 @@ WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
 : WuQMacroCommand(classType,
                   objectName,
                   objectDescriptiveName,
-                  "",
-                  "",
                   "")
 {
     if (objectDescriptiveName.isEmpty()) {
@@ -73,24 +72,16 @@ WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
  *    Descriptive name of macro command
  * @param objectToolTip
  *    ToolTip for object
- * @param dataValue
- *    Data value for the command.
- * @param dataValueTwo
- *    Second Data value for the command.
  */
 WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
                                  const QString& objectName,
                                  const QString& objectDescriptiveName,
-                                 const QString& objectToolTip,
-                                 const QVariant dataValue,
-                                 const QVariant dataValueTwo)
+                                 const QString& objectToolTip)
 : QStandardItem(),
 TracksModificationInterface(),
 m_classType(classType),
 m_objectName(objectName),
 m_descriptiveName(objectDescriptiveName),
-m_dataValue(dataValue),
-m_dataValueTwo(dataValueTwo),
 m_macroMouseEvent(NULL)
 {
     if (objectDescriptiveName.isEmpty()) {
@@ -102,120 +93,7 @@ m_macroMouseEvent(NULL)
              | Qt::ItemIsSelectable);
     setToolTip(objectToolTip);
     
-    /*
-     * Second data value is used by only some commands
-     */
-    m_dataType    = WuQMacroDataValueTypeEnum::INVALID;
-    m_dataTypeTwo = WuQMacroDataValueTypeEnum::INVALID;
     
-    switch (m_classType) {
-        case WuQMacroClassTypeEnum::ACTION:
-            m_dataType = WuQMacroDataValueTypeEnum::NONE;
-            m_dataValueUpdateLabelText = "Click/Select";
-            break;
-        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
-            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
-            m_dataValueUpdateLabelText = "On/Off";
-            break;
-        case WuQMacroClassTypeEnum::ACTION_GROUP:
-            m_dataType    = WuQMacroDataValueTypeEnum::STRING;
-            m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
-            m_dataValueUpdateLabelText = "Select name";
-            m_dataValueTwoUpdateLabelText = "Select by index";
-            m_dataValueTwoValidFlag = true;
-            break;
-        case WuQMacroClassTypeEnum::BUTTON_GROUP:
-            m_dataType    = WuQMacroDataValueTypeEnum::STRING;
-            m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
-            m_dataValueUpdateLabelText = "Select button with name";
-            m_dataValueTwoUpdateLabelText = "Select button at index";
-            m_dataValueTwoValidFlag = true;
-            break;
-        case WuQMacroClassTypeEnum::CHECK_BOX:
-            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
-            m_dataValueUpdateLabelText = "Check On/Off";
-            break;
-        case WuQMacroClassTypeEnum::COMBO_BOX:
-            m_dataType    = WuQMacroDataValueTypeEnum::STRING;
-            m_dataValueUpdateLabelText = "Select item with name";
-            m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
-            m_dataValueTwoUpdateLabelText = "Select item at index";
-            m_dataValueTwoValidFlag = true;
-            break;
-        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
-            m_dataValueUpdateLabelText = "New Value";
-            m_dataType = WuQMacroDataValueTypeEnum::FLOAT;
-            break;
-        case WuQMacroClassTypeEnum::INVALID:
-            break;
-        case WuQMacroClassTypeEnum::LINE_EDIT:
-            m_dataType = WuQMacroDataValueTypeEnum::STRING;
-            m_dataValueUpdateLabelText = "New Text";
-            break;
-        case WuQMacroClassTypeEnum::LIST_WIDGET:
-            m_dataType    = WuQMacroDataValueTypeEnum::STRING;
-            m_dataValueUpdateLabelText = "Select item with name";
-            m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
-            m_dataValueTwoUpdateLabelText = "Select item at index";
-            m_dataValueTwoValidFlag = true;
-            break;
-        case WuQMacroClassTypeEnum::MENU:
-            m_dataType    = WuQMacroDataValueTypeEnum::STRING;
-            m_dataValueUpdateLabelText = "Select item with name";
-            m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
-            m_dataValueTwoUpdateLabelText = "Select menu item at index";
-            m_dataValueTwoValidFlag = true;
-            break;
-        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
-            m_dataType = WuQMacroDataValueTypeEnum::MOUSE;
-            break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON:
-            m_dataType = WuQMacroDataValueTypeEnum::NONE;
-            m_dataValueUpdateLabelText = "Click button";
-            break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
-            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
-            m_dataValueUpdateLabelText = "On/Off";
-            break;
-        case WuQMacroClassTypeEnum::RADIO_BUTTON:
-            /* Note: Radio buttons cannot be "unselected" */
-            m_dataType = WuQMacroDataValueTypeEnum::NONE;
-            m_dataValueUpdateLabelText = "Select button";
-            break;
-        case WuQMacroClassTypeEnum::SLIDER:
-            m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
-            m_dataValueUpdateLabelText = "Move slider to";
-            break;
-        case WuQMacroClassTypeEnum::SPIN_BOX:
-            m_dataType = WuQMacroDataValueTypeEnum::INTEGER;
-            m_dataValueUpdateLabelText = "Enter value";
-            break;
-        case WuQMacroClassTypeEnum::TAB_BAR:
-            m_dataType    = WuQMacroDataValueTypeEnum::STRING;
-            m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
-            m_dataValueTwoValidFlag = true;
-            m_dataValueUpdateLabelText = "Select tab with name";
-            m_dataValueTwoUpdateLabelText = "Select tab at index";
-            break;
-        case WuQMacroClassTypeEnum::TAB_WIDGET:
-            m_dataType    = WuQMacroDataValueTypeEnum::STRING;
-            m_dataTypeTwo = WuQMacroDataValueTypeEnum::INTEGER;
-            m_dataValueTwoValidFlag = true;
-            m_dataValueUpdateLabelText = "Select tab with name";
-            m_dataValueTwoUpdateLabelText = "Select tab at index";
-            break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON:
-            m_dataType = WuQMacroDataValueTypeEnum::NONE;
-            m_dataValueUpdateLabelText = "Select button";
-            break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
-            m_dataType = WuQMacroDataValueTypeEnum::BOOLEAN;
-            m_dataValueUpdateLabelText = "On/Off";
-            break;
-    }
-    
-    CaretAssert(m_dataType != WuQMacroDataValueTypeEnum::INVALID);
-
     updateTitle();
     setModified();
 }
@@ -238,8 +116,6 @@ TracksModificationInterface(),
 m_classType(WuQMacroClassTypeEnum::MOUSE_USER_EVENT),
 m_objectName(objectName),
 m_descriptiveName(objectDescriptiveName),
-m_dataValue((int)0),
-m_dataValueTwo(""),
 m_macroMouseEvent(mouseEventInfo)
 {
     if (objectDescriptiveName.isEmpty()) {
@@ -249,8 +125,6 @@ m_macroMouseEvent(mouseEventInfo)
 
     setFlags(Qt::ItemIsEnabled
              | Qt::ItemIsSelectable);
-    m_dataType    = WuQMacroDataValueTypeEnum::MOUSE;
-    m_dataTypeTwo = WuQMacroDataValueTypeEnum::STRING;
     setText("Mouse");
 
     setModified();
@@ -264,6 +138,7 @@ WuQMacroCommand::~WuQMacroCommand()
     if (m_macroMouseEvent != NULL) {
         delete m_macroMouseEvent;
     }
+    removeAllParameters();
 }
 
 /**
@@ -321,34 +196,18 @@ WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
     m_descriptiveName = obj.m_descriptiveName;
     m_classType    = obj.m_classType;
     m_objectName   = obj.m_objectName;
-    m_dataValue    = obj.m_dataValue;
-    m_dataValueUpdateLabelText = obj.m_dataValueUpdateLabelText;
-    m_dataType     = obj.m_dataType;
-    m_dataTypeTwo  = obj.m_dataTypeTwo;
-    m_dataValueTwo = obj.m_dataValueTwo;
-    m_dataValueTwoUpdateLabelText = obj.m_dataValueTwoUpdateLabelText;
     m_macroMouseEvent = NULL;
     m_delayInSeconds = obj.m_delayInSeconds;
     
-    switch (m_dataType) {
-        case WuQMacroDataValueTypeEnum::INVALID:
-            break;
-        case WuQMacroDataValueTypeEnum::BOOLEAN:
-            break;
-        case WuQMacroDataValueTypeEnum::FLOAT:
-            break;
-        case WuQMacroDataValueTypeEnum::INTEGER:
-            break;
-        case WuQMacroDataValueTypeEnum::MOUSE:
-            if (obj.m_macroMouseEvent != NULL) {
-                m_macroMouseEvent = new WuQMacroMouseEventInfo(*obj.m_macroMouseEvent);
-            }
-            break;
-        case WuQMacroDataValueTypeEnum::NONE:
-            break;
-        case WuQMacroDataValueTypeEnum::STRING:
-            break;
+    if (obj.m_macroMouseEvent != NULL) {
+        m_macroMouseEvent = new WuQMacroMouseEventInfo(*obj.m_macroMouseEvent);
     }
+
+    removeAllParameters();
+    for (const auto p : obj.m_parameters) {
+        m_parameters.push_back(new WuQMacroCommandParameter(*p));
+    }
+
     setText(obj.text());
     updateTitle();
 }
@@ -361,64 +220,76 @@ WuQMacroCommand::updateTitle()
 {
     QString title = "Unknown";
     
+    QVariant dataValue;
+    if (getNumberOfParameters() > 0) {
+        CaretAssertVectorIndex(m_parameters, 0);
+        dataValue = m_parameters[0]->getValue();
+    }
+    
+    QVariant dataValueTwo;
+    if (getNumberOfParameters() > 1) {
+        CaretAssertVectorIndex(m_parameters, 1);
+        dataValueTwo = m_parameters[1]->getValue();
+    }
+    
     switch (m_classType) {
         case WuQMacroClassTypeEnum::ACTION:
             title = ("Turn "
-                     + QString((m_dataValue.toBool() ? "On" : "Off")));
+                     + QString((dataValue.toBool() ? "On" : "Off")));
             break;
         case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
             title = ("Turn "
-                     + QString((m_dataValue.toBool() ? "On" : "Off")));
+                     + QString((dataValue.toBool() ? "On" : "Off")));
             break;
         case WuQMacroClassTypeEnum::ACTION_GROUP:
             title = ("Select Name "
-                     + m_dataValue.toString()
+                     + dataValue.toString()
                      + " else "
                      + " index "
-                     + QString::number(m_dataValueTwo.toInt()));
+                     + QString::number(dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::BUTTON_GROUP:
             title = ("Select Name "
-                     + m_dataValue.toString()
+                     + dataValue.toString()
                      + " else "
                      + " index "
-                     + QString::number(m_dataValueTwo.toInt()));
+                     + QString::number(dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::CHECK_BOX:
             title = ("Turn "
-                     + QString((m_dataValue.toBool() ? "On" : "Off")));
+                     + QString((dataValue.toBool() ? "On" : "Off")));
             break;
         case WuQMacroClassTypeEnum::COMBO_BOX:
             title = ("Select Name "
-                     + m_dataValue.toString()
+                     + dataValue.toString()
                      + " else "
                      + " index "
-                     + QString::number(m_dataValueTwo.toInt()));
+                     + QString::number(dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
             title = ("Set to value "
-                     + QString::number(m_dataValue.toFloat()));
+                     + QString::number(dataValue.toFloat()));
             break;
         case WuQMacroClassTypeEnum::INVALID:
             title = "";
             break;
         case WuQMacroClassTypeEnum::LINE_EDIT:
             title = ("Set to text "
-                     + m_dataValue.toString());
+                     + dataValue.toString());
             break;
         case WuQMacroClassTypeEnum::LIST_WIDGET:
             title = ("Select Name "
-                     + m_dataValue.toString()
+                     + dataValue.toString()
                      + " else "
                      + " index "
-                     + QString::number(m_dataValueTwo.toInt()));
+                     + QString::number(dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::MENU:
             title = ("Select Name "
-                     + m_dataValue.toString()
+                     + dataValue.toString()
                      + " else "
                      + " index "
-                     + QString::number(m_dataValueTwo.toInt()));
+                     + QString::number(dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
             title = "MouseEvent";
@@ -428,39 +299,39 @@ WuQMacroCommand::updateTitle()
             break;
         case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
             title = ("Turn "
-                     + QString((m_dataValue.toBool() ? "On" : "Off")));
+                     + QString((dataValue.toBool() ? "On" : "Off")));
             break;
         case WuQMacroClassTypeEnum::RADIO_BUTTON:
             title = "Click Button";
             break;
         case WuQMacroClassTypeEnum::SLIDER:
             title = ("Move to "
-                     + AString::number(m_dataValue.toInt()));
+                     + AString::number(dataValue.toInt()));
             break;
         case WuQMacroClassTypeEnum::SPIN_BOX:
             title = ("Set to "
-                     + AString::number(m_dataValue.toInt()));
+                     + AString::number(dataValue.toInt()));
             break;
         case WuQMacroClassTypeEnum::TAB_BAR:
             title = ("Select Name "
-                     + m_dataValue.toString()
+                     + dataValue.toString()
                      + " else "
                      + " index "
-                     + QString::number(m_dataValueTwo.toInt()));
+                     + QString::number(dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::TAB_WIDGET:
             title = ("Select Name "
-                     + m_dataValue.toString()
+                     + dataValue.toString()
                      + " else "
                      + " index "
-                     + QString::number(m_dataValueTwo.toInt()));
+                     + QString::number(dataValueTwo.toInt()));
             break;
         case WuQMacroClassTypeEnum::TOOL_BUTTON:
             title = ("Click Button");
             break;
         case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
             title = ("Turn "
-                     + QString((m_dataValue.toBool() ? "On" : "Off")));
+                     + QString((dataValue.toBool() ? "On" : "Off")));
             break;
     }
     
@@ -484,21 +355,90 @@ WuQMacroCommand::getClassType() const
 }
 
 /**
- * @return Type of data value for object
+ * Add a parameter to the macro command
+ *
+ * @param dataType
+ *     Data type of the parameter
+ * @param name
+ *     Name of the parameter
+ * @param value
+ *     Value of the parameter
  */
-WuQMacroDataValueTypeEnum::Enum
-WuQMacroCommand::getDataType() const
+void
+WuQMacroCommand::addParameter(const WuQMacroDataValueTypeEnum::Enum dataType,
+                              const QString& name,
+                              const QVariant& value)
 {
-    return m_dataType;
+    WuQMacroCommandParameter* parameter = new WuQMacroCommandParameter(dataType,
+                                                                       name,
+                                                                       value);
+    addParameter(parameter);
 }
 
 /**
- * @return Type of second data value for object
+ * Add a parameter to the macro command
+ *
+ * @param parameter
+ *     Parameter to add
  */
-WuQMacroDataValueTypeEnum::Enum
-WuQMacroCommand::getDataTypeTwo() const
+void
+WuQMacroCommand::addParameter(WuQMacroCommandParameter* parameter)
 {
-    return m_dataTypeTwo;
+    CaretAssert(parameter);
+    if (parameter == NULL) {
+        return;
+    }
+    
+    m_parameters.push_back(parameter);
+    setModified();
+}
+
+
+/**
+ * @return The number of parameters
+ */
+int32_t
+WuQMacroCommand::getNumberOfParameters() const
+{
+    return m_parameters.size();
+}
+
+/**
+ * @return Parameter at the given index
+ *
+ * @param index
+ *     Index of the parameter.
+ */
+WuQMacroCommandParameter*
+WuQMacroCommand::getParameterAtIndex(const int32_t index)
+{
+    CaretAssertVectorIndex(m_parameters, index);
+    return m_parameters[index];
+}
+
+/**
+ * @return Parameter at the given index (const method)
+ *
+ * @param index
+ *     Index of the parameter.
+ */
+const WuQMacroCommandParameter*
+WuQMacroCommand::getParameterAtIndex(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_parameters, index);
+    return m_parameters[index];
+}
+
+/**
+ * Remove all parameters in this command
+ */
+void
+WuQMacroCommand::removeAllParameters()
+{
+    for (auto p : m_parameters) {
+        delete p;
+    }
+    m_parameters.clear();
 }
 
 /**
@@ -541,83 +481,6 @@ WuQMacroCommand::setObjectToolTip(const QString& objectToolTip)
         setToolTip(objectToolTip);
         setModified();
     }
-}
-
-/**
- * @return The object's data value.
- */
-QVariant
-WuQMacroCommand::getDataValue() const
-{
-    return m_dataValue;
-}
-
-/**
- * Set the data value
- *
- * @param dataValue
- *     New data value
- */
-void
-WuQMacroCommand::setDataValue(const QVariant& dataValue)
-{
-    if (m_dataValue != dataValue) {
-        m_dataValue = dataValue;
-        updateTitle();
-        setModified();
-    }
-}
-
-/**
- * @return Text used in dialog for updates the data value
- */
-QString
-WuQMacroCommand::getDataValueUpdateLabelText() const
-{
-    return m_dataValueUpdateLabelText;
-}
-
-/**
- * @return The object's second data value.
- */
-QVariant
-WuQMacroCommand::getDataValueTwo() const
-{
-    return m_dataValueTwo;
-}
-
-/**
- * Set the data value two
- *
- * @param dataValue
- *     New data value
- */
-void
-WuQMacroCommand::setDataValueTwo(const QVariant& dataValue)
-{
-    if (m_dataValueTwo != dataValue) {
-        m_dataValueTwo = dataValue;
-        updateTitle();
-        setModified();
-    }
-}
-
-/**
- * @return true if data value two is valid
- */
-bool
-WuQMacroCommand::isDataValueTwoValid() const
-{
-    return m_dataValueTwoValidFlag;
-}
-
-/**
- * @return Text used in dialog for updates the data value
- */
-QString
-WuQMacroCommand::getDataValueTwoUpdateLabelText() const
-{
-    return m_dataValueTwoUpdateLabelText;
 }
 
 /**
@@ -743,6 +606,12 @@ WuQMacroCommand::isModified() const
         return true;
     }
     
+    for (const auto p : m_parameters) {
+        if (p->isModified()) {
+            return true;
+        }
+    }
+    
     return false;
 }
 
@@ -753,6 +622,10 @@ void
 WuQMacroCommand::clearModified()
 {
     m_modifiedStatusFlag = false;
+    
+    for (auto p : m_parameters) {
+        p->clearModified();
+    }
 }
 
 /**
@@ -771,12 +644,14 @@ WuQMacroCommand::setModified()
 AString
 WuQMacroCommand::toString() const
 {
-    QString s("WuQMacroCommand text=%1 name=%2, type=%3, value=%4, valueTwo=%5");
+    QString s("WuQMacroCommand text=%1 name=%2, type=%3");
     s = s.arg(text()
               ).arg(m_objectName
-                    ).arg(WuQMacroClassTypeEnum::toGuiName(m_classType)
-                          ).arg(m_dataValue.toString()
-                                ).arg(m_dataValueTwo.toString());
+                    ).arg(WuQMacroClassTypeEnum::toGuiName(m_classType));
+    
+    for (const auto p : m_parameters) {
+        s.append(", value=" + p->getValue().toString());
+    }
     return s;
 }
 

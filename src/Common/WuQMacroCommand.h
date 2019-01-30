@@ -36,6 +36,7 @@ class QObject;
 
 namespace caret {
 
+    class WuQMacroCommandParameter;
     class WuQMacroMouseEventInfo;
     
     class WuQMacroCommand : public QStandardItem, public TracksModificationInterface {
@@ -45,9 +46,7 @@ namespace caret {
         WuQMacroCommand(const WuQMacroClassTypeEnum::Enum objectClassType,
                         const QString& objectName,
                         const QString& objectDescriptiveName,
-                        const QString& objectToolTip,
-                        const QVariant dataValue,
-                        const QVariant dataValueTwo);
+                        const QString& objectToolTip);
         
         WuQMacroCommand(const WuQMacroClassTypeEnum::Enum objectClassType,
                         const QString& objectName,
@@ -73,23 +72,17 @@ namespace caret {
         
         void setObjectToolTip(const QString& objectToolTip);
         
-        WuQMacroDataValueTypeEnum::Enum getDataType() const;
+        void addParameter(WuQMacroCommandParameter* parameter);
         
-        QVariant getDataValue() const;
-
-        void setDataValue(const QVariant& dataValue);
+        void addParameter(const WuQMacroDataValueTypeEnum::Enum dataType,
+                          const QString& name,
+                          const QVariant& value);
         
-        QString getDataValueUpdateLabelText() const;
+        int32_t getNumberOfParameters() const;
         
-        WuQMacroDataValueTypeEnum::Enum getDataTypeTwo() const;
+        WuQMacroCommandParameter* getParameterAtIndex(const int32_t);
         
-        QVariant getDataValueTwo() const;
-        
-        void setDataValueTwo(const QVariant& dataValue);
-        
-        bool isDataValueTwoValid() const;
-        
-        QString getDataValueTwoUpdateLabelText() const;
+        const WuQMacroCommandParameter* getParameterAtIndex(const int32_t) const;
         
         WuQMacroMouseEventInfo* getMouseEventInfo();
         
@@ -120,31 +113,21 @@ namespace caret {
         
         void updateTitle();
         
+        void removeAllParameters();
+        
         WuQMacroClassTypeEnum::Enum m_classType;
         
         QString m_objectName;
         
         QString m_descriptiveName;
         
-        QVariant m_dataValue;
-        
-        WuQMacroDataValueTypeEnum::Enum m_dataType;
-        
-        QString m_dataValueUpdateLabelText;
-        
-        QVariant m_dataValueTwo;
-        
-        WuQMacroDataValueTypeEnum::Enum m_dataTypeTwo;
-        
-        QString m_dataValueTwoUpdateLabelText;
+        std::vector<WuQMacroCommandParameter*> m_parameters;
         
         WuQMacroMouseEventInfo* m_macroMouseEvent;
         
         float m_delayInSeconds = 1.0f;
         
         bool m_modifiedStatusFlag = false;
-        
-        bool m_dataValueTwoValidFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

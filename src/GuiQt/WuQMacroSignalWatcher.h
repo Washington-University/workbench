@@ -35,6 +35,7 @@ class QListWidgetItem;
 
 namespace caret {
 
+    class WuQMacroCommandParameter;
     class WuQMacroManager;
 
     class WuQMacroSignalWatcher : public QObject {
@@ -61,6 +62,8 @@ namespace caret {
     private slots:
         void actionTriggered(bool);
         
+        void actionCheckableTriggered(bool);
+        
         void actionGroupTriggered(QAction* action);
         
         void buttonGroupButtonClicked(QAbstractButton* button);
@@ -79,6 +82,8 @@ namespace caret {
         
         void pushButtonClicked(bool);
         
+        void pushButtonCheckableClicked(bool);
+        
         void radioButtonClicked(bool);
         
         void sliderValueChanged(int);
@@ -91,6 +96,8 @@ namespace caret {
         
         void toolButtonClicked(bool);
 
+        void toolButtonCheckableClicked(bool);
+        
         void objectWasDestroyed(QObject* obj);
         
         void objectNameWasChanged(const QString& name);
@@ -106,8 +113,7 @@ namespace caret {
         
         WuQMacroManager* m_parentMacroManager;
         
-        void createAndSendMacroCommand(const QVariant& value,
-                                       const QVariant& valueTwo);
+        void createAndSendMacroCommand(std::vector<WuQMacroCommandParameter*>& parameters);
         
         QObject* m_object;
         

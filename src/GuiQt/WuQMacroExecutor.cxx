@@ -49,6 +49,7 @@
 #include "CaretLogger.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
+#include "WuQMacroCommandParameter.h"
 #include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroMouseEventWidgetInterface.h"
 #include "WuQMacroSignalEmitter.h"
@@ -368,8 +369,6 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
     CaretAssert(object);
     
     const WuQMacroClassTypeEnum::Enum classType = macroCommand->getClassType();
-    const QVariant dataValue = macroCommand->getDataValue();
-    const QVariant dataValueTwo = macroCommand->getDataValueTwo();
     
     QString objectErrorMessage;
     bool notFoundFlag(false);
@@ -475,7 +474,11 @@ WuQMacroExecutor::runActionCommand(const WuQMacroCommand* macroCommand,
     QAction* action = qobject_cast<QAction*>(object);
     if (action != NULL) {
         moveMouseToWidget(action);
-        CaretAssert(macroCommand->getDataType() == WuQMacroDataValueTypeEnum::NONE);
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        CaretAssert(parameterOne->getDataType() == WuQMacroDataValueTypeEnum::NONE);
+        
         WuQMacroSignalEmitter signalEmitter;
         signalEmitter.emitQActionSignal(action,
                                         true);
@@ -506,10 +509,13 @@ WuQMacroExecutor::runActionCheckableCommand(const WuQMacroCommand* macroCommand,
     QAction* action = qobject_cast<QAction*>(object);
     if (action != NULL) {
         moveMouseToWidget(action);
-        CaretAssert(macroCommand->getDataType() == WuQMacroDataValueTypeEnum::BOOLEAN);
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        CaretAssert(parameterOne->getDataType() == WuQMacroDataValueTypeEnum::BOOLEAN);
         WuQMacroSignalEmitter signalEmitter;
         signalEmitter.emitQActionSignal(action,
-                                        macroCommand->getDataValue().toBool());
+                                        parameterOne->getValue().toBool());
     }
     else {
         castFailureFlagOut = true;
@@ -538,18 +544,25 @@ WuQMacroExecutor::runActionGroupCommand(const WuQMacroCommand* macroCommand,
     QActionGroup* actionGroup = qobject_cast<QActionGroup*>(object);
     if (actionGroup != NULL) {
         moveMouseToWidget(actionGroup);
-        CaretAssert(macroCommand->getDataType()    == WuQMacroDataValueTypeEnum::STRING);
-        CaretAssert(macroCommand->getDataTypeTwo() == WuQMacroDataValueTypeEnum::INTEGER);
+        
+        CaretAssert(macroCommand->getNumberOfParameters() > 1);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        const WuQMacroCommandParameter* parameterTwo = macroCommand->getParameterAtIndex(1);
+        CaretAssert(parameterTwo);
+        
+        CaretAssert(parameterOne->getDataType() == WuQMacroDataValueTypeEnum::STRING);
+        CaretAssert(parameterTwo->getDataType() == WuQMacroDataValueTypeEnum::INTEGER);
 
         QAction* textAction(NULL);
         QAction* indexAction(NULL);
         QList<QAction*> actions = actionGroup->actions();
         for (int32_t i = 0; i < actions.size(); i++) {
             QAction* actionAtIndex = actions.at(i);
-            if (actionAtIndex->text() == macroCommand->getDataValue().toString()) {
+            if (actionAtIndex->text() == parameterOne->getValue().toString()) {
                 textAction = actionAtIndex;
             }
-            if (macroCommand->getDataValueTwo().toInt() == i) {
+            if (parameterTwo->getValue().toInt() == i) {
                 indexAction = actionAtIndex;
             }
         }
@@ -567,9 +580,9 @@ WuQMacroExecutor::runActionGroupCommand(const WuQMacroCommand* macroCommand,
             errorMessageOut = ("For QActionGroup \""
                                   + object->objectName()
                                   + "\", unable to find action with text \""
-                                  + macroCommand->getDataValue().toString()
+                                  + parameterOne->getValue().toString()
                                   + "\" or index="
-                                  + macroCommand->getDataValueTwo().toInt());
+                                  + parameterTwo->getValue().toInt());
         }
     }
     else {
@@ -597,10 +610,17 @@ WuQMacroExecutor::runButtonGroupCommand(const WuQMacroCommand* macroCommand,
 {
     QButtonGroup* buttonGroup = qobject_cast<QButtonGroup*>(object);
     if (buttonGroup != NULL) {
-        CaretAssert(macroCommand->getDataType()    == WuQMacroDataValueTypeEnum::STRING);
-        CaretAssert(macroCommand->getDataTypeTwo() == WuQMacroDataValueTypeEnum::INTEGER);
-        const QVariant dataValue    = macroCommand->getDataValue();
-        const QVariant dataValueTwo = macroCommand->getDataValueTwo();
+        CaretAssert(macroCommand->getNumberOfParameters() > 1);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        const WuQMacroCommandParameter* parameterTwo = macroCommand->getParameterAtIndex(1);
+        CaretAssert(parameterTwo);
+
+        CaretAssert(parameterOne->getDataType() == WuQMacroDataValueTypeEnum::STRING);
+        CaretAssert(parameterTwo->getDataType() == WuQMacroDataValueTypeEnum::INTEGER);
+
+        const QVariant dataValue    = parameterOne->getValue();
+        const QVariant dataValueTwo = parameterTwo->getValue();
         
         QAbstractButton* textButton(NULL);
         QAbstractButton* indexButton(NULL);
@@ -661,10 +681,13 @@ WuQMacroExecutor::runCheckBoxCommand(const WuQMacroCommand* macroCommand,
     QCheckBox* checkBox = qobject_cast<QCheckBox*>(object);
     if (checkBox != NULL) {
         moveMouseToWidget(checkBox);
-        CaretAssert(macroCommand->getDataType() == WuQMacroDataValueTypeEnum::BOOLEAN);
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        CaretAssert(parameterOne->getDataType() == WuQMacroDataValueTypeEnum::BOOLEAN);
         WuQMacroSignalEmitter signalEmitter;
         signalEmitter.emitQCheckBoxSignal(checkBox,
-                                          macroCommand->getDataValue().toBool());
+                                          parameterOne->getValue().toBool());
     }
     else {
         castFailureFlagOut = true;
@@ -692,10 +715,16 @@ WuQMacroExecutor::runComboBoxCommand(const WuQMacroCommand* macroCommand,
 {
     QComboBox* comboBox = qobject_cast<QComboBox*>(object);
     if (comboBox != NULL) {
-        const QVariant dataValue    = macroCommand->getDataValue();
-        const QVariant dataValueTwo = macroCommand->getDataValueTwo();
-        CaretAssert(macroCommand->getDataType()    == WuQMacroDataValueTypeEnum::STRING);
-        CaretAssert(macroCommand->getDataTypeTwo() == WuQMacroDataValueTypeEnum::INTEGER);
+        CaretAssert(macroCommand->getNumberOfParameters() > 1);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        const WuQMacroCommandParameter* parameterTwo = macroCommand->getParameterAtIndex(1);
+        CaretAssert(parameterTwo);
+
+        const QVariant dataValue    = parameterOne->getValue();
+        const QVariant dataValueTwo = parameterTwo->getValue();
+        CaretAssert(parameterOne->getDataType()    == WuQMacroDataValueTypeEnum::STRING);
+        CaretAssert(parameterTwo->getDataType() == WuQMacroDataValueTypeEnum::INTEGER);
         int textIndex(-1);
         int indexIndex(-1);
         for (int32_t i = 0; i < comboBox->count(); i++) {
@@ -750,8 +779,12 @@ WuQMacroExecutor::runDoubleSpinBoxCommand(const WuQMacroCommand* macroCommand,
 {
     QDoubleSpinBox* doubleSpinBox = qobject_cast<QDoubleSpinBox*>(object);
     if (doubleSpinBox != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
         
         CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::FLOAT);
         moveMouseToWidget(doubleSpinBox);
@@ -784,8 +817,12 @@ WuQMacroExecutor::runLineEditCommand(const WuQMacroCommand* macroCommand,
 {
     QLineEdit* lineEdit = qobject_cast<QLineEdit*>(object);
     if (lineEdit != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
 
         moveMouseToWidget(lineEdit);
         CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::STRING);
@@ -819,10 +856,16 @@ WuQMacroExecutor::runListWidgetCommand(const WuQMacroCommand* macroCommand,
 {
     QListWidget* listWidget = qobject_cast<QListWidget*>(object);
     if (listWidget != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
-        const QVariant dataValueTwo = macroCommand->getDataValueTwo();
-        const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = macroCommand->getDataTypeTwo();
+        CaretAssert(macroCommand->getNumberOfParameters() > 1);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        const WuQMacroCommandParameter* parameterTwo = macroCommand->getParameterAtIndex(1);
+        CaretAssert(parameterTwo);
+ 
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
+        const QVariant dataValueTwo = parameterTwo->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = parameterTwo->getDataType();
         
         CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::STRING);
         CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::INTEGER);
@@ -884,10 +927,15 @@ WuQMacroExecutor::runMenuCommand(const WuQMacroCommand* macroCommand,
 {
     QMenu* menu = qobject_cast<QMenu*>(object);
     if (menu != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
-        const QVariant dataValueTwo = macroCommand->getDataValueTwo();
-        const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = macroCommand->getDataTypeTwo();
+        CaretAssert(macroCommand->getNumberOfParameters() > 1);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        const WuQMacroCommandParameter* parameterTwo = macroCommand->getParameterAtIndex(1);
+
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
+        const QVariant dataValueTwo = parameterTwo->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = parameterTwo->getDataType();
 
         CaretAssert(dataValueType    == WuQMacroDataValueTypeEnum::STRING);
         CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::INTEGER);
@@ -1037,8 +1085,12 @@ WuQMacroExecutor::runPushButtonCommand(const WuQMacroCommand* macroCommand,
 {
     QPushButton* pushButton = qobject_cast<QPushButton*>(object);
     if (pushButton != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
         
         moveMouseToWidget(pushButton);
         CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::NONE);
@@ -1071,8 +1123,12 @@ WuQMacroExecutor::runPushButtonCheckableCommand(const WuQMacroCommand* macroComm
 {
     QPushButton* pushButton = qobject_cast<QPushButton*>(object);
     if (pushButton != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
         
         moveMouseToWidget(pushButton);
         CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);
@@ -1105,8 +1161,12 @@ WuQMacroExecutor::runRadioButtonCommand(const WuQMacroCommand* macroCommand,
 {
     QRadioButton* radioButton = qobject_cast<QRadioButton*>(object);
     if (radioButton != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
 
         moveMouseToWidget(radioButton);
         CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::NONE);
@@ -1140,8 +1200,12 @@ WuQMacroExecutor::runSliderCommand(const WuQMacroCommand* macroCommand,
 {
     QSlider* slider = qobject_cast<QSlider*>(object);
     if (slider != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
         
         moveMouseToWidget(slider);
         CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
@@ -1174,8 +1238,12 @@ WuQMacroExecutor::runSpinBoxCommand(const WuQMacroCommand* macroCommand,
 {
     QSpinBox* spinBox = qobject_cast<QSpinBox*>(object);
     if (spinBox != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
 
         moveMouseToWidget(spinBox);
         CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::INTEGER);
@@ -1208,10 +1276,15 @@ WuQMacroExecutor::runTabBarCommand(const WuQMacroCommand* macroCommand,
 {
     QTabBar* tabBar = qobject_cast<QTabBar*>(object);
     if (tabBar != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
-        const QVariant dataValueTwo = macroCommand->getDataValueTwo();
-        const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = macroCommand->getDataTypeTwo();
+        CaretAssert(macroCommand->getNumberOfParameters() > 1);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        const WuQMacroCommandParameter* parameterTwo = macroCommand->getParameterAtIndex(1);
+        
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
+        const QVariant dataValueTwo = parameterTwo->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = parameterTwo->getDataType();
         
         CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::INTEGER);
         int32_t tabIndex = dataValueTwo.toInt();
@@ -1271,10 +1344,15 @@ WuQMacroExecutor::runTabWidgetCommand(const WuQMacroCommand* macroCommand,
 {
     QTabWidget* tabWidget = qobject_cast<QTabWidget*>(object);
     if (tabWidget != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
-        const QVariant dataValueTwo = macroCommand->getDataValueTwo();
-        const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = macroCommand->getDataTypeTwo();
+        CaretAssert(macroCommand->getNumberOfParameters() > 1);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        const WuQMacroCommandParameter* parameterTwo = macroCommand->getParameterAtIndex(1);
+        
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
+        const QVariant dataValueTwo = parameterTwo->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueTypeTwo = parameterTwo->getDataType();
         
         CaretAssert(dataValueTypeTwo == WuQMacroDataValueTypeEnum::INTEGER);
         QTabBar* tabBar = tabWidget->tabBar();
@@ -1337,9 +1415,12 @@ WuQMacroExecutor::runToolButtonCommand(const WuQMacroCommand* macroCommand,
 {
     QToolButton* toolButton = qobject_cast<QToolButton*>(object);
     if (toolButton != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
-        const QVariant dataValueTwo = macroCommand->getDataValueTwo();
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
         
         moveMouseToWidget(toolButton);
         CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::NONE);
@@ -1372,9 +1453,12 @@ WuQMacroExecutor::runToolButtonCheckableCommand(const WuQMacroCommand* macroComm
 {
     QToolButton* toolButton = qobject_cast<QToolButton*>(object);
     if (toolButton != NULL) {
-        const QVariant dataValue = macroCommand->getDataValue();
-        const WuQMacroDataValueTypeEnum::Enum dataValueType = macroCommand->getDataType();
-        const QVariant dataValueTwo = macroCommand->getDataValueTwo();
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        
+        const QVariant dataValue = parameterOne->getValue();
+        const WuQMacroDataValueTypeEnum::Enum dataValueType = parameterOne->getDataType();
         
         moveMouseToWidget(toolButton);
         CaretAssert(dataValueType == WuQMacroDataValueTypeEnum::BOOLEAN);

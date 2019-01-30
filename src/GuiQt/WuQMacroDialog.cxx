@@ -37,6 +37,7 @@
 #include <QPainter>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QStackedWidget>
 #include <QTreeView>
 #include <QToolButton>
@@ -77,7 +78,6 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     
     m_macroGroups = WuQMacroManager::instance()->getMacroGroups();
     
-//    QLabel* macrosLabel = new QLabel("Macro:");
     QLabel* macroGroupLabel = new QLabel("Macros in:");
     
     m_macroGroupComboBox = new QComboBox();
@@ -103,7 +103,6 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     gridLayout->addWidget(createHorizontalLine(), row, 0, 1, 3);
     row++;
     gridLayout->addWidget(createMacroRunAndEditingToolButtons(), row, 0, 1, 3);
-//    gridLayout->addWidget(macrosLabel, row, 0, (Qt::AlignTop| Qt::AlignLeft));
     row++;
     gridLayout->addWidget(createMacroAndCommandSelectionWidget(), row, 0, 1, 3);
     row++;
@@ -448,21 +447,7 @@ WuQMacroDialog::createCommandDisplayWidget()
     
     QLabel* typeLabel = new QLabel("Type:");
     m_commandTypeLabel = new QLabel();
-    
-    m_commandValueOnePushButton = new QPushButton("Value...");
-    m_commandValueOnePushButton->setSizePolicy(QSizePolicy::Fixed,
-                                               m_commandValueOnePushButton->sizePolicy().verticalPolicy());
-    QObject::connect(m_commandValueOnePushButton, &QPushButton::clicked,
-                     [=] { setMacroCommandValue(ValueIndex::ONE); });
-    m_commandValueOneLabel  = new QLabel();
-    
-    m_commandValueTwoPushButton = new QPushButton("Alt Value...");
-    m_commandValueTwoPushButton->setSizePolicy(QSizePolicy::Fixed,
-                                               m_commandValueTwoPushButton->sizePolicy().verticalPolicy());
-    QObject::connect(m_commandValueTwoPushButton, &QPushButton::clicked,
-                     [=] { setMacroCommandValue(ValueIndex::TWO); });
-    m_commandValueTwoLabel  = new QLabel();
-    
+
     QLabel* delayLabel = new QLabel("Delay:");
     m_commandDelaySpinBox = new QDoubleSpinBox();
     m_commandDelaySpinBox->setMinimum(0.0);
@@ -489,12 +474,6 @@ WuQMacroDialog::createCommandDisplayWidget()
     layout->addWidget(titleLabel, row, 0);
     layout->addWidget(m_commandTitleLabel, row, 1);
     row++;
-    layout->addWidget(m_commandValueOnePushButton, row, 0);
-    layout->addWidget(m_commandValueOneLabel, row, 1);
-    row++;
-    layout->addWidget(m_commandValueTwoPushButton, row, 0);
-    layout->addWidget(m_commandValueTwoLabel, row, 1);
-    row++;
     layout->addWidget(nameLabel, row, 0);
     layout->addWidget(m_commandNameLabel, row, 1);
     row++;
@@ -508,6 +487,12 @@ WuQMacroDialog::createCommandDisplayWidget()
     layout->addWidget(m_commandToolTipTextEdit, row, 1);
     row++;
     
+    QWidget* parametersWidget = new QWidget();
+    m_parameterWidgetsGridLayout = new QGridLayout(parametersWidget);
+    QScrollArea* parameterScrollArea = new QScrollArea();
+    parameterScrollArea->setWidget(parametersWidget);
+    parameterScrollArea->setWidgetResizable(true);
+    
     QHBoxLayout* titleLayout = new QHBoxLayout();
     titleLayout->setContentsMargins(0, 0, 0, 0);
     titleLayout->addWidget(new QLabel("Command"));
@@ -517,6 +502,7 @@ WuQMacroDialog::createCommandDisplayWidget()
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
     widgetLayout->addLayout(titleLayout);
     widgetLayout->addLayout(layout);
+    widgetLayout->addWidget(parameterScrollArea);
     widgetLayout->addStretch();
     
     return widget;
@@ -680,103 +666,68 @@ WuQMacroDialog::updateMacroWidget(WuQMacro* macro)
 void
 WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
 {
-    bool validOneFlag = false;
-    QString newDataValueOne;
-    if (command != NULL) {
-        newDataValueOne = command->getDataValue().toString();
-        
-        switch (command->getDataType()) {
-            case WuQMacroDataValueTypeEnum::INVALID:
-                break;
-            case WuQMacroDataValueTypeEnum::BOOLEAN:
-                if (command->getDataValue().toBool()) {
-                    newDataValueOne = "On";
-                }
-                else {
-                    newDataValueOne = "Off";
-                }
-                validOneFlag = true;
-                break;
-            case WuQMacroDataValueTypeEnum::FLOAT:
-                validOneFlag = true;
-                break;
-            case WuQMacroDataValueTypeEnum::INTEGER:
-                validOneFlag = true;
-                break;
-            case WuQMacroDataValueTypeEnum::MOUSE:
-                break;
-            case WuQMacroDataValueTypeEnum::NONE:
-                newDataValueOne = "";
-                break;
-            case WuQMacroDataValueTypeEnum::STRING:
-                validOneFlag = true;
-                break;
-        }
-    }
-    
-    bool validTwoFlag = false;
-    QString newDataValueTwo;
-    if (command != NULL) {
-        newDataValueTwo = command->getDataValueTwo().toString();
-        
-        switch (command->getDataTypeTwo()) {
-            case WuQMacroDataValueTypeEnum::INVALID:
-                break;
-            case WuQMacroDataValueTypeEnum::BOOLEAN:
-                if (command->getDataValueTwo().toBool()) {
-                    newDataValueTwo = "On";
-                }
-                else {
-                    newDataValueTwo = "Off";
-                }
-                validTwoFlag = true;
-                break;
-            case WuQMacroDataValueTypeEnum::FLOAT:
-                validTwoFlag = true;
-                break;
-            case WuQMacroDataValueTypeEnum::INTEGER:
-                validTwoFlag = true;
-                break;
-            case WuQMacroDataValueTypeEnum::MOUSE:
-                break;
-            case WuQMacroDataValueTypeEnum::NONE:
-                newDataValueTwo = "";
-                break;
-            case WuQMacroDataValueTypeEnum::STRING:
-                validTwoFlag = true;
-                break;
-        }
-    }
-    
     QString title;
     QString name;
     QString type;
-    QString newDataTypeTwo;
     QString toolTip;
     float delay(0.0f);
     if (command != NULL) {
         title           = command->text();
         name            = command->getObjectName();
         type            = WuQMacroClassTypeEnum::toGuiName(command->getClassType());
-        newDataTypeTwo  = WuQMacroDataValueTypeEnum::toGuiName(command->getDataTypeTwo());
         toolTip         = command->getObjectToolTip();
         delay           = command->getDelayInSeconds();
     }
     m_commandTitleLabel->setText(title);
     m_commandNameLabel->setText(name);
     m_commandTypeLabel->setText(type);
-    m_commandValueOneLabel->setText(newDataValueOne);
-    m_commandValueOnePushButton->setEnabled(validOneFlag);
-    m_commandValueTwoLabel->setText("");
-    m_commandValueTwoPushButton->setEnabled(false);
-    if (validTwoFlag) {
-        m_commandValueTwoLabel->setText(newDataValueTwo);
-        m_commandValueTwoPushButton->setEnabled(true);
-    }
+
     QSignalBlocker delayBlocker(m_commandDelaySpinBox);
     m_commandDelaySpinBox->setValue(delay);
 
     m_commandToolTipTextEdit->setPlainText(toolTip);
+    
+    /**
+     * Update the parameter widgets
+     */
+    const int32_t numParams = ((command != NULL)
+                               ? command->getNumberOfParameters()
+                               : 0);
+    int32_t numWidgets = static_cast<int32_t>(m_parameterWidgets.size());
+    
+    for (int32_t i = numWidgets; i < numParams; i++) {
+        CommandParameterWidget* cpw = new CommandParameterWidget(i,
+                                                                 m_parameterWidgetsGridLayout,
+                                                                 this);
+        QObject::connect(cpw, &CommandParameterWidget::dataChanged,
+                         this, &WuQMacroDialog::commandParamaterDataChanged);
+        m_parameterWidgets.push_back(cpw);
+    }
+    
+    for (int32_t i = 0; i < numParams; i++) {
+        m_parameterWidgets[i]->updateContent(command->getParameterAtIndex(i));
+    }
+    
+    numWidgets = static_cast<int32_t>(m_parameterWidgets.size());
+    for (int32_t i = numParams; i < numWidgets; i++) {
+        m_parameterWidgets[i]->updateContent(NULL);
+    }
+}
+
+/**
+ * Called when a command parameter is changed
+ *
+ * @param index
+ *     Index of the parameter
+ */
+void
+WuQMacroDialog::commandParamaterDataChanged(int)
+{
+    WuQMacro* macro = getSelectedMacro();
+    if (macro != NULL) {
+        WuQMacroManager::instance()->macroWasModified(macro);
+    }
+    updateDialogContents();
 }
 
 /**
@@ -995,140 +946,6 @@ WuQMacroDialog::macroCommandDelaySpinBoxValueChanged(double value)
 }
 
 /**
- * Set the command value for the given value index
- *
- * @param valueIndex
- *    Value one or two
- */
-void
-WuQMacroDialog::setMacroCommandValue(const ValueIndex valueIndex)
-{
-    WuQMacroCommand* macroCommand = getSelectedMacroCommand();
-    if (macroCommand == NULL) {
-        return;
-    }
-    
-    WuQMacroDataValueTypeEnum::Enum dataType = WuQMacroDataValueTypeEnum::INVALID;
-    QVariant dataValue;
-    QWidget* parentWidget(NULL);
-    QString dataValueUpdateText;
-    switch (valueIndex) {
-        case ValueIndex::ONE:
-            dataType = macroCommand->getDataType();
-            dataValue = macroCommand->getDataValue();
-            dataValueUpdateText = macroCommand->getDataValueUpdateLabelText();
-            parentWidget = m_commandValueOnePushButton;
-            break;
-        case ValueIndex::TWO:
-            dataType = macroCommand->getDataTypeTwo();
-            dataValue = macroCommand->getDataValueTwo();
-            dataValueUpdateText = macroCommand->getDataValueTwoUpdateLabelText();
-            parentWidget = m_commandValueTwoPushButton;
-            break;
-    }
-    
-    bool validFlag(false);
-    switch (dataType) {
-        case WuQMacroDataValueTypeEnum::BOOLEAN:
-        {
-            QStringList items;
-            items.push_back("On");
-            items.push_back("Off");
-            
-            bool ok(false);
-            int defaultIndex = (dataValue.toBool() ? 0 : 1);
-            const QString text = QInputDialog::getItem(parentWidget,
-                                                       "New Status",
-                                                       dataValueUpdateText,
-                                                       items,
-                                                       defaultIndex,
-                                                       false,
-                                                       &ok);
-            if (ok
-                && ( ! text.isEmpty())) {
-                bool result(text == items.at(0));
-                dataValue.setValue(result);
-                validFlag = true;
-            }
-        }
-            break;
-        case WuQMacroDataValueTypeEnum::FLOAT:
-        {
-            bool ok(false);
-            const float f = QInputDialog::getDouble(parentWidget,
-                                                    "New Value",
-                                                    dataValueUpdateText,
-                                                    dataValue.toDouble(),
-                                                    -2147483647,
-                                                    2147483647,
-                                                    3,
-                                                    &ok);
-            if (ok) {
-                dataValue.setValue(f);
-                validFlag = true;
-            }
-        }
-            break;
-        case WuQMacroDataValueTypeEnum::INTEGER:
-        {
-            bool ok(false);
-            const int i = QInputDialog::getInt(parentWidget,
-                                               "New Value",
-                                               dataValueUpdateText,
-                                               dataValue.toInt(),
-                                               -2147483647,
-                                               2147483647,
-                                               1,
-                                               &ok);
-            if (ok) {
-                dataValue.setValue(i);
-                validFlag = true;
-            }
-        }
-            break;
-        case WuQMacroDataValueTypeEnum::INVALID:
-            break;
-        case WuQMacroDataValueTypeEnum::MOUSE:
-            break;
-        case WuQMacroDataValueTypeEnum::NONE:
-            break;
-        case WuQMacroDataValueTypeEnum::STRING:
-        {
-            bool ok(false);
-            const QString text = QInputDialog::getText(parentWidget,
-                                                       "New Text",
-                                                       dataValueUpdateText,
-                                                       QLineEdit::Normal,
-                                                       dataValue.toString(),
-                                                       &ok);
-            if (ok) {
-                dataValue.setValue(text);
-                validFlag = true;
-            }
-        }
-            break;
-    }
-
-    if (validFlag) {
-        switch (valueIndex) {
-            case ValueIndex::ONE:
-                macroCommand->setDataValue(dataValue);
-                break;
-            case ValueIndex::TWO:
-                macroCommand->setDataValueTwo(dataValue);
-                break;
-        }
-        
-        WuQMacro* macro = getSelectedMacro();
-        if (macro != NULL) {
-            WuQMacroManager::instance()->macroWasModified(macro);
-        }
-    }
-    
-    updateDialogContents();
-}
-
-/**
  * @return a horizontal line
  */
 QWidget*
@@ -1198,7 +1015,6 @@ WuQMacroDialog::editingMoveUpToolButtonClicked()
             if (macroGroup != NULL) {
                 if (macro != NULL) {
                     macroGroup->moveMacroUp(macro);
-//                    updateMacroWidget(macro);
                     m_treeView->setCurrentIndex(macro->index());
                     treeViewItemClicked(macro->index());
                 }
@@ -1208,7 +1024,6 @@ WuQMacroDialog::editingMoveUpToolButtonClicked()
             if ((macro != NULL)
                 && (command != NULL)) {
                 macro->moveMacroCommandUp(command);
-//                updateCommandWidget(command);
                 m_treeView->setCurrentIndex(command->index());
                 treeViewItemClicked(command->index());
             }
@@ -1233,7 +1048,6 @@ WuQMacroDialog::editingMoveDownToolButtonClicked()
             if (macroGroup != NULL) {
                if (macro != NULL) {
                    macroGroup->moveMacroDown(macro);
-//                   updateMacroWidget(macro);
                    m_treeView->setCurrentIndex(macro->index());
                    treeViewItemClicked(macro->index());
                }
@@ -1243,7 +1057,6 @@ WuQMacroDialog::editingMoveDownToolButtonClicked()
             if ((macro != NULL)
                 && (command != NULL)) {
                 macro->moveMacroCommandDown(command);
-//                updateCommandWidget(command);
                 m_treeView->setCurrentIndex(command->index());
                 treeViewItemClicked(command->index());
             }
@@ -1442,6 +1255,151 @@ WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
     return pixmap;
 }
 
+/**
+ * Constructor for command parameter widgets
+ *
+ * @param index
+ *    Index of the parameter
+ * @param gridLayout
+ *    Layout containing the widgets
+ * @param parent
+ *    The parent widget
+ */
+CommandParameterWidget::CommandParameterWidget(const int32_t index,
+                                               QGridLayout* gridLayout,
+                                               QWidget* parent)
+: QObject(parent),
+m_index(index)
+{
+    m_label = new QLabel();
+    
+    m_pushButton = new QPushButton();
+    QObject::connect(m_pushButton, &QPushButton::clicked,
+                     this, &CommandParameterWidget::pushButtonClicked);
+    
+    const int32_t row = gridLayout->rowCount();
+    gridLayout->addWidget(m_pushButton, row, 0);
+    gridLayout->addWidget(m_label, row, 1, Qt::AlignLeft);
+}
 
+/**
+ * Update content of a command parameter
+ *
+ * @param parameter
+ *     The parameter
+ */
+void
+CommandParameterWidget::updateContent(WuQMacroCommandParameter* parameter)
+{
+    m_parameter = parameter;
+    const bool validFlag(m_parameter != NULL);
+    if (validFlag) {
+        m_label->setText(m_parameter->getValue().toString());
+        m_pushButton->setText(m_parameter->getName());
+    }
+    m_label->setVisible(validFlag);
+    m_pushButton->setVisible(validFlag);
+}
+
+/**
+ * Called when command parameter push button is clicked
+ */
+void
+CommandParameterWidget::pushButtonClicked()
+{
+    CaretAssert(m_parameter);
+    
+    const WuQMacroDataValueTypeEnum::Enum dataType = m_parameter->getDataType();
+    QVariant dataValue = m_parameter->getValue();
+    const QString dataValueUpdateText = m_parameter->getName();
+    
+    bool validFlag(false);
+    switch (dataType) {
+        case WuQMacroDataValueTypeEnum::BOOLEAN:
+        {
+            QStringList items;
+            items.push_back("On");
+            items.push_back("Off");
+            
+            bool ok(false);
+            int defaultIndex = (dataValue.toBool() ? 0 : 1);
+            const QString text = QInputDialog::getItem(m_pushButton,
+                                                       "New Status",
+                                                       dataValueUpdateText,
+                                                       items,
+                                                       defaultIndex,
+                                                       false,
+                                                       &ok);
+            if (ok
+                && ( ! text.isEmpty())) {
+                bool result(text == items.at(0));
+                dataValue.setValue(result);
+                validFlag = true;
+            }
+        }
+            break;
+        case WuQMacroDataValueTypeEnum::FLOAT:
+        {
+            bool ok(false);
+            const float f = QInputDialog::getDouble(m_pushButton,
+                                                    "New Value",
+                                                    dataValueUpdateText,
+                                                    dataValue.toDouble(),
+                                                    -2147483647,
+                                                    2147483647,
+                                                    3,
+                                                    &ok);
+            if (ok) {
+                dataValue.setValue(f);
+                validFlag = true;
+            }
+        }
+            break;
+        case WuQMacroDataValueTypeEnum::INTEGER:
+        {
+            bool ok(false);
+            const int i = QInputDialog::getInt(m_pushButton,
+                                               "New Value",
+                                               dataValueUpdateText,
+                                               dataValue.toInt(),
+                                               -2147483647,
+                                               2147483647,
+                                               1,
+                                               &ok);
+            if (ok) {
+                dataValue.setValue(i);
+                validFlag = true;
+            }
+        }
+            break;
+        case WuQMacroDataValueTypeEnum::INVALID:
+            break;
+        case WuQMacroDataValueTypeEnum::MOUSE:
+            break;
+        case WuQMacroDataValueTypeEnum::NONE:
+            break;
+        case WuQMacroDataValueTypeEnum::STRING:
+        {
+            bool ok(false);
+            const QString text = QInputDialog::getText(m_pushButton,
+                                                       "New Text",
+                                                       dataValueUpdateText,
+                                                       QLineEdit::Normal,
+                                                       dataValue.toString(),
+                                                       &ok);
+            if (ok) {
+                dataValue.setValue(text);
+                validFlag = true;
+            }
+        }
+            break;
+    }
+    
+    if (validFlag) {
+        m_parameter->setValue(dataValue);
+
+        emit dataChanged(m_index);
+    }
+}
 
 

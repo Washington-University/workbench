@@ -50,11 +50,7 @@ namespace caret {
         
         static const QString ATTRIBUTE_NAME;
         static const QString ATTRIBUTE_OBJECT_CLASS;
-        static const QString ATTRIBUTE_OBJECT_DATA_TYPE;
-        static const QString ATTRIBUTE_OBJECT_DATA_TYPE_TWO;
         static const QString ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME;
-        static const QString ATTRIBUTE_OBJECT_VALUE;
-        static const QString ATTRIBUTE_OBJECT_VALUE_TWO;
         static const QString ATTRIBUTE_DELAY;
         static const QString ATTRIBUTE_SHORT_CUT_KEY;
         static const QString ATTRIBUTE_UNIQUE_IDENTIFIER;
@@ -73,14 +69,18 @@ namespace caret {
         static const QString ATTRIBUTE_MOUSE_WINDOW_X;
         static const QString ATTRIBUTE_MOUSE_WINDOW_Y;
         
-        
-        
+        static const QString ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE;
+        static const QString ATTRIBUTE_MACRO_COMMAND_PARAMETER_NAME;
+        static const QString ATTRIBUTE_MACRO_COMMAND_PARAMETER_VALUE;
+
         static const QString ELEMENT_DESCRIPTION;
         static const QString ELEMENT_MACRO;
         static const QString ELEMENT_MACRO_COMMAND;
+        static const QString ELEMENT_MACRO_COMMAND_MOUSE_EVENT_INFO;
+        static const QString ELEMENT_MACRO_COMMAND_PARAMETER;
         static const QString ELEMENT_MACRO_COMMAND_TOOL_TIP;
         static const QString ELEMENT_MACRO_GROUP;
-        static const QString ELEMENT_MOUSE_EVENT_INFO;
+
         static const QString VALUE_BOOL_FALSE;
         static const QString VALUE_BOOL_TRUE;
         static const QString VALUE_VERSION_ONE;
@@ -93,11 +93,7 @@ namespace caret {
 #ifdef __WU_Q_MACRO_GROUP_XML_STREAM_BASE_DECLARE__
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_NAME = "Name";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_CLASS = "ObjectClass";
-    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_DATA_TYPE = "DataType";
-    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_DATA_TYPE_TWO = "DataTypeTwo";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME = "DescriptiveName";
-    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_VALUE = "DataValue";
-    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_VALUE_TWO = "DataValueTwo";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_DELAY = "Delay";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_SHORT_CUT_KEY = "ShortCutKey";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_UNIQUE_IDENTIFIER = "UniqueIdentifier";
@@ -115,13 +111,18 @@ namespace caret {
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MOUSE_WIDGET_HEIGHT = "WidgetHeight";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MOUSE_WINDOW_X = "WindowX";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MOUSE_WINDOW_Y = "WindowY";
-    
+    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE = "DataType";
+    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MACRO_COMMAND_PARAMETER_NAME = "Name";
+    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MACRO_COMMAND_PARAMETER_VALUE = "Value";
+
     const QString WuQMacroGroupXmlStreamBase::ELEMENT_DESCRIPTION      = "Description";
     const QString WuQMacroGroupXmlStreamBase::ELEMENT_MACRO            = "Macro";
     const QString WuQMacroGroupXmlStreamBase::ELEMENT_MACRO_COMMAND    = "MacroCommand";
+    const QString WuQMacroGroupXmlStreamBase::ELEMENT_MACRO_COMMAND_MOUSE_EVENT_INFO = "MouseEventInfo";
+    const QString WuQMacroGroupXmlStreamBase::ELEMENT_MACRO_COMMAND_PARAMETER        = "Parameter";
     const QString WuQMacroGroupXmlStreamBase::ELEMENT_MACRO_COMMAND_TOOL_TIP = "ToolTip";
     const QString WuQMacroGroupXmlStreamBase::ELEMENT_MACRO_GROUP      = "MacroGroup";
-    const QString WuQMacroGroupXmlStreamBase::ELEMENT_MOUSE_EVENT_INFO = "MouseEventInfo";
+
 
     const QString WuQMacroGroupXmlStreamBase::VALUE_BOOL_FALSE   = "false";
     const QString WuQMacroGroupXmlStreamBase::VALUE_BOOL_TRUE    = "true";
