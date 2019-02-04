@@ -50,6 +50,7 @@
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
+#include "WuQMacroManager.h"
 #include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroMouseEventWidgetInterface.h"
 #include "WuQMacroSignalEmitter.h"
@@ -277,7 +278,7 @@ WuQMacroExecutor::findObjectByName(const QString& objectName) const
  */
 bool
 WuQMacroExecutor::runMacro(const WuQMacro* macro,
-                           QObject* window,
+                           QWidget* window,
                            std::vector<QObject*>& otherObjectParents,
                            const WuQMacroExecutorOptions* executorOptions,
                            QString& errorMessageOut) const
@@ -322,9 +323,32 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
         }
         
         QString commandErrorMessage;
-        if ( ! runMacroCommand(mc,
-                               object,
-                               commandErrorMessage)) {
+        bool successFlag(false);
+        switch (mc->getCommandType()) {
+            case WuQMacroCommandTypeEnum::CUSTOM_OPERATION:
+                successFlag =WuQMacroManager::instance()->executeCustomOperationMacroCommand(window,
+                                                                                             mc,
+                                                                                             commandErrorMessage);
+
+                break;
+            case WuQMacroCommandTypeEnum::MOUSE:
+            {
+                bool notFoundFlag(false);
+                successFlag = runMouseCommand(mc,
+                                              object,
+                                              commandErrorMessage,
+                                              notFoundFlag);
+            }
+                break;
+            case WuQMacroCommandTypeEnum::WIDGET:
+                successFlag = runMacroCommand(window,
+                                              mc,
+                                              object,
+                                              commandErrorMessage);
+                break;
+        }
+        
+        if ( ! successFlag) {
             errorMessageOut.append(commandErrorMessage + "\n");
             if (m_runOptions.isStopOnError()) {
                 return false;
@@ -332,7 +356,7 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
         }
         
         QGuiApplication::processEvents();
-        if (mc->getClassType() != WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
+        if (mc->getCommandType() != WuQMacroCommandTypeEnum::MOUSE) {
             if (mc->getDelayInSeconds() > 0.0) {
                 SystemUtilities::sleepSeconds(mc->getDelayInSeconds());
             }
@@ -347,19 +371,20 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
 /**
  * Run the commands in the given macro.
  *
+ * @param parentWidget
+ *    Parent widget for dialogs
  * @param macroCommand
  *    Macro command that is run
- * @param window
- *    The window from which macro was launched
- * @param stopOnErrorFlag
- *    If true, stop running the commands if there is an error
+ * @param object
+ *    Object on which command is run
  * @param errorMessageOut
  *    Output containing any error messages
  * @return
  *    True if the macro completed without errors, else false.
  */
 bool
-WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
+WuQMacroExecutor::runMacroCommand(QWidget* parentWidget,
+                                  const WuQMacroCommand* macroCommand,
                                   QObject* object,
                                   QString& errorMessageOut) const
 {
@@ -368,73 +393,70 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
     CaretAssert(macroCommand);
     CaretAssert(object);
     
-    const WuQMacroClassTypeEnum::Enum classType = macroCommand->getClassType();
+    const WuQMacroWidgetTypeEnum::Enum classType = macroCommand->getWidgetType();
     
     QString objectErrorMessage;
     bool notFoundFlag(false);
     switch (classType) {
-        case WuQMacroClassTypeEnum::ACTION:
+        case WuQMacroWidgetTypeEnum::ACTION:
             runActionCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
+        case WuQMacroWidgetTypeEnum::ACTION_CHECKABLE:
             runActionCheckableCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::ACTION_GROUP:
+        case WuQMacroWidgetTypeEnum::ACTION_GROUP:
             runActionGroupCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::BUTTON_GROUP:
+        case WuQMacroWidgetTypeEnum::BUTTON_GROUP:
             runButtonGroupCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::CHECK_BOX:
+        case WuQMacroWidgetTypeEnum::CHECK_BOX:
             runCheckBoxCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::COMBO_BOX:
-            runComboBoxCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::COMBO_BOX:
+            runComboBoxCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
-            runDoubleSpinBoxCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::DOUBLE_SPIN_BOX:
+            runDoubleSpinBoxCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::INVALID:
+        case WuQMacroWidgetTypeEnum::INVALID:
             CaretAssert(0);
             break;
-        case WuQMacroClassTypeEnum::LINE_EDIT:
-            runLineEditCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::LINE_EDIT:
+            runLineEditCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::LIST_WIDGET:
-            runListWidgetCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::LIST_WIDGET:
+            runListWidgetCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
              break;
-        case WuQMacroClassTypeEnum::MENU:
-            runMenuCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::MENU:
+            runMenuCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
-            return runMouseCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::PUSH_BUTTON:
+            runPushButtonCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON:
-            runPushButtonCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::PUSH_BUTTON_CHECKABLE:
+            runPushButtonCheckableCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
-            runPushButtonCheckableCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::RADIO_BUTTON:
+            runRadioButtonCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::RADIO_BUTTON:
-            runRadioButtonCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::SLIDER:
+            runSliderCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::SLIDER:
-            runSliderCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::SPIN_BOX:
+            runSpinBoxCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::SPIN_BOX:
-            runSpinBoxCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::TAB_BAR:
+            runTabBarCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::TAB_BAR:
-            runTabBarCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::TAB_WIDGET:
+            runTabWidgetCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::TAB_WIDGET:
-            runTabWidgetCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::TOOL_BUTTON:
+            runToolButtonCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON:
-            runToolButtonCommand(macroCommand, object, errorMessageOut, notFoundFlag);
-            break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
-            runToolButtonCheckableCommand(macroCommand, object, errorMessageOut, notFoundFlag);
+        case WuQMacroWidgetTypeEnum::TOOL_BUTTON_CHECKABLE:
+            runToolButtonCheckableCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
     }
     
@@ -442,7 +464,7 @@ WuQMacroExecutor::runMacroCommand(const WuQMacroCommand* macroCommand,
         errorMessageOut = ("ERROR: Unable to cast object named "
                            + object->objectName()
                            + " to "
-                           + WuQMacroClassTypeEnum::toGuiName(classType));
+                           + WuQMacroWidgetTypeEnum::toGuiName(classType));
         return false;
     }
     else if ( ! objectErrorMessage.isEmpty()) {

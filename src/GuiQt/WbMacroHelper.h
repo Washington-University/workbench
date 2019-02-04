@@ -1,5 +1,5 @@
-#ifndef __GUI_MACRO_HELPER_H__
-#define __GUI_MACRO_HELPER_H__
+#ifndef __WB_MACRO_HELPER_H__
+#define __WB_MACRO_HELPER_H__
 
 /*LICENSE_START*/
 /*
@@ -27,28 +27,29 @@
 #include "EventListenerInterface.h"
 #include "WuQMacroHelperInterface.h"
 
+class QWidget;
 
 namespace caret {
 
-    class GuiMacroHelper : public WuQMacroHelperInterface, public EventListenerInterface {
+    class WbMacroHelper : public WuQMacroHelperInterface, public EventListenerInterface {
         Q_OBJECT
         
     public:
-        GuiMacroHelper(QObject* parent);
+        WbMacroHelper(QObject* parent);
         
-        virtual ~GuiMacroHelper();
+        virtual ~WbMacroHelper();
         
-        GuiMacroHelper(const GuiMacroHelper&) = delete;
+        WbMacroHelper(const WbMacroHelper&) = delete;
 
-        GuiMacroHelper& operator=(const GuiMacroHelper&) = delete;
+        WbMacroHelper& operator=(const WbMacroHelper&) = delete;
         
         void receiveEvent(Event* event) override;
         
-        virtual std::vector<WuQMacroGroup*> getMacroGroups();
+        virtual std::vector<WuQMacroGroup*> getMacroGroups() override;
         
-        virtual void macroWasModified(WuQMacro* macro);
+        virtual void macroWasModified(WuQMacro* macro) override;
         
-        virtual void macroGroupWasModified(WuQMacroGroup* macroGroup);
+        virtual void macroGroupWasModified(WuQMacroGroup* macroGroup) override;
 
         // ADD_NEW_METHODS_HERE
         
@@ -57,9 +58,9 @@ namespace caret {
 
     };
     
-#ifdef __GUI_MACRO_HELPER_DECLARE__
+#ifdef __WB_MACRO_HELPER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GUI_MACRO_HELPER_DECLARE__
+#endif // __WB_MACRO_HELPER_DECLARE__
 
 } // namespace
-#endif  //__GUI_MACRO_HELPER_H__
+#endif  //__WB_MACRO_HELPER_H__

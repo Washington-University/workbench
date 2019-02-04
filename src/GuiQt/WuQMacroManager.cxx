@@ -41,6 +41,7 @@
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCreateDialog.h"
+#include "WuQMacroCustomOperationManagerInterface.h"
 #include "WuQMacroDialog.h"
 #include "WuQMacroExecutor.h"
 #include "WuQMacroFile.h"
@@ -87,6 +88,11 @@ WuQMacroManager::~WuQMacroManager()
      */
     m_signalWatchers.clear();
     
+    if (m_customCommandManager != NULL) {
+        delete m_customCommandManager;
+        m_customCommandManager = NULL;
+    }
+    
     /*
      * If an instance is being deleted it MUST be the
      * singleton so make it NULL.
@@ -132,6 +138,19 @@ WuQMacroManager::setMacroHelper(WuQMacroHelperInterface* macroHelper)
         QObject::connect(macroHelper, &WuQMacroHelperInterface::requestDialogsUpdate,
                          this, &WuQMacroManager::updateNonModalDialogs);
     }
+}
+
+/**
+ * Set the custom command manager for editing custom command parameters and
+ * running custom commands
+ *
+ * @param customCommandManager
+ *    Pointer to custom command manager
+ */
+void
+WuQMacroManager::setCustomCommandManager(WuQMacroCustomOperationManagerInterface* customCommandManager)
+{
+    m_customCommandManager = customCommandManager;
 }
 
 /**
@@ -235,25 +254,6 @@ WuQMacroManager::addMacroSupportToObjectWithToolTip(QObject* object,
         return false;
     }
 }
-
-///**
-// * Add macro support to the given object.  When recording,
-// * The object's 'value changed' signal will be monitored so
-// * that the new value can be part of a macro command.
-// *
-// * @param object
-// *     Object that is monitored.
-// * @param toolTipTextOverride
-// *     Override of object's tooltip.  This is primarily used when
-// *     an object of a particular class does not support a tooltip
-// *     such as a QButtonGroup
-// */
-//bool
-//WuQMacroManager::addMacroSupportToObject(QObject* object)
-//{
-//    return addMacroSupportToObject(object,
-//                                   "IN WORK");
-//}
 
 /**
  * Add macro support to the given object.  When recording,
@@ -396,11 +396,17 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
             mouseInfo->addLocalXY(me->localPos().x(),
                                   me->localPos().y());
         
-            m_macroBeingRecorded->appendMacroCommand(new WuQMacroCommand(name,
-                                                                         descriptiveName,
-                                                                         mouseInfo));
+            const int32_t versionNumber(1);
+            QString errorMessage;
+            WuQMacroCommand* command = WuQMacroCommand::newInstanceMouseCommand(mouseInfo,
+                                                                                versionNumber,
+                                                                                name,
+                                                                                descriptiveName,
+                                                                                "mouse operation",
+                                                                                1.0,
+                                                                                errorMessage);
+            m_macroBeingRecorded->appendMacroCommand(command);
             return true;
-
         }
     }
     
@@ -897,5 +903,105 @@ WuQMacroManager::getShortCutKeysMask()
     return mask;
 }
 
+/**
+ * Is called to edit a macro command parameter with a CUSTOM_DATA data type
+ *
+ * @param parent
+ *     Parent widget for any dialogs
+ * @param parameter
+ *     Parameter for editing
+ * @return
+ *     True if the parameter was modified
+ */
+bool
+WuQMacroManager::editCustomDataValueParameter(QWidget* parent,
+                                            WuQMacroCommandParameter* parameter)
+{
+    bool modFlag(false);
+    
+    if (m_customCommandManager != NULL) {
+        modFlag = m_customCommandManager->editCustomDataValueParameter(parent,
+                                                                       parameter);
+    }
+    else {
+        CaretLogSevere("No Macro Helper available for editing custom values in a macro parameter");
+    }
+    
+    return modFlag;
+}
 
+/**
+ * Run a custom-defined macro command
+ *
+ * @param parent
+ *     Parent widget for any dialogs
+ * @param macroCommand
+ *     Custom macro command to run
+ * @param errorMessageOut
+ *     Contains any error information or empty if no error
+ */
+bool
+WuQMacroManager::executeCustomOperationMacroCommand(QWidget* parent,
+                                           const WuQMacroCommand* macroCommand,
+                                           QString& errorMessageOut)
+{
+    CaretAssert(parent);
+    CaretAssert(macroCommand);
 
+    errorMessageOut.clear();
+    
+    bool successFlag(false);
+    if (m_customCommandManager != NULL) {
+        successFlag = m_customCommandManager->executeCustomOperationMacroCommand(parent,
+                                                                                 macroCommand,
+                                                                                 errorMessageOut);
+    }
+    else {
+        CaretLogSevere("No Macro Helper available for running custom macro commands");
+    }
+    
+    return successFlag;
+}
+
+/**
+ * @return Names of custom operation defined macro commands
+ */
+std::vector<QString>
+WuQMacroManager::getNamesOfCustomOperationMacroCommands()
+{
+    std::vector<QString> names;
+    
+    if (m_customCommandManager != NULL) {
+        names = m_customCommandManager->getNamesOfCustomOperationMacroCommands();
+    }
+
+    return names;
+}
+
+/**
+ * Get a new instance of a custom operation for the given macro command name
+ *
+ * @param customMacroCommandName
+ *     Name of custom macro command
+ * @param errorMessageOut
+ *     Contains any error information or empty if no error
+ * @return
+ *     Pointer to command or NULL if not valid
+ */
+WuQMacroCommand*
+WuQMacroManager::newInstanceOfCustomOperationMacroCommand(const QString& macroCommandName,
+                                                          QString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    WuQMacroCommand* command(NULL);
+    
+    if (m_customCommandManager != NULL) {
+        command = m_customCommandManager->newInstanceOfCustomOperationMacroCommand(macroCommandName,
+                                                                                   errorMessageOut);
+    }
+    else {
+        errorMessageOut = "No Custom Operation Manager is available for creating custom commands";
+    }
+    
+    return command;
+}

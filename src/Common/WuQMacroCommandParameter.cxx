@@ -110,6 +110,7 @@ WuQMacroCommandParameter::copyHelperWuQMacroCommandParameter(const WuQMacroComma
 {
     m_dataType = obj.m_dataType;
     m_name     = obj.m_name;
+    m_customDataType = obj.m_customDataType;
     m_value    = obj.m_value;
     setModified();
 }
@@ -152,6 +153,32 @@ WuQMacroCommandParameter::setValue(const QVariant& value)
 {
     if (value != m_value) {
         m_value = value;
+        setModified();
+    }
+}
+
+/**
+ * @return The custom type data type that defines the data when
+ * getDataType() is CUSTOM_DATA
+ */
+QString
+WuQMacroCommandParameter::getCustomDataType() const
+{
+    return m_customDataType;
+}
+
+/**
+ * Set the custom type data type that defines the data when
+ * getDataType() is CUSTOM_DATA
+ *
+ * @param customDataType
+ *     The custom data type
+ */
+void
+WuQMacroCommandParameter::setCustomDataType(const QString& customDataType)
+{
+    if (m_customDataType != customDataType) {
+        m_customDataType = customDataType;
         setModified();
     }
 }

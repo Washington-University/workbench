@@ -25,7 +25,9 @@
 
 #include <memory>
 
+#include "WuQMacroCommandTypeEnum.h"
 #include "WuQMacroGroupXmlStreamBase.h"
+#include "WuQMacroWidgetTypeEnum.h"
 
 class QXmlStreamReader;
 
@@ -58,6 +60,20 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        class MacroCommandContent {
+        public:
+            WuQMacroCommandTypeEnum::Enum m_commandType = WuQMacroCommandTypeEnum::WIDGET;
+            QString m_customOperationTypeName;
+            WuQMacroMouseEventInfo* m_mouseInfo = NULL; // DO NOT DELETE
+            WuQMacroWidgetTypeEnum::Enum m_widgetType = WuQMacroWidgetTypeEnum::INVALID;
+            int32_t m_version = - 1;
+            QString m_objectName;
+            QString m_descriptiveName;
+            QString m_toolTip;
+            float m_delay = 1.0f;
+            std::vector<WuQMacroCommandParameter*> m_parameters; // DO NOT DELETE
+        };
+
         WuQMacroMouseEventInfo* readMacroMouseEventInfo(QXmlStreamReader& xmlReader);
         
         void readVersionOne(QXmlStreamReader& xmlReader,
@@ -65,7 +81,7 @@ namespace caret {
         
         WuQMacro* readMacroVersionOne(QXmlStreamReader& xmlReader);
         
-        WuQMacroCommand* readMacroCommandAttributesVersionOne(QXmlStreamReader& xmlReader);
+        MacroCommandContent* readMacroCommandAttributesVersionOne(QXmlStreamReader& xmlReader);
         
         WuQMacroCommand* readMacroCommandVersionOne(QXmlStreamReader& xmlReader);
         

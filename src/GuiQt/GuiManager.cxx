@@ -86,7 +86,8 @@
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
 #include "GapsAndMarginsDialog.h"
-#include "GuiMacroHelper.h"
+#include "WbMacroCustomOperationManager.h"
+#include "WbMacroHelper.h"
 #include "HelpViewerDialog.h"
 #include "IdentifiedItemNode.h"
 #include "IdentifiedItemVoxel.h"
@@ -123,7 +124,7 @@
 #include "TileTabsConfigurationDialog.h"
 #include "VolumeMappableInterface.h"
 #include "WuQMacroManager.h"
-#include "WuQMacroClassTypeEnum.h"
+#include "WuQMacroWidgetTypeEnum.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -193,12 +194,13 @@ GuiManager::initializeGuiManager()
      * of GuiManager and not found when searching a window
      * for children objects
      */
-    WuQMacroClassTypeEnum::addWidgetClassNameAlias("QTabWidget",
+    WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QTabWidget",
                                                     "caret::WuQTabWidgetWithSizeHint");
-    WuQMacroClassTypeEnum::addWidgetClassNameAlias("QTabBar",
+    WuQMacroWidgetTypeEnum::addWidgetClassNameAlias("QTabBar",
                                                     "caret::WuQTabBar");
     WuQMacroManager::instance()->addParentObject(this);
-    WuQMacroManager::instance()->setMacroHelper(new GuiMacroHelper(this));
+    WuQMacroManager::instance()->setMacroHelper(new WbMacroHelper(this));
+    WuQMacroManager::instance()->setCustomCommandManager(new WbMacroCustomOperationManager());
     
     /*
      * Windows vector never changes size

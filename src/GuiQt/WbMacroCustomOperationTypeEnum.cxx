@@ -1,7 +1,7 @@
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2018 Washington University School of Medicine
+ *  Copyright (C) 2019 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __WU_Q_MACRO_DATA_VALUE_TYPE_ENUM_DECLARE__
-#include "WuQMacroDataValueTypeEnum.h"
-#undef __WU_Q_MACRO_DATA_VALUE_TYPE_ENUM_DECLARE__
+#define __WB_MACRO_CUSTOM_OPERATION_TYPE_ENUM_DECLARE__
+#include "WbMacroCustomOperationTypeEnum.h"
+#undef __WB_MACRO_CUSTOM_OPERATION_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::WuQMacroDataValueTypeEnum 
- * \brief Enumerated type for macro data values
+ * \class caret::WbMacroCustomOperationTypeEnum
+ * \brief Enumerated type for a user defined macro command
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_wuQMacroDataValueTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_WbMacroCustomOperationTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void wuQMacroDataValueTypeEnumComboBoxItemActivated();
+ *             void WbMacroCustomOperationTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "WuQMacroDataValueTypeEnum.h"
+ *         #include "WbMacroCustomOperationTypeEnum.h"
  * 
  *     Instatiate:
- *         m_wuQMacroDataValueTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_wuQMacroDataValueTypeEnumComboBox->setup<WuQMacroDataValueTypeEnum,WuQMacroDataValueTypeEnum::Enum>();
+ *         m_WbMacroCustomOperationTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_WbMacroCustomOperationTypeEnumComboBox->setup<WbMacroCustomOperationTypeEnum,WbMacroCustomOperationTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_wuQMacroDataValueTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(wuQMacroDataValueTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_WbMacroCustomOperationTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(WbMacroCustomOperationTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_wuQMacroDataValueTypeEnumComboBox->setSelectedItem<WuQMacroDataValueTypeEnum,WuQMacroDataValueTypeEnum::Enum>(NEW_VALUE);
+ *         m_WbMacroCustomOperationTypeEnumComboBox->setSelectedItem<WbMacroCustomOperationTypeEnum,WbMacroCustomOperationTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const WuQMacroDataValueTypeEnum::Enum VARIABLE = m_wuQMacroDataValueTypeEnumComboBox->getSelectedItem<WuQMacroDataValueTypeEnum,WuQMacroDataValueTypeEnum::Enum>();
+ *         const WbMacroCustomOperationTypeEnum::Enum VARIABLE = m_WbMacroCustomOperationTypeEnumComboBox->getSelectedItem<WbMacroCustomOperationTypeEnum,WbMacroCustomOperationTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-WuQMacroDataValueTypeEnum::WuQMacroDataValueTypeEnum(const Enum enumValue,
+WbMacroCustomOperationTypeEnum::WbMacroCustomOperationTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ WuQMacroDataValueTypeEnum::WuQMacroDataValueTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-WuQMacroDataValueTypeEnum::~WuQMacroDataValueTypeEnum()
+WbMacroCustomOperationTypeEnum::~WbMacroCustomOperationTypeEnum()
 {
 }
 
@@ -99,44 +99,17 @@ WuQMacroDataValueTypeEnum::~WuQMacroDataValueTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-WuQMacroDataValueTypeEnum::initialize()
+WbMacroCustomOperationTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(WuQMacroDataValueTypeEnum(INVALID,
-                                    "INVALID",
-                                    "Invalid"));
+    enumData.push_back(WbMacroCustomOperationTypeEnum(SURFACE_INTERPOLATION,
+                                    "SURFACE_INTERPOLATION", 
+                                    "Surface Interpolation"));
     
-    enumData.push_back(WuQMacroDataValueTypeEnum(BOOLEAN,
-                                                 "BOOLEAN",
-                                                 "Boolean"));
-    
-    enumData.push_back(WuQMacroDataValueTypeEnum(CUSTOM_DATA,
-                                                 "CUSTOM_DATA",
-                                                 "CustomData"));
-    
-    enumData.push_back(WuQMacroDataValueTypeEnum(FLOAT,
-                                    "FLOAT", 
-                                    "Float"));
-    
-    enumData.push_back(WuQMacroDataValueTypeEnum(INTEGER, 
-                                    "INTEGER", 
-                                    "Integer"));
-    
-    enumData.push_back(WuQMacroDataValueTypeEnum(MOUSE, 
-                                    "MOUSE", 
-                                    "Mouse"));
-    
-    enumData.push_back(WuQMacroDataValueTypeEnum(NONE,
-                                                 "NONE",
-                                                 "None"));
-    
-    enumData.push_back(WuQMacroDataValueTypeEnum(STRING,
-                                    "STRING", 
-                                    "String"));
 }
 
 /**
@@ -146,14 +119,14 @@ WuQMacroDataValueTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const WuQMacroDataValueTypeEnum*
-WuQMacroDataValueTypeEnum::findData(const Enum enumValue)
+const WbMacroCustomOperationTypeEnum*
+WbMacroCustomOperationTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const WuQMacroDataValueTypeEnum* d = &enumData[i];
+        const WbMacroCustomOperationTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -170,10 +143,10 @@ WuQMacroDataValueTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-WuQMacroDataValueTypeEnum::toName(Enum enumValue) {
+WbMacroCustomOperationTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const WuQMacroDataValueTypeEnum* enumInstance = findData(enumValue);
+    const WbMacroCustomOperationTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -187,18 +160,18 @@ WuQMacroDataValueTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-WuQMacroDataValueTypeEnum::Enum 
-WuQMacroDataValueTypeEnum::fromName(const AString& name, bool* isValidOut)
+WbMacroCustomOperationTypeEnum::Enum
+WbMacroCustomOperationTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = WuQMacroDataValueTypeEnum::enumData[0].enumValue;
+    Enum enumValue = WbMacroCustomOperationTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<WuQMacroDataValueTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WbMacroCustomOperationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const WuQMacroDataValueTypeEnum& d = *iter;
+        const WbMacroCustomOperationTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -210,7 +183,7 @@ WuQMacroDataValueTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type WuQMacroDataValueTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type WbMacroCustomOperationTypeEnum"));
     }
     return enumValue;
 }
@@ -223,10 +196,10 @@ WuQMacroDataValueTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-WuQMacroDataValueTypeEnum::toGuiName(Enum enumValue) {
+WbMacroCustomOperationTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const WuQMacroDataValueTypeEnum* enumInstance = findData(enumValue);
+    const WbMacroCustomOperationTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -240,18 +213,18 @@ WuQMacroDataValueTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-WuQMacroDataValueTypeEnum::Enum 
-WuQMacroDataValueTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+WbMacroCustomOperationTypeEnum::Enum
+WbMacroCustomOperationTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = WuQMacroDataValueTypeEnum::enumData[0].enumValue;
+    Enum enumValue = WbMacroCustomOperationTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<WuQMacroDataValueTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WbMacroCustomOperationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const WuQMacroDataValueTypeEnum& d = *iter;
+        const WbMacroCustomOperationTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -263,7 +236,7 @@ WuQMacroDataValueTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type WuQMacroDataValueTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type WbMacroCustomOperationTypeEnum"));
     }
     return enumValue;
 }
@@ -275,10 +248,10 @@ WuQMacroDataValueTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-WuQMacroDataValueTypeEnum::toIntegerCode(Enum enumValue)
+WbMacroCustomOperationTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const WuQMacroDataValueTypeEnum* enumInstance = findData(enumValue);
+    const WbMacroCustomOperationTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -293,18 +266,18 @@ WuQMacroDataValueTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-WuQMacroDataValueTypeEnum::Enum
-WuQMacroDataValueTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+WbMacroCustomOperationTypeEnum::Enum
+WbMacroCustomOperationTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = WuQMacroDataValueTypeEnum::enumData[0].enumValue;
+    Enum enumValue = WbMacroCustomOperationTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<WuQMacroDataValueTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WbMacroCustomOperationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const WuQMacroDataValueTypeEnum& enumInstance = *iter;
+        const WbMacroCustomOperationTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -316,7 +289,7 @@ WuQMacroDataValueTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isVa
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type WuQMacroDataValueTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type WbMacroCustomOperationTypeEnum"));
     }
     return enumValue;
 }
@@ -329,13 +302,13 @@ WuQMacroDataValueTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isVa
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-WuQMacroDataValueTypeEnum::getAllEnums(std::vector<WuQMacroDataValueTypeEnum::Enum>& allEnums)
+WbMacroCustomOperationTypeEnum::getAllEnums(std::vector<WbMacroCustomOperationTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<WuQMacroDataValueTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WbMacroCustomOperationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -351,16 +324,16 @@ WuQMacroDataValueTypeEnum::getAllEnums(std::vector<WuQMacroDataValueTypeEnum::En
  *     If true, the names are sorted in alphabetical order.
  */
 void
-WuQMacroDataValueTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+WbMacroCustomOperationTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<WuQMacroDataValueTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WbMacroCustomOperationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(WuQMacroDataValueTypeEnum::toName(iter->enumValue));
+        allNames.push_back(WbMacroCustomOperationTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -377,16 +350,16 @@ WuQMacroDataValueTypeEnum::getAllNames(std::vector<AString>& allNames, const boo
  *     If true, the names are sorted in alphabetical order.
  */
 void
-WuQMacroDataValueTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+WbMacroCustomOperationTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<WuQMacroDataValueTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<WbMacroCustomOperationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(WuQMacroDataValueTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(WbMacroCustomOperationTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

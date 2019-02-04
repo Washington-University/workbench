@@ -71,7 +71,7 @@ using namespace caret;
  */
 WuQMacroSignalWatcher::WuQMacroSignalWatcher(WuQMacroManager* parentMacroManager,
                                              QObject* object,
-                                             const WuQMacroClassTypeEnum::Enum objectType,
+                                             const WuQMacroWidgetTypeEnum::Enum objectType,
                                              const QString& descriptiveName,
                                              const QString& toolTipTextOverride)
 : QObject(),
@@ -90,7 +90,7 @@ m_objectName(object->objectName())
     }
     
     switch (m_objectType) {
-        case WuQMacroClassTypeEnum::ACTION:
+        case WuQMacroWidgetTypeEnum::ACTION:
         {
             QAction* action = qobject_cast<QAction*>(m_object);
             CaretAssert(action);
@@ -99,7 +99,7 @@ m_objectName(object->objectName())
             m_toolTipText = action->toolTip();
         }
             break;
-        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
+        case WuQMacroWidgetTypeEnum::ACTION_CHECKABLE:
         {
             QAction* action = qobject_cast<QAction*>(m_object);
             CaretAssert(action);
@@ -108,7 +108,7 @@ m_objectName(object->objectName())
             m_toolTipText = action->toolTip();
         }
             break;
-        case WuQMacroClassTypeEnum::ACTION_GROUP:
+        case WuQMacroWidgetTypeEnum::ACTION_GROUP:
         {
             QActionGroup* actionGroup = qobject_cast<QActionGroup*>(m_object);
             CaretAssert(actionGroup);
@@ -116,7 +116,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::actionGroupTriggered);
         }
             break;
-        case WuQMacroClassTypeEnum::BUTTON_GROUP:
+        case WuQMacroWidgetTypeEnum::BUTTON_GROUP:
         {
             QButtonGroup* buttonGroup = qobject_cast<QButtonGroup*>(m_object);
             CaretAssert(buttonGroup);
@@ -124,7 +124,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::buttonGroupButtonClicked);
         }
             break;
-        case WuQMacroClassTypeEnum::CHECK_BOX:
+        case WuQMacroWidgetTypeEnum::CHECK_BOX:
         {
             QCheckBox* checkBox = qobject_cast<QCheckBox*>(m_object);
             CaretAssert(checkBox);
@@ -132,7 +132,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::checkBoxClicked);
         }
             break;
-        case WuQMacroClassTypeEnum::COMBO_BOX:
+        case WuQMacroWidgetTypeEnum::COMBO_BOX:
         {
             QComboBox* comboBox = qobject_cast<QComboBox*>(m_object);
             CaretAssert(comboBox);
@@ -140,7 +140,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::comboBoxActivated);
         }
             break;
-        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
+        case WuQMacroWidgetTypeEnum::DOUBLE_SPIN_BOX:
         {
             QDoubleSpinBox* spinBox = qobject_cast<QDoubleSpinBox*>(m_object);
             CaretAssert(spinBox);
@@ -148,10 +148,10 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::doubleSpinBoxValueChanged);
         }
             break;
-        case WuQMacroClassTypeEnum::INVALID:
+        case WuQMacroWidgetTypeEnum::INVALID:
             CaretAssert(0);
             break;
-        case WuQMacroClassTypeEnum::LINE_EDIT:
+        case WuQMacroWidgetTypeEnum::LINE_EDIT:
         {
             QLineEdit* lineEdit = qobject_cast<QLineEdit*>(m_object);
             CaretAssert(lineEdit);
@@ -159,7 +159,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::lineEditTextEdited);
         }
             break;
-        case WuQMacroClassTypeEnum::LIST_WIDGET:
+        case WuQMacroWidgetTypeEnum::LIST_WIDGET:
         {
             QListWidget* listWidget = qobject_cast<QListWidget*>(m_object);
             CaretAssert(listWidget);
@@ -167,7 +167,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::listWidgetItemActivated);
         }
             break;
-        case WuQMacroClassTypeEnum::MENU:
+        case WuQMacroWidgetTypeEnum::MENU:
         {
             QMenu* menu = qobject_cast<QMenu*>(m_object);
             CaretAssert(menu);
@@ -175,10 +175,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::menuTriggered);
         }
             break;
-        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
-            CaretAssertToDoFatal();
-            break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON:
+        case WuQMacroWidgetTypeEnum::PUSH_BUTTON:
         {
             QPushButton* pushButton = qobject_cast<QPushButton*>(m_object);
             CaretAssert(pushButton);
@@ -186,7 +183,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::pushButtonClicked);
         }
             break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
+        case WuQMacroWidgetTypeEnum::PUSH_BUTTON_CHECKABLE:
         {
             QPushButton* pushButton = qobject_cast<QPushButton*>(m_object);
             CaretAssert(pushButton);
@@ -194,7 +191,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::pushButtonClicked);
         }
             break;
-        case WuQMacroClassTypeEnum::RADIO_BUTTON:
+        case WuQMacroWidgetTypeEnum::RADIO_BUTTON:
         {
             QRadioButton* radioButton = qobject_cast<QRadioButton*>(m_object);
             CaretAssert(radioButton);
@@ -202,7 +199,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::radioButtonClicked);
         }
             break;
-        case WuQMacroClassTypeEnum::SLIDER:
+        case WuQMacroWidgetTypeEnum::SLIDER:
         {
             QSlider* slider = qobject_cast<QSlider*>(m_object);
             CaretAssert(slider);
@@ -210,7 +207,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::sliderValueChanged);
         }
             break;
-        case WuQMacroClassTypeEnum::SPIN_BOX:
+        case WuQMacroWidgetTypeEnum::SPIN_BOX:
         {
             QSpinBox* spinBox = qobject_cast<QSpinBox*>(m_object);
             CaretAssert(spinBox);
@@ -218,7 +215,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::spinBoxValueChanged);
         }
             break;
-        case WuQMacroClassTypeEnum::TAB_BAR:
+        case WuQMacroWidgetTypeEnum::TAB_BAR:
         {
             QTabBar* tabBar = qobject_cast<QTabBar*>(m_object);
             CaretAssert(tabBar);
@@ -226,7 +223,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::tabBarCurrentChanged);
         }
             break;
-        case WuQMacroClassTypeEnum::TAB_WIDGET:
+        case WuQMacroWidgetTypeEnum::TAB_WIDGET:
         {
             QTabWidget* tabWidget = qobject_cast<QTabWidget*>(m_object);
             CaretAssert(tabWidget);
@@ -234,7 +231,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::tabWidgetCurrentChanged);
         }
             break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON:
+        case WuQMacroWidgetTypeEnum::TOOL_BUTTON:
         {
             QToolButton* toolButton = qobject_cast<QToolButton*>(m_object);
             CaretAssert(toolButton);
@@ -242,7 +239,7 @@ m_objectName(object->objectName())
                              this, &WuQMacroSignalWatcher::toolButtonClicked);
         }
             break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
+        case WuQMacroWidgetTypeEnum::TOOL_BUTTON_CHECKABLE:
         {
             QToolButton* toolButton = qobject_cast<QToolButton*>(m_object);
             CaretAssert(toolButton);
@@ -338,7 +335,7 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
     QString objectClassName = object->metaObject()->className();
     
     bool validFlag(false);
-    WuQMacroClassTypeEnum::Enum objectType = WuQMacroClassTypeEnum::fromGuiName(objectClassName,
+    WuQMacroWidgetTypeEnum::Enum objectType = WuQMacroWidgetTypeEnum::fromGuiName(objectClassName,
                                                                                   &validFlag);
 
     /*
@@ -347,7 +344,7 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
      * must be handled differently.
      */
     switch (objectType) {
-        case WuQMacroClassTypeEnum::ACTION:
+        case WuQMacroWidgetTypeEnum::ACTION:
         {
             /*
              * Actions may have a 'checkable' status enabled
@@ -364,7 +361,7 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
                 /*
                  * Probably checkable
                  */
-                objectType = WuQMacroClassTypeEnum::ACTION_CHECKABLE;
+                objectType = WuQMacroWidgetTypeEnum::ACTION_CHECKABLE;
                 
                 const QActionGroup* actionGroup = action->actionGroup();
                 if (actionGroup != NULL) {
@@ -373,36 +370,34 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
                          * In an exclusive group, actions CANNOT be
                          * uchecked so treat as non-checkable action
                          */
-                        objectType = WuQMacroClassTypeEnum::ACTION;
+                        objectType = WuQMacroWidgetTypeEnum::ACTION;
                     }
                 }
             }
         }
             break;
-        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
+        case WuQMacroWidgetTypeEnum::ACTION_CHECKABLE:
             CaretAssertMessage(0, "ACTION_CHECKABLE is created by ACTION above");
             break;
-        case WuQMacroClassTypeEnum::ACTION_GROUP:
+        case WuQMacroWidgetTypeEnum::ACTION_GROUP:
             break;
-        case WuQMacroClassTypeEnum::BUTTON_GROUP:
+        case WuQMacroWidgetTypeEnum::BUTTON_GROUP:
             break;
-        case WuQMacroClassTypeEnum::CHECK_BOX:
+        case WuQMacroWidgetTypeEnum::CHECK_BOX:
             break;
-        case WuQMacroClassTypeEnum::COMBO_BOX:
+        case WuQMacroWidgetTypeEnum::COMBO_BOX:
             break;
-        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
+        case WuQMacroWidgetTypeEnum::DOUBLE_SPIN_BOX:
             break;
-        case WuQMacroClassTypeEnum::INVALID:
+        case WuQMacroWidgetTypeEnum::INVALID:
             break;
-        case WuQMacroClassTypeEnum::LINE_EDIT:
+        case WuQMacroWidgetTypeEnum::LINE_EDIT:
             break;
-        case WuQMacroClassTypeEnum::LIST_WIDGET:
+        case WuQMacroWidgetTypeEnum::LIST_WIDGET:
             break;
-        case WuQMacroClassTypeEnum::MENU:
+        case WuQMacroWidgetTypeEnum::MENU:
             break;
-        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
-            break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON:
+        case WuQMacroWidgetTypeEnum::PUSH_BUTTON:
         {
             /*
              * Buttons may have a 'checkable' status enabled
@@ -419,7 +414,7 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
                 /*
                  * Probably checkable
                  */
-                objectType = WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE;
+                objectType = WuQMacroWidgetTypeEnum::PUSH_BUTTON_CHECKABLE;
                 
                 const QButtonGroup* buttonGroup = button->group();
                 if (buttonGroup != NULL) {
@@ -428,26 +423,26 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
                          * In an exclusive group, buttons CANNOT be
                          * uchecked so treat as non-checkable button
                          */
-                        objectType = WuQMacroClassTypeEnum::PUSH_BUTTON;
+                        objectType = WuQMacroWidgetTypeEnum::PUSH_BUTTON;
                     }
                 }
             }
         }
             break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
+        case WuQMacroWidgetTypeEnum::PUSH_BUTTON_CHECKABLE:
             CaretAssertMessage(0, "PUSH_BUTTON_CHECKABLE is created by PUSH_BUTTON case above");
             break;
-        case WuQMacroClassTypeEnum::RADIO_BUTTON:
+        case WuQMacroWidgetTypeEnum::RADIO_BUTTON:
             break;
-        case WuQMacroClassTypeEnum::SLIDER:
+        case WuQMacroWidgetTypeEnum::SLIDER:
             break;
-        case WuQMacroClassTypeEnum::SPIN_BOX:
+        case WuQMacroWidgetTypeEnum::SPIN_BOX:
             break;
-        case WuQMacroClassTypeEnum::TAB_BAR:
+        case WuQMacroWidgetTypeEnum::TAB_BAR:
             break;
-        case WuQMacroClassTypeEnum::TAB_WIDGET:
+        case WuQMacroWidgetTypeEnum::TAB_WIDGET:
             break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON:
+        case WuQMacroWidgetTypeEnum::TOOL_BUTTON:
         {
             /*
              * Buttons may have a 'checkable' status enabled
@@ -464,7 +459,7 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
                 /*
                  * Probably checkable
                  */
-                objectType = WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE;
+                objectType = WuQMacroWidgetTypeEnum::TOOL_BUTTON_CHECKABLE;
                 
                 const QButtonGroup* buttonGroup = button->group();
                 if (buttonGroup != NULL) {
@@ -473,18 +468,18 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
                          * In an exclusive group, buttons CANNOT be
                          * uchecked so treat as non-checkable button
                          */
-                        objectType = WuQMacroClassTypeEnum::TOOL_BUTTON;
+                        objectType = WuQMacroWidgetTypeEnum::TOOL_BUTTON;
                     }
                 }
             }
         }
             break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
+        case WuQMacroWidgetTypeEnum::TOOL_BUTTON_CHECKABLE:
             CaretAssertMessage(0, "TOOL_BUTTON_CHECKABLE is created by TOOL_BUTTON case above");
             break;
     }
 
-    if ((objectType == WuQMacroClassTypeEnum::INVALID)
+    if ((objectType == WuQMacroWidgetTypeEnum::INVALID)
         || ( ! validFlag)) {
         errorMessageOut = ("Widget named \""
                            + object->objectName()
@@ -523,19 +518,38 @@ void
 WuQMacroSignalWatcher::createAndSendMacroCommand(std::vector<WuQMacroCommandParameter*>& parameters)
 {
     if (m_parentMacroManager->isModeRecording()) {
-        WuQMacroCommand* mc = new WuQMacroCommand(m_objectType,
-                                                  m_objectName,
-                                                  m_descriptiveName,
-                                                  m_toolTipText);
-        for (auto p : parameters) {
-            mc->addParameter(p);
+        const int32_t versionNumber(1);
+        QString errorMessage;
+        WuQMacroCommand* mc = WuQMacroCommand::newInstanceWidgetCommand(m_objectType,
+                                                                        versionNumber,
+                                                                        m_objectName,
+                                                                        m_descriptiveName,
+                                                                        m_toolTipText,
+                                                                        1.0,
+                                                                        errorMessage);
+        if (mc != NULL) {
+            for (auto p : parameters) {
+                mc->addParameter(p);
+            }
+            
+            if ( ! m_parentMacroManager->addMacroCommandToRecording(mc)) {
+                delete mc;
+            }
         }
-        
-        if ( ! m_parentMacroManager->addMacroCommandToRecording(mc)) {
-            delete mc;
+        else {
+            for (auto p : parameters) {
+                delete p;
+            }
+            parameters.clear();
+            CaretLogSevere(errorMessage);
         }
     }
-
+    else {
+        for (auto p : parameters) {
+            delete p;
+        }
+        parameters.clear();
+    }
 }
 
 /**
@@ -967,7 +981,7 @@ WuQMacroSignalWatcher::toString() const
 {
     QString s(m_objectName
               + " type="
-              + WuQMacroClassTypeEnum::toGuiName(m_objectType));
+              + WuQMacroWidgetTypeEnum::toGuiName(m_objectType));
     return s;
 }
 

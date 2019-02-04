@@ -29,8 +29,9 @@
 #include <QVariant>
 
 #include "TracksModificationInterface.h"
+#include "WuQMacroCommandTypeEnum.h"
 #include "WuQMacroDataValueTypeEnum.h"
-#include "WuQMacroClassTypeEnum.h"
+#include "WuQMacroWidgetTypeEnum.h"
 
 class QObject;
 
@@ -43,18 +44,39 @@ namespace caret {
         
     public:
         
-        WuQMacroCommand(const WuQMacroClassTypeEnum::Enum objectClassType,
+        static WuQMacroCommand* newInstanceCustomCommand(const QString& customOperationName,
+                                                         const int32_t version,
+                                                         const QString& objectName,
+                                                         const QString& objectDescriptiveName,
+                                                         const QString& objectToolTip,
+                                                         const float delay,
+                                                         QString& errorMessageOut);
+        
+        static WuQMacroCommand* newInstanceMouseCommand(WuQMacroMouseEventInfo* mouseEventInfo,
+                                                        const int32_t version,
+                                                        const QString& objectName,
+                                                        const QString& objectDescriptiveName,
+                                                        const QString& objectToolTip,
+                                                        const float delay,
+                                                        QString& errorMessageOut);
+        
+        static WuQMacroCommand* newInstanceWidgetCommand(const WuQMacroWidgetTypeEnum::Enum widgetType,
+                                                         const int32_t version,
+                                                         const QString& objectName,
+                                                         const QString& objectDescriptiveName,
+                                                         const QString& objectToolTip,
+                                                         const float delay,
+                                                         QString& errorMessageOut);
+        
+        WuQMacroCommand(const WuQMacroCommandTypeEnum::Enum commandType,
+                        const QString& customOperationTypeName,
+                        WuQMacroMouseEventInfo* mouseEventInfo,
+                        const WuQMacroWidgetTypeEnum::Enum widgetType,
+                        const int32_t version,
                         const QString& objectName,
                         const QString& objectDescriptiveName,
-                        const QString& objectToolTip);
-        
-        WuQMacroCommand(const WuQMacroClassTypeEnum::Enum objectClassType,
-                        const QString& objectName,
-                        const QString& objectDescriptiveName);
-        
-        WuQMacroCommand(const QString& objectName,
-                        const QString& objectDescriptiveName,
-                        WuQMacroMouseEventInfo* mouseEventInfo);
+                        const QString& objectToolTip,
+                        const float delayValue);
         
         virtual ~WuQMacroCommand();
         
@@ -62,7 +84,11 @@ namespace caret {
         
         WuQMacroCommand& operator=(const WuQMacroCommand& obj);
         
-        WuQMacroClassTypeEnum::Enum getClassType() const;
+        WuQMacroCommandTypeEnum::Enum getCommandType() const;
+        
+        WuQMacroWidgetTypeEnum::Enum getWidgetType() const;
+        
+        int32_t getVersion() const;
         
         QString getObjectName() const;
         
@@ -96,6 +122,10 @@ namespace caret {
         
         void setDelayInSeconds(const float seconds);
         
+        QString getCustomOperationTypeName() const;
+        
+        void setCustomOperationTypeName(const QString& customOperationTypeName);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual bool isModified() const override;
@@ -115,17 +145,23 @@ namespace caret {
         
         void removeAllParameters();
         
-        WuQMacroClassTypeEnum::Enum m_classType;
+        WuQMacroCommandTypeEnum::Enum m_commandType;
+        
+        QString m_customOperationTypeName;
+        
+        WuQMacroMouseEventInfo* m_macroMouseEvent;
+        
+        WuQMacroWidgetTypeEnum::Enum m_widgetType;
+        
+        int32_t m_version;
         
         QString m_objectName;
         
         QString m_descriptiveName;
         
-        std::vector<WuQMacroCommandParameter*> m_parameters;
-        
-        WuQMacroMouseEventInfo* m_macroMouseEvent;
-        
         float m_delayInSeconds = 1.0f;
+        
+        std::vector<WuQMacroCommandParameter*> m_parameters;
         
         bool m_modifiedStatusFlag = false;
         

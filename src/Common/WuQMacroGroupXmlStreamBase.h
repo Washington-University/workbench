@@ -48,14 +48,16 @@ namespace caret {
 
         virtual AString toString() const;
         
+        static const QString ATTRIBUTE_COMMAND_TYPE;
         static const QString ATTRIBUTE_NAME;
-        static const QString ATTRIBUTE_OBJECT_CLASS;
         static const QString ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME;
         static const QString ATTRIBUTE_DELAY;
         static const QString ATTRIBUTE_SHORT_CUT_KEY;
         static const QString ATTRIBUTE_UNIQUE_IDENTIFIER;
+        static const QString ATTRIBUTE_CUSTOM_OPERATION_TYPE_NAME;
         static const QString ATTRIBUTE_VERSION;
-        
+        static const QString ATTRIBUTE_WIDGET_TYPE;
+
         static const QString ATTRIBUTE_MOUSE_BUTTON;
         static const QString ATTRIBUTE_MOUSE_BUTTONS_MASK;
         static const QString ATTRIBUTE_MOUSE_EVENT_TYPE;
@@ -71,6 +73,7 @@ namespace caret {
         
         static const QString ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE;
         static const QString ATTRIBUTE_MACRO_COMMAND_PARAMETER_NAME;
+        static const QString ATTRIBUTE_MACRO_COMMAND_PARAMETER_CUSTOM_DATA_TYPE;
         static const QString ATTRIBUTE_MACRO_COMMAND_PARAMETER_VALUE;
 
         static const QString ELEMENT_DESCRIPTION;
@@ -91,14 +94,16 @@ namespace caret {
     };
     
 #ifdef __WU_Q_MACRO_GROUP_XML_STREAM_BASE_DECLARE__
+    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_COMMAND_TYPE = "CommandType";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_NAME = "Name";
-    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_CLASS = "ObjectClass";
-    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME = "DescriptiveName";
+    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_CUSTOM_OPERATION_TYPE_NAME = "CustomOperationTypeName";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_DELAY = "Delay";
+    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME = "DescriptiveName";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_SHORT_CUT_KEY = "ShortCutKey";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_UNIQUE_IDENTIFIER = "UniqueIdentifier";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_VERSION = "Version";
-    
+    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_WIDGET_TYPE = "WidgetType";
+
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MOUSE_BUTTON = "MouseButton";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MOUSE_BUTTONS_MASK = "MouseButtonsMask";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MOUSE_EVENT_TYPE = "MouseEventType";
@@ -113,6 +118,7 @@ namespace caret {
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MOUSE_WINDOW_Y = "WindowY";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE = "DataType";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MACRO_COMMAND_PARAMETER_NAME = "Name";
+    const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MACRO_COMMAND_PARAMETER_CUSTOM_DATA_TYPE = "CustomDataType";
     const QString WuQMacroGroupXmlStreamBase::ATTRIBUTE_MACRO_COMMAND_PARAMETER_VALUE = "Value";
 
     const QString WuQMacroGroupXmlStreamBase::ELEMENT_DESCRIPTION      = "Description";

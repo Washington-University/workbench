@@ -38,97 +38,237 @@ using namespace caret;
  */
 
 /**
- * Constructor for a macro command, usually a mouse command
+ * Create a new instance of a macro comand for a custom command
  *
- * @param classType
- *    Type of object class
- * @param objectName
- *    Name of object
- * @param objectDescriptiveName
- *    Descriptive name of macro command
- */
-WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
-                                 const QString& objectName,
-                                 const QString& objectDescriptiveName)
-: WuQMacroCommand(classType,
-                  objectName,
-                  objectDescriptiveName,
-                  "")
-{
-    if (objectDescriptiveName.isEmpty()) {
-        CaretLogWarning("Empty descriptive name for "
-                        + objectName);
-    }
-}
-
-/**
- * Constructor for a macro command
- *
- * @param classType
- *    Type of object class
+ * @param commandType
+ *    Type of command
+ * @param customOperationTypeName
+ *    Name of a custom operation
+ * @param mouseEventInfo
+ *    Information about mouse event.
+ * @param widgetType
+ *    Type of widget
+ * @param version
+ *    Version of command
  * @param objectName
  *    Name of object
  * @param objectDescriptiveName
  *    Descriptive name of macro command
  * @param objectToolTip
  *    ToolTip for object
+ * @param delayInSeconds
+ *    Delay in seconds
+ * @param errorMessageOut
+ *    Output with error messag if new instance fails
+ * @return
+ *    The widget command or NULL if failure
  */
-WuQMacroCommand::WuQMacroCommand(const WuQMacroClassTypeEnum::Enum classType,
+WuQMacroCommand*
+WuQMacroCommand::newInstanceCustomCommand(const QString& customOperationName,
+                                                 const int32_t version,
+                                                 const QString& objectName,
+                                                 const QString& objectDescriptiveName,
+                                          const QString& objectToolTip,
+                                          const float delayInSeconds,
+                                          QString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if (customOperationName.isEmpty()) {
+        errorMessageOut = "Custom operation may not be empty for a custom operation macro command";
+        return NULL;
+    }
+    
+    WuQMacroMouseEventInfo* mouseEventInfo(NULL);
+    WuQMacroCommand* mc = new WuQMacroCommand(WuQMacroCommandTypeEnum::CUSTOM_OPERATION,
+                                              customOperationName,
+                                              mouseEventInfo,
+                                              WuQMacroWidgetTypeEnum::INVALID,
+                                              version,
+                                              objectName,
+                                              objectDescriptiveName,
+                                              objectToolTip,
+                                              delayInSeconds);
+    return mc;
+}
+
+/**
+ * Create a new instance of a macro command for mouse operation
+ *
+ * @param commandType
+ *    Type of command
+ * @param customOperationTypeName
+ *    Name of a custom operation
+ * @param mouseEventInfo
+ *    Information about mouse event (will take ownership)
+ * @param widgetType
+ *    Type of widget
+ * @param version
+ *    Version of command
+ * @param objectName
+ *    Name of object
+ * @param objectDescriptiveName
+ *    Descriptive name of macro command
+ * @param objectToolTip
+ *    ToolTip for object
+ * @param delayInSeconds
+ *    Delay in seconds
+ * @param errorMessageOut
+ *    Output with error messag if new instance fails
+ * @return
+ *    The widget command or NULL if failure
+ */
+WuQMacroCommand*
+WuQMacroCommand::newInstanceMouseCommand(WuQMacroMouseEventInfo* mouseEventInfo,
+                                                const int32_t version,
+                                                const QString& objectName,
+                                                const QString& objectDescriptiveName,
+                                         const QString& objectToolTip,
+                                         const float delayInSeconds,
+                                         QString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if (mouseEventInfo == NULL) {
+        errorMessageOut = "Mouse info is invalid (NULL) for a macro mouse command";
+        return NULL;
+    }
+    
+    const QString customOperationName("");
+    WuQMacroCommand* mc = new WuQMacroCommand(WuQMacroCommandTypeEnum::MOUSE,
+                                              customOperationName,
+                                              mouseEventInfo,
+                                              WuQMacroWidgetTypeEnum::INVALID,
+                                              version,
+                                              objectName,
+                                              objectDescriptiveName,
+                                              objectToolTip,
+                                              delayInSeconds);
+    return mc;
+}
+
+/**
+ * Create a new instance of a macro command for a Qt Widget
+ *
+ * @param commandType
+ *    Type of command
+ * @param customOperationTypeName
+ *    Name of a custom operation
+ * @param mouseEventInfo
+ *    Information about mouse event.
+ * @param widgetType
+ *    Type of widget
+ * @param version
+ *    Version of command
+ * @param objectName
+ *    Name of object
+ * @param objectDescriptiveName
+ *    Descriptive name of macro command
+ * @param objectToolTip
+ *    ToolTip for object
+ * @param delayInSeconds
+ *    Delay in seconds
+ * @param errorMessageOut
+ *    Output with error messag if new instance fails
+ * @return
+ *    The widget command or NULL if failure
+ */
+WuQMacroCommand*
+WuQMacroCommand::newInstanceWidgetCommand(const WuQMacroWidgetTypeEnum::Enum widgetType,
+                                                 const int32_t version,
+                                                 const QString& objectName,
+                                                 const QString& objectDescriptiveName,
+                                          const QString& objectToolTip,
+                                          const float delayInSeconds,
+                                          QString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if (widgetType == WuQMacroWidgetTypeEnum::INVALID) {
+        errorMessageOut = "Widget type is invalid for Widget Macro Command";
+        return NULL;
+    }
+    
+    const QString customOperationName("");
+    WuQMacroMouseEventInfo* mouseEventInfo(NULL);
+    WuQMacroCommand* mc = new WuQMacroCommand(WuQMacroCommandTypeEnum::WIDGET,
+                                              customOperationName,
+                                              mouseEventInfo,
+                                              widgetType,
+                                              version,
+                                              objectName,
+                                              objectDescriptiveName,
+                                              objectToolTip,
+                                              delayInSeconds);
+    return mc;
+}
+
+/**
+ * Constructor for a macro command
+ *
+ * @param commandType
+ *    Type of command
+ * @param customOperationTypeName
+ *    Name of a custom operation
+ * @param mouseEventInfo
+ *    Information about mouse event.
+ * @param widgetType
+ *    Type of widget
+ * @param version
+ *    Version of command
+ * @param objectName
+ *    Name of object
+ * @param objectDescriptiveName
+ *    Descriptive name of macro command
+ * @param objectToolTip
+ *    ToolTip for object
+ * @param delayInSeconds
+ *    Delay in seconds
+ */
+WuQMacroCommand::WuQMacroCommand(const WuQMacroCommandTypeEnum::Enum commandType,
+                                 const QString& customOperationTypeName,
+                                 WuQMacroMouseEventInfo* mouseEventInfo,
+                                 const WuQMacroWidgetTypeEnum::Enum widgetType,
+                                 const int32_t version,
                                  const QString& objectName,
                                  const QString& objectDescriptiveName,
-                                 const QString& objectToolTip)
+                                 const QString& objectToolTip,
+                                 const float delayInSeconds)
 : QStandardItem(),
 TracksModificationInterface(),
-m_classType(classType),
+m_commandType(commandType),
+m_customOperationTypeName(customOperationTypeName),
+m_macroMouseEvent(mouseEventInfo),
+m_widgetType(widgetType),
+m_version(version),
 m_objectName(objectName),
 m_descriptiveName(objectDescriptiveName),
-m_macroMouseEvent(NULL)
+m_delayInSeconds(delayInSeconds)
 {
     if (objectDescriptiveName.isEmpty()) {
         CaretLogWarning("Empty descriptive name for "
                         + objectName);
+    }
+    
+    switch (m_commandType) {
+        case WuQMacroCommandTypeEnum::CUSTOM_OPERATION:
+            break;
+        case WuQMacroCommandTypeEnum::MOUSE:
+            CaretAssert(m_macroMouseEvent);
+            setText("Mouse");
+            break;
+        case WuQMacroCommandTypeEnum::WIDGET:
+            break;
     }
     
     setFlags(Qt::ItemIsEnabled
              | Qt::ItemIsSelectable);
     setToolTip(objectToolTip);
     
-    
     updateTitle();
     setModified();
 }
 
-/**
- * Constructor for a macro command containing a mouse event
- *
- * @param objectName
- *    Name of object
- * @param objectDescriptiveName
- *    Descriptive name of macro command
- * @param mouseEventInfo
- *    Information about mouse event.
- */
-WuQMacroCommand::WuQMacroCommand(const QString& objectName,
-                                 const QString& objectDescriptiveName,
-                                 WuQMacroMouseEventInfo* mouseEventInfo)
-: QStandardItem(),
-TracksModificationInterface(),
-m_classType(WuQMacroClassTypeEnum::MOUSE_USER_EVENT),
-m_objectName(objectName),
-m_descriptiveName(objectDescriptiveName),
-m_macroMouseEvent(mouseEventInfo)
-{
-    if (objectDescriptiveName.isEmpty()) {
-        CaretLogWarning("Empty descriptive name for "
-                        + objectName);
-    }
-
-    setFlags(Qt::ItemIsEnabled
-             | Qt::ItemIsSelectable);
-    setText("Mouse");
-
-    setModified();
-}
 
 /**
  * Destructor.
@@ -193,23 +333,26 @@ WuQMacroCommand::type() const
 void
 WuQMacroCommand::copyHelperWuQMacroCommand(const WuQMacroCommand& obj)
 {
-    m_descriptiveName = obj.m_descriptiveName;
-    m_classType    = obj.m_classType;
-    m_objectName   = obj.m_objectName;
-    m_macroMouseEvent = NULL;
-    m_delayInSeconds = obj.m_delayInSeconds;
-    
+    m_commandType = obj.m_commandType;
+    m_customOperationTypeName = obj.m_customOperationTypeName;
+    if (m_macroMouseEvent != NULL) {
+        m_macroMouseEvent = NULL;
+    }
     if (obj.m_macroMouseEvent != NULL) {
         m_macroMouseEvent = new WuQMacroMouseEventInfo(*obj.m_macroMouseEvent);
     }
-
+    m_widgetType    = obj.m_widgetType;
+    m_version       = obj.m_version;
+    m_objectName   = obj.m_objectName;
+    m_descriptiveName = obj.m_descriptiveName;
+    m_delayInSeconds = obj.m_delayInSeconds;
     removeAllParameters();
     for (const auto p : obj.m_parameters) {
         m_parameters.push_back(new WuQMacroCommandParameter(*p));
     }
-
     setText(obj.text());
     updateTitle();
+    setModified();
 }
 
 /**
@@ -232,104 +375,100 @@ WuQMacroCommand::updateTitle()
         dataValueTwo = m_parameters[1]->getValue();
     }
     
-    switch (m_classType) {
-        case WuQMacroClassTypeEnum::ACTION:
+    switch (m_widgetType) {
+        case WuQMacroWidgetTypeEnum::ACTION:
             title = ("Turn "
                      + QString((dataValue.toBool() ? "On" : "Off")));
             break;
-        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
+        case WuQMacroWidgetTypeEnum::ACTION_CHECKABLE:
             title = ("Turn "
                      + QString((dataValue.toBool() ? "On" : "Off")));
             break;
-        case WuQMacroClassTypeEnum::ACTION_GROUP:
+        case WuQMacroWidgetTypeEnum::ACTION_GROUP:
             title = ("Select Name "
                      + dataValue.toString()
                      + " else "
                      + " index "
                      + QString::number(dataValueTwo.toInt()));
             break;
-        case WuQMacroClassTypeEnum::BUTTON_GROUP:
+        case WuQMacroWidgetTypeEnum::BUTTON_GROUP:
             title = ("Select Name "
                      + dataValue.toString()
                      + " else "
                      + " index "
                      + QString::number(dataValueTwo.toInt()));
             break;
-        case WuQMacroClassTypeEnum::CHECK_BOX:
+        case WuQMacroWidgetTypeEnum::CHECK_BOX:
             title = ("Turn "
                      + QString((dataValue.toBool() ? "On" : "Off")));
             break;
-        case WuQMacroClassTypeEnum::COMBO_BOX:
+        case WuQMacroWidgetTypeEnum::COMBO_BOX:
             title = ("Select Name "
                      + dataValue.toString()
                      + " else "
                      + " index "
                      + QString::number(dataValueTwo.toInt()));
             break;
-        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
+        case WuQMacroWidgetTypeEnum::DOUBLE_SPIN_BOX:
             title = ("Set to value "
                      + QString::number(dataValue.toFloat()));
             break;
-        case WuQMacroClassTypeEnum::INVALID:
-            title = "";
+        case WuQMacroWidgetTypeEnum::INVALID:
             break;
-        case WuQMacroClassTypeEnum::LINE_EDIT:
+        case WuQMacroWidgetTypeEnum::LINE_EDIT:
             title = ("Set to text "
                      + dataValue.toString());
             break;
-        case WuQMacroClassTypeEnum::LIST_WIDGET:
+        case WuQMacroWidgetTypeEnum::LIST_WIDGET:
             title = ("Select Name "
                      + dataValue.toString()
                      + " else "
                      + " index "
                      + QString::number(dataValueTwo.toInt()));
             break;
-        case WuQMacroClassTypeEnum::MENU:
+        case WuQMacroWidgetTypeEnum::MENU:
             title = ("Select Name "
                      + dataValue.toString()
                      + " else "
                      + " index "
                      + QString::number(dataValueTwo.toInt()));
             break;
-        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
-            title = "MouseEvent";
-            break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON:
+        case WuQMacroWidgetTypeEnum::PUSH_BUTTON:
             title = ("Click Button");
             break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
+        case WuQMacroWidgetTypeEnum::PUSH_BUTTON_CHECKABLE:
             title = ("Turn "
                      + QString((dataValue.toBool() ? "On" : "Off")));
             break;
-        case WuQMacroClassTypeEnum::RADIO_BUTTON:
+        case WuQMacroWidgetTypeEnum::RADIO_BUTTON:
             title = "Click Button";
             break;
-        case WuQMacroClassTypeEnum::SLIDER:
+        case WuQMacroWidgetTypeEnum::SLIDER:
             title = ("Move to "
                      + AString::number(dataValue.toInt()));
             break;
-        case WuQMacroClassTypeEnum::SPIN_BOX:
+        case WuQMacroWidgetTypeEnum::SPIN_BOX:
             title = ("Set to "
                      + AString::number(dataValue.toInt()));
             break;
-        case WuQMacroClassTypeEnum::TAB_BAR:
+        case WuQMacroWidgetTypeEnum::TAB_BAR:
             title = ("Select Name "
                      + dataValue.toString()
                      + " else "
                      + " index "
                      + QString::number(dataValueTwo.toInt()));
             break;
-        case WuQMacroClassTypeEnum::TAB_WIDGET:
+        case WuQMacroWidgetTypeEnum::TAB_WIDGET:
             title = ("Select Name "
                      + dataValue.toString()
                      + " else "
                      + " index "
                      + QString::number(dataValueTwo.toInt()));
             break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON:
+        case WuQMacroWidgetTypeEnum::TOOL_BUTTON:
             title = ("Click Button");
             break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
+        case WuQMacroWidgetTypeEnum::TOOL_BUTTON_CHECKABLE:
             title = ("Turn "
                      + QString((dataValue.toBool() ? "On" : "Off")));
             break;
@@ -346,12 +485,30 @@ WuQMacroCommand::updateTitle()
 }
 
 /**
- * @return The object' class type
+ * @return The command type
  */
-WuQMacroClassTypeEnum::Enum
-WuQMacroCommand::getClassType() const
+WuQMacroCommandTypeEnum::Enum
+WuQMacroCommand::getCommandType() const
 {
-    return m_classType;
+    return m_commandType;
+}
+
+/**
+ * @return The command's widget type
+ */
+WuQMacroWidgetTypeEnum::Enum
+WuQMacroCommand::getWidgetType() const
+{
+    return m_widgetType;
+}
+
+/**
+ * @return Version of the command
+ */
+int32_t
+WuQMacroCommand::getVersion() const
+{
+    return m_version;
 }
 
 /**
@@ -550,8 +707,8 @@ WuQMacroCommand::setMouseEventInfo(WuQMacroMouseEventInfo* mouseEventInfo)
 bool
 WuQMacroCommand::isMouseEventMatch(const WuQMacroCommand* command) const
 {
-    if (getClassType() == WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
-        if (command->getClassType() == WuQMacroClassTypeEnum::MOUSE_USER_EVENT) {
+    if (command->getCommandType() == WuQMacroCommandTypeEnum::MOUSE) {
+        if (getCommandType() == WuQMacroCommandTypeEnum::MOUSE) {
             const WuQMacroMouseEventInfo* myMouse = getMouseEventInfo();
             CaretAssert(myMouse);
             const WuQMacroMouseEventInfo* otherMouse = command->getMouseEventInfo();
@@ -592,6 +749,32 @@ WuQMacroCommand::setDelayInSeconds(const float seconds)
 {
     if (seconds != m_delayInSeconds) {
         m_delayInSeconds = seconds;
+        setModified();
+    }
+}
+
+/**
+ * @return The custom operation command type name
+ * Used when class type is WuQMacroWidgetTypeEnum::CUSTOM_OPERATION
+ */
+QString
+WuQMacroCommand::getCustomOperationTypeName() const
+{
+    return m_customOperationTypeName;
+}
+
+/**
+ * Set the custom operation command type name
+ * Used when class type is WuQMacroWidgetTypeEnum::CUSTOM_OPERATION
+ *
+ * @param customOperationCommandTypeName
+ *    New value
+ */
+void
+WuQMacroCommand::setCustomOperationTypeName(const QString& customOperationTypeName)
+{
+    if (m_customOperationTypeName != customOperationTypeName) {
+        m_customOperationTypeName = customOperationTypeName;
         setModified();
     }
 }
@@ -644,10 +827,11 @@ WuQMacroCommand::setModified()
 AString
 WuQMacroCommand::toString() const
 {
-    QString s("WuQMacroCommand text=%1 name=%2, type=%3");
+    QString s("WuQMacroCommand text=%1 name=%2, commandType=%3, widgetType=%4");
     s = s.arg(text()
               ).arg(m_objectName
-                    ).arg(WuQMacroClassTypeEnum::toGuiName(m_classType));
+                    ).arg(WuQMacroCommandTypeEnum::toName(m_commandType)
+                          ).arg(WuQMacroWidgetTypeEnum::toName(m_widgetType));
     
     for (const auto p : m_parameters) {
         s.append(", value=" + p->getValue().toString());

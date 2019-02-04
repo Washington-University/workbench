@@ -38,6 +38,7 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSplitter>
 #include <QStackedWidget>
 #include <QTreeView>
 #include <QToolButton>
@@ -104,29 +105,38 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     row++;
     gridLayout->addWidget(createMacroRunAndEditingToolButtons(), row, 0, 1, 3);
     row++;
-    gridLayout->addWidget(createMacroAndCommandSelectionWidget(), row, 0, 1, 3);
-    row++;
     
     for (int32_t iRow = 0; iRow < gridLayout->rowCount(); iRow++) {
         gridLayout->setRowStretch(iRow, 0);
     }
     
+    QWidget* macroSelectionWidget = createMacroAndCommandSelectionWidget();
     m_macroWidget = createMacroDisplayWidget();
     m_commandWidget = createCommandDisplayWidget();
     m_stackedWidget = new QStackedWidget();
     m_stackedWidget->addWidget(m_macroWidget);
     m_stackedWidget->addWidget(m_commandWidget);
     m_stackedWidget->setCurrentWidget(m_macroWidget);
-    
+    QScrollArea* stackedScrollArea = new QScrollArea();
+    stackedScrollArea->setWidget(m_stackedWidget);
+    stackedScrollArea->setWidgetResizable(true);
+
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Close);
     QObject::connect(m_dialogButtonBox, &QDialogButtonBox::rejected,
                      this, &WuQMacroDialog::close);
     QObject::connect(m_dialogButtonBox, &QDialogButtonBox::clicked,
                      this, &WuQMacroDialog::buttonBoxButtonClicked);
     
+    QSplitter* splitter = new QSplitter();
+    splitter->setOrientation(Qt::Vertical);
+    macroSelectionWidget->setMinimumHeight(50);
+    splitter->addWidget(macroSelectionWidget);
+    stackedScrollArea->setMinimumHeight(50);
+    splitter->addWidget(stackedScrollArea);
+    
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
     dialogLayout->addLayout(gridLayout);
-    dialogLayout->addWidget(m_stackedWidget);
+    dialogLayout->addWidget(splitter);
     dialogLayout->addWidget(m_dialogButtonBox);
     
     updateDialogContents();
@@ -465,6 +475,7 @@ WuQMacroDialog::createCommandDisplayWidget()
     m_commandToolTipTextEdit->setReadOnly(true);
     m_commandToolTipTextEdit->setMaximumHeight(100);
     
+    QLabel* parametersLabel = new QLabel("Parameters: ");
     QGridLayout* layout = new QGridLayout();
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setColumnStretch(0, 0);
@@ -486,13 +497,14 @@ WuQMacroDialog::createCommandDisplayWidget()
     layout->addWidget(toolTipLabel, row, 0, (Qt::AlignLeft | Qt::AlignTop));
     layout->addWidget(m_commandToolTipTextEdit, row, 1);
     row++;
+    layout->addWidget(parametersLabel, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
     
     QWidget* parametersWidget = new QWidget();
     m_parameterWidgetsGridLayout = new QGridLayout(parametersWidget);
-    QScrollArea* parameterScrollArea = new QScrollArea();
-    parameterScrollArea->setWidget(parametersWidget);
-    parameterScrollArea->setWidgetResizable(true);
-    
+    m_parameterWidgetsGridLayout->setColumnStretch(0, 0);
+    m_parameterWidgetsGridLayout->setColumnStretch(1, 100);
+
     QHBoxLayout* titleLayout = new QHBoxLayout();
     titleLayout->setContentsMargins(0, 0, 0, 0);
     titleLayout->addWidget(new QLabel("Command"));
@@ -502,7 +514,7 @@ WuQMacroDialog::createCommandDisplayWidget()
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
     widgetLayout->addLayout(titleLayout);
     widgetLayout->addLayout(layout);
-    widgetLayout->addWidget(parameterScrollArea);
+    widgetLayout->addWidget(parametersWidget);
     widgetLayout->addStretch();
     
     return widget;
@@ -674,7 +686,7 @@ WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
     if (command != NULL) {
         title           = command->text();
         name            = command->getObjectName();
-        type            = WuQMacroClassTypeEnum::toGuiName(command->getClassType());
+        type            = WuQMacroWidgetTypeEnum::toGuiName(command->getWidgetType());
         toolTip         = command->getObjectToolTip();
         delay           = command->getDelayInSeconds();
     }
@@ -1120,7 +1132,133 @@ WuQMacroDialog::editingDeleteToolButtonClicked()
 void
 WuQMacroDialog::editingInsertToolButtonClicked()
 {
-    std::cout << "Inserrt button clicked" << std::endl;
+    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
+    if (macroGroup == NULL) {
+        return;
+    }
+    
+    bool addMacroFlag(true);
+    bool addMacroCommandFlag(false);
+    
+    switch (getSelectedItemType()) {
+        case WuQMacroStandardItemTypeEnum::INVALID:
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO:
+            addMacroCommandFlag = true;
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+            addMacroCommandFlag = true;
+            break;
+    }
+    
+    QMenu menu(m_editingInsertToolButton);
+    if (addMacroFlag) {
+        menu.addAction("Insert New Macro...",
+                        this,
+                        &WuQMacroDialog::insertMenuNewMacroSelected);
+    }
+    if (addMacroCommandFlag) {
+        menu.addAction("Insert New Command...",
+                        this,
+                        &WuQMacroDialog::insertMenuNewMacroCommandSelected);
+    }
+    menu.exec(m_editingInsertToolButton->mapToGlobal(QPoint(0, 0)));
+}
+
+/**
+ * Called when insert new macro menu item selected
+ */
+void
+WuQMacroDialog::insertMenuNewMacroSelected()
+{
+    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
+    CaretAssert(macroGroup);
+    
+    bool okFlag(false);
+    const QString macroName = QInputDialog::getText(m_editingInsertToolButton, "Create Macro", "New Macro Name",
+                                                    QLineEdit::Normal,
+                                                    "",
+                                                    &okFlag);
+    if (okFlag) {
+        if ( ! macroName.isEmpty()) {
+            WuQMacro* macro = new WuQMacro();
+            macro->setName(macroName);
+            macroGroup->addMacro(macro);
+            updateDialogContents();
+        }
+    }
+}
+
+/**
+ * Called when insert new macro command menu item selected
+ */
+void
+WuQMacroDialog::insertMenuNewMacroCommandSelected()
+{
+    std::vector<QString> customOperationNames = WuQMacroManager::instance()->getNamesOfCustomOperationMacroCommands();
+    QStringList namesStringList;
+    for (const auto name : customOperationNames) {
+        namesStringList.append(name);
+    }
+    
+    if (namesStringList.isEmpty()) {
+        QMessageBox::critical(m_editingInsertToolButton,
+                              "Error",
+                              "No custom operations available");
+        return;
+    }
+    
+    bool okFlag(false);
+    QString selectedName = QInputDialog::getItem(m_editingInsertToolButton,
+                                  "Choose Operation",
+                                  "New Operation",
+                                  namesStringList,
+                                  0,
+                                  false,
+                                  &okFlag);
+    
+    if (okFlag
+        && ( ! selectedName.isEmpty())) {
+        QString errorMessage;
+        WuQMacroCommand* newCommand = WuQMacroManager::instance()->newInstanceOfCustomOperationMacroCommand(selectedName,
+                                                                                                            errorMessage);
+        if (newCommand == NULL) {
+            QMessageBox::critical(m_editingInsertToolButton,
+                                  "Error",
+                                  errorMessage);
+            return;
+        }
+        
+        switch (getSelectedItemType()) {
+            case WuQMacroStandardItemTypeEnum::INVALID:
+                CaretAssert(0);
+                break;
+            case WuQMacroStandardItemTypeEnum::MACRO:
+            {
+                WuQMacro* macro = getSelectedMacro();
+                CaretAssert(macro);
+                macro->insertMacroCommandAtIndex(0, newCommand);
+            }
+                break;
+            case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+            {
+                WuQMacro* macro = getSelectedMacro();
+                CaretAssert(macro);
+                const WuQMacroCommand* selectedCommand = getSelectedMacroCommand();
+                CaretAssert(selectedCommand);
+                const int32_t selectedIndex = macro->getIndexOfMacroCommand(selectedCommand);
+                macro->insertMacroCommandAtIndex(selectedIndex + 1,
+                                                 newCommand);
+            }
+        }
+        
+        WuQMacroGroup* selectedGroup = getSelectedMacroGroup();
+        CaretAssert(selectedGroup);
+        QModelIndex selectedIndex = selectedGroup->indexFromItem(newCommand);
+        m_treeView->setCurrentIndex(selectedIndex);
+        
+        updateDialogContents();
+    }
 }
 
 /**
@@ -1130,16 +1268,16 @@ WuQMacroDialog::editingInsertToolButtonClicked()
 void
 WuQMacroDialog::updateEditingToolButtons()
 {
-    bool runValid(false);
-    bool insertValid(false);
-    bool deleteValid(false);
-    bool moveUpValid(false);
-    bool moveDownValid(false);
-
     WuQMacroGroup* macroGroup = getSelectedMacroGroup();
     WuQMacro* macro = getSelectedMacro();
     WuQMacroCommand* command = getSelectedMacroCommand();
     
+    bool runValid(false);
+    bool insertValid(macroGroup != NULL);
+    bool deleteValid(false);
+    bool moveUpValid(false);
+    bool moveDownValid(false);
+
     switch (getSelectedItemType()) {
         case WuQMacroStandardItemTypeEnum::INVALID:
             break;
@@ -1335,6 +1473,15 @@ CommandParameterWidget::pushButtonClicked()
                 bool result(text == items.at(0));
                 dataValue.setValue(result);
                 validFlag = true;
+            }
+        }
+            break;
+        case WuQMacroDataValueTypeEnum::CUSTOM_DATA:
+        {
+            validFlag = WuQMacroManager::instance()->editCustomDataValueParameter(m_pushButton,
+                                                                                  m_parameter);
+            if (validFlag) {
+                dataValue = m_parameter->getValue();
             }
         }
             break;

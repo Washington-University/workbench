@@ -67,6 +67,7 @@ namespace caret {
          */
         virtual void macroGroupWasModified(WuQMacroGroup* macroGroup) = 0;
         
+        
         // ADD_NEW_METHODS_HERE
 
     signals:

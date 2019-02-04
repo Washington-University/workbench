@@ -54,7 +54,10 @@ namespace caret {
         
         void setValue(const QVariant& value);
         
+        QString getCustomDataType() const;
 
+        void setCustomDataType(const QString& userDataType);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -63,6 +66,8 @@ namespace caret {
         WuQMacroDataValueTypeEnum::Enum m_dataType = WuQMacroDataValueTypeEnum::INVALID;
         
         QString m_name;
+        
+        QString m_customDataType;
         
         QVariant m_value;
         

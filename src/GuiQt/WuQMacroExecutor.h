@@ -51,7 +51,7 @@ namespace caret {
         WuQMacroExecutor& operator=(const WuQMacroExecutor&) = delete;
         
         bool runMacro(const WuQMacro* macro,
-                      QObject* window,
+                      QWidget* window,
                       std::vector<QObject*>& otherObjectParents,
                       const WuQMacroExecutorOptions* executorOptions,
                       QString& errorMessageOut) const;
@@ -77,7 +77,8 @@ namespace caret {
                                              const QRect* objectRect = NULL,
                                              const bool hightlightFlag = false) const;
         
-        bool runMacroCommand(const WuQMacroCommand* macroCommand,
+        bool runMacroCommand(QWidget* parentWidget,
+                             const WuQMacroCommand* macroCommand,
                              QObject* object,
                              QString& errorMessageOut) const;
         

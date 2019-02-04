@@ -19,12 +19,13 @@
  */
 /*LICENSE_END*/
 
-#define __GUI_MACRO_HELPER_DECLARE__
-#include "GuiMacroHelper.h"
-#undef __GUI_MACRO_HELPER_DECLARE__
+#define __WB_MACRO_HELPER_DECLARE__
+#include "WbMacroHelper.h"
+#undef __WB_MACRO_HELPER_DECLARE__
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "EventManager.h"
 #include "EventSceneActive.h"
@@ -34,14 +35,19 @@
 #include "SceneFile.h"
 #include "SceneInfo.h"
 #include "SessionManager.h"
+#include "WbMacroCustomOperationTypeEnum.h"
+#include "WbMacroCustomDataTypeEnum.h"
+#include "WuQMacroCommand.h"
+#include "WuQMacroCommandParameter.h"
 #include "WuQMacroGroup.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
 
     
 /**
- * \class caret::GuiMacroHelper 
+ * \class caret::WbMacroHelper
  * \brief Implementation of WuQMacroHelperInterface that provides macro groups
  * \ingroup GuiQt
  */
@@ -49,7 +55,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-GuiMacroHelper::GuiMacroHelper(QObject* parent)
+WbMacroHelper::WbMacroHelper(QObject* parent)
 : WuQMacroHelperInterface(parent)
 {
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -58,7 +64,7 @@ GuiMacroHelper::GuiMacroHelper(QObject* parent)
 /**
  * Destructor.
  */
-GuiMacroHelper::~GuiMacroHelper()
+WbMacroHelper::~WbMacroHelper()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
@@ -70,7 +76,7 @@ GuiMacroHelper::~GuiMacroHelper()
  *     The event.
  */
 void
-GuiMacroHelper::receiveEvent(Event* event)
+WbMacroHelper::receiveEvent(Event* event)
 {
     CaretAssert(event);
     if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
@@ -83,7 +89,7 @@ GuiMacroHelper::receiveEvent(Event* event)
  * @return All available macro groups
  */
 std::vector<WuQMacroGroup*>
-GuiMacroHelper::getMacroGroups()
+WbMacroHelper::getMacroGroups()
 {
     std::vector<WuQMacroGroup*> macroGroups;
     
@@ -110,7 +116,7 @@ GuiMacroHelper::getMacroGroups()
  *     Macro that is modified
  */
 void
-GuiMacroHelper::macroWasModified(WuQMacro* macro)
+WbMacroHelper::macroWasModified(WuQMacro* macro)
 {
     /*
      * Need to write to preferences if macro is from preferences
@@ -132,7 +138,7 @@ GuiMacroHelper::macroWasModified(WuQMacro* macro)
  *     Macro Group that is modified
  */
 void
-GuiMacroHelper::macroGroupWasModified(WuQMacroGroup* macroGroup)
+WbMacroHelper::macroGroupWasModified(WuQMacroGroup* macroGroup)
 {
     /**
      * Need to write to preferences if macro group is from preferences
@@ -145,3 +151,4 @@ GuiMacroHelper::macroGroupWasModified(WuQMacroGroup* macroGroup)
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
+

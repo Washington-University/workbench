@@ -125,7 +125,6 @@ ELSE()
         GiftiLabelTableEditor.h
         GiftiLabelTableSelectionComboBox.h
         GroupAndNameHierarchyViewController.h
-        GuiMacroHelper.h
         GuiManager.h
         HelpViewerDialog.h
         HyperLinkTextBrowser.h
@@ -192,6 +191,7 @@ ELSE()
         VolumeSurfaceOutlineColorOrTabViewController.h
         VolumeSurfaceOutlineSetViewController.h
         VolumeSurfaceOutlineViewController.h
+	WbMacroHelper.h
         WuQCollapsibleWidget.h
         WuQDataEntryDialog.h
         WuQDialog.h
@@ -367,7 +367,6 @@ GiftiLabelTableEditor.h
 GiftiLabelTableSelectionComboBox.h
 GroupAndNameHierarchyTreeWidgetItem.h
 GroupAndNameHierarchyViewController.h
-GuiMacroHelper.h
 GuiManager.h
 HelpViewerDialog.h
 HyperLinkTextBrowser.h
@@ -448,6 +447,11 @@ VolumeFileCreateDialog.h
 VolumeSurfaceOutlineColorOrTabViewController.h
 VolumeSurfaceOutlineSetViewController.h
 VolumeSurfaceOutlineViewController.h
+WbMacroCustomDataTypeEnum.h
+WbMacroCustomOperationManager.h
+WbMacroCustomOperationSurfaceInterpolation.h
+WbMacroCustomOperationTypeEnum.h
+WbMacroHelper.h
 WuQCollapsibleWidget.h
 WuQDataEntryDialog.h
 WuQDialog.h
@@ -462,6 +466,7 @@ WuQGroupBoxExclusiveWidget.h
 WuQImageLabel.h
 WuQListWidget.h
 WuQMacroCreateDialog.h
+WuQMacroCustomOperationManagerInterface.h
 WuQMacroDialog.h
 WuQMacroExecutor.h
 WuQMacroExecutorOptions.h
@@ -612,7 +617,6 @@ GiftiLabelTableEditor.cxx
 GiftiLabelTableSelectionComboBox.cxx
 GroupAndNameHierarchyTreeWidgetItem.cxx
 GroupAndNameHierarchyViewController.cxx
-GuiMacroHelper.cxx
 GuiManager.cxx
 HelpViewerDialog.cxx
 HyperLinkTextBrowser.cxx
@@ -693,6 +697,11 @@ VolumeFileCreateDialog.cxx
 VolumeSurfaceOutlineColorOrTabViewController.cxx
 VolumeSurfaceOutlineSetViewController.cxx
 VolumeSurfaceOutlineViewController.cxx
+WbMacroCustomDataTypeEnum.cxx
+WbMacroCustomOperationManager.cxx
+WbMacroCustomOperationSurfaceInterpolation.cxx
+WbMacroCustomOperationTypeEnum.cxx
+WbMacroHelper.cxx
 WuQCollapsibleWidget.cxx
 WuQDataEntryDialog.cxx
 WuQDialog.cxx

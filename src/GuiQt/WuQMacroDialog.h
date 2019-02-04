@@ -107,6 +107,10 @@ namespace caret {
         
         void commandParamaterDataChanged(int);
         
+        void insertMenuNewMacroSelected();
+        
+        void insertMenuNewMacroCommandSelected();
+        
     private:
         enum class ValueIndex {
             ONE,

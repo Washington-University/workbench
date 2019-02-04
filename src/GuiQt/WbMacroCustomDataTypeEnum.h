@@ -1,9 +1,9 @@
-#ifndef __WU_Q_MACRO_DATA_VALUE_TYPE_ENUM_H__
-#define __WU_Q_MACRO_DATA_VALUE_TYPE_ENUM_H__
+#ifndef __WB_MACRO_CUSTOM_DATA_TYPE_ENUM_H__
+#define __WB_MACRO_CUSTOM_DATA_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2018 Washington University School of Medicine
+ *  Copyright (C) 2019 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,33 +28,19 @@
 
 namespace caret {
 
-class WuQMacroDataValueTypeEnum {
+class WbMacroCustomDataTypeEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Invalid */
-        INVALID,
-        /** Boolean */
-        BOOLEAN,
-        /** Custom data that is not a fundamental type used with Custom Operations */
-        CUSTOM_DATA,
-        /** Float */
-        FLOAT,
-        /** Integer */
-        INTEGER,
-        /** Mouse */
-        MOUSE,
-        /** None (no data value associated with object */
-        NONE,
-        /** String */
-        STRING
+        /** */
+        SURFACE
     };
 
 
-    ~WuQMacroDataValueTypeEnum();
+    ~WbMacroCustomDataTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -75,14 +61,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    WuQMacroDataValueTypeEnum(const Enum enumValue, 
+    WbMacroCustomDataTypeEnum(const Enum enumValue,
                  const AString& name,
                  const AString& guiName);
 
-    static const WuQMacroDataValueTypeEnum* findData(const Enum enumValue);
+    static const WbMacroCustomDataTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<WuQMacroDataValueTypeEnum> enumData;
+    static std::vector<WbMacroCustomDataTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -106,11 +92,11 @@ private:
     AString guiName;
 };
 
-#ifdef __WU_Q_MACRO_DATA_VALUE_TYPE_ENUM_DECLARE__
-std::vector<WuQMacroDataValueTypeEnum> WuQMacroDataValueTypeEnum::enumData;
-bool WuQMacroDataValueTypeEnum::initializedFlag = false;
-int32_t WuQMacroDataValueTypeEnum::integerCodeCounter = 0; 
-#endif // __WU_Q_MACRO_DATA_VALUE_TYPE_ENUM_DECLARE__
+#ifdef __WB_MACRO_CUSTOM_DATA_TYPE_ENUM_DECLARE__
+std::vector<WbMacroCustomDataTypeEnum> WbMacroCustomDataTypeEnum::enumData;
+bool WbMacroCustomDataTypeEnum::initializedFlag = false;
+int32_t WbMacroCustomDataTypeEnum::integerCodeCounter = 0;
+#endif // __WB_MACRO_CUSTOM_DATA_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_MACRO_DATA_VALUE_TYPE_ENUM_H__
+#endif  //__WB_MACRO_CUSTOM_DATA_TYPE_ENUM_H__

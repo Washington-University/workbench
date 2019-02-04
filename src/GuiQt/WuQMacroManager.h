@@ -39,6 +39,8 @@ namespace caret {
 
     class WuQMacro;
     class WuQMacroCommand;
+    class WuQMacroCommandParameter;
+    class WuQMacroCustomOperationManagerInterface;
     class WuQMacroDialog;
     class WuQMacroExecutorOptions;
     class WuQMacroGroup;
@@ -59,10 +61,10 @@ namespace caret {
         
         void setMacroHelper(WuQMacroHelperInterface* macroHelper);
         
+        void setCustomCommandManager(WuQMacroCustomOperationManagerInterface* customCommandManager);
+        
         QString getName() const;
 
-//        bool addMacroSupportToObject(QObject* object);
-//        
         bool addMacroSupportToObject(QObject* object,
                                      const QString& descriptiveName);
         
@@ -132,6 +134,18 @@ namespace caret {
         
         void macroWasModified(WuQMacro* macro);
         
+        bool editCustomDataValueParameter(QWidget* parent,
+                                          WuQMacroCommandParameter* parameter);
+
+        bool executeCustomOperationMacroCommand(QWidget* parent,
+                                                const WuQMacroCommand* macroCommand,
+                                                QString& errorMessageOut);
+        
+        virtual std::vector<QString> getNamesOfCustomOperationMacroCommands();
+        
+        virtual WuQMacroCommand* newInstanceOfCustomOperationMacroCommand(const QString& macroCommandName,
+                                                                          QString& errorMessageOut);
+        
         // ADD_NEW_METHODS_HERE
         
     public slots:
@@ -157,7 +171,9 @@ namespace caret {
         
         std::unique_ptr<WuQMacroExecutorOptions> m_executorOptions;
         
-        WuQMacroHelperInterface* m_macroHelper;
+        WuQMacroHelperInterface* m_macroHelper = NULL;
+        
+        WuQMacroCustomOperationManagerInterface* m_customCommandManager = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

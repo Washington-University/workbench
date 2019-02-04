@@ -74,7 +74,6 @@ WuQMacroGroupXmlStreamWriter::writeXml(QXmlStreamWriter* xmlWriter,
     CaretAssert(macroGroup);
     
     if (macroGroup->getNumberOfMacros() <= 0) {
-//        xmlWriter->writeEmptyElement(ELEMENT_MACRO_GROUP);
         return;
     }
     
@@ -165,56 +164,27 @@ WuQMacroGroupXmlStreamWriter::writeMacroCommandToXML(const WuQMacroCommand* macr
     m_xmlStreamWriter->writeStartElement(ELEMENT_MACRO_COMMAND);
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_NAME,
                                       macroCommand->getObjectName());
-    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_CLASS,
-                                      WuQMacroClassTypeEnum::toName(macroCommand->getClassType()));
+    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_COMMAND_TYPE,
+                                      WuQMacroCommandTypeEnum::toName(macroCommand->getCommandType()));
+    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_WIDGET_TYPE,
+                                      WuQMacroWidgetTypeEnum::toName(macroCommand->getWidgetType()));
+    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_VERSION,
+                                      QString::number(macroCommand->getVersion()));
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_OBJECT_DESCRIPTIVE_NAME,
                                       macroCommand->getDescriptiveName());
     m_xmlStreamWriter->writeAttribute(ATTRIBUTE_DELAY,
                                       QString::number(macroCommand->getDelayInSeconds(), 'f', 2));
+    m_xmlStreamWriter->writeAttribute(ATTRIBUTE_CUSTOM_OPERATION_TYPE_NAME,
+                                      macroCommand->getCustomOperationTypeName());
+
     
-    switch (macroCommand->getClassType()) {
-        case WuQMacroClassTypeEnum::ACTION:
+    switch (macroCommand->getCommandType()) {
+        case WuQMacroCommandTypeEnum::CUSTOM_OPERATION:
             break;
-        case WuQMacroClassTypeEnum::ACTION_CHECKABLE:
-            break;
-        case WuQMacroClassTypeEnum::ACTION_GROUP:
-            break;
-        case WuQMacroClassTypeEnum::BUTTON_GROUP:
-            break;
-        case WuQMacroClassTypeEnum::CHECK_BOX:
-            break;
-        case WuQMacroClassTypeEnum::COMBO_BOX:
-            break;
-        case WuQMacroClassTypeEnum::DOUBLE_SPIN_BOX:
-            break;
-        case WuQMacroClassTypeEnum::INVALID:
-            break;
-        case WuQMacroClassTypeEnum::LINE_EDIT:
-            break;
-        case WuQMacroClassTypeEnum::LIST_WIDGET:
-            break;
-        case WuQMacroClassTypeEnum::MENU:
-            break;
-        case WuQMacroClassTypeEnum::MOUSE_USER_EVENT:
+        case WuQMacroCommandTypeEnum::MOUSE:
             writeMacroMouseEventInfo(macroCommand->getMouseEventInfo());
             break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON:
-            break;
-        case WuQMacroClassTypeEnum::PUSH_BUTTON_CHECKABLE:
-            break;
-        case WuQMacroClassTypeEnum::RADIO_BUTTON:
-            break;
-        case WuQMacroClassTypeEnum::SLIDER:
-            break;
-        case WuQMacroClassTypeEnum::SPIN_BOX:
-            break;
-        case WuQMacroClassTypeEnum::TAB_BAR:
-            break;
-        case WuQMacroClassTypeEnum::TAB_WIDGET:
-            break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON:
-            break;
-        case WuQMacroClassTypeEnum::TOOL_BUTTON_CHECKABLE:
+        case WuQMacroCommandTypeEnum::WIDGET:
             break;
     }
     
@@ -242,6 +212,9 @@ WuQMacroGroupXmlStreamWriter::writeMacroCommandToXML(const WuQMacroCommand* macr
             case WuQMacroDataValueTypeEnum::BOOLEAN:
                 stringValue = (value.toBool() ? VALUE_BOOL_TRUE : VALUE_BOOL_FALSE);
                 break;
+            case WuQMacroDataValueTypeEnum::CUSTOM_DATA:
+                stringValue = value.toString();
+                break;
             case WuQMacroDataValueTypeEnum::FLOAT:
                 stringValue = QString::number(value.toFloat());
                 break;
@@ -258,10 +231,12 @@ WuQMacroGroupXmlStreamWriter::writeMacroCommandToXML(const WuQMacroCommand* macr
                 stringValue = value.toString();
                 break;
         }
-        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MACRO_COMMAND_PARAMETER_VALUE,
-                                          stringValue);
         m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MACRO_COMMAND_PARAMETER_NAME,
                                           parameter->getName());
+        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MACRO_COMMAND_PARAMETER_CUSTOM_DATA_TYPE,
+                                          parameter->getCustomDataType());
+        m_xmlStreamWriter->writeAttribute(ATTRIBUTE_MACRO_COMMAND_PARAMETER_VALUE,
+                                          stringValue);
         m_xmlStreamWriter->writeEndElement();
     }
     
