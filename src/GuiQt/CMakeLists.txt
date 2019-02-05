@@ -448,6 +448,7 @@ VolumeSurfaceOutlineColorOrTabViewController.h
 VolumeSurfaceOutlineSetViewController.h
 VolumeSurfaceOutlineViewController.h
 WbMacroCustomDataTypeEnum.h
+WbMacroCustomOperationBase.h
 WbMacroCustomOperationManager.h
 WbMacroCustomOperationSurfaceInterpolation.h
 WbMacroCustomOperationTypeEnum.h
@@ -698,6 +699,7 @@ VolumeSurfaceOutlineColorOrTabViewController.cxx
 VolumeSurfaceOutlineSetViewController.cxx
 VolumeSurfaceOutlineViewController.cxx
 WbMacroCustomDataTypeEnum.cxx
+WbMacroCustomOperationBase.cxx
 WbMacroCustomOperationManager.cxx
 WbMacroCustomOperationSurfaceInterpolation.cxx
 WbMacroCustomOperationTypeEnum.cxx

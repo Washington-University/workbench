@@ -1005,3 +1005,33 @@ WuQMacroManager::newInstanceOfCustomOperationMacroCommand(const QString& macroCo
     
     return command;
 }
+
+/**
+ * @return Identifiers of all available windows in which macros may be run
+ */
+std::vector<QString>
+WuQMacroManager::getMainWindowIdentifiers()
+{
+    std::vector<QString> identifiers;
+    if (m_macroHelper != NULL) {
+        identifiers = m_macroHelper->getMainWindowIdentifiers();
+    }
+    return identifiers;
+}
+
+/**
+ * Get the main window with the given identifier
+ *
+ * @param identifier
+ *     Window identifier
+ * @return
+ *     Window with the given identifier or NULL if not available
+ */
+QMainWindow*
+WuQMacroManager::getMainWindowWithIdentifier(const QString& identifier)
+{
+    if (m_macroHelper != NULL) {
+        return m_macroHelper->getMainWindowWithIdentifier(identifier);
+    }
+    return NULL;
+}

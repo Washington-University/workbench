@@ -25,34 +25,42 @@
 
 #include <memory>
 
-class QString;
-class QWidget;
+#include "WbMacroCustomOperationBase.h"
 
 namespace caret {
 
-    class WuQMacroCommand;
+    class ModelSurface;
+    class ModelWholeBrain;
+    class Surface;
     
-    class WbMacroCustomOperationSurfaceInterpolation {
+    class WbMacroCustomOperationSurfaceInterpolation : public WbMacroCustomOperationBase {
         
     public:
-        static bool executeCommand(QWidget* parent,
-                                   const WuQMacroCommand* macroCommand,
-                                   QString& errorMessageOut);
-
-        static WuQMacroCommand* createCommand(QString& errorMessageOut);
-        
-        WbMacroCustomOperationSurfaceInterpolation() = delete;
+        WbMacroCustomOperationSurfaceInterpolation();
         
         virtual ~WbMacroCustomOperationSurfaceInterpolation();
         
         WbMacroCustomOperationSurfaceInterpolation(const WbMacroCustomOperationSurfaceInterpolation&) = delete;
-
+        
         WbMacroCustomOperationSurfaceInterpolation& operator=(const WbMacroCustomOperationSurfaceInterpolation&) = delete;
         
+        virtual bool executeCommand(QWidget* parent,
+                                   const WuQMacroCommand* macroCommand) override;
 
+        virtual WuQMacroCommand* createCommand() override;
+        
+        
+        
         // ADD_NEW_METHODS_HERE
 
     private:
+        bool interpolateSurface(const int32_t tabIndex,
+                                ModelWholeBrain* wholeBrainModel,
+                                Surface* startSurface,
+                                Surface* endSurface,
+                                const float durationSeconds);
+        
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

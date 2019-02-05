@@ -301,25 +301,40 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
         CaretAssert(mc);
         
         const QString objectName(mc->getObjectName());
-        QObject* object = findObjectByName(objectName);
-        if (object == NULL) {
-            errorMessageOut.append("Unable to find object named "
-                                   + objectName
-                                   + "\n");
-            if (m_runOptions.isStopOnError()) {
-                return false;
-            }
-            continue;
+        
+        bool requiresObjectFlag(false);
+        switch (mc->getCommandType()) {
+            case WuQMacroCommandTypeEnum::CUSTOM_OPERATION:
+                break;
+            case WuQMacroCommandTypeEnum::MOUSE:
+                requiresObjectFlag = true;
+                break;
+            case WuQMacroCommandTypeEnum::WIDGET:
+                requiresObjectFlag = true;
+                break;
         }
-
-        if (object->signalsBlocked()) {
-            errorMessageOut.append("Object named "
-                                   + objectName
-                                   + " has signals blocked");
-            if (m_runOptions.isStopOnError()) {
-                return false;
+        
+        QObject* object = findObjectByName(objectName);
+        if (requiresObjectFlag) {
+            if (object == NULL) {
+                errorMessageOut.append("Unable to find object named "
+                                       + objectName
+                                       + "\n");
+                if (m_runOptions.isStopOnError()) {
+                    return false;
+                }
+                continue;
             }
-            continue;
+            
+            if (object->signalsBlocked()) {
+                errorMessageOut.append("Object named "
+                                       + objectName
+                                       + " has signals blocked");
+                if (m_runOptions.isStopOnError()) {
+                    return false;
+                }
+                continue;
+            }
         }
         
         QString commandErrorMessage;
@@ -333,6 +348,7 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
                 break;
             case WuQMacroCommandTypeEnum::MOUSE:
             {
+                CaretAssert(object);
                 bool notFoundFlag(false);
                 successFlag = runMouseCommand(mc,
                                               object,
@@ -341,6 +357,7 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
             }
                 break;
             case WuQMacroCommandTypeEnum::WIDGET:
+                CaretAssert(object);
                 successFlag = runMacroCommand(window,
                                               mc,
                                               object,

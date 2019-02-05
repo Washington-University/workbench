@@ -51,6 +51,10 @@ namespace caret {
         
         virtual void macroGroupWasModified(WuQMacroGroup* macroGroup) override;
 
+        virtual std::vector<QString> getMainWindowIdentifiers() override;
+        
+        virtual QMainWindow* getMainWindowWithIdentifier(const QString& identifier) override;
+
         // ADD_NEW_METHODS_HERE
         
     private:

@@ -180,6 +180,8 @@ namespace caret {
         
         QDialogButtonBox* m_dialogButtonBox;
         
+        QComboBox* m_runOptionsWindowComboBox;
+        
         QCheckBox* m_runOptionLoopCheckBox;
         
         QCheckBox* m_runOptionMoveMouseCheckBox;

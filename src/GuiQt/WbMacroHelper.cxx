@@ -24,6 +24,7 @@
 #undef __WB_MACRO_HELPER_DECLARE__
 
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
@@ -152,3 +153,35 @@ WbMacroHelper::macroGroupWasModified(WuQMacroGroup* macroGroup)
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
+/**
+ * @return Identifiers of all available windows in which macros may be run
+ */
+std::vector<QString>
+WbMacroHelper::getMainWindowIdentifiers()
+{
+    std::vector<QString> identifiers;
+    
+    std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
+    for (auto w : windows) {
+        identifiers.push_back(QString::number(w->getBrowserWindowIndex() + 1));
+    }
+    
+    return identifiers;
+}
+
+/**
+ * Get the main window with the given identifier
+ *
+ * @param identifier
+ *     Window identifier
+ * @return
+ *     Window with the given identifier or NULL if not available
+ */
+QMainWindow*
+WbMacroHelper::getMainWindowWithIdentifier(const QString& identifier)
+{
+    const int32_t windowIndex(identifier.toInt() - 1);
+    QMainWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(windowIndex);
+    
+    return window;
+}

@@ -30,6 +30,8 @@
 #include <QObject>
 #include <vector>
 
+class QMainWindow;
+
 namespace caret {
     class WuQMacro;
     class WuQMacroGroup;
@@ -66,7 +68,21 @@ namespace caret {
          *     Macro Group that is modified
          */
         virtual void macroGroupWasModified(WuQMacroGroup* macroGroup) = 0;
+
+        /**
+         * @return Identifiers of all available windows in which macros may be run
+         */
+        virtual std::vector<QString> getMainWindowIdentifiers() = 0;
         
+        /**
+         * Get the main window with the given identifier
+         *
+         * @param identifier
+         *     Window identifier
+         * @return
+         *     Window with the given identifier or NULL if not available
+         */
+        virtual QMainWindow* getMainWindowWithIdentifier(const QString& identifier) = 0;
         
         // ADD_NEW_METHODS_HERE
 

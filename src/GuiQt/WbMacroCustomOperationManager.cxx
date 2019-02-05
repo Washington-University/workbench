@@ -190,9 +190,14 @@ WbMacroCustomOperationManager::executeCustomOperationMacroCommand(QWidget* paren
     bool successFlag(false);
     switch (commandType) {
         case WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION:
-            successFlag = WbMacroCustomOperationSurfaceInterpolation::executeCommand(parent,
-                                                                                     customMacroCommand,
-                                                                                     errorMessageOut);
+        {
+            WbMacroCustomOperationSurfaceInterpolation surfaceInterpolation;
+            successFlag = surfaceInterpolation.executeCommand(parent,
+                                                              customMacroCommand);
+            if ( ! successFlag) {
+                errorMessageOut = surfaceInterpolation.getErrorMessage();
+            }
+        }
             break;
     }
     
@@ -245,7 +250,13 @@ WbMacroCustomOperationManager::newInstanceOfCustomOperationMacroCommand(const QS
     
     switch (commandType) {
         case WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION:
-            command = WbMacroCustomOperationSurfaceInterpolation::createCommand(errorMessageOut);
+        {
+            WbMacroCustomOperationSurfaceInterpolation surfaceInterpolator;
+            command = surfaceInterpolator.createCommand();
+            if (command == NULL) {
+                errorMessageOut = surfaceInterpolator.getErrorMessage();
+            }
+        }
             break;
     }
     

@@ -32,6 +32,7 @@
 #include "WuQMacroShortCutKeyEnum.h"
 
 class QKeyEvent;
+class QMainWindow;
 class QMouseEvent;
 class QWidget;
 
@@ -146,6 +147,10 @@ namespace caret {
         virtual WuQMacroCommand* newInstanceOfCustomOperationMacroCommand(const QString& macroCommandName,
                                                                           QString& errorMessageOut);
         
+        std::vector<QString> getMainWindowIdentifiers();
+        
+        QMainWindow* getMainWindowWithIdentifier(const QString& identifier);
+
         // ADD_NEW_METHODS_HERE
         
     public slots:

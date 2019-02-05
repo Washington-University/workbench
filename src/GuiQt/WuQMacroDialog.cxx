@@ -32,6 +32,7 @@
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMainWindow>
 #include <QMenu>
 #include <QMessageBox>
 #include <QPainter>
@@ -292,7 +293,6 @@ WuQMacroDialog::createMacroDisplayWidget()
     
     QHBoxLayout* runOptionsTitleLayout = new QHBoxLayout();
     runOptionsTitleLayout->setContentsMargins(0, 0, 0, 0);
-    runOptionsTitleLayout->setContentsMargins(0, 0, 0, 0);
     runOptionsTitleLayout->addWidget(new QLabel("Run Macro Options "));
     runOptionsTitleLayout->addWidget(createHorizontalLine(), 100);
     
@@ -381,6 +381,10 @@ WuQMacroDialog::createRunOptionsWidget()
 {
     QWidget* widget = new QWidget();
     
+    QLabel* windowLabel = new QLabel("Window");
+    m_runOptionsWindowComboBox = new QComboBox();
+    m_runOptionsWindowComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLength);
+    
     m_runOptionLoopCheckBox = new QCheckBox("Loop");
     m_runOptionLoopCheckBox->setChecked(false);
     m_runOptionLoopCheckBox->setEnabled(false);
@@ -395,10 +399,15 @@ WuQMacroDialog::createRunOptionsWidget()
                      this, &WuQMacroDialog::runOptionMoveMouseCheckBoxClicked);
 
     QGridLayout* runOptionsLayout = new QGridLayout(widget);
+    runOptionsLayout->setColumnStretch(0, 0);
+    runOptionsLayout->setColumnStretch(1, 100);
     int row = 0;
-    runOptionsLayout->addWidget(m_runOptionLoopCheckBox, row, 0);
+    runOptionsLayout->addWidget(windowLabel, row, 0);
+    runOptionsLayout->addWidget(m_runOptionsWindowComboBox, row, 1, Qt::AlignLeft);
     row++;
-    runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, row, 0);
+    runOptionsLayout->addWidget(m_runOptionLoopCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
+    runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     
     return widget;
@@ -550,6 +559,14 @@ WuQMacroDialog::updateDialogContents()
         && (selectedIndex < m_macroGroupComboBox->count())) {
         m_macroGroupComboBox->setCurrentIndex(selectedIndex);
     }
+    
+    const QString windowText = m_runOptionsWindowComboBox->currentText();
+    m_runOptionsWindowComboBox->clear();
+    const std::vector<QString> windowIDs = WuQMacroManager::instance()->getMainWindowIdentifiers();
+    for (const auto id : windowIDs) {
+        m_runOptionsWindowComboBox->addItem(id);
+    }
+    m_runOptionsWindowComboBox->setCurrentText(windowText);
     
     const WuQMacroExecutorOptions* runOptions = WuQMacroManager::instance()->getExecutorOptions();
     CaretAssert(runOptions);
@@ -902,7 +919,23 @@ WuQMacroDialog::runMacroToolButtonClicked()
             return;
         }
         
-        WuQMacroManager::instance()->runMacro(parentWidget(),
+        const QString windowID = m_runOptionsWindowComboBox->currentText();
+        QWidget* window = WuQMacroManager::instance()->getMainWindowWithIdentifier(windowID);
+        if (window == NULL) {
+            window = this;
+            while (window != NULL) {
+                if (qobject_cast<QMainWindow*>(window) != NULL) {
+                    break;
+                }
+                else {
+                    window = window->parentWidget();
+                }
+            }
+            if (window == NULL) {
+                window = parentWidget();
+            }
+        }
+        WuQMacroManager::instance()->runMacro(window,
                                               macro);
     }
 }
