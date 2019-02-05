@@ -52,6 +52,7 @@
 #include "WuQMacroGroup.h"
 #include "WuQMacroExecutor.h"
 #include "WuQMacroManager.h"
+#include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroShortCutKeyComboBox.h"
 #include "WuQMacroStandardItemTypeEnum.h"
 #include "WuQtUtilities.h"
@@ -134,6 +135,8 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     splitter->addWidget(macroSelectionWidget);
     stackedScrollArea->setMinimumHeight(50);
     splitter->addWidget(stackedScrollArea);
+    splitter->setStretchFactor(0, 35);
+    splitter->setStretchFactor(1, 65);
     
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
     dialogLayout->addLayout(gridLayout);
@@ -504,7 +507,7 @@ WuQMacroDialog::createCommandDisplayWidget()
     layout->addWidget(m_commandDelaySpinBox, row, 1);
     row++;
     layout->addWidget(toolTipLabel, row, 0, (Qt::AlignLeft | Qt::AlignTop));
-    layout->addWidget(m_commandToolTipTextEdit, row, 1);
+    layout->addWidget(m_commandToolTipTextEdit, row, 1, 1, 2);
     row++;
     layout->addWidget(parametersLabel, row, 0, 1, 2, Qt::AlignLeft);
     row++;
@@ -701,11 +704,29 @@ WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
     QString toolTip;
     float delay(0.0f);
     if (command != NULL) {
-        title           = command->text();
-        name            = command->getObjectName();
-        type            = WuQMacroWidgetTypeEnum::toGuiName(command->getWidgetType());
-        toolTip         = command->getObjectToolTip();
-        delay           = command->getDelayInSeconds();
+        title = command->text();
+        name  = command->getObjectName();
+        switch (command->getCommandType()) {
+            case WuQMacroCommandTypeEnum::CUSTOM_OPERATION:
+            {
+                const QString operationName = command->getCustomOperationTypeName();
+                type = operationName;
+            }
+                break;
+            case WuQMacroCommandTypeEnum::MOUSE:
+            {
+                WuQMacroMouseEventInfo* mouseInfo = command->getMouseEventInfo();
+                CaretAssert(mouseInfo);
+                WuQMacroMouseEventTypeEnum::Enum mouseEventType = mouseInfo->getMouseEventType();
+                type = WuQMacroMouseEventTypeEnum::toGuiName(mouseEventType);
+            }
+                break;
+            case WuQMacroCommandTypeEnum::WIDGET:
+                type = WuQMacroWidgetTypeEnum::toGuiName(command->getWidgetType());
+                break;
+        }
+        toolTip = command->getObjectToolTip();
+        delay   = command->getDelayInSeconds();
     }
     m_commandTitleLabel->setText(title);
     m_commandNameLabel->setText(name);
