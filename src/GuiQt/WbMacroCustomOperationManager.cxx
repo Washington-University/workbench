@@ -32,6 +32,7 @@
 #include "GuiManager.h"
 #include "Surface.h"
 #include "WbMacroCustomDataTypeEnum.h"
+#include "WbMacroCustomOperationModelRotation.h"
 #include "WbMacroCustomOperationSurfaceInterpolation.h"
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WuQMacroCommand.h"
@@ -109,6 +110,27 @@ WbMacroCustomOperationManager::editCustomDataValueParameter(QWidget* parent,
     
     QString errorMessage;
     switch (userType) {
+        case WbMacroCustomDataTypeEnum::SCREEN_AXIS:
+        {
+            QStringList axisList;
+            axisList.append("X");
+            axisList.append("Y");
+            axisList.append("Z");
+
+            bool okFlag(false);
+            QString selectedName = QInputDialog::getItem(parent,
+                                                         "Choose Surface",
+                                                         parameter->getName(),
+                                                         axisList,
+                                                         0,
+                                                         false,
+                                                         &okFlag);
+            if (okFlag) {
+                parameter->setValue(selectedName);
+                modFlag = true;
+            }
+        }
+            break;
         case WbMacroCustomDataTypeEnum::SURFACE:
         {
             EventSurfacesGet surfacesEvent;
@@ -187,18 +209,27 @@ WbMacroCustomOperationManager::executeCustomOperationMacroCommand(QWidget* paren
         return false;
     }
     
-    bool successFlag(false);
+    std::unique_ptr<WbMacroCustomOperationBase> customOperation;
     switch (commandType) {
-        case WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION:
-        {
-            WbMacroCustomOperationSurfaceInterpolation surfaceInterpolation;
-            successFlag = surfaceInterpolation.executeCommand(parent,
-                                                              customMacroCommand);
-            if ( ! successFlag) {
-                errorMessageOut = surfaceInterpolation.getErrorMessage();
-            }
-        }
+        case WbMacroCustomOperationTypeEnum::MODEL_ROTATION:
+            customOperation.reset(new WbMacroCustomOperationModelRotation());
             break;
+        case WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION:
+            customOperation.reset(new WbMacroCustomOperationSurfaceInterpolation());
+            break;
+    }
+    
+    bool successFlag(false);
+    if (customOperation) {
+        successFlag = customOperation->executeCommand(parent,
+                                                      customMacroCommand);
+        if ( ! successFlag) {
+            errorMessageOut = customOperation->getErrorMessage();
+        }
+    }
+    else {
+        errorMessageOut = "Custom Operation is missing";
+        CaretLogSevere(errorMessageOut);
     }
     
     return successFlag;
@@ -248,16 +279,25 @@ WbMacroCustomOperationManager::newInstanceOfCustomOperationMacroCommand(const QS
     
     WuQMacroCommand* command(NULL);
     
+    std::unique_ptr<WbMacroCustomOperationBase> customOperation;
     switch (commandType) {
-        case WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION:
-        {
-            WbMacroCustomOperationSurfaceInterpolation surfaceInterpolator;
-            command = surfaceInterpolator.createCommand();
-            if (command == NULL) {
-                errorMessageOut = surfaceInterpolator.getErrorMessage();
-            }
-        }
+        case WbMacroCustomOperationTypeEnum::MODEL_ROTATION:
+            customOperation.reset(new WbMacroCustomOperationModelRotation());
             break;
+        case WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION:
+            customOperation.reset(new WbMacroCustomOperationSurfaceInterpolation());
+            break;
+    }
+
+    if (customOperation) {
+        command = customOperation->createCommand();
+        if (command == NULL) {
+            errorMessageOut = customOperation->getErrorMessage();
+        }
+    }
+    else {
+        errorMessageOut = "Custom Operation is missing";
+        CaretLogSevere(errorMessageOut);
     }
     
     return command;

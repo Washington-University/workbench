@@ -450,6 +450,7 @@ VolumeSurfaceOutlineViewController.h
 WbMacroCustomDataTypeEnum.h
 WbMacroCustomOperationBase.h
 WbMacroCustomOperationManager.h
+WbMacroCustomOperationModelRotation.h
 WbMacroCustomOperationSurfaceInterpolation.h
 WbMacroCustomOperationTypeEnum.h
 WbMacroHelper.h
@@ -701,6 +702,7 @@ VolumeSurfaceOutlineViewController.cxx
 WbMacroCustomDataTypeEnum.cxx
 WbMacroCustomOperationBase.cxx
 WbMacroCustomOperationManager.cxx
+WbMacroCustomOperationModelRotation.cxx
 WbMacroCustomOperationSurfaceInterpolation.cxx
 WbMacroCustomOperationTypeEnum.cxx
 WbMacroHelper.cxx

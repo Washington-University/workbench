@@ -106,10 +106,13 @@ WbMacroCustomOperationTypeEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(WbMacroCustomOperationTypeEnum(MODEL_ROTATION,
+                                                      "MODEL_ROTATION",
+                                                      "Model Rotation"));
+
     enumData.push_back(WbMacroCustomOperationTypeEnum(SURFACE_INTERPOLATION,
-                                    "SURFACE_INTERPOLATION", 
-                                    "Surface Interpolation"));
-    
+                                                      "SURFACE_INTERPOLATION",
+                                                      "Surface Interpolation"));
 }
 
 /**

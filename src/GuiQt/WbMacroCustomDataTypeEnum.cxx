@@ -106,10 +106,13 @@ WbMacroCustomDataTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(WbMacroCustomDataTypeEnum(SURFACE,
-                                    "SURFACE", 
-                                    "Surface"));
+    enumData.push_back(WbMacroCustomDataTypeEnum(SCREEN_AXIS,
+                                    "SCREEN_AXIS",
+                                    "Screen Axis"));
     
+    enumData.push_back(WbMacroCustomDataTypeEnum(SURFACE,
+                                                 "SURFACE",
+                                                 "Surface"));
 }
 
 /**

@@ -35,7 +35,9 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Rotation of viewed model */
+        MODEL_ROTATION,
+        /** Surface Interpolation */
         SURFACE_INTERPOLATION
     };
 

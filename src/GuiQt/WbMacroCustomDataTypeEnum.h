@@ -35,7 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        SCREEN_AXIS,
+        /** Surface selection */
         SURFACE
     };
 
