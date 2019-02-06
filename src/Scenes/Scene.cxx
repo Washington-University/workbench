@@ -557,5 +557,24 @@ Scene::getMacroGroup() const
     return m_macroGroup.get();
 }
 
+/**
+ * Move any macros in the given scene to this scene
+ *
+ * @param scene
+ *     Scene whose macros are moved to this scene.
+ */
+void
+Scene::moveMacrosFromScene(Scene* scene)
+{
+    CaretAssert(scene);
+    std::vector<WuQMacro*> macros = scene->getMacroGroup()->takeAllMacros();
+    if ( ! macros.empty()) {
+        for (auto m : macros) {
+            getMacroGroup()->addMacro(m);
+        }
+    }
+    setModified();
+}
+
 
 

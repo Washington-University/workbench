@@ -88,6 +88,8 @@ namespace caret {
         
         void moveMacroUp(WuQMacro* macro);
         
+        std::vector<WuQMacro*> takeAllMacros();
+        
         virtual bool isModified() const override;
         
         virtual void clearModified() override;

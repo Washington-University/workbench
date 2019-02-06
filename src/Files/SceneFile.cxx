@@ -202,6 +202,11 @@ SceneFile::replaceScene(Scene* newScene,
     const int32_t numScenes = getNumberOfScenes();
     for (int32_t i = 0; i < numScenes; i++) {
         if (m_scenes[i] == sceneThatIsReplacedAndDeleted) {
+            /*
+             * Preserve macros by moving to new scene
+             */
+            newScene->moveMacrosFromScene(sceneThatIsReplacedAndDeleted);
+            
             delete m_scenes[i];
             m_scenes[i] = newScene;
             setModified();

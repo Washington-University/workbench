@@ -477,6 +477,30 @@ WuQMacroGroup::moveMacroUp(WuQMacro* macro)
 }
 
 /**
+ * Take all macros from this macro group.  After calling
+ * this method, 'this' macro group contains no macros
+ *
+ * @return All macros from this group.
+ */
+std::vector<WuQMacro*>
+WuQMacroGroup::takeAllMacros()
+{
+    std::vector<WuQMacro*> macrosOut;
+    
+    const int32_t numMacros = rowCount();
+    for (int32_t i = 0; i < numMacros; i++) {
+        WuQMacro* macro = dynamic_cast<WuQMacro*>(takeItem(i));
+        CaretAssert(macro);
+        macrosOut.push_back(macro);
+    }
+    
+    removeRows(0, numMacros);
+    CaretAssert(rowCount() == 0);
+    
+    return macrosOut;
+}
+
+/**
  * @return True if this instance is modified
  */
 bool

@@ -95,9 +95,9 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     
     QGridLayout* gridLayout = new QGridLayout();
     gridLayout->setContentsMargins(0, 0, 0, 0);
-    gridLayout->setRowStretch(0, 0);
-    gridLayout->setRowStretch(1, 0);
-    gridLayout->setRowStretch(2, 100);
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 100);
+    gridLayout->setColumnStretch(2, 0);
     int row = 0;
     gridLayout->addWidget(macroGroupLabel, row, 0);
     gridLayout->addWidget(m_macroGroupComboBox, row, 1);
@@ -220,10 +220,11 @@ WuQMacroDialog::createMacroRunAndEditingToolButtons()
     toolButtonLayout->setContentsMargins(0, 0, 0, 0);
     toolButtonLayout->addWidget(m_runMacroToolButton);
     toolButtonLayout->addStretch();
+    toolButtonLayout->addWidget(m_editingInsertToolButton);
+    toolButtonLayout->addSpacing(10);
     toolButtonLayout->addWidget(m_editingMoveUpToolButton);
     toolButtonLayout->addWidget(m_editingMoveDownToolButton);
-    toolButtonLayout->addWidget(m_editingInsertToolButton);
-    toolButtonLayout->addSpacing(15);
+    toolButtonLayout->addSpacing(10);
     toolButtonLayout->addWidget(m_editingDeleteToolButton);
     
     return widget;
@@ -301,6 +302,7 @@ WuQMacroDialog::createMacroDisplayWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->setSpacing(layout->spacing() / 2);
     layout->addLayout(titleLayout);
     layout->addLayout(gridLayout);
     layout->addLayout(runOptionsTitleLayout);
@@ -487,7 +489,6 @@ WuQMacroDialog::createCommandDisplayWidget()
     m_commandToolTipTextEdit->setReadOnly(true);
     m_commandToolTipTextEdit->setMaximumHeight(100);
     
-    QLabel* parametersLabel = new QLabel("Parameters: ");
     QGridLayout* layout = new QGridLayout();
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setColumnStretch(0, 0);
@@ -509,13 +510,17 @@ WuQMacroDialog::createCommandDisplayWidget()
     layout->addWidget(toolTipLabel, row, 0, (Qt::AlignLeft | Qt::AlignTop));
     layout->addWidget(m_commandToolTipTextEdit, row, 1, 1, 2);
     row++;
-    layout->addWidget(parametersLabel, row, 0, 1, 2, Qt::AlignLeft);
-    row++;
     
     QWidget* parametersWidget = new QWidget();
     m_parameterWidgetsGridLayout = new QGridLayout(parametersWidget);
+    m_parameterWidgetsGridLayout->setVerticalSpacing(static_cast<int>(m_parameterWidgetsGridLayout->verticalSpacing() / 1.2));
     m_parameterWidgetsGridLayout->setColumnStretch(0, 0);
     m_parameterWidgetsGridLayout->setColumnStretch(1, 100);
+    m_parameterWidgetsGridLayout->addWidget(new QLabel("Edit"),
+                                            0, 0, Qt::AlignHCenter);
+    m_parameterWidgetsGridLayout->addWidget(new QLabel("Parameter Value"),
+                                            0, 1, Qt::AlignLeft);
+
 
     QHBoxLayout* titleLayout = new QHBoxLayout();
     titleLayout->setContentsMargins(0, 0, 0, 0);
@@ -1487,7 +1492,7 @@ CommandParameterWidget::updateContent(WuQMacroCommandParameter* parameter)
     const bool validFlag(m_parameter != NULL);
     if (validFlag) {
         m_label->setText(m_parameter->getValue().toString());
-        m_pushButton->setText(m_parameter->getName());
+        m_pushButton->setText(m_parameter->getName() + "...");
     }
     m_label->setVisible(validFlag);
     m_pushButton->setVisible(validFlag);
