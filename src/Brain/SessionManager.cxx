@@ -56,6 +56,7 @@
 #include "LogManager.h"
 #include "MapYokingGroupEnum.h"
 #include "ModelWholeBrain.h"
+#include "MovieRecorder.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -77,6 +78,7 @@ SessionManager::SessionManager()
     m_caretPreferences = new CaretPreferences();
     
     m_imageCaptureDialogSettings = new ImageCaptureSettings();
+    m_movieRecorder.reset(new MovieRecorder());
 
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
     m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
@@ -1105,4 +1107,21 @@ SessionManager::getImageCaptureDialogSettings() const
     return m_imageCaptureDialogSettings;
 }
 
+/**
+ * @return The movie recorder
+ */
+MovieRecorder*
+SessionManager::getMovieRecorder()
+{
+    return m_movieRecorder.get();
+}
+
+/**
+ * @return The movie recorder (const method)
+ */
+const MovieRecorder*
+SessionManager::getMovieRecorder() const
+{
+    return m_movieRecorder.get();
+}
 

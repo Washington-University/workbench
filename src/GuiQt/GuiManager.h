@@ -55,6 +55,7 @@ namespace caret {
     class ImageFile;
     class ImageCaptureDialog;
     class InformationDisplayDialog;
+    class MovieRecordingDialog;
     class OverlaySettingsEditorDialog;
     class Model;
     class PaletteColorMappingEditorDialog;
@@ -136,6 +137,7 @@ namespace caret {
         void processShowCustomViewDialog(BrainBrowserWindow* browserWindow);
         void processShowGapsAndMarginsDialog(BrainBrowserWindow* browserWindow);
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
+        void processShowMovieRecordingDialog(BrainBrowserWindow* browserWindow);
         void processShowMovieDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
         void processShowInformationDisplayDialog(const bool forceDisplayOfDialog);
@@ -263,6 +265,8 @@ namespace caret {
         
         ImageCaptureDialog* imageCaptureDialog;
 
+        MovieRecordingDialog* m_movieRecordingDialog;
+        
         GapsAndMarginsDialog* m_gapsAndMarginsDialog;
         
         MovieDialog* movieDialog;

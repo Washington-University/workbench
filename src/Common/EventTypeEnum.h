@@ -168,6 +168,8 @@ public:
         EVENT_MODEL_GET_ALL_DISPLAYED,
         /** model surface - get */
         EVENT_MODEL_SURFACE_GET,
+        /** Update the movie dialog */
+        EVENT_MOVIE_RECORDING_DIALOG_UPDATE,
         /** Get the color for a node's identification symbol from a chart that contains the node */
         EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS,
         /** Get the transformation for converting object coordinates to window coordinates */

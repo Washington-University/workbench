@@ -47,6 +47,8 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "MovieRecorder.h"
+#include "SessionManager.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
@@ -264,8 +266,8 @@ WuQMacroExecutor::findObjectByName(const QString& objectName) const
  *
  * @param macro
  *    Macro that is run
- * @param topLevelObject
- *     Top level object for finding children objects
+ * @param window
+ *     Widget for parent
  * @param otherObjectParents
  *    Additional objects that are searched for objects contained
  *    in the macro commands
@@ -282,6 +284,47 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
                            std::vector<QObject*>& otherObjectParents,
                            const WuQMacroExecutorOptions* executorOptions,
                            QString& errorMessageOut) const
+{
+    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+    const MovieRecorderModeEnum::Enum savedRecordingMode = movieRecorder->getRecordingMode();
+    if (executorOptions->isRecordMovieDuringExecution()) {
+        movieRecorder->setRecordingMode(MovieRecorderModeEnum::AUTOMATIC);
+    }
+    
+    const bool result = runMacroPrivate(macro,
+                                        window,
+                                        otherObjectParents,
+                                        executorOptions,
+                                        errorMessageOut);
+    
+    movieRecorder->setRecordingMode(savedRecordingMode);
+    
+    return result;
+}
+
+/**
+ * Run the commands in the given macro.
+ *
+ * @param macro
+ *    Macro that is run
+ * @param window
+ *     Widget for parent
+ * @param otherObjectParents
+ *    Additional objects that are searched for objects contained
+ *    in the macro commands
+ * @param executorOptions
+ *    Executor options
+ * @param errorMessageOut
+ *    Output containing any error messages
+ * @return
+ *    True if the macro completed without errors, else false.
+ */
+bool
+WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
+                                  QWidget* window,
+                                  std::vector<QObject*>& otherObjectParents,
+                                  const WuQMacroExecutorOptions* executorOptions,
+                                  QString& errorMessageOut) const
 {
     CaretAssert(macro);
     CaretAssert(executorOptions);
@@ -341,9 +384,9 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
         bool successFlag(false);
         switch (mc->getCommandType()) {
             case WuQMacroCommandTypeEnum::CUSTOM_OPERATION:
-                successFlag =WuQMacroManager::instance()->executeCustomOperationMacroCommand(window,
-                                                                                             mc,
-                                                                                             commandErrorMessage);
+                successFlag = WuQMacroManager::instance()->executeCustomOperationMacroCommand(window,
+                                                                                              mc,
+                                                                                              commandErrorMessage);
 
                 break;
             case WuQMacroCommandTypeEnum::MOUSE:
@@ -373,6 +416,11 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
         }
         
         QGuiApplication::processEvents();
+        if (m_stopFlag) {
+            errorMessageOut = "Macro stopped at request of user";
+            return false;
+        }
+
         if (mc->getCommandType() != WuQMacroCommandTypeEnum::MOUSE) {
             if (mc->getDelayInSeconds() > 0.0) {
                 SystemUtilities::sleepSeconds(mc->getDelayInSeconds());
@@ -383,6 +431,15 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
     }
     
     return (errorMessageOut.isEmpty());
+}
+
+/**
+ * Stop the macro that is executing
+ */
+void
+WuQMacroExecutor::stopMacro()
+{
+    m_stopFlag = true;
 }
 
 /**

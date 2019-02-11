@@ -89,6 +89,7 @@ WuQMacroExecutorOptions::copyHelperWuQMacroExecutorOptions(const WuQMacroExecuto
     m_loopingFlag                 = obj.m_loopingFlag;
     m_stopOnErrorFlag             = obj.m_stopOnErrorFlag;
     m_showMouseMovementFlag       = obj.m_showMouseMovementFlag;
+    m_recordMovieDuringExecutionFlag = obj.m_recordMovieDuringExecutionFlag;
 }
 
 /**
@@ -162,4 +163,25 @@ void
 WuQMacroExecutorOptions::setLooping(const bool status)
 {
     m_loopingFlag = status;
+}
+
+/**
+ * @return True if record movie while macro executes is on.
+ */
+bool
+WuQMacroExecutorOptions::isRecordMovieDuringExecution() const
+{
+    return m_recordMovieDuringExecutionFlag;
+}
+
+/**
+ * Set record movie during macro execution
+ *
+ * @param status
+ *     New status
+ */
+void
+WuQMacroExecutorOptions::setRecordMovieDuringExecution(const bool status)
+{
+    m_recordMovieDuringExecutionFlag = status;
 }

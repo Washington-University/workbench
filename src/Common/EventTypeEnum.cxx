@@ -322,6 +322,10 @@ EventTypeEnum::initialize()
                                      "EVENT_MODEL_SURFACE_GET", 
                                      "Get a specific model surface"));
     
+    enumData.push_back(EventTypeEnum(EVENT_MOVIE_RECORDING_DIALOG_UPDATE,
+                                     "EVENT_MOVIE_RECORDING_DIALOG_UPDATE",
+                                     "Update the movie recording dialog"));
+
     enumData.push_back(EventTypeEnum(EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS,
                                      "EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS",
                                      "Get the color for node identification symbols from all charts that contain nodes"));

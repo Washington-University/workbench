@@ -24,6 +24,7 @@
 #undef __WU_Q_MACRO_DIALOG_DECLARE__
 
 #include <QAction>
+#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -183,6 +184,16 @@ WuQMacroDialog::createMacroRunAndEditingToolButtons()
     QObject::connect(m_runMacroToolButton, &QToolButton::clicked,
                      this, &WuQMacroDialog::runMacroToolButtonClicked);
     
+    m_stopMacroToolButton = new QToolButton();
+    m_stopMacroToolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    m_stopMacroToolButton->setText("Stop");
+    QPixmap stopPixmap = createEditingToolButtonPixmap(m_stopMacroToolButton,
+                                                      EditButton::STOP);
+    m_stopMacroToolButton->setIcon(stopPixmap);
+    m_stopMacroToolButton->setToolTip("Stop the currently running macro.  Response may not be immediate.");
+    QObject::connect(m_stopMacroToolButton, &QToolButton::clicked,
+                     this, &WuQMacroDialog::stopMacroToolButtonClicked);
+
     m_editingMoveUpToolButton = new QToolButton();
     QPixmap moveUpPixmap = createEditingToolButtonPixmap(m_editingMoveUpToolButton,
                                                          EditButton::MOVE_UP);
@@ -219,6 +230,7 @@ WuQMacroDialog::createMacroRunAndEditingToolButtons()
     QHBoxLayout* toolButtonLayout = new QHBoxLayout(widget);
     toolButtonLayout->setContentsMargins(0, 0, 0, 0);
     toolButtonLayout->addWidget(m_runMacroToolButton);
+    toolButtonLayout->addWidget(m_stopMacroToolButton);
     toolButtonLayout->addStretch();
     toolButtonLayout->addWidget(m_editingInsertToolButton);
     toolButtonLayout->addSpacing(10);
@@ -403,6 +415,12 @@ WuQMacroDialog::createRunOptionsWidget()
     QObject::connect(m_runOptionMoveMouseCheckBox, &QCheckBox::clicked,
                      this, &WuQMacroDialog::runOptionMoveMouseCheckBoxClicked);
 
+    m_recordMovieWhileMacroRunsCheckBox = new QCheckBox("Record Movie While Macro Runs");
+    m_recordMovieWhileMacroRunsCheckBox->setChecked(false);
+    m_recordMovieWhileMacroRunsCheckBox->setToolTip("While the macro runs, add images to Movie Recorder");
+    QObject::connect(m_recordMovieWhileMacroRunsCheckBox, &QCheckBox::clicked,
+                     this, &WuQMacroDialog::runOptionRecordMovieCheckBoxClicked);
+
     QGridLayout* runOptionsLayout = new QGridLayout(widget);
     runOptionsLayout->setColumnStretch(0, 0);
     runOptionsLayout->setColumnStretch(1, 100);
@@ -413,6 +431,8 @@ WuQMacroDialog::createRunOptionsWidget()
     runOptionsLayout->addWidget(m_runOptionLoopCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
+    runOptionsLayout->addWidget(m_recordMovieWhileMacroRunsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     
     return widget;
@@ -444,6 +464,14 @@ WuQMacroDialog::runOptionLoopCheckBoxClicked(bool checked)
     WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
     CaretAssert(options);
     options->setLooping(checked);
+}
+
+void
+WuQMacroDialog::runOptionRecordMovieCheckBoxClicked(bool checked)
+{
+    WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
+    CaretAssert(options);
+    options->setRecordMovieDuringExecution(checked);
 }
 
 /**
@@ -479,10 +507,12 @@ WuQMacroDialog::createCommandDisplayWidget()
     m_commandDelaySpinBox->setSingleStep(1.0);
     m_commandDelaySpinBox->setDecimals(1);
     m_commandDelaySpinBox->setToolTip("Delay, in seconds, after running command");
-    m_commandDelaySpinBox->setFixedWidth(150);
-    m_commandDelaySpinBox->setSuffix(" seconds");
+//    m_commandDelaySpinBox->setFixedWidth(150);
+    m_commandDelaySpinBox->setSizePolicy(QSizePolicy::Fixed,
+                                         m_commandDelaySpinBox->sizePolicy().verticalPolicy());
     QObject::connect(m_commandDelaySpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                      this, &WuQMacroDialog::macroCommandDelaySpinBoxValueChanged);
+    QLabel* delayTwoLabel = new QLabel("seconds after command");
     
     QLabel* toolTipLabel = new QLabel("ToolTip:");
     m_commandToolTipTextEdit     = new QPlainTextEdit();
@@ -496,16 +526,17 @@ WuQMacroDialog::createCommandDisplayWidget()
     layout->setColumnStretch(2, 100);
     int row = 0;
     layout->addWidget(titleLabel, row, 0);
-    layout->addWidget(m_commandTitleLabel, row, 1);
+    layout->addWidget(m_commandTitleLabel, row, 1, 1, 2, Qt::AlignLeft);
     row++;
     layout->addWidget(nameLabel, row, 0);
-    layout->addWidget(m_commandNameLabel, row, 1);
+    layout->addWidget(m_commandNameLabel, row, 1, 1, 2, Qt::AlignLeft);
     row++;
     layout->addWidget(typeLabel, row, 0);
-    layout->addWidget(m_commandTypeLabel, row, 1);
+    layout->addWidget(m_commandTypeLabel, row, 1, 1, 2, Qt::AlignLeft);
     row++;
     layout->addWidget(delayLabel, row, 0);
     layout->addWidget(m_commandDelaySpinBox, row, 1);
+    layout->addWidget(delayTwoLabel, row, 2, Qt::AlignLeft);
     row++;
     layout->addWidget(toolTipLabel, row, 0, (Qt::AlignLeft | Qt::AlignTop));
     layout->addWidget(m_commandToolTipTextEdit, row, 1, 1, 2);
@@ -513,13 +544,17 @@ WuQMacroDialog::createCommandDisplayWidget()
     
     QWidget* parametersWidget = new QWidget();
     m_parameterWidgetsGridLayout = new QGridLayout(parametersWidget);
+    int pl(0), pt(0), pr(0), pb(0);
+    m_parameterWidgetsGridLayout->getContentsMargins(&pl, &pt, &pr, &pb);
+    pt = 0;
+    m_parameterWidgetsGridLayout->setContentsMargins(pl, pt, pr, pb);
     m_parameterWidgetsGridLayout->setVerticalSpacing(static_cast<int>(m_parameterWidgetsGridLayout->verticalSpacing() / 1.2));
     m_parameterWidgetsGridLayout->setColumnStretch(0, 0);
     m_parameterWidgetsGridLayout->setColumnStretch(1, 100);
-    m_parameterWidgetsGridLayout->addWidget(new QLabel("Edit"),
-                                            0, 0, Qt::AlignHCenter);
-    m_parameterWidgetsGridLayout->addWidget(new QLabel("Parameter Value"),
-                                            0, 1, Qt::AlignLeft);
+//    m_parameterWidgetsGridLayout->addWidget(new QLabel("Edit"),
+//                                            0, 0, Qt::AlignHCenter);
+//    m_parameterWidgetsGridLayout->addWidget(new QLabel("Parameter Value"),
+//                                            0, 1, Qt::AlignLeft);
 
 
     QHBoxLayout* titleLayout = new QHBoxLayout();
@@ -527,10 +562,16 @@ WuQMacroDialog::createCommandDisplayWidget()
     titleLayout->addWidget(new QLabel("Command"));
     titleLayout->addWidget(createHorizontalLine(), 100);
     
+    QHBoxLayout* parametersLayout = new QHBoxLayout();
+    parametersLayout->setContentsMargins(0, 0, 0, 0);
+    parametersLayout->addWidget(new QLabel("Edit Parameters"));
+    parametersLayout->addWidget(createHorizontalLine(), 100);
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
     widgetLayout->addLayout(titleLayout);
     widgetLayout->addLayout(layout);
+    widgetLayout->addLayout(parametersLayout);
     widgetLayout->addWidget(parametersWidget);
     widgetLayout->addStretch();
     
@@ -580,6 +621,7 @@ WuQMacroDialog::updateDialogContents()
     CaretAssert(runOptions);
     m_runOptionMoveMouseCheckBox->setChecked(runOptions->isShowMouseMovement());
     m_runOptionLoopCheckBox->setChecked(runOptions->isLooping());
+    m_recordMovieWhileMacroRunsCheckBox->setChecked(runOptions->isRecordMovieDuringExecution());
     
     macroGroupComboBoxActivated(selectedIndex);
 }
@@ -961,9 +1003,26 @@ WuQMacroDialog::runMacroToolButtonClicked()
                 window = parentWidget();
             }
         }
+
+        /*
+         * While macro runs, edit buttons are disabled
+         */
+        m_macroIsRunningFlag = true;
+        updateEditingToolButtons();
         WuQMacroManager::instance()->runMacro(window,
                                               macro);
+        m_macroIsRunningFlag = false;
+        updateEditingToolButtons();
     }
+}
+
+/**
+ * Called when stop button is clicked
+ */
+void
+WuQMacroDialog::stopMacroToolButtonClicked()
+{
+    WuQMacroManager::instance()->stopMacro();
 }
 
 /**
@@ -1332,39 +1391,48 @@ WuQMacroDialog::updateEditingToolButtons()
     WuQMacroCommand* command = getSelectedMacroCommand();
     
     bool runValid(false);
-    bool insertValid(macroGroup != NULL);
+    bool stopValid(false);
+    bool insertValid(false);
     bool deleteValid(false);
     bool moveUpValid(false);
     bool moveDownValid(false);
 
-    switch (getSelectedItemType()) {
-        case WuQMacroStandardItemTypeEnum::INVALID:
-            break;
-        case WuQMacroStandardItemTypeEnum::MACRO:
-            if (macroGroup != NULL) {
-                if (macro != NULL) {
-                    const int32_t macroIndex = macroGroup->getIndexOfMacro(macro);
-                    deleteValid = true;
-                    moveUpValid = (macroIndex > 0);
-                    moveDownValid = (macroIndex < (macroGroup->getNumberOfMacros() - 1));
-                    runValid = true;
+    if (m_macroIsRunningFlag) {
+        stopValid = true;
+    }
+    else {
+        insertValid = (macroGroup != NULL);
+        
+        switch (getSelectedItemType()) {
+            case WuQMacroStandardItemTypeEnum::INVALID:
+                break;
+            case WuQMacroStandardItemTypeEnum::MACRO:
+                if (macroGroup != NULL) {
+                    if (macro != NULL) {
+                        const int32_t macroIndex = macroGroup->getIndexOfMacro(macro);
+                        deleteValid = true;
+                        moveUpValid = (macroIndex > 0);
+                        moveDownValid = (macroIndex < (macroGroup->getNumberOfMacros() - 1));
+                        runValid = true;
+                    }
+                }
+                break;
+            case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+            {
+                if ((macro != NULL)
+                    && (command != NULL)) {
+                    const int32_t commandIndex = macro->getIndexOfMacroCommand(command);
+                    deleteValid   = true;
+                    moveUpValid   = (commandIndex > 0);
+                    moveDownValid = (commandIndex < (macro->getNumberOfMacroCommands() - 1));
                 }
             }
-            break;
-        case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
-        {
-            if ((macro != NULL)
-                && (command != NULL)) {
-                const int32_t commandIndex = macro->getIndexOfMacroCommand(command);
-                deleteValid   = true;
-                moveUpValid   = (commandIndex > 0);
-                moveDownValid = (commandIndex < (macro->getNumberOfMacroCommands() - 1));
-            }
+                break;
         }
-            break;
     }
     
     m_runMacroToolButton->setEnabled(runValid);
+    m_stopMacroToolButton->setEnabled(stopValid);
     m_editingDeleteToolButton->setEnabled(deleteValid);
     m_editingInsertToolButton->setEnabled(insertValid);
     m_editingMoveDownToolButton->setEnabled(moveDownValid);
@@ -1402,6 +1470,10 @@ WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
             /* allow background */
             pixmapOptions = 0;
             break;
+        case EditButton::STOP:
+            /* allow background */
+            pixmapOptions = 0;
+            break;
     }
 
     QPixmap pixmap(static_cast<int>(pixmapSize),
@@ -1415,27 +1487,42 @@ WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
     
     switch (editButton) {
         case EditButton::DELETER:
+            /*
+             * 'X' symbol
+             */
             pen.setColor(Qt::red);
             painter->setPen(pen);
             painter->drawLine(QPointF(-maxValue,  maxValue),  QPointF(maxValue, -maxValue));
             painter->drawLine(QPointF(-maxValue,  -maxValue), QPointF(maxValue, maxValue));
             break;
         case EditButton::INSERTER:
+            /*
+             * Plus symbol
+             */
             painter->drawLine(QPointF(0,  maxValue), QPointF(0, -maxValue));
             painter->drawLine(QPointF(-maxValue, 0), QPointF(maxValue, 0));
             break;
         case EditButton::MOVE_DOWN:
+            /*
+             * Down arrow
+             */
             painter->drawLine(QPointF(0, maxValue), QPointF(0, -maxValue));
             painter->drawLine(QPointF(0, -maxValue), QPointF(arrowTip,  -maxValue + arrowTip));
             painter->drawLine(QPointF(0, -maxValue), QPointF(-arrowTip, -maxValue + arrowTip));
             break;
         case EditButton::MOVE_UP:
+            /*
+             * Up arrow
+             */
             painter->drawLine(QPointF(0, maxValue), QPointF(0, -maxValue));
             painter->drawLine(QPointF(0, maxValue), QPointF(arrowTip,  maxValue - arrowTip));
             painter->drawLine(QPointF(0, maxValue), QPointF(-arrowTip, maxValue - arrowTip));
             break;
         case EditButton::RUN:
         {
+            /*
+             * Triangle
+             */
             painter->setPen(Qt::green);
             painter->setBrush(Qt::green);
             const qreal p = pixmapSize / 3;
@@ -1445,6 +1532,26 @@ WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
                 QPointF(-p,  maxValue)
             };
             painter->drawConvexPolygon(points, 3);
+        }
+            break;
+        case EditButton::STOP:
+        {
+            /*
+             * Hexagon
+             */
+            painter->setPen(Qt::red);
+            painter->setBrush(Qt::red);
+            const qreal r = pixmapSize / 2;
+            const qreal r2 = r / 2.0;
+            const QPointF points[6] = {
+                QPointF( -r, 0.0),
+                QPointF(-r2, -r),
+                QPointF( r2, -r),
+                QPointF(  r, 0.0),
+                QPointF( r2, r),
+                QPointF(-r2, r)
+            };
+            painter->drawConvexPolygon(points, 6);
         }
             break;
     }
@@ -1491,7 +1598,14 @@ CommandParameterWidget::updateContent(WuQMacroCommandParameter* parameter)
     m_parameter = parameter;
     const bool validFlag(m_parameter != NULL);
     if (validFlag) {
-        m_label->setText(m_parameter->getValue().toString());
+        if (parameter->getDataType() == WuQMacroDataValueTypeEnum::BOOLEAN) {
+            m_label->setText(parameter->getValue().toBool()
+                             ? "On"
+                             : "Off");
+        }
+        else {
+            m_label->setText(m_parameter->getValue().toString());
+        }
         m_pushButton->setText(m_parameter->getName() + "...");
     }
     m_label->setVisible(validFlag);

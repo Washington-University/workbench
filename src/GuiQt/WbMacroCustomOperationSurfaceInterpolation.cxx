@@ -50,6 +50,7 @@ using namespace caret;
  * Constructor.
  */
 WbMacroCustomOperationSurfaceInterpolation::WbMacroCustomOperationSurfaceInterpolation()
+: WbMacroCustomOperationBase()
 {
 }
 
@@ -217,16 +218,20 @@ WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const int32_t tab
     CaretAssert(startSurface);
     CaretAssert(endSurface);
     
+    const float defaultNumberOfSteps(50.0);
+    float numberOfSteps(0.0);
+    float iterationSleepTime(0.0);
+    getNumberOfStepsAndSleepTime(defaultNumberOfSteps,
+                                 durationSeconds,
+                                 numberOfSteps,
+                                 iterationSleepTime);
+
     const StructureEnum::Enum structure = startSurface->getStructure();
     const bool endSurfaceModifiedStatus = endSurface->isModified();
-    
     
     const float* startingXYZ = startSurface->getCoordinateData();
     const float* endingXYZ   = endSurface->getCoordinateData();
 
-    const float numberOfSteps(50.0f);
-    const float iterationSleepTime = durationSeconds / numberOfSteps;
-    
     /*
      * XYZ that will be interpolated
      */
@@ -314,7 +319,11 @@ WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const int32_t tab
         }
         
         updateGraphics();
-        SystemUtilities::sleepSeconds(iterationSleepTime);
+        
+        sleepForSecondsAtEndOfIteration(iterationSleepTime);
+//        if ( ! recordingFlag) {
+//            SystemUtilities::sleepSeconds(iterationSleepTime);
+//        }
     }
     
     /*

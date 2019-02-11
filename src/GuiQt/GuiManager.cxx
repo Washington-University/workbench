@@ -86,8 +86,6 @@
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
 #include "GapsAndMarginsDialog.h"
-#include "WbMacroCustomOperationManager.h"
-#include "WbMacroHelper.h"
 #include "HelpViewerDialog.h"
 #include "IdentifiedItemNode.h"
 #include "IdentifiedItemVoxel.h"
@@ -101,6 +99,7 @@
 #include "OverlaySettingsEditorDialog.h"
 #include "MacDockMenu.h"
 #include "MovieDialog.h"
+#include "MovieRecordingDialog.h"
 #include "PaletteColorMappingEditorDialog.h"
 #include "PreferencesDialog.h"
 #include "SceneAttributes.h"
@@ -123,6 +122,8 @@
 #include "Surface.h"
 #include "TileTabsConfigurationDialog.h"
 #include "VolumeMappableInterface.h"
+#include "WbMacroCustomOperationManager.h"
+#include "WbMacroHelper.h"
 #include "WuQMacroManager.h"
 #include "WuQMacroWidgetTypeEnum.h"
 #include "WuQMessageBox.h"
@@ -176,6 +177,7 @@ GuiManager::initializeGuiManager()
     m_gapsAndMarginsDialog = NULL;
     this->imageCaptureDialog = NULL;
     this->movieDialog = NULL;
+    m_movieRecordingDialog = NULL;
     m_informationDisplayDialog = NULL;
     m_identifyBrainordinateDialog = NULL;
     this->preferencesDialog = NULL;  
@@ -2365,6 +2367,23 @@ GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
 }
 
 /**
+ * Show the image capture window.
+ * @param browserWindow
+ *    Window on which dialog was requested.
+ */
+void
+GuiManager::processShowMovieRecordingDialog(BrainBrowserWindow* browserWindow)
+{
+    if (m_movieRecordingDialog == NULL) {
+        m_movieRecordingDialog = new MovieRecordingDialog(browserWindow);
+        this->addNonModalDialog(m_movieRecordingDialog);
+    }
+    m_movieRecordingDialog->updateDialog();
+    m_movieRecordingDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
+    m_movieRecordingDialog->showDialog();
+}
+
+/**
  * Show the gaps and margins window.
  * @param browserWindow
  *    Window on which dialog was requested.
@@ -2778,6 +2797,9 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     if (imageCaptureDialog != NULL) {
         imageCaptureDialog->updateDialog();
+    }
+    if (m_movieRecordingDialog != NULL) {
+        m_movieRecordingDialog->updateDialog();
     }
     
     progressEvent.setProgressMessage("Invalidating coloring and updating user interface");

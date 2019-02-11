@@ -180,11 +180,20 @@ WbMacroCustomOperationModelRotation::performRotation(BrowserTabContent* tabConte
                                                      const float totalRotation,
                                                      const float durationSeconds)
 {
-    
-    const double rotationIncrement = 1.0;
-    const int32_t rotationStepCount = static_cast<int32_t>(totalRotation / rotationIncrement);
-    const float sleepTimeSeconds = durationSeconds / rotationStepCount;
-    
+    const float defaultNumberOfSteps(60.0);
+    float numberOfSteps(0.0);
+    float iterationSleepTime(0.0);
+    getNumberOfStepsAndSleepTime(defaultNumberOfSteps,
+                                 durationSeconds,
+                                 numberOfSteps,
+                                 iterationSleepTime);
+
+//    const double rotationIncrement = 1.0;
+//    const int32_t rotationStepCount = static_cast<int32_t>(totalRotation / rotationIncrement);
+//    const float sleepTimeSeconds = durationSeconds / rotationStepCount;
+    const int32_t rotationStepCount = numberOfSteps;
+    const float rotationIncrement = totalRotation / numberOfSteps;
+
     for (int32_t i = 0; i < rotationStepCount; i++) {
         Matrix4x4 rotationMatrix = tabContent->getRotationMatrix();
         switch (axis) {
@@ -202,7 +211,8 @@ WbMacroCustomOperationModelRotation::performRotation(BrowserTabContent* tabConte
         tabContent->setRotationMatrix(rotationMatrix);
         updateGraphics();
         
-        SystemUtilities::sleepSeconds(sleepTimeSeconds);
+        sleepForSecondsAtEndOfIteration(iterationSleepTime);
+//        SystemUtilities::sleepSeconds(sleepTimeSeconds);
     }
     
     return true;

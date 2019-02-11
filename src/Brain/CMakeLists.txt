@@ -126,6 +126,10 @@ ModelSurfaceSelector.h
 ModelTypeEnum.h
 ModelVolume.h
 ModelWholeBrain.h
+MovieRecorder.h
+MovieRecorderModeEnum.h
+MovieRecorderVideoDimensionsTypeEnum.h
+MovieRecorderVideoFormatTypeEnum.h
 Overlay.h
 OverlaySet.h
 OverlaySetArray.h
@@ -278,6 +282,10 @@ ModelSurfaceSelector.cxx
 ModelTypeEnum.cxx
 ModelVolume.cxx
 ModelWholeBrain.cxx
+MovieRecorder.cxx
+MovieRecorderModeEnum.cxx
+MovieRecorderVideoDimensionsTypeEnum.cxx
+MovieRecorderVideoFormatTypeEnum.cxx
 Overlay.cxx
 OverlaySet.cxx
 OverlaySetArray.cxx

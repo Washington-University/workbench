@@ -1336,8 +1336,15 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processCaptureImage()));
 
-    m_recordMovieAction = 
-    WuQtUtilities::createAction("Animation Control...",
+    m_movieRecordingAction =
+    WuQtUtilities::createAction("Movie Recording...",
+                                "Record the windows content",
+                                this,
+                                this,
+                                SLOT(processMovieRecording()));
+    
+    m_recordMovieAction =
+    WuQtUtilities::createAction("(obsolete)Animation Control...",
                                 "Animate Brain Surface",
                                 this,
                                 this,
@@ -1754,6 +1761,7 @@ BrainBrowserWindow::createMenuFile()
     menu->addSeparator();
     menu->addAction(m_recordMovieAction);
     menu->addAction(m_captureImageAction);
+    menu->addAction(m_movieRecordingAction);
     menu->addSeparator();
     menu->addAction(m_closeTabAction);
     menu->addAction(m_closeWindowAction);
@@ -3046,6 +3054,15 @@ void
 BrainBrowserWindow::processCaptureImage()
 {
     GuiManager::get()->processShowImageCaptureDialog(this);
+}
+
+/**
+ * Called when movie recording is selected.
+ */
+void
+BrainBrowserWindow::processMovieRecording()
+{
+    GuiManager::get()->processShowMovieRecordingDialog(this);
 }
 
 /**

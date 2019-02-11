@@ -56,6 +56,7 @@ namespace caret {
                       const WuQMacroExecutorOptions* executorOptions,
                       QString& errorMessageOut) const;
         
+        void stopMacro();
         
         // ADD_NEW_METHODS_HERE
         
@@ -77,6 +78,12 @@ namespace caret {
                                              const QRect* objectRect = NULL,
                                              const bool hightlightFlag = false) const;
         
+        bool runMacroPrivate(const WuQMacro* macro,
+                             QWidget* window,
+                             std::vector<QObject*>& otherObjectParents,
+                             const WuQMacroExecutorOptions* executorOptions,
+                             QString& errorMessageOut) const;
+
         bool runMacroCommand(QWidget* parentWidget,
                              const WuQMacroCommand* macroCommand,
                              QObject* object,
@@ -187,6 +194,8 @@ namespace caret {
         mutable WuQMacroExecutorOptions m_runOptions;
         
         mutable std::vector<QObject*> m_parentObjects;
+        
+        bool m_stopFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
         

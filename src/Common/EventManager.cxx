@@ -369,6 +369,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
     switch (eventType) {
         case EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE:
+        case EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE:
         {
             sendEvent(Event(eventType).getPointer());
         }

@@ -172,7 +172,7 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     m_lightingEnabledCheckBox->setChecked(browserTabContent->isLightingEnabled());
     
     if (WuQMacroManager::instance()->isModeRecording()) {
-        m_macroRecordingLabel->setText("<html><font color=red>Recording</font></html>");
+        m_macroRecordingLabel->setText("<html><font color=red>Macro</font></html>");
     }
     else {
         m_macroRecordingLabel->setText("");

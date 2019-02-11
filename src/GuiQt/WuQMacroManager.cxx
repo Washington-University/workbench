@@ -526,8 +526,8 @@ WuQMacroManager::runMacro(QWidget* widget,
     
     
     QString errorMessage;
-    WuQMacroExecutor executor;
-    if ( ! executor.runMacro(macro,
+    m_macroExecutor = new WuQMacroExecutor();
+    if ( ! m_macroExecutor->runMacro(macro,
                              widget,
                              m_parentObjects,
                              m_executorOptions.get(),
@@ -537,6 +537,27 @@ WuQMacroManager::runMacro(QWidget* widget,
                               errorMessage,
                               QMessageBox::Ok,
                               QMessageBox::NoButton);
+    }
+    
+    /*
+     * Mutex needed so stop() method does not try
+     * to access an invalid pointer to executor.
+     */
+    QMutexLocker locker(&m_macroExecutorMutex);
+    delete m_macroExecutor;
+    m_macroExecutor = NULL;
+    locker.unlock();
+}
+
+/**
+ * If a macro is running, stop it
+ */
+void
+WuQMacroManager::stopMacro()
+{
+    QMutexLocker locker(&m_macroExecutorMutex);
+    if (m_macroExecutor != NULL) {
+        m_macroExecutor->stopMacro();
     }
 }
 

@@ -67,6 +67,13 @@ namespace caret {
         
         QString getErrorMessage() const;
         
+        void getNumberOfStepsAndSleepTime(const float defaultNumberOfSteps,
+                                          const float durationSeconds,
+                                          float& numberOfStepsOut,
+                                          float& sleepTimeOut);
+        
+        void sleepForSecondsAtEndOfIteration(const float seconds);
+        
     protected:
         WbMacroCustomOperationBase();
         

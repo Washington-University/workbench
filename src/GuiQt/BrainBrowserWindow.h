@@ -169,6 +169,7 @@ namespace caret {
         void processDataFileOpen();
         void processManageSaveLoadedFiles();
         void processCaptureImage();
+        void processMovieRecording();
         void processRecordMovie();
         void processEditPreferences();
         void processCloseAllFiles();
@@ -365,6 +366,8 @@ namespace caret {
         
         QAction* m_captureImageAction;
 
+        QAction* m_movieRecordingAction;
+        
         QAction* m_recordMovieAction;
         
         QAction* m_preferencesAction;

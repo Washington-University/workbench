@@ -150,6 +150,7 @@ ELSE()
         MetaDataEditorDialog.h
         MetaDataEditorWidget.h
         MovieDialog.h
+	MovieRecordingDialog.h
         OffScreenOpenGLRenderer.h
         OverlaySetViewController.h
         OverlaySettingsEditorDialog.h
@@ -394,6 +395,7 @@ MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MouseEvent.h
 MovieDialog.h
+MovieRecordingDialog.h
 OffScreenOpenGLRenderer.h
 OverlaySetViewController.h
 OverlaySettingsEditorDialog.h
@@ -646,6 +648,7 @@ MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MouseEvent.cxx
 MovieDialog.cxx
+MovieRecordingDialog.cxx
 OffScreenOpenGLRenderer.cxx
 OverlaySetViewController.cxx
 OverlayViewController.cxx

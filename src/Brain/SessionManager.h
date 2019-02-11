@@ -43,6 +43,7 @@ namespace caret {
     class DataToolTipsManager;
     class ImageCaptureSettings;
     class Model;
+    class MovieRecorder;
     class SpacerTabContent;
     
     /// Manages a Caret session which contains 'global' brain data.
@@ -80,6 +81,10 @@ namespace caret {
         ImageCaptureSettings* getImageCaptureDialogSettings();
         
         const ImageCaptureSettings* getImageCaptureDialogSettings() const;
+        
+        MovieRecorder* getMovieRecorder();
+        
+        const MovieRecorder* getMovieRecorder() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -138,6 +143,7 @@ namespace caret {
         /** Map to spacer tabs where key is window index, row index, column index */
         std::map<SpacerTabIndex, SpacerTabContent*> m_spacerTabsMap;
         
+        std::unique_ptr<MovieRecorder> m_movieRecorder;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__

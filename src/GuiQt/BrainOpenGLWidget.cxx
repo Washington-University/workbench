@@ -26,6 +26,7 @@
 #include <cmath>
 
 #include <QContextMenuEvent>
+#include <QImage>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
@@ -68,6 +69,7 @@
 #include "Matrix4x4.h"
 #include "Model.h"
 #include "MouseEvent.h"
+#include "MovieRecorder.h"
 #include "OffScreenOpenGLRenderer.h"
 #include "SelectionManager.h"
 #include "SelectionItemAnnotation.h"
@@ -1557,6 +1559,9 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 void 
 BrainOpenGLWidget::receiveEvent(Event* event)
 {
+    bool doRepaintGraphicsFlag(false);
+    bool doUpdateGraphicsFlag(false);
+    
     if (event->getEventType() == EventTypeEnum::EVENT_BRAIN_RESET) {
         EventBrainReset* brainResetEvent = dynamic_cast<EventBrainReset*>(event);
         CaretAssert(brainResetEvent);
@@ -1573,14 +1578,10 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         updateAllEvent->setEventProcessed();
         
         if (updateAllEvent->isRepaint()) {
-            this->repaint();
+            doRepaintGraphicsFlag = true;
         }
         else {
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-            this->update();
-#else
-            this->updateGL();
-#endif
+            doUpdateGraphicsFlag = true;
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW) {
@@ -1590,12 +1591,7 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         
         if (updateOneEvent->getWindowIndex() == this->windowIndex) {
             updateOneEvent->setEventProcessed();
-            
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-            this->update();
-#else
-            this->updateGL();
-#endif
+            doUpdateGraphicsFlag = true;
         }
         else {
             /*
@@ -1610,11 +1606,7 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             
             bool needUpdate = false;
             if (needUpdate) {
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
-                this->update();
-#else
-                this->updateGL();
-#endif
+                doUpdateGraphicsFlag = true;
             }
         }
     }
@@ -1694,6 +1686,86 @@ BrainOpenGLWidget::receiveEvent(Event* event)
     }
     else {
         
+    }
+    
+    if (doRepaintGraphicsFlag
+        || doUpdateGraphicsFlag) {
+
+        bool captureAutomaticImageForMovieFlag(false);
+        bool captureManualImageForMovieFlag(false);
+        MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+        if (movieRecorder->getRecordingWindowIndex() == this->windowIndex) {
+            switch (movieRecorder->getRecordingMode()) {
+                case MovieRecorderModeEnum::MANUAL:
+                    if (movieRecorder->isManualRecordingOfImageRequested()) {
+                        captureManualImageForMovieFlag = true;
+                    }
+                    doRepaintGraphicsFlag = true;
+                    break;
+                case MovieRecorderModeEnum::AUTOMATIC:
+                    captureAutomaticImageForMovieFlag = true;
+                    doRepaintGraphicsFlag = true;
+                    break;
+            }
+        }
+
+        if (doRepaintGraphicsFlag) {
+            this->repaint();
+            
+            if (captureAutomaticImageForMovieFlag
+                || captureManualImageForMovieFlag) {
+                int captureOffsetX(0);
+                int captureOffsetY(0);
+                int captureWidth(0);
+                int captureHeight(0);
+                int widgetWidth(0);
+                int widgetHeight(0);
+                BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
+                
+                if (browserWindow != NULL) {
+                    browserWindow->getGraphicsWidgetSize(captureOffsetX,
+                                                         captureOffsetY,
+                                                         captureWidth,
+                                                         captureHeight,
+                                                         widgetWidth,
+                                                         widgetHeight,
+                                                         true);
+                    int imageWidth(0);
+                    int imageHeight(0);
+                    movieRecorder->getVideoDimensions(imageWidth,
+                                                      imageHeight);
+                    EventImageCapture captureEvent(this->windowIndex,
+                                                   captureOffsetX,
+                                                   captureOffsetY,
+                                                   captureWidth,
+                                                   captureHeight,
+                                                   imageWidth,
+                                                   imageHeight);
+                    captureImage(&captureEvent);
+                    
+                    if (captureEvent.isError()) {
+                        CaretLogSevere("Failed to capture image for movie recording");
+                    }
+                    else {
+                        QImage image = captureEvent.getImage();
+                        if (captureAutomaticImageForMovieFlag) {
+                            movieRecorder->addImageToMovie(&image);
+                        }
+                        else if (captureManualImageForMovieFlag) {
+                            movieRecorder->addImageToMovieWithManualDuration(&image);
+                        }
+                        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE);
+                    }
+                }
+            }
+        }
+        else if (doUpdateGraphicsFlag) {
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+            this->update();
+#else
+            this->updateGL();
+#endif
+        }
     }
 }
 

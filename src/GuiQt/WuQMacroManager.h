@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include <QMutex>
 #include <QObject>
 
 #include "WuQMacroExecutor.h"
@@ -43,6 +44,7 @@ namespace caret {
     class WuQMacroCommandParameter;
     class WuQMacroCustomOperationManagerInterface;
     class WuQMacroDialog;
+    class WuQMacroExecutor;
     class WuQMacroExecutorOptions;
     class WuQMacroGroup;
     class WuQMacroHelperInterface;
@@ -118,6 +120,8 @@ namespace caret {
         void runMacro(QWidget* window,
                       const WuQMacro* macro);
         
+        void stopMacro();
+        
         bool runMacroWithShortCutKeyEvent(QWidget* window,
                                           const QKeyEvent* keyEvent);
         
@@ -179,6 +183,10 @@ namespace caret {
         WuQMacroHelperInterface* m_macroHelper = NULL;
         
         WuQMacroCustomOperationManagerInterface* m_customCommandManager = NULL;
+        
+        WuQMacroExecutor* m_macroExecutor = NULL;
+        
+        QMutex m_macroExecutorMutex;
         
         // ADD_NEW_MEMBERS_HERE
 

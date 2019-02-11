@@ -93,6 +93,8 @@ namespace caret {
         
         void runOptionLoopCheckBoxClicked(bool);
         
+        void runOptionRecordMovieCheckBoxClicked(bool);
+        
         void editingMoveUpToolButtonClicked();
 
         void editingMoveDownToolButtonClicked();
@@ -103,6 +105,8 @@ namespace caret {
         
         void runMacroToolButtonClicked();
 
+        void stopMacroToolButtonClicked();
+        
         void macroCommandDelaySpinBoxValueChanged(double);
         
         void commandParamaterDataChanged(int);
@@ -122,7 +126,8 @@ namespace caret {
             INSERTER,
             MOVE_DOWN,
             MOVE_UP,
-            RUN
+            RUN,
+            STOP
         };
         
         QWidget* createMacroAndCommandSelectionWidget();
@@ -186,6 +191,8 @@ namespace caret {
         
         QCheckBox* m_runOptionMoveMouseCheckBox;
         
+        QCheckBox* m_recordMovieWhileMacroRunsCheckBox;
+        
         QLabel* m_commandTitleLabel;
         
         QLabel* m_commandTypeLabel;
@@ -202,6 +209,8 @@ namespace caret {
         
         QToolButton* m_runMacroToolButton;
         
+        QToolButton* m_stopMacroToolButton;
+        
         QToolButton* m_editingMoveUpToolButton;
         
         QToolButton* m_editingMoveDownToolButton;
@@ -209,6 +218,8 @@ namespace caret {
         QToolButton* m_editingDeleteToolButton;
         
         QToolButton* m_editingInsertToolButton;
+        
+        bool m_macroIsRunningFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

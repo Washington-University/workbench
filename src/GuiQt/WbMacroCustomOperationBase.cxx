@@ -30,6 +30,8 @@
 #include "EventManager.h"
 #include "EventSurfacesGet.h"
 #include "EventUserInterfaceUpdate.h"
+#include "MovieRecorder.h"
+#include "SessionManager.h"
 #include "Surface.h"
 #include "SystemUtilities.h"
 #include "WuQMacroCommand.h"
@@ -170,3 +172,57 @@ WbMacroCustomOperationBase::updateUserInterface()
 {
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
+
+/**
+ * Get number of steps and sleep time.  If a movie is being recorded, the number of
+ * steps is set so that the command will run for the requested duration using the
+ * frame rate of the movie recorder.  If a movie
+ * is NOT being recorded, the number of steps out is the default number of steps and
+ * the sleep time is set so that the command will run for approximately the duration.
+ *
+ * @param defaultNumberOfSteps
+ *     The default number of steps used when a movie is not being recorded
+ * @param durationSeconds
+ *     The number of seconds for which the command should run
+ * @param numberOfStepsOut
+ *     Output with number of steps for the command
+ * @param sleepTimeOut
+ *     Output with time command should sleep at the end of each iteration
+ *     when a movie is not being recorded
+ */
+void
+WbMacroCustomOperationBase::getNumberOfStepsAndSleepTime(const float defaultNumberOfSteps,
+                                                         const float durationSeconds,
+                                                         float& numberOfStepsOut,
+                                                         float& sleepTimeOut)
+{
+    numberOfStepsOut = defaultNumberOfSteps;
+    sleepTimeOut     = 0.0;
+
+    const MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+    switch (movieRecorder->getRecordingMode()) {
+        case MovieRecorderModeEnum::MANUAL:
+            sleepTimeOut = durationSeconds / numberOfStepsOut;
+            break;
+        case MovieRecorderModeEnum::AUTOMATIC:
+            numberOfStepsOut = (durationSeconds
+                                * movieRecorder->getFramesRate());
+            break;
+    }
+}
+
+/**
+ * Sleep for the given number of seconds at the end of an iteration
+ *
+ * @param seconds
+ *     Seconds to sleep
+ */
+void
+WbMacroCustomOperationBase::sleepForSecondsAtEndOfIteration(const float seconds)
+{
+    if (seconds > 0.0) {
+        SystemUtilities::sleepSeconds(seconds);
+    }
+}
+
+
