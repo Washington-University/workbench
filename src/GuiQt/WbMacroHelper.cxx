@@ -32,6 +32,7 @@
 #include "EventSceneActive.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "MovieRecorder.h"
 #include "Scene.h"
 #include "SceneFile.h"
 #include "SceneInfo.h"
@@ -40,6 +41,7 @@
 #include "WbMacroCustomDataTypeEnum.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
+#include "WuQMacroExecutorOptions.h"
 #include "WuQMacroGroup.h"
 #include "WuQMessageBox.h"
 
@@ -184,4 +186,47 @@ WbMacroHelper::getMainWindowWithIdentifier(const QString& identifier)
     QMainWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(windowIndex);
     
     return window;
+}
+
+/**
+ * Called just before executing the macro
+ *
+ * @param macro
+ *    Macro that is run
+ * @param window
+ *     Widget for parent
+ * @param executorOptions
+ *    Executor options
+ */
+void
+WbMacroHelper::macroExecutionStarting(const WuQMacro* /*macro*/,
+                                      QWidget* /*window*/,
+                                      const WuQMacroExecutorOptions* executorOptions)
+{
+    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+    m_savedRecordingMode = movieRecorder->getRecordingMode();
+    if (executorOptions->isRecordMovieDuringExecution()) {
+        movieRecorder->setRecordingMode(MovieRecorderModeEnum::AUTOMATIC);
+    }
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE);
+}
+
+/**
+ * Called just after executing the macro
+ *
+ * @param macro
+ *    Macro that is run
+ * @param window
+ *     Widget for parent
+ * @param executorOptions
+ *    Executor options
+ */
+void
+WbMacroHelper::macroExecutionEnding(const WuQMacro* /*macro*/,
+                                    QWidget* /*window*/,
+                                    const WuQMacroExecutorOptions* /*executorOptions*/)
+{
+    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+    movieRecorder->setRecordingMode(m_savedRecordingMode);
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE);
 }

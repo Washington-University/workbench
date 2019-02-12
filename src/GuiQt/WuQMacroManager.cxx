@@ -527,11 +527,24 @@ WuQMacroManager::runMacro(QWidget* widget,
     
     QString errorMessage;
     m_macroExecutor = new WuQMacroExecutor();
-    if ( ! m_macroExecutor->runMacro(macro,
-                             widget,
-                             m_parentObjects,
-                             m_executorOptions.get(),
-                             errorMessage)) {
+    
+    if (m_macroHelper != NULL) {
+        m_macroHelper->macroExecutionStarting(macro,
+                                              widget,
+                                              m_executorOptions.get());
+    }
+    const bool resultFlag = m_macroExecutor->runMacro(macro,
+                                                      widget,
+                                                      m_parentObjects,
+                                                      m_executorOptions.get(),
+                                                      errorMessage);
+    if (m_macroHelper != NULL) {
+        m_macroHelper->macroExecutionEnding(macro,
+                                            widget,
+                                            m_executorOptions.get());
+    }
+
+    if ( ! resultFlag) {
         QMessageBox::critical(widget,
                               "Run Macro Error",
                               errorMessage,

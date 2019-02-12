@@ -47,8 +47,6 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "MovieRecorder.h"
-#include "SessionManager.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
@@ -285,19 +283,11 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
                            const WuQMacroExecutorOptions* executorOptions,
                            QString& errorMessageOut) const
 {
-    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
-    const MovieRecorderModeEnum::Enum savedRecordingMode = movieRecorder->getRecordingMode();
-    if (executorOptions->isRecordMovieDuringExecution()) {
-        movieRecorder->setRecordingMode(MovieRecorderModeEnum::AUTOMATIC);
-    }
-    
     const bool result = runMacroPrivate(macro,
                                         window,
                                         otherObjectParents,
                                         executorOptions,
                                         errorMessageOut);
-    
-    movieRecorder->setRecordingMode(savedRecordingMode);
     
     return result;
 }

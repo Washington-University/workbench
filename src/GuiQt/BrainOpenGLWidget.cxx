@@ -64,6 +64,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "FtglFontTextRenderer.h"
 #include "GuiManager.h"
+#include "ImageFile.h"
 #include "KeyEvent.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -1734,20 +1735,55 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                     int imageHeight(0);
                     movieRecorder->getVideoDimensions(imageWidth,
                                                       imageHeight);
-                    EventImageCapture captureEvent(this->windowIndex,
-                                                   captureOffsetX,
-                                                   captureOffsetY,
-                                                   captureWidth,
-                                                   captureHeight,
-                                                   imageWidth,
-                                                   imageHeight);
-                    captureImage(&captureEvent);
                     
-                    if (captureEvent.isError()) {
-                        CaretLogSevere("Failed to capture image for movie recording");
+                    QImage image;
+                    bool imageValid(false);
+                    
+                    switch (movieRecorder->getCaptureRegionType()) {
+                        case MovieRecorderCaptureRegionTypeEnum::GRAPHICS:
+                        {
+                            EventImageCapture captureEvent(this->windowIndex,
+                                                           captureOffsetX,
+                                                           captureOffsetY,
+                                                           captureWidth,
+                                                           captureHeight,
+                                                           imageWidth,
+                                                           imageHeight);
+                            captureImage(&captureEvent);
+                            
+                            if (captureEvent.isError()) {
+                                CaretLogSevere("Failed to capture image of graphics for movie recording");
+                            }
+                            else {
+                                image = captureEvent.getImage();
+                                imageValid = true;
+                            }
+                        }
+                            break;
+                        case MovieRecorderCaptureRegionTypeEnum::WINDOW:
+                        {
+                            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
+                            QRect rect(0, 0,
+                                       bbw->width(), bbw->height());
+                            QPixmap pm = bbw->grab(rect);
+                            if ((pm.width() > 0)
+                                && (pm.height() > 0)) {
+                                image = pm.toImage();
+                                imageValid = true;
+                                
+                                QImage scaledImage = ImageFile::scaleToSizeWithPadding(image, imageWidth, imageHeight);
+                                if ( ! scaledImage.isNull()) {
+                                    image = scaledImage;
+                                }
+                            }
+                            else {
+                                CaretLogSevere("Failed to capture image of window");
+                            }
+                        }
+                            break;
                     }
-                    else {
-                        QImage image = captureEvent.getImage();
+                    
+                    if (imageValid) {
                         if (captureAutomaticImageForMovieFlag) {
                             movieRecorder->addImageToMovie(&image);
                         }

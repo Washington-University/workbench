@@ -24,6 +24,7 @@
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
 
+class QColor;
 class QImage;
 
 namespace caret {
@@ -196,6 +197,11 @@ public:
     static void getImageFileFilters(std::vector<AString>& imageFileFilters,
                                     AString& defaultFilter);
 
+    static QImage scaleToSizeWithPadding(const QImage& image,
+                                         const int width,
+                                         const int height,
+                                         const QColor* fillColor = NULL);
+    
     VolumeFile* convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
                                     AString& errorMessageOut) const;
 

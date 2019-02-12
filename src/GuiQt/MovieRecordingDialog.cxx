@@ -128,6 +128,9 @@ MovieRecordingDialog::updateDialog()
     const MovieRecorderVideoDimensionsTypeEnum::Enum dimType = movieRecorder->getVideoDimensionsType();
     m_movieRecorderVideoDimensionsTypeEnumComboBox->setSelectedItem<MovieRecorderVideoDimensionsTypeEnum,MovieRecorderVideoDimensionsTypeEnum::Enum>(dimType);
 
+    const MovieRecorderCaptureRegionTypeEnum::Enum captureType = movieRecorder->getCaptureRegionType();
+    m_movieRecorderCaptureRegionTypeComboBox->setSelectedItem<MovieRecorderCaptureRegionTypeEnum, MovieRecorderCaptureRegionTypeEnum::Enum>(captureType);
+
     updateManualRecordingOptions();
     updateCustomWidthHeightSpinBoxes();
     updateFileNameLabel();
@@ -211,7 +214,13 @@ MovieRecordingDialog::updateFileNameLabel()
 void
 MovieRecordingDialog::updateFrameCountLabel()
 {
-    m_frameCountNumberLabel->setNum(SessionManager::get()->getMovieRecorder()->getNumberOfFrames());
+    const int32_t numberOfFrames = SessionManager::get()->getMovieRecorder()->getNumberOfFrames();
+    m_frameCountNumberLabel->setNum(numberOfFrames);
+    
+    /*
+     * Do not allow user to change image size once an image has been captured
+     */
+    m_movieRecorderVideoDimensionsTypeEnumComboBox->getWidget()->setEnabled(numberOfFrames <= 0);
 }
 
 /**
@@ -246,6 +255,16 @@ MovieRecordingDialog::movieRecorderVideoFormatTypeEnumComboBoxItemActivated()
     const MovieRecorderVideoFormatTypeEnum::Enum formatType = m_movieRecorderVideoFormatTypeEnumComboBox->getSelectedItem<MovieRecorderVideoFormatTypeEnum,MovieRecorderVideoFormatTypeEnum::Enum>();
     SessionManager::get()->getMovieRecorder()->setVideoFormatType(formatType);
     updateFileNameLabel();
+}
+
+/**
+ * Called when capture region type is changed
+ */
+void
+MovieRecordingDialog::movieRecorderCaptureRegionTypeComboBoxActivated()
+{
+    const MovieRecorderCaptureRegionTypeEnum::Enum regionType = m_movieRecorderCaptureRegionTypeComboBox->getSelectedItem<MovieRecorderCaptureRegionTypeEnum, MovieRecorderCaptureRegionTypeEnum::Enum>();
+    SessionManager::get()->getMovieRecorder()->setCaptureRegionType(regionType);
 }
 
 /**
@@ -435,16 +454,32 @@ QWidget*
 MovieRecordingDialog::createMainWidget()
 {
     QLabel* windowLabel = new QLabel("Record from Window:");
-    m_windowComboBox = new BrainBrowserWindowComboBox(BrainBrowserWindowComboBox::STYLE_NAME_AND_NUMBER,
+    m_windowComboBox = new BrainBrowserWindowComboBox(BrainBrowserWindowComboBox::STYLE_NUMBER,
                                                       this);
     m_windowComboBox->setToolTip("Sets window that is recorded");
     QObject::connect(m_windowComboBox, &BrainBrowserWindowComboBox::browserWindowIndexSelected,
                      this, &MovieRecordingDialog::windowIndexSelected);
-    QHBoxLayout* windowLayout = new QHBoxLayout();
-    windowLayout->addWidget(windowLabel);
-    windowLayout->addWidget(m_windowComboBox->getWidget());
-    windowLayout->addStretch();
     
+    QLabel* regionLabel = new QLabel("Record Region:");
+    m_movieRecorderCaptureRegionTypeComboBox = new EnumComboBoxTemplate(this);
+    m_movieRecorderCaptureRegionTypeComboBox->getWidget()->setToolTip("Choose region that is capture for movie");
+    m_movieRecorderCaptureRegionTypeComboBox->setup<MovieRecorderCaptureRegionTypeEnum,MovieRecorderCaptureRegionTypeEnum::Enum>();
+    QObject::connect(m_movieRecorderCaptureRegionTypeComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(movieRecorderCaptureRegionTypeComboBoxActivated()));
+
+    QGroupBox* sourceGroupBox = new QGroupBox("Source");
+    QGridLayout* sourceLayout = new QGridLayout(sourceGroupBox);
+    sourceLayout->setColumnStretch(0, 0);
+    sourceLayout->setColumnStretch(0, 1);
+    sourceLayout->setColumnStretch(2, 100);
+    int sourceRow(0);
+    sourceLayout->addWidget(windowLabel, sourceRow, 0);
+    sourceLayout->addWidget(m_windowComboBox->getWidget(), sourceRow, 1);
+    sourceRow++;
+    sourceLayout->addWidget(regionLabel, sourceRow, 0);
+    sourceLayout->addWidget(m_movieRecorderCaptureRegionTypeComboBox->getWidget(), sourceRow, 1);
+    sourceRow++;
+
     m_recordingAutomaticRadioButton  = new QRadioButton(MovieRecorderModeEnum::toGuiName(MovieRecorderModeEnum::AUTOMATIC));
     m_recordingAutomaticRadioButton->setToolTip("When selected, images are recorded as graphics updated");
     
@@ -471,6 +506,8 @@ MovieRecordingDialog::createMainWidget()
     m_manualCaptureSecondsSpinBox->setSingleStep(1);
     m_manualCaptureSecondsSpinBox->setSizePolicy(QSizePolicy::Fixed,
                                                  m_manualCaptureSecondsSpinBox->sizePolicy().verticalPolicy());
+    QObject::connect(m_manualCaptureSecondsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     this, &MovieRecordingDialog::manualCaptureSecondsSpinBoxValueChanged);
     
     QLabel* captureSecondsLabel = new QLabel("seconds");
     
@@ -515,6 +552,7 @@ MovieRecordingDialog::createMainWidget()
     movieLayout->setColumnStretch(0, 0);
     movieLayout->setColumnStretch(1, 0);
     movieLayout->setColumnStretch(2, 0);
+    movieLayout->setColumnStretch(3, 100);
     int32_t movieRow(0);
     movieLayout->addWidget(m_filenamePushButton, movieRow, 0);
     movieLayout->addWidget(m_filenameLabel, movieRow, 1, 1, 2, Qt::AlignLeft);
@@ -529,7 +567,7 @@ MovieRecordingDialog::createMainWidget()
 
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addLayout(windowLayout);
+    layout->addWidget(sourceGroupBox);
     layout->addWidget(modeGroupBox);
     layout->addWidget(movieFileGroupBox);
     layout->addStretch();

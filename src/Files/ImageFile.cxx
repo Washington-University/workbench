@@ -776,6 +776,99 @@ ImageFile::insertImage(const QImage& insertThisImage,
 }
 
 /**
+ * Scale the given image to the given width and height while preserving
+ * the aspect ratio.  If the
+ *
+ * @param image
+ *     The image
+ * @param width
+ *     Width of the image
+ * @param height
+ *     Height of the image
+ * @param fillColor
+ *     If not NULL, padded region is this color
+ * @return
+ *     Image that will be the requested width and height or
+ *     a null image (.isNull()) if error.
+ */
+QImage
+ImageFile::scaleToSizeWithPadding(const QImage& image,
+                                  const int width,
+                                  const int height,
+                                  const QColor* fillColor)
+{
+    /*
+     * Invalid image tests
+     */
+    if (image.isNull()) {
+        return image;
+    }
+    if ((image.width() <= 0)
+        || (image.height() <= 0)) {
+        return QImage();
+    }
+    
+    /*
+     * Nothing to do if image is correct size
+     */
+    if ((image.width() == width)
+        && (image.height() == height)) {
+        return image;
+    }
+    
+    const QImage scaledImage = image.scaled(width,
+                                      height,
+                                      Qt::KeepAspectRatio,
+                                      Qt::SmoothTransformation);
+    const int scaledWidth  = scaledImage.width();
+    const int scaledHeight = scaledImage.height();
+    if ((scaledWidth == width)
+        && (scaledHeight == height)) {
+        return scaledImage;
+    }
+    else if (scaledWidth > width) {
+        CaretLogSevere("Image scale width was made larger="
+                       + QString::number(scaledWidth)
+                       + " than requested="
+                       + QString::number(width));
+        return QImage();
+    }
+    else if (scaledHeight > height) {
+        CaretLogSevere("Image scale height was made larger="
+                       + QString::number(scaledHeight)
+                       + " than requested="
+                       + QString::number(height));
+        return QImage();
+    }
+
+    QImage outputImage(width,
+                       height,
+                       image.format());
+    if (fillColor != NULL) {
+        outputImage.fill(*fillColor);
+    }
+    else {
+        outputImage.fill(Qt::black);
+    }
+    
+    const int insertX = (width - scaledWidth) / 2;
+    const int insertY = (height - scaledHeight) / 2;
+    
+    try {
+        ImageFile::insertImage(scaledImage,
+                               outputImage,
+                               insertX,
+                               insertY);
+    }
+    catch (const DataFileException& dfe) {
+        CaretLogSevere(dfe.whatString());
+        outputImage = QImage();
+    }
+    
+    return outputImage;
+}
+
+/**
  * Compare a file for unit testing (tolerance ignored).
  *
  * @param dataFile

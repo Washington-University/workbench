@@ -68,6 +68,8 @@ namespace caret {
         
         void movieRecorderVideoFormatTypeEnumComboBoxItemActivated();
         
+        void movieRecorderCaptureRegionTypeComboBoxActivated();
+        
         void recordingModeRadioButtonClicked(QAbstractButton* button);
         
         void customWidthSpinBoxValueChanged(int width);
@@ -130,6 +132,8 @@ namespace caret {
         QLabel* m_frameCountNumberLabel;
         
         BrainBrowserWindowComboBox* m_windowComboBox;
+        
+        EnumComboBoxTemplate* m_movieRecorderCaptureRegionTypeComboBox;
         
         // ADD_NEW_MEMBERS_HERE
 

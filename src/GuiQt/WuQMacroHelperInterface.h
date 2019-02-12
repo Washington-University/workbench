@@ -31,9 +31,11 @@
 #include <vector>
 
 class QMainWindow;
+class QWidget;
 
 namespace caret {
     class WuQMacro;
+    class WuQMacroExecutorOptions;
     class WuQMacroGroup;
 
     class WuQMacroHelperInterface : public QObject {
@@ -83,6 +85,34 @@ namespace caret {
          *     Window with the given identifier or NULL if not available
          */
         virtual QMainWindow* getMainWindowWithIdentifier(const QString& identifier) = 0;
+        
+        /**
+         * Called by macro executor just before executing the macro
+         *
+         * @param macro
+         *    Macro that is run
+         * @param window
+         *     Widget for parent
+         * @param executorOptions
+         *    Executor options
+         */
+        virtual void macroExecutionStarting(const WuQMacro* macro,
+                                            QWidget* window,
+                                            const WuQMacroExecutorOptions* executorOptions) = 0;
+        
+        /**
+         * Called by macro executor just after executing the macro
+         *
+         * @param macro
+         *    Macro that is run
+         * @param window
+         *     Widget for parent
+         * @param executorOptions
+         *    Executor options
+         */
+        virtual void macroExecutionEnding(const WuQMacro* macro,
+                                          QWidget* window,
+                                          const WuQMacroExecutorOptions* executorOptions) = 0;
         
         // ADD_NEW_METHODS_HERE
 

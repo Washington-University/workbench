@@ -85,7 +85,8 @@ MovieRecorder::addImageToMovie(const QImage* image)
     /*
      * First image starts at 1 and is padded with zeros on the left
      */
-    const QString imageIndex = QString::number(getNumberOfFrames() + 1).rightJustified(m_tempImageSequenceNumberOfDigits, '0');
+    const int32_t imageIndexInt = getNumberOfFrames() + 1;
+    const QString imageIndex = QString::number(imageIndexInt).rightJustified(m_tempImageSequenceNumberOfDigits, '0');
     const QString imageFileName(m_temporaryImagesDirectory
                                 + "/"
                                 + m_tempImageFileNamePrefix
@@ -93,7 +94,23 @@ MovieRecorder::addImageToMovie(const QImage* image)
                                 + m_tempImageFileNameSuffix);
     
     if (image->save(imageFileName)) {
-        m_imageFileNames.push_back(imageFileName);
+        if (m_imageFileNames.empty()) {
+            m_firstImageWidth  = image->width();
+            m_firstImageHeight = image->height();
+        }
+        
+        if ((image->width()     == m_firstImageWidth)
+            && (image->height() == m_firstImageHeight)) {
+            m_imageFileNames.push_back(imageFileName);
+        }
+        else {
+            CaretLogSevere("Attempting to create movie with images that are different sizes.  "
+                           "First image width=" + QString::number(m_firstImageWidth)
+                           + ", height=" + QString::number(m_firstImageHeight)
+                           + "Image number=" + QString::number(imageIndexInt)
+                           + ", width=" + QString::number(image->width())
+                           + ", height=" + QString::number(image->height()));
+        }
     }
     else {
         CaretLogSevere("Saving temporary image failed: "
@@ -140,11 +157,13 @@ MovieRecorder::reset()
     while (iter.hasNext()) {
         QFile file(iter.next().absoluteFilePath());
         if (file.exists()) {
-            const bool successFlag = file.remove();
+            file.remove();
         }
     }
     
     m_imageFileNames.clear();
+    m_firstImageWidth  = -1;
+    m_firstImageHeight = -1;
 }
 
 
@@ -292,6 +311,27 @@ void
 MovieRecorder::setVideoFormatType(const MovieRecorderVideoFormatTypeEnum::Enum formatType)
 {
     m_formatType = formatType;
+}
+
+/**
+ * @return The capture region type
+ */
+MovieRecorderCaptureRegionTypeEnum::Enum
+MovieRecorder::getCaptureRegionType() const
+{
+    return m_captureRegionType;
+}
+
+/**
+ * Set the capture region type
+ *
+ * @param captureRegionType
+ *     New capture region type
+ */
+void
+MovieRecorder::setCaptureRegionType(const MovieRecorderCaptureRegionTypeEnum::Enum captureRegionType)
+{
+    m_captureRegionType = captureRegionType;
 }
 
 /**

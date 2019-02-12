@@ -127,6 +127,7 @@ ModelTypeEnum.h
 ModelVolume.h
 ModelWholeBrain.h
 MovieRecorder.h
+MovieRecorderCaptureRegionTypeEnum.h
 MovieRecorderModeEnum.h
 MovieRecorderVideoDimensionsTypeEnum.h
 MovieRecorderVideoFormatTypeEnum.h
@@ -283,6 +284,7 @@ ModelTypeEnum.cxx
 ModelVolume.cxx
 ModelWholeBrain.cxx
 MovieRecorder.cxx
+MovieRecorderCaptureRegionTypeEnum.cxx
 MovieRecorderModeEnum.cxx
 MovieRecorderVideoDimensionsTypeEnum.cxx
 MovieRecorderVideoFormatTypeEnum.cxx

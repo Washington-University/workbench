@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "CaretObject.h"
+#include "MovieRecorderCaptureRegionTypeEnum.h"
 #include "MovieRecorderModeEnum.h"
 #include "MovieRecorderVideoDimensionsTypeEnum.h"
 #include "MovieRecorderVideoFormatTypeEnum.h"
@@ -76,6 +77,10 @@ namespace caret {
         
         void setVideoFormatType(const MovieRecorderVideoFormatTypeEnum::Enum formatType);
 
+        MovieRecorderCaptureRegionTypeEnum::Enum getCaptureRegionType() const;
+        
+        void setCaptureRegionType(const MovieRecorderCaptureRegionTypeEnum::Enum captureRegionType);
+        
         AString getMovieFileName() const;
         
         void setMovieFileName(const AString& filename);
@@ -124,6 +129,8 @@ namespace caret {
         
         MovieRecorderVideoFormatTypeEnum::Enum m_formatType = MovieRecorderVideoFormatTypeEnum::MPEG_4;
         
+        MovieRecorderCaptureRegionTypeEnum::Enum m_captureRegionType = MovieRecorderCaptureRegionTypeEnum::GRAPHICS;
+        
         int32_t m_windowIndex = 0;
         
         int32_t m_customWidth = 640;
@@ -150,6 +157,8 @@ namespace caret {
         
         const int32_t m_tempImageSequenceNumberOfDigits = 6;
 
+        int32_t m_firstImageWidth  = -1;
+        int32_t m_firstImageHeight = -1;
     };
     
 #ifdef __MOVIE_RECORDER_DECLARE__

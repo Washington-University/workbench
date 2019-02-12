@@ -25,6 +25,7 @@
 #include <memory>
 
 #include "EventListenerInterface.h"
+#include "MovieRecorderModeEnum.h"
 #include "WuQMacroHelperInterface.h"
 
 class QWidget;
@@ -55,9 +56,19 @@ namespace caret {
         
         virtual QMainWindow* getMainWindowWithIdentifier(const QString& identifier) override;
 
+        virtual void macroExecutionStarting(const WuQMacro* macro,
+                                            QWidget* window,
+                                            const WuQMacroExecutorOptions* executorOptions) override;
+        
+        virtual void macroExecutionEnding(const WuQMacro* macro,
+                                          QWidget* window,
+                                          const WuQMacroExecutorOptions* executorOptions) override;
+        
         // ADD_NEW_METHODS_HERE
         
     private:
+        MovieRecorderModeEnum::Enum m_savedRecordingMode = MovieRecorderModeEnum::MANUAL;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
