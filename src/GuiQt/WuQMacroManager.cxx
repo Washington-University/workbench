@@ -998,6 +998,21 @@ WuQMacroManager::executeCustomOperationMacroCommand(QWidget* parent,
 }
 
 /**
+ * @return All custom operation commands.  Caller is responsible for deleting
+ * all content of the returned vector.
+ */
+std::vector<WuQMacroCommand*>
+WuQMacroManager::getAllCustomOperationMacroCommands()
+{
+    std::vector<WuQMacroCommand*> customCommands;
+    
+    if (m_customCommandManager != NULL) {
+        customCommands = m_customCommandManager->getAllCustomOperationMacroCommands();
+    }
+    return customCommands;
+}
+
+/**
  * @return Names of custom operation defined macro commands
  */
 std::vector<QString>

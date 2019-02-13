@@ -53,10 +53,12 @@ namespace caret {
                                                         const WuQMacroCommand* macroCommand,
                                                         QString& errorMessageOut);
         
-        virtual std::vector<QString> getNamesOfCustomOperationMacroCommands();
+        virtual std::vector<QString> getNamesOfCustomOperationMacroCommands() override;
         
+        virtual std::vector<WuQMacroCommand*> getAllCustomOperationMacroCommands() override;        
+
         virtual WuQMacroCommand* newInstanceOfCustomOperationMacroCommand(const QString& customMacroCommandName,
-                                                                          QString& errorMessageOut);
+                                                                          QString& errorMessageOut) override;
         
 
         // ADD_NEW_METHODS_HERE

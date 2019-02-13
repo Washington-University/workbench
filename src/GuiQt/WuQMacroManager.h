@@ -146,6 +146,8 @@ namespace caret {
                                                 const WuQMacroCommand* macroCommand,
                                                 QString& errorMessageOut);
         
+        virtual std::vector<WuQMacroCommand*> getAllCustomOperationMacroCommands();
+
         virtual std::vector<QString> getNamesOfCustomOperationMacroCommands();
         
         virtual WuQMacroCommand* newInstanceOfCustomOperationMacroCommand(const QString& macroCommandName,

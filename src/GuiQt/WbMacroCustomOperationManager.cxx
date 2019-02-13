@@ -246,6 +246,25 @@ WbMacroCustomOperationManager::getNamesOfCustomOperationMacroCommands()
 }
 
 /**
+ * @return All custom operation commands.  Caller is responsible for deleting
+ * all content of the returned vector.
+ */
+std::vector<WuQMacroCommand*>
+WbMacroCustomOperationManager::getAllCustomOperationMacroCommands()
+{
+    std::vector<WbMacroCustomOperationTypeEnum::Enum> customCommandTypes;
+    WbMacroCustomOperationTypeEnum::getAllEnums(customCommandTypes);
+    
+    std::vector<WuQMacroCommand*> customCommands;
+    for (auto cct : customCommandTypes) {
+        std::unique_ptr<WbMacroCustomOperationBase> customOperation(createCommand(cct));
+        customCommands.push_back(customOperation->createCommand());
+    }
+    
+    return customCommands;
+}
+
+/**
  * Get a new instance of a custom operation for the given macro command name
  *
  * @param customMacroCommandName

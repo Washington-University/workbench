@@ -76,6 +76,12 @@ namespace caret {
         virtual std::vector<QString> getNamesOfCustomOperationMacroCommands() = 0;
         
         /**
+         * @return All custom operation commands.  Caller is responsible for deleting
+         * all content of the returned vector.
+         */
+        virtual std::vector<WuQMacroCommand*> getAllCustomOperationMacroCommands() = 0;
+        
+        /**
          * Get a new instance of a custom operation for the given macro command name
          *
          * @param customMacroCommandName
