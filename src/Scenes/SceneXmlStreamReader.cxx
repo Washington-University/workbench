@@ -363,7 +363,7 @@ SceneXmlStreamReader::readSceneObjectSingle(QXmlStreamReader& xmlReader)
                     else {
                         AString msg("Should not find a start element when reading a primitive type (not a class).."
                                     "Element name \""
-                                    + xmlReader.name()
+                                    + xmlReader.name().toString()
                                     + "\" at line "
                                     + AString::number(xmlReader.lineNumber())
                                     + " column "
@@ -469,7 +469,7 @@ SceneXmlStreamReader::readSceneObjectArray(QXmlStreamReader& xmlReader)
     SceneFloatArray* floatArray(NULL);
     SceneIntegerArray* integerArray(NULL);
     SceneStringArray* stringArray(NULL);
-    SceneUnsignedByteArray* unsignedByteArray;
+    SceneUnsignedByteArray* unsignedByteArray(NULL);
     switch (dataType) {
         case SceneObjectDataTypeEnum::SCENE_BOOLEAN:
             booleanArray = new SceneBooleanArray(name,

@@ -493,7 +493,8 @@ MovieRecorder::createMovie(AString& errorMessageOut)
                                                + m_tempImageFileNameSuffix);
     QString workbenchHomeDir = SystemUtilities::getWorkbenchHome();
 
-    const QString ffmpegDir = qEnvironmentVariable("WORKBENCH_FFMPEG_DIR");
+    /* Qt after 5.? const QString ffmpegDir = qEnvironmentVariable("WORKBENCH_FFMPEG_DIR"); */
+    const QString ffmpegDir = qgetenv("WORKBENCH_FFMPEG_DIR").constData();
     if ( ! ffmpegDir.isEmpty()) {
         workbenchHomeDir = ffmpegDir;
     }

@@ -688,7 +688,7 @@ SceneFile::readFileSaxReader(const AString& filenameIn)
     
     SceneFileSaxReader saxReader(this,
                                  filename);
-    std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
+    std::unique_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
         parser->parseFile(filename, &saxReader);
     }

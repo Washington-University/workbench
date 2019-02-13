@@ -140,7 +140,7 @@ SceneFileXmlStreamReader::readFileContent(QXmlStreamReader& xmlReader,
     xmlReader.readNextStartElement();
     if (xmlReader.name() != ELEMENT_SCENE_FILE) {
         xmlReader.raiseError("First element is \""
-                             + xmlReader.name()
+                             + xmlReader.name().toString()
                              + "\" but should be "
                              + ELEMENT_SCENE_FILE);
         return;

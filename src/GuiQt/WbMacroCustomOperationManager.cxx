@@ -320,7 +320,7 @@ WbMacroCustomOperationManager::newInstanceOfCustomOperationMacroCommand(const QS
 WbMacroCustomOperationBase*
 WbMacroCustomOperationManager::createCommand(const WbMacroCustomOperationTypeEnum::Enum operationType)
 {
-    WbMacroCustomOperationBase* operationOut;
+    WbMacroCustomOperationBase* operationOut(NULL);
 
     switch (operationType) {
         case WbMacroCustomOperationTypeEnum::MODEL_ROTATION:

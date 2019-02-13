@@ -545,7 +545,7 @@ WuQMacroGroupXmlStreamReader::readMacroCommandAttributesVersionOne(QXmlStreamRea
     WuQMacroWidgetTypeEnum::Enum widgetType = WuQMacroWidgetTypeEnum::fromName(widgetTypeString.toString(),
                                                                                 &objectTypeValid);
     if (! objectTypeValid) {
-        es.append(widgetTypeString
+        es.append(widgetTypeString.toString()
                   + " is not valid for attribute "
                   + ATTRIBUTE_WIDGET_TYPE
                   + " ");

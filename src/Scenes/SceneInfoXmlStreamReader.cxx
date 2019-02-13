@@ -76,7 +76,7 @@ SceneInfoXmlStreamReader::readSceneInfo(QXmlStreamReader& xmlReader,
     
     if (xmlReader.name() != ELEMENT_SCENE_INFO) {
         xmlReader.raiseError("First element is \""
-                             + xmlReader.name()
+                             + xmlReader.name().toString()
                              + "\" but should be "
                              + ELEMENT_SCENE_INFO);
         return;
