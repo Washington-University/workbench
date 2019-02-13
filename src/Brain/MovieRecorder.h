@@ -28,7 +28,7 @@
 #include "CaretObject.h"
 #include "MovieRecorderCaptureRegionTypeEnum.h"
 #include "MovieRecorderModeEnum.h"
-#include "MovieRecorderVideoDimensionsTypeEnum.h"
+#include "MovieRecorderVideoResolutionTypeEnum.h"
 #include "MovieRecorderVideoFormatTypeEnum.h"
 
 class QImage;
@@ -60,9 +60,9 @@ namespace caret {
         
         void setRecordingWindowIndex(const int32_t windowIndex);
         
-        MovieRecorderVideoDimensionsTypeEnum::Enum getVideoDimensionsType() const;
+        MovieRecorderVideoResolutionTypeEnum::Enum getVideoDimensionsType() const;
         
-        void setVideoDimensionsType(const MovieRecorderVideoDimensionsTypeEnum::Enum dimensionsType);
+        void setVideoDimensionsType(const MovieRecorderVideoResolutionTypeEnum::Enum dimensionsType);
 
         void getVideoDimensions(int32_t& widthOut,
                                 int32_t& heightOut) const;
@@ -125,7 +125,7 @@ namespace caret {
 
         MovieRecorderModeEnum::Enum m_recordingMode = MovieRecorderModeEnum::MANUAL;
         
-        MovieRecorderVideoDimensionsTypeEnum::Enum m_dimensionsType = MovieRecorderVideoDimensionsTypeEnum::SD_640_480;
+        MovieRecorderVideoResolutionTypeEnum::Enum m_dimensionsType = MovieRecorderVideoResolutionTypeEnum::SD_640_480;
         
         MovieRecorderVideoFormatTypeEnum::Enum m_formatType = MovieRecorderVideoFormatTypeEnum::MPEG_4;
         
@@ -143,7 +143,7 @@ namespace caret {
         
         std::vector<AString> m_imageFrameFileNames;
         
-        float m_frameRate = 20.0f;
+        float m_frameRate = 30.0f;
         
         float m_manualRecordingDurationSeconds = 5.0f;
         

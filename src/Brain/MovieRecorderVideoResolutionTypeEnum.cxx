@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __MOVIE_RECORDER_VIDEO_DIMENSIONS_TYPE_ENUM_DECLARE__
-#include "MovieRecorderVideoDimensionsTypeEnum.h"
-#undef __MOVIE_RECORDER_VIDEO_DIMENSIONS_TYPE_ENUM_DECLARE__
+#define __MOVIE_RECORDER_VIDEO_RESOLUTION_TYPE_ENUM_DECLARE__
+#include "MovieRecorderVideoResolutionTypeEnum.h"
+#undef __MOVIE_RECORDER_VIDEO_RESOLUTION_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::MovieRecorderVideoDimensionsTypeEnum 
- * \brief Dimensions for movie recording
+ * \class caret::MovieRecorderVideoResolutionTypeEnum
+ * \brief Resolutions for movie recording
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_movieRecorderVideoDimensionsTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_MovieRecorderVideoResolutionTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void movieRecorderVideoDimensionsTypeEnumComboBoxItemActivated();
+ *             void MovieRecorderVideoResolutionTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "MovieRecorderVideoDimensionsTypeEnum.h"
+ *         #include "MovieRecorderVideoResolutionTypeEnum.h"
  * 
  *     Instatiate:
- *         m_movieRecorderVideoDimensionsTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_movieRecorderVideoDimensionsTypeEnumComboBox->setup<MovieRecorderVideoDimensionsTypeEnum,MovieRecorderVideoDimensionsTypeEnum::Enum>();
+ *         m_MovieRecorderVideoResolutionTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_MovieRecorderVideoResolutionTypeEnumComboBox->setup<MovieRecorderVideoResolutionTypeEnum,MovieRecorderVideoResolutionTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_movieRecorderVideoDimensionsTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(movieRecorderVideoDimensionsTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_MovieRecorderVideoResolutionTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(MovieRecorderVideoResolutionTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_movieRecorderVideoDimensionsTypeEnumComboBox->setSelectedItem<MovieRecorderVideoDimensionsTypeEnum,MovieRecorderVideoDimensionsTypeEnum::Enum>(NEW_VALUE);
+ *         m_MovieRecorderVideoResolutionTypeEnumComboBox->setSelectedItem<MovieRecorderVideoResolutionTypeEnum,MovieRecorderVideoResolutionTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const MovieRecorderVideoDimensionsTypeEnum::Enum VARIABLE = m_movieRecorderVideoDimensionsTypeEnumComboBox->getSelectedItem<MovieRecorderVideoDimensionsTypeEnum,MovieRecorderVideoDimensionsTypeEnum::Enum>();
+ *         const MovieRecorderVideoResolutionTypeEnum::Enum VARIABLE = m_MovieRecorderVideoResolutionTypeEnumComboBox->getSelectedItem<MovieRecorderVideoResolutionTypeEnum,MovieRecorderVideoResolutionTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-MovieRecorderVideoDimensionsTypeEnum::MovieRecorderVideoDimensionsTypeEnum(const Enum enumValue,
+MovieRecorderVideoResolutionTypeEnum::MovieRecorderVideoResolutionTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ MovieRecorderVideoDimensionsTypeEnum::MovieRecorderVideoDimensionsTypeEnum(const
 /**
  * Destructor.
  */
-MovieRecorderVideoDimensionsTypeEnum::~MovieRecorderVideoDimensionsTypeEnum()
+MovieRecorderVideoResolutionTypeEnum::~MovieRecorderVideoResolutionTypeEnum()
 {
 }
 
@@ -99,25 +99,33 @@ MovieRecorderVideoDimensionsTypeEnum::~MovieRecorderVideoDimensionsTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-MovieRecorderVideoDimensionsTypeEnum::initialize()
+MovieRecorderVideoResolutionTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(MovieRecorderVideoDimensionsTypeEnum(CUSTOM, 
-                                    "CUSTOM", 
-                                    "Custom"));
+    enumData.push_back(MovieRecorderVideoResolutionTypeEnum(CUSTOM,
+                                                            "CUSTOM",
+                                                            "Custom"));
     
-    enumData.push_back(MovieRecorderVideoDimensionsTypeEnum(HD_1280_720,
-                                    "HD_1280_720",
-                                    "HD (1280x720)"));
+    enumData.push_back(MovieRecorderVideoResolutionTypeEnum(UHD_3840_2160,
+                                                            "UHD_3840_2160",
+                                                            "UHD (3840x2160)"));
     
-    enumData.push_back(MovieRecorderVideoDimensionsTypeEnum(SD_640_480, 
-                                    "SD_640_480", 
-                                    "SD (640x480)"));
+    enumData.push_back(MovieRecorderVideoResolutionTypeEnum(FULL_HD_1920_1080,
+                                                            "FULL_HD_1920_1080",
+                                                            "Full HD (1920x1080)"));
     
+    enumData.push_back(MovieRecorderVideoResolutionTypeEnum(HD_1280_720,
+                                                            "HD_1280_720",
+                                                            "HD Ready (1280x720)"));
+    
+    enumData.push_back(MovieRecorderVideoResolutionTypeEnum(SD_640_480,
+                                                            "SD_640_480",
+                                                            "SD (640x480)"));
+
 }
 
 /**
@@ -127,14 +135,14 @@ MovieRecorderVideoDimensionsTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const MovieRecorderVideoDimensionsTypeEnum*
-MovieRecorderVideoDimensionsTypeEnum::findData(const Enum enumValue)
+const MovieRecorderVideoResolutionTypeEnum*
+MovieRecorderVideoResolutionTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const MovieRecorderVideoDimensionsTypeEnum* d = &enumData[i];
+        const MovieRecorderVideoResolutionTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -151,10 +159,10 @@ MovieRecorderVideoDimensionsTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-MovieRecorderVideoDimensionsTypeEnum::toName(Enum enumValue) {
+MovieRecorderVideoResolutionTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const MovieRecorderVideoDimensionsTypeEnum* enumInstance = findData(enumValue);
+    const MovieRecorderVideoResolutionTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -168,18 +176,18 @@ MovieRecorderVideoDimensionsTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-MovieRecorderVideoDimensionsTypeEnum::Enum 
-MovieRecorderVideoDimensionsTypeEnum::fromName(const AString& name, bool* isValidOut)
+MovieRecorderVideoResolutionTypeEnum::Enum
+MovieRecorderVideoResolutionTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = MovieRecorderVideoDimensionsTypeEnum::enumData[0].enumValue;
+    Enum enumValue = MovieRecorderVideoResolutionTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<MovieRecorderVideoDimensionsTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<MovieRecorderVideoResolutionTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const MovieRecorderVideoDimensionsTypeEnum& d = *iter;
+        const MovieRecorderVideoResolutionTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -191,7 +199,7 @@ MovieRecorderVideoDimensionsTypeEnum::fromName(const AString& name, bool* isVali
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type MovieRecorderVideoDimensionsTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type MovieRecorderVideoResolutionTypeEnum"));
     }
     return enumValue;
 }
@@ -204,10 +212,10 @@ MovieRecorderVideoDimensionsTypeEnum::fromName(const AString& name, bool* isVali
  *     String representing enumerated value.
  */
 AString 
-MovieRecorderVideoDimensionsTypeEnum::toGuiName(Enum enumValue) {
+MovieRecorderVideoResolutionTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const MovieRecorderVideoDimensionsTypeEnum* enumInstance = findData(enumValue);
+    const MovieRecorderVideoResolutionTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -221,18 +229,18 @@ MovieRecorderVideoDimensionsTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-MovieRecorderVideoDimensionsTypeEnum::Enum 
-MovieRecorderVideoDimensionsTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+MovieRecorderVideoResolutionTypeEnum::Enum
+MovieRecorderVideoResolutionTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = MovieRecorderVideoDimensionsTypeEnum::enumData[0].enumValue;
+    Enum enumValue = MovieRecorderVideoResolutionTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<MovieRecorderVideoDimensionsTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<MovieRecorderVideoResolutionTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const MovieRecorderVideoDimensionsTypeEnum& d = *iter;
+        const MovieRecorderVideoResolutionTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -244,7 +252,7 @@ MovieRecorderVideoDimensionsTypeEnum::fromGuiName(const AString& guiName, bool* 
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type MovieRecorderVideoDimensionsTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type MovieRecorderVideoResolutionTypeEnum"));
     }
     return enumValue;
 }
@@ -256,10 +264,10 @@ MovieRecorderVideoDimensionsTypeEnum::fromGuiName(const AString& guiName, bool* 
  *    Integer code for data type.
  */
 int32_t
-MovieRecorderVideoDimensionsTypeEnum::toIntegerCode(Enum enumValue)
+MovieRecorderVideoResolutionTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const MovieRecorderVideoDimensionsTypeEnum* enumInstance = findData(enumValue);
+    const MovieRecorderVideoResolutionTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -274,18 +282,18 @@ MovieRecorderVideoDimensionsTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-MovieRecorderVideoDimensionsTypeEnum::Enum
-MovieRecorderVideoDimensionsTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+MovieRecorderVideoResolutionTypeEnum::Enum
+MovieRecorderVideoResolutionTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = MovieRecorderVideoDimensionsTypeEnum::enumData[0].enumValue;
+    Enum enumValue = MovieRecorderVideoResolutionTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<MovieRecorderVideoDimensionsTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<MovieRecorderVideoResolutionTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const MovieRecorderVideoDimensionsTypeEnum& enumInstance = *iter;
+        const MovieRecorderVideoResolutionTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -297,7 +305,7 @@ MovieRecorderVideoDimensionsTypeEnum::fromIntegerCode(const int32_t integerCode,
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type MovieRecorderVideoDimensionsTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type MovieRecorderVideoResolutionTypeEnum"));
     }
     return enumValue;
 }
@@ -310,13 +318,13 @@ MovieRecorderVideoDimensionsTypeEnum::fromIntegerCode(const int32_t integerCode,
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-MovieRecorderVideoDimensionsTypeEnum::getAllEnums(std::vector<MovieRecorderVideoDimensionsTypeEnum::Enum>& allEnums)
+MovieRecorderVideoResolutionTypeEnum::getAllEnums(std::vector<MovieRecorderVideoResolutionTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<MovieRecorderVideoDimensionsTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<MovieRecorderVideoResolutionTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -332,16 +340,16 @@ MovieRecorderVideoDimensionsTypeEnum::getAllEnums(std::vector<MovieRecorderVideo
  *     If true, the names are sorted in alphabetical order.
  */
 void
-MovieRecorderVideoDimensionsTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+MovieRecorderVideoResolutionTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<MovieRecorderVideoDimensionsTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<MovieRecorderVideoResolutionTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(MovieRecorderVideoDimensionsTypeEnum::toName(iter->enumValue));
+        allNames.push_back(MovieRecorderVideoResolutionTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -358,20 +366,58 @@ MovieRecorderVideoDimensionsTypeEnum::getAllNames(std::vector<AString>& allNames
  *     If true, the names are sorted in alphabetical order.
  */
 void
-MovieRecorderVideoDimensionsTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+MovieRecorderVideoResolutionTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<MovieRecorderVideoDimensionsTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<MovieRecorderVideoResolutionTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(MovieRecorderVideoDimensionsTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(MovieRecorderVideoResolutionTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {
         std::sort(allGuiNames.begin(), allGuiNames.end());
+    }
+}
+
+/**
+ * Get the dimensions for given enumerated value.  Output will be zeros
+ * for custom.
+ *
+ * @param enumValue
+ *     Enumerated value.
+ * @param widthOut
+ *     Output containing width
+ * @param heightOut
+ *     Output containing height
+ */
+void
+MovieRecorderVideoResolutionTypeEnum::getDimensions(const Enum enumValue,
+                                                    int32_t& widthOut,
+                                                    int32_t& heightOut)
+{
+    switch (enumValue) {
+        case CUSTOM:
+            break;
+        case FULL_HD_1920_1080:
+            widthOut  = 1920;
+            heightOut = 1080;
+            break;
+        case HD_1280_720:
+            widthOut  = 1280;
+            heightOut = 720;
+            break;
+        case SD_640_480:
+            widthOut  = 640;
+            heightOut = 480;
+            break;
+        case UHD_3840_2160:
+            widthOut  = 3840;
+            heightOut = 2160;
+            break;
     }
 }
 

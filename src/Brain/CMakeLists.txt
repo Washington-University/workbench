@@ -129,8 +129,8 @@ ModelWholeBrain.h
 MovieRecorder.h
 MovieRecorderCaptureRegionTypeEnum.h
 MovieRecorderModeEnum.h
-MovieRecorderVideoDimensionsTypeEnum.h
 MovieRecorderVideoFormatTypeEnum.h
+MovieRecorderVideoResolutionTypeEnum.h
 Overlay.h
 OverlaySet.h
 OverlaySetArray.h
@@ -286,8 +286,8 @@ ModelWholeBrain.cxx
 MovieRecorder.cxx
 MovieRecorderCaptureRegionTypeEnum.cxx
 MovieRecorderModeEnum.cxx
-MovieRecorderVideoDimensionsTypeEnum.cxx
 MovieRecorderVideoFormatTypeEnum.cxx
+MovieRecorderVideoResolutionTypeEnum.cxx
 Overlay.cxx
 OverlaySet.cxx
 OverlaySetArray.cxx

@@ -64,7 +64,7 @@ namespace caret {
         virtual void receiveEvent(Event* event);
 
     private slots:
-        void movieRecorderVideoDimensionsTypeEnumComboBoxItemActivated();
+        void movieRecorderVideoResolutionTypeEnumComboBoxItemActivated();
         
         void movieRecorderVideoFormatTypeEnumComboBoxItemActivated();
         
@@ -111,7 +111,7 @@ namespace caret {
         
         QSpinBox* m_manualCaptureSecondsSpinBox;
         
-        EnumComboBoxTemplate* m_movieRecorderVideoDimensionsTypeEnumComboBox;
+        EnumComboBoxTemplate* m_movieRecorderVideoResolutionTypeEnumComboBox;
         
         EnumComboBoxTemplate* m_movieRecorderVideoFormatTypeEnumComboBox;
         

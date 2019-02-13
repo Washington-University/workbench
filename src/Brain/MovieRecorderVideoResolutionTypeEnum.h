@@ -1,5 +1,5 @@
-#ifndef __MOVIE_RECORDER_VIDEO_DIMENSIONS_TYPE_ENUM_H__
-#define __MOVIE_RECORDER_VIDEO_DIMENSIONS_TYPE_ENUM_H__
+#ifndef __MOVIE_RECORDER_VIDEO_RESOLUTION_TYPE_ENUM_H__
+#define __MOVIE_RECORDER_VIDEO_RESOLUTION_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class MovieRecorderVideoDimensionsTypeEnum {
+class MovieRecorderVideoResolutionTypeEnum {
 
 public:
     /**
@@ -37,14 +37,18 @@ public:
     enum Enum {
         /** Custom */
         CUSTOM,
-        /** HD */
+        /** UHD */
+        UHD_3840_2160,
+        /** Full HD */
+        FULL_HD_1920_1080,
+        /** HD Ready */
         HD_1280_720,
         /** SD */
         SD_640_480
     };
 
 
-    ~MovieRecorderVideoDimensionsTypeEnum();
+    ~MovieRecorderVideoResolutionTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -64,15 +68,19 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static void getDimensions(const Enum enumValue,
+                              int32_t& widthOut,
+                              int32_t& heightOut);
+    
 private:
-    MovieRecorderVideoDimensionsTypeEnum(const Enum enumValue, 
+    MovieRecorderVideoResolutionTypeEnum(const Enum enumValue,
                  const AString& name,
                  const AString& guiName);
 
-    static const MovieRecorderVideoDimensionsTypeEnum* findData(const Enum enumValue);
+    static const MovieRecorderVideoResolutionTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<MovieRecorderVideoDimensionsTypeEnum> enumData;
+    static std::vector<MovieRecorderVideoResolutionTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -96,11 +104,11 @@ private:
     AString guiName;
 };
 
-#ifdef __MOVIE_RECORDER_VIDEO_DIMENSIONS_TYPE_ENUM_DECLARE__
-std::vector<MovieRecorderVideoDimensionsTypeEnum> MovieRecorderVideoDimensionsTypeEnum::enumData;
-bool MovieRecorderVideoDimensionsTypeEnum::initializedFlag = false;
-int32_t MovieRecorderVideoDimensionsTypeEnum::integerCodeCounter = 0; 
-#endif // __MOVIE_RECORDER_VIDEO_DIMENSIONS_TYPE_ENUM_DECLARE__
+#ifdef __MOVIE_RECORDER_VIDEO_RESOLUTION_TYPE_ENUM_DECLARE__
+std::vector<MovieRecorderVideoResolutionTypeEnum> MovieRecorderVideoResolutionTypeEnum::enumData;
+bool MovieRecorderVideoResolutionTypeEnum::initializedFlag = false;
+int32_t MovieRecorderVideoResolutionTypeEnum::integerCodeCounter = 0; 
+#endif // __MOVIE_RECORDER_VIDEO_RESOLUTION_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__MOVIE_RECORDER_VIDEO_DIMENSIONS_TYPE_ENUM_H__
+#endif  //__MOVIE_RECORDER_VIDEO_RESOLUTION_TYPE_ENUM_H__

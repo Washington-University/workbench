@@ -212,7 +212,7 @@ MovieRecorder::setRecordingWindowIndex(const int32_t windowIndex)
 /**
  * @return Video dimensions type
  */
-MovieRecorderVideoDimensionsTypeEnum::Enum
+MovieRecorderVideoResolutionTypeEnum::Enum
 MovieRecorder::getVideoDimensionsType() const
 {
     return m_dimensionsType;
@@ -225,7 +225,7 @@ MovieRecorder::getVideoDimensionsType() const
  *     New dimensions type
  */
 void
-MovieRecorder::setVideoDimensionsType(const MovieRecorderVideoDimensionsTypeEnum::Enum dimensionsType)
+MovieRecorder::setVideoDimensionsType(const MovieRecorderVideoResolutionTypeEnum::Enum dimensionsType)
 {
     m_dimensionsType = dimensionsType;
 }
@@ -244,19 +244,16 @@ MovieRecorder::getVideoDimensions(int32_t& widthOut,
 {
     widthOut  = 100;
     heightOut = 100;
-    switch (getVideoDimensionsType()) {
-        case MovieRecorderVideoDimensionsTypeEnum::CUSTOM:
-            getCustomDimensions(widthOut,
-                                heightOut);
-            break;
-        case MovieRecorderVideoDimensionsTypeEnum::HD_1280_720:
-            widthOut  = 1280;
-            heightOut =  720;
-            break;
-        case MovieRecorderVideoDimensionsTypeEnum::SD_640_480:
-            widthOut  = 640;
-            heightOut = 480;
-            break;
+    
+    const MovieRecorderVideoResolutionTypeEnum::Enum dimType = getVideoDimensionsType();
+    if (dimType == MovieRecorderVideoResolutionTypeEnum::CUSTOM) {
+        getCustomDimensions(widthOut,
+                            heightOut);
+    }
+    else {
+        MovieRecorderVideoResolutionTypeEnum::getDimensions(dimType,
+                                                            widthOut,
+                                                            heightOut);
     }
 }
 
