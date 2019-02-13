@@ -514,10 +514,10 @@ WuQMacroDialog::createCommandDisplayWidget()
                      this, &WuQMacroDialog::macroCommandDelaySpinBoxValueChanged);
     QLabel* delayTwoLabel = new QLabel("seconds after command");
     
-    QLabel* toolTipLabel = new QLabel("ToolTip:");
-    m_commandToolTipTextEdit     = new QPlainTextEdit();
-    m_commandToolTipTextEdit->setReadOnly(true);
-    m_commandToolTipTextEdit->setMaximumHeight(100);
+    QLabel* descriptionLabel = new QLabel("Description:");
+    m_commandDescriptionTextEdit = new QPlainTextEdit();
+    m_commandDescriptionTextEdit->setReadOnly(true);
+    m_commandDescriptionTextEdit->setMaximumHeight(100);
     
     QGridLayout* layout = new QGridLayout();
     layout->setContentsMargins(0, 0, 0, 0);
@@ -538,8 +538,8 @@ WuQMacroDialog::createCommandDisplayWidget()
     layout->addWidget(m_commandDelaySpinBox, row, 1);
     layout->addWidget(delayTwoLabel, row, 2, Qt::AlignLeft);
     row++;
-    layout->addWidget(toolTipLabel, row, 0, (Qt::AlignLeft | Qt::AlignTop));
-    layout->addWidget(m_commandToolTipTextEdit, row, 1, 1, 2);
+    layout->addWidget(descriptionLabel, row, 0, (Qt::AlignLeft | Qt::AlignTop));
+    layout->addWidget(m_commandDescriptionTextEdit, row, 1, 1, 2);
     row++;
     
     QWidget* parametersWidget = new QWidget();
@@ -551,11 +551,6 @@ WuQMacroDialog::createCommandDisplayWidget()
     m_parameterWidgetsGridLayout->setVerticalSpacing(static_cast<int>(m_parameterWidgetsGridLayout->verticalSpacing() / 1.2));
     m_parameterWidgetsGridLayout->setColumnStretch(0, 0);
     m_parameterWidgetsGridLayout->setColumnStretch(1, 100);
-//    m_parameterWidgetsGridLayout->addWidget(new QLabel("Edit"),
-//                                            0, 0, Qt::AlignHCenter);
-//    m_parameterWidgetsGridLayout->addWidget(new QLabel("Parameter Value"),
-//                                            0, 1, Qt::AlignLeft);
-
 
     QHBoxLayout* titleLayout = new QHBoxLayout();
     titleLayout->setContentsMargins(0, 0, 0, 0);
@@ -782,7 +777,7 @@ WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
     QSignalBlocker delayBlocker(m_commandDelaySpinBox);
     m_commandDelaySpinBox->setValue(delay);
 
-    m_commandToolTipTextEdit->setPlainText(toolTip);
+    m_commandDescriptionTextEdit->setPlainText(toolTip);
     
     /**
      * Update the parameter widgets

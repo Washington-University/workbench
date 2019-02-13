@@ -455,6 +455,7 @@ WbMacroCustomOperationManager.h
 WbMacroCustomOperationModelRotation.h
 WbMacroCustomOperationSurfaceInterpolation.h
 WbMacroCustomOperationTypeEnum.h
+WbMacroCustomOperationVolumeSliceIncrement.h
 WbMacroHelper.h
 WuQCollapsibleWidget.h
 WuQDataEntryDialog.h
@@ -708,6 +709,7 @@ WbMacroCustomOperationManager.cxx
 WbMacroCustomOperationModelRotation.cxx
 WbMacroCustomOperationSurfaceInterpolation.cxx
 WbMacroCustomOperationTypeEnum.cxx
+WbMacroCustomOperationVolumeSliceIncrement.cxx
 WbMacroHelper.cxx
 WuQCollapsibleWidget.cxx
 WuQDataEntryDialog.cxx

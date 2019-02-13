@@ -48,7 +48,7 @@ using namespace caret;
  * Constructor.
  */
 WbMacroCustomOperationModelRotation::WbMacroCustomOperationModelRotation()
-: WbMacroCustomOperationBase()
+: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::MODEL_ROTATION)
 {
     
 }

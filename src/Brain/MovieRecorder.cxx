@@ -107,7 +107,7 @@ MovieRecorder::addImageToMovie(const QImage* image)
             CaretLogSevere("Attempting to create movie with images that are different sizes.  "
                            "First image width=" + QString::number(m_firstImageWidth)
                            + ", height=" + QString::number(m_firstImageHeight)
-                           + "Image number=" + QString::number(imageIndexInt)
+                           + "  Image number=" + QString::number(imageIndexInt)
                            + ", width=" + QString::number(image->width())
                            + ", height=" + QString::number(image->height()));
         }

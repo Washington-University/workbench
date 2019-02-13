@@ -48,8 +48,12 @@ using namespace caret;
 
 /**
  * Constructor
+ *
+ * @param operationTye
+ *     Type of custom command operation
  */
-WbMacroCustomOperationBase::WbMacroCustomOperationBase()
+WbMacroCustomOperationBase::WbMacroCustomOperationBase(const WbMacroCustomOperationTypeEnum::Enum operationType)
+: m_operationType(operationType)
 {
     
 }
@@ -61,6 +65,15 @@ WbMacroCustomOperationBase::WbMacroCustomOperationBase()
 WbMacroCustomOperationBase::~WbMacroCustomOperationBase()
 {
     
+}
+
+/**
+ * @return The custom operation type
+ */
+WbMacroCustomOperationTypeEnum::Enum
+WbMacroCustomOperationBase::getOperationType() const
+{
+    return m_operationType;
 }
 
 /**

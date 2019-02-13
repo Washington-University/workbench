@@ -26,10 +26,12 @@
 #include <memory>
 
 #include "CaretObject.h"
+#include "WbMacroCustomOperationTypeEnum.h"
 #include "WuQMacroCustomOperationManagerInterface.h"
 class QWidget;
 
 namespace caret {
+    class WbMacroCustomOperationBase;
     class WuQMacroCommand;
     class WuQMacroCommandParameter;
 
@@ -63,6 +65,8 @@ namespace caret {
         
     private:
 
+        WbMacroCustomOperationBase* createCommand(const WbMacroCustomOperationTypeEnum::Enum operationType);
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

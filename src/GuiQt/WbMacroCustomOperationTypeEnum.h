@@ -38,7 +38,9 @@ public:
         /** Rotation of viewed model */
         MODEL_ROTATION,
         /** Surface Interpolation */
-        SURFACE_INTERPOLATION
+        SURFACE_INTERPOLATION,
+        /** Volume slice increment */
+        VOLUME_SLICE_INCREMENT
     };
 
 

@@ -113,6 +113,10 @@ WbMacroCustomOperationTypeEnum::initialize()
     enumData.push_back(WbMacroCustomOperationTypeEnum(SURFACE_INTERPOLATION,
                                                       "SURFACE_INTERPOLATION",
                                                       "Surface Interpolation"));
+
+    enumData.push_back(WbMacroCustomOperationTypeEnum(VOLUME_SLICE_INCREMENT,
+                                                      "VOLUME_SLICE_INCREMENT",
+                                                      "Volume Slice Increment"));
 }
 
 /**

@@ -50,7 +50,7 @@ using namespace caret;
  * Constructor.
  */
 WbMacroCustomOperationSurfaceInterpolation::WbMacroCustomOperationSurfaceInterpolation()
-: WbMacroCustomOperationBase()
+: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION)
 {
 }
 

@@ -35,6 +35,7 @@
 #include "WbMacroCustomOperationModelRotation.h"
 #include "WbMacroCustomOperationSurfaceInterpolation.h"
 #include "WbMacroCustomOperationTypeEnum.h"
+#include "WbMacroCustomOperationVolumeSliceIncrement.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
 #include "WuQMessageBox.h"
@@ -210,14 +211,7 @@ WbMacroCustomOperationManager::executeCustomOperationMacroCommand(QWidget* paren
     }
     
     std::unique_ptr<WbMacroCustomOperationBase> customOperation;
-    switch (commandType) {
-        case WbMacroCustomOperationTypeEnum::MODEL_ROTATION:
-            customOperation.reset(new WbMacroCustomOperationModelRotation());
-            break;
-        case WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION:
-            customOperation.reset(new WbMacroCustomOperationSurfaceInterpolation());
-            break;
-    }
+    customOperation.reset(createCommand(commandType));
     
     bool successFlag(false);
     if (customOperation) {
@@ -280,14 +274,7 @@ WbMacroCustomOperationManager::newInstanceOfCustomOperationMacroCommand(const QS
     WuQMacroCommand* command(NULL);
     
     std::unique_ptr<WbMacroCustomOperationBase> customOperation;
-    switch (commandType) {
-        case WbMacroCustomOperationTypeEnum::MODEL_ROTATION:
-            customOperation.reset(new WbMacroCustomOperationModelRotation());
-            break;
-        case WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION:
-            customOperation.reset(new WbMacroCustomOperationSurfaceInterpolation());
-            break;
-    }
+    customOperation.reset(createCommand(commandType));
 
     if (customOperation) {
         command = customOperation->createCommand();
@@ -301,5 +288,34 @@ WbMacroCustomOperationManager::newInstanceOfCustomOperationMacroCommand(const QS
     }
     
     return command;
+}
+
+/**
+ * Create a custom operation of the given type
+ *
+ * @param operationType
+ *     The operation type
+ * @return
+ *     New instance of command caller is responsible for destroying
+ */
+WbMacroCustomOperationBase*
+WbMacroCustomOperationManager::createCommand(const WbMacroCustomOperationTypeEnum::Enum operationType)
+{
+    WbMacroCustomOperationBase* operationOut;
+
+    switch (operationType) {
+        case WbMacroCustomOperationTypeEnum::MODEL_ROTATION:
+            operationOut = new WbMacroCustomOperationModelRotation();
+            break;
+        case WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION:
+            operationOut = new WbMacroCustomOperationSurfaceInterpolation();
+            break;
+        case WbMacroCustomOperationTypeEnum::VOLUME_SLICE_INCREMENT:
+            operationOut = new WbMacroCustomOperationVolumeSliceIncrement();
+            break;
+    }
+
+    CaretAssert(operationOut);
+    return operationOut;
 }
 

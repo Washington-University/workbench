@@ -201,7 +201,7 @@ namespace caret {
         
         QDoubleSpinBox* m_commandDelaySpinBox;
         
-        QPlainTextEdit* m_commandToolTipTextEdit;
+        QPlainTextEdit* m_commandDescriptionTextEdit;
         
         std::vector<CommandParameterWidget*> m_parameterWidgets;
         

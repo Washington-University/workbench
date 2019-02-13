@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "CaretObject.h"
+#include "WbMacroCustomOperationTypeEnum.h"
 
 class QString;
 class QWidget;
@@ -41,6 +42,8 @@ namespace caret {
         WbMacroCustomOperationBase(const WbMacroCustomOperationBase&) = delete;
         
         WbMacroCustomOperationBase& operator=(const WbMacroCustomOperationBase&) = delete;
+        
+        WbMacroCustomOperationTypeEnum::Enum getOperationType() const;
         
         /**
          * Execute the macro command
@@ -75,7 +78,7 @@ namespace caret {
         void sleepForSecondsAtEndOfIteration(const float seconds);
         
     protected:
-        WbMacroCustomOperationBase();
+        WbMacroCustomOperationBase(const WbMacroCustomOperationTypeEnum::Enum operationType);
         
         bool validateCorrectNumberOfParameters(const WuQMacroCommand* command);
         
@@ -87,6 +90,8 @@ namespace caret {
         void updateGraphics();
         
         void updateUserInterface();
+        
+        const WbMacroCustomOperationTypeEnum::Enum m_operationType;
         
         QString m_errorMessage;
     };
