@@ -147,9 +147,6 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     
     updateDialogContents();
     
-    QPushButton* closeButton = m_dialogButtonBox->button(QDialogButtonBox::Close);
-    CaretAssert(closeButton);
-
     /*
      * Disable auto default for all push buttons
      */
