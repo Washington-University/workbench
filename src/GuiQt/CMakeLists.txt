@@ -454,9 +454,11 @@ WbMacroCustomDataTypeEnum.h
 WbMacroCustomOperationBase.h
 WbMacroCustomOperationManager.h
 WbMacroCustomOperationModelRotation.h
+WbMacroCustomOperationOverlayCrossFade.h
 WbMacroCustomOperationSurfaceInterpolation.h
 WbMacroCustomOperationTypeEnum.h
 WbMacroCustomOperationVolumeSliceIncrement.h
+WbMacroCustomOperationVolumeToSurfaceCrossFade.h
 WbMacroHelper.h
 WuQCollapsibleWidget.h
 WuQDataEntryDialog.h
@@ -709,9 +711,11 @@ WbMacroCustomDataTypeEnum.cxx
 WbMacroCustomOperationBase.cxx
 WbMacroCustomOperationManager.cxx
 WbMacroCustomOperationModelRotation.cxx
+WbMacroCustomOperationOverlayCrossFade.cxx
 WbMacroCustomOperationSurfaceInterpolation.cxx
 WbMacroCustomOperationTypeEnum.cxx
 WbMacroCustomOperationVolumeSliceIncrement.cxx
+WbMacroCustomOperationVolumeToSurfaceCrossFade.cxx
 WbMacroHelper.cxx
 WuQCollapsibleWidget.cxx
 WuQDataEntryDialog.cxx

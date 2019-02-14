@@ -96,9 +96,12 @@ WbMacroHelper::getMacroGroups()
 {
     std::vector<WuQMacroGroup*> macroGroups;
     
-    CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-    CaretAssert(preferences);
-    macroGroups.push_back(preferences->getMacros());
+    const bool includePreferencesFlag(false);
+    if (includePreferencesFlag) {
+        CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+        CaretAssert(preferences);
+        macroGroups.push_back(preferences->getMacros());
+    }
     
     EventSceneActive activeSceneEvent(EventSceneActive::MODE_GET);
     EventManager::get()->sendEvent(activeSceneEvent.getPointer());

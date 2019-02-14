@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventSurfacesGet.h"
 #include "EventUserInterfaceUpdate.h"
 #include "MovieRecorder.h"
@@ -184,6 +185,15 @@ void
 WbMacroCustomOperationBase::updateUserInterface()
 {
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+
+/**
+ * Update surface coloring
+ */
+void
+WbMacroCustomOperationBase::updateSurfaceColoring()
+{
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
 }
 
 /**

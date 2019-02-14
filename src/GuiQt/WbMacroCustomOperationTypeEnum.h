@@ -37,10 +37,14 @@ public:
     enum Enum {
         /** Rotation of viewed model */
         MODEL_ROTATION,
+        /** CrossFade of overlays */
+        OVERLAY_CROSS_FADE,
         /** Surface Interpolation */
         SURFACE_INTERPOLATION,
         /** Volume slice increment */
-        VOLUME_SLICE_INCREMENT
+        VOLUME_SLICE_INCREMENT,
+        /** Volume to surface corss fade */
+        VOLUME_TO_SURFACE_CROSS_FADE
     };
 
 

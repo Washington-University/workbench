@@ -109,7 +109,11 @@ WbMacroCustomOperationTypeEnum::initialize()
     enumData.push_back(WbMacroCustomOperationTypeEnum(MODEL_ROTATION,
                                                       "MODEL_ROTATION",
                                                       "Model Rotation"));
-
+    
+    enumData.push_back(WbMacroCustomOperationTypeEnum(OVERLAY_CROSS_FADE,
+                                                      "OVERLAY_CROSS_FADE",
+                                                      "Overlay CrossFade"));
+    
     enumData.push_back(WbMacroCustomOperationTypeEnum(SURFACE_INTERPOLATION,
                                                       "SURFACE_INTERPOLATION",
                                                       "Surface Interpolation"));
@@ -117,6 +121,10 @@ WbMacroCustomOperationTypeEnum::initialize()
     enumData.push_back(WbMacroCustomOperationTypeEnum(VOLUME_SLICE_INCREMENT,
                                                       "VOLUME_SLICE_INCREMENT",
                                                       "Volume Slice Increment"));
+    
+    enumData.push_back(WbMacroCustomOperationTypeEnum(VOLUME_TO_SURFACE_CROSS_FADE,
+                                                      "VOLUME_TO_SURFACE_CROSS_FADE",
+                                                      "Volume to Surface Cross Fade"));
 }
 
 /**

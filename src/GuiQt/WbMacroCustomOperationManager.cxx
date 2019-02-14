@@ -33,9 +33,11 @@
 #include "Surface.h"
 #include "WbMacroCustomDataTypeEnum.h"
 #include "WbMacroCustomOperationModelRotation.h"
+#include "WbMacroCustomOperationOverlayCrossFade.h"
 #include "WbMacroCustomOperationSurfaceInterpolation.h"
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WbMacroCustomOperationVolumeSliceIncrement.h"
+#include "WbMacroCustomOperationVolumeToSurfaceCrossFade.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
 #include "WuQMessageBox.h"
@@ -326,11 +328,17 @@ WbMacroCustomOperationManager::createCommand(const WbMacroCustomOperationTypeEnu
         case WbMacroCustomOperationTypeEnum::MODEL_ROTATION:
             operationOut = new WbMacroCustomOperationModelRotation();
             break;
+        case WbMacroCustomOperationTypeEnum::OVERLAY_CROSS_FADE:
+            operationOut = new WbMacroCustomOperationOverlayCrossFade();
+            break;
         case WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION:
             operationOut = new WbMacroCustomOperationSurfaceInterpolation();
             break;
         case WbMacroCustomOperationTypeEnum::VOLUME_SLICE_INCREMENT:
             operationOut = new WbMacroCustomOperationVolumeSliceIncrement();
+            break;
+        case WbMacroCustomOperationTypeEnum::VOLUME_TO_SURFACE_CROSS_FADE:
+            operationOut = new WbMacroCustomOperationVolumeToSurfaceCrossFade();
             break;
     }
 

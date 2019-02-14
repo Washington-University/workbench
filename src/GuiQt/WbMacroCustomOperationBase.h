@@ -89,6 +89,8 @@ namespace caret {
         
         void updateGraphics();
         
+        void updateSurfaceColoring();
+        
         void updateUserInterface();
         
         const WbMacroCustomOperationTypeEnum::Enum m_operationType;
