@@ -68,10 +68,10 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
-    static void getDimensions(const Enum enumValue,
-                              int32_t& widthOut,
-                              int32_t& heightOut);
-    
+    static void getWidthAndHeight(const Enum enumValue,
+                                  int32_t& widthOut,
+                                  int32_t& heightOut);
+
 private:
     MovieRecorderVideoResolutionTypeEnum(const Enum enumValue,
                  const AString& name,

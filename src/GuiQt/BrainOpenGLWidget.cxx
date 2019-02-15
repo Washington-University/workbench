@@ -1733,8 +1733,8 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                                                          true);
                     int imageWidth(0);
                     int imageHeight(0);
-                    movieRecorder->getVideoDimensions(imageWidth,
-                                                      imageHeight);
+                    movieRecorder->getVideoWidthAndHeight(imageWidth,
+                                                          imageHeight);
                     
                     QImage image;
                     bool imageValid(false);

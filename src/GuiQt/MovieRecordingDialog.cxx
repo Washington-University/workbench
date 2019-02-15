@@ -73,6 +73,8 @@ MovieRecordingDialog::MovieRecordingDialog(QWidget* parent)
 
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE);
+    
+    setApplyButtonText("");
     disableAutoDefaultForAllPushButtons();
 }
 
@@ -125,8 +127,8 @@ MovieRecordingDialog::updateDialog()
     const MovieRecorderVideoFormatTypeEnum::Enum formatType = movieRecorder->getVideoFormatType();
     m_movieRecorderVideoFormatTypeEnumComboBox->setSelectedItem<MovieRecorderVideoFormatTypeEnum,MovieRecorderVideoFormatTypeEnum::Enum>(formatType);
 
-    const MovieRecorderVideoResolutionTypeEnum::Enum dimType = movieRecorder->getVideoDimensionsType();
-    m_movieRecorderVideoResolutionTypeEnumComboBox->setSelectedItem<MovieRecorderVideoResolutionTypeEnum,MovieRecorderVideoResolutionTypeEnum::Enum>(dimType);
+    const MovieRecorderVideoResolutionTypeEnum::Enum resType = movieRecorder->getVideoResolutionType();
+    m_movieRecorderVideoResolutionTypeEnumComboBox->setSelectedItem<MovieRecorderVideoResolutionTypeEnum,MovieRecorderVideoResolutionTypeEnum::Enum>(resType);
 
     const MovieRecorderCaptureRegionTypeEnum::Enum captureType = movieRecorder->getCaptureRegionType();
     m_movieRecorderCaptureRegionTypeComboBox->setSelectedItem<MovieRecorderCaptureRegionTypeEnum, MovieRecorderCaptureRegionTypeEnum::Enum>(captureType);
@@ -170,8 +172,8 @@ MovieRecordingDialog::updateCustomWidthHeightSpinBoxes()
 
     int32_t customWidth(0);
     int32_t customHeight(0);
-    movieRecorder->getCustomDimensions(customWidth,
-                                       customHeight);
+    movieRecorder->getCustomWidthAndHeight(customWidth,
+                                           customHeight);
     QSignalBlocker widthBlocker(m_customWidthSpinBox);
     m_customWidthSpinBox->setValue(customWidth);
     QSignalBlocker heightBlocker(m_customHeightSpinBox);
@@ -179,7 +181,7 @@ MovieRecordingDialog::updateCustomWidthHeightSpinBoxes()
     QSignalBlocker frameRateBlocker(m_frameRateSpinBox);
     m_frameRateSpinBox->setValue(movieRecorder->getFramesRate());
     
-    const bool customSpinBoxesEnabled(movieRecorder->getVideoDimensionsType() == MovieRecorderVideoResolutionTypeEnum::CUSTOM);
+    const bool customSpinBoxesEnabled(movieRecorder->getVideoResolutionType() == MovieRecorderVideoResolutionTypeEnum::CUSTOM);
     m_customWidthSpinBox->setEnabled(customSpinBoxesEnabled);
     m_customHeightSpinBox->setEnabled(customSpinBoxesEnabled);
 }
@@ -227,13 +229,13 @@ MovieRecordingDialog::windowIndexSelected(const int32_t windowIndex)
 }
 
 /**
- * Called when video dimensions type is changed
+ * Called when video resolution type is changed
  */
 void
 MovieRecordingDialog::movieRecorderVideoResolutionTypeEnumComboBoxItemActivated()
 {
     const MovieRecorderVideoResolutionTypeEnum::Enum dimType = m_movieRecorderVideoResolutionTypeEnumComboBox->getSelectedItem<MovieRecorderVideoResolutionTypeEnum,MovieRecorderVideoResolutionTypeEnum::Enum>();
-    SessionManager::get()->getMovieRecorder()->setVideoDimensionsType(dimType);
+    SessionManager::get()->getMovieRecorder()->setVideoResolutionType(dimType);
     updateCustomWidthHeightSpinBoxes();
 }
 
@@ -280,8 +282,8 @@ MovieRecordingDialog::setBrowserWindowIndex(const int32_t browserWindowIndex)
 void
 MovieRecordingDialog::customWidthSpinBoxValueChanged(int width)
 {
-    SessionManager::get()->getMovieRecorder()->setCustomDimensions(width,
-                                                                   m_customHeightSpinBox->value());
+    SessionManager::get()->getMovieRecorder()->setCustomWidthAndHeight(width,
+                                                                       m_customHeightSpinBox->value());
 }
 
 /**
@@ -293,8 +295,8 @@ MovieRecordingDialog::customWidthSpinBoxValueChanged(int width)
 void
 MovieRecordingDialog::customHeightSpinBoxValueChanged(int height)
 {
-    SessionManager::get()->getMovieRecorder()->setCustomDimensions(m_customWidthSpinBox->value(),
-                                                                   height);
+    SessionManager::get()->getMovieRecorder()->setCustomWidthAndHeight(m_customWidthSpinBox->value(),
+                                                                       height);
 }
 
 /**
@@ -581,14 +583,14 @@ MovieRecordingDialog::createSettingsWidget()
     QObject::connect(m_movieRecorderVideoFormatTypeEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(movieRecorderVideoFormatTypeEnumComboBoxItemActivated()));
     
-    QLabel* dimensionsLabel = new QLabel("Dimensions:");
+    QLabel* resolutionLabel = new QLabel("Resolution:");
     m_movieRecorderVideoResolutionTypeEnumComboBox = new EnumComboBoxTemplate(this);
     m_movieRecorderVideoResolutionTypeEnumComboBox->getWidget()->setToolTip("Choose width and height of movie");
     m_movieRecorderVideoResolutionTypeEnumComboBox->setup<MovieRecorderVideoResolutionTypeEnum,MovieRecorderVideoResolutionTypeEnum::Enum>();
     QObject::connect(m_movieRecorderVideoResolutionTypeEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(movieRecorderVideoResolutionTypeEnumComboBoxItemActivated()));
     
-    QLabel* customLabel = new QLabel("Custom Dimensions:");
+    QLabel* customLabel = new QLabel("Custom Resolution:");
     m_customWidthSpinBox = new QSpinBox();
     m_customWidthSpinBox->setMinimum(1);
     m_customWidthSpinBox->setMaximum(500000);
@@ -627,7 +629,7 @@ MovieRecordingDialog::createSettingsWidget()
     gridLayout->addWidget(m_movieRecorderVideoFormatTypeEnumComboBox->getWidget(),
                           row, 1, 1, 2, Qt::AlignLeft);
     row++;
-    gridLayout->addWidget(dimensionsLabel, row, 0);
+    gridLayout->addWidget(resolutionLabel, row, 0);
     gridLayout->addWidget(m_movieRecorderVideoResolutionTypeEnumComboBox->getWidget(),
                           row, 1, 1, 2, Qt::AlignLeft);
     row++;

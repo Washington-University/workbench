@@ -50,6 +50,8 @@ namespace caret {
         
         void macroRecordSelected();
         
+        void macroStopSelected();
+        
         void macroDialogSelected();
         
         void macroPrintAllSelected();
@@ -64,6 +66,8 @@ namespace caret {
         QAction* m_macroDialogAction;
         
         QAction* m_recordMacroAction;
+        
+        QAction* m_stopMacroAction;
     };
     
 #ifdef __WU_Q_MACRO_MENU_DECLARE__

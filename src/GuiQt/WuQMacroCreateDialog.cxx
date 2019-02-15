@@ -91,19 +91,23 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     }
     
     QGridLayout* gridLayout = new QGridLayout();
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 0);
+    gridLayout->setColumnStretch(2, 0);
+    gridLayout->setColumnStretch(3, 100);
     int row = 0;
     gridLayout->addWidget(macroGroupLabel, row, 0);
-    gridLayout->addWidget(m_macroGroupComboBox, row, 1, 1, 2);
+    gridLayout->addWidget(m_macroGroupComboBox, row, 1, 1, 3);
     row++;
     gridLayout->addWidget(nameLabel, row, 0);
-    gridLayout->addWidget(m_macroNameLineEdit, row, 1, 1, 2);
+    gridLayout->addWidget(m_macroNameLineEdit, row, 1, 1, 3);
     row++;
     gridLayout->addWidget(shortCutKeyLabel, row, 0);
     gridLayout->addWidget(shortCutKeyMaskLabel, row, 1);
-    gridLayout->addWidget(m_macroShortCutKeyComboBox->getWidget(), row, 2, Qt::AlignLeft);
+    gridLayout->addWidget(m_macroShortCutKeyComboBox->getWidget(), row, 2); //, Qt::AlignLeft);
     row++;
     gridLayout->addWidget(descriptionLabel, row, 0);
-    gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1, 1, 2);
+    gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1, 1, 3);
     row++;
     
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok
@@ -114,8 +118,10 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
                      this, &WuQMacroCreateDialog::reject);
     
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
-    dialogLayout->addLayout(gridLayout);
+    dialogLayout->addLayout(gridLayout, 100);
     dialogLayout->addWidget(m_dialogButtonBox);
+    
+    setFixedHeight(sizeHint().height());
 }
 
 /**

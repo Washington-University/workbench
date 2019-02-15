@@ -210,28 +210,28 @@ MovieRecorder::setRecordingWindowIndex(const int32_t windowIndex)
 }
 
 /**
- * @return Video dimensions type
+ * @return Video resolution type
  */
 MovieRecorderVideoResolutionTypeEnum::Enum
-MovieRecorder::getVideoDimensionsType() const
+MovieRecorder::getVideoResolutionType() const
 {
-    return m_dimensionsType;
+    return m_resolutionType;
 }
 
 /**
- * Set the video dimensions type
+ * Set the video resolution type
  *
- * @param dimensionsType
- *     New dimensions type
+ * @param resolutionType
+ *     New resolution type
  */
 void
-MovieRecorder::setVideoDimensionsType(const MovieRecorderVideoResolutionTypeEnum::Enum dimensionsType)
+MovieRecorder::setVideoResolutionType(const MovieRecorderVideoResolutionTypeEnum::Enum resolutionType)
 {
-    m_dimensionsType = dimensionsType;
+    m_resolutionType = resolutionType;
 }
 
 /**
- * Get the video dimensions
+ * Get the video width and height
  *
  * @param widthOut
  *     Output width
@@ -239,26 +239,26 @@ MovieRecorder::setVideoDimensionsType(const MovieRecorderVideoResolutionTypeEnum
  *     Output height
  */
 void
-MovieRecorder::getVideoDimensions(int32_t& widthOut,
-                                  int32_t& heightOut) const
+MovieRecorder::getVideoWidthAndHeight(int32_t& widthOut,
+                                      int32_t& heightOut) const
 {
     widthOut  = 100;
     heightOut = 100;
     
-    const MovieRecorderVideoResolutionTypeEnum::Enum dimType = getVideoDimensionsType();
+    const MovieRecorderVideoResolutionTypeEnum::Enum dimType = getVideoResolutionType();
     if (dimType == MovieRecorderVideoResolutionTypeEnum::CUSTOM) {
-        getCustomDimensions(widthOut,
-                            heightOut);
+        getCustomWidthAndHeight(widthOut,
+                                heightOut);
     }
     else {
-        MovieRecorderVideoResolutionTypeEnum::getDimensions(dimType,
-                                                            widthOut,
-                                                            heightOut);
+        MovieRecorderVideoResolutionTypeEnum::getWidthAndHeight(dimType,
+                                                                widthOut,
+                                                                heightOut);
     }
 }
 
 /**
- * Get the custom dimensions
+ * Get the custom width and height
  *
  * @param widthOut
  *     Output width
@@ -266,15 +266,15 @@ MovieRecorder::getVideoDimensions(int32_t& widthOut,
  *     Output height
  */
 void
-MovieRecorder::getCustomDimensions(int32_t& widthOut,
-                         int32_t& heightOut) const
+MovieRecorder::getCustomWidthAndHeight(int32_t& widthOut,
+                                       int32_t& heightOut) const
 {
     widthOut  = m_customWidth;
     heightOut = m_customHeight;
 }
 
 /**
- * Set the custom dimensions
+ * Set the custom width and height
  *
  * @param width
  *     New width
@@ -282,8 +282,8 @@ MovieRecorder::getCustomDimensions(int32_t& widthOut,
  *     New height
  */
 void
-MovieRecorder::setCustomDimensions(const int32_t width,
-                         const int32_t height)
+MovieRecorder::setCustomWidthAndHeight(const int32_t width,
+                                       const int32_t height)
 {
     m_customWidth  = width;
     m_customHeight = height;

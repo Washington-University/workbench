@@ -1292,10 +1292,24 @@ WuQMacroDialog::insertMenuNewMacroSelected()
                                                     &okFlag);
     if (okFlag) {
         if ( ! macroName.isEmpty()) {
+            const WuQMacro* selectedMacro = getSelectedMacro();
             WuQMacro* macro = new WuQMacro();
             macro->setName(macroName);
-            macroGroup->addMacro(macro);
+            if (selectedMacro != NULL) {
+                const int32_t index = macroGroup->getIndexOfMacro(selectedMacro);
+                macroGroup->insertMacroAtIndex(index + 1,
+                                               macro);
+            }
+            else {
+                macroGroup->addMacro(macro);
+            }
             updateDialogContents();
+            
+            QModelIndex selectedIndex = macroGroup->indexFromItem(macro);
+            if (selectedIndex.isValid()) {
+                m_treeView->setCurrentIndex(selectedIndex);
+                updateDialogContents();
+            }
         }
     }
 }

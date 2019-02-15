@@ -60,18 +60,18 @@ namespace caret {
         
         void setRecordingWindowIndex(const int32_t windowIndex);
         
-        MovieRecorderVideoResolutionTypeEnum::Enum getVideoDimensionsType() const;
+        MovieRecorderVideoResolutionTypeEnum::Enum getVideoResolutionType() const;
         
-        void setVideoDimensionsType(const MovieRecorderVideoResolutionTypeEnum::Enum dimensionsType);
+        void setVideoResolutionType(const MovieRecorderVideoResolutionTypeEnum::Enum resolutionType);
 
-        void getVideoDimensions(int32_t& widthOut,
-                                int32_t& heightOut) const;
+        void getVideoWidthAndHeight(int32_t& widthOut,
+                                    int32_t& heightOut) const;
         
-        void getCustomDimensions(int32_t& widthOut,
-                                 int32_t& heightOut) const;
+        void getCustomWidthAndHeight(int32_t& widthOut,
+                                     int32_t& heightOut) const;
         
-        void setCustomDimensions(const int32_t width,
-                                 const int32_t height);
+        void setCustomWidthAndHeight(const int32_t width,
+                                     const int32_t height);
         
         MovieRecorderVideoFormatTypeEnum::Enum getVideoFormatType() const;
         
@@ -125,7 +125,7 @@ namespace caret {
 
         MovieRecorderModeEnum::Enum m_recordingMode = MovieRecorderModeEnum::MANUAL;
         
-        MovieRecorderVideoResolutionTypeEnum::Enum m_dimensionsType = MovieRecorderVideoResolutionTypeEnum::SD_640_480;
+        MovieRecorderVideoResolutionTypeEnum::Enum m_resolutionType = MovieRecorderVideoResolutionTypeEnum::SD_640_480;
         
         MovieRecorderVideoFormatTypeEnum::Enum m_formatType = MovieRecorderVideoFormatTypeEnum::MPEG_4;
         

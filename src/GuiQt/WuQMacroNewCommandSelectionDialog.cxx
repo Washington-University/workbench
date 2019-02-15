@@ -92,6 +92,8 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
     m_macroDescriptionTextEdit->setFixedHeight(100);
     
     QGridLayout* gridLayout = new QGridLayout();
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 100);
     int row = 0;
     gridLayout->addWidget(commandTypeLabel, row, 0);
     gridLayout->addWidget(m_commandTypeComboBox->getWidget(), row, 1, 1, 2);

@@ -61,6 +61,10 @@ m_windowParent(windowParent)
     QObject::connect(m_recordMacroAction, &QAction::triggered,
                      this, &WuQMacroMenu::macroRecordSelected);
     
+    m_stopMacroAction = addAction("Stop Recording Macro");
+    QObject::connect(m_stopMacroAction, &QAction::triggered,
+                     this, &WuQMacroMenu::macroStopSelected);
+
     {
         QMenu* developmentMenu = new QMenu("Development");
         QAction* printAction = developmentMenu->addAction("Print Supported Widgets");
@@ -96,30 +100,27 @@ WuQMacroMenu::macroMenuAboutToShow()
     
     bool editValidFlag(false);
     bool recordValidFlag(false);
-    QString recordText;
+    bool stopValidFlag(false);
     
     switch (macroManager->getMode()) {
         case WuQMacroModeEnum::OFF:
             editValidFlag = true;
-            recordText = "Record Macro...";
             recordValidFlag = true;
             break;
         case WuQMacroModeEnum::RECORDING:
-            recordText = "Stop Recording";
-            recordValidFlag = true;
+            stopValidFlag = true;
             break;
         case WuQMacroModeEnum::RUNNING:
-            recordText = "Record Macro...";
             break;
     }
     
     m_macroDialogAction->setEnabled(editValidFlag);
     m_recordMacroAction->setEnabled(recordValidFlag);
-    m_recordMacroAction->setText(recordText);
+    m_stopMacroAction->setEnabled(stopValidFlag);
 }
 
 /**
- * Called to start/stop macro recording.
+ * Called to start macro recording.
  */
 void
 WuQMacroMenu::macroRecordSelected()
@@ -130,6 +131,28 @@ WuQMacroMenu::macroRecordSelected()
     switch (macroManager->getMode()) {
         case WuQMacroModeEnum::OFF:
             macroManager->startRecordingNewMacro(m_windowParent);
+            break;
+        case WuQMacroModeEnum::RECORDING:
+            CaretAssert(0);
+            break;
+        case WuQMacroModeEnum::RUNNING:
+            CaretAssert(0);
+            break;
+    }
+}
+
+/**
+ * Called to stop macro recording.
+ */
+void
+WuQMacroMenu::macroStopSelected()
+{
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    CaretAssert(macroManager);
+    
+    switch (macroManager->getMode()) {
+        case WuQMacroModeEnum::OFF:
+            CaretAssert(0);
             break;
         case WuQMacroModeEnum::RECORDING:
             macroManager->stopRecordingNewMacro();

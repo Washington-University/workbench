@@ -384,7 +384,7 @@ MovieRecorderVideoResolutionTypeEnum::getAllGuiNames(std::vector<AString>& allGu
 }
 
 /**
- * Get the dimensions for given enumerated value.  Output will be zeros
+ * Get the width and height for given enumerated value.  Output will be zeros
  * for custom.
  *
  * @param enumValue
@@ -395,9 +395,9 @@ MovieRecorderVideoResolutionTypeEnum::getAllGuiNames(std::vector<AString>& allGu
  *     Output containing height
  */
 void
-MovieRecorderVideoResolutionTypeEnum::getDimensions(const Enum enumValue,
-                                                    int32_t& widthOut,
-                                                    int32_t& heightOut)
+MovieRecorderVideoResolutionTypeEnum::getWidthAndHeight(const Enum enumValue,
+                                                        int32_t& widthOut,
+                                                        int32_t& heightOut)
 {
     switch (enumValue) {
         case CUSTOM:
