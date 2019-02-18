@@ -35,6 +35,7 @@ class QListWidgetItem;
 
 namespace caret {
 
+    class WuQMacroCommand;
     class WuQMacroCommandParameter;
     class WuQMacroManager;
 
@@ -55,6 +56,10 @@ namespace caret {
 
         WuQMacroSignalWatcher& operator=(const WuQMacroSignalWatcher&) = delete;
 
+        WuQMacroCommand* createMacroCommandWithDefaultParameters(QString& errorMessageOut) const;
+        
+        QString getObjectName() const;
+        
         QString toString() const;
         
         QString getToolTip() const;
@@ -115,6 +120,8 @@ namespace caret {
         
         void createAndSendMacroCommand(std::vector<WuQMacroCommandParameter*>& parameters);
         
+        std::vector<WuQMacroCommandParameter*> getCopyOfObjectParameters() const;
+        
         QObject* m_object;
         
         const WuQMacroWidgetTypeEnum::Enum m_objectType;
@@ -125,6 +132,8 @@ namespace caret {
         
         QString m_toolTipText;
         
+        std::vector<WuQMacroCommandParameter*> m_objectParameters;
+
         // ADD_NEW_MEMBERS_HERE
 
     };

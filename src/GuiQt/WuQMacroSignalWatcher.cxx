@@ -97,6 +97,9 @@ m_objectName(object->objectName())
             QObject::connect(action, &QAction::triggered,
                              this, &WuQMacroSignalWatcher::actionTriggered);
             m_toolTipText = action->toolTip();
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::NONE,
+                                                          "Click/Select",
+                                                          ""));
         }
             break;
         case WuQMacroWidgetTypeEnum::ACTION_CHECKABLE:
@@ -106,6 +109,9 @@ m_objectName(object->objectName())
             QObject::connect(action, &QAction::triggered,
                              this, &WuQMacroSignalWatcher::actionCheckableTriggered);
             m_toolTipText = action->toolTip();
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::BOOLEAN,
+                                                                      "On/Off",
+                                                                      true));
         }
             break;
         case WuQMacroWidgetTypeEnum::ACTION_GROUP:
@@ -114,6 +120,12 @@ m_objectName(object->objectName())
             CaretAssert(actionGroup);
             QObject::connect(actionGroup, &QActionGroup::triggered,
                              this, &WuQMacroSignalWatcher::actionGroupTriggered);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
+                                                                      "Select name",
+                                                                      ""));
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
+                                                                      "Select index",
+                                                                      1));
         }
             break;
         case WuQMacroWidgetTypeEnum::BUTTON_GROUP:
@@ -122,6 +134,12 @@ m_objectName(object->objectName())
             CaretAssert(buttonGroup);
             QObject::connect(buttonGroup, static_cast<void (QButtonGroup::*)(QAbstractButton*)>(&QButtonGroup::buttonClicked),
                              this, &WuQMacroSignalWatcher::buttonGroupButtonClicked);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
+                                                          "Select button with name",
+                                                          ""));
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
+                                                          "Select button at index",
+                                                          1));
         }
             break;
         case WuQMacroWidgetTypeEnum::CHECK_BOX:
@@ -130,6 +148,9 @@ m_objectName(object->objectName())
             CaretAssert(checkBox);
             QObject::connect(checkBox, &QCheckBox::clicked,
                              this, &WuQMacroSignalWatcher::checkBoxClicked);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::BOOLEAN,
+                                                                      "On/Off",
+                                                                      true));
         }
             break;
         case WuQMacroWidgetTypeEnum::COMBO_BOX:
@@ -138,6 +159,12 @@ m_objectName(object->objectName())
             CaretAssert(comboBox);
             QObject::connect(comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
                              this, &WuQMacroSignalWatcher::comboBoxActivated);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
+                                                          "Select item with name",
+                                                          ""));
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
+                                                          "Select item at index",
+                                                          1));
         }
             break;
         case WuQMacroWidgetTypeEnum::DOUBLE_SPIN_BOX:
@@ -146,6 +173,9 @@ m_objectName(object->objectName())
             CaretAssert(spinBox);
             QObject::connect(spinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                              this, &WuQMacroSignalWatcher::doubleSpinBoxValueChanged);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::FLOAT,
+                                                          "New value",
+                                                          spinBox->minimum()));
         }
             break;
         case WuQMacroWidgetTypeEnum::INVALID:
@@ -157,6 +187,9 @@ m_objectName(object->objectName())
             CaretAssert(lineEdit);
             QObject::connect(lineEdit, &QLineEdit::textEdited,
                              this, &WuQMacroSignalWatcher::lineEditTextEdited);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
+                                                          "New text",
+                                                          ""));
         }
             break;
         case WuQMacroWidgetTypeEnum::LIST_WIDGET:
@@ -165,6 +198,12 @@ m_objectName(object->objectName())
             CaretAssert(listWidget);
             QObject::connect(listWidget, &QListWidget::itemActivated,
                              this, &WuQMacroSignalWatcher::listWidgetItemActivated);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
+                                                          "Select item with name",
+                                                          ""));
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
+                                                          "Select item at index",
+                                                          1));
         }
             break;
         case WuQMacroWidgetTypeEnum::MENU:
@@ -173,6 +212,12 @@ m_objectName(object->objectName())
             CaretAssert(menu);
             QObject::connect(menu, &QMenu::triggered,
                              this, &WuQMacroSignalWatcher::menuTriggered);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
+                                                          "Select item with name",
+                                                          ""));
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
+                                                          "Select item at index",
+                                                          1));
         }
             break;
         case WuQMacroWidgetTypeEnum::PUSH_BUTTON:
@@ -181,6 +226,9 @@ m_objectName(object->objectName())
             CaretAssert(pushButton);
             QObject::connect(pushButton, &QPushButton::clicked,
                              this, &WuQMacroSignalWatcher::pushButtonClicked);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::NONE,
+                                                          "Click button",
+                                                          ""));
         }
             break;
         case WuQMacroWidgetTypeEnum::PUSH_BUTTON_CHECKABLE:
@@ -189,6 +237,9 @@ m_objectName(object->objectName())
             CaretAssert(pushButton);
             QObject::connect(pushButton, &QPushButton::clicked,
                              this, &WuQMacroSignalWatcher::pushButtonClicked);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::BOOLEAN,
+                                                          "On/Off",
+                                                          true));
         }
             break;
         case WuQMacroWidgetTypeEnum::RADIO_BUTTON:
@@ -197,6 +248,9 @@ m_objectName(object->objectName())
             CaretAssert(radioButton);
             QObject::connect(radioButton, &QRadioButton::clicked,
                              this, &WuQMacroSignalWatcher::radioButtonClicked);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::NONE, /* type=NONE - RADIO BUTTON ALWAYS TRUE !!! */
+                                                          "Select button",
+                                                          true));
         }
             break;
         case WuQMacroWidgetTypeEnum::SLIDER:
@@ -205,6 +259,10 @@ m_objectName(object->objectName())
             CaretAssert(slider);
             QObject::connect(slider, &QSlider::valueChanged,
                              this, &WuQMacroSignalWatcher::sliderValueChanged);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
+                                                          "Move slider to",
+                                                          slider->minimum()));
+            
         }
             break;
         case WuQMacroWidgetTypeEnum::SPIN_BOX:
@@ -213,6 +271,9 @@ m_objectName(object->objectName())
             CaretAssert(spinBox);
             QObject::connect(spinBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),
                              this, &WuQMacroSignalWatcher::spinBoxValueChanged);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
+                                                          "Enter value",
+                                                          spinBox->minimum()));
         }
             break;
         case WuQMacroWidgetTypeEnum::TAB_BAR:
@@ -221,6 +282,12 @@ m_objectName(object->objectName())
             CaretAssert(tabBar);
             QObject::connect(tabBar, &QTabBar::tabBarClicked,
                              this, &WuQMacroSignalWatcher::tabBarCurrentChanged);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
+                                                          "Select tab with name",
+                                                          ""));
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
+                                                          "Select tab at index",
+                                                          0));
         }
             break;
         case WuQMacroWidgetTypeEnum::TAB_WIDGET:
@@ -229,6 +296,12 @@ m_objectName(object->objectName())
             CaretAssert(tabWidget);
             QObject::connect(tabWidget, &QTabWidget::tabBarClicked,
                              this, &WuQMacroSignalWatcher::tabWidgetCurrentChanged);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
+                                                                      "Select tab with name",
+                                                                      ""));
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
+                                                                      "Select tab at index",
+                                                                      0));
         }
             break;
         case WuQMacroWidgetTypeEnum::TOOL_BUTTON:
@@ -237,6 +310,9 @@ m_objectName(object->objectName())
             CaretAssert(toolButton);
             QObject::connect(toolButton, &QCheckBox::clicked,
                              this, &WuQMacroSignalWatcher::toolButtonClicked);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::NONE,
+                                                          "Select button",
+                                                          true));
         }
             break;
         case WuQMacroWidgetTypeEnum::TOOL_BUTTON_CHECKABLE:
@@ -245,6 +321,9 @@ m_objectName(object->objectName())
             CaretAssert(toolButton);
             QObject::connect(toolButton, &QCheckBox::clicked,
                              this, &WuQMacroSignalWatcher::toolButtonClicked);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::BOOLEAN,
+                                                          "On/Off",
+                                                          true));
         }
             break;
     }
@@ -267,6 +346,10 @@ m_objectName(object->objectName())
  */
 WuQMacroSignalWatcher::~WuQMacroSignalWatcher()
 {
+    for (auto p : m_objectParameters) {
+        delete p;
+    }
+    m_objectParameters.clear();
 }
 
 /**
@@ -498,6 +581,15 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
 }
 
 /**
+ * @return Name of the object
+ */
+QString
+WuQMacroSignalWatcher::getObjectName() const
+{
+    return m_objectName;
+}
+
+/**
  * @return Tooltip for this signal watcher
  */
 QString
@@ -506,6 +598,36 @@ WuQMacroSignalWatcher::getToolTip() const
     return m_toolTipText;
 }
 
+/**
+ * Create a macro command for this widget watcher with default
+ * (essentially unset) parameters that need to be set by user
+ *
+ * @param errorMessageOut
+ *     Contains error information if failure.
+ * @return
+ *     Pointer to new command or NULL if failure.  Caller
+ *     is responsible for destroying returned command
+ */
+WuQMacroCommand*
+WuQMacroSignalWatcher::createMacroCommandWithDefaultParameters(QString& errorMessageOut) const
+{
+    const int32_t versionNumber(1);
+    WuQMacroCommand* mc = WuQMacroCommand::newInstanceWidgetCommand(m_objectType,
+                                                                    versionNumber,
+                                                                    m_objectName,
+                                                                    m_descriptiveName,
+                                                                    m_toolTipText,
+                                                                    1.0,
+                                                                    errorMessageOut);
+    if (mc != NULL) {
+        std::vector<WuQMacroCommandParameter*> parameters = getCopyOfObjectParameters();
+        for (auto p : parameters) {
+            mc->addParameter(p);
+        }
+    }
+    
+    return mc;
+}
 
 /**
  * If recording mode is enabled, create and send a macro command
@@ -577,15 +699,11 @@ WuQMacroSignalWatcher::actionGroupTriggered(QAction* action)
                              ? action->text()
                              : "");
     
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
-                                                  "Select name",
-                                                  actionText));
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
-                                                  "Select index",
-                                                  actionIndex));
-
-    createAndSendMacroCommand(params);
+        std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+        CaretAssert(params.size() >= 2);
+        params[0]->setValue(actionText);
+        params[1]->setValue(actionIndex);
+        createAndSendMacroCommand(params);
 }
 
 
@@ -598,11 +716,9 @@ WuQMacroSignalWatcher::actionGroupTriggered(QAction* action)
 void
 WuQMacroSignalWatcher::actionTriggered(bool /*checked*/)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::NONE,
-                                                  "Click/Select",
-                                                  ""));
-
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue("");
     createAndSendMacroCommand(params);
 }
 
@@ -615,11 +731,9 @@ WuQMacroSignalWatcher::actionTriggered(bool /*checked*/)
 void
 WuQMacroSignalWatcher::actionCheckableTriggered(bool checked)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::BOOLEAN,
-                                                  "On/Off",
-                                                  checked));
-    
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue(checked);
     createAndSendMacroCommand(params);
 }
 
@@ -647,14 +761,11 @@ WuQMacroSignalWatcher::buttonGroupButtonClicked(QAbstractButton* button)
     const QString buttonText((button != NULL)
                        ? button->text()
                        : "");
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
-                                                  "Select button with name",
-                                                  buttonText));
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
-                                                  "Select button at index",
-                                                  buttonIndex));
-
+    
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 2);
+    params[0]->setValue(buttonText);
+    params[1]->setValue(buttonIndex);
     createAndSendMacroCommand(params);
 }
 
@@ -668,11 +779,9 @@ WuQMacroSignalWatcher::buttonGroupButtonClicked(QAbstractButton* button)
 void
 WuQMacroSignalWatcher::checkBoxClicked(bool checked)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::BOOLEAN,
-                                                  "On/Off",
-                                                  checked));
-
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue(checked);
     createAndSendMacroCommand(params);
 }
 
@@ -694,15 +803,12 @@ WuQMacroSignalWatcher::comboBoxActivated(int index)
         text = comboBox->itemText(index);
     }
     
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
-                                                  "Select item with name",
-                                                  text));
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
-                                                  "Select item at index",
-                                                  index));
-
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 2);
+    params[0]->setValue(text);
+    params[1]->setValue(index);
     createAndSendMacroCommand(params);
+
 }
 
 /**
@@ -714,11 +820,9 @@ WuQMacroSignalWatcher::comboBoxActivated(int index)
 void
 WuQMacroSignalWatcher::doubleSpinBoxValueChanged(double value)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::FLOAT,
-                                                  "New value",
-                                                  value));
-
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue(value);
     createAndSendMacroCommand(params);
 }
 
@@ -731,11 +835,9 @@ WuQMacroSignalWatcher::doubleSpinBoxValueChanged(double value)
 void
 WuQMacroSignalWatcher::lineEditTextEdited(const QString& text)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
-                                                  "New text",
-                                                  text));
-
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue(text);
     createAndSendMacroCommand(params);
 }
 
@@ -756,14 +858,11 @@ WuQMacroSignalWatcher::listWidgetItemActivated(QListWidgetItem* item)
     const QString text((item != NULL)
                        ? item->text()
                        : "");
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
-                                                  "Select item with name",
-                                                  text));
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
-                                                  "Select item at index",
-                                                  rowIndex));
-
+    
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 2);
+    params[0]->setValue(text);
+    params[1]->setValue(rowIndex);
     createAndSendMacroCommand(params);
 }
 
@@ -791,14 +890,10 @@ WuQMacroSignalWatcher::menuTriggered(QAction* action)
     const QString text((action != NULL)
                        ? action->text()
                        : "");
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
-                                                  "Select item with name",
-                                                  text));
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
-                                                  "Select item at index",
-                                                  actionIndex));
-    
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 2);
+    params[0]->setValue(text);
+    params[1]->setValue(actionIndex);
     createAndSendMacroCommand(params);
 }
 
@@ -811,11 +906,9 @@ WuQMacroSignalWatcher::menuTriggered(QAction* action)
 void
 WuQMacroSignalWatcher::pushButtonClicked(bool /*checked*/)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::NONE,
-                                                  "Click button",
-                                                  ""));
-
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue("");
     createAndSendMacroCommand(params);
 }
 
@@ -828,11 +921,9 @@ WuQMacroSignalWatcher::pushButtonClicked(bool /*checked*/)
 void
 WuQMacroSignalWatcher::pushButtonCheckableClicked(bool checked)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::NONE,
-                                                  "On/Off",
-                                                  checked));
-    
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue(checked);
     createAndSendMacroCommand(params);
 }
 
@@ -844,13 +935,11 @@ WuQMacroSignalWatcher::pushButtonCheckableClicked(bool checked)
  *     New checked status
  */
 void
-WuQMacroSignalWatcher::radioButtonClicked(bool /*checked*/)
+WuQMacroSignalWatcher::radioButtonClicked(bool checked)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::NONE,
-                                                  "Select button",
-                                                  ""));
-    
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue(checked);
     createAndSendMacroCommand(params);
 }
 
@@ -863,12 +952,9 @@ WuQMacroSignalWatcher::radioButtonClicked(bool /*checked*/)
 void
 WuQMacroSignalWatcher::sliderValueChanged(int value)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
-                                                  "Move slider to",
-                                                  value));
-    
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue(value);
     createAndSendMacroCommand(params);
 }
 
@@ -881,12 +967,9 @@ WuQMacroSignalWatcher::sliderValueChanged(int value)
 void
 WuQMacroSignalWatcher::spinBoxValueChanged(int value)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
-                                                  "Enter value",
-                                                  value));
-
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue(value);
     createAndSendMacroCommand(params);
 }
 
@@ -903,15 +986,10 @@ WuQMacroSignalWatcher::tabBarCurrentChanged(int index)
     CaretAssert(tabBar);
     const QString tabText = tabBar->tabText(index);
 
-    std::vector<WuQMacroCommandParameter*> params;
-    
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
-                                                  "Select tab with name",
-                                                  tabText));
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
-                                                  "Select tab at index",
-                                                  index));
-    
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 2);
+    params[0]->setValue(tabText);
+    params[1]->setValue(index);
     createAndSendMacroCommand(params);
 }
 
@@ -928,14 +1006,10 @@ WuQMacroSignalWatcher::tabWidgetCurrentChanged(int index)
     CaretAssert(tabWidget);
     const QString tabText = tabWidget->tabText(index);
     
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
-                                                  "Select tab with name",
-                                                  tabText));
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
-                                                  "Select tab at index",
-                                                  index));
-    
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 2);
+    params[0]->setValue(tabText);
+    params[1]->setValue(index);
     createAndSendMacroCommand(params);
 }
 
@@ -948,11 +1022,9 @@ WuQMacroSignalWatcher::tabWidgetCurrentChanged(int index)
 void
 WuQMacroSignalWatcher::toolButtonClicked(bool /*checked*/)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::NONE,
-                                                  "Select button",
-                                                  ""));
-
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue("");
     createAndSendMacroCommand(params);
 }
 
@@ -965,11 +1037,9 @@ WuQMacroSignalWatcher::toolButtonClicked(bool /*checked*/)
 void
 WuQMacroSignalWatcher::toolButtonCheckableClicked(bool checked)
 {
-    std::vector<WuQMacroCommandParameter*> params;
-    params.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::BOOLEAN,
-                                                  "On/Off",
-                                                  checked));
-
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue(checked);
     createAndSendMacroCommand(params);
 }
 
@@ -983,6 +1053,20 @@ WuQMacroSignalWatcher::toString() const
               + " type="
               + WuQMacroWidgetTypeEnum::toGuiName(m_objectType));
     return s;
+}
+
+/**
+ * @return A copy of the object's parameters
+ */
+std::vector<WuQMacroCommandParameter*>
+WuQMacroSignalWatcher::getCopyOfObjectParameters() const
+{
+    std::vector<WuQMacroCommandParameter*> paramsCopy;
+    for(auto p : m_objectParameters) {
+        paramsCopy.push_back(new WuQMacroCommandParameter(*p));
+    }
+    
+    return paramsCopy;
 }
 
 

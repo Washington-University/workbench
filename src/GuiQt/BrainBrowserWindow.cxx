@@ -1267,7 +1267,11 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processNewTab()));
-    
+    m_newTabAction->setObjectName(m_objectNamePrefix
+                                          + ":Menu:NewTabAction");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_newTabAction,
+                                                         ("Create new tab in Window " + QString::number(m_browserWindowIndex + 1)));
+
     m_duplicateTabAction =
     WuQtUtilities::createAction("Duplicate Tab",
                                 "Create a new tab (window pane) that duplicates the selected tab in the window",
@@ -1275,7 +1279,11 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processDuplicateTab()));
-    
+    m_duplicateTabAction->setObjectName(m_objectNamePrefix
+                                  + ":Menu:DuplicateTabAction");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_duplicateTabAction,
+                                                         ("Duplicate tab in Window " + QString::number(m_browserWindowIndex + 1)));
+
     m_openFileAction =
     WuQtUtilities::createAction("Open File...", 
                                 "Open a data file including a spec file located on the computer",

@@ -1238,6 +1238,7 @@ WuQMacroExecutor::runRadioButtonCommand(const WuQMacroCommand* macroCommand,
         const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
         CaretAssert(parameterOne);
         
+        /* Type=NONE since radio button is ALWAYS TRUE */
         CaretAssert(parameterOne->getDataType() == WuQMacroDataValueTypeEnum::NONE);
         const QVariant dataValue = parameterOne->getValue();
 

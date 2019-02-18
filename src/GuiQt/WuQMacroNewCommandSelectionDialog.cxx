@@ -43,6 +43,7 @@
 #include "WuQMacroGroup.h"
 #include "WuQMacroManager.h"
 #include "WuQMacroShortCutKeyComboBox.h"
+#include "WuQMacroSignalWatcher.h"
 
 using namespace caret;
 
@@ -69,7 +70,7 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
     
     std::vector<WuQMacroCommandTypeEnum::Enum> commandTypes;
     commandTypes.push_back(WuQMacroCommandTypeEnum::CUSTOM_OPERATION);
-    // Not implemented yet: commandTypes.push_back(WuQMacroCommandTypeEnum::WIDGET);
+    commandTypes.push_back(WuQMacroCommandTypeEnum::WIDGET);
     m_commandTypeComboBox = new EnumComboBoxTemplate(this);
     m_commandTypeComboBox->setupWithItems<WuQMacroCommandTypeEnum,  WuQMacroCommandTypeEnum::Enum>(commandTypes);
     m_commandTypeComboBox->setSelectedItem<WuQMacroCommandTypeEnum,  WuQMacroCommandTypeEnum::Enum>(s_lastCommandTypeSelected);
@@ -189,7 +190,12 @@ WuQMacroNewCommandSelectionDialog::loadCustomCommandListWidget()
 void
 WuQMacroNewCommandSelectionDialog::loadWidgetCommandListWidget()
 {
-    
+    m_widgetCommands = WuQMacroManager::instance()->getAllWidgetSignalWatchers(false);
+    for (auto wc : m_widgetCommands) {
+        const QString name = wc->getObjectName();        
+        QListWidgetItem *item = new QListWidgetItem(name);
+        m_widgetCommandListWidget->addItem(item);
+    }
 }
 
 /**
@@ -223,7 +229,14 @@ WuQMacroNewCommandSelectionDialog::customCommandListWidgetItemClicked(QListWidge
 void
 WuQMacroNewCommandSelectionDialog::widgetCommandListWidgetItemClicked(QListWidgetItem* item)
 {
-    
+    QString description;
+    const int index = m_widgetCommandListWidget->currentRow();
+    if ((index >= 0)
+        && (index < static_cast<int32_t>(m_widgetCommands.size()))) {
+        description = m_widgetCommands[index]->getToolTip();
+    }
+
+    m_macroDescriptionTextEdit->setPlainText(description);
 }
 
 /**
@@ -298,7 +311,21 @@ WuQMacroNewCommandSelectionDialog::getNewInstanceOfSelectedCommand(QString& erro
             CaretAssert(0);
             break;
         case WuQMacroCommandTypeEnum::WIDGET:
-            errorMessageOut = "New widget commands has not been implemented";
+        {
+            QListWidgetItem* item = m_widgetCommandListWidget->currentItem();
+            if (item != NULL) {
+                const QString widgetName = item->text();
+                WuQMacroSignalWatcher* watcher = WuQMacroManager::instance()->getWidgetSignalWatcherWithName(widgetName);
+                if (watcher != NULL) {
+                    commandOut = watcher->createMacroCommandWithDefaultParameters(errorMessageOut);
+                }
+                else {
+                    errorMessageOut = ("Unable to find widget watcher with name \""
+                                       + widgetName
+                                       + "\"");
+                }
+            }
+        }
             break;
     }
 

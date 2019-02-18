@@ -44,6 +44,7 @@ namespace caret {
     class WuQMacroCommand;
     class WuQMacroGroup;
     class WuQMacroShortCutKeyComboBox;
+    class WuQMacroSignalWatcher;
 
     class WuQMacroNewCommandSelectionDialog : public QDialog {
         
@@ -89,6 +90,8 @@ namespace caret {
         QDialogButtonBox* m_dialogButtonBox;
         
         std::vector<WuQMacroCommand*> m_customCommands;
+        
+        std::vector<WuQMacroSignalWatcher*> m_widgetCommands;
         
         static WuQMacroCommandTypeEnum::Enum s_lastCommandTypeSelected;
     };

@@ -775,6 +775,90 @@ WuQMacroManager::exportMacros(QWidget* parent,
 }
 
 /**
+ * Get all signal watchers
+ *
+ * @param enabledItemsOnly
+ *    Only valid signal watchers whose object currently exists are included.
+ *    An object may cease to exists with something is closed (such as a window)
+ *
+ * @return
+ *    All signal watchers
+ */
+std::vector<WuQMacroSignalWatcher*>
+WuQMacroManager::getAllWidgetSignalWatchers(const bool enabledItemsOnly) const
+{
+    std::vector<WuQMacroSignalWatcher*> allWatchers;
+    allWatchers.reserve(m_signalWatchers.size());
+    
+    for (auto iter : m_signalWatchers) {
+        WuQMacroSignalWatcher* watcher = iter.second;
+        bool validFlag(true);
+        if (enabledItemsOnly) {
+            validFlag = false;
+            for (auto po : m_parentObjects) {
+                QObject* object = po->findChild<QObject*>(watcher->getObjectName());
+                if (object != NULL) {
+                    validFlag = true;
+                    break;
+                }
+            }
+        }
+        
+        if (validFlag) {
+            allWatchers.push_back(watcher);
+        }
+    }
+    return allWatchers;
+}
+
+/**
+ * Get names of all signal watchers
+ *
+ * @param enabledItemsOnly
+ *    Only valid signal watches are returned
+ * @return
+ *    All signal watchers
+ */
+std::vector<QString>
+WuQMacroManager::getAllWidgetSignalWatcherNames(const bool enabledItemsOnly) const
+{
+    std::vector<WuQMacroSignalWatcher*> allWatchers = getAllWidgetSignalWatchers(enabledItemsOnly);
+    
+    std::vector<QString> names;
+    names.reserve(m_signalWatchers.size());
+    
+    for (auto iter : allWatchers) {
+        names.push_back(iter->getObjectName());
+    }
+    
+    return names;
+}
+
+
+/**
+ * Get the widget signal watcher with the given name
+ *
+ * @param name
+ *     Name of widget signal watcher
+ * @retrurn
+ *     Pointer to watcher or NULL if not valid.
+ */
+WuQMacroSignalWatcher*
+WuQMacroManager::getWidgetSignalWatcherWithName(const QString& name)
+{
+    auto watcher = m_signalWatchers.find(name);
+    if (watcher != m_signalWatchers.end()) {
+        return watcher->second;
+    }
+//    for (auto iter : m_signalWatchers) {
+//        if (iter.first == name) {
+//            return iter.second;
+//        }
+//    }
+    return NULL;
+}
+
+/**
  * Print supported widgets to the terminal window.
  */
 void

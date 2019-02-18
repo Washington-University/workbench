@@ -157,6 +157,12 @@ namespace caret {
         
         QMainWindow* getMainWindowWithIdentifier(const QString& identifier);
 
+        std::vector<WuQMacroSignalWatcher*> getAllWidgetSignalWatchers(const bool enabledItemsOnly) const;
+        
+        std::vector<QString> getAllWidgetSignalWatcherNames(const bool enabledItemsOnly) const;
+        
+        WuQMacroSignalWatcher* getWidgetSignalWatcherWithName(const QString& name);
+        
         // ADD_NEW_METHODS_HERE
         
     public slots:
