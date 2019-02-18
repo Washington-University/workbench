@@ -115,6 +115,8 @@ namespace caret {
         
         void insertMenuNewMacroCommandSelected();
         
+        void addNewMacroCommand(WuQMacroCommand* command);
+        
     private:
         enum class ValueIndex {
             ONE,

@@ -29,6 +29,7 @@
 
 #include "WuQMacroCommandTypeEnum.h"
 
+class QAbstractButton;
 class QComboBox;
 class QDialogButtonBox;
 class QLineEdit;
@@ -59,9 +60,10 @@ namespace caret {
 
         WuQMacroNewCommandSelectionDialog& operator=(const WuQMacroNewCommandSelectionDialog&) = delete;
 
-        WuQMacroCommand* getNewInstanceOfSelectedCommand(QString& errorMessageOut);
-        
         // ADD_NEW_METHODS_HERE
+        
+    signals:
+        void signalNewMacroCommandCreated(WuQMacroCommand* command);
         
     public slots:
         void commandTypeComboBoxActivated();
@@ -72,10 +74,16 @@ namespace caret {
         
         virtual void done(int r) override;
         
+        void otherButtonClicked(QAbstractButton* button);
+        
     private:
+        WuQMacroCommand* getNewInstanceOfSelectedCommand(QString& errorMessageOut);
+        
         void loadCustomCommandListWidget();
         
         void loadWidgetCommandListWidget();
+        
+        bool processApplyButtonClicked(const bool okButtonClicked);
         
         EnumComboBoxTemplate* m_commandTypeComboBox;
         
@@ -93,11 +101,18 @@ namespace caret {
         
         std::vector<WuQMacroSignalWatcher*> m_widgetCommands;
         
+        WuQMacroCommand* m_lastCustomCommandAdded = NULL;
+        
+        bool m_commandSelectionChangedSinceApplyClickedFlag = false;
+
         static WuQMacroCommandTypeEnum::Enum s_lastCommandTypeSelected;
+
+        static QByteArray s_previousDialogGeometry;
     };
     
 #ifdef __WU_Q_MACRO_NEW_COMMAND_SELECTION_DIALOG_DECLARE__
     WuQMacroCommandTypeEnum::Enum WuQMacroNewCommandSelectionDialog::s_lastCommandTypeSelected = WuQMacroCommandTypeEnum::CUSTOM_OPERATION;
+    QByteArray WuQMacroNewCommandSelectionDialog::s_previousDialogGeometry;
 #endif // __WU_Q_MACRO_NEW_COMMAND_SELECTION_DIALOG_DECLARE__
 
 } // namespace

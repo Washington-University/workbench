@@ -23,6 +23,7 @@
 #include "WuQMacroNewCommandSelectionDialog.h"
 #undef __WU_Q_MACRO_NEW_COMMAND_SELECTION_DIALOG_DECLARE__
 
+#include <QAbstractButton>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
@@ -107,17 +108,20 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
     row++;
     
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok
+                                             | QDialogButtonBox::Apply
                                              | QDialogButtonBox::Cancel);
-    QObject::connect(m_dialogButtonBox, &QDialogButtonBox::accepted,
-                     this, &WuQMacroNewCommandSelectionDialog::accept);
-    QObject::connect(m_dialogButtonBox, &QDialogButtonBox::rejected,
-                     this, &WuQMacroNewCommandSelectionDialog::reject);
-    
+    QObject::connect(m_dialogButtonBox, &QDialogButtonBox::clicked,
+                     this, &WuQMacroNewCommandSelectionDialog::otherButtonClicked);
+
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
     dialogLayout->addLayout(gridLayout);
     dialogLayout->addWidget(m_dialogButtonBox);
     
     commandTypeComboBoxActivated();
+    
+    if ( ! s_previousDialogGeometry.isEmpty()) {
+        restoreGeometry(s_previousDialogGeometry);
+    }
 }
 
 /**
@@ -125,6 +129,8 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
  */
 WuQMacroNewCommandSelectionDialog::~WuQMacroNewCommandSelectionDialog()
 {
+    s_previousDialogGeometry = saveGeometry();
+    
     for (auto cc : m_customCommands) {
         delete cc;
     }
@@ -165,6 +171,8 @@ WuQMacroNewCommandSelectionDialog::commandTypeComboBoxActivated()
             }
             break;
     }
+    
+    m_commandSelectionChangedSinceApplyClickedFlag = true;
 }
 
 /**
@@ -218,6 +226,7 @@ WuQMacroNewCommandSelectionDialog::customCommandListWidgetItemClicked(QListWidge
     }
     
     m_macroDescriptionTextEdit->setPlainText(description);
+    m_commandSelectionChangedSinceApplyClickedFlag = true;
 }
 
 /**
@@ -227,7 +236,7 @@ WuQMacroNewCommandSelectionDialog::customCommandListWidgetItemClicked(QListWidge
  *    Item that was clicked
  */
 void
-WuQMacroNewCommandSelectionDialog::widgetCommandListWidgetItemClicked(QListWidgetItem* item)
+WuQMacroNewCommandSelectionDialog::widgetCommandListWidgetItemClicked(QListWidgetItem* /*item*/)
 {
     QString description;
     const int index = m_widgetCommandListWidget->currentRow();
@@ -237,6 +246,114 @@ WuQMacroNewCommandSelectionDialog::widgetCommandListWidgetItemClicked(QListWidge
     }
 
     m_macroDescriptionTextEdit->setPlainText(description);
+    m_commandSelectionChangedSinceApplyClickedFlag = true;
+}
+
+/**
+ * Called when a dialog button is clicked
+ */
+void
+WuQMacroNewCommandSelectionDialog::otherButtonClicked(QAbstractButton* button)
+{
+    switch (m_dialogButtonBox->standardButton(button)) {
+        case QDialogButtonBox::Apply:
+            processApplyButtonClicked(false);
+            break;
+        case QDialogButtonBox::Ok:
+            accept();
+            break;
+        case QDialogButtonBox::Cancel:
+            reject();
+            break;
+        default:
+            CaretAssertMessage(0, ("Unknown button clicked with text \""
+                                   + button->text()
+                                   + "\""));
+            break;
+    }
+}
+
+/**
+ * Called to process the apply button.
+ *
+ * @return True if apply button process was successful, else false.
+ */
+bool
+WuQMacroNewCommandSelectionDialog::processApplyButtonClicked(const bool okButtonClicked)
+{
+    bool validFlag(false);
+    switch (s_lastCommandTypeSelected) {
+        case WuQMacroCommandTypeEnum::CUSTOM_OPERATION:
+            validFlag = (m_customCommandListWidget->currentItem() != NULL);
+            break;
+        case WuQMacroCommandTypeEnum::MOUSE:
+            CaretAssert(0);
+            validFlag = false;
+            break;
+        case WuQMacroCommandTypeEnum::WIDGET:
+            validFlag = (m_widgetCommandListWidget->currentItem() != NULL);
+            break;
+    }
+    
+    if (validFlag) {
+        bool addCommandFlag = true;
+        if (okButtonClicked) {
+            /*
+             * Both Apply and Ok add a command to the macro.  If the user adds a command
+             * using apply and then clicks Ok without changing the selected command,
+             * warn the user to avoid unintentionally adding the command twice.
+             */
+            if ( ! m_commandSelectionChangedSinceApplyClickedFlag) {
+                const QString msg("Selected command has not changed since Apply button was clicked.  "
+                                  "Add command to macro again?");
+                switch (QMessageBox::warning(this,
+                                             "Warning",
+                                             msg,
+                                             (QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel),
+                                             QMessageBox::No)) {
+                    case QMessageBox::Yes:
+                        addCommandFlag = true;
+                        break;
+                    case QMessageBox::No:
+                        addCommandFlag = false;
+                        break;
+                    case QMessageBox::Cancel:
+                        addCommandFlag = false;
+                        validFlag = false;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        QString errorMessage;
+        if (addCommandFlag) {
+            WuQMacroCommand* command = NULL;
+            command = getNewInstanceOfSelectedCommand(errorMessage);
+            if (command != NULL) {
+                emit signalNewMacroCommandCreated(command);
+                if ( ! okButtonClicked) {
+                    m_commandSelectionChangedSinceApplyClickedFlag = false;
+                }
+            }
+            else {
+                validFlag = false;
+                QMessageBox::critical(this,
+                                      "Error",
+                                      errorMessage,
+                                      QMessageBox::Ok,
+                                      QMessageBox::Ok);
+            }
+        }
+    }
+    else {
+        QMessageBox::critical(this,
+                              "Error",
+                              "No command is selected",
+                              QMessageBox::Ok,
+                              QMessageBox::Ok);
+    }
+    return validFlag;
 }
 
 /**
@@ -249,26 +366,9 @@ void
 WuQMacroNewCommandSelectionDialog::done(int r)
 {
     if (r == QDialog::Accepted) {
-        bool validFlag(false);
-        switch (s_lastCommandTypeSelected) {
-            case WuQMacroCommandTypeEnum::CUSTOM_OPERATION:
-                validFlag = (m_customCommandListWidget->currentItem() != NULL);
-                break;
-            case WuQMacroCommandTypeEnum::MOUSE:
-                CaretAssert(0);
-                validFlag = false;
-                break;
-            case WuQMacroCommandTypeEnum::WIDGET:
-                validFlag = (m_widgetCommandListWidget->currentItem() != NULL);
-                break;
-        }
-
+        const bool validFlag = processApplyButtonClicked(true);
         if ( ! validFlag) {
-            QMessageBox::critical(this,
-                                  "Error",
-                                  "No command is selected",
-                                  QMessageBox::Ok,
-                                  QMessageBox::Ok);
+            return;
         }
     }
     

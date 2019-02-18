@@ -505,7 +505,6 @@ WuQMacroDialog::createCommandDisplayWidget()
     m_commandDelaySpinBox->setSingleStep(1.0);
     m_commandDelaySpinBox->setDecimals(1);
     m_commandDelaySpinBox->setToolTip("Delay, in seconds, after running command");
-//    m_commandDelaySpinBox->setFixedWidth(150);
     m_commandDelaySpinBox->setSizePolicy(QSizePolicy::Fixed,
                                          m_commandDelaySpinBox->sizePolicy().verticalPolicy());
     QObject::connect(m_commandDelaySpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
@@ -1321,114 +1320,52 @@ void
 WuQMacroDialog::insertMenuNewMacroCommandSelected()
 {
     WuQMacroNewCommandSelectionDialog dialog(this);
+    QObject::connect(&dialog, &WuQMacroNewCommandSelectionDialog::signalNewMacroCommandCreated,
+                     this, &WuQMacroDialog::addNewMacroCommand);
     if (dialog.exec() == WuQMacroNewCommandSelectionDialog::Accepted) {
-        QString errorMessage;
-        WuQMacroCommand* newCommand = dialog.getNewInstanceOfSelectedCommand(errorMessage);
-        if (newCommand != NULL) {
-            switch (getSelectedItemType()) {
-                case WuQMacroStandardItemTypeEnum::INVALID:
-                    CaretAssert(0);
-                    break;
-                case WuQMacroStandardItemTypeEnum::MACRO:
-                {
-                    WuQMacro* macro = getSelectedMacro();
-                    CaretAssert(macro);
-                    macro->insertMacroCommandAtIndex(0, newCommand);
-                }
-                    break;
-                case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
-                {
-                    WuQMacro* macro = getSelectedMacro();
-                    CaretAssert(macro);
-                    const WuQMacroCommand* selectedCommand = getSelectedMacroCommand();
-                    CaretAssert(selectedCommand);
-                    const int32_t selectedIndex = macro->getIndexOfMacroCommand(selectedCommand);
-                    macro->insertMacroCommandAtIndex(selectedIndex + 1,
-                                                     newCommand);
-                }
-            }
-            
-            WuQMacroGroup* selectedGroup = getSelectedMacroGroup();
-            CaretAssert(selectedGroup);
-            QModelIndex selectedIndex = selectedGroup->indexFromItem(newCommand);
-            m_treeView->setCurrentIndex(selectedIndex);
-            
-            updateDialogContents();
+    }
+}
+
+/**
+ * Add a new macro command
+ */
+void
+WuQMacroDialog::addNewMacroCommand(WuQMacroCommand* command)
+{
+    if (command == NULL) {
+        return;
+    }
+    
+    switch (getSelectedItemType()) {
+        case WuQMacroStandardItemTypeEnum::INVALID:
+            CaretAssert(0);
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO:
+        {
+            WuQMacro* macro = getSelectedMacro();
+            CaretAssert(macro);
+            macro->insertMacroCommandAtIndex(0,
+                                             command);
         }
-        else {
-            QMessageBox::critical(m_editingInsertToolButton,
-                                  "Error",
-                                  errorMessage);
+            break;
+        case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+        {
+            WuQMacro* macro = getSelectedMacro();
+            CaretAssert(macro);
+            const WuQMacroCommand* selectedCommand = getSelectedMacroCommand();
+            CaretAssert(selectedCommand);
+            const int32_t selectedIndex = macro->getIndexOfMacroCommand(selectedCommand);
+            macro->insertMacroCommandAtIndex(selectedIndex + 1,
+                                             command);
         }
     }
     
-//    return;
-//
-//
-//    std::vector<QString> customOperationNames = WuQMacroManager::instance()->getNamesOfCustomOperationMacroCommands();
-//    QStringList namesStringList;
-//    for (const auto name : customOperationNames) {
-//        namesStringList.append(name);
-//    }
-//
-//    if (namesStringList.isEmpty()) {
-//        QMessageBox::critical(m_editingInsertToolButton,
-//                              "Error",
-//                              "No custom operations available");
-//        return;
-//    }
-//
-//    bool okFlag(false);
-//    QString selectedName = QInputDialog::getItem(m_editingInsertToolButton,
-//                                  "Choose Operation",
-//                                  "New Operation",
-//                                  namesStringList,
-//                                  0,
-//                                  false,
-//                                  &okFlag);
-//
-//    if (okFlag
-//        && ( ! selectedName.isEmpty())) {
-//        QString errorMessage;
-//        WuQMacroCommand* newCommand = WuQMacroManager::instance()->newInstanceOfCustomOperationMacroCommand(selectedName,
-//                                                                                                            errorMessage);
-//        if (newCommand == NULL) {
-//            QMessageBox::critical(m_editingInsertToolButton,
-//                                  "Error",
-//                                  errorMessage);
-//            return;
-//        }
-//
-//        switch (getSelectedItemType()) {
-//            case WuQMacroStandardItemTypeEnum::INVALID:
-//                CaretAssert(0);
-//                break;
-//            case WuQMacroStandardItemTypeEnum::MACRO:
-//            {
-//                WuQMacro* macro = getSelectedMacro();
-//                CaretAssert(macro);
-//                macro->insertMacroCommandAtIndex(0, newCommand);
-//            }
-//                break;
-//            case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
-//            {
-//                WuQMacro* macro = getSelectedMacro();
-//                CaretAssert(macro);
-//                const WuQMacroCommand* selectedCommand = getSelectedMacroCommand();
-//                CaretAssert(selectedCommand);
-//                const int32_t selectedIndex = macro->getIndexOfMacroCommand(selectedCommand);
-//                macro->insertMacroCommandAtIndex(selectedIndex + 1,
-//                                                 newCommand);
-//            }
-//        }
-//
-//        WuQMacroGroup* selectedGroup = getSelectedMacroGroup();
-//        CaretAssert(selectedGroup);
-//        QModelIndex selectedIndex = selectedGroup->indexFromItem(newCommand);
-//        m_treeView->setCurrentIndex(selectedIndex);
-//
-//        updateDialogContents();
-//    }
+    WuQMacroGroup* selectedGroup = getSelectedMacroGroup();
+    CaretAssert(selectedGroup);
+    QModelIndex selectedIndex = selectedGroup->indexFromItem(command);
+    m_treeView->setCurrentIndex(selectedIndex);
+    
+    updateDialogContents();
 }
 
 /**
