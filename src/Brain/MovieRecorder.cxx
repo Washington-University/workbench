@@ -32,6 +32,7 @@
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
+#include "MovieRecorderVideoFormatTypeEnum.h"
 #include "ImageFile.h"
 #include "TextFile.h"
 
@@ -290,27 +291,6 @@ MovieRecorder::setCustomWidthAndHeight(const int32_t width,
 }
 
 /**
- * @return Video format type
- */
-MovieRecorderVideoFormatTypeEnum::Enum
-MovieRecorder::getVideoFormatType() const
-{
-    return m_formatType;
-}
-
-/**
- * Set the video format type
- *
- * @param formatType
- *     New format type
- */
-void
-MovieRecorder::setVideoFormatType(const MovieRecorderVideoFormatTypeEnum::Enum formatType)
-{
-    m_formatType = formatType;
-}
-
-/**
  * @return The capture region type
  */
 MovieRecorderCaptureRegionTypeEnum::Enum
@@ -337,22 +317,6 @@ MovieRecorder::setCaptureRegionType(const MovieRecorderCaptureRegionTypeEnum::En
 AString
 MovieRecorder::getMovieFileName() const
 {
-    if (m_movieFileName.isEmpty()) {
-        m_movieFileName = "Movie.mp4";
-    }
-    
-    FileInformation fileInfo(m_movieFileName);
-    AString path, name, extension;
-    fileInfo.getFileComponents(path,
-                               name,
-                               extension);
-    
-    extension = MovieRecorderVideoFormatTypeEnum::toFileNameExtensionNoDot(getVideoFormatType());
-    
-    m_movieFileName = FileInformation::assembleFileComponents(path,
-                                                              name,
-                                                              extension);
-    
     return m_movieFileName;
 }
 
@@ -366,6 +330,25 @@ void
 MovieRecorder::setMovieFileName(const AString& filename)
 {
     m_movieFileName = filename;
+}
+
+/**
+ * If the movie file name is empty,
+ * initialize the movie file to be in the given path.
+ *
+ * @param path
+ *     Path of where to place the movie file
+ */
+void
+MovieRecorder::initializeMovieFileName(const AString& path)
+{
+    if (m_movieFileName.isEmpty()) {
+        const QString extension = MovieRecorderVideoFormatTypeEnum::toFileNameExtensionNoDot(MovieRecorderVideoFormatTypeEnum::MPEG_4);
+        
+        m_movieFileName = FileInformation::assembleFileComponents(path,
+                                                                  "Movie",
+                                                                  extension);
+    }
 }
 
 /**
@@ -463,6 +446,11 @@ bool
 MovieRecorder::createMovie(AString& errorMessageOut)
 {
     errorMessageOut.clear();
+    
+    if (m_movieFileName.isEmpty()) {
+        errorMessageOut = "Movie file name is invalid or empty";
+        return false;
+    }
     
     FileInformation fileInfo(m_movieFileName);
     if (fileInfo.exists()) {

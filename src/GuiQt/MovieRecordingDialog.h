@@ -66,8 +66,6 @@ namespace caret {
     private slots:
         void movieRecorderVideoResolutionTypeEnumComboBoxItemActivated();
         
-        void movieRecorderVideoFormatTypeEnumComboBoxItemActivated();
-        
         void movieRecorderCaptureRegionTypeComboBoxActivated();
         
         void recordingModeRadioButtonClicked(QAbstractButton* button);
@@ -113,8 +111,6 @@ namespace caret {
         
         EnumComboBoxTemplate* m_movieRecorderVideoResolutionTypeEnumComboBox;
         
-        EnumComboBoxTemplate* m_movieRecorderVideoFormatTypeEnumComboBox;
-        
         QSpinBox* m_customWidthSpinBox;
         
         QSpinBox* m_customHeightSpinBox;
@@ -130,6 +126,8 @@ namespace caret {
         QLabel* m_filenameLabel;
         
         QLabel* m_frameCountNumberLabel;
+        
+        QLabel* m_lengthLabel;
         
         BrainBrowserWindowComboBox* m_windowComboBox;
         

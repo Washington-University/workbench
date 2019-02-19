@@ -400,5 +400,5 @@ MovieRecorderVideoFormatTypeEnum::toFileDialogFilter(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
     const MovieRecorderVideoFormatTypeEnum* enumInstance = findData(enumValue);
-    return enumInstance->filenameExtensionNoDot;
+    return enumInstance->fileDialogFilter;
 }

@@ -29,7 +29,6 @@
 #include "MovieRecorderCaptureRegionTypeEnum.h"
 #include "MovieRecorderModeEnum.h"
 #include "MovieRecorderVideoResolutionTypeEnum.h"
-#include "MovieRecorderVideoFormatTypeEnum.h"
 
 class QImage;
 class QStringList;
@@ -73,10 +72,6 @@ namespace caret {
         void setCustomWidthAndHeight(const int32_t width,
                                      const int32_t height);
         
-        MovieRecorderVideoFormatTypeEnum::Enum getVideoFormatType() const;
-        
-        void setVideoFormatType(const MovieRecorderVideoFormatTypeEnum::Enum formatType);
-
         MovieRecorderCaptureRegionTypeEnum::Enum getCaptureRegionType() const;
         
         void setCaptureRegionType(const MovieRecorderCaptureRegionTypeEnum::Enum captureRegionType);
@@ -84,6 +79,8 @@ namespace caret {
         AString getMovieFileName() const;
         
         void setMovieFileName(const AString& filename);
+        
+        void initializeMovieFileName(const AString& path);
         
         int32_t getNumberOfFrames() const;
         
@@ -126,8 +123,6 @@ namespace caret {
         MovieRecorderModeEnum::Enum m_recordingMode = MovieRecorderModeEnum::MANUAL;
         
         MovieRecorderVideoResolutionTypeEnum::Enum m_resolutionType = MovieRecorderVideoResolutionTypeEnum::SD_640_480;
-        
-        MovieRecorderVideoFormatTypeEnum::Enum m_formatType = MovieRecorderVideoFormatTypeEnum::MPEG_4;
         
         MovieRecorderCaptureRegionTypeEnum::Enum m_captureRegionType = MovieRecorderCaptureRegionTypeEnum::GRAPHICS;
         

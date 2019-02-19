@@ -34,6 +34,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "Brain.h"
 #include "BrainBrowserWindowComboBox.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
@@ -43,7 +44,9 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EnumComboBoxTemplate.h"
 #include "FileInformation.h"
+#include "GuiManager.h"
 #include "MovieRecorder.h"
+#include "MovieRecorderVideoFormatTypeEnum.h"
 #include "SessionManager.h"
 #include "WuQMessageBox.h"
 
@@ -76,6 +79,10 @@ MovieRecordingDialog::MovieRecordingDialog(QWidget* parent)
     
     setApplyButtonText("");
     disableAutoDefaultForAllPushButtons();
+
+    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+    CaretAssert(movieRecorder);
+    movieRecorder->initializeMovieFileName(GuiManager::get()->getBrain()->getCurrentDirectory());
 }
 
 /**
@@ -124,9 +131,6 @@ MovieRecordingDialog::updateDialog()
             break;
     }
     
-    const MovieRecorderVideoFormatTypeEnum::Enum formatType = movieRecorder->getVideoFormatType();
-    m_movieRecorderVideoFormatTypeEnumComboBox->setSelectedItem<MovieRecorderVideoFormatTypeEnum,MovieRecorderVideoFormatTypeEnum::Enum>(formatType);
-
     const MovieRecorderVideoResolutionTypeEnum::Enum resType = movieRecorder->getVideoResolutionType();
     m_movieRecorderVideoResolutionTypeEnumComboBox->setSelectedItem<MovieRecorderVideoResolutionTypeEnum,MovieRecorderVideoResolutionTypeEnum::Enum>(resType);
 
@@ -207,8 +211,15 @@ MovieRecordingDialog::updateFileNameLabel()
 void
 MovieRecordingDialog::updateFrameCountLabel()
 {
-    const int32_t numberOfFrames = SessionManager::get()->getMovieRecorder()->getNumberOfFrames();
+    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+    const int32_t numberOfFrames = movieRecorder->getNumberOfFrames();
     m_frameCountNumberLabel->setNum(numberOfFrames);
+    
+    const int32_t timeSeconds = (movieRecorder->getNumberOfFrames()
+                                 / movieRecorder->getFramesRate());
+    QTime qtime(0, 0, 0, 0);
+    QTime timeForString = qtime.addSecs(timeSeconds);
+    m_lengthLabel->setText(timeForString.toString("h:mm:ss"));
     
     /*
      * Do not allow user to change image size once an image has been captured
@@ -237,17 +248,6 @@ MovieRecordingDialog::movieRecorderVideoResolutionTypeEnumComboBoxItemActivated(
     const MovieRecorderVideoResolutionTypeEnum::Enum dimType = m_movieRecorderVideoResolutionTypeEnumComboBox->getSelectedItem<MovieRecorderVideoResolutionTypeEnum,MovieRecorderVideoResolutionTypeEnum::Enum>();
     SessionManager::get()->getMovieRecorder()->setVideoResolutionType(dimType);
     updateCustomWidthHeightSpinBoxes();
-}
-
-/**
- * Called when recording format is changed
- */
-void
-MovieRecordingDialog::movieRecorderVideoFormatTypeEnumComboBoxItemActivated()
-{
-    const MovieRecorderVideoFormatTypeEnum::Enum formatType = m_movieRecorderVideoFormatTypeEnumComboBox->getSelectedItem<MovieRecorderVideoFormatTypeEnum,MovieRecorderVideoFormatTypeEnum::Enum>();
-    SessionManager::get()->getMovieRecorder()->setVideoFormatType(formatType);
-    updateFileNameLabel();
 }
 
 /**
@@ -370,13 +370,33 @@ MovieRecordingDialog::manualCaptureSecondsSpinBoxValueChanged(int seconds)
 void
 MovieRecordingDialog::fileNameButtonClicked()
 {
-    const MovieRecorderVideoFormatTypeEnum::Enum formatType = m_movieRecorderVideoFormatTypeEnumComboBox->getSelectedItem<MovieRecorderVideoFormatTypeEnum,MovieRecorderVideoFormatTypeEnum::Enum>();
+    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+    QString currentFileName = movieRecorder->getMovieFileName();
+    MovieRecorderVideoFormatTypeEnum::Enum formatType = MovieRecorderVideoFormatTypeEnum::MPEG_4;
+    
+    QString filters;
+    QString selectedFilter = MovieRecorderVideoFormatTypeEnum::toFileDialogFilter(formatType);
+    std::vector<MovieRecorderVideoFormatTypeEnum::Enum> formatEnums;
+    MovieRecorderVideoFormatTypeEnum::getAllEnums(formatEnums);
+    for (auto fe : formatEnums) {
+        if ( ! filters.isEmpty()) {
+            filters.append(";;");
+        }
+        filters.append(MovieRecorderVideoFormatTypeEnum::toFileDialogFilter(fe));
+        
+        if (currentFileName.endsWith(MovieRecorderVideoFormatTypeEnum::toFileNameExtensionNoDot(fe))) {
+            formatType = fe;
+            selectedFilter = MovieRecorderVideoFormatTypeEnum::toFileDialogFilter(fe);
+        }
+    }
+    
     QString filename = CaretFileDialog::getSaveFileNameDialog(m_filenamePushButton,
                                                               "Choose Movie File",
-                                                              "",
-                                                              MovieRecorderVideoFormatTypeEnum::toFileNameExtensionNoDot(formatType));
+                                                              currentFileName,
+                                                              filters,
+                                                              &selectedFilter);
     if ( ! filename.isEmpty()) {
-        SessionManager::get()->getMovieRecorder()->setMovieFileName(filename);
+        movieRecorder->setMovieFileName(filename);
         updateFileNameLabel();
     }
 }
@@ -540,6 +560,9 @@ MovieRecordingDialog::createMainWidget()
     QLabel* frameCountLabel = new QLabel("Frames: ");
     m_frameCountNumberLabel = new QLabel("0");
     
+    QLabel* lengthLabel = new QLabel("Length: ");
+    m_lengthLabel       = new QLabel("0");
+    
     QGroupBox* movieFileGroupBox = new QGroupBox("Output Movie");
     QGridLayout* movieLayout = new QGridLayout(movieFileGroupBox);
     movieLayout->setColumnStretch(0, 0);
@@ -551,6 +574,8 @@ MovieRecordingDialog::createMainWidget()
     movieLayout->addWidget(m_filenameLabel, movieRow, 1, 1, 2, Qt::AlignLeft);
     movieRow++;
     movieLayout->addWidget(m_createMoviePushButton, movieRow, 0);
+    movieLayout->addWidget(lengthLabel, movieRow, 1);
+    movieLayout->addWidget(m_lengthLabel, movieRow, 2);
     movieRow++;
     movieLayout->addWidget(m_resetPushButton, movieRow, 0);
     movieLayout->addWidget(frameCountLabel, movieRow, 1);
@@ -575,13 +600,6 @@ QWidget*
 MovieRecordingDialog::createSettingsWidget()
 {
     const int spinBoxWidth(100);
-    
-    QLabel* formatLabel = new QLabel("Format:");
-    m_movieRecorderVideoFormatTypeEnumComboBox = new EnumComboBoxTemplate(this);
-    m_movieRecorderVideoFormatTypeEnumComboBox->getWidget()->setToolTip("Choose video format (not all formats on all computers)");
-    m_movieRecorderVideoFormatTypeEnumComboBox->setup<MovieRecorderVideoFormatTypeEnum,MovieRecorderVideoFormatTypeEnum::Enum>();
-    QObject::connect(m_movieRecorderVideoFormatTypeEnumComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(movieRecorderVideoFormatTypeEnumComboBoxItemActivated()));
     
     QLabel* resolutionLabel = new QLabel("Resolution:");
     m_movieRecorderVideoResolutionTypeEnumComboBox = new EnumComboBoxTemplate(this);
@@ -625,10 +643,6 @@ MovieRecordingDialog::createSettingsWidget()
     gridLayout->setColumnStretch(2, 0);
     gridLayout->setColumnStretch(3, 100);
     int32_t row(0);
-    gridLayout->addWidget(formatLabel, row, 0);
-    gridLayout->addWidget(m_movieRecorderVideoFormatTypeEnumComboBox->getWidget(),
-                          row, 1, 1, 2, Qt::AlignLeft);
-    row++;
     gridLayout->addWidget(resolutionLabel, row, 0);
     gridLayout->addWidget(m_movieRecorderVideoResolutionTypeEnumComboBox->getWidget(),
                           row, 1, 1, 2, Qt::AlignLeft);
