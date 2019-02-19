@@ -395,6 +395,19 @@ MovieRecordingDialog::fileNameButtonClicked()
                                                               currentFileName,
                                                               filters,
                                                               &selectedFilter);
+    
+    if (selectedFilter.isEmpty()) {
+        for (auto fe : formatEnums) {
+            if (selectedFilter == MovieRecorderVideoFormatTypeEnum::toFileDialogFilter(fe)) {
+                const QString ext = ("." + MovieRecorderVideoFormatTypeEnum::toFileNameExtensionNoDot(fe));
+                if ( ! filename.endsWith(ext)) {
+                    filename.append(ext);
+                    break;
+                }
+            }
+        }
+    }
+    
     if ( ! filename.isEmpty()) {
         movieRecorder->setMovieFileName(filename);
         updateFileNameLabel();
