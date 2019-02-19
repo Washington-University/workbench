@@ -178,7 +178,8 @@ WuQMacroDialog::createMacroRunAndEditingToolButtons()
     QPixmap runPixmap = createEditingToolButtonPixmap(m_runMacroToolButton,
                                                          EditButton::RUN);
     m_runMacroToolButton->setIcon(runPixmap);
-    m_runMacroToolButton->setToolTip("Run the selected macro");
+    m_runMacroToolButton->setToolTip("Runs the selected macro.  If a command is selected, "
+                                     "the macro containing the command is run.");
     QObject::connect(m_runMacroToolButton, &QToolButton::clicked,
                      this, &WuQMacroDialog::runMacroToolButtonClicked);
     
@@ -220,7 +221,7 @@ WuQMacroDialog::createMacroRunAndEditingToolButtons()
     QPixmap insertPixmap = createEditingToolButtonPixmap(m_editingInsertToolButton,
                                                          EditButton::INSERTER);
     m_editingInsertToolButton->setIcon(insertPixmap);
-    m_editingInsertToolButton->setToolTip("Insert a macro command");
+    m_editingInsertToolButton->setToolTip("Insert a new macro or macro command below the selected item");
     QObject::connect(m_editingInsertToolButton, &QToolButton::clicked,
                      this, &WuQMacroDialog::editingInsertToolButtonClicked);
     
@@ -1102,25 +1103,6 @@ WuQMacroDialog::macroGroupToolButtonClicked()
 }
 
 /**
- * @return Instance of macro group menu
- */
-QMenu*
-WuQMacroDialog::createMacroGroupMenu()
-{
-    QMenu* menu = new QMenu(this);
-    
-    QAction* importAction = menu->addAction("Import...");
-    QObject::connect(importAction, &QAction::triggered,
-                     this, &WuQMacroDialog::importMacroGroupActionTriggered);
-    
-    QAction* exportAction = menu->addAction("Export...");
-    QObject::connect(exportAction, &QAction::triggered,
-                     this, &WuQMacroDialog::exportMacroGroupActionTriggered);
-    
-    return menu;
-}
-
-/**
  * Called when editing move up button clicked
  */
 void
@@ -1263,12 +1245,12 @@ WuQMacroDialog::editingInsertToolButtonClicked()
     
     QMenu menu(m_editingInsertToolButton);
     if (addMacroFlag) {
-        menu.addAction("Insert New Macro...",
+        menu.addAction("Insert New Macro Below...",
                         this,
                         &WuQMacroDialog::insertMenuNewMacroSelected);
     }
     if (addMacroCommandFlag) {
-        menu.addAction("Insert New Command...",
+        menu.addAction("Insert New Command Below...",
                         this,
                         &WuQMacroDialog::insertMenuNewMacroCommandSelected);
     }
@@ -1414,6 +1396,7 @@ WuQMacroDialog::updateEditingToolButtons()
                     deleteValid   = true;
                     moveUpValid   = (commandIndex > 0);
                     moveDownValid = (commandIndex < (macro->getNumberOfMacroCommands() - 1));
+                    runValid = true;
                 }
             }
                 break;

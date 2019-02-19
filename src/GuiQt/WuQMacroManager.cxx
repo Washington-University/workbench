@@ -27,6 +27,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QFileDialog>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QMouseEvent>
@@ -34,7 +35,6 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "CaretFileDialog.h"
 #include "DataFileException.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -527,6 +527,8 @@ WuQMacroManager::runMacro(QWidget* widget,
     
     QString errorMessage;
     m_macroExecutor = new WuQMacroExecutor();
+    QObject::connect(m_macroExecutor, &WuQMacroExecutor::macroCommandHasCompleted,
+                     this, &WuQMacroManager::macroCommandCompletedExecution);
     
     if (m_macroHelper != NULL) {
         m_macroHelper->macroExecutionStarting(macro,
@@ -571,6 +573,25 @@ WuQMacroManager::stopMacro()
     QMutexLocker locker(&m_macroExecutorMutex);
     if (m_macroExecutor != NULL) {
         m_macroExecutor->stopMacro();
+    }
+}
+
+/**
+ * Called by macro executor when a macro command has completed
+ *
+ * @param window
+ *     Window in which command is running
+ * @param command
+ *     Command that just finished execution
+ */
+void
+WuQMacroManager::macroCommandCompletedExecution(QWidget* window,
+                                                const WuQMacroCommand* command)
+{
+    CaretAssert(command);
+    if (m_macroHelper != NULL) {
+        m_macroHelper->macroCommandHasCompleted(window,
+                                                command);
     }
 }
 
@@ -691,15 +712,19 @@ WuQMacroManager::importMacros(QWidget* parent,
                               WuQMacroGroup* appendToMacroGroup)
 {
     QString fileFilterString(WuQMacroFile::getFileDialogFilter());
-    const QString filename = CaretFileDialog::getOpenFileNameDialog(parent,
-                                                                    "Import Macros",
-                                                                    "",
-                                                                    fileFilterString,
-                                                                    &fileFilterString);
+    const QString filename = QFileDialog::getOpenFileName(parent,
+                                                          "Import Macros",
+                                                          s_importExportMacroFileDirectory,
+                                                          fileFilterString,
+                                                          &fileFilterString,
+                                                          QFileDialog::DontUseNativeDialog);
     if ( ! filename.isEmpty()) {
         WuQMacroFile macroFile;
         try {
             macroFile.readFile(filename);
+            
+            QFileInfo fileInfo(filename);
+            s_importExportMacroFileDirectory = fileInfo.absolutePath();
             
             const WuQMacroGroup* fileMacroGroup = macroFile.getMacroGroup();
             if (fileMacroGroup->getNumberOfMacros() > 0) {
@@ -740,11 +765,12 @@ WuQMacroManager::exportMacros(QWidget* parent,
                               WuQMacro* macro)
 {
     QString fileFilterString(WuQMacroFile::getFileDialogFilter());
-    const QString filename = CaretFileDialog::getSaveFileNameDialog(parent,
-                                                                    "Export Macros",
-                                                                    "",
-                                                                    fileFilterString,
-                                                                    &fileFilterString);
+    const QString filename = QFileDialog::getSaveFileName(parent,
+                                                          "Export Macros",
+                                                          s_importExportMacroFileDirectory,
+                                                          fileFilterString,
+                                                          &fileFilterString,
+                                                         QFileDialog::DontUseNativeDialog);
     if ( ! filename.isEmpty()) {
         try {
             WuQMacroFile macroFile;
@@ -759,7 +785,16 @@ WuQMacroManager::exportMacros(QWidget* parent,
                 throw DataFileException("No macro group or macro for export");
             }
             
-            macroFile.writeFile(filename);
+            QString filenameToWrite(filename);
+            if ( ! filenameToWrite.endsWith(WuQMacroFile::getFileExtension())) {
+                filenameToWrite.append(WuQMacroFile::getFileExtension());
+            }
+            
+            macroFile.writeFile(filenameToWrite);
+            
+            QFileInfo fileInfo(filenameToWrite);
+            s_importExportMacroFileDirectory = fileInfo.absolutePath();
+
             return true;
         }
         catch (const DataFileException& dfe) {
@@ -850,11 +885,6 @@ WuQMacroManager::getWidgetSignalWatcherWithName(const QString& name)
     if (watcher != m_signalWatchers.end()) {
         return watcher->second;
     }
-//    for (auto iter : m_signalWatchers) {
-//        if (iter.first == name) {
-//            return iter.second;
-//        }
-//    }
     return NULL;
 }
 

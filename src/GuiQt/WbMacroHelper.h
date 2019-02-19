@@ -64,6 +64,9 @@ namespace caret {
                                           QWidget* window,
                                           const WuQMacroExecutorOptions* executorOptions) override;
         
+        virtual void macroCommandHasCompleted(QWidget* window,
+                                              const WuQMacroCommand* command);
+        
         // ADD_NEW_METHODS_HERE
         
     private:

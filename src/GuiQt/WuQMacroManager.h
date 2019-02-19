@@ -168,6 +168,9 @@ namespace caret {
     public slots:
         void updateNonModalDialogs();
         
+        void macroCommandCompletedExecution(QWidget* window,
+                                            const WuQMacroCommand* command);
+        
     private:
         WuQMacroManager(const QString& name,
                         QObject* parent = NULL);
@@ -196,12 +199,15 @@ namespace caret {
         
         QMutex m_macroExecutorMutex;
         
+        static QString s_importExportMacroFileDirectory;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __WU_Q_MACRO_MANAGER_DECLARE__
     WuQMacroManager* WuQMacroManager::s_singletonMacroManager = NULL;
+    QString WuQMacroManager::s_importExportMacroFileDirectory;
 #endif // __WU_Q_MACRO_MANAGER_DECLARE__
 
 } // namespace

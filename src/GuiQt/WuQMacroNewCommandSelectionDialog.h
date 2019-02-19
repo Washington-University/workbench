@@ -36,6 +36,7 @@ class QLineEdit;
 class QListWidget;
 class QListWidgetItem;
 class QPlainTextEdit;
+class QSplitter;
 class QStackedWidget;
 
 namespace caret {
@@ -89,6 +90,8 @@ namespace caret {
         
         QStackedWidget* m_stackedWidget;
         
+        QSplitter* m_splitter;
+        
         QListWidget* m_customCommandListWidget;
         
         QListWidget* m_widgetCommandListWidget;
@@ -108,11 +111,14 @@ namespace caret {
         static WuQMacroCommandTypeEnum::Enum s_lastCommandTypeSelected;
 
         static QByteArray s_previousDialogGeometry;
+
+        static QByteArray s_previousSplitterState;
     };
     
 #ifdef __WU_Q_MACRO_NEW_COMMAND_SELECTION_DIALOG_DECLARE__
     WuQMacroCommandTypeEnum::Enum WuQMacroNewCommandSelectionDialog::s_lastCommandTypeSelected = WuQMacroCommandTypeEnum::CUSTOM_OPERATION;
     QByteArray WuQMacroNewCommandSelectionDialog::s_previousDialogGeometry;
+    QByteArray WuQMacroNewCommandSelectionDialog::s_previousSplitterState;
 #endif // __WU_Q_MACRO_NEW_COMMAND_SELECTION_DIALOG_DECLARE__
 
 } // namespace

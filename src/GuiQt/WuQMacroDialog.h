@@ -156,8 +156,6 @@ namespace caret {
         
         QWidget* createHorizontalLine() const;
         
-        QMenu* createMacroGroupMenu();
-        
         QWidget* createMacroRunAndEditingToolButtons();
         
         QPixmap createEditingToolButtonPixmap(const QWidget* widget,

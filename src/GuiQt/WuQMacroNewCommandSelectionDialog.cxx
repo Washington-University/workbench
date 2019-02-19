@@ -33,6 +33,7 @@
 #include <QListWidgetItem>
 #include <QMessageBox>
 #include <QPlainTextEdit>
+#include <QSplitter>
 #include <QStackedWidget>
 #include <QVBoxLayout>
 
@@ -65,7 +66,7 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
 {
     setWindowTitle("Add Macro Command");
     
-    QLabel* commandTypeLabel = new QLabel("Type:");
+    QLabel* commandTypeLabel = new QLabel("Command Type:");
     QLabel* commandsLabel = new QLabel("Commands:");
     QLabel* descriptionLabel = new QLabel("Description:");
     
@@ -77,6 +78,12 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
     m_commandTypeComboBox->setSelectedItem<WuQMacroCommandTypeEnum,  WuQMacroCommandTypeEnum::Enum>(s_lastCommandTypeSelected);
     QObject::connect(m_commandTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &WuQMacroNewCommandSelectionDialog::commandTypeComboBoxActivated);
+    
+    QWidget* typeWidget = new QWidget();
+    QHBoxLayout* typeLayout = new QHBoxLayout(typeWidget);
+    typeLayout->setContentsMargins(0, 0, 0, 0);
+    typeLayout->addWidget(commandTypeLabel, 0);
+    typeLayout->addWidget(m_commandTypeComboBox->getWidget(), 100);
     
     m_customCommandListWidget = new QListWidget();
     QObject::connect(m_customCommandListWidget, &QListWidget::itemClicked,
@@ -90,22 +97,27 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
     m_stackedWidget->addWidget(m_customCommandListWidget);
     m_stackedWidget->addWidget(m_widgetCommandListWidget);
 
-    m_macroDescriptionTextEdit = new QPlainTextEdit();
-    m_macroDescriptionTextEdit->setFixedHeight(100);
+    QWidget* commandsWidget = new QWidget();
+    QHBoxLayout* commandsLayout = new QHBoxLayout(commandsWidget);
+    commandsLayout->setContentsMargins(0, 0, 0, 0);
+    commandsLayout->addWidget(commandsLabel, 0);
+    commandsLayout->addWidget(m_stackedWidget, 100);
     
-    QGridLayout* gridLayout = new QGridLayout();
-    gridLayout->setColumnStretch(0, 0);
-    gridLayout->setColumnStretch(1, 100);
-    int row = 0;
-    gridLayout->addWidget(commandTypeLabel, row, 0);
-    gridLayout->addWidget(m_commandTypeComboBox->getWidget(), row, 1, 1, 2);
-    row++;
-    gridLayout->addWidget(commandsLabel, row, 0);
-    gridLayout->addWidget(m_stackedWidget, row, 1, 1, 2);
-    row++;
-    gridLayout->addWidget(descriptionLabel, row, 0);
-    gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1, 1, 2);
-    row++;
+    m_macroDescriptionTextEdit = new QPlainTextEdit();
+    
+    QWidget* descriptionWidget = new QWidget();
+    QHBoxLayout* descriptionLayout = new QHBoxLayout(descriptionWidget);
+    descriptionLayout->setContentsMargins(0, 0, 0, 0);
+    descriptionLayout->addWidget(descriptionLabel, 0);
+    descriptionLayout->addWidget(m_macroDescriptionTextEdit, 100);
+    
+    m_splitter = new QSplitter();
+    m_splitter->setOrientation(Qt::Vertical);
+    m_splitter->addWidget(commandsWidget);
+    m_splitter->addWidget(descriptionWidget);
+    m_splitter->setStretchFactor(0, 75);
+    m_splitter->setStretchFactor(1, 25);
+    m_splitter->setChildrenCollapsible(false);
     
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok
                                              | QDialogButtonBox::Apply
@@ -114,13 +126,17 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
                      this, &WuQMacroNewCommandSelectionDialog::otherButtonClicked);
 
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
-    dialogLayout->addLayout(gridLayout);
+    dialogLayout->addWidget(typeWidget);
+    dialogLayout->addWidget(m_splitter);
     dialogLayout->addWidget(m_dialogButtonBox);
     
     commandTypeComboBoxActivated();
     
     if ( ! s_previousDialogGeometry.isEmpty()) {
         restoreGeometry(s_previousDialogGeometry);
+    }
+    if ( ! s_previousSplitterState.isEmpty()) {
+        m_splitter->restoreState(s_previousSplitterState);
     }
 }
 
@@ -130,6 +146,7 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
 WuQMacroNewCommandSelectionDialog::~WuQMacroNewCommandSelectionDialog()
 {
     s_previousDialogGeometry = saveGeometry();
+    s_previousSplitterState  = m_splitter->saveState();
     
     for (auto cc : m_customCommands) {
         delete cc;

@@ -60,6 +60,10 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
         
+    signals:
+        void macroCommandHasCompleted(QWidget* window,
+                                      const WuQMacroCommand* command) const;
+        
     private:
         void moveMouseToTabBarTab(QTabBar* tabBar,
                                   const int32_t tabIndex) const;

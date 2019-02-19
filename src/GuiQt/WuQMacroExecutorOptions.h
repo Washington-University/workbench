@@ -65,7 +65,7 @@ namespace caret {
     private:
         void copyHelperWuQMacroExecutorOptions(const WuQMacroExecutorOptions& obj);
 
-        bool m_showMouseMovementFlag = true;
+        bool m_showMouseMovementFlag = false;
         
         bool m_stopOnErrorFlag = true;
         

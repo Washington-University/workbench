@@ -35,6 +35,7 @@ class QWidget;
 
 namespace caret {
     class WuQMacro;
+    class WuQMacroCommand;
     class WuQMacroExecutorOptions;
     class WuQMacroGroup;
 
@@ -113,6 +114,17 @@ namespace caret {
         virtual void macroExecutionEnding(const WuQMacro* macro,
                                           QWidget* window,
                                           const WuQMacroExecutorOptions* executorOptions) = 0;
+        
+        /**
+         * Called by macro executor just after a command has completed execution
+         *
+         * @param window
+         *     Widget for parent
+         * @param command
+         *     Command that has just finished
+         */
+        virtual void macroCommandHasCompleted(QWidget* window,
+                                              const WuQMacroCommand* command) = 0;
         
         // ADD_NEW_METHODS_HERE
 

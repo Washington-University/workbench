@@ -409,6 +409,9 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
             return false;
         }
 
+        emit macroCommandHasCompleted(window,
+                                      mc);
+        
         if (mc->getCommandType() != WuQMacroCommandTypeEnum::MOUSE) {
             if (mc->getDelayInSeconds() > 0.0) {
                 SystemUtilities::sleepSeconds(mc->getDelayInSeconds());

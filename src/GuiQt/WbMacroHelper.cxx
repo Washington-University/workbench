@@ -28,6 +28,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventSceneActive.h"
 #include "EventUserInterfaceUpdate.h"
@@ -232,4 +234,45 @@ WbMacroHelper::macroExecutionEnding(const WuQMacro* /*macro*/,
     MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
     movieRecorder->setRecordingMode(m_savedRecordingMode);
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE);
+}
+/**
+ * Called by macro executor just after a command has completed execution
+ *
+ * @param window
+ *     Widget for parent
+ * @param command
+ *     Command that has just finished
+ */
+void
+WbMacroHelper::macroCommandHasCompleted(QWidget* window,
+                                        const WuQMacroCommand* command)
+{
+    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+    CaretAssert(movieRecorder);
+    
+    if (command->getCommandType() != WuQMacroCommandTypeEnum::MOUSE) {
+        if (command->getDelayInSeconds() > 0.0) {
+            switch (movieRecorder->getRecordingMode()) {
+                case MovieRecorderModeEnum::AUTOMATIC:
+                {
+                    BrainBrowserWindow* bbw = dynamic_cast<BrainBrowserWindow*>(window);
+                    const int32_t numberOfFrames = static_cast<int32_t>(movieRecorder->getFramesRate()
+                                                                        * command->getDelayInSeconds());
+                    for (int32_t i = 0; i < numberOfFrames; i++) {
+                        movieRecorder->setManualRecordingOfImageRequested(true);
+                        if (bbw != NULL) {
+                            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(bbw->getBrowserWindowIndex()).getPointer());
+                        }
+                        else {
+                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                        }
+                        movieRecorder->setManualRecordingOfImageRequested(false);
+                    }
+                }
+                    break;
+                case MovieRecorderModeEnum::MANUAL:
+                    break;
+            }
+        }
+    }
 }
