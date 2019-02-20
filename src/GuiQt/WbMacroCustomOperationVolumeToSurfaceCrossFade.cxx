@@ -28,6 +28,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "DisplayPropertiesSurface.h"
+#include "DisplayPropertiesVolume.h"
 #include "GuiManager.h"
 #include "ModelWholeBrain.h"
 #include "Overlay.h"
@@ -195,6 +196,8 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::performCrossFade(Overlay* volume
 
     DisplayPropertiesSurface* surfaceProperties = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
     CaretAssert(surfaceProperties);
+    DisplayPropertiesVolume* volumeProperties = GuiManager::get()->getBrain()->getDisplayPropertiesVolume();
+    CaretAssert(volumeProperties);
     
     /*
      * Initialize the opacities
@@ -202,7 +205,7 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::performCrossFade(Overlay* volume
 
     for (int iStep = 0; iStep < numberOfSteps; iStep++) {
         surfaceProperties->setOpacity(surfaceOpacity);
-        volumeOverlay->setOpacity(volumeOpacity);
+        volumeProperties->setOpacity(volumeOpacity);
         updateSurfaceColoring();
         updateUserInterface();
         updateGraphics();
@@ -220,7 +223,7 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::performCrossFade(Overlay* volume
     }
     
     surfaceProperties->setOpacity(1.0);
-    volumeOverlay->setOpacity(0.0);
+    volumeProperties->setOpacity(0.0);
 
     updateSurfaceColoring();
     updateUserInterface();
