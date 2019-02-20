@@ -1,5 +1,5 @@
-#ifndef __DISPLAY_PROPERTIES_VOLUME__H_
-#define __DISPLAY_PROPERTIES_VOLUME__H_
+#ifndef __VOLUME_PROPERTIES_EDITOR_DIALOG__H_
+#define __VOLUME_PROPERTIES_EDITOR_DIALOG__H_
 
 /*LICENSE_START*/
 /*
@@ -21,29 +21,24 @@
  */
 /*LICENSE_END*/
 
-#include "DisplayProperties.h"
+#include "EventListenerInterface.h"
+#include "SceneableInterface.h"
+#include "WuQDialogNonModal.h"
+
+class QDoubleSpinBox;
 
 namespace caret {
-
-    class Surface;
-    
-    class DisplayPropertiesVolume : public DisplayProperties {
+    class VolumePropertiesEditorDialog : public WuQDialogNonModal, public EventListenerInterface, public SceneableInterface {
+        Q_OBJECT
         
     public:
-        DisplayPropertiesVolume();
+        VolumePropertiesEditorDialog(QWidget* parent = 0);
         
-        virtual ~DisplayPropertiesVolume();
+        virtual ~VolumePropertiesEditorDialog();
         
-        void reset();
+        void receiveEvent(Event* event);
         
-        void update();
-        
-        float getOpacity() const;
-        
-        void setOpacity(const float opacity);
-        
-        virtual void copyDisplayProperties(const int32_t sourceTabIndex,
-                                           const int32_t targetTabIndex);
+        void updateDialog();
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -51,16 +46,23 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
-    private:
-        DisplayPropertiesVolume(const DisplayPropertiesVolume&);
-
-        DisplayPropertiesVolume& operator=(const DisplayPropertiesVolume&);
+    private slots:
+        void displayPropertyChanged();
         
-        float m_opacity = 1.0f;
+    private:
+        VolumePropertiesEditorDialog(const VolumePropertiesEditorDialog&);
+
+        VolumePropertiesEditorDialog& operator=(const VolumePropertiesEditorDialog&);
+        
+        QDoubleSpinBox* m_opacitySpinBox;
+        
+        // ADD_NEW_MEMBERS_HERE
+
     };
     
-#ifdef __DISPLAY_PROPERTIES_VOLUME_DECLARE__
-#endif // __DISPLAY_PROPERTIES_VOLUME_DECLARE__
+#ifdef __VOLUME_PROPERTIES_EDITOR_DIALOG_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __VOLUME_PROPERTIES_EDITOR_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__DISPLAY_PROPERTIES_VOLUME__H_
+#endif  //__VOLUME_PROPERTIES_EDITOR_DIALOG__H_

@@ -122,6 +122,7 @@
 #include "Surface.h"
 #include "TileTabsConfigurationDialog.h"
 #include "VolumeMappableInterface.h"
+#include "VolumePropertiesEditorDialog.h"
 #include "WbMacroCustomOperationManager.h"
 #include "WbMacroHelper.h"
 #include "WuQMacroManager.h"
@@ -187,6 +188,7 @@ GuiManager::initializeGuiManager()
     m_chartTwoLineSeriesHistoryDialog = NULL;
     this->sceneDialog = NULL;
     m_surfacePropertiesEditorDialog = NULL;
+    m_volumePropertiesEditorDialog = NULL;
     m_tileTabsConfigurationDialog = NULL;
     
     this->cursorManager = new CursorManager();
@@ -1745,6 +1747,30 @@ GuiManager::processShowSurfacePropertiesEditorDialog(BrainBrowserWindow* browser
 }
 
 /**
+ * Show the volume properties editor dialog.
+ * @param browserWindow
+ *    Browser window on which dialog is displayed.
+ */
+void
+GuiManager::processShowVolumePropertiesEditorDialog(BrainBrowserWindow* browserWindow)
+{
+    bool wasCreatedFlag = false;
+    
+    if (this->m_volumePropertiesEditorDialog == NULL) {
+        m_volumePropertiesEditorDialog = new VolumePropertiesEditorDialog(browserWindow);
+        this->addNonModalDialog(m_volumePropertiesEditorDialog);
+        m_volumePropertiesEditorDialog->setSaveWindowPositionForNextTime(true);
+        wasCreatedFlag = true;
+    }
+    m_volumePropertiesEditorDialog->showDialog();
+    
+    if (wasCreatedFlag) {
+        WuQtUtilities::moveWindowToSideOfParent(browserWindow,
+                                                m_volumePropertiesEditorDialog);
+    }
+}
+
+/**
  * @return The action for showing/hiding the scene dialog.
  */
 QAction*
@@ -2554,6 +2580,10 @@ GuiManager::saveToScene(const SceneAttributes* sceneAttributes,
         sceneClass->addClass(m_surfacePropertiesEditorDialog->saveToScene(sceneAttributes,
                                                                           "m_surfacePropertiesEditorDialog"));
     }
+    if (m_volumePropertiesEditorDialog != NULL) {
+        sceneClass->addClass(m_volumePropertiesEditorDialog->saveToScene(sceneAttributes,
+                                                                         "m_volumePropertiesEditorDialog"));
+    }
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
@@ -2785,6 +2815,18 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             }
             m_surfacePropertiesEditorDialog->restoreFromScene(sceneAttributes,
                                                               surfPropClass);
+        }
+        
+        const SceneClass* volPropClass = sceneClass->getClass("m_volumePropertiesEditorDialog");
+        if (volPropClass != NULL) {
+            if (m_volumePropertiesEditorDialog == NULL) {
+                processShowVolumePropertiesEditorDialog(firstBrowserWindow);
+            }
+            else if ( ! m_volumePropertiesEditorDialog->isVisible()) {
+                processShowVolumePropertiesEditorDialog(firstBrowserWindow);
+            }
+            m_volumePropertiesEditorDialog->restoreFromScene(sceneAttributes,
+                                                             volPropClass);
         }
         
         CaretLogFine("Time to restore information/property windows was "

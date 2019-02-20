@@ -25,6 +25,7 @@
 
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
     
@@ -42,6 +43,9 @@ using namespace caret;
 DisplayPropertiesVolume::DisplayPropertiesVolume()
 : DisplayProperties()
 {
+    m_opacity = 1.0f;
+    m_sceneAssistant->add("m_opacity",
+                          &m_opacity);
 }
 
 /**
@@ -58,6 +62,7 @@ DisplayPropertiesVolume::~DisplayPropertiesVolume()
 void 
 DisplayPropertiesVolume::reset()
 {
+    m_opacity = 1.0f;
 }
 
 /**
@@ -84,6 +89,27 @@ DisplayPropertiesVolume::copyDisplayProperties(const int32_t /*sourceTabIndex*/,
 }
 
 /**
+ * @return The overall surface opacity.
+ */
+float
+DisplayPropertiesVolume::getOpacity() const
+{
+    return m_opacity;
+}
+
+/**
+ * Set the overall surface opacity.
+ *
+ * @param opacity
+ *    New value for opacity.
+ */
+void
+DisplayPropertiesVolume::setOpacity(const float opacity)
+{
+    m_opacity = opacity;
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes
@@ -103,6 +129,8 @@ DisplayPropertiesVolume::saveToScene(const SceneAttributes* sceneAttributes,
                                             "DisplayPropertiesVolume",
                                             1);
     
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;
@@ -132,6 +160,9 @@ DisplayPropertiesVolume::restoreFromScene(const SceneAttributes* sceneAttributes
     if (sceneClass == NULL) {
         return;
     }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:

@@ -1235,6 +1235,15 @@ BrainBrowserWindow::processShowSurfacePropertiesDialog()
 }
 
 /**
+ * Show the volume properties editor dialog.
+ */
+void
+BrainBrowserWindow::processShowVolumePropertiesDialog()
+{
+    GuiManager::get()->processShowVolumePropertiesEditorDialog(this);
+}
+
+/**
  * Create actions for this window.
  * NOTE: This is called AFTER the toolbar is created.
  */
@@ -2829,7 +2838,13 @@ BrainBrowserWindow::processSurfaceMenuInformation()
 QMenu* 
 BrainBrowserWindow::createMenuVolume()
 {
-    return NULL;
+    QMenu* menu = new QMenu("Volume", this);
+    
+    menu->addAction("Properties...",
+                    this,
+                    SLOT(processShowVolumePropertiesDialog()));
+    
+    return menu;
 }
 
 /**

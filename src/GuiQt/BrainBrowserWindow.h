@@ -226,6 +226,7 @@ namespace caret {
         void processReportWorkbenchBug();
         
         void processShowSurfacePropertiesDialog();
+        void processShowVolumePropertiesDialog();
         
         void processDevelopGraphicsTiming();
         

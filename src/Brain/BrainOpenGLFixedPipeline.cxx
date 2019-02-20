@@ -3780,6 +3780,12 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
             break;
     }
     
+    /*
+     * Allow blending of volume slices and volume surface outline
+     */
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    applyVolumePropertiesOpacity();
+    
     if (useNewDrawingFlag) {
         BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
         volumeSliceDrawing.draw(this,
@@ -3799,6 +3805,8 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
                                        obliqueMaskType,
                                        viewport);
     }
+    
+    glPopAttrib();
 }
 
 /**
@@ -5293,6 +5301,12 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
             
             if ( ! twoDimSliceDrawVolumeDrawInfo.empty()) {
                 /*
+                 * Allow blending of volume slices and volume surface outline
+                 */
+                glPushAttrib(GL_COLOR_BUFFER_BIT);
+                applyVolumePropertiesOpacity();
+                
+                /*
                  * Check for oblique slice drawing
                  */
                 VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
@@ -5324,6 +5338,8 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
                     }
                         break;
                 }
+                
+                glPopAttrib();
             }
         }
     }
@@ -5414,6 +5430,24 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
                               drawModelSpaceAnnotationsFlag);
             glPopMatrix();
         }
+    }
+}
+
+/**
+ * Apply opacity from the volume properties
+ */
+void
+BrainOpenGLFixedPipeline::applyVolumePropertiesOpacity()
+{
+    const DisplayPropertiesVolume* dpv = m_brain->getDisplayPropertiesVolume();
+    const float opacity = dpv->getOpacity();
+    const bool useBlendingFlag(opacity < 1.0f);
+    
+    if (useBlendingFlag) {
+        glEnable(GL_BLEND);
+        glBlendColor(opacity, opacity, opacity, opacity);
+        glBlendFunc(GL_CONSTANT_ALPHA,
+                    GL_ONE_MINUS_CONSTANT_ALPHA);
     }
 }
 

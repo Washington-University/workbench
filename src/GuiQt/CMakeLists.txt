@@ -189,6 +189,7 @@ ELSE()
         UserInputTileTabsContextMenu.h
         UsernamePasswordWidget.h
         VolumeFileCreateDialog.h
+	VolumePropertiesEditorDialog.h
         VolumeSurfaceOutlineColorOrTabViewController.h
         VolumeSurfaceOutlineSetViewController.h
         VolumeSurfaceOutlineViewController.h
@@ -447,6 +448,7 @@ UserInputTileTabsContextMenu.h
 UsernamePasswordWidget.h
 ViewModeEnum.h
 VolumeFileCreateDialog.h
+VolumePropertiesEditorDialog.h
 VolumeSurfaceOutlineColorOrTabViewController.h
 VolumeSurfaceOutlineSetViewController.h
 VolumeSurfaceOutlineViewController.h
@@ -704,6 +706,7 @@ UserInputTileTabsContextMenu.cxx
 UsernamePasswordWidget.cxx
 ViewModeEnum.cxx
 VolumeFileCreateDialog.cxx
+VolumePropertiesEditorDialog.cxx
 VolumeSurfaceOutlineColorOrTabViewController.cxx
 VolumeSurfaceOutlineSetViewController.cxx
 VolumeSurfaceOutlineViewController.cxx

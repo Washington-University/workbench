@@ -510,6 +510,8 @@ namespace caret {
                                  const float height,
                                  const float rgb[3]);
         
+        void applyVolumePropertiesOpacity();
+        
         /** Index of window */
         int32_t m_windowIndex = -1;
         

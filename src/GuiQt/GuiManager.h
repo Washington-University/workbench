@@ -66,6 +66,7 @@ namespace caret {
     class SelectionManager;
     class SpecFile;
     class SurfacePropertiesEditorDialog;
+    class VolumePropertiesEditorDialog;
     class TileTabsConfigurationDialog;
     
     /**
@@ -148,6 +149,8 @@ namespace caret {
         void processShowSceneDialog(BrainBrowserWindow* browserWindow);
         
         void processShowSurfacePropertiesEditorDialog(BrainBrowserWindow* browserWindow);
+        
+        void processShowVolumePropertiesEditorDialog(BrainBrowserWindow* browserWindow);
         
         void processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
                                             SceneFile* sceneFile,
@@ -282,6 +285,8 @@ namespace caret {
         QAction* m_sceneDialogDisplayAction;
         
         SurfacePropertiesEditorDialog* m_surfacePropertiesEditorDialog;
+        
+        VolumePropertiesEditorDialog* m_volumePropertiesEditorDialog;
         
         WuQWebView* connectomeDatabaseWebView;
         
