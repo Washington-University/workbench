@@ -1291,6 +1291,8 @@ WuQMacroDialog::insertMenuNewMacroSelected()
                 m_treeView->setCurrentIndex(selectedIndex);
                 updateDialogContents();
             }
+
+            WuQMacroManager::instance()->macroWasModified(macro);
         }
     }
 }
@@ -1318,13 +1320,14 @@ WuQMacroDialog::addNewMacroCommand(WuQMacroCommand* command)
         return;
     }
     
+    WuQMacro* macro(NULL);
     switch (getSelectedItemType()) {
         case WuQMacroStandardItemTypeEnum::INVALID:
             CaretAssert(0);
             break;
         case WuQMacroStandardItemTypeEnum::MACRO:
         {
-            WuQMacro* macro = getSelectedMacro();
+            macro = getSelectedMacro();
             CaretAssert(macro);
             macro->insertMacroCommandAtIndex(0,
                                              command);
@@ -1332,7 +1335,7 @@ WuQMacroDialog::addNewMacroCommand(WuQMacroCommand* command)
             break;
         case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
         {
-            WuQMacro* macro = getSelectedMacro();
+            macro = getSelectedMacro();
             CaretAssert(macro);
             const WuQMacroCommand* selectedCommand = getSelectedMacroCommand();
             CaretAssert(selectedCommand);
@@ -1348,6 +1351,10 @@ WuQMacroDialog::addNewMacroCommand(WuQMacroCommand* command)
     m_treeView->setCurrentIndex(selectedIndex);
     
     updateDialogContents();
+    
+    if (macro != NULL) {
+        WuQMacroManager::instance()->macroWasModified(macro);
+    }
 }
 
 /**
