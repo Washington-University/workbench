@@ -2551,9 +2551,21 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                                                              SLOT(wholeBrainSurfaceLeftToolButtonTriggered(bool)));
     WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainLeftSurfaceToolButton);
     wholeBrainLeftSurfaceToolButton->setDefaultAction(leftSurfaceAction);
-    leftSurfaceAction->setObjectName(objectNamePrefix
-                                     + "SelectLeft");
-    macroManager->addMacroSupportToObject(leftSurfaceAction,
+//    leftSurfaceAction->setObjectName(objectNamePrefix
+//                                     + "SelectLeft");
+//    macroManager->addMacroSupportToObject(leftSurfaceAction,
+//                                          "Select all view left surface");
+    
+    /*
+     * Left menu is displayed when tool button is clicked
+     */
+    this->wholeBrainSurfaceLeftMenu = new QMenu(wholeBrainLeftSurfaceToolButton);
+    QObject::connect(this->wholeBrainSurfaceLeftMenu, &QMenu::triggered,
+                     this, &BrainBrowserWindowToolBar::wholeBrainSurfaceLeftMenuTriggered);
+    this->wholeBrainSurfaceLeftMenu->setObjectName(objectNamePrefix
+                                                   + "SelectLeftSurfaceMenu");
+    this->wholeBrainSurfaceLeftMenu->setToolTip("Select all view left surface");
+    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceLeftMenu,
                                           "Select all view left surface");
     
     /*
@@ -2577,9 +2589,21 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                                                              SLOT(wholeBrainSurfaceRightToolButtonTriggered(bool)));
     WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainRightSurfaceToolButton);
     wholeBrainRightSurfaceToolButton->setDefaultAction(rightSurfaceAction);
-    rightSurfaceAction->setObjectName(objectNamePrefix
-                                      + "SelectRight");
-    macroManager->addMacroSupportToObject(rightSurfaceAction,
+//    rightSurfaceAction->setObjectName(objectNamePrefix
+//                                      + "SelectRight");
+//    macroManager->addMacroSupportToObject(rightSurfaceAction,
+//                                          "Select all view right surface");
+    
+    /*
+     * Right menu is displayed when tool button is clicked
+     */
+    this->wholeBrainSurfaceRightMenu = new QMenu(wholeBrainRightSurfaceToolButton);
+    QObject::connect(this->wholeBrainSurfaceRightMenu, &QMenu::triggered,
+                     this, &BrainBrowserWindowToolBar::wholeBrainSurfaceRightMenuTriggered);
+    this->wholeBrainSurfaceRightMenu->setObjectName(objectNamePrefix
+                                                   + "SelectRightSurfaceMenu");
+    this->wholeBrainSurfaceRightMenu->setToolTip("Select all view right surface");
+    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceRightMenu,
                                           "Select all view right surface");
     
     /*
@@ -2603,11 +2627,23 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                                                               SLOT(wholeBrainSurfaceCerebellumToolButtonTriggered(bool)));
     WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainCerebellumSurfaceToolButton);
     wholeBrainCerebellumSurfaceToolButton->setDefaultAction(cerebellumSurfaceAction);
-    cerebellumSurfaceAction->setObjectName(objectNamePrefix
-                                           + "SurfaceCerebellum");
-    macroManager->addMacroSupportToObject(cerebellumSurfaceAction,
-                                          "Select all view cerebellum surface");
+//    cerebellumSurfaceAction->setObjectName(objectNamePrefix
+//                                           + "SurfaceCerebellum");
+//    macroManager->addMacroSupportToObject(cerebellumSurfaceAction,
+//                                          "Select all view cerebellum surface");
 
+    /*
+     * Cerebellum menu is displayed when tool button is clicked
+     */
+    this->wholeBrainSurfaceCerebellumMenu = new QMenu(wholeBrainCerebellumSurfaceToolButton);
+    QObject::connect(this->wholeBrainSurfaceCerebellumMenu, &QMenu::triggered,
+                     this, &BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumMenuTriggered);
+    this->wholeBrainSurfaceCerebellumMenu->setObjectName(objectNamePrefix
+                                                    + "SelectCerebellumSurfaceMenu");
+    this->wholeBrainSurfaceCerebellumMenu->setToolTip("Select all view cerebellum surface");
+    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceCerebellumMenu,
+                                          "Select all view cerebellum surface");
+    
     /*
      * Left/Right separation
      */
@@ -2750,6 +2786,8 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
         this->wholeBrainSurfaceRightCheckBox->setChecked(browserTabContent->isWholeBrainRightEnabled());
         this->wholeBrainSurfaceCerebellumCheckBox->setChecked(browserTabContent->isWholeBrainCerebellumEnabled());
         
+        updateAllWholeBrainSurfaceMenus();
+
         this->wholeBrainSurfaceSeparationLeftRightSpinBox->setValue(browserTabContent->getWholeBrainLeftRightSeparation());
         this->wholeBrainSurfaceSeparationCerebellumSpinBox->setValue(browserTabContent->getWholeBrainCerebellumSeparation());
         
@@ -4025,6 +4063,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int /*indx*
         if (isValid) {
             wholeBrainModel->setSelectedSurfaceType(tabIndex, surfaceType);
             this->updateVolumeIndicesWidget(btc); /* slices may get deselected */
+            this->updateAllWholeBrainSurfaceMenus();
             this->updateGraphicsWindowAndYokedWindows();
         }
     }
@@ -4048,11 +4087,34 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftCheckBoxStateChanged(int /*state
 }
 
 /**
- * Called when the left surface tool button is pressed.
+ * Update all whole brain surface selection menus
  */
-void 
-BrainBrowserWindowToolBar::wholeBrainSurfaceLeftToolButtonTriggered(bool /*checked*/)
+void
+BrainBrowserWindowToolBar::updateAllWholeBrainSurfaceMenus()
 {
+    updateWholeBrainSurfaceMenu(this->wholeBrainSurfaceLeftMenu,
+                                StructureEnum::CORTEX_LEFT);
+    updateWholeBrainSurfaceMenu(this->wholeBrainSurfaceRightMenu,
+                                StructureEnum::CORTEX_RIGHT);
+    updateWholeBrainSurfaceMenu(this->wholeBrainSurfaceCerebellumMenu,
+                                StructureEnum::CEREBELLUM);
+}
+
+/**
+ * Update the menu to contain surface for the given structure
+ *
+ * @param menu
+ *      Menu that is updated
+ * @param structure
+ *      Structure for surfaces
+ */
+void
+BrainBrowserWindowToolBar::updateWholeBrainSurfaceMenu(QMenu* menu,
+                                                       const StructureEnum::Enum structure)
+{
+    CaretAssert(menu);
+    menu->clear();
+    
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
     if (wholeBrainModel == NULL) {
@@ -4061,7 +4123,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftToolButtonTriggered(bool /*check
     const int32_t tabIndex = btc->getTabNumber();
     
     Brain* brain = GuiManager::get()->getBrain();
-    BrainStructure* brainStructure = brain->getBrainStructure(StructureEnum::CORTEX_LEFT, false);
+    BrainStructure* brainStructure = brain->getBrainStructure(structure, false);
     if (brainStructure != NULL) {
         std::vector<Surface*> surfaces;
         brainStructure->getSurfacesOfType(wholeBrainModel->getSelectedSurfaceType(tabIndex),
@@ -4069,34 +4131,57 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftToolButtonTriggered(bool /*check
         
         const int32_t numSurfaces = static_cast<int32_t>(surfaces.size());
         if (numSurfaces > 0) {
-            Surface* selectedSurface = wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_LEFT,
-                                                                                tabIndex);
-            QMenu menu;
-            QActionGroup* actionGroup = new QActionGroup(&menu);
-            actionGroup->setExclusive(true);
+            Surface* selectedSurface = wholeBrainModel->getSelectedSurface(structure,
+                                                                           tabIndex);
             for (int32_t i = 0; i < numSurfaces; i++) {
                 QString name = surfaces[i]->getFileNameNoPath();
-                QAction* action = actionGroup->addAction(name);
+                QAction* action = new QAction(name);
                 action->setCheckable(true);
                 if (surfaces[i] == selectedSurface) {
                     action->setChecked(true);
                 }
-                menu.addAction(action);
-            }
-            QAction* result = menu.exec(QCursor::pos());
-            if (result != NULL) {
-                QList<QAction*> actionList = actionGroup->actions();
-                for (int32_t i = 0; i < numSurfaces; i++) {
-                    if (result == actionList.at(i)) {
-                        wholeBrainModel->setSelectedSurface(StructureEnum::CORTEX_LEFT,
-                                                                 tabIndex, 
-                                                                 surfaces[i]);
-                        this->updateGraphicsWindowAndYokedWindows();
-                        break;
-                    }
-                }
+                action->setData(qVariantFromValue((void*)surfaces[i]));
+                menu->addAction(action);
             }
         }
+    }
+}
+
+/**
+ * Called when the left surface tool button is pressed.
+ */
+void 
+BrainBrowserWindowToolBar::wholeBrainSurfaceLeftToolButtonTriggered(bool /*checked*/)
+{
+    updateAllWholeBrainSurfaceMenus();
+    if ( ! this->wholeBrainSurfaceLeftMenu->isEmpty()) {
+        this->wholeBrainSurfaceLeftMenu->exec(QCursor::pos());
+    }
+}
+
+/**
+ * Called when left surface is selected from menu
+ *
+ * @param action
+ *     Action that was selected
+ */
+void
+BrainBrowserWindowToolBar::wholeBrainSurfaceLeftMenuTriggered(QAction* action)
+{
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
+        return;
+    }
+    
+    if (action != NULL) {
+        QVariant data = action->data();
+        void* p = data.value<void*>();
+        Surface* surface = (Surface*)p;
+        wholeBrainModel->setSelectedSurface(StructureEnum::CORTEX_LEFT,
+                                            btc->getTabNumber(),
+                                            surface);
+        this->updateGraphicsWindowAndYokedWindows();
     }
 }
 
@@ -4106,52 +4191,38 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftToolButtonTriggered(bool /*check
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceRightToolButtonTriggered(bool /*checked*/)
 {
+    updateAllWholeBrainSurfaceMenus();
+    if ( ! this->wholeBrainSurfaceRightMenu->isEmpty()) {
+        this->wholeBrainSurfaceRightMenu->exec(QCursor::pos());
+    }
+}
+
+/**
+ * Called when right surface is selected from menu
+ *
+ * @param action
+ *     Action that was selected
+ */
+void
+BrainBrowserWindowToolBar::wholeBrainSurfaceRightMenuTriggered(QAction* action)
+{
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
     if (wholeBrainModel == NULL) {
         return;
     }
-    const int32_t tabIndex = btc->getTabNumber();
     
-    Brain* brain = GuiManager::get()->getBrain();
-    BrainStructure* brainStructure = brain->getBrainStructure(StructureEnum::CORTEX_RIGHT, false);
-    if (brainStructure != NULL) {
-        std::vector<Surface*> surfaces;
-        brainStructure->getSurfacesOfType(wholeBrainModel->getSelectedSurfaceType(tabIndex),
-                                          surfaces);
-        
-        const int32_t numSurfaces = static_cast<int32_t>(surfaces.size());
-        if (numSurfaces > 0) {
-            Surface* selectedSurface = wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_RIGHT,
-                                                                                tabIndex);
-            QMenu menu;
-            QActionGroup* actionGroup = new QActionGroup(&menu);
-            actionGroup->setExclusive(true);
-            for (int32_t i = 0; i < numSurfaces; i++) {
-                QString name = surfaces[i]->getFileNameNoPath();
-                QAction* action = actionGroup->addAction(name);
-                action->setCheckable(true);
-                if (surfaces[i] == selectedSurface) {
-                    action->setChecked(true);
-                }
-                menu.addAction(action);
-            }
-            QAction* result = menu.exec(QCursor::pos());
-            if (result != NULL) {
-                QList<QAction*> actionList = actionGroup->actions();
-                for (int32_t i = 0; i < numSurfaces; i++) {
-                    if (result == actionList.at(i)) {
-                        wholeBrainModel->setSelectedSurface(StructureEnum::CORTEX_RIGHT,
-                                                                 tabIndex, 
-                                                                 surfaces[i]);
-                        this->updateGraphicsWindowAndYokedWindows();
-                        break;
-                    }
-                }
-            }
-        }
+    if (action != NULL) {
+        QVariant data = action->data();
+        void* p = data.value<void*>();
+        Surface* surface = (Surface*)p;
+        wholeBrainModel->setSelectedSurface(StructureEnum::CORTEX_RIGHT,
+                                            btc->getTabNumber(),
+                                            surface);
+        this->updateGraphicsWindowAndYokedWindows();
     }
 }
+
 
 /** 
  * Called when the cerebellum surface tool button is pressed.
@@ -4159,52 +4230,38 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightToolButtonTriggered(bool /*chec
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumToolButtonTriggered(bool /*checked*/)
 {
+    updateAllWholeBrainSurfaceMenus();
+    if ( ! this->wholeBrainSurfaceCerebellumMenu->isEmpty()) {
+        this->wholeBrainSurfaceCerebellumMenu->exec(QCursor::pos());
+    }
+}
+
+/**
+ * Called when cerebellum surface is selected from menu
+ *
+ * @param action
+ *     Action that was selected
+ */
+void
+BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumMenuTriggered(QAction* action)
+{
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
     if (wholeBrainModel == NULL) {
         return;
     }
-    const int32_t tabIndex = btc->getTabNumber();
     
-    Brain* brain = GuiManager::get()->getBrain();
-    BrainStructure* brainStructure = brain->getBrainStructure(StructureEnum::CEREBELLUM, false);
-    if (brainStructure != NULL) {
-        std::vector<Surface*> surfaces;
-        brainStructure->getSurfacesOfType(wholeBrainModel->getSelectedSurfaceType(tabIndex),
-                                          surfaces);
-        
-        const int32_t numSurfaces = static_cast<int32_t>(surfaces.size());
-        if (numSurfaces > 0) {
-            Surface* selectedSurface = wholeBrainModel->getSelectedSurface(StructureEnum::CEREBELLUM,
-                                                                                tabIndex);
-            QMenu menu;
-            QActionGroup* actionGroup = new QActionGroup(&menu);
-            actionGroup->setExclusive(true);
-            for (int32_t i = 0; i < numSurfaces; i++) {
-                QString name = surfaces[i]->getFileNameNoPath();
-                QAction* action = actionGroup->addAction(name);
-                action->setCheckable(true);
-                if (surfaces[i] == selectedSurface) {
-                    action->setChecked(true);
-                }
-                menu.addAction(action);
-            }
-            QAction* result = menu.exec(QCursor::pos());
-            if (result != NULL) {
-                QList<QAction*> actionList = actionGroup->actions();
-                for (int32_t i = 0; i < numSurfaces; i++) {
-                    if (result == actionList.at(i)) {
-                        wholeBrainModel->setSelectedSurface(StructureEnum::CEREBELLUM,
-                                                                 tabIndex, 
-                                                                 surfaces[i]);
-                        this->updateGraphicsWindowAndYokedWindows();
-                        break;
-                    }
-                }
-            }
-        }
+    if (action != NULL) {
+        QVariant data = action->data();
+        void* p = data.value<void*>();
+        Surface* surface = (Surface*)p;
+        wholeBrainModel->setSelectedSurface(StructureEnum::CEREBELLUM,
+                                            btc->getTabNumber(),
+                                            surface);
+        this->updateGraphicsWindowAndYokedWindows();
     }
 }
+
 
 /**
  * Called when whole brain surface right checkbox is toggled.

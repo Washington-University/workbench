@@ -350,8 +350,14 @@ namespace caret {
         QCheckBox*      wholeBrainSurfaceLeftCheckBox;
         QCheckBox*      wholeBrainSurfaceRightCheckBox;
         QCheckBox*      wholeBrainSurfaceCerebellumCheckBox;
+        QMenu*          wholeBrainSurfaceLeftMenu;
+        QMenu*          wholeBrainSurfaceRightMenu;
+        QMenu*          wholeBrainSurfaceCerebellumMenu;
         QDoubleSpinBox* wholeBrainSurfaceSeparationLeftRightSpinBox;
         QDoubleSpinBox* wholeBrainSurfaceSeparationCerebellumSpinBox;
+        void updateAllWholeBrainSurfaceMenus();
+        void updateWholeBrainSurfaceMenu(QMenu* menu,
+                                         const StructureEnum::Enum structure);
 
     private slots:
         void wholeBrainSurfaceTypeComboBoxIndexChanged(int indx);
@@ -363,7 +369,11 @@ namespace caret {
         void wholeBrainSurfaceLeftToolButtonTriggered(bool checked);
         void wholeBrainSurfaceRightToolButtonTriggered(bool checked);
         void wholeBrainSurfaceCerebellumToolButtonTriggered(bool checked);
-    
+        
+        void wholeBrainSurfaceLeftMenuTriggered(QAction*);
+        void wholeBrainSurfaceRightMenuTriggered(QAction*);
+        void wholeBrainSurfaceCerebellumMenuTriggered(QAction*);
+
     private:
         StructureSurfaceSelectionControl* surfaceSurfaceSelectionControl;
         
