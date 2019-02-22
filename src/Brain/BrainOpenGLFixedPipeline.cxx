@@ -5203,6 +5203,29 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
                                                                     tabNumberIndex);
     Surface* rightSurface = wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_RIGHT,
                                                                      tabNumberIndex);
+    
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_ALL_VIEW_SURFACE_MATCH_MODE)) {
+        /* 2/22/19 ALL SURFACES SAME VIEWPORT */
+        /*
+         * Use the primary anatomical surface for sizing any surface in the same
+         * structure so that size of viewport is the same.  Otherwise, the viewport
+         * is scaled uniquely for each structure
+         */
+        BrainStructure* leftStructure = m_brain->getBrainStructure(StructureEnum::CORTEX_LEFT, false);
+        if (leftStructure != NULL) {
+            Surface* leftPrimaryAnat = leftStructure->getPrimaryAnatomicalSurface();
+            if (leftPrimaryAnat != NULL) {
+                leftSurface = leftPrimaryAnat;
+            }
+        }
+        BrainStructure* rightStructure = m_brain->getBrainStructure(StructureEnum::CORTEX_RIGHT, false);
+        Surface* rightPrimaryAnat = rightStructure->getPrimaryAnatomicalSurface();
+        if (rightPrimaryAnat != NULL) {
+            rightSurface = rightPrimaryAnat;
+        }
+        /* 2/22/19 ALL SURFACES SAME VIEWPORT */
+    }
+
     /*
      * Center using volume, if it is available
      * Otherwise, see if surface is available, but a surface is offset
@@ -5350,6 +5373,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
     /*
      * Draw surfaces last so that opacity works.
      */
+    std::set<StructureEnum::Enum> uniqueStructuresToDraw;
     std::vector<Surface*> surfacesToDraw;
     const int32_t numberOfBrainStructures = m_brain->getNumberOfBrainStructures();
     for (int32_t i = 0; i < numberOfBrainStructures; i++) {
@@ -5375,8 +5399,19 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
             }
             
             if (drawIt) {
+                uniqueStructuresToDraw.insert(structure);
                 surfacesToDraw.push_back(surface);
             }
+        }
+    }
+
+    /*
+     * When only one surface structure is displayed, disable offset of surfaces
+     */
+    bool allowLeftRightSeparationFlag(true);
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_ALL_VIEW_SURFACE_MATCH_MODE)) {
+        if (uniqueStructuresToDraw.size() == 1) {
+            allowLeftRightSeparationFlag = false;
         }
     }
 
@@ -5389,27 +5424,29 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
         float dx = 0.0;
         float dy = 0.0;
         float dz = 0.0;
-        switch (surface->getStructure()) {
-            case StructureEnum::CORTEX_LEFT:
-                dx = -browserTabContent->getWholeBrainLeftRightSeparation();
-                if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
-                    && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
-                    dx -= surface->getBoundingBox()->getMaxX();
-                }
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                dx = browserTabContent->getWholeBrainLeftRightSeparation();
-                if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
-                    && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
-                    dx -= surface->getBoundingBox()->getMinX();
-                }
-                break;
-            case StructureEnum::CEREBELLUM:
-                dz = browserTabContent->getWholeBrainCerebellumSeparation();
-                break;
-            default:
-                CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");
-                break;
+        if (allowLeftRightSeparationFlag) {
+            switch (surface->getStructure()) {
+                case StructureEnum::CORTEX_LEFT:
+                    dx = -browserTabContent->getWholeBrainLeftRightSeparation();
+                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
+                        dx -= surface->getBoundingBox()->getMaxX();
+                    }
+                    break;
+                case StructureEnum::CORTEX_RIGHT:
+                    dx = browserTabContent->getWholeBrainLeftRightSeparation();
+                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
+                        dx -= surface->getBoundingBox()->getMinX();
+                    }
+                    break;
+                case StructureEnum::CEREBELLUM:
+                    dz = browserTabContent->getWholeBrainCerebellumSeparation();
+                    break;
+                default:
+                    CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");
+                    break;
+            }
         }
         
         if (surface != NULL) {

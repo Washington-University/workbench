@@ -1526,3 +1526,25 @@ BrainStructure::restoreFromScene(const SceneAttributes* sceneAttributes,
     
 }
 
+/**
+ * Match surface sizes to the primary anatomical surface
+ */
+void
+BrainStructure::matchSurfacesToPrimaryAnatomical()
+{
+    const Surface* primaryAnatomical = getPrimaryAnatomicalSurface();
+    if (primaryAnatomical == NULL) {
+        return;
+    }
+    
+    for (auto m : m_surfaces) {
+        if (m != primaryAnatomical) {
+            if (m->getSurfaceType() == SurfaceTypeEnum::SPHERICAL) {
+                m->matchSphereToSurface(primaryAnatomical);
+            }
+            else {
+                m->matchSurfaceBoundingBox(primaryAnatomical);
+            }
+        }
+    }
+}

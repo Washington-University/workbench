@@ -147,6 +147,10 @@ namespace caret {
         
         void matchSurfaceBoundingBox(const SurfaceFile* surfaceFile);
         
+        void matchSphereToSurface(const SurfaceFile* surfaceFile);
+        
+        void getCenterOfGravity(float cogOut[3]) const;
+        
         void applyMatrix(const Matrix4x4& matrix);
         
         void getNodesSpacingStatistics(DescriptiveStatistics& statsOut) const;

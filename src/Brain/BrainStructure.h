@@ -166,6 +166,8 @@ namespace caret {
         
         void initializeOverlays();
         
+        void matchSurfacesToPrimaryAnatomical();
+        
     private:
         const Surface* getPrimaryAnatomicalSurfacePrivate() const;
         

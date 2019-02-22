@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
 #include <limits>
 #include <set>
 
@@ -929,8 +930,121 @@ SurfaceFile::getBoundingBox() const
 }
 
 /**
+ * Match a sphere to the given surface while retaining the spherical
+ * shape.  The center of gravity of the sphere will be the same as the center of gravity of
+ * the match surface and the radius of the sphere will be the
+ * distance furthest from the origin in the match surface.
+ *
+ * @param matchSurfaceFile
+ *     Match to this surface file.
+ */
+void
+SurfaceFile::matchSphereToSurface(const SurfaceFile* matchSurfaceFile)
+{
+    CaretAssert(matchSurfaceFile);
+    
+    const float oldRadius = getSphericalRadius();
+    if (oldRadius <= 0.0) {
+        CaretLogWarning("Match sphere has invalid radius");
+        return;
+    }
+
+    /*
+     * Find match surface vertex distance furthest from origin (0,0,0)
+     * This value will become the radius of the sphere
+     */
+    CaretPointer<TopologyHelper> matchTH = matchSurfaceFile->getTopologyHelper();
+    const int32_t numMatchVertices = matchSurfaceFile->getNumberOfNodes();
+    float newRadius = 0.0;
+    int32_t furthestVertex = -1;
+    for (int32_t i = 0; i < numMatchVertices; i++) {
+        if (matchTH->getNodeHasNeighbors(i)) {
+            const float* xyz = matchSurfaceFile->getCoordinate(i);
+            const float dist = ((xyz[0]*xyz[0])
+                                 + (xyz[1]*xyz[1])
+                                + (xyz[2]*xyz[2]));
+            if (dist > newRadius) {
+                newRadius = dist;
+                furthestVertex = i;
+            }
+        }
+    }
+    newRadius = std::sqrt(newRadius);
+//    std::cout << "Structure: " << StructureEnum::toGuiName(getStructure()) << std::endl;
+//    std::cout << "   Old radius: " << oldRadius << " New radius: " << newRadius << std::endl;
+//    std::cout << "   Match furthest vertex: " << furthestVertex << std::endl;
+    
+    float myCOG[3];
+    getCenterOfGravity(myCOG);
+    
+    float matchCOG[3];
+    matchSurfaceFile->getCenterOfGravity(matchCOG);
+    
+    
+    Matrix4x4 matrix;
+    
+    /*
+     * Scale to new radius
+     */
+    const float scale = newRadius / oldRadius;
+    matrix.scale(scale,
+                 scale,
+                 scale);
+
+//    std::cout << "   Sphere COG: " << myCOG[0] << ", " << myCOG[1] << ", " << myCOG[2] << std::endl;
+//    std::cout << "   Move to COG: " << matchCOG[0] << ", " << matchCOG[1] << ", " << matchCOG[2] << std::endl;
+    /*
+     * Translate to match surface center-of-gravity
+     */
+// DO NOT as is offsets sphere posterior of anatomical as anatomical COG-Y is about -20
+//    matrix.translate(matchCOG[0],
+//                     matchCOG[1],
+//                     matchCOG[2]);
+    
+
+    applyMatrix(matrix);
+}
+
+/**
+ * Get the center of gravity (average coordinate) of the surface.
+ *
+ * param cogOut
+ *     Output containing center of gravity.
+ */
+void
+SurfaceFile::getCenterOfGravity(float cogOut[3]) const
+{
+    cogOut[0] = 0.0;
+    cogOut[1] = 0.0;
+    cogOut[2] = 0.0;
+    
+    const int32_t numberOfNodes = getNumberOfNodes();
+    CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+    
+    double numberOfNodesWithNeighbors = 0.0;
+    
+    double cx(0.0), cy(0.0), cz(0.0);
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        if (th->getNodeHasNeighbors(i)) {
+            const float* xyz = getCoordinate(i);
+            
+            cx += xyz[0];
+            cy += xyz[1];
+            cz += xyz[2];
+            numberOfNodesWithNeighbors += 1.0;
+        }
+    }
+    
+    if (numberOfNodesWithNeighbors > 0.0) {
+        cogOut[0] = cx / numberOfNodesWithNeighbors;
+        cogOut[1] = cy / numberOfNodesWithNeighbors;
+        cogOut[2] = cz / numberOfNodesWithNeighbors;
+    }
+}
+
+/**
  * Match this surface to the given surface.  That is, after this
- * method is called, this surface and the given surface will 
+ * method is called, this surface and the given surface will
  * fit within the same bounding box.
  * @param surfaceFile
  *     Match to this surface file.
@@ -949,18 +1063,18 @@ SurfaceFile::matchSurfaceBoundingBox(const SurfaceFile* surfaceFile)
      * Translate min x/y/z to origin
      */
     matrix.translate(-myBoundingBox->getMinX(),
-                           -myBoundingBox->getMinY(),
-                           -myBoundingBox->getMinZ());
+                     -myBoundingBox->getMinY(),
+                     -myBoundingBox->getMinZ());
     
     /*
      * Scale to match size of match surface
      */
     float scaleX = (targetBoundingBox->getDifferenceX()
-                          / myBoundingBox->getDifferenceX());
+                    / myBoundingBox->getDifferenceX());
     float scaleY = (targetBoundingBox->getDifferenceY()
-                          / myBoundingBox->getDifferenceY());
+                    / myBoundingBox->getDifferenceY());
     float scaleZ = (targetBoundingBox->getDifferenceZ()
-                          / myBoundingBox->getDifferenceZ());
+                    / myBoundingBox->getDifferenceZ());
     
     if (getSurfaceType() == SurfaceTypeEnum::FLAT) {
         /*
@@ -976,16 +1090,16 @@ SurfaceFile::matchSurfaceBoundingBox(const SurfaceFile* surfaceFile)
     }
     
     matrix.scale(scaleX,
-                      scaleY,
-                      scaleZ);
+                 scaleY,
+                 scaleZ);
     
     /*
      * Translate to min x/y/z of match surface so that
      * the two surfaces are now within the same "shoebox".
      */
     matrix.translate(targetBoundingBox->getMinX(),
-                              targetBoundingBox->getMinY(),
-                              targetBoundingBox->getMinZ());
+                     targetBoundingBox->getMinY(),
+                     targetBoundingBox->getMinZ());
     
     applyMatrix(matrix);
 }

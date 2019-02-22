@@ -1642,6 +1642,7 @@ BrainBrowserWindow::createMenuDevelop()
             }
 
             QAction* action = menu->addAction(DeveloperFlagsEnum::toGuiName(flag));
+            action->setMenuRole(QAction::NoRole); // Menu item containing "Setup" is moved by Qt, see QTBUG-43588
             action->setCheckable(itemCheckableFlag);
             action->setData(static_cast<int>(DeveloperFlagsEnum::toIntegerCode(flag)));
             m_developerFlagsActionGroup->addAction(action);
@@ -1718,6 +1719,19 @@ BrainBrowserWindow::developerMenuFlagTriggered(QAction* action)
             if ( ! dirName.isEmpty()) {
                 SceneFileXmlStreamFormatTester::testReadingAndWritingInDirectory(dirName,
                                                                                  false);
+            }
+        }
+        else if (enumValue == DeveloperFlagsEnum::DEVELOPER_FLAG_ALL_VIEW_SURFACE_MATCH_MODE) {
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_ALL_VIEW_SURFACE_MATCH_MODE)) {
+                Brain* brain = GuiManager::get()->getBrain();
+                const int32_t numBrainStructures = brain->getNumberOfBrainStructures();
+                if (numBrainStructures <= 0) {
+                    return;
+                }
+                for (int32_t i = 0; i < numBrainStructures; i++) {
+                    BrainStructure* bs = brain->getBrainStructure(i);
+                    bs->matchSurfacesToPrimaryAnatomical();
+                }
             }
         }
         
