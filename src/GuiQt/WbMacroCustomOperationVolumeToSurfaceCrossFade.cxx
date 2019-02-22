@@ -206,6 +206,7 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::performCrossFade(Overlay* volume
     for (int iStep = 0; iStep < numberOfSteps; iStep++) {
         surfaceProperties->setOpacity(surfaceOpacity);
         volumeProperties->setOpacity(volumeOpacity);
+        volumeOverlay->setOpacity(volumeOpacity);
         updateSurfaceColoring();
         updateUserInterface();
         updateGraphics();
@@ -224,6 +225,7 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::performCrossFade(Overlay* volume
     
     surfaceProperties->setOpacity(1.0);
     volumeProperties->setOpacity(0.0);
+    volumeOverlay->setOpacity(0.0);
 
     updateSurfaceColoring();
     updateUserInterface();
