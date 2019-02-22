@@ -583,6 +583,8 @@ FtglFontTextRenderer::drawUnderline(const double lineStartX,
     /*
      * Need to enable anti-aliasing for smooth lines
      */
+    glPushAttrib(GL_COLOR_BUFFER_BIT
+                 | GL_ENABLE_BIT);
     glEnable(GL_LINE_SMOOTH);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -600,9 +602,7 @@ FtglFontTextRenderer::drawUnderline(const double lineStartX,
                                       foregroundRgba,
                                       GraphicsPrimitive::LineWidthType::PIXELS,
                                       underlineThickness);
-    
-    glDisable(GL_LINE_SMOOTH);
-    glDisable(GL_BLEND);
+    glPopAttrib();
 }
 
 /**
@@ -635,6 +635,8 @@ FtglFontTextRenderer::drawOutline(const double minX,
     /*
      * Need to enable anti-aliasing for smooth lines
      */
+    glPushAttrib(GL_COLOR_BUFFER_BIT
+                 | GL_ENABLE_BIT);
     glEnable(GL_LINE_SMOOTH);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -650,9 +652,7 @@ FtglFontTextRenderer::drawOutline(const double minX,
     GraphicsShape::drawBoxOutlineByteColor(bottomLeft, bottomRight, topRight, topLeft,
                                            foregroundRgba,
                                            GraphicsPrimitive::LineWidthType::PIXELS, outlineThickness);
-    
-    glDisable(GL_LINE_SMOOTH);
-    glDisable(GL_BLEND);
+    glPopAttrib();
 }
 
 /**
@@ -682,6 +682,8 @@ FtglFontTextRenderer::drawOutline3D(float bottomLeft[3],
     /*
      * Need to enable anti-aliasing for smooth lines
      */
+    glPushAttrib(GL_COLOR_BUFFER_BIT
+                 | GL_ENABLE_BIT);
     glEnable(GL_LINE_SMOOTH);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -690,9 +692,7 @@ FtglFontTextRenderer::drawOutline3D(float bottomLeft[3],
     GraphicsShape::drawBoxOutlineByteColor(bottomLeft, bottomRight, topRight, topLeft,
                                            foregroundRgba,
                                            GraphicsPrimitive::LineWidthType::PIXELS, outlineThickness);
-    
-    glDisable(GL_LINE_SMOOTH);
-    glDisable(GL_BLEND);
+    glPopAttrib();
 }
 
 /**

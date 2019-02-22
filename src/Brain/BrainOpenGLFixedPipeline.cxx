@@ -1811,6 +1811,8 @@ BrainOpenGLFixedPipeline::disableLighting()
 void 
 BrainOpenGLFixedPipeline::enableLineAntiAliasing()
 {
+    glPushAttrib(GL_ENABLE_BIT
+                 | GL_COLOR_BUFFER_BIT);
     /*
      * If multi-sampling is enabled, it handle anti-aliasing
      */
@@ -1839,8 +1841,9 @@ BrainOpenGLFixedPipeline::disableLineAntiAliasing()
         return;
     }
     
-    glDisable(GL_LINE_SMOOTH);
-    glDisable(GL_BLEND);
+    glPopAttrib();
+//    glDisable(GL_LINE_SMOOTH);
+//    glDisable(GL_BLEND);
 }
 
 /**
@@ -1918,6 +1921,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                       const float* nodeColoringRGBA,
                                       const bool drawAnnotationsInModelSpaceFlag)
 {
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+
     const DisplayPropertiesSurface* dps = m_brain->getDisplayPropertiesSurface();
     
     glMatrixMode(GL_MODELVIEW);
@@ -2111,6 +2116,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
     this->disableLighting();
     
     this->disableClippingPlanes();
+    
+    glPopAttrib();
 }
 
 /**
