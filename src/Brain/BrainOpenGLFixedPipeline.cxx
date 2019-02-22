@@ -1834,6 +1834,8 @@ BrainOpenGLFixedPipeline::enableLineAntiAliasing()
 void 
 BrainOpenGLFixedPipeline::disableLineAntiAliasing()
 {
+    glPopAttrib();
+    
     /*
      * If multi-sampling is enabled, it handle anti-aliasing
      */
@@ -1841,7 +1843,6 @@ BrainOpenGLFixedPipeline::disableLineAntiAliasing()
         return;
     }
     
-    glPopAttrib();
 //    glDisable(GL_LINE_SMOOTH);
 //    glDisable(GL_BLEND);
 }

@@ -2074,6 +2074,17 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
     const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
     const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
+
+    /*
+     * Flat shading voxels not interpolated
+     */
+    glShadeModel(GL_FLAT);
+    
+    CaretAssert(plane.isValidPlane());
+    if (plane.isValidPlane() == false) {
+        return;
+    }
+    
     /*
      * Enable alpha blending so voxels that are not drawn from higher layers
      * allow voxels from lower layers to be seen.
@@ -2086,16 +2097,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
     if (allowBlendingFlag) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-
-    /*
-     * Flat shading voxels not interpolated
-     */
-    glShadeModel(GL_FLAT);
-    
-    CaretAssert(plane.isValidPlane());
-    if (plane.isValidPlane() == false) {
-        return;
     }
     
     /*
