@@ -1537,13 +1537,49 @@ BrainStructure::matchSurfacesToPrimaryAnatomical()
         return;
     }
     
-    for (auto m : m_surfaces) {
-        if (m != primaryAnatomical) {
-            if (m->getSurfaceType() == SurfaceTypeEnum::SPHERICAL) {
-                m->matchSphereToSurface(primaryAnatomical);
+    for (auto s : m_surfaces) {
+        if (s != primaryAnatomical) {
+            bool sphereMatchFlag(false);
+            bool matchFlag(false);
+            switch (s->getSurfaceType()) {
+                case SurfaceTypeEnum::ANATOMICAL:
+                    break;
+                case SurfaceTypeEnum::ELLIPSOID:
+                    break;
+                case SurfaceTypeEnum::FLAT:
+                    matchFlag = true;
+                    break;
+                case SurfaceTypeEnum::HULL:
+                    break;
+                case SurfaceTypeEnum::INFLATED:
+                    matchFlag = true;
+                    break;
+                case SurfaceTypeEnum::RECONSTRUCTION:
+                    break;
+                case SurfaceTypeEnum::SEMI_SPHERICAL:
+                    break;
+                case SurfaceTypeEnum::SPHERICAL:
+                    sphereMatchFlag = true;
+                    break;
+                case SurfaceTypeEnum::UNKNOWN:
+                    break;
+                case SurfaceTypeEnum::VERY_INFLATED:
+                    matchFlag = true;
+                    break;
             }
-            else {
-                m->matchSurfaceBoundingBox(primaryAnatomical);
+            
+            const bool modStatus(s->isModified());
+            if (sphereMatchFlag) {
+                s->matchSphereToSurface(primaryAnatomical);
+                if ( ! modStatus) {
+                    s->clearModified();
+                }
+            }
+            else if (matchFlag) {
+                s->matchSurfaceBoundingBox(primaryAnatomical);
+                if ( ! modStatus) {
+                    s->clearModified();
+                }
             }
         }
     }
