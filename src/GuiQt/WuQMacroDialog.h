@@ -181,6 +181,8 @@ namespace caret {
         
         QWidget* m_commandWidget;
         
+        QWidget* m_emptyWidget;
+        
         QStackedWidget* m_stackedWidget;
         
         QDialogButtonBox* m_dialogButtonBox;

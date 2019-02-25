@@ -117,10 +117,12 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     QWidget* macroSelectionWidget = createMacroAndCommandSelectionWidget();
     m_macroWidget = createMacroDisplayWidget();
     m_commandWidget = createCommandDisplayWidget();
+    m_emptyWidget = new QWidget();
     m_stackedWidget = new QStackedWidget();
     m_stackedWidget->addWidget(m_macroWidget);
     m_stackedWidget->addWidget(m_commandWidget);
-    m_stackedWidget->setCurrentWidget(m_macroWidget);
+    m_stackedWidget->addWidget(m_emptyWidget);
+    m_stackedWidget->setCurrentWidget(m_emptyWidget);
     QScrollArea* stackedScrollArea = new QScrollArea();
     stackedScrollArea->setWidget(m_stackedWidget);
     stackedScrollArea->setWidgetResizable(true);
@@ -602,6 +604,8 @@ WuQMacroDialog::updateDialogContents()
         m_macroGroupComboBox->setCurrentIndex(selectedIndex);
     }
     
+    m_macroGroupToolButton->setEnabled(m_macroGroupComboBox->count() > 0);
+    
     const QString windowText = m_runOptionsWindowComboBox->currentText();
     m_runOptionsWindowComboBox->clear();
     const std::vector<QString> windowIDs = WuQMacroManager::instance()->getMainWindowIdentifiers();
@@ -662,9 +666,13 @@ WuQMacroDialog::treeViewItemClicked(const QModelIndex& modelIndex)
             }
         }
         else {
+            m_stackedWidget->setCurrentWidget(m_emptyWidget);
             CaretAssertMessage(0,
                                ("Invalid StandardItemModel type=" + AString::number(selectedItem->type())));
         }
+    }
+    else {
+        m_stackedWidget->setCurrentWidget(m_emptyWidget);
     }
     
     updateMacroWidget(macro);
@@ -703,6 +711,7 @@ WuQMacroDialog::macroGroupComboBoxActivated(int)
     }
     else {
         m_treeView->setModel(new QStandardItemModel());
+        treeViewItemClicked(QModelIndex());
     }
 }
 
