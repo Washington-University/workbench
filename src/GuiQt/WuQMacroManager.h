@@ -169,7 +169,12 @@ namespace caret {
         void updateNonModalDialogs();
         
         void macroCommandCompletedExecution(QWidget* window,
-                                            const WuQMacroCommand* command);
+                                            const WuQMacroCommand* command,
+                                            bool& allowDelayFlagOut);
+        
+        void macroCommandStartingExecution(QWidget* window,
+                                           const WuQMacroCommand* command,
+                                           bool& allowDelayFlagOut);
         
     private:
         WuQMacroManager(const QString& name,

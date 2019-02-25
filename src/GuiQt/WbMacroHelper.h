@@ -65,11 +65,21 @@ namespace caret {
                                           const WuQMacroExecutorOptions* executorOptions) override;
         
         virtual void macroCommandHasCompleted(QWidget* window,
-                                              const WuQMacroCommand* command);
+                                              const WuQMacroCommand* command,
+                                              bool& allowDelayFlagOut) override;
+        
+        virtual void macroCommandAboutToStart(QWidget* window,
+                                              const WuQMacroCommand* command,
+                                              bool& allowDelayFlagOut) override;
         
         // ADD_NEW_METHODS_HERE
         
     private:
+        void
+        recordImagesForDelay(QWidget* window,
+                             const WuQMacroCommand* command,
+                             bool& allowDelayFlagOut) const;
+
         MovieRecorderModeEnum::Enum m_savedRecordingMode = MovieRecorderModeEnum::MANUAL;
         
         // ADD_NEW_MEMBERS_HERE

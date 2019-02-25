@@ -505,12 +505,12 @@ WuQMacroDialog::createCommandDisplayWidget()
     m_commandDelaySpinBox->setMaximum(1000.0);
     m_commandDelaySpinBox->setSingleStep(1.0);
     m_commandDelaySpinBox->setDecimals(1);
-    m_commandDelaySpinBox->setToolTip("Delay, in seconds, after running command");
+    m_commandDelaySpinBox->setToolTip("Delay, in seconds, before running command");
     m_commandDelaySpinBox->setSizePolicy(QSizePolicy::Fixed,
                                          m_commandDelaySpinBox->sizePolicy().verticalPolicy());
     QObject::connect(m_commandDelaySpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                      this, &WuQMacroDialog::macroCommandDelaySpinBoxValueChanged);
-    QLabel* delayTwoLabel = new QLabel("seconds after command");
+    QLabel* delayTwoLabel = new QLabel("seconds before command");
     
     QLabel* descriptionLabel = new QLabel("Description:");
     m_commandDescriptionTextEdit = new QPlainTextEdit();

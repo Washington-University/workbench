@@ -368,6 +368,14 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
             }
         }
         
+        bool allowDelayBeforeCommandFlag(false);
+        emit macroCommandAboutToStart(window,
+                                      mc,
+                                      allowDelayBeforeCommandFlag);
+        if (allowDelayBeforeCommandFlag) {
+            performCommandDelay(mc);
+        }
+        
         QString commandErrorMessage;
         bool successFlag(false);
         switch (mc->getCommandType()) {
@@ -409,19 +417,34 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
             return false;
         }
 
+        bool allowDelayAfterCommandFlag(false);
         emit macroCommandHasCompleted(window,
-                                      mc);
-        
-        if (mc->getCommandType() != WuQMacroCommandTypeEnum::MOUSE) {
-            if (mc->getDelayInSeconds() > 0.0) {
-                SystemUtilities::sleepSeconds(mc->getDelayInSeconds());
-            }
+                                      mc,
+                                      allowDelayAfterCommandFlag);
+        if (allowDelayAfterCommandFlag) {
+            performCommandDelay(mc);
         }
         
         QGuiApplication::processEvents();
     }
     
     return (errorMessageOut.isEmpty());
+}
+
+/**
+ * Perform delay for the given macro command
+ *
+ * @param mc
+ *     The macro command
+ */
+void
+WuQMacroExecutor::performCommandDelay(const WuQMacroCommand* mc) const
+{
+    if (mc->getCommandType() != WuQMacroCommandTypeEnum::MOUSE) {
+        if (mc->getDelayInSeconds() > 0.0) {
+            SystemUtilities::sleepSeconds(mc->getDelayInSeconds());
+        }
+    }
 }
 
 /**

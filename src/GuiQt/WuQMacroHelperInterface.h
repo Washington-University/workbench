@@ -122,9 +122,26 @@ namespace caret {
          *     Widget for parent
          * @param command
          *     Command that has just finished
+         * @param allowDelayFlagOut
+         *     Output indicating if delay after command is enabled
          */
         virtual void macroCommandHasCompleted(QWidget* window,
-                                              const WuQMacroCommand* command) = 0;
+                                              const WuQMacroCommand* command,
+                                              bool& allowDelayFlagOut) = 0;
+        
+        /**
+         * Called by macro executor just before starting execution of a command
+         *
+         * @param window
+         *     Widget for parent
+         * @param command
+         *     Command that is about to start
+         * @param allowDelayFlagOut
+         *     Output indicating if delay before command is enabled
+         */
+        virtual void macroCommandAboutToStart(QWidget* window,
+                                              const WuQMacroCommand* command,
+                                              bool& allowDelayFlagOut) = 0;
         
         // ADD_NEW_METHODS_HERE
 

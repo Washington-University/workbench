@@ -242,10 +242,37 @@ WbMacroHelper::macroExecutionEnding(const WuQMacro* /*macro*/,
  *     Widget for parent
  * @param command
  *     Command that has just finished
+ * @param allowDelayFlagOut
+ *     Output indicating if delay after command is enabled
  */
 void
 WbMacroHelper::macroCommandHasCompleted(QWidget* window,
-                                        const WuQMacroCommand* command)
+                                        const WuQMacroCommand* command,
+                                        bool& allowDelayFlagOut)
+{
+    const bool doDelayAfterCommandFlag(false);
+    allowDelayFlagOut = doDelayAfterCommandFlag;
+    if (doDelayAfterCommandFlag) {
+        recordImagesForDelay(window,
+                             command,
+                             allowDelayFlagOut);
+    }
+}
+
+/**
+ * If movie recording is on, capture images for the command's delay time
+ *
+ * @param window
+ *     Widget for parent
+ * @param command
+ *     The command
+ * @param delay
+ *     The delay in seconds
+ */
+void
+WbMacroHelper::recordImagesForDelay(QWidget* window,
+                                    const WuQMacroCommand* command,
+                                    bool& allowDelayFlagOut) const
 {
     MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
     CaretAssert(movieRecorder);
@@ -268,6 +295,8 @@ WbMacroHelper::macroCommandHasCompleted(QWidget* window,
                         }
                         movieRecorder->setManualRecordingOfImageRequested(false);
                     }
+                    
+                    allowDelayFlagOut = false;
                 }
                     break;
                 case MovieRecorderModeEnum::MANUAL:
@@ -276,3 +305,28 @@ WbMacroHelper::macroCommandHasCompleted(QWidget* window,
         }
     }
 }
+
+/**
+ * Called by macro executor just before starting execution of a command
+ *
+ * @param window
+ *     Widget for parent
+ * @param command
+ *     Command that is about to start
+ * @param allowDelayFlagOut
+ *     Output indicating if delay before command is enabled
+ */
+void
+WbMacroHelper::macroCommandAboutToStart(QWidget* window,
+                                        const WuQMacroCommand* command,
+                                        bool& allowDelayFlagOut)
+{
+    const bool doDelayBeforeCommandFlag(true);
+    allowDelayFlagOut = doDelayBeforeCommandFlag;
+    if (doDelayBeforeCommandFlag) {
+        recordImagesForDelay(window,
+                             command,
+                             allowDelayFlagOut);
+    }
+}
+

@@ -61,8 +61,13 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
     signals:
+        void macroCommandAboutToStart(QWidget* window,
+                                      const WuQMacroCommand* command,
+                                      bool& allowDelayFlagOut) const;
+        
         void macroCommandHasCompleted(QWidget* window,
-                                      const WuQMacroCommand* command) const;
+                                      const WuQMacroCommand* command,
+                                      bool& allowDelayFlagOut) const;
         
     private:
         void moveMouseToTabBarTab(QTabBar* tabBar,
@@ -81,6 +86,8 @@ namespace caret {
                                              const int y,
                                              const QRect* objectRect = NULL,
                                              const bool hightlightFlag = false) const;
+        
+        void performCommandDelay(const WuQMacroCommand* mc) const;
         
         bool runMacroPrivate(const WuQMacro* macro,
                              QWidget* window,

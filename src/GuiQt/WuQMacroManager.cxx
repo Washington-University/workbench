@@ -527,9 +527,11 @@ WuQMacroManager::runMacro(QWidget* widget,
     
     QString errorMessage;
     m_macroExecutor = new WuQMacroExecutor();
+    QObject::connect(m_macroExecutor, &WuQMacroExecutor::macroCommandAboutToStart,
+                     this, &WuQMacroManager::macroCommandStartingExecution);
     QObject::connect(m_macroExecutor, &WuQMacroExecutor::macroCommandHasCompleted,
                      this, &WuQMacroManager::macroCommandCompletedExecution);
-    
+
     if (m_macroHelper != NULL) {
         m_macroHelper->macroExecutionStarting(macro,
                                               widget,
@@ -583,15 +585,42 @@ WuQMacroManager::stopMacro()
  *     Window in which command is running
  * @param command
  *     Command that just finished execution
+ * @param allowDelayFlagOut
+ *     Allow delay for after command has completed
  */
 void
 WuQMacroManager::macroCommandCompletedExecution(QWidget* window,
-                                                const WuQMacroCommand* command)
+                                                const WuQMacroCommand* command,
+                                                bool& allowDelayFlagOut)
 {
     CaretAssert(command);
     if (m_macroHelper != NULL) {
         m_macroHelper->macroCommandHasCompleted(window,
-                                                command);
+                                                command,
+                                                allowDelayFlagOut);
+    }
+}
+
+/**
+ * Called by macro executor when a macro command is about to start
+ *
+ * @param window
+ *     Window in which command is running
+ * @param command
+ *     Command that about to start execution
+ * @param allowDelayFlagOut
+ *     Allow delay for after command has completed
+ */
+void
+WuQMacroManager::macroCommandStartingExecution(QWidget* window,
+                                                const WuQMacroCommand* command,
+                                                bool& allowDelayFlagOut)
+{
+    CaretAssert(command);
+    if (m_macroHelper != NULL) {
+        m_macroHelper->macroCommandAboutToStart(window,
+                                                command,
+                                                allowDelayFlagOut);
     }
 }
 
