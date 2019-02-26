@@ -1715,82 +1715,141 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             
             if (captureAutomaticImageForMovieFlag
                 || captureManualImageForMovieFlag) {
-                int captureOffsetX(0);
-                int captureOffsetY(0);
-                int captureWidth(0);
-                int captureHeight(0);
+                int captureRegionOffsetX(0);
+                int captureRegionOffsetY(0);
+                int captureRegionWidth(0);
+                int captureRegionHeight(0);
                 int widgetWidth(0);
                 int widgetHeight(0);
                 BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
                 
                 if (browserWindow != NULL) {
-                    browserWindow->getGraphicsWidgetSize(captureOffsetX,
-                                                         captureOffsetY,
-                                                         captureWidth,
-                                                         captureHeight,
+                    browserWindow->getGraphicsWidgetSize(captureRegionOffsetX,
+                                                         captureRegionOffsetY,
+                                                         captureRegionWidth,
+                                                         captureRegionHeight,
                                                          widgetWidth,
                                                          widgetHeight,
                                                          true);
-                    int imageWidth(0);
-                    int imageHeight(0);
-                    movieRecorder->getVideoWidthAndHeight(imageWidth,
-                                                          imageHeight);
+                    int outputImageWidth(0);
+                    int outputImageHeight(0);
+                    movieRecorder->getVideoWidthAndHeight(outputImageWidth,
+                                                          outputImageHeight);
                     
-                    QImage image;
-                    bool imageValid(false);
-                    
-                    switch (movieRecorder->getCaptureRegionType()) {
-                        case MovieRecorderCaptureRegionTypeEnum::GRAPHICS:
-                        {
-                            EventImageCapture captureEvent(this->windowIndex,
-                                                           captureOffsetX,
-                                                           captureOffsetY,
-                                                           captureWidth,
-                                                           captureHeight,
-                                                           imageWidth,
-                                                           imageHeight);
-                            captureImage(&captureEvent);
-                            
-                            if (captureEvent.isError()) {
-                                CaretLogSevere("Failed to capture image of graphics for movie recording");
-                            }
-                            else {
-                                image = captureEvent.getImage();
-                                imageValid = true;
-                            }
-                        }
-                            break;
-                        case MovieRecorderCaptureRegionTypeEnum::WINDOW:
-                        {
-                            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
-                            QRect rect(0, 0,
-                                       bbw->width(), bbw->height());
-                            QPixmap pm = bbw->grab(rect);
-                            if ((pm.width() > 0)
-                                && (pm.height() > 0)) {
-                                image = pm.toImage();
-                                imageValid = true;
+                    AString msg;
+                    if ((outputImageWidth <= 0)
+                        || (outputImageHeight <= 0)) {
+                        msg.appendWithNewLine("Movie width="
+                                              + AString::number(outputImageWidth)
+                                              + ", height="
+                                              + AString::number(outputImageHeight)
+                                              + " is invalid.");
+                    }
+                    if ((captureRegionWidth <= 0)
+                        || (captureRegionHeight <= 0)) {
+                        msg.appendWithNewLine("Movie capture region width="
+                                              + AString::number(captureRegionWidth)
+                                              + ", height="
+                                              + AString::number(captureRegionHeight)
+                                              + " is invalid.");
+                    }
+                    if ( ! msg.isEmpty()) {
+                        CaretLogSevere(msg);
+                    }
+                    else {
+                        QImage image;
+                        bool imageValid(false);
+                        
+                        switch (movieRecorder->getCaptureRegionType()) {
+                            case MovieRecorderCaptureRegionTypeEnum::GRAPHICS:
+                            {
+                                bool adjustImageSizeFlag(false);
+                                int captureWidth  = outputImageWidth;
+                                int captureHeight = outputImageHeight;
+                                if ((captureWidth != captureRegionWidth)
+                                    || (captureHeight != captureRegionHeight)) {
+                                    const float outputAspectRatio = (outputImageHeight / outputImageWidth);
+                                    const float captureRegionAspectRatio = (captureRegionHeight / captureRegionWidth);
+                                    if (captureRegionAspectRatio > outputAspectRatio) {
+                                        const float ratio = outputImageHeight / captureRegionHeight;
+                                        captureWidth  = outputImageWidth * ratio;
+                                        captureHeight = outputImageHeight;
+                                    }
+                                    else {
+                                        const float ratio = outputImageWidth / captureRegionWidth;
+                                        captureHeight = outputImageHeight * ratio;
+                                        captureWidth  = outputImageWidth;
+                                        
+                                    }
+                                    adjustImageSizeFlag = true;
+                                }
                                 
-                                QImage scaledImage = ImageFile::scaleToSizeWithPadding(image, imageWidth, imageHeight);
-                                if ( ! scaledImage.isNull()) {
-                                    image = scaledImage;
+                                EventImageCapture captureEvent(this->windowIndex,
+                                                               captureRegionOffsetX,
+                                                               captureRegionOffsetY,
+                                                               captureRegionWidth,
+                                                               captureRegionHeight,
+                                                               captureWidth,
+                                                               captureHeight);
+                                captureImage(&captureEvent);
+                                
+                                if (captureEvent.isError()) {
+                                    CaretLogSevere("Failed to capture image of graphics for movie recording");
+                                }
+                                else {
+                                    image = captureEvent.getImage();
+                                    imageValid = true;
+                                    if (adjustImageSizeFlag) {
+                                        QImage scaledImage = ImageFile::scaleToSizeWithPadding(image,
+                                                                                               outputImageWidth,
+                                                                                               outputImageHeight);
+                                        if (scaledImage.isNull()) {
+                                            CaretLogSevere("Failed to scale image for movie recording");
+                                        }
+                                        else {
+                                            image = scaledImage;
+                                        }
+                                    }
                                 }
                             }
-                            else {
-                                CaretLogSevere("Failed to capture image of window");
+                                break;
+                            case MovieRecorderCaptureRegionTypeEnum::WINDOW:
+                            {
+                                BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
+                                QRect rect(0, 0,
+                                           bbw->width(), bbw->height());
+                                QPixmap pm = bbw->grab(rect);
+                                if ((pm.width() > 0)
+                                    && (pm.height() > 0)) {
+                                    image = pm.toImage();
+                                    imageValid = true;
+                                    
+                                    QImage scaledImage = ImageFile::scaleToSizeWithPadding(image,
+                                                                                           outputImageWidth,
+                                                                                           outputImageHeight);
+                                    if (scaledImage.isNull()) {
+                                        CaretLogSevere("Failed to scale image for movie recording");
+                                    }
+                                    else {
+                                        image = scaledImage;
+                                    }
+                                }
+                                else {
+                                    CaretLogSevere("Failed to capture image of window");
+                                }
                             }
+                                break;
                         }
-                            break;
-                    }
-                    
-                    if (imageValid) {
-                        if (captureAutomaticImageForMovieFlag) {
-                            movieRecorder->addImageToMovie(&image);
+                        
+                        if (imageValid) {
+                            if (captureAutomaticImageForMovieFlag) {
+                                movieRecorder->addImageToMovie(&image);
+                            }
+                            else if (captureManualImageForMovieFlag) {
+                                movieRecorder->addImageToMovieWithManualDuration(&image);
+                            }
+                            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE);
                         }
-                        else if (captureManualImageForMovieFlag) {
-                            movieRecorder->addImageToMovieWithManualDuration(&image);
-                        }
-                        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE);
                     }
                 }
             }
