@@ -711,11 +711,16 @@ WuQMacroManager::deleteMacroCommand(QWidget* parent,
     CaretAssert(macroGroup);
     CaretAssert(macro);
     CaretAssert(macroCommand);
-    if (QMessageBox::warning(parent,
-                             "Warning",
-                             ("Delete the macro command: " + macroCommand->getDescriptiveName()),
-                             QMessageBox::Ok | QMessageBox::Cancel,
-                             QMessageBox::Ok) == QMessageBox::Ok) {
+    bool deleteFlag(true);
+    const bool confirmDeleteFlag(false);
+    if (confirmDeleteFlag) {
+        deleteFlag = (QMessageBox::warning(parent,
+                                           "Warning",
+                                           ("Delete the macro command: " + macroCommand->getDescriptiveName()),
+                                           QMessageBox::Ok | QMessageBox::Cancel,
+                                           QMessageBox::Ok) == QMessageBox::Ok);
+    }
+    if  (deleteFlag) {
         macro->deleteMacroCommand(macroCommand);
         if (m_macroHelper) {
             m_macroHelper->macroGroupWasModified(macroGroup);
