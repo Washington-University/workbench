@@ -81,6 +81,12 @@ MovieRecorder::addImageToMovie(const QImage* image)
         return;
     }
     
+    if (getNumberOfFrames() <= 0) {
+        std::cout << "Temporary Directory for movie images: "
+        << std::endl
+        << "   " << m_temporaryImagesDirectory << std::endl << std::flush;
+    }
+    
     CaretAssert(m_tempImageSequenceNumberOfDigits > 0);
     
     /*

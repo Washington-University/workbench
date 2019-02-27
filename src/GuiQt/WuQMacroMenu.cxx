@@ -57,11 +57,11 @@ m_windowParent(windowParent)
     QObject::connect(m_macroDialogAction, &QAction::triggered,
                      this, &WuQMacroMenu::macroDialogSelected);
     
-    m_recordMacroAction = addAction("Record Macro...");
+    m_recordMacroAction = addAction("Start Recording New Macro...");
     QObject::connect(m_recordMacroAction, &QAction::triggered,
                      this, &WuQMacroMenu::macroRecordSelected);
     
-    m_stopMacroAction = addAction("Stop Recording Macro");
+    m_stopMacroAction = addAction("Stop Recording New Macro");
     QObject::connect(m_stopMacroAction, &QAction::triggered,
                      this, &WuQMacroMenu::macroStopSelected);
 

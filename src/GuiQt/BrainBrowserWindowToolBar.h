@@ -251,6 +251,8 @@ namespace caret {
         
         void showHideToolBar(bool showIt);
         
+        void showMacroDialog();
+        
     private slots:
         void selectedTabChanged(int indx);
         void tabMoved(int, int);

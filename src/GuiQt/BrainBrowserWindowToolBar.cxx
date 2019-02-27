@@ -287,6 +287,38 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QToolButton* sceneDialogToolButton = new QToolButton();
     sceneDialogToolButton->setDefaultAction(GuiManager::get()->getSceneDialogDisplayAction());
     
+    QIcon movieIcon;
+    QAction* movieAction = new QAction();
+    if (WuQtUtilities::loadIcon(":/ToolBar/movie.png",
+                                movieIcon)) {
+        movieAction->setIcon(movieIcon);
+    }
+    else {
+        movieAction->setText("R");
+    }
+    movieAction->setToolTip("Show movie recording dialog");
+    QObject::connect(movieAction, &QAction::triggered,
+                     parentBrainBrowserWindow, &BrainBrowserWindow::processMovieRecording);
+    QToolButton* movieToolButton = new QToolButton();
+    movieToolButton->setDefaultAction(movieAction);
+    movieAction->setParent(movieToolButton);
+    
+    QIcon macrosIcon;
+    QAction* macrosAction = new QAction();
+    if (WuQtUtilities::loadIcon(":/ToolBar/macro.png",
+                                macrosIcon)) {
+        macrosAction->setIcon(macrosIcon);
+    }
+    else {
+        macrosAction->setText("M");
+    }
+    macrosAction->setToolTip("Show macros dialog");
+    QObject::connect(macrosAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBar::showMacroDialog);
+    QToolButton* macrosToolButton = new QToolButton();
+    macrosToolButton->setDefaultAction(macrosAction);
+    macrosAction->setParent(macrosToolButton);
+    
     /*
      * Toolbar action and tool button at right of the tab bar
      */
@@ -333,7 +365,9 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     /*
      * Make all tool buttons the same height
      */
-    WuQtUtilities::matchWidgetHeights(helpDialogToolButton,
+    WuQtUtilities::matchWidgetHeights(macrosToolButton,
+                                      movieToolButton,
+                                      helpDialogToolButton,
                                       informationDialogToolButton,
                                       identifyDialogToolButton,
                                       sceneDialogToolButton,
@@ -342,6 +376,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                       layersToolBoxToolButton,
                                       dataToolTipsToolButton);
     
+    WuQtUtilities::setToolButtonStyleForQt5Mac(macrosToolButton);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(movieToolButton);
     WuQtUtilities::setToolButtonStyleForQt5Mac(helpDialogToolButton);
     WuQtUtilities::setToolButtonStyleForQt5Mac(informationDialogToolButton);
     WuQtUtilities::setToolButtonStyleForQt5Mac(identifyDialogToolButton);
@@ -362,6 +398,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     tabBarLayout->addWidget(helpDialogToolButton);
     tabBarLayout->addWidget(informationDialogToolButton);
     tabBarLayout->addWidget(identifyDialogToolButton);
+    tabBarLayout->addWidget(movieToolButton);
+    tabBarLayout->addWidget(macrosToolButton);
     tabBarLayout->addWidget(sceneDialogToolButton);
     tabBarLayout->addWidget(toolBarToolButton);
     tabBarLayout->addWidget(overlayToolBoxToolButton);
@@ -926,6 +964,16 @@ BrainBrowserWindowToolBar::allowAddingNewTab()
     return false;
 }
 
+/**
+ * Show the macro dialog
+ */
+void
+BrainBrowserWindowToolBar::showMacroDialog()
+{
+    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
+    CaretAssert(bbw);
+    WuQMacroManager::instance()->showMacrosDialog(bbw);
+}
 
 /**
  * Shows/hides the toolbar.
