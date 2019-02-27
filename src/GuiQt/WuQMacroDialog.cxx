@@ -31,6 +31,7 @@
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QInputDialog>
+#include <QItemSelectionModel>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
@@ -624,10 +625,31 @@ WuQMacroDialog::updateDialogContents()
 }
 
 /**
- * Called when an item in the tree view is clicked
+ * Called when an item in the tree view is clicked by user
+ *
+ * @param modelIndex
+ *     Model index of item selected
  */
 void
-WuQMacroDialog::treeViewItemClicked(const QModelIndex& modelIndex)
+WuQMacroDialog::treeViewItemClicked(const QModelIndex& /*modelIndex*/)
+{
+    /*
+     * Unused at this time.  The signal only works when user
+     * click's an item and not when an arrow key is used
+     * to select an item.   Replacement is for the selection
+     * model to connect to selectionModelRowChanged().
+     */
+}
+
+/**
+ * Called when an item in the tree is selected in some way
+ * (mouse click, arrow key, etc)
+ *
+ * @param modelIndex
+ *     Model index of item selected
+ */
+void
+WuQMacroDialog::treeItemSelected(const QModelIndex& modelIndex)
 {
     QStandardItemModel* selectedModel = NULL;
     if (modelIndex.isValid()) {
@@ -702,17 +724,60 @@ WuQMacroDialog::macroGroupComboBoxActivated(int)
             selectedIndex = m_treeView->currentIndex();
         }
         
+        m_blockSelectionModelRowChangedFlag = true;
+        
         m_treeView->setModel(selectedGroup);
+        
+        {
+            /*
+             * Need to (re)connect the selection model's row changed signal
+             * since setModel() was called.
+             *
+             * From the Qt Documentation for QAbstractItemView::setSelectionModel():
+             *     Note that, if you call setModel() after this function, the given
+             *     selectionModel will be replaced by one created by the view.
+             */
+            QItemSelectionModel* selectionModel = m_treeView->selectionModel();
+            if (selectionModel != NULL) {
+                /*
+                 * Use the option Qt::UniqueConnection to avoid creating
+                 * a duplicate connection
+                 */
+                QObject::connect(selectionModel, &QItemSelectionModel::currentRowChanged,
+                                 this, &WuQMacroDialog::selectionModelRowChanged,
+                                 Qt::UniqueConnection);
+            }
+        }
+        m_blockSelectionModelRowChangedFlag = false;
     
         if (selectedIndex.isValid()) {
             m_treeView->setCurrentIndex(selectedIndex);
         }
-        treeViewItemClicked(m_treeView->currentIndex());
+        treeItemSelected(m_treeView->currentIndex());
     }
     else {
         m_treeView->setModel(new QStandardItemModel());
-        treeViewItemClicked(QModelIndex());
+        treeItemSelected(QModelIndex());
     }
+}
+
+/**
+ * Called when selection model's row is changed
+ *
+ * @param current
+ *     Model index of current item
+ * @parm previous
+ *     Model index of previous item
+ */
+void
+WuQMacroDialog::selectionModelRowChanged(const QModelIndex& current,
+                                         const QModelIndex& /*previous*/)
+{
+    if (m_blockSelectionModelRowChangedFlag) {
+        return;
+    }
+    
+    treeItemSelected(current);
 }
 
 /**
@@ -1129,7 +1194,7 @@ WuQMacroDialog::editingMoveUpToolButtonClicked()
                 if (macro != NULL) {
                     macroGroup->moveMacroUp(macro);
                     m_treeView->setCurrentIndex(macro->index());
-                    treeViewItemClicked(macro->index());
+                    treeItemSelected(macro->index());
                 }
             }
             break;
@@ -1138,7 +1203,7 @@ WuQMacroDialog::editingMoveUpToolButtonClicked()
                 && (command != NULL)) {
                 macro->moveMacroCommandUp(command);
                 m_treeView->setCurrentIndex(command->index());
-                treeViewItemClicked(command->index());
+                treeItemSelected(command->index());
             }
             break;
     }
@@ -1162,7 +1227,7 @@ WuQMacroDialog::editingMoveDownToolButtonClicked()
                if (macro != NULL) {
                    macroGroup->moveMacroDown(macro);
                    m_treeView->setCurrentIndex(macro->index());
-                   treeViewItemClicked(macro->index());
+                   treeItemSelected(macro->index());
                }
             }
             break;
@@ -1171,7 +1236,7 @@ WuQMacroDialog::editingMoveDownToolButtonClicked()
                 && (command != NULL)) {
                 macro->moveMacroCommandDown(command);
                 m_treeView->setCurrentIndex(command->index());
-                treeViewItemClicked(command->index());
+                treeItemSelected(command->index());
             }
             break;
     }
@@ -1208,7 +1273,7 @@ WuQMacroDialog::editingDeleteToolButtonClicked()
                         && (macroIndex < macroGroup->getNumberOfMacros())) {
                         QModelIndex modelIndex = macroGroup->getMacroAtIndex(macroIndex)->index();
                         m_treeView->setCurrentIndex(modelIndex);
-                        treeViewItemClicked(modelIndex);
+                        treeItemSelected(modelIndex);
                     }
                 }
             }

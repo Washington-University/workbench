@@ -117,6 +117,8 @@ namespace caret {
         
         void addNewMacroCommand(WuQMacroCommand* command);
         
+        void selectionModelRowChanged(const QModelIndex& current, const QModelIndex& previous);
+        
     private:
         enum class ValueIndex {
             ONE,
@@ -162,6 +164,8 @@ namespace caret {
                                               const EditButton editButton);
         
         void updateEditingToolButtons();
+        
+        void treeItemSelected(const QModelIndex& modelIndex);
         
         std::vector<WuQMacroGroup*> m_macroGroups;
         
@@ -222,6 +226,8 @@ namespace caret {
         QToolButton* m_editingInsertToolButton;
         
         bool m_macroIsRunningFlag = false;
+        
+        bool m_blockSelectionModelRowChangedFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 
