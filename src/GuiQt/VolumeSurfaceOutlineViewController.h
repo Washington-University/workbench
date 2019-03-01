@@ -54,7 +54,7 @@ namespace caret {
         void updateViewController(VolumeSurfaceOutlineModel* outlineModel);
         
     private slots:
-        void enabledCheckBoxStateChanged(int);
+        void enabledCheckBoxChecked(bool checked);
         
         void thicknessSpinBoxValueChanged(double);
 

@@ -76,8 +76,8 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     this->outlineModel = NULL;
     
     this->enabledCheckBox = new QCheckBox(" ");
-    QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
-                     this, SLOT(enabledCheckBoxStateChanged(int)));
+    QObject::connect(this->enabledCheckBox, &QCheckBox::clicked,
+                     this, &VolumeSurfaceOutlineViewController::enabledCheckBoxChecked);
     this->enabledCheckBox->setToolTip("Enables display of this volume surface outline");
     this->enabledCheckBox->setObjectName(objectNamePrefix
                                          + ":Enable");
@@ -188,15 +188,14 @@ VolumeSurfaceOutlineViewController::colorTabSelected(VolumeSurfaceOutlineColorOr
 
 /**
  * Called when enabled checkbox is selected.
- * @param state
+ * @param checked
  *    New state of checkbox.
  */
 void 
-VolumeSurfaceOutlineViewController::enabledCheckBoxStateChanged(int state)
+VolumeSurfaceOutlineViewController::enabledCheckBoxChecked(bool checked)
 {
     if (this->outlineModel != NULL) {
-        const bool selected = (state == Qt::Checked);
-        this->outlineModel->setDisplayed(selected);
+        this->outlineModel->setDisplayed(checked);
     }
     this->updateGraphics();
 }
@@ -226,11 +225,7 @@ VolumeSurfaceOutlineViewController::updateViewController(VolumeSurfaceOutlineMod
     this->outlineModel = outlineModel;
     
     if (this->outlineModel != NULL) {
-        Qt::CheckState state = Qt::Unchecked;
-        if (this->outlineModel->isDisplayed()) {
-            state = Qt::Checked;
-        }
-        this->enabledCheckBox->setCheckState(state);
+        this->enabledCheckBox->setChecked(this->outlineModel->isDisplayed());
         
         this->thicknessSpinBox->blockSignals(true);
         float thickness = outlineModel->getThicknessPercentageViewportHeight();
