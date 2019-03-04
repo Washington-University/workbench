@@ -444,9 +444,10 @@ MovieRecordingDialog::createMoviePushButtonClicked()
 {
     MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
     FileInformation fileInfo(movieRecorder->getMovieFileName());
+    const QString name(fileInfo.getCanonicalFilePath());
     if (fileInfo.exists()) {
         AString msg("Movie file \""
-                    + fileInfo.getFileName()
+                    + name
                     + "\" exists, overwrite?");
         if ( ! WuQMessageBox::warningOkCancel(m_createMoviePushButton,
                                               msg)) {
@@ -454,7 +455,7 @@ MovieRecordingDialog::createMoviePushButtonClicked()
         }
         if ( ! fileInfo.remove()) {
             AString msg("Unable to remove movie file \""
-                        + fileInfo.getFileName()
+                        + name
                         + "\"");
             WuQMessageBox::errorOk(m_createMoviePushButton,
                                    msg);
