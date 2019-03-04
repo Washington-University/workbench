@@ -31,6 +31,7 @@ namespace caret {
 
     class ModelSurface;
     class ModelWholeBrain;
+    class SpecFile;
     class Surface;
     
     class WbMacroCustomOperationSurfaceInterpolation : public WbMacroCustomOperationBase {
@@ -56,10 +57,19 @@ namespace caret {
     private:
         bool interpolateSurface(const int32_t tabIndex,
                                 ModelWholeBrain* wholeBrainModel,
-                                Surface* startSurface,
-                                Surface* endSurface,
+                                const Surface* startSurface,
+                                const Surface* endSurface,
                                 const float durationSeconds);
         
+        void createInterpolationSurface(const Surface* surface);
+        
+        void deleteInterpolationSurface();
+        
+        Surface* m_interpolationSurface = NULL;
+        
+        SpecFile* m_specFile = NULL;
+        
+        bool m_specFileModificationStatus = false;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -26,10 +26,15 @@
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventDataFileAdd.h"
+#include "EventDataFileDelete.h"
+#include "EventCaretDataFilesGet.h"
+#include "FileInformation.h"
 #include "GuiManager.h"
 #include "MathFunctions.h"
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
+#include "SpecFile.h"
 #include "Surface.h"
 #include "WbMacroCustomDataTypeEnum.h"
 #include "WbMacroCustomOperationTypeEnum.h"
@@ -210,8 +215,8 @@ WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
 bool
 WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const int32_t tabIndex,
                                                                ModelWholeBrain* wholeBrainModel,
-                                                               Surface* startSurface,
-                                                               Surface* endSurface,
+                                                               const Surface* startSurface,
+                                                               const Surface* endSurface,
                                                                const float durationSeconds)
 {
     CaretAssert(wholeBrainModel);
@@ -225,13 +230,15 @@ WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const int32_t tab
                                  durationSeconds,
                                  numberOfSteps,
                                  iterationSleepTime);
-
+    
     const StructureEnum::Enum structure = startSurface->getStructure();
-    const bool endSurfaceModifiedStatus = endSurface->isModified();
+
+    createInterpolationSurface(startSurface);
+    CaretAssert(m_interpolationSurface);
     
     const float* startingXYZ = startSurface->getCoordinateData();
     const float* endingXYZ   = endSurface->getCoordinateData();
-
+    
     /*
      * XYZ that will be interpolated
      */
@@ -256,37 +263,17 @@ WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const int32_t tab
     }
     
     /*
-     * Replace ending surface's coordinates with starting surfaces coordinates
-     */
-    for (int32_t i = 0; i < numberOfVertices; i++) {
-        const int32_t i3 = i * 3;
-        endSurface->setCoordinate(i, &startingXYZ[i3]);
-    }
-    endSurface->computeNormals();
-
-    /*
-     * Put ending surface into view
+     * Put interpolation surface into view
      */
     wholeBrainModel->setSelectedSurfaceType(tabIndex,
-                                            endSurface->getSurfaceType());
+                                            m_interpolationSurface->getSurfaceType());
     wholeBrainModel->setSelectedSurface(structure,
                                         tabIndex,
-                                        endSurface);
-
-    switch (structure) {
-        case StructureEnum::CEREBELLUM:
-            break;
-        case StructureEnum::CORTEX_LEFT:
-            break;
-        case StructureEnum::CORTEX_RIGHT:
-            break;
-        default:
-            CaretAssert(0);
-            break;
-    }
+                                        m_interpolationSurface);
+    
     updateUserInterface();
     updateGraphics();
-
+    
     for (int iStep = 0; iStep < numberOfSteps; iStep++) {
         /*
          * Move coordinate components
@@ -303,10 +290,11 @@ WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const int32_t tab
          */
         for (int32_t i = 0; i < numberOfVertices; i++) {
             const int32_t i3 = i * 3;
-            endSurface->setCoordinate(i,
+            m_interpolationSurface->setCoordinate(i,
                                       &xyz[i3]);
         }
-        endSurface->computeNormals();
+        m_interpolationSurface->invalidateNormals();
+        m_interpolationSurface->computeNormals();
         
         const bool debugFlag(false);
         if (debugFlag) {
@@ -321,23 +309,73 @@ WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const int32_t tab
         updateGraphics();
         
         sleepForSecondsAtEndOfIteration(iterationSleepTime);
-//        if ( ! recordingFlag) {
-//            SystemUtilities::sleepSeconds(iterationSleepTime);
-//        }
     }
-    
+
     /*
-     * Restore end surface coordinates
+     * View ending surface
      */
-    for (int32_t i = 0; i < numberOfVertices; i++) {
-        const int32_t i3 = i * 3;
-        endSurface->setCoordinate(i, &endingXYZ[i3]);
-    }
-    if ( ! endSurfaceModifiedStatus) {
-        endSurface->clearModified();
-    }
+    /*
+     * Put interpolation surface into view
+     */
+    wholeBrainModel->setSelectedSurfaceType(tabIndex,
+                                            endSurface->getSurfaceType());
+    wholeBrainModel->setSelectedSurface(structure,
+                                        tabIndex,
+                                        const_cast<Surface*>(endSurface));
+
     updateGraphics();
+    updateUserInterface();
+    
+    deleteInterpolationSurface();
     
     return true;
+}
+
+/**
+ * Create the interpolation surface
+ *
+ * @param surface
+ *     Surface that is copied to create the interpolation surface
+ */
+void
+WbMacroCustomOperationSurfaceInterpolation::createInterpolationSurface(const Surface* surface)
+{
+    CaretAssert(surface);
+    
+    std::vector<CaretDataFile*> specFileVector = EventCaretDataFilesGet::getCaretDataFilesForType(DataFileTypeEnum::SPECIFICATION);
+    if ( ! specFileVector.empty()) {
+        m_specFile = dynamic_cast<SpecFile*>(specFileVector[0]);
+        m_specFileModificationStatus = m_specFile->isModified();
+    }
+    
+    m_interpolationSurface = new Surface(*surface);
+    CaretAssert(m_interpolationSurface);
+    
+    FileInformation fileInfo(m_interpolationSurface->getFileName());
+    AString path, name, ext;
+    fileInfo.getFileComponents(path, name, ext);
+    const AString newName = FileInformation::assembleFileComponents(path, "Interpolation", ext);
+    m_interpolationSurface->setFileName(newName);
+    
+    EventDataFileAdd addSurfaceEvent(m_interpolationSurface);
+    EventManager::get()->sendEvent(addSurfaceEvent.getPointer());
+}
+
+/**
+ * Delete the interpolation surface
+ */
+void
+WbMacroCustomOperationSurfaceInterpolation::deleteInterpolationSurface()
+{
+    if (m_interpolationSurface != NULL) {
+        EventDataFileDelete deleteFileEvent(m_interpolationSurface);
+        EventManager::get()->sendEvent(deleteFileEvent.getPointer());
+    }
+    
+    if (m_specFile != NULL) {
+        if ( ! m_specFileModificationStatus) {
+            m_specFile->clearModified();
+        }
+    }
 }
 
