@@ -58,6 +58,7 @@ namespace caret {
         
         void updateDialog();
         
+        void restorePositionAndSize();
 
         // ADD_NEW_METHODS_HERE
 
@@ -87,6 +88,9 @@ namespace caret {
         void manualCaptureToolButtonClicked();
         
         void manualCaptureSecondsSpinBoxValueChanged(int seconds);
+        
+    protected:
+        virtual void closeEvent(QCloseEvent* event) override;
         
     private:
         void updateFileNameLabel();
@@ -133,12 +137,13 @@ namespace caret {
         
         EnumComboBoxTemplate* m_movieRecorderCaptureRegionTypeComboBox;
         
+        static QByteArray s_previousDialogGeometry;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __MOVIE_RECORDING_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    QByteArray MovieRecordingDialog::s_previousDialogGeometry;
 #endif // __MOVIE_RECORDING_DIALOG_DECLARE__
 
 } // namespace

@@ -68,6 +68,8 @@ namespace caret {
         
         void updateDialogContents();
 
+        void restorePositionAndSize();
+        
         // ADD_NEW_METHODS_HERE
 
     private slots:
@@ -118,6 +120,9 @@ namespace caret {
         void addNewMacroCommand(WuQMacroCommand* command);
         
         void selectionModelRowChanged(const QModelIndex& current, const QModelIndex& previous);
+        
+    protected:
+        virtual void closeEvent(QCloseEvent* event) override;
         
     private:
         enum class ValueIndex {
@@ -229,6 +234,8 @@ namespace caret {
         
         bool m_blockSelectionModelRowChangedFlag = false;
         
+        static QByteArray s_previousDialogGeometry;
+
         // ADD_NEW_MEMBERS_HERE
 
     };
@@ -261,7 +268,7 @@ namespace caret {
     
 
 #ifdef __WU_Q_MACRO_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    QByteArray WuQMacroDialog::s_previousDialogGeometry;
 #endif // __WU_Q_MACRO_DIALOG_DECLARE__
 
 } // namespace

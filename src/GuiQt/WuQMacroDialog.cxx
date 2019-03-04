@@ -170,6 +170,29 @@ WuQMacroDialog::~WuQMacroDialog()
 }
 
 /**
+ * Called when close event is issuedf
+ *
+ * @param event
+ *    The close event
+ */
+void
+WuQMacroDialog::closeEvent(QCloseEvent* event)
+{
+    s_previousDialogGeometry = saveGeometry();
+    
+    QDialog::closeEvent(event);
+}
+
+void
+WuQMacroDialog::restorePositionAndSize()
+{
+    if ( ! s_previousDialogGeometry.isEmpty()) {
+        restoreGeometry(s_previousDialogGeometry);
+    }
+}
+
+
+/**
  * @return Widget with run and editing buttons
  */
 QWidget*

@@ -2407,6 +2407,7 @@ GuiManager::processShowMovieRecordingDialog(BrainBrowserWindow* browserWindow)
     m_movieRecordingDialog->updateDialog();
     m_movieRecordingDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
     m_movieRecordingDialog->showDialog();
+    m_movieRecordingDialog->restorePositionAndSize();
 }
 
 /**

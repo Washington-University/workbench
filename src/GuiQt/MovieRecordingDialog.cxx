@@ -94,6 +94,28 @@ MovieRecordingDialog::~MovieRecordingDialog()
 }
 
 /**
+ * Called when close event is issuedf
+ *
+ * @param event
+ *    The close event
+ */
+void
+MovieRecordingDialog::closeEvent(QCloseEvent* event)
+{
+    s_previousDialogGeometry = saveGeometry();
+    
+    WuQDialogNonModal::closeEvent(event);
+}
+
+void
+MovieRecordingDialog::restorePositionAndSize()
+{
+    if ( ! s_previousDialogGeometry.isEmpty()) {
+        restoreGeometry(s_previousDialogGeometry);
+    }
+}
+
+/**
  * Receive an event.
  *
  * @param event

@@ -480,6 +480,7 @@ WuQMacroManager::showMacrosDialog(QWidget* parent)
     m_macrosDialog->updateDialogContents();
     m_macrosDialog->show();
     m_macrosDialog->raise();
+    m_macrosDialog->restorePositionAndSize();
 }
 
 /**
