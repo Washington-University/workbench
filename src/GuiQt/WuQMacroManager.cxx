@@ -764,6 +764,9 @@ WuQMacroManager::importMacros(QWidget* parent,
             const WuQMacroGroup* fileMacroGroup = macroFile.getMacroGroup();
             if (fileMacroGroup->getNumberOfMacros() > 0) {
                 appendToMacroGroup->appendMacroGroup(fileMacroGroup);
+                if (m_macroHelper) {
+                    m_macroHelper->macroGroupWasModified(appendToMacroGroup);
+                }
                 return true;
             }
             else {
