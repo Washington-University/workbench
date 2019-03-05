@@ -576,5 +576,24 @@ Scene::moveMacrosFromScene(Scene* scene)
     setModified();
 }
 
+/**
+ * Copy any macros in the given scene to this scene
+ *
+ * @param scene
+ *     Scene whose macros are copied to this scene.
+ */
+void
+Scene::copyMacrosFromScene(const Scene* scene)
+{
+    CaretAssert(scene);
+
+    const WuQMacroGroup* macroGroup = scene->getMacroGroup();
+    if (macroGroup != NULL) {
+        if ( ! macroGroup->isEmpty()) {
+            getMacroGroup()->appendMacroGroup(macroGroup);
+        }
+    }
+}
+
 
 

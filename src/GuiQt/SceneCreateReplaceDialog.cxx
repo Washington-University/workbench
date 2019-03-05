@@ -45,6 +45,7 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabGetAllViewed.h"
 #include "EventImageCapture.h"
+#include "EventSceneActive.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
@@ -699,6 +700,16 @@ SceneCreateReplaceDialog::okButtonClicked()
     if ( ! imageErrorMessage.isEmpty()) {
         WuQMessageBox::errorOk(this,
                                imageErrorMessage);
+    }
+    
+    /*
+     * Copy macros from active scene to the new scene
+     */
+    EventSceneActive activeSceneEvent(EventSceneActive::MODE_GET);
+    EventManager::get()->sendEvent(activeSceneEvent.getPointer());
+    const Scene* activeScene = activeSceneEvent.getScene();
+    if (activeScene != NULL) {
+        newScene->copyMacrosFromScene(activeScene);
     }
     
     switch (m_mode) {

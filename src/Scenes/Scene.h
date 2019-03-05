@@ -97,6 +97,8 @@ namespace caret {
         
         const WuQMacroGroup* getMacroGroup() const;
         
+        void copyMacrosFromScene(const Scene* scene);
+        
         void moveMacrosFromScene(Scene* scene);
         
     private:
