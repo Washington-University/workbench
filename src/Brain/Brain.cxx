@@ -184,6 +184,8 @@ Brain::Brain(const CaretPreferences* caretPreferences)
     m_displayPropertiesVolume = new DisplayPropertiesVolume();
     m_displayProperties.push_back(m_displayPropertiesVolume);
     
+    m_surfaceMatchingToAnatomicalFlag = false;
+    
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CARET_DATA_FILES_GET);
     EventManager::get()->addEventListener(this,
@@ -253,6 +255,8 @@ Brain::Brain(const CaretPreferences* caretPreferences)
     m_sceneAssistant->add("m_gapsAndMargins",
                           "GapsAndMargins",
                           m_gapsAndMargins);
+    m_sceneAssistant->add("m_surfaceMatchingToAnatomicalFlag",
+                          &m_surfaceMatchingToAnatomicalFlag);
     
     m_selectionManager = new SelectionManager();
 
@@ -496,6 +500,8 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
 {
     m_isSpecFileBeingRead = false;
     m_activeScene = NULL;
+    
+    m_surfaceMatchingToAnatomicalFlag = false;
     
     /*
      * Clear the counters used to prevent duplicate file names.
@@ -7588,6 +7594,8 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAnnotationFile->clearModified();
 
     EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
+    
+    setSurfaceMatchingToAnatomical(m_surfaceMatchingToAnatomicalFlag);
 }
 
 /**
@@ -7722,6 +7730,29 @@ Brain::getFiberOrientationSphericalSamplesVectors(std::vector<FiberOrientationSa
                                                                                        fiberOrientationOut,
                                                                                        errorMessageOut);
 }
+
+/**
+ * @return True if surface matching to anatomical is enabled
+ */
+bool
+Brain::isSurfaceMatchingToAnatomical() const
+{
+    return m_surfaceMatchingToAnatomicalFlag;
+}
+
+/**
+ * Set the surface matching to anatomical surface status
+ */
+void
+Brain::setSurfaceMatchingToAnatomical(const bool matchStatus)
+{
+    m_surfaceMatchingToAnatomicalFlag = matchStatus;
+    
+    for (auto bs : m_brainStructures) {
+        bs->matchSurfacesToPrimaryAnatomical(m_surfaceMatchingToAnatomicalFlag);
+    }
+}
+
 
 
 

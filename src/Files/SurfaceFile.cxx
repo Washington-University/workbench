@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <set>
@@ -930,6 +931,100 @@ SurfaceFile::getBoundingBox() const
 }
 
 /**
+ * Match the surface to the given anatomical surface.  If this
+ * surface is an anatomical or raw surface, no action is taken.
+ *
+ * @param anatomicalSurfaceFile
+ *     Match to this anatomical surface file.
+ * @param matchStatus
+ *     The match status
+ */
+void
+SurfaceFile::matchToAnatomicalSurface(const SurfaceFile* anatomicalSurfaceFile,
+                                      const bool matchStatus)
+{
+    CaretAssert(anatomicalSurfaceFile);
+    if (anatomicalSurfaceFile == NULL) {
+        return;
+    }
+    if (this == anatomicalSurfaceFile) {
+        return;
+    }
+    
+    if (matchStatus) {
+        bool sphereMatchFlag(false);
+        bool matchFlag(false);
+        switch (getSurfaceType()) {
+            case SurfaceTypeEnum::ANATOMICAL:
+                break;
+            case SurfaceTypeEnum::ELLIPSOID:
+                break;
+            case SurfaceTypeEnum::FLAT:
+                matchFlag = true;
+                break;
+            case SurfaceTypeEnum::HULL:
+                break;
+            case SurfaceTypeEnum::INFLATED:
+                matchFlag = true;
+                break;
+            case SurfaceTypeEnum::RECONSTRUCTION:
+                break;
+            case SurfaceTypeEnum::SEMI_SPHERICAL:
+                break;
+            case SurfaceTypeEnum::SPHERICAL:
+                sphereMatchFlag = true;
+                break;
+            case SurfaceTypeEnum::UNKNOWN:
+                break;
+            case SurfaceTypeEnum::VERY_INFLATED:
+                matchFlag = true;
+                break;
+        }
+        
+        if (matchFlag
+            || sphereMatchFlag) {
+            /*
+             * Save the unmatched coordinates
+             */
+            const int32_t numXYZ = getNumberOfNodes() * 3;
+            m_unmatchedCoordinates.resize(numXYZ);
+            CaretAssert(this->coordinatePointer);
+            std::copy_n(this->coordinatePointer,
+                        numXYZ,
+                        m_unmatchedCoordinates.begin());
+            
+            const bool modStatus(isModified());
+            if (sphereMatchFlag) {
+                matchSphereToSurface(anatomicalSurfaceFile);
+                if ( ! modStatus) {
+                    clearModified();
+                }
+            }
+            else if (matchFlag) {
+                matchSurfaceBoundingBox(anatomicalSurfaceFile);
+                if ( ! modStatus) {
+                    clearModified();
+                }
+            }
+        }
+    }
+    else {
+        /*
+         * Restore the unmatched coordinates
+         */
+        const int32_t numXYZ = getNumberOfNodes() * 3;
+        if (static_cast<int32_t>(m_unmatchedCoordinates.size()) == numXYZ) {
+            CaretAssert(this->coordinatePointer);
+            std::copy_n(m_unmatchedCoordinates.begin(),
+                        numXYZ,
+                        this->coordinatePointer);
+        }
+        m_unmatchedCoordinates.clear();
+    }
+}
+
+
+/**
  * Match a sphere to the given surface while retaining the spherical
  * shape.  The center of gravity of the sphere will be the same as the center of gravity of
  * the match surface and the radius of the sphere will be the
@@ -970,9 +1065,6 @@ SurfaceFile::matchSphereToSurface(const SurfaceFile* matchSurfaceFile)
         }
     }
     newRadius = std::sqrt(newRadius);
-//    std::cout << "Structure: " << StructureEnum::toGuiName(getStructure()) << std::endl;
-//    std::cout << "   Old radius: " << oldRadius << " New radius: " << newRadius << std::endl;
-//    std::cout << "   Match furthest vertex: " << furthestVertex << std::endl;
     
     float myCOG[3];
     getCenterOfGravity(myCOG);
@@ -990,17 +1082,6 @@ SurfaceFile::matchSphereToSurface(const SurfaceFile* matchSurfaceFile)
     matrix.scale(scale,
                  scale,
                  scale);
-
-//    std::cout << "   Sphere COG: " << myCOG[0] << ", " << myCOG[1] << ", " << myCOG[2] << std::endl;
-//    std::cout << "   Move to COG: " << matchCOG[0] << ", " << matchCOG[1] << ", " << matchCOG[2] << std::endl;
-    /*
-     * Translate to match surface center-of-gravity
-     */
-// DO NOT as is offsets sphere posterior of anatomical as anatomical COG-Y is about -20
-//    matrix.translate(matchCOG[0],
-//                     matchCOG[1],
-//                     matchCOG[2]);
-    
 
     applyMatrix(matrix);
 }

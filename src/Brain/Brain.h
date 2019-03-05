@@ -437,6 +437,10 @@ namespace caret {
         
         const GapsAndMargins* getGapsAndMargins() const;
         
+        bool isSurfaceMatchingToAnatomical() const;
+        
+        void setSurfaceMatchingToAnatomical(const bool matchStatus);
+        
     private:
         /**
          * Reset the brain scene file mode
@@ -871,6 +875,8 @@ namespace caret {
         GapsAndMargins* m_gapsAndMargins;
         
         Scene* m_activeScene = NULL;
+        
+        bool m_surfaceMatchingToAnatomicalFlag = false;
     };
 
 } // namespace

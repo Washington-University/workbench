@@ -129,11 +129,6 @@ DeveloperFlagsEnum::initialize()
                                                 "Use New Scene File Reader and Writer",
                                                 CheckableEnum::YES,
                                                 true));
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_ALL_VIEW_SURFACE_MATCH_MODE,
-                                                "DEVELOPER_FLAG_ALL_VIEW_SURFACE_MATCH_MODE",
-                                                "Setup All View Surface Matching for Movie Recording",
-                                                CheckableEnum::YES,
-                                                false));
 
     std::vector<DeveloperFlagsEnum> notCheckableItems;
     notCheckableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TEST_SCENE_FILE_READ_WRITE,

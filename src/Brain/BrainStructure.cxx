@@ -1528,9 +1528,12 @@ BrainStructure::restoreFromScene(const SceneAttributes* sceneAttributes,
 
 /**
  * Match surface sizes to the primary anatomical surface
+ *
+ * @param matchStatus
+ *     The match status
  */
 void
-BrainStructure::matchSurfacesToPrimaryAnatomical()
+BrainStructure::matchSurfacesToPrimaryAnatomical(const bool matchStatus)
 {
     const Surface* primaryAnatomical = getPrimaryAnatomicalSurface();
     if (primaryAnatomical == NULL) {
@@ -1539,48 +1542,8 @@ BrainStructure::matchSurfacesToPrimaryAnatomical()
     
     for (auto s : m_surfaces) {
         if (s != primaryAnatomical) {
-            bool sphereMatchFlag(false);
-            bool matchFlag(false);
-            switch (s->getSurfaceType()) {
-                case SurfaceTypeEnum::ANATOMICAL:
-                    break;
-                case SurfaceTypeEnum::ELLIPSOID:
-                    break;
-                case SurfaceTypeEnum::FLAT:
-                    matchFlag = true;
-                    break;
-                case SurfaceTypeEnum::HULL:
-                    break;
-                case SurfaceTypeEnum::INFLATED:
-                    matchFlag = true;
-                    break;
-                case SurfaceTypeEnum::RECONSTRUCTION:
-                    break;
-                case SurfaceTypeEnum::SEMI_SPHERICAL:
-                    break;
-                case SurfaceTypeEnum::SPHERICAL:
-                    sphereMatchFlag = true;
-                    break;
-                case SurfaceTypeEnum::UNKNOWN:
-                    break;
-                case SurfaceTypeEnum::VERY_INFLATED:
-                    matchFlag = true;
-                    break;
-            }
-            
-            const bool modStatus(s->isModified());
-            if (sphereMatchFlag) {
-                s->matchSphereToSurface(primaryAnatomical);
-                if ( ! modStatus) {
-                    s->clearModified();
-                }
-            }
-            else if (matchFlag) {
-                s->matchSurfaceBoundingBox(primaryAnatomical);
-                if ( ! modStatus) {
-                    s->clearModified();
-                }
-            }
+            s->matchToAnatomicalSurface(primaryAnatomical,
+                                        matchStatus);
         }
     }
 }

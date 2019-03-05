@@ -2727,43 +2727,35 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     macroManager->addMacroSupportToObject(this->wholeBrainSurfaceSeparationCerebellumSpinBox,
                                           "Set all view cerebral/cerebellum separation");
     
-    
+    this->wholeBrainSurfaceMatchCheckBox = new QCheckBox("Match");
+    WuQtUtilities::setToolTipAndStatusTip(this->wholeBrainSurfaceMatchCheckBox,
+                                          "Match position and size of all surfaces to primary anatomical.  Useful for "
+                                          "animation (surface interpolation) and recording movies.");
+    QObject::connect(this->wholeBrainSurfaceMatchCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBar::wholeBrainSurfaceMatchCheckBoxClicked);
+    this->wholeBrainSurfaceMatchCheckBox->setObjectName(objectNamePrefix
+                                                                      + "MatchSurface");
+    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceMatchCheckBox,
+                                          "Match position and size of all surfaces to primary anatomical");
 
-    QLabel* columnTwoSpaceLabel = new QLabel(" ");
     wholeBrainLeftSurfaceToolButton->setText("L");
     wholeBrainRightSurfaceToolButton->setText("R");
     wholeBrainCerebellumSurfaceToolButton->setText("C");
     
-    bool originalFlag = false;
     QGridLayout* gridLayout = new QGridLayout();
-    if (originalFlag) {
-        gridLayout->setVerticalSpacing(2);
-        gridLayout->setHorizontalSpacing(2);
-        gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 6);
-        gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
-        gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
-        gridLayout->addWidget(columnTwoSpaceLabel, 1, 2);
-        gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 1, 3);
-        gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 1, 4);
-        gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 5);
-        gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 2, 0);
-        gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 2, 1);
-        gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 2, 5);
-    }
-    else {
-        gridLayout->setVerticalSpacing(2);
-        gridLayout->setHorizontalSpacing(2);
-        gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 6);
-        gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
-        gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
-        gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 2, 0);
-        gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 2, 1);
-        gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 3, 0);
-        gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 3, 1);
-        gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 2, 2, 1);
-        gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 3, 2);
-    }
-    
+    gridLayout->setVerticalSpacing(2);
+    gridLayout->setHorizontalSpacing(2);
+    gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 6);
+    gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
+    gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
+    gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 2, 0);
+    gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 2, 1);
+    gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 3, 0);
+    gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 3, 1);
+    gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 2, 2, 1);
+    gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 3, 2);
+    gridLayout->addWidget(this->wholeBrainSurfaceMatchCheckBox, 4, 0, 1, 6);
+
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
@@ -2779,6 +2771,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     this->wholeBrainSurfaceOptionsWidgetGroup->add(wholeBrainCerebellumSurfaceToolButton);
     this->wholeBrainSurfaceOptionsWidgetGroup->add(this->wholeBrainSurfaceSeparationLeftRightSpinBox);
     this->wholeBrainSurfaceOptionsWidgetGroup->add(this->wholeBrainSurfaceSeparationCerebellumSpinBox);
+    this->wholeBrainSurfaceOptionsWidgetGroup->add(this->wholeBrainSurfaceMatchCheckBox);
     
     QWidget* w = this->createToolWidget("Surface Viewing", 
                                         widget, 
@@ -2838,6 +2831,7 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
 
         this->wholeBrainSurfaceSeparationLeftRightSpinBox->setValue(browserTabContent->getWholeBrainLeftRightSeparation());
         this->wholeBrainSurfaceSeparationCerebellumSpinBox->setValue(browserTabContent->getWholeBrainCerebellumSeparation());
+        this->wholeBrainSurfaceMatchCheckBox->setChecked(wholeBrainModel->getBrain()->isSurfaceMatchingToAnatomical());
         
         this->wholeBrainSurfaceOptionsWidgetGroup->blockAllSignals(false);
     }
@@ -4377,6 +4371,23 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(
     
     btc->setWholeBrainCerebellumSeparation(this->wholeBrainSurfaceSeparationCerebellumSpinBox->value());
     this->updateGraphicsWindowAndYokedWindows();
+}
+
+/**
+ * Called when match check box is clicked
+ *
+ * @param checked
+ *     New checked status.
+ */
+void
+BrainBrowserWindowToolBar::wholeBrainSurfaceMatchCheckBoxClicked(bool checked)
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    CaretAssert(brain);
+    
+    brain->setSurfaceMatchingToAnatomical(checked);
+    this->updateGraphicsWindowAndYokedWindows();
+    this->updateUserInterface();
 }
 
 /**

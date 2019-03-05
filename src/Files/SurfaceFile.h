@@ -149,6 +149,9 @@ namespace caret {
         
         void matchSphereToSurface(const SurfaceFile* surfaceFile);
         
+        void matchToAnatomicalSurface(const SurfaceFile* anatomicalSurfaceFile,
+                                      const bool matchStatus);
+        
         void getCenterOfGravity(float cogOut[3]) const;
         
         void applyMatrix(const Matrix4x4& matrix);
@@ -264,6 +267,9 @@ namespace caret {
         
         /** surface normal vectors. */
         std::vector<float> normalVectors;
+        
+        /** Coordinates before matching surface to anatomical */
+        std::vector<float> m_unmatchedCoordinates;
         
         bool m_normalsComputed;
         

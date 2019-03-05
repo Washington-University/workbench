@@ -357,6 +357,7 @@ namespace caret {
         QMenu*          wholeBrainSurfaceCerebellumMenu;
         QDoubleSpinBox* wholeBrainSurfaceSeparationLeftRightSpinBox;
         QDoubleSpinBox* wholeBrainSurfaceSeparationCerebellumSpinBox;
+        QCheckBox*      wholeBrainSurfaceMatchCheckBox;
         void updateAllWholeBrainSurfaceMenus();
         void updateWholeBrainSurfaceMenu(QMenu* menu,
                                          const StructureEnum::Enum structure);
@@ -371,6 +372,7 @@ namespace caret {
         void wholeBrainSurfaceLeftToolButtonTriggered(bool checked);
         void wholeBrainSurfaceRightToolButtonTriggered(bool checked);
         void wholeBrainSurfaceCerebellumToolButtonTriggered(bool checked);
+        void wholeBrainSurfaceMatchCheckBoxClicked(bool checked);
         
         void wholeBrainSurfaceLeftMenuTriggered(QAction*);
         void wholeBrainSurfaceRightMenuTriggered(QAction*);

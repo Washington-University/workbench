@@ -5212,8 +5212,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
     Surface* rightSurface = wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_RIGHT,
                                                                      tabNumberIndex);
     
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_ALL_VIEW_SURFACE_MATCH_MODE)) {
-        /* 2/22/19 ALL SURFACES SAME VIEWPORT */
+    if (m_brain->isSurfaceMatchingToAnatomical()) {
         /*
          * Use the primary anatomical surface for sizing any surface in the same
          * structure so that size of viewport is the same.  Otherwise, the viewport
@@ -5417,7 +5416,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
      * When only one surface structure is displayed, disable offset of surfaces
      */
     bool allowLeftRightSeparationFlag(true);
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_ALL_VIEW_SURFACE_MATCH_MODE)) {
+    if (m_brain->isSurfaceMatchingToAnatomical()) {
         if (uniqueStructuresToDraw.size() == 1) {
             allowLeftRightSeparationFlag = false;
         }
