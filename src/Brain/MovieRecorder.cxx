@@ -349,7 +349,7 @@ void
 MovieRecorder::initializeMovieFileName(const AString& path)
 {
     if (m_movieFileName.isEmpty()) {
-        const QString extension = MovieRecorderVideoFormatTypeEnum::toFileNameExtensionNoDot(MovieRecorderVideoFormatTypeEnum::MPEG_4);
+        const QString extension = MovieRecorderVideoFormatTypeEnum::toFileNameExtensionNoDot(MovieRecorderVideoFormatTypeEnum::MPEG);
         
         m_movieFileName = FileInformation::assembleFileComponents(path,
                                                                   "Movie",

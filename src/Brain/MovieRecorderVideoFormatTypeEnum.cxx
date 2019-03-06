@@ -119,6 +119,12 @@ MovieRecorderVideoFormatTypeEnum::initialize()
                                                         "avi",
                                                         "AVI (*.avi)"));
     
+    enumData.push_back(MovieRecorderVideoFormatTypeEnum(MPEG,
+                                                        "MPEG",
+                                                        "Mpeg",
+                                                        "mpg",
+                                                        "MPEG (*.mpg)"));
+
     enumData.push_back(MovieRecorderVideoFormatTypeEnum(MPEG_4,
                                                         "MPEG_4",
                                                         "Mpeg 4",

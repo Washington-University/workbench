@@ -93,7 +93,7 @@ WbMacroCustomOperationVolumeSliceIncrement::createCommand()
                                                                          errorMessage);
     if (command != NULL) {
         WuQMacroCommandParameter* paramOne = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::CUSTOM_DATA,
-                                                                          "Screen Axis",
+                                                                          "Volume Axis",
                                                                           "Z");
         paramOne->setCustomDataType(WbMacroCustomDataTypeEnum::toName(WbMacroCustomDataTypeEnum::SCREEN_AXIS));
         command->addParameter(paramOne);

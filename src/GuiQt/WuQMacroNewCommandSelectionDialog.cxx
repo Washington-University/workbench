@@ -120,8 +120,11 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
     m_splitter->setChildrenCollapsible(false);
     
     m_dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok
-                                             | QDialogButtonBox::Apply
                                              | QDialogButtonBox::Cancel);
+    const bool allowApplyButtonFlag(false);
+    if (allowApplyButtonFlag) {
+        m_dialogButtonBox->addButton(QDialogButtonBox::Apply);
+    }
     QObject::connect(m_dialogButtonBox, &QDialogButtonBox::clicked,
                      this, &WuQMacroNewCommandSelectionDialog::otherButtonClicked);
 

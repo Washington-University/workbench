@@ -260,6 +260,9 @@ WbMacroCustomOperationManager::getAllCustomOperationMacroCommands()
     
     std::vector<WuQMacroCommand*> customCommands;
     for (auto cct : customCommandTypes) {
+        if (cct == WbMacroCustomOperationTypeEnum::VOLUME_TO_SURFACE_CROSS_FADE) {
+            continue;
+        }
         std::unique_ptr<WbMacroCustomOperationBase> customOperation(createCommand(cct));
         customCommands.push_back(customOperation->createCommand());
     }

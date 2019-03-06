@@ -37,6 +37,8 @@ public:
     enum Enum {
         /** AVI video */
         AVI,
+        /** MPEG */
+        MPEG,
         /** MPEG-4 video */
         MPEG_4
     };
