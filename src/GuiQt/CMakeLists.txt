@@ -454,6 +454,7 @@ VolumeSurfaceOutlineSetViewController.h
 VolumeSurfaceOutlineViewController.h
 WbMacroCustomDataTypeEnum.h
 WbMacroCustomOperationBase.h
+WbMacroCustomOperationDelay.h
 WbMacroCustomOperationManager.h
 WbMacroCustomOperationModelRotation.h
 WbMacroCustomOperationOverlayCrossFade.h
@@ -712,6 +713,7 @@ VolumeSurfaceOutlineSetViewController.cxx
 VolumeSurfaceOutlineViewController.cxx
 WbMacroCustomDataTypeEnum.cxx
 WbMacroCustomOperationBase.cxx
+WbMacroCustomOperationDelay.cxx
 WbMacroCustomOperationManager.cxx
 WbMacroCustomOperationModelRotation.cxx
 WbMacroCustomOperationOverlayCrossFade.cxx

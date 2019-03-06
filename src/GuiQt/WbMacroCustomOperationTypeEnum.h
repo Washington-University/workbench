@@ -35,6 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Delay **/
+        DELAY,
         /** Rotation of viewed model */
         MODEL_ROTATION,
         /** CrossFade of overlays */

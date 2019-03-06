@@ -32,6 +32,7 @@
 #include "GuiManager.h"
 #include "Surface.h"
 #include "WbMacroCustomDataTypeEnum.h"
+#include "WbMacroCustomOperationDelay.h"
 #include "WbMacroCustomOperationModelRotation.h"
 #include "WbMacroCustomOperationOverlayCrossFade.h"
 #include "WbMacroCustomOperationSurfaceInterpolation.h"
@@ -325,6 +326,9 @@ WbMacroCustomOperationManager::createCommand(const WbMacroCustomOperationTypeEnu
     WbMacroCustomOperationBase* operationOut(NULL);
 
     switch (operationType) {
+        case WbMacroCustomOperationTypeEnum::DELAY:
+            operationOut = new WbMacroCustomOperationDelay();
+            break;
         case WbMacroCustomOperationTypeEnum::MODEL_ROTATION:
             operationOut = new WbMacroCustomOperationModelRotation();
             break;

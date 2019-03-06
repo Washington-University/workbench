@@ -106,6 +106,10 @@ WbMacroCustomOperationTypeEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(WbMacroCustomOperationTypeEnum(DELAY,
+                                                      "DELAY",
+                                                      "Delay"));
+    
     enumData.push_back(WbMacroCustomOperationTypeEnum(MODEL_ROTATION,
                                                       "MODEL_ROTATION",
                                                       "Model Rotation"));
