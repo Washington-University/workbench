@@ -106,9 +106,21 @@ WbMacroCustomDataTypeEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(WbMacroCustomDataTypeEnum(OVERLAY_INDEX,
+                                                 "OVERLAY_INDEX",
+                                                 "Overlay Index"));
+    
+    enumData.push_back(WbMacroCustomDataTypeEnum(OVERLAY_FILE_NAME_OR_FILE_INDEX,
+                                                 "OVERLAY_FILE_NAME_OR_FILE_INDEX",
+                                                 "Overlay File or File Index"));
+    
+    enumData.push_back(WbMacroCustomDataTypeEnum(OVERLAY_MAP_NAME_OR_MAP_INDEX,
+                                                 "OVERLAY_MAP_NAME_OR_MAP_INDEX",
+                                                 "Overlay Map Name or Index"));
+    
     enumData.push_back(WbMacroCustomDataTypeEnum(SCREEN_AXIS,
-                                    "SCREEN_AXIS",
-                                    "Screen Axis"));
+                                                 "SCREEN_AXIS",
+                                                 "Screen Axis"));
     
     enumData.push_back(WbMacroCustomDataTypeEnum(SURFACE,
                                                  "SURFACE",

@@ -28,8 +28,9 @@
 #include "WbMacroCustomOperationBase.h"
 
 namespace caret {
-
+    class CaretMappableDataFile;
     class Overlay;
+    class OverlaySet;
     
     class WbMacroCustomOperationOverlayCrossFade : public WbMacroCustomOperationBase {
         
@@ -52,10 +53,26 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        bool performCrossFade(Overlay* fadeToOverlay,
-                              Overlay* fadeFromOverlay,
-                              const float durationSeconds);
+        WuQMacroCommand* createCommandVersionOne();
         
+        WuQMacroCommand* createCommandVersionTwo();
+        
+        virtual bool executeCommandVersionTwo(QWidget* parent,
+                                              const WuQMacroCommand* macroCommand);
+        
+        bool performCrossFadeVersionTwo(OverlaySet* overlaySet,
+                                        const int32_t overlayIndex,
+                                        CaretMappableDataFile* fadeToMapFile,
+                                        const int32_t fadeToMapIndex,
+                                        const float durationSeconds);
+        
+        virtual bool executeCommandVersionOne(QWidget* parent,
+                                              const WuQMacroCommand* macroCommand);
+
+        bool performCrossFadeVersionOne(Overlay* fadeToOverlay,
+                                        Overlay* fadeFromOverlay,
+                                        const float durationSeconds);
+
         
         // ADD_NEW_MEMBERS_HERE
 
