@@ -63,7 +63,7 @@ OperationParameters* AlgorithmCiftiCreateDenseScalar::getParameters()
     OptionalParameter* leftRoiOpt = leftMetricOpt->createOptionalParameter(2, "-roi-left", "roi of vertices to use from left surface");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
-    OptionalParameter* rightMetricOpt = ret->createOptionalParameter(4, "-right-metric", "metric for left surface");
+    OptionalParameter* rightMetricOpt = ret->createOptionalParameter(4, "-right-metric", "metric for right surface");
     rightMetricOpt->addMetricParameter(1, "metric", "the metric file");
     OptionalParameter* rightRoiOpt = rightMetricOpt->createOptionalParameter(2, "-roi-right", "roi of vertices to use from right surface");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
