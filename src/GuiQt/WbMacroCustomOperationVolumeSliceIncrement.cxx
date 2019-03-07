@@ -126,8 +126,12 @@ WbMacroCustomOperationVolumeSliceIncrement::executeCommand(QWidget* parent,
     CaretAssert(parent);
     CaretAssert(macroCommand);
     
-    validateCorrectNumberOfParameters(macroCommand);
-    
+    if ( ! validateCorrectNumberOfParameters(macroCommand, 2)) {
+        return false;
+    }
+    const QString axisName(macroCommand->getParameterAtIndex(0)->getValue().toString().toUpper());
+    const float durationSeconds = macroCommand->getParameterAtIndex(1)->getValue().toFloat();
+
     BrainBrowserWindow* bbw = qobject_cast<BrainBrowserWindow*>(parent);
     if (bbw == NULL) {
         appendToErrorMessage("Parent for running surface macro is not a browser window.");
@@ -140,11 +144,6 @@ WbMacroCustomOperationVolumeSliceIncrement::executeCommand(QWidget* parent,
         return false;
     }
 
-    int32_t parameterIndex(0);
-    const QString axisName(macroCommand->getParameterAtIndex(parameterIndex)->getValue().toString().toUpper());
-    parameterIndex++;
-    const float durationSeconds = macroCommand->getParameterAtIndex(parameterIndex)->getValue().toFloat();
-    parameterIndex++;
 
     Axis axis = Axis::X;
     if (axisName == "X") {

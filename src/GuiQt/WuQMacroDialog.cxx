@@ -892,12 +892,14 @@ WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
     }
     
     for (int32_t i = 0; i < numParams; i++) {
-        m_parameterWidgets[i]->updateContent(command->getParameterAtIndex(i));
+        m_parameterWidgets[i]->updateContent(command,
+                                             command->getParameterAtIndex(i));
     }
     
     numWidgets = static_cast<int32_t>(m_parameterWidgets.size());
     for (int32_t i = numParams; i < numWidgets; i++) {
-        m_parameterWidgets[i]->updateContent(NULL);
+        m_parameterWidgets[i]->updateContent(NULL,
+                                             NULL);
     }
 }
 
@@ -1665,13 +1667,17 @@ m_index(index)
 /**
  * Update content of a command parameter
  *
+ * @param macroCommand
+ *     Macro command containing the parameter
  * @param parameter
  *     The parameter
  */
 void
-CommandParameterWidget::updateContent(WuQMacroCommandParameter* parameter)
+CommandParameterWidget::updateContent(WuQMacroCommand* macroCommand,
+                                      WuQMacroCommandParameter* parameter)
 {
-    m_parameter = parameter;
+    m_macroCommand = macroCommand;
+    m_parameter    = parameter;
     const bool validFlag(m_parameter != NULL);
     if (validFlag) {
         if (parameter->getDataType() == WuQMacroDataValueTypeEnum::BOOLEAN) {
@@ -1728,6 +1734,7 @@ CommandParameterWidget::pushButtonClicked()
         case WuQMacroDataValueTypeEnum::CUSTOM_DATA:
         {
             validFlag = WuQMacroManager::instance()->editCustomDataValueParameter(m_pushButton,
+                                                                                  m_macroCommand,
                                                                                   m_parameter);
             if (validFlag) {
                 dataValue = m_parameter->getValue();

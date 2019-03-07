@@ -86,16 +86,24 @@ WbMacroCustomOperationBase::getErrorMessage() const
     return m_errorMessage;
 }
 
+/**
+ * Validate that the command contains the correct number of parameters
+ *
+ * @param command
+ *    The command
+ * @param correctNumberOfParameters
+ *    The correct number of parameters (this must be passed in since a command
+ *    may change its number of parameters in a new version of the command)
+ */
 bool
-WbMacroCustomOperationBase::validateCorrectNumberOfParameters(const WuQMacroCommand* command)
+WbMacroCustomOperationBase::validateCorrectNumberOfParameters(const WuQMacroCommand* command,
+                                                              const int32_t correctNumberOfParameters)
 {
-    std::unique_ptr<WuQMacroCommand> validCommand(createCommand());
     const int32_t paramCount = command->getNumberOfParameters();
-    const int32_t validCount = validCommand->getNumberOfParameters();
     
-    if (paramCount < validCount) {
+    if (paramCount < correctNumberOfParameters) {
         appendToErrorMessage("Command should contain "
-                             + QString::number(validCount)
+                             + QString::number(correctNumberOfParameters)
                              + " parameters but contains "
                              + QString::number(paramCount)
                              + " parameters");
@@ -120,6 +128,24 @@ WbMacroCustomOperationBase::appendToErrorMessage(const QString& text)
     }
     m_errorMessage.append(text);
 }
+
+/**
+ * Create a unsupported version messagge and append it to the error message.
+ *
+ * @param unsupportedVersionNumber
+ *     Verson not supported
+ */
+void
+WbMacroCustomOperationBase::appendUnsupportedVersionToErrorMessage(const int32_t unsupportedVersionNumber)
+{
+    QString msg("Version "
+                + QString::number(unsupportedVersionNumber)
+                + " is not supported for "
+                + getOperationName()
+                + ".  You may need to update your version of wb_view");
+    appendToErrorMessage(msg);
+}
+
 
 /**
  * Find the surface with the given name
@@ -246,6 +272,16 @@ WbMacroCustomOperationBase::sleepForSecondsAtEndOfIteration(const float seconds)
     if (seconds > 0.0) {
         SystemUtilities::sleepSeconds(seconds);
     }
+}
+
+/**
+ * @return User friendly name for command
+ * Sub-classes may override to provide more descriptive name
+ */
+QString
+WbMacroCustomOperationBase::getOperationName() const
+{
+    return WbMacroCustomOperationTypeEnum::toGuiName(m_operationType);
 }
 
 

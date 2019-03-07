@@ -77,15 +77,20 @@ namespace caret {
         
         void sleepForSecondsAtEndOfIteration(const float seconds);
         
+        virtual QString getOperationName() const;
+        
     protected:
         WbMacroCustomOperationBase(const WbMacroCustomOperationTypeEnum::Enum operationType);
         
-        bool validateCorrectNumberOfParameters(const WuQMacroCommand* command);
+        bool validateCorrectNumberOfParameters(const WuQMacroCommand* command,
+                                               const int32_t correctNumberOfParameters);
         
         Surface* findSurface(const QString& surfaceName,
                              const QString& errorMessagePrefix);
         
         void appendToErrorMessage(const QString& text);
+        
+        void appendUnsupportedVersionToErrorMessage(const int32_t unsupportedVersionNumber);
         
         void updateGraphics();
         

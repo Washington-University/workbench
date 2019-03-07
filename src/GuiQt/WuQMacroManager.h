@@ -140,6 +140,7 @@ namespace caret {
         void macroWasModified(WuQMacro* macro);
         
         bool editCustomDataValueParameter(QWidget* parent,
+                                          WuQMacroCommand* macroCommand,
                                           WuQMacroCommandParameter* parameter);
 
         bool executeCustomOperationMacroCommand(QWidget* parent,

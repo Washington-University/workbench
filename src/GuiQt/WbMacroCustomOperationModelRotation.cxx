@@ -119,8 +119,13 @@ WbMacroCustomOperationModelRotation::executeCommand(QWidget* parent,
     CaretAssert(parent);
     CaretAssert(macroCommand);
     
-    validateCorrectNumberOfParameters(macroCommand);
-    
+    if ( ! validateCorrectNumberOfParameters(macroCommand, 3)) {
+        return false;
+    }
+    const QString axisName(macroCommand->getParameterAtIndex(0)->getValue().toString().toUpper());
+    const float totalRotation = macroCommand->getParameterAtIndex(1)->getValue().toFloat();
+    const float durationSeconds = macroCommand->getParameterAtIndex(2)->getValue().toFloat();
+
     BrainBrowserWindow* bbw = qobject_cast<BrainBrowserWindow*>(parent);
     if (bbw == NULL) {
         appendToErrorMessage("Parent for running surface macro is not a browser window.");
@@ -132,10 +137,6 @@ WbMacroCustomOperationModelRotation::executeCommand(QWidget* parent,
         appendToErrorMessage("No tab is selected in browser window.");
         return false;
     }
-
-    const QString axisName(macroCommand->getParameterAtIndex(0)->getValue().toString().toUpper());
-    const float totalRotation = macroCommand->getParameterAtIndex(1)->getValue().toFloat();
-    const float durationSeconds = macroCommand->getParameterAtIndex(2)->getValue().toFloat();
 
     Axis axis = Axis::X;
     if (axisName == "X") {

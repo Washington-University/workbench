@@ -1094,6 +1094,8 @@ WuQMacroManager::getShortCutKeysMask()
  *
  * @param parent
  *     Parent widget for any dialogs
+ * @param macroCommand
+ *     Macro command that contains the parameter for editing
  * @param parameter
  *     Parameter for editing
  * @return
@@ -1101,12 +1103,14 @@ WuQMacroManager::getShortCutKeysMask()
  */
 bool
 WuQMacroManager::editCustomDataValueParameter(QWidget* parent,
-                                            WuQMacroCommandParameter* parameter)
+                                              WuQMacroCommand* macroCommand,
+                                              WuQMacroCommandParameter* parameter)
 {
     bool modFlag(false);
     
     if (m_customCommandManager != NULL) {
         modFlag = m_customCommandManager->editCustomDataValueParameter(parent,
+                                                                       macroCommand,
                                                                        parameter);
     }
     else {

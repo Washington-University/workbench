@@ -128,7 +128,17 @@ WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
     CaretAssert(parent);
     CaretAssert(macroCommand);
     
-    validateCorrectNumberOfParameters(macroCommand);
+    if ( ! validateCorrectNumberOfParameters(macroCommand, 3)) {
+        return false;
+    }
+    const QString startSurfaceName(macroCommand->getParameterAtIndex(0)->getValue().toString());
+    Surface* startSurface = findSurface(startSurfaceName,
+                                        "Starting surface");
+    const QString endSurfaceName(macroCommand->getParameterAtIndex(1)->getValue().toString());
+    Surface* endSurface = findSurface(endSurfaceName,
+                                      "Ending surface");
+    const float durationSeconds = macroCommand->getParameterAtIndex(2)->getValue().toFloat();
+
     
     BrainBrowserWindow* bbw = qobject_cast<BrainBrowserWindow*>(parent);
     if (bbw == NULL) {
@@ -147,16 +157,6 @@ WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
         appendToErrorMessage("View selected is not ALL view");
         return false;
     }
-    
-    const QString startSurfaceName(macroCommand->getParameterAtIndex(0)->getValue().toString());
-    Surface* startSurface = findSurface(startSurfaceName,
-                                        "Starting surface");
-    
-    const QString endSurfaceName(macroCommand->getParameterAtIndex(1)->getValue().toString());
-    Surface* endSurface = findSurface(endSurfaceName,
-                                      "Ending surface");
-    
-    const float durationSeconds = macroCommand->getParameterAtIndex(2)->getValue().toFloat();
     
     if ((startSurface != NULL)
         && (endSurface != NULL)) {

@@ -248,7 +248,8 @@ namespace caret {
                                QGridLayout* gridLayout,
                                QWidget* parent);
         
-        void updateContent(WuQMacroCommandParameter* parameter);
+        void updateContent(WuQMacroCommand* macroCommand,
+                           WuQMacroCommandParameter* parameter);
         
         QLabel* m_label;
         
@@ -262,6 +263,8 @@ namespace caret {
         
     private:
         const int32_t m_index;
+        
+        WuQMacroCommand* m_macroCommand = NULL;
         
         WuQMacroCommandParameter* m_parameter = NULL;
     };

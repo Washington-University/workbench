@@ -123,8 +123,11 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
     CaretAssert(parent);
     CaretAssert(macroCommand);
     
-    validateCorrectNumberOfParameters(macroCommand);
-    
+    if ( ! validateCorrectNumberOfParameters(macroCommand, 1)) {
+        return false;
+    }
+    const float durationSeconds(macroCommand->getParameterAtIndex(0)->getValue().toFloat());
+
     BrainBrowserWindow* bbw = qobject_cast<BrainBrowserWindow*>(parent);
     if (bbw == NULL) {
         appendToErrorMessage("Parent for running surface macro is not a browser window");
@@ -142,10 +145,6 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
         appendToErrorMessage("All view must be selected");
         return false;
     }
-    
-    int32_t paramIndex(0);
-    const float durationSeconds(macroCommand->getParameterAtIndex(paramIndex)->getValue().toFloat());
-    paramIndex++;
     
     OverlaySet* overlaySet = tabContent->getOverlaySet();
     CaretAssert(overlaySet);

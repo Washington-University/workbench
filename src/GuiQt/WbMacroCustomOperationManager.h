@@ -28,9 +28,12 @@
 #include "CaretObject.h"
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WuQMacroCustomOperationManagerInterface.h"
+
 class QWidget;
 
 namespace caret {
+    class BrowserTabContent;
+    class CaretMappableDataFile;
     class WbMacroCustomOperationBase;
     class WuQMacroCommand;
     class WuQMacroCommandParameter;
@@ -45,8 +48,9 @@ namespace caret {
         WbMacroCustomOperationManager(const WbMacroCustomOperationManager&) = delete;
 
         WbMacroCustomOperationManager& operator=(const WbMacroCustomOperationManager&) = delete;
-        
+
         virtual bool editCustomDataValueParameter(QWidget* parent,
+                                                  WuQMacroCommand* macroCommand,
                                                   WuQMacroCommandParameter* parameter);
         
         virtual bool executeCustomOperationMacroCommand(QWidget* parent,
@@ -68,6 +72,36 @@ namespace caret {
     private:
 
         WbMacroCustomOperationBase* createCommand(const WbMacroCustomOperationTypeEnum::Enum operationType);
+        
+        bool editOverlayIndex(QWidget* parentWidget,
+                              WuQMacroCommandParameter* parameter);
+        
+        bool editOverlayFile(QWidget* parentWidget,
+                              WuQMacroCommand* macroCommand,
+                              WuQMacroCommandParameter* parameter,
+                              QString& errorMessageOut);
+        
+        bool editOverlayMap(QWidget* parentWidget,
+                            WuQMacroCommand* macroCommand,
+                            WuQMacroCommandParameter* parameter,
+                            QString& errorMessageOut);
+        
+        bool editScreenAxis(QWidget* parentWidget,
+                            WuQMacroCommandParameter* parameter);
+        
+        bool editSurface(QWidget* parentWidget,
+                         WuQMacroCommandParameter* parameter,
+                         QString& errorMessageOut);
+
+        bool getMapFilesInOverlay(QWidget* parentWidget,
+                                  WuQMacroCommand* macroCommand,
+                                  std::vector<CaretMappableDataFile*>& mapFilesOut,
+                                  CaretMappableDataFile* &selectedMapFileOut,
+                                  QString& errorMessageOut);
+
+        BrowserTabContent* getTabContent(QWidget* parentWidget,
+                                         const QString& promptMessage,
+                                         QString& errorMessageOut);
         
         // ADD_NEW_MEMBERS_HERE
 

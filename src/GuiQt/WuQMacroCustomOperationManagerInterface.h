@@ -46,12 +46,15 @@ namespace caret {
          *
          * @param parent
          *     Parent widget for any dialogs
+         * @param macroCommand
+         *     Macro command that contains the parameter for editing
          * @param parameter
          *     Parameter for editing
          * @return
          *     True if the parameter was modified
          */
         virtual bool editCustomDataValueParameter(QWidget* parent,
+                                                  WuQMacroCommand* macroCommand,
                                                   WuQMacroCommandParameter* parameter) = 0;
         
         /**
