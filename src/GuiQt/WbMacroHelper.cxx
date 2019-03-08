@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "EventCaretDataFilesGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
@@ -91,10 +92,12 @@ WbMacroHelper::receiveEvent(Event* event)
 }
 
 /**
- * @return All available macro groups
+ * @return All 'active' available macro groups.
+ *         Macros groups that are editible.  Other macro
+ *         groups are exluded.
  */
 std::vector<WuQMacroGroup*>
-WbMacroHelper::getMacroGroups()
+WbMacroHelper::getActiveMacroGroups()
 {
     std::vector<WuQMacroGroup*> macroGroups;
     
@@ -111,6 +114,35 @@ WbMacroHelper::getMacroGroups()
         Scene* activeScene = activeSceneEvent.getScene();
         if (activeScene != NULL) {
             macroGroups.push_back(activeScene->getMacroGroup());
+        }
+    }
+    
+    return macroGroups;
+}
+
+/**
+ * @return All macro groups including those that are
+ *         be valid (editable) at this time.
+ */
+std::vector<const WuQMacroGroup*>
+WbMacroHelper::getAllMacroGroups() const
+{
+    std::vector<const WuQMacroGroup*> macroGroups;
+    
+    const bool includePreferencesFlag(false);
+    if (includePreferencesFlag) {
+        CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+        CaretAssert(preferences);
+        macroGroups.push_back(preferences->getMacros());
+    }
+    
+    const auto sceneFiles = EventCaretDataFilesGet::getCaretDataFilesForType(DataFileTypeEnum::SCENE);
+    for (const auto dataFile : sceneFiles) {
+        const SceneFile* sceneFile = dynamic_cast<const SceneFile*>(dataFile);
+        CaretAssert(sceneFile);
+        const int32_t numberOfScenes = sceneFile->getNumberOfScenes();
+        for (int32_t i = 0; i < numberOfScenes; i++) {
+            macroGroups.push_back(sceneFile->getSceneAtIndex(i)->getMacroGroup());
         }
     }
     

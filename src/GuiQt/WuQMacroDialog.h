@@ -113,6 +113,8 @@ namespace caret {
         
         void commandParamaterDataChanged(int);
         
+        void insertMenuCopyMacroSelected();
+        
         void insertMenuNewMacroSelected();
         
         void insertMenuNewMacroCommandSelected();
@@ -171,6 +173,8 @@ namespace caret {
         void updateEditingToolButtons();
         
         void treeItemSelected(const QModelIndex& modelIndex);
+        
+        void insertNewMacro(WuQMacro* macro);
         
         std::vector<WuQMacroGroup*> m_macroGroups;
         

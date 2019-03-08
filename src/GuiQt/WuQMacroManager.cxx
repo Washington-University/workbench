@@ -415,17 +415,34 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
 
 
 /**
- * @return Vector containing all Macro Groups.
+ * @return All 'active' available macro groups.
+ *         Macros groups that are editible.  Other macro
+ *         groups are exluded.
  */
 std::vector<WuQMacroGroup*>
-WuQMacroManager::getMacroGroups() const
+WuQMacroManager::getActiveMacroGroups() const
 {
     std::vector<WuQMacroGroup*> macroGroups;
     if (m_macroHelper) {
-        macroGroups = m_macroHelper->getMacroGroups();
+        macroGroups = m_macroHelper->getActiveMacroGroups();
     }
     return macroGroups;
 }
+
+/**
+ * @return All macro groups including those that are
+ *         be valid (editable) at this time.
+ */
+std::vector<const WuQMacroGroup*>
+WuQMacroManager::getAllMacroGroups() const
+{
+    std::vector<const WuQMacroGroup*> macroGroups;
+    if (m_macroHelper) {
+        macroGroups = m_macroHelper->getAllMacroGroups();
+    }
+    return macroGroups;
+}
+
 
 /**
  * Start recording a new macro using the New Macro dialog.
@@ -1065,7 +1082,7 @@ WuQMacroManager::getMacroWithShortCutKey(const WuQMacroShortCutKeyEnum::Enum sho
 {
     WuQMacro* macro(NULL);
     
-    const auto macroGroups = getMacroGroups();
+    const auto macroGroups = getActiveMacroGroups();
     for (const auto mg : macroGroups) {
         macro = mg->getMacroWithShortCutKey(shortCutKey);
         if (macro != NULL) {

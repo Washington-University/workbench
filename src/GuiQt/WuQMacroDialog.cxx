@@ -50,6 +50,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "WuQMacro.h"
+#include "WuQMacroCopyDialog.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroExecutor.h"
@@ -82,7 +83,7 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     setWindowTitle("Macros");
     this->setAttribute(Qt::WA_DeleteOnClose, false);
     
-    m_macroGroups = WuQMacroManager::instance()->getMacroGroups();
+    m_macroGroups = WuQMacroManager::instance()->getActiveMacroGroups();
     
     QLabel* macroGroupLabel = new QLabel("Macros in:");
     
@@ -611,7 +612,7 @@ WuQMacroDialog::updateDialogContents()
         }
     }
 
-    m_macroGroups = WuQMacroManager::instance()->getMacroGroups();
+    m_macroGroups = WuQMacroManager::instance()->getActiveMacroGroups();
     
     m_macroGroupComboBox->clear();
     for (auto mg : m_macroGroups) {
@@ -1328,32 +1329,106 @@ WuQMacroDialog::editingInsertToolButtonClicked()
         return;
     }
     
-    bool addMacroFlag(true);
-    bool addMacroCommandFlag(false);
+    bool insertMacroCommandValidFlag(false);
+    bool copyAndInsertMacroValidFlag(false);
+    const std::vector<const WuQMacroGroup*> allGroups = WuQMacroManager::instance()->getAllMacroGroups();
+    for (const auto mg : allGroups) {
+        if (mg->getNumberOfMacros() > 0) {
+            copyAndInsertMacroValidFlag = true;
+            break;
+        }
+    }
     
     switch (getSelectedItemType()) {
         case WuQMacroStandardItemTypeEnum::INVALID:
             break;
         case WuQMacroStandardItemTypeEnum::MACRO:
-            addMacroCommandFlag = true;
+            insertMacroCommandValidFlag = true;
             break;
         case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
-            addMacroCommandFlag = true;
+            insertMacroCommandValidFlag = true;
             break;
     }
     
     QMenu menu(m_editingInsertToolButton);
-    if (addMacroFlag) {
-        menu.addAction("Insert New Macro Below...",
-                        this,
-                        &WuQMacroDialog::insertMenuNewMacroSelected);
+
+    /*
+     * Macro command items
+     */
+    QAction* insertNewCommandAction = menu.addAction("Insert New Command Below...",
+                                                     this,
+                                                     &WuQMacroDialog::insertMenuNewMacroCommandSelected);
+    insertNewCommandAction->setEnabled(insertMacroCommandValidFlag);
+
+    /*
+     * Macro items
+     */
+    if (menu.actions().count() > 0) {
+        menu.addSeparator();
     }
-    if (addMacroCommandFlag) {
-        menu.addAction("Insert New Command Below...",
-                        this,
-                        &WuQMacroDialog::insertMenuNewMacroCommandSelected);
-    }
+    
+    QAction* copyMacroAction = menu.addAction("Copy and Insert Macro Below...",
+                                              this,
+                                              &WuQMacroDialog::insertMenuCopyMacroSelected);
+    copyMacroAction->setEnabled(copyAndInsertMacroValidFlag);
+    
+    menu.addAction("Insert New Macro Below...",
+                   this,
+                   &WuQMacroDialog::insertMenuNewMacroSelected);
+    
     menu.exec(m_editingInsertToolButton->mapToGlobal(QPoint(0, 0)));
+}
+
+/**
+ * Called when copy and insert macro menu item is selected
+ */
+void
+WuQMacroDialog::insertMenuCopyMacroSelected()
+{
+    WuQMacroCopyDialog dialog(this);
+    if (dialog.exec() == WuQMacroCopyDialog::Accepted) {
+        const WuQMacro* macro = dialog.getMacroToCopy();
+        if (macro != NULL) {
+            WuQMacro* newMacro = new WuQMacro(*macro);
+            newMacro->setName("Copy of "
+                              + macro->getName());
+            insertNewMacro(newMacro);
+        }
+    }
+}
+
+/**
+ * Insert a new macro
+ *
+ * @param macro
+ *    Macro to insert, must be valid
+ */
+void
+WuQMacroDialog::insertNewMacro(WuQMacro* macro)
+{
+    CaretAssert(macro);
+    
+    const WuQMacro* selectedMacro = getSelectedMacro();
+    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
+    CaretAssert(macroGroup);
+    
+    if (selectedMacro != NULL) {
+        const int32_t index = macroGroup->getIndexOfMacro(selectedMacro);
+        macroGroup->insertMacroAtIndex(index + 1,
+                                       macro);
+    }
+    else {
+        macroGroup->addMacro(macro);
+    }
+    updateDialogContents();
+    
+    QModelIndex selectedIndex = macroGroup->indexFromItem(macro);
+    if (selectedIndex.isValid()) {
+        m_treeView->setCurrentIndex(selectedIndex);
+        updateDialogContents();
+    }
+    
+    WuQMacroManager::instance()->macroWasModified(macro);
 }
 
 /**
@@ -1362,9 +1437,6 @@ WuQMacroDialog::editingInsertToolButtonClicked()
 void
 WuQMacroDialog::insertMenuNewMacroSelected()
 {
-    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
-    CaretAssert(macroGroup);
-    
     bool okFlag(false);
     const QString macroName = QInputDialog::getText(m_editingInsertToolButton, "Create Macro", "New Macro Name",
                                                     QLineEdit::Normal,
@@ -1372,26 +1444,31 @@ WuQMacroDialog::insertMenuNewMacroSelected()
                                                     &okFlag);
     if (okFlag) {
         if ( ! macroName.isEmpty()) {
-            const WuQMacro* selectedMacro = getSelectedMacro();
             WuQMacro* macro = new WuQMacro();
             macro->setName(macroName);
-            if (selectedMacro != NULL) {
-                const int32_t index = macroGroup->getIndexOfMacro(selectedMacro);
-                macroGroup->insertMacroAtIndex(index + 1,
-                                               macro);
-            }
-            else {
-                macroGroup->addMacro(macro);
-            }
-            updateDialogContents();
-            
-            QModelIndex selectedIndex = macroGroup->indexFromItem(macro);
-            if (selectedIndex.isValid()) {
-                m_treeView->setCurrentIndex(selectedIndex);
-                updateDialogContents();
-            }
+            insertNewMacro(macro);
 
-            WuQMacroManager::instance()->macroWasModified(macro);
+//            const WuQMacro* selectedMacro = getSelectedMacro();
+//            WuQMacroGroup* macroGroup = getSelectedMacroGroup();
+//            CaretAssert(macroGroup);
+//
+//            if (selectedMacro != NULL) {
+//                const int32_t index = macroGroup->getIndexOfMacro(selectedMacro);
+//                macroGroup->insertMacroAtIndex(index + 1,
+//                                               macro);
+//            }
+//            else {
+//                macroGroup->addMacro(macro);
+//            }
+//            updateDialogContents();
+//
+//            QModelIndex selectedIndex = macroGroup->indexFromItem(macro);
+//            if (selectedIndex.isValid()) {
+//                m_treeView->setCurrentIndex(selectedIndex);
+//                updateDialogContents();
+//            }
+//
+//            WuQMacroManager::instance()->macroWasModified(macro);
         }
     }
 }

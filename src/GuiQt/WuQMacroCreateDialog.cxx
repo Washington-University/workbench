@@ -60,7 +60,7 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
 {
     setWindowTitle("Record Macro");
     
-    m_macroGroups = WuQMacroManager::instance()->getMacroGroups();
+    m_macroGroups = WuQMacroManager::instance()->getActiveMacroGroups();
     
     QLabel* nameLabel = new QLabel("Macro name:");
     QLabel* shortCutKeyLabel = new QLabel("Short Cut Key:");

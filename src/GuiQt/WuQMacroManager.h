@@ -87,8 +87,10 @@ namespace caret {
         
         bool isModeRecording() const;
         
-        std::vector<WuQMacroGroup*> getMacroGroups() const;
+        std::vector<WuQMacroGroup*> getActiveMacroGroups() const;
         
+        std::vector<const WuQMacroGroup*> getAllMacroGroups() const;        
+
         void startRecordingNewMacro(QWidget* parent);
         
         void stopRecordingNewMacro();

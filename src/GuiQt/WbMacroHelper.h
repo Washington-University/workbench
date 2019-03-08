@@ -46,7 +46,9 @@ namespace caret {
         
         void receiveEvent(Event* event) override;
         
-        virtual std::vector<WuQMacroGroup*> getMacroGroups() override;
+        virtual std::vector<WuQMacroGroup*> getActiveMacroGroups();
+        
+        virtual std::vector<const WuQMacroGroup*> getAllMacroGroups() const;
         
         virtual void macroWasModified(WuQMacro* macro) override;
         

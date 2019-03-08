@@ -52,10 +52,18 @@ namespace caret {
         WuQMacroHelperInterface& operator=(const WuQMacroHelperInterface&) = delete;
         
         /**
-         * @return All available macro groups
+         * @return All 'active' available macro groups.
+         *         Macros groups that are editible.  Other macro
+         *         groups are exluded.
          */
-        virtual std::vector<WuQMacroGroup*> getMacroGroups() = 0;
+        virtual std::vector<WuQMacroGroup*> getActiveMacroGroups() = 0;
 
+        /**
+         * @return All macro groups including those that are
+         *         be valid (editable) at this time.
+         */
+        virtual std::vector<const WuQMacroGroup*> getAllMacroGroups() const = 0;
+        
         /**
          * Is called when the given macro is modified
          *

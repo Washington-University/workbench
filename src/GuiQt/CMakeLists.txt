@@ -206,6 +206,7 @@ ELSE()
         WuQGroupBoxExclusiveWidget.h
         WuQImageLabel.h
         WuQListWidget.h
+	WuQMacroCopyDialog.h
         WuQMacroCreateDialog.h
         WuQMacroDialog.h
         WuQMacroExecutor.h
@@ -476,6 +477,7 @@ WuQGridLayoutGroup.h
 WuQGroupBoxExclusiveWidget.h
 WuQImageLabel.h
 WuQListWidget.h
+WuQMacroCopyDialog.h
 WuQMacroCreateDialog.h
 WuQMacroCustomOperationManagerInterface.h
 WuQMacroDialog.h
@@ -735,6 +737,7 @@ WuQGridLayoutGroup.cxx
 WuQGroupBoxExclusiveWidget.cxx
 WuQImageLabel.cxx
 WuQListWidget.cxx
+WuQMacroCopyDialog.cxx
 WuQMacroCreateDialog.cxx
 WuQMacroDialog.cxx
 WuQMacroExecutor.cxx
