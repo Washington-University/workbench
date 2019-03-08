@@ -297,63 +297,6 @@ WbMacroCustomOperationManager::editOverlayFile(QWidget* parentWidget,
                                                WuQMacroCommandParameter* parameter,
                                                QString& errorMessageOut)
 {
-//    /*
-//     * Find the overlay index parameter that should be before this parameter
-//     */
-//    int32_t overlayIndex(-1);
-//    const int32_t numParams = macroCommand->getNumberOfParameters();
-//    for (int32_t ip = 0; ip < numParams; ip++) {
-//        const WuQMacroCommandParameter* p = macroCommand->getParameterAtIndex(ip);
-//        if (p->getDataType() == WuQMacroDataValueTypeEnum::CUSTOM_DATA) {
-//            bool valid(false);
-//            WbMacroCustomDataTypeEnum::Enum customType = WbMacroCustomDataTypeEnum::fromName(p->getCustomDataType(),
-//                                                                                             &valid);
-//            if (valid) {
-//                if (customType == WbMacroCustomDataTypeEnum::OVERLAY_INDEX) {
-//                    overlayIndex = p->getValue().toInt();
-//                    break;
-//                }
-//            }
-//        }
-//    }
-//
-//    /*
-//     * Overlay index is 1..N for user
-//     */
-//    if (overlayIndex < 1) {
-//        errorMessageOut = "Unable to find overlay index";
-//        return false;
-//    }
-//    --overlayIndex;
-//
-//    BrowserTabContent* tabContent = getTabContent(parentWidget,
-//                                                  "Window containing overlay",
-//                                                  errorMessageOut);
-//    if (tabContent == NULL) {
-//        return false;
-//    }
-//
-//    Overlay* overlay = tabContent->getOverlaySet()->getOverlay(overlayIndex);
-//    if (overlay == NULL) {
-//        errorMessageOut = ("Overlay "
-//                           + AString::number(overlayIndex)
-//                           + " not found");
-//        return false;
-//    }
-//
-//    std::vector<CaretMappableDataFile*> mapFiles;
-//    CaretMappableDataFile* selectedMapFile(NULL);
-//    int32_t selectedMapIndex(-1);
-//    overlay->getSelectionData(mapFiles,
-//                              selectedMapFile,
-//                              selectedMapIndex);
-//
-//    if (mapFiles.empty()) {
-//        errorMessageOut = "The overlay does not contain any files";
-//        return false;
-//    }
-
-    
     std::vector<CaretMappableDataFile*> mapFiles;
     CaretMappableDataFile* selectedMapFile(NULL);
     if ( ! getMapFilesInOverlay(parentWidget,

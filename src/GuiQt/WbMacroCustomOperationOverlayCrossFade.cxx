@@ -141,12 +141,12 @@ WbMacroCustomOperationOverlayCrossFade::createCommandVersionTwo()
 {
     const int32_t versionTwo(2);
     
-    const QString description("Crossfade (blend) from file in overlay to fade file/map:\n"
+    const QString description("Crossfade (blend) from file in overlay to selected file/map:\n"
                               "(1) A copy of the selected overlay is inserted below it; \n"
                               "(2) Selected file/map is placed in new the overlay;\n"
                               "(3) The opacity of selected overlay is decreased until it\n"
                               "    becomes 0.0 revealing the selected file/map;\n"
-                              "(4) The selected overlay is removed;"
+                              "(4) The selected overlay is removed;\n"
                               "(5) The selected file/map remains displayed in its overlay\n");
 
     WuQMacroCommandParameter* paramSurfaceOne = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::CUSTOM_DATA,
