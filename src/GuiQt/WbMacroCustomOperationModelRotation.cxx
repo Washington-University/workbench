@@ -33,6 +33,7 @@
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
+#include "WuQMacroExecutorMonitor.h"
 
 using namespace caret;
 
@@ -106,6 +107,8 @@ WbMacroCustomOperationModelRotation::createCommand()
  *
  * @param parent
  *     Parent widget for any dialogs
+ * @param executorMonitor
+ *     the macro executor monitor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -114,7 +117,8 @@ WbMacroCustomOperationModelRotation::createCommand()
  */
 bool
 WbMacroCustomOperationModelRotation::executeCommand(QWidget* parent,
-                                                           const WuQMacroCommand* macroCommand)
+                                                    const WuQMacroExecutorMonitor* executorMonitor,
+                                                    const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
     CaretAssert(macroCommand);
@@ -168,15 +172,32 @@ WbMacroCustomOperationModelRotation::executeCommand(QWidget* parent,
     if (model != NULL) {
     }
     
-    const bool successFlag = performRotation(tabContent,
+    const bool successFlag = performRotation(executorMonitor,
+                                             tabContent,
                                              axis,
                                              totalRotation,
                                              durationSeconds);
     return successFlag;
 }
 
+/**
+ * Perform the rotation
+ *
+ * @param executorMonitor
+ *     the macro executor monitor
+ * @param tabContent
+ *     Content of the tab
+ * @param axis
+ *     The screen axis of rotation
+ * @param totalRotation
+ *     Total amount of rotation
+ * @param durationSeconds
+ *     To time for command to run
+ *
+ */
 bool
-WbMacroCustomOperationModelRotation::performRotation(BrowserTabContent* tabContent,
+WbMacroCustomOperationModelRotation::performRotation(const WuQMacroExecutorMonitor* executorMonitor,
+                                                     BrowserTabContent* tabContent,
                                                      const Axis axis,
                                                      const float totalRotation,
                                                      const float durationSeconds)
@@ -212,8 +233,12 @@ WbMacroCustomOperationModelRotation::performRotation(BrowserTabContent* tabConte
         tabContent->setRotationMatrix(rotationMatrix);
         updateGraphics();
         
+        if (executorMonitor->testForStop()) {
+            appendToErrorMessage(executorMonitor->getStoppedByUserMessage());
+            return false;
+        }
+        
         sleepForSecondsAtEndOfIteration(iterationSleepTime);
-//        SystemUtilities::sleepSeconds(sleepTimeSeconds);
     }
     
     return true;

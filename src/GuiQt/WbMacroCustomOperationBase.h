@@ -33,6 +33,7 @@ class QWidget;
 
 namespace caret {
     class Surface;
+    class WuQMacroExecutorMonitor;
     class WuQMacroCommand;
 
     class WbMacroCustomOperationBase : public CaretObject {
@@ -50,6 +51,8 @@ namespace caret {
          *
          * @param parent
          *     Parent widget for any dialogs
+         * @param executorMonitor
+         *     the macro executor monitor
          * @param macroCommand
          *     macro command to run
          * @return
@@ -57,6 +60,7 @@ namespace caret {
          *     Use getErrorMessage() for error information if false returned
          */
         virtual bool executeCommand(QWidget* parent,
+                                    const WuQMacroExecutorMonitor* executorMonitor,
                                     const WuQMacroCommand* macroCommand) = 0;
         
         /**

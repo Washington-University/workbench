@@ -40,6 +40,7 @@
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
+#include "WuQMacroExecutorMonitor.h"
 
 using namespace caret;
 
@@ -115,6 +116,8 @@ WbMacroCustomOperationSurfaceInterpolation::createCommand()
  *
  * @param parent
  *     Parent widget for any dialogs
+ * @param executorMonitor
+ *     the macro executor monitor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -123,6 +126,7 @@ WbMacroCustomOperationSurfaceInterpolation::createCommand()
  */
 bool
 WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
+                                                           const WuQMacroExecutorMonitor* executorMonitor,
                                                            const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
@@ -187,7 +191,8 @@ WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
         return false;
     }
 
-    bool successFlag = interpolateSurface(tabContent->getTabNumber(),
+    bool successFlag = interpolateSurface(executorMonitor,
+                                          tabContent->getTabNumber(),
                                           wholeBrainModel,
                                           startSurface,
                                           endSurface,
@@ -199,6 +204,8 @@ WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
 /**
  * Interpolate from starting to ending surface
  *
+ * @param executorMonitor
+ *     The macro executor's monitor
  * @param tabIndex
  *     Index of selected tab
  * @param wholeBrainModel
@@ -213,7 +220,8 @@ WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
  *     True if successful, else false
  */
 bool
-WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const int32_t tabIndex,
+WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const WuQMacroExecutorMonitor* executorMonitor,
+                                                               const int32_t tabIndex,
                                                                ModelWholeBrain* wholeBrainModel,
                                                                const Surface* startSurface,
                                                                const Surface* endSurface,
@@ -307,6 +315,11 @@ WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const int32_t tab
         }
         
         updateGraphics();
+        
+        if (executorMonitor->testForStop()) {
+            appendToErrorMessage(executorMonitor->getStoppedByUserMessage());
+            return false;
+        }
         
         sleepForSecondsAtEndOfIteration(iterationSleepTime);
     }

@@ -38,6 +38,7 @@
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
+#include "WuQMacroExecutorMonitor.h"
 
 using namespace caret;
 
@@ -113,6 +114,8 @@ WbMacroCustomOperationVolumeSliceIncrement::createCommand()
  *
  * @param parent
  *     Parent widget for any dialogs
+ * @param executorMonitor
+ *     the macro executor monitor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -121,6 +124,7 @@ WbMacroCustomOperationVolumeSliceIncrement::createCommand()
  */
 bool
 WbMacroCustomOperationVolumeSliceIncrement::executeCommand(QWidget* parent,
+                                                           const WuQMacroExecutorMonitor* executorMonitor,
                                                            const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
@@ -174,13 +178,16 @@ WbMacroCustomOperationVolumeSliceIncrement::executeCommand(QWidget* parent,
         return false;
     }
 
-    const bool successFlag = performSliceIncrement(tabContent,
+    const bool successFlag = performSliceIncrement(executorMonitor,
+                                                   tabContent,
                                                    axis,
                                                    durationSeconds);
     return successFlag;
 }
 
 /**
+ * @param executorMonitor
+ *     The macro executor's monitor
  * @param tabContent
  *     Content in the selected tab
  * @param axis
@@ -189,7 +196,8 @@ WbMacroCustomOperationVolumeSliceIncrement::executeCommand(QWidget* parent,
  *     Duration of time for command to run
  */
 bool
-WbMacroCustomOperationVolumeSliceIncrement::performSliceIncrement(BrowserTabContent* tabContent,
+WbMacroCustomOperationVolumeSliceIncrement::performSliceIncrement(const WuQMacroExecutorMonitor* executorMonitor,
+                                                                  BrowserTabContent* tabContent,
                                                                   const Axis axis,
                                                                   const float durationSeconds)
 {
@@ -289,6 +297,12 @@ WbMacroCustomOperationVolumeSliceIncrement::performSliceIncrement(BrowserTabCont
         
 
         updateGraphics();        
+        
+        if (executorMonitor->testForStop()) {
+            appendToErrorMessage(executorMonitor->getStoppedByUserMessage());
+            return false;
+        }
+        
         sleepForSecondsAtEndOfIteration(iterationSleepTime);
     }
     

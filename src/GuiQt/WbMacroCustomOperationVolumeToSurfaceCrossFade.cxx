@@ -37,6 +37,7 @@
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
+#include "WuQMacroExecutorMonitor.h"
 
 using namespace caret;
 
@@ -110,6 +111,8 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::createCommand()
  *
  * @param parent
  *     Parent widget for any dialogs
+ * @param executorMonitor
+ *     the macro executor monitor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -118,7 +121,8 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::createCommand()
  */
 bool
 WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
-                                                           const WuQMacroCommand* macroCommand)
+                                                               const WuQMacroExecutorMonitor* executorMonitor,
+                                                               const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
     CaretAssert(macroCommand);
@@ -159,7 +163,8 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
     }
 
 
-    bool successFlag = performCrossFade(volumeOverlay,
+    bool successFlag = performCrossFade(executorMonitor,
+                                        volumeOverlay,
                                         durationSeconds);
     
     return successFlag;
@@ -168,6 +173,8 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
 /**
  * Interpolate from starting to ending surface
  *
+ * @param executorMonitor
+ *     The macro executor's monitor
  * @param volumeOverlay
  *     Overlay that contains the volume
  * @param durationSeconds
@@ -176,8 +183,9 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
  *     True if successful, else false
  */
 bool
-WbMacroCustomOperationVolumeToSurfaceCrossFade::performCrossFade(Overlay* volumeOverlay,
-                                                         const float durationSeconds)
+WbMacroCustomOperationVolumeToSurfaceCrossFade::performCrossFade(const WuQMacroExecutorMonitor* executorMonitor,
+                                                                 Overlay* volumeOverlay,
+                                                                 const float durationSeconds)
 {
     CaretAssert(volumeOverlay);
     
@@ -217,6 +225,11 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::performCrossFade(Overlay* volume
         volumeOpacity -= opacityDelta;
         if (volumeOpacity < 0.0) {
             volumeOpacity = 0.0;
+        }
+        
+        if (executorMonitor->testForStop()) {
+            appendToErrorMessage(executorMonitor->getStoppedByUserMessage());
+            return false;
         }
         
         sleepForSecondsAtEndOfIteration(iterationSleepTime);

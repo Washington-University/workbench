@@ -44,6 +44,7 @@
 #include "WuQMacroCustomOperationManagerInterface.h"
 #include "WuQMacroDialog.h"
 #include "WuQMacroExecutor.h"
+#include "WuQMacroExecutorMonitor.h"
 #include "WuQMacroFile.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroMouseEventInfo.h"
@@ -72,6 +73,8 @@ WuQMacroManager::WuQMacroManager(const QString& name,
 m_name(name)
 {
     setObjectName(name);
+    
+    m_macroExecutorMonitor = new WuQMacroExecutorMonitor(this);
     m_executorOptions.reset(new WuQMacroExecutorOptions());
 }
 
@@ -80,6 +83,11 @@ m_name(name)
  */
 WuQMacroManager::~WuQMacroManager()
 {
+    /*
+     * Note: Do not delete the executor monitor as it is a QObject
+     * with 'this' as a parent so Qt will take of of deleting it
+     */
+    
     /*
      * Do not delete the WuQMacroSignalWatcher instances in
      * m_signalWatchers.  This WuQMacroManager is set as the
@@ -550,6 +558,8 @@ WuQMacroManager::runMacro(QWidget* widget,
     QObject::connect(m_macroExecutor, &WuQMacroExecutor::macroCommandHasCompleted,
                      this, &WuQMacroManager::macroCommandCompletedExecution);
 
+    m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::RUN);
+    
     if (m_macroHelper != NULL) {
         m_macroHelper->macroExecutionStarting(macro,
                                               widget,
@@ -558,6 +568,7 @@ WuQMacroManager::runMacro(QWidget* widget,
     const bool resultFlag = m_macroExecutor->runMacro(macro,
                                                       widget,
                                                       m_parentObjects,
+                                                      m_macroExecutorMonitor,
                                                       m_executorOptions.get(),
                                                       errorMessage);
     if (m_macroHelper != NULL) {
@@ -566,6 +577,8 @@ WuQMacroManager::runMacro(QWidget* widget,
                                             m_executorOptions.get());
     }
 
+    m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::STOP);
+    
     if ( ! resultFlag) {
         QMessageBox::critical(widget,
                               "Run Macro Error",
@@ -590,9 +603,29 @@ WuQMacroManager::runMacro(QWidget* widget,
 void
 WuQMacroManager::stopMacro()
 {
-    QMutexLocker locker(&m_macroExecutorMutex);
-    if (m_macroExecutor != NULL) {
-        m_macroExecutor->stopMacro();
+    m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::STOP);
+    
+//    QMutexLocker locker(&m_macroExecutorMutex);
+//    if (m_macroExecutor != NULL) {
+//        m_macroExecutor->stopMacro();
+//    }
+}
+
+/**
+ * Pause or continue a macro
+ */
+void
+WuQMacroManager::pauseContinueMacro()
+{
+    switch (m_macroExecutorMonitor->getMode()) {
+        case WuQMacroExecutorMonitor::Mode::PAUSE:
+            m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::RUN);
+            break;
+        case WuQMacroExecutorMonitor::Mode::RUN:
+            m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::PAUSE);
+            break;
+        case WuQMacroExecutorMonitor::Mode::STOP:
+            break;
     }
 }
 
@@ -1026,6 +1059,16 @@ WuQMacroManager::getExecutorOptions()
 }
 
 /**
+ * @return Pointer to the executor monitor.
+ * Always returns valid pointer, even if macro is not running.
+ */
+const WuQMacroExecutorMonitor*
+WuQMacroManager::getMacroExecutorMonitor() const
+{
+    return m_macroExecutorMonitor;
+}
+
+/**
  * Process a key press event for macro shortcut
  *
  * @param keyEvent
@@ -1142,6 +1185,8 @@ WuQMacroManager::editCustomDataValueParameter(QWidget* parent,
  *
  * @param parent
  *     Parent widget for any dialogs
+ * @param executorMonitor
+ *     The executor monitor
  * @param macroCommand
  *     Custom macro command to run
  * @param errorMessageOut
@@ -1149,8 +1194,9 @@ WuQMacroManager::editCustomDataValueParameter(QWidget* parent,
  */
 bool
 WuQMacroManager::executeCustomOperationMacroCommand(QWidget* parent,
-                                           const WuQMacroCommand* macroCommand,
-                                           QString& errorMessageOut)
+                                                    const WuQMacroExecutorMonitor* executorMonitor,
+                                                    const WuQMacroCommand* macroCommand,
+                                                    QString& errorMessageOut)
 {
     CaretAssert(parent);
     CaretAssert(macroCommand);
@@ -1160,6 +1206,7 @@ WuQMacroManager::executeCustomOperationMacroCommand(QWidget* parent,
     bool successFlag(false);
     if (m_customCommandManager != NULL) {
         successFlag = m_customCommandManager->executeCustomOperationMacroCommand(parent,
+                                                                                 executorMonitor,
                                                                                  macroCommand,
                                                                                  errorMessageOut);
     }

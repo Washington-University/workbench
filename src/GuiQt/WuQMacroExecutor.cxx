@@ -50,6 +50,7 @@
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
+#include "WuQMacroExecutorMonitor.h"
 #include "WuQMacroManager.h"
 #include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroMouseEventWidgetInterface.h"
@@ -267,6 +268,8 @@ WuQMacroExecutor::findObjectByName(const QString& objectName) const
  * @param otherObjectParents
  *    Additional objects that are searched for objects contained
  *    in the macro commands
+ * @param executorMonitor
+ *    The executor monitor
  * @param executorOptions
  *    Executor options
  * @param errorMessageOut
@@ -278,12 +281,14 @@ bool
 WuQMacroExecutor::runMacro(const WuQMacro* macro,
                            QWidget* window,
                            std::vector<QObject*>& otherObjectParents,
+                           const WuQMacroExecutorMonitor* executorMonitor,
                            const WuQMacroExecutorOptions* executorOptions,
                            QString& errorMessageOut) const
 {
     const bool result = runMacroPrivate(macro,
                                         window,
                                         otherObjectParents,
+                                        executorMonitor,
                                         executorOptions,
                                         errorMessageOut);
     
@@ -300,6 +305,8 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
  * @param otherObjectParents
  *    Additional objects that are searched for objects contained
  *    in the macro commands
+ * @param executorMonitor
+ *    The executor monitor
  * @param executorOptions
  *    Executor options
  * @param errorMessageOut
@@ -311,6 +318,7 @@ bool
 WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
                                   QWidget* window,
                                   std::vector<QObject*>& otherObjectParents,
+                                  const WuQMacroExecutorMonitor* executorMonitor,
                                   const WuQMacroExecutorOptions* executorOptions,
                                   QString& errorMessageOut) const
 {
@@ -372,6 +380,20 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
         emit macroCommandAboutToStart(window,
                                       mc,
                                       allowDelayBeforeCommandFlag);
+        /*
+         * May get stopped by user in macroCommandAboutToStart()
+         */
+        switch (executorMonitor->getMode()) {
+            case WuQMacroExecutorMonitor::Mode::PAUSE:
+                break;
+            case WuQMacroExecutorMonitor::Mode::RUN:
+                break;
+            case WuQMacroExecutorMonitor::Mode::STOP:
+                errorMessageOut = executorMonitor->getStoppedByUserMessage();
+                return false;
+                break;
+        }
+
         if (allowDelayBeforeCommandFlag) {
             performCommandDelay(mc);
         }
@@ -381,6 +403,7 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
         switch (mc->getCommandType()) {
             case WuQMacroCommandTypeEnum::CUSTOM_OPERATION:
                 successFlag = WuQMacroManager::instance()->executeCustomOperationMacroCommand(window,
+                                                                                              executorMonitor,
                                                                                               mc,
                                                                                               commandErrorMessage);
 
@@ -398,6 +421,7 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
             case WuQMacroCommandTypeEnum::WIDGET:
                 CaretAssert(object);
                 successFlag = runMacroCommand(window,
+                                              executorMonitor,
                                               mc,
                                               object,
                                               commandErrorMessage);
@@ -411,9 +435,10 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
             }
         }
         
+        
         QGuiApplication::processEvents();
         if (m_stopFlag) {
-            errorMessageOut = "Macro stopped at request of user";
+            errorMessageOut = "OBSOLETE: Macro stopped at request of user";
             return false;
         }
 
@@ -421,6 +446,13 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
         emit macroCommandHasCompleted(window,
                                       mc,
                                       allowDelayAfterCommandFlag);
+        
+        const bool stopFlag = executorMonitor->testForStop();
+        if (stopFlag) {
+            errorMessageOut = executorMonitor->getStoppedByUserMessage();
+            return false;
+        }
+        
         if (allowDelayAfterCommandFlag) {
             performCommandDelay(mc);
         }
@@ -461,6 +493,8 @@ WuQMacroExecutor::stopMacro()
  *
  * @param parentWidget
  *    Parent widget for dialogs
+ * @param executorMonitor
+ *    The executor monitor
  * @param macroCommand
  *    Macro command that is run
  * @param object
@@ -472,6 +506,7 @@ WuQMacroExecutor::stopMacro()
  */
 bool
 WuQMacroExecutor::runMacroCommand(QWidget* /*parentWidget*/,
+                                  const WuQMacroExecutorMonitor* /*executorMonitor*/,
                                   const WuQMacroCommand* macroCommand,
                                   QObject* object,
                                   QString& errorMessageOut) const

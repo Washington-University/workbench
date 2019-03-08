@@ -29,6 +29,7 @@ class QWidget;
 namespace caret {
     class WuQMacroCommand;
     class WuQMacroCommandParameter;
+    class WuQMacroExecutorMonitor;
 
     class WuQMacroCustomOperationManagerInterface {
         
@@ -70,6 +71,7 @@ namespace caret {
          *     True if command executed successfully, else false
          */
         virtual bool executeCustomOperationMacroCommand(QWidget* parent,
+                                                        const WuQMacroExecutorMonitor* executorMonitor,
                                                         const WuQMacroCommand* macroCommand,
                                                         QString& errorMessageOut) = 0;
         

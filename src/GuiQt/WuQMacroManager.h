@@ -45,6 +45,7 @@ namespace caret {
     class WuQMacroCustomOperationManagerInterface;
     class WuQMacroDialog;
     class WuQMacroExecutor;
+    class WuQMacroExecutorMonitor;
     class WuQMacroExecutorOptions;
     class WuQMacroGroup;
     class WuQMacroHelperInterface;
@@ -103,6 +104,8 @@ namespace caret {
         
         const WuQMacroExecutorOptions* getExecutorOptions() const;
         
+        const WuQMacroExecutorMonitor* getMacroExecutorMonitor() const;
+
         bool deleteMacro(QWidget* parent,
                          WuQMacroGroup* macroGroup,
                          WuQMacro* macro);
@@ -123,6 +126,8 @@ namespace caret {
                       const WuQMacro* macro);
         
         void stopMacro();
+        
+        void pauseContinueMacro();
         
         bool runMacroWithShortCutKeyEvent(QWidget* window,
                                           const QKeyEvent* keyEvent);
@@ -146,6 +151,7 @@ namespace caret {
                                           WuQMacroCommandParameter* parameter);
 
         bool executeCustomOperationMacroCommand(QWidget* parent,
+                                                const WuQMacroExecutorMonitor* executorMonitor,
                                                 const WuQMacroCommand* macroCommand,
                                                 QString& errorMessageOut);
         
@@ -204,6 +210,8 @@ namespace caret {
         WuQMacroCustomOperationManagerInterface* m_customCommandManager = NULL;
         
         WuQMacroExecutor* m_macroExecutor = NULL;
+        
+        WuQMacroExecutorMonitor* m_macroExecutorMonitor = NULL;
         
         QMutex m_macroExecutorMutex;
         

@@ -54,6 +54,7 @@
 #include "WuQMacroCommand.h"
 #include "WuQMacroGroup.h"
 #include "WuQMacroExecutor.h"
+#include "WuQMacroExecutorMonitor.h"
 #include "WuQMacroManager.h"
 #include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroNewCommandSelectionDialog.h"
@@ -210,6 +211,18 @@ WuQMacroDialog::createMacroRunAndEditingToolButtons()
     QObject::connect(m_runMacroToolButton, &QToolButton::clicked,
                      this, &WuQMacroDialog::runMacroToolButtonClicked);
     
+    m_pauseMacroToolButton = new QToolButton();
+    m_pauseMacroToolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    m_pauseMacroToolButton->setText("Pause");
+    QPixmap pausePixmap = createEditingToolButtonPixmap(m_pauseMacroToolButton,
+                                                       EditButton::PAUSE);
+    m_pauseMacroToolButton->setIcon(pausePixmap);
+    m_pauseMacroToolButton->setToolTip("Pause or continue a macro.  Button is highlighted "
+                                       "when a macro is paused.");
+    m_pauseMacroToolButton->setCheckable(true);
+    QObject::connect(m_pauseMacroToolButton, &QToolButton::clicked,
+                     this, &WuQMacroDialog::pauseContinueMacroToolButtonClicked);
+
     m_stopMacroToolButton = new QToolButton();
     m_stopMacroToolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     m_stopMacroToolButton->setText("Stop");
@@ -256,6 +269,7 @@ WuQMacroDialog::createMacroRunAndEditingToolButtons()
     QHBoxLayout* toolButtonLayout = new QHBoxLayout(widget);
     toolButtonLayout->setContentsMargins(0, 0, 0, 0);
     toolButtonLayout->addWidget(m_runMacroToolButton);
+    toolButtonLayout->addWidget(m_pauseMacroToolButton);
     toolButtonLayout->addWidget(m_stopMacroToolButton);
     toolButtonLayout->addStretch();
     toolButtonLayout->addWidget(m_editingInsertToolButton);
@@ -1055,6 +1069,16 @@ WuQMacroDialog::getSelectedItemType() const
 }
 
 /**
+ * Called to pause/continue a macro
+ */
+void
+WuQMacroDialog::pauseContinueMacroToolButtonClicked()
+{
+    WuQMacroManager::instance()->pauseContinueMacro();
+    updateEditingToolButtons();
+}
+
+/**
  * Called when run button is clicked
  */
 void
@@ -1070,43 +1094,46 @@ WuQMacroDialog::runMacroToolButtonClicked()
     }
     
     WuQMacro* macro = getSelectedMacro();
-    if (macro != NULL) {
-        if (macro->getNumberOfMacroCommands() <= 0) {
-            QMessageBox::critical(m_runMacroToolButton,
-                                  "Error",
-                                  "Macro does not contain any commands",
-                                  QMessageBox::Ok,
-                                  QMessageBox::NoButton);
-            return;
-        }
-        
-        const QString windowID = m_runOptionsWindowComboBox->currentText();
-        QWidget* window = WuQMacroManager::instance()->getMainWindowWithIdentifier(windowID);
-        if (window == NULL) {
-            window = this;
-            while (window != NULL) {
-                if (qobject_cast<QMainWindow*>(window) != NULL) {
-                    break;
-                }
-                else {
-                    window = window->parentWidget();
-                }
-            }
-            if (window == NULL) {
-                window = parentWidget();
-            }
-        }
-
-        /*
-         * While macro runs, edit buttons are disabled
-         */
-        m_macroIsRunningFlag = true;
-        updateEditingToolButtons();
-        WuQMacroManager::instance()->runMacro(window,
-                                              macro);
-        m_macroIsRunningFlag = false;
-        updateEditingToolButtons();
+    if (macro == NULL) {
+        return;
     }
+    if (macro->getNumberOfMacroCommands() <= 0) {
+        QMessageBox::critical(m_runMacroToolButton,
+                              "Error",
+                              "Macro does not contain any commands",
+                              QMessageBox::Ok,
+                              QMessageBox::NoButton);
+        return;
+    }
+    
+    const QString windowID = m_runOptionsWindowComboBox->currentText();
+    QWidget* window = WuQMacroManager::instance()->getMainWindowWithIdentifier(windowID);
+    if (window == NULL) {
+        window = this;
+        while (window != NULL) {
+            if (qobject_cast<QMainWindow*>(window) != NULL) {
+                break;
+            }
+            else {
+                window = window->parentWidget();
+            }
+        }
+        if (window == NULL) {
+            window = parentWidget();
+        }
+    }
+    
+    /*
+     * While macro runs, edit buttons are disabled
+     */
+    m_macroIsRunningFlag = true;
+    updateEditingToolButtons();
+    QApplication::processEvents();
+    WuQMacroManager::instance()->runMacro(window,
+                                          macro);
+    m_macroIsRunningFlag = false;
+    
+    updateEditingToolButtons();
 }
 
 /**
@@ -1116,6 +1143,7 @@ void
 WuQMacroDialog::stopMacroToolButtonClicked()
 {
     WuQMacroManager::instance()->stopMacro();
+    updateEditingToolButtons();
 }
 
 /**
@@ -1550,9 +1578,21 @@ WuQMacroDialog::updateEditingToolButtons()
     bool deleteValid(false);
     bool moveUpValid(false);
     bool moveDownValid(false);
+    bool pauseValid(false);
+    bool pauseChecked(false);
 
     if (m_macroIsRunningFlag) {
-        stopValid = true;
+        pauseValid = true;
+        switch (WuQMacroManager::instance()->getMacroExecutorMonitor()->getMode()) {
+            case WuQMacroExecutorMonitor::Mode::PAUSE:
+                pauseChecked = true;
+                break;
+            case WuQMacroExecutorMonitor::Mode::RUN:
+                break;
+            case WuQMacroExecutorMonitor::Mode::STOP:
+                break;
+        }
+        stopValid  = true;
     }
     else {
         insertValid = (macroGroup != NULL);
@@ -1586,6 +1626,8 @@ WuQMacroDialog::updateEditingToolButtons()
         }
     }
     
+    m_pauseMacroToolButton->setEnabled(pauseValid);
+    m_pauseMacroToolButton->setChecked(pauseChecked);
     m_runMacroToolButton->setEnabled(runValid);
     m_stopMacroToolButton->setEnabled(stopValid);
     m_editingDeleteToolButton->setEnabled(deleteValid);
@@ -1620,6 +1662,8 @@ WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
         case EditButton::MOVE_DOWN:
             break;
         case EditButton::MOVE_UP:
+            break;
+        case EditButton::PAUSE:
             break;
         case EditButton::RUN:
             /* allow background */
@@ -1672,6 +1716,17 @@ WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
             painter->drawLine(QPointF(0, maxValue), QPointF(0, -maxValue));
             painter->drawLine(QPointF(0, maxValue), QPointF(arrowTip,  maxValue - arrowTip));
             painter->drawLine(QPointF(0, maxValue), QPointF(-arrowTip, maxValue - arrowTip));
+            break;
+        case EditButton::PAUSE:
+        {
+            const qreal x = maxValue / 3;
+            const qreal y = maxValue * 0.667;
+            /*
+             * Parallel vertical lines
+             */
+            painter->drawLine(QPointF(-x,  y), QPointF(-x, -y));
+            painter->drawLine(QPointF( x,  y), QPointF( x, -y));
+        }
             break;
         case EditButton::RUN:
         {

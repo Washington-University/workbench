@@ -1,5 +1,5 @@
-#ifndef __WB_MACRO_CUSTOM_OPERATION_DELAY_H__
-#define __WB_MACRO_CUSTOM_OPERATION_DELAY_H__
+#ifndef __WU_Q_MACRO_EXECUTOR_MONITOR_H__
+#define __WU_Q_MACRO_EXECUTOR_MONITOR_H__
 
 /*LICENSE_START*/
 /*
@@ -25,37 +25,55 @@
 
 #include <memory>
 
-#include "WbMacroCustomOperationBase.h"
+#include <QMutex>
+#include <QObject>
 
 namespace caret {
 
-    class WbMacroCustomOperationDelay : public WbMacroCustomOperationBase {
-        
-    public:
-        WbMacroCustomOperationDelay();
-        
-        virtual ~WbMacroCustomOperationDelay();
-        
-        WbMacroCustomOperationDelay(const WbMacroCustomOperationDelay&) = delete;
-        
-        WbMacroCustomOperationDelay& operator=(const WbMacroCustomOperationDelay&) = delete;
-        
-        virtual bool executeCommand(QWidget* parent,
-                                    const WuQMacroExecutorMonitor* executorMonitor,
-                                    const WuQMacroCommand* macroCommand) override;
+    class WuQMacroExecutorMonitor : public QObject {
+        Q_OBJECT
 
-        virtual WuQMacroCommand* createCommand() override;
+    public:
+        enum class Mode {
+            RUN,
+            PAUSE,
+            STOP
+        };
         
+        WuQMacroExecutorMonitor(QObject* parent);
+        
+        virtual ~WuQMacroExecutorMonitor();
+        
+        WuQMacroExecutorMonitor(const WuQMacroExecutorMonitor&) = delete;
+
+        WuQMacroExecutorMonitor& operator=(const WuQMacroExecutorMonitor&) = delete;
+
+        QString getStoppedByUserMessage() const;
+        
+        Mode getMode() const;
+        
+        bool testForStop() const;
+        
+        void setMode(const Mode mode);
+        
+        bool doPause() const;
+        
+        mutable Mode m_mode = Mode::STOP;
+        
+        mutable QMutex m_modeMutex;
+
         // ADD_NEW_METHODS_HERE
 
     private:
         // ADD_NEW_MEMBERS_HERE
 
+        friend class WuQMacroExecutor;
+        friend class WuQMacroManager;
     };
     
-#ifdef __WB_MACRO_CUSTOM_OPERATION_DELAY_DECLARE__
+#ifdef __WU_Q_MACRO_EXECUTOR_MONITOR_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WB_MACRO_CUSTOM_OPERATION_DELAY_DECLARE__
+#endif // __WU_Q_MACRO_EXECUTOR_MONITOR_DECLARE__
 
 } // namespace
-#endif  //__WB_MACRO_CUSTOM_OPERATION_DELAY_H__
+#endif  //__WU_Q_MACRO_EXECUTOR_MONITOR_H__

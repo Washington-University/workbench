@@ -105,6 +105,8 @@ namespace caret {
 
         void editingInsertToolButtonClicked();
         
+        void pauseContinueMacroToolButtonClicked();
+        
         void runMacroToolButtonClicked();
 
         void stopMacroToolButtonClicked();
@@ -137,6 +139,7 @@ namespace caret {
             INSERTER,
             MOVE_DOWN,
             MOVE_UP,
+            PAUSE,
             RUN,
             STOP
         };
@@ -221,6 +224,8 @@ namespace caret {
         std::vector<CommandParameterWidget*> m_parameterWidgets;
         
         QGridLayout* m_parameterWidgetsGridLayout;
+        
+        QToolButton* m_pauseMacroToolButton;
         
         QToolButton* m_runMacroToolButton;
         

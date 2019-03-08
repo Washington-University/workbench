@@ -46,7 +46,8 @@ namespace caret {
         WbMacroCustomOperationSurfaceInterpolation& operator=(const WbMacroCustomOperationSurfaceInterpolation&) = delete;
         
         virtual bool executeCommand(QWidget* parent,
-                                   const WuQMacroCommand* macroCommand) override;
+                                    const WuQMacroExecutorMonitor* executorMonitor,
+                                    const WuQMacroCommand* macroCommand) override;
 
         virtual WuQMacroCommand* createCommand() override;
         
@@ -55,7 +56,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        bool interpolateSurface(const int32_t tabIndex,
+        bool interpolateSurface(const WuQMacroExecutorMonitor* executorMonitor,
+                                const int32_t tabIndex,
                                 ModelWholeBrain* wholeBrainModel,
                                 const Surface* startSurface,
                                 const Surface* endSurface,

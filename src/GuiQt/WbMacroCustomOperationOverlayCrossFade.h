@@ -44,7 +44,8 @@ namespace caret {
         WbMacroCustomOperationOverlayCrossFade& operator=(const WbMacroCustomOperationOverlayCrossFade&) = delete;
         
         virtual bool executeCommand(QWidget* parent,
-                                   const WuQMacroCommand* macroCommand) override;
+                                    const WuQMacroExecutorMonitor* executorMonitor,
+                                    const WuQMacroCommand* macroCommand) override;
 
         virtual WuQMacroCommand* createCommand() override;
         
@@ -58,9 +59,11 @@ namespace caret {
         WuQMacroCommand* createCommandVersionTwo();
         
         virtual bool executeCommandVersionTwo(QWidget* parent,
+                                              const WuQMacroExecutorMonitor* executorMonitor,
                                               const WuQMacroCommand* macroCommand);
         
-        bool performCrossFadeVersionTwo(OverlaySet* overlaySet,
+        bool performCrossFadeVersionTwo(const WuQMacroExecutorMonitor* executorMonitor,
+                                        OverlaySet* overlaySet,
                                         const int32_t overlayIndex,
                                         CaretMappableDataFile* fadeToMapFile,
                                         const int32_t fadeToMapIndex,

@@ -45,6 +45,7 @@ namespace caret {
         WbMacroCustomOperationModelRotation& operator=(const WbMacroCustomOperationModelRotation&) = delete;
         
         virtual bool executeCommand(QWidget* parent,
+                                    const WuQMacroExecutorMonitor* executorMonitor,
                                     const WuQMacroCommand* macroCommand) override;
         
         virtual WuQMacroCommand* createCommand() override;
@@ -59,7 +60,8 @@ namespace caret {
             Z
         };
 
-        bool performRotation(BrowserTabContent* tabContent,
+        bool performRotation(const WuQMacroExecutorMonitor* executorMonitor,
+                             BrowserTabContent* tabContent,
                              const Axis axis,
                              const float totalRotation,
                              const float durationSeconds);

@@ -43,7 +43,8 @@ namespace caret {
         WbMacroCustomOperationVolumeToSurfaceCrossFade& operator=(const WbMacroCustomOperationVolumeToSurfaceCrossFade&) = delete;
         
         virtual bool executeCommand(QWidget* parent,
-                                   const WuQMacroCommand* macroCommand) override;
+                                    const WuQMacroExecutorMonitor* executorMonitor,
+                                    const WuQMacroCommand* macroCommand) override;
 
         virtual WuQMacroCommand* createCommand() override;
         
@@ -52,7 +53,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        bool performCrossFade(Overlay* volumeOverlay,
+        bool performCrossFade(const WuQMacroExecutorMonitor* executorMonitor,
+                              Overlay* volumeOverlay,
                               const float durationSeconds);
         
         

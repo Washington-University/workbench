@@ -85,6 +85,8 @@ WbMacroCustomOperationDelay::createCommand()
  *
  * @param parent
  *     Parent widget for any dialogs
+ * @param executorMonitor
+ *     the macro executor monitor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -92,12 +94,10 @@ WbMacroCustomOperationDelay::createCommand()
  *     Use getErrorMessage() for error information if false returned
  */
 bool
-WbMacroCustomOperationDelay::executeCommand(QWidget* parent,
-                                            const WuQMacroCommand* macroCommand)
+WbMacroCustomOperationDelay::executeCommand(QWidget* /*parent*/,
+                                            const WuQMacroExecutorMonitor* /*executorMonitor*/,
+                                            const WuQMacroCommand* /*macroCommand*/)
 {
-    CaretAssert(parent);
-    CaretAssert(macroCommand);
-    
     /*
      * Nothing to do since the base command's delay time performs the delay
      */

@@ -44,8 +44,10 @@
 #include "WbMacroCustomDataTypeEnum.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
+#include "WuQMacroExecutorMonitor.h"
 #include "WuQMacroExecutorOptions.h"
 #include "WuQMacroGroup.h"
+#include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 
 using namespace caret;
@@ -309,6 +311,7 @@ WbMacroHelper::recordImagesForDelay(QWidget* window,
     MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
     CaretAssert(movieRecorder);
     
+   const WuQMacroExecutorMonitor* execMonitor = WuQMacroManager::instance()->getMacroExecutorMonitor();
     if (command->getCommandType() != WuQMacroCommandTypeEnum::MOUSE) {
         if (command->getDelayInSeconds() > 0.0) {
             switch (movieRecorder->getRecordingMode()) {
@@ -326,6 +329,13 @@ WbMacroHelper::recordImagesForDelay(QWidget* window,
                             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                         }
                         movieRecorder->setManualRecordingOfImageRequested(false);
+                        
+                        /*
+                         * User may pause or stop
+                         */
+                        if (execMonitor->doPause()) {
+                            break;
+                        }
                     }
                     
                     allowDelayFlagOut = false;

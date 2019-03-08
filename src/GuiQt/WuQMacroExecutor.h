@@ -35,6 +35,7 @@ namespace caret {
 
     class WuQMacro;
     class WuQMacroCommand;
+    class WuQMacroExecutorMonitor;
     class WuQMacroExecutorOptions;
     
     class WuQMacroExecutor : public QObject {
@@ -53,6 +54,7 @@ namespace caret {
         bool runMacro(const WuQMacro* macro,
                       QWidget* window,
                       std::vector<QObject*>& otherObjectParents,
+                      const WuQMacroExecutorMonitor* executorMonitor,
                       const WuQMacroExecutorOptions* executorOptions,
                       QString& errorMessageOut) const;
         
@@ -92,10 +94,12 @@ namespace caret {
         bool runMacroPrivate(const WuQMacro* macro,
                              QWidget* window,
                              std::vector<QObject*>& otherObjectParents,
+                             const WuQMacroExecutorMonitor* executorMonitor,
                              const WuQMacroExecutorOptions* executorOptions,
                              QString& errorMessageOut) const;
 
         bool runMacroCommand(QWidget* parentWidget,
+                             const WuQMacroExecutorMonitor* executorMonitor,
                              const WuQMacroCommand* macroCommand,
                              QObject* object,
                              QString& errorMessageOut) const;

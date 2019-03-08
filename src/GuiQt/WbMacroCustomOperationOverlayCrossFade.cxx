@@ -34,6 +34,7 @@
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
+#include "WuQMacroExecutorMonitor.h"
 
 using namespace caret;
 
@@ -195,6 +196,8 @@ WbMacroCustomOperationOverlayCrossFade::createCommandVersionTwo()
  *
  * @param parent
  *     Parent widget for any dialogs
+ * @param executorMonitor
+ *     the macro executor monitor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -203,6 +206,7 @@ WbMacroCustomOperationOverlayCrossFade::createCommandVersionTwo()
  */
 bool
 WbMacroCustomOperationOverlayCrossFade::executeCommand(QWidget* parent,
+                                                       const WuQMacroExecutorMonitor* executorMonitor,
                                                        const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
@@ -216,6 +220,7 @@ WbMacroCustomOperationOverlayCrossFade::executeCommand(QWidget* parent,
             break;
         case 2:
             resultFlag = executeCommandVersionTwo(parent,
+                                                  executorMonitor,
                                                   macroCommand);
             break;
         default:
@@ -231,6 +236,8 @@ WbMacroCustomOperationOverlayCrossFade::executeCommand(QWidget* parent,
  *
  * @param parent
  *     Parent widget for any dialogs
+ * @param executorMonitor
+ *     The macro executor's monitor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -239,6 +246,7 @@ WbMacroCustomOperationOverlayCrossFade::executeCommand(QWidget* parent,
  */
 bool
 WbMacroCustomOperationOverlayCrossFade::executeCommandVersionTwo(QWidget* parent,
+                                                                 const WuQMacroExecutorMonitor* executorMonitor,
                                                                  const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
@@ -350,7 +358,8 @@ WbMacroCustomOperationOverlayCrossFade::executeCommandVersionTwo(QWidget* parent
         return false;
     }
 
-    const bool successFlag = performCrossFadeVersionTwo(overlaySet,
+    const bool successFlag = performCrossFadeVersionTwo(executorMonitor,
+                                                        overlaySet,
                                                         overlayIndex,
                                                         fadeToMapFile,
                                                         fadeToMapIndex,
@@ -362,6 +371,8 @@ WbMacroCustomOperationOverlayCrossFade::executeCommandVersionTwo(QWidget* parent
 /**
  * Perform crossfade version two
  *
+ * @param executorMonitor
+ *     The macro executor's monitor
  * @param overlaySet
  *     OverlaySet for the in the tab
  * @param overlayIndex
@@ -376,7 +387,8 @@ WbMacroCustomOperationOverlayCrossFade::executeCommandVersionTwo(QWidget* parent
  *     True if successful, else false
  */
 bool
-WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionTwo(OverlaySet* overlaySet,
+WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionTwo(const WuQMacroExecutorMonitor* executorMonitor,
+                                                                   OverlaySet* overlaySet,
                                                                    const int32_t overlayIndex,
                                                                    CaretMappableDataFile* fadeToMapFile,
                                                                    const int32_t fadeToMapIndex,
@@ -432,6 +444,11 @@ WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionTwo(OverlaySet* o
         fadeFromOpacity -= opacityDelta;
         if (fadeFromOpacity < 0.0) {
             fadeFromOpacity = 0.0;
+        }
+        
+        if (executorMonitor->testForStop()) {
+            appendToErrorMessage(executorMonitor->getStoppedByUserMessage());
+            return false;
         }
         
         sleepForSecondsAtEndOfIteration(iterationSleepTime);

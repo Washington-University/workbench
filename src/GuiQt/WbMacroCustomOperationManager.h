@@ -54,6 +54,7 @@ namespace caret {
                                                   WuQMacroCommandParameter* parameter);
         
         virtual bool executeCustomOperationMacroCommand(QWidget* parent,
+                                                        const WuQMacroExecutorMonitor* executorMonitor,
                                                         const WuQMacroCommand* macroCommand,
                                                         QString& errorMessageOut);
         

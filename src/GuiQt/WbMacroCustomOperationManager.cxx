@@ -507,6 +507,8 @@ WbMacroCustomOperationManager::editCustomDataValueParameter(QWidget* parentWidge
  *
  * @param parent
  *     Parent widget for any dialogs
+ * @param executorMonitor
+ *     The executor monitor
  * @param customMacroCommand
  *     Custom macro command to run
  * @param errorMessageOut
@@ -516,6 +518,7 @@ WbMacroCustomOperationManager::editCustomDataValueParameter(QWidget* parentWidge
  */
 bool
 WbMacroCustomOperationManager::executeCustomOperationMacroCommand(QWidget* parent,
+                                                                  const WuQMacroExecutorMonitor* executorMonitor,
                                                                   const WuQMacroCommand* customMacroCommand,
                                                                   QString& errorMessageOut)
 {
@@ -545,6 +548,7 @@ WbMacroCustomOperationManager::executeCustomOperationMacroCommand(QWidget* paren
     bool successFlag(false);
     if (customOperation) {
         successFlag = customOperation->executeCommand(parent,
+                                                      executorMonitor,
                                                       customMacroCommand);
         if ( ! successFlag) {
             errorMessageOut = customOperation->getErrorMessage();
