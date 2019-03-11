@@ -68,6 +68,10 @@ namespace caret {
         static bool checkForModifiedFiles(const GuiManager::TestModifiedMode testMode,
                                           QWidget* parent);
         
+        static bool displaySceneWithErrorMessageDialog(QWidget* dialogParent,
+                                                       SceneFile* sceneFile,
+                                                       Scene* scene);
+
     private:
         SceneDialog(const SceneDialog&);
 
@@ -154,11 +158,12 @@ namespace caret {
         
         QWidget* createSceneFileWidget();
         
-        bool displayScenePrivateWithErrorMessageDialog(SceneFile* sceneFile,
-                                                       Scene* scene,
-                                                       const bool showWaitCursor);
-        
-        bool displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
+        static bool displayScenePrivateWithErrorMessageDialog(QWidget* dialogParent,
+                                                              SceneFile* sceneFile,
+                                                              Scene* scene,
+                                                              const bool showWaitCursor);
+
+        static bool displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
                                                  Scene* scene,
                                                  const bool showWaitCursor,
                                                  AString& errorMessageOut);

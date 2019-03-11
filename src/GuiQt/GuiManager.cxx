@@ -102,10 +102,12 @@
 #include "MovieRecordingDialog.h"
 #include "PaletteColorMappingEditorDialog.h"
 #include "PreferencesDialog.h"
+#include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneDialog.h"
+#include "SceneFile.h"
 #include "SceneWindowGeometry.h"
 #include "SelectionManager.h"
 #include "SelectionItemChartMatrix.h"
@@ -125,6 +127,7 @@
 #include "VolumePropertiesEditorDialog.h"
 #include "WbMacroCustomOperationManager.h"
 #include "WbMacroHelper.h"
+#include "WuQMessageBox.h"
 #include "WuQMacroManager.h"
 #include "WuQMacroWidgetTypeEnum.h"
 #include "WuQMessageBox.h"
@@ -277,11 +280,9 @@ GuiManager::initializeGuiManager()
     /*
      * Scene dialog action
      */
-    m_sceneDialogDisplayAction = WuQtUtilities::createAction("Scenes...",
-                                                             "Show/Hide the Scenes Window",
-                                                             this,
-                                                             this,
-                                                             SLOT(sceneDialogDisplayActionToggled(bool)));
+    m_sceneDialogDisplayAction = new QAction(this);
+    QObject::connect(m_sceneDialogDisplayAction, &QAction::triggered,
+                     this, &GuiManager::sceneDialogDisplayActionTriggered);
     QIcon clapBoardIcon;
     const bool clapBoardIconValid = WuQtUtilities::loadIcon(":/ToolBar/clapboard.png",
                                                             clapBoardIcon);
@@ -293,8 +294,7 @@ GuiManager::initializeGuiManager()
         m_sceneDialogDisplayAction->setIconText("Scenes");
     }
     m_sceneDialogDisplayAction->blockSignals(true);
-    m_sceneDialogDisplayAction->setCheckable(true);
-    m_sceneDialogDisplayAction->setChecked(false);
+    m_sceneDialogDisplayAction->setCheckable(false);
     m_sceneDialogDisplayAction->blockSignals(false);
     m_sceneDialogDisplayAction->setObjectName("ToolBar:ShowScenesWindow");
     WuQMacroManager::instance()->addMacroSupportToObject(m_sceneDialogDisplayAction,
@@ -1786,9 +1786,9 @@ GuiManager::getSceneDialogDisplayAction()
  *    New status (true display dialog, false hide it).
  */
 void
-GuiManager::sceneDialogDisplayActionToggled(bool status)
+GuiManager::sceneDialogDisplayActionTriggered(bool /*status*/)
 {
-    showHideSceneDialog(status,
+    showHideSceneDialog(true,
                         NULL);
 }
 
@@ -1801,7 +1801,6 @@ void
 GuiManager::sceneDialogWasClosed()
 {
     m_sceneDialogDisplayAction->blockSignals(true);
-    m_sceneDialogDisplayAction->setChecked(false);
     m_sceneDialogDisplayAction->blockSignals(false);
 }
 
@@ -1865,7 +1864,6 @@ GuiManager::showHideSceneDialog(const bool status,
     }
     
     m_sceneDialogDisplayAction->blockSignals(true);
-    m_sceneDialogDisplayAction->setChecked(status);
     m_sceneDialogDisplayAction->blockSignals(false);
 }
 
@@ -1890,25 +1888,79 @@ GuiManager::processShowSceneDialog(BrainBrowserWindow* browserWindowIn)
  *
  * @param browserWindow
  *    Parent of scene dialog if it needs to be created.
- * @param sceneFile
- *    Scene File that contains the scene.
+ * @param sceneFileIn
+ *    Scene File that contains the scene.  If NULL, the scene file
+ *    containing the scene will be located and used
  * @param scene
  *    Scene that is displayed.
+ * @param showSceneDialogFlag
+ *    If true, update the scene dialog.  Otherwise, load the scene
+ *    without showing the scene dialog
  */
 void
 GuiManager::processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
-                                           SceneFile* sceneFile,
-                                           Scene* scene)
+                                           SceneFile* sceneFileIn,
+                                           Scene* scene,
+                                           const bool showSceneDialogFlag)
 {
-    showHideSceneDialog(true,
-                        browserWindow);
+    CaretAssert(browserWindow);
+    CaretAssert(scene);
     
-    const bool sceneWasDisplayed = this->sceneDialog->displayScene(sceneFile,
-                                                                   scene);
-    if (sceneWasDisplayed) {
-        showHideSceneDialog(false,
-                            NULL);
+    SceneFile* sceneFile(sceneFileIn);
+    if (sceneFile == NULL) {
+        /*
+         * If scene file is not valid, find scene file containing the scene
+         */
+        Brain* brain = getBrain();
+        CaretAssert(brain);
+        const int32_t numSceneFiles = brain->getNumberOfSceneFiles();
+        for (int32_t i = 0; i < numSceneFiles; i++) {
+            SceneFile* sf = brain->getSceneFile(i);
+            CaretAssert(sf);
+            const int32_t numScenes = sf->getNumberOfScenes();
+            for (int32_t j = 0; j < numScenes; j++) {
+                if (sf->getSceneAtIndex(j) == scene) {
+                    sceneFile = sf;
+                    break;
+                }
+            }
+            if (sceneFile != NULL) {
+                break;
+            }
+        }
+        
+        if (sceneFile == NULL) {
+            const QString msg("Cannot load scene.  Unable to find scene file containing scene named \""
+                              + scene->getName()
+                              + "\"");
+            WuQMessageBox::errorOk(browserWindow,
+                                   msg);
+            return;
+        }
     }
+    
+    /*
+     * Update scene dialog if it is open or if it should be displayed
+     */
+    const bool updateSceneDialogFlag(showSceneDialogFlag
+                                     || (this->sceneDialog != NULL));
+    if (updateSceneDialogFlag) {
+        showHideSceneDialog(true,
+                            browserWindow);
+
+        const bool sceneWasDisplayed = this->sceneDialog->displayScene(sceneFile,
+                                                                       scene);
+        if (sceneWasDisplayed) {
+            showHideSceneDialog(false,
+                                NULL);
+        }
+    }
+    else {
+        SceneDialog::displaySceneWithErrorMessageDialog(browserWindow,
+                                                        sceneFile,
+                                                        scene);
+    }
+    
 }
 
 /**

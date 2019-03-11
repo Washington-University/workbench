@@ -94,6 +94,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
+#include "EventSceneActive.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateYokedWindows.h"
 #include "GuiManager.h"
@@ -108,6 +109,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "OverlaySet.h"
+#include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneIntegerArray.h"
@@ -283,9 +285,30 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     QToolButton* helpDialogToolButton = new QToolButton();
     helpDialogToolButton->setDefaultAction(GuiManager::get()->getHelpViewerDialogDisplayAction());
-    
+
+    const QString sceneButtonToolTip("Click to display the Scene Dialog.  "
+                                     "Hold down mouse button to display a menu for loading scenes "
+                                     "including reloading the current scene.");
     QToolButton* sceneDialogToolButton = new QToolButton();
+    sceneDialogToolButton->setIcon(GuiManager::get()->getSceneDialogDisplayAction()->icon());
     sceneDialogToolButton->setDefaultAction(GuiManager::get()->getSceneDialogDisplayAction());
+    sceneDialogToolButton->setPopupMode(QToolButton::DelayedPopup);
+    sceneDialogToolButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    WuQtUtilities::setWordWrappedToolTip(sceneDialogToolButton,
+                                         sceneButtonToolTip);
+    QObject::connect(sceneDialogToolButton, &QToolButton::clicked,
+                     this, &BrainBrowserWindowToolBar::sceneToolButtonClicked);
+    
+    /*
+     * The scene dialog tool button menu must be created AFTER the tool button.  Seems weird.
+     * https://forums.autodesk.com/t5/maya-forum/maya-2017-and-qtoolbutton-popup-menu-not-showing/td-p/6927575
+     */
+    m_sceneToolButtonMenu = new QMenu(sceneDialogToolButton);
+    QObject::connect(m_sceneToolButtonMenu, &QMenu::triggered,
+                     this, &BrainBrowserWindowToolBar::sceneToolButtonMenuTriggered);
+    QObject::connect(m_sceneToolButtonMenu, &QMenu::aboutToShow,
+                     this, &BrainBrowserWindowToolBar::sceneToolButtonMenuAboutToShow);
+    sceneDialogToolButton->setMenu(m_sceneToolButtonMenu);
     
     QIcon movieIcon;
     QAction* movieAction = new QAction();
@@ -4037,6 +4060,63 @@ BrainBrowserWindowToolBar::orientationAnteriorPosteriorToolButtonTriggered(bool 
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->anteriorView();
     this->updateGraphicsWindowAndYokedWindows();
+}
+
+/**
+ * Called when the scene tool button is clicked to show scene dialog
+ */
+void
+BrainBrowserWindowToolBar::sceneToolButtonClicked()
+{
+    GuiManager::get()->getSceneDialogDisplayAction()->trigger();
+}
+
+/**
+ * Called when an item is selected from the scene tool button menu
+ *
+ * @param action
+ *     Action of menu selected
+ */
+void
+BrainBrowserWindowToolBar::sceneToolButtonMenuTriggered(QAction* action)
+{
+    if (action != NULL) {
+        void* scenePointer = action->data().value<void*>();
+        if (scenePointer != NULL) {
+            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
+            CaretAssert(bbw);
+            
+            Scene* scene = (Scene*)scenePointer;
+            SceneFile* invalidSceneFile(NULL);
+            const bool showSceneDialogFlag(false);
+            GuiManager::get()->processShowSceneDialogAndScene(bbw,
+                                                              invalidSceneFile,
+                                                              scene,
+                                                              showSceneDialogFlag);
+        }
+    }
+}
+
+/**
+ * Called when the scene menu is about to show
+ */
+void
+BrainBrowserWindowToolBar::sceneToolButtonMenuAboutToShow()
+{
+    m_sceneToolButtonMenu->clear();
+    
+    EventSceneActive sceneEvent(EventSceneActive::MODE_GET);
+    EventManager::get()->sendEvent(sceneEvent.getPointer());
+    Scene* activeScene = sceneEvent.getScene();
+    if (activeScene != NULL) {
+        QString name(activeScene->getName().trimmed());
+        if (name.isEmpty()) {
+            name = "<no-name>";
+        }
+        QAction* action = m_sceneToolButtonMenu->addAction("Reload Current Scene: "
+                                                           + name);
+        action->setData(qVariantFromValue((void*)activeScene));
+    }
 }
 
 /**

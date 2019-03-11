@@ -154,7 +154,8 @@ namespace caret {
         
         void processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
                                             SceneFile* sceneFile,
-                                            Scene* scene);
+                                            Scene* scene,
+                                            const bool showSceneDialogFlag);
         
         void processShowAllenDataBaseWebView(BrainBrowserWindow* browserWindow);
         void processShowConnectomeDataBaseWebView(BrainBrowserWindow* browserWindow);
@@ -200,7 +201,7 @@ namespace caret {
         
         void showIdentifyBrainordinateDialogActionToggled(bool);
         
-        void sceneDialogDisplayActionToggled(bool);
+        void sceneDialogDisplayActionTriggered(bool);
         
         void showHelpDialogActionToggled(bool);
         

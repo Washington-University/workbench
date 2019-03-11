@@ -3385,9 +3385,11 @@ BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
             }
             
             if (scene != NULL) {
+                const bool showSceneDialogFlag(true);
                 GuiManager::get()->processShowSceneDialogAndScene(this,
                                                                   sf,
-                                                                  scene);
+                                                                  scene,
+                                                                  showSceneDialogFlag);
                 haveSceneError = false;
                 break;
             }

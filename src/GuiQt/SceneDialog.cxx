@@ -1364,10 +1364,10 @@ SceneDialog::replaceAllScenesPushButtonClicked()
              * Display the scene
              */
             AString errorMessage;
-            displayScenePrivateWithErrorMessage(sceneFile,
-                                                origScene,
-                                                false,
-                                                errorMessage);
+            SceneDialog::displayScenePrivateWithErrorMessage(sceneFile,
+                                                              origScene,
+                                                              false,
+                                                              errorMessage);
             sceneNames.push_back(origScene->getName());
             
             /*
@@ -1657,10 +1657,10 @@ SceneDialog::testScenesPushButtonClicked()
             }
             
             AString errorMessage;
-            displayScenePrivateWithErrorMessage(sceneFile,
-                                                origScene,
-                                                false,
-                                                errorMessage);
+            SceneDialog::displayScenePrivateWithErrorMessage(sceneFile,
+                                                             origScene,
+                                                             false,
+                                                             errorMessage);
             /*
              * Set the active scene
              */
@@ -2452,9 +2452,10 @@ SceneDialog::showSceneButtonClicked()
                                                this);
         progressDialog.setValue(0);
         
-        displayScenePrivateWithErrorMessageDialog(sceneFile,
-                            scene,
-                            false);
+        displayScenePrivateWithErrorMessageDialog(this,
+                                                  sceneFile,
+                                                  scene,
+                                                  false);
     }
 
     /* Ensures macros dialog gets updated with active scene */
@@ -2598,9 +2599,10 @@ bool
 SceneDialog::displayScene(SceneFile* sceneFile,
                           Scene* scene)
 {
-    const bool isSuccessful = displayScenePrivateWithErrorMessageDialog(sceneFile,
-                        scene,
-                        true);
+    const bool isSuccessful = displayScenePrivateWithErrorMessageDialog(this,
+                                                                        sceneFile,
+                                                                        scene,
+                                                                        true);
     loadSceneFileComboBox(sceneFile);
     loadScenesIntoDialog(scene);
     
@@ -2615,17 +2617,47 @@ SceneDialog::displayScene(SceneFile* sceneFile,
  * If the scene fails to load, an error message is displayed
  * in a dialog.
  *
+ * @param dialogParent
+ *     Parent for error message dialog
  * @param sceneFile
  *     Scene file.
  * @param scene
  *     Scene that is displayed.
- * param showWaitCursor
- *     Show a wait cursor while loading scene
  * @return
  *     true if scene was displayed without error, else false.
  */
 bool
-SceneDialog::displayScenePrivateWithErrorMessageDialog(SceneFile* sceneFile,
+SceneDialog::displaySceneWithErrorMessageDialog(QWidget* dialogParent,
+                                                SceneFile* sceneFile,
+                                                Scene* scene)
+{
+    const bool showWaitCursorFlag(true);
+    const bool flag = SceneDialog::displayScenePrivateWithErrorMessageDialog(dialogParent,
+                                                                             sceneFile,
+                                                                             scene,
+                                                                             showWaitCursorFlag);
+    return flag;
+}
+
+/**
+ * Display the given scene from the given scene file.
+ * If the scene fails to load, an error message is displayed
+ * in a dialog.
+ *
+ * @param dialogParent
+ *     Parent for error message dialog
+ * @param sceneFile
+ *     Scene file.
+ * @param scene
+ *     Scene that is displayed.
+ * @param showWaitCursor
+ *     If true, show a wait cursor
+ * @return
+ *     true if scene was displayed without error, else false.
+ */
+bool
+SceneDialog::displayScenePrivateWithErrorMessageDialog(QWidget* dialogParent,
+                                                       SceneFile* sceneFile,
                                                        Scene* scene,
                                                        const bool showWaitCursor)
 {
@@ -2644,7 +2676,7 @@ SceneDialog::displayScenePrivateWithErrorMessageDialog(SceneFile* sceneFile,
     CaretLogInfo(msg);
     
     if ( ! successFlag) {
-        WuQMessageBox::errorOk(this,
+        WuQMessageBox::errorOk(dialogParent,
                                errorMessage);
     }
     
