@@ -290,15 +290,17 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                      "Hold down mouse button to display a menu for loading scenes "
                                      "including reloading the current scene.");
     QToolButton* sceneDialogToolButton = new QToolButton();
+    sceneDialogToolButton->setText("");
     sceneDialogToolButton->setIcon(GuiManager::get()->getSceneDialogDisplayAction()->icon());
     sceneDialogToolButton->setDefaultAction(GuiManager::get()->getSceneDialogDisplayAction());
     sceneDialogToolButton->setPopupMode(QToolButton::DelayedPopup);
-    sceneDialogToolButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    sceneDialogToolButton->setText(" "); /* prevents 'menu down arrow' from overlapping icon */
+    sceneDialogToolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     WuQtUtilities::setWordWrappedToolTip(sceneDialogToolButton,
                                          sceneButtonToolTip);
     QObject::connect(sceneDialogToolButton, &QToolButton::clicked,
                      this, &BrainBrowserWindowToolBar::sceneToolButtonClicked);
-    
+
     /*
      * The scene dialog tool button menu must be created AFTER the tool button.  Seems weird.
      * https://forums.autodesk.com/t5/maya-forum/maya-2017-and-qtoolbutton-popup-menu-not-showing/td-p/6927575
