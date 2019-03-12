@@ -1577,6 +1577,11 @@ GuiManager::receiveEvent(Event* event)
         
         warningEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        if (m_movieRecordingDialog != NULL) {
+            m_movieRecordingDialog->updateDialog();
+        }
+    }
 }
 
 /**

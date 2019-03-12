@@ -28,6 +28,7 @@
 #include <QImage>
 #include <QProcess>
 
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DataFileException.h"
@@ -48,9 +49,13 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param brain
+ *     The brain
  */
-MovieRecorder::MovieRecorder()
-: CaretObject()
+MovieRecorder::MovieRecorder(Brain* brain)
+: CaretObject(),
+m_brain(brain)
 {
     m_temporaryImagesDirectory = SystemUtilities::getTempDirectory();
     m_tempImageFileNamePrefix  = "movie";
@@ -322,6 +327,10 @@ MovieRecorder::setCaptureRegionType(const MovieRecorderCaptureRegionTypeEnum::En
 AString
 MovieRecorder::getMovieFileName() const
 {
+    if (m_movieFileName.isEmpty()) {
+        initializeMovieFileName();
+    }
+    
     return m_movieFileName;
 }
 
@@ -345,12 +354,13 @@ MovieRecorder::setMovieFileName(const AString& filename)
  *     Path of where to place the movie file
  */
 void
-MovieRecorder::initializeMovieFileName(const AString& path)
+MovieRecorder::initializeMovieFileName() const
 {
+    const QString currentDirectory = m_brain->getCurrentDirectory();
     if (m_movieFileName.isEmpty()) {
         const QString extension = MovieRecorderVideoFormatTypeEnum::toFileNameExtensionNoDot(MovieRecorderVideoFormatTypeEnum::MPEG);
         
-        m_movieFileName = FileInformation::assembleFileComponents(path,
+        m_movieFileName = FileInformation::assembleFileComponents(currentDirectory,
                                                                   "Movie",
                                                                   extension);
     }
@@ -464,15 +474,20 @@ MovieRecorder::getNumberOfFrames() const
 /**
  * Create the movie using images captured thus far
  *
+ * @param filename
+ *     File name for movie.
  * @param errorMessageOut
  *     Contains information if movie creation failed
  * @return
  *     True if successful, else false
  */
 bool
-MovieRecorder::createMovie(AString& errorMessageOut)
+MovieRecorder::createMovie(const AString& filename,
+                           AString& errorMessageOut)
 {
     errorMessageOut.clear();
+    
+    m_movieFileName = filename;
     
     if (m_movieFileName.isEmpty()) {
         errorMessageOut = "Movie file name is invalid or empty";

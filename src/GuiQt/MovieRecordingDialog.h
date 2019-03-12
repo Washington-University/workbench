@@ -65,6 +65,8 @@ namespace caret {
 
         virtual void receiveEvent(Event* event);
 
+        static void createMovie(QWidget* parent);
+    
     private slots:
         void movieRecorderVideoResolutionTypeEnumComboBoxItemActivated();
         
@@ -82,8 +84,6 @@ namespace caret {
         
         void windowIndexSelected(const int32_t windowIndex);
         
-        void fileNameButtonClicked();
-        
         void createMoviePushButtonClicked();
         
         void resetPushButtonClicked();
@@ -96,8 +96,6 @@ namespace caret {
         virtual void closeEvent(QCloseEvent* event) override;
         
     private:
-        void updateFileNameLabel();
-        
         void updateFrameCountLabel();
         
         void updateCustomWidthHeightSpinBoxes();
@@ -126,13 +124,9 @@ namespace caret {
         
         QCheckBox* m_removeTemporaryImagesAfterMovieCreationCheckBox;
         
-        QPushButton* m_filenamePushButton;
-        
         QPushButton* m_createMoviePushButton;
         
         QPushButton* m_resetPushButton;
-        
-        QLabel* m_filenameLabel;
         
         QLabel* m_frameCountNumberLabel;
         

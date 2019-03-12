@@ -78,7 +78,6 @@ SessionManager::SessionManager()
     m_caretPreferences = new CaretPreferences();
     
     m_imageCaptureDialogSettings = new ImageCaptureSettings();
-    m_movieRecorder.reset(new MovieRecorder());
 
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
     m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
@@ -109,6 +108,7 @@ SessionManager::SessionManager()
     
     Brain* brain = new Brain(m_caretPreferences);
     m_brains.push_back(brain);
+    m_movieRecorder.reset(new MovieRecorder(brain));
 }
 
 /**

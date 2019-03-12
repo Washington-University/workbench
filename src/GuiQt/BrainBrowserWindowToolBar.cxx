@@ -108,6 +108,7 @@
 #include "ModelTransform.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
+#include "MovieRecordingDialog.h"
 #include "OverlaySet.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
@@ -286,6 +287,9 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QToolButton* helpDialogToolButton = new QToolButton();
     helpDialogToolButton->setDefaultAction(GuiManager::get()->getHelpViewerDialogDisplayAction());
 
+    /*
+     * Scene button
+     */
     const QString sceneButtonToolTip("Display the Scene Dialog.  "
                                      "Arrow displays a menu for loading scenes "
                                      "including reloading or the current scene.");
@@ -311,22 +315,36 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                      this, &BrainBrowserWindowToolBar::sceneToolButtonMenuAboutToShow);
     sceneDialogToolButton->setMenu(m_sceneToolButtonMenu);
     
+    /*
+     * Movie button
+     */
     QIcon movieIcon;
-    QAction* movieAction = new QAction();
-    if (WuQtUtilities::loadIcon(":/ToolBar/movie.png",
-                                movieIcon)) {
-        movieAction->setIcon(movieIcon);
+    QString movieButtonText;
+    if ( ! WuQtUtilities::loadIcon(":/ToolBar/movie.png",
+                                   movieIcon)) {
+        movieButtonText = "Movie";
     }
-    else {
-        movieAction->setText("R");
-    }
-    movieAction->setToolTip("Show movie recording dialog");
-    QObject::connect(movieAction, &QAction::triggered,
+    const QString movieButtonToolTip("Show movie recording dialog.  "
+                                     "Arrow displays a menu for creating movie "
+                                     "without using movie dialog.");
+    m_movieToolButton = new QToolButton();
+    WuQtUtilities::setWordWrappedToolTip(m_movieToolButton,
+                                         movieButtonToolTip);
+    m_movieToolButton->setPopupMode(QToolButton::MenuButtonPopup);
+    m_movieToolButton->setText(movieButtonText);
+    m_movieToolButton->setIcon(movieIcon);
+    m_movieToolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    QObject::connect(m_movieToolButton, &QToolButton::clicked,
                      parentBrainBrowserWindow, &BrainBrowserWindow::processMovieRecording);
-    QToolButton* movieToolButton = new QToolButton();
-    movieToolButton->setDefaultAction(movieAction);
-    movieAction->setParent(movieToolButton);
     
+    QMenu* movieToolButtonMenu = new QMenu();
+    movieToolButtonMenu->addAction("Create Movie...",
+                                   this, &BrainBrowserWindowToolBar::createMovieToolButtonMenuItemTriggered);
+    m_movieToolButton->setMenu(movieToolButtonMenu);
+    
+    /*
+     * Macros button
+     */
     QIcon macrosIcon;
     QAction* macrosAction = new QAction();
     if (WuQtUtilities::loadIcon(":/ToolBar/macro.png",
@@ -390,7 +408,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      * Make all tool buttons the same height
      */
     WuQtUtilities::matchWidgetHeights(macrosToolButton,
-                                      movieToolButton,
+                                      m_movieToolButton,
                                       helpDialogToolButton,
                                       informationDialogToolButton,
                                       identifyDialogToolButton,
@@ -401,7 +419,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                       dataToolTipsToolButton);
     
     WuQtUtilities::setToolButtonStyleForQt5Mac(macrosToolButton);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(movieToolButton);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_movieToolButton);
     WuQtUtilities::setToolButtonStyleForQt5Mac(helpDialogToolButton);
     WuQtUtilities::setToolButtonStyleForQt5Mac(informationDialogToolButton);
     WuQtUtilities::setToolButtonStyleForQt5Mac(identifyDialogToolButton);
@@ -422,7 +440,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     tabBarLayout->addWidget(helpDialogToolButton);
     tabBarLayout->addWidget(informationDialogToolButton);
     tabBarLayout->addWidget(identifyDialogToolButton);
-    tabBarLayout->addWidget(movieToolButton);
+    tabBarLayout->addWidget(m_movieToolButton);
     tabBarLayout->addWidget(macrosToolButton);
     tabBarLayout->addWidget(sceneDialogToolButton);
     tabBarLayout->addWidget(toolBarToolButton);
@@ -4118,6 +4136,15 @@ BrainBrowserWindowToolBar::sceneToolButtonMenuAboutToShow()
                                                            + name);
         action->setData(qVariantFromValue((void*)activeScene));
     }
+}
+
+/**
+ * Called create movie menu item is selected from movie tool button
+ */
+void
+BrainBrowserWindowToolBar::createMovieToolButtonMenuItemTriggered()
+{
+    MovieRecordingDialog::createMovie(m_movieToolButton);
 }
 
 /**

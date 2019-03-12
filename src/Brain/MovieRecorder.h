@@ -34,12 +34,13 @@ class QImage;
 class QStringList;
 
 namespace caret {
-
+    class Brain;
+    
     class MovieRecorder : public CaretObject {
         
     public:
 
-        MovieRecorder();
+        MovieRecorder(Brain* brain);
         
         virtual ~MovieRecorder();
         
@@ -80,8 +81,6 @@ namespace caret {
         
         void setMovieFileName(const AString& filename);
         
-        void initializeMovieFileName(const AString& path);
-        
         int32_t getNumberOfFrames() const;
         
         float getFramesRate() const;
@@ -102,21 +101,9 @@ namespace caret {
         
         void removeTemporaryImages();
         
-        bool createMovie(AString& errorMessageOut);
+        bool createMovie(const AString& filename,
+                         AString& errorMessageOut);
         
-        bool createMovieWithSystemCommand(const QString& programName,
-                                          const QStringList& arguments,
-                                          QString& errorMessageOut);
-        
-        bool createMovieWithQProcess(const QString& programName,
-                                     const QStringList& arguments,
-                                     QString& errorMessageOut);
-
-        bool createMovieWithQProcessPipe(const QString& programName,
-                                         const QStringList& arguments,
-                                         const QString& textFileName,
-                                         QString& errorMessageOut);
-
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -124,6 +111,23 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
 
+        bool createMovieWithSystemCommand(const QString& programName,
+                                          const QStringList& arguments,
+                                          QString& errorMessageOut);
+        
+        bool createMovieWithQProcess(const QString& programName,
+                                     const QStringList& arguments,
+                                     QString& errorMessageOut);
+        
+        bool createMovieWithQProcessPipe(const QString& programName,
+                                         const QStringList& arguments,
+                                         const QString& textFileName,
+                                         QString& errorMessageOut);
+        
+        void initializeMovieFileName() const;
+        
+        Brain* m_brain = NULL;
+        
         MovieRecorderModeEnum::Enum m_recordingMode = MovieRecorderModeEnum::MANUAL;
         
         MovieRecorderVideoResolutionTypeEnum::Enum m_resolutionType = MovieRecorderVideoResolutionTypeEnum::SD_640_480;

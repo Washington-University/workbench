@@ -43,6 +43,7 @@
 #include "Event.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventUserInterfaceUpdate.h"
 #include "EnumComboBoxTemplate.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
@@ -83,7 +84,6 @@ MovieRecordingDialog::MovieRecordingDialog(QWidget* parent)
 
     MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
     CaretAssert(movieRecorder);
-    movieRecorder->initializeMovieFileName(GuiManager::get()->getBrain()->getCurrentDirectory());
 }
 
 /**
@@ -162,7 +162,6 @@ MovieRecordingDialog::updateDialog()
 
     updateManualRecordingOptions();
     updateCustomWidthHeightSpinBoxes();
-    updateFileNameLabel();
     updateFrameCountLabel();
 }
 
@@ -212,21 +211,6 @@ MovieRecordingDialog::updateCustomWidthHeightSpinBoxes()
     const bool customSpinBoxesEnabled(movieRecorder->getVideoResolutionType() == MovieRecorderVideoResolutionTypeEnum::CUSTOM);
     m_customWidthSpinBox->setEnabled(customSpinBoxesEnabled);
     m_customHeightSpinBox->setEnabled(customSpinBoxesEnabled);
-}
-
-/**
- * Update the filename label
- */
-void
-MovieRecordingDialog::updateFileNameLabel()
-{
-    QString name = SessionManager::get()->getMovieRecorder()->getMovieFileName();
-    if ( ! name.isEmpty()) {
-        FileInformation fileInfo(name);
-        name = fileInfo.getFileName();
-    }
-    
-    m_filenameLabel->setText(name);
 }
 
 /**
@@ -410,10 +394,22 @@ MovieRecordingDialog::manualCaptureSecondsSpinBoxValueChanged(int seconds)
 }
 
 /**
- * Called when movie file name button is clicked
+ * Called when create movie push button is clicked
  */
 void
-MovieRecordingDialog::fileNameButtonClicked()
+MovieRecordingDialog::createMoviePushButtonClicked()
+{
+    createMovie(m_createMoviePushButton);
+}
+
+/**
+ * Create a movie from captured images.
+ *
+ * @param parent
+ *     Parent widget for error message dialog.
+ */
+void
+MovieRecordingDialog::createMovie(QWidget* parent)
 {
     MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
     QString currentFileName = movieRecorder->getMovieFileName();
@@ -435,12 +431,17 @@ MovieRecordingDialog::fileNameButtonClicked()
         }
     }
     
-    QString filename = CaretFileDialog::getSaveFileNameDialog(m_filenamePushButton,
+    QString filename = CaretFileDialog::getSaveFileNameDialog(parent,
                                                               "Choose Movie File",
                                                               currentFileName,
                                                               filters,
-                                                              &selectedFilter);
+                                                              &selectedFilter,
+                                                              CaretFileDialog::DontConfirmOverwrite);
     
+    if (filename.isEmpty()) {
+        return;
+    }
+
     if (selectedFilter.isEmpty()) {
         for (auto fe : formatEnums) {
             if (selectedFilter == MovieRecorderVideoFormatTypeEnum::toFileDialogFilter(fe)) {
@@ -453,46 +454,27 @@ MovieRecordingDialog::fileNameButtonClicked()
         }
     }
     
-    if ( ! filename.isEmpty()) {
-        movieRecorder->setMovieFileName(filename);
-        updateFileNameLabel();
-    }
-}
-
-/**
- * Called when create movie push button is clicked
- */
-void
-MovieRecordingDialog::createMoviePushButtonClicked()
-{
-    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
-    FileInformation fileInfo(movieRecorder->getMovieFileName());
+    FileInformation fileInfo(filename);
     const QString name(fileInfo.getCanonicalFilePath());
     if (fileInfo.exists()) {
-        AString msg("Movie file \""
-                    + name
-                    + "\" exists, overwrite?");
-        if ( ! WuQMessageBox::warningOkCancel(m_createMoviePushButton,
-                                              msg)) {
-            return;
-        }
         if ( ! fileInfo.remove()) {
             AString msg("Unable to remove movie file \""
                         + name
                         + "\"");
-            WuQMessageBox::errorOk(m_createMoviePushButton,
+            WuQMessageBox::errorOk(parent,
                                    msg);
         }
     }
     
     AString errorMessage;
-    const bool successFlag = movieRecorder->createMovie(errorMessage);
+    const bool successFlag = movieRecorder->createMovie(filename,
+                                                        errorMessage);
     if ( ! successFlag) {
-        WuQMessageBox::errorOk(m_createMoviePushButton,
+        WuQMessageBox::errorOk(parent,
                                errorMessage);
     }
     
-    updateDialog();
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**
@@ -588,13 +570,6 @@ MovieRecordingDialog::createMainWidget()
     modeLayout->addWidget(captureSecondsLabel, modeRow, 3);
     modeRow++;
     
-    m_filenamePushButton = new QPushButton("Movie File...");
-    m_filenamePushButton->setToolTip("Select movie file using file dialog");
-    QObject::connect(m_filenamePushButton, &QPushButton::clicked,
-                     this, &MovieRecordingDialog::fileNameButtonClicked);
-    m_filenameLabel      = new QLabel("");
-    m_filenameLabel->setMinimumWidth(150);
-
     m_createMoviePushButton = new QPushButton("Create Movie");
     m_createMoviePushButton->setToolTip("Create a movie file using images that have been recorded");
     QObject::connect(m_createMoviePushButton, &QPushButton::clicked, this,
@@ -618,9 +593,6 @@ MovieRecordingDialog::createMainWidget()
     movieLayout->setColumnStretch(2, 0);
     movieLayout->setColumnStretch(3, 100);
     int32_t movieRow(0);
-    movieLayout->addWidget(m_filenamePushButton, movieRow, 0);
-    movieLayout->addWidget(m_filenameLabel, movieRow, 1, 1, 2, Qt::AlignLeft);
-    movieRow++;
     movieLayout->addWidget(m_createMoviePushButton, movieRow, 0);
     movieLayout->addWidget(lengthLabel, movieRow, 1);
     movieLayout->addWidget(m_lengthLabel, movieRow, 2);
