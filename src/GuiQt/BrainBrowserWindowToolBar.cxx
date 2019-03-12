@@ -286,15 +286,14 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QToolButton* helpDialogToolButton = new QToolButton();
     helpDialogToolButton->setDefaultAction(GuiManager::get()->getHelpViewerDialogDisplayAction());
 
-    const QString sceneButtonToolTip("Click to display the Scene Dialog.  "
-                                     "Hold down mouse button to display a menu for loading scenes "
-                                     "including reloading the current scene.");
+    const QString sceneButtonToolTip("Display the Scene Dialog.  "
+                                     "Arrow displays a menu for loading scenes "
+                                     "including reloading or the current scene.");
     QToolButton* sceneDialogToolButton = new QToolButton();
+    sceneDialogToolButton->setPopupMode(QToolButton::MenuButtonPopup);
     sceneDialogToolButton->setText("");
     sceneDialogToolButton->setIcon(GuiManager::get()->getSceneDialogDisplayAction()->icon());
     sceneDialogToolButton->setDefaultAction(GuiManager::get()->getSceneDialogDisplayAction());
-    sceneDialogToolButton->setPopupMode(QToolButton::DelayedPopup);
-    sceneDialogToolButton->setText(" "); /* prevents 'menu down arrow' from overlapping icon */
     sceneDialogToolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     WuQtUtilities::setWordWrappedToolTip(sceneDialogToolButton,
                                          sceneButtonToolTip);

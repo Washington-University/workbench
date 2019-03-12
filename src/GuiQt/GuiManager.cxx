@@ -297,6 +297,7 @@ GuiManager::initializeGuiManager()
     m_sceneDialogDisplayAction->setCheckable(false);
     m_sceneDialogDisplayAction->blockSignals(false);
     m_sceneDialogDisplayAction->setObjectName("ToolBar:ShowScenesWindow");
+    m_sceneDialogDisplayAction->setToolTip("Show the scenes window");
     WuQMacroManager::instance()->addMacroSupportToObject(m_sceneDialogDisplayAction,
                                                          "Display Scene Dialog");
     
