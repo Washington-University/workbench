@@ -304,8 +304,8 @@ WuQMacroDialog::createMacroDisplayWidget()
 {
     QLabel* macroNameLabel = new QLabel("Name:");
     m_macroNameLineEdit = new QLineEdit();
-    QObject::connect(m_macroNameLineEdit, &QLineEdit::textChanged,
-                     this, &WuQMacroDialog::macroNameLineEditTextChanged);
+    QObject::connect(m_macroNameLineEdit, &QLineEdit::textEdited,
+                     this, &WuQMacroDialog::macroNameLineEditTextEdited);
     
     QLabel* shortCutKeyLabel = new QLabel("Short Cut Key:");
     QLabel* shortCutKeyMaskLabel = new QLabel(WuQMacroManager::getShortCutKeysMask());
@@ -363,7 +363,7 @@ WuQMacroDialog::createMacroDisplayWidget()
  * @param text
  */
 void
-WuQMacroDialog::macroNameLineEditTextChanged(const QString& text)
+WuQMacroDialog::macroNameLineEditTextEdited(const QString& text)
 {
     WuQMacro* macro = getSelectedMacro();
     if (macro != NULL) {

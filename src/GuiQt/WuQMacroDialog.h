@@ -86,7 +86,7 @@ namespace caret {
         
         void macroGroupToolButtonClicked();
         
-        void macroNameLineEditTextChanged(const QString& text);
+        void macroNameLineEditTextEdited(const QString& text);
         
         void macroDescriptionTextEditChanged();
         
