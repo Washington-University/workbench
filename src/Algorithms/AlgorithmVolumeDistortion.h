@@ -39,7 +39,7 @@ namespace caret {
             ELONGATION,
             CIRCULAR
         };
-        AlgorithmVolumeDistortion(ProgressObject* myProgObj, const WarpfieldFile& myWarp, VolumeFile* distortionOut, Method myMethod = ELONGATION);
+        AlgorithmVolumeDistortion(ProgressObject* myProgObj, const WarpfieldFile& myWarp, VolumeFile* distortionOut, const Method myMethod = ELONGATION, const bool dolog2 = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

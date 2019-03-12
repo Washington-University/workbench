@@ -56,6 +56,8 @@ OperationParameters* AlgorithmVolumeDistortion::getParameters()
     
     ret->createOptionalParameter(4, "-circular", "use the circle-based formula for the anisotropic measure");
     
+    ret->createOptionalParameter(5, "-log2", "apply base-2 log transform");
+    
     ret->setHelpText(
         AString("Calculates isotropic and anisotropic distortions in the volume warpfield.  ") +
         "At each voxel, the gradient of the absolute warpfield is computed to obtain the local affine transforms for each voxel (jacobian matrices), and strain tensors are derived from them.  " +
@@ -74,6 +76,7 @@ void AlgorithmVolumeDistortion::useParameters(OperationParameters* myParams, Pro
     OptionalParameter* fnirtOpt = myParams->getOptionalParameter(3);
     Method myMethod = ELONGATION;
     if (myParams->getOptionalParameter(4)->m_present) myMethod = CIRCULAR;
+    bool dolog2 = myParams->getOptionalParameter(5)->m_present;
     WarpfieldFile myWarp;
     if (fnirtOpt->m_present)
     {
@@ -81,10 +84,10 @@ void AlgorithmVolumeDistortion::useParameters(OperationParameters* myParams, Pro
     } else {
         myWarp.readWorld(warpName);
     }
-    AlgorithmVolumeDistortion(myProgObj, myWarp, distortionOut, myMethod);
+    AlgorithmVolumeDistortion(myProgObj, myWarp, distortionOut, myMethod, dolog2);
 }
 
-AlgorithmVolumeDistortion::AlgorithmVolumeDistortion(ProgressObject* myProgObj, const WarpfieldFile& myWarp, VolumeFile* distortionOut, Method myMethod) : AbstractAlgorithm(myProgObj)
+AlgorithmVolumeDistortion::AlgorithmVolumeDistortion(ProgressObject* myProgObj, const WarpfieldFile& myWarp, VolumeFile* distortionOut, const Method myMethod, const bool dolog2) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     switch (myMethod)
@@ -159,18 +162,23 @@ AlgorithmVolumeDistortion::AlgorithmVolumeDistortion(ProgressObject* myProgObj, 
                         break;
                     case CIRCULAR:
                     {
-                        const float ASPHER_THRESH = 1.00001f;
-                        if (shapes[2] > ASPHER_THRESH)
-                        {//asphericity formula is somewhat unstable when near-spherical (shapes[0] will always be near 1 when shapes[2] is, so a reciprocal reformulation won't help much)
-                            anisotropic = exp(-2.0f * log(shapes[0]) / cos(atan(sqrt(3.0f) * (-log(shapes[0]) / log(shapes[2]) - 1) / (log(shapes[0]) / log(shapes[2]) - 1)) + PI / 6.0f));//deceptively complicated
-                        } else {//when unstable, reshape the elongation ratio to approximate it
-                            anisotropic = pow(shapes[2] / shapes[0], 1.24f);
-                        }//explanation time: per the help info, put the shape ratios into log space, so that geometry can be useful
-                        //now consider an equilateral triangle centered at the origin, and these log-space shape values as the signed distance from the x=0 line
+                        //new solution found by coincidence: square and sum the x coordinates of the vertices an equilateral triangle centered on the origin, you get (3r^2)/2, where r is the distance from the origin to a vertex
+                        float logshapes[3];
+                        for (int a = 0; a < 3; ++a)
+                        {
+                            logshapes[a] = log(shapes[a]);
+                        }
+                        anisotropic = exp(sqrt(8.0f / 3.0f * (logshapes[0] * logshapes[0] + logshapes[1] * logshapes[1] + logshapes[2] * logshapes[2])));
+                        break;//explanation time: per the help info, put the shape ratios into log space, so that geometry can be useful
+                        //now consider an equilateral triangle centered at the origin, and these log-space shape values as the x coordinates of the vertices
                         //now, find the distance from the origin to any vertex, and multiply by 2 to get the circumscribing circle's diameter
-                        //this solution relied on the the most-horizontal edge of the triangle being split by x=0 at the same ratio as the magnitudes of the two extreme log-shape values (don't forget the negative sign)
-                        break;
+                        //the old solution relied on the the most-horizontal edge of the triangle being split by the y-axis at the same ratio as the magnitudes of the two extreme log-shape values (don't forget the negative sign)
                     }
+                }
+                if (dolog2)
+                {
+                    isotropic = log2(isotropic);
+                    anisotropic = log2(anisotropic);
                 }
                 distortionOut->setValue(isotropic, i, j, k, 0);
                 distortionOut->setValue(anisotropic, i, j, k, 1);
