@@ -858,7 +858,8 @@ WuQMacroManager::exportMacros(QWidget* parent,
                                                           s_importExportMacroFileDirectory,
                                                           fileFilterString,
                                                           &fileFilterString,
-                                                         QFileDialog::DontUseNativeDialog);
+                                                          (QFileDialog::DontUseNativeDialog
+                                                           | QFileDialog::DontConfirmOverwrite));
     if ( ! filename.isEmpty()) {
         try {
             WuQMacroFile macroFile;

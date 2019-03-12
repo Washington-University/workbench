@@ -38,6 +38,7 @@ class QDialogButtonBox;
 class QDoubleSpinBox;
 class QGridLayout;
 class QLabel;
+class QLineEdit;
 class QMenu;
 class QPlainTextEdit;
 class QStackedWidget;
@@ -85,9 +86,9 @@ namespace caret {
         
         void macroGroupToolButtonClicked();
         
-        void macroNameEditButtonClicked();
+        void macroNameLineEditTextChanged(const QString& text);
         
-        void macroDescriptionEditButtonClicked();
+        void macroDescriptionTextEditChanged();
         
         void macroShortCutKeySelected(const WuQMacroShortCutKeyEnum::Enum);
         
@@ -112,6 +113,8 @@ namespace caret {
         void stopMacroToolButtonClicked();
         
         void macroCommandDelaySpinBoxValueChanged(double);
+        
+        void macroCommandDescriptionTextEditChanged();
         
         void commandParamaterDataChanged(int);
         
@@ -187,11 +190,15 @@ namespace caret {
         
         QTreeView* m_treeView;
         
-        QLabel* m_macroNameLabel;
+        QLineEdit* m_macroNameLineEdit;
+        
+        bool m_macroNameLineEditBlockUpdateFlag = false;
         
         WuQMacroShortCutKeyComboBox* m_macroShortCutKeyComboBox;
         
         QPlainTextEdit* m_macroDescriptionTextEdit;
+        
+        bool m_macroDescriptionTextEditBlockUpdateFlag = false;
         
         QWidget* m_macroWidget;
         
@@ -220,6 +227,8 @@ namespace caret {
         QDoubleSpinBox* m_commandDelaySpinBox;
         
         QPlainTextEdit* m_commandDescriptionTextEdit;
+        
+        bool m_macroDescriptionCommandTextEditBlockUpdateFlag = false;
         
         std::vector<CommandParameterWidget*> m_parameterWidgets;
         

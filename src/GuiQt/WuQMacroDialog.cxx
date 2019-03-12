@@ -302,12 +302,10 @@ WuQMacroDialog::createMacroAndCommandSelectionWidget()
 QWidget*
 WuQMacroDialog::createMacroDisplayWidget()
 {
-    m_macroNameLabel = new QLabel();
-    QPushButton* nameEditPushButton = new QPushButton("Name...");
-    nameEditPushButton->setSizePolicy(QSizePolicy::Fixed,
-                                      nameEditPushButton->sizePolicy().verticalPolicy());
-    QObject::connect(nameEditPushButton, &QPushButton::clicked,
-                     this, &WuQMacroDialog::macroNameEditButtonClicked);
+    QLabel* macroNameLabel = new QLabel("Name:");
+    m_macroNameLineEdit = new QLineEdit();
+    QObject::connect(m_macroNameLineEdit, &QLineEdit::textChanged,
+                     this, &WuQMacroDialog::macroNameLineEditTextChanged);
     
     QLabel* shortCutKeyLabel = new QLabel("Short Cut Key:");
     QLabel* shortCutKeyMaskLabel = new QLabel(WuQMacroManager::getShortCutKeysMask());
@@ -315,30 +313,26 @@ WuQMacroDialog::createMacroDisplayWidget()
     QObject::connect(m_macroShortCutKeyComboBox, &WuQMacroShortCutKeyComboBox::shortCutKeySelected,
                      this, &WuQMacroDialog::macroShortCutKeySelected);
 
+    QLabel* descriptionLabel = new QLabel("Description:");
     m_macroDescriptionTextEdit = new QPlainTextEdit();
-    m_macroDescriptionTextEdit->setReadOnly(true);
     m_macroDescriptionTextEdit->setFixedHeight(100);
+    QObject::connect(m_macroDescriptionTextEdit, &QPlainTextEdit::textChanged,
+                     this, &WuQMacroDialog::macroDescriptionTextEditChanged);
     
-    QPushButton* descriptionEditPushButton = new QPushButton("Description...");
-    descriptionEditPushButton->setSizePolicy(QSizePolicy::Fixed,
-                                             descriptionEditPushButton->sizePolicy().verticalPolicy());
-    QObject::connect(descriptionEditPushButton, &QPushButton::clicked,
-                     this, &WuQMacroDialog::macroDescriptionEditButtonClicked);
-
     QGridLayout* gridLayout = new QGridLayout();
     gridLayout->setContentsMargins(0, 0, 0, 0);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 0);
     gridLayout->setColumnStretch(2, 100);
     int row = 0;
-    gridLayout->addWidget(nameEditPushButton, row, 0);
-    gridLayout->addWidget(m_macroNameLabel, row, 1, 1, 2, Qt::AlignLeft);
+    gridLayout->addWidget(macroNameLabel, row, 0);
+    gridLayout->addWidget(m_macroNameLineEdit, row, 1, 1, 2);
     row++;
     gridLayout->addWidget(shortCutKeyLabel, row, 0);
     gridLayout->addWidget(shortCutKeyMaskLabel, row, 1);
     gridLayout->addWidget(m_macroShortCutKeyComboBox->getWidget(), row, 2, Qt::AlignLeft);
     row++;
-    gridLayout->addWidget(descriptionEditPushButton, row, 0, Qt::AlignTop);
+    gridLayout->addWidget(descriptionLabel, row, 0, Qt::AlignTop);
     gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1, 1, 2);
     row++;
 
@@ -365,27 +359,18 @@ WuQMacroDialog::createMacroDisplayWidget()
 }
 
 /**
- * Called to edit macro name
+ * Called when macro name line edit text changed
+ * @param text
  */
 void
-WuQMacroDialog::macroNameEditButtonClicked()
+WuQMacroDialog::macroNameLineEditTextChanged(const QString& text)
 {
     WuQMacro* macro = getSelectedMacro();
     if (macro != NULL) {
-        bool ok(false);
-        const QString text = QInputDialog::getText(this,
-                                                   "New Macro Name",
-                                                   "Name",
-                                                   QLineEdit::Normal,
-                                                   macro->getName(),
-                                                   &ok);
-        if (ok) {
-            if ( ! text.isEmpty()) {
-                macro->setName(text);
-                WuQMacroManager::instance()->macroWasModified(macro);
-                updateMacroWidget(macro);
-            }
-        }
+        macro->setName(text);
+        m_macroNameLineEditBlockUpdateFlag = true;
+        WuQMacroManager::instance()->macroWasModified(macro);
+        m_macroNameLineEditBlockUpdateFlag = false;
     }
 }
 
@@ -407,26 +392,18 @@ WuQMacroDialog::macroShortCutKeySelected(const WuQMacroShortCutKeyEnum::Enum sho
 }
 
 /**
- * Called to edit macro description
+ * Called when macro description text edit is changed
  */
 void
-WuQMacroDialog::macroDescriptionEditButtonClicked()
+WuQMacroDialog::macroDescriptionTextEditChanged()
 {
     WuQMacro* macro = getSelectedMacro();
     if (macro != NULL) {
-        bool ok(false);
-        const QString text = QInputDialog::getMultiLineText(this,
-                                                            "New Macro Description",
-                                                            "Description",
-                                                            macro->getDescription(),
-                                                            &ok);
-        if (ok) {
-            if ( ! text.isEmpty()) {
-                macro->setDescription(text);
-                WuQMacroManager::instance()->macroWasModified(macro);
-                updateMacroWidget(macro);
-            }
-        }
+        const QString text = m_macroDescriptionTextEdit->toPlainText();
+        macro->setDescription(text);
+        m_macroDescriptionTextEditBlockUpdateFlag = true;
+        WuQMacroManager::instance()->macroWasModified(macro);
+        m_macroDescriptionTextEditBlockUpdateFlag = false;
     }
 }
 
@@ -555,9 +532,10 @@ WuQMacroDialog::createCommandDisplayWidget()
     
     QLabel* descriptionLabel = new QLabel("Description:");
     m_commandDescriptionTextEdit = new QPlainTextEdit();
-    m_commandDescriptionTextEdit->setReadOnly(true);
     m_commandDescriptionTextEdit->setMaximumHeight(100);
-    
+    QObject::connect(m_commandDescriptionTextEdit, &QPlainTextEdit::textChanged,
+                     this, &WuQMacroDialog::macroCommandDescriptionTextEditChanged);
+
     QGridLayout* layout = new QGridLayout();
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setColumnStretch(0, 0);
@@ -836,9 +814,15 @@ WuQMacroDialog::updateMacroWidget(WuQMacro* macro)
         shortCutKey = macro->getShortCutKey();
     }
 
-    m_macroNameLabel->setText(name);
+    if ( ! m_macroNameLineEditBlockUpdateFlag) {
+        m_macroNameLineEdit->setText(name);
+    }
+    
     m_macroShortCutKeyComboBox->setSelectedShortCutKey(shortCutKey);
-    m_macroDescriptionTextEdit->setPlainText(text);
+    if ( ! m_macroDescriptionTextEditBlockUpdateFlag) {
+        QSignalBlocker DescriptionBlocker(m_macroDescriptionTextEdit);
+        m_macroDescriptionTextEdit->setPlainText(text);
+    }
 }
 
 /**
@@ -887,7 +871,10 @@ WuQMacroDialog::updateCommandWidget(WuQMacroCommand* command)
     QSignalBlocker delayBlocker(m_commandDelaySpinBox);
     m_commandDelaySpinBox->setValue(delay);
 
-    m_commandDescriptionTextEdit->setPlainText(toolTip);
+    if ( ! m_macroDescriptionCommandTextEditBlockUpdateFlag) {
+        QSignalBlocker descriptionBlocker(m_commandDescriptionTextEdit);
+        m_commandDescriptionTextEdit->setPlainText(toolTip);
+    }
     
     /**
      * Update the parameter widgets
@@ -1170,10 +1157,27 @@ WuQMacroDialog::exportMacroGroupActionTriggered()
     WuQMacroGroup* macroGroup = getSelectedMacroGroup();
     WuQMacro* macro = getSelectedMacro();
 
-    if (WuQMacroManager::instance()->exportMacros(m_macroGroupToolButton,
-                                                  macroGroup,
-                                                  macro)) {
-        updateDialogContents();
+    if (macro != NULL) {
+        if (WuQMacroManager::instance()->exportMacros(m_macroGroupToolButton,
+                                                      macroGroup,
+                                                      macro)) {
+            updateDialogContents();
+        }
+    }
+}
+
+/**
+ * Called when macro command description text edit is changed
+ */
+void
+WuQMacroDialog::macroCommandDescriptionTextEditChanged()
+{
+    WuQMacroCommand* command = getSelectedMacroCommand();
+    if (command != NULL) {
+        command->setObjectToolTip(m_commandDescriptionTextEdit->toPlainText());
+        m_macroDescriptionCommandTextEditBlockUpdateFlag = true;
+        WuQMacroManager::instance()->macroWasModified(getSelectedMacro());
+        m_macroDescriptionCommandTextEditBlockUpdateFlag = false;
     }
 }
 
