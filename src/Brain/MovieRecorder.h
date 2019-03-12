@@ -96,7 +96,11 @@ namespace caret {
         
         void setManualRecordingOfImageRequested(const bool requestFlag);
         
-        void reset();
+        bool isRemoveTemporaryImagesAfterMovieCreation() const;
+        
+        void setRemoveTemporaryImagesAfterMovieCreation(const bool status);
+        
+        void removeTemporaryImages();
         
         bool createMovie(AString& errorMessageOut);
         
@@ -149,6 +153,8 @@ namespace caret {
         AString m_tempImageFileNamePrefix;
         
         AString m_tempImageFileNameSuffix;
+        
+        bool m_removeTemporaryImagesAfterMovieCreationFlag = true;
         
         const int32_t m_tempImageSequenceNumberOfDigits = 6;
 

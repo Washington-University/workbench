@@ -30,6 +30,7 @@
 #include "WuQDialogNonModal.h"
 
 class QAbstractButton;
+class QCheckBox;
 class QLabel;
 class QPushButton;
 class QRadioButton;
@@ -77,6 +78,8 @@ namespace caret {
         
         void frameRateSpinBoxValueChanged(int frameRate);
         
+        void removeTemporaryImagesCheckBoxClicked(bool checked);
+        
         void windowIndexSelected(const int32_t windowIndex);
         
         void fileNameButtonClicked();
@@ -120,6 +123,8 @@ namespace caret {
         QSpinBox* m_customHeightSpinBox;
         
         QSpinBox* m_frameRateSpinBox;
+        
+        QCheckBox* m_removeTemporaryImagesAfterMovieCreationCheckBox;
         
         QPushButton* m_filenamePushButton;
         

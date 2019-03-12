@@ -55,8 +55,7 @@ MovieRecorder::MovieRecorder()
     m_temporaryImagesDirectory = SystemUtilities::getTempDirectory();
     m_tempImageFileNamePrefix  = "movie";
     m_tempImageFileNameSuffix = ".png";
-    //QDir::tempPath();
-    reset();
+    removeTemporaryImages();
 }
 
 /**
@@ -64,7 +63,7 @@ MovieRecorder::MovieRecorder()
  */
 MovieRecorder::~MovieRecorder()
 {
-    reset();
+    removeTemporaryImages();
 }
 
 /**
@@ -146,10 +145,10 @@ MovieRecorder::addImageToMovieWithManualDuration(const QImage* image)
 }
 
 /**
- * Reset by removing all images and starting a new movie
+ * Remove all images and starting a new movie
  */
 void
-MovieRecorder::reset()
+MovieRecorder::removeTemporaryImages()
 {
     const QString nameFilter(m_tempImageFileNamePrefix
                              + "*"
@@ -432,6 +431,28 @@ MovieRecorder::setManualRecordingOfImageRequested(const bool requestFlag)
 }
 
 /**
+ * @return True if temporary images should be removed
+ * after creation of a movie
+ */
+bool
+MovieRecorder::isRemoveTemporaryImagesAfterMovieCreation() const
+{
+    return m_removeTemporaryImagesAfterMovieCreationFlag;
+}
+
+/**
+ * Set temporary images should be removed after creation of a movie
+ *
+ * @param status
+ *     New status
+ */
+void
+MovieRecorder::setRemoveTemporaryImagesAfterMovieCreation(const bool status)
+{
+    m_removeTemporaryImagesAfterMovieCreationFlag = status;
+}
+
+/**
  * @return Number of frames (images) that have been recorded
  */
 int32_t
@@ -548,6 +569,12 @@ MovieRecorder::createMovie(AString& errorMessageOut)
             successFlag = createMovieWithSystemCommand(programName,
                                                        arguments,
                                                        errorMessageOut);
+        }
+    }
+    
+    if (successFlag) {
+        if (m_removeTemporaryImagesAfterMovieCreationFlag) {
+            removeTemporaryImages();
         }
     }
     

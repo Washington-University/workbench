@@ -24,6 +24,7 @@
 #undef __MOVIE_RECORDING_DIALOG_DECLARE__
 
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -206,6 +207,7 @@ MovieRecordingDialog::updateCustomWidthHeightSpinBoxes()
     m_customHeightSpinBox->setValue(customHeight);
     QSignalBlocker frameRateBlocker(m_frameRateSpinBox);
     m_frameRateSpinBox->setValue(movieRecorder->getFramesRate());
+    m_removeTemporaryImagesAfterMovieCreationCheckBox->setChecked(movieRecorder->isRemoveTemporaryImagesAfterMovieCreation());
     
     const bool customSpinBoxesEnabled(movieRecorder->getVideoResolutionType() == MovieRecorderVideoResolutionTypeEnum::CUSTOM);
     m_customWidthSpinBox->setEnabled(customSpinBoxesEnabled);
@@ -331,6 +333,27 @@ void
 MovieRecordingDialog::frameRateSpinBoxValueChanged(int frameRate)
 {
     SessionManager::get()->getMovieRecorder()->setFramesRate(frameRate);
+}
+
+/**
+ * @param Called when remove temporary images checkbox is clicked
+ *
+ * @param checked
+ *     New checked status
+ */
+void
+MovieRecordingDialog::removeTemporaryImagesCheckBoxClicked(bool checked)
+{
+    if ( ! checked) {
+        const QString text("If this is deselected, additional movies may contain images from previous movies.");
+        if ( ! WuQMessageBox::warningOkCancel(m_removeTemporaryImagesAfterMovieCreationCheckBox,
+                                              text)) {
+            checked = true;
+        }
+    }
+    
+    SessionManager::get()->getMovieRecorder()->setRemoveTemporaryImagesAfterMovieCreation(checked);
+    m_removeTemporaryImagesAfterMovieCreationCheckBox->setChecked(checked);
 }
 
 /**
@@ -464,18 +487,7 @@ MovieRecordingDialog::createMoviePushButtonClicked()
     
     AString errorMessage;
     const bool successFlag = movieRecorder->createMovie(errorMessage);
-    if (successFlag) {
-        const QString text("Movie has been created.  Reset (delete) recorded images for new movie?  ");
-        const QString infoText("If no is selected, creation of a new movie will include all images from "
-                               "this movie and any addition recorded images.  Selecting yes is "
-                               "equivalent to clicking the Reset button.");
-        if (WuQMessageBox::warningYesNo(m_createMoviePushButton,
-                                        text,
-                                        infoText)) {
-            SessionManager::get()->getMovieRecorder()->reset();
-        }
-    }
-    else {
+    if ( ! successFlag) {
         WuQMessageBox::errorOk(m_createMoviePushButton,
                                errorMessage);
     }
@@ -491,7 +503,7 @@ MovieRecordingDialog::resetPushButtonClicked()
 {
     if (WuQMessageBox::warningOkCancel(m_resetPushButton,
                                        "Reset (delete) recorded images for new movie")) {
-        SessionManager::get()->getMovieRecorder()->reset();
+        SessionManager::get()->getMovieRecorder()->removeTemporaryImages();
         updateDialog();
     }
 }
@@ -671,6 +683,11 @@ MovieRecordingDialog::createSettingsWidget()
     QObject::connect(m_frameRateSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &MovieRecordingDialog::frameRateSpinBoxValueChanged);
 
+    m_removeTemporaryImagesAfterMovieCreationCheckBox = new QCheckBox("Remove Temporary Images After Movie Creation");
+    m_removeTemporaryImagesAfterMovieCreationCheckBox->setToolTip("Temporary images are removed after a movie is created");
+    QObject::connect(m_removeTemporaryImagesAfterMovieCreationCheckBox, &QCheckBox::clicked,
+                     this, &MovieRecordingDialog::removeTemporaryImagesCheckBoxClicked);
+    
     QWidget* widget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(widget);
     gridLayout->setRowStretch(100, 100);
@@ -690,6 +707,9 @@ MovieRecordingDialog::createSettingsWidget()
     gridLayout->addWidget(frameRateLabel, row, 0);
     gridLayout->addWidget(m_frameRateSpinBox,
                           row, 1, 1, 2, Qt::AlignLeft);
+    row++;
+    gridLayout->addWidget(m_removeTemporaryImagesAfterMovieCreationCheckBox,
+                          row, 0, 1, 3, Qt::AlignLeft);
     row++;
 
     return widget;
