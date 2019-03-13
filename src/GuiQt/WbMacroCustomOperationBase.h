@@ -34,6 +34,7 @@ class QWidget;
 namespace caret {
     class Surface;
     class WuQMacroExecutorMonitor;
+    class WuQMacroExecutorOptions;
     class WuQMacroCommand;
 
     class WbMacroCustomOperationBase : public CaretObject {
@@ -53,6 +54,8 @@ namespace caret {
          *     Parent widget for any dialogs
          * @param executorMonitor
          *     the macro executor monitor
+         * @param executorOptions,
+         *     Options for the executor
          * @param macroCommand
          *     macro command to run
          * @return
@@ -61,6 +64,7 @@ namespace caret {
          */
         virtual bool executeCommand(QWidget* parent,
                                     const WuQMacroExecutorMonitor* executorMonitor,
+                                    const WuQMacroExecutorOptions* executorOptions,
                                     const WuQMacroCommand* macroCommand) = 0;
         
         /**
@@ -74,17 +78,18 @@ namespace caret {
         
         QString getErrorMessage() const;
         
-        void getNumberOfStepsAndSleepTime(const float defaultNumberOfSteps,
-                                          const float durationSeconds,
-                                          float& numberOfStepsOut,
-                                          float& sleepTimeOut);
-        
         void sleepForSecondsAtEndOfIteration(const float seconds);
         
         virtual QString getOperationName() const;
         
     protected:
         WbMacroCustomOperationBase(const WbMacroCustomOperationTypeEnum::Enum operationType);
+        
+        void getNumberOfStepsAndSleepTime(const WuQMacroExecutorOptions* executorOptions,
+                                          const float defaultNumberOfSteps,
+                                          const float durationSeconds,
+                                          float& numberOfStepsOut,
+                                          float& sleepTimeOut);
         
         bool validateCorrectNumberOfParameters(const WuQMacroCommand* command,
                                                const int32_t correctNumberOfParameters);

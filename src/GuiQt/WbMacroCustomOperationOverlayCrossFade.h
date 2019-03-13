@@ -45,6 +45,7 @@ namespace caret {
         
         virtual bool executeCommand(QWidget* parent,
                                     const WuQMacroExecutorMonitor* executorMonitor,
+                                    const WuQMacroExecutorOptions* executorOptions,
                                     const WuQMacroCommand* macroCommand) override;
 
         virtual WuQMacroCommand* createCommand() override;
@@ -60,9 +61,11 @@ namespace caret {
         
         virtual bool executeCommandVersionTwo(QWidget* parent,
                                               const WuQMacroExecutorMonitor* executorMonitor,
+                                              const WuQMacroExecutorOptions* executorOptions,
                                               const WuQMacroCommand* macroCommand);
         
         bool performCrossFadeVersionTwo(const WuQMacroExecutorMonitor* executorMonitor,
+                                        const WuQMacroExecutorOptions* executorOptions,
                                         OverlaySet* overlaySet,
                                         const int32_t overlayIndex,
                                         CaretMappableDataFile* fadeToMapFile,
@@ -70,9 +73,11 @@ namespace caret {
                                         const float durationSeconds);
         
         virtual bool executeCommandVersionOne(QWidget* parent,
+                                              const WuQMacroExecutorOptions* executorOptions,
                                               const WuQMacroCommand* macroCommand);
 
-        bool performCrossFadeVersionOne(Overlay* fadeToOverlay,
+        bool performCrossFadeVersionOne(const WuQMacroExecutorOptions* executorOptions,
+                                        Overlay* fadeToOverlay,
                                         Overlay* fadeFromOverlay,
                                         const float durationSeconds);
 

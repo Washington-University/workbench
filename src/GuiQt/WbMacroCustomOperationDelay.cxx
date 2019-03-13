@@ -87,6 +87,8 @@ WbMacroCustomOperationDelay::createCommand()
  *     Parent widget for any dialogs
  * @param executorMonitor
  *     the macro executor monitor
+ * @param executorOptions
+ *     Options for executor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -96,6 +98,7 @@ WbMacroCustomOperationDelay::createCommand()
 bool
 WbMacroCustomOperationDelay::executeCommand(QWidget* /*parent*/,
                                             const WuQMacroExecutorMonitor* /*executorMonitor*/,
+                                            const WuQMacroExecutorOptions* /*executorOptions*/,
                                             const WuQMacroCommand* /*macroCommand*/)
 {
     /*

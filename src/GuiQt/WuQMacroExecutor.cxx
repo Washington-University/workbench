@@ -393,6 +393,7 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
         bool allowDelayBeforeCommandFlag(false);
         emit macroCommandAboutToStart(window,
                                       mc,
+                                      executorOptions,
                                       allowDelayBeforeCommandFlag);
         /*
          * May get stopped by user in macroCommandAboutToStart()
@@ -408,6 +409,9 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
                 break;
         }
 
+        if (executorOptions->isIgnoreDelaysAndDurations()) {
+            allowDelayBeforeCommandFlag = false;
+        }
         if (allowDelayBeforeCommandFlag) {
             performCommandDelay(mc);
         }
@@ -418,6 +422,7 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
             case WuQMacroCommandTypeEnum::CUSTOM_OPERATION:
                 successFlag = WuQMacroManager::instance()->executeCustomOperationMacroCommand(window,
                                                                                               executorMonitor,
+                                                                                              executorOptions,
                                                                                               mc,
                                                                                               commandErrorMessage);
 
@@ -459,6 +464,7 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
         bool allowDelayAfterCommandFlag(false);
         emit macroCommandHasCompleted(window,
                                       mc,
+                                      executorOptions,
                                       allowDelayAfterCommandFlag);
         
         if (m_runOptions.isStopAfterSelectedCommand()) {
@@ -476,6 +482,9 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
             return false;
         }
         
+        if (executorOptions->isIgnoreDelaysAndDurations()) {
+            allowDelayAfterCommandFlag = false;
+        }
         if (allowDelayAfterCommandFlag) {
             performCommandDelay(mc);
         }

@@ -55,8 +55,9 @@ namespace caret {
         
         virtual bool executeCustomOperationMacroCommand(QWidget* parent,
                                                         const WuQMacroExecutorMonitor* executorMonitor,
+                                                        const WuQMacroExecutorOptions* executorOptions,
                                                         const WuQMacroCommand* macroCommand,
-                                                        QString& errorMessageOut);
+                                                        QString& errorMessageOut) override;
         
         virtual std::vector<QString> getNamesOfCustomOperationMacroCommands() override;
         

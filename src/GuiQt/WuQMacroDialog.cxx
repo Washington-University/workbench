@@ -448,6 +448,13 @@ WuQMacroDialog::createRunOptionsWidget()
     QObject::connect(m_runOptionStopAfterSelectedCommandCheckBox, &QCheckBox::clicked,
                      this, &WuQMacroDialog::runOptionStopAfterSelectedCommandCheckBoxClicked);
 
+    m_ignoreDelaysAndDurationsCheckBox = new QCheckBox("Ignore delays and durations");
+    const QString ignoreToolTip("Ignore delays and durations and minimize iterations "
+                                "to quickly execute macro (for debugging)");
+    m_ignoreDelaysAndDurationsCheckBox->setToolTip(ignoreToolTip);
+    QObject::connect(m_ignoreDelaysAndDurationsCheckBox, &QCheckBox::clicked,
+                     this, &WuQMacroDialog::runOptionIgnoreDelaysAndDurationsCheckBoxClicked);
+
     QGridLayout* runOptionsLayout = new QGridLayout(widget);
     runOptionsLayout->setColumnStretch(0, 0);
     runOptionsLayout->setColumnStretch(1, 100);
@@ -463,7 +470,9 @@ WuQMacroDialog::createRunOptionsWidget()
     row++;
     runOptionsLayout->addWidget(m_runOptionStopAfterSelectedCommandCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
-    
+    runOptionsLayout->addWidget(m_ignoreDelaysAndDurationsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
+
     return widget;
 }
 
@@ -521,6 +530,20 @@ WuQMacroDialog::runOptionStopAfterSelectedCommandCheckBoxClicked(bool checked)
     WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
     CaretAssert(options);
     options->setStopAfterSelectedCommand(checked);
+}
+
+/**
+ * Called when run options ignore delays and durations checkbox is changed
+ *
+ * @param checked
+ *     New checked status.
+ */
+void
+WuQMacroDialog::runOptionIgnoreDelaysAndDurationsCheckBoxClicked(bool checked)
+{
+    WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
+    CaretAssert(options);
+    options->setIgnoreDelaysAndDurations(checked);
 }
 
 /**
@@ -669,6 +692,7 @@ WuQMacroDialog::updateDialogContents()
     m_runOptionLoopCheckBox->setChecked(runOptions->isLooping());
     m_runOptionRecordMovieWhileMacroRunsCheckBox->setChecked(runOptions->isRecordMovieDuringExecution());
     m_runOptionStopAfterSelectedCommandCheckBox->setChecked(runOptions->isStopAfterSelectedCommand());
+    m_ignoreDelaysAndDurationsCheckBox->setChecked(runOptions->isIgnoreDelaysAndDurations());
     
     macroGroupComboBoxActivated(selectedIndex);
 }
@@ -701,9 +725,15 @@ WuQMacroDialog::treeViewCustomContextMenuRequested(const QPoint& pos)
         WuQMacroCommand* command = getSelectedMacroCommand();
         if (command != NULL) {
             QMenu menu(this);
+            
             const QString runToText("Run Macro and Stop After this Command");
             menu.addAction(runToText,
                            this, &WuQMacroDialog::runAndStopAfterSelectedCommandMenuItemSelected);
+
+            const QString runToFastText("Run Macro and Stop After this Command Without Delays/Durations");
+            menu.addAction(runToFastText,
+                           this, &WuQMacroDialog::runAndStopAfterWithNoDelayDurationSelectedCommandMenuItemSelected);
+
             menu.exec(m_treeView->mapToGlobal(pos));
         }
     }
@@ -724,6 +754,30 @@ WuQMacroDialog::runAndStopAfterSelectedCommandMenuItemSelected()
         runOptions->setStopAfterSelectedCommand(true);
         runMacroToolButtonClicked();
         runOptions->setStopAfterSelectedCommand(savedStopAfterOptionFlag);
+    }
+    else {
+        QMessageBox::warning(this, "Error", "No macro command is selected");
+    }
+}
+
+/**
+ * Called when 'run and stop after without delay duration...' is selected from
+ * context (pop-up) menu.  Runs macro to selected command.
+ */
+void
+WuQMacroDialog::runAndStopAfterWithNoDelayDurationSelectedCommandMenuItemSelected()
+{
+    WuQMacroCommand* command = getSelectedMacroCommand();
+    if (command != NULL) {
+        WuQMacroManager* macroManager = WuQMacroManager::instance();
+        WuQMacroExecutorOptions* runOptions = macroManager->getExecutorOptions();
+        const bool savedStopAfterOptionFlag = runOptions->isStopAfterSelectedCommand();
+        const bool savedIgnoreDelaysFlag    = runOptions->isIgnoreDelaysAndDurations();
+        runOptions->setStopAfterSelectedCommand(true);
+        runOptions->setIgnoreDelaysAndDurations(true);
+        runMacroToolButtonClicked();
+        runOptions->setStopAfterSelectedCommand(savedStopAfterOptionFlag);
+        runOptions->setIgnoreDelaysAndDurations(savedIgnoreDelaysFlag);
     }
     else {
         QMessageBox::warning(this, "Error", "No macro command is selected");

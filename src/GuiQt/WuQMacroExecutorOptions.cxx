@@ -91,6 +91,7 @@ WuQMacroExecutorOptions::copyHelperWuQMacroExecutorOptions(const WuQMacroExecuto
     m_showMouseMovementFlag          = obj.m_showMouseMovementFlag;
     m_recordMovieDuringExecutionFlag = obj.m_recordMovieDuringExecutionFlag;
     m_stopAfterSelectedCommandFlag   = obj.m_stopAfterSelectedCommandFlag;
+    m_ignoreDelaysAndDurationsFlag   = obj.m_ignoreDelaysAndDurationsFlag;
 }
 
 /**
@@ -208,3 +209,25 @@ WuQMacroExecutorOptions::setStopAfterSelectedCommand(const bool status)
     m_stopAfterSelectedCommandFlag = status;
 }
 
+/**
+ * @return True if delays and durations should be ignored,
+ * usually for editing and debugging macros.
+ */
+bool
+WuQMacroExecutorOptions::isIgnoreDelaysAndDurations() const
+{
+    return m_ignoreDelaysAndDurationsFlag;
+}
+
+/**
+ * Set delays and durations should be ignored,
+ * usually for editing and debugging macros
+ *
+ * @param status
+ *     New status
+ */
+void
+WuQMacroExecutorOptions::setIgnoreDelaysAndDurations(const bool status)
+{
+    m_ignoreDelaysAndDurationsFlag = status;
+}

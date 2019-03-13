@@ -80,6 +80,8 @@ namespace caret {
 
         void runAndStopAfterSelectedCommandMenuItemSelected();
         
+        void runAndStopAfterWithNoDelayDurationSelectedCommandMenuItemSelected();
+        
         void macroGroupComboBoxActivated(int);
         
         void buttonBoxButtonClicked(QAbstractButton* button);
@@ -103,6 +105,8 @@ namespace caret {
         void runOptionRecordMovieCheckBoxClicked(bool);
         
         void runOptionStopAfterSelectedCommandCheckBoxClicked(bool);
+        
+        void runOptionIgnoreDelaysAndDurationsCheckBoxClicked(bool);
         
         void editingMoveUpToolButtonClicked();
 
@@ -225,6 +229,8 @@ namespace caret {
         QCheckBox* m_runOptionRecordMovieWhileMacroRunsCheckBox;
         
         QCheckBox* m_runOptionStopAfterSelectedCommandCheckBox;
+        
+        QCheckBox* m_ignoreDelaysAndDurationsCheckBox;
         
         QLabel* m_commandTitleLabel;
         

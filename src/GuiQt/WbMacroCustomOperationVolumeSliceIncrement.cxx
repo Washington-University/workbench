@@ -116,6 +116,8 @@ WbMacroCustomOperationVolumeSliceIncrement::createCommand()
  *     Parent widget for any dialogs
  * @param executorMonitor
  *     the macro executor monitor
+ * @param executorOptions
+ *     Options for executor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -125,6 +127,7 @@ WbMacroCustomOperationVolumeSliceIncrement::createCommand()
 bool
 WbMacroCustomOperationVolumeSliceIncrement::executeCommand(QWidget* parent,
                                                            const WuQMacroExecutorMonitor* executorMonitor,
+                                                           const WuQMacroExecutorOptions* executorOptions,
                                                            const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
@@ -179,6 +182,7 @@ WbMacroCustomOperationVolumeSliceIncrement::executeCommand(QWidget* parent,
     }
 
     const bool successFlag = performSliceIncrement(executorMonitor,
+                                                   executorOptions,
                                                    tabContent,
                                                    axis,
                                                    durationSeconds);
@@ -188,6 +192,8 @@ WbMacroCustomOperationVolumeSliceIncrement::executeCommand(QWidget* parent,
 /**
  * @param executorMonitor
  *     The macro executor's monitor
+ * @param executorOptions
+ *     The executor options
  * @param tabContent
  *     Content in the selected tab
  * @param axis
@@ -197,6 +203,7 @@ WbMacroCustomOperationVolumeSliceIncrement::executeCommand(QWidget* parent,
  */
 bool
 WbMacroCustomOperationVolumeSliceIncrement::performSliceIncrement(const WuQMacroExecutorMonitor* executorMonitor,
+                                                                  const WuQMacroExecutorOptions* executorOptions,
                                                                   BrowserTabContent* tabContent,
                                                                   const Axis axis,
                                                                   const float durationSeconds)
@@ -243,7 +250,8 @@ WbMacroCustomOperationVolumeSliceIncrement::performSliceIncrement(const WuQMacro
     const float defaultNumberOfSteps(numberOfSlices);
     float numberOfSteps(0.0);
     float iterationSleepTime(0.0);
-    getNumberOfStepsAndSleepTime(defaultNumberOfSteps,
+    getNumberOfStepsAndSleepTime(executorOptions,
+                                 defaultNumberOfSteps,
                                  durationSeconds,
                                  numberOfSteps,
                                  iterationSleepTime);

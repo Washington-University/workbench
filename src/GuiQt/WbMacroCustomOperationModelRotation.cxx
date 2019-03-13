@@ -109,6 +109,8 @@ WbMacroCustomOperationModelRotation::createCommand()
  *     Parent widget for any dialogs
  * @param executorMonitor
  *     the macro executor monitor
+ * @param executorOptions
+ *     Options for executor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -118,6 +120,7 @@ WbMacroCustomOperationModelRotation::createCommand()
 bool
 WbMacroCustomOperationModelRotation::executeCommand(QWidget* parent,
                                                     const WuQMacroExecutorMonitor* executorMonitor,
+                                                    const WuQMacroExecutorOptions* executorOptions,
                                                     const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
@@ -173,6 +176,7 @@ WbMacroCustomOperationModelRotation::executeCommand(QWidget* parent,
     }
     
     const bool successFlag = performRotation(executorMonitor,
+                                             executorOptions,
                                              tabContent,
                                              axis,
                                              totalRotation,
@@ -185,6 +189,8 @@ WbMacroCustomOperationModelRotation::executeCommand(QWidget* parent,
  *
  * @param executorMonitor
  *     the macro executor monitor
+ * @param executorOptions
+ *     executor options
  * @param tabContent
  *     Content of the tab
  * @param axis
@@ -197,6 +203,7 @@ WbMacroCustomOperationModelRotation::executeCommand(QWidget* parent,
  */
 bool
 WbMacroCustomOperationModelRotation::performRotation(const WuQMacroExecutorMonitor* executorMonitor,
+                                                     const WuQMacroExecutorOptions* executorOptions,
                                                      BrowserTabContent* tabContent,
                                                      const Axis axis,
                                                      const float totalRotation,
@@ -205,7 +212,8 @@ WbMacroCustomOperationModelRotation::performRotation(const WuQMacroExecutorMonit
     const float defaultNumberOfSteps(60.0);
     float numberOfSteps(0.0);
     float iterationSleepTime(0.0);
-    getNumberOfStepsAndSleepTime(defaultNumberOfSteps,
+    getNumberOfStepsAndSleepTime(executorOptions,
+                                 defaultNumberOfSteps,
                                  durationSeconds,
                                  numberOfSteps,
                                  iterationSleepTime);

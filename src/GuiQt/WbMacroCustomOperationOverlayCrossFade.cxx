@@ -198,6 +198,8 @@ WbMacroCustomOperationOverlayCrossFade::createCommandVersionTwo()
  *     Parent widget for any dialogs
  * @param executorMonitor
  *     the macro executor monitor
+ * @param executorOptions
+ *     the executor options
  * @param macroCommand
  *     macro command to run
  * @return
@@ -207,6 +209,7 @@ WbMacroCustomOperationOverlayCrossFade::createCommandVersionTwo()
 bool
 WbMacroCustomOperationOverlayCrossFade::executeCommand(QWidget* parent,
                                                        const WuQMacroExecutorMonitor* executorMonitor,
+                                                       const WuQMacroExecutorOptions* executorOptions,
                                                        const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
@@ -216,11 +219,13 @@ WbMacroCustomOperationOverlayCrossFade::executeCommand(QWidget* parent,
     switch (macroCommand->getVersion()) {
         case 1:
             resultFlag = executeCommandVersionOne(parent,
+                                                  executorOptions,
                                                   macroCommand);
             break;
         case 2:
             resultFlag = executeCommandVersionTwo(parent,
                                                   executorMonitor,
+                                                  executorOptions,
                                                   macroCommand);
             break;
         default:
@@ -238,6 +243,8 @@ WbMacroCustomOperationOverlayCrossFade::executeCommand(QWidget* parent,
  *     Parent widget for any dialogs
  * @param executorMonitor
  *     The macro executor's monitor
+ * @param executorOptions
+ *     The executor options,
  * @param macroCommand
  *     macro command to run
  * @return
@@ -247,6 +254,7 @@ WbMacroCustomOperationOverlayCrossFade::executeCommand(QWidget* parent,
 bool
 WbMacroCustomOperationOverlayCrossFade::executeCommandVersionTwo(QWidget* parent,
                                                                  const WuQMacroExecutorMonitor* executorMonitor,
+                                                                 const WuQMacroExecutorOptions* executorOptions,
                                                                  const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
@@ -359,6 +367,7 @@ WbMacroCustomOperationOverlayCrossFade::executeCommandVersionTwo(QWidget* parent
     }
 
     const bool successFlag = performCrossFadeVersionTwo(executorMonitor,
+                                                        executorOptions,
                                                         overlaySet,
                                                         overlayIndex,
                                                         fadeToMapFile,
@@ -373,6 +382,8 @@ WbMacroCustomOperationOverlayCrossFade::executeCommandVersionTwo(QWidget* parent
  *
  * @param executorMonitor
  *     The macro executor's monitor
+ * @param executorOptions
+ *     The executor options
  * @param overlaySet
  *     OverlaySet for the in the tab
  * @param overlayIndex
@@ -388,6 +399,7 @@ WbMacroCustomOperationOverlayCrossFade::executeCommandVersionTwo(QWidget* parent
  */
 bool
 WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionTwo(const WuQMacroExecutorMonitor* executorMonitor,
+                                                                   const WuQMacroExecutorOptions* executorOptions,
                                                                    OverlaySet* overlaySet,
                                                                    const int32_t overlayIndex,
                                                                    CaretMappableDataFile* fadeToMapFile,
@@ -421,7 +433,8 @@ WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionTwo(const WuQMacr
     const float defaultNumberOfSteps(25.0);
     float numberOfSteps(0.0);
     float iterationSleepTime(0.0);
-    getNumberOfStepsAndSleepTime(defaultNumberOfSteps,
+    getNumberOfStepsAndSleepTime(executorOptions,
+                                 defaultNumberOfSteps,
                                  durationSeconds,
                                  numberOfSteps,
                                  iterationSleepTime);
@@ -476,6 +489,8 @@ WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionTwo(const WuQMacr
  *
  * @param parent
  *     Parent widget for any dialogs
+ * @param executorOptions
+ *     The executor options
  * @param macroCommand
  *     macro command to run
  * @return
@@ -484,6 +499,7 @@ WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionTwo(const WuQMacr
  */
 bool
 WbMacroCustomOperationOverlayCrossFade::executeCommandVersionOne(QWidget* parent,
+                                                                 const WuQMacroExecutorOptions* executorOptions,
                                                                  const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
@@ -581,7 +597,8 @@ WbMacroCustomOperationOverlayCrossFade::executeCommandVersionOne(QWidget* parent
         return false;
     }
 
-    bool successFlag = performCrossFadeVersionOne(fadeToOverlay,
+    bool successFlag = performCrossFadeVersionOne(executorOptions,
+                                                  fadeToOverlay,
                                                   fadeFromOverlay,
                                                   durationSeconds);
 
@@ -591,6 +608,8 @@ WbMacroCustomOperationOverlayCrossFade::executeCommandVersionOne(QWidget* parent
 /**
  * Perform crossfade version one
  *
+ * @param executorOptions
+ *     The executor options
  * @param fadeToOverlay
  *     Overlay that starts with opacity zero and increases to one
  * @param fadeFromOverlay
@@ -601,7 +620,8 @@ WbMacroCustomOperationOverlayCrossFade::executeCommandVersionOne(QWidget* parent
  *     True if successful, else false
  */
 bool
-WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionOne(Overlay* fadeToOverlay,
+WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionOne(const WuQMacroExecutorOptions* executorOptions,
+                                                                   Overlay* fadeToOverlay,
                                                                    Overlay* fadeFromOverlay,
                                                                    const float durationSeconds)
 {
@@ -611,7 +631,8 @@ WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionOne(Overlay* fade
     const float defaultNumberOfSteps(25.0);
     float numberOfSteps(0.0);
     float iterationSleepTime(0.0);
-    getNumberOfStepsAndSleepTime(defaultNumberOfSteps,
+    getNumberOfStepsAndSleepTime(executorOptions,
+                                 defaultNumberOfSteps,
                                  durationSeconds,
                                  numberOfSteps,
                                  iterationSleepTime);

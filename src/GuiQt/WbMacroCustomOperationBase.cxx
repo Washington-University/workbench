@@ -36,6 +36,7 @@
 #include "Surface.h"
 #include "SystemUtilities.h"
 #include "WuQMacroCommand.h"
+#include "WuQMacroExecutorOptions.h"
 
 using namespace caret;
 
@@ -240,7 +241,8 @@ WbMacroCustomOperationBase::updateSurfaceColoring()
  *     when a movie is not being recorded
  */
 void
-WbMacroCustomOperationBase::getNumberOfStepsAndSleepTime(const float defaultNumberOfSteps,
+WbMacroCustomOperationBase::getNumberOfStepsAndSleepTime(const WuQMacroExecutorOptions* executorOptions,
+                                                         const float defaultNumberOfSteps,
                                                          const float durationSeconds,
                                                          float& numberOfStepsOut,
                                                          float& sleepTimeOut)
@@ -257,6 +259,11 @@ WbMacroCustomOperationBase::getNumberOfStepsAndSleepTime(const float defaultNumb
             numberOfStepsOut = (durationSeconds
                                 * movieRecorder->getFramesRate());
             break;
+    }
+
+    if (executorOptions->isIgnoreDelaysAndDurations()) {
+        sleepTimeOut = 0.0;
+        numberOfStepsOut = 2;
     }
 }
 

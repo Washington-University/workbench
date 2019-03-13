@@ -68,10 +68,12 @@ namespace caret {
         
         virtual void macroCommandHasCompleted(QWidget* window,
                                               const WuQMacroCommand* command,
+                                              const WuQMacroExecutorOptions* executorOptions,
                                               bool& allowDelayFlagOut) override;
         
         virtual void macroCommandAboutToStart(QWidget* window,
                                               const WuQMacroCommand* command,
+                                              const WuQMacroExecutorOptions* executorOptions,
                                               bool& allowDelayFlagOut) override;
         
         // ADD_NEW_METHODS_HERE

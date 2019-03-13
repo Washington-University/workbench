@@ -66,10 +66,12 @@ namespace caret {
     signals:
         void macroCommandAboutToStart(QWidget* window,
                                       const WuQMacroCommand* command,
+                                      const WuQMacroExecutorOptions* executorOptions,
                                       bool& allowDelayFlagOut) const;
         
         void macroCommandHasCompleted(QWidget* window,
                                       const WuQMacroCommand* command,
+                                      const WuQMacroExecutorOptions* executorOptions,
                                       bool& allowDelayFlagOut) const;
         
     private:

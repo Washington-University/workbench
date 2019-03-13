@@ -646,12 +646,14 @@ WuQMacroManager::pauseContinueMacro()
 void
 WuQMacroManager::macroCommandCompletedExecution(QWidget* window,
                                                 const WuQMacroCommand* command,
+                                                const WuQMacroExecutorOptions* executorOptions,
                                                 bool& allowDelayFlagOut)
 {
     CaretAssert(command);
     if (m_macroHelper != NULL) {
         m_macroHelper->macroCommandHasCompleted(window,
                                                 command,
+                                                executorOptions,
                                                 allowDelayFlagOut);
     }
 }
@@ -668,13 +670,15 @@ WuQMacroManager::macroCommandCompletedExecution(QWidget* window,
  */
 void
 WuQMacroManager::macroCommandStartingExecution(QWidget* window,
-                                                const WuQMacroCommand* command,
-                                                bool& allowDelayFlagOut)
+                                               const WuQMacroCommand* command,
+                                               const WuQMacroExecutorOptions* executorOptions,
+                                               bool& allowDelayFlagOut)
 {
     CaretAssert(command);
     if (m_macroHelper != NULL) {
         m_macroHelper->macroCommandAboutToStart(window,
                                                 command,
+                                                executorOptions,
                                                 allowDelayFlagOut);
     }
 }
@@ -1193,6 +1197,8 @@ WuQMacroManager::editCustomDataValueParameter(QWidget* parent,
  *     Parent widget for any dialogs
  * @param executorMonitor
  *     The executor monitor
+ * @param executorOptions
+ *     Options for the executor
  * @param macroCommand
  *     Custom macro command to run
  * @param errorMessageOut
@@ -1201,6 +1207,7 @@ WuQMacroManager::editCustomDataValueParameter(QWidget* parent,
 bool
 WuQMacroManager::executeCustomOperationMacroCommand(QWidget* parent,
                                                     const WuQMacroExecutorMonitor* executorMonitor,
+                                                    const WuQMacroExecutorOptions* executorOptions,
                                                     const WuQMacroCommand* macroCommand,
                                                     QString& errorMessageOut)
 {
@@ -1213,6 +1220,7 @@ WuQMacroManager::executeCustomOperationMacroCommand(QWidget* parent,
     if (m_customCommandManager != NULL) {
         successFlag = m_customCommandManager->executeCustomOperationMacroCommand(parent,
                                                                                  executorMonitor,
+                                                                                 executorOptions,
                                                                                  macroCommand,
                                                                                  errorMessageOut);
     }

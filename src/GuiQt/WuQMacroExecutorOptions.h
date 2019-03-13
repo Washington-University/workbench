@@ -62,6 +62,10 @@ namespace caret {
         
         void setStopAfterSelectedCommand(const bool status);
         
+        bool isIgnoreDelaysAndDurations() const;
+        
+        void setIgnoreDelaysAndDurations(const bool status);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -78,6 +82,8 @@ namespace caret {
         bool m_recordMovieDuringExecutionFlag = false;
         
         bool m_stopAfterSelectedCommandFlag = false;
+        
+        bool m_ignoreDelaysAndDurationsFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

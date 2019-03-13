@@ -153,6 +153,7 @@ namespace caret {
 
         bool executeCustomOperationMacroCommand(QWidget* parent,
                                                 const WuQMacroExecutorMonitor* executorMonitor,
+                                                const WuQMacroExecutorOptions* executorOptions,
                                                 const WuQMacroCommand* macroCommand,
                                                 QString& errorMessageOut);
         
@@ -180,10 +181,12 @@ namespace caret {
         
         void macroCommandCompletedExecution(QWidget* window,
                                             const WuQMacroCommand* command,
+                                            const WuQMacroExecutorOptions* executorOptions,
                                             bool& allowDelayFlagOut);
         
         void macroCommandStartingExecution(QWidget* window,
                                            const WuQMacroCommand* command,
+                                           const WuQMacroExecutorOptions* executorOptions,
                                            bool& allowDelayFlagOut);
         
     private:

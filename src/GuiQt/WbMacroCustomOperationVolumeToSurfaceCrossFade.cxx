@@ -113,6 +113,8 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::createCommand()
  *     Parent widget for any dialogs
  * @param executorMonitor
  *     the macro executor monitor
+ * @param executorOptions
+ *     Options for executor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -122,6 +124,7 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::createCommand()
 bool
 WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
                                                                const WuQMacroExecutorMonitor* executorMonitor,
+                                                               const WuQMacroExecutorOptions* executorOptions,
                                                                const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
@@ -164,6 +167,7 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
 
 
     bool successFlag = performCrossFade(executorMonitor,
+                                        executorOptions,
                                         volumeOverlay,
                                         durationSeconds);
     
@@ -175,6 +179,8 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
  *
  * @param executorMonitor
  *     The macro executor's monitor
+ * @param executorOptions
+ *     The executor options
  * @param volumeOverlay
  *     Overlay that contains the volume
  * @param durationSeconds
@@ -184,6 +190,7 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
  */
 bool
 WbMacroCustomOperationVolumeToSurfaceCrossFade::performCrossFade(const WuQMacroExecutorMonitor* executorMonitor,
+                                                                 const WuQMacroExecutorOptions* executorOptions,
                                                                  Overlay* volumeOverlay,
                                                                  const float durationSeconds)
 {
@@ -192,7 +199,8 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::performCrossFade(const WuQMacroE
     const float defaultNumberOfSteps(25.0);
     float numberOfSteps(0.0);
     float iterationSleepTime(0.0);
-    getNumberOfStepsAndSleepTime(defaultNumberOfSteps,
+    getNumberOfStepsAndSleepTime(executorOptions,
+                                 defaultNumberOfSteps,
                                  durationSeconds,
                                  numberOfSteps,
                                  iterationSleepTime);

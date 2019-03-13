@@ -30,6 +30,7 @@ namespace caret {
     class WuQMacroCommand;
     class WuQMacroCommandParameter;
     class WuQMacroExecutorMonitor;
+    class WuQMacroExecutorOptions;
 
     class WuQMacroCustomOperationManagerInterface {
         
@@ -63,6 +64,10 @@ namespace caret {
          *
          * @param parent
          *     Parent widget for any dialogs
+         * @param executorMonitor
+         *     The executor monitor
+         * @param executorOptions
+         *     Options for the executor
          * @param customMacroCommand
          *     Custom macro command to run
          * @param errorMessageOut
@@ -72,6 +77,7 @@ namespace caret {
          */
         virtual bool executeCustomOperationMacroCommand(QWidget* parent,
                                                         const WuQMacroExecutorMonitor* executorMonitor,
+                                                        const WuQMacroExecutorOptions* executorOptions,
                                                         const WuQMacroCommand* macroCommand,
                                                         QString& errorMessageOut) = 0;
         

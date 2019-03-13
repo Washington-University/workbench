@@ -118,6 +118,8 @@ WbMacroCustomOperationSurfaceInterpolation::createCommand()
  *     Parent widget for any dialogs
  * @param executorMonitor
  *     the macro executor monitor
+ * @param executorOptions
+ *     Options for executor
  * @param macroCommand
  *     macro command to run
  * @return
@@ -127,6 +129,7 @@ WbMacroCustomOperationSurfaceInterpolation::createCommand()
 bool
 WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
                                                            const WuQMacroExecutorMonitor* executorMonitor,
+                                                           const WuQMacroExecutorOptions* executorOptions,
                                                            const WuQMacroCommand* macroCommand)
 {
     CaretAssert(parent);
@@ -192,6 +195,7 @@ WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
     }
 
     bool successFlag = interpolateSurface(executorMonitor,
+                                          executorOptions,
                                           tabContent->getTabNumber(),
                                           wholeBrainModel,
                                           startSurface,
@@ -206,6 +210,8 @@ WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
  *
  * @param executorMonitor
  *     The macro executor's monitor
+ * @param executorOptions
+ *     The executor options
  * @param tabIndex
  *     Index of selected tab
  * @param wholeBrainModel
@@ -221,6 +227,7 @@ WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
  */
 bool
 WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const WuQMacroExecutorMonitor* executorMonitor,
+                                                               const WuQMacroExecutorOptions* executorOptions,
                                                                const int32_t tabIndex,
                                                                ModelWholeBrain* wholeBrainModel,
                                                                const Surface* startSurface,
@@ -234,7 +241,8 @@ WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const WuQMacroExe
     const float defaultNumberOfSteps(50.0);
     float numberOfSteps(0.0);
     float iterationSleepTime(0.0);
-    getNumberOfStepsAndSleepTime(defaultNumberOfSteps,
+    getNumberOfStepsAndSleepTime(executorOptions,
+                                 defaultNumberOfSteps,
                                  durationSeconds,
                                  numberOfSteps,
                                  iterationSleepTime);

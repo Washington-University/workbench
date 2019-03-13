@@ -46,6 +46,7 @@ namespace caret {
         
         virtual bool executeCommand(QWidget* parent,
                                     const WuQMacroExecutorMonitor* executorMonitor,
+                                    const WuQMacroExecutorOptions* executorOptions,
                                     const WuQMacroCommand* macroCommand) override;
         
         virtual WuQMacroCommand* createCommand() override;
@@ -61,6 +62,7 @@ namespace caret {
         };
 
         bool performRotation(const WuQMacroExecutorMonitor* executorMonitor,
+                             const WuQMacroExecutorOptions* executorOptions,
                              BrowserTabContent* tabContent,
                              const Axis axis,
                              const float totalRotation,

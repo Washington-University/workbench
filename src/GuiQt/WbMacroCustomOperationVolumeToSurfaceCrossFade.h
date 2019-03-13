@@ -44,6 +44,7 @@ namespace caret {
         
         virtual bool executeCommand(QWidget* parent,
                                     const WuQMacroExecutorMonitor* executorMonitor,
+                                    const WuQMacroExecutorOptions* executorOptions,
                                     const WuQMacroCommand* macroCommand) override;
 
         virtual WuQMacroCommand* createCommand() override;
@@ -54,6 +55,7 @@ namespace caret {
 
     private:
         bool performCrossFade(const WuQMacroExecutorMonitor* executorMonitor,
+                              const WuQMacroExecutorOptions* executorOptions,
                               Overlay* volumeOverlay,
                               const float durationSeconds);
         

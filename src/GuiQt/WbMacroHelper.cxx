@@ -282,9 +282,13 @@ WbMacroHelper::macroExecutionEnding(const WuQMacro* /*macro*/,
 void
 WbMacroHelper::macroCommandHasCompleted(QWidget* window,
                                         const WuQMacroCommand* command,
+                                        const WuQMacroExecutorOptions* executorOptions,
                                         bool& allowDelayFlagOut)
 {
-    const bool doDelayAfterCommandFlag(false);
+    bool doDelayAfterCommandFlag(false); // change value to enable/disable delays after command
+    if (executorOptions->isIgnoreDelaysAndDurations()) {
+        doDelayAfterCommandFlag = false;
+    }
     allowDelayFlagOut = doDelayAfterCommandFlag;
     if (doDelayAfterCommandFlag) {
         recordImagesForDelay(window,
@@ -300,6 +304,8 @@ WbMacroHelper::macroCommandHasCompleted(QWidget* window,
  *     Widget for parent
  * @param command
  *     The command
+ * @param executorOptions
+ *    Executor options
  * @param delay
  *     The delay in seconds
  */
@@ -355,15 +361,21 @@ WbMacroHelper::recordImagesForDelay(QWidget* window,
  *     Widget for parent
  * @param command
  *     Command that is about to start
+ * @param executorOptions
+ *    Executor options
  * @param allowDelayFlagOut
  *     Output indicating if delay before command is enabled
  */
 void
 WbMacroHelper::macroCommandAboutToStart(QWidget* window,
                                         const WuQMacroCommand* command,
+                                        const WuQMacroExecutorOptions* executorOptions,
                                         bool& allowDelayFlagOut)
 {
-    const bool doDelayBeforeCommandFlag(true);
+    bool doDelayBeforeCommandFlag(true);
+    if (executorOptions->isIgnoreDelaysAndDurations()) {
+        doDelayBeforeCommandFlag = false;
+    }
     allowDelayFlagOut = doDelayBeforeCommandFlag;
     if (doDelayBeforeCommandFlag) {
         recordImagesForDelay(window,

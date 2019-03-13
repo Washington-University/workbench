@@ -130,11 +130,14 @@ namespace caret {
          *     Widget for parent
          * @param command
          *     Command that has just finished
+         * @param executorOptions
+         *    Executor options
          * @param allowDelayFlagOut
          *     Output indicating if delay after command is enabled
          */
         virtual void macroCommandHasCompleted(QWidget* window,
                                               const WuQMacroCommand* command,
+                                              const WuQMacroExecutorOptions* executorOptions,
                                               bool& allowDelayFlagOut) = 0;
         
         /**
@@ -144,11 +147,14 @@ namespace caret {
          *     Widget for parent
          * @param command
          *     Command that is about to start
+         * @param executorOptions
+         *    Executor options
          * @param allowDelayFlagOut
          *     Output indicating if delay before command is enabled
          */
         virtual void macroCommandAboutToStart(QWidget* window,
                                               const WuQMacroCommand* command,
+                                              const WuQMacroExecutorOptions* executorOptions,
                                               bool& allowDelayFlagOut) = 0;
         
         // ADD_NEW_METHODS_HERE
