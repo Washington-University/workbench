@@ -327,9 +327,9 @@ MovieRecorder::setCaptureRegionType(const MovieRecorderCaptureRegionTypeEnum::En
 AString
 MovieRecorder::getMovieFileName() const
 {
-    if (m_movieFileName.isEmpty()) {
-        initializeMovieFileName();
-    }
+//    if (m_movieFileName.isEmpty()) {
+//        initializeMovieFileName();
+//    }
     
     return m_movieFileName;
 }

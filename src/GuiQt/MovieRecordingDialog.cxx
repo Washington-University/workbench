@@ -413,7 +413,7 @@ MovieRecordingDialog::createMovie(QWidget* parent)
 {
     MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
     QString currentFileName = movieRecorder->getMovieFileName();
-    MovieRecorderVideoFormatTypeEnum::Enum formatType = MovieRecorderVideoFormatTypeEnum::MPEG_4;
+    MovieRecorderVideoFormatTypeEnum::Enum formatType = MovieRecorderVideoFormatTypeEnum::MPEG;
     
     QString filters;
     QString selectedFilter = MovieRecorderVideoFormatTypeEnum::toFileDialogFilter(formatType);
