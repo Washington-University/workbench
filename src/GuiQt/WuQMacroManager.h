@@ -123,7 +123,8 @@ namespace caret {
                           WuQMacro* macro);
         
         void runMacro(QWidget* window,
-                      const WuQMacro* macro);
+                      const WuQMacro* macro,
+                      const WuQMacroCommand* macroCommandToStopAfter);
         
         void stopMacro();
         

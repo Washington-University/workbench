@@ -542,10 +542,13 @@ WuQMacroManager::updateNonModalDialogs()
  *     Widget used for parent of dialogs
  * @param macro
  *     Macro that is run
+ * @param macroCommandToStopAfter
+ *     Macro command that the executor may stop after, depending upon options
  */
 void
 WuQMacroManager::runMacro(QWidget* widget,
-                          const WuQMacro* macro)
+                          const WuQMacro* macro,
+                          const WuQMacroCommand* macroCommandToStopAfter)
 {
     CaretAssert(widget);
     CaretAssert(macro);
@@ -566,6 +569,7 @@ WuQMacroManager::runMacro(QWidget* widget,
                                               m_executorOptions.get());
     }
     const bool resultFlag = m_macroExecutor->runMacro(macro,
+                                                      macroCommandToStopAfter,
                                                       widget,
                                                       m_parentObjects,
                                                       m_macroExecutorMonitor,
@@ -1106,7 +1110,8 @@ WuQMacroManager::runMacroWithShortCutKeyEvent(QWidget* window,
             const WuQMacro* macro = getMacroWithShortCutKey(shortCutKey);
             if (macro != NULL) {
                 runMacro(window,
-                         macro);
+                         macro,
+                         NULL);
                 return true;
             }
         }

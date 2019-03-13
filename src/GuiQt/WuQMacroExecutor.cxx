@@ -263,6 +263,8 @@ WuQMacroExecutor::findObjectByName(const QString& objectName) const
  *
  * @param macro
  *    Macro that is run
+ * @param macroCommandToStopAfter
+ *     Macro command that the executor may stop after, depending upon options
  * @param window
  *     Widget for parent
  * @param otherObjectParents
@@ -279,6 +281,7 @@ WuQMacroExecutor::findObjectByName(const QString& objectName) const
  */
 bool
 WuQMacroExecutor::runMacro(const WuQMacro* macro,
+                           const WuQMacroCommand* macroCommandToStopAfter,
                            QWidget* window,
                            std::vector<QObject*>& otherObjectParents,
                            const WuQMacroExecutorMonitor* executorMonitor,
@@ -286,6 +289,7 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
                            QString& errorMessageOut) const
 {
     const bool result = runMacroPrivate(macro,
+                                        macroCommandToStopAfter,
                                         window,
                                         otherObjectParents,
                                         executorMonitor,
@@ -300,6 +304,8 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
  *
  * @param macro
  *    Macro that is run
+ * @param macroCommandToStopAfter
+ *     Macro command that the executor may stop after, depending upon options
  * @param window
  *     Widget for parent
  * @param otherObjectParents
@@ -316,6 +322,7 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
  */
 bool
 WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
+                                  const WuQMacroCommand* macroCommandToStopAfter,
                                   QWidget* window,
                                   std::vector<QObject*>& otherObjectParents,
                                   const WuQMacroExecutorMonitor* executorMonitor,
@@ -331,7 +338,14 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
                            otherObjectParents.begin(), otherObjectParents.end());
     
     m_runOptions = *executorOptions;
+    if (m_runOptions.isStopAfterSelectedCommand()) {
+        if (macroCommandToStopAfter == NULL) {
+            errorMessageOut = ("Option to stop after selected command is on but no command is selected");
+            return false;
+        }
+    }
     
+
     errorMessageOut.clear();
     
     const int32_t numberOfMacroCommands = macro->getNumberOfMacroCommands();
@@ -446,6 +460,15 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
         emit macroCommandHasCompleted(window,
                                       mc,
                                       allowDelayAfterCommandFlag);
+        
+        if (m_runOptions.isStopAfterSelectedCommand()) {
+            QGuiApplication::processEvents();
+            if (mc == macroCommandToStopAfter) {
+                errorMessageOut = ("Macro stopped after "
+                                   + mc->getDescriptiveName());
+                return false;
+            }
+        }
         
         const bool stopFlag = executorMonitor->testForStop();
         if (stopFlag) {

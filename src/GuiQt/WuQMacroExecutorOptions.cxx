@@ -86,10 +86,11 @@ WuQMacroExecutorOptions::operator=(const WuQMacroExecutorOptions& obj)
 void 
 WuQMacroExecutorOptions::copyHelperWuQMacroExecutorOptions(const WuQMacroExecutorOptions& obj)
 {
-    m_loopingFlag                 = obj.m_loopingFlag;
-    m_stopOnErrorFlag             = obj.m_stopOnErrorFlag;
-    m_showMouseMovementFlag       = obj.m_showMouseMovementFlag;
+    m_loopingFlag                    = obj.m_loopingFlag;
+    m_stopOnErrorFlag                = obj.m_stopOnErrorFlag;
+    m_showMouseMovementFlag          = obj.m_showMouseMovementFlag;
     m_recordMovieDuringExecutionFlag = obj.m_recordMovieDuringExecutionFlag;
+    m_stopAfterSelectedCommandFlag   = obj.m_stopAfterSelectedCommandFlag;
 }
 
 /**
@@ -185,3 +186,25 @@ WuQMacroExecutorOptions::setRecordMovieDuringExecution(const bool status)
 {
     m_recordMovieDuringExecutionFlag = status;
 }
+
+/**
+ * @return True if execution should stop after the command selected in macro dialog
+ */
+bool
+WuQMacroExecutorOptions::isStopAfterSelectedCommand() const
+{
+    return m_stopAfterSelectedCommandFlag;
+}
+
+/**
+ * Set execution should stop after selected command in macro dialog
+ *
+ * @param status
+ *     New status
+ */
+void
+WuQMacroExecutorOptions::setStopAfterSelectedCommand(const bool status)
+{
+    m_stopAfterSelectedCommandFlag = status;
+}
+

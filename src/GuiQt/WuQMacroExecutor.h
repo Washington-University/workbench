@@ -52,6 +52,7 @@ namespace caret {
         WuQMacroExecutor& operator=(const WuQMacroExecutor&) = delete;
         
         bool runMacro(const WuQMacro* macro,
+                      const WuQMacroCommand* macroCommandToStopAfter,
                       QWidget* window,
                       std::vector<QObject*>& otherObjectParents,
                       const WuQMacroExecutorMonitor* executorMonitor,
@@ -92,6 +93,7 @@ namespace caret {
         void performCommandDelay(const WuQMacroCommand* mc) const;
         
         bool runMacroPrivate(const WuQMacro* macro,
+                             const WuQMacroCommand* macroCommandToStopAfter,
                              QWidget* window,
                              std::vector<QObject*>& otherObjectParents,
                              const WuQMacroExecutorMonitor* executorMonitor,

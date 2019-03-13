@@ -76,6 +76,10 @@ namespace caret {
     private slots:
         void treeViewItemClicked(const QModelIndex& modelIndex);
         
+        void treeViewCustomContextMenuRequested(const QPoint& pos);
+
+        void runAndStopAfterSelectedCommandMenuItemSelected();
+        
         void macroGroupComboBoxActivated(int);
         
         void buttonBoxButtonClicked(QAbstractButton* button);
@@ -97,6 +101,8 @@ namespace caret {
         void runOptionLoopCheckBoxClicked(bool);
         
         void runOptionRecordMovieCheckBoxClicked(bool);
+        
+        void runOptionStopAfterSelectedCommandCheckBoxClicked(bool);
         
         void editingMoveUpToolButtonClicked();
 
@@ -216,7 +222,9 @@ namespace caret {
         
         QCheckBox* m_runOptionMoveMouseCheckBox;
         
-        QCheckBox* m_recordMovieWhileMacroRunsCheckBox;
+        QCheckBox* m_runOptionRecordMovieWhileMacroRunsCheckBox;
+        
+        QCheckBox* m_runOptionStopAfterSelectedCommandCheckBox;
         
         QLabel* m_commandTitleLabel;
         

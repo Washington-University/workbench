@@ -292,6 +292,9 @@ WuQMacroDialog::createMacroAndCommandSelectionWidget()
     m_treeView->setHeaderHidden(true);
     QObject::connect(m_treeView, &QTreeView::clicked,
                      this, &WuQMacroDialog::treeViewItemClicked);
+    m_treeView->setContextMenuPolicy(Qt::CustomContextMenu);
+    QObject::connect(m_treeView, &QTreeView::customContextMenuRequested,
+                     this, &WuQMacroDialog::treeViewCustomContextMenuRequested);
 
     return m_treeView;
 }
@@ -432,11 +435,18 @@ WuQMacroDialog::createRunOptionsWidget()
     QObject::connect(m_runOptionMoveMouseCheckBox, &QCheckBox::clicked,
                      this, &WuQMacroDialog::runOptionMoveMouseCheckBoxClicked);
 
-    m_recordMovieWhileMacroRunsCheckBox = new QCheckBox("Record Movie While Macro Runs");
-    m_recordMovieWhileMacroRunsCheckBox->setChecked(false);
-    m_recordMovieWhileMacroRunsCheckBox->setToolTip("While the macro runs, add images to Movie Recorder");
-    QObject::connect(m_recordMovieWhileMacroRunsCheckBox, &QCheckBox::clicked,
+    m_runOptionRecordMovieWhileMacroRunsCheckBox = new QCheckBox("Record movie while macro runs");
+    m_runOptionRecordMovieWhileMacroRunsCheckBox->setChecked(false);
+    m_runOptionRecordMovieWhileMacroRunsCheckBox->setToolTip("While the macro runs, add images to Movie Recorder");
+    QObject::connect(m_runOptionRecordMovieWhileMacroRunsCheckBox, &QCheckBox::clicked,
                      this, &WuQMacroDialog::runOptionRecordMovieCheckBoxClicked);
+
+    m_runOptionStopAfterSelectedCommandCheckBox = new QCheckBox("Stop after selected command");
+    const QString stopToolTip("Stop execution of macro after the selected command.  One can also right-click "
+                              "over a command to Run the macro and stop after the command.");
+    m_runOptionStopAfterSelectedCommandCheckBox->setToolTip(QTextDocument(stopToolTip).toHtml());
+    QObject::connect(m_runOptionStopAfterSelectedCommandCheckBox, &QCheckBox::clicked,
+                     this, &WuQMacroDialog::runOptionStopAfterSelectedCommandCheckBoxClicked);
 
     QGridLayout* runOptionsLayout = new QGridLayout(widget);
     runOptionsLayout->setColumnStretch(0, 0);
@@ -449,7 +459,9 @@ WuQMacroDialog::createRunOptionsWidget()
     row++;
     runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
-    runOptionsLayout->addWidget(m_recordMovieWhileMacroRunsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    runOptionsLayout->addWidget(m_runOptionRecordMovieWhileMacroRunsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
+    runOptionsLayout->addWidget(m_runOptionStopAfterSelectedCommandCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     
     return widget;
@@ -458,8 +470,8 @@ WuQMacroDialog::createRunOptionsWidget()
 /**
  * Called when run options move mouse checkbox is changed
  *
- * @param value
- *     New value.
+ * @param checked
+ *     New checked status.
  */
 void
 WuQMacroDialog::runOptionMoveMouseCheckBoxClicked(bool checked)
@@ -472,8 +484,8 @@ WuQMacroDialog::runOptionMoveMouseCheckBoxClicked(bool checked)
 /**
  * Called when run options loop checkbox is changed
  *
- * @param value
- *     New value.
+ * @param checked
+ *     New checked status.
  */
 void
 WuQMacroDialog::runOptionLoopCheckBoxClicked(bool checked)
@@ -483,12 +495,32 @@ WuQMacroDialog::runOptionLoopCheckBoxClicked(bool checked)
     options->setLooping(checked);
 }
 
+/**
+ * Called when run options record movie checkbox is changed
+ *
+ * @param checked
+ *     New checked status.
+ */
 void
 WuQMacroDialog::runOptionRecordMovieCheckBoxClicked(bool checked)
 {
     WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
     CaretAssert(options);
     options->setRecordMovieDuringExecution(checked);
+}
+
+/**
+ * Called when run options stop after selected command checkbox is changed
+ *
+ * @param checked
+ *     New checked status.
+ */
+void
+WuQMacroDialog::runOptionStopAfterSelectedCommandCheckBoxClicked(bool checked)
+{
+    WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
+    CaretAssert(options);
+    options->setStopAfterSelectedCommand(checked);
 }
 
 /**
@@ -635,7 +667,8 @@ WuQMacroDialog::updateDialogContents()
     CaretAssert(runOptions);
     m_runOptionMoveMouseCheckBox->setChecked(runOptions->isShowMouseMovement());
     m_runOptionLoopCheckBox->setChecked(runOptions->isLooping());
-    m_recordMovieWhileMacroRunsCheckBox->setChecked(runOptions->isRecordMovieDuringExecution());
+    m_runOptionRecordMovieWhileMacroRunsCheckBox->setChecked(runOptions->isRecordMovieDuringExecution());
+    m_runOptionStopAfterSelectedCommandCheckBox->setChecked(runOptions->isStopAfterSelectedCommand());
     
     macroGroupComboBoxActivated(selectedIndex);
 }
@@ -655,6 +688,46 @@ WuQMacroDialog::treeViewItemClicked(const QModelIndex& /*modelIndex*/)
      * to select an item.   Replacement is for the selection
      * model to connect to selectionModelRowChanged().
      */
+}
+
+/**
+ * Called to display custom context menu for the tree view
+ */
+void
+WuQMacroDialog::treeViewCustomContextMenuRequested(const QPoint& pos)
+{
+    QModelIndex modelIndex = m_treeView->indexAt(pos);
+    if (modelIndex.isValid()) {
+        WuQMacroCommand* command = getSelectedMacroCommand();
+        if (command != NULL) {
+            QMenu menu(this);
+            const QString runToText("Run Macro and Stop After this Command");
+            menu.addAction(runToText,
+                           this, &WuQMacroDialog::runAndStopAfterSelectedCommandMenuItemSelected);
+            menu.exec(m_treeView->mapToGlobal(pos));
+        }
+    }
+}
+
+/**
+ * Called when 'run and stop after...' is selected from
+ * context (pop-up) menu.  Runs macro to selected command.
+ */
+void
+WuQMacroDialog::runAndStopAfterSelectedCommandMenuItemSelected()
+{
+    WuQMacroCommand* command = getSelectedMacroCommand();
+    if (command != NULL) {
+        WuQMacroManager* macroManager = WuQMacroManager::instance();
+        WuQMacroExecutorOptions* runOptions = macroManager->getExecutorOptions();
+        const bool savedStopAfterOptionFlag = runOptions->isStopAfterSelectedCommand();
+        runOptions->setStopAfterSelectedCommand(true);
+        runMacroToolButtonClicked();
+        runOptions->setStopAfterSelectedCommand(savedStopAfterOptionFlag);
+    }
+    else {
+        QMessageBox::warning(this, "Error", "No macro command is selected");
+    }
 }
 
 /**
@@ -1117,7 +1190,8 @@ WuQMacroDialog::runMacroToolButtonClicked()
     updateEditingToolButtons();
     QApplication::processEvents();
     WuQMacroManager::instance()->runMacro(window,
-                                          macro);
+                                          macro,
+                                          getSelectedMacroCommand());
     m_macroIsRunningFlag = false;
     
     updateEditingToolButtons();

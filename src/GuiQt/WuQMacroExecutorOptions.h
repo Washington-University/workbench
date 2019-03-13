@@ -58,6 +58,10 @@ namespace caret {
         
         void setRecordMovieDuringExecution(const bool status);
         
+        bool isStopAfterSelectedCommand() const;
+        
+        void setStopAfterSelectedCommand(const bool status);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -72,6 +76,8 @@ namespace caret {
         bool m_loopingFlag = false;
 
         bool m_recordMovieDuringExecutionFlag = false;
+        
+        bool m_stopAfterSelectedCommandFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 
