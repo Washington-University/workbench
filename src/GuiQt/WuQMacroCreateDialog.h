@@ -46,6 +46,10 @@ namespace caret {
     public:
         WuQMacroCreateDialog(QWidget* parent = 0);
         
+        WuQMacroCreateDialog(WuQMacroGroup* insertIntoMacroGroup,
+                             WuQMacro* insertAfterMacro,
+                             QWidget* parent = 0);
+        
         virtual ~WuQMacroCreateDialog();
         
         WuQMacroCreateDialog(const WuQMacroCreateDialog&) = delete;
@@ -62,8 +66,6 @@ namespace caret {
         virtual void done(int r) override;
         
     private:
-        QString getDefaultMacroName() const;
-        
         std::vector<WuQMacroGroup*> m_macroGroups;
         
         QComboBox* m_macroGroupComboBox;
@@ -78,6 +80,10 @@ namespace caret {
         
         WuQMacro* m_macro = NULL;
 
+        WuQMacroGroup* m_insertIntoMacroGroup = NULL;
+        
+        WuQMacro* m_insertAfterMacro = NULL;
+        
         static QString s_lastSelectedMacroGroupIdentifier;
     };
     

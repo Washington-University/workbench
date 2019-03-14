@@ -52,11 +52,20 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param insertIntoMacroGroup
+ *     If not NULL, do not show group selection and insert new macro
+ *     into this group
+ * @param insertMacroAfter
+ *     Used when inserting macro into a specific group
  * @param parent
  *     The parent widget
  */
-WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
-: QDialog(parent)
+WuQMacroCreateDialog::WuQMacroCreateDialog(WuQMacroGroup* insertIntoMacroGroup,
+                                           WuQMacro* insertAfterMacro,
+                                           QWidget* parent)
+: QDialog(parent),
+m_insertIntoMacroGroup(insertIntoMacroGroup),
+m_insertAfterMacro(insertAfterMacro)
 {
     setWindowTitle("Record Macro");
     
@@ -69,15 +78,22 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     QLabel* macroGroupLabel = new QLabel("Store macro in:");
     
     m_macroNameLineEdit = new QLineEdit();
-    m_macroNameLineEdit->setText(getDefaultMacroName());
+    m_macroNameLineEdit->setText(WuQMacroManager::instance()->getNewMacroDefaultName());
     m_macroShortCutKeyComboBox = new WuQMacroShortCutKeyComboBox(this);
     m_macroDescriptionTextEdit = new QPlainTextEdit();
     m_macroDescriptionTextEdit->setFixedHeight(100);
     
+    bool insertIntoMacroGroupMatchFlag(false);
     int32_t selectedMacroGroupIndex(-1);
     m_macroGroupComboBox = new QComboBox();
     for (auto mg : m_macroGroups) {
-        if (mg->getUniqueIdentifier() == s_lastSelectedMacroGroupIdentifier) {
+        if (insertIntoMacroGroup != NULL) {
+            if (mg == insertIntoMacroGroup) {
+                insertIntoMacroGroupMatchFlag = true;
+                selectedMacroGroupIndex = m_macroGroupComboBox->count();
+            }
+        }
+        else if (mg->getUniqueIdentifier() == s_lastSelectedMacroGroupIdentifier) {
             selectedMacroGroupIndex = m_macroGroupComboBox->count();
         }
         m_macroGroupComboBox->addItem(mg->getName());
@@ -88,6 +104,10 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     if ((selectedMacroGroupIndex >= 0)
         && (selectedMacroGroupIndex < m_macroGroupComboBox->count())) {
         m_macroGroupComboBox->setCurrentIndex(selectedMacroGroupIndex);
+    }
+    
+    if (insertIntoMacroGroupMatchFlag) {
+        m_macroGroupComboBox->setEnabled(false);
     }
     
     QGridLayout* gridLayout = new QGridLayout();
@@ -104,7 +124,7 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     row++;
     gridLayout->addWidget(shortCutKeyLabel, row, 0);
     gridLayout->addWidget(shortCutKeyMaskLabel, row, 1);
-    gridLayout->addWidget(m_macroShortCutKeyComboBox->getWidget(), row, 2); //, Qt::AlignLeft);
+    gridLayout->addWidget(m_macroShortCutKeyComboBox->getWidget(), row, 2);
     row++;
     gridLayout->addWidget(descriptionLabel, row, 0);
     gridLayout->addWidget(m_macroDescriptionTextEdit, row, 1, 1, 3);
@@ -122,6 +142,22 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
     dialogLayout->addWidget(m_dialogButtonBox);
     
     setFixedHeight(sizeHint().height());
+
+}
+
+
+/**
+ * Constructor.
+ *
+ * @param parent
+ *     The parent widget
+ */
+WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
+: WuQMacroCreateDialog(NULL,
+                       NULL,
+                       parent)
+{
+    /* delegating constructor does the work */
 }
 
 /**
@@ -129,40 +165,6 @@ WuQMacroCreateDialog::WuQMacroCreateDialog(QWidget* parent)
  */
 WuQMacroCreateDialog::~WuQMacroCreateDialog()
 {
-}
-
-/**
- * @return A default name for a macro
- */
-QString
-WuQMacroCreateDialog::getDefaultMacroName() const
-{
-    QString name("");
-    bool foundFlag(false);
-    static int32_t minimumIndex = 1;
-    
-    for (int32_t i = minimumIndex; i < 10000; i++) {
-        name = ("Macro "
-                + QString::number(i));
-        foundFlag = false;
-        for (auto mg : m_macroGroups) {
-            if (mg->getMacroByName(name) != NULL) {
-                foundFlag = true;
-                break;
-            }
-        }
-        
-        if ( ! foundFlag) {
-            /* 
-             * If a default name was created, do not allow a "lower-numbered"
-             * default name.  Start with same index since user may not use it.
-             */
-            minimumIndex = i;
-            break;
-        }
-    }
-    
-    return name;
 }
 
 /**
@@ -193,7 +195,22 @@ WuQMacroCreateDialog::done(int r)
         const int32_t groupIndex = m_macroGroupComboBox->currentIndex();
         if (groupIndex >= 0) {
             WuQMacroGroup* macroGroup = m_macroGroups[groupIndex];
-            macroGroup->addMacro(m_macro);
+            if (macroGroup == m_insertIntoMacroGroup) {
+                int32_t insertAtIndex = 0;
+                if (m_insertAfterMacro != NULL) {
+                    insertAtIndex = macroGroup->getIndexOfMacro(m_insertAfterMacro) + 1;
+                }
+                if (insertAtIndex >= 0) {
+                    macroGroup->insertMacroAtIndex(insertAtIndex,
+                                                   m_macro);
+                }
+                else {
+                    macroGroup->addMacro(m_macro);
+                }
+            }
+            else {
+                macroGroup->addMacro(m_macro);
+            }
             s_lastSelectedMacroGroupIdentifier = macroGroup->getUniqueIdentifier();
         }
     }

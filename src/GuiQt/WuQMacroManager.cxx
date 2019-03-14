@@ -461,9 +461,35 @@ WuQMacroManager::getAllMacroGroups() const
 void
 WuQMacroManager::startRecordingNewMacro(QWidget* parent)
 {
+    startRecordingNewMacro(parent,
+                           NULL,
+                           NULL);
+}
+
+/**
+ * Start recording a new macro using the New Macro dialog.
+ * New macro inserted into the given macro group and after the given macro.
+ *
+ * @param parent
+ *     Parent for dialog.
+ * @param insertIntoMacroGroup
+ *     Insert new macro into this macro group
+ * @param insertAfterMacro
+ *     Insert new macro after this macro (if NULL
+ *     new macro is inserted at beginning of group)
+ * @return
+ *     Pointer to new macro or NULL if user cancelled
+ */
+WuQMacro*
+WuQMacroManager::startRecordingNewMacro(QWidget* parent,
+                                        WuQMacroGroup* insertIntoMacroGroup,
+                                        WuQMacro* insertAfterMacro)
+{
     CaretAssert(m_mode == WuQMacroModeEnum::OFF);
     
-    WuQMacroCreateDialog createMacroDialog(parent);
+    WuQMacroCreateDialog createMacroDialog(insertIntoMacroGroup,
+                                           insertAfterMacro,
+                                           parent);
     if (createMacroDialog.exec() == WuQMacroCreateDialog::Accepted) {
         m_mode = WuQMacroModeEnum::RECORDING;
         m_macroBeingRecorded = createMacroDialog.getNewMacro();
@@ -471,7 +497,14 @@ WuQMacroManager::startRecordingNewMacro(QWidget* parent)
         
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
+    else {
+        m_macroBeingRecorded = NULL;
+    }
+
+    return m_macroBeingRecorded;
 }
+
+
 
 /**
  * Stop recording the macro.
@@ -608,11 +641,6 @@ void
 WuQMacroManager::stopMacro()
 {
     m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::STOP);
-    
-//    QMutexLocker locker(&m_macroExecutorMutex);
-//    if (m_macroExecutor != NULL) {
-//        m_macroExecutor->stopMacro();
-//    }
 }
 
 /**
@@ -1318,3 +1346,39 @@ WuQMacroManager::getMainWindowWithIdentifier(const QString& identifier)
     }
     return NULL;
 }
+
+/**
+ * @return A default name for a macro
+ */
+QString
+WuQMacroManager::getNewMacroDefaultName() const
+{
+    QString name("");
+    bool foundFlag(false);
+    static int32_t minimumIndex = 1;
+    
+    const std::vector<const WuQMacroGroup*> macroGroups = getAllMacroGroups();
+    for (int32_t i = minimumIndex; i < 10000; i++) {
+        name = ("Macro "
+                + QString::number(i));
+        foundFlag = false;
+        for (auto mg : macroGroups) {
+            if (mg->getMacroByName(name) != NULL) {
+                foundFlag = true;
+                break;
+            }
+        }
+        
+        if ( ! foundFlag) {
+            /*
+             * If a default name was created, do not allow a "lower-numbered"
+             * default name.  Start with same index since user may not use it.
+             */
+            minimumIndex = i;
+            break;
+        }
+    }
+    
+    return name;
+}
+

@@ -130,9 +130,15 @@ namespace caret {
         
         void insertMenuCopyMacroSelected();
         
+        void recordAndInsertNewMacroSelected();
+        
         void insertMenuNewMacroSelected();
         
         void insertMenuNewMacroCommandSelected();
+        
+        void insertMenuRecordNewMacroCommandSelected();
+        
+        void stopRecordingSelected();
         
         void addNewMacroCommand(WuQMacroCommand* command);
         

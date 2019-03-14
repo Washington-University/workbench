@@ -94,6 +94,10 @@ namespace caret {
 
         void startRecordingNewMacro(QWidget* parent);
         
+        WuQMacro* startRecordingNewMacro(QWidget* parent,
+                                         WuQMacroGroup* insertIntoMacroGroup,
+                                         WuQMacro* insertAfterMacro);
+        
         void stopRecordingNewMacro();
         
         void showMacrosDialog(QWidget* parent);
@@ -174,6 +178,9 @@ namespace caret {
         
         WuQMacroSignalWatcher* getWidgetSignalWatcherWithName(const QString& name);
         
+        QString getNewMacroDefaultName() const;
+        
+
         // ADD_NEW_METHODS_HERE
         
     public slots:

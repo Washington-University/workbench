@@ -1488,25 +1488,55 @@ WuQMacroDialog::editingInsertToolButtonClicked()
     if (macroGroup == NULL) {
         return;
     }
+    const WuQMacro* selectedMacro = getSelectedMacro();
     
-    bool insertMacroCommandValidFlag(false);
-    bool copyAndInsertMacroValidFlag(false);
-    const std::vector<const WuQMacroGroup*> allGroups = WuQMacroManager::instance()->getAllMacroGroups();
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    
+    /*
+     * Copy is valid when there is at least one macro, in any macro group
+     * and the macro is not the selected macro
+     */
+    bool copyValidFlag(false);
+    const std::vector<const WuQMacroGroup*> allGroups = macroManager->getAllMacroGroups();
     for (const auto mg : allGroups) {
-        if (mg->getNumberOfMacros() > 0) {
-            copyAndInsertMacroValidFlag = true;
-            break;
+        const int32_t nm = mg->getNumberOfMacros();
+        for (int32_t i = 0; i < nm; i++) {
+            if (mg->getMacroAtIndex(i) != selectedMacro) {
+                copyValidFlag = true;
+            }
         }
     }
     
+    bool insertMacroValidFlag(false);
+    bool insertMacroCommandValidFlag(false);
     switch (getSelectedItemType()) {
         case WuQMacroStandardItemTypeEnum::INVALID:
+            insertMacroValidFlag = true;
             break;
         case WuQMacroStandardItemTypeEnum::MACRO:
+            insertMacroValidFlag = true;
             insertMacroCommandValidFlag = true;
             break;
         case WuQMacroStandardItemTypeEnum::MACRO_COMMAND:
+            insertMacroValidFlag = true;
             insertMacroCommandValidFlag = true;
+            break;
+    }
+    
+    bool stopValidFlag(false);
+    switch (macroManager->getMode()) {
+        case WuQMacroModeEnum::OFF:
+            break;
+        case WuQMacroModeEnum::RECORDING:
+            insertMacroValidFlag = false;
+            copyValidFlag = false;
+            insertMacroCommandValidFlag = false;
+            stopValidFlag = true;
+            break;
+        case WuQMacroModeEnum::RUNNING:
+            insertMacroValidFlag = false;
+            copyValidFlag = false;
+            insertMacroCommandValidFlag = false;
             break;
     }
     
@@ -1520,6 +1550,12 @@ WuQMacroDialog::editingInsertToolButtonClicked()
                                                      &WuQMacroDialog::insertMenuNewMacroCommandSelected);
     insertNewCommandAction->setEnabled(insertMacroCommandValidFlag);
 
+    
+    QAction* insertRecordNewCommandAction = menu.addAction("Record and Insert New Commands Below",
+                                                     this,
+                                                     &WuQMacroDialog::insertMenuRecordNewMacroCommandSelected);
+    insertRecordNewCommandAction->setEnabled(insertMacroCommandValidFlag);
+    
     /*
      * Macro items
      */
@@ -1530,13 +1566,36 @@ WuQMacroDialog::editingInsertToolButtonClicked()
     QAction* copyMacroAction = menu.addAction("Copy and Insert Macro Below...",
                                               this,
                                               &WuQMacroDialog::insertMenuCopyMacroSelected);
-    copyMacroAction->setEnabled(copyAndInsertMacroValidFlag);
+    copyMacroAction->setEnabled(copyValidFlag
+                                && insertMacroValidFlag);
     
-    menu.addAction("Insert New Macro Below...",
-                   this,
-                   &WuQMacroDialog::insertMenuNewMacroSelected);
+    QAction* insertMenuAction = menu.addAction("Insert New Macro Below...",
+                                               this,
+                                               &WuQMacroDialog::insertMenuNewMacroSelected);
+    insertMenuAction->setEnabled(insertMacroValidFlag);
+    
+    QAction* recordNewMacroAction = menu.addAction("Record and Insert Macro Below...",
+                                              this,
+                                              &WuQMacroDialog::recordAndInsertNewMacroSelected);
+    recordNewMacroAction->setEnabled(insertMacroValidFlag);
+    
+    menu.addSeparator();
+    
+    QAction* stopRecordingAction = menu.addAction("Stop Recording",
+                                                  this,
+                                                  &WuQMacroDialog::stopRecordingSelected);
+    stopRecordingAction->setEnabled(stopValidFlag);
     
     menu.exec(m_editingInsertToolButton->mapToGlobal(QPoint(0, 0)));
+}
+
+/**
+ * Called to stop recording
+ */
+void
+WuQMacroDialog::stopRecordingSelected()
+{
+    WuQMacroManager::instance()->stopRecordingNewMacro();
 }
 
 /**
@@ -1556,6 +1615,26 @@ WuQMacroDialog::insertMenuCopyMacroSelected()
         }
     }
 }
+
+/**
+ * Called when copy and record and insert macro menu item is selected
+ */
+void
+WuQMacroDialog::recordAndInsertNewMacroSelected()
+{
+    WuQMacroGroup* macroGroup = getSelectedMacroGroup();
+    CaretAssert(macroGroup);
+
+    WuQMacro* newMacro = WuQMacroManager::instance()->startRecordingNewMacro(m_editingInsertToolButton,
+                                                                             macroGroup,
+                                                                             getSelectedMacro());
+    if (newMacro != NULL) {
+        const QModelIndex modelIndex = newMacro->index();
+        m_treeView->setCurrentIndex(modelIndex);
+        treeItemSelected(modelIndex);
+    }
+}
+
 
 /**
  * Insert a new macro
@@ -1598,37 +1677,18 @@ void
 WuQMacroDialog::insertMenuNewMacroSelected()
 {
     bool okFlag(false);
-    const QString macroName = QInputDialog::getText(m_editingInsertToolButton, "Create Macro", "New Macro Name",
+    const QString defaultName = WuQMacroManager::instance()->getNewMacroDefaultName();
+    const QString macroName = QInputDialog::getText(m_editingInsertToolButton,
+                                                    "Create Macro",
+                                                    "New Macro Name",
                                                     QLineEdit::Normal,
-                                                    "",
+                                                    defaultName,
                                                     &okFlag);
     if (okFlag) {
         if ( ! macroName.isEmpty()) {
             WuQMacro* macro = new WuQMacro();
             macro->setName(macroName);
             insertNewMacro(macro);
-
-//            const WuQMacro* selectedMacro = getSelectedMacro();
-//            WuQMacroGroup* macroGroup = getSelectedMacroGroup();
-//            CaretAssert(macroGroup);
-//
-//            if (selectedMacro != NULL) {
-//                const int32_t index = macroGroup->getIndexOfMacro(selectedMacro);
-//                macroGroup->insertMacroAtIndex(index + 1,
-//                                               macro);
-//            }
-//            else {
-//                macroGroup->addMacro(macro);
-//            }
-//            updateDialogContents();
-//
-//            QModelIndex selectedIndex = macroGroup->indexFromItem(macro);
-//            if (selectedIndex.isValid()) {
-//                m_treeView->setCurrentIndex(selectedIndex);
-//                updateDialogContents();
-//            }
-//
-//            WuQMacroManager::instance()->macroWasModified(macro);
         }
     }
 }
@@ -1644,6 +1704,15 @@ WuQMacroDialog::insertMenuNewMacroCommandSelected()
                      this, &WuQMacroDialog::addNewMacroCommand);
     if (dialog.exec() == WuQMacroNewCommandSelectionDialog::Accepted) {
     }
+}
+
+/**
+ * Called when insert and record a new macro command menu item selected
+ */
+void
+WuQMacroDialog::insertMenuRecordNewMacroCommandSelected()
+{
+    QMessageBox::warning(m_editingInsertToolButton, "", "Not implemented");
 }
 
 /**
