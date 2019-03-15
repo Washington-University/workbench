@@ -192,15 +192,6 @@ WuQMacroManager::setMode(const WuQMacroModeEnum::Enum mode)
 }
 
 /**
- * @return True if mode is RECORDING
- */
-bool
-WuQMacroManager::isModeRecording() const
-{
-    return (m_mode == WuQMacroModeEnum::RECORDING);
-}
-
-/**
  * Add macro support to the given object.  When recording,
  * The object's 'value changed' signal will be monitored so
  * that the new value can be part of a macro command.
@@ -321,10 +312,23 @@ WuQMacroManager::addMacroCommandToRecording(WuQMacroCommand* macroCommand)
 {
     CaretAssert(macroCommand);
     
-    if (isModeRecording()) {
-        CaretAssert(m_macroBeingRecorded);
-        m_macroBeingRecorded->appendMacroCommand(macroCommand);
-        return true;
+    switch (getMode()) {
+        case WuQMacroModeEnum::OFF:
+            break;
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+            CaretAssert(m_macroInsertCommandBeingRecorded);
+            m_macroInsertCommandBeingRecorded->insertRow(m_macroInsertCommandBeingRecordedOffset,
+                                                         macroCommand);
+            m_macroInsertCommandBeingRecordedOffset++;
+            return true;
+            break;
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
+            CaretAssert(m_macroBeingRecorded);
+            m_macroBeingRecorded->appendMacroCommand(macroCommand);
+            return true;
+            break;
+        case WuQMacroModeEnum::RUNNING:
+            break;
     }
     
     return false;
@@ -351,7 +355,22 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
     CaretAssert(widget);
     CaretAssert(me);
     
-    if (isModeRecording()) {
+    WuQMacro* recordingMacro(NULL);
+    switch (getMode()) {
+        case WuQMacroModeEnum::OFF:
+            break;
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+            CaretAssert(m_macroInsertCommandBeingRecorded);
+            recordingMacro = m_macroInsertCommandBeingRecorded;
+            break;
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
+            CaretAssert(m_macroBeingRecorded);
+            recordingMacro = m_macroBeingRecorded;
+            break;
+        case WuQMacroModeEnum::RUNNING:
+            break;
+    }
+    if (recordingMacro != NULL) {
         const QString name(widget->objectName());
         if (name.isEmpty()) {
             CaretLogSevere("Widget name is empty for recording of mouse event\n"
@@ -364,7 +383,6 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
                            + "\n"
                            + SystemUtilities::getBackTrace());
         }
-        CaretAssert(m_macroBeingRecorded);
 
         bool validMouseEventFlag(true);
         WuQMacroMouseEventTypeEnum::Enum mouseEventType = WuQMacroMouseEventTypeEnum::MOVE;
@@ -413,7 +431,7 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
                                                                                 "mouse operation",
                                                                                 1.0,
                                                                                 errorMessage);
-            m_macroBeingRecorded->appendMacroCommand(command);
+            recordingMacro->appendMacroCommand(command);
             return true;
         }
     }
@@ -491,7 +509,7 @@ WuQMacroManager::startRecordingNewMacro(QWidget* parent,
                                            insertAfterMacro,
                                            parent);
     if (createMacroDialog.exec() == WuQMacroCreateDialog::Accepted) {
-        m_mode = WuQMacroModeEnum::RECORDING;
+        m_mode = WuQMacroModeEnum::RECORDING_NEW_MACRO;
         m_macroBeingRecorded = createMacroDialog.getNewMacro();
         CaretAssert(m_macroBeingRecorded);
         
@@ -504,7 +522,33 @@ WuQMacroManager::startRecordingNewMacro(QWidget* parent,
     return m_macroBeingRecorded;
 }
 
-
+/**
+ * Start recording commands and insert them into the given macro after
+ * the given macro command.
+ *
+ * @param insertIntoMacro
+ *     Macro into which new commands are inserted.
+ * @param insertAfterMacroCommand
+ *     New commands are inserted after this command or at beginning
+ *     if this command is NULL.
+ */
+void
+WuQMacroManager::startRecordingNewCommandInsertion(WuQMacro* insertIntoMacro,
+                                                   WuQMacroCommand* insertAfterMacroCommand)
+{
+    CaretAssert(m_mode == WuQMacroModeEnum::OFF);
+    CaretAssert(insertIntoMacro);
+    
+    m_mode = WuQMacroModeEnum::RECORDING_INSERT_COMMANDS;
+    m_macroInsertCommandBeingRecorded = insertIntoMacro;
+    m_macroInsertCommandBeingRecordedOffset = 0;
+    if (insertAfterMacroCommand != NULL) {
+        const int32_t index = insertIntoMacro->getIndexOfMacroCommand(insertAfterMacroCommand) + 1;
+        CaretAssert(index >= 0);
+        m_macroInsertCommandBeingRecordedOffset = index;
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    }
+}
 
 /**
  * Stop recording the macro.
@@ -512,14 +556,33 @@ WuQMacroManager::startRecordingNewMacro(QWidget* parent,
 void
 WuQMacroManager::stopRecordingNewMacro()
 {
-    CaretAssert(m_mode == WuQMacroModeEnum::RECORDING);
+    switch (m_mode) {
+        case WuQMacroModeEnum::OFF:
+            CaretAssert(0);
+            break;
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+            CaretAssert(m_macroInsertCommandBeingRecorded);
+            if (m_macroHelper) {
+                m_macroHelper->macroWasModified(m_macroInsertCommandBeingRecorded);
+            }
+            break;
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
+            CaretAssert(m_macroBeingRecorded);
+            if (m_macroHelper) {
+                m_macroHelper->macroWasModified(m_macroBeingRecorded);
+            }
+            break;
+        case WuQMacroModeEnum::RUNNING:
+            CaretAssert(0);
+            break;
+    }
     m_mode = WuQMacroModeEnum::OFF;
     
-    if (m_macroHelper) {
-        m_macroHelper->macroWasModified(m_macroBeingRecorded);
-    }
     m_macroBeingRecorded = NULL;
+    m_macroInsertCommandBeingRecorded = NULL;
+    m_macroInsertCommandBeingRecordedOffset = -1;
     
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     updateNonModalDialogs();
 }
 

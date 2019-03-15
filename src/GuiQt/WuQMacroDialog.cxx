@@ -1198,13 +1198,21 @@ WuQMacroDialog::pauseContinueMacroToolButtonClicked()
 void
 WuQMacroDialog::runMacroToolButtonClicked()
 {
-    if (WuQMacroManager::instance()->isModeRecording()) {
-        QMessageBox::critical(m_runMacroToolButton,
-                              "Error",
-                              "A macro is being recorded.  Finish recording of macro.",
-                              QMessageBox::Ok,
-                              QMessageBox::NoButton);
-        return;
+    switch (WuQMacroManager::instance()->getMode()) {
+        case WuQMacroModeEnum::OFF:
+            break;
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
+        {
+            QMessageBox::critical(m_runMacroToolButton,
+                                  "Error",
+                                  "A macro is being recorded.  Finish recording of macro.",
+                                  QMessageBox::Ok,
+                                  QMessageBox::NoButton);
+            return;
+        }            break;
+        case WuQMacroModeEnum::RUNNING:
+            break;
     }
     
     WuQMacro* macro = getSelectedMacro();
@@ -1527,7 +1535,8 @@ WuQMacroDialog::editingInsertToolButtonClicked()
     switch (macroManager->getMode()) {
         case WuQMacroModeEnum::OFF:
             break;
-        case WuQMacroModeEnum::RECORDING:
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
             insertMacroValidFlag = false;
             copyValidFlag = false;
             insertMacroCommandValidFlag = false;
@@ -1712,7 +1721,16 @@ WuQMacroDialog::insertMenuNewMacroCommandSelected()
 void
 WuQMacroDialog::insertMenuRecordNewMacroCommandSelected()
 {
-    QMessageBox::warning(m_editingInsertToolButton, "", "Not implemented");
+    WuQMacro* macro = getSelectedMacro();
+    if (macro == NULL) {
+        QMessageBox::warning(m_editingInsertToolButton,
+                             "Error",
+                             "No macro is selected for recording new commands");
+        return;
+    }
+    
+    WuQMacroManager::instance()->startRecordingNewCommandInsertion(macro,
+                                                                getSelectedMacroCommand());
 }
 
 /**

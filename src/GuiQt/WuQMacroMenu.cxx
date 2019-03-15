@@ -107,7 +107,8 @@ WuQMacroMenu::macroMenuAboutToShow()
             editValidFlag = true;
             recordValidFlag = true;
             break;
-        case WuQMacroModeEnum::RECORDING:
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
             stopValidFlag = true;
             break;
         case WuQMacroModeEnum::RUNNING:
@@ -132,7 +133,10 @@ WuQMacroMenu::macroRecordSelected()
         case WuQMacroModeEnum::OFF:
             macroManager->startRecordingNewMacro(m_windowParent);
             break;
-        case WuQMacroModeEnum::RECORDING:
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+            CaretAssert(0);
+            break;
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
             CaretAssert(0);
             break;
         case WuQMacroModeEnum::RUNNING:
@@ -154,7 +158,8 @@ WuQMacroMenu::macroStopSelected()
         case WuQMacroModeEnum::OFF:
             CaretAssert(0);
             break;
-        case WuQMacroModeEnum::RECORDING:
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
             macroManager->stopRecordingNewMacro();
             break;
         case WuQMacroModeEnum::RUNNING:

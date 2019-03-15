@@ -112,9 +112,13 @@ WuQMacroModeEnum::initialize()
                                     "OFF", 
                                     "Off"));
     
-    enumData.push_back(WuQMacroModeEnum(RECORDING, 
-                                    "RECORDING", 
-                                    "Recording"));
+    enumData.push_back(WuQMacroModeEnum(RECORDING_INSERT_COMMANDS,
+                                        "RECORDING_INSERT_COMMANDS",
+                                        "Recording Insert Commands"));
+    
+    enumData.push_back(WuQMacroModeEnum(RECORDING_NEW_MACRO,
+                                    "RECORDING_NEW_MACRO",
+                                    "Recording New Macro"));
     
     enumData.push_back(WuQMacroModeEnum(RUNNING, 
                                     "RUNNING", 

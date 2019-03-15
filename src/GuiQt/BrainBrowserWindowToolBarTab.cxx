@@ -171,11 +171,16 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     
     m_lightingEnabledCheckBox->setChecked(browserTabContent->isLightingEnabled());
     
-    if (WuQMacroManager::instance()->isModeRecording()) {
-        m_macroRecordingLabel->setText("<html><font color=red>Macro</font></html>");
-    }
-    else {
-        m_macroRecordingLabel->setText("");
+    m_macroRecordingLabel->setText("");
+    switch (WuQMacroManager::instance()->getMode()) {
+        case WuQMacroModeEnum::OFF:
+            break;
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
+            m_macroRecordingLabel->setText("<html><font color=red>Macro</font></html>");
+            break;
+        case WuQMacroModeEnum::RUNNING:
+            break;
     }
     
     blockAllSignals(false);

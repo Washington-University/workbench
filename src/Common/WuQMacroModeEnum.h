@@ -35,11 +35,13 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Off */
         OFF,
-        /** */
-        RECORDING,
-        /** */
+        /** Recording and inserting commands into a macro */
+        RECORDING_INSERT_COMMANDS,
+        /** Recording a new macro */
+        RECORDING_NEW_MACRO,
+        /** Macro is running */
         RUNNING
     };
 

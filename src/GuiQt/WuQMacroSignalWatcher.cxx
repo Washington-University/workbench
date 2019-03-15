@@ -639,7 +639,18 @@ WuQMacroSignalWatcher::createMacroCommandWithDefaultParameters(QString& errorMes
 void
 WuQMacroSignalWatcher::createAndSendMacroCommand(std::vector<WuQMacroCommandParameter*>& parameters)
 {
-    if (m_parentMacroManager->isModeRecording()) {
+    bool recordingFlag(false);
+    switch (m_parentMacroManager->getMode()) {
+        case WuQMacroModeEnum::OFF:
+            break;
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
+            recordingFlag = true;
+            break;
+        case WuQMacroModeEnum::RUNNING:
+            break;
+    }
+    if (recordingFlag) {
         const int32_t versionNumber(1);
         QString errorMessage;
         WuQMacroCommand* mc = WuQMacroCommand::newInstanceWidgetCommand(m_objectType,

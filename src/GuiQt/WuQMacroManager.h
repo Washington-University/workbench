@@ -86,8 +86,6 @@ namespace caret {
         
         void setMode(const WuQMacroModeEnum::Enum mode);
         
-        bool isModeRecording() const;
-        
         std::vector<WuQMacroGroup*> getActiveMacroGroups() const;
         
         std::vector<const WuQMacroGroup*> getAllMacroGroups() const;        
@@ -98,6 +96,9 @@ namespace caret {
                                          WuQMacroGroup* insertIntoMacroGroup,
                                          WuQMacro* insertAfterMacro);
         
+        void startRecordingNewCommandInsertion(WuQMacro* insertIntoMacro,
+                                               WuQMacroCommand* insertAfterMacroCommand);
+
         void stopRecordingNewMacro();
         
         void showMacrosDialog(QWidget* parent);
@@ -210,6 +211,10 @@ namespace caret {
         
         WuQMacro* m_macroBeingRecorded = NULL;
         
+        WuQMacro* m_macroInsertCommandBeingRecorded = NULL;
+
+        int32_t   m_macroInsertCommandBeingRecordedOffset = -1;
+
         WuQMacroDialog* m_macrosDialog = NULL;
         
         static WuQMacroManager* s_singletonMacroManager;
