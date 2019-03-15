@@ -5226,9 +5226,11 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
             }
         }
         BrainStructure* rightStructure = m_brain->getBrainStructure(StructureEnum::CORTEX_RIGHT, false);
-        Surface* rightPrimaryAnat = rightStructure->getPrimaryAnatomicalSurface();
-        if (rightPrimaryAnat != NULL) {
-            rightSurface = rightPrimaryAnat;
+        if (rightStructure != NULL) {
+            Surface* rightPrimaryAnat = rightStructure->getPrimaryAnatomicalSurface();
+            if (rightPrimaryAnat != NULL) {
+                rightSurface = rightPrimaryAnat;
+            }
         }
         /* 2/22/19 ALL SURFACES SAME VIEWPORT */
     }
