@@ -546,8 +546,8 @@ WuQMacroManager::startRecordingNewCommandInsertion(WuQMacro* insertIntoMacro,
         const int32_t index = insertIntoMacro->getIndexOfMacroCommand(insertAfterMacroCommand) + 1;
         CaretAssert(index >= 0);
         m_macroInsertCommandBeingRecordedOffset = index;
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**

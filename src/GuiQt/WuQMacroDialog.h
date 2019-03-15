@@ -26,6 +26,7 @@
 #include <memory>
 
 #include <QDialog>
+#include <QIcon>
 
 #include "WuQMacroCommandParameter.h"
 #include "WuQMacroShortCutKeyEnum.h"
@@ -122,6 +123,8 @@ namespace caret {
 
         void stopMacroToolButtonClicked();
         
+        void recordMacroToolButtonClicked();
+        
         void macroCommandDelaySpinBoxValueChanged(double);
         
         void macroCommandDescriptionTextEditChanged();
@@ -159,6 +162,8 @@ namespace caret {
             MOVE_DOWN,
             MOVE_UP,
             PAUSE,
+            RECORD_OFF,
+            RECORD_ON,
             RUN,
             STOP
         };
@@ -259,6 +264,12 @@ namespace caret {
         QToolButton* m_runMacroToolButton;
         
         QToolButton* m_stopMacroToolButton;
+        
+        QToolButton* m_recordMacroToolButton;
+        
+        QIcon m_recordMacroToolButtonIconOff;
+        
+        QIcon m_recordMacroToolButtonIconOn;
         
         QToolButton* m_editingMoveUpToolButton;
         

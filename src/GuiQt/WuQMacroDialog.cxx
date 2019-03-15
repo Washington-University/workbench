@@ -233,6 +233,18 @@ WuQMacroDialog::createMacroRunAndEditingToolButtons()
     QObject::connect(m_stopMacroToolButton, &QToolButton::clicked,
                      this, &WuQMacroDialog::stopMacroToolButtonClicked);
 
+    m_recordMacroToolButton = new QToolButton();
+    m_recordMacroToolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    m_recordMacroToolButton->setText("Record");
+    m_recordMacroToolButtonIconOff = createEditingToolButtonPixmap(m_recordMacroToolButton,
+                                                                   EditButton::RECORD_OFF);
+    m_recordMacroToolButtonIconOn  = createEditingToolButtonPixmap(m_recordMacroToolButton,
+                                                                   EditButton::RECORD_ON);
+    m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOff);
+    m_recordMacroToolButton->setToolTip("Record a new macro or record new commands");
+    QObject::connect(m_recordMacroToolButton, &QToolButton::clicked,
+                     this, &WuQMacroDialog::recordMacroToolButtonClicked);
+    
     m_editingMoveUpToolButton = new QToolButton();
     QPixmap moveUpPixmap = createEditingToolButtonPixmap(m_editingMoveUpToolButton,
                                                          EditButton::MOVE_UP);
@@ -265,18 +277,21 @@ WuQMacroDialog::createMacroRunAndEditingToolButtons()
     QObject::connect(m_editingInsertToolButton, &QToolButton::clicked,
                      this, &WuQMacroDialog::editingInsertToolButtonClicked);
     
+    const int spaceAmount(7);
     QWidget* widget = new QWidget();
     QHBoxLayout* toolButtonLayout = new QHBoxLayout(widget);
     toolButtonLayout->setContentsMargins(0, 0, 0, 0);
+    toolButtonLayout->addWidget(m_stopMacroToolButton);
     toolButtonLayout->addWidget(m_runMacroToolButton);
     toolButtonLayout->addWidget(m_pauseMacroToolButton);
-    toolButtonLayout->addWidget(m_stopMacroToolButton);
+    toolButtonLayout->addWidget(m_recordMacroToolButton);
+    toolButtonLayout->addSpacing(3 * spaceAmount);
     toolButtonLayout->addStretch();
     toolButtonLayout->addWidget(m_editingInsertToolButton);
-    toolButtonLayout->addSpacing(10);
+    toolButtonLayout->addSpacing(spaceAmount);
     toolButtonLayout->addWidget(m_editingMoveUpToolButton);
     toolButtonLayout->addWidget(m_editingMoveDownToolButton);
-    toolButtonLayout->addSpacing(10);
+    toolButtonLayout->addSpacing(spaceAmount);
     toolButtonLayout->addWidget(m_editingDeleteToolButton);
     
     return widget;
@@ -1270,6 +1285,47 @@ WuQMacroDialog::stopMacroToolButtonClicked()
 }
 
 /**
+ * Called when record button is clicked
+ */
+void
+WuQMacroDialog::recordMacroToolButtonClicked()
+{
+    bool startRecordingValid(false);
+    bool stopRecordingValid(false);
+    switch (WuQMacroManager::instance()->getMode()) {
+        case WuQMacroModeEnum::OFF:
+            startRecordingValid = true;
+            break;
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
+            stopRecordingValid = true;
+            break;
+        case WuQMacroModeEnum::RUNNING:
+            break;
+    }
+    
+    if (startRecordingValid) {
+        QMenu menu(m_editingInsertToolButton);
+        QAction* newCommandAction = menu.addAction("Record and Insert New Commands Below",
+                                                   this,
+                                                   &WuQMacroDialog::insertMenuRecordNewMacroCommandSelected);
+        newCommandAction->setEnabled(getSelectedMacro() != NULL);
+        
+        menu.addSeparator();
+        
+        QAction* newMacroAction = menu.addAction("Record and Insert Macro Below...",
+                                                 this,
+                                                 &WuQMacroDialog::recordAndInsertNewMacroSelected);
+        newMacroAction->setEnabled(getSelectedMacroGroup() != NULL);
+
+        menu.exec(m_recordMacroToolButton->mapToGlobal(QPoint(0, 0)));
+    }
+    else if (stopRecordingValid) {
+        stopRecordingSelected();
+    }
+}
+
+/**
  * Called when import item is selected
  */
 void
@@ -1549,6 +1605,8 @@ WuQMacroDialog::editingInsertToolButtonClicked()
             break;
     }
     
+    const bool showRecordItemsFlag(false);
+    
     QMenu menu(m_editingInsertToolButton);
 
     /*
@@ -1559,11 +1617,12 @@ WuQMacroDialog::editingInsertToolButtonClicked()
                                                      &WuQMacroDialog::insertMenuNewMacroCommandSelected);
     insertNewCommandAction->setEnabled(insertMacroCommandValidFlag);
 
-    
-    QAction* insertRecordNewCommandAction = menu.addAction("Record and Insert New Commands Below",
-                                                     this,
-                                                     &WuQMacroDialog::insertMenuRecordNewMacroCommandSelected);
-    insertRecordNewCommandAction->setEnabled(insertMacroCommandValidFlag);
+    if (showRecordItemsFlag) {
+        QAction* insertRecordNewCommandAction = menu.addAction("Record and Insert New Commands Below",
+                                                               this,
+                                                               &WuQMacroDialog::insertMenuRecordNewMacroCommandSelected);
+        insertRecordNewCommandAction->setEnabled(insertMacroCommandValidFlag);
+    }
     
     /*
      * Macro items
@@ -1583,17 +1642,12 @@ WuQMacroDialog::editingInsertToolButtonClicked()
                                                &WuQMacroDialog::insertMenuNewMacroSelected);
     insertMenuAction->setEnabled(insertMacroValidFlag);
     
-    QAction* recordNewMacroAction = menu.addAction("Record and Insert Macro Below...",
-                                              this,
-                                              &WuQMacroDialog::recordAndInsertNewMacroSelected);
-    recordNewMacroAction->setEnabled(insertMacroValidFlag);
-    
-    menu.addSeparator();
-    
-    QAction* stopRecordingAction = menu.addAction("Stop Recording",
-                                                  this,
-                                                  &WuQMacroDialog::stopRecordingSelected);
-    stopRecordingAction->setEnabled(stopValidFlag);
+    if (showRecordItemsFlag) {
+        QAction* recordNewMacroAction = menu.addAction("Record and Insert Macro Below...",
+                                                       this,
+                                                       &WuQMacroDialog::recordAndInsertNewMacroSelected);
+        recordNewMacroAction->setEnabled(insertMacroValidFlag);
+    }
     
     menu.exec(m_editingInsertToolButton->mapToGlobal(QPoint(0, 0)));
 }
@@ -1853,6 +1907,23 @@ WuQMacroDialog::updateEditingToolButtons()
     m_editingInsertToolButton->setEnabled(insertValid);
     m_editingMoveDownToolButton->setEnabled(moveDownValid);
     m_editingMoveUpToolButton->setEnabled(moveUpValid);
+
+    m_recordMacroToolButton->setEnabled(true);
+    switch (WuQMacroManager::instance()->getMode()) {
+        case WuQMacroModeEnum::OFF:
+            m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOff);
+            break;
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+            m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOn);
+            break;
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
+            m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOn);
+            break;
+        case WuQMacroModeEnum::RUNNING:
+            m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOff);
+            m_recordMacroToolButton->setEnabled(true);
+            break;
+    }
 }
 
 /**
@@ -1883,6 +1954,14 @@ WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
         case EditButton::MOVE_UP:
             break;
         case EditButton::PAUSE:
+            break;
+        case EditButton::RECORD_OFF:
+            /* allow background */
+            //pixmapOptions = 0;
+            break;
+        case EditButton::RECORD_ON:
+            /* allow background */
+            pixmapOptions = 0;
             break;
         case EditButton::RUN:
             /* allow background */
@@ -1947,18 +2026,33 @@ WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
             painter->drawLine(QPointF( x,  y), QPointF( x, -y));
         }
             break;
+        case EditButton::RECORD_OFF:
+        {
+            painter->setPen(Qt::red);
+            painter->drawEllipse(QPointF(0, 0),
+                                 maxValue, maxValue);
+        }
+            break;
+        case EditButton::RECORD_ON:
+        {
+            painter->setPen(Qt::red);
+            painter->setBrush(Qt::red);
+            painter->drawEllipse(QPointF(0, 0),
+                                 maxValue, maxValue);
+        }
+            break;
         case EditButton::RUN:
         {
             /*
              * Triangle
              */
-            painter->setPen(Qt::green);
-            painter->setBrush(Qt::green);
+            const qreal y = maxValue * 0.85;
+            painter->setBrush(pen.color());
             const qreal p = pixmapSize / 3;
             const QPointF points[3] = {
-                QPointF(-p, -maxValue),
+                QPointF(-p, -y),
                 QPointF( p, 0.0),
-                QPointF(-p,  maxValue)
+                QPointF(-p,  y)
             };
             painter->drawConvexPolygon(points, 3);
         }
@@ -1966,21 +2060,17 @@ WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
         case EditButton::STOP:
         {
             /*
-             * Hexagon
+             * Square
              */
-            painter->setPen(Qt::red);
-            painter->setBrush(Qt::red);
-            const qreal r = pixmapSize / 2;
-            const qreal r2 = r / 2.0;
-            const QPointF points[6] = {
-                QPointF( -r, 0.0),
-                QPointF(-r2, -r),
-                QPointF( r2, -r),
-                QPointF(  r, 0.0),
-                QPointF( r2, r),
-                QPointF(-r2, r)
+            painter->setBrush(pen.color());
+            const qreal a = maxValue * 0.85;
+            const QPointF points[4] = {
+                QPointF(-a, -a),
+                QPointF( a, -a),
+                QPointF( a,  a),
+                QPointF(-a,  a)
             };
-            painter->drawConvexPolygon(points, 6);
+            painter->drawConvexPolygon(points, 4);
         }
             break;
     }
