@@ -51,6 +51,7 @@
 #include "DataToolTipsManager.h"
 #include "DeveloperFlagsEnum.h"
 #include "DummyFontTextRenderer.h"
+#include "ElapsedTimer.h"
 #include "EventBrainReset.h"
 #include "EventImageCapture.h"
 #include "EventModelGetAll.h"
@@ -1715,6 +1716,8 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             
             if (captureAutomaticImageForMovieFlag
                 || captureManualImageForMovieFlag) {
+                const bool showTimingResultFlag(false);
+                
                 int captureRegionOffsetX(0);
                 int captureRegionOffsetY(0);
                 int captureRegionWidth(0);
@@ -1784,6 +1787,8 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                                     adjustImageSizeFlag = true;
                                 }
                                 
+                                ElapsedTimer timer;
+                                timer.start();
                                 EventImageCapture captureEvent(this->windowIndex,
                                                                captureRegionOffsetX,
                                                                captureRegionOffsetY,
@@ -1792,6 +1797,9 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                                                                captureWidth,
                                                                captureHeight);
                                 captureImage(&captureEvent);
+                                if (showTimingResultFlag) {
+                                    std::cout << "Capture time: " << timer.getElapsedTimeSeconds() << std::endl;
+                                }
                                 
                                 if (captureEvent.isError()) {
                                     CaretLogSevere("Failed to capture image of graphics for movie recording");
@@ -1842,11 +1850,16 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                         }
                         
                         if (imageValid) {
+                            ElapsedTimer imageTimer;
+                            imageTimer.start();
                             if (captureAutomaticImageForMovieFlag) {
                                 movieRecorder->addImageToMovie(&image);
                             }
                             else if (captureManualImageForMovieFlag) {
                                 movieRecorder->addImageToMovieWithManualDuration(&image);
+                            }
+                            if (showTimingResultFlag) {
+                                std::cout << "   Image write time: " << imageTimer.getElapsedTimeSeconds() << std::endl;
                             }
                             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE);
                         }
