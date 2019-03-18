@@ -479,13 +479,13 @@ WuQMacroDialog::createRunOptionsWidget()
     row++;
     runOptionsLayout->addWidget(m_runOptionLoopCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
-    runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    runOptionsLayout->addWidget(m_ignoreDelaysAndDurationsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
-    runOptionsLayout->addWidget(m_runOptionRecordMovieWhileMacroRunsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     runOptionsLayout->addWidget(m_runOptionStopAfterSelectedCommandCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
-    runOptionsLayout->addWidget(m_ignoreDelaysAndDurationsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    runOptionsLayout->addWidget(m_runOptionRecordMovieWhileMacroRunsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
 
     return widget;
