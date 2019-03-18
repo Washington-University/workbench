@@ -439,7 +439,6 @@ WuQMacroDialog::createRunOptionsWidget()
     
     m_runOptionLoopCheckBox = new QCheckBox("Loop");
     m_runOptionLoopCheckBox->setChecked(false);
-    m_runOptionLoopCheckBox->setEnabled(false);
     QObject::connect(m_runOptionLoopCheckBox, &QCheckBox::clicked,
                      this, &WuQMacroDialog::runOptionLoopCheckBoxClicked);
 
@@ -1266,11 +1265,16 @@ WuQMacroDialog::runMacroToolButtonClicked()
     m_macroIsRunningFlag = true;
     updateEditingToolButtons();
     QApplication::processEvents();
-    WuQMacroManager::instance()->runMacro(window,
-                                          macro,
-                                          getSelectedMacroCommand());
+    WuQMacro* lastMacroRun = WuQMacroManager::instance()->runMacro(window,
+                                                                   macro,
+                                                                   getSelectedMacroCommand());
     m_macroIsRunningFlag = false;
     
+    if (lastMacroRun != getSelectedMacro()) {
+        QModelIndex modelIndex = macro->index();
+        m_treeView->setCurrentIndex(modelIndex);
+        treeItemSelected(modelIndex);
+    }
     updateEditingToolButtons();
 }
 

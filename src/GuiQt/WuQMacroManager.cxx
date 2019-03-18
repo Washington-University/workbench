@@ -636,65 +636,76 @@ WuQMacroManager::updateNonModalDialogs()
  * 
  * @param widget
  *     Widget used for parent of dialogs
- * @param macro
+ * @param macroToRun
  *     Macro that is run
  * @param macroCommandToStopAfter
  *     Macro command that the executor may stop after, depending upon options
+ * @return
+ *     Pointer to macro that was last run.  The selected macro could change
+ *     when looping is enabled.
  */
-void
+WuQMacro*
 WuQMacroManager::runMacro(QWidget* widget,
-                          const WuQMacro* macro,
+                          const WuQMacro* macroToRun,
                           const WuQMacroCommand* macroCommandToStopAfter)
 {
     CaretAssert(widget);
-    CaretAssert(macro);
+    CaretAssert(macroToRun);
+    WuQMacro* macro(const_cast<WuQMacro*>(macroToRun));
     
-    
-    QString errorMessage;
-    m_macroExecutor = new WuQMacroExecutor();
-    QObject::connect(m_macroExecutor, &WuQMacroExecutor::macroCommandAboutToStart,
-                     this, &WuQMacroManager::macroCommandStartingExecution);
-    QObject::connect(m_macroExecutor, &WuQMacroExecutor::macroCommandHasCompleted,
-                     this, &WuQMacroManager::macroCommandCompletedExecution);
-
-    m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::RUN);
-    
-    if (m_macroHelper != NULL) {
-        m_macroHelper->macroExecutionStarting(macro,
-                                              widget,
-                                              m_executorOptions.get());
+    bool resultFlag(false);
+    bool loopFlag(true);
+    while (loopFlag) {
+        loopFlag = m_executorOptions->isLooping();
+        QString errorMessage;
+        m_macroExecutor = new WuQMacroExecutor();
+        QObject::connect(m_macroExecutor, &WuQMacroExecutor::macroCommandAboutToStart,
+                         this, &WuQMacroManager::macroCommandStartingExecution);
+        QObject::connect(m_macroExecutor, &WuQMacroExecutor::macroCommandHasCompleted,
+                         this, &WuQMacroManager::macroCommandCompletedExecution);
+        
+        m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::RUN);
+        
+        if (m_macroHelper != NULL) {
+            m_macroHelper->macroExecutionStarting(macro,
+                                                  widget,
+                                                  m_executorOptions.get());
+        }
+        resultFlag = m_macroExecutor->runMacro(macro,
+                                               macroCommandToStopAfter,
+                                               widget,
+                                               m_parentObjects,
+                                               m_macroExecutorMonitor,
+                                               m_executorOptions.get(),
+                                               errorMessage);
+        if (m_macroHelper != NULL) {
+            m_macroHelper->macroExecutionEnding(macro,
+                                                widget,
+                                                m_executorOptions.get());
+        }
+        
+        m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::STOP);
+        
+        if ( ! resultFlag) {
+            QMessageBox::critical(widget,
+                                  "Run Macro Error",
+                                  errorMessage,
+                                  QMessageBox::Ok,
+                                  QMessageBox::NoButton);
+            loopFlag = false;
+        }
+        
+        /*
+         * Mutex needed so stop() method does not try
+         * to access an invalid pointer to executor.
+         */
+        QMutexLocker locker(&m_macroExecutorMutex);
+        delete m_macroExecutor;
+        m_macroExecutor = NULL;
+        locker.unlock();
     }
-    const bool resultFlag = m_macroExecutor->runMacro(macro,
-                                                      macroCommandToStopAfter,
-                                                      widget,
-                                                      m_parentObjects,
-                                                      m_macroExecutorMonitor,
-                                                      m_executorOptions.get(),
-                                                      errorMessage);
-    if (m_macroHelper != NULL) {
-        m_macroHelper->macroExecutionEnding(macro,
-                                            widget,
-                                            m_executorOptions.get());
-    }
-
-    m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::STOP);
     
-    if ( ! resultFlag) {
-        QMessageBox::critical(widget,
-                              "Run Macro Error",
-                              errorMessage,
-                              QMessageBox::Ok,
-                              QMessageBox::NoButton);
-    }
-    
-    /*
-     * Mutex needed so stop() method does not try
-     * to access an invalid pointer to executor.
-     */
-    QMutexLocker locker(&m_macroExecutorMutex);
-    delete m_macroExecutor;
-    m_macroExecutor = NULL;
-    locker.unlock();
+    return macro;
 }
 
 /**
