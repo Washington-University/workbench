@@ -103,6 +103,8 @@ namespace caret {
         
         void runOptionLoopCheckBoxClicked(bool);
         
+        void runOptionResetAtEndOfMacroCheckBoxClicked(bool);
+        
         void runOptionRecordMovieCheckBoxClicked(bool);
         
         void runOptionStopAfterSelectedCommandCheckBoxClicked(bool);
@@ -234,6 +236,8 @@ namespace caret {
         QComboBox* m_runOptionsWindowComboBox;
         
         QCheckBox* m_runOptionLoopCheckBox;
+        
+        QCheckBox* m_runOptionResetAtEndOfMacroCheckBox;
         
         QCheckBox* m_runOptionMoveMouseCheckBox;
         

@@ -124,6 +124,20 @@ namespace caret {
                                           const WuQMacroExecutorOptions* executorOptions) = 0;
         
         /**
+         * Reset the macro to its beginning state
+         *
+         * @param macro
+         *    Macro that is run
+         * @param window
+         *     Widget for parent
+         * @return
+         *     Pointer to current macro.  May be different than the macro
+         *     passsed in.
+         */
+        virtual WuQMacro* resetMacroStateToBeginning(const WuQMacro* macro,
+                                                     QWidget* window) = 0;
+        
+        /**
          * Called by macro executor just after a command has completed execution
          *
          * @param window

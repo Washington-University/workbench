@@ -42,6 +42,7 @@
 #include "SessionManager.h"
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WbMacroCustomDataTypeEnum.h"
+#include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
 #include "WuQMacroExecutorMonitor.h"
@@ -269,6 +270,78 @@ WbMacroHelper::macroExecutionEnding(const WuQMacro* /*macro*/,
     movieRecorder->setRecordingMode(m_savedRecordingMode);
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE);
 }
+
+/**
+ * Reset the macro to its beginning state
+ *
+ * @param macro
+ *    Macro that is run
+ * @param window
+ *     Widget for parent
+ * @return
+ *     Pointer to current macro.  May be different than the macro
+ *     passsed in.
+ */
+WuQMacro*
+WbMacroHelper::resetMacroStateToBeginning(const WuQMacro* macro,
+                                          QWidget* window)
+{
+    CaretAssert(macro);
+    
+    WuQMacro* macroOut = const_cast<WuQMacro*>(macro);
+    
+    BrainBrowserWindow* bbw = dynamic_cast<BrainBrowserWindow*>(window);
+    
+    EventSceneActive sceneEvent(EventSceneActive::MODE_GET);
+    EventManager::get()->sendEvent(sceneEvent.getPointer());
+    Scene* scene = sceneEvent.getScene();
+    if (scene != NULL) {
+        WuQMacroGroup* macroGroup = scene->getMacroGroup();
+        CaretAssert(macroGroup);
+        const QString macroName  = macroOut->getName();
+        const int32_t macroIndex = macroGroup->getIndexOfMacro(macroOut);
+        
+        /*
+         * Reload scene
+         */
+        SceneFile* invalidSceneFile(NULL);
+        const bool showSceneDialogFlag(false);
+        GuiManager::get()->processShowSceneDialogAndScene(bbw,
+                                                          invalidSceneFile,
+                                                          scene,
+                                                          showSceneDialogFlag);
+        
+        macroOut = NULL;
+        
+        /*
+         * Find macro that was previously selected
+         */
+        EventManager::get()->sendEvent(sceneEvent.getPointer());
+        scene = sceneEvent.getScene();
+        if (scene != NULL) {
+            macroGroup = scene->getMacroGroup();
+            CaretAssert(macroGroup);
+            if ((macroIndex >= 0)
+                && (macroIndex < macroGroup->getNumberOfMacros())) {
+                macroOut = macroGroup->getMacroAtIndex(macroIndex);
+                
+                if (macroOut->getName() != macroName) {
+                    for (int32_t i = 0; i < macroGroup->getNumberOfMacros(); i++) {
+                        WuQMacro* m = macroGroup->getMacroAtIndex(i);
+                        if (m->getName() == macroName) {
+                            macroOut = m;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    return macroOut;
+}
+
+
 /**
  * Called by macro executor just after a command has completed execution
  *

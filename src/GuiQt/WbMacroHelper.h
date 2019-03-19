@@ -65,6 +65,9 @@ namespace caret {
         virtual void macroExecutionEnding(const WuQMacro* macro,
                                           QWidget* window,
                                           const WuQMacroExecutorOptions* executorOptions) override;
+
+        virtual WuQMacro* resetMacroStateToBeginning(const WuQMacro* macro,
+                                                     QWidget* window) override;
         
         virtual void macroCommandHasCompleted(QWidget* window,
                                               const WuQMacroCommand* command,
