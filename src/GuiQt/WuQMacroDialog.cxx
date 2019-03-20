@@ -92,25 +92,43 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     QObject::connect(m_macroGroupComboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
                      this, &WuQMacroDialog::macroGroupComboBoxActivated);
     
+    m_resetMacroGroupToolButton = new QToolButton();
+    m_resetMacroGroupToolButton->setText("");
+    m_resetMacroGroupToolButton->setToolTip("Reload current scene");
+    QPixmap resetPixmap = createEditingToolButtonPixmap(m_resetMacroGroupToolButton,
+                                                       EditButton::RESET);
+    m_resetMacroGroupToolButton->setIcon(resetPixmap);
+    QObject::connect(m_resetMacroGroupToolButton, &QToolButton::clicked,
+                     this, &WuQMacroDialog::macroGroupResetToolButtonClicked);
+    
     m_macroGroupToolButton = new QToolButton();
     m_macroGroupToolButton->setText("...");
     m_macroGroupToolButton->setToolTip("Export and import macro groups");
     QObject::connect(m_macroGroupToolButton, &QToolButton::clicked,
                      this, &WuQMacroDialog::macroGroupToolButtonClicked);
     
+    QSize buttonSize(std::max(m_resetMacroGroupToolButton->sizeHint().width(),
+                            m_macroGroupToolButton->sizeHint().width()),
+                     std::max(m_resetMacroGroupToolButton->sizeHint().height(),
+                              m_macroGroupToolButton->sizeHint().height()));
+    m_resetMacroGroupToolButton->setFixedSize(buttonSize);
+    m_macroGroupToolButton->setFixedSize(buttonSize);
+
     QGridLayout* gridLayout = new QGridLayout();
     gridLayout->setContentsMargins(0, 0, 0, 0);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 100);
     gridLayout->setColumnStretch(2, 0);
+    gridLayout->setColumnStretch(3, 0);
     int row = 0;
     gridLayout->addWidget(macroGroupLabel, row, 0);
     gridLayout->addWidget(m_macroGroupComboBox, row, 1);
-    gridLayout->addWidget(m_macroGroupToolButton, row, 2);
+    gridLayout->addWidget(m_resetMacroGroupToolButton, row, 2);
+    gridLayout->addWidget(m_macroGroupToolButton, row, 3);
     row++;
-    gridLayout->addWidget(createHorizontalLine(), row, 0, 1, 3);
+    gridLayout->addWidget(createHorizontalLine(), row, 0, 1, 4);
     row++;
-    gridLayout->addWidget(createMacroRunAndEditingToolButtons(), row, 0, 1, 3);
+    gridLayout->addWidget(createMacroRunAndEditingToolButtons(), row, 0, 1, 4);
     row++;
     
     for (int32_t iRow = 0; iRow < gridLayout->rowCount(); iRow++) {
@@ -443,7 +461,7 @@ WuQMacroDialog::createRunOptionsWidget()
     QObject::connect(m_runOptionLoopCheckBox, &QCheckBox::clicked,
                      this, &WuQMacroDialog::runOptionLoopCheckBoxClicked);
 
-    m_runOptionResetAtEndOfMacroCheckBox = new QCheckBox("Reset at end of macro");
+    m_runOptionResetAtEndOfMacroCheckBox = new QCheckBox("Reload scene at end of macro");
     m_runOptionResetAtEndOfMacroCheckBox->setChecked(false);
     m_runOptionResetAtEndOfMacroCheckBox->setToolTip("When macro completes, reset to state at beginning of macro");
     QObject::connect(m_runOptionResetAtEndOfMacroCheckBox, &QCheckBox::clicked,
@@ -1266,23 +1284,8 @@ WuQMacroDialog::runMacroToolButtonClicked()
         return;
     }
     
-    const QString windowID = m_runOptionsWindowComboBox->currentText();
-    QWidget* window = WuQMacroManager::instance()->getMainWindowWithIdentifier(windowID);
-    if (window == NULL) {
-        window = this;
-        while (window != NULL) {
-            if (qobject_cast<QMainWindow*>(window) != NULL) {
-                break;
-            }
-            else {
-                window = window->parentWidget();
-            }
-        }
-        if (window == NULL) {
-            window = parentWidget();
-        }
-    }
-    
+    QWidget* window = getWindow();
+
     /*
      * While macro runs, edit buttons are disabled
      */
@@ -1300,6 +1303,32 @@ WuQMacroDialog::runMacroToolButtonClicked()
         treeItemSelected(modelIndex);
     }
     updateEditingToolButtons();
+}
+
+/**
+ * @return the parent main window
+ */
+QWidget*
+WuQMacroDialog::getWindow()
+{
+    const QString windowID = m_runOptionsWindowComboBox->currentText();
+    QWidget* window = WuQMacroManager::instance()->getMainWindowWithIdentifier(windowID);
+    if (window == NULL) {
+        window = this;
+        while (window != NULL) {
+            if (qobject_cast<QMainWindow*>(window) != NULL) {
+                break;
+            }
+            else {
+                window = window->parentWidget();
+            }
+        }
+        if (window == NULL) {
+            window = parentWidget();
+        }
+    }
+    
+    return window;
 }
 
 /**
@@ -1452,6 +1481,21 @@ WuQMacroDialog::macroGroupToolButtonClicked()
     menu->exec(mapToGlobal(m_macroGroupToolButton->pos()));
     
     delete menu;
+}
+
+/**
+ * Called when macro group reset tool button is clicked
+ */
+void
+WuQMacroDialog::macroGroupResetToolButtonClicked()
+{
+    WuQMacro* macro = WuQMacroManager::instance()->resetMacro(getWindow(),
+                                                              getSelectedMacro());
+    updateDialogContents();
+    if (macro != NULL) {
+        m_treeView->setCurrentIndex(macro->index());
+        treeItemSelected(macro->index());
+    }
 }
 
 /**
@@ -1984,10 +2028,12 @@ WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
         case EditButton::PAUSE:
             break;
         case EditButton::RECORD_OFF:
-            /* allow background */
-            //pixmapOptions = 0;
             break;
         case EditButton::RECORD_ON:
+            /* allow background */
+            pixmapOptions = 0;
+            break;
+        case EditButton::RESET:
             /* allow background */
             pixmapOptions = 0;
             break;
@@ -2067,6 +2113,39 @@ WuQMacroDialog::createEditingToolButtonPixmap(const QWidget* widget,
             painter->setBrush(Qt::red);
             painter->drawEllipse(QPointF(0, 0),
                                  maxValue, maxValue);
+        }
+            break;
+        case EditButton::RESET:
+        {
+            QPen pen = painter->pen();
+            pen.setWidth(2);
+            painter->setPen(pen);
+            /*
+             * From drawArc() documentation
+             *  Zero is at 3 o'clock
+             *  Units are 1/16th of a degree
+             *  Positive is counter-clockwise
+             * BUT perhaps due to us transforming coordinate system positive is clockwise
+             */
+            const int sz(4);
+            const int widthHeight(maxValue * 2 - sz);
+            QRect rectangle(-maxValue, -maxValue, widthHeight, widthHeight);
+            const int startAngle(0);
+            const int spanAngle(270 * 16);
+            painter->drawArc(rectangle,
+                             startAngle,
+                             spanAngle);
+            
+            const int ts(sz + 2);
+            const int x(-maxValue + widthHeight/2);
+            const int y(-maxValue + widthHeight);
+            QPoint trianglePoints[3] = {
+                { x, y + ts },
+                { x + ts, y },
+                { x, y - ts }
+            };
+            painter->setBrush(pen.color());
+            painter->drawPolygon(trianglePoints, 3);
         }
             break;
         case EditButton::RUN:

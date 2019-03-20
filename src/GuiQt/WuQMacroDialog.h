@@ -93,6 +93,8 @@ namespace caret {
         
         void macroGroupToolButtonClicked();
         
+        void macroGroupResetToolButtonClicked();
+        
         void macroNameLineEditTextEdited(const QString& text);
         
         void macroDescriptionTextEditChanged();
@@ -166,6 +168,7 @@ namespace caret {
             PAUSE,
             RECORD_OFF,
             RECORD_ON,
+            RESET,
             RUN,
             STOP
         };
@@ -205,9 +208,13 @@ namespace caret {
         
         void insertNewMacro(WuQMacro* macro);
         
+        QWidget* getWindow();
+        
         std::vector<WuQMacroGroup*> m_macroGroups;
         
         QComboBox* m_macroGroupComboBox;
+        
+        QToolButton* m_resetMacroGroupToolButton;
         
         QToolButton* m_macroGroupToolButton;
         

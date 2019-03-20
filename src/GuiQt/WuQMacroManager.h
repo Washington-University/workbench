@@ -131,6 +131,9 @@ namespace caret {
                            const WuQMacro* macro,
                            const WuQMacroCommand* macroCommandToStopAfter);
         
+        WuQMacro* resetMacro(QWidget* parent,
+                             WuQMacro* macro);
+        
         void stopMacro();
         
         void pauseContinueMacro();

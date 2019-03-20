@@ -710,8 +710,7 @@ WuQMacroManager::runMacro(QWidget* widget,
         if (loopFlag) {
             if (m_executorOptions->isResetAtEndOfMacro()) {
                 if (m_macroHelper != NULL) {
-                    WuQMacro* newMacro = m_macroHelper->resetMacroStateToBeginning(macro,
-                                                                                   widget);
+                    WuQMacro* newMacro = resetMacro(widget, macro);
                     if (newMacro != NULL) {
                         macro = newMacro;
                     }
@@ -801,6 +800,26 @@ WuQMacroManager::macroCommandStartingExecution(QWidget* window,
                                                 executorOptions,
                                                 allowDelayFlagOut);
     }
+}
+
+/**
+ * Reset the given macro
+ *
+ * @param parentg
+ *     Parent for any dialogs
+ * @param macro
+ *     Macro that is reset to beginning state
+ */
+WuQMacro*
+WuQMacroManager::resetMacro(QWidget* parent,
+                            WuQMacro* macro)
+{
+    WuQMacro* newMacro(macro);
+    if (m_macroHelper != NULL) {
+        newMacro = m_macroHelper->resetMacroStateToBeginning(macro,
+                                                             parent);
+    }
+    return newMacro;
 }
 
 /**
