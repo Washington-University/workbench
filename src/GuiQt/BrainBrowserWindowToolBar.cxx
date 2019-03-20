@@ -108,7 +108,6 @@
 #include "ModelTransform.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
-#include "MovieRecordingDialog.h"
 #include "OverlaySet.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
@@ -294,27 +293,14 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                      "Arrow displays a menu for loading scenes "
                                      "including reloading or the current scene.");
     QToolButton* sceneDialogToolButton = new QToolButton();
-    sceneDialogToolButton->setPopupMode(QToolButton::MenuButtonPopup);
     sceneDialogToolButton->setText("");
     sceneDialogToolButton->setIcon(GuiManager::get()->getSceneDialogDisplayAction()->icon());
     sceneDialogToolButton->setDefaultAction(GuiManager::get()->getSceneDialogDisplayAction());
-    sceneDialogToolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     WuQtUtilities::setWordWrappedToolTip(sceneDialogToolButton,
                                          sceneButtonToolTip);
     QObject::connect(sceneDialogToolButton, &QToolButton::clicked,
                      this, &BrainBrowserWindowToolBar::sceneToolButtonClicked);
 
-    /*
-     * The scene dialog tool button menu must be created AFTER the tool button.  Seems weird.
-     * https://forums.autodesk.com/t5/maya-forum/maya-2017-and-qtoolbutton-popup-menu-not-showing/td-p/6927575
-     */
-    m_sceneToolButtonMenu = new QMenu(sceneDialogToolButton);
-    QObject::connect(m_sceneToolButtonMenu, &QMenu::triggered,
-                     this, &BrainBrowserWindowToolBar::sceneToolButtonMenuTriggered);
-    QObject::connect(m_sceneToolButtonMenu, &QMenu::aboutToShow,
-                     this, &BrainBrowserWindowToolBar::sceneToolButtonMenuAboutToShow);
-    sceneDialogToolButton->setMenu(m_sceneToolButtonMenu);
-    
     /*
      * Movie button
      */
@@ -330,17 +316,10 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     m_movieToolButton = new QToolButton();
     WuQtUtilities::setWordWrappedToolTip(m_movieToolButton,
                                          movieButtonToolTip);
-    m_movieToolButton->setPopupMode(QToolButton::MenuButtonPopup);
     m_movieToolButton->setText(movieButtonText);
     m_movieToolButton->setIcon(movieIcon);
-    m_movieToolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     QObject::connect(m_movieToolButton, &QToolButton::clicked,
                      parentBrainBrowserWindow, &BrainBrowserWindow::processMovieRecording);
-    
-    QMenu* movieToolButtonMenu = new QMenu();
-    movieToolButtonMenu->addAction("Create Movie...",
-                                   this, &BrainBrowserWindowToolBar::createMovieToolButtonMenuItemTriggered);
-    m_movieToolButton->setMenu(movieToolButtonMenu);
     
     /*
      * Macros button
@@ -4088,63 +4067,6 @@ void
 BrainBrowserWindowToolBar::sceneToolButtonClicked()
 {
     GuiManager::get()->getSceneDialogDisplayAction()->trigger();
-}
-
-/**
- * Called when an item is selected from the scene tool button menu
- *
- * @param action
- *     Action of menu selected
- */
-void
-BrainBrowserWindowToolBar::sceneToolButtonMenuTriggered(QAction* action)
-{
-    if (action != NULL) {
-        void* scenePointer = action->data().value<void*>();
-        if (scenePointer != NULL) {
-            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
-            CaretAssert(bbw);
-            
-            Scene* scene = (Scene*)scenePointer;
-            SceneFile* invalidSceneFile(NULL);
-            const bool showSceneDialogFlag(false);
-            GuiManager::get()->processShowSceneDialogAndScene(bbw,
-                                                              invalidSceneFile,
-                                                              scene,
-                                                              showSceneDialogFlag);
-        }
-    }
-}
-
-/**
- * Called when the scene menu is about to show
- */
-void
-BrainBrowserWindowToolBar::sceneToolButtonMenuAboutToShow()
-{
-    m_sceneToolButtonMenu->clear();
-    
-    EventSceneActive sceneEvent(EventSceneActive::MODE_GET);
-    EventManager::get()->sendEvent(sceneEvent.getPointer());
-    Scene* activeScene = sceneEvent.getScene();
-    if (activeScene != NULL) {
-        QString name(activeScene->getName().trimmed());
-        if (name.isEmpty()) {
-            name = "<no-name>";
-        }
-        QAction* action = m_sceneToolButtonMenu->addAction("Reload Current Scene: "
-                                                           + name);
-        action->setData(qVariantFromValue((void*)activeScene));
-    }
-}
-
-/**
- * Called create movie menu item is selected from movie tool button
- */
-void
-BrainBrowserWindowToolBar::createMovieToolButtonMenuItemTriggered()
-{
-    MovieRecordingDialog::createMovie(m_movieToolButton);
 }
 
 /**

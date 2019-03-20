@@ -297,13 +297,7 @@ namespace caret {
         
         void customViewActionTriggered();
         
-        void sceneToolButtonMenuTriggered(QAction* action);
-        
-        void sceneToolButtonMenuAboutToShow();
-        
         void sceneToolButtonClicked();
-        
-        void createMovieToolButtonMenuItemTriggered();
         
     private:
         QAction* orientationLateralMedialToolButtonAction;
@@ -341,8 +335,6 @@ namespace caret {
         QIcon* viewOrientationLeftMedialIcon;
         QIcon* viewOrientationRightLateralIcon;
         QIcon* viewOrientationRightMedialIcon;
-        
-        QMenu* m_sceneToolButtonMenu = NULL;
         
         QToolButton* m_movieToolButton = NULL;
         
