@@ -1951,13 +1951,10 @@ GuiManager::processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
     const bool updateSceneDialogFlag(showSceneDialogFlag
                                      || (this->sceneDialog != NULL));
     if (updateSceneDialogFlag) {
-        showHideSceneDialog(true,
-                            browserWindow);
-
-        const bool sceneWasDisplayed = this->sceneDialog->displayScene(sceneFile,
-                                                                       scene);
-        if (sceneWasDisplayed) {
-            showHideSceneDialog(false,
+        this->sceneDialog->displayScene(sceneFile,
+                                        scene);
+        if (showSceneDialogFlag) {
+            showHideSceneDialog(true,
                                 NULL);
         }
     }

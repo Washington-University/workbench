@@ -311,6 +311,9 @@ WbMacroHelper::resetMacroStateToBeginning(const WuQMacro* macro,
                                                           scene,
                                                           showSceneDialogFlag);
         
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        
         macroOut = NULL;
         
         /*

@@ -25,6 +25,7 @@
 
 #include <set>
 
+#include <QAbstractButton>
 #include <QAction>
 #include <QApplication>
 #include <QFileDialog>
@@ -687,8 +688,8 @@ WuQMacroManager::runMacro(QWidget* widget,
         m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::STOP);
         
         if ( ! resultFlag) {
-            QMessageBox::critical(widget,
-                                  "Run Macro Error",
+            QMessageBox::information(widget,
+                                  "Macro Done",
                                   errorMessage,
                                   QMessageBox::Ok,
                                   QMessageBox::NoButton);
@@ -706,6 +707,14 @@ WuQMacroManager::runMacro(QWidget* widget,
         
         if (loopFlag) {
             if (m_macroHelper != NULL) {
+                QMessageBox* msgBox = new QMessageBox(QMessageBox::Information,
+                                                      "Wait",
+                                                      "Reloading scene",
+                                                      QMessageBox::Ok,
+                                                      widget);
+                msgBox->button(QMessageBox::Ok)->setVisible(false);
+                msgBox->show();
+                
                 WuQMacro* newMacro = resetMacro(widget, macro);
                 if (newMacro != NULL) {
                     macro = newMacro;
@@ -713,6 +722,9 @@ WuQMacroManager::runMacro(QWidget* widget,
                 else {
                     loopFlag = false;
                 }
+                
+                msgBox->hide();
+                msgBox->deleteLater();
             }
         }
     }
