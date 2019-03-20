@@ -461,12 +461,6 @@ WuQMacroDialog::createRunOptionsWidget()
     QObject::connect(m_runOptionLoopCheckBox, &QCheckBox::clicked,
                      this, &WuQMacroDialog::runOptionLoopCheckBoxClicked);
 
-    m_runOptionResetAtEndOfMacroCheckBox = new QCheckBox("Reload scene at end of macro");
-    m_runOptionResetAtEndOfMacroCheckBox->setChecked(false);
-    m_runOptionResetAtEndOfMacroCheckBox->setToolTip("When macro completes, reset to state at beginning of macro");
-    QObject::connect(m_runOptionResetAtEndOfMacroCheckBox, &QCheckBox::clicked,
-                     this, &WuQMacroDialog::runOptionResetAtEndOfMacroCheckBoxClicked);
-    
     m_runOptionMoveMouseCheckBox = new QCheckBox("Move mouse to to highlight controls");
     m_runOptionMoveMouseCheckBox->setChecked(true);
     m_runOptionMoveMouseCheckBox->setToolTip("As macro runs, the mouse is moved to\n"
@@ -495,8 +489,6 @@ WuQMacroDialog::createRunOptionsWidget()
     runOptionsLayout->addWidget(m_runOptionsWindowComboBox, row, 1, Qt::AlignLeft);
     row++;
     runOptionsLayout->addWidget(m_runOptionLoopCheckBox, row, 0, 1, 2, Qt::AlignLeft);
-    row++;
-    runOptionsLayout->addWidget(m_runOptionResetAtEndOfMacroCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     runOptionsLayout->addWidget(m_ignoreDelaysAndDurationsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
@@ -534,20 +526,6 @@ WuQMacroDialog::runOptionLoopCheckBoxClicked(bool checked)
     WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
     CaretAssert(options);
     options->setLooping(checked);
-}
-
-/**
- * Called when run options reset at end of macro checkbox is changed
- *
- * @param checked
- *     New checked status.
- */
-void
-WuQMacroDialog::runOptionResetAtEndOfMacroCheckBoxClicked(bool checked)
-{
-    WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
-    CaretAssert(options);
-    options->setResetAtEndOfMacro(checked);
 }
 
 /**
@@ -722,7 +700,6 @@ WuQMacroDialog::updateDialogContents()
     CaretAssert(runOptions);
     m_runOptionMoveMouseCheckBox->setChecked(runOptions->isShowMouseMovement());
     m_runOptionLoopCheckBox->setChecked(runOptions->isLooping());
-    m_runOptionResetAtEndOfMacroCheckBox->setChecked(runOptions->isResetAtEndOfMacro());
     m_runOptionRecordMovieWhileMacroRunsCheckBox->setChecked(runOptions->isRecordMovieDuringExecution());
     m_ignoreDelaysAndDurationsCheckBox->setChecked(runOptions->isIgnoreDelaysAndDurations());
     

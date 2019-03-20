@@ -87,7 +87,6 @@ void
 WuQMacroExecutorOptions::copyHelperWuQMacroExecutorOptions(const WuQMacroExecutorOptions& obj)
 {
     m_loopingFlag                    = obj.m_loopingFlag;
-    m_resetAtEndOfMacroFlag          = obj.m_resetAtEndOfMacroFlag;
     m_stopOnErrorFlag                = obj.m_stopOnErrorFlag;
     m_showMouseMovementFlag          = obj.m_showMouseMovementFlag;
     m_recordMovieDuringExecutionFlag = obj.m_recordMovieDuringExecutionFlag;
@@ -166,26 +165,6 @@ void
 WuQMacroExecutorOptions::setLooping(const bool status)
 {
     m_loopingFlag = status;
-}
-
-/**
- * @return Reset when macro completes.  If looping is on,
- * reset is performed at end of each loop.
- */
-bool
-WuQMacroExecutorOptions::isResetAtEndOfMacro() const
-{
-    return m_resetAtEndOfMacroFlag;
-}
-
-/**
- * Set reset when macro completes.  If looping is on,
- * reset is performed at end of each loop.
- */
-void
-WuQMacroExecutorOptions::setResetAtEndOfMacro(const bool status)
-{
-    m_resetAtEndOfMacroFlag = status;
 }
 
 /**

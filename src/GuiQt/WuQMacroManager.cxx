@@ -704,19 +704,14 @@ WuQMacroManager::runMacro(QWidget* widget,
         m_macroExecutor = NULL;
         locker.unlock();
         
-        /*
-         * May want to reset state to before macro was run
-         */
         if (loopFlag) {
-            if (m_executorOptions->isResetAtEndOfMacro()) {
-                if (m_macroHelper != NULL) {
-                    WuQMacro* newMacro = resetMacro(widget, macro);
-                    if (newMacro != NULL) {
-                        macro = newMacro;
-                    }
-                    else {
-                        loopFlag = false;
-                    }
+            if (m_macroHelper != NULL) {
+                WuQMacro* newMacro = resetMacro(widget, macro);
+                if (newMacro != NULL) {
+                    macro = newMacro;
+                }
+                else {
+                    loopFlag = false;
                 }
             }
         }

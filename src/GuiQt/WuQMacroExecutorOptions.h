@@ -54,10 +54,6 @@ namespace caret {
 
         void setLooping(const bool status);
 
-        bool isResetAtEndOfMacro() const;
-        
-        void setResetAtEndOfMacro(const bool status);
-        
         bool isRecordMovieDuringExecution() const;
         
         void setRecordMovieDuringExecution(const bool status);
@@ -83,8 +79,6 @@ namespace caret {
         
         bool m_loopingFlag = false;
 
-        bool m_resetAtEndOfMacroFlag = false;
-        
         bool m_recordMovieDuringExecutionFlag = false;
         
         bool m_stopAfterSelectedCommandFlag = false;
