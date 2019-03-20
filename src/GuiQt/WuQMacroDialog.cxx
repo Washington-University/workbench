@@ -1870,6 +1870,7 @@ WuQMacroDialog::updateEditingToolButtons()
     WuQMacro* macro = getSelectedMacro();
     WuQMacroCommand* command = getSelectedMacroCommand();
     
+    bool resetValid(false);
     bool runValid(false);
     bool stopValid(false);
     bool insertValid(false);
@@ -1878,6 +1879,7 @@ WuQMacroDialog::updateEditingToolButtons()
     bool moveDownValid(false);
     bool pauseValid(false);
     bool pauseChecked(false);
+    bool recordValid(false);
 
     if (m_macroIsRunningFlag) {
         pauseValid = true;
@@ -1894,6 +1896,8 @@ WuQMacroDialog::updateEditingToolButtons()
     }
     else {
         insertValid = (macroGroup != NULL);
+        recordValid = (macroGroup != NULL);
+        resetValid  = (macroGroup != NULL);
         
         switch (getSelectedItemType()) {
             case WuQMacroStandardItemTypeEnum::INVALID:
@@ -1926,14 +1930,17 @@ WuQMacroDialog::updateEditingToolButtons()
     
     m_pauseMacroToolButton->setEnabled(pauseValid);
     m_pauseMacroToolButton->setChecked(pauseChecked);
+    m_resetMacroGroupToolButton->setEnabled(resetValid);
+    m_macroGroupToolButton->setEnabled(resetValid);
     m_runMacroToolButton->setEnabled(runValid);
     m_stopMacroToolButton->setEnabled(stopValid);
+    m_recordMacroToolButton->setEnabled(recordValid);
     m_editingDeleteToolButton->setEnabled(deleteValid);
     m_editingInsertToolButton->setEnabled(insertValid);
     m_editingMoveDownToolButton->setEnabled(moveDownValid);
     m_editingMoveUpToolButton->setEnabled(moveUpValid);
 
-    m_recordMacroToolButton->setEnabled(true);
+//    m_recordMacroToolButton->setEnabled(true);
     switch (WuQMacroManager::instance()->getMode()) {
         case WuQMacroModeEnum::OFF:
             m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOff);
@@ -1946,7 +1953,7 @@ WuQMacroDialog::updateEditingToolButtons()
             break;
         case WuQMacroModeEnum::RUNNING:
             m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOff);
-            m_recordMacroToolButton->setEnabled(true);
+//            m_recordMacroToolButton->setEnabled(false);
             break;
     }
 }
