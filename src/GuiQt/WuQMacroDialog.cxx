@@ -1813,6 +1813,35 @@ WuQMacroDialog::insertMenuRecordNewMacroCommandSelected()
 }
 
 /**
+ * Select the given command (if it is not NULL) or the macro (if it is not NULL)
+ *
+ * @param macro
+ *     The macro
+ * @param command
+ *     The macro command
+ */
+void
+WuQMacroDialog::selectMacroCommand(const WuQMacro* macro,
+                                   const WuQMacroCommand* command)
+{
+    QModelIndex selectedIndex;
+    if (command != NULL) {
+        selectedIndex = command->index();
+    }
+    else if (macro != NULL) {
+        if (macro != NULL) {
+            m_treeView->setExpanded(macro->index(),
+                                    true);
+        }
+        selectedIndex = macro->index();
+    }
+    
+    if (selectedIndex.isValid()) {
+        m_treeView->setCurrentIndex(selectedIndex);
+    }
+}
+
+/**
  * Add a new macro command
  */
 void
@@ -1940,7 +1969,6 @@ WuQMacroDialog::updateEditingToolButtons()
     m_editingMoveDownToolButton->setEnabled(moveDownValid);
     m_editingMoveUpToolButton->setEnabled(moveUpValid);
 
-//    m_recordMacroToolButton->setEnabled(true);
     switch (WuQMacroManager::instance()->getMode()) {
         case WuQMacroModeEnum::OFF:
             m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOff);
@@ -1953,7 +1981,6 @@ WuQMacroDialog::updateEditingToolButtons()
             break;
         case WuQMacroModeEnum::RUNNING:
             m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOff);
-//            m_recordMacroToolButton->setEnabled(false);
             break;
     }
 }

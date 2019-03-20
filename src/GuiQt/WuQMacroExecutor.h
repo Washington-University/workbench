@@ -74,6 +74,10 @@ namespace caret {
                                       const WuQMacroExecutorOptions* executorOptions,
                                       bool& allowDelayFlagOut) const;
         
+        void macroCommandStarting(const WuQMacro* macro,
+                                  const WuQMacroCommand* command) const;
+        
+        
     private:
         void moveMouseToTabBarTab(QTabBar* tabBar,
                                   const int32_t tabIndex) const;

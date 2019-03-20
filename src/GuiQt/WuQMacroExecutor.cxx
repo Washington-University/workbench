@@ -353,6 +353,9 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
         const WuQMacroCommand* mc = macro->getMacroCommandAtIndex(i);
         CaretAssert(mc);
         
+        emit macroCommandStarting(macro,
+                                  mc);
+        
         const QString objectName(mc->getObjectName());
         
         bool requiresObjectFlag(false);
@@ -491,6 +494,9 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
         
         QGuiApplication::processEvents();
     }
+    
+    macroCommandStarting(macro,
+                         NULL);
     
     return (errorMessageOut.isEmpty());
 }

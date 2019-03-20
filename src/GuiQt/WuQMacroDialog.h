@@ -74,6 +74,10 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+    public slots:
+        void selectMacroCommand(const WuQMacro* macro,
+                                const WuQMacroCommand* command);
+
     private slots:
         void treeViewItemClicked(const QModelIndex& modelIndex);
         

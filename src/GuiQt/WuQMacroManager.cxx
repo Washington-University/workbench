@@ -665,6 +665,11 @@ WuQMacroManager::runMacro(QWidget* widget,
         QObject::connect(m_macroExecutor, &WuQMacroExecutor::macroCommandHasCompleted,
                          this, &WuQMacroManager::macroCommandCompletedExecution);
         
+        if (m_macrosDialog != NULL) {
+            QObject::connect(m_macroExecutor, &WuQMacroExecutor::macroCommandStarting,
+                             m_macrosDialog, &WuQMacroDialog::selectMacroCommand);
+        }
+        
         m_macroExecutorMonitor->setMode(WuQMacroExecutorMonitor::Mode::RUN);
         
         if (m_macroHelper != NULL) {
