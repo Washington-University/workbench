@@ -109,8 +109,6 @@ namespace caret {
         
         void runOptionRecordMovieCheckBoxClicked(bool);
         
-        void runOptionStopAfterSelectedCommandCheckBoxClicked(bool);
-        
         void runOptionIgnoreDelaysAndDurationsCheckBoxClicked(bool);
         
         void editingMoveUpToolButtonClicked();
@@ -249,8 +247,6 @@ namespace caret {
         QCheckBox* m_runOptionMoveMouseCheckBox;
         
         QCheckBox* m_runOptionRecordMovieWhileMacroRunsCheckBox;
-        
-        QCheckBox* m_runOptionStopAfterSelectedCommandCheckBox;
         
         QCheckBox* m_ignoreDelaysAndDurationsCheckBox;
         

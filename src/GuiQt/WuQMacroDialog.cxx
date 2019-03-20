@@ -480,13 +480,6 @@ WuQMacroDialog::createRunOptionsWidget()
     QObject::connect(m_runOptionRecordMovieWhileMacroRunsCheckBox, &QCheckBox::clicked,
                      this, &WuQMacroDialog::runOptionRecordMovieCheckBoxClicked);
 
-    m_runOptionStopAfterSelectedCommandCheckBox = new QCheckBox("Stop after selected command");
-    const QString stopToolTip("Stop execution of macro after the selected command.  One can also right-click "
-                              "over a command to Run the macro and stop after the command.");
-    m_runOptionStopAfterSelectedCommandCheckBox->setToolTip(QTextDocument(stopToolTip).toHtml());
-    QObject::connect(m_runOptionStopAfterSelectedCommandCheckBox, &QCheckBox::clicked,
-                     this, &WuQMacroDialog::runOptionStopAfterSelectedCommandCheckBoxClicked);
-
     m_ignoreDelaysAndDurationsCheckBox = new QCheckBox("Ignore delays and durations");
     const QString ignoreToolTip("Ignore delays and durations and minimize iterations "
                                 "to quickly execute macro (for debugging)");
@@ -508,8 +501,6 @@ WuQMacroDialog::createRunOptionsWidget()
     runOptionsLayout->addWidget(m_ignoreDelaysAndDurationsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, row, 0, 1, 2, Qt::AlignLeft);
-    row++;
-    runOptionsLayout->addWidget(m_runOptionStopAfterSelectedCommandCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     runOptionsLayout->addWidget(m_runOptionRecordMovieWhileMacroRunsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
@@ -571,20 +562,6 @@ WuQMacroDialog::runOptionRecordMovieCheckBoxClicked(bool checked)
     WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
     CaretAssert(options);
     options->setRecordMovieDuringExecution(checked);
-}
-
-/**
- * Called when run options stop after selected command checkbox is changed
- *
- * @param checked
- *     New checked status.
- */
-void
-WuQMacroDialog::runOptionStopAfterSelectedCommandCheckBoxClicked(bool checked)
-{
-    WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
-    CaretAssert(options);
-    options->setStopAfterSelectedCommand(checked);
 }
 
 /**
@@ -747,7 +724,6 @@ WuQMacroDialog::updateDialogContents()
     m_runOptionLoopCheckBox->setChecked(runOptions->isLooping());
     m_runOptionResetAtEndOfMacroCheckBox->setChecked(runOptions->isResetAtEndOfMacro());
     m_runOptionRecordMovieWhileMacroRunsCheckBox->setChecked(runOptions->isRecordMovieDuringExecution());
-    m_runOptionStopAfterSelectedCommandCheckBox->setChecked(runOptions->isStopAfterSelectedCommand());
     m_ignoreDelaysAndDurationsCheckBox->setChecked(runOptions->isIgnoreDelaysAndDurations());
     
     macroGroupComboBoxActivated(selectedIndex);
