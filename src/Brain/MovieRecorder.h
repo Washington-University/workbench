@@ -25,6 +25,8 @@
 
 #include <memory>
 
+#include <QFuture>
+
 #include "CaretObject.h"
 #include "MovieRecorderCaptureRegionTypeEnum.h"
 #include "MovieRecorderModeEnum.h"
@@ -109,6 +111,28 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        enum class ImageMode {
+            IMMEDITATE,
+            PARALLEL
+        };
+        
+        /**
+         * Used to write images in separate thread
+         */
+        class ImageWriter {
+        public:
+            ImageWriter(const QImage* image,
+                        const QString& filename);
+            
+            ~ImageWriter();
+            
+            bool writeImage();
+        private:
+            std::unique_ptr<QImage> m_image;
+            
+            const QString m_filename;
+        };
+        
         // ADD_NEW_MEMBERS_HERE
 
         bool createMovieWithSystemCommand(const QString& programName,
@@ -126,6 +150,8 @@ namespace caret {
         
         void initializeMovieFileName() const;
         
+        bool waitForImagesToFinishWriting();
+        
         Brain* m_brain = NULL;
         
         MovieRecorderModeEnum::Enum m_recordingMode = MovieRecorderModeEnum::MANUAL;
@@ -141,6 +167,12 @@ namespace caret {
         int32_t m_customHeight = 480;
         
         std::vector<AString> m_imageFileNames;
+        
+        std::vector<QFuture<bool>> m_imageWriteResultFutures;
+        
+        std::vector<ImageWriter*> m_imageWriters;
+        
+        ImageMode m_imageMode = ImageMode::PARALLEL;
         
         mutable AString m_movieFileName;
         

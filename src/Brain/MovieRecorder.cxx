@@ -28,6 +28,8 @@
 #include <QImage>
 #include <QProcess>
 
+#include <QtConcurrent/QtConcurrent>
+
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -104,32 +106,42 @@ MovieRecorder::addImageToMovie(const QImage* image)
                                 + imageIndex
                                 + m_tempImageFileNameSuffix);
     
-    if (image->save(imageFileName)) {
-        if (m_imageFileNames.empty()) {
-            m_firstImageWidth  = image->width();
-            m_firstImageHeight = image->height();
-        }
-        
-        if ((image->width()     == m_firstImageWidth)
-            && (image->height() == m_firstImageHeight)) {
+    switch (m_imageMode) {
+        case ImageMode::IMMEDITATE:
+            if (image->save(imageFileName)) {
+                if (m_imageFileNames.empty()) {
+                    m_firstImageWidth  = image->width();
+                    m_firstImageHeight = image->height();
+                }
+                
+                if ((image->width()     == m_firstImageWidth)
+                    && (image->height() == m_firstImageHeight)) {
+                    m_imageFileNames.push_back(imageFileName);
+                }
+                else {
+                    CaretLogSevere("Attempting to create movie with images that are different sizes.  "
+                                   "First image width=" + QString::number(m_firstImageWidth)
+                                   + ", height=" + QString::number(m_firstImageHeight)
+                                   + "  Image number=" + QString::number(imageIndexInt)
+                                   + ", width=" + QString::number(image->width())
+                                   + ", height=" + QString::number(image->height()));
+                }
+            }
+            else {
+                CaretLogSevere("Saving temporary image failed: "
+                               + imageFileName);
+            }
+            break;
+        case ImageMode::PARALLEL:
+        {
+            ImageWriter* iw = new ImageWriter(image, imageFileName);
+            m_imageWriters.push_back(iw);
+            QFuture<bool> f = QtConcurrent::run(iw, &ImageWriter::writeImage);
+            m_imageWriteResultFutures.push_back(f);
             m_imageFileNames.push_back(imageFileName);
         }
-        else {
-            CaretLogSevere("Attempting to create movie with images that are different sizes.  "
-                           "First image width=" + QString::number(m_firstImageWidth)
-                           + ", height=" + QString::number(m_firstImageHeight)
-                           + "  Image number=" + QString::number(imageIndexInt)
-                           + ", width=" + QString::number(image->width())
-                           + ", height=" + QString::number(image->height()));
-        }
+            break;
     }
-    else {
-        CaretLogSevere("Saving temporary image failed: "
-                       + imageFileName);
-    }
-//    std::cout << "Adding image " << image->width() << ", " << image->height() << " " << imageFileName << std::endl;
-    
-    
 }
 
 /**
@@ -150,11 +162,44 @@ MovieRecorder::addImageToMovieWithManualDuration(const QImage* image)
 }
 
 /**
+ * @return True if all images were written succussfully
+ * if parallel image file writing is enabled.  Returns
+ * true if image writing mode is immediate.
+ */
+bool
+MovieRecorder::waitForImagesToFinishWriting()
+{
+    bool allValid(true);
+    
+    switch (m_imageMode) {
+        case ImageMode::IMMEDITATE:
+            break;
+        case ImageMode::PARALLEL:
+        {
+            for (auto f : m_imageWriteResultFutures) {
+                f.waitForFinished();
+            }
+        }
+            break;
+    }
+    
+    return allValid;
+}
+
+/**
  * Remove all images and starting a new movie
  */
 void
 MovieRecorder::removeTemporaryImages()
 {
+    waitForImagesToFinishWriting();
+    m_imageWriteResultFutures.clear();
+    
+    for (auto iw : m_imageWriters) {
+        delete iw;
+    }
+    m_imageWriters.clear();
+    
     const QString nameFilter(m_tempImageFileNamePrefix
                              + "*"
                              + m_tempImageFileNameSuffix);
@@ -486,6 +531,11 @@ MovieRecorder::createMovie(const AString& filename,
                            AString& errorMessageOut)
 {
     errorMessageOut.clear();
+ 
+    if ( ! waitForImagesToFinishWriting()) {
+        errorMessageOut = "There was a problem writing the image files.";
+        return false;
+    }
     
     m_movieFileName = filename;
     
@@ -732,7 +782,6 @@ MovieRecorder::createMovieWithSystemCommand(const QString& programName,
     const AString commandString(programName
                                 + " "
                                 + arguments.join(" "));
-    //std::cout << "Command: " << commandString << std::endl;
     const int result = system(commandString.toLatin1().constData());
     
     bool successFlag(false);
@@ -745,4 +794,42 @@ MovieRecorder::createMovieWithSystemCommand(const QString& programName,
     }
     return successFlag;
 }
+
+
+/**
+ * Constructor for image writer
+ *
+ * @param image
+ *     The image file
+ * @param filename
+ *     Name of file
+ */
+MovieRecorder::ImageWriter::ImageWriter(const QImage* image,
+                                        const QString& filename)
+: m_image(new QImage(*image)),
+m_filename(filename)
+{
+    CaretAssert(m_image);
+    
+}
+
+/**
+ * Destructor
+ */
+MovieRecorder::ImageWriter::~ImageWriter()
+{
+}
+
+/**
+ * Write the image
+ *
+ * @return True if written, false if error.
+ */
+bool
+MovieRecorder::ImageWriter::writeImage()
+{
+    CaretAssert(m_image);
+    return m_image->save(m_filename);
+}
+
 

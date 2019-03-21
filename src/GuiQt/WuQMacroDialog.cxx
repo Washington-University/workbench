@@ -49,6 +49,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ElapsedTimer.h"
 #include "WuQMacro.h"
 #include "WuQMacroCopyDialog.h"
 #include "WuQMacroCommand.h"
@@ -1245,9 +1246,12 @@ WuQMacroDialog::runMacroToolButtonClicked()
     m_macroIsRunningFlag = true;
     updateEditingToolButtons();
     QApplication::processEvents();
+    ElapsedTimer timer;
+    timer.start();
     WuQMacro* lastMacroRun = WuQMacroManager::instance()->runMacro(window,
                                                                    macro,
                                                                    getSelectedMacroCommand());
+    std::cout << "Time to run macro: " << timer.getElapsedTimeSeconds() << std::endl;
     m_macroIsRunningFlag = false;
     
     if (lastMacroRun != getSelectedMacro()) {
