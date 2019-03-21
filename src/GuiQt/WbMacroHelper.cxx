@@ -37,6 +37,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "MovieRecorder.h"
+#include "MovieRecordingDialog.h"
 #include "Scene.h"
 #include "SceneFile.h"
 #include "SceneInfo.h"
@@ -264,12 +265,16 @@ WbMacroHelper::macroExecutionStarting(const WuQMacro* /*macro*/,
  */
 void
 WbMacroHelper::macroExecutionEnding(const WuQMacro* /*macro*/,
-                                    QWidget* /*window*/,
-                                    const WuQMacroExecutorOptions* /*executorOptions*/)
+                                    QWidget* window,
+                                    const WuQMacroExecutorOptions* executorOptions)
 {
     MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
     movieRecorder->setRecordingMode(m_savedRecordingMode);
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_MOVIE_RECORDING_DIALOG_UPDATE);
+    
+    if (executorOptions->isCreateMovieAfterMacroExecution()) {
+        MovieRecordingDialog::createMovie(window);
+    }
 }
 
 /**

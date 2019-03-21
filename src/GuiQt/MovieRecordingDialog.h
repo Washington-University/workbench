@@ -67,6 +67,8 @@ namespace caret {
 
         static void createMovie(QWidget* parent);
     
+        static QString getMovieFileNameFromFileDialog(QWidget* parent);
+        
     private slots:
         void movieRecorderVideoResolutionTypeEnumComboBoxItemActivated();
         
@@ -105,6 +107,9 @@ namespace caret {
         QWidget* createMainWidget();
         
         QWidget* createSettingsWidget();
+        
+        static void createMoviePrivate(QWidget* parent,
+                                       const bool askForFileNameFlag);
         
         QRadioButton* m_recordingAutomaticRadioButton;
         

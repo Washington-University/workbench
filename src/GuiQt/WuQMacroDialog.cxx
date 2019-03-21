@@ -50,6 +50,9 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ElapsedTimer.h"
+#include "MovieRecorder.h"
+#include "MovieRecordingDialog.h"
+#include "SessionManager.h"
 #include "WuQMacro.h"
 #include "WuQMacroCopyDialog.h"
 #include "WuQMacroCommand.h"
@@ -475,6 +478,12 @@ WuQMacroDialog::createRunOptionsWidget()
     QObject::connect(m_runOptionRecordMovieWhileMacroRunsCheckBox, &QCheckBox::clicked,
                      this, &WuQMacroDialog::runOptionRecordMovieCheckBoxClicked);
 
+    m_runOptionCreateMovieAfterMacroRunsCheckBox = new QCheckBox("Create movie after macro finishes");
+    m_runOptionCreateMovieAfterMacroRunsCheckBox->setChecked(false);
+    m_runOptionCreateMovieAfterMacroRunsCheckBox->setToolTip("After macro finishes, create the movie");
+    QObject::connect(m_runOptionCreateMovieAfterMacroRunsCheckBox, &QCheckBox::clicked,
+                     this, &WuQMacroDialog::runOptionCreateMovieCheckBoxClicked);
+    
     m_ignoreDelaysAndDurationsCheckBox = new QCheckBox("Ignore delays and durations");
     const QString ignoreToolTip("Ignore delays and durations and minimize iterations "
                                 "to quickly execute macro (for debugging)");
@@ -482,12 +491,21 @@ WuQMacroDialog::createRunOptionsWidget()
     QObject::connect(m_ignoreDelaysAndDurationsCheckBox, &QCheckBox::clicked,
                      this, &WuQMacroDialog::runOptionIgnoreDelaysAndDurationsCheckBoxClicked);
 
+    QHBoxLayout* windowLayout = new QHBoxLayout();
+    windowLayout->setContentsMargins(0, 0, 0, 0);
+    windowLayout->addWidget(windowLabel);
+    windowLayout->addWidget(m_runOptionsWindowComboBox);
+    windowLayout->addStretch();
+
+    /*
+     * In layout, create movie option is indented
+     */
     QGridLayout* runOptionsLayout = new QGridLayout(widget);
+    runOptionsLayout->setColumnMinimumWidth(0, 15);
     runOptionsLayout->setColumnStretch(0, 0);
     runOptionsLayout->setColumnStretch(1, 100);
     int row = 0;
-    runOptionsLayout->addWidget(windowLabel, row, 0);
-    runOptionsLayout->addWidget(m_runOptionsWindowComboBox, row, 1, Qt::AlignLeft);
+    runOptionsLayout->addLayout(windowLayout, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     runOptionsLayout->addWidget(m_runOptionLoopCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
@@ -496,6 +514,8 @@ WuQMacroDialog::createRunOptionsWidget()
     runOptionsLayout->addWidget(m_runOptionMoveMouseCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     runOptionsLayout->addWidget(m_runOptionRecordMovieWhileMacroRunsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
+    runOptionsLayout->addWidget(m_runOptionCreateMovieAfterMacroRunsCheckBox, row, 1, Qt::AlignLeft);
     row++;
 
     return widget;
@@ -541,6 +561,34 @@ WuQMacroDialog::runOptionRecordMovieCheckBoxClicked(bool checked)
     WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
     CaretAssert(options);
     options->setRecordMovieDuringExecution(checked);
+    updateCreateMovieCheckBox();
+}
+
+/**
+ * Called when run options create movie checkbox is changed
+ *
+ * @param checked
+ *     New checked status.
+ */
+void
+WuQMacroDialog::runOptionCreateMovieCheckBoxClicked(bool checked)
+{
+    WuQMacroExecutorOptions* options = WuQMacroManager::instance()->getExecutorOptions();
+    CaretAssert(options);
+    
+    /*
+     * If transitioning from OFF to ON, verify file name
+     */
+    if (checked
+        && ( ! options->isCreateMovieAfterMacroExecution())) {
+        MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+        const QString filename = MovieRecordingDialog::getMovieFileNameFromFileDialog(m_runOptionCreateMovieAfterMacroRunsCheckBox);
+        if (filename.isEmpty()) {
+            return;
+        }
+        movieRecorder->setMovieFileName(filename);
+    }
+    options->setCreateMovieAfterMacroExecution(checked);
 }
 
 /**
@@ -704,7 +752,21 @@ WuQMacroDialog::updateDialogContents()
     m_runOptionRecordMovieWhileMacroRunsCheckBox->setChecked(runOptions->isRecordMovieDuringExecution());
     m_ignoreDelaysAndDurationsCheckBox->setChecked(runOptions->isIgnoreDelaysAndDurations());
     
+    updateCreateMovieCheckBox();
+    
     macroGroupComboBoxActivated(selectedIndex);
+}
+
+/**
+ * Update the create movie checkbox status
+ */
+void
+WuQMacroDialog::updateCreateMovieCheckBox()
+{
+    const WuQMacroExecutorOptions* runOptions = WuQMacroManager::instance()->getExecutorOptions();
+    CaretAssert(runOptions);
+    m_runOptionCreateMovieAfterMacroRunsCheckBox->setChecked(runOptions->isCreateMovieAfterMacroExecution());
+    m_runOptionCreateMovieAfterMacroRunsCheckBox->setEnabled(runOptions->isRecordMovieDuringExecution());
 }
 
 /**

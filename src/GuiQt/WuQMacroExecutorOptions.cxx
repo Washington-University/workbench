@@ -86,12 +86,13 @@ WuQMacroExecutorOptions::operator=(const WuQMacroExecutorOptions& obj)
 void 
 WuQMacroExecutorOptions::copyHelperWuQMacroExecutorOptions(const WuQMacroExecutorOptions& obj)
 {
-    m_loopingFlag                    = obj.m_loopingFlag;
-    m_stopOnErrorFlag                = obj.m_stopOnErrorFlag;
-    m_showMouseMovementFlag          = obj.m_showMouseMovementFlag;
-    m_recordMovieDuringExecutionFlag = obj.m_recordMovieDuringExecutionFlag;
-    m_stopAfterSelectedCommandFlag   = obj.m_stopAfterSelectedCommandFlag;
-    m_ignoreDelaysAndDurationsFlag   = obj.m_ignoreDelaysAndDurationsFlag;
+    m_loopingFlag                        = obj.m_loopingFlag;
+    m_stopOnErrorFlag                    = obj.m_stopOnErrorFlag;
+    m_showMouseMovementFlag              = obj.m_showMouseMovementFlag;
+    m_recordMovieDuringExecutionFlag     = obj.m_recordMovieDuringExecutionFlag;
+    m_createMovieAfterMacroExecutionFlag = obj.m_createMovieAfterMacroExecutionFlag;
+    m_stopAfterSelectedCommandFlag       = obj.m_stopAfterSelectedCommandFlag;
+    m_ignoreDelaysAndDurationsFlag       = obj.m_ignoreDelaysAndDurationsFlag;
 }
 
 /**
@@ -186,6 +187,27 @@ void
 WuQMacroExecutorOptions::setRecordMovieDuringExecution(const bool status)
 {
     m_recordMovieDuringExecutionFlag = status;
+}
+
+/**
+ * @return True if create movie after macro executes is on.
+ */
+bool
+WuQMacroExecutorOptions::isCreateMovieAfterMacroExecution() const
+{
+    return m_createMovieAfterMacroExecutionFlag;
+}
+
+/**
+ * Set create movie after macro execution
+ *
+ * @param status
+ *     New status
+ */
+void
+WuQMacroExecutorOptions::setCreateMovieAfterMacroExecution(const bool status)
+{
+    m_createMovieAfterMacroExecutionFlag = status;
 }
 
 /**

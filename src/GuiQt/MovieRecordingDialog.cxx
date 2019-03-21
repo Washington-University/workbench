@@ -394,17 +394,20 @@ MovieRecordingDialog::manualCaptureSecondsSpinBoxValueChanged(int /*seconds*/)
 void
 MovieRecordingDialog::createMoviePushButtonClicked()
 {
-    createMovie(m_createMoviePushButton);
+    createMoviePrivate(m_createMoviePushButton,
+                       true);
 }
 
 /**
- * Create a movie from captured images.
+ * Get the movie file name
  *
  * @param parent
- *     Parent widget for error message dialog.
+ *     Widget as parent for file selection dialog
+ * @return
+ *     Name for movie file or empty string if canceled.
  */
-void
-MovieRecordingDialog::createMovie(QWidget* parent)
+QString
+MovieRecordingDialog::getMovieFileNameFromFileDialog(QWidget* parent)
 {
     MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
     QString currentFileName = movieRecorder->getMovieFileName();
@@ -434,19 +437,56 @@ MovieRecordingDialog::createMovie(QWidget* parent)
                                                               CaretFileDialog::DontConfirmOverwrite);
     
     if (filename.isEmpty()) {
-        return;
+        return "";
     }
-
-    if (selectedFilter.isEmpty()) {
-        for (auto fe : formatEnums) {
-            if (selectedFilter == MovieRecorderVideoFormatTypeEnum::toFileDialogFilter(fe)) {
-                const QString ext = ("." + MovieRecorderVideoFormatTypeEnum::toFileNameExtensionNoDot(fe));
-                if ( ! filename.endsWith(ext)) {
-                    filename.append(ext);
-                    break;
-                }
+    
+    for (auto fe : formatEnums) {
+        if (selectedFilter == MovieRecorderVideoFormatTypeEnum::toFileDialogFilter(fe)) {
+            const QString ext = ("." + MovieRecorderVideoFormatTypeEnum::toFileNameExtensionNoDot(fe));
+            if ( ! filename.endsWith(ext)) {
+                filename.append(ext);
+                break;
             }
         }
+    }
+
+    return filename;
+}
+
+/**
+ * Create a movie from captured images and if current
+ * filename is empty, ask for name in file dialog
+ *
+ * @param parent
+ *     Parent widget for error message dialog.
+ */
+void
+MovieRecordingDialog::createMovie(QWidget* parent)
+{
+    createMoviePrivate(parent,
+                       false);
+}
+/**
+ * Create a movie from captured images.
+ *
+ * @param parent
+ *     Parent widget for error message dialog.
+ * @param askForFileNameFlag
+ *     If true always query for filename, even if filename is valid
+ */
+void
+MovieRecordingDialog::createMoviePrivate(QWidget* parent,
+                                         const bool askForFileNameFlag)
+{
+    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+    QString filename(movieRecorder->getMovieFileName());
+    if (filename.isEmpty()
+        || askForFileNameFlag) {
+        filename = getMovieFileNameFromFileDialog(parent);
+    }
+
+    if (filename.isEmpty()) {
+        return;
     }
     
     FileInformation fileInfo(filename);
