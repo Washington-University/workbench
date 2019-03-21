@@ -23,6 +23,7 @@
 #include "MovieRecordingDialog.h"
 #undef __MOVIE_RECORDING_DIALOG_DECLARE__
 
+#include <QApplication>
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QGridLayout>
@@ -396,6 +397,7 @@ MovieRecordingDialog::createMoviePushButtonClicked()
 {
     createMoviePrivate(m_createMoviePushButton,
                        true);
+    QApplication::beep();
 }
 
 /**

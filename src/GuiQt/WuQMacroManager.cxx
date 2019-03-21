@@ -654,6 +654,7 @@ WuQMacroManager::runMacro(QWidget* widget,
     CaretAssert(macroToRun);
     WuQMacro* macro(const_cast<WuQMacro*>(macroToRun));
     
+    bool dialogWasDisplayed(false);
     bool resultFlag(false);
     bool loopFlag(true);
     while (loopFlag) {
@@ -699,6 +700,7 @@ WuQMacroManager::runMacro(QWidget* widget,
                                   QMessageBox::Ok,
                                   QMessageBox::NoButton);
             loopFlag = false;
+            dialogWasDisplayed = true;
         }
         
         /*
@@ -734,6 +736,9 @@ WuQMacroManager::runMacro(QWidget* widget,
         }
     }
     
+    if ( ! dialogWasDisplayed) {
+        QApplication::beep();
+    }
     return macro;
 }
 
