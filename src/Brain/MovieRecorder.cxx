@@ -106,8 +106,8 @@ MovieRecorder::addImageToMovie(const QImage* image)
                                 + imageIndex
                                 + m_tempImageFileNameSuffix);
     
-    switch (m_imageMode) {
-        case ImageMode::IMMEDITATE:
+    switch (m_imageWriteMode) {
+        case ImageWriteMode::IMMEDITATE:
             if (image->save(imageFileName)) {
                 if (m_imageFileNames.empty()) {
                     m_firstImageWidth  = image->width();
@@ -132,7 +132,7 @@ MovieRecorder::addImageToMovie(const QImage* image)
                                + imageFileName);
             }
             break;
-        case ImageMode::PARALLEL:
+        case ImageWriteMode::PARALLEL:
         {
             ImageWriter* iw = new ImageWriter(image, imageFileName);
             m_imageWriters.push_back(iw);
@@ -145,20 +145,21 @@ MovieRecorder::addImageToMovie(const QImage* image)
 }
 
 /**
- * Add an image to the movie, typically used during automatic mode recording.
- * After image is added, manual recording is disabled
+ * Add copies of an image to the movie for the given number of copies.
+ * Typically used during manual mode recording.
  *
  * @param image
  *     Image that is added
+ * @param numberOfCopies
+ *     Number of copies for the image.
  */
 void
-MovieRecorder::addImageToMovieWithManualDuration(const QImage* image)
+MovieRecorder::addImageToMovieWithCopies(const QImage* image,
+                                         const int32_t numberOfCopies)
 {
-    const int32_t recordingCount = m_frameRate * m_manualRecordingDurationSeconds;
-    for (int32_t i = 0; i < recordingCount; i++) {
+    for (int32_t i = 0; i < numberOfCopies; i++) {
         addImageToMovie(image);
     }
-    setManualRecordingOfImageRequested(false);
 }
 
 /**
@@ -171,10 +172,10 @@ MovieRecorder::waitForImagesToFinishWriting()
 {
     bool allValid(true);
     
-    switch (m_imageMode) {
-        case ImageMode::IMMEDITATE:
+    switch (m_imageWriteMode) {
+        case ImageWriteMode::IMMEDITATE:
             break;
-        case ImageMode::PARALLEL:
+        case ImageWriteMode::PARALLEL:
         {
             for (auto f : m_imageWriteResultFutures) {
                 f.waitForFinished();
@@ -372,10 +373,6 @@ MovieRecorder::setCaptureRegionType(const MovieRecorderCaptureRegionTypeEnum::En
 AString
 MovieRecorder::getMovieFileName() const
 {
-//    if (m_movieFileName.isEmpty()) {
-//        initializeMovieFileName();
-//    }
-    
     return m_movieFileName;
 }
 
@@ -389,26 +386,6 @@ void
 MovieRecorder::setMovieFileName(const AString& filename)
 {
     m_movieFileName = filename;
-}
-
-/**
- * If the movie file name is empty,
- * initialize the movie file to be in the given path.
- *
- * @param path
- *     Path of where to place the movie file
- */
-void
-MovieRecorder::initializeMovieFileName() const
-{
-    const QString currentDirectory = m_brain->getCurrentDirectory();
-    if (m_movieFileName.isEmpty()) {
-        const QString extension = MovieRecorderVideoFormatTypeEnum::toFileNameExtensionNoDot(MovieRecorderVideoFormatTypeEnum::MPEG);
-        
-        m_movieFileName = FileInformation::assembleFileComponents(currentDirectory,
-                                                                  "Movie",
-                                                                  extension);
-    }
 }
 
 /**
@@ -440,49 +417,6 @@ void
 MovieRecorder::setFramesRate(const float frameRate)
 {
     m_frameRate = frameRate;
-}
-
-/**
- * @return Duration of manual record duration in seconds
- */
-float
-MovieRecorder::getManualRecordingDurationSeconds() const
-{
-    return m_manualRecordingDurationSeconds;
-}
-
-/**
- * Set the duration of manual recording
- *
- * @param seconds
- *     The duration
- */
-void
-MovieRecorder::setManualRecordingDurationSeconds(const float seconds)
-{
-    m_manualRecordingDurationSeconds = seconds;
-}
-
-/**
- * @return Is request for manual recording of an image when graphics updated set?
- * After image is recorded, manual recording request is reset to false
- */
-bool
-MovieRecorder::isManualRecordingOfImageRequested() const
-{
-    return m_manualRecordingOfImageRequested;
-}
-
-/**
- * Set request for manual recording of an image when graphics updated
- *
- * @param requestFlag
- *     New value for request
- */
-void
-MovieRecorder::setManualRecordingOfImageRequested(const bool requestFlag)
-{
-    m_manualRecordingOfImageRequested = requestFlag;
 }
 
 /**

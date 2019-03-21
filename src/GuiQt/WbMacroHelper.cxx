@@ -32,6 +32,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "EventMovieManualModeRecording.h"
 #include "EventSceneActive.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -361,7 +362,7 @@ WbMacroHelper::macroCommandHasCompleted(QWidget* window,
                                         const WuQMacroExecutorOptions* executorOptions,
                                         bool& allowDelayFlagOut)
 {
-    bool doDelayAfterCommandFlag(false); // change value to enable/disable delays after command
+    bool doDelayAfterCommandFlag(false); /* change value to enable/disable delays after command */
     if (executorOptions->isIgnoreDelaysAndDurations()) {
         doDelayAfterCommandFlag = false;
     }
@@ -393,33 +394,19 @@ WbMacroHelper::recordImagesForDelay(QWidget* window,
     MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
     CaretAssert(movieRecorder);
     
-   const WuQMacroExecutorMonitor* execMonitor = WuQMacroManager::instance()->getMacroExecutorMonitor();
     if (command->getCommandType() != WuQMacroCommandTypeEnum::MOUSE) {
         if (command->getDelayInSeconds() > 0.0) {
             switch (movieRecorder->getRecordingMode()) {
                 case MovieRecorderModeEnum::AUTOMATIC:
                 {
                     BrainBrowserWindow* bbw = dynamic_cast<BrainBrowserWindow*>(window);
-                    const int32_t numberOfFrames = static_cast<int32_t>(movieRecorder->getFramesRate()
-                                                                        * command->getDelayInSeconds());
-                    for (int32_t i = 0; i < numberOfFrames; i++) {
-                        movieRecorder->setManualRecordingOfImageRequested(true);
-                        if (bbw != NULL) {
-                            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(bbw->getBrowserWindowIndex()).getPointer());
-                        }
-                        else {
-                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-                        }
-                        movieRecorder->setManualRecordingOfImageRequested(false);
-                        
-                        /*
-                         * User may pause or stop
-                         */
-                        if (execMonitor->doPause()) {
-                            break;
-                        }
-                    }
-                    
+                    const int32_t windowIndex = ((bbw != NULL)
+                                                 ? bbw->getBrowserWindowIndex()
+                                                 : -1);
+                    EventMovieManualModeRecording movieEvent(windowIndex,
+                                                             command->getDelayInSeconds());
+                    EventManager::get()->sendEvent(movieEvent.getPointer());
+
                     allowDelayFlagOut = false;
                 }
                     break;

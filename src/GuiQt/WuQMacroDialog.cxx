@@ -1251,7 +1251,7 @@ WuQMacroDialog::runMacroToolButtonClicked()
     WuQMacro* lastMacroRun = WuQMacroManager::instance()->runMacro(window,
                                                                    macro,
                                                                    getSelectedMacroCommand());
-    std::cout << "Time to run macro: " << timer.getElapsedTimeSeconds() << std::endl;
+    // may use this later when testing    std::cout << "Time to run macro: " << timer.getElapsedTimeSeconds() << std::endl;
     m_macroIsRunningFlag = false;
     
     if (lastMacroRun != getSelectedMacro()) {

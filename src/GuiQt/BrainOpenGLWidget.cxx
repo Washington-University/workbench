@@ -62,6 +62,7 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventIdentificationRequest.h"
+#include "EventMovieManualModeRecording.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FtglFontTextRenderer.h"
 #include "GuiManager.h"
@@ -171,6 +172,7 @@ windowIndex(windowIndex)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IDENTIFICATION_REQUEST);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IMAGE_CAPTURE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MOVIE_RECORDING_MANUAL_MODE_CAPTURE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
     m_openGLContextSharingValid = true;
@@ -1561,8 +1563,12 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 void 
 BrainOpenGLWidget::receiveEvent(Event* event)
 {
+    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
+    MovieRecorderModeEnum::Enum movieRecordingMode = movieRecorder->getRecordingMode();
+    
     bool doRepaintGraphicsFlag(false);
     bool doUpdateGraphicsFlag(false);
+    int32_t captureManualMovieModeImageRepeatCount(-1);
     
     if (event->getEventType() == EventTypeEnum::EVENT_BRAIN_RESET) {
         EventBrainReset* brainResetEvent = dynamic_cast<EventBrainReset*>(event);
@@ -1679,6 +1685,31 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             idRequestEvent->setEventProcessed();
         }
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MOVIE_RECORDING_MANUAL_MODE_CAPTURE) {
+        EventMovieManualModeRecording* movieEvent = dynamic_cast<EventMovieManualModeRecording*>(event);
+        CaretAssert(movieEvent);
+        
+        const int32_t windowIndex = movieEvent->getBrowserWindowIndex();
+        if ((windowIndex < 0)
+            || (windowIndex == this->windowIndex)) {
+            /*
+             * Movie mode may be automatic but override with manual
+             * so that images are captured
+             */
+            movieRecordingMode = MovieRecorderModeEnum::MANUAL;
+
+            const float durationSeconds = movieEvent->getDurationSeconds();
+            const float frameRate       = movieRecorder->getFramesRate();
+            captureManualMovieModeImageRepeatCount = static_cast<int32_t>(frameRate
+                                                                          * durationSeconds);
+            if (captureManualMovieModeImageRepeatCount < 1) {
+                captureManualMovieModeImageRepeatCount = 1;
+            }
+            doRepaintGraphicsFlag = true;
+
+            movieEvent->setEventProcessed();
+        }
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         EventUserInterfaceUpdate* guiUpdateEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(guiUpdateEvent);
@@ -1694,15 +1725,9 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         || doUpdateGraphicsFlag) {
 
         bool captureAutomaticImageForMovieFlag(false);
-        bool captureManualImageForMovieFlag(false);
-        MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
         if (movieRecorder->getRecordingWindowIndex() == this->windowIndex) {
-            switch (movieRecorder->getRecordingMode()) {
+            switch (movieRecordingMode) {
                 case MovieRecorderModeEnum::MANUAL:
-                    if (movieRecorder->isManualRecordingOfImageRequested()) {
-                        captureManualImageForMovieFlag = true;
-                    }
-                    doRepaintGraphicsFlag = true;
                     break;
                 case MovieRecorderModeEnum::AUTOMATIC:
                     captureAutomaticImageForMovieFlag = true;
@@ -1715,7 +1740,7 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             this->repaint();
             
             if (captureAutomaticImageForMovieFlag
-                || captureManualImageForMovieFlag) {
+                || (captureManualMovieModeImageRepeatCount > 0)) {
                 const bool showTimingResultFlag(false);
                 
                 int captureRegionOffsetX(0);
@@ -1855,8 +1880,9 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                             if (captureAutomaticImageForMovieFlag) {
                                 movieRecorder->addImageToMovie(&image);
                             }
-                            else if (captureManualImageForMovieFlag) {
-                                movieRecorder->addImageToMovieWithManualDuration(&image);
+                            else if (captureManualMovieModeImageRepeatCount > 0) {
+                                movieRecorder->addImageToMovieWithCopies(&image,
+                                                                         captureManualMovieModeImageRepeatCount);
                             }
                             if (showTimingResultFlag) {
                                 std::cout << "   Image write time: " << imageTimer.getElapsedTimeSeconds() << std::endl;

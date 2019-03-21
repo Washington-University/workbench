@@ -354,6 +354,7 @@ EventHelpViewerDisplay.h
 EventIdentificationRequest.h
 EventImageCapture.h
 EventMacDockMenuUpdate.h
+EventMovieManualModeRecording.h
 EventOperatingSystemRequestOpenDataFile.h
 EventOverlaySettingsEditorDialogRequest.h
 EventPaletteColorMappingEditorDialogRequest.h
@@ -615,6 +616,7 @@ EventHelpViewerDisplay.cxx
 EventIdentificationRequest.cxx
 EventImageCapture.cxx
 EventMacDockMenuUpdate.cxx
+EventMovieManualModeRecording.cxx
 EventOperatingSystemRequestOpenDataFile.cxx
 EventOverlaySettingsEditorDialogRequest.cxx
 EventPaletteColorMappingEditorDialogRequest.cxx

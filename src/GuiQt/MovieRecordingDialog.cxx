@@ -43,6 +43,7 @@
 #include "Event.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventMovieManualModeRecording.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EnumComboBoxTemplate.h"
 #include "FileInformation.h"
@@ -183,7 +184,6 @@ MovieRecordingDialog::updateManualRecordingOptions()
             break;
     }
     
-    m_manualCaptureSecondsSpinBox->setValue(movieRecorder->getManualRecordingDurationSeconds());
     m_manualCaptureToolButton->setEnabled(manualRecordingEnabledFlag);
 }
 
@@ -374,11 +374,9 @@ MovieRecordingDialog::manualCaptureToolButtonClicked()
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
     
-    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
-    CaretAssert(movieRecorder);
-    movieRecorder->setManualRecordingOfImageRequested(true);
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_windowComboBox->getSelectedBrowserWindowIndex()).getPointer());
-    movieRecorder->setManualRecordingOfImageRequested(false);
+    EventMovieManualModeRecording movieEvent(m_windowComboBox->getSelectedBrowserWindowIndex(),
+                                             m_manualCaptureSecondsSpinBox->value());
+    EventManager::get()->sendEvent(movieEvent.getPointer());
     updateFrameCountLabel();
 }
 
@@ -386,11 +384,8 @@ MovieRecordingDialog::manualCaptureToolButtonClicked()
  * Called when manual capture seconds spin box value changed
  */
 void
-MovieRecordingDialog::manualCaptureSecondsSpinBoxValueChanged(int seconds)
+MovieRecordingDialog::manualCaptureSecondsSpinBoxValueChanged(int /*seconds*/)
 {
-    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
-    CaretAssert(movieRecorder);
-    movieRecorder->setManualRecordingDurationSeconds(seconds);
 }
 
 /**

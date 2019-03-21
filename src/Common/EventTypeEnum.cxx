@@ -322,6 +322,10 @@ EventTypeEnum::initialize()
                                      "EVENT_MODEL_SURFACE_GET", 
                                      "Get a specific model surface"));
     
+    enumData.push_back(EventTypeEnum(EVENT_MOVIE_RECORDING_MANUAL_MODE_CAPTURE,
+                                     "EVENT_MOVIE_RECORDING_MANUAL_MODE_CAPTURE",
+                                     "Movie recording manual mode capture"));
+    
     enumData.push_back(EventTypeEnum(EVENT_MOVIE_RECORDING_DIALOG_UPDATE,
                                      "EVENT_MOVIE_RECORDING_DIALOG_UPDATE",
                                      "Update the movie recording dialog"));

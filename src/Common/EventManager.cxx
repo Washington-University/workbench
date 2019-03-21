@@ -446,6 +446,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_MODEL_GET_ALL:
         case EventTypeEnum::EVENT_MODEL_GET_ALL_DISPLAYED:
         case EventTypeEnum::EVENT_MODEL_SURFACE_GET:
+        case EventTypeEnum::EVENT_MOVIE_RECORDING_MANUAL_MODE_CAPTURE:
         case EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS:
         case EventTypeEnum::EVENT_OPENGL_OBJECT_TO_WINDOW_TRANSFORM:
         case EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE:

@@ -54,7 +54,8 @@ namespace caret {
         
         void addImageToMovie(const QImage* image);
         
-        void addImageToMovieWithManualDuration(const QImage* image);
+        void addImageToMovieWithCopies(const QImage* image,
+                                       const int32_t numberOfCopies);
         
         void setRecordingMode(const MovieRecorderModeEnum::Enum recordingMode);
         
@@ -89,14 +90,6 @@ namespace caret {
         
         void setFramesRate(const float frameRate);
         
-        float getManualRecordingDurationSeconds() const;
-        
-        void setManualRecordingDurationSeconds(const float seconds);
-        
-        bool isManualRecordingOfImageRequested() const;
-        
-        void setManualRecordingOfImageRequested(const bool requestFlag);
-        
         bool isRemoveTemporaryImagesAfterMovieCreation() const;
         
         void setRemoveTemporaryImagesAfterMovieCreation(const bool status);
@@ -111,7 +104,7 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        enum class ImageMode {
+        enum class ImageWriteMode {
             IMMEDITATE,
             PARALLEL
         };
@@ -148,8 +141,6 @@ namespace caret {
                                          const QString& textFileName,
                                          QString& errorMessageOut);
         
-        void initializeMovieFileName() const;
-        
         bool waitForImagesToFinishWriting();
         
         Brain* m_brain = NULL;
@@ -172,17 +163,13 @@ namespace caret {
         
         std::vector<ImageWriter*> m_imageWriters;
         
-        ImageMode m_imageMode = ImageMode::PARALLEL;
+        ImageWriteMode m_imageWriteMode = ImageWriteMode::PARALLEL;
         
         mutable AString m_movieFileName;
         
         std::vector<AString> m_imageFrameFileNames;
         
         float m_frameRate = 30.0f;
-        
-        float m_manualRecordingDurationSeconds = 5.0f;
-        
-        bool m_manualRecordingOfImageRequested = false;
         
         AString m_temporaryImagesDirectory;
         
