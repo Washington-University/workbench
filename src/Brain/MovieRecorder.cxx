@@ -59,7 +59,24 @@ MovieRecorder::MovieRecorder(Brain* brain)
 : CaretObject(),
 m_brain(brain)
 {
-    m_temporaryImagesDirectory = SystemUtilities::getTempDirectory();
+    const QString tempSubDir("WbViewMovie");
+    QDir tempDir(QDir::temp());
+    /*
+     * "CD" will fail if temporary subdirectory does not exist
+     */
+    if ( ! tempDir.cd(tempSubDir)) {
+        /*
+         * Try to create subdirectory
+         */
+        if (tempDir.mkdir(tempSubDir)) {
+            /*
+             * Go to temp subdirectory
+             */
+            tempDir.cd(tempSubDir);
+        }
+    }
+    m_temporaryImagesDirectory = tempDir.absolutePath();
+
     m_tempImageFileNamePrefix  = "movie";
     m_tempImageFileNameSuffix = ".png";
     removeTemporaryImages();
