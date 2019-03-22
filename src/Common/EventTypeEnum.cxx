@@ -262,6 +262,10 @@ EventTypeEnum::initialize()
                                      "EVENT_GET_VIEWPORT_SIZE",
                                      "Get the viewport size"));
     
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_TIMING_ONE_WINDOW,
+                                     "EVENT_GRAPHICS_TIMING_ONE_WINDOW",
+                                     "Graphics timing in one window"));
+    
     enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
                                      "EVENT_GRAPHICS_UPDATE_ALL_WINDOWS", 
                                      "Update all graphics windows"));

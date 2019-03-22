@@ -138,6 +138,8 @@ public:
         EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT,
         /** Delete a texture name for an OpenGL context */
         EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME,
+        /** Time the OpenGL graphics in a window */
+        EVENT_GRAPHICS_TIMING_ONE_WINDOW,
         /** Update all graphics windows */
         EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
         /** Update graphics in a window */

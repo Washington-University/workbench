@@ -431,6 +431,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_TEXTURE_NAME:
         case EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT:
         case EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME:
+        case EventTypeEnum::EVENT_GRAPHICS_TIMING_ONE_WINDOW:
         case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS:
         case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW:
         case EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY:

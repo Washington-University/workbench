@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include <QApplication>
 #include <QContextMenuEvent>
 #include <QImage>
 #include <QKeyEvent>
@@ -58,6 +59,7 @@
 #include "EventManager.h"
 #include "EventBrowserWindowDrawingContent.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
+#include "EventGraphicsTimingOneWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
@@ -167,6 +169,7 @@ windowIndex(windowIndex)
     setMouseTracking(true);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_TIMING_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
@@ -1235,10 +1238,10 @@ BrainOpenGLWidget::performIdentification(const int x,
      * immediately) to redraw the models.  Otherwise,
      * the graphics flash with strange looking drawing.
      */
-    this->repaint();
+    this->repaintGraphics();
     this->doneCurrent();
 #else
-    this->repaint();
+    this->repaintGraphics();
 #endif
     
     return idManager;
@@ -1299,10 +1302,10 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
      * immediately) to redraw the models.  Otherwise,
      * the graphics flash with strange looking drawing.
      */
-    this->repaint();
+    this->repaintGraphics();
     this->doneCurrent();
 #else
-    this->repaint();
+    this->repaintGraphics();
 #endif
     
     return annotationID;
@@ -1365,10 +1368,10 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
      * immediately) to redraw the models.  Otherwise,
      * the graphics flash with strange looking drawing.
      */
-    this->repaint();
+    this->repaintGraphics();
     this->doneCurrent();
 #else
-    this->repaint();
+    this->repaintGraphics();
 #endif
     
     return idManager;
@@ -1414,7 +1417,7 @@ BrainOpenGLWidget::performProjection(const int x,
      * immediately) to redraw the models.  Otherwise,
      * the graphics flash with strange looking drawing.
      */
-    this->repaint();
+    this->repaintGraphics();
     this->doneCurrent();
 #endif
 }
@@ -1578,6 +1581,15 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         
         brainResetEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_TIMING_ONE_WINDOW) {
+        EventGraphicsTimingOneWindow* timingEvent = dynamic_cast<EventGraphicsTimingOneWindow*>(event);
+        CaretAssert(timingEvent);
+        
+        if (timingEvent->getWindowIndex() == this->windowIndex) {
+            doRepaintGraphicsFlag = true;
+            timingEvent->setEventProcessed();
+        }
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS) {
         EventGraphicsUpdateAllWindows* updateAllEvent =
             dynamic_cast<EventGraphicsUpdateAllWindows*>(event);
@@ -1737,8 +1749,7 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         }
 
         if (doRepaintGraphicsFlag) {
-            this->repaint();
-            
+            repaintGraphics();
             if (captureAutomaticImageForMovieFlag
                 || (captureManualMovieModeImageRepeatCount > 0)) {
                 const bool showTimingResultFlag(false);
@@ -1904,6 +1915,32 @@ BrainOpenGLWidget::receiveEvent(Event* event)
 }
 
 /**
+ * Perform an immediate repaint of the graphics
+ */
+void
+BrainOpenGLWidget::repaintGraphics()
+{
+    repaint();
+    
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /*
+     * When using QOpenGLWidget, calling repaint() returns before
+     * it calls paintGL() so graphics are not updated even though
+     * the documentation states that drawing will complete during
+     * the call to repaint().  Essentially, repaint() functions
+     * the same as update().
+     *
+     * Two Qt bug reports have been submitted by others:
+     * QTBUG-74404, QTBUG-53107.
+     *
+     * For now, allowing events to process seems to allow the
+     * graphics to update.
+     */
+    QApplication::processEvents();
+#endif
+}
+
+/**
  * Capture an image using the parameters from the event.
  *
  * @param imageCaptureEvent
@@ -1969,7 +2006,7 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
              * buffer is updated.  (repaint() updates immediately,
              * update() is a scheduled update).
              */
-            repaint();
+            repaintGraphics();
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
             image = grabFramebuffer();
 #else

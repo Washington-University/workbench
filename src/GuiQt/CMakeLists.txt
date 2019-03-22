@@ -348,6 +348,7 @@ EventBrowserWindowGraphicsRedrawn.h
 EventBrowserWindowNew.h
 EventBrowserWindowTileTabOperation.h
 EventGetOrSetUserInputModeProcessor.h
+EventGraphicsTimingOneWindow.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventHelpViewerDisplay.h
@@ -610,6 +611,7 @@ EventBrowserWindowGraphicsRedrawn.cxx
 EventBrowserWindowNew.cxx
 EventBrowserWindowTileTabOperation.cxx
 EventGetOrSetUserInputModeProcessor.cxx
+EventGraphicsTimingOneWindow.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventHelpViewerDisplay.cxx

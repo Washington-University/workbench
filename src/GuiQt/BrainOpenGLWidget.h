@@ -167,6 +167,8 @@ namespace caret {
         
         void captureImage(EventImageCapture* imageCaptureEvent);
         
+        void repaintGraphics();
+        
         const int32_t windowIndex;
         
         BrainOpenGLWindowContent m_windowContent;

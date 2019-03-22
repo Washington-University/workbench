@@ -73,6 +73,7 @@
 #include "EventManager.h"
 #include "EventModelGetAll.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
+#include "EventGraphicsTimingOneWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventSpecFileReadDataFiles.h"
@@ -2962,9 +2963,9 @@ BrainBrowserWindow::processDevelopGraphicsTiming()
     ElapsedTimer et;
     et.start();
     
-    const int32_t numTimes = 5;
+    const float numTimes(10.0);
     for (int32_t i = 0; i < numTimes; i++) {
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsTimingOneWindow(m_browserWindowIndex).getPointer());
     }
     
     const float time = et.getElapsedTimeSeconds() / numTimes;
