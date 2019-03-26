@@ -206,6 +206,7 @@ ELSE()
         WuQGroupBoxExclusiveWidget.h
         WuQImageLabel.h
         WuQListWidget.h
+	WuQMacroCommandParameterWidget.h
 	WuQMacroCopyDialog.h
         WuQMacroCreateDialog.h
         WuQMacroDialog.h
@@ -456,6 +457,7 @@ VolumePropertiesEditorDialog.h
 VolumeSurfaceOutlineColorOrTabViewController.h
 VolumeSurfaceOutlineSetViewController.h
 VolumeSurfaceOutlineViewController.h
+WbMacroCustomDataInfo.h
 WbMacroCustomDataTypeEnum.h
 WbMacroCustomOperationBase.h
 WbMacroCustomOperationDelay.h
@@ -480,6 +482,7 @@ WuQGridLayoutGroup.h
 WuQGroupBoxExclusiveWidget.h
 WuQImageLabel.h
 WuQListWidget.h
+WuQMacroCommandParameterWidget.h
 WuQMacroCopyDialog.h
 WuQMacroCreateDialog.h
 WuQMacroCustomOperationManagerInterface.h
@@ -719,6 +722,7 @@ VolumePropertiesEditorDialog.cxx
 VolumeSurfaceOutlineColorOrTabViewController.cxx
 VolumeSurfaceOutlineSetViewController.cxx
 VolumeSurfaceOutlineViewController.cxx
+WbMacroCustomDataInfo.cxx
 WbMacroCustomDataTypeEnum.cxx
 WbMacroCustomOperationBase.cxx
 WbMacroCustomOperationDelay.cxx
@@ -743,6 +747,7 @@ WuQGridLayoutGroup.cxx
 WuQGroupBoxExclusiveWidget.cxx
 WuQImageLabel.cxx
 WuQListWidget.cxx
+WuQMacroCommandParameterWidget.cxx
 WuQMacroCopyDialog.cxx
 WuQMacroCreateDialog.cxx
 WuQMacroDialog.cxx

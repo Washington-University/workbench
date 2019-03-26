@@ -49,10 +49,11 @@ namespace caret {
 
         WbMacroCustomOperationManager& operator=(const WbMacroCustomOperationManager&) = delete;
 
-        virtual bool editCustomDataValueParameter(QWidget* parent,
-                                                  WuQMacroCommand* macroCommand,
-                                                  WuQMacroCommandParameter* parameter);
-        
+        virtual bool getCustomParameterDataInfo(const int32_t browserWindowIndex,
+                                                const WuQMacroCommand* macroCommand,
+                                                const WuQMacroCommandParameter* parameter,
+                                                WbMacroCustomDataInfo& dataInfoOut) override;
+
         virtual bool executeCustomOperationMacroCommand(QWidget* parent,
                                                         const WuQMacroExecutorMonitor* executorMonitor,
                                                         const WuQMacroExecutorOptions* executorOptions,
@@ -75,36 +76,19 @@ namespace caret {
 
         WbMacroCustomOperationBase* createCommand(const WbMacroCustomOperationTypeEnum::Enum operationType);
         
-        bool editOverlayIndex(QWidget* parentWidget,
-                              WuQMacroCommandParameter* parameter);
+        bool getSurfaceNames(std::vector<QString>& surfaceNamesOut,
+                             QString& errorMessageOut);
         
-        bool editOverlayFile(QWidget* parentWidget,
-                              WuQMacroCommand* macroCommand,
-                              WuQMacroCommandParameter* parameter,
-                              QString& errorMessageOut);
+        bool getMapFileNamesInOverlay(const int32_t browserWindowIndex,
+                                      const WuQMacroCommand* macroCommand,
+                                      const WuQMacroCommandParameter* overlayFileParameter,
+                                      std::vector<QString>& mapFileNamesOut,
+                                      CaretMappableDataFile* &selectedMapFileOut,
+                                      std::vector<QString>& selectedMapFileMapNamesOut,
+                                      QString& errorMessageOut);
         
-        bool editOverlayMap(QWidget* parentWidget,
-                            WuQMacroCommand* macroCommand,
-                            WuQMacroCommandParameter* parameter,
-                            QString& errorMessageOut);
-        
-        bool editScreenAxis(QWidget* parentWidget,
-                            WuQMacroCommandParameter* parameter);
-        
-        bool editSurface(QWidget* parentWidget,
-                         WuQMacroCommandParameter* parameter,
-                         QString& errorMessageOut);
-
-        bool getMapFilesInOverlay(QWidget* parentWidget,
-                                  WuQMacroCommand* macroCommand,
-                                  std::vector<CaretMappableDataFile*>& mapFilesOut,
-                                  CaretMappableDataFile* &selectedMapFileOut,
-                                  QString& errorMessageOut);
-
-        BrowserTabContent* getTabContent(QWidget* parentWidget,
-                                         const QString& promptMessage,
+        BrowserTabContent* getTabContent(const int32_t browserWindowIndex,
                                          QString& errorMessageOut);
-        
         // ADD_NEW_MEMBERS_HERE
 
     };

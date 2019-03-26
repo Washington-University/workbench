@@ -37,10 +37,10 @@ public:
     enum Enum {
         /** Invalid */
         INVALID,
+        /** Axis */
+        AXIS,
         /** Boolean */
         BOOLEAN,
-        /** Custom data that is not a fundamental type used with Custom Operations */
-        CUSTOM_DATA,
         /** Float */
         FLOAT,
         /** Integer */
@@ -50,7 +50,9 @@ public:
         /** None (no data value associated with object */
         NONE,
         /** String */
-        STRING
+        STRING,
+        /** String List*/
+        STRING_LIST
     };
 
 

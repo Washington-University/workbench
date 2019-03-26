@@ -454,6 +454,9 @@ WuQMacroGroupXmlStreamReader::readMacroCommandParameter(QXmlStreamReader& xmlRea
     
     QVariant value;
     switch (dataType) {
+        case WuQMacroDataValueTypeEnum::AXIS:
+            value.setValue(valueString.toString());
+            break;
         case WuQMacroDataValueTypeEnum::INVALID:
             value.setValue(QString(""));
             break;
@@ -462,9 +465,6 @@ WuQMacroGroupXmlStreamReader::readMacroCommandParameter(QXmlStreamReader& xmlRea
             const bool boolValue = ((valueString == VALUE_BOOL_TRUE) ? true : false);
             value.setValue(boolValue);
         }
-            break;
-        case WuQMacroDataValueTypeEnum::CUSTOM_DATA:
-            value.setValue(valueString.toString());
             break;
         case WuQMacroDataValueTypeEnum::FLOAT:
         {
@@ -485,6 +485,9 @@ WuQMacroGroupXmlStreamReader::readMacroCommandParameter(QXmlStreamReader& xmlRea
             value.setValue(QString());
             break;
         case WuQMacroDataValueTypeEnum::STRING:
+            value.setValue(valueString.toString());
+            break;
+        case WuQMacroDataValueTypeEnum::STRING_LIST:
             value.setValue(valueString.toString());
             break;
     }

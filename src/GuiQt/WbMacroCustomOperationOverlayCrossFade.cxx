@@ -150,17 +150,17 @@ WbMacroCustomOperationOverlayCrossFade::createCommandVersionTwo()
                               "(4) The selected overlay is removed;\n"
                               "(5) The selected file/map remains displayed in its overlay\n");
 
-    WuQMacroCommandParameter* paramSurfaceOne = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::CUSTOM_DATA,
+    WuQMacroCommandParameter* paramSurfaceOne = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
                                                                              "Overlay Number",
                                                                              1);
     paramSurfaceOne->setCustomDataType(WbMacroCustomDataTypeEnum::toName(WbMacroCustomDataTypeEnum::OVERLAY_INDEX));
     
-    WuQMacroCommandParameter* paramSurfaceTwo = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::CUSTOM_DATA,
+    WuQMacroCommandParameter* paramSurfaceTwo = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING_LIST,
                                                                              "Fade to File",
                                                                              "");
     paramSurfaceTwo->setCustomDataType(WbMacroCustomDataTypeEnum::toName(WbMacroCustomDataTypeEnum::OVERLAY_FILE_NAME_OR_FILE_INDEX));
     
-    WuQMacroCommandParameter* paramSurfaceThree = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::CUSTOM_DATA,
+    WuQMacroCommandParameter* paramSurfaceThree = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING_LIST,
                                                                              "Fade to Map",
                                                                              "");
     paramSurfaceThree->setCustomDataType(WbMacroCustomDataTypeEnum::toName(WbMacroCustomDataTypeEnum::OVERLAY_MAP_NAME_OR_MAP_INDEX));

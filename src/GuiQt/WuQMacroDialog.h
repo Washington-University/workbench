@@ -52,6 +52,7 @@ namespace caret {
     class CommandParameterWidget;
     class WuQMacro;
     class WuQMacroCommand;
+    class WuQMacroCommandParameterWidget;
     class WuQMacroGroup;
     class WuQMacroShortCutKeyComboBox;
 
@@ -268,7 +269,7 @@ namespace caret {
         
         bool m_macroDescriptionCommandTextEditBlockUpdateFlag = false;
         
-        std::vector<CommandParameterWidget*> m_parameterWidgets;
+        std::vector<WuQMacroCommandParameterWidget*> m_parameterWidgets;
         
         QGridLayout* m_parameterWidgetsGridLayout;
         
@@ -302,36 +303,6 @@ namespace caret {
 
     };
     
-    class CommandParameterWidget : public QObject {
-        Q_OBJECT
-        
-    public:
-        CommandParameterWidget(const int32_t index,
-                               QGridLayout* gridLayout,
-                               QWidget* parent);
-        
-        void updateContent(WuQMacroCommand* macroCommand,
-                           WuQMacroCommandParameter* parameter);
-        
-        QLabel* m_label;
-        
-        QPushButton* m_pushButton;
-
-    signals:
-        void dataChanged(const int index);
-        
-    private slots:
-        void pushButtonClicked();
-        
-    private:
-        const int32_t m_index;
-        
-        WuQMacroCommand* m_macroCommand = NULL;
-        
-        WuQMacroCommandParameter* m_parameter = NULL;
-    };
-    
-
 #ifdef __WU_Q_MACRO_DIALOG_DECLARE__
     QByteArray WuQMacroDialog::s_previousDialogGeometry;
 #endif // __WU_Q_MACRO_DIALOG_DECLARE__

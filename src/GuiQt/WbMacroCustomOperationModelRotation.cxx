@@ -73,10 +73,9 @@ WbMacroCustomOperationModelRotation::createCommand()
 {
     const int32_t versionOne(1);
     
-    WuQMacroCommandParameter* paramOne = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::CUSTOM_DATA,
+    WuQMacroCommandParameter* paramOne = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::AXIS,
                                                                              "Screen Axis",
                                                                              "Y");
-    paramOne->setCustomDataType(WbMacroCustomDataTypeEnum::toName(WbMacroCustomDataTypeEnum::SCREEN_AXIS));
     
     QString errorMessage;
     WuQMacroCommand* command = WuQMacroCommand::newInstanceCustomCommand(WbMacroCustomOperationTypeEnum::toName(WbMacroCustomOperationTypeEnum::MODEL_ROTATION),

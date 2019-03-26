@@ -587,6 +587,30 @@ WuQMacroCommand::getParameterAtIndex(const int32_t index) const
 }
 
 /**
+ * Get the index of the given parameter in this macro
+ *
+ * @param parameter
+ *     Paramater for which index is requested
+ * @return
+ *     Index of parameter or -1 If not found
+ */
+int32_t
+WuQMacroCommand::getIndexOfParameter(const WuQMacroCommandParameter* parameter) const
+{
+    CaretAssert(parameter);
+    
+    const int32_t numParams = getNumberOfParameters();
+    for (int32_t i = 0; i < numParams; i++) {
+        CaretAssertVectorIndex(m_parameters, i);
+        if (m_parameters[i] == parameter) {
+            return i;
+        }
+    }
+    
+    return -1;
+}
+
+/**
  * Remove all parameters in this command
  */
 void

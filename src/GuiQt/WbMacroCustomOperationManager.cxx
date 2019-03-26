@@ -29,6 +29,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretMappableDataFile.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "EventSurfacesGet.h"
@@ -44,6 +45,7 @@
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WbMacroCustomOperationVolumeSliceIncrement.h"
 #include "WbMacroCustomOperationVolumeToSurfaceCrossFade.h"
+#include "WbMacroCustomDataInfo.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
 #include "WuQMessageBox.h"
@@ -83,89 +85,21 @@ WbMacroCustomOperationManager::toString() const
 }
 
 /**
- * Edit overlay index
+ * Get names of all surfaces
  *
- * @param parentWidget
- *     Parent widget for any dialogs
- * @param parameter
- *     Parameter for editing
- * @return
- *     True if the parameter was modified
- */
-bool
-WbMacroCustomOperationManager::editOverlayIndex(QWidget* parentWidget,
-                                                WuQMacroCommandParameter* parameter)
-{
-    bool okFlag(false);
-    const int32_t currentValue(parameter->getValue().toInt());
-    const int32_t minimumValue(1);
-    const int32_t maximumValue(BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
-    const int32_t stepValue(1);
-    int32_t index = QInputDialog::getInt(parentWidget,
-                                         "Overlay Index",
-                                         "Overlay Index (1 is at top)",
-                                         currentValue,
-                                         minimumValue,
-                                         maximumValue,
-                                         stepValue,
-                                         &okFlag);
-    if (okFlag) {
-        parameter->setValue(index);
-    }
-    return okFlag;
-}
-
-/**
- * Edit screen axis
- *
- * @param parentWidget
- *     Parent widget for any dialogs
- * @param parameter
- *     Parameter for editing
- * @return
- *     True if the parameter was modified
- */
-bool
-WbMacroCustomOperationManager::editScreenAxis(QWidget* parentWidget,
-                                              WuQMacroCommandParameter* parameter)
-{
-    QStringList axisList;
-    axisList.append("X");
-    axisList.append("Y");
-    axisList.append("Z");
-    
-    bool okFlag(false);
-    const bool editableFlag(false);
-    QString selectedName = QInputDialog::getItem(parentWidget,
-                                                 "Screen Axis",
-                                                 parameter->getName(),
-                                                 axisList,
-                                                 0,
-                                                 editableFlag,
-                                                 &okFlag);
-    if (okFlag) {
-        parameter->setValue(selectedName);
-    }
-    return okFlag;
-}
-
-/**
- * Edit surface selection
- *
- * @param parentWidget
- *     Parent widget for any dialogs
- * @param parameter
- *     Parameter for editing
+ * @param surfaceNamesOut
+ *     Output with names of surfaces
  * @param errorMessageOut
- *     Output error message if modifying parameter fails
+ *     Ouput with error messages
  * @return
- *     True if the parameter was modified
+ *     True if surface names are valid, else false
  */
 bool
-WbMacroCustomOperationManager::editSurface(QWidget* parentWidget,
-                                           WuQMacroCommandParameter* parameter,
-                                           QString& errorMessageOut)
+WbMacroCustomOperationManager::getSurfaceNames(std::vector<QString>& surfaceNamesOut,
+                                               QString& errorMessageOut)
 {
+    surfaceNamesOut.clear();
+    
     EventSurfacesGet surfacesEvent;
     EventManager::get()->sendEvent(surfacesEvent.getPointer());
     std::vector<Surface*> surfaces = surfacesEvent.getSurfaces();
@@ -174,22 +108,10 @@ WbMacroCustomOperationManager::editSurface(QWidget* parentWidget,
         errorMessageOut = "There are no surfaces available";
     }
     else {
-        QStringList surfaceNamesList;
         for (const auto s : surfaces) {
-            surfaceNamesList.append(s->getFileNameNoPath());
+            surfaceNamesOut.push_back(s->getFileNameNoPath());
         }
-        
-        const bool editableFlag(false);
-        QString selectedName = QInputDialog::getItem(parentWidget,
-                                                     "Choose Surface",
-                                                     parameter->getName(),
-                                                     surfaceNamesList,
-                                                     0,
-                                                     editableFlag,
-                                                     &okFlag);
-        if (okFlag) {
-            parameter->setValue(selectedName);
-        }
+        okFlag = true;
     }
     
     return okFlag;
@@ -198,37 +120,54 @@ WbMacroCustomOperationManager::editSurface(QWidget* parentWidget,
 /**
  * Get the map file in the overlay for this command
  *
- * @param parentWidget
- *     Parent widget for any dialogs
+ * @param browserWindowIndex
+ *     Index of browser window
  * @param macroCommand
  *     Macro command containing parameter being edited
- * @param mapFilesOut
- *     Map files in the overlay
+ * @param overlayFileParameter
+ *     Parameter for overlay file.  Note that index of the overlay
+ *     will be obtained from the most previous parameter that is of
+ *     type OVERLAY_INDEX.
+ * @param mapFileNamesOut
+ *     Output with map file names
  * @param selectedMapFileOut
- *     Selected map file in the overlay
+ *     Map file selected in overlay or NULL if none selected
+ * @param selectedMapFileMapNamesOut
+ *     Names of maps in selected map file, empty if no map file
  * @param errorMessageOut
  *     Output error message if finding map files fails
  * @return
- *     True if the parameter was modified
+ *     True if map file names valid
  */
 bool
-WbMacroCustomOperationManager::getMapFilesInOverlay(QWidget* parentWidget,
-                                                    WuQMacroCommand* macroCommand,
-                                                    std::vector<CaretMappableDataFile*>& mapFilesOut,
-                                                    CaretMappableDataFile* &selectedMapFileOut,
-                                                    QString& errorMessageOut)
+WbMacroCustomOperationManager::getMapFileNamesInOverlay(const int32_t browserWindowIndex,
+                                                        const WuQMacroCommand* macroCommand,
+                                                        const WuQMacroCommandParameter* overlayFileParameter,
+                                                        std::vector<QString>& mapFileNamesOut,
+                                                        CaretMappableDataFile* &selectedMapFileOut,
+                                                        std::vector<QString>& selectedMapFileMapNamesOut,
+                                                        QString& errorMessageOut)
 {
-    mapFilesOut.clear();
+    CaretAssert(macroCommand);
+    CaretAssert(overlayFileParameter);
+    
+    mapFileNamesOut.clear();
     selectedMapFileOut = NULL;
+    selectedMapFileMapNamesOut.clear();
     
     /*
      * Find the overlay index parameter that should be before this parameter
      */
+    const int32_t parameterIndex = macroCommand->getIndexOfParameter(overlayFileParameter);
+    if (parameterIndex < 0) {
+        errorMessageOut = "Parameter is invalid for command";
+        return false;
+    }
+    
     int32_t overlayIndex(-1);
-    const int32_t numParams = macroCommand->getNumberOfParameters();
-    for (int32_t ip = 0; ip < numParams; ip++) {
+    for (int32_t ip = (parameterIndex - 1); ip >= 0; --ip) {
         const WuQMacroCommandParameter* p = macroCommand->getParameterAtIndex(ip);
-        if (p->getDataType() == WuQMacroDataValueTypeEnum::CUSTOM_DATA) {
+        if (p->getDataType() == WuQMacroDataValueTypeEnum::INTEGER) {
             bool valid(false);
             WbMacroCustomDataTypeEnum::Enum customType = WbMacroCustomDataTypeEnum::fromName(p->getCustomDataType(),
                                                                                              &valid);
@@ -242,7 +181,7 @@ WbMacroCustomOperationManager::getMapFilesInOverlay(QWidget* parentWidget,
     }
     
     /*
-     * Overlay index is 1..N for user
+     * Overlay index is 1..N for user so need to decrement
      */
     if (overlayIndex < 1) {
         errorMessageOut = "Unable to find overlay index";
@@ -250,10 +189,10 @@ WbMacroCustomOperationManager::getMapFilesInOverlay(QWidget* parentWidget,
     }
     --overlayIndex;
     
-    BrowserTabContent* tabContent = getTabContent(parentWidget,
-                                                  "Window containing overlay",
+    BrowserTabContent* tabContent = getTabContent(browserWindowIndex,
                                                   errorMessageOut);
     if (tabContent == NULL) {
+        errorMessageOut = "Unable to find tab content";
         return false;
     }
     
@@ -266,240 +205,184 @@ WbMacroCustomOperationManager::getMapFilesInOverlay(QWidget* parentWidget,
     }
     
     int32_t selectedMapIndex(-1);
-    overlay->getSelectionData(mapFilesOut,
-                              selectedMapFileOut,
+    std::vector<CaretMappableDataFile*> mapFiles;
+    CaretMappableDataFile* selectedMapFile(NULL);
+    overlay->getSelectionData(mapFiles,
+                              selectedMapFile,
                               selectedMapIndex);
     
-    if (mapFilesOut.empty()) {
+    if (mapFiles.empty()) {
         errorMessageOut = "The overlay does not contain any files";
         return false;
     }
+    
+    selectedMapFileOut = selectedMapFile;
+    for (const auto mf : mapFiles) {
+        mapFileNamesOut.push_back(mf->getFileNameNoPath());
+    }
+    if (selectedMapFileOut != NULL) {
+        const int32_t numMaps = selectedMapFileOut->getNumberOfMaps();
+        for (int32_t i = 0; i < numMaps; i++) {
+            selectedMapFileMapNamesOut.push_back(selectedMapFileOut->getMapName(i));
+        }
+    }
+    
     return true;
 }
 
 /**
- * Edit overlay file
+ * Get info for data in a custom parameter
  *
- * @param parentWidget
- *     Parent widget for any dialogs
+ * @param browserWindowIndex
+ *     Index of browser window
  * @param macroCommand
- *     Macro command containing parameter being edited
+ *     Macro command that contains the parameter
  * @param parameter
- *     Parameter for editing
- * @param errorMessageOut
- *     Output error message if modifying parameter fails
+ *     Parameter for info
+ * @param dataInfo
+ *     Updated with data info in this method
  * @return
- *     True if the parameter was modified
+ *     True if the data info is valid
  */
 bool
-WbMacroCustomOperationManager::editOverlayFile(QWidget* parentWidget,
-                                               WuQMacroCommand* macroCommand,
-                                               WuQMacroCommandParameter* parameter,
-                                               QString& errorMessageOut)
+WbMacroCustomOperationManager::getCustomParameterDataInfo(const int32_t browserWindowIndex,
+                                                          const WuQMacroCommand* macroCommand,
+                                                          const WuQMacroCommandParameter* parameter,
+                                                          WbMacroCustomDataInfo& dataInfoOut)
 {
-    std::vector<CaretMappableDataFile*> mapFiles;
-    CaretMappableDataFile* selectedMapFile(NULL);
-    if ( ! getMapFilesInOverlay(parentWidget,
-                                macroCommand,
-                                mapFiles,
-                                selectedMapFile,
-                                errorMessageOut)) {
-        return false;
-    }
-    
-    
-    const QString selectedFileName = parameter->getValue().toString();
-    int32_t selectedIndex(0);
-    QStringList fileNameList;
-    for (const auto mf : mapFiles) {
-        const QString name(mf->getFileNameNoPath());
-        if (selectedFileName == name) {
-            selectedIndex = fileNameList.count();
-        }
-        fileNameList.append(name);
-    }
-    
-    bool okFlag(false);
-    const bool editableFlag(false);
-    QString selectedName = QInputDialog::getItem(parentWidget,
-                                                 "Choose map file",
-                                                 "Choose map file",
-                                                 fileNameList,
-                                                 selectedIndex,
-                                                 editableFlag,
-                                                 &okFlag);
-    if (okFlag) {
-        parameter->setValue(selectedName);
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * Edit overlay file
- *
- * @param parentWidget
- *     Parent widget for any dialogs
- * @param macroCommand
- *     Macro command containing parameter being edited
- * @param parameter
- *     Parameter for editing
- * @param errorMessageOut
- *     Output error message if modifying parameter fails
- * @return
- *     True if the parameter was modified
- */
-bool
-WbMacroCustomOperationManager::editOverlayMap(QWidget* parentWidget,
-                                              WuQMacroCommand* macroCommand,
-                                              WuQMacroCommandParameter* parameter,
-                                              QString& errorMessageOut)
-{
-    /*
-     * Find the overlay file parameter that should be before this parameter
-     */
-    QString filename;
-    const int32_t numParams = macroCommand->getNumberOfParameters();
-    for (int32_t ip = 0; ip < numParams; ip++) {
-        const WuQMacroCommandParameter* p = macroCommand->getParameterAtIndex(ip);
-        if (p->getDataType() == WuQMacroDataValueTypeEnum::CUSTOM_DATA) {
-            bool valid(false);
-            WbMacroCustomDataTypeEnum::Enum customType = WbMacroCustomDataTypeEnum::fromName(p->getCustomDataType(),
-                                                                                             &valid);
-            if (valid) {
-                if (customType == WbMacroCustomDataTypeEnum::OVERLAY_FILE_NAME_OR_FILE_INDEX) {
-                    filename = p->getValue().toString();
-                    break;
-                }
-            }
-        }
-    }
-    
-    if (filename.isEmpty()) {
-        errorMessageOut = "Name of overlay file is empty, select a file";
-        return false;
-    }
-    
-    EventCaretMappableDataFilesGet filesEvent;
-    EventManager::get()->sendEvent(filesEvent.getPointer());
-    std::vector<CaretMappableDataFile*> allMapFiles;
-    filesEvent.getAllFiles(allMapFiles);
-    
-    CaretMappableDataFile* mapFile(NULL);
-    for (auto cmdf : allMapFiles) {
-        if (cmdf->getFileName().endsWith(filename)) {
-            mapFile = cmdf;
-            break;
-        }
-    }
-    if (mapFile == NULL) {
-        errorMessageOut = ("Unable to find data file with name \""
-                           + filename
-                           + "\"");
-        return false;
-    }
-    
-    const QString currentMapName = parameter->getValue().toString();
-    
-    const int32_t numMaps = mapFile->getNumberOfMaps();
-    QStringList mapNameList;
-    for (int32_t i = 0; i < numMaps; i++) {
-        mapNameList.append(mapFile->getMapName(i));
-    }
-    
-    bool okFlag(false);
-    const bool editableFlag(false);
-    QString selectedName = QInputDialog::getItem(parentWidget,
-                                                 "Choose Map Name",
-                                                 "Choose map name",
-                                                 mapNameList,
-                                                 0,
-                                                 editableFlag,
-                                                 &okFlag);
-    if (okFlag) {
-        parameter->setValue(selectedName);
-        return true;
-    }
-
-    return false;
-}
-
-/**
- * Is called to edit a macro command parameter with a CUSTOM_DATA data type
- *
- * @param parentWidget
- *     Parent widget for any dialogs
- * @param macroCommand
- *     Macro command that contains the parameter for editing
- * @param parameter
- *     Parameter for editing
- * @return
- *     True if the parameter was modified
- */
-bool
-WbMacroCustomOperationManager::editCustomDataValueParameter(QWidget* parentWidget,
-                                                            WuQMacroCommand* macroCommand,
-                                                            WuQMacroCommandParameter* parameter)
-{
-    bool modFlag(false);
-    
-    CaretAssert(parentWidget);
+    CaretAssert(macroCommand);
     CaretAssert(parameter);
     
-    if (parameter->getDataType() != WuQMacroDataValueTypeEnum::CUSTOM_DATA) {
-        CaretLogSevere("Attempting to edit non-custom data type as custom data type");
-        return false;
-    }
-    
-    const QString typeName(parameter->getCustomDataType());
-    bool nameValid(false);
-    const WbMacroCustomDataTypeEnum::Enum userType = WbMacroCustomDataTypeEnum::fromName(typeName,
-                                                                                         &nameValid);
-    if ( ! nameValid) {
+    const QString customTypeName(parameter->getCustomDataType());
+    bool customTypeNameValid(false);
+    const WbMacroCustomDataTypeEnum::Enum userType = WbMacroCustomDataTypeEnum::fromName(customTypeName,
+                                                                                         &customTypeNameValid);
+    if ( ! customTypeNameValid) {
         CaretLogSevere("\""
-                       + typeName
+                       + customTypeName
                        + "\" is not a valid name for a custom parameter");
         return false;
     }
     
-    QString errorMessage;
+    const QString dataTypeName(WuQMacroDataValueTypeEnum::toName(dataInfoOut.getDataType()));
+    
+    bool unsupportedFlag(false);
+    switch (dataInfoOut.getDataType()) {
+        case WuQMacroDataValueTypeEnum::AXIS:
+            unsupportedFlag = true;
+            break;
+        case WuQMacroDataValueTypeEnum::BOOLEAN:
+            unsupportedFlag = true;
+            break;
+        case WuQMacroDataValueTypeEnum::FLOAT:
+            break;
+        case WuQMacroDataValueTypeEnum::INTEGER:
+            break;
+        case WuQMacroDataValueTypeEnum::INVALID:
+            unsupportedFlag = true;
+            break;
+        case WuQMacroDataValueTypeEnum::MOUSE:
+            unsupportedFlag = true;
+            break;
+        case WuQMacroDataValueTypeEnum::NONE:
+            unsupportedFlag = true;
+            break;
+        case WuQMacroDataValueTypeEnum::STRING:
+            unsupportedFlag = true;
+            break;
+        case WuQMacroDataValueTypeEnum::STRING_LIST:
+            break;
+    }
+    
+    if (unsupportedFlag) {
+        CaretLogSevere("Unsupported data type for parameter info "
+                        + WuQMacroDataValueTypeEnum::toName(dataInfoOut.getDataType()));
+        return false;
+    }
+    
+    bool validFlag(false);
+    QString errorMessage("Unknown error");
+    QString invalidTypeName;
     switch (userType) {
         case WbMacroCustomDataTypeEnum::OVERLAY_INDEX:
-            modFlag = editOverlayIndex(parentWidget,
-                                       parameter);
+            if (dataInfoOut.getDataType() == WuQMacroDataValueTypeEnum::INTEGER) {
+                dataInfoOut.setIntegerRange({ 1, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS });
+                validFlag = true;
+            }
+            else {
+                invalidTypeName = WuQMacroDataValueTypeEnum::toName(WuQMacroDataValueTypeEnum::INTEGER);
+            }
             break;
         case WbMacroCustomDataTypeEnum::OVERLAY_FILE_NAME_OR_FILE_INDEX:
-            modFlag = editOverlayFile(parentWidget,
-                                      macroCommand,
-                                      parameter,
-                                      errorMessage);
+            if (dataInfoOut.getDataType() == WuQMacroDataValueTypeEnum::STRING_LIST) {
+                std::vector<QString> filenames;
+                CaretMappableDataFile* selectedMapFile(NULL);
+                std::vector<QString> mapNames;
+                if (getMapFileNamesInOverlay(browserWindowIndex,
+                                             macroCommand,
+                                             parameter,
+                                             filenames,
+                                             selectedMapFile,
+                                             mapNames,
+                                             errorMessage)) {
+                    dataInfoOut.setStringListValues(filenames);
+                    validFlag = true;
+                }
+            }
+            else {
+                invalidTypeName = WuQMacroDataValueTypeEnum::toName(WuQMacroDataValueTypeEnum::STRING_LIST);
+            }
             break;
         case WbMacroCustomDataTypeEnum::OVERLAY_MAP_NAME_OR_MAP_INDEX:
-            modFlag = editOverlayMap(parentWidget,
-                                     macroCommand,
-                                     parameter,
-                                     errorMessage);
+            if (dataInfoOut.getDataType() == WuQMacroDataValueTypeEnum::STRING_LIST) {
+                std::vector<QString> filenames;
+                CaretMappableDataFile* selectedMapFile(NULL);
+                std::vector<QString> mapNames;
+                if (getMapFileNamesInOverlay(browserWindowIndex,
+                                             macroCommand,
+                                             parameter,
+                                             filenames,
+                                             selectedMapFile,
+                                             mapNames,
+                                             errorMessage)) {
+                    dataInfoOut.setStringListValues(mapNames);
+                    validFlag = true;
+                }
+            }
+            else {
+                invalidTypeName = WuQMacroDataValueTypeEnum::toName(WuQMacroDataValueTypeEnum::STRING_LIST);
+            }
             break;
         case WbMacroCustomDataTypeEnum::SCREEN_AXIS:
-            modFlag = editScreenAxis(parentWidget,
-                                     parameter);
             break;
         case WbMacroCustomDataTypeEnum::SURFACE:
-            modFlag = editSurface(parentWidget,
-                                  parameter,
-                                  errorMessage);
+            if (dataInfoOut.getDataType() == WuQMacroDataValueTypeEnum::STRING_LIST) {
+                std::vector<QString> surfaceNames;
+                if (getSurfaceNames(surfaceNames, errorMessage)) {
+                    dataInfoOut.setStringListValues(surfaceNames);
+                    validFlag = true;
+                }
+            }
+            else {
+                invalidTypeName = WuQMacroDataValueTypeEnum::toName(WuQMacroDataValueTypeEnum::STRING_LIST);
+            }
             break;
     }
     
-    if ( ! errorMessage.isEmpty()) {
-        WuQMessageBox::critical(parentWidget,
-                                "Set Value",
-                                errorMessage);
+    if ( ! validFlag) {
+        if ( ! invalidTypeName.isEmpty()) {
+            errorMessage = ("Custom parameter "
+                            + customTypeName
+                            + " data type should be "
+                            + invalidTypeName
+                            + " but is "
+                            + dataTypeName);
+        }
+        
+        CaretLogSevere(errorMessage);
     }
     
-    return modFlag;
-
+    return validFlag;
 }
 
 /**
@@ -691,18 +574,15 @@ WbMacroCustomOperationManager::createCommand(const WbMacroCustomOperationTypeEnu
  * Get the active tab content in the active window.  If there is more
  * than one window open, the user is prompted to select a window
  *
- * @param parentWidget
+ * @param browserWindowIndex
  *     Widget for any dialogs
- * @param promptMessage
- *     Message displayed in dialog if more than one window is open
  * @param errorMessageOut
  *     Output with error information if failure
  * @return
  *     Pointer to active tab content or none found
  */
 BrowserTabContent*
-WbMacroCustomOperationManager::getTabContent(QWidget* parentWidget,
-                                             const QString& promptMessage,
+WbMacroCustomOperationManager::getTabContent(const int32_t browserWindowIndex,
                                              QString& errorMessageOut)
 {
     errorMessageOut.clear();
@@ -712,34 +592,19 @@ WbMacroCustomOperationManager::getTabContent(QWidget* parentWidget,
         errorMessageOut = "No window are open.  This should never happen.";
         return NULL;
     }
-
+    
     BrowserTabContent* tabContent(NULL);
     BrainBrowserWindow* bbw(NULL);
+    
     if (allWindows.size() == 1) {
         CaretAssertVectorIndex(allWindows, 0);
         bbw = allWindows[0];
     }
     else {
-        QStringList windowNameList;
-        for (const auto w : allWindows) {
-            windowNameList.append(w->windowTitle());
-        }
-        
-        bool okFlag(false);
-        const bool editableFlag(false);
-        QString selectedName = QInputDialog::getItem(parentWidget,
-                                                     "Choose window",
-                                                     promptMessage,
-                                                     windowNameList,
-                                                     0,
-                                                     editableFlag,
-                                                     &okFlag);
-        if (okFlag) {
-            for (auto w : allWindows) {
-                if (selectedName == w->windowTitle()) {
-                    bbw = w;
-                    break;
-                }
+        for (auto w : allWindows) {
+            if (w->getBrowserWindowIndex() == browserWindowIndex) {
+                bbw = w;
+                break;
             }
         }
     }
@@ -753,4 +618,3 @@ WbMacroCustomOperationManager::getTabContent(QWidget* parentWidget,
     
     return tabContent;
 }
-

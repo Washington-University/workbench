@@ -39,6 +39,7 @@ class QWidget;
 
 namespace caret {
 
+    class WbMacroCustomDataInfo;
     class WuQMacro;
     class WuQMacroCommand;
     class WuQMacroCommandParameter;
@@ -155,9 +156,10 @@ namespace caret {
         
         void macroWasModified(WuQMacro* macro);
         
-        bool editCustomDataValueParameter(QWidget* parent,
-                                          WuQMacroCommand* macroCommand,
-                                          WuQMacroCommandParameter* parameter);
+        bool getCustomParameterDataInfo(const int32_t browserWindowIndex,
+                                        const WuQMacroCommand* macroCommand,
+                                        const WuQMacroCommandParameter* parameter,
+                                        WbMacroCustomDataInfo& dataInfoOut);
 
         bool executeCustomOperationMacroCommand(QWidget* parent,
                                                 const WuQMacroExecutorMonitor* executorMonitor,

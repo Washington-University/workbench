@@ -110,6 +110,8 @@ namespace caret {
         
         const WuQMacroCommandParameter* getParameterAtIndex(const int32_t) const;
         
+        int32_t getIndexOfParameter(const WuQMacroCommandParameter* parameter) const;
+        
         WuQMacroMouseEventInfo* getMouseEventInfo();
         
         const WuQMacroMouseEventInfo* getMouseEventInfo() const;

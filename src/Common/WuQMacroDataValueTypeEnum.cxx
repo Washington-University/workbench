@@ -110,13 +110,13 @@ WuQMacroDataValueTypeEnum::initialize()
                                     "INVALID",
                                     "Invalid"));
     
+    enumData.push_back(WuQMacroDataValueTypeEnum(AXIS,
+                                                 "AXIS",
+                                                 "Axis"));
+    
     enumData.push_back(WuQMacroDataValueTypeEnum(BOOLEAN,
                                                  "BOOLEAN",
                                                  "Boolean"));
-    
-    enumData.push_back(WuQMacroDataValueTypeEnum(CUSTOM_DATA,
-                                                 "CUSTOM_DATA",
-                                                 "CustomData"));
     
     enumData.push_back(WuQMacroDataValueTypeEnum(FLOAT,
                                     "FLOAT", 
@@ -137,6 +137,10 @@ WuQMacroDataValueTypeEnum::initialize()
     enumData.push_back(WuQMacroDataValueTypeEnum(STRING,
                                     "STRING", 
                                     "String"));
+
+    enumData.push_back(WuQMacroDataValueTypeEnum(STRING_LIST,
+                                                 "STRING_LIST",
+                                                 "StringList"));
 }
 
 /**

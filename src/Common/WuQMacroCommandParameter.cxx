@@ -158,8 +158,7 @@ WuQMacroCommandParameter::setValue(const QVariant& value)
 }
 
 /**
- * @return The custom type data type that defines the data when
- * getDataType() is CUSTOM_DATA
+ * @return The custom type data type name
  */
 QString
 WuQMacroCommandParameter::getCustomDataType() const
@@ -168,8 +167,7 @@ WuQMacroCommandParameter::getCustomDataType() const
 }
 
 /**
- * Set the custom type data type that defines the data when
- * getDataType() is CUSTOM_DATA
+ * Set the custom type data type name
  *
  * @param customDataType
  *     The custom data type

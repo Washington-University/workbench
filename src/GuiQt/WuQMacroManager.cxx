@@ -1316,34 +1316,37 @@ WuQMacroManager::getShortCutKeysMask()
 }
 
 /**
- * Is called to edit a macro command parameter with a CUSTOM_DATA data type
+ * Get information about a custom parameter that may be a range or
+ * a list of valid values
  *
- * @param parent
- *     Parent widget for any dialogs
+ * @param browserWindowIndex
+ *     Index of window
  * @param macroCommand
  *     Macro command that contains the parameter for editing
  * @param parameter
  *     Parameter for editing
+ * @param dataInfoOut
+ *     Information about the data
  * @return
  *     True if the parameter was modified
  */
 bool
-WuQMacroManager::editCustomDataValueParameter(QWidget* parent,
-                                              WuQMacroCommand* macroCommand,
-                                              WuQMacroCommandParameter* parameter)
+WuQMacroManager::getCustomParameterDataInfo(const int32_t browserWindowIndex,
+                                            const WuQMacroCommand* macroCommand,
+                                            const WuQMacroCommandParameter* parameter,
+                                            WbMacroCustomDataInfo& dataInfoOut)
 {
-    bool modFlag(false);
-    
+    bool validFlag(false);
     if (m_customCommandManager != NULL) {
-        modFlag = m_customCommandManager->editCustomDataValueParameter(parent,
+        validFlag = m_customCommandManager->getCustomParameterDataInfo(browserWindowIndex,
                                                                        macroCommand,
-                                                                       parameter);
+                                                                       parameter,
+                                                                       dataInfoOut);
     }
     else {
         CaretLogSevere("No Macro Helper available for editing custom values in a macro parameter");
     }
-    
-    return modFlag;
+    return validFlag;
 }
 
 /**

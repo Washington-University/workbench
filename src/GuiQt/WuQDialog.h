@@ -147,9 +147,6 @@ namespace caret  {
         
         virtual void showEvent(QShowEvent* event);
         
-//        void setDialogSizeHint(const int32_t width,
-//                               const int32_t height);
-        
     private slots:
             void clicked(QAbstractButton* button);
         

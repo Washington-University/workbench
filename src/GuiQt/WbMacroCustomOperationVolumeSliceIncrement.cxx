@@ -93,10 +93,9 @@ WbMacroCustomOperationVolumeSliceIncrement::createCommand()
                                                                          1.0,
                                                                          errorMessage);
     if (command != NULL) {
-        WuQMacroCommandParameter* paramOne = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::CUSTOM_DATA,
+        WuQMacroCommandParameter* paramOne = new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::AXIS,
                                                                           "Volume Axis",
                                                                           "Z");
-        paramOne->setCustomDataType(WbMacroCustomDataTypeEnum::toName(WbMacroCustomDataTypeEnum::SCREEN_AXIS));
         command->addParameter(paramOne);
         command->addParameter(WuQMacroDataValueTypeEnum::FLOAT,
                               "Duration (secs)",

@@ -209,11 +209,11 @@ WuQMacroGroupXmlStreamWriter::writeMacroCommandToXML(const WuQMacroCommand* macr
         switch (parameter->getDataType()) {
             case WuQMacroDataValueTypeEnum::INVALID:
                 break;
+            case WuQMacroDataValueTypeEnum::AXIS:
+                stringValue = value.toString();
+                break;
             case WuQMacroDataValueTypeEnum::BOOLEAN:
                 stringValue = (value.toBool() ? VALUE_BOOL_TRUE : VALUE_BOOL_FALSE);
-                break;
-            case WuQMacroDataValueTypeEnum::CUSTOM_DATA:
-                stringValue = value.toString();
                 break;
             case WuQMacroDataValueTypeEnum::FLOAT:
                 stringValue = QString::number(value.toFloat());
@@ -228,6 +228,9 @@ WuQMacroGroupXmlStreamWriter::writeMacroCommandToXML(const WuQMacroCommand* macr
                 stringValue = "";
                 break;
             case WuQMacroDataValueTypeEnum::STRING:
+                stringValue = value.toString();
+                break;
+            case WuQMacroDataValueTypeEnum::STRING_LIST:
                 stringValue = value.toString();
                 break;
         }

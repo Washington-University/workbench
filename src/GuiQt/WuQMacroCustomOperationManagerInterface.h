@@ -29,6 +29,7 @@ class QWidget;
 namespace caret {
     class WuQMacroCommand;
     class WuQMacroCommandParameter;
+    class WbMacroCustomDataInfo;
     class WuQMacroExecutorMonitor;
     class WuQMacroExecutorOptions;
 
@@ -44,20 +45,23 @@ namespace caret {
         WuQMacroCustomOperationManagerInterface& operator=(const WuQMacroCustomOperationManagerInterface&) = delete;
         
         /**
-         * Is called to edit a macro command parameter with a CUSTOM_DATA data type
+         * Get info for data in a custom parameter
          *
-         * @param parent
-         *     Parent widget for any dialogs
+         * @param browserWindowIndex
+         *     Index of browser window
          * @param macroCommand
-         *     Macro command that contains the parameter for editing
+         *     Macro command that contains the parameter
          * @param parameter
-         *     Parameter for editing
+         *     Parameter for info
+         * @param dataInfo
+         *     Updated with data info in this method
          * @return
-         *     True if the parameter was modified
+         *     True if the data info is valid
          */
-        virtual bool editCustomDataValueParameter(QWidget* parent,
-                                                  WuQMacroCommand* macroCommand,
-                                                  WuQMacroCommandParameter* parameter) = 0;
+        virtual bool getCustomParameterDataInfo(const int32_t browserWindowIndex,
+                                                const WuQMacroCommand* macroCommand,
+                                                const WuQMacroCommandParameter* parameter,
+                                                WbMacroCustomDataInfo& dataInfoOut) = 0;
         
         /**
          * Run a custom-defined macro command
