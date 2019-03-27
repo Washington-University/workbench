@@ -98,6 +98,7 @@ WuQMacroMenu::macroMenuAboutToShow()
     WuQMacroManager* macroManager = WuQMacroManager::instance();
     CaretAssert(macroManager);
     
+    const bool hasMacroGroupFlag = ( ! macroManager->getActiveMacroGroups().empty());
     bool editValidFlag(false);
     bool recordValidFlag(false);
     bool stopValidFlag(false);
@@ -105,7 +106,7 @@ WuQMacroMenu::macroMenuAboutToShow()
     switch (macroManager->getMode()) {
         case WuQMacroModeEnum::OFF:
             editValidFlag = true;
-            recordValidFlag = true;
+            recordValidFlag = hasMacroGroupFlag;
             break;
         case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
         case WuQMacroModeEnum::RECORDING_NEW_MACRO:

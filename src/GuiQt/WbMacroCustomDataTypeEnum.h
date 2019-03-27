@@ -41,8 +41,6 @@ public:
         OVERLAY_FILE_NAME_OR_FILE_INDEX,
         /** Name of map or index of map */
         OVERLAY_MAP_NAME_OR_MAP_INDEX,
-        /** A Screen Axis */
-        SCREEN_AXIS,
         /** Surface selection */
         SURFACE
     };

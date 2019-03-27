@@ -510,8 +510,6 @@ WbMacroCustomOperationManager::getCustomParameterDataInfo(const int32_t browserW
                 invalidTypeName = WuQMacroDataValueTypeEnum::toName(WuQMacroDataValueTypeEnum::STRING_LIST);
             }
             break;
-        case WbMacroCustomDataTypeEnum::SCREEN_AXIS:
-            break;
         case WbMacroCustomDataTypeEnum::SURFACE:
             if (dataInfoOut.getDataType() == WuQMacroDataValueTypeEnum::STRING_LIST) {
                 std::vector<QString> surfaceNames;

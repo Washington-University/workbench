@@ -118,10 +118,6 @@ WbMacroCustomDataTypeEnum::initialize()
                                                  "OVERLAY_MAP_NAME_OR_MAP_INDEX",
                                                  "Overlay Map Name or Index"));
     
-    enumData.push_back(WbMacroCustomDataTypeEnum(SCREEN_AXIS,
-                                                 "SCREEN_AXIS",
-                                                 "Screen Axis"));
-    
     enumData.push_back(WbMacroCustomDataTypeEnum(SURFACE,
                                                  "SURFACE",
                                                  "Surface"));
