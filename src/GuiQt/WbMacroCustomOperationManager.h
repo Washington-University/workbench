@@ -79,14 +79,23 @@ namespace caret {
         bool getSurfaceNames(std::vector<QString>& surfaceNamesOut,
                              QString& errorMessageOut);
         
-        bool getMapFileNamesInOverlay(const int32_t browserWindowIndex,
-                                      const WuQMacroCommand* macroCommand,
-                                      const WuQMacroCommandParameter* overlayFileParameter,
-                                      std::vector<QString>& mapFileNamesOut,
-                                      CaretMappableDataFile* &selectedMapFileOut,
-                                      std::vector<QString>& selectedMapFileMapNamesOut,
-                                      QString& errorMessageOut);
-        
+        bool getOverlayContents(const int32_t browserWindowIndex,
+                                const WuQMacroCommand* macroCommand,
+                                const WuQMacroCommandParameter* overlayFileParameter,
+                                std::vector<QString>& mapFileNamesOut,
+                                CaretMappableDataFile* &selectedMapFileOut,
+                                std::vector<QString>& selectedMapFileMapNamesOut,
+                                QString& errorMessageOut);
+
+        bool getMappableFilesSelection(const WuQMacroCommand* macroCommand,
+                                       const WuQMacroCommandParameter* overlayFileParameter,
+                                       const WuQMacroCommandParameter* mapParameter,
+                                       std::vector<QString>& mapFileNamesOut,
+                                       QString& selectedFileNameOut,
+                                       std::vector<QString>& mapNamesOut,
+                                       QString& selectedMapNameOut,
+                                       QString& errorMessageOut);
+
         BrowserTabContent* getTabContent(const int32_t browserWindowIndex,
                                          QString& errorMessageOut);
         // ADD_NEW_MEMBERS_HERE

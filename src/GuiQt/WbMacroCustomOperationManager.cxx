@@ -118,6 +118,159 @@ WbMacroCustomOperationManager::getSurfaceNames(std::vector<QString>& surfaceName
 }
 
 /**
+ * Get mappable files selection info
+ *
+ * @param macroCommand
+ *     Macro command containing parameter being edited
+ * @param overlayFileParameter
+ *     Parameter for overlay file selection
+ * @param mapNameParameter
+ *     Parameter for map name selection
+ * @param mapFileNamesOut
+ *     Output with map file names
+ * @param selectedFileNameOut
+ *     Output with name of selected file
+ * @param mapNamesOut
+ *     Output with name of maps in selected file
+ * @param selectedMapNameOut
+ *     Name of selected map
+ * @param errorMessageOut
+ *     Output error message if finding map files fails
+ * @return
+ *     True if map file names valid
+ */
+bool
+WbMacroCustomOperationManager::getMappableFilesSelection(const WuQMacroCommand* macroCommand,
+                                                         const WuQMacroCommandParameter* overlayFileParameterIn,
+                                                         const WuQMacroCommandParameter* mapParameterIn,
+                                                         std::vector<QString>& mapFileNamesOut,
+                                                         QString& selectedFileNameOut,
+                                                         std::vector<QString>& mapNamesOut,
+                                                         QString& selectedMapNameOut,
+                                                         QString& errorMessageOut)
+{
+    CaretAssert(macroCommand);
+    mapFileNamesOut.clear();
+    selectedFileNameOut.clear();
+    mapNamesOut.clear();
+    selectedMapNameOut.clear();
+    errorMessageOut.clear();
+    
+    const WuQMacroCommandParameter* fileParameter = overlayFileParameterIn;
+    const WuQMacroCommandParameter* mapParameter  = mapParameterIn;
+    if ((fileParameter != NULL)
+        && (mapParameter != NULL)) {
+        /* OK, have both */
+    }
+    else {
+        /*
+         * Map selection parameter should be immediately after file selection parameter
+         */
+        int32_t fileParameterIndex(-1);
+        int32_t mapParameterIndex(-1);
+        if (fileParameter != NULL) {
+            fileParameterIndex = macroCommand->getIndexOfParameter(fileParameter);
+            mapParameterIndex  = fileParameterIndex + 1;
+        }
+        else if (mapParameter != NULL) {
+            mapParameterIndex  = macroCommand->getIndexOfParameter(mapParameter);
+            fileParameterIndex = mapParameterIndex - 1;
+        }
+        else {
+            errorMessageOut = "Both overlay file and map parameter are NULL, one must be valid";
+            return false;
+        }
+        
+        if ((fileParameterIndex < 0)
+            || (fileParameterIndex >= macroCommand->getNumberOfParameters())) {
+            errorMessageOut.append("Unable to find file parameter.  ");
+        }
+        if ((mapParameterIndex < 0)
+            || (mapParameterIndex >= macroCommand->getNumberOfParameters())) {
+            errorMessageOut.append("Unable to find map parameter.  ");
+        }
+        if ( ! errorMessageOut.isEmpty()) {
+            return false;
+        }
+        
+        fileParameter = macroCommand->getParameterAtIndex(fileParameterIndex);
+        mapParameter  = macroCommand->getParameterAtIndex(mapParameterIndex);
+    }
+    
+    CaretAssert(fileParameter);
+    CaretAssert(mapParameter);
+    
+    bool validFileParamFlag(false);
+    const WbMacroCustomDataTypeEnum::Enum overlayParamType = WbMacroCustomDataTypeEnum::fromName(fileParameter->getCustomDataType(),
+                                                                                                 &validFileParamFlag);
+    if (overlayParamType != WbMacroCustomDataTypeEnum::OVERLAY_FILE_NAME_OR_FILE_INDEX) {
+        errorMessageOut.append("Overlay file parameter is not of type OVERLAY_FILE_NAME_OR_FILE_INDEX.  ");
+    }
+    
+    bool validMapNameParamFlag(false);
+    const WbMacroCustomDataTypeEnum::Enum mapParamType = WbMacroCustomDataTypeEnum::fromName(mapParameter->getCustomDataType(),
+                                                                                             &validMapNameParamFlag);
+    if (mapParamType != WbMacroCustomDataTypeEnum::OVERLAY_MAP_NAME_OR_MAP_INDEX) {
+        errorMessageOut.append("Overlay map parameter is not of type OVERLAY_MAP_NAME_OR_MAP_INDEX.  ");
+    }
+    
+    if ( ! errorMessageOut.isEmpty()) {
+        return false;
+    }
+    
+    const QString selectedFileName = fileParameter->getValue().toString();
+    const QString selectedMapName  = mapParameter->getValue().toString();
+    
+    CaretMappableDataFile* selectedFile(NULL);
+    EventCaretMappableDataFilesGet mapFilesEvent;
+    EventManager::get()->sendEvent(mapFilesEvent.getPointer());
+    std::vector<CaretMappableDataFile*> allFiles;
+    mapFilesEvent.getAllFiles(allFiles);
+    if ( ! allFiles.empty()) {
+        for (auto mf : allFiles) {
+            CaretAssert(mf);
+            const QString name(mf->getFileNameNoPath());
+            if ( ! selectedFileName.isEmpty()) {
+                if (name == selectedFileName) {
+                    selectedFile = mf;
+                }
+            }
+            mapFileNamesOut.push_back(name);
+        }
+        
+        if (selectedFile == NULL) {
+            CaretAssertVectorIndex(allFiles, 0);
+            selectedFile = allFiles[0];
+        }
+        CaretAssert(selectedFile);
+        selectedFileNameOut = selectedFile->getFileNameNoPath();
+        
+        bool selectedMapNameFoundFlag(false);
+        const int32_t numMaps = selectedFile->getNumberOfMaps();
+        for (int32_t i = 0; i < numMaps; i++) {
+            const QString name(selectedFile->getMapName(i));
+            if ( ! selectedMapName.isEmpty()) {
+                if (selectedMapName == name) {
+                    selectedMapNameFoundFlag = true;
+                }
+            }
+            mapNamesOut.push_back(name);
+        }
+        
+        if (selectedMapNameFoundFlag) {
+            selectedMapNameOut = selectedMapName;
+        }
+        else {
+            if (selectedFile->getNumberOfMaps() > 0) {
+                selectedMapNameOut = selectedFile->getMapName(0);
+            }
+        }
+    }
+    
+    return true;
+}
+
+/**
  * Get the map file in the overlay for this command
  *
  * @param browserWindowIndex
@@ -140,13 +293,13 @@ WbMacroCustomOperationManager::getSurfaceNames(std::vector<QString>& surfaceName
  *     True if map file names valid
  */
 bool
-WbMacroCustomOperationManager::getMapFileNamesInOverlay(const int32_t browserWindowIndex,
-                                                        const WuQMacroCommand* macroCommand,
-                                                        const WuQMacroCommandParameter* overlayFileParameter,
-                                                        std::vector<QString>& mapFileNamesOut,
-                                                        CaretMappableDataFile* &selectedMapFileOut,
-                                                        std::vector<QString>& selectedMapFileMapNamesOut,
-                                                        QString& errorMessageOut)
+WbMacroCustomOperationManager::getOverlayContents(const int32_t browserWindowIndex,
+                                                  const WuQMacroCommand* macroCommand,
+                                                  const WuQMacroCommandParameter* overlayFileParameter,
+                                                  std::vector<QString>& mapFileNamesOut,
+                                                  CaretMappableDataFile* &selectedMapFileOut,
+                                                  std::vector<QString>& selectedMapFileMapNamesOut,
+                                                  QString& errorMessageOut)
 {
     CaretAssert(macroCommand);
     CaretAssert(overlayFileParameter);
@@ -316,15 +469,17 @@ WbMacroCustomOperationManager::getCustomParameterDataInfo(const int32_t browserW
         case WbMacroCustomDataTypeEnum::OVERLAY_FILE_NAME_OR_FILE_INDEX:
             if (dataInfoOut.getDataType() == WuQMacroDataValueTypeEnum::STRING_LIST) {
                 std::vector<QString> filenames;
-                CaretMappableDataFile* selectedMapFile(NULL);
                 std::vector<QString> mapNames;
-                if (getMapFileNamesInOverlay(browserWindowIndex,
-                                             macroCommand,
-                                             parameter,
-                                             filenames,
-                                             selectedMapFile,
-                                             mapNames,
-                                             errorMessage)) {
+                QString selectedFileName;
+                QString selectedMapName;
+                if (getMappableFilesSelection(macroCommand,
+                                              parameter,
+                                              NULL,
+                                              filenames,
+                                              selectedFileName,
+                                              mapNames,
+                                              selectedMapName,
+                                              errorMessage)) {
                     dataInfoOut.setStringListValues(filenames);
                     validFlag = true;
                 }
@@ -336,15 +491,17 @@ WbMacroCustomOperationManager::getCustomParameterDataInfo(const int32_t browserW
         case WbMacroCustomDataTypeEnum::OVERLAY_MAP_NAME_OR_MAP_INDEX:
             if (dataInfoOut.getDataType() == WuQMacroDataValueTypeEnum::STRING_LIST) {
                 std::vector<QString> filenames;
-                CaretMappableDataFile* selectedMapFile(NULL);
                 std::vector<QString> mapNames;
-                if (getMapFileNamesInOverlay(browserWindowIndex,
-                                             macroCommand,
-                                             parameter,
-                                             filenames,
-                                             selectedMapFile,
-                                             mapNames,
-                                             errorMessage)) {
+                QString selectedFileName;
+                QString selectedMapName;
+                if (getMappableFilesSelection(macroCommand,
+                                              NULL,
+                                              parameter,
+                                              filenames,
+                                              selectedFileName,
+                                              mapNames,
+                                              selectedMapName,
+                                              errorMessage)) {
                     dataInfoOut.setStringListValues(mapNames);
                     validFlag = true;
                 }

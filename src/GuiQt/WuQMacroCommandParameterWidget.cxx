@@ -253,7 +253,6 @@ WuQMacroCommandParameterWidget::updateContent(int32_t windowIndex,
                 m_comboBox->clear();
                 
                 std::vector<QString> stringValues;
-                bool editableFlag(false);
                 
                 if (customDataFlag) {
                     WbMacroCustomDataInfo customDataInfo(WuQMacroDataValueTypeEnum::STRING_LIST);
@@ -265,28 +264,39 @@ WuQMacroCommandParameterWidget::updateContent(int32_t windowIndex,
                 }
                 
                 int32_t defaultIndex(-1);
-                const QString value = m_parameter->getValue().toString();
-                const int32_t numAxes = static_cast<int32_t>(stringValues.size());
-                for (int32_t i = 0; i < numAxes; i++) {
-                    CaretAssertVectorIndex(stringValues, i);
-                    if (value == stringValues[i]) {
-                        defaultIndex = i;
+                const QString selectedValue = m_parameter->getValue().toString();
+                
+                const int32_t numValues = static_cast<int32_t>(stringValues.size());
+                if (numValues > 0) {
+                    for (int32_t i = 0; i < numValues; i++) {
+                        CaretAssertVectorIndex(stringValues, i);
+                        if (selectedValue == stringValues[i]) {
+                            defaultIndex = i;
+                        }
+                        
+                        m_comboBox->addItem(stringValues[i]);
                     }
                     
-                    m_comboBox->addItem(stringValues[i]);
-                }
-                
-                if (editableFlag) {
-                    m_comboBox->setEditable(true);
-                    if (defaultIndex < 0) {
-                        if ( ! value.isEmpty()) {
-                            defaultIndex = m_comboBox->count();
-                            m_comboBox->addItem(value);
+                    bool editableFlag(false);
+                    if (editableFlag) {
+                        m_comboBox->setEditable(true);
+                        if (defaultIndex < 0) {
+                            if ( ! selectedValue.isEmpty()) {
+                                defaultIndex = m_comboBox->count();
+                                m_comboBox->addItem(selectedValue);
+                            }
                         }
+                    }
+                    else {
+                        m_comboBox->setEditable(false);
                     }
                 }
                 else {
-                    m_comboBox->setEditable(false);
+                    if ( ! selectedValue.isEmpty()) {
+                        defaultIndex = m_comboBox->count();
+                        m_comboBox->addItem(selectedValue);
+                    }
+                    m_comboBox->setEditable(true);
                 }
                 
                 if (defaultIndex >= 0) {
