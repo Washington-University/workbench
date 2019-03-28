@@ -114,9 +114,9 @@ WuQMacroMouseEventTypeEnum::initialize()
                                                   "BUTTON_RELEASE",
                                                   "Button-Release"));
     
-    enumData.push_back(WuQMacroMouseEventTypeEnum(DOUBLE_CLICK,
-                                    "DOUBLE_CLICK", 
-                                    "Double-Click"));
+    enumData.push_back(WuQMacroMouseEventTypeEnum(DOUBLE_CLICKED,
+                                    "DOUBLE_CLICKED",
+                                    "Double-Clicked"));
     
     enumData.push_back(WuQMacroMouseEventTypeEnum(MOVE, 
                                     "MOVE", 

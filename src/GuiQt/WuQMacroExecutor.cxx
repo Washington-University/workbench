@@ -1199,7 +1199,7 @@ WuQMacroExecutor::runMouseCommand(const WuQMacroCommand* macroCommand,
                     case WuQMacroMouseEventTypeEnum::BUTTON_RELEASE:
                         qtEventType = QEvent::MouseButtonRelease;
                         break;
-                    case WuQMacroMouseEventTypeEnum::DOUBLE_CLICK:
+                    case WuQMacroMouseEventTypeEnum::DOUBLE_CLICKED:
                         qtEventType = QEvent::MouseButtonDblClick;
                         break;
                     case WuQMacroMouseEventTypeEnum::MOVE:

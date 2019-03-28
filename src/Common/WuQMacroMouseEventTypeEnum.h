@@ -40,7 +40,7 @@ public:
         /** Mouse button is released */
         BUTTON_RELEASE,
         /** Mouse is double-clicked */
-        DOUBLE_CLICK,
+        DOUBLE_CLICKED,
         /** Mouse is moved */
         MOVE
     };

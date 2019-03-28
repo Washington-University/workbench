@@ -395,7 +395,7 @@ WuQMacroManager::addMouseEventToRecording(QWidget* widget,
                 mouseEventType = WuQMacroMouseEventTypeEnum::BUTTON_RELEASE;
                 break;
             case QEvent::MouseButtonDblClick:
-                mouseEventType = WuQMacroMouseEventTypeEnum::DOUBLE_CLICK;
+                mouseEventType = WuQMacroMouseEventTypeEnum::DOUBLE_CLICKED;
                 break;
             case QEvent::MouseMove:
                 mouseEventType = WuQMacroMouseEventTypeEnum::MOVE;

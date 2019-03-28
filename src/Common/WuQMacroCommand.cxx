@@ -708,7 +708,7 @@ WuQMacroCommand::setMouseEventInfo(WuQMacroMouseEventInfo* mouseEventInfo)
             case WuQMacroMouseEventTypeEnum::BUTTON_RELEASE:
                 title = "Mouse Release ";
                 break;
-            case WuQMacroMouseEventTypeEnum::DOUBLE_CLICK:
+            case WuQMacroMouseEventTypeEnum::DOUBLE_CLICKED:
                 title = "Mouse Double Click ";
                 break;
             case WuQMacroMouseEventTypeEnum::MOVE:
