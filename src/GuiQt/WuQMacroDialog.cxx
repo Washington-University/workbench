@@ -1398,7 +1398,7 @@ WuQMacroDialog::recordMacroToolButtonClicked()
         
         menu.addSeparator();
         
-        QAction* newMacroAction = menu.addAction("Record and Insert Macro Below...",
+        QAction* newMacroAction = menu.addAction("Record and Insert New Macro Below...",
                                                  this,
                                                  &WuQMacroDialog::recordAndInsertNewMacroSelected);
         newMacroAction->setEnabled(getSelectedMacroGroup() != NULL);

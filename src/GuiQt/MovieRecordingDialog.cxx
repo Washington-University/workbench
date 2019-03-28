@@ -689,7 +689,7 @@ MovieRecordingDialog::createSettingsWidget()
     QObject::connect(m_frameRateSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &MovieRecordingDialog::frameRateSpinBoxValueChanged);
 
-    m_removeTemporaryImagesAfterMovieCreationCheckBox = new QCheckBox("Remove Temporary Images After Movie Creation");
+    m_removeTemporaryImagesAfterMovieCreationCheckBox = new QCheckBox("Remove temporary images after movie creation");
     m_removeTemporaryImagesAfterMovieCreationCheckBox->setToolTip("Temporary images are removed after a movie is created");
     QObject::connect(m_removeTemporaryImagesAfterMovieCreationCheckBox, &QCheckBox::clicked,
                      this, &MovieRecordingDialog::removeTemporaryImagesCheckBoxClicked);
