@@ -1687,7 +1687,6 @@ WuQMacroDialog::editingInsertToolButtonClicked()
             break;
     }
     
-    bool stopValidFlag(false);
     switch (macroManager->getMode()) {
         case WuQMacroModeEnum::OFF:
             break;
@@ -1696,7 +1695,6 @@ WuQMacroDialog::editingInsertToolButtonClicked()
             insertMacroValidFlag = false;
             copyValidFlag = false;
             insertMacroCommandValidFlag = false;
-            stopValidFlag = true;
             break;
         case WuQMacroModeEnum::RUNNING:
             insertMacroValidFlag = false;

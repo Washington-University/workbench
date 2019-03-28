@@ -398,7 +398,7 @@ WbMacroCustomOperationManager::getOverlayContents(const int32_t browserWindowInd
  *     True if the data info is valid
  */
 bool
-WbMacroCustomOperationManager::getCustomParameterDataInfo(const int32_t browserWindowIndex,
+WbMacroCustomOperationManager::getCustomParameterDataInfo(const int32_t /*browserWindowIndex*/,
                                                           const WuQMacroCommand* macroCommand,
                                                           const WuQMacroCommandParameter* parameter,
                                                           WbMacroCustomDataInfo& dataInfoOut)

@@ -84,8 +84,7 @@ MovieRecordingDialog::MovieRecordingDialog(QWidget* parent)
     setApplyButtonText("");
     disableAutoDefaultForAllPushButtons();
 
-    MovieRecorder* movieRecorder = SessionManager::get()->getMovieRecorder();
-    CaretAssert(movieRecorder);
+    CaretAssert(SessionManager::get()->getMovieRecorder());
 }
 
 /**
@@ -145,11 +144,9 @@ MovieRecordingDialog::updateDialog()
     m_windowComboBox->updateComboBox();
     m_windowComboBox->setBrowserWindowByIndex(movieRecorder->getRecordingWindowIndex());
     
-    bool manualRecordingEnabledFlag(false);
     switch (movieRecorder->getRecordingMode()) {
         case MovieRecorderModeEnum::MANUAL:
             m_recordingManualRadioButton->setChecked(true);
-            manualRecordingEnabledFlag = true;
             break;
         case MovieRecorderModeEnum::AUTOMATIC:
             m_recordingAutomaticRadioButton->setChecked(true);

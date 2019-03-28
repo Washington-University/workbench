@@ -1515,8 +1515,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
      *
      * Only allow layer blending when overall volume opacity is off (>= 1.0)
      */
-    const DisplayPropertiesVolume* dpv = m_brain->getDisplayPropertiesVolume();
-    const bool allowBlendingFlag(true); //dpv->getOpacity() >= 1.0f);
+    const bool allowBlendingFlag(true);
     glPushAttrib(GL_COLOR_BUFFER_BIT);
     if (allowBlendingFlag) {
         glEnable(GL_BLEND);
@@ -2091,8 +2090,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
      *
      * Only allow layer blending when overall volume opacity is off (>= 1.0)
      */
-    const DisplayPropertiesVolume* dpv = m_brain->getDisplayPropertiesVolume();
-    const bool allowBlendingFlag(true); //dpv->getOpacity() >= 1.0f);
+    const bool allowBlendingFlag(true);
     glPushAttrib(GL_COLOR_BUFFER_BIT);
     if (allowBlendingFlag) {
         glEnable(GL_BLEND);
@@ -5376,8 +5374,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
      *
      * Only allow layer blending when overall volume opacity is off (>= 1.0)
      */
-    const DisplayPropertiesVolume* dpv = m_brain->getDisplayPropertiesVolume();
-    const bool allowBlendingFlag(true); //dpv->getOpacity() >= 1.0f);
+    const bool allowBlendingFlag(true);
     glPushAttrib(GL_COLOR_BUFFER_BIT);
     if (allowBlendingFlag) {
         glEnable(GL_BLEND);

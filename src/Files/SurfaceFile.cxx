@@ -1051,7 +1051,6 @@ SurfaceFile::matchSphereToSurface(const SurfaceFile* matchSurfaceFile)
     CaretPointer<TopologyHelper> matchTH = matchSurfaceFile->getTopologyHelper();
     const int32_t numMatchVertices = matchSurfaceFile->getNumberOfNodes();
     float newRadius = 0.0;
-    int32_t furthestVertex = -1;
     for (int32_t i = 0; i < numMatchVertices; i++) {
         if (matchTH->getNodeHasNeighbors(i)) {
             const float* xyz = matchSurfaceFile->getCoordinate(i);
@@ -1060,7 +1059,6 @@ SurfaceFile::matchSphereToSurface(const SurfaceFile* matchSurfaceFile)
                                 + (xyz[2]*xyz[2]));
             if (dist > newRadius) {
                 newRadius = dist;
-                furthestVertex = i;
             }
         }
     }
