@@ -157,8 +157,8 @@ namespace caret {
         void macroWasModified(WuQMacro* macro);
         
         bool getCustomParameterDataInfo(const int32_t browserWindowIndex,
-                                        const WuQMacroCommand* macroCommand,
-                                        const WuQMacroCommandParameter* parameter,
+                                        WuQMacroCommand* macroCommand,
+                                        WuQMacroCommandParameter* parameter,
                                         WbMacroCustomDataInfo& dataInfoOut);
 
         bool executeCustomOperationMacroCommand(QWidget* parent,

@@ -59,8 +59,8 @@ namespace caret {
          *     True if the data info is valid
          */
         virtual bool getCustomParameterDataInfo(const int32_t browserWindowIndex,
-                                                const WuQMacroCommand* macroCommand,
-                                                const WuQMacroCommandParameter* parameter,
+                                                WuQMacroCommand* macroCommand,
+                                                WuQMacroCommandParameter* parameter,
                                                 WbMacroCustomDataInfo& dataInfoOut) = 0;
         
         /**

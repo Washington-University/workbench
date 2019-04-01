@@ -50,8 +50,8 @@ namespace caret {
         WbMacroCustomOperationManager& operator=(const WbMacroCustomOperationManager&) = delete;
 
         virtual bool getCustomParameterDataInfo(const int32_t browserWindowIndex,
-                                                const WuQMacroCommand* macroCommand,
-                                                const WuQMacroCommandParameter* parameter,
+                                                WuQMacroCommand* macroCommand,
+                                                WuQMacroCommandParameter* parameter,
                                                 WbMacroCustomDataInfo& dataInfoOut) override;
 
         virtual bool executeCustomOperationMacroCommand(QWidget* parent,
@@ -87,9 +87,9 @@ namespace caret {
                                 std::vector<QString>& selectedMapFileMapNamesOut,
                                 QString& errorMessageOut);
 
-        bool getMappableFilesSelection(const WuQMacroCommand* macroCommand,
-                                       const WuQMacroCommandParameter* overlayFileParameter,
-                                       const WuQMacroCommandParameter* mapParameter,
+        bool getMappableFilesSelection(WuQMacroCommand* macroCommand,
+                                       WuQMacroCommandParameter* overlayFileParameter,
+                                       WuQMacroCommandParameter* mapParameter,
                                        std::vector<QString>& mapFileNamesOut,
                                        QString& selectedFileNameOut,
                                        std::vector<QString>& mapNamesOut,

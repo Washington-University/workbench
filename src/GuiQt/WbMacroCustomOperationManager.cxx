@@ -140,9 +140,9 @@ WbMacroCustomOperationManager::getSurfaceNames(std::vector<QString>& surfaceName
  *     True if map file names valid
  */
 bool
-WbMacroCustomOperationManager::getMappableFilesSelection(const WuQMacroCommand* macroCommand,
-                                                         const WuQMacroCommandParameter* overlayFileParameterIn,
-                                                         const WuQMacroCommandParameter* mapParameterIn,
+WbMacroCustomOperationManager::getMappableFilesSelection(WuQMacroCommand* macroCommand,
+                                                         WuQMacroCommandParameter* overlayFileParameterIn,
+                                                         WuQMacroCommandParameter* mapParameterIn,
                                                          std::vector<QString>& mapFileNamesOut,
                                                          QString& selectedFileNameOut,
                                                          std::vector<QString>& mapNamesOut,
@@ -156,8 +156,8 @@ WbMacroCustomOperationManager::getMappableFilesSelection(const WuQMacroCommand* 
     selectedMapNameOut.clear();
     errorMessageOut.clear();
     
-    const WuQMacroCommandParameter* fileParameter = overlayFileParameterIn;
-    const WuQMacroCommandParameter* mapParameter  = mapParameterIn;
+    WuQMacroCommandParameter* fileParameter = overlayFileParameterIn;
+    WuQMacroCommandParameter* mapParameter  = mapParameterIn;
     if ((fileParameter != NULL)
         && (mapParameter != NULL)) {
         /* OK, have both */
@@ -265,6 +265,18 @@ WbMacroCustomOperationManager::getMappableFilesSelection(const WuQMacroCommand* 
                 selectedMapNameOut = selectedFile->getMapName(0);
             }
         }
+    }
+    
+    /**
+     * Selection may change.  For example, if the selected overlay file
+     * is changed, the selected map name is likely to change so that
+     * it is a map that is in the new file and was not in the previous file
+     */
+    if (selectedFileNameOut != fileParameter->getValue().toString()) {
+        fileParameter->setValue(selectedFileNameOut);
+    }
+    if (selectedMapNameOut != mapParameter->getValue().toString()) {
+        mapParameter->setValue(selectedMapNameOut);
     }
     
     return true;
@@ -399,8 +411,8 @@ WbMacroCustomOperationManager::getOverlayContents(const int32_t browserWindowInd
  */
 bool
 WbMacroCustomOperationManager::getCustomParameterDataInfo(const int32_t /*browserWindowIndex*/,
-                                                          const WuQMacroCommand* macroCommand,
-                                                          const WuQMacroCommandParameter* parameter,
+                                                          WuQMacroCommand* macroCommand,
+                                                          WuQMacroCommandParameter* parameter,
                                                           WbMacroCustomDataInfo& dataInfoOut)
 {
     CaretAssert(macroCommand);
