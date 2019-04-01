@@ -1539,6 +1539,8 @@ WuQMacroDialog::macroGroupResetToolButtonClicked()
         m_treeView->setCurrentIndex(macro->index());
         treeItemSelected(macro->index());
     }
+    
+    updateDialogContents();
 }
 
 /**
