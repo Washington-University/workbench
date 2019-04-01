@@ -1365,6 +1365,21 @@ WuQMacroDialog::getWindow()
 void
 WuQMacroDialog::stopMacroToolButtonClicked()
 {
+    /*
+     * If recording, STOP button stops recording
+     */
+    switch (WuQMacroManager::instance()->getMode()) {
+        case WuQMacroModeEnum::OFF:
+            break;
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
+            recordMacroToolButtonClicked();
+            return;
+            break;
+        case WuQMacroModeEnum::RUNNING:
+            break;
+    }
+
     WuQMacroManager::instance()->stopMacro();
     updateEditingToolButtons();
 }
@@ -2030,6 +2045,29 @@ WuQMacroDialog::updateEditingToolButtons()
         }
     }
     
+    bool recordingFlag(false);
+    switch (WuQMacroManager::instance()->getMode()) {
+        case WuQMacroModeEnum::OFF:
+            break;
+        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
+            recordingFlag = true;
+            break;
+        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
+            recordingFlag = true;
+            break;
+        case WuQMacroModeEnum::RUNNING:
+            break;
+    }
+    
+    if (recordingFlag) {
+        m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOn);
+        runValid  = false;
+        stopValid = true;
+    }
+    else {
+        m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOff);
+    }
+
     m_pauseMacroToolButton->setEnabled(pauseValid);
     m_pauseMacroToolButton->setChecked(pauseChecked);
     m_resetMacroGroupToolButton->setEnabled(resetValid);
@@ -2041,21 +2079,7 @@ WuQMacroDialog::updateEditingToolButtons()
     m_editingInsertToolButton->setEnabled(insertValid);
     m_editingMoveDownToolButton->setEnabled(moveDownValid);
     m_editingMoveUpToolButton->setEnabled(moveUpValid);
-
-    switch (WuQMacroManager::instance()->getMode()) {
-        case WuQMacroModeEnum::OFF:
-            m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOff);
-            break;
-        case WuQMacroModeEnum::RECORDING_INSERT_COMMANDS:
-            m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOn);
-            break;
-        case WuQMacroModeEnum::RECORDING_NEW_MACRO:
-            m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOn);
-            break;
-        case WuQMacroModeEnum::RUNNING:
-            m_recordMacroToolButton->setIcon(m_recordMacroToolButtonIconOff);
-            break;
-    }
+    
 }
 
 /**
