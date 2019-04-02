@@ -78,6 +78,8 @@ namespace caret {
         void spinBoxValueChanged(int);
         
     private:
+        void modifySizePolicy(QWidget* w);
+        
         QLabel* m_nameLabel;
 
         const int32_t m_index;

@@ -69,6 +69,7 @@ WuQMacroCommandParameterWidget::WuQMacroCommandParameterWidget(const int32_t ind
 m_index(index)
 {
     m_nameLabel = new QLabel();
+    modifySizePolicy(m_nameLabel);
     
     m_booleanOnAction = new QAction("On");
     m_booleanOnAction->setCheckable(true);
@@ -132,6 +133,12 @@ m_index(index)
     m_stackedWidget->addWidget(m_spinBox);
     m_stackedWidget->addWidget(m_noValueWidget);
     
+    const int numWidgets = m_stackedWidget->count();
+    for (int32_t i = 0; i < numWidgets; i++) {
+        modifySizePolicy(m_stackedWidget->widget(i));
+    }
+    modifySizePolicy(m_stackedWidget);
+    
     /*
      * Note: A QStackedWidget aligns its current widget at the top.
      * So, align the label at the top so that the label and widget
@@ -147,6 +154,22 @@ m_index(index)
  */
 WuQMacroCommandParameterWidget::~WuQMacroCommandParameterWidget()
 {
+}
+
+/**
+ * Modify the size policy so that widget does not retain
+ * size when hidden
+ *
+ * @param w
+ *     The widget
+ */
+void
+WuQMacroCommandParameterWidget::modifySizePolicy(QWidget* w)
+{
+    CaretAssert(w);
+    QSizePolicy sp = w->sizePolicy();
+    sp.setRetainSizeWhenHidden(false);
+    w->setSizePolicy(sp);
 }
 
 /**

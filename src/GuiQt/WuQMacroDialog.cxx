@@ -145,11 +145,14 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     m_commandWidget = createCommandDisplayWidget();
     m_emptyWidget = new QWidget();
     m_stackedWidget = new QStackedWidget();
+    m_stackedWidget->setSizePolicy(QSizePolicy::Fixed,
+                                   QSizePolicy::Fixed);
     m_stackedWidget->addWidget(m_macroWidget);
     m_stackedWidget->addWidget(m_commandWidget);
     m_stackedWidget->addWidget(m_emptyWidget);
     m_stackedWidget->setCurrentWidget(m_emptyWidget);
     QScrollArea* stackedScrollArea = new QScrollArea();
+    stackedScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     stackedScrollArea->setWidget(m_stackedWidget);
     stackedScrollArea->setWidgetResizable(true);
 
@@ -170,7 +173,6 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
         splitter->setOrientation(Qt::Vertical);
         macroSelectionWidget->setMinimumHeight(50);
         splitter->addWidget(macroSelectionWidget);
-        stackedScrollArea->setMinimumHeight(50);
         splitter->addWidget(stackedScrollArea);
         splitter->setStretchFactor(0, 35);
         splitter->setStretchFactor(1, 65);
@@ -717,6 +719,7 @@ WuQMacroDialog::createCommandDisplayWidget()
     widgetLayout->addWidget(commandInfoWidget);
     widgetLayout->addLayout(parametersLayout);
     widgetLayout->addWidget(parametersWidget);
+    widgetLayout->addSpacing(6);
     widgetLayout->addStretch();
     
     return widget;
