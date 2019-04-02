@@ -130,6 +130,7 @@ namespace caret {
         
         WuQMacro* runMacro(QWidget* window,
                            const WuQMacro* macro,
+                           const WuQMacroCommand* macroCommandToStartAt,
                            const WuQMacroCommand* macroCommandToStopAfter);
         
         WuQMacro* resetMacro(QWidget* parent,

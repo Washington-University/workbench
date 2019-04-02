@@ -639,8 +639,12 @@ WuQMacroManager::updateNonModalDialogs()
  *     Widget used for parent of dialogs
  * @param macroToRun
  *     Macro that is run
+ * @param macroCommandToStartAt
+ *     Macro command at which execution should begin.  If NULL, start
+ *     with the first command in the macro
  * @param macroCommandToStopAfter
- *     Macro command that the executor may stop after, depending upon options
+ *     Macro command that the executor may stop after, depending upon options.
+ *     If NULL, end after last command is executed.
  * @return
  *     Pointer to macro that was last run.  The selected macro could change
  *     when looping is enabled.
@@ -648,6 +652,7 @@ WuQMacroManager::updateNonModalDialogs()
 WuQMacro*
 WuQMacroManager::runMacro(QWidget* widget,
                           const WuQMacro* macroToRun,
+                          const WuQMacroCommand* macroCommandToStartAt,
                           const WuQMacroCommand* macroCommandToStopAfter)
 {
     CaretAssert(widget);
@@ -679,6 +684,7 @@ WuQMacroManager::runMacro(QWidget* widget,
                                                   m_executorOptions.get());
         }
         resultFlag = m_macroExecutor->runMacro(macro,
+                                               macroCommandToStartAt,
                                                macroCommandToStopAfter,
                                                widget,
                                                m_parentObjects,
@@ -1271,6 +1277,7 @@ WuQMacroManager::runMacroWithShortCutKeyEvent(QWidget* window,
             if (macro != NULL) {
                 runMacro(window,
                          macro,
+                         NULL,
                          NULL);
                 return true;
             }

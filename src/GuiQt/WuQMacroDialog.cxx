@@ -799,17 +799,84 @@ WuQMacroDialog::treeViewCustomContextMenuRequested(const QPoint& pos)
         WuQMacroCommand* command = getSelectedMacroCommand();
         if (command != NULL) {
             QMenu menu(this);
+
+            menu.addAction("Run this Command",
+                           this, &WuQMacroDialog::runOnlySelectedCommandMenuItemSelected);
             
-            const QString runToText("Run Macro and Stop After this Command");
-            menu.addAction(runToText,
+            menu.addSeparator();
+            
+            menu.addAction("Run Macro and Start With this Command",
+                           this, &WuQMacroDialog::runAndStartWithSelectedCommandMenuItemSelected);
+            
+            menu.addAction("Run Macro and Start With this Command Without Delays/Durations",
+                           this, &WuQMacroDialog::runAndStartWithNoDelayDurationSelectedCommandMenuItemSelected);
+            
+            menu.addSeparator();
+
+            menu.addAction("Run Macro and Stop After this Command",
                            this, &WuQMacroDialog::runAndStopAfterSelectedCommandMenuItemSelected);
 
-            const QString runToFastText("Run Macro and Stop After this Command Without Delays/Durations");
-            menu.addAction(runToFastText,
+            menu.addAction("Run Macro and Stop After this Command Without Delays/Durations",
                            this, &WuQMacroDialog::runAndStopAfterWithNoDelayDurationSelectedCommandMenuItemSelected);
 
             menu.exec(m_treeView->mapToGlobal(pos));
         }
+    }
+}
+
+/**
+ * Called when 'run and start with...' is selected from
+ * context (pop-up) menu.  Runs macro starting with selected command.
+ */
+void
+WuQMacroDialog::runAndStartWithSelectedCommandMenuItemSelected()
+{
+    WuQMacroCommand* command = getSelectedMacroCommand();
+    if (command != NULL) {
+        runSelectedMacro(command,
+                         NULL);
+    }
+    else {
+        QMessageBox::warning(this, "Error", "No macro command is selected");
+    }
+}
+
+/**
+ * Called when 'run this command only...' is selected from
+ * context (pop-up) menu.  Runs macro to selected command.
+ */
+void
+WuQMacroDialog::runOnlySelectedCommandMenuItemSelected()
+{
+    WuQMacroCommand* command = getSelectedMacroCommand();
+    if (command != NULL) {
+        runSelectedMacro(command,
+                         command);
+    }
+    else {
+        QMessageBox::warning(this, "Error", "No macro command is selected");
+    }
+}
+
+/**
+ * Called when 'run and start with without delay duration...' is selected from
+ * context (pop-up) menu.  Runs macro to selected command.
+ */
+void
+WuQMacroDialog::runAndStartWithNoDelayDurationSelectedCommandMenuItemSelected()
+{
+    WuQMacroCommand* command = getSelectedMacroCommand();
+    if (command != NULL) {
+        WuQMacroManager* macroManager = WuQMacroManager::instance();
+        WuQMacroExecutorOptions* runOptions = macroManager->getExecutorOptions();
+        const bool savedIgnoreDelaysFlag    = runOptions->isIgnoreDelaysAndDurations();
+        runOptions->setIgnoreDelaysAndDurations(true);
+        runSelectedMacro(command,
+                         NULL);
+        runOptions->setIgnoreDelaysAndDurations(savedIgnoreDelaysFlag);
+    }
+    else {
+        QMessageBox::warning(this, "Error", "No macro command is selected");
     }
 }
 
@@ -826,7 +893,8 @@ WuQMacroDialog::runAndStopAfterSelectedCommandMenuItemSelected()
         WuQMacroExecutorOptions* runOptions = macroManager->getExecutorOptions();
         const bool savedStopAfterOptionFlag = runOptions->isStopAfterSelectedCommand();
         runOptions->setStopAfterSelectedCommand(true);
-        runMacroToolButtonClicked();
+        runSelectedMacro(NULL,
+                         command);
         runOptions->setStopAfterSelectedCommand(savedStopAfterOptionFlag);
     }
     else {
@@ -849,7 +917,8 @@ WuQMacroDialog::runAndStopAfterWithNoDelayDurationSelectedCommandMenuItemSelecte
         const bool savedIgnoreDelaysFlag    = runOptions->isIgnoreDelaysAndDurations();
         runOptions->setStopAfterSelectedCommand(true);
         runOptions->setIgnoreDelaysAndDurations(true);
-        runMacroToolButtonClicked();
+        runSelectedMacro(NULL,
+                         command);
         runOptions->setStopAfterSelectedCommand(savedStopAfterOptionFlag);
         runOptions->setIgnoreDelaysAndDurations(savedIgnoreDelaysFlag);
     }
@@ -1279,6 +1348,22 @@ WuQMacroDialog::pauseContinueMacroToolButtonClicked()
 void
 WuQMacroDialog::runMacroToolButtonClicked()
 {
+    runSelectedMacro(NULL,
+                     NULL);
+}
+/**
+ * Called when run button is clicked
+ *
+ * @param macroCommandToStartAt
+ *     Macro command at which execution should begin.  If NULL, start
+ *     with the first command in the macro
+ * @param macroCommandToStopAfter
+ *     Macro command that the executor may stop after, depending upon options
+ */
+void
+WuQMacroDialog::runSelectedMacro(const WuQMacroCommand* macroCommandToStartAt,
+                                 const WuQMacroCommand* macroCommandToStopAfter)
+{
     switch (WuQMacroManager::instance()->getMode()) {
         case WuQMacroModeEnum::OFF:
             break;
@@ -1321,7 +1406,8 @@ WuQMacroDialog::runMacroToolButtonClicked()
     timer.start();
     WuQMacro* lastMacroRun = WuQMacroManager::instance()->runMacro(window,
                                                                    macro,
-                                                                   getSelectedMacroCommand());
+                                                                   macroCommandToStartAt,
+                                                                   macroCommandToStopAfter);
     // may use this later when testing    std::cout << "Time to run macro: " << timer.getElapsedTimeSeconds() << std::endl;
     m_macroIsRunningFlag = false;
     

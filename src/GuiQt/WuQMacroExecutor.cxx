@@ -263,6 +263,9 @@ WuQMacroExecutor::findObjectByName(const QString& objectName) const
  *
  * @param macro
  *    Macro that is run
+ * @param macroCommandToStartAt
+ *     Macro command at which execution should begin.  If NULL, start
+ *     with the first command in the macro
  * @param macroCommandToStopAfter
  *     Macro command that the executor may stop after, depending upon options
  * @param window
@@ -281,6 +284,7 @@ WuQMacroExecutor::findObjectByName(const QString& objectName) const
  */
 bool
 WuQMacroExecutor::runMacro(const WuQMacro* macro,
+                           const WuQMacroCommand* macroCommandToStartAt,
                            const WuQMacroCommand* macroCommandToStopAfter,
                            QWidget* window,
                            std::vector<QObject*>& otherObjectParents,
@@ -289,6 +293,7 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
                            QString& errorMessageOut) const
 {
     const bool result = runMacroPrivate(macro,
+                                        macroCommandToStartAt,
                                         macroCommandToStopAfter,
                                         window,
                                         otherObjectParents,
@@ -304,6 +309,9 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
  *
  * @param macro
  *    Macro that is run
+ * @param macroCommandToStartAt
+ *     Macro command at which execution should begin.  If NULL, start
+ *     with the first command in the macro
  * @param macroCommandToStopAfter
  *     Macro command that the executor may stop after, depending upon options
  * @param window
@@ -322,6 +330,7 @@ WuQMacroExecutor::runMacro(const WuQMacro* macro,
  */
 bool
 WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
+                                  const WuQMacroCommand* macroCommandToStartAt,
                                   const WuQMacroCommand* macroCommandToStopAfter,
                                   QWidget* window,
                                   std::vector<QObject*>& otherObjectParents,
@@ -338,18 +347,23 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
                            otherObjectParents.begin(), otherObjectParents.end());
     
     m_runOptions = *executorOptions;
-    if (m_runOptions.isStopAfterSelectedCommand()) {
-        if (macroCommandToStopAfter == NULL) {
-            errorMessageOut = ("Option to stop after selected command is on but no command is selected");
-            return false;
-        }
-    }
-    
 
     errorMessageOut.clear();
+
+    int32_t startCommandIndex(0);
+    if (macroCommandToStartAt != NULL) {
+        const int32_t commandIndex = macro->getIndexOfMacroCommand(macroCommandToStartAt);
+        if (commandIndex < 0) {
+            errorMessageOut = ("Macro command to start at not found in macro \""
+                               + macroCommandToStartAt->getDescriptiveName()
+                               + "\"");
+            return false;
+        }
+        startCommandIndex = commandIndex;
+    }
     
     const int32_t numberOfMacroCommands = macro->getNumberOfMacroCommands();
-    for (int32_t i = 0; i < numberOfMacroCommands; i++) {
+    for (int32_t i = startCommandIndex; i < numberOfMacroCommands; i++) {
         const WuQMacroCommand* mc = macro->getMacroCommandAtIndex(i);
         CaretAssert(mc);
         
@@ -470,15 +484,13 @@ WuQMacroExecutor::runMacroPrivate(const WuQMacro* macro,
                                       executorOptions,
                                       allowDelayAfterCommandFlag);
         
-        if (m_runOptions.isStopAfterSelectedCommand()) {
-            QGuiApplication::processEvents();
-            if (mc == macroCommandToStopAfter) {
-                errorMessageOut = ("Macro stopped after "
-                                   + mc->getDescriptiveName());
-                return false;
-            }
+        QGuiApplication::processEvents();
+        if (mc == macroCommandToStopAfter) {
+            errorMessageOut = ("Macro stopped after "
+                               + mc->getDescriptiveName());
+            return false;
         }
-        
+
         const bool stopFlag = executorMonitor->testForStop();
         if (stopFlag) {
             errorMessageOut = executorMonitor->getStoppedByUserMessage();

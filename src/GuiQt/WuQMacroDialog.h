@@ -84,6 +84,12 @@ namespace caret {
         
         void treeViewCustomContextMenuRequested(const QPoint& pos);
 
+        void runOnlySelectedCommandMenuItemSelected();
+        
+        void runAndStartWithSelectedCommandMenuItemSelected();
+        
+        void runAndStartWithNoDelayDurationSelectedCommandMenuItemSelected();
+        
         void runAndStopAfterSelectedCommandMenuItemSelected();
         
         void runAndStopAfterWithNoDelayDurationSelectedCommandMenuItemSelected();
@@ -214,6 +220,9 @@ namespace caret {
         void insertNewMacro(WuQMacro* macro);
         
         QWidget* getWindow();
+        
+        void runSelectedMacro(const WuQMacroCommand* macroCommandToStartAt,
+                              const WuQMacroCommand* macroCommandToStopAfter);
         
         std::vector<WuQMacroGroup*> m_macroGroups;
         
