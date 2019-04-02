@@ -159,19 +159,38 @@ WuQMacroDialog::WuQMacroDialog(QWidget* parent)
     QObject::connect(m_dialogButtonBox, &QDialogButtonBox::clicked,
                      this, &WuQMacroDialog::buttonBoxButtonClicked);
     
-    QSplitter* splitter = new QSplitter();
-    splitter->setOrientation(Qt::Vertical);
-    macroSelectionWidget->setMinimumHeight(50);
-    splitter->addWidget(macroSelectionWidget);
-    stackedScrollArea->setMinimumHeight(50);
-    splitter->addWidget(stackedScrollArea);
-    splitter->setStretchFactor(0, 35);
-    splitter->setStretchFactor(1, 65);
-    
-    QVBoxLayout* dialogLayout = new QVBoxLayout(this);
-    dialogLayout->addLayout(gridLayout);
-    dialogLayout->addWidget(splitter);
-    dialogLayout->addWidget(m_dialogButtonBox);
+    const bool splitterFlag(false);
+    if (splitterFlag) {
+        /*
+         * Use a splitter between the list widget (macro/command selection)
+         * and the parameters (macro/command editing).
+         * Splitter allows user to allocate space between the two.
+         */
+        QSplitter* splitter = new QSplitter();
+        splitter->setOrientation(Qt::Vertical);
+        macroSelectionWidget->setMinimumHeight(50);
+        splitter->addWidget(macroSelectionWidget);
+        stackedScrollArea->setMinimumHeight(50);
+        splitter->addWidget(stackedScrollArea);
+        splitter->setStretchFactor(0, 35);
+        splitter->setStretchFactor(1, 65);
+        
+        QVBoxLayout* dialogLayout = new QVBoxLayout(this);
+        dialogLayout->addLayout(gridLayout);
+        dialogLayout->addWidget(splitter);
+        dialogLayout->addWidget(m_dialogButtonBox);
+    }
+    else {
+        /*
+         * Stretch the list widget (macro/command selection)
+         * but no stretch for the parameters (macro/command editing)
+         */
+        QVBoxLayout* dialogLayout = new QVBoxLayout(this);
+        dialogLayout->addLayout(gridLayout);
+        dialogLayout->addWidget(macroSelectionWidget, 100);
+        dialogLayout->addWidget(stackedScrollArea, 0);
+        dialogLayout->addWidget(m_dialogButtonBox, 0);
+    }
     
     updateDialogContents();
     
