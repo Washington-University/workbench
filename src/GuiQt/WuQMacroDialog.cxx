@@ -362,6 +362,7 @@ WuQMacroDialog::createMacroDisplayWidget()
     
     QGridLayout* gridLayout = new QGridLayout();
     gridLayout->setContentsMargins(0, 0, 0, 0);
+    gridLayout->setVerticalSpacing(5);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 0);
     gridLayout->setColumnStretch(2, 100);
@@ -626,10 +627,10 @@ WuQMacroDialog::createCommandDisplayWidget()
     QLabel* titleLabel  = new QLabel("Title:");
     m_commandTitleLabel = new QLabel();
     
-    QLabel* nameLabel  = new QLabel("Name:");
+    QLabel* nameLabel  = new QLabel("GUI Name:");
     m_commandNameLabel = new QLabel();
     
-    QLabel* typeLabel = new QLabel("Type:");
+    QLabel* typeLabel = new QLabel("GUI Type:");
     m_commandTypeLabel = new QLabel();
 
     QLabel* delayLabel = new QLabel("Delay:");
@@ -651,54 +652,50 @@ WuQMacroDialog::createCommandDisplayWidget()
     QObject::connect(m_commandDescriptionTextEdit, &QPlainTextEdit::textChanged,
                      this, &WuQMacroDialog::macroCommandDescriptionTextEditChanged);
 
-    QGridLayout* layout = new QGridLayout();
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setColumnStretch(0, 0);
-    layout->setColumnStretch(1, 0);
-    layout->setColumnStretch(2, 100);
+    QWidget* commandInfoWidget = new QWidget();
+    commandInfoWidget->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,
+                                                 QSizePolicy::Fixed));
+    QGridLayout* commandInfoLayout = new QGridLayout(commandInfoWidget);
+    commandInfoLayout->setContentsMargins(0, 0, 0, 0);
+    commandInfoLayout->setColumnStretch(0, 0);
+    commandInfoLayout->setColumnStretch(1, 0);
+    commandInfoLayout->setColumnStretch(2, 100);
     int row = 0;
-    layout->addWidget(titleLabel, row, 0);
-    layout->addWidget(m_commandTitleLabel, row, 1, 1, 2, Qt::AlignLeft);
+    commandInfoLayout->addWidget(titleLabel, row, 0);
+    commandInfoLayout->addWidget(m_commandTitleLabel, row, 1, 1, 2, Qt::AlignLeft);
     row++;
-    layout->addWidget(nameLabel, row, 0);
-    layout->addWidget(m_commandNameLabel, row, 1, 1, 2, Qt::AlignLeft);
+    commandInfoLayout->addWidget(nameLabel, row, 0);
+    commandInfoLayout->addWidget(m_commandNameLabel, row, 1, 1, 2, Qt::AlignLeft);
     row++;
-    layout->addWidget(typeLabel, row, 0);
-    layout->addWidget(m_commandTypeLabel, row, 1, 1, 2, Qt::AlignLeft);
+    commandInfoLayout->addWidget(typeLabel, row, 0);
+    commandInfoLayout->addWidget(m_commandTypeLabel, row, 1, 1, 2, Qt::AlignLeft);
     row++;
-    layout->addWidget(delayLabel, row, 0);
-    layout->addWidget(m_commandDelaySpinBox, row, 1);
-    layout->addWidget(delayTwoLabel, row, 2, Qt::AlignLeft);
+    commandInfoLayout->addWidget(delayLabel, row, 0);
+    commandInfoLayout->addWidget(m_commandDelaySpinBox, row, 1);
+    commandInfoLayout->addWidget(delayTwoLabel, row, 2, Qt::AlignLeft);
     row++;
-    layout->addWidget(descriptionLabel, row, 0, (Qt::AlignLeft | Qt::AlignTop));
-    layout->addWidget(m_commandDescriptionTextEdit, row, 1, 1, 2);
+    commandInfoLayout->addWidget(descriptionLabel, row, 0, (Qt::AlignLeft | Qt::AlignTop));
+    commandInfoLayout->addWidget(m_commandDescriptionTextEdit, row, 1, 1, 2);
     row++;
     
     QWidget* parametersWidget = new QWidget();
+    parametersWidget->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,
+                                                QSizePolicy::Fixed));
     m_parameterWidgetsGridLayout = new QGridLayout(parametersWidget);
-    int pl(0), pt(0), pr(0), pb(0);
-    m_parameterWidgetsGridLayout->getContentsMargins(&pl, &pt, &pr, &pb);
-    pt = 0;
-    m_parameterWidgetsGridLayout->setContentsMargins(pl, pt, pr, pb);
-    m_parameterWidgetsGridLayout->setVerticalSpacing(static_cast<int>(m_parameterWidgetsGridLayout->verticalSpacing() / 1.2));
+    m_parameterWidgetsGridLayout->setContentsMargins(0, 0, 0, 0);
+    m_parameterWidgetsGridLayout->setVerticalSpacing(2);
     m_parameterWidgetsGridLayout->setColumnStretch(0, 0);
     m_parameterWidgetsGridLayout->setColumnStretch(1, 100);
-    m_parameterWidgetsGridLayout->setRowStretch(1000, 1000); /* push items up */
 
-    QHBoxLayout* titleLayout = new QHBoxLayout();
-    titleLayout->setContentsMargins(0, 0, 0, 0);
-    titleLayout->addWidget(new QLabel("Command"));
-    titleLayout->addWidget(createHorizontalLine(), 100);
     
     QHBoxLayout* parametersLayout = new QHBoxLayout();
     parametersLayout->setContentsMargins(0, 0, 0, 0);
-    parametersLayout->addWidget(new QLabel("Edit Parameters"));
+    parametersLayout->addWidget(new QLabel("Parameters"));
     parametersLayout->addWidget(createHorizontalLine(), 100);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
-    widgetLayout->addLayout(titleLayout);
-    widgetLayout->addLayout(layout);
+    widgetLayout->addWidget(commandInfoWidget);
     widgetLayout->addLayout(parametersLayout);
     widgetLayout->addWidget(parametersWidget);
     widgetLayout->addStretch();
