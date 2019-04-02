@@ -226,14 +226,36 @@ WuQMacroCommandParameterWidget::updateContent(int32_t windowIndex,
                 break;
             case WuQMacroDataValueTypeEnum::FLOAT:
             {
+                std::array<float, 2> floatRange { -1.0e6, 1.0e6 };
+                if (customDataFlag) {
+                    WbMacroCustomDataInfo customDataInfo(WuQMacroDataValueTypeEnum::FLOAT);
+                    WuQMacroManager::instance()->getCustomParameterDataInfo(windowIndex,
+                                                                            macroCommand,
+                                                                            parameter,
+                                                                            customDataInfo);
+                    floatRange = customDataInfo.getFloatRange();
+                }
+                
                 QSignalBlocker blocker(m_doubleSpinBox);
+                m_doubleSpinBox->setRange(floatRange[0], floatRange[1]);
                 m_doubleSpinBox->setValue(m_parameter->getValue().toFloat());
                 activeWidget = m_doubleSpinBox;
             }
                 break;
             case WuQMacroDataValueTypeEnum::INTEGER:
             {
+                std::array<int32_t, 2> intRange { -100000, 100000 };
+                if (customDataFlag) {
+                    WbMacroCustomDataInfo customDataInfo(WuQMacroDataValueTypeEnum::INTEGER);
+                    WuQMacroManager::instance()->getCustomParameterDataInfo(windowIndex,
+                                                                            macroCommand,
+                                                                            parameter,
+                                                                            customDataInfo);
+                    intRange = customDataInfo.getIntegerRange();
+                }
+                
                 QSignalBlocker blocker(m_spinBox);
+                m_spinBox->setRange(intRange[0], intRange[1]);
                 m_spinBox->setValue(m_parameter->getValue().toInt());
                 activeWidget = m_spinBox;
             }
