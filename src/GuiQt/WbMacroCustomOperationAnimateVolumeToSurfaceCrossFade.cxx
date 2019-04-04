@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __WB_MACRO_CUSTOM_OPERATION_VOLUME_TO_SURFACE_CROSS_FADE_DECLARE__
-#include "WbMacroCustomOperationVolumeToSurfaceCrossFade.h"
-#undef __WB_MACRO_CUSTOM_OPERATION_VOLUME_TO_SURFACE_CROSS_FADE_DECLARE__
+#define __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE_DECLARE__
+#include "WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade.h"
+#undef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE_DECLARE__
 
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -44,7 +44,7 @@ using namespace caret;
 
     
 /**
- * \class caret::WbMacroCustomOperationVolumeToSurfaceCrossFade
+ * \class caret::WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade
  * \brief Custom Macro Command for Surface Interpolation
  * \ingroup GuiQt
  */
@@ -52,15 +52,15 @@ using namespace caret;
 /**
  * Constructor.
  */
-WbMacroCustomOperationVolumeToSurfaceCrossFade::WbMacroCustomOperationVolumeToSurfaceCrossFade()
-: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::VOLUME_TO_SURFACE_CROSS_FADE)
+WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade::WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade()
+: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE)
 {
 }
 
 /**
  * Destructor.
  */
-WbMacroCustomOperationVolumeToSurfaceCrossFade::~WbMacroCustomOperationVolumeToSurfaceCrossFade()
+WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade::~WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade()
 {
 }
 
@@ -72,7 +72,7 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::~WbMacroCustomOperationVolumeToS
  *     Use getErrorMessage() for error information if NULL returned
  */
 WuQMacroCommand*
-WbMacroCustomOperationVolumeToSurfaceCrossFade::createCommand()
+WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade::createCommand()
 {
     const int32_t versionOne(1);
 
@@ -87,7 +87,7 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::createCommand()
     WuQMacroCommand* command = WuQMacroCommand::newInstanceCustomCommand(WbMacroCustomOperationTypeEnum::toName(getOperationType()),
                                                                          versionOne,
                                                                          "none",
-                                                                         "Volume to Surface CrossFade",
+                                                                         WbMacroCustomOperationTypeEnum::toGuiName(getOperationType()),
                                                                          description,
                                                                          1.0,
                                                                          errorMessage);
@@ -122,7 +122,7 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::createCommand()
  *     Use getErrorMessage() for error information if false returned
  */
 bool
-WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
+WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
                                                                const WuQMacroExecutorMonitor* executorMonitor,
                                                                const WuQMacroExecutorOptions* executorOptions,
                                                                const WuQMacroCommand* macroCommand)
@@ -189,7 +189,7 @@ WbMacroCustomOperationVolumeToSurfaceCrossFade::executeCommand(QWidget* parent,
  *     True if successful, else false
  */
 bool
-WbMacroCustomOperationVolumeToSurfaceCrossFade::performCrossFade(const WuQMacroExecutorMonitor* executorMonitor,
+WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade::performCrossFade(const WuQMacroExecutorMonitor* executorMonitor,
                                                                  const WuQMacroExecutorOptions* executorOptions,
                                                                  Overlay* volumeOverlay,
                                                                  const float durationSeconds)

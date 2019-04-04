@@ -1,5 +1,5 @@
-#ifndef __WB_MACRO_CUSTOM_OPERATION_VOLUME_SLICE_INCREMENT_H__
-#define __WB_MACRO_CUSTOM_OPERATION_VOLUME_SLICE_INCREMENT_H__
+#ifndef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_ROTATION_H__
+#define __WB_MACRO_CUSTOM_OPERATION_ANIMATE_ROTATION_H__
 
 /*LICENSE_START*/
 /*
@@ -33,16 +33,16 @@ namespace caret {
 
     class BrowserTabContent;
     
-    class WbMacroCustomOperationVolumeSliceIncrement : public WbMacroCustomOperationBase {
+    class WbMacroCustomOperationAnimateRotation : public WbMacroCustomOperationBase {
         
     public:
-        WbMacroCustomOperationVolumeSliceIncrement();
+        WbMacroCustomOperationAnimateRotation();
         
-        virtual ~WbMacroCustomOperationVolumeSliceIncrement();
+        virtual ~WbMacroCustomOperationAnimateRotation();
         
-        WbMacroCustomOperationVolumeSliceIncrement(const WbMacroCustomOperationVolumeSliceIncrement&) = delete;
+        WbMacroCustomOperationAnimateRotation(const WbMacroCustomOperationAnimateRotation&) = delete;
 
-        WbMacroCustomOperationVolumeSliceIncrement& operator=(const WbMacroCustomOperationVolumeSliceIncrement&) = delete;
+        WbMacroCustomOperationAnimateRotation& operator=(const WbMacroCustomOperationAnimateRotation&) = delete;
         
         virtual bool executeCommand(QWidget* parent,
                                     const WuQMacroExecutorMonitor* executorMonitor,
@@ -61,19 +61,20 @@ namespace caret {
             Z
         };
 
-        bool performSliceIncrement(const WuQMacroExecutorMonitor* executorMonitor,
-                                   const WuQMacroExecutorOptions* executorOptions,
-                                   BrowserTabContent* tabContent,
-                                   const Axis axis,
-                                   const float durationSeconds);
-
+        bool performRotation(const WuQMacroExecutorMonitor* executorMonitor,
+                             const WuQMacroExecutorOptions* executorOptions,
+                             BrowserTabContent* tabContent,
+                             const Axis axis,
+                             const float totalRotation,
+                             const float durationSeconds);
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __WB_MACRO_CUSTOM_OPERATION_VOLUME_SLICE_INCREMENT_DECLARE__
+#ifdef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_ROTATION_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WB_MACRO_CUSTOM_OPERATION_VOLUME_SLICE_INCREMENT_DECLARE__
+#endif // __WB_MACRO_CUSTOM_OPERATION_ANIMATE_ROTATION_DECLARE__
 
 } // namespace
-#endif  //__WB_MACRO_CUSTOM_OPERATION_VOLUME_SLICE_INCREMENT_H__
+#endif  //__WB_MACRO_CUSTOM_OPERATION_ANIMATE_ROTATION_H__

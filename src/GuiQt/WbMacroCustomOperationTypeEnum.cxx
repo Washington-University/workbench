@@ -106,29 +106,29 @@ WbMacroCustomOperationTypeEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(WbMacroCustomOperationTypeEnum(ANIMATE_ROTATION,
+                                                      "ANIMATE_ROTATION",
+                                                      "Animate Rotation"));
+    
+    enumData.push_back(WbMacroCustomOperationTypeEnum(ANIMATE_OVERLAY_CROSS_FADE,
+                                                      "ANIMATE_OVERLAY_CROSS_FADE",
+                                                      "Animate Overlay CrossFade"));
+    
+    enumData.push_back(WbMacroCustomOperationTypeEnum(ANIMATE_SURFACE_INTERPOLATION,
+                                                      "ANIMATE_SURFACE_INTERPOLATION",
+                                                      "Animate Surface Interpolation"));
+
+    enumData.push_back(WbMacroCustomOperationTypeEnum(ANIMATE_VOLUME_SLICE_SEQUENCE,
+                                                      "ANIMATE_VOLUME_SLICE_SEQUENCE",
+                                                      "Animate Volume Slice Sequence"));
+    
+    enumData.push_back(WbMacroCustomOperationTypeEnum(ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE,
+                                                      "ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE",
+                                                      "Animate Volume to Surface Cross Fade"));
+
     enumData.push_back(WbMacroCustomOperationTypeEnum(DELAY,
                                                       "DELAY",
-                                                      "Delay"));
-    
-    enumData.push_back(WbMacroCustomOperationTypeEnum(MODEL_ROTATION,
-                                                      "MODEL_ROTATION",
-                                                      "Model Rotation"));
-    
-    enumData.push_back(WbMacroCustomOperationTypeEnum(OVERLAY_CROSS_FADE,
-                                                      "OVERLAY_CROSS_FADE",
-                                                      "Overlay CrossFade"));
-    
-    enumData.push_back(WbMacroCustomOperationTypeEnum(SURFACE_INTERPOLATION,
-                                                      "SURFACE_INTERPOLATION",
-                                                      "Surface Interpolation"));
-
-    enumData.push_back(WbMacroCustomOperationTypeEnum(VOLUME_SLICE_INCREMENT,
-                                                      "VOLUME_SLICE_INCREMENT",
-                                                      "Volume Slice Increment"));
-    
-    enumData.push_back(WbMacroCustomOperationTypeEnum(VOLUME_TO_SURFACE_CROSS_FADE,
-                                                      "VOLUME_TO_SURFACE_CROSS_FADE",
-                                                      "Volume to Surface Cross Fade"));
+                                                      "Delay"));    
 }
 
 /**
@@ -180,9 +180,29 @@ WbMacroCustomOperationTypeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 WbMacroCustomOperationTypeEnum::Enum
-WbMacroCustomOperationTypeEnum::fromName(const AString& name, bool* isValidOut)
+WbMacroCustomOperationTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
+    AString name(nameIn);
+    
+    /*
+     * Convert old names for operations that were renamed
+     */
+    if (nameIn == "MODEL_ROTATION") {
+        name = WbMacroCustomOperationTypeEnum::toName(WbMacroCustomOperationTypeEnum::ANIMATE_ROTATION);
+    }
+    else if (nameIn == "OVERLAY_CROSS_FADE") {
+        name = WbMacroCustomOperationTypeEnum::toName(WbMacroCustomOperationTypeEnum::ANIMATE_OVERLAY_CROSS_FADE);
+    }
+    else if (nameIn == "SURFACE_INTERPOLATION") {
+        name = WbMacroCustomOperationTypeEnum::toName(WbMacroCustomOperationTypeEnum::ANIMATE_SURFACE_INTERPOLATION);
+    }
+    else if (nameIn == "VOLUME_SLICE_INCREMENT") {
+        name = WbMacroCustomOperationTypeEnum::toName(WbMacroCustomOperationTypeEnum::ANIMATE_VOLUME_SLICE_SEQUENCE);
+    }
+    else if (nameIn == "VOLUME_TO_SURFACE_CROSS_FADE") {
+        name = WbMacroCustomOperationTypeEnum::toName(WbMacroCustomOperationTypeEnum::ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE);
+    }
     
     bool validFlag = false;
     Enum enumValue = WbMacroCustomOperationTypeEnum::enumData[0].enumValue;

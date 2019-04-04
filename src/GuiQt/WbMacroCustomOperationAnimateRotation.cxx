@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __WB_MACRO_CUSTOM_OPERATION_MODEL_ROTATION_DECLARE__
-#include "WbMacroCustomOperationModelRotation.h"
-#undef __WB_MACRO_CUSTOM_OPERATION_MODEL_ROTATION_DECLARE__
+#define __WB_MACRO_CUSTOM_OPERATION_ANIMATE_ROTATION_DECLARE__
+#include "WbMacroCustomOperationAnimateRotation.h"
+#undef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_ROTATION_DECLARE__
 
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
@@ -40,7 +40,7 @@ using namespace caret;
 
     
 /**
- * \class caret::WbMacroCustomOperationModelRotation 
+ * \class caret::WbMacroCustomOperationAnimateRotation 
  * \brief Macro custom operation for model rotation
  * \ingroup GuiQt
  */
@@ -48,8 +48,8 @@ using namespace caret;
 /**
  * Constructor.
  */
-WbMacroCustomOperationModelRotation::WbMacroCustomOperationModelRotation()
-: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::MODEL_ROTATION)
+WbMacroCustomOperationAnimateRotation::WbMacroCustomOperationAnimateRotation()
+: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::ANIMATE_ROTATION)
 {
     
 }
@@ -57,7 +57,7 @@ WbMacroCustomOperationModelRotation::WbMacroCustomOperationModelRotation()
 /**
  * Destructor.
  */
-WbMacroCustomOperationModelRotation::~WbMacroCustomOperationModelRotation()
+WbMacroCustomOperationAnimateRotation::~WbMacroCustomOperationAnimateRotation()
 {
 }
 
@@ -69,7 +69,7 @@ WbMacroCustomOperationModelRotation::~WbMacroCustomOperationModelRotation()
  *     Use getErrorMessage() for error information if NULL returned
  */
 WuQMacroCommand*
-WbMacroCustomOperationModelRotation::createCommand()
+WbMacroCustomOperationAnimateRotation::createCommand()
 {
     const int32_t versionOne(1);
     
@@ -78,11 +78,11 @@ WbMacroCustomOperationModelRotation::createCommand()
                                                                              "Y");
     
     QString errorMessage;
-    WuQMacroCommand* command = WuQMacroCommand::newInstanceCustomCommand(WbMacroCustomOperationTypeEnum::toName(WbMacroCustomOperationTypeEnum::MODEL_ROTATION),
+    WuQMacroCommand* command = WuQMacroCommand::newInstanceCustomCommand(WbMacroCustomOperationTypeEnum::toName(WbMacroCustomOperationTypeEnum::ANIMATE_ROTATION),
                                                                          versionOne,
                                                                          "none",
-                                                                         "Model Rotation",
-                                                                         "Rotate a Model",
+                                                                         WbMacroCustomOperationTypeEnum::toGuiName(getOperationType()),
+                                                                         "Rotate the Brain Model About a Screen Axis",
                                                                          1.0,
                                                                          errorMessage);
     if (command != NULL) {
@@ -117,7 +117,7 @@ WbMacroCustomOperationModelRotation::createCommand()
  *     Use getErrorMessage() for error information if false returned
  */
 bool
-WbMacroCustomOperationModelRotation::executeCommand(QWidget* parent,
+WbMacroCustomOperationAnimateRotation::executeCommand(QWidget* parent,
                                                     const WuQMacroExecutorMonitor* executorMonitor,
                                                     const WuQMacroExecutorOptions* executorOptions,
                                                     const WuQMacroCommand* macroCommand)
@@ -201,7 +201,7 @@ WbMacroCustomOperationModelRotation::executeCommand(QWidget* parent,
  *
  */
 bool
-WbMacroCustomOperationModelRotation::performRotation(const WuQMacroExecutorMonitor* executorMonitor,
+WbMacroCustomOperationAnimateRotation::performRotation(const WuQMacroExecutorMonitor* executorMonitor,
                                                      const WuQMacroExecutorOptions* executorOptions,
                                                      BrowserTabContent* tabContent,
                                                      const Axis axis,

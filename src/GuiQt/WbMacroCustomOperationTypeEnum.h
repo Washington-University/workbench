@@ -37,16 +37,16 @@ public:
     enum Enum {
         /** Delay **/
         DELAY,
-        /** Rotation of viewed model */
-        MODEL_ROTATION,
-        /** CrossFade of overlays */
-        OVERLAY_CROSS_FADE,
-        /** Surface Interpolation */
-        SURFACE_INTERPOLATION,
-        /** Volume slice increment */
-        VOLUME_SLICE_INCREMENT,
-        /** Volume to surface corss fade */
-        VOLUME_TO_SURFACE_CROSS_FADE
+        /** Animate rotation of viewed model */
+        ANIMATE_ROTATION,
+        /** Animate CrossFade of overlays */
+        ANIMATE_OVERLAY_CROSS_FADE,
+        /** Animate Surface Interpolation */
+        ANIMATE_SURFACE_INTERPOLATION,
+        /** Animate Volume slice sequence */
+        ANIMATE_VOLUME_SLICE_SEQUENCE,
+        /** Animate Volume to surface cross fade */
+        ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE
     };
 
 

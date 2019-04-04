@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __WB_MACRO_CUSTOM_OPERATION_SURFACE_INTERPOLATION_DECLARE__
-#include "WbMacroCustomOperationSurfaceInterpolation.h"
-#undef __WB_MACRO_CUSTOM_OPERATION_SURFACE_INTERPOLATION_DECLARE__
+#define __WB_MACRO_CUSTOM_OPERATION_ANIMATE_SURFACE_INTERPOLATION_DECLARE__
+#include "WbMacroCustomOperationAnimateSurfaceInterpolation.h"
+#undef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_SURFACE_INTERPOLATION_DECLARE__
 
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
@@ -47,7 +47,7 @@ using namespace caret;
 
     
 /**
- * \class caret::WbMacroCustomOperationSurfaceInterpolation 
+ * \class caret::WbMacroCustomOperationAnimateSurfaceInterpolation
  * \brief Custom Macro Command for Surface Interpolation
  * \ingroup GuiQt
  */
@@ -55,15 +55,15 @@ using namespace caret;
 /**
  * Constructor.
  */
-WbMacroCustomOperationSurfaceInterpolation::WbMacroCustomOperationSurfaceInterpolation()
-: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION)
+WbMacroCustomOperationAnimateSurfaceInterpolation::WbMacroCustomOperationAnimateSurfaceInterpolation()
+: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::ANIMATE_SURFACE_INTERPOLATION)
 {
 }
 
 /**
  * Destructor.
  */
-WbMacroCustomOperationSurfaceInterpolation::~WbMacroCustomOperationSurfaceInterpolation()
+WbMacroCustomOperationAnimateSurfaceInterpolation::~WbMacroCustomOperationAnimateSurfaceInterpolation()
 {
 }
 
@@ -75,7 +75,7 @@ WbMacroCustomOperationSurfaceInterpolation::~WbMacroCustomOperationSurfaceInterp
  *     Use getErrorMessage() for error information if NULL returned
  */
 WuQMacroCommand*
-WbMacroCustomOperationSurfaceInterpolation::createCommand()
+WbMacroCustomOperationAnimateSurfaceInterpolation::createCommand()
 {
     const int32_t versionOne(1);
     
@@ -90,11 +90,11 @@ WbMacroCustomOperationSurfaceInterpolation::createCommand()
     paramSurfaceTwo->setCustomDataType(WbMacroCustomDataTypeEnum::toName(WbMacroCustomDataTypeEnum::SURFACE));
     
     QString errorMessage;
-    WuQMacroCommand* command = WuQMacroCommand::newInstanceCustomCommand(WbMacroCustomOperationTypeEnum::toName(WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION),
+    WuQMacroCommand* command = WuQMacroCommand::newInstanceCustomCommand(WbMacroCustomOperationTypeEnum::toName(WbMacroCustomOperationTypeEnum::ANIMATE_SURFACE_INTERPOLATION),
                                                                          versionOne,
                                                                          "none",
-                                                                         "Surface Interpolation",
-                                                                         "Interpolate Between Two Surface",
+                                                                         WbMacroCustomOperationTypeEnum::toGuiName(getOperationType()),
+                                                                         "Interpolate Between Two Surfaces",
                                                                          1.0,
                                                                          errorMessage);
     if (command != NULL) {
@@ -127,7 +127,7 @@ WbMacroCustomOperationSurfaceInterpolation::createCommand()
  *     Use getErrorMessage() for error information if false returned
  */
 bool
-WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
+WbMacroCustomOperationAnimateSurfaceInterpolation::executeCommand(QWidget* parent,
                                                            const WuQMacroExecutorMonitor* executorMonitor,
                                                            const WuQMacroExecutorOptions* executorOptions,
                                                            const WuQMacroCommand* macroCommand)
@@ -226,7 +226,7 @@ WbMacroCustomOperationSurfaceInterpolation::executeCommand(QWidget* parent,
  *     True if successful, else false
  */
 bool
-WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const WuQMacroExecutorMonitor* executorMonitor,
+WbMacroCustomOperationAnimateSurfaceInterpolation::interpolateSurface(const WuQMacroExecutorMonitor* executorMonitor,
                                                                const WuQMacroExecutorOptions* executorOptions,
                                                                const int32_t tabIndex,
                                                                ModelWholeBrain* wholeBrainModel,
@@ -359,7 +359,7 @@ WbMacroCustomOperationSurfaceInterpolation::interpolateSurface(const WuQMacroExe
  *     Surface that is copied to create the interpolation surface
  */
 void
-WbMacroCustomOperationSurfaceInterpolation::createInterpolationSurface(const Surface* surface)
+WbMacroCustomOperationAnimateSurfaceInterpolation::createInterpolationSurface(const Surface* surface)
 {
     CaretAssert(surface);
     
@@ -386,7 +386,7 @@ WbMacroCustomOperationSurfaceInterpolation::createInterpolationSurface(const Sur
  * Delete the interpolation surface
  */
 void
-WbMacroCustomOperationSurfaceInterpolation::deleteInterpolationSurface()
+WbMacroCustomOperationAnimateSurfaceInterpolation::deleteInterpolationSurface()
 {
     if (m_interpolationSurface != NULL) {
         EventDataFileDelete deleteFileEvent(m_interpolationSurface);

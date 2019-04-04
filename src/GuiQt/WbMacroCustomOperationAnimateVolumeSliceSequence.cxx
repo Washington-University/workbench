@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __WB_MACRO_CUSTOM_OPERATION_VOLUME_SLICE_INCREMENT_DECLARE__
-#include "WbMacroCustomOperationVolumeSliceIncrement.h"
-#undef __WB_MACRO_CUSTOM_OPERATION_VOLUME_SLICE_INCREMENT_DECLARE__
+#define __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_SLICE_DECLARE__
+#include "WbMacroCustomOperationAnimateVolumeSliceSequence.h"
+#undef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_SLICE_DECLARE__
 
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
@@ -45,7 +45,7 @@ using namespace caret;
 
     
 /**
- * \class caret::WbMacroCustomOperationVolumeSliceIncrement
+ * \class caret::WbMacroCustomOperationAnimateVolumeSliceSequence
  * \brief Macro custom operation incrementing volume slices
  * \ingroup GuiQt
  */
@@ -53,8 +53,8 @@ using namespace caret;
 /**
  * Constructor.
  */
-WbMacroCustomOperationVolumeSliceIncrement::WbMacroCustomOperationVolumeSliceIncrement()
-: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::VOLUME_SLICE_INCREMENT)
+WbMacroCustomOperationAnimateVolumeSliceSequence::WbMacroCustomOperationAnimateVolumeSliceSequence()
+: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::ANIMATE_VOLUME_SLICE_SEQUENCE)
 {
     
 }
@@ -62,7 +62,7 @@ WbMacroCustomOperationVolumeSliceIncrement::WbMacroCustomOperationVolumeSliceInc
 /**
  * Destructor.
  */
-WbMacroCustomOperationVolumeSliceIncrement::~WbMacroCustomOperationVolumeSliceIncrement()
+WbMacroCustomOperationAnimateVolumeSliceSequence::~WbMacroCustomOperationAnimateVolumeSliceSequence()
 {
 }
 
@@ -74,7 +74,7 @@ WbMacroCustomOperationVolumeSliceIncrement::~WbMacroCustomOperationVolumeSliceIn
  *     Use getErrorMessage() for error information if NULL returned
  */
 WuQMacroCommand*
-WbMacroCustomOperationVolumeSliceIncrement::createCommand()
+WbMacroCustomOperationAnimateVolumeSliceSequence::createCommand()
 {
     const int32_t versionOne(1);
     
@@ -88,7 +88,7 @@ WbMacroCustomOperationVolumeSliceIncrement::createCommand()
     WuQMacroCommand* command = WuQMacroCommand::newInstanceCustomCommand(WbMacroCustomOperationTypeEnum::toName(getOperationType()),
                                                                          versionOne,
                                                                          "none",
-                                                                         "Volume Slice Increment",
+                                                                         WbMacroCustomOperationTypeEnum::toGuiName(getOperationType()),
                                                                          description,
                                                                          1.0,
                                                                          errorMessage);
@@ -124,7 +124,7 @@ WbMacroCustomOperationVolumeSliceIncrement::createCommand()
  *     Use getErrorMessage() for error information if false returned
  */
 bool
-WbMacroCustomOperationVolumeSliceIncrement::executeCommand(QWidget* parent,
+WbMacroCustomOperationAnimateVolumeSliceSequence::executeCommand(QWidget* parent,
                                                            const WuQMacroExecutorMonitor* executorMonitor,
                                                            const WuQMacroExecutorOptions* executorOptions,
                                                            const WuQMacroCommand* macroCommand)
@@ -201,7 +201,7 @@ WbMacroCustomOperationVolumeSliceIncrement::executeCommand(QWidget* parent,
  *     Duration of time for command to run
  */
 bool
-WbMacroCustomOperationVolumeSliceIncrement::performSliceIncrement(const WuQMacroExecutorMonitor* executorMonitor,
+WbMacroCustomOperationAnimateVolumeSliceSequence::performSliceIncrement(const WuQMacroExecutorMonitor* executorMonitor,
                                                                   const WuQMacroExecutorOptions* executorOptions,
                                                                   BrowserTabContent* tabContent,
                                                                   const Axis axis,

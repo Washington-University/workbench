@@ -1,5 +1,5 @@
-#ifndef __WB_MACRO_CUSTOM_OPERATION_SURFACE_INTERPOLATION_H__
-#define __WB_MACRO_CUSTOM_OPERATION_SURFACE_INTERPOLATION_H__
+#ifndef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_SURFACE_INTERPOLATION_H__
+#define __WB_MACRO_CUSTOM_OPERATION_ANIMATE_SURFACE_INTERPOLATION_H__
 
 /*LICENSE_START*/
 /*
@@ -34,16 +34,16 @@ namespace caret {
     class SpecFile;
     class Surface;
     
-    class WbMacroCustomOperationSurfaceInterpolation : public WbMacroCustomOperationBase {
+    class WbMacroCustomOperationAnimateSurfaceInterpolation : public WbMacroCustomOperationBase {
         
     public:
-        WbMacroCustomOperationSurfaceInterpolation();
+        WbMacroCustomOperationAnimateSurfaceInterpolation();
         
-        virtual ~WbMacroCustomOperationSurfaceInterpolation();
+        virtual ~WbMacroCustomOperationAnimateSurfaceInterpolation();
         
-        WbMacroCustomOperationSurfaceInterpolation(const WbMacroCustomOperationSurfaceInterpolation&) = delete;
+        WbMacroCustomOperationAnimateSurfaceInterpolation(const WbMacroCustomOperationAnimateSurfaceInterpolation&) = delete;
         
-        WbMacroCustomOperationSurfaceInterpolation& operator=(const WbMacroCustomOperationSurfaceInterpolation&) = delete;
+        WbMacroCustomOperationAnimateSurfaceInterpolation& operator=(const WbMacroCustomOperationAnimateSurfaceInterpolation&) = delete;
         
         virtual bool executeCommand(QWidget* parent,
                                     const WuQMacroExecutorMonitor* executorMonitor,
@@ -79,9 +79,9 @@ namespace caret {
 
     };
     
-#ifdef __WB_MACRO_CUSTOM_OPERATION_SURFACE_INTERPOLATION_DECLARE__
+#ifdef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_SURFACE_INTERPOLATION_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WB_MACRO_CUSTOM_OPERATION_SURFACE_INTERPOLATION_DECLARE__
+#endif // __WB_MACRO_CUSTOM_OPERATION_ANIMATE_SURFACE_INTERPOLATION_DECLARE__
 
 } // namespace
-#endif  //__WB_MACRO_CUSTOM_OPERATION_SURFACE_INTERPOLATION_H__
+#endif  //__WB_MACRO_CUSTOM_OPERATION_ANIMATE_SURFACE_INTERPOLATION_H__

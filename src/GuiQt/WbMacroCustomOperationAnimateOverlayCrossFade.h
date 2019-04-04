@@ -1,5 +1,5 @@
-#ifndef __WB_MACRO_CUSTOM_OPERATION_OVERLAY_CROSS_FADE_H__
-#define __WB_MACRO_CUSTOM_OPERATION_OVERLAY_CROSS_FADE_H__
+#ifndef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_OVERLAY_CROSS_FADE_H__
+#define __WB_MACRO_CUSTOM_OPERATION_ANIMATE_OVERLAY_CROSS_FADE_H__
 
 /*LICENSE_START*/
 /*
@@ -32,16 +32,16 @@ namespace caret {
     class Overlay;
     class OverlaySet;
     
-    class WbMacroCustomOperationOverlayCrossFade : public WbMacroCustomOperationBase {
+    class WbMacroCustomOperationAnimateOverlayCrossFade : public WbMacroCustomOperationBase {
         
     public:
-        WbMacroCustomOperationOverlayCrossFade();
+        WbMacroCustomOperationAnimateOverlayCrossFade();
         
-        virtual ~WbMacroCustomOperationOverlayCrossFade();
+        virtual ~WbMacroCustomOperationAnimateOverlayCrossFade();
         
-        WbMacroCustomOperationOverlayCrossFade(const WbMacroCustomOperationOverlayCrossFade&) = delete;
+        WbMacroCustomOperationAnimateOverlayCrossFade(const WbMacroCustomOperationAnimateOverlayCrossFade&) = delete;
         
-        WbMacroCustomOperationOverlayCrossFade& operator=(const WbMacroCustomOperationOverlayCrossFade&) = delete;
+        WbMacroCustomOperationAnimateOverlayCrossFade& operator=(const WbMacroCustomOperationAnimateOverlayCrossFade&) = delete;
         
         virtual bool executeCommand(QWidget* parent,
                                     const WuQMacroExecutorMonitor* executorMonitor,
@@ -86,9 +86,9 @@ namespace caret {
 
     };
     
-#ifdef __WB_MACRO_CUSTOM_OPERATION_OVERLAY_CROSS_FADE_DECLARE__
+#ifdef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_OVERLAY_CROSS_FADE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WB_MACRO_CUSTOM_OPERATION_OVERLAY_CROSS_FADE_DECLARE__
+#endif // __WB_MACRO_CUSTOM_OPERATION_ANIMATE_OVERLAY_CROSS_FADE_DECLARE__
 
 } // namespace
-#endif  //__WB_MACRO_CUSTOM_OPERATION_OVERLAY_CROSS_FADE_H__
+#endif  //__WB_MACRO_CUSTOM_OPERATION_ANIMATE_OVERLAY_CROSS_FADE_H__

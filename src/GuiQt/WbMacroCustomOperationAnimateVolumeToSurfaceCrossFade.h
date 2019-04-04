@@ -1,5 +1,5 @@
-#ifndef __WB_MACRO_CUSTOM_OPERATION_MODEL_ROTATION_H__
-#define __WB_MACRO_CUSTOM_OPERATION_MODEL_ROTATION_H__
+#ifndef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE_H__
+#define __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE_H__
 
 /*LICENSE_START*/
 /*
@@ -27,54 +27,46 @@
 
 #include "WbMacroCustomOperationBase.h"
 
-
-
 namespace caret {
 
-    class BrowserTabContent;
+    class Overlay;
     
-    class WbMacroCustomOperationModelRotation : public WbMacroCustomOperationBase {
+    class WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade : public WbMacroCustomOperationBase {
         
     public:
-        WbMacroCustomOperationModelRotation();
+        WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade();
         
-        virtual ~WbMacroCustomOperationModelRotation();
+        virtual ~WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade();
         
-        WbMacroCustomOperationModelRotation(const WbMacroCustomOperationModelRotation&) = delete;
-
-        WbMacroCustomOperationModelRotation& operator=(const WbMacroCustomOperationModelRotation&) = delete;
+        WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade(const WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade&) = delete;
+        
+        WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade& operator=(const WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade&) = delete;
         
         virtual bool executeCommand(QWidget* parent,
                                     const WuQMacroExecutorMonitor* executorMonitor,
                                     const WuQMacroExecutorOptions* executorOptions,
                                     const WuQMacroCommand* macroCommand) override;
-        
+
         virtual WuQMacroCommand* createCommand() override;
         
-
+        
+        
         // ADD_NEW_METHODS_HERE
 
     private:
-        enum class Axis {
-            X,
-            Y,
-            Z
-        };
-
-        bool performRotation(const WuQMacroExecutorMonitor* executorMonitor,
-                             const WuQMacroExecutorOptions* executorOptions,
-                             BrowserTabContent* tabContent,
-                             const Axis axis,
-                             const float totalRotation,
-                             const float durationSeconds);
+        bool performCrossFade(const WuQMacroExecutorMonitor* executorMonitor,
+                              const WuQMacroExecutorOptions* executorOptions,
+                              Overlay* volumeOverlay,
+                              const float durationSeconds);
+        
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __WB_MACRO_CUSTOM_OPERATION_MODEL_ROTATION_DECLARE__
+#ifdef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WB_MACRO_CUSTOM_OPERATION_MODEL_ROTATION_DECLARE__
+#endif // __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE_DECLARE__
 
 } // namespace
-#endif  //__WB_MACRO_CUSTOM_OPERATION_MODEL_ROTATION_H__
+#endif  //__WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE_H__

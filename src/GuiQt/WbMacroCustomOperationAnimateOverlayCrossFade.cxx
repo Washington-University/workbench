@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __WB_MACRO_CUSTOM_OPERATION_OVERLAY_CROSS_FADE_DECLARE__
-#include "WbMacroCustomOperationOverlayCrossFade.h"
-#undef __WB_MACRO_CUSTOM_OPERATION_OVERLAY_CROSS_FADE_DECLARE__
+#define __WB_MACRO_CUSTOM_OPERATION_ANIMATE_OVERLAY_CROSS_FADE_DECLARE__
+#include "WbMacroCustomOperationAnimateOverlayCrossFade.h"
+#undef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_OVERLAY_CROSS_FADE_DECLARE__
 
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
@@ -41,23 +41,23 @@ using namespace caret;
 
     
 /**
- * \class caret::WbMacroCustomOperationOverlayCrossFade
- * \brief Custom Macro Command for Surface Interpolation
+ * \class caret::WbMacroCustomOperationAnimateOverlayCrossFade
+ * \brief Custom Macro Command for Overlay Crossfade
  * \ingroup GuiQt
  */
 
 /**
  * Constructor.
  */
-WbMacroCustomOperationOverlayCrossFade::WbMacroCustomOperationOverlayCrossFade()
-: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::OVERLAY_CROSS_FADE)
+WbMacroCustomOperationAnimateOverlayCrossFade::WbMacroCustomOperationAnimateOverlayCrossFade()
+: WbMacroCustomOperationBase(WbMacroCustomOperationTypeEnum::ANIMATE_OVERLAY_CROSS_FADE)
 {
 }
 
 /**
  * Destructor.
  */
-WbMacroCustomOperationOverlayCrossFade::~WbMacroCustomOperationOverlayCrossFade()
+WbMacroCustomOperationAnimateOverlayCrossFade::~WbMacroCustomOperationAnimateOverlayCrossFade()
 {
 }
 
@@ -69,7 +69,7 @@ WbMacroCustomOperationOverlayCrossFade::~WbMacroCustomOperationOverlayCrossFade(
  *     Use getErrorMessage() for error information if NULL returned
  */
 WuQMacroCommand*
-WbMacroCustomOperationOverlayCrossFade::createCommand()
+WbMacroCustomOperationAnimateOverlayCrossFade::createCommand()
 {
     WuQMacroCommand* command(NULL);
     const int32_t versionNumber(2);
@@ -94,7 +94,7 @@ WbMacroCustomOperationOverlayCrossFade::createCommand()
  *     Use getErrorMessage() for error information if NULL returned
  */
 WuQMacroCommand*
-WbMacroCustomOperationOverlayCrossFade::createCommandVersionOne()
+WbMacroCustomOperationAnimateOverlayCrossFade::createCommandVersionOne()
 {
     const int32_t versionOne(1);
     
@@ -138,7 +138,7 @@ WbMacroCustomOperationOverlayCrossFade::createCommandVersionOne()
  *     Use getErrorMessage() for error information if NULL returned
  */
 WuQMacroCommand*
-WbMacroCustomOperationOverlayCrossFade::createCommandVersionTwo()
+WbMacroCustomOperationAnimateOverlayCrossFade::createCommandVersionTwo()
 {
     const int32_t versionTwo(2);
     
@@ -170,7 +170,7 @@ WbMacroCustomOperationOverlayCrossFade::createCommandVersionTwo()
     WuQMacroCommand* command = WuQMacroCommand::newInstanceCustomCommand(WbMacroCustomOperationTypeEnum::toName(getOperationType()),
                                                                          versionTwo,
                                                                          "none",
-                                                                         "Overlay CrossFade",
+                                                                         WbMacroCustomOperationTypeEnum::toGuiName(getOperationType()),
                                                                          description,
                                                                          1.0,
                                                                          errorMessage);
@@ -207,7 +207,7 @@ WbMacroCustomOperationOverlayCrossFade::createCommandVersionTwo()
  *     Use getErrorMessage() for error information if false returned
  */
 bool
-WbMacroCustomOperationOverlayCrossFade::executeCommand(QWidget* parent,
+WbMacroCustomOperationAnimateOverlayCrossFade::executeCommand(QWidget* parent,
                                                        const WuQMacroExecutorMonitor* executorMonitor,
                                                        const WuQMacroExecutorOptions* executorOptions,
                                                        const WuQMacroCommand* macroCommand)
@@ -252,7 +252,7 @@ WbMacroCustomOperationOverlayCrossFade::executeCommand(QWidget* parent,
  *     Use getErrorMessage() for error information if false returned
  */
 bool
-WbMacroCustomOperationOverlayCrossFade::executeCommandVersionTwo(QWidget* parent,
+WbMacroCustomOperationAnimateOverlayCrossFade::executeCommandVersionTwo(QWidget* parent,
                                                                  const WuQMacroExecutorMonitor* executorMonitor,
                                                                  const WuQMacroExecutorOptions* executorOptions,
                                                                  const WuQMacroCommand* macroCommand)
@@ -398,7 +398,7 @@ WbMacroCustomOperationOverlayCrossFade::executeCommandVersionTwo(QWidget* parent
  *     True if successful, else false
  */
 bool
-WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionTwo(const WuQMacroExecutorMonitor* executorMonitor,
+WbMacroCustomOperationAnimateOverlayCrossFade::performCrossFadeVersionTwo(const WuQMacroExecutorMonitor* executorMonitor,
                                                                    const WuQMacroExecutorOptions* executorOptions,
                                                                    OverlaySet* overlaySet,
                                                                    const int32_t overlayIndex,
@@ -498,7 +498,7 @@ WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionTwo(const WuQMacr
  *     Use getErrorMessage() for error information if false returned
  */
 bool
-WbMacroCustomOperationOverlayCrossFade::executeCommandVersionOne(QWidget* parent,
+WbMacroCustomOperationAnimateOverlayCrossFade::executeCommandVersionOne(QWidget* parent,
                                                                  const WuQMacroExecutorOptions* executorOptions,
                                                                  const WuQMacroCommand* macroCommand)
 {
@@ -620,7 +620,7 @@ WbMacroCustomOperationOverlayCrossFade::executeCommandVersionOne(QWidget* parent
  *     True if successful, else false
  */
 bool
-WbMacroCustomOperationOverlayCrossFade::performCrossFadeVersionOne(const WuQMacroExecutorOptions* executorOptions,
+WbMacroCustomOperationAnimateOverlayCrossFade::performCrossFadeVersionOne(const WuQMacroExecutorOptions* executorOptions,
                                                                    Overlay* fadeToOverlay,
                                                                    Overlay* fadeFromOverlay,
                                                                    const float durationSeconds)

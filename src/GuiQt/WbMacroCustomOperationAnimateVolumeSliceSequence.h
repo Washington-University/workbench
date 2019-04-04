@@ -1,5 +1,5 @@
-#ifndef __WB_MACRO_CUSTOM_OPERATION_VOLUME_TO_SURFACE_CROSS_FADE_H__
-#define __WB_MACRO_CUSTOM_OPERATION_VOLUME_TO_SURFACE_CROSS_FADE_H__
+#ifndef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_SLICE_SEQUENCE_H__
+#define __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_SLICE_SEQUENCE_H__
 
 /*LICENSE_START*/
 /*
@@ -27,46 +27,53 @@
 
 #include "WbMacroCustomOperationBase.h"
 
+
+
 namespace caret {
 
-    class Overlay;
+    class BrowserTabContent;
     
-    class WbMacroCustomOperationVolumeToSurfaceCrossFade : public WbMacroCustomOperationBase {
+    class WbMacroCustomOperationAnimateVolumeSliceSequence : public WbMacroCustomOperationBase {
         
     public:
-        WbMacroCustomOperationVolumeToSurfaceCrossFade();
+        WbMacroCustomOperationAnimateVolumeSliceSequence();
         
-        virtual ~WbMacroCustomOperationVolumeToSurfaceCrossFade();
+        virtual ~WbMacroCustomOperationAnimateVolumeSliceSequence();
         
-        WbMacroCustomOperationVolumeToSurfaceCrossFade(const WbMacroCustomOperationVolumeToSurfaceCrossFade&) = delete;
-        
-        WbMacroCustomOperationVolumeToSurfaceCrossFade& operator=(const WbMacroCustomOperationVolumeToSurfaceCrossFade&) = delete;
+        WbMacroCustomOperationAnimateVolumeSliceSequence(const WbMacroCustomOperationAnimateVolumeSliceSequence&) = delete;
+
+        WbMacroCustomOperationAnimateVolumeSliceSequence& operator=(const WbMacroCustomOperationAnimateVolumeSliceSequence&) = delete;
         
         virtual bool executeCommand(QWidget* parent,
                                     const WuQMacroExecutorMonitor* executorMonitor,
                                     const WuQMacroExecutorOptions* executorOptions,
                                     const WuQMacroCommand* macroCommand) override;
-
+        
         virtual WuQMacroCommand* createCommand() override;
         
-        
-        
+
         // ADD_NEW_METHODS_HERE
 
     private:
-        bool performCrossFade(const WuQMacroExecutorMonitor* executorMonitor,
-                              const WuQMacroExecutorOptions* executorOptions,
-                              Overlay* volumeOverlay,
-                              const float durationSeconds);
-        
-        
+        enum class Axis {
+            X,
+            Y,
+            Z
+        };
+
+        bool performSliceIncrement(const WuQMacroExecutorMonitor* executorMonitor,
+                                   const WuQMacroExecutorOptions* executorOptions,
+                                   BrowserTabContent* tabContent,
+                                   const Axis axis,
+                                   const float durationSeconds);
+
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __WB_MACRO_CUSTOM_OPERATION_VOLUME_TO_SURFACE_CROSS_FADE_DECLARE__
+#ifdef __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_SLICE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WB_MACRO_CUSTOM_OPERATION_OVERLAY_CROSS_FADE_DECLARE__
+#endif // __WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_SLICE_DECLARE__
 
 } // namespace
-#endif  //__WB_MACRO_CUSTOM_OPERATION_VOLUME_TO_SURFACE_CROSS_FADE_H__
+#endif  //__WB_MACRO_CUSTOM_OPERATION_ANIMATE_VOLUME_SLICE_SEQUENCE_H__

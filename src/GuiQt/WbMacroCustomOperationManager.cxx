@@ -39,12 +39,12 @@
 #include "Surface.h"
 #include "WbMacroCustomDataTypeEnum.h"
 #include "WbMacroCustomOperationDelay.h"
-#include "WbMacroCustomOperationModelRotation.h"
-#include "WbMacroCustomOperationOverlayCrossFade.h"
-#include "WbMacroCustomOperationSurfaceInterpolation.h"
+#include "WbMacroCustomOperationAnimateRotation.h"
+#include "WbMacroCustomOperationAnimateOverlayCrossFade.h"
+#include "WbMacroCustomOperationAnimateSurfaceInterpolation.h"
 #include "WbMacroCustomOperationTypeEnum.h"
-#include "WbMacroCustomOperationVolumeSliceIncrement.h"
-#include "WbMacroCustomOperationVolumeToSurfaceCrossFade.h"
+#include "WbMacroCustomOperationAnimateVolumeSliceSequence.h"
+#include "WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade.h"
 #include "WbMacroCustomDataInfo.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
@@ -644,7 +644,7 @@ WbMacroCustomOperationManager::getAllCustomOperationMacroCommands()
     
     std::vector<WuQMacroCommand*> customCommands;
     for (auto cct : customCommandTypes) {
-        if (cct == WbMacroCustomOperationTypeEnum::VOLUME_TO_SURFACE_CROSS_FADE) {
+        if (cct == WbMacroCustomOperationTypeEnum::ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE) {
             continue;
         }
         std::unique_ptr<WbMacroCustomOperationBase> customOperation(createCommand(cct));
@@ -716,20 +716,20 @@ WbMacroCustomOperationManager::createCommand(const WbMacroCustomOperationTypeEnu
         case WbMacroCustomOperationTypeEnum::DELAY:
             operationOut = new WbMacroCustomOperationDelay();
             break;
-        case WbMacroCustomOperationTypeEnum::MODEL_ROTATION:
-            operationOut = new WbMacroCustomOperationModelRotation();
+        case WbMacroCustomOperationTypeEnum::ANIMATE_ROTATION:
+            operationOut = new WbMacroCustomOperationAnimateRotation();
             break;
-        case WbMacroCustomOperationTypeEnum::OVERLAY_CROSS_FADE:
-            operationOut = new WbMacroCustomOperationOverlayCrossFade();
+        case WbMacroCustomOperationTypeEnum::ANIMATE_OVERLAY_CROSS_FADE:
+            operationOut = new WbMacroCustomOperationAnimateOverlayCrossFade();
             break;
-        case WbMacroCustomOperationTypeEnum::SURFACE_INTERPOLATION:
-            operationOut = new WbMacroCustomOperationSurfaceInterpolation();
+        case WbMacroCustomOperationTypeEnum::ANIMATE_SURFACE_INTERPOLATION:
+            operationOut = new WbMacroCustomOperationAnimateSurfaceInterpolation();
             break;
-        case WbMacroCustomOperationTypeEnum::VOLUME_SLICE_INCREMENT:
-            operationOut = new WbMacroCustomOperationVolumeSliceIncrement();
+        case WbMacroCustomOperationTypeEnum::ANIMATE_VOLUME_SLICE_SEQUENCE:
+            operationOut = new WbMacroCustomOperationAnimateVolumeSliceSequence();
             break;
-        case WbMacroCustomOperationTypeEnum::VOLUME_TO_SURFACE_CROSS_FADE:
-            operationOut = new WbMacroCustomOperationVolumeToSurfaceCrossFade();
+        case WbMacroCustomOperationTypeEnum::ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE:
+            operationOut = new WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade();
             break;
     }
 
