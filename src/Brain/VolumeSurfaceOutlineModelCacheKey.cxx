@@ -23,6 +23,8 @@
 #include "VolumeSurfaceOutlineModelCacheKey.h"
 #undef __VOLUME_SURFACE_OUTLINE_MODEL_CACHE_KEY_DECLARE__
 
+#include <cmath>
+
 #include "CaretAssert.h"
 using namespace caret;
 
@@ -41,7 +43,7 @@ VolumeSurfaceOutlineModelCacheKey::VolumeSurfaceOutlineModelCacheKey(const Volum
                                                                      const float sliceCoordinate)
 : CaretObject(),
 m_slicePlane(slicePlane),
-m_sliceCoordinateScaled(static_cast<int32_t>(sliceCoordinate * 10.0))
+m_sliceCoordinateScaled(static_cast<int32_t>(std::round(sliceCoordinate * 10.0)))
 {
 }
 
@@ -130,10 +132,13 @@ VolumeSurfaceOutlineModelCacheKey::operator<(const VolumeSurfaceOutlineModelCach
         return false;
     }
     
-    /* perform equality testing HERE and return true if equal ! */
     if (static_cast<int32_t>(m_slicePlane) < static_cast<int32_t>(obj.m_slicePlane)) {
         return true;
     }
+    else if (static_cast<int32_t>(m_slicePlane) > static_cast<int32_t>(obj.m_slicePlane)) {
+        return false;
+    }
+    
     if (m_sliceCoordinateScaled < obj.m_sliceCoordinateScaled) {
         return true;
     }
