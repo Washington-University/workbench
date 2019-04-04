@@ -69,9 +69,9 @@ namespace caret {
     public slots:
         void commandTypeComboBoxActivated();
         
-        void customCommandListWidgetItemClicked(QListWidgetItem* item);
+        void customCommandListWidgetCurrentItemChanged(QListWidgetItem* item);
         
-        void widgetCommandListWidgetItemClicked(QListWidgetItem* item);
+        void widgetCommandListWidgetCurrentItemChanged(QListWidgetItem* item);
         
         virtual void done(int r) override;
         

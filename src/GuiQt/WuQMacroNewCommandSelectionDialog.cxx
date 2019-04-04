@@ -86,12 +86,12 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
     typeLayout->addWidget(m_commandTypeComboBox->getWidget(), 100);
     
     m_customCommandListWidget = new QListWidget();
-    QObject::connect(m_customCommandListWidget, &QListWidget::itemClicked,
-                     this, &WuQMacroNewCommandSelectionDialog::customCommandListWidgetItemClicked);
+    QObject::connect(m_customCommandListWidget, &QListWidget::currentItemChanged,
+                     this, &WuQMacroNewCommandSelectionDialog::customCommandListWidgetCurrentItemChanged);
     
     m_widgetCommandListWidget = new QListWidget();
-    QObject::connect(m_widgetCommandListWidget, &QListWidget::itemClicked,
-                     this, &WuQMacroNewCommandSelectionDialog::widgetCommandListWidgetItemClicked);
+    QObject::connect(m_widgetCommandListWidget, &QListWidget::currentItemChanged,
+                     this, &WuQMacroNewCommandSelectionDialog::widgetCommandListWidgetCurrentItemChanged);
     
     m_stackedWidget = new QStackedWidget();
     m_stackedWidget->addWidget(m_customCommandListWidget);
@@ -133,6 +133,9 @@ WuQMacroNewCommandSelectionDialog::WuQMacroNewCommandSelectionDialog(QWidget* pa
     dialogLayout->addWidget(m_splitter);
     dialogLayout->addWidget(m_dialogButtonBox);
     
+    loadCustomCommandListWidget();
+    loadWidgetCommandListWidget();
+
     commandTypeComboBoxActivated();
     
     if ( ! s_previousDialogGeometry.isEmpty()) {
@@ -169,26 +172,37 @@ WuQMacroNewCommandSelectionDialog::commandTypeComboBoxActivated()
     
     switch (s_lastCommandTypeSelected) {
         case WuQMacroCommandTypeEnum::CUSTOM_OPERATION:
+        {
             m_stackedWidget->setCurrentWidget(m_customCommandListWidget);
-            if (m_customCommandListWidget->count() <= 0) {
-                loadCustomCommandListWidget();
+            QListWidgetItem* item = m_customCommandListWidget->currentItem();
+            if (item == NULL) {
                 if (m_customCommandListWidget->count() > 0) {
-                    QListWidgetItem* firstItem = m_customCommandListWidget->item(0);
-                    if (firstItem != NULL) {
-                        m_customCommandListWidget->setCurrentItem(firstItem);
-                        customCommandListWidgetItemClicked(firstItem);
-                    }
+                    item = m_customCommandListWidget->item(0);
                 }
             }
+            if (item != NULL) {
+                m_customCommandListWidget->setCurrentItem(item);
+                customCommandListWidgetCurrentItemChanged(item);
+            }
+        }
             break;
         case WuQMacroCommandTypeEnum::MOUSE:
             CaretAssert(0);
             break;
         case WuQMacroCommandTypeEnum::WIDGET:
+        {
             m_stackedWidget->setCurrentWidget(m_widgetCommandListWidget);
-            if (m_widgetCommandListWidget->count() <= 0) {
-                loadWidgetCommandListWidget();
+            QListWidgetItem* item = m_widgetCommandListWidget->currentItem();
+            if (item == NULL) {
+                if (m_widgetCommandListWidget->count() > 0) {
+                    item = m_widgetCommandListWidget->item(0);
+                }
             }
+            if (item != NULL) {
+                m_widgetCommandListWidget->setCurrentItem(item);
+                widgetCommandListWidgetCurrentItemChanged(item);
+            }
+        }
             break;
     }
     
@@ -233,7 +247,7 @@ WuQMacroNewCommandSelectionDialog::loadWidgetCommandListWidget()
  *    Item that was clicked
  */
 void
-WuQMacroNewCommandSelectionDialog::customCommandListWidgetItemClicked(QListWidgetItem* item)
+WuQMacroNewCommandSelectionDialog::customCommandListWidgetCurrentItemChanged(QListWidgetItem* item)
 {
     QString description;
     if (item != NULL) {
@@ -256,7 +270,7 @@ WuQMacroNewCommandSelectionDialog::customCommandListWidgetItemClicked(QListWidge
  *    Item that was clicked
  */
 void
-WuQMacroNewCommandSelectionDialog::widgetCommandListWidgetItemClicked(QListWidgetItem* /*item*/)
+WuQMacroNewCommandSelectionDialog::widgetCommandListWidgetCurrentItemChanged(QListWidgetItem* /*item*/)
 {
     QString description;
     const int index = m_widgetCommandListWidget->currentRow();
