@@ -21,18 +21,24 @@
  */
 /*LICENSE_END*/
 
+#include <map>
+
 #include "CaretObject.h"
+#include "EventListenerInterface.h"
 #include "SceneableInterface.h"
+#include "VolumeSurfaceOutlineColorOrTabModel.h"
+#include "VolumeSurfaceOutlineModelCacheKey.h"
 
 namespace caret {
 
+    class GraphicsPrimitive;
     class Surface;
     class SceneAttributes;
     class SceneClassAssistant;
     class SurfaceSelectionModel;
-    class VolumeSurfaceOutlineColorOrTabModel;
+    class VolumeSurfaceOutlineModelCacheValue;
     
-    class VolumeSurfaceOutlineModel : public CaretObject, public SceneableInterface {
+    class VolumeSurfaceOutlineModel : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
         VolumeSurfaceOutlineModel();
@@ -40,6 +46,8 @@ namespace caret {
         virtual ~VolumeSurfaceOutlineModel();
         
         void copyVolumeSurfaceOutlineModel(VolumeSurfaceOutlineModel* modelToCopy);
+        
+        virtual void receiveEvent(Event* event) override;
         
         bool isDisplayed() const;
         
@@ -63,6 +71,12 @@ namespace caret {
         
         const VolumeSurfaceOutlineColorOrTabModel* getColorOrTabModel() const;
         
+        void setOutlineCachePrimitives(const VolumeSurfaceOutlineModelCacheKey& key,
+                                       const std::vector<GraphicsPrimitive*>& primitives);
+        
+        bool getOutlineCachePrimitives(const VolumeSurfaceOutlineModelCacheKey& key,
+                                       std::vector<GraphicsPrimitive*>& primitivesOut);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -81,6 +95,10 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        void validateOutlineCache();
+        
+        void clearOutlineCache();
+        
         bool m_displayed;
         
         float m_thicknessPixelsObsolete;
@@ -92,6 +110,18 @@ namespace caret {
         VolumeSurfaceOutlineColorOrTabModel* m_colorOrTabModel;
         
         SceneClassAssistant* m_sceneAssistant;
+        
+        /** Thickness when first outline is added to outline cache */
+        float m_outlineCacheThicknessPercentageViewportHeight = -1.0;
+        
+        /** Surface when first outline is added to outline cache */
+        Surface* m_outlineCacheSurface = NULL;
+        
+        /** Color Or Tab selection item when first outline is added to cache */
+        std::unique_ptr<VolumeSurfaceOutlineColorOrTabModel::Item> m_outlineCacheColorItem;
+        
+        /** Cache for volume surface outlines */
+        std::map<VolumeSurfaceOutlineModelCacheKey, VolumeSurfaceOutlineModelCacheValue*> m_outlineCache;
     };
     
 #ifdef __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__

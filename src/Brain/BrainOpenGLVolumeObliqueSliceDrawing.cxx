@@ -1098,6 +1098,9 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnu
             
             if (drawOutlineFlag) {
                 BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(m_modelType,
+                                                                  sliceProjectionType,
+                                                                  sliceViewPlane,
+                                                                  sliceCoordinates,
                                                                   slicePlane,
                                                                   m_browserTabContent->getVolumeSurfaceOutlineSet(),
                                                                   m_fixedPipelineDrawing,

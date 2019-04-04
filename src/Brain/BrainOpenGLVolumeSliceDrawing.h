@@ -252,11 +252,28 @@ namespace caret {
                         const float sliceCoordinates[3]);
         
         static void drawSurfaceOutline(const ModelTypeEnum::Enum modelType,
+                                       const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                       const float sliceXYZ[3],
                                        const Plane& plane,
                                        VolumeSurfaceOutlineSetModel* outlineSet,
                                        BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                        const bool useNegativePolygonOffsetFlag);
         
+        static void drawSurfaceOutlineCached(const ModelTypeEnum::Enum modelType,
+                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                             const float sliceXYZ[3],
+                                             const Plane& plane,
+                                             VolumeSurfaceOutlineSetModel* outlineSet,
+                                             BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                             const bool useNegativePolygonOffsetFlag);
+
+        static void drawSurfaceOutlineNotCached(const ModelTypeEnum::Enum modelType,
+                                                const Plane& plane,
+                                                VolumeSurfaceOutlineSetModel* outlineSet,
+                                                BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                const bool useNegativePolygonOffsetFlag);
+
         void drawVolumeSliceFoci(const Plane& plane);
         
         void drawAxesCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,

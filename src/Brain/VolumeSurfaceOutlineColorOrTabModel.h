@@ -49,6 +49,8 @@ namespace caret {
             
             Item(const int32_t browserTabIndex);
             
+            Item(const Item& item);
+            
             ~Item();
 
             bool isValid() const;

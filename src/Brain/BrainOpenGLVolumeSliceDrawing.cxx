@@ -2704,6 +2704,9 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
             
             if (drawOutlineFlag) {
                 drawSurfaceOutline(m_modelType,
+                                   sliceProjectionType,
+                                   sliceViewPlane,
+                                   sliceCoordinates,
                                    slicePlane,
                                    m_browserTabContent->getVolumeSurfaceOutlineSet(),
                                    m_fixedPipelineDrawing,
@@ -2765,6 +2768,12 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
  *
  * @param modelType
  *    Type of model being drawn.
+ * @param sliceProjectionType
+ *    Projection type (oblique/orthogonal)
+ * @param sliceViewPlane
+ *    Slice view plane (axial, coronal, parasagittal)
+ * @param sliceXYZ
+ *    Coordinates of slices
  * @param plane
  *    Plane of the volume slice on which surface outlines are drawn.
  * @param outlineSet
@@ -2776,15 +2785,78 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
  */
 void
 BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum modelType,
+                                                  const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                  const float sliceXYZ[3],
                                                   const Plane& plane,
                                                   VolumeSurfaceOutlineSetModel* outlineSet,
                                                   BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                   const bool useNegativePolygonOffsetFlag)
 {
+    /*
+     * Code still here to allow comparison with
+     * previous algorithm
+     */
+    bool drawCachedFlag(false);
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_VOLUME_SURFACE_OUTLINE)) {
+                drawCachedFlag = true;
+            }
+            break;
+    }
+
+    if (drawCachedFlag) {
+        drawSurfaceOutlineCached(modelType,
+                                 sliceViewPlane,
+                                 sliceXYZ,
+                                 plane,
+                                 outlineSet,
+                                 fixedPipelineDrawing,
+                                 useNegativePolygonOffsetFlag);
+    }
+    else {
+        drawSurfaceOutlineNotCached(modelType,
+                                    plane,
+                                    outlineSet,
+                                    fixedPipelineDrawing,
+                                    useNegativePolygonOffsetFlag);
+    }
+}
+
+/**
+ * Draw surface outlines on the volume slices
+ *
+ * @param modelType
+ *    Type of model being drawn.
+ * @param sliceViewPlane
+ *    Slice view plane (axial, coronal, parasagittal)
+ * @param sliceXYZ
+ *    Coordinates of slices
+ * @param plane
+ *    Plane of the volume slice on which surface outlines are drawn.
+ * @param outlineSet
+ *    The surface outline set.
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing.
+ * @param useNegativePolygonOffsetFlag
+ *    If true, use a negative offset for polygon offset
+ */
+void
+BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineCached(const ModelTypeEnum::Enum modelType,
+                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                        const float sliceXYZ[3],
+                                                        const Plane& plane,
+                                                        VolumeSurfaceOutlineSetModel* outlineSet,
+                                                        BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                        const bool useNegativePolygonOffsetFlag)
+{
     glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
-
+    
     switch (modelType) {
         case ModelTypeEnum::MODEL_TYPE_CHART:
             break;
@@ -2808,7 +2880,28 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum mode
             glEnable(GL_DEPTH_TEST);
             break;
     }
-
+    
+    float sliceCoordinate(0.0);
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            sliceCoordinate = sliceXYZ[2];
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            sliceCoordinate = sliceXYZ[1];
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            sliceCoordinate = sliceXYZ[0];
+            break;
+    }
+    
+    /*
+     * Key for outline cache
+     */
+    VolumeSurfaceOutlineModelCacheKey outlineCacheKey(sliceViewPlane,
+                                                      sliceCoordinate);
+    
     /*
      * Process each surface outline
      * As of 24 May, "zero" is on top so draw in reverse order
@@ -2834,7 +2927,151 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum mode
                 if (thicknessPercentage < 0.0f) {
                     thicknessPercentage = GraphicsUtilitiesOpenGL::convertPixelsToPercentageOfViewportHeight(thicknessPixels);
                     if (thicknessPercentage > 0.0f) {
-                        //std::cout << "Converted pixel thickness=" << thicknessPixels << " to millimeters=" << thicknessMillimeters << std::endl;
+                        outline->setThicknessPercentageViewportHeight(thicknessPercentage);
+                    }
+                }
+                
+                if (outline->getOutlineCachePrimitives(outlineCacheKey,
+                                                          contourPrimitives)) {
+                    /* OK, have cached primitives to draw */
+                }
+                else {
+                    CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
+                    int32_t colorSourceBrowserTabIndex = -1;
+                    
+                    VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel = outline->getColorOrTabModel();
+                    VolumeSurfaceOutlineColorOrTabModel::Item* selectedColorOrTabItem = colorOrTabModel->getSelectedItem();
+                    switch (selectedColorOrTabItem->getItemType()) {
+                        case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
+                            colorSourceBrowserTabIndex = selectedColorOrTabItem->getBrowserTabIndex();
+                            outlineColor = CaretColorEnum::CUSTOM;
+                            break;
+                        case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
+                            outlineColor = selectedColorOrTabItem->getColor();
+                            break;
+                    }
+                    const bool surfaceColorFlag = (colorSourceBrowserTabIndex >= 0);
+                    
+                    float* nodeColoringRGBA = NULL;
+                    if (surfaceColorFlag) {
+                        nodeColoringRGBA = fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL,
+                                                                                                        surface,
+                                                                                                        colorSourceBrowserTabIndex);
+                    }
+                    
+                    SurfacePlaneIntersectionToContour contour(surface,
+                                                              plane,
+                                                              outlineColor,
+                                                              nodeColoringRGBA,
+                                                              thicknessPercentage);
+                    AString errorMessage;
+                    if ( ! contour.createContours(contourPrimitives,
+                                                  errorMessage)) {
+                        CaretLogSevere(errorMessage);
+                    }
+                    
+                    outline->setOutlineCachePrimitives(outlineCacheKey,
+                                                       contourPrimitives);
+                }
+            }
+        }
+        
+        /**
+         * Draw the contours.
+         * Note: The primitives are now cached so DO NOT delete them.
+         */
+        for (auto primitive : contourPrimitives) {
+            if (useNegativePolygonOffsetFlag) {
+                glPolygonOffset(-1.0, -1.0);
+            }
+            else {
+                glPolygonOffset(1.0, 1.0);
+            }
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            
+            GraphicsEngineDataOpenGL::draw(primitive);
+            
+            glDisable(GL_POLYGON_OFFSET_FILL);
+        }
+    }
+    
+    glPopAttrib();
+}
+
+/**
+ * Draw surface outlines on the volume slices WITHOUT caching
+ *
+ * @param modelType
+ *    Type of model being drawn.
+ * @param plane
+ *    Plane of the volume slice on which surface outlines are drawn.
+ * @param outlineSet
+ *    The surface outline set.
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing.
+ * @param useNegativePolygonOffsetFlag
+ *    If true, use a negative offset for polygon offset
+ */
+void
+BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineNotCached(const ModelTypeEnum::Enum modelType,
+                                                           const Plane& plane,
+                                                           VolumeSurfaceOutlineSetModel* outlineSet,
+                                                           BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                           const bool useNegativePolygonOffsetFlag)
+{
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    
+    switch (modelType) {
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            /*
+             * Enable depth so outlines in front or in back
+             * of the slices.  Without this the volume surface
+             * outlines "behind" the slices are visible and
+             * it looks weird
+             */
+            glEnable(GL_DEPTH_TEST);
+            break;
+    }
+    
+    /*
+     * Process each surface outline
+     * As of 24 May, "zero" is on top so draw in reverse order
+     */
+    const int32_t numberOfOutlines = outlineSet->getNumberOfDislayedVolumeSurfaceOutlines();
+    for (int32_t io = (numberOfOutlines - 1);
+         io >= 0;
+         io--) {
+        std::vector<GraphicsPrimitive*> contourPrimitives;
+        
+        VolumeSurfaceOutlineModel* outline = outlineSet->getVolumeSurfaceOutlineModel(io);
+        if (outline->isDisplayed()) {
+            Surface* surface = outline->getSurface();
+            if (surface != NULL) {
+                float thicknessPercentage = outline->getThicknessPercentageViewportHeight();
+                const float thicknessPixels = outline->getThicknessPixelsObsolete();
+                
+                /*
+                 * Thickness was changed from pixels to percentage viewport height on Feb 02, 2018
+                 * If thickness percentage is negative, it was not present in an old
+                 * scene so convert pixels to percentage using viewports dimensions
+                 */
+                if (thicknessPercentage < 0.0f) {
+                    thicknessPercentage = GraphicsUtilitiesOpenGL::convertPixelsToPercentageOfViewportHeight(thicknessPixels);
+                    if (thicknessPercentage > 0.0f) {
                         outline->setThicknessPercentageViewportHeight(thicknessPercentage);
                     }
                 }
@@ -2858,8 +3095,8 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum mode
                 float* nodeColoringRGBA = NULL;
                 if (surfaceColorFlag) {
                     nodeColoringRGBA = fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL,
-                                                                                                      surface,
-                                                                                                      colorSourceBrowserTabIndex);
+                                                                                                    surface,
+                                                                                                    colorSourceBrowserTabIndex);
                 }
                 
                 //const float thicknessPercentage = GraphicsUtilitiesOpenGL::convertPixelsToPercentageOfViewportHeight(thicknessMillimeters);
@@ -2897,7 +3134,8 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum mode
     
     glPopAttrib();
 }
-                        
+
+
 /**
  * Draw foci on volume slice.
  *

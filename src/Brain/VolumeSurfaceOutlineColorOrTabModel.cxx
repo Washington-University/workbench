@@ -352,6 +352,19 @@ VolumeSurfaceOutlineColorOrTabModel::Item::~Item()
 }
 
 /**
+ * Copy constructor.
+ *
+ * @param
+ *    Item that is copied.
+ */
+VolumeSurfaceOutlineColorOrTabModel::Item::Item(const Item& item)
+{
+    m_color = item.m_color;
+    m_browserTabIndex = item.m_browserTabIndex;
+    m_itemType = item.m_itemType;
+}
+
+/**
  * Is this item equal to another item?
  *
  * @param item

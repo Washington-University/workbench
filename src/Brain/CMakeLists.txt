@@ -182,6 +182,8 @@ VolumeSliceSettings.h
 VolumeSliceViewAllPlanesLayoutEnum.h
 VolumeSurfaceOutlineColorOrTabModel.h
 VolumeSurfaceOutlineModel.h
+VolumeSurfaceOutlineModelCacheKey.h
+VolumeSurfaceOutlineModelCacheValue.h
 VolumeSurfaceOutlineSetModel.h
 WholeBrainSurfaceSettings.h
 WholeBrainVoxelDrawingMode.h
@@ -339,6 +341,8 @@ VolumeSliceSettings.cxx
 VolumeSliceViewAllPlanesLayoutEnum.cxx
 VolumeSurfaceOutlineColorOrTabModel.cxx
 VolumeSurfaceOutlineModel.cxx
+VolumeSurfaceOutlineModelCacheKey.cxx
+VolumeSurfaceOutlineModelCacheValue.cxx
 VolumeSurfaceOutlineSetModel.cxx
 WholeBrainSurfaceSettings.cxx
 WholeBrainVoxelDrawingMode.cxx

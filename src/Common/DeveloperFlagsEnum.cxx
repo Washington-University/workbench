@@ -124,6 +124,13 @@ DeveloperFlagsEnum::initialize()
                                                 "Flip Palette Not Data",
                                                 CheckableEnum::YES,
                                                 false));
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_NEW_VOLUME_SURFACE_OUTLINE,
+                                                "DEVELOPER_FLAG_NEW_VOLUME_SURFACE_OUTLINE",
+                                                "New (faster) Volume Surface Outline",
+                                                CheckableEnum::YES,
+                                                true));
+
+
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_NEW_SCENE_FILE_READ_WRITE,
                                                 "DEVELOPER_FLAG_NEW_SCENE_FILE_READ_WRITE",
                                                 "Use New Scene File Reader and Writer",
