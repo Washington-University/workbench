@@ -42,10 +42,12 @@ class QDoubleSpinBox;
 class QHBoxLayout;
 class QIcon;
 class QLabel;
+class QMainWindow;
 class QMenu;
 class QRadioButton;
 class QSpinBox;
 class QToolButton;
+class QVBoxLayout;
 
 namespace caret {
     
@@ -103,11 +105,14 @@ namespace caret {
         
         int32_t getNumberOfTabs() const;
         
+        void insertDuplicateMenuBar(QMainWindow* mainWindow);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
+
     signals:
         void viewedModelChanged();
         
@@ -211,6 +216,8 @@ namespace caret {
         WuQWidgetObjectGroup* wholeBrainSurfaceOptionsWidgetGroup;
         WuQWidgetObjectGroup* modeWidgetGroup;
         WuQWidgetObjectGroup* singleSurfaceSelectionWidgetGroup;
+        
+        QVBoxLayout* m_toolBarMainLayout;
         
         QWidget* fullToolBarWidget;
         QWidget* m_toolbarWidget;
@@ -471,6 +478,9 @@ namespace caret {
         
         friend class BrainBrowserWindowToolBarTabPopUpMenu;
     };
+    
+#ifdef __BRAIN_BROWSER_WINDOW_TOOLBAR_DECLARE__
+#endif // __BRAIN_BROWSER_WINDOW_TOOLBAR_DECLARE__
 }
 
 #endif // __BRAIN_BROWSER_WINDOW_TOOLBAR_H__

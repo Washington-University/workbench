@@ -99,6 +99,7 @@
 #include "EventUpdateYokedWindows.h"
 #include "GuiManager.h"
 #include "LockAspectWarningDialog.h"
+#include "MacDuplicateMenuBar.h"
 #include "Model.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
@@ -513,11 +514,11 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      * Arrange the tabbar and the toolbar vertically.
      */
     QWidget* w = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(w);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 1, 0);
-    layout->addWidget(this->tabBarWidget);
-    layout->addWidget(m_toolbarWidget);
-    layout->addWidget(this->userInputControlsWidget);
+    m_toolBarMainLayout = new QVBoxLayout(w);
+    WuQtUtilities::setLayoutSpacingAndMargins(m_toolBarMainLayout, 1, 0);
+    m_toolBarMainLayout->addWidget(this->tabBarWidget);
+    m_toolBarMainLayout->addWidget(m_toolbarWidget);
+    m_toolBarMainLayout->addWidget(this->userInputControlsWidget);
     
     this->addWidget(w);
     
@@ -622,6 +623,29 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     }
 
     this->isDestructionInProgress = false;
+}
+
+/**
+ * Insert a duplicate of the application's menu at the top of the toolbar.
+ * This is only enabled on MacOSX.
+ *
+ * @param mainWindow
+ *     Main window whose menus are copied.
+ */
+void
+BrainBrowserWindowToolBar::insertDuplicateMenuBar(QMainWindow* mainWindow)
+{
+#ifndef CARET_OS_MACOSX
+    return;
+#endif
+    MacDuplicateMenuBar* menuBar = new MacDuplicateMenuBar(mainWindow,
+                                                           this);
+    CaretAssert(menuBar);
+    
+    /*
+     * Insert at top of tool bar
+     */
+    m_toolBarMainLayout->insertWidget(0, menuBar);
 }
 
 /**

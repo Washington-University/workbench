@@ -155,6 +155,8 @@ namespace caret {
 
         void resizeDockWidgets(const QList<QDockWidget *> &docks, const QList<int> &sizes, Qt::Orientation orientation);
         
+        static void setEnableMacDuplicateMenuBar(bool status);
+        
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);
@@ -473,6 +475,8 @@ namespace caret {
         
         bool m_keyEventProcessingFlag = false;
         
+        static bool s_enableMacDuplicateMenuBarFlag;
+        
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
     std::set<BrainBrowserWindow*> BrainBrowserWindow::s_brainBrowserWindows;
@@ -483,6 +487,8 @@ namespace caret {
     bool BrainBrowserWindow::s_firstWindowFlag = true;
     int32_t BrainBrowserWindow::s_sceneFileFirstWindowX = -1;
     int32_t BrainBrowserWindow::s_sceneFileFirstWindowY = -1;
+
+    bool BrainBrowserWindow::s_enableMacDuplicateMenuBarFlag = false;
 #endif // __BRAIN_BROWSER_WINDOW_DECLARE__
     
 }

@@ -736,6 +736,14 @@ void printHelp(const AString& progName)
     
     cout
     << endl
+    << "    -mac-menu-duplicate" << endl
+    << "        MacOS Only - Adds menus to the top of the Browser Window " << endl
+    << "        that duplicate the menu bar at the top of the window.   " << endl
+    << "        The menus are similar to that on Linux and Windows. " << endl
+    << "        May be useful for creating tutorial images." << endl
+    << "        This functionality is EXPERIMENTAL and subject to  " << endl
+    << "        removal in future versions of wb_view." << endl
+    << endl
     << "    -no-splash" << endl
     << "        disable all splash screens" << endl
     << endl
@@ -812,6 +820,8 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                             hasFatalError = true;
                         }
                     }
+                } else if (thisParam == "-mac-menu-duplicate") {
+                    BrainBrowserWindow::setEnableMacDuplicateMenuBar(true);
                 } else if (thisParam == "-no-splash") {
                     myState.showSplash = false;
                 } else if (thisParam == "-scene-load") {
