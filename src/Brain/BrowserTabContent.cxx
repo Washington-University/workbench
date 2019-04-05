@@ -2476,141 +2476,150 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
     if (isVolumeSlicesDisplayed()) {
         switch (getSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            {
-                int viewport[4];
-                viewportContent->getModelViewport(viewport);
-                VolumeSliceViewPlaneEnum::Enum slicePlane = this->getSliceViewPlane();
-                int sliceViewport[4] = {
-                    viewport[0],
-                    viewport[1],
-                    viewport[2],
-                    viewport[3]
-                };
-                if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
-                    slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                                    getSlicePlanesAllViewLayout(),
-                                                                                                    mousePressX,
-                                                                                                    mousePressY,
-                                                                                                    sliceViewport);
-                }
-                
-                Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix();
-                
-                if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+                if (viewportContent == NULL) {
+                    /*
+                     * When no viewport content is available, apply 'ALL' rotation
+                     */
+                    Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix();
                     rotationMatrix.rotateX(-mouseDeltaY);
                     rotationMatrix.rotateY(mouseDeltaX);
+                    setObliqueVolumeRotationMatrix(rotationMatrix);
                 }
                 else {
-                    if ((mouseDeltaX != 0)
-                        || (mouseDeltaY != 0)) {
-                        
-                        const int previousMouseX = mouseX - mouseDeltaX;
-                        const int previousMouseY = mouseY - mouseDeltaY;
-                        
-                        /*
-                         * Need to account for the quadrants!!!!
-                         */
-                        const float viewportCenter[3] = {
-                            (float)(sliceViewport[0] + sliceViewport[2] / 2),
-                            ((float)sliceViewport[1] + sliceViewport[3] / 2),
-                            0.0
-                        };
-                        
-                        const float oldPos[3] = {
-                            (float)previousMouseX,
-                            (float)previousMouseY,
-                            0.0
-                        };
-                        
-                        const float newPos[3] = {
-                            (float)mouseX,
-                            (float)mouseY,
-                            0.0
-                        };
-                        
-                        /*
-                         * Compute normal vector from viewport center to
-                         * old mouse position to new mouse position.
-                         * If normal-Z is positive, mouse has been moved
-                         * in a counter clockwise motion relative to center.
-                         * If normal-Z is negative, mouse has moved clockwise.
-                         */
-                        float normalDirection[3];
-                        MathFunctions::normalVectorDirection(viewportCenter,
-                                                             oldPos,
-                                                             newPos,
-                                                             normalDirection);
-                        bool isClockwise = false;
-                        bool isCounterClockwise = false;
-                        if (normalDirection[2] > 0.0) {
-                            isCounterClockwise = true;
-                        }
-                        else if (normalDirection[2] < 0.0) {
-                            isClockwise = true;
-                        }
-                        
-                        if (isClockwise
-                            || isCounterClockwise) {
-                            float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
-                                                                                  + (mouseDeltaY * mouseDeltaY)));
+                    int viewport[4];
+                    viewportContent->getModelViewport(viewport);
+                    VolumeSliceViewPlaneEnum::Enum slicePlane = this->getSliceViewPlane();
+                    int sliceViewport[4] = {
+                        viewport[0],
+                        viewport[1],
+                        viewport[2],
+                        viewport[3]
+                    };
+                    if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+                        slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                                                        getSlicePlanesAllViewLayout(),
+                                                                                                        mousePressX,
+                                                                                                        mousePressY,
+                                                                                                        sliceViewport);
+                    }
+                    
+                    Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix();
+                    
+                    if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+                        rotationMatrix.rotateX(-mouseDeltaY);
+                        rotationMatrix.rotateY(mouseDeltaX);
+                    }
+                    else {
+                        if ((mouseDeltaX != 0)
+                            || (mouseDeltaY != 0)) {
                             
-//                            /*
-//                             * Rotation needs to be oppposite for newer
-//                             * oblique slice drawing for volumes that
-//                             * do not have a voxel corresponding to
-//                             * the origin.
-//                             */
-//                            mouseDelta = -mouseDelta;
+                            const int previousMouseX = mouseX - mouseDeltaX;
+                            const int previousMouseY = mouseY - mouseDeltaY;
                             
-                            switch (slicePlane) {
-                                case VolumeSliceViewPlaneEnum::ALL:
-                                {
-                                    CaretAssert(0);
+                            /*
+                             * Need to account for the quadrants!!!!
+                             */
+                            const float viewportCenter[3] = {
+                                (float)(sliceViewport[0] + sliceViewport[2] / 2),
+                                ((float)sliceViewport[1] + sliceViewport[3] / 2),
+                                0.0
+                            };
+                            
+                            const float oldPos[3] = {
+                                (float)previousMouseX,
+                                (float)previousMouseY,
+                                0.0
+                            };
+                            
+                            const float newPos[3] = {
+                                (float)mouseX,
+                                (float)mouseY,
+                                0.0
+                            };
+                            
+                            /*
+                             * Compute normal vector from viewport center to
+                             * old mouse position to new mouse position.
+                             * If normal-Z is positive, mouse has been moved
+                             * in a counter clockwise motion relative to center.
+                             * If normal-Z is negative, mouse has moved clockwise.
+                             */
+                            float normalDirection[3];
+                            MathFunctions::normalVectorDirection(viewportCenter,
+                                                                 oldPos,
+                                                                 newPos,
+                                                                 normalDirection);
+                            bool isClockwise = false;
+                            bool isCounterClockwise = false;
+                            if (normalDirection[2] > 0.0) {
+                                isCounterClockwise = true;
+                            }
+                            else if (normalDirection[2] < 0.0) {
+                                isClockwise = true;
+                            }
+                            
+                            if (isClockwise
+                                || isCounterClockwise) {
+                                float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
+                                                                                + (mouseDeltaY * mouseDeltaY)));
+                                
+                                //                            /*
+                                //                             * Rotation needs to be oppposite for newer
+                                //                             * oblique slice drawing for volumes that
+                                //                             * do not have a voxel corresponding to
+                                //                             * the origin.
+                                //                             */
+                                //                            mouseDelta = -mouseDelta;
+                                
+                                switch (slicePlane) {
+                                    case VolumeSliceViewPlaneEnum::ALL:
+                                    {
+                                        CaretAssert(0);
+                                    }
+                                        break;
+                                    case VolumeSliceViewPlaneEnum::AXIAL:
+                                    {
+                                        Matrix4x4 rotation;
+                                        if (isClockwise) {
+                                            rotation.rotateZ(mouseDelta);
+                                        }
+                                        else if (isCounterClockwise) {
+                                            rotation.rotateZ(-mouseDelta);
+                                        }
+                                        rotationMatrix.premultiply(rotation);
+                                    }
+                                        break;
+                                    case VolumeSliceViewPlaneEnum::CORONAL:
+                                    {
+                                        Matrix4x4 rotation;
+                                        if (isClockwise) {
+                                            rotation.rotateY(-mouseDelta);
+                                        }
+                                        else if (isCounterClockwise) {
+                                            rotation.rotateY(mouseDelta);
+                                        }
+                                        rotationMatrix.premultiply(rotation);
+                                    }
+                                        break;
+                                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                    {
+                                        Matrix4x4 rotation;
+                                        if (isClockwise) {
+                                            rotation.rotateX(-mouseDelta);
+                                        }
+                                        else if (isCounterClockwise) {
+                                            rotation.rotateX(mouseDelta);
+                                        }
+                                        rotationMatrix.premultiply(rotation);
+                                    }
+                                        break;
                                 }
-                                    break;
-                                case VolumeSliceViewPlaneEnum::AXIAL:
-                                {
-                                    Matrix4x4 rotation;
-                                    if (isClockwise) {
-                                        rotation.rotateZ(mouseDelta);
-                                    }
-                                    else if (isCounterClockwise) {
-                                        rotation.rotateZ(-mouseDelta);
-                                    }
-                                    rotationMatrix.premultiply(rotation);
-                                }
-                                    break;
-                                case VolumeSliceViewPlaneEnum::CORONAL:
-                                {
-                                    Matrix4x4 rotation;
-                                    if (isClockwise) {
-                                        rotation.rotateY(-mouseDelta);
-                                    }
-                                    else if (isCounterClockwise) {
-                                        rotation.rotateY(mouseDelta);
-                                    }
-                                    rotationMatrix.premultiply(rotation);
-                                }
-                                    break;
-                                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                {
-                                    Matrix4x4 rotation;
-                                    if (isClockwise) {
-                                        rotation.rotateX(-mouseDelta);
-                                    }
-                                    else if (isCounterClockwise) {
-                                        rotation.rotateX(mouseDelta);
-                                    }
-                                    rotationMatrix.premultiply(rotation);
-                                }
-                                    break;
                             }
                         }
                     }
+                    
+                    setObliqueVolumeRotationMatrix(rotationMatrix);
                 }
-                
-                setObliqueVolumeRotationMatrix(rotationMatrix);
-            }
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                 break;

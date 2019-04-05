@@ -128,7 +128,11 @@ WbMacroCustomOperationTypeEnum::initialize()
 
     enumData.push_back(WbMacroCustomOperationTypeEnum(DELAY,
                                                       "DELAY",
-                                                      "Delay"));    
+                                                      "Delay"));
+    
+    enumData.push_back(WbMacroCustomOperationTypeEnum(INCREMENTAL_ROTATION,
+                                                      "INCREMENTAL_ROTATION",
+                                                      "Incremental Rotation"));
 }
 
 /**

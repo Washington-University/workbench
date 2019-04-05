@@ -432,6 +432,10 @@ namespace caret {
         
         void setWholeBrainCerebellumSeparation(const float separation);
         
+        ViewingTransformations* getViewingTransformation();
+        
+        const ViewingTransformations* getViewingTransformation() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -462,10 +466,6 @@ namespace caret {
 //                                                                  const int32_t mousePressX,
 //                                                                  const int32_t mousePressY,
 //                                                                              int sliceViewportOut[4]) const;
-        
-        ViewingTransformations* getViewingTransformation();
-        
-        const ViewingTransformations* getViewingTransformation() const;
         
         void updateBrainModelYokedBrowserTabs();
         

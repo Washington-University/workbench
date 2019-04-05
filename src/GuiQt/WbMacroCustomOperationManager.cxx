@@ -45,6 +45,7 @@
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WbMacroCustomOperationAnimateVolumeSliceSequence.h"
 #include "WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade.h"
+#include "WbMacroCustomOperationIncrementRotation.h"
 #include "WbMacroCustomDataInfo.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
@@ -730,6 +731,9 @@ WbMacroCustomOperationManager::createCommand(const WbMacroCustomOperationTypeEnu
             break;
         case WbMacroCustomOperationTypeEnum::ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE:
             operationOut = new WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade();
+            break;
+        case WbMacroCustomOperationTypeEnum::INCREMENTAL_ROTATION:
+            operationOut = new WbMacroCustomOperationIncrementRotation();
             break;
     }
 

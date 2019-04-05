@@ -35,8 +35,6 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Delay **/
-        DELAY,
         /** Animate rotation of viewed model */
         ANIMATE_ROTATION,
         /** Animate CrossFade of overlays */
@@ -46,7 +44,11 @@ public:
         /** Animate Volume slice sequence */
         ANIMATE_VOLUME_SLICE_SEQUENCE,
         /** Animate Volume to surface cross fade */
-        ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE
+        ANIMATE_VOLUME_TO_SURFACE_CROSS_FADE,
+        /** Delay **/
+        DELAY,
+        /** Incremental Rotation */
+        INCREMENTAL_ROTATION
     };
 
 
