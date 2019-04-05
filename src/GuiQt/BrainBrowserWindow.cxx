@@ -772,6 +772,20 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
 void
 BrainBrowserWindow::keyPressEvent(QKeyEvent* event)
 {
+    /*
+     * When there is a key press, it may take time to process such
+     * as when a macro runs.  If the macro calls QApplication::processEvents(),
+     * it may result in this method getting called again by Qt
+     * before the macro has completed from a previous key press event.
+     * This flag will ignore key press events until a macro
+     * has had time to finish
+     */
+    if (m_keyEventProcessingFlag) {
+        return;
+    }
+    m_keyEventProcessingFlag = true;
+    
+    
     bool keyEventWasProcessed = false;
     
     /*
@@ -798,6 +812,8 @@ BrainBrowserWindow::keyPressEvent(QKeyEvent* event)
     if ( ! keyEventWasProcessed) {
         QMainWindow::keyPressEvent(event);
     }
+    
+    m_keyEventProcessingFlag = false;
 }
 
 /**

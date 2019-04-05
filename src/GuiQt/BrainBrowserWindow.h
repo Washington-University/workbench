@@ -470,6 +470,9 @@ namespace caret {
         static std::set<BrainBrowserWindow*> s_brainBrowserWindows;
         
         QString m_objectNamePrefix;
+        
+        bool m_keyEventProcessingFlag = false;
+        
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
     std::set<BrainBrowserWindow*> BrainBrowserWindow::s_brainBrowserWindows;
