@@ -153,13 +153,12 @@ WbMacroCustomOperationIncrementRotation::executeCommand(QWidget* parent,
         appendToErrorMessage("Axis named \""
                              + axisName
                              + "\" is invalid.  Use X, Y, or Z.");
-    }
-    
-    if ( ! getErrorMessage().isEmpty()) {
         return false;
     }
+    
     Model* model = tabContent->getModelForDisplay();
     if (model == NULL) {
+        appendToErrorMessage("No model is displayed that can be rotated");
         return false;
     }
     
@@ -227,6 +226,7 @@ WbMacroCustomOperationIncrementRotation::executeCommand(QWidget* parent,
     }
     
     updateGraphics();
+    updateUserInterface();
     
     return true;
 }

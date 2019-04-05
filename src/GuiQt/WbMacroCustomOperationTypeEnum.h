@@ -48,7 +48,9 @@ public:
         /** Delay **/
         DELAY,
         /** Incremental Rotation */
-        INCREMENTAL_ROTATION
+        INCREMENTAL_ROTATION,
+        /** Increment volume slice */
+        INCREMENTAL_VOLUME_SLICE
     };
 
 

@@ -467,6 +467,7 @@ WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade.h
 WbMacroCustomOperationBase.h
 WbMacroCustomOperationDelay.h
 WbMacroCustomOperationIncrementRotation.h
+WbMacroCustomOperationIncrementVolumeSlice.h
 WbMacroCustomOperationManager.h
 WbMacroCustomOperationTypeEnum.h
 WbMacroHelper.h
@@ -733,6 +734,7 @@ WbMacroCustomOperationAnimateVolumeToSurfaceCrossFade.cxx
 WbMacroCustomOperationBase.cxx
 WbMacroCustomOperationDelay.cxx
 WbMacroCustomOperationIncrementRotation.cxx
+WbMacroCustomOperationIncrementVolumeSlice.cxx
 WbMacroCustomOperationManager.cxx
 WbMacroCustomOperationTypeEnum.cxx
 WbMacroHelper.cxx

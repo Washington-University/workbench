@@ -133,6 +133,11 @@ WbMacroCustomOperationTypeEnum::initialize()
     enumData.push_back(WbMacroCustomOperationTypeEnum(INCREMENTAL_ROTATION,
                                                       "INCREMENTAL_ROTATION",
                                                       "Incremental Rotation"));
+    
+    enumData.push_back(WbMacroCustomOperationTypeEnum(INCREMENTAL_VOLUME_SLICE,
+                                                      "INCREMENTAL_VOLUME_SLICE",
+                                                      "Increment Volume Slice"));
+    
 }
 
 /**
