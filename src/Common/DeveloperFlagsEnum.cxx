@@ -126,33 +126,12 @@ DeveloperFlagsEnum::initialize()
                                                 false));
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_NEW_VOLUME_SURFACE_OUTLINE,
                                                 "DEVELOPER_FLAG_NEW_VOLUME_SURFACE_OUTLINE",
-                                                "New (faster) Volume Surface Outline",
+                                                "Faster Volume Surface Outline",
                                                 CheckableEnum::YES,
                                                 true));
 
-
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_NEW_SCENE_FILE_READ_WRITE,
-                                                "DEVELOPER_FLAG_NEW_SCENE_FILE_READ_WRITE",
-                                                "Use New Scene File Reader and Writer",
-                                                CheckableEnum::YES,
-                                                true));
 
     std::vector<DeveloperFlagsEnum> notCheckableItems;
-    notCheckableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TEST_SCENE_FILE_READ_WRITE,
-                                                   "DEVELOPER_FLAG_TEST_SCENE_FILE_READ_WRITE",
-                                                   "Test Scene File Xml Stream Reading/Writing...",
-                                                   CheckableEnum::NO,
-                                                   false));
-    notCheckableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TIME_SCENE_FILE_READ_WRITE,
-                                                   "DEVELOPER_FLAG_TIME_SCENE_FILE_READ_WRITE",
-                                                   "Time Scene File Xml Stream Timing...",
-                                                   CheckableEnum::NO,
-                                                   false));
-    notCheckableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TEST_ALL_SCENE_FILES_IN_DIRECTORY,
-                                                   "DEVELOPER_FLAG_TEST_ALL_SCENE_FILES_IN_DIRECTORY",
-                                                   "Test Xml Stream Read/Write for All Scene Files in Directory...",
-                                                   CheckableEnum::NO,
-                                                   false));
 
     enumData.insert(enumData.end(),
                     checkableItems.begin(), checkableItems.end());

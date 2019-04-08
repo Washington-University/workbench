@@ -1724,26 +1724,14 @@ BrainBrowserWindow::developerMenuFlagTriggered(QAction* action)
         DeveloperFlagsEnum::setFlag(enumValue,
                                     action->isChecked());
 
-        if (enumValue == DeveloperFlagsEnum::DEVELOPER_FLAG_TEST_SCENE_FILE_READ_WRITE) {
-            QString filename = CaretFileDialog::getOpenFileNameDialog(DataFileTypeEnum::SCENE);
-            if ( ! filename.isEmpty()) {
-                SceneFileXmlStreamFormatTester::testReadingAndWriting(filename,
-                                                                      true);
-            }
-        }
-        else if (enumValue == DeveloperFlagsEnum::DEVELOPER_FLAG_TIME_SCENE_FILE_READ_WRITE) {
-            QString filename = CaretFileDialog::getOpenFileNameDialog(DataFileTypeEnum::SCENE);
-            if ( ! filename.isEmpty()) {
-                SceneFileXmlStreamFormatTester::timeReadingAndWriting(filename);
-            }
-        }
-        else if (enumValue == DeveloperFlagsEnum::DEVELOPER_FLAG_TEST_ALL_SCENE_FILES_IN_DIRECTORY) {
-            QString dirName = CaretFileDialog::getExistingDirectoryDialog();
-            if ( ! dirName.isEmpty()) {
-                SceneFileXmlStreamFormatTester::testReadingAndWritingInDirectory(dirName,
-                                                                                 false);
-            }
-        }
+        /*
+         * If a developer flag is "not checkable" and should call a function
+         * test for the flag here and call the function
+         *
+         * if (enumValue == DeveloperFlagsEnum::<flag>) {
+         *     someFunction();
+         * }
+         */
         
         /*
          * Update graphics and GUI
