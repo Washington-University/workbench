@@ -36,6 +36,7 @@ namespace caret {
     class SceneAttributes;
     class SceneClassAssistant;
     class SurfaceSelectionModel;
+    class VolumeMappableInterface;
     class VolumeSurfaceOutlineModelCacheValue;
     
     class VolumeSurfaceOutlineModel : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -71,10 +72,12 @@ namespace caret {
         
         const VolumeSurfaceOutlineColorOrTabModel* getColorOrTabModel() const;
         
-        void setOutlineCachePrimitives(const VolumeSurfaceOutlineModelCacheKey& key,
+        void setOutlineCachePrimitives(const VolumeMappableInterface* underlayVolume,
+                                       const VolumeSurfaceOutlineModelCacheKey& key,
                                        const std::vector<GraphicsPrimitive*>& primitives);
         
-        bool getOutlineCachePrimitives(const VolumeSurfaceOutlineModelCacheKey& key,
+        bool getOutlineCachePrimitives(const VolumeMappableInterface* underlayVolume,
+                                       const VolumeSurfaceOutlineModelCacheKey& key,
                                        std::vector<GraphicsPrimitive*>& primitivesOut);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -95,8 +98,6 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void validateOutlineCache();
-        
         void clearOutlineCache();
         
         bool m_displayed;
@@ -111,14 +112,35 @@ namespace caret {
         
         SceneClassAssistant* m_sceneAssistant;
         
-        /** Thickness when first outline is added to outline cache */
-        float m_outlineCacheThicknessPercentageViewportHeight = -1.0;
+        class OutlineCacheInfo {
+        public:
+            OutlineCacheInfo();
+            
+            ~OutlineCacheInfo();
+            
+            void clear();
+            
+            bool isValid(VolumeSurfaceOutlineModel* surfaceOutlineModel,
+                         const VolumeMappableInterface* underlayVolume);
+            
+            void update(VolumeSurfaceOutlineModel* surfaceOutlineModel,
+                        const VolumeMappableInterface* underlayVolume);
+            
+            /** The underlay volume */
+            const VolumeMappableInterface* m_underlayVolume;
+            
+            /** Thickness when first outline is added to outline cache */
+            float m_thicknessPercentageViewportHeight = -1.0;
+            
+            /** Surface when first outline is added to outline cache */
+            Surface* m_surface = NULL;
+            
+            /** Color Or Tab selection item when first outline is added to cache */
+            std::unique_ptr<VolumeSurfaceOutlineColorOrTabModel::Item> m_colorItem;
+        };
         
-        /** Surface when first outline is added to outline cache */
-        Surface* m_outlineCacheSurface = NULL;
-        
-        /** Color Or Tab selection item when first outline is added to cache */
-        std::unique_ptr<VolumeSurfaceOutlineColorOrTabModel::Item> m_outlineCacheColorItem;
+        /** info about outline cache that tracks validity of cache */
+        OutlineCacheInfo m_outlineCacheInfo;
         
         /** Cache for volume surface outlines */
         std::map<VolumeSurfaceOutlineModelCacheKey, VolumeSurfaceOutlineModelCacheValue*> m_outlineCache;

@@ -251,7 +251,8 @@ namespace caret {
                         const Plane& slicePlane,
                         const float sliceCoordinates[3]);
         
-        static void drawSurfaceOutline(const ModelTypeEnum::Enum modelType,
+        static void drawSurfaceOutline(const VolumeMappableInterface* underlayVolume,
+                                       const ModelTypeEnum::Enum modelType,
                                        const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const float sliceXYZ[3],
@@ -260,7 +261,8 @@ namespace caret {
                                        BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                        const bool useNegativePolygonOffsetFlag);
         
-        static void drawSurfaceOutlineCached(const ModelTypeEnum::Enum modelType,
+        static void drawSurfaceOutlineCached(const VolumeMappableInterface* underlayVolume,
+                                             const ModelTypeEnum::Enum modelType,
                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                              const float sliceXYZ[3],
                                              const Plane& plane,

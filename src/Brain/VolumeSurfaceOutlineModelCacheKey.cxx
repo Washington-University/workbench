@@ -26,6 +26,8 @@
 #include <cmath>
 
 #include "CaretAssert.h"
+#include "VolumeMappableInterface.h"
+
 using namespace caret;
 
 
@@ -39,12 +41,50 @@ using namespace caret;
 /**
  * Constructor.
  */
-VolumeSurfaceOutlineModelCacheKey::VolumeSurfaceOutlineModelCacheKey(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+VolumeSurfaceOutlineModelCacheKey::VolumeSurfaceOutlineModelCacheKey(const VolumeMappableInterface* underlayVolume,
+                                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                                      const float sliceCoordinate)
 : CaretObject(),
 m_slicePlane(slicePlane),
 m_sliceCoordinateScaled(static_cast<int32_t>(std::round(sliceCoordinate * 10.0)))
 {
+    CaretAssert(underlayVolume);
+    if (underlayVolume != NULL) {
+        float voxelSizesMM[3];
+        underlayVolume->getVoxelSpacing(voxelSizesMM[0],
+                                        voxelSizesMM[1],
+                                        voxelSizesMM[2]);
+        
+        float voxelSize(0.0);
+        switch (slicePlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                voxelSize = voxelSizesMM[2];
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                voxelSize = voxelSizesMM[2];
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                voxelSize = voxelSizesMM[1];
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                voxelSize = voxelSizesMM[0];
+                break;
+        }
+        
+        if (voxelSize > 0.0) {
+            /*
+             * The coordinate for the slice is stored as an integer since
+             * since integer comparison is precise oppposed to a float comparison
+             * that requires some sort of tolerance.
+             *
+             * (1.0 / voxelSize) is used so that the scale factor will
+             * be larger for small voxels and prevent an outline from
+             * being used by adjacent volume slices
+             */
+            const float scaleFactor = 10.0 * (1.0 / voxelSize);
+            m_sliceCoordinateScaled = static_cast<int32_t>(std::round(sliceCoordinate * scaleFactor));
+        }
+    }
 }
 
 /**

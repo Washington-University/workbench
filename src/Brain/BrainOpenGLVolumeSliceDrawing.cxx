@@ -2703,7 +2703,8 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
             glPolygonOffset(0.0, 1.0);
             
             if (drawOutlineFlag) {
-                drawSurfaceOutline(m_modelType,
+                drawSurfaceOutline(m_underlayVolume,
+                                   m_modelType,
                                    sliceProjectionType,
                                    sliceViewPlane,
                                    sliceCoordinates,
@@ -2766,6 +2767,8 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
 /**
  * Draw surface outlines on the volume slices
  *
+ * @param underlayVolume
+ *    The underlay volume
  * @param modelType
  *    Type of model being drawn.
  * @param sliceProjectionType
@@ -2784,7 +2787,8 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
  *    If true, use a negative offset for polygon offset
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum modelType,
+BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const VolumeMappableInterface* underlayVolume,
+                                                  const ModelTypeEnum::Enum modelType,
                                                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                   const float sliceXYZ[3],
@@ -2809,7 +2813,8 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum mode
     }
 
     if (drawCachedFlag) {
-        drawSurfaceOutlineCached(modelType,
+        drawSurfaceOutlineCached(underlayVolume,
+                                 modelType,
                                  sliceViewPlane,
                                  sliceXYZ,
                                  plane,
@@ -2829,6 +2834,8 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum mode
 /**
  * Draw surface outlines on the volume slices
  *
+ * @param underlayVolume
+ *    The underlay volume
  * @param modelType
  *    Type of model being drawn.
  * @param sliceViewPlane
@@ -2845,7 +2852,8 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const ModelTypeEnum::Enum mode
  *    If true, use a negative offset for polygon offset
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineCached(const ModelTypeEnum::Enum modelType,
+BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineCached(const VolumeMappableInterface* underlayVolume,
+                                                        const ModelTypeEnum::Enum modelType,
                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                         const float sliceXYZ[3],
                                                         const Plane& plane,
@@ -2899,7 +2907,8 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineCached(const ModelTypeEnum::Enu
     /*
      * Key for outline cache
      */
-    VolumeSurfaceOutlineModelCacheKey outlineCacheKey(sliceViewPlane,
+    VolumeSurfaceOutlineModelCacheKey outlineCacheKey(underlayVolume,
+                                                      sliceViewPlane,
                                                       sliceCoordinate);
     
     /*
@@ -2931,8 +2940,9 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineCached(const ModelTypeEnum::Enu
                     }
                 }
                 
-                if (outline->getOutlineCachePrimitives(outlineCacheKey,
-                                                          contourPrimitives)) {
+                if (outline->getOutlineCachePrimitives(underlayVolume,
+                                                       outlineCacheKey,
+                                                       contourPrimitives)) {
                     /* OK, have cached primitives to draw */
                 }
                 else {
@@ -2970,7 +2980,8 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineCached(const ModelTypeEnum::Enu
                         CaretLogSevere(errorMessage);
                     }
                     
-                    outline->setOutlineCachePrimitives(outlineCacheKey,
+                    outline->setOutlineCachePrimitives(underlayVolume,
+                                                       outlineCacheKey,
                                                        contourPrimitives);
                 }
             }

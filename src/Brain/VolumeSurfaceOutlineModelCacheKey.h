@@ -31,10 +31,13 @@
 
 namespace caret {
 
+    class VolumeMappableInterface;
+    
     class VolumeSurfaceOutlineModelCacheKey : public CaretObject {
         
     public:
-        VolumeSurfaceOutlineModelCacheKey(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+        VolumeSurfaceOutlineModelCacheKey(const VolumeMappableInterface* underlayVolume,
+                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                           const float sliceCoordinate);
         
         virtual ~VolumeSurfaceOutlineModelCacheKey();

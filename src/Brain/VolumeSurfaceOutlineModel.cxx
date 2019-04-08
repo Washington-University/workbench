@@ -29,6 +29,7 @@
 #include "SceneClassAssistant.h"
 #include "SurfaceSelectionModel.h"
 #include "SurfaceTypeEnum.h"
+#include "VolumeMappableInterface.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 #include "VolumeSurfaceOutlineModelCacheValue.h"
 
@@ -312,7 +313,8 @@ VolumeSurfaceOutlineModel::restoreFromScene(const SceneAttributes* sceneAttribut
  *     Input containing the primitives
  */
 void
-VolumeSurfaceOutlineModel::setOutlineCachePrimitives(const VolumeSurfaceOutlineModelCacheKey& key,
+VolumeSurfaceOutlineModel::setOutlineCachePrimitives(const VolumeMappableInterface* underlayVolume,
+                                                     const VolumeSurfaceOutlineModelCacheKey& key,
                                                      const std::vector<GraphicsPrimitive*>& primitives)
 {
     auto iter = m_outlineCache.find(key);
@@ -322,9 +324,8 @@ VolumeSurfaceOutlineModel::setOutlineCachePrimitives(const VolumeSurfaceOutlineM
     }
     
     if (m_outlineCache.empty()) {
-        m_outlineCacheSurface = getSurface();
-        m_outlineCacheThicknessPercentageViewportHeight = m_thicknessPercentageViewportHeight;
-        m_outlineCacheColorItem.reset(new VolumeSurfaceOutlineColorOrTabModel::Item(*m_colorOrTabModel->getSelectedItem()));
+        m_outlineCacheInfo.update(this,
+                                  underlayVolume);
     }
     
     if (debugFlag) {
@@ -339,6 +340,8 @@ VolumeSurfaceOutlineModel::setOutlineCachePrimitives(const VolumeSurfaceOutlineM
 /**
  * Get the outline primitives for the given cache key
  *
+ * @param underlayVolume
+ *    The underlay volume
  * @param key
  *     Key into the outline cache identifying axis and slice
  * @param primitivesOut
@@ -347,11 +350,15 @@ VolumeSurfaceOutlineModel::setOutlineCachePrimitives(const VolumeSurfaceOutlineM
  *     Truie if outline primitives valid, else false.
  */
 bool
-VolumeSurfaceOutlineModel::getOutlineCachePrimitives(const VolumeSurfaceOutlineModelCacheKey& key,
+VolumeSurfaceOutlineModel::getOutlineCachePrimitives(const VolumeMappableInterface* underlayVolume,
+                                                     const VolumeSurfaceOutlineModelCacheKey& key,
                                                      std::vector<GraphicsPrimitive*>& primitivesOut)
 {
-    validateOutlineCache();
-    
+    if ( ! m_outlineCacheInfo.isValid(this,
+                                      underlayVolume)) {
+        clearOutlineCache();
+    }
+
     auto iter = m_outlineCache.find(key);
     if (iter != m_outlineCache.end()) {
         primitivesOut = iter->second->getGraphicsPrimitives();
@@ -365,29 +372,6 @@ VolumeSurfaceOutlineModel::getOutlineCachePrimitives(const VolumeSurfaceOutlineM
 }
 
 /**
- * Validate the outline cache and if not valid, clear outline cache
- */
-void
-VolumeSurfaceOutlineModel::validateOutlineCache()
-{
-    /*
-     * Test for cache validity
-     */
-    if (m_outlineCacheSurface == NULL) {
-        return;
-    }
-    
-    /*
-     * Has anything changed that invalidates the outline cache ?
-     */
-    if ((m_outlineCacheSurface != getSurface())
-        || (m_outlineCacheThicknessPercentageViewportHeight != m_thicknessPercentageViewportHeight)
-        || ( ! m_outlineCacheColorItem->equals(*m_colorOrTabModel->getSelectedItem()))) {
-        clearOutlineCache();
-    }
-}
-
-/**
  * Clear the outline cache
  */
 void
@@ -396,9 +380,7 @@ VolumeSurfaceOutlineModel::clearOutlineCache()
     if (debugFlag) {
         std::cout << "Invalidating surface outline cache" << std::endl;
     }
-    m_outlineCacheSurface = NULL;
-    m_outlineCacheThicknessPercentageViewportHeight = -1.0;
-    m_outlineCacheColorItem.reset();
+    m_outlineCacheInfo.clear();
     
     for (auto iter : m_outlineCache) {
         delete iter.second;
@@ -406,3 +388,79 @@ VolumeSurfaceOutlineModel::clearOutlineCache()
     m_outlineCache.clear();
 }
 
+/* ==========================================================================================*/
+
+/**
+ * Constructor for outline cache
+ */
+VolumeSurfaceOutlineModel::OutlineCacheInfo::OutlineCacheInfo()
+{
+    clear();
+}
+
+/**
+ * Destructor
+ */
+VolumeSurfaceOutlineModel::OutlineCacheInfo::~OutlineCacheInfo()
+{
+    clear();
+}
+
+/**
+ * Clear the outline cache
+ */
+void
+VolumeSurfaceOutlineModel::OutlineCacheInfo::clear()
+{
+    m_surface = NULL;
+    m_thicknessPercentageViewportHeight = -1.0;
+    m_colorItem.reset();
+}
+
+/**
+ * Is the outline cache valid?
+ *
+ * @param surfaceOutlineModel
+ *     The parent surface outline model
+ * @param underlayVolume
+ *    The underlay volume
+ * @return
+ *     True if cache is valid, else false
+ */
+bool
+VolumeSurfaceOutlineModel::OutlineCacheInfo::isValid(VolumeSurfaceOutlineModel* surfaceOutlineModel,
+                                                     const VolumeMappableInterface* underlayVolume)
+{
+    bool validFlag(false);
+    if (m_surface != NULL) {
+        if ((m_surface == surfaceOutlineModel->getSurface())
+            && (m_underlayVolume == underlayVolume)
+            && (m_thicknessPercentageViewportHeight == surfaceOutlineModel->getThicknessPercentageViewportHeight())) {
+            if (m_colorItem != NULL) {
+                if (m_colorItem->equals(*(surfaceOutlineModel->getColorOrTabModel()->getSelectedItem()))) {
+                    validFlag = true;
+                }
+            }
+        }
+    }
+    
+    return validFlag;
+}
+
+/**
+ * Update the cache info from the parent surface outline model
+ *
+ * @param surfaceOutlineModel
+ *     The surface outline model
+ * @param underlayVolume
+ *    The underlay volume
+ */
+void
+VolumeSurfaceOutlineModel::OutlineCacheInfo::update(VolumeSurfaceOutlineModel* surfaceOutlineModel,
+                                                    const VolumeMappableInterface* underlayVolume)
+{
+    m_underlayVolume = underlayVolume;
+    m_surface = surfaceOutlineModel->getSurface();
+    m_thicknessPercentageViewportHeight = surfaceOutlineModel->getThicknessPercentageViewportHeight();
+    m_colorItem.reset(new VolumeSurfaceOutlineColorOrTabModel::Item(*(surfaceOutlineModel->getColorOrTabModel()->getSelectedItem())));
+}

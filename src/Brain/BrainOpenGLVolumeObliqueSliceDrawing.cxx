@@ -1097,7 +1097,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnu
             glPolygonOffset(0.0, 1.0);
             
             if (drawOutlineFlag) {
-                BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(m_modelType,
+                BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(m_underlayVolume,
+                                                                  m_modelType,
                                                                   sliceProjectionType,
                                                                   sliceViewPlane,
                                                                   sliceCoordinates,
