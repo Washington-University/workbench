@@ -26,6 +26,7 @@
 #include <cmath>
 
 #include "CaretAssert.h"
+#include "Plane.h"
 #include "VolumeMappableInterface.h"
 
 using namespace caret;
@@ -40,37 +41,108 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param underlayVolume
+ *     The underlay volume
+ * @param sliceViewPlane
+ *     The orthogonal slice view plane
+ * @param sliceCoordinate
+ *     Coordinate of slice in orthogonal view plane
  */
 VolumeSurfaceOutlineModelCacheKey::VolumeSurfaceOutlineModelCacheKey(const VolumeMappableInterface* underlayVolume,
-                                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                      const float sliceCoordinate)
 : CaretObject(),
-m_slicePlane(slicePlane),
-m_sliceCoordinateScaled(static_cast<int32_t>(std::round(sliceCoordinate * 10.0)))
+m_mode(Mode::SLICE_VIEW_PLANE),
+m_sliceViewPlane(sliceViewPlane)
+{
+    const float scaleFactor = computeScaleFactor(underlayVolume);
+    m_sliceCoordinateScaled = static_cast<int64_t>(sliceCoordinate * scaleFactor);
+    
+//    CaretAssert(underlayVolume);
+//    if (underlayVolume != NULL) {
+//        float voxelSizesMM[3];
+//        underlayVolume->getVoxelSpacing(voxelSizesMM[0],
+//                                        voxelSizesMM[1],
+//                                        voxelSizesMM[2]);
+//
+//        float voxelSize(0.0);
+//        switch (sliceViewPlane) {
+//            case VolumeSliceViewPlaneEnum::ALL:
+//                voxelSize = voxelSizesMM[2];
+//                break;
+//            case VolumeSliceViewPlaneEnum::AXIAL:
+//                voxelSize = voxelSizesMM[2];
+//                break;
+//            case VolumeSliceViewPlaneEnum::CORONAL:
+//                voxelSize = voxelSizesMM[1];
+//                break;
+//            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                voxelSize = voxelSizesMM[0];
+//                break;
+//        }
+//
+//        if (voxelSize > 0.0) {
+//            /*
+//             * The coordinate for the slice is stored as an integer since
+//             * since integer comparison is precise oppposed to a float comparison
+//             * that requires some sort of tolerance.
+//             *
+//             * (1.0 / voxelSize) is used so that the scale factor will
+//             * be larger for small voxels and prevent an outline from
+//             * being used by adjacent volume slices
+//             */
+//            const float scaleFactor = 10.0 * (1.0 / voxelSize);
+//            m_sliceCoordinateScaled = static_cast<int32_t>(std::round(sliceCoordinate * scaleFactor));
+//        }
+//    }
+}
+
+/**
+ * Constructor.
+ *
+ * @param underlayVolume
+ *     The underlay volume
+ * @param sliceViewPlane
+ *     The orthogonal slice view plane
+ * @param sliceCoordinate
+ *     Coordinate of slice in orthogonal view plane
+ */
+VolumeSurfaceOutlineModelCacheKey::VolumeSurfaceOutlineModelCacheKey(const VolumeMappableInterface* underlayVolume,
+                                                                     const Plane& plane)
+: m_mode(Mode::PLANE_EQUATION)
 {
     CaretAssert(underlayVolume);
+    if (underlayVolume != NULL) {
+        const float scaleFactor = computeScaleFactor(underlayVolume);
+        double a, b, c, d;
+        plane.getPlane(a, b, c, d);
+        m_planeEquationScaled[0] = scaleFactor * a;
+        m_planeEquationScaled[1] = scaleFactor * b;
+        m_planeEquationScaled[2] = scaleFactor * c;
+        m_planeEquationScaled[3] = scaleFactor * d;
+    }
+}
+
+/**
+ * Compute the scale that is used to scale float values into integers
+ *
+ * @param underlayVolume
+ *     The underlay volume whose voxel sizes are used to determine the scale factor
+ * @return The scale factor
+ */
+float
+VolumeSurfaceOutlineModelCacheKey::computeScaleFactor(const VolumeMappableInterface* underlayVolume) const
+{
+    float scaleFactor(10.0);
+    
     if (underlayVolume != NULL) {
         float voxelSizesMM[3];
         underlayVolume->getVoxelSpacing(voxelSizesMM[0],
                                         voxelSizesMM[1],
                                         voxelSizesMM[2]);
-        
-        float voxelSize(0.0);
-        switch (slicePlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                voxelSize = voxelSizesMM[2];
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                voxelSize = voxelSizesMM[2];
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                voxelSize = voxelSizesMM[1];
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                voxelSize = voxelSizesMM[0];
-                break;
-        }
-        
+        const float voxelSize = std::min(std::min(voxelSizesMM[0], voxelSizesMM[1]),
+                                         voxelSizesMM[2]);
         if (voxelSize > 0.0) {
             /*
              * The coordinate for the slice is stored as an integer since
@@ -81,10 +153,11 @@ m_sliceCoordinateScaled(static_cast<int32_t>(std::round(sliceCoordinate * 10.0))
              * be larger for small voxels and prevent an outline from
              * being used by adjacent volume slices
              */
-            const float scaleFactor = 10.0 * (1.0 / voxelSize);
-            m_sliceCoordinateScaled = static_cast<int32_t>(std::round(sliceCoordinate * scaleFactor));
+            scaleFactor = 10.0 * (1.0 / voxelSize);
         }
     }
+
+    return scaleFactor;
 }
 
 /**
@@ -130,32 +203,34 @@ VolumeSurfaceOutlineModelCacheKey::operator=(const VolumeSurfaceOutlineModelCach
 void 
 VolumeSurfaceOutlineModelCacheKey::copyHelperVolumeSurfaceOutlineModelCacheKey(const VolumeSurfaceOutlineModelCacheKey& obj)
 {
-    m_slicePlane = obj.m_slicePlane;
+    m_mode = obj.m_mode;
+    m_sliceViewPlane = obj.m_sliceViewPlane;
     m_sliceCoordinateScaled = obj.m_sliceCoordinateScaled;
+    m_planeEquationScaled   = obj.m_planeEquationScaled;
 }
 
-/**
- * Equality operator.
- * @param obj
- *    Instance compared to this for equality.
- * @return 
- *    True if this instance and 'obj' instance are considered equal.
- */
-bool
-VolumeSurfaceOutlineModelCacheKey::operator==(const VolumeSurfaceOutlineModelCacheKey& obj) const
-{
-    if (this == &obj) {
-        return true;    
-    }
-
-    /* perform equality testing HERE and return true if equal ! */
-    if ((m_slicePlane == obj.m_slicePlane)
-        && (m_sliceCoordinateScaled == obj.m_sliceCoordinateScaled)) {
-        return true;
-    }
-    
-    return false;    
-}
+///**
+// * Equality operator.
+// * @param obj
+// *    Instance compared to this for equality.
+// * @return
+// *    True if this instance and 'obj' instance are considered equal.
+// */
+//bool
+//VolumeSurfaceOutlineModelCacheKey::operator==(const VolumeSurfaceOutlineModelCacheKey& obj) const
+//{
+//    if (this == &obj) {
+//        return true;
+//    }
+//
+//    /* perform equality testing HERE and return true if equal ! */
+//    if ((m_sliceViewPlane == obj.m_sliceViewPlane)
+//        && (m_sliceCoordinateScaled == obj.m_sliceCoordinateScaled)) {
+//        return true;
+//    }
+//
+//    return false;
+//}
 
 /**
  * Less than operator.
@@ -172,16 +247,42 @@ VolumeSurfaceOutlineModelCacheKey::operator<(const VolumeSurfaceOutlineModelCach
         return false;
     }
     
-    if (static_cast<int32_t>(m_slicePlane) < static_cast<int32_t>(obj.m_slicePlane)) {
-        return true;
+    if (m_mode == obj.m_mode) {
+        switch (m_mode) {
+            case Mode::PLANE_EQUATION:
+            {
+                for (int32_t i = 0; i < static_cast<int32_t>(m_planeEquationScaled.size()); i++) {
+                    if (m_planeEquationScaled[i] < obj.m_planeEquationScaled[i]) {
+                        return true;
+                    }
+                    else if (m_planeEquationScaled[i] > obj.m_planeEquationScaled[i]) {
+                        return false;
+                    }
+                }
+            }
+                break;
+            case Mode::SLICE_VIEW_PLANE:
+            {
+                if (static_cast<int32_t>(m_sliceViewPlane) < static_cast<int32_t>(obj.m_sliceViewPlane)) {
+                    return true;
+                }
+                else if (static_cast<int32_t>(m_sliceViewPlane) > static_cast<int32_t>(obj.m_sliceViewPlane)) {
+                    return false;
+                }
+                
+                if (m_sliceCoordinateScaled < obj.m_sliceCoordinateScaled) {
+                    return true;
+                }
+            }
+                break;
+        }
     }
-    else if (static_cast<int32_t>(m_slicePlane) > static_cast<int32_t>(obj.m_slicePlane)) {
-        return false;
+    else {
+        if (static_cast<int32_t>(m_mode) < static_cast<int32_t>(obj.m_mode)) {
+            return true;
+        }
     }
     
-    if (m_sliceCoordinateScaled < obj.m_sliceCoordinateScaled) {
-        return true;
-    }
     
     return false;
 }
@@ -193,11 +294,21 @@ VolumeSurfaceOutlineModelCacheKey::operator<(const VolumeSurfaceOutlineModelCach
 AString 
 VolumeSurfaceOutlineModelCacheKey::toString() const
 {
-    QString str("Plane="
-                + VolumeSliceViewPlaneEnum::toName(m_slicePlane)
-                + ", "
-                + "ScaledCoordinate="
-                + QString::number(m_sliceCoordinateScaled));
+    QString str;
+    switch (m_mode) {
+        case Mode::PLANE_EQUATION:
+            str = ("Plane Equation = "
+                   + AString::fromNumbers(&m_planeEquationScaled[0], m_planeEquationScaled.size(), ","));
+            break;
+        case Mode::SLICE_VIEW_PLANE:
+            str = ("Slice View Plane="
+                   + VolumeSliceViewPlaneEnum::toName(m_sliceViewPlane)
+                   + ", "
+                   + "ScaledCoordinate="
+                   + QString::number(m_sliceCoordinateScaled));
+            break;
+    }
+    
     return str;
 }
 

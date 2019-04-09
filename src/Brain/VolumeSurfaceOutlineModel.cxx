@@ -378,7 +378,9 @@ void
 VolumeSurfaceOutlineModel::clearOutlineCache()
 {
     if (debugFlag) {
-        std::cout << "Invalidating surface outline cache" << std::endl;
+        if ( ! m_outlineCache.empty()) {
+            std::cout << "Invalidating non-empty surface outline cache" << std::endl;
+        }
     }
     m_outlineCacheInfo.clear();
     

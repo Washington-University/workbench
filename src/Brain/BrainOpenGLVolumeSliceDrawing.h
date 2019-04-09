@@ -263,6 +263,7 @@ namespace caret {
         
         static void drawSurfaceOutlineCached(const VolumeMappableInterface* underlayVolume,
                                              const ModelTypeEnum::Enum modelType,
+                                             const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                              const float sliceXYZ[3],
                                              const Plane& plane,

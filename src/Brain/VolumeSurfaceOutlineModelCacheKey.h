@@ -22,23 +22,28 @@
 /*LICENSE_END*/
 
 
-
+#include <array>
 #include <memory>
 
 #include "CaretObject.h"
-
+#include "Plane.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
 namespace caret {
 
+    class Plane;
+    
     class VolumeMappableInterface;
     
     class VolumeSurfaceOutlineModelCacheKey : public CaretObject {
         
     public:
         VolumeSurfaceOutlineModelCacheKey(const VolumeMappableInterface* underlayVolume,
-                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           const float sliceCoordinate);
+        
+        VolumeSurfaceOutlineModelCacheKey(const VolumeMappableInterface* underlayVolume,
+                                          const Plane& plane);
         
         virtual ~VolumeSurfaceOutlineModelCacheKey();
         
@@ -46,7 +51,7 @@ namespace caret {
 
         VolumeSurfaceOutlineModelCacheKey& operator=(const VolumeSurfaceOutlineModelCacheKey& obj);
         
-        bool operator==(const VolumeSurfaceOutlineModelCacheKey& obj) const;
+//        bool operator==(const VolumeSurfaceOutlineModelCacheKey& obj) const;
         
         bool operator<(const VolumeSurfaceOutlineModelCacheKey& obj) const;
 
@@ -55,11 +60,22 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        enum class Mode {
+            PLANE_EQUATION,
+            SLICE_VIEW_PLANE
+        };
+        
         void copyHelperVolumeSurfaceOutlineModelCacheKey(const VolumeSurfaceOutlineModelCacheKey& obj);
 
-        VolumeSliceViewPlaneEnum::Enum m_slicePlane = VolumeSliceViewPlaneEnum::ALL;
+        float computeScaleFactor(const VolumeMappableInterface* underlayVolume) const;
+        
+        Mode m_mode;
+        
+        VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane = VolumeSliceViewPlaneEnum::ALL;
 
-        int32_t m_sliceCoordinateScaled = 100000;
+        int64_t m_sliceCoordinateScaled = 100000;
+        
+        std::array<int64_t, 4> m_planeEquationScaled;
         
         // ADD_NEW_MEMBERS_HERE
 

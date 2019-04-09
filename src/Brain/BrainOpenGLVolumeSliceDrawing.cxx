@@ -2804,6 +2804,9 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const VolumeMappableInterface*
     bool drawCachedFlag(false);
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_VOLUME_SURFACE_OUTLINE)) {
+                drawCachedFlag = true;
+            }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_VOLUME_SURFACE_OUTLINE)) {
@@ -2815,6 +2818,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const VolumeMappableInterface*
     if (drawCachedFlag) {
         drawSurfaceOutlineCached(underlayVolume,
                                  modelType,
+                                 sliceProjectionType,
                                  sliceViewPlane,
                                  sliceXYZ,
                                  plane,
@@ -2838,6 +2842,10 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const VolumeMappableInterface*
  *    The underlay volume
  * @param modelType
  *    Type of model being drawn.
+ * @param sliceProjectionType
+      Type of slice projection
+ * @param sliceProjectionType
+ *    Type of slice projection
  * @param sliceViewPlane
  *    Slice view plane (axial, coronal, parasagittal)
  * @param sliceXYZ
@@ -2854,6 +2862,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const VolumeMappableInterface*
 void
 BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineCached(const VolumeMappableInterface* underlayVolume,
                                                         const ModelTypeEnum::Enum modelType,
+                                                        const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                         const float sliceXYZ[3],
                                                         const Plane& plane,
@@ -2910,6 +2919,14 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutlineCached(const VolumeMappableInte
     VolumeSurfaceOutlineModelCacheKey outlineCacheKey(underlayVolume,
                                                       sliceViewPlane,
                                                       sliceCoordinate);
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            outlineCacheKey = VolumeSurfaceOutlineModelCacheKey(underlayVolume,
+                                                                plane);
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+    }
     
     /*
      * Process each surface outline
