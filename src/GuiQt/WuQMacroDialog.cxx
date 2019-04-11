@@ -1637,12 +1637,60 @@ WuQMacroDialog::macroGroupToolButtonClicked()
 void
 WuQMacroDialog::macroGroupResetToolButtonClicked()
 {
+    /*
+     * Save expanded status of selected macro
+     */
+    bool expandedFlag = false;
+    WuQMacro* selectedMacro = getSelectedMacro();
+    if (selectedMacro != NULL) {
+        QModelIndex modelIndex = selectedMacro->index();
+        if (modelIndex.isValid()) {
+            expandedFlag = m_treeView->isExpanded(modelIndex);
+        }
+    }
+    
+    /*
+     * If expanded, a command may be selected
+     */
+    int32_t selectedCommandIndex = -1;
+    if (expandedFlag) {
+        WuQMacroCommand* selectedCommand = getSelectedMacroCommand();
+        if (selectedCommand != NULL) {
+            if (selectedMacro != NULL) {
+                selectedCommandIndex = selectedMacro->getIndexOfMacroCommand(selectedCommand);
+            }
+        }
+    }
+    
+    /*
+     * Reload the macro
+     */
     WuQMacro* macro = WuQMacroManager::instance()->resetMacro(getWindow(),
                                                               getSelectedMacro());
     updateDialogContents();
+    
     if (macro != NULL) {
-        m_treeView->setCurrentIndex(macro->index());
+        /*
+         * Restore expanded status of macro
+         */
+        QModelIndex modelIndex = macro->index();
         treeItemSelected(macro->index());
+        m_treeView->setExpanded(modelIndex,
+                                expandedFlag);
+        
+        /*
+         * May restore selection of command
+         */
+        if (selectedCommandIndex >= 0) {
+            if (selectedCommandIndex < macro->getNumberOfMacroCommands()) {
+                modelIndex = macro->getMacroCommandAtIndex(selectedCommandIndex)->index();
+            }
+        }
+        
+        /*
+         * Select macro or command that was selected before reset
+         */
+        m_treeView->setCurrentIndex(modelIndex);
     }
     
     updateDialogContents();
