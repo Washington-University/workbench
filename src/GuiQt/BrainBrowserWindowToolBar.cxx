@@ -290,15 +290,10 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     /*
      * Scene button
      */
-    const QString sceneButtonToolTip("Display the Scene Dialog.  "
-                                     "Arrow displays a menu for loading scenes "
-                                     "including reloading or the current scene.");
     QToolButton* sceneDialogToolButton = new QToolButton();
     sceneDialogToolButton->setText("");
     sceneDialogToolButton->setIcon(GuiManager::get()->getSceneDialogDisplayAction()->icon());
     sceneDialogToolButton->setDefaultAction(GuiManager::get()->getSceneDialogDisplayAction());
-    WuQtUtilities::setWordWrappedToolTip(sceneDialogToolButton,
-                                         sceneButtonToolTip);
     QObject::connect(sceneDialogToolButton, &QToolButton::clicked,
                      this, &BrainBrowserWindowToolBar::sceneToolButtonClicked);
 
@@ -311,14 +306,11 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                    movieIcon)) {
         movieButtonText = "Movie";
     }
-    const QString movieButtonToolTip("Show movie recording dialog.  "
-                                     "Arrow displays a menu for creating movie "
-                                     "without using movie dialog.");
+    const QString movieButtonToolTip("Show movie recording window");
     m_movieToolButton = new QToolButton();
-    WuQtUtilities::setWordWrappedToolTip(m_movieToolButton,
-                                         movieButtonToolTip);
     m_movieToolButton->setText(movieButtonText);
     m_movieToolButton->setIcon(movieIcon);
+    m_movieToolButton->setToolTip(movieButtonToolTip);
     QObject::connect(m_movieToolButton, &QToolButton::clicked,
                      parentBrainBrowserWindow, &BrainBrowserWindow::processMovieRecording);
     
@@ -334,7 +326,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     else {
         macrosAction->setText("M");
     }
-    macrosAction->setToolTip("Show macros dialog");
+    macrosAction->setToolTip("Show macros window");
     QObject::connect(macrosAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBar::showMacroDialog);
     QToolButton* macrosToolButton = new QToolButton();

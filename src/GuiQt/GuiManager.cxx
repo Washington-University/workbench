@@ -280,7 +280,8 @@ GuiManager::initializeGuiManager()
     /*
      * Scene dialog action
      */
-    m_sceneDialogDisplayAction = new QAction(this);
+    m_sceneDialogDisplayAction = new QAction("Scenes...",
+                                             this);
     QObject::connect(m_sceneDialogDisplayAction, &QAction::triggered,
                      this, &GuiManager::sceneDialogDisplayActionTriggered);
     QIcon clapBoardIcon;
