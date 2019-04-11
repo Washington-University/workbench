@@ -103,7 +103,9 @@ WbMacroCustomOperationBase::validateCorrectNumberOfParameters(const WuQMacroComm
     const int32_t paramCount = command->getNumberOfParameters();
     
     if (paramCount < correctNumberOfParameters) {
-        appendToErrorMessage("Command should contain "
+        appendToErrorMessage("Command "
+                             + command->getDescriptiveName()
+                             + " should contain "
                              + QString::number(correctNumberOfParameters)
                              + " parameters but contains "
                              + QString::number(paramCount)

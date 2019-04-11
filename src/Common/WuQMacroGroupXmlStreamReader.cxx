@@ -445,10 +445,11 @@ WuQMacroGroupXmlStreamReader::readMacroCommandParameter(QXmlStreamReader& xmlRea
     WuQMacroDataValueTypeEnum::Enum dataType = WuQMacroDataValueTypeEnum::fromName(dataTypeString.toString(),
                                                                                    &dataTypeValid);
     if (! dataTypeValid) {
-        es.append(dataTypeString.toString()
-                  + " is not valid for attribute "
-                  + ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE
-                  + " ");
+        addToWarnings(xmlReader,
+                      (dataTypeString.toString()
+                       + " is not valid for attribute "
+                       + ATTRIBUTE_MACRO_COMMAND_PARAMETER_DATA_TYPE
+                       + " "));
         return NULL;
     }
     
