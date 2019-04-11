@@ -82,21 +82,24 @@ OperationParameters* AlgorithmCiftiParcellate::getParameters()
     
     ret->createOptionalParameter(9, "-only-numeric", "exclude non-numeric values");
     
-    OptionalParameter* emptyOpt = ret->createOptionalParameter(10, "-include-empty", "create parcels for labels that have no vertices or voxels");
-    OptionalParameter* emptyValOpt = emptyOpt->createOptionalParameter(1, "-fill-value", "specify value to use in empty parcels (default 0)");
+    OptionalParameter* emptyValOpt = ret->createOptionalParameter(11, "-fill-value", "specify value to use in empty parcels (default 0)");
     emptyValOpt->addDoubleParameter(1, "value", "the value to fill empty parcels with");
-    OptionalParameter* emptyRoiOpt = emptyOpt->createOptionalParameter(2, "-nonempty-mask-out", "output a matching pscalar file that has 0s in empty parcels, and 1s elsewhere");
+    OptionalParameter* emptyRoiOpt = ret->createOptionalParameter(12, "-nonempty-mask-out", "output a matching pscalar file that has 0s in empty parcels, and 1s elsewhere");
     emptyRoiOpt->addCiftiOutputParameter(1, "mask-out", "the output mask file");
     
+    ret->createOptionalParameter(13, "-legacy-mode", "use the old behavior, parcels are defined by the intersection between labels and valid data, and empty parcels are discarded");
+    
+    ret->createOptionalParameter(10, "-include-empty", "deprecated: now the default behavior");
+
     ret->setHelpText(
-        AString("Each non-empty label (other than the unlabeled key) in the cifti label file will be treated as a parcel, and all rows or columns within the parcel are averaged together to form the output ") +
-        "row or column.  " +
-        "If -include-empty is specified, empty labels will be treated as parcels with no elements, and filled with a constant value.  " +
+        AString("Each label (other than the unlabeled key) in the cifti label file will be treated as a parcel, and all rows or columns of data within the parcel ") +
+        "are averaged together to form the parcel's output row or column.  " +
+        "If -legacy-mode is specified, parcels will be defined as the overlap between a label and the data, with no errors for missing data vertices or voxels, and empty parcels discarded.  " +
         CiftiXML::directionFromStringExplanation() + "  " +
         "For dtseries or dscalar, use COLUMN.  " +
         "If you are parcellating a dconn in both directions, parcellating by ROW first will use much less memory.\n\n" +
         "The parameter to the -method option must be one of the following:\n\n" + ReductionOperation::getHelpInfo() +
-        "\nThe -*-weights options are mutually exclusive and may only be used with MEAN, SUM, STDEV, SAMPSTDEV, VARIANCE, MEDIAN, or MODE."
+        "\nThe -*-weights options are mutually exclusive and may only be used with MEAN (default), SUM, STDEV, SAMPSTDEV, VARIANCE, MEDIAN, or MODE (default for label data)."
     );
     return ret;
 }
@@ -138,23 +141,20 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
         excludeHigh = (float)excludeOpt->getDouble(2);
         if (!(excludeLow > 0.0f && excludeHigh > 0.0f)) throw AlgorithmException("exclusion sigmas must be positive");
     }
-    OptionalParameter* emptyOpt = myParams->getOptionalParameter(10);
-    bool includeEmpty = emptyOpt->m_present;
+    /*OptionalParameter* emptyOpt = */myParams->getOptionalParameter(10);//deprecated, but we need to "get" it to avoid a debug warning of an ignored option
     float emptyFillValue = 0.0f;
-    CiftiFile* emptyMaskOut = NULL;
-    if (includeEmpty)
+    OptionalParameter* emptyValOpt = myParams->getOptionalParameter(11);
+    if (emptyValOpt->m_present)
     {
-        OptionalParameter* emptyValOpt = emptyOpt->getOptionalParameter(1);
-        if (emptyValOpt->m_present)
-        {
-            emptyFillValue = emptyValOpt->getDouble(1);
-        }
-        OptionalParameter* emptyRoiOpt = emptyOpt->getOptionalParameter(2);
-        if (emptyRoiOpt->m_present)
-        {
-            emptyMaskOut = emptyRoiOpt->getOutputCifti(1);
-        }
+        emptyFillValue = emptyValOpt->getDouble(1);
     }
+    CiftiFile* emptyMaskOut = NULL;
+    OptionalParameter* emptyRoiOpt = myParams->getOptionalParameter(12);
+    if (emptyRoiOpt->m_present)
+    {
+        emptyMaskOut = emptyRoiOpt->getOutputCifti(1);
+    }
+    bool legacyMode = myParams->getOptionalParameter(13)->m_present;
     OptionalParameter* spatialWeightOpt = myParams->getOptionalParameter(5);
     OptionalParameter* ciftiWeightOpt = myParams->getOptionalParameter(6);
     if (spatialWeightOpt->m_present && ciftiWeightOpt->m_present)
@@ -221,7 +221,7 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
         AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut,
                                  leftWeights, rightWeights, cerebWeights,
                                  method, excludeLow, excludeHigh, onlyNumeric,
-                                 includeEmpty, emptyFillValue, emptyMaskOut);
+                                 legacyMode, emptyFillValue, emptyMaskOut);
         return;
     }
     if (ciftiWeightOpt->m_present)
@@ -229,17 +229,17 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
         AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut,
                                  ciftiWeightOpt->getCifti(1),
                                  method, excludeLow, excludeHigh, onlyNumeric,
-                                 includeEmpty, emptyFillValue, emptyMaskOut);
+                                 legacyMode, emptyFillValue, emptyMaskOut);
         return;
     }
     AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut,
                              method, excludeLow, excludeHigh, onlyNumeric,
-                             includeEmpty, emptyFillValue, emptyMaskOut);
+                             legacyMode, emptyFillValue, emptyMaskOut);
 }
 
 AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
                                                    const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric,
-                                                   const bool& includeEmpty, const float& emptyFillVal, CiftiFile* emptyMaskOut) : AbstractAlgorithm(myProgObj)
+                                                   const bool& legacyMode, const float& emptyFillVal, CiftiFile* emptyMaskOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CaretAssert(direction >= 0);
@@ -268,7 +268,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
     }
     vector<int> indexToParcel;
     CiftiXML myOutXML = myInputXML;
-    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel, includeEmpty);
+    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel, legacyMode);
     int numParcels = outParcelMap.getLength();
     if (numParcels < 1)
     {
@@ -677,7 +677,7 @@ namespace
 AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
                                                    const MetricFile* leftWeights, const MetricFile* rightWeights, const MetricFile* cerebWeights, const ReductionEnum::Enum& method,
                                                    const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric,
-                                                   const bool& includeEmpty, const float& emptyFillVal, CiftiFile* emptyMaskOut): AbstractAlgorithm(myProgObj)
+                                                   const bool& legacyMode, const float& emptyFillVal, CiftiFile* emptyMaskOut): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CaretAssert(direction >= 0);
@@ -735,7 +735,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
     }
     vector<int> indexToParcel;
     CiftiXML myOutXML = myInputXML;
-    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel, includeEmpty);
+    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel, legacyMode);
     int numParcels = outParcelMap.getLength();
     if (numParcels < 1)
     {
@@ -778,7 +778,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
 
 AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut,
                                                    const CiftiFile* ciftiWeights, const ReductionEnum::Enum& method, const float& excludeLow, const float& excludeHigh, const bool& onlyNumeric,
-                                                   const bool& includeEmpty, const float& emptyFillVal, CiftiFile* emptyMaskOut): AbstractAlgorithm(myProgObj)
+                                                   const bool& legacyMode, const float& emptyFillVal, CiftiFile* emptyMaskOut): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CaretAssert(direction >= 0);
@@ -803,20 +803,32 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
     }
     const CiftiBrainModelsMap& inputDense = myInputXML.getBrainModelsMap(direction);
     const CiftiBrainModelsMap& labelDense = myLabelXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
-    if (!weightsXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(inputDense))
+    const CiftiBrainModelsMap& weightsDense = weightsXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    vector<StructureEnum::Enum> surfModels = labelDense.getSurfaceStructureList();
+    for (int i = 0; i < int(surfModels.size()); ++i)
     {
-        throw AlgorithmException("cifti weight file does not match brain models mapping of input file");
-    }
-    if (inputDense.hasVolumeData())
-    {//don't check volume space if direction doesn't have volume data
-        if (labelDense.hasVolumeData() && !inputDense.getVolumeSpace().matches(labelDense.getVolumeSpace()))
+        if (weightsDense.hasSurfaceData(surfModels[i]))
         {
-            throw AlgorithmException("input cifti files must have the same volume space");
+            if (labelDense.getSurfaceNumberOfNodes(surfModels[i]) != weightsDense.getSurfaceNumberOfNodes(surfModels[i]))
+            {
+                throw AlgorithmException("cifti weight file has wrong number of vertices for surface structure " + StructureEnum::toName(surfModels[i]));
+            }
+        }
+    }
+    if (labelDense.hasVolumeData())
+    {//don't check volume space if direction doesn't have volume data
+        if (inputDense.hasVolumeData() && !labelDense.getVolumeSpace().matches(inputDense.getVolumeSpace()))
+        {
+            throw AlgorithmException("input cifti file has a different volume space");
+        }
+        if (weightsDense.hasVolumeData() && !labelDense.getVolumeSpace().matches(weightsDense.getVolumeSpace()))
+        {
+            throw AlgorithmException("cifti weight file has a different volume space");
         }
     }
     vector<int> indexToParcel;
     CiftiXML myOutXML = myInputXML;
-    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel, includeEmpty);
+    CiftiParcelsMap outParcelMap = parcellateMapping(myCiftiLabel, inputDense, indexToParcel, legacyMode);
     int numParcels = outParcelMap.getLength();
     if (numParcels < 1)
     {
@@ -832,13 +844,28 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
         int parcel = indexToParcel[j];
         if (parcel != -1)
         {
-            parcelWeights[parcel].push_back(weightCol[j]);//we already tested that the dense mappings matched
+            int weightIndex = -1;
+            CiftiBrainModelsMap::IndexInfo myInfo = inputDense.getInfoForIndex(j);
+            switch (myInfo.m_type)
+            {
+                case CiftiBrainModelsMap::SURFACE:
+                    weightIndex = weightsDense.getIndexForNode(myInfo.m_surfaceNode, myInfo.m_structure);
+                    break;
+                case CiftiBrainModelsMap::VOXELS:
+                    weightIndex = weightsDense.getIndexForVoxel(myInfo.m_ijk);
+                    break;
+            }
+            if (weightIndex < 0)
+            {
+                throw AlgorithmException("cifti weights file does not contain all necessary vertices and voxels");
+            }
+            parcelWeights[parcel].push_back(weightCol[weightIndex]);
         }
     }
     doWeightedParcellation(myCiftiIn, direction, myCiftiOut, indexToParcel, parcelWeights, method, excludeLow, excludeHigh, onlyNumeric, emptyFillVal, emptyMaskOut);
 }
 
-CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, vector<int>& indexToParcelOut, const bool& includeEmpty)
+CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, vector<int>& indexToParcelOut, const bool& legacyMode)
 {
     const CiftiXML& myLabelXML = myCiftiLabel->getCiftiXML();
     if (myLabelXML.getNumberOfDimensions() != 2 ||
@@ -850,11 +877,11 @@ CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myC
     const CiftiLabelsMap& myLabelsMap = myLabelXML.getLabelsMap(CiftiXML::ALONG_ROW);
     const CiftiBrainModelsMap& labelDenseMap = myLabelXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
     CiftiParcelsMap ret;
-    if (toParcellate.hasVolumeData() && labelDenseMap.hasVolumeData())
-    {
+    if (labelDenseMap.hasVolumeData() && toParcellate.hasVolumeData())
+    {//if only one has voxel data, don't error until we know it is used
         if(!toParcellate.getVolumeSpace().matches(labelDenseMap.getVolumeSpace()))
         {
-            throw AlgorithmException("AlgorithmCiftiParcellate::parcellateMapping requires matching volume space between dlabel and dense mapping to parcellate");
+            throw AlgorithmException("data file to parcellate has a different voxel space than the dlabel file");
         }
         ret.setVolumeSpace(toParcellate.getVolumeSpace());
     }
@@ -864,9 +891,8 @@ CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myC
     myCiftiLabel->getColumn(labelData.data(), 0);
     indexToParcelOut.clear();
     indexToParcelOut.resize(toParcellate.getLength(), -1);
-    vector<StructureEnum::Enum> surfList = toParcellate.getSurfaceStructureList();
-    if (includeEmpty)
-    {//if we include empty, then the dlabel file by itself determines the entire parcel map, ignoring the data map
+    if (!legacyMode)
+    {//by default, the parcel definitions are based only on the dlabel file
         const vector<StructureEnum::Enum> labelSurfList = labelDenseMap.getSurfaceStructureList();
         const set<int32_t> allLabelKeys = myLabelTable->getKeys();
         map<int32_t, int32_t> keyToParcel;
@@ -885,11 +911,11 @@ CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myC
         for (int i = 0; i < (int)labelSurfList.size(); ++i)
         {
             StructureEnum::Enum myStruct = labelSurfList[i];
-            if (labelDenseMap.hasSurfaceData(myStruct) && toParcellate.hasSurfaceData(myStruct))
-            {//if they don't match in vertex count but one is empty, don't error?
+            if (toParcellate.hasSurfaceData(myStruct))
+            {//if a surface is missing from the data, don't error until we know it is used by the parcellation
                 if (labelDenseMap.getSurfaceNumberOfNodes(myStruct) != toParcellate.getSurfaceNumberOfNodes(myStruct))
-                {
-                    throw AlgorithmException("mismatch in number of surface vertices between input and dlabel for structure " + StructureEnum::toName(myStruct));
+                {//if both have a surface, it must match
+                    throw AlgorithmException("mismatch in number of surface vertices between data and dlabel for structure " + StructureEnum::toName(myStruct));
                 }
             }
             ret.addSurface(labelDenseMap.getSurfaceNumberOfNodes(myStruct), myStruct);
@@ -903,10 +929,12 @@ CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myC
                     int32_t whichParcel = found->second;
                     parcelList[whichParcel].m_surfaceNodes[myStruct].insert(labelSurfMap[j].m_surfaceNode);
                     int64_t dataIndex = toParcellate.getIndexForNode(labelSurfMap[j].m_surfaceNode, myStruct);
-                    if (dataIndex != -1)
+                    if (dataIndex < 0)
                     {
-                        indexToParcelOut[dataIndex] = whichParcel;
+                        throw AlgorithmException("data file is missing vertex " + AString::number(labelSurfMap[j].m_surfaceNode) + " in structure " +
+                                                 StructureEnum::toName(myStruct) + ", which is used by label '" + parcelList[whichParcel].m_name + "'");
                     }
+                    indexToParcelOut[dataIndex] = whichParcel;
                 }
             }
         }
@@ -920,23 +948,26 @@ CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myC
                 int32_t whichParcel = found->second;
                 parcelList[whichParcel].m_voxelIndices.insert(labelVolMap[i].m_ijk);
                 int64_t dataIndex = toParcellate.getIndexForVoxel(labelVolMap[i].m_ijk);
-                if (dataIndex != -1)
+                if (dataIndex < 0)
                 {
-                    indexToParcelOut[dataIndex] = whichParcel;
+                    throw AlgorithmException("data file is missing voxel (" + AString::fromNumbers(labelVolMap[i].m_ijk, 3, ", ") + "), which is used by label '" +
+                                             parcelList[whichParcel].m_name + "'");
                 }
+                indexToParcelOut[dataIndex] = whichParcel;
             }
         }
         for (int i = 0; i < (int)parcelList.size(); ++i)
         {
             ret.addParcel(parcelList[i]);
         }
-    } else {
+    } else {//legacy mode: parcels are defined by overlap between labels and the data ROI, any parcels that don't overlap any data are discarded
+        vector<StructureEnum::Enum> surfList = toParcellate.getSurfaceStructureList();
         map<int, pair<CiftiParcelsMap::Parcel, int> > usedKeys;//the keys from the label table that actually overlap with data in the input file
         for (int i = 0; i < (int)surfList.size(); ++i)
         {
             StructureEnum::Enum myStruct = surfList[i];
-            if (labelDenseMap.hasSurfaceData(myStruct) && toParcellate.hasSurfaceData(myStruct))
-            {
+            if (labelDenseMap.hasSurfaceData(myStruct))
+            {//if a surface is missing from the label file, don't error
                 if (labelDenseMap.getSurfaceNumberOfNodes(myStruct) != toParcellate.getSurfaceNumberOfNodes(myStruct))
                 {
                     throw AlgorithmException("mismatch in number of surface vertices between input and dlabel for structure " + StructureEnum::toName(myStruct));
