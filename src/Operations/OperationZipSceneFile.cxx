@@ -215,6 +215,7 @@ void OperationZipSceneFile::createZipFile(const AString& sceneFileName,
     EventManager::get()->sendEvent(progressEvent.getPointer());
 
     QFile zipFileObject(zipFileName);
+    zipFileObject.remove();//delete it if it exists, to play better with file symlinks
     QuaZip zipFile(&zipFileObject);
     if (!zipFile.open(QuaZip::mdCreate))
     {

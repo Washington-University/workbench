@@ -163,6 +163,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
      * Create the ZIP file
      */
     QFile zipFileObject(zipFileName);
+    zipFileObject.remove();//delete it if it exists, to play better with file symlinks
     QuaZip zipFile(&zipFileObject);
     if (zipFile.open(QuaZip::mdCreate) == false) {
         throw OperationException("Unable to open ZIP File \""
