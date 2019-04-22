@@ -680,7 +680,7 @@ WuQtUtilities::estimateTableWidgetSize(QTableWidget* tableWidget)
                 if (item != NULL) {
                     int itemWidth = 0;
                     int itemHeight = 0;
-                    if (item->flags() && Qt::ItemIsUserCheckable) {
+                    if (item->flags() & Qt::ItemIsUserCheckable) {
                         itemWidth += 12;
                     }
                     

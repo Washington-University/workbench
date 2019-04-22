@@ -266,9 +266,9 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndexForNodeWhenLoading(con
         case CiftiMappingType::PARCELS:
             rowOrColumnIndex = ciftiXML.getParcelsMap(ciftiDirection).getIndexForNode(nodeIndex, structure);
             break;
-        case CIFTI_INDEX_TYPE_SCALARS:
+        case CiftiMappingType::SCALARS:
             break;
-        case CIFTI_INDEX_TYPE_TIME_POINTS:
+        case CiftiMappingType::SERIES:
             break;
         default:
             CaretAssert(0);
@@ -506,10 +506,10 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndexForVoxelIndexWhenLoadi
      */
     if (indexValidForDataLoading(ijk[0], ijk[1], ijk[2])) {
         switch (rowMappingType) {
-            case CIFTI_INDEX_TYPE_BRAIN_MODELS:
+            case CiftiMappingType::BRAIN_MODELS:
                 rowOrColumnIndex = ciftiXML.getBrainModelsMap(ciftiDirection).getIndexForVoxel(ijk);
                 break;
-            case CIFTI_INDEX_TYPE_PARCELS:
+            case CiftiMappingType::PARCELS:
                 rowOrColumnIndex = ciftiXML.getParcelsMap(ciftiDirection).getIndexForVoxel(ijk);
                 break;
             default:

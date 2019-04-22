@@ -389,7 +389,7 @@ BrainOpenGLWidget::getOpenGLInformation()
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
     info += "\n";
     
-    return info;
+    return std::move(info);
 }
 
 /**

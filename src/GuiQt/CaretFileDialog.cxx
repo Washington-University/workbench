@@ -403,7 +403,7 @@ CaretFileDialog::getSaveFileNameDialog(const DataFileTypeEnum::Enum dataFileType
         if (selectedFiles.size() > 0) {
             AString filename = DataFileTypeEnum::addFileExtensionIfMissing(selectedFiles[0], 
                                                                            dataFileType);
-            return filename;
+            return std::move(filename);
         }
     }
     
@@ -470,7 +470,7 @@ CaretFileDialog::getChooseFileNameDialog(const DataFileTypeEnum::Enum dataFileTy
         if (selectedFiles.size() > 0) {
             AString filename = DataFileTypeEnum::addFileExtensionIfMissing(selectedFiles[0],
                                                                            dataFileType);
-            return filename;
+            return std::move(filename);
         }
     }
     return QString();

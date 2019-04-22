@@ -159,7 +159,7 @@ ChartTwoLineSeriesHistory::validateDefaultColor()
 {
     std::vector<CaretColorEnum::Enum> allEnums;
     CaretColorEnum::getColorAndOptionalEnums(allEnums, (CaretColorEnum::ColorOptions::OPTION_INCLUDE_CUSTOM_COLOR
-                                                        || CaretColorEnum::CaretColorEnum::OPTION_INCLUDE_NONE_COLOR));
+                                                        | CaretColorEnum::CaretColorEnum::OPTION_INCLUDE_NONE_COLOR));
     if (std::find(allEnums.begin(),
                   allEnums.end(),
                   m_defaultColor) == allEnums.end()) {
