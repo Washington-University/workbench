@@ -432,6 +432,8 @@ namespace caret {
          * Clone this primitive.
          */
         virtual GraphicsPrimitive* clone() const = 0;
+
+        void simplfyLines(const int32_t skipVertexCount);
         
     protected:
         AString toStringPrivate(const bool includeAllDataFlag) const;
@@ -522,13 +524,10 @@ namespace caret {
         std::vector<float> m_floatTextureSTR;
         
         std::vector<uint8_t> m_textureImageBytesRGBA;
+
         friend class GraphicsEngineDataOpenGL;
         friend class GraphicsOpenGLPolylineTriangles;
         friend class GraphicsPrimitiveSelectionHelper;
-        
-        std::vector<float> m_dummyFloatRGBAVector;
-        
-        std::vector<uint8_t> m_dummyUnsignedByteRGBAVector;
         
         // ADD_NEW_MEMBERS_HERE
 

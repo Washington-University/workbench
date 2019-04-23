@@ -1520,6 +1520,159 @@ GraphicsPrimitive::setTextureImage(const uint8_t* imageBytesRGBA,
 }
 
 /**
+ * Simplify line types by removing every 'skipVertexCount' vertex.
+ * When 'skipVertexCount' is 2, every other point in the line is removed.
+ * Nothing is done when 'skipVertexCount' is less than 2 or primitive
+ * type is not a line.
+ * First and last point are alwyas preserved.
+ *
+ * @param skipVertexCount
+ *     Number of vertices to skip.
+ */
+void
+GraphicsPrimitive::simplfyLines(const int32_t skipVertexCount)
+{
+    if (skipVertexCount < 2) {
+        return;
+    }
+    
+    bool lineTypeFlag(false);
+    switch (m_primitiveType) {
+        case PrimitiveType::OPENGL_LINE_LOOP:
+            lineTypeFlag = true;
+            break;
+        case PrimitiveType::OPENGL_LINE_STRIP:
+            lineTypeFlag = true;
+            break;
+        case PrimitiveType::OPENGL_LINES:
+            break;
+        case PrimitiveType::OPENGL_POINTS:
+            break;
+        case PrimitiveType::OPENGL_TRIANGLE_FAN:
+            break;
+        case PrimitiveType::OPENGL_TRIANGLE_STRIP:
+            break;
+        case PrimitiveType::OPENGL_TRIANGLES:
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
+            lineTypeFlag = true;
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_STRIP_MITER_JOIN:
+            lineTypeFlag = true;
+            break;
+        case PrimitiveType::MODEL_SPACE_POLYGONAL_LINES:
+            lineTypeFlag = true;
+            break;
+        case PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN:
+        case PrimitiveType::POLYGONAL_LINE_LOOP_MITER_JOIN:
+            lineTypeFlag = true;
+            break;
+        case PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN:
+        case PrimitiveType::POLYGONAL_LINE_STRIP_MITER_JOIN:
+            lineTypeFlag = true;
+            break;
+        case PrimitiveType::POLYGONAL_LINES:
+            lineTypeFlag = true;
+            break;
+        case PrimitiveType::SPHERES:
+            break;
+    }
+    
+    if ( ! lineTypeFlag) {
+        return;
+    }
+    
+    std::vector<float> xyz;
+    std::vector<float> normals;
+    std::vector<float> rgbaFloat;
+    std::vector<uint8_t> rgbaByte;
+    std::vector<float> textureSTR;
+    
+    const int32_t numVertices = getNumberOfVertices();
+    xyz.reserve(m_xyz.size());
+    normals.reserve(m_floatNormalVectorXYZ.size());
+    rgbaFloat.reserve(m_floatRGBA.size());
+    rgbaByte.reserve(m_unsignedByteRGBA.size());
+    textureSTR.reserve(m_floatTextureSTR.size());
+    
+    const int32_t lastIndex = numVertices - 1;
+    for (int32_t i = 0; i < numVertices; i++) {
+        bool addFlag(false);
+        if (i == 0) {
+            addFlag = true;
+        }
+        else if (i == lastIndex) {
+            addFlag = true;
+        }
+        else {
+            const int remainder = i % skipVertexCount;
+            if (remainder == 0) {
+                addFlag = true;
+            }
+        }
+        
+        if (addFlag) {
+            std::cout << "Adding vertex: " << i << std::endl;
+            
+            const int32_t i3 = i * 3;
+            const int32_t i4 = i * 4;
+            switch (m_vertexDataType) {
+                case VertexDataType::FLOAT_XYZ:
+                    xyz.push_back(m_xyz[i3]);
+                    xyz.push_back(m_xyz[i3+1]);
+                    xyz.push_back(m_xyz[i3+2]);
+                    break;
+            }
+            
+            switch (m_normalVectorDataType) {
+                case NormalVectorDataType::FLOAT_XYZ:
+                    normals.push_back(m_floatNormalVectorXYZ[i3]);
+                    normals.push_back(m_floatNormalVectorXYZ[i3+1]);
+                    normals.push_back(m_floatNormalVectorXYZ[i3+2]);
+                    break;
+                case NormalVectorDataType::NONE:
+                    break;
+            }
+            
+            switch (m_colorDataType) {
+                case ColorDataType::FLOAT_RGBA:
+                    rgbaFloat.push_back(m_floatRGBA[i4]);
+                    rgbaFloat.push_back(m_floatRGBA[i4+1]);
+                    rgbaFloat.push_back(m_floatRGBA[i4+2]);
+                    rgbaFloat.push_back(m_floatRGBA[i4+3]);
+                    break;
+                case ColorDataType::UNSIGNED_BYTE_RGBA:
+                    rgbaByte.push_back(m_unsignedByteRGBA[i4]);
+                    rgbaByte.push_back(m_unsignedByteRGBA[i4+1]);
+                    rgbaByte.push_back(m_unsignedByteRGBA[i4+2]);
+                    rgbaByte.push_back(m_unsignedByteRGBA[i4+3]);
+                    break;
+                case ColorDataType::NONE:
+                    break;
+            }
+            
+            switch (m_textureDataType) {
+                case TextureDataType::FLOAT_STR:
+                    textureSTR.push_back(m_floatTextureSTR[i3]);
+                    textureSTR.push_back(m_floatTextureSTR[i3+1]);
+                    textureSTR.push_back(m_floatTextureSTR[i3+2]);
+                    break;
+                case TextureDataType::NONE:
+                    break;
+            }
+        }
+    }
+
+    m_xyz = std::move(xyz);
+    m_floatNormalVectorXYZ = normals;
+    m_floatRGBA = rgbaFloat;
+    m_unsignedByteRGBA = rgbaByte;
+    m_floatTextureSTR = textureSTR;
+}
+
+/**
  * Get the OpenGL graphics engine data in this instance.
  *
  * @return
