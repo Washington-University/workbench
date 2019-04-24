@@ -372,7 +372,7 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                     }
                     break;
                 }
-                case INVALID:
+                case MathFunctionEnum::INVALID:
                     CaretAssertMessage(0, "MathNode is type FUNC but INVALID function");
                     throw CaretException("parsing problem in CaretMathExpression");
             }
