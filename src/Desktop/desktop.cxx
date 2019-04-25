@@ -342,7 +342,17 @@ main(int argc, char* argv[])
 #else //CARET_OS_MACOSX        
         QApplication app(argc, argv);
 #endif //CARET_OS_MACOSX
-        
+
+        /*
+         * Create the GUI Manager.
+         * Moved here as part of WB-842.  In OSX Mojave (10.14),
+         * the open file event appears to be delivered very quickly
+         * so the GUI manager need to be created sooner than
+         * before.
+         */
+        GuiManager::createGuiManager();
+        app.processEvents();
+
         ApplicationInformation applicationInformation;
 
         QApplication::addLibraryPath(
@@ -432,11 +442,6 @@ main(int argc, char* argv[])
                 SystemUtilities::sleepSeconds(2);
             }
         }
-        
-        /*
-         * Create the GUI Manager.
-         */
-        GuiManager::createGuiManager();
         
         /*
          * Letting the App process events will allow the message for a 
