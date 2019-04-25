@@ -194,6 +194,8 @@ namespace caret {
                             SpecFileDataFile* specFileDataFile,
                             CaretDataFile* caretDataFile);
         
+        void showFileInformation(CaretDataFile* caretDataFile);
+        
         void copyMoveFileContent(QWidget* parent,
                                  CaretDataFile* caretDataFile);
         

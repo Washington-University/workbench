@@ -56,6 +56,7 @@
 #include "DataFileContentCopyMoveDialog.h"
 #include "DataFileContentCopyMoveInterface.h"
 #include "DataFileException.h"
+#include "DataFileContentInformation.h"
 #include "EventBrowserTabGetAllViewed.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
@@ -77,6 +78,7 @@
 #include "UsernamePasswordWidget.h"
 #include "WuQImageLabel.h"
 #include "WuQMessageBox.h"
+#include "WuQTextEditorDialog.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -2273,6 +2275,7 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
         QAction* copyMoveFileContentAction     = NULL;
         QAction* editMetaDataAction            = NULL;
         QAction* setFileNameAction             = NULL;
+        QAction* showFileInformationAction     = NULL;
         QAction* setStructureAction            = NULL;
         QAction* unloadFileMapsAction          = NULL;
         QAction* viewMetaDataAction            = NULL;
@@ -2291,6 +2294,7 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                         copyFilePathToClipboardAction = menu.addAction(copyPathText);
                         editMetaDataAction = menu.addAction("Edit Metadata...");
                         setFileNameAction = menu.addAction("Set File Name...");
+                        showFileInformationAction = menu.addAction("Show File Information...");
                     }
                 }
                 else if ( ! sceneAnnotationFileFlag) {
@@ -2327,6 +2331,9 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                 changeFileName(&menu,
                                specFileDataFile,
                                caretDataFile);
+            }
+            else if (selectedAction == showFileInformationAction) {
+                showFileInformation(caretDataFile);
             }
             else if (selectedAction == setStructureAction) {
                 CaretAssert(0);
@@ -2536,6 +2543,30 @@ SpecFileManagementDialog::changeFileName(QWidget* parent,
 //        }
 //    }
 }
+
+/**
+ * Show information about a file.
+ *
+ * @param caretDataFileIn
+ *   File for which information is displayed.
+ */
+void
+SpecFileManagementDialog::showFileInformation(CaretDataFile* caretDataFile)
+{
+    DataFileContentInformation dataFileContentInformation;
+    const bool showMapInformationFlag(true);
+    dataFileContentInformation.setOptionFlag(DataFileContentInformation::OPTION_SHOW_MAP_INFORMATION,
+                                             showMapInformationFlag);
+    
+    caretDataFile->addToDataFileContentInformation(dataFileContentInformation);
+    
+    WuQTextEditorDialog::runNonModal("File Information",
+                                     dataFileContentInformation.getInformationInString(),
+                                     WuQTextEditorDialog::TextMode::PLAIN,
+                                     WuQTextEditorDialog::WrapMode::NO,
+                                     this);
+}
+
 
 ///**
 // * Called when spec file options tool button is triggered.
