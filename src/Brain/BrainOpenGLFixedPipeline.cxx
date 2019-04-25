@@ -1988,8 +1988,11 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                         glPolygonOffset(factor, units);
                     }
 
+                    glPushAttrib(GL_ENABLE_BIT);
+                    glDisable(GL_CULL_FACE);
                     this->drawSurfaceTrianglesWithVertexArrays(surface,
                                                                nodeColoringRGBA);
+                    glPopAttrib();
                     
                     if (borderAboveSurfaceOffset != 0.0) {
                         glDisable(GL_POLYGON_OFFSET_FILL);
