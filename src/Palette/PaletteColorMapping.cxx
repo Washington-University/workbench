@@ -243,7 +243,7 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
 void
 PaletteColorMapping::initializeMembersPaletteColorMapping()
 {
-    this->scaleMode = PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE;
+    this->scaleMode = PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE;
     this->autoScalePercentageNegativeMaximum = 98.0f;
     this->autoScalePercentageNegativeMinimum = 2.0f;
     this->autoScalePercentagePositiveMinimum = 2.0f;
