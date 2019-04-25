@@ -2981,8 +2981,16 @@ BrainBrowserWindow::processDevelopGraphicsTiming()
     const float time = et.getElapsedTimeSeconds() / numTimes;
     const AString timeString = AString::number(time, 'f', 5);
     
+    AString fpsString;
+    if (time > 0.0) {
+        const float fps(1.0 / time);
+        fpsString = ("\nFrame per second: "
+                     + AString::number(fps, 'f', 3));
+    }
     const AString msg = ("Time to draw graphics (seconds): "
-                         + timeString);
+                         + timeString
+                         + fpsString);
+    
     WuQMessageBox::informationOk(this, msg);
 }
 
