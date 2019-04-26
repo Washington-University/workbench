@@ -61,17 +61,19 @@ OperationParameters* OperationCiftiResampleDconnMemory::getParameters()
     OptionalParameter* volDilateOpt = ret->createOptionalParameter(9, "-volume-predilate", "dilate the volume components before resampling");
     volDilateOpt->addDoubleParameter(1, "dilate-mm", "distance, in mm, to dilate");
     volDilateOpt->createOptionalParameter(2, "-nearest", "use nearest value dilation");
-    OptionalParameter* volDilateWeightedOpt = volDilateOpt->createOptionalParameter(3, "-weighted", "use weighted dilation");
+    OptionalParameter* volDilateWeightedOpt = volDilateOpt->createOptionalParameter(3, "-weighted", "use weighted dilation (default)");
     OptionalParameter* volDilateExpOpt = volDilateWeightedOpt->createOptionalParameter(1, "-exponent", "specify exponent in weighting function");
-    volDilateExpOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (1 / (distance ^ n)) as the weighting function (default 2)");
+    volDilateExpOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (1 / (distance ^ n)) as the weighting function (default 7)");
+    volDilateWeightedOpt->createOptionalParameter(2, "-legacy-cutoff", "use v1.3.2 logic for the kernel cutoff");
     
     OptionalParameter* surfDilateOpt = ret->createOptionalParameter(10, "-surface-postdilate", "dilate the surface components after resampling");
     surfDilateOpt->addDoubleParameter(1, "dilate-mm", "distance, in mm, to dilate");
     surfDilateOpt->createOptionalParameter(2, "-nearest", "use nearest value dilation");
     surfDilateOpt->createOptionalParameter(3, "-linear", "use linear dilation");
-    OptionalParameter* surfDilateWeightedOpt = surfDilateOpt->createOptionalParameter(4, "-weighted", "use weighted dilation");
+    OptionalParameter* surfDilateWeightedOpt = surfDilateOpt->createOptionalParameter(4, "-weighted", "use weighted dilation (default)");
     OptionalParameter* surfDilateExpOpt = surfDilateWeightedOpt->createOptionalParameter(1, "-exponent", "specify exponent in weighting function");
-    surfDilateExpOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (area / (distance ^ n)) as the weighting function (default 2)");
+    surfDilateExpOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (area / (distance ^ n)) as the weighting function (default 6)");
+    surfDilateWeightedOpt->createOptionalParameter(2, "-legacy-cutoff", "use v1.3.2 logic for the kernel cutoff");
     
     OptionalParameter* affineOpt = ret->createOptionalParameter(11, "-affine", "use an affine transformation on the volume components");
     affineOpt->addStringParameter(1, "affine-file", "the affine file to use");
@@ -122,6 +124,7 @@ OperationParameters* OperationCiftiResampleDconnMemory::getParameters()
         "If spheres are not specified for a surface structure which exists in the cifti files, its data is copied without resampling or dilation.  " +
         "Dilation is done with the 'nearest' method, and is done on <new-sphere> for surface data.  " +
         "Volume components are padded before dilation so that dilation doesn't run into the edge of the component bounding box.\n\n" +
+        "To get the v1.3.2 and earlier behavior of weighted dilation, specify exponent of 2 for surface and volume, and -legacy-cutoff for both surface and volume.\n\n" +
         "The <volume-method> argument must be one of the following:\n\n" +
         "CUBIC\nENCLOSING_VOXEL\nTRILINEAR\n\n" +
         "The <surface-method> argument must be one of the following:\n\n";
@@ -186,8 +189,9 @@ void OperationCiftiResampleDconnMemory::useParameters(OperationParameters* myPar
     }
     AlgorithmVolumeDilate::Method volDilateMethod = AlgorithmVolumeDilate::WEIGHTED;
     float volDilateExponent = 2.0f;
-    AlgorithmMetricDilate::Method surfDilateMethod = AlgorithmMetricDilate::WEIGHTED;//label dilate doesn't support multiple methods - what to do there, share the enum between them?
+    AlgorithmMetricDilate::Method surfDilateMethod = AlgorithmMetricDilate::WEIGHTED;//label dilate doesn't support multiple methods
     float surfDilateExponent = 2.0f;//label dilate currently only supports nearest, so in order to accept a default in the algorithm, it currently ignores this on label data, no warning
+    bool surfLegacyCutoff = false, volLegacyCutoff = false;
     OptionalParameter* volDilateOpt = myParams->getOptionalParameter(9);
     if (volDilateOpt->m_present)
     {
@@ -210,6 +214,7 @@ void OperationCiftiResampleDconnMemory::useParameters(OperationParameters* myPar
             {
                 volDilateExponent = (float)volDilateExpOpt->getDouble(1);
             }
+            volLegacyCutoff = volDilateWeightedOpt->getOptionalParameter(2)->m_present;
         }
     }
     OptionalParameter* surfDilateOpt = myParams->getOptionalParameter(10);
@@ -242,6 +247,7 @@ void OperationCiftiResampleDconnMemory::useParameters(OperationParameters* myPar
             {
                 surfDilateExponent = (float)surfDilateExpOpt->getDouble(1);
             }
+            surfLegacyCutoff = surfDilateWeightedOpt->getOptionalParameter(2)->m_present;
         }
     }
     OptionalParameter* affineOpt = myParams->getOptionalParameter(11);
@@ -404,22 +410,22 @@ void OperationCiftiResampleDconnMemory::useParameters(OperationParameters* myPar
                                curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
                                curRightSphere, newRightSphere, curRightAreas, newRightAreas,
                                curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas,
-                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent);
+                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent, volLegacyCutoff, surfLegacyCutoff);
         AlgorithmCiftiResample(myProgObj, &tempCifti, CiftiXML::ALONG_ROW, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myWarpfield.getWarpfield(),
                                curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
                                curRightSphere, newRightSphere, curRightAreas, newRightAreas,
                                curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas,
-                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent);
+                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent, volLegacyCutoff, surfLegacyCutoff);
     } else {//rely on AffineFile() being the identity transform for if neither option is specified
         AlgorithmCiftiResample(myProgObj, myCiftiIn, CiftiXML::ALONG_COLUMN, myTemplate, templateDir, mySurfMethod, myVolMethod, &tempCifti, surfLargest, voldilatemm, surfdilatemm, myAffine.getMatrix(),
                                curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
                                curRightSphere, newRightSphere, curRightAreas, newRightAreas,
                                curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas,
-                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent);
+                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent, volLegacyCutoff, surfLegacyCutoff);
         AlgorithmCiftiResample(myProgObj, &tempCifti, CiftiXML::ALONG_ROW, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myAffine.getMatrix(),
                                curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
                                curRightSphere, newRightSphere, curRightAreas, newRightAreas,
                                curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas,
-                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent);
+                               volDilateMethod, volDilateExponent, surfDilateMethod, surfDilateExponent, volLegacyCutoff, surfLegacyCutoff);
     }
 }

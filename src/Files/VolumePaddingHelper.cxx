@@ -70,14 +70,14 @@ VolumePaddingHelper VolumePaddingHelper::padMM(const VolumeFile* orig, const flo
     return padVoxels(orig, ipad, jpad, kpad);
 }
 
-void VolumePaddingHelper::doPadding(const VolumeFile* orig, VolumeFile* padded, const float& padval)
+void VolumePaddingHelper::doPadding(const VolumeFile* orig, VolumeFile* padded, const float& padval) const
 {
     CaretAssert(padded != orig);
+    bool labelMode = (orig->getType() == SubvolumeAttributes::LABEL);
     if (!orig->matchesVolumeSpace(m_origDims.data(), m_origSform)) throw CaretException("attempted to pad a volume that doesn't match the one initialized with");
     vector<int64_t> newdims = m_paddedDims, curdims = orig->getOriginalDimensions();
     while (newdims.size() < curdims.size()) newdims.push_back(curdims[newdims.size()]);//add the nonspatial dimensions from orig
     padded->reinitialize(newdims, m_paddedSform, orig->getNumberOfComponents(), orig->getType());
-    vector<float> padframe(m_paddedDims[0] * m_paddedDims[1] * m_paddedDims[2], padval);
     vector<int64_t> loopdims;
     orig->getDimensions(loopdims);
     for (int c = 0; c < loopdims[4]; ++c)
@@ -86,7 +86,7 @@ void VolumePaddingHelper::doPadding(const VolumeFile* orig, VolumeFile* padded, 
         {
             if (c == 0)
             {
-                if (orig->getType() == SubvolumeAttributes::LABEL)
+                if (labelMode)
                 {
                     *(padded->getMapLabelTable(s)) = *(orig->getMapLabelTable(s));
                 } else {
@@ -94,6 +94,9 @@ void VolumePaddingHelper::doPadding(const VolumeFile* orig, VolumeFile* padded, 
                 }
                 padded->setMapName(s, orig->getMapName(s));
             }
+            float mypadval = padval;
+            if (labelMode) mypadval = orig->getMapLabelTable(s)->getUnassignedLabelKey();
+            vector<float> padframe(m_paddedDims[0] * m_paddedDims[1] * m_paddedDims[2], mypadval);
             int64_t ijk[3], inIndex = 0;//we scan the frame linearly, so we can do this
             const float* inFrame = orig->getFrame(s, c);
             for (ijk[2] = 0; ijk[2] < m_origDims[2]; ++ijk[2])
@@ -113,7 +116,7 @@ void VolumePaddingHelper::doPadding(const VolumeFile* orig, VolumeFile* padded, 
     }
 }
 
-void VolumePaddingHelper::undoPadding(const VolumeFile* padded, VolumeFile* orig)
+void VolumePaddingHelper::undoPadding(const VolumeFile* padded, VolumeFile* orig) const
 {
     CaretAssert(orig != padded);
     if (!padded->matchesVolumeSpace(m_paddedDims.data(), m_paddedSform)) throw CaretException("attempted to unpad a volume that doesn't match padding");

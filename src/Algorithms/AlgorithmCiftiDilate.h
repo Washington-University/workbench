@@ -35,7 +35,7 @@ namespace caret {
         AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
                              const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL,
                              const MetricFile* myLeftAreas = NULL, const MetricFile* myRightAreas = NULL, const MetricFile* myCerebAreas = NULL,
-                             const CiftiFile* myRoi = NULL, const bool& nearest = false, const bool& mergedVolume = false);
+                             const CiftiFile* myRoi = NULL, const bool& nearest = false, const bool& mergedVolume = false, const bool legacyMode = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

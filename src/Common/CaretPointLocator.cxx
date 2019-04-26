@@ -196,15 +196,15 @@ int64_t CaretPointLocator::closestPoint(const float target[3], LocatorInfo* info
 
 int64_t CaretPointLocator::closestPointLimited(const float target[3], const float& maxDist, LocatorInfo* infoOut) const
 {
+    if (infoOut != NULL)
+    {
+        infoOut->whichSet = -1;
+        infoOut->index = -1;
+    }
     if (m_tree == NULL) return -1;
     float curDist2 = m_tree->distSquaredToPoint(target), maxDist2 = maxDist * maxDist;
     if (curDist2 > maxDist2)
     {
-        if (infoOut != NULL)
-        {
-            infoOut->whichSet = -1;
-            infoOut->index = -1;
-        }
         return -1;
     }
     CaretSimpleMinHeap<Oct<LeafVector<Point> >*, float> myHeap;
@@ -264,9 +264,9 @@ int64_t CaretPointLocator::closestPointLimited(const float target[3], const floa
     return bestIndex;
 }
 
-set<LocatorInfo> CaretPointLocator::pointsInRange(const float target[3], const float& maxDist) const
-{
-    set<LocatorInfo> ret;
+vector<LocatorInfo> CaretPointLocator::pointsInRange(const float target[3], const float& maxDist) const
+{//each point occurs in only once in the tree, so we can use a vector
+    vector<LocatorInfo> ret;
     if (m_tree == NULL) return ret;
     float curDist2 = m_tree->distSquaredToPoint(target), maxDist2 = maxDist * maxDist;
     if (curDist2 > maxDist2) return ret;
@@ -285,7 +285,7 @@ set<LocatorInfo> CaretPointLocator::pointsInRange(const float target[3], const f
                 float tempf = MathFunctions::distanceSquared3D(myVecRef[i].m_point, target);
                 if (tempf <= maxDist2)
                 {
-                    ret.insert(LocatorInfo(myVecRef[i].m_index, myVecRef[i].m_mySet, myVecRef[i].m_point));
+                    ret.push_back(LocatorInfo(myVecRef[i].m_index, myVecRef[i].m_mySet, myVecRef[i].m_point));
                 }
             }
         } else {

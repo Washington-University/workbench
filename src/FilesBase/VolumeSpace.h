@@ -24,6 +24,7 @@
 #include "CaretAssert.h"
 
 #include "Vector3D.h"
+#include "VoxelIJK.h"
 
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
@@ -85,6 +86,21 @@ namespace caret
         template <typename T>
         inline void indexToSpace(const T* indexIn, float& coordOut1, float& coordOut2, float& coordOut3) const
         { indexToSpace<T>(indexIn[0], indexIn[1], indexIn[2], coordOut1, coordOut2, coordOut3); }
+        
+        ///output a Vector3D for three indices
+        template <typename T>
+        inline Vector3D indexToSpace(const T& indexIn1, const T& indexIn2, const T& indexIn3) const
+        { Vector3D coords; indexToSpace(indexIn1, indexIn2, indexIn3, coords); return coords; }
+        
+        ///output a Vector3D for an index triplet
+        template <typename T>
+        inline Vector3D indexToSpace(const T* indexIn) const
+        { Vector3D coords; indexToSpace(indexIn, coords); return coords; }
+        
+        ///convenience methods to use VoxelIJK without .m_ijk
+        inline Vector3D indexToSpace(const VoxelIJK indexIn) const { return indexToSpace(indexIn.m_ijk); }
+        inline void indexToSpace(const VoxelIJK indexIn, float* coordOut) const { indexToSpace(indexIn.m_ijk, coordOut); }
+        inline void indexToSpace(const VoxelIJK indexIn, float& coordOut1, float& coordOut2, float& coordOut3) const { indexToSpace(indexIn.m_ijk, coordOut1, coordOut2, coordOut3); }
         
         ///returns three coordinates of three indices
         template <typename T>

@@ -80,6 +80,8 @@ OperationParameters* AlgorithmCiftiDilate::getParameters()
     
     ret->createOptionalParameter(11, "-merged-volume", "treat volume components as if they were a single component");
     
+    ret->createOptionalParameter(12, "-legacy-mode", "use the math from v1.3.2 and earlier for weighted dilation");
+    
     ret->setHelpText(
         AString("For all data values designated as bad, if they neighbor a good value or are within the specified distance of a good value in the same kind of model, ") +
         "replace the value with a distance weighted average of nearby good values, otherwise set the value to zero.  " +
@@ -149,13 +151,14 @@ void AlgorithmCiftiDilate::useParameters(OperationParameters* myParams, Progress
     }
     bool nearest = myParams->getOptionalParameter(10)->m_present;
     bool mergedVolume = myParams->getOptionalParameter(11)->m_present;
-    AlgorithmCiftiDilate(myProgObj, myCifti, myDir, surfDist, volDist, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, myLeftAreas, myRightAreas, myCerebAreas, myRoi, nearest, mergedVolume);
+    bool legacyMode = myParams->getOptionalParameter(12)->m_present;
+    AlgorithmCiftiDilate(myProgObj, myCifti, myDir, surfDist, volDist, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, myLeftAreas, myRightAreas, myCerebAreas, myRoi, nearest, mergedVolume, legacyMode);
 }
 
 AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
                                            const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf,
                                            const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas,
-                                           const CiftiFile* myBadRoi, const bool& nearest, const bool& mergedVolume) : AbstractAlgorithm(myProgObj)
+                                           const CiftiFile* myBadRoi, const bool& nearest, const bool& mergedVolume, const bool legacyMode) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CiftiXMLOld myXML = myCifti->getCiftiXMLOld();
@@ -165,6 +168,12 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
     if (!myXML.getStructureLists(myDir, surfaceList, volumeList))
     {
         throw AlgorithmException("specified direction does not contain brainordinates");
+    }
+    float volExponent = 7.0f, surfExponent = 6.0f;
+    if (legacyMode)
+    {
+        volExponent = 2.0f;
+        surfExponent = 2.0f;
     }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
@@ -245,7 +254,7 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
             AlgorithmMetricDilate::Method myMethod = AlgorithmMetricDilate::WEIGHTED;
             if (nearest) myMethod = AlgorithmMetricDilate::NEAREST;
             AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &dataRoiMetric);
-            AlgorithmMetricDilate(NULL, &myMetric, mySurf, surfDist, &myMetricOut, badRoiPtr, &dataRoiMetric, -1, myMethod, 2.0f, myCorrAreas);
+            AlgorithmMetricDilate(NULL, &myMetric, mySurf, surfDist, &myMetricOut, badRoiPtr, &dataRoiMetric, -1, myMethod, surfExponent, myCorrAreas, legacyMode);
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
         }
     }
@@ -253,8 +262,9 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
     {
         if (myXML.hasVolumeData(myDir))
         {
-            VolumeFile myVol, roiVol, myVolOut;
-            VolumeFile* roiPtr = NULL;
+            VolumeFile myVol, roiVol, myVolOut, dataRoi, junkVol;
+            VolumeFile* roiPtr = NULL, *dataRoiPtr = &dataRoi;
+            if (legacyMode) dataRoiPtr = NULL;
             int64_t offset[3];
             AlgorithmVolumeDilate::Method myMethod = AlgorithmVolumeDilate::WEIGHTED;
             if (nearest)
@@ -266,8 +276,8 @@ AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const Cift
                 AlgorithmCiftiSeparate(NULL, myBadRoi, CiftiXMLOld::ALONG_COLUMN, &roiVol, offset, NULL, true);
                 roiPtr = &roiVol;
             }
-            AlgorithmCiftiSeparate(NULL, myCifti, myDir, &myVol, offset, NULL, true);
-            AlgorithmVolumeDilate(NULL, &myVol, volDist, myMethod, &myVolOut, roiPtr);
+            AlgorithmCiftiSeparate(NULL, myCifti, myDir, &myVol, offset, &dataRoi, true);
+            AlgorithmVolumeDilate(NULL, &myVol, volDist, myMethod, &myVolOut, roiPtr, dataRoiPtr, -1, volExponent, legacyMode);
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, &myVolOut, true);
         }
     } else {

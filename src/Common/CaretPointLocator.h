@@ -36,11 +36,12 @@ namespace caret {
         int64_t index;
         int32_t whichSet;
         Vector3D coords;
+        LocatorInfo() { index = -1; whichSet = -1; }
         LocatorInfo(const int64_t& indexIn, const int32_t& whichSetIn, const Vector3D& coordsIn) : index(indexIn), whichSet(whichSetIn), coords(coordsIn) { }
         bool operator==(const LocatorInfo& rhs) const { return (index == rhs.index) && (whichSet == rhs.whichSet); }//ignore coords
         bool operator<(const LocatorInfo& rhs) const
         {
-            if (whichSet == rhs.whichSet)//expect multi-set usage with pointsInRange to be rare, but still separate by whichSet
+            if (whichSet == rhs.whichSet)//expect multi-set usage with pointsInRange to be rare, but still separate by whichSet if sorted
             {
                 return index < rhs.index;
             } else {
@@ -77,14 +78,17 @@ namespace caret {
         CaretPointLocator(const float minBounds[3], const float maxBounds[3]);
         ///make a point locator with the bounding box of this point set, and use this point set as set #0
         CaretPointLocator(const float* coordsIn, const int64_t numCoords);
+        ///convenience constructor for vectors
+        CaretPointLocator(const std::vector<float> coordsIn) : CaretPointLocator(coordsIn.data(), coordsIn.size() / 3) { }
         ///add a point set, SAVE THE RETURN VALUE because it is how you identify which point set found points belong to
         int32_t addPointSet(const float* coordsIn, const int64_t numCoords);
+        int32_t addPointSet(const std::vector<float> coordsIn) { return addPointSet(coordsIn.data(), coordsIn.size() / 3); }
         ///remove a point set by its set number
         void removePointSet(const int32_t whichSet);
         ///returns the index of the closest point, and optionally which point set and the coords
         int64_t closestPoint(const float target[3], LocatorInfo* infoOut = NULL) const;
         int64_t closestPointLimited(const float target[3], const float& maxDist, LocatorInfo* infoOut = NULL) const;
-        std::set<LocatorInfo> pointsInRange(const float target[3], const float& maxDist) const;
+        std::vector<LocatorInfo> pointsInRange(const float target[3], const float& maxDist) const;
         bool anyInRange(const float target[3], const float& maxDist) const;
     };
 }

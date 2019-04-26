@@ -37,17 +37,12 @@ namespace caret {
             NEAREST,
             WEIGHTED
         };
-        AlgorithmVolumeDilate(ProgressObject* myProgObj, const VolumeFile* volIn, const float& distance, const Method& myMethod,
-                              VolumeFile* volOut, const VolumeFile* badRoi = NULL, const VolumeFile* dataRoi = NULL, const int& subvol = -1, const float& exponent = 2.0f);
+        AlgorithmVolumeDilate(ProgressObject* myProgObj, const VolumeFile* volIn, const float& distance, const Method& myMethod, VolumeFile* volOut,
+                              const VolumeFile* badRoi = NULL, const VolumeFile* dataRoi = NULL, const int& subvol = -1, const float& exponent = 7.0f, const bool legacyCutoff = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
-    private:
-        void dilateFrame(const VolumeFile* volIn, const int& insubvol, const int& component, VolumeFile* volOut, const int& outsubvol, const VolumeFile* badRoi,
-                         const VolumeFile* dataRoi, const Method& myMethod, const std::vector<int>& stencil, const std::vector<float>& stenWeights);
-        void dilateFrameLabel(const VolumeFile* volIn, const int& insubvol, const int& component, VolumeFile* volOut, const int& outsubvol, const VolumeFile* badRoi,
-                              const VolumeFile* dataRoi, const Method& myMethod, const std::vector<int>& stencil, const std::vector<float>& stenWeights);
     };
 
     typedef TemplateAutoOperation<AlgorithmVolumeDilate> AutoAlgorithmVolumeDilate;

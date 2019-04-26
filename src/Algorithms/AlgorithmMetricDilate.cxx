@@ -23,6 +23,7 @@
 
 #include "CaretAssert.h"
 #include "CaretOMP.h"
+#include "FastStatistics.h"
 #include "GeodesicHelper.h"
 #include "MetricFile.h"
 #include "PaletteColorMapping.h"
@@ -71,10 +72,12 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
     ret->createOptionalParameter(10, "-linear", "fill in values with linear interpolation along strongest gradient");
     
     OptionalParameter* exponentOpt = ret->createOptionalParameter(8, "-exponent", "use a different exponent in the weighting function");
-    exponentOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (area / (distance ^ n)) as the weighting function (default 2)");
+    exponentOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (area / (distance ^ n)) as the weighting function (default 6)");
     
     OptionalParameter* corrAreaOpt = ret->createOptionalParameter(11, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
     corrAreaOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
+    
+    ret->createOptionalParameter(12, "-legacy-cutoff", "use the old method of choosing how many vertices to use when calulating the dilated value with weighted method");
         
     ret->setHelpText(
         AString("For all metric vertices that are designated as bad, if they neighbor a non-bad vertex with data or are within the specified distance of such a vertex, ") +
@@ -84,8 +87,8 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
         "If -bad-vertex-roi is specified, only vertices with a positive value in the ROI are bad.  " +
         "If it is not specified, only vertices that have data, with a value of zero, are bad.  " +
         "If -data-roi is not specified, all vertices are assumed to have data.\n\n" +
-        
-        "Note that the -corrected-areas option uses an approximate correction for the change in distances along a group average surface."
+        "Note that the -corrected-areas option uses an approximate correction for the change in distances along a group average surface.\n\n" +
+        "To get the behavior of version 1.3.2 or earlier, use '-legacy-cutoff -exponent 2'."
     );
     return ret;
 }
@@ -131,7 +134,7 @@ void AlgorithmMetricDilate::useParameters(OperationParameters* myParams, Progres
         methodSpecified = true;
         myMethod = LINEAR;
     }
-    float exponent = 2.0f;
+    float exponent = 6.0f;
     OptionalParameter* exponentOpt = myParams->getOptionalParameter(8);
     if (exponentOpt->m_present)
     {
@@ -143,12 +146,13 @@ void AlgorithmMetricDilate::useParameters(OperationParameters* myParams, Progres
     {
         corrAreas = corrAreaOpt->getMetric(1);
     }
-    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, distance, myMetricOut, badNodeRoi, dataRoi, columnNum, myMethod, exponent, corrAreas);
+    bool legacyCutoff = myParams->getOptionalParameter(12)->m_present;
+    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, distance, myMetricOut, badNodeRoi, dataRoi, columnNum, myMethod, exponent, corrAreas, legacyCutoff);
 }
 
 AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const float& distance, MetricFile* myMetricOut,
                                              const MetricFile* badNodeRoi, const MetricFile* dataRoi, const int& columnNum,
-                                             const Method& myMethod, const float& exponent, const MetricFile* corrAreas) : AbstractAlgorithm(myProgObj)
+                                             const Method& myMethod, const float& exponent, const MetricFile* corrAreas, const bool legacyCutoff) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numNodes = mySurf->getNumberOfNodes();
@@ -196,7 +200,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         {
             precomputeNearest(myNearest, mySurf, badNodeRoi, dataRoi, corrAreas, distance);
         } else {
-            precomputeStencils(myStencils, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, exponent);
+            precomputeStencils(myStencils, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, exponent, legacyCutoff);
         }
     }
     if (columnNum == -1)
@@ -209,7 +213,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
             myMetricOut->setColumnName(thisCol, myMetric->getColumnName(thisCol));
             if (badNodeRoi == NULL)
             {
-                processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent);
+                processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff);
             } else {
                 switch (myMethod)
                 {
@@ -220,7 +224,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
                         processColumn(colScratch.data(), numNodes, myInputData, myStencils);
                         break;
                     case LINEAR:
-                        processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent);
+                        processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff);
                         break;
                 }
             }
@@ -233,7 +237,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum));
         if (badNodeRoi == NULL)
         {
-            processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent);
+            processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff);
         } else {
             switch (myMethod)
             {
@@ -244,7 +248,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
                     processColumn(colScratch.data(), numNodes, myInputData, myStencils);
                     break;
                 case LINEAR:
-                    processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent);
+                    processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff);
                     break;
             }
         }
@@ -302,16 +306,19 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const int& numNodes
 
 void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInputData, const SurfaceFile* mySurf, const float* myAreas,
                                           const MetricFile* badNodeRoi, const MetricFile* dataRoi, const MetricFile* corrAreas,
-                                          const float& distance, const bool& nearest, const bool& linear, const float& exponent)
+                                          const float& distance, const bool& nearest, const bool& linear, const float& exponent, const bool legacyCutoff)
 {
-    float cutoffRatio = 1.5f, test = pow(10.0f, 1.0f / exponent);//find what cutoff ratio corresponds to a tenth of weight, but don't use more than a 1.5 * nearest cutoff
-    if (test > 1.0f && test < cutoffRatio)//if it is less than 1, the exponent is weird, so simply ignore it and use default
-    {
+    FastStatistics spacingStats;
+    mySurf->getNodesSpacingStatistics(spacingStats);//use mean spacing to help set minimum stencil distance, since native surfaces might have a minimum of 0
+    float cutoffBase = max(2.0f * distance, 2.0f * spacingStats.getMean()), cutoffRatio = max(1.1f, pow(49.0f, 1.0f / (exponent - 2.0f)));//find what ratio from closest vertex corresponds to having 98% of total weight accounted for on a plane, assuming non-adverse ROI
+    float legacyCutoffRatio = 1.5f, test = pow(10.0f, 1.0f / exponent);//old logic: find what cutoff ratio corresponds to a tenth of weight, but don't use more than a 1.5 * nearest cutoff
+    if (test > 1.0f && test < legacyCutoffRatio)//if it is less than 1, the exponent is weird, so simply ignore it and use default
+    {//this generally cut off early, causing the result to behave like a higher exponent was used
         if (test > 1.1f)
         {
-            cutoffRatio = test;
+            legacyCutoffRatio = test;
         } else {
-            cutoffRatio = 1.1f;
+            legacyCutoffRatio = 1.1f;
         }
     }
     int numNodes = mySurf->getNumberOfNodes();
@@ -497,7 +504,17 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
                                 colScratch[i] = myInputData[node1] + (myInputData[node2] - myInputData[node1]) * usableDists[bestj] / (usableDists[bestj] + usableDists[bestk]);
                             }
                         } else {
-                            myGeoHelp->getNodesToGeoDist(i, closestDist * cutoffRatio, nodeList, distList);//NOTE: guaranteed to find at least the closest node
+                            float cutoffDist = cutoffBase;
+                            if (legacyCutoff)
+                            {
+                                cutoffDist = closestDist * legacyCutoffRatio;
+                            } else {
+                                if (exponent > 2.0f && cutoffRatio < 100.0f && cutoffRatio > 1.0f)//if the ratio is sane, use it, but never exceed cutoffBase
+                                {
+                                    cutoffDist = max(min(cutoffRatio * closestDist, cutoffDist), cutoffBase * 0.25f);//but small kernels are rather cheap anyway, so have a minimum size just in case
+                                }
+                            }
+                            myGeoHelp->getNodesToGeoDist(i, cutoffDist, nodeList, distList);
                             int numInRange = (int)nodeList.size();
                             float totalWeight = 0.0f, weightedSum = 0.0f;
                             for (int j = 0; j < numInRange; ++j)
@@ -535,18 +552,21 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
 
 void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& myStencils, const SurfaceFile* mySurf, const float* myAreas,
                                                const MetricFile* badNodeRoi, const MetricFile* dataRoi, const MetricFile* corrAreas,
-                                               const float& distance, const float& exponent)
+                                               const float& distance, const float& exponent, const bool legacyCutoff)
 {
     CaretAssert(badNodeRoi != NULL);//because it should never be called if we don't know exactly what nodes we are replacing
     const float* badNodeData = badNodeRoi->getValuePointerForColumn(0);
-    float cutoffRatio = 1.5f, test = pow(10.0f, 1.0f / exponent);//find what cutoff ratio corresponds to a tenth of weight, but don't use more than a 1.5 * nearest cutoff
-    if (test > 1.0f && test < cutoffRatio)//if it is less than 1, the exponent is weird, so simply ignore it and use default
-    {
+    FastStatistics spacingStats;
+    mySurf->getNodesSpacingStatistics(spacingStats);//use mean spacing to help set minimum stencil distance, since native surfaces might have a minimum of 0
+    float cutoffBase = max(2.0f * distance, 2.0f * spacingStats.getMean()), cutoffRatio = max(1.1f, pow(49.0f, 1.0f / (exponent - 2.0f)));//find what ratio from closest vertex corresponds to having 98% of total weight accounted for on a plane, assuming non-adverse ROI
+    float legacyCutoffRatio = 1.5f, test = pow(10.0f, 1.0f / exponent);//old logic: find what cutoff ratio corresponds to a tenth of weight, but don't use more than a 1.5 * nearest cutoff
+    if (test > 1.0f && test < legacyCutoffRatio)//if it is less than 1, the exponent is weird, so simply ignore it and use default
+    {//this generally cut off early, causing the result to behave like a higher exponent was used
         if (test > 1.1f)
         {
-            cutoffRatio = test;
+            legacyCutoffRatio = test;
         } else {
-            cutoffRatio = 1.1f;
+            legacyCutoffRatio = 1.1f;
         }
     }
     int numNodes = mySurf->getNumberOfNodes();
@@ -637,7 +657,17 @@ void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& 
                 {
                     vector<int32_t> nodeList;
                     vector<float> distList;
-                    myGeoHelp->getNodesToGeoDist(i, closestDist * cutoffRatio, nodeList, distList);
+                    float cutoffDist = cutoffBase;
+                    if (legacyCutoff)
+                    {
+                        cutoffDist = closestDist * legacyCutoffRatio;
+                    } else {
+                        if (exponent > 2.0f && cutoffRatio < 100.0f && cutoffRatio > 1.0f)//if the ratio is sane, use it, but never exceed cutoffBase
+                        {
+                            cutoffDist = max(min(cutoffRatio * closestDist, cutoffDist), cutoffBase * 0.25f);//but small kernels are rather cheap anyway, so have a minimum size just in case
+                        }
+                    }
+                    myGeoHelp->getNodesToGeoDist(i, cutoffDist, nodeList, distList);
                     int numInRange = (int)nodeList.size();
                     myElem.m_weightsum = 0.0f;
                     for (int j = 0; j < numInRange; ++j)

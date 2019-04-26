@@ -37,8 +37,9 @@ namespace caret {
         VolumePaddingHelper() { }
         static VolumePaddingHelper padMM(const VolumeFile* orig, const float& mmpad);
         static VolumePaddingHelper padVoxels(const VolumeFile* orig, const int& ipad, const int& jpad, const int& kpad);
-        void doPadding(const VolumeFile* orig, VolumeFile* padded, const float& padval = 0.0f);
-        void undoPadding(const VolumeFile* padded, VolumeFile* orig);
+        void getPadding(int& ipad, int& jpad, int& kpad) const { ipad = m_ipad; jpad = m_jpad; kpad = m_kpad; }
+        void doPadding(const VolumeFile* orig, VolumeFile* padded, const float& padval = 0.0f) const;
+        void undoPadding(const VolumeFile* padded, VolumeFile* orig) const;
     };
     
 }

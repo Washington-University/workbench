@@ -24,11 +24,13 @@
 #include "CaretHeap.h"
 #include "CaretLogger.h"
 #include "CaretOMP.h"
+#include "CaretPointLocator.h"
 #include "FloatMatrix.h"
 #include "Vector3D.h"
 #include "VolumeFile.h"
 #include "VoxelIJK.h"
 
+#include <algorithm>
 #include <cmath>
 #include <map>
 
@@ -57,7 +59,7 @@ OperationParameters* AlgorithmVolumeDilate::getParameters()
     ret->addVolumeOutputParameter(4, "volume-out", "the output volume");
     
     OptionalParameter* exponentOpt = ret->createOptionalParameter(8, "-exponent", "use a different exponent in the weighting function");
-    exponentOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (1 / (distance ^ n)) as the weighting function (default 2)");
+    exponentOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (1 / (distance ^ n)) as the weighting function (default 7)");
     
     OptionalParameter* badRoiOpt = ret->createOptionalParameter(5, "-bad-voxel-roi", "specify an roi of voxels to overwrite, rather than voxels with value zero");
     badRoiOpt->addVolumeParameter(1, "roi-volume", "volume file, positive values denote voxels to have their values replaced");
@@ -68,12 +70,15 @@ OperationParameters* AlgorithmVolumeDilate::getParameters()
     OptionalParameter* subvolSelect = ret->createOptionalParameter(6, "-subvolume", "select a single subvolume to dilate");
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
+    ret->createOptionalParameter(9, "-legacy-cutoff", "use the old method of excluding voxels further than the dilation distance when calculating the dilated value");
+    
     ret->setHelpText(
         AString("For all voxels that are designated as bad, if they neighbor a non-bad voxel with data or are within the specified distance of such a voxel, ") +
         "replace the value in the bad voxel with a value calculated from nearby non-bad voxels that have data, otherwise set the value to zero.  " +
         "No matter how small <distance> is, dilation will always use at least the face neighbor voxels.\n\n" +
         "By default, voxels that have data with the value 0 are bad, specify -bad-voxel-roi to only count voxels as bad if they are selected by the roi.  " +
         "If -data-roi is not specified, all voxels are assumed to have data.\n\n" +
+        "To get the behavior of version 1.3.2 or earlier, use '-legacy-cutoff -exponent 2'.\n\n" +
         "Valid values for <method> are:\n\n" +
         "NEAREST - use the value from the nearest good voxel\n" +
         "WEIGHTED - use a weighted average based on distance"
@@ -97,7 +102,7 @@ void AlgorithmVolumeDilate::useParameters(OperationParameters* myParams, Progres
     }
     VolumeFile* volOut = myParams->getOutputVolume(4);
     OptionalParameter* exponentOpt = myParams->getOptionalParameter(8);
-    float exponent = 2.0f;
+    float exponent = 7.0f;
     if (exponentOpt->m_present)
     {
         exponent = (float)exponentOpt->getDouble(1);
@@ -121,11 +126,285 @@ void AlgorithmVolumeDilate::useParameters(OperationParameters* myParams, Progres
         subvol = volIn->getMapIndexFromNameOrNumber(subvolSelect->getString(1));
         if (subvol < 0) throw AlgorithmException("invalid subvolume specified");
     }
-    AlgorithmVolumeDilate(myProgObj, volIn, distance, myMethod, volOut, badRoi, dataRoi, subvol, exponent);
+    bool legacyCutoff = myParams->getOptionalParameter(9)->m_present;
+    AlgorithmVolumeDilate(myProgObj, volIn, distance, myMethod, volOut, badRoi, dataRoi, subvol, exponent, legacyCutoff);
 }
 
-AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const VolumeFile* volIn, const float& distance, const Method& myMethod,
-                                             VolumeFile* volOut, const VolumeFile* badRoi, const VolumeFile* dataRoi, const int& subvol, const float& exponent) : AbstractAlgorithm(myProgObj)
+namespace
+{
+    
+    inline bool copyVoxel(const bool labelMode, const int32_t unlabeledKey, const int64_t i, const int64_t j, const int64_t k, const VolumeFile* volIn, const int& insubvol, const int& component,
+                          const VolumeFile* badRoi, const VolumeFile* dataRoi)
+    {//copy all voxels that are not to be replaced
+        if (badRoi == NULL)
+        {
+            if (labelMode)
+            {
+                return (dataRoi != NULL && !(dataRoi->getValue(i, j, k) > 0.0f)) || floor(0.5f + volIn->getValue(i, j, k, insubvol, component)) != unlabeledKey;
+            } else {
+                return (dataRoi != NULL && !(dataRoi->getValue(i, j, k) > 0.0f)) || volIn->getValue(i, j, k, insubvol, component) != 0.0f;
+            }
+        } else {
+            return !(badRoi->getValue(i, j, k) > 0.0f);//in case some clown uses NaNs instead of 0s in an roi
+        }
+    }
+    
+    inline bool voxelUsable(const bool labelMode, const int32_t unlabeledKey, const int64_t i, const int64_t j, const int64_t k, const VolumeFile* volIn, const int& insubvol, const int& component,
+                            const VolumeFile* badRoi, const VolumeFile* dataRoi)
+    {//only voxels that are inside the data ROI and not to be replaced
+        if (badRoi == NULL)
+        {
+            if (labelMode)
+            {
+                return (dataRoi == NULL || dataRoi->getValue(i, j, k) > 0.0f) && floor(0.5f + volIn->getValue(i, j, k, insubvol, component)) != unlabeledKey;
+            } else {
+                return (dataRoi == NULL || dataRoi->getValue(i, j, k) > 0.0f) && volIn->getValue(i, j, k, insubvol, component) != 0.0f;
+            }
+        } else {
+            return (dataRoi == NULL || dataRoi->getValue(i, j, k) > 0.0f) && !(badRoi->getValue(i, j, k) > 0.0f);
+        }
+    }
+    
+    void dilateFrame(const bool labelMode, const VolumeFile* volIn, const int& insubvol, const int& component, VolumeFile* volOut, const int& outsubvol, const VolumeFile* badRoi,
+                            const VolumeFile* dataRoi, const float& distance, const AlgorithmVolumeDilate::Method& myMethod, const float& exponent, const bool& legacyCutoff)
+    {//copy data that is outside the dataROI, replace values where badROI is > 0 (with zero if nothing else), if no badROI, pretend badROI is (data == 0 && dataROI > 0)
+        int neighbors[18] = {0, 0, -1,
+                           0, -1, 0,
+                           -1, 0, 0,
+                           1, 0, 0,
+                           0, 1, 0,
+                           0, 0, 1};//special behavior: when distance is 0, it still dilates by 1 voxel
+        Vector3D voxStep[3], origin;
+        const VolumeSpace& myVolSpace = volIn->getVolumeSpace();
+        myVolSpace.getSpacingVectors(voxStep[0], voxStep[1], voxStep[2], origin);
+        //if the distance is within 1% of excluding a neighbor, we need to additionally check the neighbors
+        bool checkNeighbors = distance <= voxStep[0].length() * 1.01f || distance <= voxStep[1].length() * 1.01f || distance <= voxStep[2].length() * 1.01f;
+        //the single-voxel rule means we can't just base the maximum search distance on the dilation distance
+        float cutoffBase = max(2.0f * distance, 2.0f * min(min(voxStep[0].length(), voxStep[1].length()), voxStep[2].length()));
+        vector<int64_t> myDims = volIn->getDimensions();
+        int32_t unlabeledKey = 0;
+        if (labelMode) unlabeledKey = volIn->getMapLabelTable(insubvol)->getUnassignedLabelKey();
+        vector<float> validPoints;
+        vector<VoxelIJK> validIndices;
+        for (int64_t k = 0; k < myDims[2]; ++k)
+        {
+            for (int64_t j = 0; j < myDims[1]; ++j)
+            {
+                for (int64_t i = 0; i < myDims[0]; ++i)
+                {
+                    if (voxelUsable(labelMode, unlabeledKey, i, j, k, volIn, insubvol, component, badRoi, dataRoi))
+                    {
+                        VoxelIJK tempVoxel(i, j, k);
+                        Vector3D tempCoord = myVolSpace.indexToSpace(tempVoxel);
+                        validPoints.push_back(tempCoord[0]);
+                        validPoints.push_back(tempCoord[1]);
+                        validPoints.push_back(tempCoord[2]);
+                        validIndices.push_back(tempVoxel);
+                    }
+                }
+            }
+        }
+        CaretPointLocator locator(validPoints);
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int64_t k = 0; k < myDims[2]; ++k)
+        {
+            for (int64_t j = 0; j < myDims[1]; ++j)
+            {
+                for (int64_t i = 0; i < myDims[0]; ++i)
+                {
+                    if (copyVoxel(labelMode, unlabeledKey, i, j, k, volIn, insubvol, component, badRoi, dataRoi))
+                    {
+                        if (labelMode)
+                        {
+                            volOut->setValue(floor(0.5f + volIn->getValue(i, j, k, insubvol, component)), i, j, k, outsubvol, component);
+                        } else {
+                            volOut->setValue(volIn->getValue(i, j, k, insubvol, component), i, j, k, outsubvol, component);
+                        }
+                    } else {
+                        Vector3D voxcoord = myVolSpace.indexToSpace(i, j, k);
+                        switch (myMethod)
+                        {
+                            case AlgorithmVolumeDilate::NEAREST:
+                            {
+                                int64_t index = locator.closestPointLimited(voxcoord, distance);
+                                if (index < 0)
+                                {
+                                    if (checkNeighbors)
+                                    {
+                                        float bestDist = -1.0f;
+                                        float bestVal = 0.0f;
+                                        for (int n = 0; n < 6; ++n)
+                                        {
+                                            int neighbase = n * 3;
+                                            int64_t neighVox[3] = {i + neighbors[neighbase], j + neighbors[neighbase + 1], k + neighbors[neighbase + 2]};
+                                            if (myVolSpace.indexValid(neighVox) && voxelUsable(labelMode, unlabeledKey, neighVox[0], neighVox[1], neighVox[2], volIn, insubvol, component, badRoi, dataRoi))
+                                            {
+                                                float tempdist = (myVolSpace.indexToSpace(neighbors + neighbase) - myVolSpace.indexToSpace(0, 0, 0)).length();//slightly hacky, but won't have inconsistencies from different rounding per voxel
+                                                if (tempdist < bestDist || bestDist == -1.0f)
+                                                {
+                                                    bestDist = tempdist;
+                                                    bestVal = volIn->getValue(neighVox, insubvol, component);
+                                                }
+                                            }
+                                        }
+                                        if (labelMode)
+                                        {
+                                            volOut->setValue(floor(0.5f + bestVal), i, j, k, outsubvol, component);
+                                        } else {
+                                            volOut->setValue(bestVal, i, j, k, outsubvol, component);
+                                        }
+                                    } else {
+                                        volOut->setValue(0.0f, i, j, k, outsubvol, component);
+                                    }
+                                } else {
+                                    if (labelMode)
+                                    {
+                                        volOut->setValue(floor(0.5f + volIn->getValue(validIndices[index], insubvol, component)), i, j, k, outsubvol, component);
+                                    } else {
+                                        volOut->setValue(volIn->getValue(validIndices[index], insubvol, component), i, j, k, outsubvol, component);
+                                    }
+                                }
+                                break;
+                            }
+                            case AlgorithmVolumeDilate::WEIGHTED:
+                            {
+                                vector<LocatorInfo> inRange;
+                                if (legacyCutoff)
+                                {
+                                    inRange = locator.pointsInRange(voxcoord, distance);//immediate neighbor special case is handled below
+                                } else {
+                                    float closeDist = -1.0f;
+                                    LocatorInfo myInfo;
+                                    int64_t index = locator.closestPointLimited(voxcoord, distance, &myInfo);//only need the distance
+                                    bool found = false;
+                                    if (index >= 0)
+                                    {
+                                        found = true;
+                                        closeDist = (myInfo.coords - voxcoord).length();
+                                    } else {
+                                        if (checkNeighbors)
+                                        {//always dilate to neighbor voxels, regardless
+                                            for (int n = 0; n < 6; ++n)
+                                            {
+                                                int neighbase = n * 3;
+                                                int64_t neighVox[3] = {i + neighbors[neighbase], j + neighbors[neighbase + 1], k + neighbors[neighbase + 2]};
+                                                if (myVolSpace.indexValid(neighVox) && voxelUsable(labelMode, unlabeledKey, neighVox[0], neighVox[1], neighVox[2], volIn, insubvol, component, badRoi, dataRoi))
+                                                {
+                                                    float tempdist = (myVolSpace.indexToSpace(neighbors + neighbase) - myVolSpace.indexToSpace(0, 0, 0)).length();//slightly hacky, but won't have inconsistencies from different rounding per voxel
+                                                    if (tempdist < closeDist || !found)
+                                                    {
+                                                        found = true;
+                                                        closeDist = tempdist;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (found)
+                                    {
+                                        //find what cutoff corresponds to 98% of the total weight being found compared to an infinite kernel
+                                        //to do this, assume a non-adversarial situation, where farther parts have at most equal angular area to closer ones
+                                        //49 = 98/(100-98)
+                                        float cutoffRatio = max(1.1f, pow(49.0f, 1.0f / (exponent - 3.0f))), cutoffDist = cutoffBase;//find what cutoff ratio corresponds to a hudredth of weight
+                                        if (exponent > 3.0f && cutoffRatio < 100.0f && cutoffRatio > 1.0f)//if the ratio is sane, use it, but never exceed cutoffBase
+                                        {
+                                            cutoffDist = max(min(cutoffRatio * closeDist, cutoffDist), cutoffBase * 0.25f);//but small kernels are rather cheap anyway, so have a minimum size just in case
+                                        }
+                                        inRange = locator.pointsInRange(voxcoord, cutoffDist);
+                                    }
+                                }
+                                map<int32_t, float> labelSums;
+                                double sum = 0.0, weightsum = 0.0;
+                                if (legacyCutoff && checkNeighbors)
+                                {//add valid neighbors only if they aren't already in the list, and the non-legacy mode is already handled above...
+                                    set<VoxelIJK> voxelsToUse;//but looking up the neighbors' indices in validIndices is work we don't need to do, so copy the list and add to it
+                                    for (auto thisInfo : inRange)
+                                    {
+                                        voxelsToUse.insert(validIndices[thisInfo.index]);
+                                    }
+                                    for (int n = 0; n < 6; ++n)
+                                    {
+                                        int neighbase = n * 3;
+                                        int64_t neighVox[3] = {i + neighbors[neighbase], j + neighbors[neighbase + 1], k + neighbors[neighbase + 2]};
+                                        if (myVolSpace.indexValid(neighVox) && voxelUsable(labelMode, unlabeledKey, neighVox[0], neighVox[1], neighVox[2], volIn, insubvol, component, badRoi, dataRoi))
+                                        {
+                                            voxelsToUse.insert(neighVox);//set eliminates duplicates
+                                        }
+                                    }
+                                    for (auto thisVoxel : voxelsToUse)//unfortunately, this means we need to write a copy of the loop for the common case not to do unneeded work
+                                    {
+                                        float thisdist = (myVolSpace.indexToSpace(thisVoxel) - voxcoord).length();
+                                        float weight = 1.0f / pow(thisdist, exponent);
+                                        if (labelMode)
+                                        {
+                                            int32_t thisKey = int32_t(floor(0.5f + volIn->getValue(thisVoxel, insubvol, component)));
+                                            map<int32_t, float>::iterator iter = labelSums.find(thisKey);
+                                            if (iter == labelSums.end())
+                                            {
+                                                labelSums[thisKey] = weight;
+                                            } else {
+                                                iter->second += weight;
+                                            }
+                                        } else {
+                                            sum += weight * volIn->getValue(thisVoxel, insubvol, component);
+                                            weightsum += weight;
+                                        }
+                                    }
+                                } else {
+                                    for (auto thisInfo : inRange)
+                                    {
+                                        float thisdist = (thisInfo.coords - voxcoord).length();
+                                        float weight = 1.0f / pow(thisdist, exponent);
+                                        if (labelMode)
+                                        {
+                                            int32_t thisKey = int32_t(floor(0.5f + volIn->getValue(validIndices[thisInfo.index], insubvol, component)));
+                                            map<int32_t, float>::iterator iter = labelSums.find(thisKey);
+                                            if (iter == labelSums.end())
+                                            {
+                                                labelSums[thisKey] = weight;
+                                            } else {
+                                                iter->second += weight;
+                                            }
+                                        } else {
+                                            sum += weight * volIn->getValue(validIndices[thisInfo.index], insubvol, component);
+                                            weightsum += weight;
+                                        }
+                                    }
+                                }
+                                if (labelMode)
+                                {
+                                    float bestWeight = -1.0f;//all weights should be positive, so their sums should too
+                                    int32_t bestKey = unlabeledKey;
+                                    for (auto iter : labelSums)
+                                    {
+                                        if (iter.second > bestWeight)
+                                        {
+                                            bestWeight = iter.second;
+                                            bestKey = iter.first;
+                                        }
+                                    }
+                                    volOut->setValue(bestKey, i, j, k, outsubvol, component);
+                                } else {
+                                    if (weightsum > 0.0)
+                                    {
+                                        volOut->setValue(sum / weightsum, i, j, k, outsubvol, component);
+                                    } else {
+                                        volOut->setValue(0.0f, i, j, k, outsubvol, component);
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const VolumeFile* volIn, const float& distance, const Method& myMethod, VolumeFile* volOut,
+                                             const VolumeFile* badRoi, const VolumeFile* dataRoi, const int& subvol, const float& exponent, const bool legacyCutoff) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myDims;
@@ -150,72 +429,6 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
     if (volIn->getType() == SubvolumeAttributes::LABEL)
     {
         isLabelData = true;
-    }
-    vector<vector<float> > volSpace = volIn->getSform();
-    Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
-    FloatMatrix(volSpace).getAffineVectors(ivec, jvec, kvec, origin);
-    ijorth = ivec.cross(jvec).normal();//find the bounding box that encloses a sphere of radius kernBox
-    jkorth = jvec.cross(kvec).normal();
-    kiorth = kvec.cross(ivec).normal();
-    int irange = (int)floor(abs(distance / ivec.dot(jkorth)));
-    int jrange = (int)floor(abs(distance / jvec.dot(kiorth)));
-    int krange = (int)floor(abs(distance / kvec.dot(ijorth)));
-    if (irange < 1) irange = 1;//don't underflow
-    if (jrange < 1) jrange = 1;
-    if (krange < 1) krange = 1;
-    Vector3D kscratch, jscratch, iscratch;
-    vector<int> stencil;
-    vector<float> stenWeights;
-    for (int k = -krange; k <= krange; ++k)
-    {
-        kscratch = kvec * k;
-        for (int j = -jrange; j <= jrange; ++j)
-        {
-            jscratch = kscratch + jvec * j;
-            for (int i = -irange; i <= irange; ++i)
-            {
-                if (k == 0 && j == 0 && i == 0) continue;
-                iscratch = jscratch + ivec * i;
-                float tempf = iscratch.length();
-                if (tempf <= distance || abs(i) + abs(j) + abs(k) == 1)
-                {
-                    stencil.push_back(i);
-                    stencil.push_back(j);
-                    stencil.push_back(k);
-                    switch (myMethod)
-                    {
-                        case NEAREST:
-                            stenWeights.push_back(tempf);
-                            break;
-                        case WEIGHTED:
-                            if (tempf == 0.0f) throw AlgorithmException("volume space is degenerate, aborting");
-                            stenWeights.push_back(1.0f / pow(tempf, exponent));
-                            break;
-                    }
-                }
-            }
-        }
-    }
-    if (myMethod == NEAREST)
-    {//sort the stencil by distance, so we can stop early
-        CaretSimpleMinHeap<VoxelIJK, float> myHeap;
-        int stencilSize = (int)stenWeights.size();
-        myHeap.reserve(stencilSize);
-        for (int i = 0; i < stencilSize; ++i)
-        {
-            myHeap.push(VoxelIJK(stencil.data() + i * 3), stenWeights[i]);
-        }
-        stencil.clear();
-        stenWeights.clear();
-        while (!myHeap.isEmpty())
-        {
-            float tempf;
-            VoxelIJK myTriple = myHeap.pop(&tempf);
-            stenWeights.push_back(tempf);
-            stencil.push_back(myTriple.m_ijk[0]);
-            stencil.push_back(myTriple.m_ijk[1]);
-            stencil.push_back(myTriple.m_ijk[2]);
-        }
     }
     if (subvol == -1)
     {
@@ -248,316 +461,13 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
         {
             for (int c = 0; c < myDims[4]; ++c)
             {
-                if (isLabelData)
-                {
-                    dilateFrameLabel(volIn, s, c, volOut, s, badRoi, dataRoi, myMethod, stencil, stenWeights);
-                } else {
-                    dilateFrame(volIn, s, c, volOut, s, badRoi, dataRoi, myMethod, stencil, stenWeights);
-                }
+                dilateFrame(isLabelData, volIn, s, c, volOut, s, badRoi, dataRoi, distance, myMethod, exponent, legacyCutoff);
             }
         }
     } else {
         for (int c = 0; c < myDims[4]; ++c)
         {
-            if (isLabelData)
-            {
-                dilateFrameLabel(volIn, subvol, c, volOut, 0, badRoi, dataRoi, myMethod, stencil, stenWeights);
-            } else {
-                dilateFrame(volIn, subvol, c, volOut, 0, badRoi, dataRoi, myMethod, stencil, stenWeights);
-            }
-        }
-    }
-}
-
-void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insubvol, const int& component, VolumeFile* volOut, const int& outsubvol,
-                                        const VolumeFile* badRoi, const VolumeFile* dataRoi, const Method& myMethod, const vector<int>& stencil, const vector<float>& stenWeights)
-{
-    vector<int64_t> myDims;
-    volIn->getDimensions(myDims);
-    int stensize = (int)stenWeights.size();
-#pragma omp CARET_PARFOR schedule(dynamic)
-    for (int k = 0; k < myDims[2]; ++k)
-    {
-        for (int j = 0; j < myDims[1]; ++j)
-        {
-            for (int i = 0; i < myDims[0]; ++i)
-            {
-                bool copy = true;
-                if (badRoi == NULL)
-                {
-                    copy = volIn->getValue(i, j, k, insubvol, component) != 0.0f || (dataRoi != NULL && !(dataRoi->getValue(i, j, k) > 0.0f));
-                } else {
-                    copy = !(badRoi->getValue(i, j, k) > 0.0f);//in case some clown uses NaNs as bad in an roi
-                }
-                if (copy)
-                {
-                    volOut->setValue(volIn->getValue(i, j, k, insubvol, component), i, j, k, outsubvol, component);
-                } else {
-                    Vector3D voxcoord;
-                    volIn->indexToSpace(i, j, k, voxcoord);
-                    switch (myMethod)
-                    {
-                        case NEAREST:
-                        {
-                            int best = -1;
-                            if (badRoi == NULL)
-                            {
-                                for (int stenind = 0; stenind < stensize; ++stenind)
-                                {
-                                    int base = stenind * 3;
-                                    int64_t tempindex[3];
-                                    tempindex[0] = stencil[base] + i;
-                                    tempindex[1] = stencil[base + 1] + j;
-                                    tempindex[2] = stencil[base + 2] + k;
-                                    if (volIn->indexValid(tempindex))
-                                    {
-                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && volIn->getValue(tempindex, insubvol, component) != 0.0f)
-                                        {
-                                            best = stenind;
-                                            break;
-                                        }
-                                    }
-                                }
-                            } else {
-                                for (int stenind = 0; stenind < stensize; ++stenind)
-                                {
-                                    int base = stenind * 3;
-                                    int64_t tempindex[3];
-                                    tempindex[0] = stencil[base] + i;
-                                    tempindex[1] = stencil[base + 1] + j;
-                                    tempindex[2] = stencil[base + 2] + k;
-                                    if (volIn->indexValid(tempindex))
-                                    {
-                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && !(badRoi->getValue(tempindex) > 0.0f))
-                                        {
-                                            best = stenind;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            if (best == -1)
-                            {
-                                volOut->setValue(0.0f, i, j, k, outsubvol, component);
-                            } else {
-                                int base = best * 3;
-                                int64_t tempindex[3];
-                                tempindex[0] = stencil[base] + i;
-                                tempindex[1] = stencil[base + 1] + j;
-                                tempindex[2] = stencil[base + 2] + k;
-                                volOut->setValue(volIn->getValue(tempindex, insubvol, component), i, j, k, outsubvol, component);
-                            }
-                            break;
-                        }
-                        case WEIGHTED:
-                        {
-                            double sum = 0.0, weightsum = 0.0;
-                            if (badRoi == NULL)
-                            {
-                                for (int stenind = 0; stenind < stensize; ++stenind)
-                                {
-                                    int base = stenind * 3;
-                                    int64_t tempindex[3];
-                                    tempindex[0] = stencil[base] + i;
-                                    tempindex[1] = stencil[base + 1] + j;
-                                    tempindex[2] = stencil[base + 2] + k;
-                                    if (volIn->indexValid(tempindex))
-                                    {
-                                        float tempf = volIn->getValue(tempindex, insubvol, component);
-                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && tempf != 0.0f)
-                                        {
-                                            float weight = stenWeights[stenind];
-                                            sum += weight * tempf;
-                                            weightsum += weight;
-                                        }
-                                    }
-                                }
-                            } else {
-                                for (int stenind = 0; stenind < stensize; ++stenind)
-                                {
-                                    int base = stenind * 3;
-                                    int64_t tempindex[3];
-                                    tempindex[0] = stencil[base] + i;
-                                    tempindex[1] = stencil[base + 1] + j;
-                                    tempindex[2] = stencil[base + 2] + k;
-                                    if (volIn->indexValid(tempindex))
-                                    {
-                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && !(badRoi->getValue(tempindex) > 0.0f))
-                                        {
-                                            float tempf = volIn->getValue(tempindex, insubvol, component);
-                                            float weight = stenWeights[stenind];
-                                            sum += weight * tempf;
-                                            weightsum += weight;
-                                        }
-                                    }
-                                }
-                            }
-                            if (weightsum != 0.0)
-                            {
-                                volOut->setValue(sum / weightsum, i, j, k, outsubvol, component);
-                            } else {
-                                volOut->setValue(0.0f, i, j, k, outsubvol, component);
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void AlgorithmVolumeDilate::dilateFrameLabel(const VolumeFile* volIn, const int& insubvol, const int& component, VolumeFile* volOut, const int& outsubvol,
-                                             const VolumeFile* badRoi, const VolumeFile* dataRoi, const Method& myMethod, const vector<int>& stencil, const vector<float>& stenWeights)
-{
-    vector<int64_t> myDims;
-    volIn->getDimensions(myDims);
-    int stensize = (int)stenWeights.size();
-    int32_t unlabeledKey = volIn->getMapLabelTable(insubvol)->getUnassignedLabelKey();
-#pragma omp CARET_PARFOR schedule(dynamic)
-    for (int k = 0; k < myDims[2]; ++k)
-    {
-        for (int j = 0; j < myDims[1]; ++j)
-        {
-            for (int i = 0; i < myDims[0]; ++i)
-            {
-                bool copy = true;
-                int32_t keyIn = floor(volIn->getValue(i, j, k, insubvol, component) + 0.5f);//fix non-integers
-                if (badRoi == NULL)
-                {
-                    copy = keyIn != unlabeledKey || (dataRoi != NULL && !(dataRoi->getValue(i, j, k) > 0.0f));
-                } else {
-                    copy = !(badRoi->getValue(i, j, k) > 0.0f);//in case some clown uses NaNs as bad in an roi
-                }
-                if (copy)
-                {
-                    volOut->setValue(keyIn, i, j, k, outsubvol, component);
-                } else {
-                    Vector3D voxcoord;
-                    volIn->indexToSpace(i, j, k, voxcoord);
-                    switch (myMethod)
-                    {
-                        case NEAREST:
-                        {
-                            int best = -1;
-                            if (badRoi == NULL)
-                            {
-                                for (int stenind = 0; stenind < stensize; ++stenind)
-                                {
-                                    int base = stenind * 3;
-                                    int64_t tempindex[3];
-                                    tempindex[0] = stencil[base] + i;
-                                    tempindex[1] = stencil[base + 1] + j;
-                                    tempindex[2] = stencil[base + 2] + k;
-                                    if (volIn->indexValid(tempindex))
-                                    {
-                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && volIn->getValue(tempindex, insubvol, component) != 0.0f)
-                                        {
-                                            best = stenind;
-                                            break;
-                                        }
-                                    }
-                                }
-                            } else {
-                                for (int stenind = 0; stenind < stensize; ++stenind)
-                                {
-                                    int base = stenind * 3;
-                                    int64_t tempindex[3];
-                                    tempindex[0] = stencil[base] + i;
-                                    tempindex[1] = stencil[base + 1] + j;
-                                    tempindex[2] = stencil[base + 2] + k;
-                                    if (volIn->indexValid(tempindex))
-                                    {
-                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && !(badRoi->getValue(tempindex) > 0.0f))
-                                        {
-                                            best = stenind;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            if (best == -1)
-                            {
-                                volOut->setValue(unlabeledKey, i, j, k, outsubvol, component);
-                            } else {
-                                int base = best * 3;
-                                int64_t tempindex[3];
-                                tempindex[0] = stencil[base] + i;
-                                tempindex[1] = stencil[base + 1] + j;
-                                tempindex[2] = stencil[base + 2] + k;
-                                volOut->setValue((int32_t)floor(volIn->getValue(tempindex, insubvol, component) + 0.5f), i, j, k, outsubvol, component);//fix non-integers
-                            }//yes, the cast is undefined for silly things like NaN that shouldn't be in a label file, but so are the other paths - we just want consistency between behavior of old and new values
-                            break;
-                        }
-                        case WEIGHTED:
-                        {
-                            map<int32_t, float> labelSums;
-                            if (badRoi == NULL)
-                            {
-                                for (int stenind = 0; stenind < stensize; ++stenind)
-                                {
-                                    int base = stenind * 3;
-                                    int64_t tempindex[3];
-                                    tempindex[0] = stencil[base] + i;
-                                    tempindex[1] = stencil[base + 1] + j;
-                                    tempindex[2] = stencil[base + 2] + k;
-                                    if (volIn->indexValid(tempindex))
-                                    {
-                                        int32_t tempKey = floor(volIn->getValue(tempindex, insubvol, component) + 0.5f);//fix non-integers
-                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && tempKey != unlabeledKey)
-                                        {
-                                            float weight = stenWeights[stenind];
-                                            map<int32_t, float>::iterator iter = labelSums.find(tempKey);
-                                            if (iter == labelSums.end())
-                                            {
-                                                labelSums[tempKey] = weight;
-                                            } else {
-                                                iter->second += weight;
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                for (int stenind = 0; stenind < stensize; ++stenind)
-                                {
-                                    int base = stenind * 3;
-                                    int64_t tempindex[3];
-                                    tempindex[0] = stencil[base] + i;
-                                    tempindex[1] = stencil[base + 1] + j;
-                                    tempindex[2] = stencil[base + 2] + k;
-                                    if (volIn->indexValid(tempindex))
-                                    {
-                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && !(badRoi->getValue(tempindex) > 0.0f))
-                                        {
-                                            int32_t tempKey = floor(volIn->getValue(tempindex, insubvol, component) + 0.5f);//fix non-integers
-                                            float weight = stenWeights[stenind];
-                                            map<int32_t, float>::iterator iter = labelSums.find(tempKey);
-                                            if (iter == labelSums.end())
-                                            {
-                                                labelSums[tempKey] = weight;
-                                            } else {
-                                                iter->second += weight;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            int32_t outVal = unlabeledKey;
-                            float bestSum = -1.0f;//weights should all be positive, so should the sums
-                            for (map<int32_t, float>::iterator iter = labelSums.begin(); iter != labelSums.end(); ++iter)
-                            {
-                                if (iter->second > bestSum)
-                                {
-                                    outVal = iter->first;
-                                    bestSum = iter->second;
-                                }
-                            }
-                            volOut->setValue(outVal, i, j, k, outsubvol, component);
-                            break;
-                        }
-                    }
-                }
-            }
+            dilateFrame(isLabelData, volIn, subvol, c, volOut, 0, badRoi, dataRoi, distance, myMethod, exponent, legacyCutoff);
         }
     }
 }

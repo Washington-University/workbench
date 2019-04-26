@@ -141,11 +141,11 @@ AlgorithmMetricFalseCorrelation::AlgorithmMetricFalseCorrelation(ProgressObject*
             {
                 AString rawDumpString;//build the entire string for a single node, then write it in one call within #pragma omp critical
                 Vector3D myCoord = mySurf->getCoordinate(n);
-                set<LocatorInfo> inRange = myLocator->pointsInRange(myCoord, max3D);
+                vector<LocatorInfo> inRange = myLocator->pointsInRange(myCoord, max3D);
                 int numInterested = (int)inRange.size();
                 vector<int32_t> interested(numInterested);
                 int counter = 0;
-                for (set<LocatorInfo>::iterator iter = inRange.begin(); iter != inRange.end(); ++iter)
+                for (vector<LocatorInfo>::iterator iter = inRange.begin(); iter != inRange.end(); ++iter)
                 {
                     interested[counter] = iter->index;
                     ++counter;
@@ -153,7 +153,7 @@ AlgorithmMetricFalseCorrelation::AlgorithmMetricFalseCorrelation(ProgressObject*
                 vector<float> geoDists;
                 myGeo->getGeoToTheseNodes(n, interested, geoDists);
                 counter = 0;
-                for (set<LocatorInfo>::iterator iter = inRange.begin(); iter != inRange.end(); ++iter)
+                for (vector<LocatorInfo>::iterator iter = inRange.begin(); iter != inRange.end(); ++iter)
                 {
                     if (roiCol == NULL || (roiCol[iter->index] > 0.0f))
                     {
