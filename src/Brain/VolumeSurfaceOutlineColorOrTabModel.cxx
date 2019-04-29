@@ -358,6 +358,7 @@ VolumeSurfaceOutlineColorOrTabModel::Item::~Item()
  *    Item that is copied.
  */
 VolumeSurfaceOutlineColorOrTabModel::Item::Item(const Item& item)
+: SceneableInterface(item)
 {
     m_color = item.m_color;
     m_browserTabIndex = item.m_browserTabIndex;

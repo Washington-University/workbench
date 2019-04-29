@@ -51,13 +51,9 @@ using namespace caret;
 
 /**
  * Constructor.
- *
- * @param brain
- *     The brain
  */
-MovieRecorder::MovieRecorder(Brain* brain)
-: CaretObject(),
-m_brain(brain)
+MovieRecorder::MovieRecorder()
+: CaretObject()
 {
     const QString tempSubDir("WbViewMovie");
     QDir tempDir(QDir::temp());

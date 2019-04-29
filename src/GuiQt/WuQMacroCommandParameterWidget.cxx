@@ -249,7 +249,7 @@ WuQMacroCommandParameterWidget::updateContent(int32_t windowIndex,
                 break;
             case WuQMacroDataValueTypeEnum::FLOAT:
             {
-                std::array<float, 2> floatRange { -1.0e6, 1.0e6 };
+                std::array<float, 2> floatRange {{ -1.0e6, 1.0e6 }};
                 if (customDataFlag) {
                     WbMacroCustomDataInfo customDataInfo(WuQMacroDataValueTypeEnum::FLOAT);
                     WuQMacroManager::instance()->getCustomParameterDataInfo(windowIndex,
@@ -267,7 +267,7 @@ WuQMacroCommandParameterWidget::updateContent(int32_t windowIndex,
                 break;
             case WuQMacroDataValueTypeEnum::INTEGER:
             {
-                std::array<int32_t, 2> intRange { -100000, 100000 };
+                std::array<int32_t, 2> intRange {{ -100000, 100000 }};
                 if (customDataFlag) {
                     WbMacroCustomDataInfo customDataInfo(WuQMacroDataValueTypeEnum::INTEGER);
                     WuQMacroManager::instance()->getCustomParameterDataInfo(windowIndex,

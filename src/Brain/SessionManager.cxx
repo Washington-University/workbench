@@ -108,7 +108,7 @@ SessionManager::SessionManager()
     
     Brain* brain = new Brain(m_caretPreferences);
     m_brains.push_back(brain);
-    m_movieRecorder.reset(new MovieRecorder(brain));
+    m_movieRecorder.reset(new MovieRecorder());
 }
 
 /**

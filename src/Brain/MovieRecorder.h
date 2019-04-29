@@ -36,13 +36,11 @@ class QImage;
 class QStringList;
 
 namespace caret {
-    class Brain;
-    
     class MovieRecorder : public CaretObject {
         
     public:
 
-        MovieRecorder(Brain* brain);
+        MovieRecorder();
         
         virtual ~MovieRecorder();
         
@@ -142,8 +140,6 @@ namespace caret {
                                          QString& errorMessageOut);
         
         bool waitForImagesToFinishWriting();
-        
-        Brain* m_brain = NULL;
         
         MovieRecorderModeEnum::Enum m_recordingMode = MovieRecorderModeEnum::MANUAL;
         
