@@ -715,8 +715,12 @@ BrainOpenGLWidget::event(QEvent* event)
                 event->ignore();
             }
             else {
+                const int millisecondsDisplayTime = (3 * 1000);
                 QToolTip::showText(globalXY,
-                                   toolTipText);
+                                   toolTipText,
+                                   nullptr,
+                                   QRect(),
+                                   millisecondsDisplayTime);
             }
             
             return true;

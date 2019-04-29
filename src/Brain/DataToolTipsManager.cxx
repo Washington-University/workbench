@@ -180,12 +180,12 @@ DataToolTipsManager::setShowVolumeUnderlay(const bool status)
 
 
 /**
- * @return Is show top layer enabled?
+ * @return Is show top enabled layer enabled?
  */
 bool
-DataToolTipsManager::isShowTopLayer() const
+DataToolTipsManager::isShowTopEnabledLayer() const
 {
-    return m_showTopLayerFlag;
+    return m_showTopEnabledLayerFlag;
 }
 
 /**
@@ -195,9 +195,9 @@ DataToolTipsManager::isShowTopLayer() const
  *     New status.
  */
 void
-DataToolTipsManager::setShowTopLayer(const bool status)
+DataToolTipsManager::setShowTopEnabledLayer(const bool status)
 {
-    m_showTopLayerFlag = status;
+    m_showTopEnabledLayerFlag = status;
 }
 
 /**

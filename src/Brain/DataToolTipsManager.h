@@ -70,9 +70,9 @@ namespace caret {
         
         void setShowVolumeUnderlay(const bool status);
         
-        bool isShowTopLayer() const;
+        bool isShowTopEnabledLayer() const;
         
-        void setShowTopLayer(const bool status);
+        void setShowTopEnabledLayer(const bool status);
         
         bool isShowBorder() const;
         
@@ -124,7 +124,7 @@ namespace caret {
         
         bool m_showVolumeUnderlayFlag = true;
         
-        bool m_showTopLayerFlag = true;
+        bool m_showTopEnabledLayerFlag = true;
         
         bool m_showBorderFlag = true;
         

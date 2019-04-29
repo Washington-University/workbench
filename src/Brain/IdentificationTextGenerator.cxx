@@ -1610,28 +1610,29 @@ IdentificationTextGenerator::generateSurfaceToolTip(const Brain* brain,
                                AString::fromNumbers(xyz, 3, ", "));
             }
             
-            if (dataToolTipsManager->isShowTopLayer()) {
-                const OverlaySet* overlaySet = browserTab->getOverlaySet();
+            if (dataToolTipsManager->isShowTopEnabledLayer()) {
+                OverlaySet* overlaySet = const_cast<OverlaySet*>(browserTab->getOverlaySet());
                 CaretAssert(overlaySet);
-                Overlay* overlay = const_cast<Overlay*>(overlaySet->getOverlay(0));
-                CaretAssert(overlay);
-                CaretMappableDataFile* mapFile(NULL);
-                int32_t mapIndex(-1);
-                overlay->getSelectionData(mapFile,
-                                          mapIndex);
-                if ((mapFile != NULL)
-                    && (mapIndex >= 0)) {
-                    std::vector<int32_t> mapIndices { mapIndex };
-                    AString textValue;
-                    mapFile->getSurfaceNodeIdentificationForMaps(mapIndices,
-                                                                 surfaceStructure,
-                                                                 surfaceNodeIndex,
-                                                                 surfaceNumberOfNodes,
-                                                                 textValue);
-                    if ( ! textValue.isEmpty()) {
-                        idText.addLine(indentFlag,
-                                       "Top Layer",
-                                       textValue);
+                Overlay* overlay = getTopEnabledOverlay(overlaySet);
+                if (overlay != NULL) {
+                    CaretMappableDataFile* mapFile(NULL);
+                    int32_t mapIndex(-1);
+                    overlay->getSelectionData(mapFile,
+                                              mapIndex);
+                    if ((mapFile != NULL)
+                        && (mapIndex >= 0)) {
+                        std::vector<int32_t> mapIndices { mapIndex };
+                        AString textValue;
+                        mapFile->getSurfaceNodeIdentificationForMaps(mapIndices,
+                                                                     surfaceStructure,
+                                                                     surfaceNodeIndex,
+                                                                     surfaceNumberOfNodes,
+                                                                     textValue);
+                        if ( ! textValue.isEmpty()) {
+                            idText.addLine(indentFlag,
+                                           "Top Enabled Layer",
+                                           textValue);
+                        }
                     }
                 }
             }
@@ -1761,30 +1762,51 @@ IdentificationTextGenerator::generateVolumeToolTip(const BrowserTabContent* brow
         }
     }
     
-    if (dataToolTipsManager->isShowTopLayer()) {
-        Overlay* overlay = const_cast<Overlay*>(overlaySet->getOverlay(0));
-        CaretAssert(overlay);
-        CaretMappableDataFile* mapFile(NULL);
-        int32_t mapIndex(-1);
-        overlay->getSelectionData(mapFile,
-                                  mapIndex);
-        if ((mapFile != NULL)
-            && (mapIndex >= 0)) {
-            std::vector<int32_t> mapIndices { mapIndex };
-            AString textValue;
-            int64_t ijk[3];
-            mapFile->getVolumeVoxelIdentificationForMaps(mapIndices,
-                                                         xyz,
-                                                         ijk,
-                                                         textValue);
-            if ( ! textValue.isEmpty()) {
-                idText.addLine(indentFlag,
-                               ("Top Layer: "
-                                + textValue));
+    if (dataToolTipsManager->isShowTopEnabledLayer()) {
+        Overlay* overlay = getTopEnabledOverlay(overlaySet);
+        if (overlay != NULL) {
+            CaretMappableDataFile* mapFile(NULL);
+            int32_t mapIndex(-1);
+            overlay->getSelectionData(mapFile,
+                                      mapIndex);
+            if ((mapFile != NULL)
+                && (mapIndex >= 0)) {
+                std::vector<int32_t> mapIndices { mapIndex };
+                AString textValue;
+                int64_t ijk[3];
+                mapFile->getVolumeVoxelIdentificationForMaps(mapIndices,
+                                                             xyz,
+                                                             ijk,
+                                                             textValue);
+                if ( ! textValue.isEmpty()) {
+                    idText.addLine(indentFlag,
+                                   ("Top Enabled Layer: "
+                                    + textValue));
+                }
             }
         }
     }
-    
+}
+
+/**
+ * @return Get the top-most enabled overlay.  NULL if no overlays enabled
+ *
+ * @param overlaySet
+ *     Overlay set for overlay.
+ */
+Overlay*
+IdentificationTextGenerator::getTopEnabledOverlay(OverlaySet* overlaySet) const
+{
+    CaretAssert(overlaySet);
+    const int32_t numberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numberOfOverlays; i++) {
+        Overlay* overlay = overlaySet->getOverlay(i);
+        CaretAssert(overlay);
+        if (overlay->isEnabled()) {
+            return overlay;
+        }
+    }
+    return NULL;
 }
 
 /**

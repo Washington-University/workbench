@@ -32,6 +32,8 @@ namespace caret {
     class ChartDataSource;
     class DataToolTipsManager;
     class MapFileDataSelector;
+    class Overlay;
+    class OverlaySet;
     class SelectionItemBorderSurface;
     class SelectionItemChartDataSeries;
     class SelectionItemChartFrequencySeries;
@@ -144,6 +146,8 @@ namespace caret {
         void generateMapFileSelectorText(IdentificationStringBuilder& idText,
                                          const MapFileDataSelector* mapFileDataSelector) const;
         
+        Overlay* getTopEnabledOverlay(OverlaySet* overlaySet) const;
+
         friend class DataToolTipsManager;
     };
     
