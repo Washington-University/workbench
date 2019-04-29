@@ -473,7 +473,8 @@ WbMacroCustomOperationManager::getCustomParameterDataInfo(const int32_t /*browse
     switch (userType) {
         case WbMacroCustomDataTypeEnum::OVERLAY_INDEX:
             if (dataInfoOut.getDataType() == WuQMacroDataValueTypeEnum::INTEGER) {
-                dataInfoOut.setIntegerRange({ 1, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS });
+                std::array<int32_t, 2> dataRange { 1, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS };
+                dataInfoOut.setIntegerRange(dataRange);
                 validFlag = true;
             }
             else {
