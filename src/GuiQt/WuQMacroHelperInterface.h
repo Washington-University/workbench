@@ -38,6 +38,7 @@ namespace caret {
     class WuQMacroCommand;
     class WuQMacroExecutorOptions;
     class WuQMacroGroup;
+    class WuQMacroWidgetAction;
 
     class WuQMacroHelperInterface : public QObject {
         Q_OBJECT
@@ -170,6 +171,21 @@ namespace caret {
                                               const WuQMacroCommand* command,
                                               const WuQMacroExecutorOptions* executorOptions,
                                               bool& allowDelayFlagOut) = 0;
+        
+
+        /**
+         * Called by macro manager to get macro widget actions typically
+         * used by modal dialogs.
+         *
+         * Override to provide macro widget actions.
+         *
+         * @return Vector containing the macro widget actions.
+         */
+        virtual std::vector<WuQMacroWidgetAction*> getMacroWidgetActions()
+        {
+            std::vector<WuQMacroWidgetAction*> emptyActions;
+            return emptyActions;
+        }
         
         // ADD_NEW_METHODS_HERE
 

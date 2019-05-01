@@ -426,6 +426,9 @@ WuQMacroCommand::updateTitle()
                      + " index "
                      + QString::number(dataValueTwo.toInt()));
             break;
+        case WuQMacroWidgetTypeEnum::MACRO_WIDGET_ACTION:
+            title = "Set value";
+            break;
         case WuQMacroWidgetTypeEnum::MENU:
             title = ("Select Name "
                      + dataValue.toString()

@@ -220,6 +220,7 @@ ELSE()
         WuQMacroShortCutKeyComboBox.h
         WuQMacroSignalEmitter.h
         WuQMacroSignalWatcher.h
+        WuQMacroWidgetAction.h
         WuQMessageBox.h
         WuQwtPlot.h
         WuQSpecialIncrementDoubleSpinBox.h
@@ -502,6 +503,7 @@ WuQMacroNewCommandSelectionDialog.h
 WuQMacroShortCutKeyComboBox.h
 WuQMacroSignalEmitter.h
 WuQMacroSignalWatcher.h
+WuQMacroWidgetAction.h
 WuQMessageBox.h
 WuQwtPlot.h
 WuQSpecialIncrementDoubleSpinBox.h
@@ -767,6 +769,7 @@ WuQMacroNewCommandSelectionDialog.cxx
 WuQMacroShortCutKeyComboBox.cxx
 WuQMacroSignalEmitter.cxx
 WuQMacroSignalWatcher.cxx
+WuQMacroWidgetAction.cxx
 WuQMessageBox.cxx
 WuQwtPlot.cxx
 WuQSpecialIncrementDoubleSpinBox.cxx

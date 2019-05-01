@@ -42,6 +42,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "WuQMacroWidgetAction.h"
 
 using namespace caret;
 
@@ -330,6 +331,30 @@ WuQMacroSignalEmitter::emitQLineEditSignal(QLineEdit* lineEdit,
     emit valueChangedSignalString(text);
     
     QObject::disconnect(this, &WuQMacroSignalEmitter::valueChangedSignalString, 0, 0);
+}
+
+/**
+ * Update a Macro Widget Action's  value and cause emission
+ * of its valueChanged() signal
+ *
+ * @param macroWidgetAction
+ *    The Macro Widget Action
+ * @param value
+ *    New value
+ */
+void
+WuQMacroSignalEmitter::emitMacroWidgetActionSignal(WuQMacroWidgetAction* macroWidgetAction,
+                                                   const QVariant& value)
+{
+    CaretAssert(macroWidgetAction);
+    macroWidgetAction->setDataValue(value);
+    
+    QObject::connect(this, & WuQMacroSignalEmitter::valueChangedSignalVariant,
+                     macroWidgetAction, &WuQMacroWidgetAction::setModelValue);
+    
+    emit valueChangedSignalVariant(value);
+    
+    QObject::disconnect(this, & WuQMacroSignalEmitter::valueChangedSignalVariant, 0, 0);
 }
 
 /**

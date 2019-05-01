@@ -161,6 +161,11 @@ namespace caret {
                                   QString& errorMessageOut,
                                   bool& castFailureFlagOut) const;
         
+        void runMacroWidgetActionCommand(const WuQMacroCommand* macroCommand,
+                                         QObject* object,
+                                         QString& errorMessageOut,
+                                         bool& castFailureFlagOut) const;
+
         void runMenuCommand(const WuQMacroCommand* macroCommand,
                             QObject* object,
                             QString& errorMessageOut,

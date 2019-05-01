@@ -24,6 +24,7 @@
 
 
 #include <memory>
+#include <vector>
 
 #include <QMutex>
 #include <QObject>
@@ -51,6 +52,7 @@ namespace caret {
     class WuQMacroGroup;
     class WuQMacroHelperInterface;
     class WuQMacroSignalWatcher;
+    class WuQMacroWidgetAction;
     
     class WuQMacroManager : public QObject {
         Q_OBJECT
@@ -187,6 +189,7 @@ namespace caret {
         
         QString getNewMacroDefaultName() const;
         
+        WuQMacroWidgetAction* getMacroWidgetActionByName(const QString& name);
 
         // ADD_NEW_METHODS_HERE
         
@@ -230,6 +233,8 @@ namespace caret {
         WuQMacroHelperInterface* m_macroHelper = NULL;
         
         WuQMacroCustomOperationManagerInterface* m_customCommandManager = NULL;
+        
+        std::vector<WuQMacroWidgetAction*> m_macroWidgetActions;
         
         WuQMacroExecutor* m_macroExecutor = NULL;
         

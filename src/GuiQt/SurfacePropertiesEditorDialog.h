@@ -30,7 +30,8 @@ class QDoubleSpinBox;
 namespace caret {
     class EnumComboBoxTemplate;
     class WuQTrueFalseComboBox;
-
+    class WuQMacroWidgetAction;
+    
     class SurfacePropertiesEditorDialog : public WuQDialogNonModal, public EventListenerInterface, public SceneableInterface {
         Q_OBJECT
         
@@ -66,6 +67,8 @@ namespace caret {
         EnumComboBoxTemplate* m_surfaceDrawingTypeComboBox;
         
         QDoubleSpinBox* m_opacitySpinBox;
+        
+        WuQMacroWidgetAction* m_opacityMacroWidgetAction;
         
         bool m_updateInProgress;
         

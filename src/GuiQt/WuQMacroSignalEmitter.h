@@ -26,6 +26,7 @@
 #include <memory>
 
 #include <QObject>
+#include <QVariant>
 
 class QAction;
 class QActionGroup;
@@ -48,6 +49,8 @@ class QToolButton;
 
 namespace caret {
 
+    class WuQMacroWidgetAction;
+    
     class WuQMacroSignalEmitter : public QObject {
         
         Q_OBJECT
@@ -84,6 +87,9 @@ namespace caret {
 
         void emitQListWidgetSignal(QListWidget* listWidget,
                                    const QString& text);
+        
+        void emitMacroWidgetActionSignal(WuQMacroWidgetAction* macroWidgetAction,
+                                         const QVariant& value);
         
         void emitQMenuSignal(QMenu* menu,
                                 const QString& text);
@@ -128,6 +134,7 @@ namespace caret {
         
         void valueChangeSignalListWidgetItem(QListWidgetItem*);
         
+        void valueChangedSignalVariant(QVariant);
     private:
         // ADD_NEW_MEMBERS_HERE
 

@@ -43,6 +43,8 @@ using namespace caret;
 #include "SceneClass.h"
 #include "SceneWindowGeometry.h"
 #include "WuQFactory.h"
+#include "WuQMacroManager.h"
+#include "WuQMacroWidgetAction.h"
 #include "WuQTrueFalseComboBox.h"
 #include "WuQtUtilities.h"
     
@@ -91,12 +93,26 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
                      this,  SLOT(surfaceDisplayPropertyChanged()));
     
     QLabel* opacityLabel = new QLabel("Opacity: ");
-    m_opacitySpinBox = WuQFactory::newDoubleSpinBox();
+    
+    m_opacityMacroWidgetAction = WuQMacroManager::instance()->getMacroWidgetActionByName("SurfaceProperties:surfaceOpacity");
+    if (m_opacityMacroWidgetAction != NULL) {
+        QWidget* widget = m_opacityMacroWidgetAction->requestWidget(this);
+        if (widget != NULL) {
+            QDoubleSpinBox* dsb = qobject_cast<QDoubleSpinBox*>(widget);
+            if (dsb != NULL) {
+                m_opacitySpinBox = dsb;
+            }
+        }
+    }
+    if (m_opacitySpinBox == NULL) {
+        m_opacityMacroWidgetAction = NULL;
+        m_opacitySpinBox = WuQFactory::newDoubleSpinBox();
+        QObject::connect(m_opacitySpinBox, SIGNAL(valueChanged(double)),
+                         this, SLOT(surfaceDisplayPropertyChanged()));
+    }
     m_opacitySpinBox->setRange(0.0, 1.0);
     m_opacitySpinBox->setSingleStep(0.1);
     m_opacitySpinBox->setDecimals(2);
-    QObject::connect(m_opacitySpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(surfaceDisplayPropertyChanged()));
     
     QWidget* w = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(w);
@@ -138,6 +154,10 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
 SurfacePropertiesEditorDialog::~SurfacePropertiesEditorDialog()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    if (m_opacityMacroWidgetAction != NULL) {
+        m_opacityMacroWidgetAction->releaseWidget(m_opacitySpinBox);
+    }
 }
 
 /**

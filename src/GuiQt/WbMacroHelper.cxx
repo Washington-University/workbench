@@ -28,12 +28,14 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "DisplayPropertiesSurface.h"
 #include "EventCaretDataFilesGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventMovieManualModeRecording.h"
 #include "EventSceneActive.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "MovieRecorder.h"
@@ -52,6 +54,7 @@
 #include "WuQMacroGroup.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
+#include "WuQMacroWidgetAction.h"
 
 using namespace caret;
 
@@ -452,3 +455,61 @@ WbMacroHelper::macroCommandAboutToStart(QWidget* window,
     }
 }
 
+/**
+ * Called by macro manager to get macro widget actions typically
+ * used by modal dialogs.
+ *
+ * Override to provide macro widget actions.
+ *
+ * @return Vector containing the macro widget actions.
+ */
+std::vector<WuQMacroWidgetAction*>
+WbMacroHelper::getMacroWidgetActions()
+{
+    if (m_macroWidgetActions.empty()) {
+        WuQMacroWidgetAction* surfaceOpacityAction
+        = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::SPIN_BOX_FLOAT,
+                                   "SurfaceProperties:surfaceOpacity",
+                                   "Set the surface opacity",
+                                   parent());
+        m_macroWidgetActions.push_back(surfaceOpacityAction);
+        
+        QObject::connect(surfaceOpacityAction, &WuQMacroWidgetAction::setModelValue,
+                         this, &WbMacroHelper::setModelOpacity);
+        QObject::connect(surfaceOpacityAction, &WuQMacroWidgetAction::getModelValue,
+                         this, &WbMacroHelper::getModelOpacity);
+    }
+    
+    return m_macroWidgetActions;
+}
+
+/**
+ * Set opacity in the model
+ *
+ * @param value
+ *     New value for opacity
+ */
+void
+WbMacroHelper::setModelOpacity(const QVariant& value)
+{
+    DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+    CaretAssert(dsp);
+    dsp->setOpacity(value.toFloat());
+    
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Set opacity in the model
+ *
+ * @param value
+ *     Updated value for opacity
+ */
+void
+WbMacroHelper::getModelOpacity(QVariant& value)
+{
+    DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+    CaretAssert(dsp);
+    value = dsp->getOpacity();
+}

@@ -55,6 +55,8 @@ public:
         LINE_EDIT,
         /** a QListWidget */
         LIST_WIDGET,
+        /** a Macro Widget Action */
+        MACRO_WIDGET_ACTION,
         /** a QMenu */
         MENU,
         /** a QPushButton(not checkable) */

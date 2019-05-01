@@ -79,7 +79,14 @@ namespace caret {
                                               const WuQMacroExecutorOptions* executorOptions,
                                               bool& allowDelayFlagOut) override;
         
+        virtual std::vector<WuQMacroWidgetAction*> getMacroWidgetActions();
+        
         // ADD_NEW_METHODS_HERE
+        
+    private slots:
+        void setModelOpacity(const QVariant& value);
+        
+        void getModelOpacity(QVariant& value);
         
     private:
         void
@@ -88,6 +95,8 @@ namespace caret {
                              bool& allowDelayFlagOut) const;
 
         MovieRecorderModeEnum::Enum m_savedRecordingMode = MovieRecorderModeEnum::MANUAL;
+        
+        std::vector<WuQMacroWidgetAction*> m_macroWidgetActions;
         
         // ADD_NEW_MEMBERS_HERE
 

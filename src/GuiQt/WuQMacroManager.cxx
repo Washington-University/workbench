@@ -52,6 +52,7 @@
 #include "WuQMacroHelperInterface.h"
 #include "WuQMacroExecutorOptions.h"
 #include "WuQMacroSignalWatcher.h"
+#include "WuQMacroWidgetAction.h"
 
 using namespace caret;
 
@@ -146,6 +147,13 @@ WuQMacroManager::setMacroHelper(WuQMacroHelperInterface* macroHelper)
     if (macroHelper != NULL) {
         QObject::connect(macroHelper, &WuQMacroHelperInterface::requestDialogsUpdate,
                          this, &WuQMacroManager::updateNonModalDialogs);
+        
+        m_macroWidgetActions = macroHelper->getMacroWidgetActions();
+        
+        for (auto mwa : m_macroWidgetActions) {
+            addMacroSupportToObject(mwa,
+                                    mwa->getToolTip());
+        }
     }
 }
 
@@ -279,6 +287,10 @@ WuQMacroManager::addMacroSupportToObject(QObject* object,
     QWidget* widget = qobject_cast<QWidget*>(object);
     if (widget != NULL) {
         toolTipText = widget->toolTip();
+    }
+    WuQMacroWidgetAction* macroWidgetAction = qobject_cast<WuQMacroWidgetAction*>(object);
+    if (macroWidgetAction != NULL) {
+        toolTipText = macroWidgetAction->getToolTip();
     }
     
     const bool resultFlag = addMacroSupportToObjectWithToolTip(object,
@@ -1520,3 +1532,20 @@ WuQMacroManager::getNewMacroDefaultName() const
     return name;
 }
 
+/**
+ * @return The macro widget action with the given name or
+ * NULL if not found
+ *
+ * @param name
+ *     Name of macro widget action
+ */
+WuQMacroWidgetAction*
+WuQMacroManager::getMacroWidgetActionByName(const QString& name)
+{
+    for (auto mwa : m_macroWidgetActions) {
+        if (mwa->getName() == name) {
+            return mwa;
+        }
+    }
+    return NULL;
+}

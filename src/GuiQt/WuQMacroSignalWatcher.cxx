@@ -45,6 +45,7 @@
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
 #include "WuQMacroManager.h"
+#include "WuQMacroWidgetAction.h"
 
 using namespace caret;
 
@@ -204,6 +205,17 @@ m_objectName(object->objectName())
             m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::INTEGER,
                                                           "Select item at index",
                                                           1));
+        }
+            break;
+        case WuQMacroWidgetTypeEnum::MACRO_WIDGET_ACTION:
+        {
+            WuQMacroWidgetAction* macroWidgetAction = qobject_cast<WuQMacroWidgetAction*>(m_object);
+            CaretAssert(macroWidgetAction);
+            QObject::connect(macroWidgetAction, &WuQMacroWidgetAction::valueChanged,
+                             this, &WuQMacroSignalWatcher::macroWidgetActionValueChanged);
+            m_objectParameters.push_back(new WuQMacroCommandParameter(WuQMacroDataValueTypeEnum::STRING,
+                                                                      "Data Value",
+                                                                      ""));
         }
             break;
         case WuQMacroWidgetTypeEnum::MENU:
@@ -477,6 +489,8 @@ WuQMacroSignalWatcher::newInstance(WuQMacroManager* parentMacroManager,
         case WuQMacroWidgetTypeEnum::LINE_EDIT:
             break;
         case WuQMacroWidgetTypeEnum::LIST_WIDGET:
+            break;
+        case WuQMacroWidgetTypeEnum::MACRO_WIDGET_ACTION:
             break;
         case WuQMacroWidgetTypeEnum::MENU:
             break;
@@ -849,6 +863,21 @@ WuQMacroSignalWatcher::lineEditTextEdited(const QString& text)
     std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
     CaretAssert(params.size() >= 1);
     params[0]->setValue(text);
+    createAndSendMacroCommand(params);
+}
+
+/**
+ * Called when a macro widget action value is changed
+ *
+ * @param value
+ *     New value
+ */
+void
+WuQMacroSignalWatcher::macroWidgetActionValueChanged(const QVariant& value)
+{
+    std::vector<WuQMacroCommandParameter*> params = getCopyOfObjectParameters();
+    CaretAssert(params.size() >= 1);
+    params[0]->setValue(value);
     createAndSendMacroCommand(params);
 }
 

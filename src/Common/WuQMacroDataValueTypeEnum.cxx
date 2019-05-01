@@ -126,7 +126,7 @@ WuQMacroDataValueTypeEnum::initialize()
                                     "INTEGER", 
                                     "Integer"));
     
-    enumData.push_back(WuQMacroDataValueTypeEnum(MOUSE, 
+    enumData.push_back(WuQMacroDataValueTypeEnum(MOUSE,
                                     "MOUSE", 
                                     "Mouse"));
     

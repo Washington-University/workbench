@@ -146,6 +146,10 @@ WuQMacroWidgetTypeEnum::initialize()
                                     "LIST_WIDGET", 
                                     "QListWidget"));
     
+    enumData.push_back(WuQMacroWidgetTypeEnum(MACRO_WIDGET_ACTION,
+                                              "MACRO_WIDGET_ACTION",
+                                              "caret::WuQMacroWidgetAction"));
+    
     enumData.push_back(WuQMacroWidgetTypeEnum(MENU,
                                     "MENU", 
                                     "QMenu"));

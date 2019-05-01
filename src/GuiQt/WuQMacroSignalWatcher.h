@@ -83,6 +83,8 @@ namespace caret {
         
         void listWidgetItemActivated(QListWidgetItem*);
         
+        void macroWidgetActionValueChanged(const QVariant& value);
+        
         void menuTriggered(QAction* action);
         
         void pushButtonClicked(bool);

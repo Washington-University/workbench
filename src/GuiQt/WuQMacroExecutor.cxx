@@ -55,6 +55,7 @@
 #include "WuQMacroMouseEventInfo.h"
 #include "WuQMacroMouseEventWidgetInterface.h"
 #include "WuQMacroSignalEmitter.h"
+#include "WuQMacroWidgetAction.h"
 
 using namespace caret;
 
@@ -600,7 +601,10 @@ WuQMacroExecutor::runMacroCommand(QWidget* /*parentWidget*/,
             break;
         case WuQMacroWidgetTypeEnum::LIST_WIDGET:
             runListWidgetCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
-             break;
+            break;
+        case WuQMacroWidgetTypeEnum::MACRO_WIDGET_ACTION:
+            runMacroWidgetActionCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
+            break;
         case WuQMacroWidgetTypeEnum::MENU:
             runMenuCommand(macroCommand, object, objectErrorMessage, notFoundFlag);
             break;
@@ -1090,6 +1094,42 @@ WuQMacroExecutor::runListWidgetCommand(const WuQMacroCommand* macroCommand,
                                   + "\" or index="
                                   + dataValueTwo.toInt());
         }
+    }
+    else {
+        castFailureFlagOut = true;
+    }
+}
+
+/**
+ * Run a menu selection selection command
+ *
+ * @param macroCommand
+ *    Macro command that is run
+ * @param object
+ *     The object that is cast to specific object/widget
+ * @param errorMessageOut
+ *     Error message from execution
+ * @param castFailureFlagOut
+ *     Set to true if unable to cast object to widget type
+ */
+void
+WuQMacroExecutor::runMacroWidgetActionCommand(const WuQMacroCommand* macroCommand,
+                                              QObject* object,
+                                              QString& errorMessageOut,
+                                              bool& castFailureFlagOut) const
+{
+    WuQMacroWidgetAction* macroWidgetAction = qobject_cast<WuQMacroWidgetAction*>(object);
+    if (macroWidgetAction != NULL) {
+        CaretAssert(macroCommand->getNumberOfParameters() > 0);
+        const WuQMacroCommandParameter* parameterOne = macroCommand->getParameterAtIndex(0);
+        CaretAssert(parameterOne);
+        
+        CaretAssert(parameterOne->getDataType() == WuQMacroDataValueTypeEnum::STRING);
+        const QVariant dataValue = parameterOne->getValue();
+        
+        WuQMacroSignalEmitter signalEmitter;
+        signalEmitter.emitMacroWidgetActionSignal(macroWidgetAction,
+                                                  dataValue);
     }
     else {
         castFailureFlagOut = true;
