@@ -316,24 +316,30 @@ WuQMacroWidgetAction::setWidgetValue(QWidget* widget,
  *
  * @param widget
  *     The widget
+ * @return
+ *     True if widget was updated with model value
  */
-void
+bool
 WuQMacroWidgetAction::updateWidgetWithModelValue(QWidget* widget)
 {
     CaretAssert(widget);
-    
-    QVariant value;
-    emit getModelValue(value);
-    
-    if (value.isNull()) {
-        const QString msg("Value was not updated by model, need to connect getModelValue() signal");
-        CaretAssertMessage(0, msg);
-        CaretLogSevere(msg);
+    if (m_widgets.find(widget) != m_widgets.end()) {
+        QVariant value;
+        emit getModelValue(value);
+        
+        if (value.isNull()) {
+            const QString msg("Value was not updated by model, need to connect getModelValue() signal");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+        }
+        else {
+            setWidgetValue(widget,
+                           value);
+            return true;
+        }
     }
-    else {
-        setWidgetValue(widget,
-                       value);
-    }
+    
+    return false;
 }
 
 /**

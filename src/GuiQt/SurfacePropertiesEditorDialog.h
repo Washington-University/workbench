@@ -25,6 +25,7 @@
 #include "SceneableInterface.h"
 #include "WuQDialogNonModal.h"
 
+class QCheckBox;
 class QDoubleSpinBox;
 
 namespace caret {
@@ -57,7 +58,7 @@ namespace caret {
 
         SurfacePropertiesEditorDialog& operator=(const SurfacePropertiesEditorDialog&);
         
-        WuQTrueFalseComboBox* m_displayNormalVectorsComboBox;
+        QCheckBox* m_displayNormalVectorsCheckBox;
         
         QDoubleSpinBox* m_linkSizeSpinBox;
         

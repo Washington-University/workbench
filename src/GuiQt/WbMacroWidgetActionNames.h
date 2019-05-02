@@ -39,6 +39,10 @@ namespace caret {
         
         static QString getSurfacePropertiesVertexDiameterName() { return "SurfaceProperties:vertexDiameter"; }
         
+        static QString getSurfacePropertiesDisplayNormalVectorsName() { return "SurfaceProperties:displayNormalVectors"; }
+        
+        static QString getSurfacePropertiesDrawingTypeName() { return "SurfaceProperties:drawingType"; }
+        
         WbMacroWidgetActionNames() = delete;
         
         virtual ~WbMacroWidgetActionNames() = delete;

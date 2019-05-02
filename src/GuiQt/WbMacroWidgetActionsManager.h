@@ -55,22 +55,20 @@ namespace caret {
         
         WuQMacroWidgetAction* getSurfacePropertiesVertexDiameterWidgetAction();
         
+        WuQMacroWidgetAction* getSurfacePropertiesDisplayNormalVectorsWidgetAction();
+        
         // ADD_NEW_METHODS_HERE
 
     private:
         std::vector<WuQMacroWidgetAction*> m_macroWidgetActions;
         
-        WuQMacroWidgetAction* createSurfacePropertiesOpacityWidgetAction();
+        WuQMacroWidgetAction* m_surfacePropertiesOpacityWidgetAction = NULL;
         
-        WuQMacroWidgetAction* m_surfacePropertiesOpacityWidgetAction;
+        WuQMacroWidgetAction* m_surfacePropertiesLinkDiameterWidgetAction = NULL;
         
-        WuQMacroWidgetAction* createSurfacePropertiesLinkDiameterWidgetAction();
+        WuQMacroWidgetAction* m_surfacePropertiesVertexDiameterWidgetAction = NULL;
         
-        WuQMacroWidgetAction* m_surfacePropertiesLinkDiameterWidgetAction;
-        
-        WuQMacroWidgetAction* createSurfacePropertiesVertexDiameterWidgetAction();
-        
-        WuQMacroWidgetAction* m_surfacePropertiesVertexDiameterWidgetAction;
+        WuQMacroWidgetAction* m_surfacePropertiesDisplayNormalVectorsWidgetAction = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

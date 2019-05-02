@@ -1593,11 +1593,43 @@ WuQMacroManager::getWidgetForMacroWidgetActionByName(const QString& name,
  * of the widget owner (typically a dialog).
  */
 void
-WuQMacroManager::releaseWidgetFromMacroWidgetAction(QWidget* widget)
+WuQMacroManager::releaseWidgetFromMacroWidgetAction(QWidget* widget,
+                                                    QWidget* widget2,
+                                                    QWidget* widget3,
+                                                    QWidget* widget4,
+                                                    QWidget* widget5,
+                                                    QWidget* widget6)
 {
-    CaretAssert(widget);
-    
-    for (auto mwa : m_macroWidgetActions) {
-        mwa->releaseWidget(widget);
+    for (auto widget :  { widget, widget2, widget3, widget4, widget5, widget6 } ) {
+        if (widget != NULL) {
+            for (auto mwa : m_macroWidgetActions) {
+                mwa->releaseWidget(widget);
+            }
+        }
+    }
+}
+
+/**
+ * Update the value of a widget from its macro widget action.
+ *
+ * @param widget
+ *     Widget that gets its value update
+ */
+void
+WuQMacroManager::updateValueInWidgetFromMacroWidgetAction(QWidget* widget,
+                                                          QWidget* widget2,
+                                                          QWidget* widget3,
+                                                          QWidget* widget4,
+                                                          QWidget* widget5,
+                                                          QWidget* widget6)
+{
+    for (auto widget :  { widget, widget2, widget3, widget4, widget5, widget6 } ) {
+        if (widget != NULL) {
+            for (auto mwa : m_macroWidgetActions) {
+                if (mwa->updateWidgetWithModelValue(widget)) {
+                    return;
+                }
+            }
+        }
     }
 }

@@ -68,45 +68,16 @@ std::vector<WuQMacroWidgetAction*>
 WbMacroWidgetActionsManager::getMacroWidgetActions()
 {
     if (m_macroWidgetActions.empty()) {
-        m_surfacePropertiesLinkDiameterWidgetAction = createSurfacePropertiesLinkDiameterWidgetAction();
-        m_macroWidgetActions.push_back(m_surfacePropertiesLinkDiameterWidgetAction);
+        m_macroWidgetActions.push_back(getSurfacePropertiesLinkDiameterWidgetAction());
         
-        m_surfacePropertiesOpacityWidgetAction = createSurfacePropertiesOpacityWidgetAction();
-        m_macroWidgetActions.push_back(m_surfacePropertiesOpacityWidgetAction);
+        m_macroWidgetActions.push_back(getSurfacePropertiesOpacityWidgetAction());
         
-        m_surfacePropertiesVertexDiameterWidgetAction = createSurfacePropertiesVertexDiameterWidgetAction();
-        m_macroWidgetActions.push_back(m_surfacePropertiesVertexDiameterWidgetAction);
+        m_macroWidgetActions.push_back(getSurfacePropertiesVertexDiameterWidgetAction());
+        
+        m_macroWidgetActions.push_back(getSurfacePropertiesDisplayNormalVectorsWidgetAction());
     }
     
     return m_macroWidgetActions;
-}
-
-/**
- * @return New instance of surface opacity widget action
- */
-WuQMacroWidgetAction*
-WbMacroWidgetActionsManager::createSurfacePropertiesOpacityWidgetAction()
-{
-    WuQMacroWidgetAction* action = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::SPIN_BOX_FLOAT,
-                                                            WbMacroWidgetActionNames::getSurfacePropertiesOpacityName(),
-                                                            "Set the surface opacity",
-                                                            parent());
-    
-    DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
-    
-    QObject::connect(action, &WuQMacroWidgetAction::getModelValue,
-                     this, [=](QVariant& value) {
-                         value = dsp->getOpacity();
-                     });
-    
-    QObject::connect(action, &WuQMacroWidgetAction::setModelValue,
-                     this, [=](const QVariant& value) {
-                         GuiManager::get()->getBrain()->getDisplayPropertiesSurface()->setOpacity(value.toFloat());
-                         GuiManager::updateSurfaceColoring();
-                         GuiManager::updateGraphicsAllWindows();
-                     });
-    
-    return action;
 }
 
 /**
@@ -115,6 +86,26 @@ WbMacroWidgetActionsManager::createSurfacePropertiesOpacityWidgetAction()
 WuQMacroWidgetAction*
 WbMacroWidgetActionsManager::getSurfacePropertiesOpacityWidgetAction()
 {
+    if (m_surfacePropertiesOpacityWidgetAction == NULL) {
+        m_surfacePropertiesOpacityWidgetAction = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::SPIN_BOX_FLOAT,
+                                 WbMacroWidgetActionNames::getSurfacePropertiesOpacityName(),
+                                 "Set the surface opacity",
+                                 this);
+        
+        DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+        
+        QObject::connect(m_surfacePropertiesOpacityWidgetAction, &WuQMacroWidgetAction::getModelValue,
+                         this, [=](QVariant& value) {
+                             value = dsp->getOpacity();
+                         });
+        
+        QObject::connect(m_surfacePropertiesOpacityWidgetAction, &WuQMacroWidgetAction::setModelValue,
+                         this, [=](const QVariant& value) {
+                             dsp->setOpacity(value.toFloat());
+                             GuiManager::updateSurfaceColoring();
+                             GuiManager::updateGraphicsAllWindows();
+                         });    }
+    
     CaretAssert(m_surfacePropertiesOpacityWidgetAction);
     return m_surfacePropertiesOpacityWidgetAction;
 }
@@ -125,61 +116,27 @@ WbMacroWidgetActionsManager::getSurfacePropertiesOpacityWidgetAction()
 WuQMacroWidgetAction*
 WbMacroWidgetActionsManager::getSurfacePropertiesLinkDiameterWidgetAction()
 {
+    if (m_surfacePropertiesLinkDiameterWidgetAction == NULL) {
+        m_surfacePropertiesLinkDiameterWidgetAction = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::SPIN_BOX_FLOAT,
+                                                                               WbMacroWidgetActionNames::getSurfacePropertiesLinkDiameterName(),
+                                                                               "Set the link (edge) diameter",
+                                                                               this);
+        
+        DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+        
+        QObject::connect(m_surfacePropertiesLinkDiameterWidgetAction, &WuQMacroWidgetAction::getModelValue,
+                         this, [=](QVariant& value) {
+                             value = dsp->getLinkSize();
+                         });
+        
+        QObject::connect(m_surfacePropertiesLinkDiameterWidgetAction, &WuQMacroWidgetAction::setModelValue,
+                         this, [=](const QVariant& value) {
+                             dsp->setLinkSize(value.toFloat());
+                             GuiManager::updateGraphicsAllWindows();
+                         });
+    }
+    
     return m_surfacePropertiesLinkDiameterWidgetAction;
-}
-
-/**
- * @return New instance of surface link diameter widget action
- */
-WuQMacroWidgetAction*
-WbMacroWidgetActionsManager::createSurfacePropertiesLinkDiameterWidgetAction()
-{
-    WuQMacroWidgetAction* action = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::SPIN_BOX_FLOAT,
-                                                            WbMacroWidgetActionNames::getSurfacePropertiesLinkDiameterName(),
-                                                            "Set the link (edge) diameter",
-                                                            parent());
-    
-    DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
-    
-    QObject::connect(action, &WuQMacroWidgetAction::getModelValue,
-                     this, [=](QVariant& value) {
-                         value = dsp->getLinkSize();
-                     });
-    
-    QObject::connect(action, &WuQMacroWidgetAction::setModelValue,
-                     this, [=](const QVariant& value) {
-                         GuiManager::get()->getBrain()->getDisplayPropertiesSurface()->setLinkSize(value.toFloat());
-                         GuiManager::updateGraphicsAllWindows();
-                     });
-    
-    return action;
-}
-
-/**
- * @return New instance of surface vertex diameter widget action
- */
-WuQMacroWidgetAction*
-WbMacroWidgetActionsManager::createSurfacePropertiesVertexDiameterWidgetAction()
-{
-    WuQMacroWidgetAction* action = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::SPIN_BOX_FLOAT,
-                                                            WbMacroWidgetActionNames::getSurfacePropertiesVertexDiameterName(),
-                                                            "Set the vertex diameter",
-                                                            parent());
-    
-    DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
-    
-    QObject::connect(action, &WuQMacroWidgetAction::getModelValue,
-                     this, [=](QVariant& value) {
-                         value = dsp->getNodeSize();
-                     });
-    
-    QObject::connect(action, &WuQMacroWidgetAction::setModelValue,
-                     this, [=](const QVariant& value) {
-                         GuiManager::get()->getBrain()->getDisplayPropertiesSurface()->setNodeSize(value.toFloat());
-                         GuiManager::updateGraphicsAllWindows();
-                     });
-    
-    return action;
 }
 
 /**
@@ -188,5 +145,54 @@ WbMacroWidgetActionsManager::createSurfacePropertiesVertexDiameterWidgetAction()
 WuQMacroWidgetAction*
 WbMacroWidgetActionsManager::getSurfacePropertiesVertexDiameterWidgetAction()
 {
+    if (m_surfacePropertiesVertexDiameterWidgetAction == NULL) {
+        m_surfacePropertiesVertexDiameterWidgetAction = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::SPIN_BOX_FLOAT,
+                                                                                 WbMacroWidgetActionNames::getSurfacePropertiesVertexDiameterName(),
+                                                                                 "Set the vertex diameter",
+                                                                                 this);
+        
+        DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+        
+        QObject::connect(m_surfacePropertiesVertexDiameterWidgetAction, &WuQMacroWidgetAction::getModelValue,
+                         this, [=](QVariant& value) {
+                             value = dsp->getNodeSize();
+                         });
+        
+        QObject::connect(m_surfacePropertiesVertexDiameterWidgetAction, &WuQMacroWidgetAction::setModelValue,
+                         this, [=](const QVariant& value) {
+                             dsp->setNodeSize(value.toFloat());
+                             GuiManager::updateGraphicsAllWindows();
+                         });
+    }
     return m_surfacePropertiesVertexDiameterWidgetAction;
+}
+
+
+/**
+ * @return Get (and in needed create) the surface properties display normal vectors widget action
+ */
+WuQMacroWidgetAction*
+WbMacroWidgetActionsManager::getSurfacePropertiesDisplayNormalVectorsWidgetAction()
+{
+    if (m_surfacePropertiesDisplayNormalVectorsWidgetAction == NULL) {
+        m_surfacePropertiesDisplayNormalVectorsWidgetAction = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::CHECK_BOX_BOOLEAN,
+                                                                WbMacroWidgetActionNames::getSurfacePropertiesDisplayNormalVectorsName(),
+                                                                "Display normal vectors on a surface",
+                                                                this);
+        
+        DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+        
+        QObject::connect(m_surfacePropertiesDisplayNormalVectorsWidgetAction, &WuQMacroWidgetAction::getModelValue,
+                         this, [=](QVariant& value) {
+                             value = dsp->isDisplayNormalVectors();
+                         });
+        
+        QObject::connect(m_surfacePropertiesDisplayNormalVectorsWidgetAction, &WuQMacroWidgetAction::setModelValue,
+                         this, [=](const QVariant& value) {
+                             dsp->setDisplayNormalVectors(value.toBool());
+                             GuiManager::updateGraphicsAllWindows();
+                         });
+    }
+    
+    return m_surfacePropertiesDisplayNormalVectorsWidgetAction;
 }

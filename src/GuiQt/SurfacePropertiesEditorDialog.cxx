@@ -25,6 +25,7 @@
 
 #include <limits>
 
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QGridLayout>
@@ -88,8 +89,6 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     m_linkSizeSpinBox->setSingleStep(1.0);
     m_linkSizeSpinBox->setDecimals(1);
     m_linkSizeSpinBox->setSuffix("mm");
-    QObject::connect(m_linkSizeSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(surfaceDisplayPropertyChanged()));
     
     QLabel* nodeSizeLabel = new QLabel("Vertex Diameter: ");
     
@@ -106,13 +105,17 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     m_nodeSizeSpinBox->setSingleStep(1.0);
     m_nodeSizeSpinBox->setDecimals(1);
     m_nodeSizeSpinBox->setSuffix("mm");
-    QObject::connect(m_nodeSizeSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(surfaceDisplayPropertyChanged()));
     
-    QLabel* displayNormalVectorsLabel = new QLabel("Display Normal Vectors: ");
-    m_displayNormalVectorsComboBox = new WuQTrueFalseComboBox(this);
-    QObject::connect(m_displayNormalVectorsComboBox, SIGNAL(statusChanged(bool)),
-                     this,  SLOT(surfaceDisplayPropertyChanged()));
+    QWidget* displayNormalsWidget = mm->getWidgetForMacroWidgetActionByName(WbMacroWidgetActionNames::getSurfacePropertiesDisplayNormalVectorsName());
+    if (displayNormalsWidget != NULL) {
+        m_displayNormalVectorsCheckBox = qobject_cast<QCheckBox*>(displayNormalsWidget);
+        CaretAssert(m_displayNormalVectorsCheckBox);
+    }
+    if (m_displayNormalVectorsCheckBox == NULL) {
+        m_displayNormalVectorsCheckBox = new QCheckBox();
+        m_displayNormalVectorsCheckBox->setEnabled(false);
+    }
+    m_displayNormalVectorsCheckBox->setText("Display Normal Vectors");
     
     QLabel* opacityLabel = new QLabel("Opacity: ");
     
@@ -133,8 +136,7 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     QGridLayout* gridLayout = new QGridLayout(w);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     int row = gridLayout->rowCount();
-    gridLayout->addWidget(displayNormalVectorsLabel, row, 0);
-    gridLayout->addWidget(m_displayNormalVectorsComboBox->getWidget(), row, 1);
+    gridLayout->addWidget(m_displayNormalVectorsCheckBox, row, 0, 1, 2);
     row++;
     gridLayout->addWidget(surfaceDrawingTypeLabel, row, 0);
     gridLayout->addWidget(m_surfaceDrawingTypeComboBox->getWidget(), row, 1);
@@ -170,9 +172,10 @@ SurfacePropertiesEditorDialog::~SurfacePropertiesEditorDialog()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    WuQMacroManager::instance()->releaseWidgetFromMacroWidgetAction(m_linkSizeSpinBox);
-    WuQMacroManager::instance()->releaseWidgetFromMacroWidgetAction(m_nodeSizeSpinBox);
-    WuQMacroManager::instance()->releaseWidgetFromMacroWidgetAction(m_opacitySpinBox);
+    WuQMacroManager::instance()->releaseWidgetFromMacroWidgetAction(m_linkSizeSpinBox,
+                                                                    m_nodeSizeSpinBox,
+                                                                    m_opacitySpinBox,
+                                                                    m_displayNormalVectorsCheckBox);
 }
 
 /**
@@ -192,10 +195,6 @@ SurfacePropertiesEditorDialog::surfaceDisplayPropertyChanged()
     
     DisplayPropertiesSurface* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
     dps->setSurfaceDrawingType(surfaceDrawingType);
-    dps->setDisplayNormalVectors(m_displayNormalVectorsComboBox->isTrue());
-    dps->setLinkSize(m_linkSizeSpinBox->value());
-    dps->setNodeSize(m_nodeSizeSpinBox->value());
-//    dps->setOpacity(m_opacitySpinBox->value());
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -212,10 +211,10 @@ SurfacePropertiesEditorDialog::updateDialog()
     const DisplayPropertiesSurface* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
     
     m_surfaceDrawingTypeComboBox->setSelectedItem<SurfaceDrawingTypeEnum, SurfaceDrawingTypeEnum::Enum>(dps->getSurfaceDrawingType());
-    m_displayNormalVectorsComboBox->setStatus(dps->isDisplayNormalVectors());
-    m_linkSizeSpinBox->setValue(dps->getLinkSize());
-    m_nodeSizeSpinBox->setValue(dps->getNodeSize());
-    m_opacitySpinBox->setValue(dps->getOpacity());
+    WuQMacroManager::instance()->updateValueInWidgetFromMacroWidgetAction(m_linkSizeSpinBox,
+                                                                          m_nodeSizeSpinBox,
+                                                                          m_opacitySpinBox,
+                                                                          m_displayNormalVectorsCheckBox);
     
     m_updateInProgress = false;
 }

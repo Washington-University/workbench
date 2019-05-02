@@ -89,7 +89,7 @@ namespace caret {
 
         void setDataValue(const QVariant& value);
         
-        void updateWidgetWithModelValue(QWidget* widget);
+        bool updateWidgetWithModelValue(QWidget* widget);
         
     signals:
         /**

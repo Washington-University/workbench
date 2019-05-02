@@ -24,6 +24,7 @@
 
 
 #include <memory>
+#include <tuple>
 #include <vector>
 
 #include <QMutex>
@@ -194,7 +195,19 @@ namespace caret {
         QWidget* getWidgetForMacroWidgetActionByName(const QString& name,
                                                      QWidget* parentWidget = 0);
         
-        void releaseWidgetFromMacroWidgetAction(QWidget* widget);
+        void releaseWidgetFromMacroWidgetAction(QWidget* widget,
+                                                QWidget* widget2 = NULL,
+                                                QWidget* widget3 = NULL,
+                                                QWidget* widget4 = NULL,
+                                                QWidget* widget5 = NULL,
+                                                QWidget* widget6 = NULL);
+        
+        void updateValueInWidgetFromMacroWidgetAction(QWidget* widget,
+                                                      QWidget* widget2 = NULL,
+                                                      QWidget* widget3 = NULL,
+                                                      QWidget* widget4 = NULL,
+                                                      QWidget* widget5 = NULL,
+                                                      QWidget* widget6 = NULL);
         
         // ADD_NEW_METHODS_HERE
         
