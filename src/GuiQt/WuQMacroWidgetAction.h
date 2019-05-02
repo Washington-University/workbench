@@ -75,7 +75,7 @@ namespace caret {
         
         QWidget* requestWidget(QWidget* parent);
         
-        void releaseWidget(QWidget* widget);
+        bool releaseWidget(QWidget* widget);
         
         WidgetType getWidgetType() const;
 

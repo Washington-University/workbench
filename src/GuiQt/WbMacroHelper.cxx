@@ -46,6 +46,7 @@
 #include "SessionManager.h"
 #include "WbMacroCustomOperationTypeEnum.h"
 #include "WbMacroCustomDataTypeEnum.h"
+#include "WbMacroWidgetActionsManager.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"
@@ -466,50 +467,10 @@ WbMacroHelper::macroCommandAboutToStart(QWidget* window,
 std::vector<WuQMacroWidgetAction*>
 WbMacroHelper::getMacroWidgetActions()
 {
-    if (m_macroWidgetActions.empty()) {
-        WuQMacroWidgetAction* surfaceOpacityAction
-        = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::SPIN_BOX_FLOAT,
-                                   "SurfaceProperties:surfaceOpacity",
-                                   "Set the surface opacity",
-                                   parent());
-        m_macroWidgetActions.push_back(surfaceOpacityAction);
-        
-        QObject::connect(surfaceOpacityAction, &WuQMacroWidgetAction::setModelValue,
-                         this, &WbMacroHelper::setModelOpacity);
-        QObject::connect(surfaceOpacityAction, &WuQMacroWidgetAction::getModelValue,
-                         this, &WbMacroHelper::getModelOpacity);
+    if (m_macroWidgetActionsManager == NULL) {
+        m_macroWidgetActionsManager = new WbMacroWidgetActionsManager(this);
     }
-    
-    return m_macroWidgetActions;
+    CaretAssert(m_macroWidgetActionsManager);
+    return m_macroWidgetActionsManager->getMacroWidgetActions();
 }
 
-/**
- * Set opacity in the model
- *
- * @param value
- *     New value for opacity
- */
-void
-WbMacroHelper::setModelOpacity(const QVariant& value)
-{
-    DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
-    CaretAssert(dsp);
-    dsp->setOpacity(value.toFloat());
-    
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
-
-/**
- * Set opacity in the model
- *
- * @param value
- *     Updated value for opacity
- */
-void
-WbMacroHelper::getModelOpacity(QVariant& value)
-{
-    DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
-    CaretAssert(dsp);
-    value = dsp->getOpacity();
-}

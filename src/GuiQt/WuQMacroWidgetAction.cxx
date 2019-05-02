@@ -170,21 +170,38 @@ WuQMacroWidgetAction::requestWidget(QWidget* parent)
  * Release the specified widget. Any signals are disconnected
  * and this widget is no longer updated.  The caller is
  * responsible for deleting the widget.
+ *
+ * It is okay to call this method with a widget
+ * that belongs to another macro widget action
+ * and in this case no action is taken.
+ *
+ * @return
+ *     True if the widget was monitored by this
+ *     macro widget action, otherwise false.
  */
-void
+bool
 WuQMacroWidgetAction::releaseWidget(QWidget* widget)
 {
     CaretAssert(widget);
     
-    /*
-     * Disconnect all signals in widget from 'this'
-     */
-    QObject::disconnect(widget, 0,
-                        this, 0);
-    
-    m_widgets.erase(widget);
-}
+    if (m_widgets.find(widget) != m_widgets.end()) {
+        /*
+         * Disconnect all signals in widget from 'this'
+         */
+        QObject::disconnect(widget, 0,
+                            this, 0);
+        
+        m_widgets.erase(widget);
+        
+        std::cout << "Released widget: " << widget->objectName() << std::endl;
+        return true;
+    }
 
+    /*
+     * If here, widget was not in this macro widget action
+     */
+    return false;
+}
 
 /**
  * @return The tooltip

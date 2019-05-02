@@ -45,6 +45,7 @@ using namespace caret;
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
 #include "WuQMacroWidgetAction.h"
+#include "WbMacroWidgetActionNames.h"
 #include "WuQTrueFalseComboBox.h"
 #include "WuQtUtilities.h"
     
@@ -63,6 +64,9 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
 {
     m_updateInProgress = true;
     
+    WuQMacroManager* mm = WuQMacroManager::instance();
+    CaretAssert(mm);
+    
     QLabel* surfaceDrawingTypeLabel = new QLabel("Drawing Type: ");
     m_surfaceDrawingTypeComboBox = new EnumComboBoxTemplate(this);
     QObject::connect(m_surfaceDrawingTypeComboBox, SIGNAL(itemActivated()),
@@ -70,7 +74,16 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     m_surfaceDrawingTypeComboBox->setup<SurfaceDrawingTypeEnum, SurfaceDrawingTypeEnum::Enum>();
     
     QLabel* linkSizeLabel = new QLabel("Link Diameter: ");
-    m_linkSizeSpinBox = WuQFactory::newDoubleSpinBox();
+    
+    QWidget* linkSizeMacroWidget = mm->getWidgetForMacroWidgetActionByName(WbMacroWidgetActionNames::getSurfacePropertiesLinkDiameterName());
+    if (linkSizeMacroWidget != NULL) {
+        m_linkSizeSpinBox = qobject_cast<QDoubleSpinBox*>(linkSizeMacroWidget);
+        CaretAssert(m_linkSizeSpinBox);
+    }
+    if (m_linkSizeSpinBox == NULL) {
+        m_linkSizeSpinBox = WuQFactory::newDoubleSpinBox();
+        m_linkSizeSpinBox->setEnabled(false);
+    }
     m_linkSizeSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_linkSizeSpinBox->setSingleStep(1.0);
     m_linkSizeSpinBox->setDecimals(1);
@@ -79,7 +92,16 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
                      this, SLOT(surfaceDisplayPropertyChanged()));
     
     QLabel* nodeSizeLabel = new QLabel("Vertex Diameter: ");
-    m_nodeSizeSpinBox = WuQFactory::newDoubleSpinBox();
+    
+    QWidget* nodeSizeWidget = mm->getWidgetForMacroWidgetActionByName(WbMacroWidgetActionNames::getSurfacePropertiesVertexDiameterName());
+    if (nodeSizeWidget != NULL) {
+        m_nodeSizeSpinBox = qobject_cast<QDoubleSpinBox*>(nodeSizeWidget);
+        CaretAssert(m_nodeSizeSpinBox);
+    }
+    if (m_nodeSizeSpinBox == NULL) {
+        m_nodeSizeSpinBox = WuQFactory::newDoubleSpinBox();
+        m_nodeSizeSpinBox->setEnabled(false);
+    }
     m_nodeSizeSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_nodeSizeSpinBox->setSingleStep(1.0);
     m_nodeSizeSpinBox->setDecimals(1);
@@ -94,21 +116,14 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     
     QLabel* opacityLabel = new QLabel("Opacity: ");
     
-    m_opacityMacroWidgetAction = WuQMacroManager::instance()->getMacroWidgetActionByName("SurfaceProperties:surfaceOpacity");
-    if (m_opacityMacroWidgetAction != NULL) {
-        QWidget* widget = m_opacityMacroWidgetAction->requestWidget(this);
-        if (widget != NULL) {
-            QDoubleSpinBox* dsb = qobject_cast<QDoubleSpinBox*>(widget);
-            if (dsb != NULL) {
-                m_opacitySpinBox = dsb;
-            }
-        }
+    QWidget* opacityMacroWidget = mm->getWidgetForMacroWidgetActionByName(WbMacroWidgetActionNames::getSurfacePropertiesOpacityName());
+    if (opacityMacroWidget != NULL) {
+        m_opacitySpinBox = qobject_cast<QDoubleSpinBox*>(opacityMacroWidget);
+        CaretAssert(m_opacitySpinBox);
     }
     if (m_opacitySpinBox == NULL) {
-        m_opacityMacroWidgetAction = NULL;
-        m_opacitySpinBox = WuQFactory::newDoubleSpinBox();
-        QObject::connect(m_opacitySpinBox, SIGNAL(valueChanged(double)),
-                         this, SLOT(surfaceDisplayPropertyChanged()));
+        m_opacitySpinBox = new QDoubleSpinBox();
+        m_opacitySpinBox->setEnabled(false);
     }
     m_opacitySpinBox->setRange(0.0, 1.0);
     m_opacitySpinBox->setSingleStep(0.1);
@@ -155,9 +170,9 @@ SurfacePropertiesEditorDialog::~SurfacePropertiesEditorDialog()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    if (m_opacityMacroWidgetAction != NULL) {
-        m_opacityMacroWidgetAction->releaseWidget(m_opacitySpinBox);
-    }
+    WuQMacroManager::instance()->releaseWidgetFromMacroWidgetAction(m_linkSizeSpinBox);
+    WuQMacroManager::instance()->releaseWidgetFromMacroWidgetAction(m_nodeSizeSpinBox);
+    WuQMacroManager::instance()->releaseWidgetFromMacroWidgetAction(m_opacitySpinBox);
 }
 
 /**
@@ -180,7 +195,7 @@ SurfacePropertiesEditorDialog::surfaceDisplayPropertyChanged()
     dps->setDisplayNormalVectors(m_displayNormalVectorsComboBox->isTrue());
     dps->setLinkSize(m_linkSizeSpinBox->value());
     dps->setNodeSize(m_nodeSizeSpinBox->value());
-    dps->setOpacity(m_opacitySpinBox->value());
+//    dps->setOpacity(m_opacitySpinBox->value());
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -276,6 +291,4 @@ SurfacePropertiesEditorDialog::restoreFromScene(const SceneAttributes* sceneAttr
     SceneWindowGeometry swg(this);
     swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
 }
-
-
 

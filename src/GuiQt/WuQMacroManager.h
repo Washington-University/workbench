@@ -191,6 +191,11 @@ namespace caret {
         
         WuQMacroWidgetAction* getMacroWidgetActionByName(const QString& name);
 
+        QWidget* getWidgetForMacroWidgetActionByName(const QString& name,
+                                                     QWidget* parentWidget = 0);
+        
+        void releaseWidgetFromMacroWidgetAction(QWidget* widget);
+        
         // ADD_NEW_METHODS_HERE
         
     public slots:

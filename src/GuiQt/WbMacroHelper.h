@@ -32,6 +32,8 @@ class QWidget;
 
 namespace caret {
 
+    class WbMacroWidgetActionsManager;
+    
     class WbMacroHelper : public WuQMacroHelperInterface, public EventListenerInterface {
         Q_OBJECT
         
@@ -83,11 +85,6 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
         
-    private slots:
-        void setModelOpacity(const QVariant& value);
-        
-        void getModelOpacity(QVariant& value);
-        
     private:
         void
         recordImagesForDelay(QWidget* window,
@@ -96,7 +93,7 @@ namespace caret {
 
         MovieRecorderModeEnum::Enum m_savedRecordingMode = MovieRecorderModeEnum::MANUAL;
         
-        std::vector<WuQMacroWidgetAction*> m_macroWidgetActions;
+        WbMacroWidgetActionsManager* m_macroWidgetActionsManager = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

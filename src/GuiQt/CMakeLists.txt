@@ -195,6 +195,7 @@ ELSE()
         VolumeSurfaceOutlineSetViewController.h
         VolumeSurfaceOutlineViewController.h
 	WbMacroHelper.h
+	WbMacroWidgetActionsManager.h
         WuQCollapsibleWidget.h
         WuQDataEntryDialog.h
         WuQDialog.h
@@ -474,6 +475,8 @@ WbMacroCustomOperationIncrementVolumeSlice.h
 WbMacroCustomOperationManager.h
 WbMacroCustomOperationTypeEnum.h
 WbMacroHelper.h
+WbMacroWidgetActionNames.h
+WbMacroWidgetActionsManager.h
 WuQCollapsibleWidget.h
 WuQDataEntryDialog.h
 WuQDialog.h
@@ -743,6 +746,7 @@ WbMacroCustomOperationIncrementVolumeSlice.cxx
 WbMacroCustomOperationManager.cxx
 WbMacroCustomOperationTypeEnum.cxx
 WbMacroHelper.cxx
+WbMacroWidgetActionsManager.cxx
 WuQCollapsibleWidget.cxx
 WuQDataEntryDialog.cxx
 WuQDialog.cxx

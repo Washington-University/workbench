@@ -1549,3 +1549,55 @@ WuQMacroManager::getMacroWidgetActionByName(const QString& name)
     }
     return NULL;
 }
+
+/**
+ * Get a widget for the macro widget action with the given name
+ *
+ * @param name
+ *     Name of the macro widget action
+ * @param parentWidget
+ *     Optional parent widget for the returned widget
+ * @return
+ *     Widget associated with the widget macro action or NULL if failure.
+ */
+QWidget*
+WuQMacroManager::getWidgetForMacroWidgetActionByName(const QString& name,
+                                                     QWidget* parentWidget)
+{
+    QWidget* widget(NULL);
+    WuQMacroWidgetAction* mwa = getMacroWidgetActionByName(name);
+    if (mwa != NULL) {
+        widget = mwa->requestWidget(parentWidget);
+        if (widget == NULL) {
+            const QString msg("Failed to create widget for macro widget action with name \""
+                              + name
+                              + ".");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+        }
+    }
+    else {
+        const QString msg("No macro widget action with name \""
+                          + name
+                          + "\" was found.");
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
+    }
+    
+    return widget;
+}
+
+/**
+ * Release the widget from its associated macro widget action.
+ * Note: The widget is NOT destroyed as that is the responsibility
+ * of the widget owner (typically a dialog).
+ */
+void
+WuQMacroManager::releaseWidgetFromMacroWidgetAction(QWidget* widget)
+{
+    CaretAssert(widget);
+    
+    for (auto mwa : m_macroWidgetActions) {
+        mwa->releaseWidget(widget);
+    }
+}
