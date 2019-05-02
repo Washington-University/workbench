@@ -85,6 +85,14 @@ namespace caret {
         
         static void beep();
         
+        static void updateUserInterface();
+        
+        static void updateGraphicsAllWindows();
+        
+        static void updateGraphicsOneWindow(const int32_t windowIndex);
+        
+        static void updateSurfaceColoring();
+        
         Brain* getBrain() const;
         
         int32_t getNumberOfOpenBrainBrowserWindows() const;

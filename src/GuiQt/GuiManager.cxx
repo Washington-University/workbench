@@ -423,6 +423,42 @@ GuiManager::beep()
 }
 
 /**
+ * Send an event to update the user interface
+ */
+void
+GuiManager::updateUserInterface()
+{
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+
+/**
+ * Send an event to update all graphics windows
+ */
+void
+GuiManager::updateGraphicsAllWindows()
+{
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Send an event to update one graphics window
+ */
+void
+GuiManager::updateGraphicsOneWindow(const int32_t windowIndex)
+{
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
+}
+
+/**
+ * Send an event to update surface coloring
+ */
+void
+GuiManager::updateSurfaceColoring()
+{
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+}
+
+/**
  * @return The brain.
  */
 Brain* 
