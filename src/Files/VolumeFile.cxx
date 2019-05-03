@@ -696,16 +696,16 @@ void VolumeFile::validateMembers()
             if (m_caretVolExt.m_attributes[i]->m_palette == NULL)
             {
                 m_caretVolExt.m_attributes[i]->m_palette.grabNew(new PaletteColorMapping());
-                if (theType == SubvolumeAttributes::ANATOMY)
+                m_caretVolExt.m_attributes[i]->m_palette->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE);
+                if ((theType == SubvolumeAttributes::ANATOMY) && (numMaps == 1))
                 {
                     m_caretVolExt.m_attributes[i]->m_palette->setSelectedPaletteName(Palette::GRAY_INTERP_POSITIVE_PALETTE_NAME);
-                    m_caretVolExt.m_attributes[i]->m_palette->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+                } else {
+                    m_caretVolExt.m_attributes[i]->m_palette->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
                 }
             }
         }
     }
-    
-    //setPaletteNormalizationMode(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
     
     m_singleSliceFlag = false;
     if ((dimensions[0] == 1)
