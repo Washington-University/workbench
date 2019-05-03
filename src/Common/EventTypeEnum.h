@@ -214,6 +214,8 @@ public:
         EVENT_UPDATE_INFORMATION_WINDOWS,
         /** Update the volume editing toolbar */
         EVENT_UPDATE_VOLUME_EDITING_TOOLBAR,
+        /** Update the slice indices and coordinates in the toolbar */
+        EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR,
         /** Update yoked windows */
         EVENT_UPDATE_YOKED_WINDOWS,
         /* THIS MUST ALWAYS BE LAST - NOT an event type but is number of event types */

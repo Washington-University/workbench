@@ -2449,12 +2449,120 @@ BrowserTabContent::ventralView()
 }
 
 /**
- * Apply mouse rotation to the displayed model.
+ * Apply volume slice increment while dragging mouse
  *
+ * @param viewportContent
+ *    Content of viewport
  * @param mousePressX
  *    X coordinate of where mouse was pressed.
  * @param mousePressY
+ *    Y coordinate of where mouse was pressed.
+ * @param mouseDY
+ *    Change in mouse Y coordinate.
+ */
+void
+BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* viewportContent,
+                                                  const int32_t mousePressX,
+                                                  const int32_t mousePressY,
+                                                  const int32_t mouseDY)
+{
+    bool incrementFlag(false);
+    if (isVolumeSlicesDisplayed()) {
+        switch (getSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                incrementFlag = true;
+                break;
+        }
+    }
+    
+    if ( ! incrementFlag) {
+        return;
+    }
+    if (mouseDY == 0) {
+        return;
+    }
+    
+    /*
+     * Prevents "too fast" scrolling.
+     * If set to a very large number, it will result in the
+     * slice increment becoming one
+     */
+    int32_t slowDownIncrementer = 3;
+    
+    int32_t sliceDelta = mouseDY;
+    if (sliceDelta > 1) {
+        sliceDelta /= slowDownIncrementer;
+        if (sliceDelta == 0) {
+            sliceDelta = 1;
+        }
+    }
+    else if (sliceDelta < -1) {
+        sliceDelta /= slowDownIncrementer;
+        if (sliceDelta == 0) {
+            sliceDelta = -1;
+        }
+    }
+    
+    const int32_t tabIndex = viewportContent->getTabIndex();
+    VolumeMappableInterface* underlayVolume(NULL);
+    ModelVolume* volumeModel = getDisplayedVolumeModel();
+    if (volumeModel != NULL) {
+        underlayVolume = volumeModel->getUnderlayVolumeFile(tabIndex);
+    }
+    
+    VolumeSliceViewPlaneEnum::Enum sliceViewPlane = getSliceViewPlane();
+    if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
+        int viewport[4];
+        viewportContent->getModelViewport(viewport);
+        int sliceViewport[4] = {
+            viewport[0],
+            viewport[1],
+            viewport[2],
+            viewport[3]
+        };
+        sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                                        getSlicePlanesAllViewLayout(),
+                                                                                        mousePressX,
+                                                                                        mousePressY,
+                                                                                        sliceViewport);
+    }
+    
+    /*
+     * Note: Functions that set slice indices will prevent
+     * invalid slice indices
+     */
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            setSliceIndexAxial(underlayVolume,
+                               (getSliceIndexAxial(underlayVolume) + sliceDelta));
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            setSliceIndexCoronal(underlayVolume,
+                                 (getSliceIndexCoronal(underlayVolume) + sliceDelta));
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            setSliceIndexParasagittal(underlayVolume,
+                                      (getSliceIndexParasagittal(underlayVolume) + sliceDelta));
+            break;
+    }
+    
+    updateYokedModelBrowserTabs();
+}
+
+
+/**
+ * Apply mouse rotation to the displayed model.
+ *
+ * @param viewportContent
+ *    Content of viewport
+ * @param mousePressX
  *    X coordinate of where mouse was pressed.
+ * @param mousePressY
+ *    Y coordinate of where mouse was pressed.
  * @param mouseX
  *    X coordinate of mouse.
  * @param mouseY
@@ -2622,8 +2730,6 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 }
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                break;
-                /* Orthogonal olume slices are not rotated */
                 break;
         }
     }

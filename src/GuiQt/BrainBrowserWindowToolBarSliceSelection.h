@@ -45,7 +45,8 @@ namespace caret {
         virtual ~BrainBrowserWindowToolBarSliceSelection();
         
         virtual void updateContent(BrowserTabContent* browserTabContent);
-        
+
+        virtual void receiveEvent(Event* event) override;
 
         // ADD_NEW_METHODS_HERE
 

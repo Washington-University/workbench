@@ -279,13 +279,34 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
     if (browserTabContent == NULL) {
         return;
     }
-    browserTabContent->applyMouseRotation(viewportContent,
-                                          mouseEvent.getPressedX(),
-                                          mouseEvent.getPressedY(),
-                                          mouseEvent.getX(),
-                                          mouseEvent.getY(),
-                                          mouseEvent.getDx(),
-                                          mouseEvent.getDy());
+
+    bool scrollVolumeSlicesFlag(false);
+    if (browserTabContent->isVolumeSlicesDisplayed()) {
+        switch (browserTabContent->getSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                scrollVolumeSlicesFlag = true;
+                break;
+        }
+    }
+    if (scrollVolumeSlicesFlag) {
+        browserTabContent->applyMouseVolumeSliceIncrement(viewportContent,
+                                                          mouseEvent.getPressedX(),
+                                                          mouseEvent.getPressedY(),
+                                                          mouseEvent.getDy());
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
+    }
+    else {
+        browserTabContent->applyMouseRotation(viewportContent,
+                                              mouseEvent.getPressedX(),
+                                              mouseEvent.getPressedY(),
+                                              mouseEvent.getX(),
+                                              mouseEvent.getY(),
+                                              mouseEvent.getDx(),
+                                              mouseEvent.getDy());
+    }
+    
     /*
      * Update graphics.
      */

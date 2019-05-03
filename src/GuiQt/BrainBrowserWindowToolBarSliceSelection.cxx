@@ -293,6 +293,8 @@ m_parentToolBar(parentToolBar)
     m_volumeIndicesWidgetGroup->add(m_volumeIndicesZcoordSpinBox);
     m_volumeIndicesWidgetGroup->add(m_volumeSliceProjectionTypeEnumComboBox->getWidget());
     m_volumeIndicesWidgetGroup->add(m_volumeIdentificationUpdatesSlicesAction);
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
 }
 
 /**
@@ -300,6 +302,27 @@ m_parentToolBar(parentToolBar)
  */
 BrainBrowserWindowToolBarSliceSelection::~BrainBrowserWindowToolBarSliceSelection()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *    An event for which this instance is listening.
+ */
+void
+BrainBrowserWindowToolBarSliceSelection::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR) {
+        m_volumeIndicesWidgetGroup->blockAllSignals(true);
+        this->updateSliceIndicesAndCoordinatesRanges();
+        m_volumeIndicesWidgetGroup->blockAllSignals(false);
+        event->setEventProcessed();
+    }
+    else {
+        BrainBrowserWindowToolBarSliceSelection::receiveEvent(event);
+    }
 }
 
 /**

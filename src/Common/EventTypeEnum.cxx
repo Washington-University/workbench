@@ -418,6 +418,10 @@ EventTypeEnum::initialize()
                                      "EVENT_UPDATE_VOLUME_EDITING_TOOLBAR",
                                      "Update the volume editing toolbar"));
 
+    enumData.push_back(EventTypeEnum(EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR,
+                                     "EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR",
+                                     "Update the volume slices indices and coords in the toolbar"));
+    
     enumData.push_back(EventTypeEnum(EVENT_COUNT,
                                     "EVENT_COUNT", 
                                     "Count of events"));

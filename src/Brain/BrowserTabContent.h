@@ -263,6 +263,11 @@ namespace caret {
         
         void ventralView();
         
+        void applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* viewportContent,
+                                            const int32_t mousePressX,
+                                            const int32_t mousePressY,
+                                            const int32_t mouseDY);
+        
         void applyMouseRotation(BrainOpenGLViewportContent* viewportContent,
                                 const int32_t mousePressX,
                                 const int32_t mousePressY,
