@@ -121,6 +121,9 @@ WuQMacroWidgetAction::requestWidget(QWidget* parent)
         case WidgetType::COMBO_BOX_STRING_LIST:
         {
             QComboBox* cb = new QComboBox(parent);
+            for (auto s : m_comboBoxStringListItems) {
+                cb->addItem(s);
+            }
             QObject::connect(cb, QOverload<const QString&>::of(&QComboBox::activated),
                              this, [=](const QString& value) { emit valueChanged(value); } );
             w = cb;
@@ -137,6 +140,11 @@ WuQMacroWidgetAction::requestWidget(QWidget* parent)
         case WidgetType::SPIN_BOX_FLOAT:
         {
             QDoubleSpinBox* sb = new QDoubleSpinBox(parent);
+            sb->setMinimum(m_spinBoxFloatMinMaxStep.m_minValue);
+            sb->setMaximum(m_spinBoxFloatMinMaxStep.m_maxValue);
+            sb->setSingleStep(m_spinBoxFloatMinMaxStep.m_step);
+            sb->setDecimals(m_spinBoxFloatMinMaxStep.m_decimals);
+            sb->setValue(sb->minimum());
             QObject::connect(sb, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                              this, [=](const double value) { emit valueChanged(static_cast<float>(value)); } );
             w = sb;
@@ -145,6 +153,10 @@ WuQMacroWidgetAction::requestWidget(QWidget* parent)
         case WidgetType::SPIN_BOX_INTEGER:
         {
             QSpinBox* sb = new QSpinBox(parent);
+            sb->setMinimum(m_spinBoxIntegerMinMaxStep.m_minValue);
+            sb->setMaximum(m_spinBoxIntegerMinMaxStep.m_maxValue);
+            sb->setSingleStep(m_spinBoxIntegerMinMaxStep.m_step);
+            sb->setValue(sb->minimum());
             QObject::connect(sb, QOverload<int>::of(&QSpinBox::valueChanged),
                              this, [=](const int value) { emit valueChanged(value); } );
             w = sb;
@@ -193,7 +205,7 @@ WuQMacroWidgetAction::releaseWidget(QWidget* widget)
         
         m_widgets.erase(widget);
         
-        std::cout << "Released widget: " << widget->objectName() << std::endl;
+        //std::cout << "Released widget: " << widget->objectName() << std::endl;
         return true;
     }
 
@@ -359,3 +371,58 @@ WuQMacroWidgetAction::receiveEvent(Event* /*event*/)
 //    }
 }
 
+/**
+ * Setup widget that will be provided by the macro widget action
+ *
+ * @param comboBoxTextItems
+ *     Text items for combo box
+ */
+void
+WuQMacroWidgetAction::setComboBoxStringList(std::vector<QString>& comboBoxTextItems)
+{
+    m_comboBoxStringListItems = comboBoxTextItems;
+}
+
+/**
+ * Setup widget that will be provided by the macro widget action
+ *
+ * @param minValue
+ *     Minimum value for spin box
+ * @param maxValue
+ *     Maximum value for spin box
+ * @param step
+ *     Step value for spin box
+ */
+void
+WuQMacroWidgetAction::setSpinBoxMinMaxStep(const int32_t minValue,
+                                           const int32_t maxValue,
+                                           const int32_t step)
+{
+    m_spinBoxIntegerMinMaxStep.m_minValue = minValue;
+    m_spinBoxIntegerMinMaxStep.m_maxValue = maxValue;
+    m_spinBoxIntegerMinMaxStep.m_step     = step;
+}
+
+/**
+ * Setup widget that will be provided by the macro widget action
+ *
+ * @param minValue
+ *     Minimum value for spin box
+ * @param maxValue
+ *     Maximum value for spin box
+ * @param step
+ *     Step value for spin box
+ * @param decimals
+ *     Number of decimals right of decimal point
+ */
+void
+WuQMacroWidgetAction::setDoubleSpinBoxMinMaxStepDecimals(const double minValue,
+                                                         const double maxValue,
+                                                         const double step,
+                                                         const int32_t decimals)
+{
+    m_spinBoxFloatMinMaxStep.m_minValue = minValue;
+    m_spinBoxFloatMinMaxStep.m_maxValue = maxValue;
+    m_spinBoxFloatMinMaxStep.m_step     = step;
+    m_spinBoxFloatMinMaxStep.m_decimals = decimals;
+}

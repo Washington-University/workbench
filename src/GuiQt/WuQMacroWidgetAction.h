@@ -91,6 +91,17 @@ namespace caret {
         
         bool updateWidgetWithModelValue(QWidget* widget);
         
+        void setComboBoxStringList(std::vector<QString>& comboBoxTextItems);
+        
+        void setSpinBoxMinMaxStep(const int32_t minValue,
+                                  const int32_t maxValue,
+                                  const int32_t step);
+        
+        void setDoubleSpinBoxMinMaxStepDecimals(const double minValue,
+                                                const double maxValue,
+                                                const double step,
+                                                const int32_t decimals);
+        
     signals:
         /**
          * Emitted when the value changes.  Used by macro signal watcher.
@@ -129,6 +140,22 @@ namespace caret {
         
         std::set<QWidget*> m_widgets;
         
+        std::vector<QString> m_comboBoxStringListItems;
+        
+        struct {
+            int32_t m_minValue = 0;
+            int32_t m_maxValue = 32000;
+            int32_t m_step     = 1;
+        } m_spinBoxIntegerMinMaxStep;
+        
+        struct {
+            double  m_minValue = 0.0;
+            double  m_maxValue = 32000.0;
+            double  m_step     = 1.0;
+            int32_t m_decimals = 2;
+        } m_spinBoxFloatMinMaxStep;
+        
+
         // ADD_NEW_MEMBERS_HERE
 
     };

@@ -57,6 +57,8 @@ namespace caret {
         
         WuQMacroWidgetAction* getSurfacePropertiesDisplayNormalVectorsWidgetAction();
         
+        WuQMacroWidgetAction* getSurfacePropertiesSurfaceDrawingTypeWidgetAction();
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -69,6 +71,8 @@ namespace caret {
         WuQMacroWidgetAction* m_surfacePropertiesVertexDiameterWidgetAction = NULL;
         
         WuQMacroWidgetAction* m_surfacePropertiesDisplayNormalVectorsWidgetAction = NULL;
+        
+        WuQMacroWidgetAction* m_surfacePropertiesSurfaceDrawingTypeWidgetAction = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -23,9 +23,12 @@
 #include "WbMacroWidgetActionsManager.h"
 #undef __WB_MACRO_WIDGET_ACTIONS_MANAGER_DECLARE__
 
+#include <limits>
+
 #include <QVariant>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "Brain.h"
 #include "DisplayPropertiesSurface.h"
 #include "GuiManager.h"
@@ -75,6 +78,8 @@ WbMacroWidgetActionsManager::getMacroWidgetActions()
         m_macroWidgetActions.push_back(getSurfacePropertiesVertexDiameterWidgetAction());
         
         m_macroWidgetActions.push_back(getSurfacePropertiesDisplayNormalVectorsWidgetAction());
+
+        m_macroWidgetActions.push_back(getSurfacePropertiesSurfaceDrawingTypeWidgetAction());
     }
     
     return m_macroWidgetActions;
@@ -91,6 +96,7 @@ WbMacroWidgetActionsManager::getSurfacePropertiesOpacityWidgetAction()
                                  WbMacroWidgetActionNames::getSurfacePropertiesOpacityName(),
                                  "Set the surface opacity",
                                  this);
+        m_surfacePropertiesOpacityWidgetAction->setDoubleSpinBoxMinMaxStepDecimals(0.0, 1.0, 0.1, 2);
         
         DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
         
@@ -121,6 +127,7 @@ WbMacroWidgetActionsManager::getSurfacePropertiesLinkDiameterWidgetAction()
                                                                                WbMacroWidgetActionNames::getSurfacePropertiesLinkDiameterName(),
                                                                                "Set the link (edge) diameter",
                                                                                this);
+        m_surfacePropertiesLinkDiameterWidgetAction->setDoubleSpinBoxMinMaxStepDecimals(0.0, std::numeric_limits<float>::max(), 1.0, 1);
         
         DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
         
@@ -150,7 +157,8 @@ WbMacroWidgetActionsManager::getSurfacePropertiesVertexDiameterWidgetAction()
                                                                                  WbMacroWidgetActionNames::getSurfacePropertiesVertexDiameterName(),
                                                                                  "Set the vertex diameter",
                                                                                  this);
-        
+        m_surfacePropertiesVertexDiameterWidgetAction->setDoubleSpinBoxMinMaxStepDecimals(0.0, std::numeric_limits<float>::max(), 1.0, 1);
+
         DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
         
         QObject::connect(m_surfacePropertiesVertexDiameterWidgetAction, &WuQMacroWidgetAction::getModelValue,
@@ -196,3 +204,50 @@ WbMacroWidgetActionsManager::getSurfacePropertiesDisplayNormalVectorsWidgetActio
     
     return m_surfacePropertiesDisplayNormalVectorsWidgetAction;
 }
+
+/**
+ * @return Get (and in needed create) the surface properties surface drawing type widget action
+ */
+WuQMacroWidgetAction*
+WbMacroWidgetActionsManager::getSurfacePropertiesSurfaceDrawingTypeWidgetAction()
+{
+    if (m_surfacePropertiesSurfaceDrawingTypeWidgetAction == NULL) {
+        m_surfacePropertiesSurfaceDrawingTypeWidgetAction = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::COMBO_BOX_STRING_LIST,
+                                                                                       WbMacroWidgetActionNames::getSurfacePropertiesDrawingTypeName(),
+                                                                                       "Drawing type for surface",
+                                                                                       this);
+        
+        std::vector<AString> drawTypeNames;
+        const bool sortNamesFlag(false);
+        SurfaceDrawingTypeEnum::getAllGuiNames(drawTypeNames,
+                                               sortNamesFlag);
+        std::vector<QString> qsDrawTypeNames(drawTypeNames.begin(),
+                                             drawTypeNames.end());
+        m_surfacePropertiesSurfaceDrawingTypeWidgetAction->setComboBoxStringList(qsDrawTypeNames);
+        
+        DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+        
+        QObject::connect(m_surfacePropertiesSurfaceDrawingTypeWidgetAction, &WuQMacroWidgetAction::getModelValue,
+                         this, [=](QVariant& value) {
+                             const SurfaceDrawingTypeEnum::Enum sdt = dsp->getSurfaceDrawingType();
+                             value = SurfaceDrawingTypeEnum::toGuiName(sdt);
+                         });
+
+        QObject::connect(m_surfacePropertiesSurfaceDrawingTypeWidgetAction, &WuQMacroWidgetAction::setModelValue,
+                         this, [=](const QVariant& value) {
+                             bool validFlag(false);
+                             const SurfaceDrawingTypeEnum::Enum std = SurfaceDrawingTypeEnum::fromGuiName(value.toString(), &validFlag);
+                             if (validFlag) {
+                                 dsp->setSurfaceDrawingType(std);
+                             }
+                             else {
+                                 CaretLogSevere("Failed to convert to surface drawing type: "
+                                                + value.toString());
+                             }
+                             GuiManager::updateGraphicsAllWindows();
+                         });
+    }
+    
+    return m_surfacePropertiesSurfaceDrawingTypeWidgetAction;
+}
+

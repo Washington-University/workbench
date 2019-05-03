@@ -26,6 +26,7 @@
 #include "WuQDialogNonModal.h"
 
 class QCheckBox;
+class QComboBox;
 class QDoubleSpinBox;
 
 namespace caret {
@@ -50,9 +51,6 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
-    private slots:
-        void surfaceDisplayPropertyChanged();
-        
     private:
         SurfacePropertiesEditorDialog(const SurfacePropertiesEditorDialog&);
 
@@ -64,7 +62,7 @@ namespace caret {
         
         QDoubleSpinBox* m_nodeSizeSpinBox;
         
-        EnumComboBoxTemplate* m_surfaceDrawingTypeComboBox;
+        QComboBox* m_surfaceDrawingTypeComboBox;
         
         QDoubleSpinBox* m_opacitySpinBox;
         
