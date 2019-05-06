@@ -1436,7 +1436,14 @@ BrainBrowserWindow::createActions()
                                                        this);
     QObject::connect(m_viewTileTabsAction, SIGNAL(triggered()),
                      this, SLOT(processViewTileTabs()));
-    
+    /*
+     * Fix on MacOS with Qt 5.12:
+     * Set role to 'NoRole' or else Qt may interpret
+     * "Enter Tile Tabs" and "Exit Tile Tabs" as "Enter
+     * Full Screen" and remove this item from the menu
+     */
+    m_viewTileTabsAction->setMenuRole(QAction::NoRole);
+
     m_viewTileTabsConfigurationDialogAction = WuQtUtilities::createAction("Edit Tile Tabs Configurations...",
                                                                           "",
                                                                           this,
