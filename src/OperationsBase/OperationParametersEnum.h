@@ -45,7 +45,8 @@ public:
         DOUBLE,
         INT,
         STRING,
-        BOOL
+        BOOL,
+        ANNOTATION
     };
 
 

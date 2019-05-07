@@ -21,6 +21,7 @@
 #include "CommandParser.h"
 
 #include "AlgorithmException.h"
+#include "AnnotationFile.h"
 #include "ApplicationInformation.h"
 #include "BorderFile.h"
 #include "CaretAssert.h"
@@ -154,6 +155,30 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         try {
             switch (myComponent->m_paramList[i]->getType())
             {
+                case OperationParametersEnum::ANNOTATION:
+                {
+                    CaretPointer<AnnotationFile> myFile(new AnnotationFile());
+                    myFile->readFile(nextArg);
+                    if (m_doProvenance)
+                    {
+                        const GiftiMetaData* md = myFile->getFileMetaData();
+                        if (md != NULL)
+                        {
+                            AString prov = md->get(PROVENANCE_NAME);
+                            if (prov != "")
+                            {
+                                m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                            }
+                        }
+                    }
+                    ((AnnotationParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                    if (debug)
+                    {
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                        cout << nextArg << endl;
+                    }
+                    break;
+                }
                 case OperationParametersEnum::BOOL:
                 {
                     parameters.backup();
@@ -375,6 +400,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         catch (const bad_alloc&) {
             switch (nextType)
             {
+                case OperationParametersEnum::ANNOTATION:
                 case OperationParametersEnum::BORDER:
                 case OperationParametersEnum::CIFTI:
                 case OperationParametersEnum::FOCI:
@@ -427,6 +453,12 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         tempItem.m_param = myComponent->m_outputList[i];
         switch (myComponent->m_outputList[i]->getType())//allocate outputs that only have in-memory implementations
         {
+            case OperationParametersEnum::ANNOTATION:
+            {
+                CaretPointer<AnnotationFile>& myFile = ((AnnotationParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                myFile.grabNew(new AnnotationFile());
+                break;
+            }
             case OperationParametersEnum::BORDER:
             {
                 CaretPointer<BorderFile>& myFile = ((BorderParameter*)(myComponent->m_outputList[i]))->m_parameter;
@@ -611,6 +643,15 @@ CommandParser::CompletionInfo CommandParser::completionComponent(ParameterCompon
         }//the above conditional does a continue unless we need to do completion now
         switch (myComponent->m_paramList[i]->getType())
         {
+            case OperationParametersEnum::ANNOTATION:
+                if (ret.completionHints != "") ret.completionHints += " ";
+                if (useExtGlob)
+                {
+                    ret.completionHints += "fileglob *.?(wb_)annot";
+                } else {
+                    ret.completionHints += "fileglob *.annot fileglob *.wb_annot";
+                }
+                break;
             case OperationParametersEnum::BOOL:
                 if (ret.completionHints != "") ret.completionHints += " ";
                 ret.completionHints += "wordlist true\\ TRUE\\ false\\ FALSE";

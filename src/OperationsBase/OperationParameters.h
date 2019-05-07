@@ -29,6 +29,7 @@
 
 namespace caret {
 
+    class AnnotationFile;
     class BorderFile;
     class CiftiFile;
     class FociFile;
@@ -110,6 +111,12 @@ namespace caret {
         ///get a volume with a key
         VolumeFile* getVolume(const int32_t key);
         
+        ///add a parameter to get next item as an annotation file
+        void addAnnotationParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get an annotation with a key
+        AnnotationFile* getAnnotation(const int32_t key);
+        
         ///add a parameter to get next item as a functional file (metric)
         void addMetricParameter(const int32_t key, const AString& name, const AString& description);
         
@@ -151,6 +158,12 @@ namespace caret {
         
         ///get a volume with a key
         VolumeFile* getOutputVolume(const int32_t key);
+        
+        ///add a parameter to get next item as an annotation file
+        void addAnnotationOutputParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get an annotation with a key
+        AnnotationFile* getOutputAnnotation(const int32_t key);
         
         ///add a parameter to get next item as a functional file (metric)
         void addMetricOutputParameter(const int32_t key, const AString& name, const AString& description);
@@ -327,6 +340,7 @@ namespace caret {
     //some friendlier names
     typedef PointerTemplateParameter<SurfaceFile, OperationParametersEnum::SURFACE> SurfaceParameter;
     typedef PointerTemplateParameter<VolumeFile, OperationParametersEnum::VOLUME> VolumeParameter;
+    typedef PointerTemplateParameter<AnnotationFile, OperationParametersEnum::ANNOTATION> AnnotationParameter;
     typedef PointerTemplateParameter<MetricFile, OperationParametersEnum::METRIC> MetricParameter;
     typedef PointerTemplateParameter<LabelFile, OperationParametersEnum::LABEL> LabelParameter;
     typedef PointerTemplateParameter<CiftiFile, OperationParametersEnum::CIFTI> CiftiParameter;

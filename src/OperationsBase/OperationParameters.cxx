@@ -23,6 +23,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 
+#include "AnnotationFile.h"
 #include "BorderFile.h"
 #include "CiftiFile.h"
 #include "FociFile.h"
@@ -291,6 +292,12 @@ void ParameterComponent::addDoubleParameter(const int32_t key, const AString& na
     m_paramList.push_back(new DoubleParameter(key, name, description));
 }
 
+void ParameterComponent::addAnnotationParameter(const int32_t key, const AString& name, const AString& description)
+{
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::ANNOTATION), "input annotation parameter created with previously used key");
+    m_paramList.push_back(new AnnotationParameter(key, name, description));
+}
+
 void ParameterComponent::addMetricParameter(const int32_t key, const AString& name, const AString& description)
 {
     CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::METRIC), "input metric parameter created with previously used key");
@@ -348,6 +355,12 @@ void ParameterComponent::addBorderOutputParameter(const int32_t key, const AStri
 {
     CaretAssertMessage(checkUniqueOutput(key, OperationParametersEnum::BORDER), "output foci parameter created with previously used key");
     m_outputList.push_back(new BorderParameter(key, name, description));
+}
+
+void ParameterComponent::addAnnotationOutputParameter(const int32_t key, const AString& name, const AString& description)
+{
+    CaretAssertMessage(checkUniqueOutput(key, OperationParametersEnum::ANNOTATION), "output annotation parameter created with previously used key");
+    m_outputList.push_back(new AnnotationParameter(key, name, description));
 }
 
 void ParameterComponent::addMetricOutputParameter(const int32_t key, const AString& name, const AString& description)
@@ -418,6 +431,11 @@ LabelFile* ParameterComponent::getLabel(const int32_t key)
     return ((LabelParameter*)getInputParameter(key, OperationParametersEnum::LABEL))->m_parameter.getPointer();
 }
 
+AnnotationFile* ParameterComponent::getAnnotation(const int32_t key)
+{
+    return ((AnnotationParameter*)getInputParameter(key, OperationParametersEnum::ANNOTATION))->m_parameter.getPointer();
+}
+
 MetricFile* ParameterComponent::getMetric(const int32_t key)
 {
     return ((MetricParameter*)getInputParameter(key, OperationParametersEnum::METRIC))->m_parameter.getPointer();
@@ -466,6 +484,11 @@ SurfaceFile* ParameterComponent::getOutputSurface(const int32_t key)
 VolumeFile* ParameterComponent::getOutputVolume(const int32_t key)
 {
     return ((VolumeParameter*)getOutputParameter(key, OperationParametersEnum::VOLUME))->m_parameter.getPointer();
+}
+
+AnnotationFile* ParameterComponent::getOutputAnnotation(const int32_t key)
+{
+    return ((AnnotationParameter*)getOutputParameter(key, OperationParametersEnum::ANNOTATION))->m_parameter.getPointer();
 }
 
 MetricFile* ParameterComponent::getOutputMetric(const int32_t key)

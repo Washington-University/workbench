@@ -133,6 +133,11 @@ OperationParametersEnum::initialize()
                                     "Boolean", 
                                     "Boolean"));
     
+    enumData.push_back(OperationParametersEnum(ANNOTATION,
+                                               11,
+                                               "Annotation File",
+                                               "Annotation"));
+    
 }
 
 /**
