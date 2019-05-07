@@ -24,6 +24,7 @@
 #include "CommandOperationManager.h"
 #undef __COMMAND_OPERATION_MANAGER_DEFINE__
 
+#include "AlgorithmAnnotationResample.h"
 #include "AlgorithmBorderResample.h"
 #include "AlgorithmBorderToVertices.h"
 #include "AlgorithmCiftiAllLabelsToROIs.h"
@@ -285,6 +286,7 @@ CommandOperationManager::deleteCommandOperationManager()
  */
 CommandOperationManager::CommandOperationManager()
 {
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmAnnotationResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmBorderResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmBorderToVertices()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiAllLabelsToROIs()));

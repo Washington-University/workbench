@@ -23,6 +23,7 @@ ENDIF ()
 #
 ADD_LIBRARY(Algorithms
 AbstractAlgorithm.h
+AlgorithmAnnotationResample.h
 AlgorithmBorderResample.h
 AlgorithmBorderToVertices.h
 AlgorithmCiftiAllLabelsToROIs.h
@@ -141,6 +142,7 @@ AlgorithmVolumeWarpfieldResample.h
 OverlapLogicEnum.h
 
 AbstractAlgorithm.cxx
+AlgorithmAnnotationResample.cxx
 AlgorithmBorderResample.cxx
 AlgorithmBorderToVertices.cxx
 AlgorithmCiftiAllLabelsToROIs.cxx
