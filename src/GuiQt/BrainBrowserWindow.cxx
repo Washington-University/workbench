@@ -1425,7 +1425,12 @@ BrainBrowserWindow::createActions()
                                                          this);
     QObject::connect(m_viewFullScreenAction, SIGNAL(triggered()),
                      this, SLOT(processViewFullScreenSelected()));
-    
+    /*
+     * "Full Screen" Fix on MacOS with Qt 5.12:
+     * Without this, the menu item may disappear on MacOS
+     */
+    m_viewFullScreenAction->setMenuRole(QAction::NoRole);
+
     /*
      * Note: If shortcut key is changed, also change the shortcut key
      * for the tile tabs configuration dialog menu item to match.
