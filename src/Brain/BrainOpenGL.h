@@ -29,8 +29,8 @@
 #include <stdint.h>
 
 #include "CaretOpenGLInclude.h"
-
 #include "CaretObject.h"
+#include "UserInputModeEnum.h"
 
 #undef BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
 #undef BRAIN_OPENGL_INFO_SUPPORTS_IMMEDIATE
@@ -103,11 +103,13 @@ namespace caret {
         BrainOpenGLTextRenderInterface* getTextRenderer();
         
         void drawModels(const int32_t windowIndex,
+                        const UserInputModeEnum::Enum windowUserInputMode,
                         Brain* brain,
                         void* contextSharingGroupPointer,
                         const std::vector<const BrainOpenGLViewportContent*>& viewportContents);
         
         void selectModel(const int32_t windowIndex,
+                         const UserInputModeEnum::Enum windowUserInputMode,
                          Brain* brain,
                          void* contextSharingGroupPointer,
                          const BrainOpenGLViewportContent* viewportContent,
@@ -116,6 +118,7 @@ namespace caret {
                          const bool applySelectionBackgroundFiltering);
         
         void projectToModel(const int32_t windowIndex,
+                            const UserInputModeEnum::Enum windowUserInputMode,
                             Brain* brain,
                             void* contextSharingGroupPointer,
                             const BrainOpenGLViewportContent* viewportContent,
@@ -233,12 +236,15 @@ namespace caret {
          *
          * @param windowIndex
          *    Index of window for drawing
+         * @param windowUserInputMode
+         *    Input mode for window
          * @param brain
          *    The brain (must be valid!)
          * @param viewportContents
          *    Viewport info for drawing.
          */
         virtual void drawModelsImplementation(const int32_t windowIndex,
+                                              const UserInputModeEnum::Enum windowUserInputMode,
                                               Brain* brain,
                                 const std::vector<const BrainOpenGLViewportContent*>& viewportContents) = 0;
         
@@ -247,6 +253,8 @@ namespace caret {
          *
          * @param windowIndex
          *    Index of window for selection
+         * @param userInputMode
+         *    Input mode for window
          * @param brain
          *    The brain (must be valid!)
          * @param viewportContent
@@ -264,12 +272,13 @@ namespace caret {
          *    selected.
          */
         virtual void selectModelImplementation(const int32_t windowIndex,
+                                               const UserInputModeEnum::Enum windowUserInputMode,
                                                Brain* brain,
-                                 const BrainOpenGLViewportContent* viewportContent,
-                                 const int32_t mouseX,
-                                 const int32_t mouseY,
-                                 const bool applySelectionBackgroundFiltering) = 0;
-        
+                                               const BrainOpenGLViewportContent* viewportContent,
+                                               const int32_t mouseX,
+                                               const int32_t mouseY,
+                                               const bool applySelectionBackgroundFiltering) = 0;
+
         /**
          * Project the given window coordinate to the active models.
          * If the projection is successful, The 'original' XYZ
@@ -278,6 +287,8 @@ namespace caret {
          *
          * @param windowIndex
          *    Index of window for projection
+         * @param userInputMode
+         *    Input mode for window
          * @param brain
          *    The brain (must be valid!)
          * @param viewportContent
@@ -290,11 +301,12 @@ namespace caret {
          *    Output with projection result.
          */
         virtual void projectToModelImplementation(const int32_t windowIndex,
+                                                  const UserInputModeEnum::Enum windowUserInputMode,
                                                   Brain* brain,
-                                    const BrainOpenGLViewportContent* viewportContent,
-                                    const int32_t mouseX,
-                                    const int32_t mouseY,
-                                    SurfaceProjectedItem& projectionOut) = 0;
+                                                  const BrainOpenGLViewportContent* viewportContent,
+                                                  const int32_t mouseX,
+                                                  const int32_t mouseY,
+                                                  SurfaceProjectedItem& projectionOut) = 0;
 
         AString getOpenGLEnabledEnumAsText(const AString& enumName,
                                     const GLenum enumValue) const;

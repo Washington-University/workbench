@@ -4334,6 +4334,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(Ann
                                                                         const float secondPoint[3],
                                                                         const float lineThickness)
 {
+    if ( ! m_inputs->m_annotationUserInputModeFlag) {
+        return;
+    }
+    
     CaretAssert(annotation);
     float lengthVector[3];
     MathFunctions::subtractVectors(secondPoint, firstPoint, lengthVector);
@@ -4445,6 +4449,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
                                                                              const float lineThickness,
                                                                              const float rotationAngle)
 {
+    if ( ! m_inputs->m_annotationUserInputModeFlag) {
+        return;
+    }
+    
     CaretAssert(annotation);
     AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
     const bool modelSpaceTangentTextFlag = annotation->isInSurfaceSpaceWithTangentOffset();

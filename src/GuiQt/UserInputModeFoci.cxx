@@ -61,7 +61,7 @@ using namespace caret;
  * Constructor.
  */
 UserInputModeFoci::UserInputModeFoci(const int32_t windowIndex)
-: UserInputModeView(UserInputModeAbstract::FOCI),
+: UserInputModeView(UserInputModeEnum::FOCI),
   m_windowIndex(windowIndex)
 {
     m_inputModeFociWidget = new UserInputModeFociWidget(this,

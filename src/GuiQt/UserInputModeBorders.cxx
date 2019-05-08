@@ -72,7 +72,7 @@ using namespace caret;
  */
 UserInputModeBorders::UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
                                            const int32_t windowIndex)
-: UserInputModeView(UserInputModeAbstract::BORDERS)
+: UserInputModeView(UserInputModeEnum::BORDERS)
 {
     this->borderBeingDrawnByOpenGL = borderBeingDrawnByOpenGL;
     this->windowIndex = windowIndex;

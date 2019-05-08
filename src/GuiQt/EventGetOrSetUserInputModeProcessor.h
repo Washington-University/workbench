@@ -32,7 +32,7 @@ namespace caret {
         
     public:
         EventGetOrSetUserInputModeProcessor(const int32_t windowIndex,
-                                            const UserInputModeAbstract::UserInputMode userInputMode);
+                                            const UserInputModeEnum::Enum userInputMode);
         
         EventGetOrSetUserInputModeProcessor(const int32_t windowIndex);
         
@@ -44,7 +44,7 @@ namespace caret {
         
         int32_t getWindowIndex() const;
 
-        UserInputModeAbstract::UserInputMode getUserInputMode() const;
+        UserInputModeEnum::Enum getUserInputMode() const;
 
         void setUserInputProcessor(UserInputModeAbstract* userInputProcessor);
         
@@ -64,7 +64,7 @@ namespace caret {
         UserInputModeAbstract* userInputProcessor;
         
         /** Requested input mode for SETTING and set when GETTING*/
-        UserInputModeAbstract::UserInputMode userInputMode;
+        UserInputModeEnum::Enum userInputMode;
         
         /** index of window for update */
         int32_t windowIndex;

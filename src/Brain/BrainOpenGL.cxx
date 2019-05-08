@@ -200,6 +200,8 @@ BrainOpenGL::receiveEvent(Event* event)
  *
  * @param windowIndex
  *    Index of window for drawing.
+ * @param windowsUserInputMode
+ *    User input mode for window
  * @param brain
  *    The brain (must be valid!)
  * @param contextSharingGroupPointer
@@ -208,6 +210,7 @@ BrainOpenGL::receiveEvent(Event* event)
  *    Viewport info for drawing.
  */
 void BrainOpenGL::drawModels(const int32_t windowIndex,
+                             const UserInputModeEnum::Enum windowsUserInputMode,
                              Brain* brain,
                              void* contextSharingGroupPointer,
                              const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
@@ -222,6 +225,7 @@ void BrainOpenGL::drawModels(const int32_t windowIndex,
     
     
     drawModelsImplementation(windowIndex,
+                             windowsUserInputMode,
                              brain,
                              vpContents);
     
@@ -235,6 +239,8 @@ void BrainOpenGL::drawModels(const int32_t windowIndex,
  *
  * @param windowIndex
  *    Index of window for selection.
+ * @param windowsUserInputMode
+ *    User input mode for window
  * @param brain
  *    The brain (must be valid!)
  * @param contextSharingGroupPointer
@@ -254,6 +260,7 @@ void BrainOpenGL::drawModels(const int32_t windowIndex,
  *    selected.
  */
 void BrainOpenGL::selectModel(const int32_t windowIndex,
+                              const UserInputModeEnum::Enum windowsUserInputMode,
                               Brain* brain,
                               void* contextSharingGroupPointer,
                               const BrainOpenGLViewportContent* viewportContent,
@@ -264,6 +271,7 @@ void BrainOpenGL::selectModel(const int32_t windowIndex,
     m_contextSharingGroupPointer = contextSharingGroupPointer;
 
     selectModelImplementation(windowIndex,
+                              windowsUserInputMode,
                               brain,
                               viewportContent,
                               mouseX,
@@ -283,6 +291,8 @@ void BrainOpenGL::selectModel(const int32_t windowIndex,
  *
  * @param windowIndex
  *    Index of window for projection
+ * @param windowsUserInputMode
+ *    User input mode for window
  * @param brain
  *    The brain (must be valid!)
  * @param contextSharingGroupPointer
@@ -297,16 +307,18 @@ void BrainOpenGL::selectModel(const int32_t windowIndex,
  *    Output with projection result.
  */
 void BrainOpenGL::projectToModel(const int32_t windowIndex,
+                                 const UserInputModeEnum::Enum windowUserInputMode,
                                  Brain* brain,
-                    void* contextSharingGroupPointer,
-                    const BrainOpenGLViewportContent* viewportContent,
-                    const int32_t mouseX,
-                    const int32_t mouseY,
-                    SurfaceProjectedItem& projectionOut)
+                                 void* contextSharingGroupPointer,
+                                 const BrainOpenGLViewportContent* viewportContent,
+                                 const int32_t mouseX,
+                                 const int32_t mouseY,
+                                 SurfaceProjectedItem& projectionOut)
 {
     m_contextSharingGroupPointer = contextSharingGroupPointer;
 
     projectToModelImplementation(windowIndex,
+                                 windowUserInputMode,
                                  brain,
                                  viewportContent,
                                  mouseX,

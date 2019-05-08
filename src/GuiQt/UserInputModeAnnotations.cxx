@@ -84,7 +84,7 @@ using namespace caret;
  * Constructor.
  */
 UserInputModeAnnotations::UserInputModeAnnotations(const int32_t windowIndex)
-: UserInputModeView(UserInputModeAbstract::ANNOTATIONS),
+: UserInputModeView(UserInputModeEnum::ANNOTATIONS),
 m_browserWindowIndex(windowIndex),
 m_annotationUnderMouse(NULL),
 m_annotationBeingDragged(NULL)

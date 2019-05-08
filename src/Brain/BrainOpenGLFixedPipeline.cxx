@@ -226,6 +226,8 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
  *
  * @param windowIndex
  *    Index of window for selection
+ * @param userInputMode
+ *    Input mode for window
  * @param brain
  *    The brain (must be valid!)
  * @param viewportContent
@@ -244,14 +246,17 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
  */
 void 
 BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
+                                                    const UserInputModeEnum::Enum windowUserInputMode,
                                                     Brain* brain,
-                                      const BrainOpenGLViewportContent* viewportContent,
-                                      const int32_t mouseX,
-                                      const int32_t mouseY,
-                                      const bool applySelectionBackgroundFiltering)
+                                                    const BrainOpenGLViewportContent* viewportContent,
+                                                    const int32_t mouseX,
+                                                    const int32_t mouseY,
+                                                    const bool applySelectionBackgroundFiltering)
 {
     m_brain = brain;
     m_windowIndex = windowIndex;
+    m_windowUserInputMode = windowUserInputMode;
+    
     CaretAssert(m_brain);
     CaretAssert((m_windowIndex >= 0)
                 && (m_windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
@@ -304,6 +309,7 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
     
     m_brain = NULL;
     m_windowIndex = -1;
+    m_windowUserInputMode = UserInputModeEnum::INVALID;
 }
 
 /**
@@ -314,6 +320,8 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
  *
  * @param windowIndex
  *    Index of window for projection
+ * @param userInputMode
+ *    Input mode for window
  * @param brain
  *    The brain (must be valid!)
  * @param viewportContent
@@ -327,14 +335,16 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
  */
 void 
 BrainOpenGLFixedPipeline::projectToModelImplementation(const int32_t windowIndex,
+                                                       const UserInputModeEnum::Enum windowUserInputMode,
                                                        Brain* brain,
-                                         const BrainOpenGLViewportContent* viewportContent,
-                                         const int32_t mouseX,
-                                         const int32_t mouseY,
-                                         SurfaceProjectedItem& projectionOut)
+                                                       const BrainOpenGLViewportContent* viewportContent,
+                                                       const int32_t mouseX,
+                                                       const int32_t mouseY,
+                                                       SurfaceProjectedItem& projectionOut)
 {
     m_brain = brain;
     m_windowIndex = windowIndex;
+    m_windowUserInputMode = windowUserInputMode;
     CaretAssert(m_brain);
     CaretAssert((m_windowIndex >= 0)
                 && (m_windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
@@ -368,6 +378,7 @@ BrainOpenGLFixedPipeline::projectToModelImplementation(const int32_t windowIndex
     this->modeProjectionData = NULL;
     m_brain = NULL;
     m_windowIndex = -1;
+    m_windowUserInputMode = UserInputModeEnum::INVALID;
 }
 
 /**
@@ -531,6 +542,8 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(const std::vector<con
  *
  * @param windowIndex
  *    Index of window for drawing
+ * @param userInputMode
+ *    Input mode for window
  * @param brain
  *    The brain (must be valid!)
  * @param viewportContents
@@ -538,11 +551,13 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(const std::vector<con
  */
 void 
 BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
+                                                   const UserInputModeEnum::Enum windowUserInputMode,
                                                    Brain* brain,
-                                     const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
+                                                   const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
 {
     m_brain = brain;
     m_windowIndex = windowIndex;
+    m_windowUserInputMode = windowUserInputMode;
     CaretAssert(m_brain);
     CaretAssert((m_windowIndex >= 0)
                 && (m_windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
@@ -737,6 +752,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     
     m_brain = NULL;
     m_windowIndex = -1;
+    m_windowUserInputMode = UserInputModeEnum::INVALID;
 }
 
 /**
@@ -864,13 +880,15 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLV
          * Draw annotations for this surface and maybe draw
          * the model annotations.
          */
+        const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
         BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                  this->mode,
                                                                  BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                  m_windowIndex,
                                                                  this->windowTabIndex,
                                                                  SpacerTabIndex(),
-                                                                 BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
+                                                                 BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
+                                                                 annotationModeFlag);
         std::vector<AnnotationColorBar*> emptyColorBars;
         std::vector<Annotation*> emptyViewportAnnotations;
         m_annotationDrawing->drawAnnotations(&inputs,
@@ -929,13 +947,15 @@ BrainOpenGLFixedPipeline::drawSpacerAnnotations(const BrainOpenGLViewportContent
     CaretAssert(spacerTabContent);
     spacerTabIndex = spacerTabContent->getSpacerTabIndex();
     
+    const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              m_windowIndex,
                                                              this->windowTabIndex,
                                                              spacerTabIndex,
-                                                             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
+                                                             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
+                                                             annotationModeFlag);
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::SPACER,
                                          m_annotationColorBarsForDrawing,
@@ -983,13 +1003,15 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
     
     this->windowTabIndex = this->browserTabContent->getTabNumber();
     
+    const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              m_windowIndex,
                                                              this->windowTabIndex,
                                                              SpacerTabIndex(),
-                                                             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
+                                                             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
+                                                             annotationModeFlag);
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
                                          m_annotationColorBarsForDrawing,
@@ -1044,13 +1066,15 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
      */
     this->windowTabIndex = -1;
     
+    const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                              m_windowIndex,
                                                              this->windowTabIndex,
                                                              SpacerTabIndex(),
-                                                             windowDrawingMode);
+                                                             windowDrawingMode,
+                                                             annotationModeFlag);
     
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::WINDOW,
@@ -2018,13 +2042,15 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * Draw annotations for this surface and maybe draw
              * the model annotations.
              */
+            const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_windowIndex,
                                                                      this->windowTabIndex,
                                                                      SpacerTabIndex(),
-                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
+                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
+                                                                     annotationModeFlag);
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<Annotation*> emptyViewportAnnotations;
            
@@ -2071,13 +2097,15 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * Draw annotations for this surface and maybe draw
              * the model annotations.
              */
+            const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
                                                                      m_windowIndex,
                                                                      this->windowTabIndex,
                                                                      SpacerTabIndex(),
-                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO);
+                                                                     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
+                                                                     annotationModeFlag);
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<Annotation*> emptyViewportAnnotations;
             m_annotationDrawing->drawAnnotations(&inputs,

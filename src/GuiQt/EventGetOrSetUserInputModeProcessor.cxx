@@ -36,7 +36,7 @@ using namespace caret;
  *    The requested input mode.
  */
 EventGetOrSetUserInputModeProcessor::EventGetOrSetUserInputModeProcessor(const int32_t windowIndex,
-                                                                         const UserInputModeAbstract::UserInputMode userInputMode)
+                                                                         const UserInputModeEnum::Enum userInputMode)
 : Event(EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE)
 {
     this->userInputProcessor = NULL;
@@ -55,7 +55,7 @@ EventGetOrSetUserInputModeProcessor::EventGetOrSetUserInputModeProcessor(const i
 : Event(EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE)
 {
     this->userInputProcessor = NULL;
-    this->userInputMode = UserInputModeAbstract::INVALID;
+    this->userInputMode = UserInputModeEnum::INVALID;
     this->windowIndex   = windowIndex;
     this->modeGetOrSet  = GET;
 }
@@ -79,7 +79,7 @@ EventGetOrSetUserInputModeProcessor::getWindowIndex() const
 /**
  * @return The requested input mode.
  */
-UserInputModeAbstract::UserInputMode 
+UserInputModeEnum::Enum
 EventGetOrSetUserInputModeProcessor::getUserInputMode() const
 {
     return this->userInputMode; 

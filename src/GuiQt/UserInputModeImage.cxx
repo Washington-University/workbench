@@ -63,7 +63,7 @@ using namespace caret;
  * Constructor.
  */
 UserInputModeImage::UserInputModeImage(const int32_t windowIndex)
-: UserInputModeView(UserInputModeAbstract::IMAGE),
+: UserInputModeView(UserInputModeEnum::IMAGE),
   m_windowIndex(windowIndex)
 {
     m_inputModeImageWidget = new UserInputModeImageWidget(this,

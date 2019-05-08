@@ -115,10 +115,12 @@ namespace caret {
         
     protected:
         void drawModelsImplementation(const int32_t windowIndex,
+                                      const UserInputModeEnum::Enum windowUserInputMode,
                                       Brain* brain,
                                       const std::vector<const BrainOpenGLViewportContent*>& viewportContents) override;
         
         void selectModelImplementation(const int32_t windowIndex,
+                                       const UserInputModeEnum::Enum windowUserInputMode,
                                        Brain* brain,
                                        const BrainOpenGLViewportContent* viewportContent,
                                        const int32_t mouseX,
@@ -126,6 +128,7 @@ namespace caret {
                                        const bool applySelectionBackgroundFiltering) override;
         
         void projectToModelImplementation(const int32_t windowIndex,
+                                          const UserInputModeEnum::Enum windowUserInputMode,
                                           Brain* brain,
                                           const BrainOpenGLViewportContent* viewportContent,
                                           const int32_t mouseX,
@@ -514,6 +517,9 @@ namespace caret {
         
         /** Index of window */
         int32_t m_windowIndex = -1;
+        
+        /** User input mode for window */
+        UserInputModeEnum::Enum m_windowUserInputMode;
         
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;

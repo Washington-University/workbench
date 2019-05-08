@@ -229,15 +229,12 @@ AnnotationSelectionViewController::updateAnnotationSelections()
     const DisplayGroupEnum::Enum displayGroup = dpa->getDisplayGroupForTab(browserTabIndex);
     m_displayGroupComboBox->setSelectedDisplayGroup(displayGroup);
     
-    EventGetOrSetUserInputModeProcessor inputModeEvent(m_browserWindowIndex);
-    EventManager::get()->sendEvent(inputModeEvent.getPointer());
-    UserInputModeAbstract::UserInputMode mode = inputModeEvent.getUserInputMode();
-    const bool annotationsValidFlag = (mode == UserInputModeAbstract::ANNOTATIONS);
+    const bool allowAnnotationSelectionFlag(true);
     
     m_selectionViewController->updateContent(fileItems,
                                              displayGroup,
                                              browserTabIndex,
-                                             annotationsValidFlag);
+                                             allowAnnotationSelectionFlag);
 }
 
 QWidget*

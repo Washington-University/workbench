@@ -1115,7 +1115,7 @@ WuQMacroExecutor::runListWidgetCommand(const WuQMacroCommand* macroCommand,
 void
 WuQMacroExecutor::runMacroWidgetActionCommand(const WuQMacroCommand* macroCommand,
                                               QObject* object,
-                                              QString& errorMessageOut,
+                                              QString& /*errorMessageOut*/,
                                               bool& castFailureFlagOut) const
 {
     WuQMacroWidgetAction* macroWidgetAction = qobject_cast<WuQMacroWidgetAction*>(object);

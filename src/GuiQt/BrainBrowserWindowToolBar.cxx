@@ -3113,12 +3113,12 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
 
     EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
     EventManager::get()->sendEvent(getInputModeEvent.getPointer());
-    const UserInputModeAbstract::UserInputMode currentMode = getInputModeEvent.getUserInputMode();
+    const UserInputModeEnum::Enum currentMode = getInputModeEvent.getUserInputMode();
     
-    UserInputModeAbstract::UserInputMode inputMode = UserInputModeAbstract::INVALID;
+    UserInputModeEnum::Enum inputMode = UserInputModeEnum::INVALID;
     
     if (action == this->modeInputModeAnnotationsAction) {
-        if (currentMode !=  UserInputModeAbstract::ANNOTATIONS) {
+        if (currentMode !=  UserInputModeEnum::ANNOTATIONS) {
             BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
             CaretAssert(bbw);
             if ( ! bbw->changeInputModeToAnnotationsWarningDialog()) {
@@ -3129,10 +3129,10 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
                 return;
             }
         }
-        inputMode = UserInputModeAbstract::ANNOTATIONS;
+        inputMode = UserInputModeEnum::ANNOTATIONS;
     }
     else if (action == this->modeInputModeBordersAction) {
-        inputMode = UserInputModeAbstract::BORDERS;
+        inputMode = UserInputModeEnum::BORDERS;
         
         /*
          * If borders are not displayed, display them
@@ -3150,17 +3150,17 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
         }
     }
     else if (action == this->modeInputModeFociAction) {
-        inputMode = UserInputModeAbstract::FOCI;
+        inputMode = UserInputModeEnum::FOCI;
     }
     else if ((action == this->modeInputModeImageAction)
              && (this->modeInputModeImageAction != NULL)) {
-        inputMode = UserInputModeAbstract::IMAGE;
+        inputMode = UserInputModeEnum::IMAGE;
     }
     else if (action == this->modeInputVolumeEditAction) {
-        inputMode = UserInputModeAbstract::VOLUME_EDIT;
+        inputMode = UserInputModeEnum::VOLUME_EDIT;
     }
     else if (action == this->modeInputModeViewAction) {
-        inputMode = UserInputModeAbstract::VIEW;
+        inputMode = UserInputModeEnum::VIEW;
     }
     else {
         CaretAssertMessage(0, "Tools input mode action is invalid, new action added???");
@@ -3193,27 +3193,27 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
     EventManager::get()->sendEvent(getInputModeEvent.getPointer());
 
     switch (getInputModeEvent.getUserInputMode()) {
-        case UserInputModeAbstract::INVALID:
+        case UserInputModeEnum::INVALID:
             /* may get here when program is exiting and widgets are being destroyed */
             break;
-        case UserInputModeAbstract::ANNOTATIONS:
+        case UserInputModeEnum::ANNOTATIONS:
             this->modeInputModeAnnotationsAction->setChecked(true);
             break;
-        case UserInputModeAbstract::BORDERS:
+        case UserInputModeEnum::BORDERS:
             this->modeInputModeBordersAction->setChecked(true);
             break;
-        case UserInputModeAbstract::FOCI:
+        case UserInputModeEnum::FOCI:
             this->modeInputModeFociAction->setChecked(true);
             break;
-        case UserInputModeAbstract::IMAGE:
+        case UserInputModeEnum::IMAGE:
             if (this->modeInputModeImageAction != NULL) {
                 this->modeInputModeImageAction->setChecked(true);
             }
             break;
-        case UserInputModeAbstract::VOLUME_EDIT:
+        case UserInputModeEnum::VOLUME_EDIT:
             this->modeInputVolumeEditAction->setChecked(true);
             break;
-        case UserInputModeAbstract::VIEW:
+        case UserInputModeEnum::VIEW:
             this->modeInputModeViewAction->setChecked(true);
             break;
     }
@@ -3279,7 +3279,7 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
         }
     }
     
-    if (userInputProcessor->getUserInputMode() != UserInputModeAbstract::ANNOTATIONS) {
+    if (userInputProcessor->getUserInputMode() != UserInputModeEnum::ANNOTATIONS) {
         /*
          * Delete all selected annotations and update graphics and UI.
          */

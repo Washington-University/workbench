@@ -61,7 +61,7 @@ using namespace caret;
  * Constructor.
  */
 UserInputModeView::UserInputModeView()
-: UserInputModeAbstract(UserInputModeAbstract::VIEW)
+: UserInputModeAbstract(UserInputModeEnum::VIEW)
 {
     
 }
@@ -72,7 +72,7 @@ UserInputModeView::UserInputModeView()
  * @param inputMode
  *    Subclass' input mode.
  */
-UserInputModeView::UserInputModeView(const UserInputMode inputMode)
+UserInputModeView::UserInputModeView(const UserInputModeEnum::Enum inputMode)
 : UserInputModeAbstract(inputMode)
 {
     

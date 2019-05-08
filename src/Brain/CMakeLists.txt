@@ -173,6 +173,7 @@ SurfaceMontageViewport.h
 SurfaceNodeColoring.h
 SurfaceSelectionModel.h
 TabContentBase.h
+UserInputModeEnum.h
 ViewingTransformations.h
 ViewingTransformationsCerebellum.h
 ViewingTransformationsVolume.h
@@ -332,6 +333,7 @@ SurfaceMontageViewport.cxx
 SurfaceNodeColoring.cxx
 SurfaceSelectionModel.cxx
 TabContentBase.cxx
+UserInputModeEnum.cxx
 ViewingTransformations.cxx
 ViewingTransformationsCerebellum.cxx
 ViewingTransformationsVolume.cxx

@@ -63,7 +63,7 @@ namespace caret {
                                      BrainOpenGLWidget* openGLWidget);
         
     protected:
-        UserInputModeView(const UserInputMode inputMode);
+        UserInputModeView(const UserInputModeEnum::Enum inputMode);
         
     private:
         UserInputModeView(const UserInputModeView&);

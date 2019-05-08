@@ -36,6 +36,7 @@
 #include <QToolTip>
 #include <QWheelEvent>
 
+#include "AnnotationManager.h"
 #include "Border.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -483,6 +484,7 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
                             windowContent);
     
     s_singletonOpenGL->drawModels(this->windowIndex,
+                                  this->selectedUserInputProcessor->getUserInputMode(),
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   windowContent.getAllTabViewports());
@@ -663,6 +665,7 @@ BrainOpenGLWidget::paintGL()
         s_singletonOpenGL->setBorderBeingDrawn(NULL);
     }
     s_singletonOpenGL->drawModels(this->windowIndex,
+                                  this->selectedUserInputProcessor->getUserInputMode(),
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   m_windowContent.getAllTabViewports());
@@ -1224,6 +1227,7 @@ BrainOpenGLWidget::performIdentification(const int x,
     
     if (idViewport != NULL) {
         s_singletonOpenGL->selectModel(this->windowIndex,
+                                       this->selectedUserInputProcessor->getUserInputMode(),
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   idViewport,
@@ -1288,6 +1292,7 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
          const int idY = y - vp[1];
          */
         s_singletonOpenGL->selectModel(this->windowIndex,
+                                       this->selectedUserInputProcessor->getUserInputMode(),
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   idViewport,
@@ -1354,6 +1359,7 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
          const int idY = y - vp[1];
          */
         s_singletonOpenGL->selectModel(this->windowIndex,
+                                       this->selectedUserInputProcessor->getUserInputMode(),
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   idViewport,
@@ -1403,6 +1409,7 @@ BrainOpenGLWidget::performProjection(const int x,
     
     if (projectionViewport != NULL) {
         s_singletonOpenGL->projectToModel(this->windowIndex,
+                                          this->selectedUserInputProcessor->getUserInputMode(),
                                      GuiManager::get()->getBrain(),
                                      m_contextShareGroupPointer,
                                      projectionViewport,
@@ -1646,29 +1653,35 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             else if (inputModeEvent->isSetUserInputMode()) {
                 UserInputModeAbstract* newUserInputProcessor = NULL;
                 switch (inputModeEvent->getUserInputMode()) {
-                    case UserInputModeAbstract::INVALID:
+                    case UserInputModeEnum::INVALID:
                         CaretAssertMessage(0, "INVALID is NOT allowed for user input mode");
                         break;
-                    case UserInputModeAbstract::ANNOTATIONS:
+                    case UserInputModeEnum::ANNOTATIONS:
                         newUserInputProcessor = this->userInputAnnotationsModeProcessor;
                         break;
-                    case UserInputModeAbstract::BORDERS:
+                    case UserInputModeEnum::BORDERS:
                         newUserInputProcessor = this->userInputBordersModeProcessor;
                         break;
-                    case UserInputModeAbstract::FOCI:
+                    case UserInputModeEnum::FOCI:
                         newUserInputProcessor = this->userInputFociModeProcessor;
                         break;
-                    case UserInputModeAbstract::IMAGE:
+                    case UserInputModeEnum::IMAGE:
                         newUserInputProcessor = this->userInputImageModeProcessor;
                         break;
-                    case UserInputModeAbstract::VOLUME_EDIT:
+                    case UserInputModeEnum::VOLUME_EDIT:
                         newUserInputProcessor = this->userInputVolumeEditModeProcessor;
                         break;
-                    case UserInputModeAbstract::VIEW:
+                    case UserInputModeEnum::VIEW:
                         newUserInputProcessor = this->userInputViewModeProcessor;
                         break;
                 }
                 
+                if ((newUserInputProcessor == this->userInputAnnotationsModeProcessor)
+                    || (this->selectedUserInputProcessor == this->userInputAnnotationsModeProcessor)) {
+                    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                    CaretAssert(annMan);
+                    annMan->deselectAllAnnotationsForEditing(this->windowIndex);
+                }
                 if (newUserInputProcessor != NULL) {
                     if (newUserInputProcessor != this->selectedUserInputProcessor) {
                         this->selectedUserInputProcessor->finish();

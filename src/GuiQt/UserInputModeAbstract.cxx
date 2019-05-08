@@ -48,7 +48,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-UserInputModeAbstract::UserInputModeAbstract(const UserInputMode inputMode)
+UserInputModeAbstract::UserInputModeAbstract(const UserInputModeEnum::Enum inputMode)
 : CaretObject(),
 m_userInputMode(inputMode),
 m_widgetForToolBar(NULL),
@@ -87,7 +87,7 @@ UserInputModeAbstract::~UserInputModeAbstract()
 /**
  * @return The input mode enumerated type.
  */
-UserInputModeAbstract::UserInputMode
+UserInputModeEnum::Enum
 UserInputModeAbstract::getUserInputMode() const
 {
     return m_userInputMode;
