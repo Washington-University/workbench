@@ -23,7 +23,10 @@
 #include "DisplayGroupAndTabItemViewController.h"
 #undef __DISPLAY_GROUP_AND_TAB_ITEM_VIEW_CONTROLLER_DECLARE__
 
+#include <QLabel>
+#include <QMenu>
 #include <QTreeWidget>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "Annotation.h"
@@ -66,9 +69,32 @@ DisplayGroupAndTabItemViewController::DisplayGroupAndTabItemViewController(const
 m_dataFileType(dataFileType),
 m_browserWindowIndex(browserWindowIndex)
 {
+    const QString onOffToolTip("<html>"
+                               "To select more than one item:<br>"
+                               "* For a contiguous selection, click an item "
+                               "and then click another item while holding down "
+                               "the SHIFT key.  <br>"
+                               "* For non-contiguous selection, select items while "
+                               "holding down the CTRL key (Command key on Apple)"
+                               "</html>");
+    m_turnOnSelectedItemsAction = new QAction("On");
+    m_turnOnSelectedItemsAction->setToolTip(onOffToolTip);
+    m_turnOnSelectedItemsAction->setCheckable(false);
+    QObject::connect(m_turnOnSelectedItemsAction, &QAction::triggered,
+                     this, &DisplayGroupAndTabItemViewController::turnOnSelectedItemsTriggered);
+    QToolButton* turnOnToolButton = new QToolButton();
+    turnOnToolButton->setDefaultAction(m_turnOnSelectedItemsAction);
+    
+    m_turnOffSelectedItemsAction = new QAction("Off");
+    m_turnOffSelectedItemsAction->setToolTip(onOffToolTip);
+    m_turnOffSelectedItemsAction->setCheckable(false);
+    QObject::connect(m_turnOffSelectedItemsAction, &QAction::triggered,
+                     this, &DisplayGroupAndTabItemViewController::turnOffSelectedItemsTriggered);
+    QToolButton* turnOffToolButton = new QToolButton();
+    turnOffToolButton->setDefaultAction(m_turnOffSelectedItemsAction);
+    
     m_treeWidget = new QTreeWidget();
     m_treeWidget->setHeaderHidden(true);
-    //m_treeWidget->setSelectionMode(QTreeWidget::ExtendedSelection);
     m_treeWidget->setSelectionMode(QTreeWidget::NoSelection);
     
     QObject::connect(m_treeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
@@ -79,8 +105,20 @@ m_browserWindowIndex(browserWindowIndex)
                      this, SLOT(itemWasChanged(QTreeWidgetItem*, int)));
     QObject::connect(m_treeWidget, SIGNAL(itemSelectionChanged()),
                      this, SLOT(itemsWereSelected()));
+    m_treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    QObject::connect(m_treeWidget, &QTreeWidget::customContextMenuRequested,
+                     this, &DisplayGroupAndTabItemViewController::displayContextMenu);
+    
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    buttonLayout->setContentsMargins(0, 0, 0, 0);
+    buttonLayout->addWidget(new QLabel("Selected Items: "));
+    buttonLayout->addWidget(turnOnToolButton);
+    buttonLayout->addSpacing(5);
+    buttonLayout->addWidget(turnOffToolButton);
+    buttonLayout->addStretch();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addLayout(buttonLayout);
     layout->addWidget(m_treeWidget, 100);
     
     s_allViewControllers.insert(this);
@@ -101,6 +139,7 @@ void
 DisplayGroupAndTabItemViewController::itemsWereSelected()
 {
     QList<QTreeWidgetItem*> itemsSelected = m_treeWidget->selectedItems();
+    
     
     if ( ! itemsSelected.empty()) {
         
@@ -129,9 +168,37 @@ DisplayGroupAndTabItemViewController::itemsWereSelected()
     getDisplayGroupAndTabIndex(displayGroup, tabIndex);
     updateSelectedAndExpandedCheckboxes(displayGroup,
                                         tabIndex);
-    //updateSelectedAndExpandedCheckboxesInOtherViewControllers();
     
     updateGraphics();
+}
+
+/**
+ * Display a context sensitive (right-click) menu.
+ *
+ * @param pos
+ *     Position for context menu
+ */
+void
+DisplayGroupAndTabItemViewController::displayContextMenu(const QPoint& pos)
+{
+    QList<QTreeWidgetItem*> itemsSelected = m_treeWidget->selectedItems();
+    
+    if (itemsSelected.isEmpty()) {
+        return;
+    }
+    
+    QMenu menu(this);
+    QAction* onAction = menu.addAction("Turn all selected items ON");
+    menu.addAction("Turn all selected items OFF");
+    
+    QSignalBlocker blocker(m_treeWidget);
+    QAction* selectedAction = menu.exec(m_treeWidget->mapToGlobal(pos));
+    if (selectedAction == NULL) {
+        return;
+    }
+
+    const bool newStatus = (selectedAction == onAction);
+    setCheckedStatusOfSelectedItems(newStatus);
 }
 
 /**
@@ -414,6 +481,10 @@ DisplayGroupAndTabItemViewController::updateSelectedAndExpandedCheckboxes(const 
         }
     }
     
+    const bool itemsSelectedFlag = ( ! m_treeWidget->selectedItems().isEmpty());
+    m_turnOnSelectedItemsAction->setEnabled(itemsSelectedFlag);
+    m_turnOffSelectedItemsAction->setEnabled(itemsSelectedFlag);
+    
     m_treeWidget->blockSignals(false);
 }
 
@@ -441,4 +512,62 @@ DisplayGroupAndTabItemViewController::updateSelectedAndExpandedCheckboxesInOther
         }
     }
 }
+
+/**
+ * Turn on all selected items
+ */
+void
+DisplayGroupAndTabItemViewController::turnOnSelectedItemsTriggered()
+{
+    setCheckedStatusOfSelectedItems(true);
+}
+
+/**
+ * Turn off all selected items
+ */
+void
+DisplayGroupAndTabItemViewController::turnOffSelectedItemsTriggered()
+{
+    setCheckedStatusOfSelectedItems(false);
+}
+
+/**
+ * Set the checked status of all selected itemsj
+ *
+ * @param checkedStatus
+ *     Checked status
+ */
+void
+DisplayGroupAndTabItemViewController::setCheckedStatusOfSelectedItems(const bool checkedStatus)
+{
+    QList<QTreeWidgetItem*> itemsSelected = m_treeWidget->selectedItems();
+    
+    if (itemsSelected.isEmpty()) {
+        return;
+    }
+    
+    DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::DISPLAY_GROUP_TAB;
+    int32_t tabIndex = -1;
+    getDisplayGroupAndTabIndex(displayGroup, tabIndex);
+    
+    
+    const Qt::CheckState newCheckState = (checkedStatus
+                                          ? Qt::Checked
+                                          : Qt::Unchecked);
+    QListIterator<QTreeWidgetItem*> iter(itemsSelected);
+    while (iter.hasNext()) {
+        QTreeWidgetItem* item = iter.next();
+        DisplayGroupAndTabItemInterface* dataItem = getDataItem(item);
+        
+        const TriStateSelectionStatusEnum::Enum itemCheckState = DisplayGroupAndTabItemTreeWidgetItem::fromQCheckState(newCheckState);
+        dataItem->setItemDisplaySelected(displayGroup,
+                                         tabIndex,
+                                         itemCheckState);
+    }
+    
+    updateSelectedAndExpandedCheckboxes(displayGroup,
+                                        tabIndex);
+    updateSelectedAndExpandedCheckboxesInOtherViewControllers();
+    
+    updateGraphics();}
 

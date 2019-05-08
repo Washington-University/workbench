@@ -28,6 +28,7 @@
 #include "DataFileTypeEnum.h"
 #include "DisplayGroupEnum.h"
 
+class QAction;
 class QTreeWidget;
 class QTreeWidgetItem;
 namespace caret {
@@ -63,6 +64,12 @@ namespace caret {
         
         void itemsWereSelected();
         
+        void displayContextMenu(const QPoint& pos);
+        
+        void turnOnSelectedItemsTriggered();
+        
+        void turnOffSelectedItemsTriggered();
+        
     private:
         DisplayGroupAndTabItemViewController(const DisplayGroupAndTabItemViewController&);
 
@@ -87,11 +94,17 @@ namespace caret {
         
         void updateSelectedAndExpandedCheckboxesInOtherViewControllers();
         
+        void setCheckedStatusOfSelectedItems(const bool checkedFlag);
+        
         const DataFileTypeEnum::Enum m_dataFileType;
         
         const int32_t m_browserWindowIndex;
         
         QTreeWidget* m_treeWidget;
+        
+        QAction* m_turnOnSelectedItemsAction;
+        
+        QAction* m_turnOffSelectedItemsAction;
         
         static std::set<DisplayGroupAndTabItemViewController*> s_allViewControllers;
         
