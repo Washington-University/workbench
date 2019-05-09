@@ -74,9 +74,18 @@ AlgorithmAnnotationResample::getParameters()
     /*
      * We need to preserve 'annotation groups' that may be created by the user.
      * By modifying the annotation file that was read, any user created
-     * groups are preserved.
+     * groups are preserved.  In addition, we are only modifying annotations
+     * in 'surface space'; all others are preserved without modification.
+     * So, we get a string for the output filename instead of an output annotation file
      */
     ret->addStringParameter(paramIndex, "annotation-out", "name of resampled annotation file");
+    paramIndex++;
+    
+    ParameterComponent* surfacePairOpt = ret->createRepeatableParameter(paramIndex,
+                                                                        "-surface-pair",
+                                                                        "pair of surfaces for resampling surface annotations for one structure");
+    surfacePairOpt->addSurfaceParameter(1, "source-surface", "the midthickness surface of the current mesh the annotations use");
+    surfacePairOpt->addSurfaceParameter(2, "target-surface", "the midthickness surface of the mesh the annotations should be transferred to");
     paramIndex++;
     
     ParameterComponent* sourceSurfOpt = ret->createRepeatableParameter(paramIndex,
@@ -84,7 +93,7 @@ AlgorithmAnnotationResample::getParameters()
                                                                        "surface with mesh used by input annotation file");
     sourceSurfOpt->addSurfaceParameter(1, "source-surface", "source surface file");
     paramIndex++;
-
+    
     ParameterComponent* targetSurfOpt = ret->createRepeatableParameter(paramIndex,
                                                                        "-target-surface",
                                                                        "surface with mesh for output annotation file");
@@ -94,8 +103,11 @@ AlgorithmAnnotationResample::getParameters()
     AString helpText = ("Resample an annotation file from the source mesh to the target mesh.\n\n"
                         "Only annotations in surface space are modified, no changes are made to "
                         "annotations in other spaces.  "
-                        "Both -source-surface and -target-surface options must be repeated for all "
-                        "structures used by surface space annotations.");
+                        "The -surface-pair option may be repeated for additional "
+                        "structures used by surface space annotations."
+                        "\n\n"
+                        "Note: -source-surface and -target-surface options are deprecated "
+                        "and will be removed.");
 
     ret->setHelpText(helpText);
     
@@ -124,16 +136,30 @@ AlgorithmAnnotationResample::useParameters(OperationParameters* myParams,
     paramIndex++;
     
     std::vector<const SurfaceFile*> sourceSurfaces;
+    std::vector<const SurfaceFile*> targetSurfaces;
     for (auto instance : *(myParams->getRepeatableParameterInstances(paramIndex))) {
         sourceSurfaces.push_back(instance->getSurface(1));
+        targetSurfaces.push_back(instance->getSurface(2));
     }
     paramIndex++;
     
-    std::vector<const SurfaceFile*> targetSurfaces;
+    bool haveDeprectedOptionsFlag(false);
     for (auto instance : *(myParams->getRepeatableParameterInstances(paramIndex))) {
-        targetSurfaces.push_back(instance->getSurface(1));
+        sourceSurfaces.push_back(instance->getSurface(1));
+        haveDeprectedOptionsFlag = true;
     }
     paramIndex++;
+    
+    for (auto instance : *(myParams->getRepeatableParameterInstances(paramIndex))) {
+        targetSurfaces.push_back(instance->getSurface(1));
+        haveDeprectedOptionsFlag = true;
+    }
+    paramIndex++;
+    
+    if (haveDeprectedOptionsFlag) {
+        std::cout << "WARNING: -source-surface and -target-surface options are deprecated." << std::endl;
+        std::cout << "   Replace with -surface-pair <source-surface> <target-surface>" << std::endl;
+    }
     
     /*
      * Constructs and executes the algorithm 
