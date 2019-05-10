@@ -46,6 +46,15 @@ namespace caret {
     class BrainOpenGLVolumeSliceDrawing : public CaretObject {
         
     public:
+        /**
+         * Indicates drawing volume sclice "ALL that shows
+         * axial, coronal, and parasagittal at same time
+         */
+        enum class AllSliceViewMode {
+            ALL_YES,
+            ALL_NO
+        };
+        
         BrainOpenGLVolumeSliceDrawing();
         
         virtual ~BrainOpenGLVolumeSliceDrawing();
@@ -57,18 +66,26 @@ namespace caret {
                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                   const int32_t viewport[4]);
         
+        static void setOrthographicProjection(const AllSliceViewMode allSliceViewMode,
+                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                              const BoundingBox& boundingBox,
+                                              const float zoomFactor,
+                                              const int viewport[4],
+                                              double orthographicBoundsOut[6]);
+        
+        static void drawSurfaceOutline(const VolumeMappableInterface* underlayVolume,
+                                       const ModelTypeEnum::Enum modelType,
+                                       const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                       const float sliceXYZ[3],
+                                       const Plane& plane,
+                                       VolumeSurfaceOutlineSetModel* outlineSet,
+                                       BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                       const bool useNegativePolygonOffsetFlag);
+        
         // ADD_NEW_METHODS_HERE
         
     private:
-        /**
-         * Indicates drawing volume sclice "ALL that shows
-         * axial, coronal, and parasagittal at same time
-         */
-        enum class AllSliceViewMode {
-            ALL_YES,
-            ALL_NO
-        };
-        
         /**
          * Holds values in the slice for a volume so that they
          * can be colored all at once which is more efficient than
@@ -232,12 +249,11 @@ namespace caret {
                                       const float sliceCoordinates[3],
                                       Plane& planeOut);
         
-        void drawAxesCrosshairsOrthoAndOblique(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                               const float sliceCoordinates[3],
-                                               const bool drawCrosshairsFlag,
-                                               const bool drawCrosshairLabelsFlag);
-        
+        void drawAxesCrosshairsOrtho(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                     const float sliceCoordinates[3],
+                                     const bool drawCrosshairsFlag,
+                                     const bool drawCrosshairLabelsFlag);
+
         void setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                              const Plane& plane);
@@ -250,16 +266,6 @@ namespace caret {
                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                         const Plane& slicePlane,
                         const float sliceCoordinates[3]);
-        
-        static void drawSurfaceOutline(const VolumeMappableInterface* underlayVolume,
-                                       const ModelTypeEnum::Enum modelType,
-                                       const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                       const float sliceXYZ[3],
-                                       const Plane& plane,
-                                       VolumeSurfaceOutlineSetModel* outlineSet,
-                                       BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                       const bool useNegativePolygonOffsetFlag);
         
         static void drawSurfaceOutlineCached(const VolumeMappableInterface* underlayVolume,
                                              const ModelTypeEnum::Enum modelType,
@@ -293,13 +299,6 @@ namespace caret {
         void setOrthographicProjection(const AllSliceViewMode allSliceViewMode,
                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);
-        
-        static void setOrthographicProjection(const AllSliceViewMode allSliceViewMode,
-                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                              const BoundingBox& boundingBox,
-                                              const float zoomFactor,
-                                              const int viewport[4],
-                                              double orthographicBoundsOut[6]);
         
         void drawOrthogonalSliceVoxels(const float sliceNormalVector[3],
                                        const float coordinate[3],
@@ -399,8 +398,6 @@ namespace caret {
         bool m_identificationModeFlag;
         
         static const int32_t IDENTIFICATION_INDICES_PER_VOXEL;
-        
-        friend class BrainOpenGLVolumeObliqueSliceDrawing;
         
         // ADD_NEW_MEMBERS_HERE
     };

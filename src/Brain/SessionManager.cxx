@@ -32,6 +32,7 @@
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferenceDataValue.h"
 #include "CaretPreferences.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
@@ -675,6 +676,9 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addChild(colorHelper.saveToScene(sceneAttributes,
                                                  "backgroundAndForegroundColors"));
     
+    sceneClass->addClass(savePreferencesToScene(sceneAttributes,
+                                                "ScenePreferenceDataValues"));
+
     return sceneClass;
 }
 
@@ -692,12 +696,13 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
  */
 void 
 SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
-                        const SceneClass* sceneClass)
+                                 const SceneClass* sceneClass)
 {
     /*
      * Default to user preferences for colors
      */
     m_caretPreferences->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+    m_caretPreferences->invalidSceneDataValues();
 
     if (sceneClass == NULL) {
         return;
@@ -992,6 +997,9 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
+    restorePreferencesFromScene(sceneAttributes,
+                                sceneClass->getClass("ScenePreferenceDataValues"));
+                                
     m_imageCaptureDialogSettings->restoreFromScene(sceneAttributes,
                                                    sceneClass->getClass("m_imageCaptureDialogSettings"));
     
@@ -1007,6 +1015,68 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         resetBrains(true);
         return;
     }    
+}
+
+/**
+ * Save items in preferences to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name for the scene class
+ *
+ * @return Pointer to scene class containing preferences
+ */
+SceneClass*
+SessionManager::savePreferencesToScene(const SceneAttributes* /*sceneAttributes*/,
+                                       const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ScenePreferences",
+                                            1);
+    std::vector<CaretPreferenceDataValue*> sceneDataValues = m_caretPreferences->getPreferenceSceneDataValues();
+    for (auto scv : sceneDataValues) {
+        sceneClass->addString(scv->getName(),
+                              scv->getPreferenceValue().toString());
+    }
+    
+    return sceneClass;
+}
+
+/**
+ * Restore items in preferences from the scene
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass containing the preference items.
+ */
+void
+SessionManager::restorePreferencesFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                            const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    const QString invalidValueName("InVaLiDvAlUe");
+    m_caretPreferences->invalidSceneDataValues();
+    
+    std::vector<CaretPreferenceDataValue*> sceneDataValues = m_caretPreferences->getPreferenceSceneDataValues();
+    for (auto scv : sceneDataValues) {
+        const QString name = scv->getName();
+        const QString value = sceneClass->getStringValue(scv->getName(),
+                                                         invalidValueName);
+        if (value != invalidValueName) {
+            scv->setSceneValue(QVariant(value));
+        }
+    }
 }
 
 /**

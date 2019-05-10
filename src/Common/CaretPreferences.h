@@ -37,6 +37,7 @@ class QStringList;
 
 namespace caret {
 
+    class CaretPreferenceDataValue;
     class ModelTransform;
     class TileTabsConfiguration;
     class WuQMacroGroup;
@@ -89,6 +90,8 @@ namespace caret {
         OpenGLDrawingMethodEnum::Enum getOpenDrawingMethod() const;
         
         void setOpenGLDrawingMethod(const OpenGLDrawingMethodEnum::Enum openGLDrawingMethod);
+        
+        CaretPreferenceDataValue* getVolumeCrossHairGapPreference() const;
         
         bool isVolumeAxesCrosshairsDisplayed() const;
         
@@ -204,6 +207,10 @@ namespace caret {
         
         void writeMacros();
         
+        void invalidSceneDataValues();
+        
+        std::vector<CaretPreferenceDataValue*> getPreferenceSceneDataValues();
+
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -284,6 +291,10 @@ namespace caret {
         int32_t volumeMontageGap;
         
         int32_t volumeMontageCoordinatePrecision;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_volumeCrossHairGapPreference;
+
+        std::vector<CaretPreferenceDataValue*> m_preferenceDataValues;
         
         bool splashScreenEnabled;
         

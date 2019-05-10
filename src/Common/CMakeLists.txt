@@ -77,6 +77,7 @@ CaretObjectTracksModification.h
 CaretOMP.h
 CaretPointer.h
 CaretPointLocator.h
+CaretPreferenceDataValue.h
 CaretPreferences.h
 CaretTemporaryFile.h
 CaretUndoCommand.h
@@ -203,6 +204,7 @@ CaretMathExpression.cxx
 CaretObject.cxx
 CaretObjectTracksModification.cxx
 CaretPointLocator.cxx
+CaretPreferenceDataValue.cxx
 CaretPreferences.cxx
 CaretTemporaryFile.cxx
 CaretUndoCommand.cxx

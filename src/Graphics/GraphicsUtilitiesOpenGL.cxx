@@ -89,6 +89,47 @@ GraphicsUtilitiesOpenGL::convertPixelsToPercentageOfViewportHeight(const float p
 }
 
 /**
+ * Converts percentage of viewport height to millimeters.
+ * The current transformations must be for drawing in millimeters.
+ *
+ * @param percentOfViewportHeight
+ *     The value in percentage of viewport height.
+ * @return
+ *     Millimeters
+ */
+float
+GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToMillimeters(const float percentOfViewportHeight)
+{
+    float millimeters = -1.0f;
+    
+    EventOpenGLObjectToWindowTransform xform(EventOpenGLObjectToWindowTransform::SpaceType::VOLUME_SLICE_MODEL);
+    EventManager::get()->sendEvent(xform.getPointer());
+    if (xform.isValid()) {
+        const std::array<int32_t, 4> viewport = xform.getViewport();
+        
+        const float windowZ = 0.0f;
+        float bottomWindowXYZ[3] = { (float)viewport[0], (float)viewport[1], (float)windowZ };
+        float topWindowXYZ[3]    = { (float)viewport[0], (float)(viewport[1] + viewport[3]), (float)windowZ };
+        
+        float bottomModelXYZ[3];
+        float topModelXYZ[3];
+        
+        xform.inverseTransformPoint(bottomWindowXYZ, bottomModelXYZ);
+        xform.inverseTransformPoint(topWindowXYZ, topModelXYZ);
+        
+        const float rangeMillimeters = MathFunctions::distance3D(bottomModelXYZ,
+                                                                 topModelXYZ);
+        const float rangePixels = viewport[3];
+        if ((rangePixels > 0)
+            && (rangeMillimeters > 0)) {
+            millimeters = (percentOfViewportHeight / 100.0) * rangeMillimeters;
+        }
+    }
+    
+    return millimeters ;
+}
+
+/**
  * Converts millimeters to a percentage of the viewport height.
  * The current transformations must be for drawing in millimeters.
  *

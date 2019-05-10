@@ -25,15 +25,22 @@
 
 #include <QAction>
 #include <QActionGroup>
+#include <QDoubleSpinBox>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QMenu>
 #include <QPainter>
 #include <QToolButton>
+#include <QWidgetAction>
 
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferenceDataValue.h"
+#include "CaretPreferences.h"
+#include "GuiManager.h"
+#include "SessionManager.h"
 #include "WuQMacroManager.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -190,7 +197,11 @@ m_parentToolBar(parentToolBar)
     
     m_volumeAxisCrosshairsToolButtonAction = new QAction("", this);
     m_volumeAxisCrosshairsToolButtonAction->setCheckable(true);
-    m_volumeAxisCrosshairsToolButtonAction->setToolTip("Show crosshairs on slice planes");
+    m_volumeAxisCrosshairsToolButtonAction->setToolTip("<html>"
+                                                       "Show crosshairs on slice planes.<br>"
+                                                       "Press arrow to adjust gap"
+                                                       "<html>");
+    m_volumeAxisCrosshairsToolButtonAction->setMenu(createCrosshairMenu(objectNamePrefix));
     QObject::connect(m_volumeAxisCrosshairsToolButtonAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarSlicePlane::volumeAxisCrosshairsTriggered);
     m_volumeAxisCrosshairsToolButtonAction->setObjectName(objectNamePrefix
@@ -321,6 +332,85 @@ BrainBrowserWindowToolBarSlicePlane::createViewAllSlicesLayoutMenu(const QString
     QObject::connect(menu, &QMenu::triggered,
                      this, &BrainBrowserWindowToolBarSlicePlane::viewAllSliceLayoutMenuTriggered);
     return menu;
+}
+
+/**
+ * @return A new instance of the crosshair menu
+ * @param objectNamePrefix
+ *     Prefix for object names in macro system
+ * @return
+ *     Menu for crosshair button
+ */
+QMenu*
+BrainBrowserWindowToolBarSlicePlane::createCrosshairMenu(const QString& objectNamePrefix)
+{
+    m_crosshairGapSpinBox = new QDoubleSpinBox();
+    m_crosshairGapSpinBox->setMinimum(0.0);
+    m_crosshairGapSpinBox->setMaximum(100);
+    m_crosshairGapSpinBox->setSingleStep(0.1);
+    m_crosshairGapSpinBox->setDecimals(1);
+    m_crosshairGapSpinBox->setSuffix("%");
+    m_crosshairGapSpinBox->setObjectName(objectNamePrefix
+                                         + "CrossHairGapSinBox");
+    m_crosshairGapSpinBox->setToolTip("Gap for cross hairs as percentage of window height");
+    
+    QObject::connect(m_crosshairGapSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &BrainBrowserWindowToolBarSlicePlane::crosshairGapSpinBoxValueChanged);
+    
+    QLabel* crosshairLabel = new QLabel("Gap ");
+    
+    QWidget* crosshairWidget = new QWidget();
+    QHBoxLayout* crosshairLayout = new QHBoxLayout(crosshairWidget);
+    crosshairLayout->setContentsMargins(0, 0, 0, 0);
+    crosshairLayout->addWidget(crosshairLabel);
+    crosshairLayout->addWidget(m_crosshairGapSpinBox);
+    crosshairWidget->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+    
+    QWidgetAction* crossHairGapWidgetAction = new QWidgetAction(this);
+    crossHairGapWidgetAction->setDefaultWidget(crosshairWidget);
+    
+    QMenu* menu = new QMenu(this);
+    QObject::connect(menu, &QMenu::aboutToShow,
+                     this, &BrainBrowserWindowToolBarSlicePlane::crosshairMenuAboutToShow);
+    menu->addAction(crossHairGapWidgetAction);
+    
+    return menu;
+}
+
+/**
+ * Called when crosshair menu is about to show
+ */
+void
+BrainBrowserWindowToolBarSlicePlane::crosshairMenuAboutToShow()
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    CaretAssert(prefs);
+    CaretPreferenceDataValue* gapPref = prefs->getVolumeCrossHairGapPreference();
+    CaretAssert(gapPref);
+    CaretAssert(gapPref->getDataType() == CaretPreferenceDataValue::DataType::DOUBLE);
+    const double gapValue = gapPref->getValue().toDouble();
+    
+    QSignalBlocker blocker(m_crosshairGapSpinBox);
+    m_crosshairGapSpinBox->setValue(gapValue);
+}
+
+/**
+ * Called when crosshair gap spin box value changed
+ *
+ * @param value
+ *     New value for crosshair gap.
+ */
+void
+BrainBrowserWindowToolBarSlicePlane::crosshairGapSpinBoxValueChanged(double value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    CaretAssert(prefs);
+    CaretPreferenceDataValue* gapPref = prefs->getVolumeCrossHairGapPreference();
+    CaretAssert(gapPref);
+    CaretAssert(gapPref->getDataType() == CaretPreferenceDataValue::DataType::DOUBLE);
+    gapPref->setValue(value);
+
+    GuiManager::updateGraphicsAllWindows();
 }
 
 /**

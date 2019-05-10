@@ -31,6 +31,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferenceDataValue.h"
 #include "ModelTransform.h"
 #include "TileTabsConfiguration.h"
 #include "WuQMacroGroup.h"
@@ -58,6 +59,12 @@ CaretPreferences::CaretPreferences()
                                     "Caret7");
     this->readPreferences();
     
+    m_volumeCrossHairGapPreference.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                      "volumeAxesCrosshairGap",
+                                                                      CaretPreferenceDataValue::DataType::DOUBLE,
+                                                                      2.0));
+    m_preferenceDataValues.push_back(m_volumeCrossHairGapPreference.get());
+    
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
 }
 
@@ -66,11 +73,40 @@ CaretPreferences::CaretPreferences()
  */
 CaretPreferences::~CaretPreferences()
 {
+    /**
+     * Note DO NOT delete items in this vector as they are pointers to items
+     * in unique_ptr's
+     */
+    m_preferenceDataValues.clear();
+    
     this->removeAllCustomViews();
     
     this->removeAllTileTabsConfigurations();
     
     delete this->qSettings;
+}
+
+/**
+ * Some preferences are temporarily overriden with a value from a scene
+ * and these 'scene overrides' are invalidated by this method
+ */
+void
+CaretPreferences::invalidSceneDataValues()
+{
+    for (auto pdv : m_preferenceDataValues) {
+        pdv->setSceneValueValid(false);
+    }
+    setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+}
+
+/**
+ * @return The scene data value for items that are saved to
+ * and restored from scenes.   Primarily for use by SessionManager.
+ */
+std::vector<CaretPreferenceDataValue*>
+CaretPreferences::getPreferenceSceneDataValues()
+{
+    return m_preferenceDataValues;
 }
 
 /**
@@ -1223,6 +1259,15 @@ CaretPreferences::setVolumeAxesCrosshairsDisplayed(const bool displayed)
     this->setBoolean(CaretPreferences::NAME_VOLUME_AXES_CROSSHAIRS,
                      this->displayVolumeAxesCrosshairs);
     this->qSettings->sync();
+}
+
+/**
+ * @return Preference for the volume crosshair gap
+ */
+CaretPreferenceDataValue*
+CaretPreferences::getVolumeCrossHairGapPreference() const
+{
+    return m_volumeCrossHairGapPreference.get();
 }
 
 /**

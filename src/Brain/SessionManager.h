@@ -110,6 +110,12 @@ namespace caret {
         
         void clearSpacerTabs();
         
+        SceneClass* savePreferencesToScene(const SceneAttributes* sceneAttributes,
+                                           const AString& instanceName);
+        
+        void restorePreferencesFromScene(const SceneAttributes* sceneAttributes,
+                                         const SceneClass* sceneClass);
+        
         /** The session manager */
         static SessionManager* s_singletonSessionManager;
         
