@@ -67,7 +67,6 @@ MathFunctionEnum::initialize()
     }
     initializedFlag = true;
 
-    //enumData.push_back(MathFunctionEnum(INVALID, "INVALID"));//should this be in the data? I don't think it should, it is a placeholder for "no matching enum value"
     enumData.push_back(MathFunctionEnum(SIN, "sin", "1 argument, the sine of the argument (units are radians)"));
     enumData.push_back(MathFunctionEnum(COS, "cos", "1 argument, the cosine of the argument (units are radians)"));
     enumData.push_back(MathFunctionEnum(TAN, "tan", "1 argument, the tangent of the argument (units are radians)"));
@@ -84,6 +83,7 @@ MathFunctionEnum::initialize()
     enumData.push_back(MathFunctionEnum(LN, "ln", "1 argument, the natural logarithm of the argument"));
     enumData.push_back(MathFunctionEnum(EXP, "exp", "1 argument, the constant e raised to the power of the argument"));
     enumData.push_back(MathFunctionEnum(LOG, "log", "1 argument, the base 10 logarithm of the argument"));
+    enumData.push_back(MathFunctionEnum(LOG2, "log2", "1 argument, the base 2 logarithm of the argument"));
     enumData.push_back(MathFunctionEnum(SQRT, "sqrt", "1 argument, the square root of the argument"));
     enumData.push_back(MathFunctionEnum(ABS, "abs", "1 argument, the absolute value of the argument"));
     enumData.push_back(MathFunctionEnum(FLOOR, "floor", "1 argument, the largest integer not greater than the argument"));

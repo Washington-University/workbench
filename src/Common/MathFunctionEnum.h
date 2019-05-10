@@ -57,6 +57,7 @@ public:
             LN,
             EXP,
             LOG,
+            LOG2,
             SQRT,
             ABS,
             FLOOR,
