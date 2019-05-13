@@ -7248,27 +7248,56 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
     std::vector<CaretDataFile*> allCaretDataFiles;
     getAllDataFiles(allCaretDataFiles);
     
-    /*
-     * Save data files into an array.
-     * Note that data file's saveToScene returns NULL if no data for saving.
-     */
-    std::vector<SceneClass*> allCaretDataFileScenes;
-    for (std::vector<CaretDataFile*>::iterator iter = allCaretDataFiles.begin();
-         iter != allCaretDataFiles.end();
-         iter++) {
-        CaretDataFile* cdf = *iter;
-
-        const AString caretDataFileName = cdf->getFileName();  // use full path 7/16/2015 cdf->getFileNameNoPath();
-        SceneClass* caretDataFileSceneClass = cdf->saveToScene(sceneAttributes,
-                                                      caretDataFileName);
-        if (caretDataFileSceneClass != NULL) {
-            allCaretDataFileScenes.push_back(caretDataFileSceneClass);
+    bool testNewFilePathsFlag(true);
+    if (testNewFilePathsFlag) {
+        /*
+         * Save data files into an array.
+         * Note that data file's saveToScene returns NULL if no data for saving.
+         */
+        std::vector<SceneClass*> allCaretDataFileScenes;
+        for (std::vector<CaretDataFile*>::iterator iter = allCaretDataFiles.begin();
+             iter != allCaretDataFiles.end();
+             iter++) {
+            CaretDataFile* cdf = *iter;
+            
+            const AString caretDataFileName = cdf->getFileNameNoPath();
+            SceneClass* caretDataFileSceneClass = cdf->saveToScene(sceneAttributes,
+                                                                   caretDataFileName);
+            if (caretDataFileSceneClass != NULL) {
+                caretDataFileSceneClass->addPathName("dataFileName_V2",
+                                                     cdf->getFileName());
+                allCaretDataFileScenes.push_back(caretDataFileSceneClass);
+            }
+        }
+        if (allCaretDataFileScenes.empty() == false) {
+            SceneClassArray* caretDataFileSceneArray = new SceneClassArray("allCaretDataFiles_V2",
+                                                                           allCaretDataFileScenes);
+            sceneClass->addChild(caretDataFileSceneArray);
         }
     }
-    if (allCaretDataFileScenes.empty() == false) {
-        SceneClassArray* caretDataFileSceneArray = new SceneClassArray("allCaretDataFiles",
-                                                                       allCaretDataFileScenes);
-        sceneClass->addChild(caretDataFileSceneArray);
+    else {
+        /*
+         * Save data files into an array.
+         * Note that data file's saveToScene returns NULL if no data for saving.
+         */
+        std::vector<SceneClass*> allCaretDataFileScenes;
+        for (std::vector<CaretDataFile*>::iterator iter = allCaretDataFiles.begin();
+             iter != allCaretDataFiles.end();
+             iter++) {
+            CaretDataFile* cdf = *iter;
+            
+            const AString caretDataFileName = cdf->getFileName();  // use full path 7/16/2015 cdf->getFileNameNoPath();
+            SceneClass* caretDataFileSceneClass = cdf->saveToScene(sceneAttributes,
+                                                                   caretDataFileName);
+            if (caretDataFileSceneClass != NULL) {
+                allCaretDataFileScenes.push_back(caretDataFileSceneClass);
+            }
+        }
+        if (allCaretDataFileScenes.empty() == false) {
+            SceneClassArray* caretDataFileSceneArray = new SceneClassArray("allCaretDataFiles",
+                                                                           allCaretDataFileScenes);
+            sceneClass->addChild(caretDataFileSceneArray);
+        }
     }
     
     if (isSaveSpecFile) {
@@ -7424,10 +7453,42 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     getAllDataFiles(allCaretDataFiles);
     
     /*
-     * Restore data files
+     * Restore data files.  Try to restore "V2" and if not found, restore older version
      */
+    const SceneClassArray* caretDataFileSceneArrayV2 = sceneClass->getClassArray("allCaretDataFiles_V2");
     const SceneClassArray* caretDataFileSceneArray = sceneClass->getClassArray("allCaretDataFiles");
-    if (caretDataFileSceneArray != NULL) {
+    if (caretDataFileSceneArrayV2 != NULL) {
+        /*
+         * Note: Name of element is name of file without path.
+         * A child of the element contains a ScenePathName containing
+         * name of file (full path in memory and relative to scene
+         * file name when file is written.
+         */
+        for (auto caretDataFile : allCaretDataFiles) {
+            CaretAssert(caretDataFile);
+            const AString caretDataFileNameFullPath = caretDataFile->getFileName();
+            const AString caretDataFileName = caretDataFile->getFileNameNoPath();
+            
+            const int32_t numCaretDataFileScenes = caretDataFileSceneArrayV2->getNumberOfArrayElements();
+            for (int32_t i = 0; i < numCaretDataFileScenes; i++) {
+                const SceneClass* fileSceneClass = caretDataFileSceneArrayV2->getClassAtIndex(i);
+                const AString fileName = fileSceneClass->getName();
+                if (fileName == caretDataFileName) {
+                    const AString fullPathFileName = fileSceneClass->getPathNameValue("dataFileName_V2");
+                    if (fullPathFileName == caretDataFileNameFullPath) {
+                        caretDataFile->restoreFromScene(sceneAttributes,
+                                                        fileSceneClass);
+                        loadMatrixChartingFileDefaultRowOrColumn(caretDataFile);
+                        break; // get out of inner file loop
+                    }
+                }
+            }
+        }
+    }
+    else if (caretDataFileSceneArray != NULL) {
+        /*
+         * Restore old file data that used full pathss
+         */
         for (std::vector<CaretDataFile*>::iterator iter = allCaretDataFiles.begin();
              iter != allCaretDataFiles.end();
              iter++) {
