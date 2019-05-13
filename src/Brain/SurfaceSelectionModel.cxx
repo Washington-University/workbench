@@ -389,10 +389,8 @@ SurfaceSelectionModel::saveToScene(const SceneAttributes* /*sceneAttributes*/,
     
     Surface* surface = getSurface();
     if (surface != NULL) {
-        sceneClass->addString("m_selectedSurfaceFullPath",
-                              surface->getFileName());
-        sceneClass->addString("m_selectedSurface",
-                              surface->getFileNameNoPath());
+        sceneClass->addPathName("m_selectedSurfacePathName",
+                                surface->getFileName());
     }
     
     return sceneClass;
@@ -420,41 +418,56 @@ SurfaceSelectionModel::restoreFromScene(const SceneAttributes* /*sceneAttributes
     
     std::vector<Surface*> allSurfaces = getAvailableSurfaces();
     
-    const AString& surfaceFileNameFullPath = sceneClass->getStringValue("m_selectedSurfaceFullPath",
-                                                                        "");
     /*
-     * For full path, find the best match using the right-most characters that 
-     * will contain any relative path.  When scene files are moved to different
-     * computers the full path may change the parts of the path nearest the 
-     * name of the file will match.
+     * Element "m_selectedSurfacePathName" replaces older elements
+     * and fixes problem with absolute paths in the scene file
      */
+    const AString surfacePathName = sceneClass->getPathNameValue("m_selectedSurfacePathName");
     Surface* pathNameMatchSurface = NULL;
-    int32_t pathNameMatchLength = 0;
-    if ( ! surfaceFileNameFullPath.isEmpty()) {
+    Surface* nameMatchSurface = NULL;
+    if ( ! surfacePathName.isEmpty()) {
         for (auto surface : allSurfaces) {
-            const AString name = surface->getFileName();
-            const int32_t numMatch = name.countMatchingCharactersFromEnd(surfaceFileNameFullPath);
-            if (numMatch > pathNameMatchLength) {
-                pathNameMatchLength  = numMatch;
+            if (surface->getFileName() == surfacePathName) {
                 pathNameMatchSurface = surface;
+                break;
             }
         }
     }
-    
-    /*
-     * Match name of file with NO path
-     * Always restore this so that the object is marked as restored
-     * (within the 'get' method).  Otherwise if compiled debug, this
-     * object will get logged as 'not restored'.
-     */
-    Surface* nameMatchSurface = NULL;
-    const AString& surfaceFileName = sceneClass->getStringValue("m_selectedSurface",
-                                                                "");
-    if ( ! surfaceFileName.isEmpty()) {
-        for (auto surface : allSurfaces) {
-            if (surface->getFileNameNoPath() == surfaceFileName) {
-                nameMatchSurface = surface;
-                break;
+    else {
+        /*
+         * For full path, find the best match using the right-most characters that
+         * will contain any relative path.  When scene files are moved to different
+         * computers the full path may change the parts of the path nearest the
+         * name of the file will match.
+         */
+        const AString surfaceFileNameFullPath = sceneClass->getStringValue("m_selectedSurfaceFullPath",
+                                                                           "");
+        int32_t pathNameMatchLength = 0;
+        if ( ! surfaceFileNameFullPath.isEmpty()) {
+            for (auto surface : allSurfaces) {
+                const AString name = surface->getFileName();
+                const int32_t numMatch = name.countMatchingCharactersFromEnd(surfaceFileNameFullPath);
+                if (numMatch > pathNameMatchLength) {
+                    pathNameMatchLength  = numMatch;
+                    pathNameMatchSurface = surface;
+                }
+            }
+        }
+        
+        /*
+         * Match name of file with NO path
+         * Always restore this so that the object is marked as restored
+         * (within the 'get' method).  Otherwise if compiled debug, this
+         * object will get logged as 'not restored'.
+         */
+        const AString surfaceFileName = sceneClass->getStringValue("m_selectedSurface",
+                                                                   "");
+        if ( ! surfaceFileName.isEmpty()) {
+            for (auto surface : allSurfaces) {
+                if (surface->getFileNameNoPath() == surfaceFileName) {
+                    nameMatchSurface = surface;
+                    break;
+                }
             }
         }
     }
