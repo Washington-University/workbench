@@ -1457,15 +1457,11 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOblique(const VolumeSlic
     const float bigValue = 10000.0 + gapMM;
     
     std::array<float, 3> horizontalAxisPosStartXYZ { sliceCoordinates };
-    std::array<float, 3> horizontalAxisPosEndXYZ { sliceCoordinates };
-    std::array<float, 3> verticalAxisPosStartXYZ { sliceCoordinates };
-    std::array<float, 3> verticalAxisPosEndXYZ { sliceCoordinates };
     
     float trans[3];
     m_browserTabContent->getTranslation(trans);
     
-    float horizTrans[3] = { trans[0], trans[1], trans[2] };
-    float vertTrans[3] = { trans[0], trans[1], trans[2] };
+    std::array<float, 3> horizTrans { trans[0], trans[1], trans[2] };
     
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
@@ -1476,56 +1472,33 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOblique(const VolumeSlic
             horizontalAxisPosStartXYZ[0] = sliceCoordinates[0];
             horizontalAxisPosStartXYZ[1] = sliceCoordinates[2];
             horizontalAxisPosStartXYZ[2] = sliceCoordinates[1];
-            horizontalAxisPosEndXYZ[0]   = sliceCoordinates[0];
-            horizontalAxisPosEndXYZ[1]   = sliceCoordinates[2];
-            horizontalAxisPosEndXYZ[2]   = sliceCoordinates[1];
             
             horizTrans[0] = trans[0];
             horizTrans[1] = trans[2];
             horizTrans[2] = trans[1];
-            
-            verticalAxisPosStartXYZ[0] = sliceCoordinates[0];
-            verticalAxisPosStartXYZ[1] = sliceCoordinates[2];
-            verticalAxisPosStartXYZ[2] = sliceCoordinates[1];
-            verticalAxisPosEndXYZ[0]   = sliceCoordinates[0];
-            verticalAxisPosEndXYZ[1]   = sliceCoordinates[2];
-            verticalAxisPosEndXYZ[2]   = sliceCoordinates[1];
-            
-            vertTrans[0]   = trans[0];
-            vertTrans[1]   = trans[2];
-            vertTrans[2]   = trans[1];
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             horizontalAxisPosStartXYZ[0] = -sliceCoordinates[1];
             horizontalAxisPosStartXYZ[1] = sliceCoordinates[2];
             horizontalAxisPosStartXYZ[2] = sliceCoordinates[0];
-            horizontalAxisPosEndXYZ[0]   = -sliceCoordinates[1];
-            horizontalAxisPosEndXYZ[1]   = sliceCoordinates[2];
-            horizontalAxisPosEndXYZ[2]   = sliceCoordinates[0];
             
             horizTrans[0] = -trans[1];
             horizTrans[1] = trans[2];
             horizTrans[2] = trans[0];
-            
-            verticalAxisPosStartXYZ[0] = -sliceCoordinates[1];
-            verticalAxisPosStartXYZ[1] = sliceCoordinates[2];
-            verticalAxisPosStartXYZ[2] = sliceCoordinates[0];
-            verticalAxisPosEndXYZ[0]   = -sliceCoordinates[1];
-            verticalAxisPosEndXYZ[1]   = sliceCoordinates[2];
-            verticalAxisPosEndXYZ[2]   = sliceCoordinates[0];
-
-            vertTrans[0]   = -trans[1];
-            vertTrans[1]   = trans[2];
-            vertTrans[2]   = trans[0];
             break;
     }
+    
+    std::array<float, 3> horizontalAxisPosEndXYZ { horizontalAxisPosStartXYZ };
+    std::array<float, 3> verticalAxisPosStartXYZ { horizontalAxisPosStartXYZ };
+    std::array<float, 3> verticalAxisPosEndXYZ { horizontalAxisPosStartXYZ };
     
     std::array<float, 3> horizontalAxisNegStartXYZ { horizontalAxisPosStartXYZ };
     std::array<float, 3> horizontalAxisNegEndXYZ { horizontalAxisPosEndXYZ };
     std::array<float, 3> verticalAxisNegStartXYZ { verticalAxisPosStartXYZ };
     std::array<float, 3> verticalAxisNegEndXYZ { verticalAxisPosEndXYZ };
     
-    
+    std::array<float, 3> vertTrans { horizTrans };
+
     float axialRGBA[4];
     getAxesColor(VolumeSliceViewPlaneEnum::AXIAL,
                  axialRGBA);
