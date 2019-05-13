@@ -62,7 +62,7 @@ CaretPreferences::CaretPreferences()
     m_volumeCrossHairGapPreference.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                       "volumeAxesCrosshairGap",
                                                                       CaretPreferenceDataValue::DataType::DOUBLE,
-                                                                      2.0));
+                                                                      0.0));
     m_preferenceDataValues.push_back(m_volumeCrossHairGapPreference.get());
     
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
