@@ -3464,15 +3464,15 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrtho(const VolumeSliceViewPlan
     
     const float bigValue = 10000.0 + gapMM;
     
-    std::array<float, 3> horizontalAxisPosStartXYZ { sliceCoordinates };
-    std::array<float, 3> horizontalAxisPosEndXYZ { sliceCoordinates };
-    std::array<float, 3> verticalAxisPosStartXYZ { sliceCoordinates };
-    std::array<float, 3> verticalAxisPosEndXYZ { sliceCoordinates };
+    std::array<float, 3> horizontalAxisPosStartXYZ = sliceCoordinates;
+    std::array<float, 3> horizontalAxisPosEndXYZ = sliceCoordinates;
+    std::array<float, 3> verticalAxisPosStartXYZ = sliceCoordinates;
+    std::array<float, 3> verticalAxisPosEndXYZ = sliceCoordinates;
     
-    std::array<float, 3> horizontalAxisNegStartXYZ { horizontalAxisPosStartXYZ };
-    std::array<float, 3> horizontalAxisNegEndXYZ { horizontalAxisPosEndXYZ };
-    std::array<float, 3> verticalAxisNegStartXYZ { verticalAxisPosStartXYZ };
-    std::array<float, 3> verticalAxisNegEndXYZ { verticalAxisPosEndXYZ };
+    std::array<float, 3> horizontalAxisNegStartXYZ = horizontalAxisPosStartXYZ;
+    std::array<float, 3> horizontalAxisNegEndXYZ = horizontalAxisPosEndXYZ;
+    std::array<float, 3> verticalAxisNegStartXYZ = verticalAxisPosStartXYZ;
+    std::array<float, 3> verticalAxisNegEndXYZ = verticalAxisPosEndXYZ;
 
     float axialRGBA[4];
     getAxesColor(VolumeSliceViewPlaneEnum::AXIAL,

@@ -1456,7 +1456,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOblique(const VolumeSlic
     
     const float bigValue = 10000.0 + gapMM;
     
-    std::array<float, 3> horizontalAxisPosStartXYZ { sliceCoordinates };
+    std::array<float, 3> horizontalAxisPosStartXYZ = sliceCoordinates;
     
     float trans[3];
     m_browserTabContent->getTranslation(trans);
@@ -1488,16 +1488,16 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOblique(const VolumeSlic
             break;
     }
     
-    std::array<float, 3> horizontalAxisPosEndXYZ { horizontalAxisPosStartXYZ };
-    std::array<float, 3> verticalAxisPosStartXYZ { horizontalAxisPosStartXYZ };
-    std::array<float, 3> verticalAxisPosEndXYZ { horizontalAxisPosStartXYZ };
+    std::array<float, 3> horizontalAxisPosEndXYZ = horizontalAxisPosStartXYZ;
+    std::array<float, 3> verticalAxisPosStartXYZ = horizontalAxisPosStartXYZ;
+    std::array<float, 3> verticalAxisPosEndXYZ = horizontalAxisPosStartXYZ;
     
-    std::array<float, 3> horizontalAxisNegStartXYZ { horizontalAxisPosStartXYZ };
-    std::array<float, 3> horizontalAxisNegEndXYZ { horizontalAxisPosEndXYZ };
-    std::array<float, 3> verticalAxisNegStartXYZ { verticalAxisPosStartXYZ };
-    std::array<float, 3> verticalAxisNegEndXYZ { verticalAxisPosEndXYZ };
+    std::array<float, 3> horizontalAxisNegStartXYZ = horizontalAxisPosStartXYZ;
+    std::array<float, 3> horizontalAxisNegEndXYZ = horizontalAxisPosEndXYZ;
+    std::array<float, 3> verticalAxisNegStartXYZ = verticalAxisPosStartXYZ;
+    std::array<float, 3> verticalAxisNegEndXYZ = verticalAxisPosEndXYZ;
     
-    std::array<float, 3> vertTrans { horizTrans };
+    std::array<float, 3> vertTrans = horizTrans;
 
     float axialRGBA[4];
     getAxesColor(VolumeSliceViewPlaneEnum::AXIAL,
