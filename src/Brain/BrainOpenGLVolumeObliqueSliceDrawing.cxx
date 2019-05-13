@@ -37,6 +37,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
+#include "CaretPreferenceDataValue.h"
 #include "CaretPreferences.h"
 #include "CiftiMappableDataFile.h"
 #include "DeveloperFlagsEnum.h"
@@ -53,6 +54,7 @@
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "IdentificationWithColor.h"
 #include "LabelDrawingProperties.h"
 #include "MathFunctions.h"
@@ -658,8 +660,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Brain
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 
     if (m_browserTabContent->isVolumeAxesCrosshairLabelsDisplayed()) {
-        drawAxesCrosshairsOrthoAndOblique(sliceProjectionType,
-                                          sliceViewPlane,
+        drawAxesCrosshairsOblique(sliceViewPlane,
                                           sliceCoordinates,
                                           false,
                                           true);
@@ -1412,11 +1413,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjec
         {
             glPushMatrix();
             glLoadIdentity();
-            drawAxesCrosshairsOrthoAndOblique(sliceProjectionType,
-                                              sliceViewPlane,
-                                              sliceCoordinates,
-                                              drawCrosshairsFlag,
-                                              drawCrosshairLabelsFlag);
+            drawAxesCrosshairsOblique(sliceViewPlane,
+                                      sliceCoordinates,
+                                      drawCrosshairsFlag,
+                                      drawCrosshairLabelsFlag);
             glPopMatrix();
         }
             break;
@@ -1430,7 +1430,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjec
  *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
  *    The slice plane view.
- * @param sliceCoordinates
+ * @param sliceCoordinatesIn
  *    Coordinates of the selected slices.
  * @param drawCrosshairsFlag
  *    If true, draw the crosshairs.
@@ -1438,111 +1438,93 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjec
  *    If true, draw the crosshair labels.
  */
 void
-BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                                        const float sliceCoordinates[3],
-                                                                        const bool drawCrosshairsFlag,
-                                                                        const bool drawCrosshairLabelsFlag)
+BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOblique(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                const float sliceCoordinatesIn[3],
+                                                                const bool drawCrosshairsFlag,
+                                                                const bool drawCrosshairLabelsFlag)
 {
-    bool obliqueModeFlag = false;
-    switch (sliceProjectionType) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            obliqueModeFlag = true;
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            CaretAssert(0);
-            break;
-    }
+    CaretPreferenceDataValue* gapPref = SessionManager::get()->getCaretPreferences()->getVolumeCrossHairGapPreference();
+    CaretAssert(gapPref);
+    const float gapPercentViewportHeight = gapPref->getValue().toDouble();
+    const float gapMM = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToMillimeters(gapPercentViewportHeight);
     
+    const std::array<float, 3> sliceCoordinates { sliceCoordinatesIn[0], sliceCoordinatesIn[1], sliceCoordinatesIn[2] };
     GLboolean depthEnabled = GL_FALSE;
     glGetBooleanv(GL_DEPTH_TEST,
                   &depthEnabled);
     glDisable(GL_DEPTH_TEST);
     
-    const float bigValue = 10000.0;
+    const float bigValue = 10000.0 + gapMM;
     
-    float horizontalAxisStartXYZ[3] = {
-        sliceCoordinates[0],
-        sliceCoordinates[1],
-        sliceCoordinates[2]
-    };
-    float horizontalAxisEndXYZ[3] = {
-        sliceCoordinates[0],
-        sliceCoordinates[1],
-        sliceCoordinates[2]
-    };
-    
-    float verticalAxisStartXYZ[3] = {
-        sliceCoordinates[0],
-        sliceCoordinates[1],
-        sliceCoordinates[2]
-    };
-    float verticalAxisEndXYZ[3] = {
-        sliceCoordinates[0],
-        sliceCoordinates[1],
-        sliceCoordinates[2]
-    };
+    std::array<float, 3> horizontalAxisPosStartXYZ { sliceCoordinates };
+    std::array<float, 3> horizontalAxisPosEndXYZ { sliceCoordinates };
+    std::array<float, 3> verticalAxisPosStartXYZ { sliceCoordinates };
+    std::array<float, 3> verticalAxisPosEndXYZ { sliceCoordinates };
     
     float trans[3];
     m_browserTabContent->getTranslation(trans);
-
+    
     float horizTrans[3] = { trans[0], trans[1], trans[2] };
     float vertTrans[3] = { trans[0], trans[1], trans[2] };
     
-    if (obliqueModeFlag) {
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                horizontalAxisStartXYZ[0] = sliceCoordinates[0];
-                horizontalAxisStartXYZ[1] = sliceCoordinates[2];
-                horizontalAxisStartXYZ[2] = sliceCoordinates[1];
-                horizontalAxisEndXYZ[0]   = sliceCoordinates[0];
-                horizontalAxisEndXYZ[1]   = sliceCoordinates[2];
-                horizontalAxisEndXYZ[2]   = sliceCoordinates[1];
-                
-                horizTrans[0] = trans[0];
-                horizTrans[1] = trans[2];
-                horizTrans[2] = trans[1];
-                
-                verticalAxisStartXYZ[0] = sliceCoordinates[0];
-                verticalAxisStartXYZ[1] = sliceCoordinates[1];
-                verticalAxisStartXYZ[2] = sliceCoordinates[2];
-                verticalAxisEndXYZ[0]   = sliceCoordinates[0];
-                verticalAxisEndXYZ[1]   = sliceCoordinates[1];
-                verticalAxisEndXYZ[2]   = sliceCoordinates[2];
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            horizontalAxisPosStartXYZ[0] = sliceCoordinates[0];
+            horizontalAxisPosStartXYZ[1] = sliceCoordinates[2];
+            horizontalAxisPosStartXYZ[2] = sliceCoordinates[1];
+            horizontalAxisPosEndXYZ[0]   = sliceCoordinates[0];
+            horizontalAxisPosEndXYZ[1]   = sliceCoordinates[2];
+            horizontalAxisPosEndXYZ[2]   = sliceCoordinates[1];
+            
+            horizTrans[0] = trans[0];
+            horizTrans[1] = trans[2];
+            horizTrans[2] = trans[1];
+            
+            verticalAxisPosStartXYZ[0] = sliceCoordinates[0];
+            verticalAxisPosStartXYZ[1] = sliceCoordinates[2];
+            verticalAxisPosStartXYZ[2] = sliceCoordinates[1];
+            verticalAxisPosEndXYZ[0]   = sliceCoordinates[0];
+            verticalAxisPosEndXYZ[1]   = sliceCoordinates[2];
+            verticalAxisPosEndXYZ[2]   = sliceCoordinates[1];
+            
+            vertTrans[0]   = trans[0];
+            vertTrans[1]   = trans[2];
+            vertTrans[2]   = trans[1];
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            horizontalAxisPosStartXYZ[0] = -sliceCoordinates[1];
+            horizontalAxisPosStartXYZ[1] = sliceCoordinates[2];
+            horizontalAxisPosStartXYZ[2] = sliceCoordinates[0];
+            horizontalAxisPosEndXYZ[0]   = -sliceCoordinates[1];
+            horizontalAxisPosEndXYZ[1]   = sliceCoordinates[2];
+            horizontalAxisPosEndXYZ[2]   = sliceCoordinates[0];
+            
+            horizTrans[0] = -trans[1];
+            horizTrans[1] = trans[2];
+            horizTrans[2] = trans[0];
+            
+            verticalAxisPosStartXYZ[0] = -sliceCoordinates[1];
+            verticalAxisPosStartXYZ[1] = sliceCoordinates[2];
+            verticalAxisPosStartXYZ[2] = sliceCoordinates[0];
+            verticalAxisPosEndXYZ[0]   = -sliceCoordinates[1];
+            verticalAxisPosEndXYZ[1]   = sliceCoordinates[2];
+            verticalAxisPosEndXYZ[2]   = sliceCoordinates[0];
 
-                vertTrans[0]   = trans[0];
-                vertTrans[1]   = trans[1];
-                vertTrans[2]   = trans[2];
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                horizontalAxisStartXYZ[0] = sliceCoordinates[1];
-                horizontalAxisStartXYZ[1] = sliceCoordinates[2];
-                horizontalAxisStartXYZ[2] = sliceCoordinates[0];
-                horizontalAxisEndXYZ[0]   = sliceCoordinates[1];
-                horizontalAxisEndXYZ[1]   = sliceCoordinates[2];
-                horizontalAxisEndXYZ[2]   = sliceCoordinates[0];
-                
-                horizTrans[0] = trans[1];
-                horizTrans[1] = trans[2];
-                horizTrans[2] = trans[0];
-                
-                verticalAxisStartXYZ[0] = -sliceCoordinates[1];
-                verticalAxisStartXYZ[1] = sliceCoordinates[0];
-                verticalAxisStartXYZ[2] = sliceCoordinates[2];
-                verticalAxisEndXYZ[0]   = -sliceCoordinates[1];
-                verticalAxisEndXYZ[1]   = sliceCoordinates[0];
-                verticalAxisEndXYZ[2]   = sliceCoordinates[2];
-                
-                vertTrans[0]   = -trans[1];
-                vertTrans[1]   = trans[0];
-                vertTrans[2]   = trans[2];
-                break;
-        }
+            vertTrans[0]   = -trans[1];
+            vertTrans[1]   = trans[2];
+            vertTrans[2]   = trans[0];
+            break;
     }
+    
+    std::array<float, 3> horizontalAxisNegStartXYZ { horizontalAxisPosStartXYZ };
+    std::array<float, 3> horizontalAxisNegEndXYZ { horizontalAxisPosEndXYZ };
+    std::array<float, 3> verticalAxisNegStartXYZ { verticalAxisPosStartXYZ };
+    std::array<float, 3> verticalAxisNegEndXYZ { verticalAxisPosEndXYZ };
+    
     
     float axialRGBA[4];
     getAxesColor(VolumeSliceViewPlaneEnum::AXIAL,
@@ -1571,64 +1553,52 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
             horizontalLeftText   = "L";
             horizontalRightText  = "R";
             horizontalAxisRGBA = coronalRGBA;
-            horizontalAxisStartXYZ[0] -= bigValue;
-            horizontalAxisEndXYZ[0]   += bigValue;
-            
+            horizontalAxisPosStartXYZ[0] += gapMM;
+            horizontalAxisPosEndXYZ[0]   += bigValue;
+            horizontalAxisNegStartXYZ[0] -= gapMM;
+            horizontalAxisNegEndXYZ[0]   -= bigValue;
+
             verticalBottomText = "P";
             verticalTopText    = "A";
             verticalAxisRGBA = paraRGBA;
-            verticalAxisStartXYZ[1] -= bigValue;
-            verticalAxisEndXYZ[1]   += bigValue;
+            verticalAxisPosStartXYZ[1] += gapMM;
+            verticalAxisPosEndXYZ[1]   += bigValue;
+            verticalAxisNegStartXYZ[1] -= gapMM;
+            verticalAxisNegEndXYZ[1]   -= bigValue;
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             horizontalLeftText   = "L";
             horizontalRightText  = "R";
             horizontalAxisRGBA = axialRGBA;
-            if (obliqueModeFlag) {
-                horizontalAxisStartXYZ[0] -= bigValue;
-                horizontalAxisEndXYZ[0]   += bigValue;
-            }
-            else {
-                horizontalAxisStartXYZ[0] -= bigValue;
-                horizontalAxisEndXYZ[0]   += bigValue;
-            }
-            
+            horizontalAxisPosStartXYZ[0] += gapMM;
+            horizontalAxisPosEndXYZ[0]   += bigValue;
+            horizontalAxisNegStartXYZ[0] -= gapMM;
+            horizontalAxisNegEndXYZ[0]   -= bigValue;
+
             verticalBottomText = "I";
             verticalTopText    = "S";
             verticalAxisRGBA = paraRGBA;
-            if (obliqueModeFlag) {
-                verticalAxisStartXYZ[1] -= bigValue;
-                verticalAxisEndXYZ[1]   += bigValue;
-            }
-            else {
-                verticalAxisStartXYZ[2] -= bigValue;
-                verticalAxisEndXYZ[2]   += bigValue;
-            }
+            verticalAxisPosStartXYZ[1] += gapMM;
+            verticalAxisPosEndXYZ[1]   += bigValue;
+            verticalAxisNegStartXYZ[1] -= gapMM;
+            verticalAxisNegEndXYZ[1]   -= bigValue;
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             horizontalLeftText   = "A";
             horizontalRightText  = "P";
             horizontalAxisRGBA = axialRGBA;
-            if (obliqueModeFlag) {
-                horizontalAxisStartXYZ[0] -= bigValue;
-                horizontalAxisEndXYZ[0]   += bigValue;
-            }
-            else {
-                horizontalAxisStartXYZ[1] -= bigValue;
-                horizontalAxisEndXYZ[1]   += bigValue;
-            }
-            
+            horizontalAxisPosStartXYZ[0] += gapMM;
+            horizontalAxisPosEndXYZ[0]   += bigValue;
+            horizontalAxisNegStartXYZ[0] -= gapMM;
+            horizontalAxisNegEndXYZ[0]   -= bigValue;
+
             verticalBottomText = "I";
             verticalTopText    = "S";
             verticalAxisRGBA = coronalRGBA;
-            if (obliqueModeFlag) {
-                verticalAxisStartXYZ[1] -= bigValue;
-                verticalAxisEndXYZ[1]   += bigValue;
-            }
-            else {
-                verticalAxisStartXYZ[2] -= bigValue;
-                verticalAxisEndXYZ[2]   += bigValue;
-            }
+            verticalAxisPosStartXYZ[1] += gapMM;
+            verticalAxisPosEndXYZ[1]   += bigValue;
+            verticalAxisNegStartXYZ[1] -= gapMM;
+            verticalAxisNegEndXYZ[1]   -= bigValue;
             break;
     }
     
@@ -1664,8 +1634,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         glPushMatrix();
         glTranslatef(horizTrans[0], horizTrans[1], horizTrans[2]);
         std::unique_ptr<GraphicsPrimitiveV3fC4f> horizHairPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
-        horizHairPrimitive->addVertex(horizontalAxisStartXYZ, horizontalAxisRGBA);
-        horizHairPrimitive->addVertex(horizontalAxisEndXYZ, horizontalAxisRGBA);
+        horizHairPrimitive->addVertex(&horizontalAxisPosStartXYZ[0], horizontalAxisRGBA);
+        horizHairPrimitive->addVertex(&horizontalAxisPosEndXYZ[0], horizontalAxisRGBA);
+        horizHairPrimitive->addVertex(&horizontalAxisNegStartXYZ[0], horizontalAxisRGBA);
+        horizHairPrimitive->addVertex(&horizontalAxisNegEndXYZ[0], horizontalAxisRGBA);
         horizHairPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
         GraphicsEngineDataOpenGL::draw(horizHairPrimitive.get());
         glPopMatrix();
@@ -1673,8 +1645,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         glPushMatrix();
         glTranslatef(vertTrans[0], vertTrans[1], vertTrans[2]);
         std::unique_ptr<GraphicsPrimitiveV3fC4f> vertHairPrimitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
-        vertHairPrimitive->addVertex(verticalAxisStartXYZ, verticalAxisRGBA);
-        vertHairPrimitive->addVertex(verticalAxisEndXYZ, verticalAxisRGBA);
+        vertHairPrimitive->addVertex(&verticalAxisPosStartXYZ[0], verticalAxisRGBA);
+        vertHairPrimitive->addVertex(&verticalAxisPosEndXYZ[0], verticalAxisRGBA);
+        vertHairPrimitive->addVertex(&verticalAxisNegStartXYZ[0], verticalAxisRGBA);
+        vertHairPrimitive->addVertex(&verticalAxisNegEndXYZ[0], verticalAxisRGBA);
         vertHairPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
         GraphicsEngineDataOpenGL::draw(vertHairPrimitive.get());
         glPopMatrix();
@@ -1799,7 +1773,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomTextColor(horizontalAxisRGBA);
         annotationText.setCustomBackgroundColor(backgroundRGBA);
-
+        
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setText(horizontalLeftText);
@@ -1821,7 +1795,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const Vo
         m_fixedPipelineDrawing->drawTextAtViewportCoords(textBottomWindowXY[0],
                                                          textBottomWindowXY[1],
                                                          annotationText);
-
+        
         annotationText.setText(verticalTopText);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);

@@ -222,12 +222,11 @@ namespace caret {
                                       const float sliceCoordinates[3],
                                       Plane& planeOut);
         
-        void drawAxesCrosshairsOrthoAndOblique(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                               const float sliceCoordinates[3],
-                                               const bool drawCrosshairsFlag,
-                                               const bool drawCrosshairLabelsFlag);
-        
+        void drawAxesCrosshairsOblique(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                       const float sliceCoordinates[3],
+                                       const bool drawCrosshairsFlag,
+                                       const bool drawCrosshairLabelsFlag);
+
         void setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                              const Plane& plane,
