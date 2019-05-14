@@ -1130,6 +1130,16 @@ BrainOpenGL::getOpenGLInformation()
     lineInfo += ("\nSamples Count: " + AString::number(sampleCount));
     lineInfo += ("\nMultisampling Enabled: " + AString::fromBool(glIsEnabled(GL_MULTISAMPLE)));
     
+    GLint textureMax, texture3DMax;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE,
+                  &textureMax);
+    glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE,
+                  &texture3DMax);
+    lineInfo += "\n";
+    lineInfo += ("\nTexture Max: " + AString::number(textureMax));
+    lineInfo += ("\nTexture 3D Max: " + AString::number(texture3DMax));
+    lineInfo += "\n";
+
     lineInfo += "\n";
     lineInfo += "\n";
     lineInfo += "Note that State of OpenGL may be different when drawing objects.\n";
