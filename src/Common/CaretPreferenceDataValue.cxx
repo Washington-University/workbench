@@ -112,26 +112,6 @@ CaretPreferenceDataValue::getValue(/*const ValueType valueType*/) const
         valueOut = m_dataValue;
     }
     return valueOut;
-
-//    switch (valueType) {
-//        case ValueType::ACTIVE:
-//            if (m_sceneDataValueValid) {
-//                valueOut = m_sceneDataValue;
-//            }
-//            else {
-//                valueOut = m_dataValue;
-//            }
-//            break;
-//        case ValueType::PREFERENCE:
-//            valueOut = m_dataValue;
-//            break;
-//        case ValueType::SCENE:  // may not need scene value
-//            valueOut = m_sceneDataValue;
-//            break;
-//    }
-//
-//    CaretAssert( ! valueOut.isNull());
-//    return valueOut;
 }
 
 /**

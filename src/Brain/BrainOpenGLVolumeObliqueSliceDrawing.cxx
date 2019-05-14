@@ -1443,9 +1443,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairsOblique(const VolumeSlic
                                                                 const bool drawCrosshairsFlag,
                                                                 const bool drawCrosshairLabelsFlag)
 {
-    CaretPreferenceDataValue* gapPref = SessionManager::get()->getCaretPreferences()->getVolumeCrossHairGapPreference();
-    CaretAssert(gapPref);
-    const float gapPercentViewportHeight = gapPref->getValue().toDouble();
+    const float gapPercentViewportHeight = SessionManager::get()->getCaretPreferences()->getVolumeCrosshairGap();
     const float gapMM = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToMillimeters(gapPercentViewportHeight);
     
     const std::array<float, 3> sliceCoordinates { sliceCoordinatesIn[0], sliceCoordinatesIn[1], sliceCoordinatesIn[2] };

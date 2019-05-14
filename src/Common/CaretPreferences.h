@@ -91,7 +91,9 @@ namespace caret {
         
         void setOpenGLDrawingMethod(const OpenGLDrawingMethodEnum::Enum openGLDrawingMethod);
         
-        CaretPreferenceDataValue* getVolumeCrossHairGapPreference() const;
+        float getVolumeCrosshairGap() const;
+        
+        void setVolumeCrosshairGap(const float gap);
         
         bool isVolumeAxesCrosshairsDisplayed() const;
         

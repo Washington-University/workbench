@@ -383,13 +383,7 @@ BrainBrowserWindowToolBarSlicePlane::createCrosshairMenu(const QString& objectNa
 void
 BrainBrowserWindowToolBarSlicePlane::crosshairMenuAboutToShow()
 {
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    CaretAssert(prefs);
-    CaretPreferenceDataValue* gapPref = prefs->getVolumeCrossHairGapPreference();
-    CaretAssert(gapPref);
-    CaretAssert(gapPref->getDataType() == CaretPreferenceDataValue::DataType::DOUBLE);
-    const double gapValue = gapPref->getValue().toDouble();
-    
+    const float gapValue = SessionManager::get()->getCaretPreferences()->getVolumeCrosshairGap();
     QSignalBlocker blocker(m_crosshairGapSpinBox);
     m_crosshairGapSpinBox->setValue(gapValue);
 }
@@ -403,13 +397,7 @@ BrainBrowserWindowToolBarSlicePlane::crosshairMenuAboutToShow()
 void
 BrainBrowserWindowToolBarSlicePlane::crosshairGapSpinBoxValueChanged(double value)
 {
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    CaretAssert(prefs);
-    CaretPreferenceDataValue* gapPref = prefs->getVolumeCrossHairGapPreference();
-    CaretAssert(gapPref);
-    CaretAssert(gapPref->getDataType() == CaretPreferenceDataValue::DataType::DOUBLE);
-    gapPref->setValue(value);
-
+    SessionManager::get()->getCaretPreferences()->setVolumeCrosshairGap(value);
     GuiManager::updateGraphicsAllWindows();
 }
 

@@ -1262,12 +1262,24 @@ CaretPreferences::setVolumeAxesCrosshairsDisplayed(const bool displayed)
 }
 
 /**
- * @return Preference for the volume crosshair gap
+ * @return The crosshair gap
  */
-CaretPreferenceDataValue*
-CaretPreferences::getVolumeCrossHairGapPreference() const
+float
+CaretPreferences::getVolumeCrosshairGap() const
 {
-    return m_volumeCrossHairGapPreference.get();
+    return m_volumeCrossHairGapPreference->getValue().toFloat();
+}
+
+/**
+ * Set the volume crosshair gap
+ *
+ * @param gap
+ *     New value for crosshair gap.
+ */
+void
+CaretPreferences::setVolumeCrosshairGap(const float gap)
+{
+    return m_volumeCrossHairGapPreference->setValue(gap);
 }
 
 /**

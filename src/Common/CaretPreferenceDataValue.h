@@ -42,25 +42,6 @@ namespace caret {
             DOUBLE,
         };
         
-        /**
-         * Type of value returned by getValue()
-         */
-        enum class ValueType {
-            /**
-             * Scene value if it is valid, otherwise preference value.
-             * Should be used when preferencd is applied.
-             */
-            ACTIVE,
-            /**
-             * The preference value used by preferences dialog
-             */
-            PREFERENCE,
-            /**
-             * The scene value (even if not valid)
-             */
-            SCENE
-        };
-        
         CaretPreferenceDataValue(QSettings* preferenceSettings,
                                  const QString& preferenceName,
                                  const DataType dataType,
