@@ -160,6 +160,7 @@ TracksModificationInterface.h
 TriStateSelectionStatusEnum.h
 Vector3D.h
 VectorOperation.h
+VolumeSliceViewAllPlanesLayoutEnum.h
 VoxelIJK.h
 WorkbenchSpecialVersionEnum.h
 WuQMacro.h
@@ -279,6 +280,7 @@ TileTabsRowColumnStretchTypeEnum.cxx
 TriStateSelectionStatusEnum.cxx
 Vector3D.cxx
 VectorOperation.cxx
+VolumeSliceViewAllPlanesLayoutEnum.cxx
 WorkbenchSpecialVersionEnum.cxx
 WuQMacro.cxx
 WuQMacroCommand.cxx

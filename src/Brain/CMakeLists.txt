@@ -180,7 +180,6 @@ ViewingTransformationsVolume.h
 VolumeSliceDrawingTypeEnum.h
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.h
 VolumeSliceSettings.h
-VolumeSliceViewAllPlanesLayoutEnum.h
 VolumeSurfaceOutlineColorOrTabModel.h
 VolumeSurfaceOutlineModel.h
 VolumeSurfaceOutlineModelCacheKey.h
@@ -340,7 +339,6 @@ ViewingTransformationsVolume.cxx
 VolumeSliceDrawingTypeEnum.cxx
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.cxx
 VolumeSliceSettings.cxx
-VolumeSliceViewAllPlanesLayoutEnum.cxx
 VolumeSurfaceOutlineColorOrTabModel.cxx
 VolumeSurfaceOutlineModel.cxx
 VolumeSurfaceOutlineModelCacheKey.cxx

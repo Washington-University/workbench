@@ -635,10 +635,15 @@ PreferencesDialog::createTabDefaltsWidget()
                                                                                               SLOT(volumeMontageCoordinatePrecisionChanged(int)));
     m_allWidgets->add(m_volumeMontageCoordinatePrecisionSpinBox);
     
-    m_allWidgets->add(m_volumeAxesCrosshairsComboBox);
-    m_allWidgets->add(m_volumeAxesLabelsComboBox);
-    m_allWidgets->add(m_volumeAxesMontageCoordinatesComboBox);
-    m_allWidgets->add(m_volumeMontageCoordinatePrecisionSpinBox);
+    /*
+     * All slice planes layout default
+     */
+    m_volumeAllSlicePlanesLayoutComboBox = new EnumComboBoxTemplate(this);
+    m_volumeAllSlicePlanesLayoutComboBox->setup<VolumeSliceViewAllPlanesLayoutEnum,VolumeSliceViewAllPlanesLayoutEnum::Enum>();
+    QObject::connect(m_volumeAllSlicePlanesLayoutComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(m_volumeAllSlicePlanesLayoutItemActivated()));
+    m_allWidgets->add(m_volumeAllSlicePlanesLayoutComboBox->getWidget());
+
     
     QGridLayout* gridLayout = new QGridLayout();
     
@@ -670,6 +675,9 @@ PreferencesDialog::createTabDefaltsWidget()
     addWidgetToLayout(gridLayout,
                       "Volume Montage Precision: ",
                       m_volumeMontageCoordinatePrecisionSpinBox);
+    addWidgetToLayout(gridLayout,
+                      "All Slice Planes Layout: ",
+                      m_volumeAllSlicePlanesLayoutComboBox->getWidget());
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -692,6 +700,7 @@ PreferencesDialog::updateVolumeWidget(CaretPreferences* prefs)
     m_volumeAxesMontageCoordinatesComboBox->setStatus(prefs->isVolumeMontageAxesCoordinatesDisplayed());
     m_volumeIdentificationComboBox->setStatus(prefs->isVolumeIdentificationDefaultedOn());
     m_volumeMontageCoordinatePrecisionSpinBox->setValue(prefs->getVolumeMontageCoordinatePrecision());
+    m_volumeAllSlicePlanesLayoutComboBox->setSelectedItem<VolumeSliceViewAllPlanesLayoutEnum, VolumeSliceViewAllPlanesLayoutEnum::Enum>(prefs->getVolumeAllSlicePlanesLayout());
 }
 
 /**
@@ -982,6 +991,18 @@ PreferencesDialog::volumeAxesMontageCoordinatesComboBoxToggled(bool value)
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Called when ALL view slice plane layout changed by user
+ */
+void
+PreferencesDialog::m_volumeAllSlicePlanesLayoutItemActivated()
+{
+    VolumeSliceViewAllPlanesLayoutEnum::Enum layoutValue = m_volumeAllSlicePlanesLayoutComboBox->getSelectedItem<VolumeSliceViewAllPlanesLayoutEnum, VolumeSliceViewAllPlanesLayoutEnum::Enum>();
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setVolumeAllSlicePlanesLayout(layoutValue);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+
+}
 /**
  * Called when volume montage coordinate precision value is changed.
  */

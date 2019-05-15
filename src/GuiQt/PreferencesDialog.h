@@ -70,6 +70,7 @@ namespace caret {
         void volumeAxesMontageCoordinatesComboBoxToggled(bool value);
         void volumeMontageCoordinatePrecisionChanged(int value);
         void volumeIdentificationComboBoxToggled(bool value);
+        void m_volumeAllSlicePlanesLayoutItemActivated();
         
         void yokingComboBoxToggled(bool value);
         
@@ -143,6 +144,7 @@ namespace caret {
 
         WuQTrueFalseComboBox* m_dynamicConnectivityComboBox;
         
+        EnumComboBoxTemplate* m_volumeAllSlicePlanesLayoutComboBox;
         WuQTrueFalseComboBox* m_volumeAxesCrosshairsComboBox;
         WuQTrueFalseComboBox* m_volumeAxesLabelsComboBox;
         WuQTrueFalseComboBox* m_volumeAxesMontageCoordinatesComboBox;

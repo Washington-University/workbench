@@ -31,6 +31,7 @@
 #include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
 #include "SpecFileDialogViewFilesTypeEnum.h"
+#include "VolumeSliceViewAllPlanesLayoutEnum.h"
 
 class QSettings;
 class QStringList;
@@ -90,6 +91,10 @@ namespace caret {
         OpenGLDrawingMethodEnum::Enum getOpenDrawingMethod() const;
         
         void setOpenGLDrawingMethod(const OpenGLDrawingMethodEnum::Enum openGLDrawingMethod);
+        
+        VolumeSliceViewAllPlanesLayoutEnum::Enum getVolumeAllSlicePlanesLayout() const;
+        
+        void setVolumeAllSlicePlanesLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum allViewLayout);
         
         float getVolumeCrosshairGap() const;
         
@@ -293,6 +298,8 @@ namespace caret {
         int32_t volumeMontageGap;
         
         int32_t volumeMontageCoordinatePrecision;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_volumeAllSlicePlanesLayout;
         
         std::unique_ptr<CaretPreferenceDataValue> m_volumeCrossHairGapPreference;
 

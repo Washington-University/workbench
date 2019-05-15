@@ -23,12 +23,14 @@
 #include "VolumeSliceSettings.h"
 #undef __VOLUME_SLICE_SETTINGS_DECLARE__
 
+#include "CaretPreferences.h"
 #include "DeveloperFlagsEnum.h"
 #include "CaretLogger.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SceneEnumeratedType.h"
+#include "SessionManager.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -49,8 +51,9 @@ const static VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum defaultVolumeS
 VolumeSliceSettings::VolumeSliceSettings()
 : CaretObject()
 {
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     m_sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
-    m_slicePlanesAllViewLayout = VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT;
+    m_slicePlanesAllViewLayout = prefs->getVolumeAllSlicePlanesLayout();
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
     m_volumeSliceInterpolationEdgeEffectsMaskingType = defaultVolumeSliceInterpolationEdgeMaskType;

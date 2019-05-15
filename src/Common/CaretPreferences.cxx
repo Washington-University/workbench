@@ -61,9 +61,18 @@ CaretPreferences::CaretPreferences()
     
     m_volumeCrossHairGapPreference.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                       "volumeAxesCrosshairGap",
-                                                                      CaretPreferenceDataValue::DataType::DOUBLE,
+                                                                      CaretPreferenceDataValue::DataType::FLOAT,
+                                                                      CaretPreferenceDataValue::SavedInScene::SAVE_YES,
                                                                       0.0));
     m_preferenceDataValues.push_back(m_volumeCrossHairGapPreference.get());
+
+    const QString defAllSliceLayout = VolumeSliceViewAllPlanesLayoutEnum::toName(VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT);
+    m_volumeAllSlicePlanesLayout.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                    "volumeAllSlicePlanesLayout",
+                                                                    CaretPreferenceDataValue::DataType::STRING,
+                                                                    CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                    defAllSliceLayout));
+    m_preferenceDataValues.push_back(m_volumeAllSlicePlanesLayout.get());
     
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
 }
@@ -1259,6 +1268,32 @@ CaretPreferences::setVolumeAxesCrosshairsDisplayed(const bool displayed)
     this->setBoolean(CaretPreferences::NAME_VOLUME_AXES_CROSSHAIRS,
                      this->displayVolumeAxesCrosshairs);
     this->qSettings->sync();
+}
+
+/**
+ * @return The volume all slice planes layout
+ */
+VolumeSliceViewAllPlanesLayoutEnum::Enum
+CaretPreferences::getVolumeAllSlicePlanesLayout() const
+{
+    QString stringValue(m_volumeAllSlicePlanesLayout->getValue().toString());
+    bool validFlag(false);
+    VolumeSliceViewAllPlanesLayoutEnum::Enum enumValue =
+       VolumeSliceViewAllPlanesLayoutEnum::fromName(stringValue, &validFlag);
+    return enumValue;
+}
+
+/**
+ * Set volume all slice planes layout
+ *
+ * @param allViewLayout
+ *     The all slice planes layout
+ */
+void
+CaretPreferences::setVolumeAllSlicePlanesLayout(const VolumeSliceViewAllPlanesLayoutEnum::Enum allViewLayout)
+{
+    const QString stringValue = VolumeSliceViewAllPlanesLayoutEnum::toName(allViewLayout);
+    m_volumeAllSlicePlanesLayout->setValue(stringValue);
 }
 
 /**

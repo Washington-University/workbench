@@ -39,12 +39,20 @@ namespace caret {
         
     public:
         enum class DataType {
-            DOUBLE,
+            FLOAT,
+            INTEGER,
+            STRING
+        };
+        
+        enum class SavedInScene {
+            SAVE_NO,
+            SAVE_YES
         };
         
         CaretPreferenceDataValue(QSettings* preferenceSettings,
                                  const QString& preferenceName,
                                  const DataType dataType,
+                                 const SavedInScene savedInScene,
                                  const QVariant defaultValue);
         
         virtual ~CaretPreferenceDataValue();
@@ -75,6 +83,8 @@ namespace caret {
         const QString m_preferenceName;
         
         const DataType m_dataType;
+        
+        const SavedInScene m_savedInScene;
         
         QVariant m_dataValue;
         

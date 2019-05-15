@@ -45,17 +45,21 @@ using namespace caret;
  *     Name of the preference
  * @param dataType
  *     Data type of the preference
+ * @param savedInScene
+ *     Indicates if item is saved to scene and may override the preference when scene restored.
  * @param defaultValue
  *     Default value for the preference
  */
 CaretPreferenceDataValue::CaretPreferenceDataValue(QSettings* preferenceSettings,
                                                    const QString& preferenceName,
                                                    const DataType dataType,
+                                                   const SavedInScene savedInScene,
                                                    const QVariant defaultValue)
 : CaretObject(),
 m_preferenceSettings(preferenceSettings),
 m_preferenceName(preferenceName),
-m_dataType(dataType)
+m_dataType(dataType),
+m_savedInScene(savedInScene)
 {
     CaretAssert(m_preferenceSettings);
     CaretAssert( ! m_preferenceName.isEmpty());
@@ -156,6 +160,15 @@ CaretPreferenceDataValue::setSceneValue(const QVariant& value)
 {
     m_sceneDataValue      = value;
     m_sceneDataValueValid = true;
+    
+    switch (m_savedInScene) {
+        case SavedInScene::SAVE_NO:
+            /* do not allow scene value */
+            m_sceneDataValueValid = false;
+            break;
+        case SavedInScene::SAVE_YES:
+            break;
+    }
 }
 
 /**
@@ -168,5 +181,14 @@ void
 CaretPreferenceDataValue::setSceneValueValid(const bool validStatus)
 {
     m_sceneDataValueValid = validStatus;
+
+    switch (m_savedInScene) {
+        case SavedInScene::SAVE_NO:
+            /* do not allow scene value */
+            m_sceneDataValueValid = false;
+            break;
+        case SavedInScene::SAVE_YES:
+            break;
+    }
 }
 
