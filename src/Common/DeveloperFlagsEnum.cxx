@@ -129,6 +129,11 @@ DeveloperFlagsEnum::initialize()
                                                 "Faster Volume Surface Outline",
                                                 CheckableEnum::YES,
                                                 true));
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TEXTURE_VOLUME,
+                                                "DEVELOPER_FLAG_TEXTURE_VOLUME",
+                                                "Texture Volume Drawing",
+                                                CheckableEnum::YES,
+                                                false));
 
 
     std::vector<DeveloperFlagsEnum> notCheckableItems;

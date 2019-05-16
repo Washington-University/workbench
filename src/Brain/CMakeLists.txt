@@ -48,6 +48,7 @@ BrainOpenGLTextRenderInterface.h
 BrainOpenGLViewportContent.h
 BrainOpenGLVolumeObliqueSliceDrawing.h
 BrainOpenGLVolumeSliceDrawing.h
+BrainOpenGLVolumeTextureSliceDrawing.h
 BrainOpenGLWindowContent.h
 BrainStructure.h
 BrainStructureNodeAttributes.h
@@ -209,6 +210,7 @@ BrainOpenGLTextRenderInterface.cxx
 BrainOpenGLViewportContent.cxx
 BrainOpenGLVolumeObliqueSliceDrawing.cxx
 BrainOpenGLVolumeSliceDrawing.cxx
+BrainOpenGLVolumeTextureSliceDrawing.cxx
 BrainOpenGLWindowContent.cxx
 BrainStructure.cxx
 BrainStructureNodeAttributes.cxx

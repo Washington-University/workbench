@@ -47,6 +47,7 @@
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
+#include "BrainOpenGLVolumeTextureSliceDrawing.h"
 #include "BrainOpenGLShapeCone.h"
 #include "BrainOpenGLShapeCube.h"
 #include "BrainOpenGLShapeCylinder.h"
@@ -3835,14 +3836,26 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
                                 viewport);
     }
     else {
-        BrainOpenGLVolumeObliqueSliceDrawing obliqueVolumeSliceDrawing;
-        obliqueVolumeSliceDrawing.draw(this,
-                                       browserTabContent,
-                                       volumeDrawInfo,
-                                       sliceDrawingType,
-                                       sliceProjectionType,
-                                       obliqueMaskType,
-                                       viewport);
+        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_VOLUME)) {
+            BrainOpenGLVolumeTextureSliceDrawing textureSliceDrawing;
+            textureSliceDrawing.draw(this,
+                                           browserTabContent,
+                                           volumeDrawInfo,
+                                           sliceDrawingType,
+                                           sliceProjectionType,
+                                           obliqueMaskType,
+                                           viewport);
+        }
+        else {
+            BrainOpenGLVolumeObliqueSliceDrawing obliqueVolumeSliceDrawing;
+            obliqueVolumeSliceDrawing.draw(this,
+                                           browserTabContent,
+                                           volumeDrawInfo,
+                                           sliceDrawingType,
+                                           sliceProjectionType,
+                                           obliqueMaskType,
+                                           viewport);
+        }
     }
     
     glPopAttrib();
