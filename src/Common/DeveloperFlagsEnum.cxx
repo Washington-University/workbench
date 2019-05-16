@@ -124,11 +124,6 @@ DeveloperFlagsEnum::initialize()
                                                 "Flip Palette Not Data",
                                                 CheckableEnum::YES,
                                                 false));
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_NEW_VOLUME_SURFACE_OUTLINE,
-                                                "DEVELOPER_FLAG_NEW_VOLUME_SURFACE_OUTLINE",
-                                                "Faster Volume Surface Outline",
-                                                CheckableEnum::YES,
-                                                true));
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TEXTURE_VOLUME,
                                                 "DEVELOPER_FLAG_TEXTURE_VOLUME",
                                                 "Texture Volume Drawing",

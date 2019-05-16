@@ -2795,20 +2795,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const VolumeMappableInterface*
      * Code still here to allow comparison with
      * previous algorithm
      */
-    bool drawCachedFlag(false);
-    switch (sliceProjectionType) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_VOLUME_SURFACE_OUTLINE)) {
-                drawCachedFlag = true;
-            }
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_NEW_VOLUME_SURFACE_OUTLINE)) {
-                drawCachedFlag = true;
-            }
-            break;
-    }
-
+    bool drawCachedFlag(true);
     if (drawCachedFlag) {
         drawSurfaceOutlineCached(underlayVolume,
                                  modelType,
