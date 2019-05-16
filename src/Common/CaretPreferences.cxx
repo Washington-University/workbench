@@ -66,7 +66,7 @@ CaretPreferences::CaretPreferences()
                                                                       0.0));
     m_preferenceDataValues.push_back(m_volumeCrossHairGapPreference.get());
 
-    const QString defAllSliceLayout = VolumeSliceViewAllPlanesLayoutEnum::toName(VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT);
+    const QString defAllSliceLayout = VolumeSliceViewAllPlanesLayoutEnum::toName(VolumeSliceViewAllPlanesLayoutEnum::ROW_LAYOUT);
     m_volumeAllSlicePlanesLayout.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                     "volumeAllSlicePlanesLayout",
                                                                     CaretPreferenceDataValue::DataType::STRING,

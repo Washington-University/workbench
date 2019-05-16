@@ -1184,13 +1184,13 @@ BrainOpenGLViewportContent::getSliceAllViewViewport(const int32_t tabViewport[4]
                     viewportOut[3] = vpHeight;
                     break;
                 case VolumeSliceViewPlaneEnum::CORONAL:
-                    viewportOut[0] = tabViewportX;
+                    viewportOut[0] = tabViewportX + vpOffsetX;
                     viewportOut[1] = tabViewportY;
                     viewportOut[2] = vpWidth;
                     viewportOut[3] = vpHeight;
                     break;
                 case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    viewportOut[0] = tabViewportX + vpOffsetX;
+                    viewportOut[0] = tabViewportX;
                     viewportOut[1] = tabViewportY;
                     viewportOut[2] = vpWidth;
                     viewportOut[3] = vpHeight;
