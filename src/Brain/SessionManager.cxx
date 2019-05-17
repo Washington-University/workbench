@@ -1039,8 +1039,10 @@ SessionManager::savePreferencesToScene(const SceneAttributes* /*sceneAttributes*
                                             1);
     std::vector<CaretPreferenceDataValue*> sceneDataValues = m_caretPreferences->getPreferenceSceneDataValues();
     for (auto scv : sceneDataValues) {
-        sceneClass->addString(scv->getName(),
-                              scv->getPreferenceValue().toString());
+        if (scv->isSavedToScenes()) {
+            sceneClass->addString(scv->getName(),
+                                  scv->getPreferenceValue().toString());
+        }
     }
     
     return sceneClass;
@@ -1070,11 +1072,13 @@ SessionManager::restorePreferencesFromScene(const SceneAttributes* /*sceneAttrib
     
     std::vector<CaretPreferenceDataValue*> sceneDataValues = m_caretPreferences->getPreferenceSceneDataValues();
     for (auto scv : sceneDataValues) {
-        const QString name = scv->getName();
-        const QString value = sceneClass->getStringValue(scv->getName(),
-                                                         invalidValueName);
-        if (value != invalidValueName) {
-            scv->setSceneValue(QVariant(value));
+        if (scv->isSavedToScenes()) {
+            const QString name = scv->getName();
+            const QString value = sceneClass->getStringValue(scv->getName(),
+                                                             invalidValueName);
+            if (value != invalidValueName) {
+                scv->setSceneValue(QVariant(value));
+            }
         }
     }
 }

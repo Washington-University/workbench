@@ -956,6 +956,14 @@ VolumeSliceSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
 
     /*
+     * For scenes before all view layout, use GRID so that the
+     * older scenes display correctly
+     */
+    if (sceneClass->getObjectWithName("m_slicePlanesAllViewLayout") == NULL) {
+        m_slicePlanesAllViewLayout = VolumeSliceViewAllPlanesLayoutEnum::GRID_LAYOUT;
+    }
+    
+    /*
      * Restoring scene initialize all members.
      * If this is not done, the slices will be reset
      * in updateForVolumeFile().

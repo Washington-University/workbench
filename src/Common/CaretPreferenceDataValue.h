@@ -75,6 +75,8 @@ namespace caret {
         
         void setSceneValueValid(const bool validStatus);
 
+        bool isSavedToScenes() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

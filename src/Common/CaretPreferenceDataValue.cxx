@@ -192,3 +192,23 @@ CaretPreferenceDataValue::setSceneValueValid(const bool validStatus)
     }
 }
 
+/**
+ * @return True if preferences is saved to scenes
+ */
+bool
+CaretPreferenceDataValue::isSavedToScenes() const
+{
+    bool savedFlag(false);
+    
+    switch (m_savedInScene) {
+        case SavedInScene::SAVE_NO:
+            break;
+        case SavedInScene::SAVE_YES:
+            savedFlag = true;
+            break;
+    }
+
+    return savedFlag;
+}
+
+
