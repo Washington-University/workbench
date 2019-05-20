@@ -130,6 +130,11 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 false));
 
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TILE_TABS_VERTICAL_CENTERING,
+                                                "DEVELOPER_FLAG_TILE_TABS_VERTICAL_CENTERING",
+                                                "Tile Tabs Vertical Centering",
+                                                CheckableEnum::YES,
+                                                false));
 
     std::vector<DeveloperFlagsEnum> notCheckableItems;
 

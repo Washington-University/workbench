@@ -32,6 +32,7 @@
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DeveloperFlagsEnum.h"
 #include "EventBrowserWindowContent.h"
 #include "EventManager.h"
 #include "EventSpacerTabGet.h"
@@ -611,8 +612,8 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         return viewportContentsOut;
     }
     
-    const int32_t windowX      = windowViewport[0];
-    const int32_t windowY      = windowViewport[1];
+    int32_t windowX      = windowViewport[0];
+    int32_t windowY      = windowViewport[1];
     const int32_t windowWidth  = windowViewport[2];
     const int32_t windowHeight = windowViewport[3];
     
@@ -740,6 +741,43 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         
     }
     
+    
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TILE_TABS_VERTICAL_CENTERING)) {
+        /*
+         * Kludge that fixes old scenes
+         * NEED TO ADJUST FOR X too ?
+         * THIS WILL NEED TO BE AN OPTION SOMEWHERE
+         * TRY MORE THAN TWO ROWS
+         */
+        std::vector<int32_t> tabRowHeights(numRows, 0);
+        std::vector<int32_t> tabColumnWidths(numColumns, 0);
+        {
+            for (auto tsi : tabSizeInfoVector) {
+                const int32_t rowIndex = tsi.m_rowIndexFromTop;
+                tabRowHeights[rowIndex] = std::max(tabRowHeights[rowIndex],
+                                                   tsi.m_height);
+                
+                const int32_t columnIndex(tsi.m_columnIndex);
+                tabColumnWidths[columnIndex] = std::max(tabColumnWidths[columnIndex],
+                                                        tsi.m_width);
+            }
+            
+            for (int32_t i = 0; i < numRows; i++) {
+                rowHeights[i] = tabRowHeights[i];
+            }
+            for (int32_t i = 0; i < numColumns; i++) {
+                columnWidths[i] = tabColumnWidths[i];
+            }
+        }
+        const int32_t allTabsHeight = std::accumulate(tabRowHeights.begin(), tabRowHeights.end(), 0);
+        windowY -= ((windowHeight - allTabsHeight) / 2);
+        
+        //    const int32_t allTabsWidth = std::accumulate(tabColumnWidths.begin(), tabColumnWidths.end(), 0);
+        //    windowX = -((windowWidth - allTabsWidth) / 2);
+    }
+    
+    
+    
     /*
      * Note: There may be more tabs than there are cells (rows * columns)
      * so some tabs may not be displayed.
@@ -855,6 +893,11 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         }
     }
     
+//    for (auto vpc : viewportContentsOut) {
+//        if (vpc->getTabIndex() == 0) {
+//            std::cout << "TAB 1: " << vpc->toString() << std::endl << std::endl;
+//        }
+//    }
     return viewportContentsOut;
 }
 
