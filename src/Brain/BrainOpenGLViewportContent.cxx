@@ -742,7 +742,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
     }
     
     
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TILE_TABS_VERTICAL_CENTERING)) {
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TILE_TABS_CENTERING_CORRECTION)) {
         /*
          * Kludge that fixes old scenes
          * NEED TO ADJUST FOR X too ?
@@ -772,8 +772,9 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         const int32_t allTabsHeight = std::accumulate(tabRowHeights.begin(), tabRowHeights.end(), 0);
         windowY -= ((windowHeight - allTabsHeight) / 2);
         
-        //    const int32_t allTabsWidth = std::accumulate(tabColumnWidths.begin(), tabColumnWidths.end(), 0);
-        //    windowX = -((windowWidth - allTabsWidth) / 2);
+        const int32_t allTabsWidth = std::accumulate(tabColumnWidths.begin(), tabColumnWidths.end(), 0);
+        const int32_t offset = (windowWidth - allTabsWidth) / 2;
+        windowX += offset;
     }
     
     

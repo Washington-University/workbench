@@ -130,9 +130,9 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 false));
 
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TILE_TABS_VERTICAL_CENTERING,
-                                                "DEVELOPER_FLAG_TILE_TABS_VERTICAL_CENTERING",
-                                                "Tile Tabs Vertical Centering",
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TILE_TABS_CENTERING_CORRECTION,
+                                                "DEVELOPER_FLAG_TILE_TABS_CENTERING_CORRECTION",
+                                                "Tile Tabs Centering Correction",
                                                 CheckableEnum::YES,
                                                 false));
 
