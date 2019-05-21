@@ -2573,24 +2573,56 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     glPixelStorei(GL_UNPACK_SKIP_IMAGES, 0);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    /*
+     * From https://www.khronos.org/opengl/wiki/Common_Mistakes#Texture_edge_color_problem
+     * - Never use GL_CLAMP, use GL_CLAMP_TO_EDGE
+     */
 
-//    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT); //GL_CLAMP);
-//    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT); //GL_CLAMP);
-//    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT); //GL_CLAMP);
+    if (vf->isMappedWithPalette()) {
+        /*
+         * Magnification: pixel is smaller than a texel
+         * Minification:  pixel is larger than a texel and thus multiple texels
+         *                are mapped to the pixel
+         * GL_NEAREST: Use texel with coordinates nearest center of pixel
+         *             Faster but may cause artifacts
+         * GL_LINEAR: Use weighted linear average of 2x2x2 texel array
+         *            nearest center of pixel
+         *            Smoother appearance but may be slower
+         */
+        /* Linear filtering causes white line around left and top edges */
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        
+        GLfloat borderColor[4] = { 0.0, 0.0, 0.0, 0.0 };
+        glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
 
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //GL_NEAREST); //GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //GL_NEAREST); //GL_LINEAR_MIPMAP_LINEAR);
+        /*
+         * Clamp to edge seems to extend any data that is an edge voxel such as
+         * an ear in slice -18 in glassr volume
+         */
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-    
-    GLfloat borderColor[4] = { 0.0, 0.0, 0.0, 0.0 };
-    glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
+        /*
+         * Clamp to border seems to work best
+         */
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+        
+    }
+    else {
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+     }
     
     std::vector<int64_t> dims(5);
     vf->getDimensions(dims);
@@ -2616,6 +2648,7 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
         int64_t rowStepIJK[3] = { 0, 1, 0 };
         int64_t columnStepIJK[3] = { 1, 0, 0 };
         
+        std::fill(rgbaSlice.begin(), rgbaSlice.end(), 0);
         vf->getVoxelColorsForSliceInMap(mapIndex,
                                         firstVoxelIJK,
                                         rowStepIJK,
@@ -2626,6 +2659,7 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                         tabIndex,
                                         &rgbaSlice[0]);
         
+        const bool edgeFlag(false);
         for (int32_t j = 0; j < numberOfRows; j++) {
             for (int32_t i = 0; i < numberOfColumns; i++) {
                 const int32_t sliceOffset = ((j * numberOfColumns) + i) * 4;
@@ -2635,6 +2669,19 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                     CaretAssertVectorIndex(texture, (textureOffset + 3));
                     CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
                     texture[textureOffset + m] = rgbaSlice[sliceOffset + m];
+                }
+                
+                if (edgeFlag) {
+                    if (i == (numberOfColumns - 1)) {
+                        if (numberOfColumns < textureDims) {
+                            for (int32_t m = 0; m < 4; m++) {
+                                CaretAssertVectorIndex(texture, (textureOffset + 3 + 4));
+                                CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
+                                texture[textureOffset + m + 4] = rgbaSlice[sliceOffset + m];
+                            }
+                            texture[textureOffset + 3 + 4] = 0;
+                        }
+                    }
                 }
             }
         }
@@ -2651,55 +2698,6 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     maxStrOut[2] = static_cast<float>(dims[2]) / static_cast<float>(textureDims);
     if (debugFlag) std::cout << "max STR: " << AString::fromNumbers(maxStrOut, 3, ",") << std::endl;
 
-//    for (int64_t k = 0; k < textureDims; k++) {
-//        for (int32_t j = 0; j < textureDims; j++) {
-//            for (int32_t i = 0; i < textureDims; i++) {
-//                const int64_t offset = ((k * textureDims * textureDims)
-//                                        + (j * textureDims) + i) * 4;
-//                CaretAssertVectorIndex(texture, offset + 3);
-//                texture[offset] = k;
-//                texture[offset+1] = 0;
-//                texture[offset+2] = 0;
-//                texture[offset+3] = 255;
-//            }
-//        }
-//    }
-//    fixedPipelineDrawing->testForOpenGLError("Before building mipmaps");
-//    int result = gluBuild3DMipmaps(GL_TEXTURE_3D,
-//                                   GL_RGBA,
-//                                   numberOfColumns,
-//                                   numberOfRows,
-//                                   numberOfSlices,
-//                                   GL_RGBA,
-//                                   GL_UNSIGNED_BYTE,
-//                                   &rgbaColors);
-//        int result = gluBuild3DMipmapLevels(GL_TEXTURE_3D,
-//                                       GL_RGBA,
-//                                       numberOfColumns,
-//                                       numberOfRows,
-//                                       numberOfSlices,
-//                                       GL_RGBA,
-//                                       GL_UNSIGNED_BYTE,
-//                                            0,
-//                                            0,
-//                                            1,
-//                                       &rgbaColors);
-//    if (result != 0) {
-//        std::cout << "Building mipmaps failed" << std::endl;
-//        std::cout << "GLU Error: " << gluErrorString(result) << std::endl;
-//    }
-//    fixedPipelineDrawing->testForOpenGLError("After building mipmaps");
-
-//    glTexImage3D(GL_TEXTURE_3D,
-//                 0,
-//                 GL_RGBA,
-//                 numberOfColumns,
-//                 numberOfRows,
-//                 numberOfSlices,
-//                 0,
-//                 GL_RGBA,
-//                 GL_UNSIGNED_BYTE,
-//                 &rgbaColors[0]);
     glTexImage3D(GL_TEXTURE_3D,
                  0,
                  GL_RGBA,
@@ -2717,7 +2715,12 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     return textureName;
 }
 
-static std::map<VolumeFile*, GLuint> volumeTextureIDs;
+struct TextureInfo {
+    GLuint m_textureID;
+    std::array<float, 3> m_maxSTR;
+};
+
+static std::map<VolumeFile*, TextureInfo> volumeTextureInfo;
 
 /**
  * Draw an oblique slice with support for outlining labels and thresholded palette data.
@@ -3041,32 +3044,33 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         
+        bool firstFlag(true);
         for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
             const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
             VolumeFile* vf = dynamic_cast<VolumeFile*>(vdi.volumeFile);
             if (vf != NULL) {
-//                std::vector<int64_t> dims(5);
-//                vf->getDimensions(dims);
-//                int64_t smallCornerIJK[3]  = { 0, 0, 0};
-//                float smallCornerXYZ[3] = { 0.0, 0.0, 0.0 };
-//                vf->indexToSpace(smallCornerIJK, smallCornerXYZ);
-//
-//                int64_t bigCornerIJK[3] = { dims[0] - 1, dims[1] - 1, dims[2] - 1 };
-//                float bigCornerXYZ[3] = { 0.0, 0.0, 0.0 };
-//                vf->indexToSpace(bigCornerIJK, bigCornerXYZ);
-//
-//                float rangeXYZ[3] = {
-//                    bigCornerXYZ[0] - smallCornerXYZ[0],
-//                    bigCornerXYZ[1] - smallCornerXYZ[1],
-//                    bigCornerXYZ[2] - smallCornerXYZ[2]
-//                };
+                if (debugFlag) {
+                    std::cout << "Vol: " << iVol << ": " << vf->getFileNameNoPath() << std::endl;
+                }
                 
-                
-                static float maxStr[3] = { 1.0, 1.0, 1.0 };
+                if (firstFlag) {
+                    /*
+                     * Using GL_ONE prevents an edge artifact
+                     * (narrow line on texture edges).
+                     */
+                    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+                    firstFlag = false;
+                }
+                else {
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                }
+                std::array<float, 3> maxStr = { 1.0, 1.0, 1.0 };
                 GLuint textureID = 0;
-                auto idIter = volumeTextureIDs.find(vf);
-                if (idIter != volumeTextureIDs.end()) {
-                    textureID = idIter->second;
+                auto idIter = volumeTextureInfo.find(vf);
+                if (idIter != volumeTextureInfo.end()) {
+                    TextureInfo textureInfo = idIter->second;
+                    textureID = textureInfo.m_textureID;
+                    maxStr = textureInfo.m_maxSTR;
                 }
                 else {
                     m_fixedPipelineDrawing->testForOpenGLError("Before creating texture");
@@ -3074,10 +3078,13 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                                                   vf,
                                                   m_displayGroup,
                                                   m_tabIndex,
-                                                  maxStr);
+                                                  maxStr.data());
                     m_fixedPipelineDrawing->testForOpenGLError("After creating texture");
                     if (textureID != 0) {
-                        volumeTextureIDs.insert(std::make_pair(vf, textureID));
+                        TextureInfo textureInfo;
+                        textureInfo.m_textureID = textureID;
+                        textureInfo.m_maxSTR    = maxStr;
+                        volumeTextureInfo.insert(std::make_pair(vf, textureInfo));
                         if (debugFlag) std::cout << "Created texture: " << textureID << std::endl;
                     }
                     else {
@@ -3087,13 +3094,13 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                 
                 if (textureID > 0) {
                     float textureBottomLeft[3];
-                    getTextureCoordinates(vf, bottomLeft, maxStr, textureBottomLeft);
+                    getTextureCoordinates(vf, bottomLeft, maxStr.data(), textureBottomLeft);
                     float textureBottomRight[3];
-                    getTextureCoordinates(vf, bottomRight, maxStr, textureBottomRight);
+                    getTextureCoordinates(vf, bottomRight, maxStr.data(), textureBottomRight);
                     float textureTopLeft[3];
-                    getTextureCoordinates(vf, topLeft, maxStr, textureTopLeft);
+                    getTextureCoordinates(vf, topLeft, maxStr.data(), textureTopLeft);
                     float textureTopRight[3];
-                    getTextureCoordinates(vf, topRight, maxStr, textureTopRight);
+                    getTextureCoordinates(vf, topRight, maxStr.data(), textureTopRight);
                     
                     if (debugFlag) {
                         std::cout << "Bottom Left RST: " << AString::fromNumbers(textureBottomLeft, 3, ", ") << std::endl;
@@ -3110,22 +3117,8 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                     glBindTexture(GL_TEXTURE_3D, textureID);
                     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
-                    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-                    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-                    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
-                    
-                    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                    
-                    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-                    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-                    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-                    GLfloat borderColor[4] = { 0.0, 0.0, 0.0, 0.0 };
-                    glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
                     glBegin(GL_QUADS);
-                    
-                    glColor3f(0.0, 0.0, 0.0);
+                    glColor4f(0.0, 0.0, 1.0, 0.0);
                     glTexCoord3fv(textureBottomLeft);
                     glVertex3fv(bottomLeft);
                     glTexCoord3fv(textureBottomRight);
@@ -3134,28 +3127,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                     glVertex3fv(topRight);
                     glTexCoord3fv(textureTopLeft);
                     glVertex3fv(topLeft);
-                    
-                    
-//                    glTexCoord3f(0.0, 0.0, 0.5);
-//                    glVertex3fv(bottomLeft);
-//                    glTexCoord3f(1.0, 0.0, 0.5);
-//                    glVertex3fv(bottomRight);
-//                    glTexCoord3f(1.0, 1.0, 0.5);
-//                    glVertex3fv(topRight);
-//                    glTexCoord3f(0.0, 1.0, 0.5);
-//                    glVertex3fv(topLeft);
-                    
-//                    glColor3f(0.0, 0.0, 0.5);
-//                    glVertex3fv(bottomLeft);
-//                    glColor3f(1.0, 0.0, 0.5);
-//                    glVertex3fv(bottomRight);
-//                    glColor3f(1.0, 1.0, 0.5);
-//                    glVertex3fv(topRight);
-//                    glColor3f(0.0, 1.0, 0.5);
-//                    glVertex3fv(topLeft);
-                    
                     glEnd();
-                    
 
                     glBindTexture(GL_TEXTURE_3D, 0);
                     glDisable(GL_TEXTURE_3D);
