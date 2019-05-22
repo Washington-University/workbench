@@ -117,8 +117,15 @@ m_brainBrowserWindow(brainBrowserWindow)
     const QString mainInstructions("Do you want to lock the aspect ratio while entering annotations mode?");
     
     const QString supplementalInstructions("<html>"
-                                           "Prior to locking the aspect ratio, the user should adjust the size "
-                                           "of the window and optionally enable Tile Tabs for a multi-tab view.  "
+                                           "Prior to locking the aspect ratio, the user should: "
+                                           "<ul>"
+                                           "<li> Adjust the size of the window"
+                                           "<li> Optionally enable Tile Tabs for a multi-tab view.  "
+                                           "If annotating a Tile Tabs view, Tile Tabs "
+                                           "(View Menu -> Enter Tile Tabs) should ALWAYS be enabled prior to "
+                                           "locking the aspect ratio.  Failure to do so may cause excess, "
+                                           "undesirable space around and between the drawing of tab rows."
+                                           "</ul>"
                                            "If this has not been done, click the <i>Cancel</i> button, make those "
                                            "adjustments, and then click the <i>Toolbar's Annotate Mode</i> button."
                                            "<P>"
