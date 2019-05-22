@@ -94,6 +94,44 @@ LockAspectWarningDialog::runDialog(const int32_t browserWindowIndex)
 }
 
 /**
+ * @return Locking aspect instruction containing importance of window sizing
+ * and locking tabs.
+ *
+ * @parm buttonText
+ *     Text of button that user has clicked
+ * @param showBestPracticesLink
+       If true, include a link to the best practices guide.
+ */
+QString
+LockAspectWarningDialog::getLockingInstructionsText(const QString& buttonText,
+                                                    const bool showBestPracticesLink)
+{
+    QString text("<html>"
+                 "Prior to locking the aspect ratio, the user should: "
+                 "<ul>"
+                 "<li> Adjust the size of the window;"
+                 "<li> Optionally enable Tile Tabs for a multi-tab view;  "
+                 "If annotating a Tile Tabs view, Tile Tabs "
+                 "(View Menu -> Enter Tile Tabs) should ALWAYS be enabled prior to "
+                 "locking the aspect ratio.  Failure to do so may cause excess, "
+                 "undesirable space around and between the drawing of tab rows."
+                 "</ul>"
+                 "If this has not been done, click the <i>Cancel</i> button, make those "
+                 "adjustments, and then click the <i>" + buttonText + "</i>  button.");
+    if (showBestPracticesLink) {
+        text.append("<P>"
+                    "View the <a href=\"Link\">Best Practices Guide</a> (this dialog "
+                    "will close).  This guide explains the importance of aspect "
+                    "locking and documents procedures for successful creation of annotations "
+                    "and scenes.");
+    }
+    text.append("</html>");
+
+    return text;
+}
+
+
+/**
  * Constructor.
  *
  * @param tabMode
@@ -116,24 +154,8 @@ m_brainBrowserWindow(brainBrowserWindow)
 {
     const QString mainInstructions("Do you want to lock the aspect ratio while entering annotations mode?");
     
-    const QString supplementalInstructions("<html>"
-                                           "Prior to locking the aspect ratio, the user should: "
-                                           "<ul>"
-                                           "<li> Adjust the size of the window"
-                                           "<li> Optionally enable Tile Tabs for a multi-tab view.  "
-                                           "If annotating a Tile Tabs view, Tile Tabs "
-                                           "(View Menu -> Enter Tile Tabs) should ALWAYS be enabled prior to "
-                                           "locking the aspect ratio.  Failure to do so may cause excess, "
-                                           "undesirable space around and between the drawing of tab rows."
-                                           "</ul>"
-                                           "If this has not been done, click the <i>Cancel</i> button, make those "
-                                           "adjustments, and then click the <i>Toolbar's Annotate Mode</i> button."
-                                           "<P>"
-                                           "View the <a href=\"Link\">Best Practices Guide</a> (this dialog "
-                                           "will close).  This guide explains the importance of aspect "
-                                           "locking and documents procedures for successful creation of annotations "
-                                           "and scenes."
-                                           "</html>");
+    const QString supplementalInstructions(getLockingInstructionsText("Toolbar's Annotate Mode",
+                                                                      true));
     
     const QString lockAspectInstructions("Locking the aspect ratio, and never unlocking the aspect "
                                          "ratio, ensures annotations stay in the correct location.");

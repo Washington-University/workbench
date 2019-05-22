@@ -953,7 +953,7 @@ BrainBrowserWindow::changeInputModeToAnnotationsWarningDialog()
             okFlag = false;
             break;
         case LockAspectWarningDialog::Result::LOCK_ASPECT:
-            processToolBarLockWindowAndAllTabAspectTriggered(true);
+            processToolBarLockWindowAndAllTabAspectsRatios(true);
             break;
         case LockAspectWarningDialog::Result::NO_CHANGES:
             break;
@@ -1042,6 +1042,47 @@ BrainBrowserWindow::lockAllTabAspectRatios(const bool checked)
  */
 void
 BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectTriggered(bool checked)
+{
+    static bool doNotShowAgainFlag(false);
+    
+    if (checked) {
+        if ( ! isTileTabsSelected()) {
+            if ( ! doNotShowAgainFlag) {
+                const QString labelText = LockAspectWarningDialog::getLockingInstructionsText("Lock Aspect",
+                                                                                              false);
+                QLabel* warningLabel = new QLabel(labelText);
+                warningLabel->setWordWrap(true);
+                
+                const QString cbText("Do not show again.  User will not be warned about aspect locking");
+                QCheckBox* doNotShowAgainCheckBox = new QCheckBox(cbText);
+                
+                WuQDataEntryDialog warningDialog("Lock Aspect",
+                                                 m_toolBarLockWindowAndAllTabAspectRatioButton,
+                                                 WuQDialog::SCROLL_AREA_NEVER);
+                warningDialog.addWidget("", warningLabel);
+                warningDialog.addWidget("", doNotShowAgainCheckBox);
+                
+                const int result = warningDialog.exec();
+                doNotShowAgainFlag = doNotShowAgainCheckBox->isChecked();
+                if (result == WuQDataEntryDialog::Rejected) {
+                    m_toolBarLockWindowAndAllTabAspectRatioAction->setChecked(false);
+                    return;
+                }
+            }
+        }
+    }
+    
+    processToolBarLockWindowAndAllTabAspectsRatios(checked);
+}
+
+/**
+ * Called when the toolbar's lock window and all tab aspect is triggered
+ *
+ * @param checked
+ *    True if checked, false if unchecked
+ */
+void
+BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectsRatios(bool checked)
 {
     lockWindowAspectRatio(checked);
     lockAllTabAspectRatios(checked);

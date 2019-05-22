@@ -326,6 +326,8 @@ namespace caret {
         void lockAllTabAspectRatios(const bool checked);
         void updateActionsForLockingAspectRatios();
         
+        void processToolBarLockWindowAndAllTabAspectsRatios(bool checked);
+        
         float getAspectRatioFromDialog(const AspectRatioMode aspectRatioMode,
                                        const QString& title,
                                        const float aspectRatio,

@@ -57,6 +57,14 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+        enum class LockingMode {
+            ENTER_ANNOTATIONS_MODE,
+            LOCK_ASPECT
+        };
+        
+        static QString getLockingInstructionsText(const QString& buttonText,
+                                                  const bool showBestPracticesLink);
+        
     private slots:
         void detailsLabelLinkActivated(const QString& link);
         
