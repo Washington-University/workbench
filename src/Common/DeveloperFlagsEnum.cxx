@@ -130,12 +130,6 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 false));
 
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_TILE_TABS_CENTERING_CORRECTION,
-                                                "DEVELOPER_FLAG_TILE_TABS_CENTERING_CORRECTION",
-                                                "Tile Tabs Centering Correction",
-                                                CheckableEnum::YES,
-                                                false));
-
     std::vector<DeveloperFlagsEnum> notCheckableItems;
 
     enumData.insert(enumData.end(),

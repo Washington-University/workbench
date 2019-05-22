@@ -84,6 +84,10 @@ namespace caret {
         
         void updateAutomaticConfigurationRowsAndColumns(const int32_t numberOfTabs);
         
+        bool isCenteringCorrectionEnabled() const;
+        
+        void setCenteringCorrectionEnabled(const bool status);
+        
         AString toString() const override;
         
         static bool lessThanComparisonByName(const TileTabsConfiguration* ttc1,
@@ -130,6 +134,8 @@ namespace caret {
         
         std::vector<TileTabsRowColumnElement> m_rows;
         
+        bool m_centeringCorrectionEnabled = false;
+        
         static const AString s_nameTagName;
         static const AString s_uniqueIdentifierTagName;
 
@@ -152,6 +158,8 @@ namespace caret {
         static const AString s_v2_rowsTagName;
         static const AString s_v2_stretchTypeAttributeName;
         static const AString s_v2_weightStretchAttributeName;
+        static const AString s_v2_centeringCorrectionName;
+        
     };
     
 #ifdef __TILE_TABS_CONFIGURATION_DECLARE__
@@ -177,6 +185,7 @@ namespace caret {
     const AString TileTabsConfiguration::s_v2_rowsTagName = "Rows";
     const AString TileTabsConfiguration::s_v2_stretchTypeAttributeName = "StretchType";
     const AString TileTabsConfiguration::s_v2_weightStretchAttributeName = "WeightStretch";
+    const AString TileTabsConfiguration::s_v2_centeringCorrectionName = "CenteringCorrection";
 #endif // __TILE_TABS_CONFIGURATION_DECLARE__
 
 } // namespace

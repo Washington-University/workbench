@@ -27,6 +27,7 @@
 #include "TileTabsRowColumnStretchTypeEnum.h"
 #include "WuQDialogNonModal.h"
 
+class QCheckBox;
 class QDoubleSpinBox;
 class QGridLayout;
 class QLabel;
@@ -93,7 +94,8 @@ namespace caret {
         void automaticCustomButtonClicked(QAbstractButton*);
         
         void tileTabsModificationRequested(EventTileTabsConfigurationModification& modification);
-        
+
+        void centeringCorrectionCheckBoxClicked(bool checked);
 
     protected:
         void focusGained();
@@ -121,6 +123,8 @@ namespace caret {
         
         QWidget* createRowColumnStretchWidget();
         
+        QWidget* createCustomOptionsWidget();
+        
         void updateRowColumnStretchWidgets(TileTabsConfiguration* configuration);
         
         void addRowColumnStretchWidget(const EventTileTabsConfigurationModification::RowColumnType rowColumnType,
@@ -131,6 +135,8 @@ namespace caret {
         
         void updateGraphicsWindow();
         
+        void updateCustomOptionsWidget();
+        
         void readConfigurationsFromPreferences();
         
         BrainBrowserWindow* getBrowserWindow();
@@ -140,6 +146,8 @@ namespace caret {
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
         QWidget* m_customConfigurationWidget;
+        
+        QWidget* m_customOptionsWidget;
         
         QRadioButton* m_automaticConfigurationRadioButton;
         
@@ -168,6 +176,8 @@ namespace caret {
         QGridLayout* m_rowElementsGridLayout = NULL;
         
         QGridLayout* m_columnElementsGridLayout = NULL;
+        
+        QCheckBox* m_centeringCorrectionCheckBox;
         
         /** Blocks reading of preferences since that may invalidate data pointers */
         bool m_blockReadConfigurationsFromPreferences;

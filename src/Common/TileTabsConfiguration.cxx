@@ -123,6 +123,7 @@ TileTabsConfiguration::initialize()
 
     m_name.clear();
     m_uniqueIdentifier = SystemUtilities::createUniqueID();
+    m_centeringCorrectionEnabled = false;
 }
 
 /**
@@ -140,6 +141,7 @@ TileTabsConfiguration::copyHelperTileTabsConfiguration(const TileTabsConfigurati
     m_name    = obj.m_name;
     m_columns = obj.m_columns;
     m_rows    = obj.m_rows;
+    m_centeringCorrectionEnabled = obj.m_centeringCorrectionEnabled;
     //DO NOT CHANGE THE UNIQUE IDENTIFIER:  m_uniqueIdentifier
 }
 
@@ -509,6 +511,28 @@ TileTabsConfiguration::getRowsAndColumnsForNumberOfTabs(const int32_t numberOfTa
 }
 
 /**
+ * @return True if the centering correction is enabled.
+ */
+bool
+TileTabsConfiguration::isCenteringCorrectionEnabled() const
+{
+    return m_centeringCorrectionEnabled;
+}
+
+/**
+ * Set the enabled status of the centering correction
+ *
+ * @param status
+ *     New status for enabling the centering correction
+ */
+void
+TileTabsConfiguration::setCenteringCorrectionEnabled(const bool status)
+{
+    m_centeringCorrectionEnabled = status;
+}
+
+
+/**
  * Updates the number of rows and columns for the automatic configuration
  * based upon the number of tabs.  
  *
@@ -622,6 +646,7 @@ TileTabsConfiguration::encodeInXMLWithStreamWriterVersionTwo() const
     
     writer.writeTextElement(s_nameTagName, m_name);
     writer.writeTextElement(s_uniqueIdentifierTagName, m_uniqueIdentifier);
+    writer.writeTextElement(s_v2_centeringCorrectionName, AString::fromBool(m_centeringCorrectionEnabled));
     
     encodeRowColumnElement(writer, s_v2_columnsTagName, m_columns);
     encodeRowColumnElement(writer, s_v2_rowsTagName, m_rows);
@@ -674,6 +699,8 @@ bool
 TileTabsConfiguration::decodeFromXMLWithStreamReader(const AString& xmlString,
                                                      AString& errorMessageOut)
 {
+    m_centeringCorrectionEnabled = false;
+    
     QXmlStreamReader xml(xmlString);
     
     if (xml.readNextStartElement()) {
@@ -903,6 +930,8 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader&
     };
     ReadMode readMode = ReadMode::OTHER;
     
+    AString centeringCorrectionTextString;
+    
     while ( ! xml.atEnd()) {
         xml.readNext();
         
@@ -920,6 +949,9 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader&
             }
             else if (tagName == s_v2_rowsTagName) {
                 readMode = ReadMode::ROWS;
+            }
+            else if (tagName == s_v2_centeringCorrectionName) {
+                centeringCorrectionTextString = xml.readElementText();
             }
             else if (tagName == s_v2_elementTagName) {
                 switch (readMode) {
@@ -993,6 +1025,15 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader&
     if (message.isEmpty()) {
         m_name = name;
         m_uniqueIdentifier = uniqueID;
+
+        /*
+         * Only set centering correction if it is found.  This allows usage
+         * of the default value in the event this is not found in the XML.
+         */
+        if ( ! centeringCorrectionTextString.isEmpty()) {
+            m_centeringCorrectionEnabled = centeringCorrectionTextString.toBool();
+        }
+        
     }
     else {
         xml.raiseError(message);

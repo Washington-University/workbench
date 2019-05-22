@@ -32,7 +32,6 @@
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "DeveloperFlagsEnum.h"
 #include "EventBrowserWindowContent.h"
 #include "EventManager.h"
 #include "EventSpacerTabGet.h"
@@ -741,8 +740,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         
     }
     
-    
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TILE_TABS_CENTERING_CORRECTION)) {
+    if (tileTabsConfiguration->isCenteringCorrectionEnabled()) {
         /*
          * Kludge that fixes old scenes
          * NEED TO ADJUST FOR X too ?

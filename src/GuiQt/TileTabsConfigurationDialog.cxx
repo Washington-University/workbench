@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -367,6 +368,59 @@ TileTabsConfigurationDialog::createWorkbenchWindowWidget()
  * @return The rows/columns stretch layout
  */
 QWidget*
+TileTabsConfigurationDialog::createCustomOptionsWidget()
+{
+    const QString toolTip("<html>"
+                          "Removes any space between rows and columns in the tile tabs configuration.  "
+                          "Some scenes created in previous versions of wb_view may not appear correctly "
+                          "due to changes in layout of the tabs.  Enabling this option may fix the "
+                          "problem.  In addition, if the Lock Aspect option is selected prior to "
+                          "to enabling tile tabs, this option may improve the layout."
+                          "</html>");
+    m_centeringCorrectionCheckBox = new QCheckBox("Centering Correction");
+    m_centeringCorrectionCheckBox->setToolTip(toolTip);
+    QObject::connect(m_centeringCorrectionCheckBox, &QCheckBox::clicked,
+                     this, &TileTabsConfigurationDialog::centeringCorrectionCheckBoxClicked);
+    
+    QGroupBox* groupBox = new QGroupBox("Options");
+    QVBoxLayout* layout = new QVBoxLayout(groupBox);
+    layout->addWidget(m_centeringCorrectionCheckBox);
+    
+    return groupBox;
+}
+
+/**
+ * Called when user checks/unchecks the centering correction checkbox
+ *
+ * @bool checked
+ *     New checked status
+ */
+void
+TileTabsConfigurationDialog::centeringCorrectionCheckBoxClicked(bool checked)
+{
+    TileTabsConfiguration* config = getCustomTileTabsConfiguration();
+    if (config != NULL) {
+        config->setCenteringCorrectionEnabled(checked);
+        updateGraphicsWindow();
+    }
+}
+
+/**
+ * Update the custom options
+ */
+void
+TileTabsConfigurationDialog::updateCustomOptionsWidget()
+{
+    TileTabsConfiguration* config = getCustomTileTabsConfiguration();
+    if (config != NULL) {
+        m_centeringCorrectionCheckBox->setChecked(config->isCenteringCorrectionEnabled());
+    }
+}
+
+/**
+ * @return The rows/columns stretch layout
+ */
+QWidget*
 TileTabsConfigurationDialog::createRowColumnStretchWidget()
 {
     QGroupBox* rowGroupBox = new QGroupBox("Rows");
@@ -466,6 +520,8 @@ TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsConfiguration
         m_columnElementsGridLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
     }
     
+    updateCustomOptionsWidget();
+    
 //    m_customConfigurationWidget->adjustSize();
 }
 
@@ -552,6 +608,10 @@ TileTabsConfigurationDialog::createActiveConfigurationWidget()
     m_customConfigurationWidget = createRowColumnStretchWidget();
     m_customConfigurationWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
+    m_customOptionsWidget = createCustomOptionsWidget();
+    m_customOptionsWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+
     QScrollArea* stretchFactorScrollArea = new QScrollArea();
     stretchFactorScrollArea->setWidget(m_customConfigurationWidget);
     stretchFactorScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -588,6 +648,8 @@ TileTabsConfigurationDialog::createActiveConfigurationWidget()
                             3, 4, 1, 1);
     widgetLayout->addWidget(stretchFactorScrollArea,
                             4, 0, 1, 6);
+    widgetLayout->addWidget(m_customOptionsWidget,
+                            5, 0, 1, 6, Qt::AlignLeft);
     
     widget->setFixedWidth(widget->sizeHint().width());
     
