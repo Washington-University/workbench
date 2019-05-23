@@ -1045,28 +1045,41 @@ BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectTriggered(bool checke
 {
     static bool doNotShowAgainFlag(false);
     
+    /*
+     * Show warning if all of these conditions are met:
+     *
+     * (1) Lock Aspect being turned ON
+     * (2) Tile tabs is NOT selected
+     * (3) User has NOT set do not show again
+     * (4) There is more than one tab in the window
+     */
     if (checked) {
         if ( ! isTileTabsSelected()) {
             if ( ! doNotShowAgainFlag) {
-                const QString labelText = LockAspectWarningDialog::getLockingInstructionsText("Lock Aspect",
-                                                                                              false);
-                QLabel* warningLabel = new QLabel(labelText);
-                warningLabel->setWordWrap(true);
+                std::vector<BrowserTabContent*> allTabContent;
+                m_toolbar->getAllTabContent(allTabContent);
                 
-                const QString cbText("Do not show again.  User will not be warned about aspect locking");
-                QCheckBox* doNotShowAgainCheckBox = new QCheckBox(cbText);
-                
-                WuQDataEntryDialog warningDialog("Lock Aspect",
-                                                 m_toolBarLockWindowAndAllTabAspectRatioButton,
-                                                 WuQDialog::SCROLL_AREA_NEVER);
-                warningDialog.addWidget("", warningLabel);
-                warningDialog.addWidget("", doNotShowAgainCheckBox);
-                
-                const int result = warningDialog.exec();
-                doNotShowAgainFlag = doNotShowAgainCheckBox->isChecked();
-                if (result == WuQDataEntryDialog::Rejected) {
-                    m_toolBarLockWindowAndAllTabAspectRatioAction->setChecked(false);
-                    return;
+                if (allTabContent.size() > 1) {
+                    const QString labelText = LockAspectWarningDialog::getLockingInstructionsText("Lock Aspect",
+                                                                                                  false);
+                    QLabel* warningLabel = new QLabel(labelText);
+                    warningLabel->setWordWrap(true);
+                    
+                    const QString cbText("Do not show again.  User will not be warned about aspect locking");
+                    QCheckBox* doNotShowAgainCheckBox = new QCheckBox(cbText);
+                    
+                    WuQDataEntryDialog warningDialog("Lock Aspect",
+                                                     m_toolBarLockWindowAndAllTabAspectRatioButton,
+                                                     WuQDialog::SCROLL_AREA_NEVER);
+                    warningDialog.addWidget("", warningLabel);
+                    warningDialog.addWidget("", doNotShowAgainCheckBox);
+                    
+                    const int result = warningDialog.exec();
+                    doNotShowAgainFlag = doNotShowAgainCheckBox->isChecked();
+                    if (result == WuQDataEntryDialog::Rejected) {
+                        m_toolBarLockWindowAndAllTabAspectRatioAction->setChecked(false);
+                        return;
+                    }
                 }
             }
         }
