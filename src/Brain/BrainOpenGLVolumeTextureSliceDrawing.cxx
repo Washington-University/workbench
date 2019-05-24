@@ -3085,6 +3085,11 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                         textureInfo.m_textureID = textureID;
                         textureInfo.m_maxSTR    = maxStr;
                         volumeTextureInfo.insert(std::make_pair(vf, textureInfo));
+                        
+                        /* 1.0 is highest priority texture so that texture is resident */
+                        const GLclampf priority(1.0);
+                        glPrioritizeTextures(1, &textureID, &priority);
+                        
                         if (debugFlag) std::cout << "Created texture: " << textureID << std::endl;
                     }
                     else {
