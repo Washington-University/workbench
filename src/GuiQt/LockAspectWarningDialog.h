@@ -45,9 +45,18 @@ namespace caret {
             CANCEL
         };
         
-        static Result runDialog(const int32_t browserWindowIndex);
+        enum class Mode {
+            ENTER_ANNOTATIONS_MODE,
+            TOOLBAR_LOCK_ASPECT
+        };
+        
+        static bool runDialogToolBarLockAspect(BrainBrowserWindow* bbw,
+                                               const int32_t numberOfTabsInWindow);
+        
+        static Result runDialogEnterAnnotationsMode(const int32_t browserWindowIndex);
 
-        LockAspectWarningDialog(BrainBrowserWindow* brainBrowserWindow);
+        LockAspectWarningDialog(BrainBrowserWindow* brainBrowserWindow,
+                                const Mode mode);
         
         virtual ~LockAspectWarningDialog();
         
@@ -75,22 +84,27 @@ namespace caret {
         
         BrainBrowserWindow* m_brainBrowserWindow;
         
+        const Mode m_mode;
+        
         Result m_result = Result::CANCEL;
         
         QCheckBox* m_doNotShowAgainCheckBox;
         
-        QRadioButton* m_lockAspectRadioButton;
+        QRadioButton* m_lockAspectRadioButton = NULL;
         
-        QRadioButton* m_leaveUnlockedAspectRadioButton;
+        QRadioButton* m_leaveUnlockedAspectRadioButton = NULL;
         
-        static bool s_doNotShowAgainStatusFlag;
+        static bool s_doNotShowAgainEnterAnnotationsModeStatusFlag;
+        
+        static bool s_doNotShowAgainLockAspectModeStatusFlag;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __LOCK_ASPECT_WARNING_DIALOG_DECLARE__
-    bool LockAspectWarningDialog::s_doNotShowAgainStatusFlag = false;
+    bool LockAspectWarningDialog::s_doNotShowAgainEnterAnnotationsModeStatusFlag = false;
+    bool LockAspectWarningDialog::s_doNotShowAgainLockAspectModeStatusFlag       = false;
 #endif // __LOCK_ASPECT_WARNING_DIALOG_DECLARE__
 
 } // namespace

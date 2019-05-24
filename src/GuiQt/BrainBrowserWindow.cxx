@@ -944,7 +944,7 @@ BrainBrowserWindow::createActionsUsedByToolBar()
 bool
 BrainBrowserWindow::changeInputModeToAnnotationsWarningDialog()
 {
-    LockAspectWarningDialog::Result result = LockAspectWarningDialog::runDialog(m_browserWindowIndex);
+    LockAspectWarningDialog::Result result = LockAspectWarningDialog::runDialogEnterAnnotationsMode(m_browserWindowIndex);
     
     bool okFlag = true;
     
@@ -1043,45 +1043,16 @@ BrainBrowserWindow::lockAllTabAspectRatios(const bool checked)
 void
 BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectTriggered(bool checked)
 {
-    static bool doNotShowAgainFlag(false);
-    
-    /*
-     * Show warning if all of these conditions are met:
-     *
-     * (1) Lock Aspect being turned ON
-     * (2) Tile tabs is NOT selected
-     * (3) User has NOT set do not show again
-     * (4) There is more than one tab in the window
-     */
     if (checked) {
-        if ( ! isTileTabsSelected()) {
-            if ( ! doNotShowAgainFlag) {
-                std::vector<BrowserTabContent*> allTabContent;
-                m_toolbar->getAllTabContent(allTabContent);
-                
-                if (allTabContent.size() > 1) {
-                    const QString labelText = LockAspectWarningDialog::getLockingInstructionsText("Lock Aspect",
-                                                                                                  false);
-                    QLabel* warningLabel = new QLabel(labelText);
-                    warningLabel->setWordWrap(true);
-                    
-                    const QString cbText("Do not show again.  User will not be warned about aspect locking");
-                    QCheckBox* doNotShowAgainCheckBox = new QCheckBox(cbText);
-                    
-                    WuQDataEntryDialog warningDialog("Lock Aspect",
-                                                     m_toolBarLockWindowAndAllTabAspectRatioButton,
-                                                     WuQDialog::SCROLL_AREA_NEVER);
-                    warningDialog.addWidget("", warningLabel);
-                    warningDialog.addWidget("", doNotShowAgainCheckBox);
-                    
-                    const int result = warningDialog.exec();
-                    doNotShowAgainFlag = doNotShowAgainCheckBox->isChecked();
-                    if (result == WuQDataEntryDialog::Rejected) {
-                        m_toolBarLockWindowAndAllTabAspectRatioAction->setChecked(false);
-                        return;
-                    }
-                }
-            }
+        std::vector<BrowserTabContent*> allTabContent;
+        m_toolbar->getAllTabContent(allTabContent);
+        const int32_t tabCount = static_cast<int32_t>(allTabContent.size());
+
+        const bool lockFlag = LockAspectWarningDialog::runDialogToolBarLockAspect(this,
+                                                                                  tabCount);
+        if ( ! lockFlag) {
+            m_toolBarLockWindowAndAllTabAspectRatioAction->setChecked(false);
+            return;
         }
     }
     
