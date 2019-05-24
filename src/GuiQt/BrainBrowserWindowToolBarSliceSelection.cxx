@@ -843,6 +843,8 @@ BrainBrowserWindowToolBarSliceSelection::volumeIdentificationToggled(bool value)
 void
 BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered(bool)
 {
+    static bool addMacroSupportStaticFlag(true);
+    
     BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
     if (browserTabContent == NULL) {
         return;
@@ -856,13 +858,20 @@ BrainBrowserWindowToolBarSliceSelection::obliqueMaskingActionTriggered(bool)
     QAction* selectedAction = NULL;
     for (auto maskEnum : allMaskEnums) {
         QAction* action = maskActionGroup->addAction(VolumeSliceInterpolationEdgeEffectsMaskingEnum::toGuiName(maskEnum));
+        action->setObjectName(m_obliqueMaskingAction->objectName()
+                              + ":"
+                              + VolumeSliceInterpolationEdgeEffectsMaskingEnum::toName(maskEnum));
         action->setCheckable(true);
         action->setData(VolumeSliceInterpolationEdgeEffectsMaskingEnum::toIntegerCode(maskEnum));
         if (maskEnum == browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType()) {
             selectedAction = action;
         }
-        WuQMacroManager::instance()->addMacroSupportToObject(action,
-                                              "Select " + action->text() + " oblique sampling");
+        
+        if (addMacroSupportStaticFlag) {
+            addMacroSupportStaticFlag = false;
+            WuQMacroManager::instance()->addMacroSupportToObject(action,
+                                                                 "Select " + action->text() + " oblique sampling");
+        }
 
         obliqueMaskingMenu.addAction(action);
     }
