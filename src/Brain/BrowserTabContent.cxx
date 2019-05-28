@@ -4836,7 +4836,9 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 *btc->m_flatSurfaceViewingTransformation = *m_flatSurfaceViewingTransformation;
                 *btc->m_cerebellumViewingTransformation = *m_cerebellumViewingTransformation;
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
+                const VolumeSliceViewPlaneEnum::Enum slicePlane = btc->m_volumeSliceSettings->getSliceViewPlane();
                 *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
+                btc->m_volumeSliceSettings->setSliceViewPlane(slicePlane); // do not yoke the slice plane
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
                 *btc->m_clippingPlaneGroup = *m_clippingPlaneGroup;
                 btc->m_identificationUpdatesVolumeSlices = m_identificationUpdatesVolumeSlices;
