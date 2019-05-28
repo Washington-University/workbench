@@ -1446,7 +1446,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawAxesCrosshairsOblique(const VolumeSlic
     const float gapPercentViewportHeight = SessionManager::get()->getCaretPreferences()->getVolumeCrosshairGap();
     const float gapMM = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToMillimeters(gapPercentViewportHeight);
     
-    const std::array<float, 3> sliceCoordinates { sliceCoordinatesIn[0], sliceCoordinatesIn[1], sliceCoordinatesIn[2] };
+    const std::array<float, 3> sliceCoordinates = { sliceCoordinatesIn[0], sliceCoordinatesIn[1], sliceCoordinatesIn[2] };
     GLboolean depthEnabled = GL_FALSE;
     glGetBooleanv(GL_DEPTH_TEST,
                   &depthEnabled);
@@ -1459,7 +1459,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawAxesCrosshairsOblique(const VolumeSlic
     float trans[3];
     m_browserTabContent->getTranslation(trans);
     
-    std::array<float, 3> horizTrans { trans[0], trans[1], trans[2] };
+    std::array<float, 3> horizTrans = { trans[0], trans[1], trans[2] };
     
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
@@ -2558,6 +2558,22 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                   const int32_t tabIndex,
                   float maxStrOut[3])
 {
+    std::vector<int64_t> dims(5);
+    vf->getDimensions(dims);
+    int64_t textureDims = 256;
+    const int64_t dimLargest = *std::max_element(dims.begin(), dims.begin() + 3);
+    if (dimLargest > 512) {
+        const QString msg("Volume dimensions too large for texture support.  Dimensions="
+                          + AString::fromNumbers(&dims[0], 3, ",")
+                          + " for volume "
+                          + vf->getFileNameNoPath());
+        CaretLogSevere(msg);
+        return 0;
+    }
+    else if (dimLargest > 256) {
+        textureDims = 512;
+    }
+    
     GLuint  textureName(0);
     glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
 
@@ -2624,9 +2640,7 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
      }
     
-    std::vector<int64_t> dims(5);
-    vf->getDimensions(dims);
-    
+
     const int64_t mapIndex(0);
     const int64_t numberOfSlices = dims[2];
     const int64_t numberOfRows = dims[1];
@@ -2638,7 +2652,6 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     std::vector<uint8_t> rgbaColors;
     rgbaColors.reserve(numberOfBytes);
     
-    const int64_t textureDims = 256;
     const int64_t textureBytes = (textureDims * textureDims * textureDims * 4);
     
     std::vector<uint8_t> texture(textureBytes, 0);
