@@ -117,7 +117,13 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* vi
        const int32_t tabIndex = btc->getTabNumber();
        GuiManager::get()->processIdentification(tabIndex,
                                                 selectionManager,
-                                                openGLWidget);    
+                                                openGLWidget);
+        
+        /*
+         * Keep the main window as the active window NOT the identification window
+         */
+        openGLWidget->parentWidget()->activateWindow();
+        openGLWidget->parentWidget()->raise();
    }
 }
 
