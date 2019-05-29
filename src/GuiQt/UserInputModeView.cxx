@@ -123,7 +123,6 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* vi
          * Keep the main window as the active window NOT the identification window
          */
         openGLWidget->parentWidget()->activateWindow();
-        openGLWidget->parentWidget()->raise();
    }
 }
 
