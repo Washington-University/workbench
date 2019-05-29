@@ -120,10 +120,14 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* vi
                                                 openGLWidget);
         
         /*
-         * Keep the main window as the active window NOT the identification window
+         * Keep the main window as the active window NOT the identification window.
+         * This does not work correctly on Linux as the identication window
+         * may hide behind the main window.  
          */
+#ifdef CARET_OS_MACOSX
         openGLWidget->parentWidget()->activateWindow();
-   }
+#endif
+    }
 }
 
 /**
