@@ -782,31 +782,50 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
 {
     const int wheelX = we->x();
     const int wheelY = this->windowHeight[this->windowIndex] - we->y();
-    int delta = we->delta();
-    delta = MathFunctions::limitRange(delta, -2, 2);
-    
-    /*
-     * Use location of mouse press so that the model
-     * being manipulated does not change if mouse moves
-     * out of its viewport without releasing the mouse
-     * button.
-     */
-    const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
-                                                                               wheelY);
-    if (viewportContent != NULL) {
-        MouseEvent mouseEvent(viewportContent,
-                              this,
-                              this->windowIndex,
-                              wheelX,
-                              wheelY,
-                              0,
-                              delta,
-                              0,
-                              0,
-                              this->mouseNewDraggingStartedFlag);
-        this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
+    const QPoint pixelDelta = we->pixelDelta();
+    const QPoint degrees    = we->angleDelta();
+    int delta(0);
+    if ( ! pixelDelta.isNull()) {
+        delta = pixelDelta.y();
+    }
+    else if ( ! degrees.isNull()) {
+        delta = degrees.y();
     }
     
+    if (delta != 0) {
+        if ( ! we->inverted()) {
+            delta = -delta;
+        }
+        
+        /*
+         * If not limited, it is way too fast
+         */
+        const int limitValue(8);
+        delta = MathFunctions::limitRange(delta, -limitValue, limitValue);
+        
+        /*
+         * Use location of mouse press so that the model
+         * being manipulated does not change if mouse moves
+         * out of its viewport without releasing the mouse
+         * button.
+         */
+        const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
+                                                                                         wheelY);
+        if (viewportContent != NULL) {
+            MouseEvent mouseEvent(viewportContent,
+                                  this,
+                                  this->windowIndex,
+                                  wheelX,
+                                  wheelY,
+                                  0,
+                                  delta,
+                                  0,
+                                  0,
+                                  this->mouseNewDraggingStartedFlag);
+            this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
+        }
+    }
+
     we->accept();
 }
 
