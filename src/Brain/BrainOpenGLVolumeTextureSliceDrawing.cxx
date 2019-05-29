@@ -2598,18 +2598,51 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
 
     if (vf->isMappedWithPalette()) {
         /*
-         * Magnification: pixel is smaller than a texel
-         * Minification:  pixel is larger than a texel and thus multiple texels
-         *                are mapped to the pixel
-         * GL_NEAREST: Use texel with coordinates nearest center of pixel
-         *             Faster but may cause artifacts
-         * GL_LINEAR: Use weighted linear average of 2x2x2 texel array
-         *            nearest center of pixel
-         *            Smoother appearance but may be slower
+         * This combination MIN=Linear, MAG=Nearest
+         * seems to produce voxel drawing that is
+         * nearly identical to cubic interpolation when zoomed in so
+         * that the voxels are large.  The difference is when the slices
+         * are rotated; In cubic interpolation, the "scan lines" are
+         * horizontal (left to right on the screen) but with texture,
+         * the "scan lines" follow the volume rotation.
+         *
+         * From the OpenGL documentation (man page)
+         *
+         * GL_TEXTURE_MIN_FILTER - The  texture  minifying  function  is used
+         * whenever the pixel being textured maps to an area greater than one
+         * texture  element.
+         *     GL_NEAREST - Returns the value of the texture  element  that  is
+         *         nearest  (in  Manhattan  distance) to the center of
+         *         the pixel being textured.
+         *     GL_LINEAR - Returns the weighted average of  the  four  texture
+         *         elements  that  are  closest  to  the center of the
+         *         pixel being textured.
+         *
+         * Pixel area is GREATER THAN texel area so ZOOMED OUT
+         *
+         * Thus, Pixel contains more than one texel
          */
-        /* Linear filtering causes white line around left and top edges */
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        
+        /*
+         * GL_TEXTURE_MAG_FILTER - The  texture  magnification  function
+         * is used when the pixel being textured maps to an area less than or
+         * equal to one texture  element.
+         *     GL_NEAREST - Returns the value of the texture  element  that  is
+         *         nearest  (in  Manhattan  distance) to the center of
+         *         the pixel being textured.
+         *     GL_LINEAR Returns the weighted average of  the  four  texture
+         *         elements  that  are  closest  to  the center of the
+         *        pixel being textured.
+         *
+         * Pixel area is LESS THAN Texel area so ZOOMED IN
+         *
+         * Thus, pixel may be inside a texel
+         *
+         * If GL_LINEAR is used the voxel "blockiness" is smoothed out
+         */
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        
         
         GLfloat borderColor[4] = { 0.0, 0.0, 0.0, 0.0 };
         glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
