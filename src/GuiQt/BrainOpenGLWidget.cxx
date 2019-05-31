@@ -1960,6 +1960,8 @@ BrainOpenGLWidget::repaintGraphics()
     
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     /*
+     * As of QT 5.12.0.
+     *
      * When using QOpenGLWidget, calling repaint() returns before
      * it calls paintGL() so graphics are not updated even though
      * the documentation states that drawing will complete during
@@ -1969,10 +1971,17 @@ BrainOpenGLWidget::repaintGraphics()
      * Two Qt bug reports have been submitted by others:
      * QTBUG-74404, QTBUG-53107.
      *
-     * For now, allowing events to process seems to allow the
-     * graphics to update.
+     * A previous kludge to fix this problem made a call to
+     * QApplication::processEvents().  However, it was found
+     * to cause a problem with annotation dragging as multiple
+     * mouse events were getting issued.
+     * Commit: 666b0e7c3d8d443aa9668a5cff986f7b83158488
+     *
+     * Now, the kludge is to call grabFramebuffer() which I
+     * assume has to complete drawing before capturing an
+     * image.  This fixes the problem with dragging annotations.
      */
-    QApplication::processEvents();
+    (void)grabFramebuffer();
 #endif
 }
 
