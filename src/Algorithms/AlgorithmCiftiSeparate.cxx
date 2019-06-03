@@ -614,7 +614,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         volOut->reinitialize(newdims, mySform);
         volOut->setValueAllVoxels(0.0f);
         const CiftiMappingType& myNamesMap = *(myXML.getMap(1 - myDir));
-        for (int j = 0; j < rowSize; ++j)
+        for (int j = 0; j < colSize; ++j)
         {
             volOut->setMapName(j, myNamesMap.getIndexName(j));
         }
