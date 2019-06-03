@@ -1010,10 +1010,21 @@ ChartTwoOverlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
                 ChartableTwoFileDelegate* chartDelegate = m_selectedMapFile->getChartingDelegate();
                 CaretAssert(chartDelegate);
                 matrixChart   = chartDelegate->getMatrixCharting();
-//                ChartableTwoFileMatrixChart* matrixChart   = chartDelegate->getMatrixCharting();
-//                CaretAssert(matrixChart);
-//                matrixChart->setSelectedRowColumnIndex(m_parentChartTwoOverlaySet->m_tabIndex,
-//                                                       selectedMapIndex);
+
+                if (m_selectedMapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
+                    ChartableTwoFileLineSeriesChart* lineChart = chartDelegate->getLineSeriesCharting();
+                    if (lineChart != NULL) {
+                        switch (lineChart->getLineSeriesContentType()) {
+                            case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_UNSUPPORTED:
+                                break;
+                            case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA:
+                                break;
+                            case ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_ROW_SCALAR_DATA:
+                                lineSeriesChart = lineChart;
+                                break;
+                        }
+                    }
+                }
             }
                 break;
         }
