@@ -262,9 +262,6 @@ m_chartOverlay(NULL)
     m_mapRowOrColumnYokingGroupComboBox = new MapYokingGroupComboBox(this);
     m_mapRowOrColumnYokingGroupComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
     m_mapRowOrColumnYokingGroupComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
-#ifdef CARET_OS_MACOSX
-    m_mapRowOrColumnYokingGroupComboBox->getWidget()->setFixedWidth(m_mapRowOrColumnYokingGroupComboBox->getWidget()->sizeHint().width() - 20);
-#endif // CARET_OS_MACOSX
     QObject::connect(m_mapRowOrColumnYokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokingGroupActivated()));
     

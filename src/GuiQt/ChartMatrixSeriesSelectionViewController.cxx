@@ -136,9 +136,6 @@ m_browserWindowIndex(browserWindowIndex)
     m_matrixSeriesYokingComboBox = new MapYokingGroupComboBox(this);
     m_matrixSeriesYokingComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
     m_matrixSeriesYokingComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
-#ifdef CARET_OS_MACOSX
-    m_matrixSeriesYokingComboBox->getWidget()->setFixedWidth(m_matrixSeriesYokingComboBox->getWidget()->sizeHint().width() - 20);
-#endif // CARET_OS_MACOSX
     QObject::connect(m_matrixSeriesYokingComboBox, SIGNAL(itemActivated()),
                      this, SLOT(matrixSeriesYokingGroupActivated()));
 

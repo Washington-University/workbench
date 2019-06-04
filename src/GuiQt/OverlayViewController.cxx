@@ -278,9 +278,6 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                                           descriptivePrefix);
     m_mapYokingGroupComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
     m_mapYokingGroupComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
-#ifdef CARET_OS_MACOSX
-    m_mapYokingGroupComboBox->getWidget()->setFixedWidth(m_mapYokingGroupComboBox->getWidget()->sizeHint().width() - 20);
-#endif // CARET_OS_MACOSX
     QObject::connect(m_mapYokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokingGroupActivated()));
 

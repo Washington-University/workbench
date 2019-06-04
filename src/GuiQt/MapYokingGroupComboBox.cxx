@@ -87,8 +87,9 @@ MapYokingGroupComboBox::MapYokingGroupComboBox(QObject* parent,
     m_comboBox->setup<MapYokingGroupEnum, MapYokingGroupEnum::Enum>();
     m_comboBox->getWidget()->setStatusTip("Synchronize selected map indices (and selection status for overlays)");
     m_comboBox->getWidget()->setToolTip("Synchronize selected map indices (and selection status for overlays)");
+    m_comboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 #ifdef CARET_OS_MACOSX
-    m_comboBox->getComboBox()->setFixedWidth(m_comboBox->getComboBox()->sizeHint().width() - 20);
+//    m_comboBox->getComboBox()->setFixedWidth(m_comboBox->getComboBox()->sizeHint().width() - 20);
 #endif // CARET_OS_MACOSX
     QObject::connect(m_comboBox, SIGNAL(itemActivated()),
                      this, SLOT(comboBoxActivated()));

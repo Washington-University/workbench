@@ -189,9 +189,6 @@ ChartLinesSelectionViewController::updateSelectionViewController()
                 yokeComboBox = new MapYokingGroupComboBox(this);
                 yokeComboBox->getWidget()->setStatusTip("Synchronize enabled status and map indices)");
                 yokeComboBox->getWidget()->setToolTip("Yoke to Overlay Mapped Files");
-#ifdef CARET_OS_MACOSX
-                yokeComboBox->getWidget()->setFixedWidth(yokeComboBox->getWidget()->sizeHint().width() - 20);
-#endif // CARET_OS_MACOSX
                 QObject::connect(yokeComboBox, SIGNAL(itemActivated()),
                                  m_signalMapperBrainordinateYokingComboBox, SLOT(map()));
                 m_signalMapperBrainordinateYokingComboBox->setMapping(yokeComboBox, i);
