@@ -125,6 +125,72 @@ MapFileDataSelector::copyHelperMapFileDataSelector(const MapFileDataSelector& ob
 }
 
 /**
+ * Equality operator.
+ *
+ * @param obj
+ *     Instance compared to 'this' instance.
+ *
+ * @return True if this and the compared instance are the same, else false.
+ */
+bool
+MapFileDataSelector::operator==(const MapFileDataSelector& obj) const
+{
+    if (this == &obj) {
+        return true;
+    }
+    if (m_dataSelectionType != obj.m_dataSelectionType) {
+        return false;
+    }
+    
+    switch (m_dataSelectionType) {
+        case DataSelectionType::COLUMN_DATA:
+            if ((m_columnIndex == obj.m_columnIndex)
+                && (m_columnMapFile == obj.m_columnMapFile)
+                && (m_columnMapFileName == obj.m_columnMapFileName)) {
+                return true;
+            }
+            break;
+        case DataSelectionType::INVALID:
+            break;
+        case DataSelectionType::ROW_DATA:
+            if ((m_rowIndex == obj.m_rowIndex)
+                && (m_rowMapFile == obj.m_rowMapFile)
+                && (m_rowMapFileName == obj.m_rowMapFileName)) {
+                return true;
+            }
+            break;
+        case DataSelectionType::SURFACE_VERTEX:
+            if ((m_surfaceNumberOfVertices == obj.m_surfaceNumberOfVertices)
+                && (m_surfaceStructure == obj.m_surfaceStructure)
+                && (m_surfaceVertexIndex == obj.m_surfaceVertexIndex)) {
+                    return true;
+            }
+            break;
+        case DataSelectionType::SURFACE_VERTICES_AVERAGE:
+            if ((m_surfaceNumberOfVertices == obj.m_surfaceNumberOfVertices)
+                && (m_surfaceStructure == obj.m_surfaceStructure)) {
+                if ( ! m_surfaceVertexAverageIndices.empty()) {
+                    if (std::equal(m_surfaceVertexAverageIndices.begin(),
+                                   m_surfaceVertexAverageIndices.end(),
+                                   obj.m_surfaceVertexAverageIndices.begin())) {
+                        return true;
+                    }
+                }
+            }
+            break;
+        case DataSelectionType::VOLUME_XYZ:
+            if ((m_voxelXYZ[0] == obj.m_voxelXYZ[0])
+                && (m_voxelXYZ[1] == obj.m_voxelXYZ[1])
+                && (m_voxelXYZ[2] == obj.m_voxelXYZ[2])) {
+                return true;
+            }
+            break;
+    }
+    
+    return false;
+}
+
+/**
  * @return The data selection type.
  */
 MapFileDataSelector::DataSelectionType
@@ -380,11 +446,11 @@ MapFileDataSelector::toString() const
             break;
         case DataSelectionType::COLUMN_DATA:
             s = ("Column "
-                 + AString::number(m_columnIndex));
+                 + AString::number(m_columnIndex + 1));
             break;
         case DataSelectionType::ROW_DATA:
             s = ("Row "
-                 + AString::number(m_rowIndex));
+                 + AString::number(m_rowIndex + 1));
             break;
         case DataSelectionType::SURFACE_VERTEX:
             s = ("Vertex "

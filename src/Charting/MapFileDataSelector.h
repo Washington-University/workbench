@@ -54,6 +54,8 @@ namespace caret {
 
         MapFileDataSelector& operator=(const MapFileDataSelector& obj);
         
+        bool operator==(const MapFileDataSelector& obj) const;
+        
         DataSelectionType getDataSelectionType() const;
         
         static AString getDataSelectionTypeName(const DataSelectionType dataSelectionType);

@@ -27,6 +27,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartTwoDataCartesian.h"
+#include "MapFileDataSelector.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -371,6 +372,19 @@ void
 ChartTwoLineSeriesHistory::addHistoryItem(ChartTwoDataCartesian* historyItem)
 {
     CaretAssert(historyItem);
+    
+    /*
+     * Do not add to history if new history item matches history
+     * item at front of the deque
+     */
+    if ( ! m_chartHistory.empty()) {
+        const MapFileDataSelector* newFileMap = historyItem->getMapFileDataSelector();
+        const MapFileDataSelector* frontFileMap = m_chartHistory.at(0)->getMapFileDataSelector();
+        if (*newFileMap == *frontFileMap) {
+            return;
+        }
+    }
+    
     historyItem->setColor(m_defaultColor);
     historyItem->setLineWidth(m_defaultLineWidth);
     addHistoryItemNoDefaults(historyItem);
