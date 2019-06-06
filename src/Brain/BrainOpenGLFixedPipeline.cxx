@@ -3827,13 +3827,25 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
     applyVolumePropertiesOpacity();
     
     if (useNewDrawingFlag) {
-        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-        volumeSliceDrawing.draw(this,
-                                browserTabContent,
-                                volumeDrawInfo,
-                                sliceDrawingType,
-                                sliceProjectionType,
-                                viewport);
+        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_VOLUME)) {
+            BrainOpenGLVolumeTextureSliceDrawing textureSliceDrawing;
+            textureSliceDrawing.draw(this,
+                                     browserTabContent,
+                                     volumeDrawInfo,
+                                     sliceDrawingType,
+                                     sliceProjectionType,
+                                     obliqueMaskType,
+                                     viewport);
+        }
+        else {
+            BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+            volumeSliceDrawing.draw(this,
+                                    browserTabContent,
+                                    volumeDrawInfo,
+                                    sliceDrawingType,
+                                    sliceProjectionType,
+                                    viewport);
+        }
     }
     else {
         if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_VOLUME)) {

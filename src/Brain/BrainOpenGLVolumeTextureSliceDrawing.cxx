@@ -128,7 +128,7 @@ BrainOpenGLVolumeTextureSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
                                            const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueSliceMaskingType,
                                            const int32_t viewport[4])
 {
-    CaretAssert(sliceProjectionType == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
+//    CaretAssert(sliceProjectionType == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
     
     if (volumeDrawInfo.empty()) {
         return;
@@ -303,7 +303,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
                         drawOrientationAxes(allVP);
                         break;
                     case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                        CaretAssert(0);
+                        drawOrientationAxes(allVP);
                         break;
                 }
             }
@@ -787,8 +787,6 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewProjection(const BrainO
         
         switch (sliceProjectionType) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                CaretAssert(0);
-                break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             {
                 /*
@@ -799,6 +797,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewProjection(const BrainO
                                                   obliqueTransformationMatrix);
                 
                 drawObliqueSliceWithOutlines(sliceViewPlane,
+                                             sliceProjectionType,
                                              obliqueTransformationMatrix);
             }
                 break;
@@ -917,7 +916,6 @@ BrainOpenGLVolumeTextureSliceDrawing::createSlicePlaneEquation(const VolumeSlice
         }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            CaretAssert(0);
             break;
     }
     
@@ -1031,7 +1029,6 @@ BrainOpenGLVolumeTextureSliceDrawing::setVolumeSliceViewingAndModelingTransforma
             m_browserTabContent->getObliqueVolumeRotationMatrix().multiplyPoint3(up);
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            CaretAssert(0);
             break;
     }
     
@@ -1407,8 +1404,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjec
     }
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            CaretAssert(0);
-            break;
+//            break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
         {
             glPushMatrix();
@@ -2553,6 +2549,7 @@ getTextureCoordinates(const VolumeFile* vf,
 
 static GLuint
 createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                  const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                   const VolumeFile* vf,
                   const DisplayGroupEnum::Enum displayGroup,
                   const int32_t tabIndex,
@@ -2643,6 +2640,14 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
          */
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         
+        switch (sliceProjectionType) {
+            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                break;
+            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                break;
+        }
         
         GLfloat borderColor[4] = { 0.0, 0.0, 0.0, 0.0 };
         glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
@@ -2766,8 +2771,8 @@ struct TextureInfo {
     std::array<float, 3> m_maxSTR;
 };
 
-static std::map<VolumeFile*, TextureInfo> volumeTextureInfo;
-
+static std::map<VolumeFile*, TextureInfo> obliqueVolumeTextureInfo;
+static std::map<VolumeFile*, TextureInfo> orthogonalVolumeTextureInfo;
 /**
  * Draw an oblique slice with support for outlining labels and thresholded palette data.
  *
@@ -2778,6 +2783,7 @@ static std::map<VolumeFile*, TextureInfo> volumeTextureInfo;
  */
 void
 BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                                    Matrix4x4& transformationMatrix)
 {
     /*
@@ -3112,15 +3118,36 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                 }
                 std::array<float, 3> maxStr = { 1.0, 1.0, 1.0 };
                 GLuint textureID = 0;
-                auto idIter = volumeTextureInfo.find(vf);
-                if (idIter != volumeTextureInfo.end()) {
-                    TextureInfo textureInfo = idIter->second;
-                    textureID = textureInfo.m_textureID;
-                    maxStr = textureInfo.m_maxSTR;
+                
+                switch (sliceProjectionType) {
+                    case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                    {
+                        auto idIter = obliqueVolumeTextureInfo.find(vf);
+                        if (idIter != obliqueVolumeTextureInfo.end()) {
+                            TextureInfo textureInfo = idIter->second;
+                            textureID = textureInfo.m_textureID;
+                            maxStr = textureInfo.m_maxSTR;
+                        }
+
+                    }
+                        break;
+                    case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                    {
+                        auto idIter = orthogonalVolumeTextureInfo.find(vf);
+                        if (idIter != orthogonalVolumeTextureInfo.end()) {
+                            TextureInfo textureInfo = idIter->second;
+                            textureID = textureInfo.m_textureID;
+                            maxStr = textureInfo.m_maxSTR;
+                        }
+                        
+                    }
+                        break;
                 }
-                else {
+
+                if (textureID == 0) {
                     m_fixedPipelineDrawing->testForOpenGLError("Before creating texture");
                     textureID = createTextureName(m_fixedPipelineDrawing,
+                                                  sliceProjectionType,
                                                   vf,
                                                   m_displayGroup,
                                                   m_tabIndex,
@@ -3130,7 +3157,15 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                         TextureInfo textureInfo;
                         textureInfo.m_textureID = textureID;
                         textureInfo.m_maxSTR    = maxStr;
-                        volumeTextureInfo.insert(std::make_pair(vf, textureInfo));
+                        
+                        switch (sliceProjectionType) {
+                            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                                obliqueVolumeTextureInfo.insert(std::make_pair(vf, textureInfo));
+                                break;
+                            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                                orthogonalVolumeTextureInfo.insert(std::make_pair(vf, textureInfo));
+                                break;
+                        }
                         
                         /* 1.0 is highest priority texture so that texture is resident */
                         const GLclampf priority(1.0);

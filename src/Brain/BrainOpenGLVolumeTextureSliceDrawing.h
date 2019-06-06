@@ -215,6 +215,7 @@ namespace caret {
                               const Plane& plane);
         
         void drawObliqueSliceWithOutlines(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                          const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                           Matrix4x4& transformationMatrix);
         
         void createSlicePlaneEquation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
