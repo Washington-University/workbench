@@ -381,6 +381,7 @@ ChartTwoLineSeriesHistory::addHistoryItem(ChartTwoDataCartesian* historyItem)
         const MapFileDataSelector* newFileMap = historyItem->getMapFileDataSelector();
         const MapFileDataSelector* frontFileMap = m_chartHistory.at(0)->getMapFileDataSelector();
         if (*newFileMap == *frontFileMap) {
+            delete historyItem;
             return;
         }
     }

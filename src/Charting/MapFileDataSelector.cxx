@@ -144,19 +144,21 @@ MapFileDataSelector::operator==(const MapFileDataSelector& obj) const
     
     switch (m_dataSelectionType) {
         case DataSelectionType::COLUMN_DATA:
-            if ((m_columnIndex == obj.m_columnIndex)
-                && (m_columnMapFile == obj.m_columnMapFile)
-                && (m_columnMapFileName == obj.m_columnMapFileName)) {
-                return true;
+            if (m_columnIndex == obj.m_columnIndex) {
+                if ((m_columnMapFile == obj.m_columnMapFile)
+                    || (m_columnMapFileName == obj.m_columnMapFileName)) {
+                    return true;
+                }
             }
             break;
         case DataSelectionType::INVALID:
             break;
         case DataSelectionType::ROW_DATA:
-            if ((m_rowIndex == obj.m_rowIndex)
-                && (m_rowMapFile == obj.m_rowMapFile)
-                && (m_rowMapFileName == obj.m_rowMapFileName)) {
-                return true;
+            if (m_rowIndex == obj.m_rowIndex) {
+                if ((m_rowMapFile == obj.m_rowMapFile)
+                    || (m_rowMapFileName == obj.m_rowMapFileName)) {
+                    return true;
+                }
             }
             break;
         case DataSelectionType::SURFACE_VERTEX:
