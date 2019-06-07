@@ -342,6 +342,8 @@ namespace caret {
         static const AString NAME_VOLUME_MONTAGE_COORDINATE_PRECISION;
         static const AString NAME_COLOR_BACKGROUND;
         static const AString NAME_COLOR_FOREGROUND;
+        static const AString NAME_COLOR_BACKGROUND_WINDOW;
+        static const AString NAME_COLOR_FOREGROUND_WINDOW;
         static const AString NAME_COLOR_BACKGROUND_ALL;
         static const AString NAME_COLOR_FOREGROUND_ALL;
         static const AString NAME_COLOR_BACKGROUND_CHART;
@@ -387,6 +389,8 @@ namespace caret {
     const AString CaretPreferences::NAME_VOLUME_MONTAGE_COORDINATE_PRECISION     = "volumeMontageCoordinatePrecision";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
+    const AString CaretPreferences::NAME_COLOR_BACKGROUND_WINDOW  = "colorBackgroundWindow";
+    const AString CaretPreferences::NAME_COLOR_FOREGROUND_WINDOW  = "colorForegroundWindow";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND_ALL     = "colorBackgroundAll";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_ALL     = "colorForegroundAll";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND_CHART     = "colorBackgroundChart";

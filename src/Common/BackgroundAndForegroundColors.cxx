@@ -92,6 +92,14 @@ BackgroundAndForegroundColors::operator==(const BackgroundAndForegroundColors& o
     bool equalFlag(true);
     
     for (int32_t i = 0; i < 3; i++) {
+        if (m_colorForegroundWindow[i]        != obj.m_colorForegroundWindow[i]) {
+            equalFlag = false;
+            break;
+        }
+        if (m_colorBackgroundWindow[i]        !=obj.m_colorBackgroundWindow[i]) {
+            equalFlag = false;
+            break;
+        }
         if (m_colorForegroundAll[i]           != obj.m_colorForegroundAll[i]) {
             equalFlag = false;
             break;
@@ -146,6 +154,8 @@ void
 BackgroundAndForegroundColors::copyHelperBackgroundAndForegroundColors(const BackgroundAndForegroundColors& obj)
 {
     for (int32_t i = 0; i < 3; i++) {
+        m_colorForegroundWindow[i]        = obj.m_colorForegroundWindow[i];
+        m_colorBackgroundWindow[i]        = obj.m_colorBackgroundWindow[i];
         m_colorForegroundAll[i]           = obj.m_colorForegroundAll[i];
         m_colorBackgroundAll[i]           = obj.m_colorBackgroundAll[i];
         m_colorForegroundChart[i]         = obj.m_colorForegroundChart[i];
@@ -173,6 +183,10 @@ BackgroundAndForegroundColors::reset()
     const uint8_t foreGreen = 255;
     const uint8_t foreBlue  = 255;
     
+    setColor(m_colorForegroundWindow, foreRed, foreGreen, foreBlue);
+    
+    setColor(m_colorBackgroundWindow, backRed, backGreen, backBlue);
+    
     setColor(m_colorForegroundAll, foreRed, foreGreen, foreBlue);
     
     setColor(m_colorBackgroundAll, backRed, backGreen, backBlue);
@@ -199,6 +213,64 @@ BackgroundAndForegroundColors::reset()
     const uint8_t threshBlue  = 255;
     setColor(m_colorChartHistogramThreshold, threshRed, threshGreen, threshBlue);
 }
+
+/**
+ * Get the foreground color for the window.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+BackgroundAndForegroundColors::getColorForegroundWindow(uint8_t colorForeground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorForeground[i] = m_colorForegroundWindow[i];
+    }
+}
+
+/**
+ * Set the foreground color for the window.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+BackgroundAndForegroundColors::setColorForegroundWindow(const uint8_t colorForeground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        m_colorForegroundWindow[i] = colorForeground[i];
+    }
+}
+
+/**
+ * Get the background color for the window.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+BackgroundAndForegroundColors::getColorBackgroundWindow(uint8_t colorBackground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorBackground[i] = m_colorBackgroundWindow[i];
+    }
+}
+
+/**
+ * Set the background color for the window.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+BackgroundAndForegroundColors::setColorBackgroundWindow(const uint8_t colorBackground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        m_colorBackgroundWindow[i] = colorBackground[i];
+    }
+}
+
+
 
 /**
  * Get the foreground color for viewing the ALL model.

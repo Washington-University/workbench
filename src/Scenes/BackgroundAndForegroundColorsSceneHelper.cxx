@@ -49,6 +49,11 @@ m_wasRestoredFromSceneFlag(false)
     
     m_sceneAssistant = new SceneClassAssistant();
 
+    m_sceneAssistant->addArray("m_colorForegroundWindow",
+                               m_colors.m_colorForegroundWindow, 3, 255);
+    m_sceneAssistant->addArray("m_colorBackgroundWindow",
+                               m_colors.m_colorBackgroundWindow, 3, 0);
+    
     m_sceneAssistant->addArray("m_colorForegroundAll",
                                m_colors.m_colorForegroundAll, 3, 255);
     m_sceneAssistant->addArray("m_colorBackgroundAll",
@@ -71,6 +76,8 @@ m_wasRestoredFromSceneFlag(false)
     
     m_sceneAssistant->addArray("m_colorChartMatrixGridLines",
                                m_colors.m_colorChartMatrixGridLines, 3, 0);
+    m_sceneAssistant->addArray("m_colorChartHistogramThreshold",
+                               m_colors.m_colorChartHistogramThreshold, 3, 0);
 }
 
 /**
@@ -117,9 +124,12 @@ BackgroundAndForegroundColorsSceneHelper::saveToScene(const SceneAttributes* sce
 {
     m_wasRestoredFromSceneFlag = false;
     
+    /*
+     * Version 2: Added window foreground and background colors
+     */
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BackgroundAndForegroundColorsSceneHelper",
-                                            1);
+                                            2);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -158,6 +168,19 @@ BackgroundAndForegroundColorsSceneHelper::restoreFromScene(const SceneAttributes
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
+    
+    if (sceneClass->getVersionNumber() <= 1) {
+        /*
+         * Version 1 did not have window foreground and background colors so
+         * use the surface background colors
+         */
+        uint8_t rgb[3];
+        m_colors.getColorBackgroundSurfaceView(rgb);
+        m_colors.setColorBackgroundWindow(rgb);
+
+        m_colors.getColorForegroundSurfaceView(rgb);
+        m_colors.setColorForegroundWindow(rgb);
+    }
     
     m_wasRestoredFromSceneFlag = true;
     

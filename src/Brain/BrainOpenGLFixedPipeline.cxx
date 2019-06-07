@@ -424,12 +424,12 @@ void
 BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(const BrainOpenGLViewportContent* vpContent)
 {
     /*
-     * Default to colors for surface
+     * Default to colors for window
      */
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->getBackgroundAndForegroundColors()->getColorForegroundSurfaceView(m_foregroundColorByte);
+    prefs->getBackgroundAndForegroundColors()->getColorForegroundWindow(m_foregroundColorByte);
     m_foregroundColorByte[3] = 255;
-    prefs->getBackgroundAndForegroundColors()->getColorBackgroundSurfaceView(m_backgroundColorByte);
+    prefs->getBackgroundAndForegroundColors()->getColorBackgroundWindow(m_backgroundColorByte);
     m_backgroundColorByte[3] = 255;
     
     if (vpContent != NULL) {
@@ -577,15 +577,9 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     this->checkForOpenGLError(NULL, "At beginning of drawModels()");
     
     /*
-     * Default the background colors to first model
-     * NOTE: If there are no models, the surface background color is used
+     * NULL will retrieve Window colors (window colors added on 07jul2019)
      */
-    if (viewportContents.empty()) {
-        updateForegroundAndBackgroundColors(NULL);
-    }
-    else {
-        updateForegroundAndBackgroundColors(viewportContents[0]);
-    }
+    updateForegroundAndBackgroundColors(NULL);
     
     /*
      * Use the background color as the clear color.
@@ -663,36 +657,33 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
         updateForegroundAndBackgroundColors(vpContent);
         
         /*
-         * If this is NOT the first viewport content,
-         * AND the background color for this viewport content is 
+         * If the background color for this viewport content is
          * different that the clear color, THEN
          * draw a rectangle with the background color.
          */
-        if (i > 0) {
-            if ((m_backgroundColorByte[0] != clearColorByte[0])
-                || (m_backgroundColorByte[1] != clearColorByte[1])
-                || (m_backgroundColorByte[2] != clearColorByte[2])) {
-                GLboolean depthEnabledFlag;
-                glGetBooleanv(GL_DEPTH_TEST,
-                              &depthEnabledFlag);
-                glDisable(GL_DEPTH_TEST);
-                
-                glMatrixMode(GL_PROJECTION);
-                glLoadIdentity();
-                glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
-                glMatrixMode(GL_MODELVIEW);
-                glLoadIdentity();
-                glColor3ubv(m_backgroundColorByte);
-                glBegin(GL_POLYGON);
-                glVertex2f(0.0, 0.0);
-                glVertex2f(1.0, 0.0);
-                glVertex2f(1.0, 1.0);
-                glVertex2f(0.0, 1.0);
-                glEnd();
-                
-                if (depthEnabledFlag) {
-                    glEnable(GL_DEPTH_TEST);
-                }
+        if ((m_backgroundColorByte[0] != clearColorByte[0])
+            || (m_backgroundColorByte[1] != clearColorByte[1])
+            || (m_backgroundColorByte[2] != clearColorByte[2])) {
+            GLboolean depthEnabledFlag;
+            glGetBooleanv(GL_DEPTH_TEST,
+                          &depthEnabledFlag);
+            glDisable(GL_DEPTH_TEST);
+            
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glColor3ubv(m_backgroundColorByte);
+            glBegin(GL_POLYGON);
+            glVertex2f(0.0, 0.0);
+            glVertex2f(1.0, 0.0);
+            glVertex2f(1.0, 1.0);
+            glVertex2f(0.0, 1.0);
+            glEnd();
+            
+            if (depthEnabledFlag) {
+                glEnable(GL_DEPTH_TEST);
             }
         }
 

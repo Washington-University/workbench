@@ -176,6 +176,14 @@ PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
             buttonText = "Chart Threshold";
             m_chartHistogramThresholdColorWidget = colorSwatchWidget;
             break;
+        case PREF_COLOR_BACKGROUND_WINDOW:
+            buttonText = "Window Background";
+            m_backgroundColorWindowWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_FOREGROUND_WINDOW:
+            buttonText = "Window Foreground";
+            m_foregroundColorWindowWidget = colorSwatchWidget;
+            break;
         case NUMBER_OF_PREF_COLORS:
             CaretAssert(0);
             break;
@@ -206,6 +214,13 @@ PreferencesDialog::createColorsWidget()
     QSignalMapper* colorSignalMapper = new QSignalMapper(this);
     
     QGridLayout* gridLayout = new QGridLayout();
+    
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_FOREGROUND_WINDOW,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_BACKGROUND_WINDOW,
+                            colorSignalMapper);
     
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_FOREGROUND_ALL,
@@ -310,6 +325,14 @@ PreferencesDialog::updateColorWidget(CaretPreferences* prefs)
             case PREF_COLOR_CHART_THRESHOLD:
                 colors.getColorChartHistogramThreshold(rgb);
                 colorSwatchWidget = m_chartHistogramThresholdColorWidget;
+                break;
+            case PREF_COLOR_BACKGROUND_WINDOW:
+                colors.getColorBackgroundWindow(rgb);
+                colorSwatchWidget = m_backgroundColorWindowWidget;
+                break;
+            case PREF_COLOR_FOREGROUND_WINDOW:
+                colors.getColorForegroundWindow(rgb);
+                colorSwatchWidget = m_foregroundColorWindowWidget;
                 break;
             case NUMBER_OF_PREF_COLORS:
                 CaretAssert(0);
@@ -827,6 +850,14 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
             colors.getColorChartHistogramThreshold(rgb);
             prefColorName = "Chart Histogram Threshold";
             break;
+        case PREF_COLOR_BACKGROUND_WINDOW:
+            colors.getColorBackgroundWindow(rgb);
+            prefColorName = "Background - Window";
+            break;
+        case PREF_COLOR_FOREGROUND_WINDOW:
+            colors.getColorForegroundWindow(rgb);
+            prefColorName = "Foreground - Window";
+            break;
         case NUMBER_OF_PREF_COLORS:
             CaretAssert(0);
             break;
@@ -879,6 +910,12 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
                 break;
             case PREF_COLOR_CHART_THRESHOLD:
                 colors.setColorChartHistogramThreshold(rgb);
+                break;
+            case PREF_COLOR_BACKGROUND_WINDOW:
+                colors.setColorBackgroundWindow(rgb);
+                break;
+            case PREF_COLOR_FOREGROUND_WINDOW:
+                colors.setColorForegroundWindow(rgb);
                 break;
             case NUMBER_OF_PREF_COLORS:
                 CaretAssert(0);

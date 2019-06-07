@@ -44,6 +44,15 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+        void getColorBackgroundWindow(uint8_t colorBackground[3]) const;
+        
+        void setColorBackgroundWindow(const uint8_t colorBackground[3]);
+        
+        void getColorForegroundWindow(uint8_t colorForeground[3]) const;
+        
+        void setColorForegroundWindow(const uint8_t colorForeground[3]);
+        
+
         void getColorForegroundAllView(uint8_t colorForeground[3]) const;
         
         void setColorForegroundAllView(const uint8_t colorForeground[3]);
@@ -94,6 +103,10 @@ namespace caret {
                       const uint8_t red,
                       const uint8_t green,
                       const uint8_t blue);
+        
+        uint8_t m_colorBackgroundWindow[3];
+        
+        uint8_t m_colorForegroundWindow[3];
         
         uint8_t m_colorForegroundAll[3];
         

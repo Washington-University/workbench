@@ -105,7 +105,6 @@ CaretPreferences::invalidSceneDataValues()
     for (auto pdv : m_preferenceDataValues) {
         pdv->setSceneValueValid(false);
     }
-    setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
 }
 
 /**
@@ -694,6 +693,10 @@ CaretPreferences::setUserBackgroundAndForegroundColors(const BackgroundAndForegr
     /*
      * Update preferences file with colors
      */
+    writeUnsignedByteArray(NAME_COLOR_BACKGROUND_WINDOW,
+                           this->userColors.m_colorBackgroundWindow,
+                           3);
+    
     writeUnsignedByteArray(NAME_COLOR_FOREGROUND_ALL,
                            this->userColors.m_colorForegroundAll,
                            3);
@@ -1639,6 +1642,18 @@ CaretPreferences::readPreferences()
     userColors.reset();
     
     uint8_t colorRGB[3] = { 0, 0, 0 };
+    
+    userColors.getColorForegroundWindow(colorRGB);
+    readUnsignedByteArray(NAME_COLOR_FOREGROUND_WINDOW,
+                          colorRGB,
+                          3);
+    userColors.setColorForegroundWindow(colorRGB);
+    
+    userColors.getColorBackgroundWindow(colorRGB);
+    readUnsignedByteArray(NAME_COLOR_BACKGROUND_WINDOW,
+                          colorRGB,
+                          3);
+    userColors.setColorBackgroundWindow(colorRGB);
     
     userColors.getColorForegroundAllView(colorRGB);
     readUnsignedByteArray(NAME_COLOR_FOREGROUND_ALL,
