@@ -100,7 +100,7 @@ CaretPreferences::~CaretPreferences()
  * and these 'scene overrides' are invalidated by this method
  */
 void
-CaretPreferences::invalidSceneDataValues()
+CaretPreferences::invalidateSceneDataValues()
 {
     for (auto pdv : m_preferenceDataValues) {
         pdv->setSceneValueValid(false);

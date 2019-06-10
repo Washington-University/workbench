@@ -702,7 +702,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
      * Default to user preferences for colors
      */
     m_caretPreferences->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
-    m_caretPreferences->invalidSceneDataValues();
+    m_caretPreferences->invalidateSceneDataValues();
 
     if (sceneClass == NULL) {
         return;
@@ -1068,7 +1068,7 @@ SessionManager::restorePreferencesFromScene(const SceneAttributes* /*sceneAttrib
     }
     
     const QString invalidValueName("InVaLiDvAlUe");
-    m_caretPreferences->invalidSceneDataValues();
+    m_caretPreferences->invalidateSceneDataValues();
     
     std::vector<CaretPreferenceDataValue*> sceneDataValues = m_caretPreferences->getPreferenceSceneDataValues();
     for (auto scv : sceneDataValues) {

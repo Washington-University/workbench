@@ -214,7 +214,7 @@ namespace caret {
         
         void writeMacros();
         
-        void invalidSceneDataValues();
+        void invalidateSceneDataValues();
         
         std::vector<CaretPreferenceDataValue*> getPreferenceSceneDataValues();
 
