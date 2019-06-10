@@ -74,6 +74,10 @@ namespace caret {
         
         void removeHistoryItem(const int32_t index);
         
+        void moveDownHistoryItem(const int32_t index);
+        
+        void moveUpHistoryItem(const int32_t index);
+        
         void clearHistory();
         
         bool getBounds(BoundingBox& boundingBoxOut) const;

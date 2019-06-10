@@ -431,12 +431,57 @@ ChartTwoLineSeriesHistory::getHistoryItem(const int32_t index) const
     return m_chartHistory[index];
 }
 
+/**
+ * Remove the history item at the given index
+ *
+ * @param index
+ *      Index of the item.
+ */
 void
 ChartTwoLineSeriesHistory::removeHistoryItem(const int32_t index)
 {
     CaretAssertVectorIndex(m_chartHistory, index);
     delete m_chartHistory[index];
     m_chartHistory.erase(m_chartHistory.begin() + index);
+}
+
+/**
+ * Move the history item down at the given index
+ *
+ * @param index
+ *      Index of the item.
+ */
+void
+ChartTwoLineSeriesHistory::moveDownHistoryItem(const int32_t index)
+{
+    if (getHistoryCount() <= 1) {
+        return;
+    }
+    
+    const int32_t lastIndex = getHistoryCount() - 1;
+    if (index < lastIndex) {
+        std::swap(m_chartHistory[index],
+                  m_chartHistory[index + 1]);
+    }
+}
+
+/**
+ * Move the history item up at the given index
+ *
+ * @param index
+ *      Index of the item.
+ */
+void
+ChartTwoLineSeriesHistory::moveUpHistoryItem(const int32_t index)
+{
+    if (getHistoryCount() <= 1) {
+        return;
+    }
+    
+    if (index > 0) {
+        std::swap(m_chartHistory[index - 1],
+                  m_chartHistory[index]);
+    }
 }
 
 /**

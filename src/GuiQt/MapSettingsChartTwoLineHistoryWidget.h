@@ -63,6 +63,10 @@ namespace caret {
         
         void removeHistoryItemSelected(int rowIndex);
         
+        void moveUpHistoryItemSelected(int rowIndex);
+        
+        void moveDownHistoryItemSelected(int rowIndex);
+        
         void colorItemSelected(int rowIndex);
         
         void lineWidthItemSelected(int rowIndex);
@@ -76,6 +80,10 @@ namespace caret {
         void viewedMaximumSpinBoxValueChanged(int);
         
     private:
+        enum class IconType {
+            ARROW_DOWN,
+            ARROW_UP
+        };
         
         MapSettingsChartTwoLineHistoryWidget(const MapSettingsChartTwoLineHistoryWidget&);
 
@@ -91,11 +99,18 @@ namespace caret {
         
         CaretMappableDataFile* getMapFile();
         
+        QPixmap createIcon(const QWidget* widget,
+                           const IconType iconType) const;
+        
         std::weak_ptr<ChartTwoOverlay> m_chartOverlayWeakPointer;
         
         QTableWidget* m_tableWidget;
         
         QIcon* m_removeAllHistoryIcon;
+        
+        QIcon* m_downArrowIcon;
+        
+        QIcon* m_upArrowIcon;
         
         QSignalMapper* m_removeHistoryItemSignalMapper;
         
@@ -117,10 +132,11 @@ namespace caret {
         
         static const int32_t COLUMN_VIEW   = 0;
         static const int32_t COLUMN_REMOVE = 1;
-        static const int32_t COLUMN_COLOR  = 2;
-        static const int32_t COLUMN_LINE_WIDTH = 3;
-        static const int32_t COLUMN_DESCRIPTION = 4;
-        static const int32_t COLUMN_COUNT  = 5;
+        static const int32_t COLUMN_MOVE   = 2;
+        static const int32_t COLUMN_COLOR  = 3;
+        static const int32_t COLUMN_LINE_WIDTH = 4;
+        static const int32_t COLUMN_DESCRIPTION = 5;
+        static const int32_t COLUMN_COUNT  = 6;
         
         // ADD_NEW_MEMBERS_HERE
 
