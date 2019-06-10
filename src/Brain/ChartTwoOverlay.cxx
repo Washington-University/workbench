@@ -739,6 +739,23 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
                              * and dimensions must also match
                              */
                             useIt = true;
+                            
+                            /*
+                             * If file is a scalar data series, and the same scalar data series file
+                             * is enabled in a "higher" chart overlay, do not show the file in this
+                             * overlay.
+                             */
+                            if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
+                                for (int32_t io = 0; io < m_overlayIndex; io++) {
+                                    const ChartTwoOverlay* otherOverlay = m_parentChartTwoOverlaySet->getOverlay(io);
+                                    CaretAssert(otherOverlay);
+                                    if (otherOverlay->isEnabled()) {
+                                        if (otherOverlay->getSelectedMapFile() == mapFile) {
+                                            useIt = false;
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
