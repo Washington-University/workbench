@@ -745,7 +745,7 @@ ChartTwoOverlay::getSelectionDataPrivate(std::vector<CaretMappableDataFile*>& ma
                              * is enabled in a "higher" chart overlay, do not show the file in this
                              * overlay.  Updated to only hide this file in disabled overlays.
                              */
-                            const bool enableSdsFilterFlag(true);
+                            const bool enableSdsFilterFlag(false);
                             if (enableSdsFilterFlag) {
                                 if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES) {
                                     if ( ! isEnabled()) {

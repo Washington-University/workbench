@@ -215,7 +215,6 @@ MapSettingsChartTwoLineHistoryWidget::updateDialogContentPrivate()
     ChartTwoLineSeriesHistory* lineSeriesHistory = getLineSeriesHistory();
     
     if (lineSeriesHistory != NULL) {
-        const CaretMappableDataFile* mapFile = getMapFile();
         m_defaultColorComboBox->setSelectedColor(lineSeriesHistory->getDefaultColor());
         m_defaultLineWidthSpinBox->blockSignals(true);
         m_defaultLineWidthSpinBox->setValue(lineSeriesHistory->getDefaultLineWidth());
