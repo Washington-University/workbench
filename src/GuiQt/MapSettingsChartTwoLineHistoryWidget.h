@@ -122,8 +122,6 @@ namespace caret {
         
         std::vector<WuQDoubleSpinBox*> m_lineWidthSpinBoxes;
         
-        QLabel* m_filenameLabel;
-        
         CaretColorEnumComboBox* m_defaultColorComboBox;
         
         WuQDoubleSpinBox* m_defaultLineWidthSpinBox;

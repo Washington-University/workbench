@@ -74,7 +74,6 @@ MapSettingsChartTwoLineHistoryWidget::MapSettingsChartTwoLineHistoryWidget(QWidg
                                         "displayed) is limited to this value or " + maxHistoryString + ", whichever is larger.");
     
     m_removeAllHistoryIcon = WuQtUtilities::loadIcon(":/SpecFileDialog/delete_icon.png");
-    m_filenameLabel = new QLabel("");
     
     QLabel* defaultColorLabel = new QLabel("Default Color: ");
     defaultColorLabel->setToolTip(defaultColorToolTip);
@@ -130,8 +129,6 @@ MapSettingsChartTwoLineHistoryWidget::MapSettingsChartTwoLineHistoryWidget(QWidg
     topLayout->setColumnStretch(3, 0);
     topLayout->setColumnStretch(4, 100);
     int gridRow = 0;
-    topLayout->addWidget(m_filenameLabel, gridRow, 0, 1, 5, Qt::AlignLeft);
-    gridRow++;
     topLayout->addWidget(defaultLineWidthLabel, gridRow, 0);
     topLayout->addWidget(m_defaultLineWidthSpinBox->getWidget(), gridRow, 1);
     topLayout->addWidget(defaultColorLabel, gridRow, 2);
@@ -219,10 +216,6 @@ MapSettingsChartTwoLineHistoryWidget::updateDialogContentPrivate()
     
     if (lineSeriesHistory != NULL) {
         const CaretMappableDataFile* mapFile = getMapFile();
-        if (mapFile != NULL) {
-            m_filenameLabel->setText("Filename: " + mapFile->getFileNameNoPath());
-            m_filenameLabel->setToolTip(mapFile->getFileName());
-        }
         m_defaultColorComboBox->setSelectedColor(lineSeriesHistory->getDefaultColor());
         m_defaultLineWidthSpinBox->blockSignals(true);
         m_defaultLineWidthSpinBox->setValue(lineSeriesHistory->getDefaultLineWidth());

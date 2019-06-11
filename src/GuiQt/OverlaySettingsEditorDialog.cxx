@@ -405,6 +405,8 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
             }
         }
         else if (m_chartOverlay != NULL) {
+            mapFileName = m_caretMappableDataFile->getFileNameNoPath();
+
             bool hasMapsFlag = false;
             bool hasHistoryFlag = false;
             switch (m_chartOverlay->getChartTwoDataType()) {
@@ -447,10 +449,6 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
                 }
                 if ((selectedMapIndex >= 0)
                     && (selectedMapIndex < m_caretMappableDataFile->getNumberOfMaps())) {
-                    /*
-                     * Get name of file and map
-                     */
-                    mapFileName = m_caretMappableDataFile->getFileNameNoPath();
                     if (m_selectedMapFileIndex >= 0) {
                         mapName = m_caretMappableDataFile->getMapName(selectedMapIndex);
                     }
@@ -501,6 +499,9 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
             else if (hasHistoryFlag) {
                 isLinesValid = true;
                 m_lineHistoryWidget->updateContent(m_chartOverlay);
+                if (mapName.isEmpty()) {
+                    mapName = "Line Chart History";
+                }
             }
         }
         else {
