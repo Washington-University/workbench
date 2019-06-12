@@ -72,6 +72,7 @@ using namespace caret;
 #include "WuQFactory.h"
 #include "WuQGroupBoxExclusiveWidget.h"
 #include "WuQMessageBox.h"
+#include "WuQSpinBox.h"
 #include "WuQtUtilities.h"
 
 #include <limits>
@@ -338,12 +339,12 @@ IdentifyBrainordinateDialog::createCiftiRowWidget(const std::vector<DataFileType
     m_ciftiRowFileComboBox = new CaretDataFileSelectionComboBox(this);
     
     m_ciftiRowFileIndexLabel = new QLabel("Row Index");
-    m_ciftiRowFileIndexSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI(),
-                                                                      std::numeric_limits<int>::max(),
-                                                                      1);
-    QObject::connect(m_ciftiRowFileIndexSpinBox, SIGNAL(editingFinished()),
+    m_ciftiRowFileIndexSpinBox = new WuQSpinBox();
+    m_ciftiRowFileIndexSpinBox->setMinimum(1);
+    m_ciftiRowFileIndexSpinBox->setMaximum(std::numeric_limits<int>::max());
+    QObject::connect(m_ciftiRowFileIndexSpinBox, SIGNAL(signalReturnPressed()),
                      this, SLOT(apply()));
-    
+
     m_ciftiRowFileIndexSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
     switch (CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()) {
         case 0:
