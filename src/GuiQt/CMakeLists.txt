@@ -225,6 +225,7 @@ ELSE()
         WuQMessageBox.h
         WuQwtPlot.h
         WuQSpecialIncrementDoubleSpinBox.h
+	WuQSpinBox.h
         WuQSpinBoxGroup.h
         WuQSpinBoxOddValue.h
         WuQTabBar.h
@@ -510,6 +511,7 @@ WuQMacroWidgetAction.h
 WuQMessageBox.h
 WuQwtPlot.h
 WuQSpecialIncrementDoubleSpinBox.h
+WuQSpinBox.h
 WuQSpinBoxGroup.h
 WuQSpinBoxOddValue.h
 WuQTabBar.h
@@ -777,6 +779,7 @@ WuQMacroWidgetAction.cxx
 WuQMessageBox.cxx
 WuQwtPlot.cxx
 WuQSpecialIncrementDoubleSpinBox.cxx
+WuQSpinBox.cxx
 WuQSpinBoxGroup.cxx
 WuQSpinBoxOddValue.cxx
 WuQTabBar.cxx
