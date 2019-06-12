@@ -57,8 +57,8 @@ void
 WuQSpinBox::keyPressEvent(QKeyEvent* event)
 {
     if (event->key() == Qt::Key_Return) {
-        std::cout << "Return key pressed";
         emit signalReturnPressed();
+        return;
     }
     
     QSpinBox::keyPressEvent(event);
