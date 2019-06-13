@@ -3230,17 +3230,9 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                         rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
                         rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
                         rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
-                        /*
-                         * A negative value for alpha indicates "do not draw".
-                         * Since unsigned bytes do not have negative values,
-                         * change the value to zero (which indicates "transparent").
-                         */
-                        float alpha = mapRGBA[dataOffset4+3];
-                        if (alpha < 0.0) {
-                            alpha = 0.0;
-                        }
+                        uint8_t alpha = mapRGBA[dataOffset4+3];
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             if (labelTable != NULL) {
                                 /*
                                  * For label data, verify that the label is displayed.
@@ -3254,17 +3246,17 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                     const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
                                     CaretAssert(item);
                                     if (item->isSelected(displayGroup, tabIndex) == false) {
-                                        alpha = 0.0;
+                                        alpha = 0;
                                     }
                                 }
                             }
                             
                         }
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             ++validVoxelCount;
                         }
-                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+                        rgbaOut[rgbaOffset+3] = alpha;
                     }
                 }
             }
@@ -3284,17 +3276,9 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                         rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
                         rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
                         rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
-                        /*
-                         * A negative value for alpha indicates "do not draw".
-                         * Since unsigned bytes do not have negative values,
-                         * change the value to zero (which indicates "transparent").
-                         */
-                        float alpha = mapRGBA[dataOffset4+3];
-                        if (alpha < 0.0) {
-                            alpha = 0.0;
-                        }
+                        uint8_t alpha = mapRGBA[dataOffset4+3];
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             if (labelTable != NULL) {
                                 /*
                                  * For label data, verify that the label is displayed.
@@ -3308,17 +3292,17 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                     const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
                                     CaretAssert(item);
                                     if (item->isSelected(displayGroup, tabIndex) == false) {
-                                        alpha = 0.0;
+                                        alpha = 0;
                                     }
                                 }
                             }
                             
                         }
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             ++validVoxelCount;
                         }
-                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+                        rgbaOut[rgbaOffset+3] = alpha;
                     }
                 }
             }
@@ -3338,17 +3322,12 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                         rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
                         rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
                         rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
-                        /*
-                         * A negative value for alpha indicates "do not draw".
-                         * Since unsigned bytes do not have negative values,
-                         * change the value to zero (which indicates "transparent").
-                         */
-                        float alpha = mapRGBA[dataOffset4+3];
-                        if (alpha < 0.0) {
-                            alpha = 0.0;
+                        uint8_t alpha = mapRGBA[dataOffset4+3];
+                        if (alpha < 0) {
+                            alpha = 0;
                         }
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             if (labelTable != NULL) {
                                 /*
                                  * For label data, verify that the label is displayed.
@@ -3362,17 +3341,17 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                     const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
                                     CaretAssert(item);
                                     if (item->isSelected(displayGroup, tabIndex) == false) {
-                                        alpha = 0.0;
+                                        alpha = 0;
                                     }
                                 }
                             }
                             
                         }
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             ++validVoxelCount;
                         }
-                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+                        rgbaOut[rgbaOffset+3] = alpha;
                     }
                 }
             }
@@ -3475,18 +3454,9 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                 rgba[0] = mapRGBA[dataOffset4];
                 rgba[1] = mapRGBA[dataOffset4+1];
                 rgba[2] = mapRGBA[dataOffset4+2];
+                uint8_t alpha = mapRGBA[dataOffset4+3];
                 
-                /*
-                 * A negative value for alpha indicates "do not draw".
-                 * Since unsigned bytes do not have negative values,
-                 * change the value to zero (which indicates "transparent").
-                 */
-                float alpha = mapRGBA[dataOffset4+3];
-                if (alpha < 0.0) {
-                    alpha = 0.0;
-                }
-                
-                if (alpha > 0.0) {
+                if (alpha > 0) {
                     if (labelTable != NULL) {
                         /*
                          * For label data, verify that the label is displayed.
@@ -3500,23 +3470,32 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                             const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
                             CaretAssert(item);
                             if (item->isSelected(displayGroup, tabIndex) == false) {
-                                alpha = 0.0;
+                                alpha = 0;
                             }
                         }
                     }
                     
                 }
                 
-                if (alpha > 0.0) {
+                if (alpha > 0) {
                     ++validVoxelCount;
                 }
-                rgba[3] = (alpha * 255.0);
+                rgba[3] = alpha;
             }
             
-            rgbaOut[rgbaOutIndex4]   = rgba[0];
-            rgbaOut[rgbaOutIndex4+1] = rgba[1];
-            rgbaOut[rgbaOutIndex4+2] = rgba[2];
-            rgbaOut[rgbaOutIndex4+3] = rgba[3];
+            if (rgba[3] > 0) {
+                rgbaOut[rgbaOutIndex4]   = rgba[0];
+                rgbaOut[rgbaOutIndex4+1] = rgba[1];
+                rgbaOut[rgbaOutIndex4+2] = rgba[2];
+                rgbaOut[rgbaOutIndex4+3] = rgba[3];
+            }
+            else {
+                /* Fixes blending */
+                rgbaOut[rgbaOutIndex4]   = 0;
+                rgbaOut[rgbaOutIndex4+1] = 0;
+                rgbaOut[rgbaOutIndex4+2] = 0;
+                rgbaOut[rgbaOutIndex4+3] = 0;
+            }
             rgbaOutIndex4 += 4;
             
             if (rgba[3] > 0) {
@@ -3709,17 +3688,9 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                         rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
                         rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
                         rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
-                        /*
-                         * A negative value for alpha indicates "do not draw".
-                         * Since unsigned bytes do not have negative values,
-                         * change the value to zero (which indicates "transparent").
-                         */
-                        float alpha = mapRGBA[dataOffset4+3];
-                        if (alpha < 0.0) {
-                            alpha = 0.0;
-                        }
+                        uint8_t alpha = mapRGBA[dataOffset4+3];
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             if (labelTable != NULL) {
                                 /*
                                  * For label data, verify that the label is displayed.
@@ -3733,17 +3704,17 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                     const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
                                     CaretAssert(item);
                                     if (item->isSelected(displayGroup, tabIndex) == false) {
-                                        alpha = 0.0;
+                                        alpha = 0;
                                     }
                                 }
                             }
                             
                         }
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             ++validVoxelCount;
                         }
-                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+                        rgbaOut[rgbaOffset+3] = alpha;
                     }
                     
                     if (i == iEnd) {
@@ -3789,17 +3760,9 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                         rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
                         rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
                         rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
-                        /*
-                         * A negative value for alpha indicates "do not draw".
-                         * Since unsigned bytes do not have negative values,
-                         * change the value to zero (which indicates "transparent").
-                         */
-                        float alpha = mapRGBA[dataOffset4+3];
-                        if (alpha < 0.0) {
-                            alpha = 0.0;
-                        }
+                        uint8_t alpha = mapRGBA[dataOffset4+3];
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             if (labelTable != NULL) {
                                 /*
                                  * For label data, verify that the label is displayed.
@@ -3813,17 +3776,17 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                     const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
                                     CaretAssert(item);
                                     if (item->isSelected(displayGroup, tabIndex) == false) {
-                                        alpha = 0.0;
+                                        alpha = 0;
                                     }
                                 }
                             }
                             
                         }
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             ++validVoxelCount;
                         }
-                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+                        rgbaOut[rgbaOffset+3] = alpha;
                     }
                     
                     
@@ -3870,17 +3833,9 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                         rgbaOut[rgbaOffset]   = mapRGBA[dataOffset4];
                         rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
                         rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
-                        /*
-                         * A negative value for alpha indicates "do not draw".
-                         * Since unsigned bytes do not have negative values,
-                         * change the value to zero (which indicates "transparent").
-                         */
-                        float alpha = mapRGBA[dataOffset4+3];
-                        if (alpha < 0.0) {
-                            alpha = 0.0;
-                        }
+                        uint8_t alpha = mapRGBA[dataOffset4+3];
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             if (labelTable != NULL) {
                                 /*
                                  * For label data, verify that the label is displayed.
@@ -3894,17 +3849,17 @@ CiftiMappableDataFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                     const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
                                     CaretAssert(item);
                                     if (item->isSelected(displayGroup, tabIndex) == false) {
-                                        alpha = 0.0;
+                                        alpha = 0;
                                     }
                                 }
                             }
                             
                         }
                         
-                        if (alpha > 0.0) {
+                        if (alpha > 0) {
                             ++validVoxelCount;
                         }
-                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
+                        rgbaOut[rgbaOffset+3] = alpha;
                     }
                     
                     if (j == jEnd) {
@@ -3998,7 +3953,7 @@ CiftiMappableDataFile::getVoxelColorInMapForLabelData(const std::vector<float>& 
                     const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
                     if (item != NULL) {
                         if (item->isSelected(displayGroup, tabIndex) == false) {
-                            rgbaOut[3] = 0.0;
+                            rgbaOut[3] = 0;
                         }
                     }
                 }
