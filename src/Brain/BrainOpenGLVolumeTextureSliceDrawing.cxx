@@ -2510,7 +2510,7 @@ BrainOpenGLVolumeTextureSliceDrawing::createObliqueTransformationMatrix(const fl
 /* ======================================================================= */
 
 static bool
-getTextureCoordinates(const VolumeFile* vf,
+getTextureCoordinates(const VolumeMappableInterface* vf,
                       const float xyz[3],
                       const float maxStr[3],
                       float rstOut[3])
@@ -2547,28 +2547,165 @@ getTextureCoordinates(const VolumeFile* vf,
     return true;
 }
 
+//static bool
+//createCiftiTexture(const CiftiMappableDataFile* ciftiMapFile,
+//                   const DisplayGroupEnum::Enum displayGroup,
+//                   const int32_t tabIndex,
+//                   const bool allowNonPowerOfTwoTextureFlag,
+//                   std::vector<uint8_t>& rgbaColorsOut,
+//                   std::array<int64_t, 3>& textureDimsOut,
+//                   std::array<float, 3>& maxStrOut)
+//{
+//    CaretAssert(ciftiMapFile);
+//    const CiftiFile* ciftiFile = ciftiMapFile->getCiftiFile();
+//    const CiftiXML&  ciftiXML  = ciftiMapFile->getCiftiXML();
+//    if (ciftiXML.)
+//
+//    return true;
+//}
+
+static bool
+createVolumeTexture(const VolumeMappableInterface* volumeFile,
+                    const DisplayGroupEnum::Enum displayGroup,
+                    const int32_t tabIndex,
+                    const bool allowNonPowerOfTwoTextureFlag,
+                    std::vector<uint8_t>& rgbaColorsOut,
+                    std::array<int64_t, 3>& textureDimsOut,
+                    std::array<float, 3>& maxStrOut)
+{
+    maxStrOut.fill(0.0);
+
+    std::vector<int64_t> dims(5);
+    volumeFile->getDimensions(dims);
+    textureDimsOut.fill(256);
+    const int64_t dimLargest = *std::max_element(dims.begin(), dims.begin() + 3);
+    if (allowNonPowerOfTwoTextureFlag) {
+        
+    }
+    else {
+        if (dimLargest > 512) {
+            const CaretMappableDataFile* mapFile = dynamic_cast<const CaretMappableDataFile*>(volumeFile);
+            const QString filename((mapFile != NULL)
+                                   ? mapFile->getFileNameNoPath()
+                                   : "no file name available");
+            const QString msg("Dimensions too large for volume texture support.  Dimensions="
+                              + AString::fromNumbers(&dims[0], 3, ",")
+                              + " for volume "
+                              + filename);
+            CaretLogSevere(msg);
+            return false;
+        }
+        else if (dimLargest > 256) {
+            textureDimsOut.fill(512);
+        }
+    }
+
+    const int64_t mapIndex(0);
+    const int64_t numberOfSlices = dims[2];
+    const int64_t numberOfRows = dims[1];
+    const int64_t numberOfColumns = dims[0];
+    const int64_t numSliceBytes = (numberOfRows * numberOfColumns * 4);
+    std::vector<uint8_t> rgbaSlice(numSliceBytes);
+    
+    if (allowNonPowerOfTwoTextureFlag) {
+        textureDimsOut[0] = numberOfColumns;
+        textureDimsOut[1] = numberOfRows;
+        textureDimsOut[2] = numberOfSlices;
+    }
+    const int64_t textureBytes = (textureDimsOut[0] * textureDimsOut[1] * textureDimsOut[2] * 4);
+    
+    rgbaColorsOut.clear();
+    rgbaColorsOut.resize(textureBytes, 0);
+    
+    /*
+     * To avoid resampling of the voxel data, the texture has larger dimensions
+     * and the volume's voxels are placed in the bottom left corner of the texture
+     * and extra texture texel's are zeros.
+     */
+    for (int64_t k = 0; k < numberOfSlices; k++) {
+        int64_t firstVoxelIJK[3] = { 0, 0, k };
+        int64_t rowStepIJK[3] = { 0, 1, 0 };
+        int64_t columnStepIJK[3] = { 1, 0, 0 };
+        
+        std::fill(rgbaSlice.begin(), rgbaSlice.end(), 0);
+        volumeFile->getVoxelColorsForSliceInMap(mapIndex,
+                                                firstVoxelIJK,
+                                                rowStepIJK,
+                                                columnStepIJK,
+                                                numberOfRows,
+                                                numberOfColumns,
+                                                displayGroup,
+                                                tabIndex,
+                                                &rgbaSlice[0]);
+        
+        for (int32_t j = 0; j < numberOfRows; j++) {
+            for (int32_t i = 0; i < numberOfColumns; i++) {
+                const int32_t sliceOffset = ((j * numberOfColumns) + i) * 4;
+                const int32_t textureOffset = ((k * textureDimsOut[0] * textureDimsOut[1])
+                                               + (j * textureDimsOut[0]) + i) * 4;
+                for (int32_t m = 0; m < 4; m++) {
+                    CaretAssertVectorIndex(rgbaColorsOut, (textureOffset + 3));
+                    CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
+                    rgbaColorsOut[textureOffset + m] = rgbaSlice[sliceOffset + m];
+                }
+            }
+        }
+    }
+    
+    maxStrOut[0] = static_cast<float>(dims[0]) / static_cast<float>(textureDimsOut[0]);
+    maxStrOut[1] = static_cast<float>(dims[1]) / static_cast<float>(textureDimsOut[1]);
+    maxStrOut[2] = static_cast<float>(dims[2]) / static_cast<float>(textureDimsOut[2]);
+    if (debugFlag) std::cout << "max STR: " << AString::fromNumbers(maxStrOut.data(), 3, ",") << std::endl;
+
+    return true;
+
+}
+
 static GLuint
 createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                  const VolumeFile* vf,
+                  const VolumeMappableInterface* volumeMappableInterface,
                   const DisplayGroupEnum::Enum displayGroup,
                   const int32_t tabIndex,
-                  float maxStrOut[3])
+                  std::array<float, 3>& maxStrOut)
 {
-    std::vector<int64_t> dims(5);
-    vf->getDimensions(dims);
-    int64_t textureDims = 256;
-    const int64_t dimLargest = *std::max_element(dims.begin(), dims.begin() + 3);
-    if (dimLargest > 512) {
-        const QString msg("Volume dimensions too large for texture support.  Dimensions="
-                          + AString::fromNumbers(&dims[0], 3, ",")
-                          + " for volume "
-                          + vf->getFileNameNoPath());
-        CaretLogSevere(msg);
-        return 0;
+    const CaretMappableDataFile* mapFile = dynamic_cast<const CaretMappableDataFile*>(volumeMappableInterface);
+    CaretAssert(mapFile);
+    
+    const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(volumeMappableInterface);
+    const CiftiMappableDataFile* ciftiFile = dynamic_cast<const CiftiMappableDataFile*>(volumeMappableInterface);
+    
+    std::vector<uint8_t> rgbaColors;
+    std::array<int64_t, 3> textureDims;
+    
+    /*
+     * OpenGL 2.0 or later supports non-power-of-two texture dimensions
+     */
+    const bool allowNonPowerOfTwoTextureFlag(true);
+    if (volumeFile != NULL) {
+        if ( ! createVolumeTexture(volumeFile,
+                                   displayGroup,
+                                   tabIndex,
+                                   allowNonPowerOfTwoTextureFlag,
+                                   rgbaColors,
+                                   textureDims,
+                                   maxStrOut)) {
+            return 0;
+        }
     }
-    else if (dimLargest > 256) {
-        textureDims = 512;
+    else if (ciftiFile != NULL) {
+        if ( ! createVolumeTexture(ciftiFile,
+                                   displayGroup,
+                                   tabIndex,
+                                   allowNonPowerOfTwoTextureFlag,
+                                   rgbaColors,
+                                   textureDims,
+                                   maxStrOut)) {
+            return 0;
+        }
+    }
+    else {
+        CaretAssert(0);
     }
     
     GLuint  textureName(0);
@@ -2593,7 +2730,7 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
      * - Never use GL_CLAMP, use GL_CLAMP_TO_EDGE
      */
 
-    if (vf->isMappedWithPalette()) {
+    if (mapFile->isMappedWithPalette()) {
         /*
          * This combination MIN=Linear, MAG=Nearest
          * seems to produce voxel drawing that is
@@ -2651,114 +2788,90 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
         
         GLfloat borderColor[4] = { 0.0, 0.0, 0.0, 0.0 };
         glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-
-        /*
-         * Clamp to edge seems to extend any data that is an edge voxel such as
-         * an ear in slice -18 in glassr volume
-         */
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-        /*
-         * Clamp to border seems to work best
-         */
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-        
     }
     else {
+        /*
+         * No interpolation for Label or RGBA data
+         */
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
      }
     
+    /*
+     * Always clamp to border.  If no texels (voxels) are available, pixel
+     * maps to area outside of the volume, the border color is used.
+     */
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
 
-    const int64_t mapIndex(0);
-    const int64_t numberOfSlices = dims[2];
-    const int64_t numberOfRows = dims[1];
-    const int64_t numberOfColumns = dims[0];
-    const int64_t numSliceBytes = (numberOfRows * numberOfColumns * 4);
-    std::vector<uint8_t> rgbaSlice(numSliceBytes);
-    
-    const int64_t numberOfBytes = (numberOfSlices * numSliceBytes);
-    std::vector<uint8_t> rgbaColors;
-    rgbaColors.reserve(numberOfBytes);
-    
-    const int64_t textureBytes = (textureDims * textureDims * textureDims * 4);
-    
-    std::vector<uint8_t> texture(textureBytes, 0);
-    
-    for (int64_t k = 0; k < numberOfSlices; k++) {
-        int64_t firstVoxelIJK[3] = { 0, 0, k };
-        int64_t rowStepIJK[3] = { 0, 1, 0 };
-        int64_t columnStepIJK[3] = { 1, 0, 0 };
-        
-        std::fill(rgbaSlice.begin(), rgbaSlice.end(), 0);
-        vf->getVoxelColorsForSliceInMap(mapIndex,
-                                        firstVoxelIJK,
-                                        rowStepIJK,
-                                        columnStepIJK,
-                                        numberOfRows,
-                                        numberOfColumns,
-                                        displayGroup,
-                                        tabIndex,
-                                        &rgbaSlice[0]);
-        
-        const bool edgeFlag(false);
-        for (int32_t j = 0; j < numberOfRows; j++) {
-            for (int32_t i = 0; i < numberOfColumns; i++) {
-                const int32_t sliceOffset = ((j * numberOfColumns) + i) * 4;
-                const int32_t textureOffset = ((k * textureDims * textureDims)
-                                               + (j * textureDims) + i) * 4;
-                for (int32_t m = 0; m < 4; m++) {
-                    CaretAssertVectorIndex(texture, (textureOffset + 3));
-                    CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
-                    texture[textureOffset + m] = rgbaSlice[sliceOffset + m];
-                }
-                
-                if (edgeFlag) {
-                    if (i == (numberOfColumns - 1)) {
-                        if (numberOfColumns < textureDims) {
-                            for (int32_t m = 0; m < 4; m++) {
-                                CaretAssertVectorIndex(texture, (textureOffset + 3 + 4));
-                                CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
-                                texture[textureOffset + m + 4] = rgbaSlice[sliceOffset + m];
-                            }
-                            texture[textureOffset + 3 + 4] = 0;
-                        }
-                    }
-                }
-            }
-        }
-        
-        rgbaColors.insert(rgbaColors.end(),
-                          rgbaSlice.begin(), rgbaSlice.end());
-    }
-    CaretAssert(static_cast<int64_t>(rgbaColors.size()) == numberOfBytes);
-    CaretAssert(static_cast<int64_t>(rgbaColors.size()) ==
-                (numberOfColumns * numberOfRows * numberOfSlices * 4));
-    
-    maxStrOut[0] = static_cast<float>(dims[0]) / static_cast<float>(textureDims);
-    maxStrOut[1] = static_cast<float>(dims[1]) / static_cast<float>(textureDims);
-    maxStrOut[2] = static_cast<float>(dims[2]) / static_cast<float>(textureDims);
-    if (debugFlag) std::cout << "max STR: " << AString::fromNumbers(maxStrOut, 3, ",") << std::endl;
+//    const int64_t mapIndex(0);
+//    const int64_t numberOfSlices = dims[2];
+//    const int64_t numberOfRows = dims[1];
+//    const int64_t numberOfColumns = dims[0];
+//    const int64_t numSliceBytes = (numberOfRows * numberOfColumns * 4);
+//    std::vector<uint8_t> rgbaSlice(numSliceBytes);
+//
+//    const int64_t numberOfBytes = (numberOfSlices * numSliceBytes);
+//    std::vector<uint8_t> rgbaColors;
+//    rgbaColors.reserve(numberOfBytes);
+//
+//    const int64_t textureBytes = (textureDims * textureDims * textureDims * 4);
+//
+//    std::vector<uint8_t> texture(textureBytes, 0);
+//
+//    for (int64_t k = 0; k < numberOfSlices; k++) {
+//        int64_t firstVoxelIJK[3] = { 0, 0, k };
+//        int64_t rowStepIJK[3] = { 0, 1, 0 };
+//        int64_t columnStepIJK[3] = { 1, 0, 0 };
+//
+//        std::fill(rgbaSlice.begin(), rgbaSlice.end(), 0);
+//        volumeFile->getVoxelColorsForSliceInMap(mapIndex,
+//                                        firstVoxelIJK,
+//                                        rowStepIJK,
+//                                        columnStepIJK,
+//                                        numberOfRows,
+//                                        numberOfColumns,
+//                                        displayGroup,
+//                                        tabIndex,
+//                                        &rgbaSlice[0]);
+//
+//        for (int32_t j = 0; j < numberOfRows; j++) {
+//            for (int32_t i = 0; i < numberOfColumns; i++) {
+//                const int32_t sliceOffset = ((j * numberOfColumns) + i) * 4;
+//                const int32_t textureOffset = ((k * textureDims * textureDims)
+//                                               + (j * textureDims) + i) * 4;
+//                for (int32_t m = 0; m < 4; m++) {
+//                    CaretAssertVectorIndex(texture, (textureOffset + 3));
+//                    CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
+//                    texture[textureOffset + m] = rgbaSlice[sliceOffset + m];
+//                }
+//            }
+//        }
+//
+//        rgbaColors.insert(rgbaColors.end(),
+//                          rgbaSlice.begin(), rgbaSlice.end());
+//    }
+//    CaretAssert(static_cast<int64_t>(rgbaColors.size()) == numberOfBytes);
+//    CaretAssert(static_cast<int64_t>(rgbaColors.size()) ==
+//                (numberOfColumns * numberOfRows * numberOfSlices * 4));
+//
+//    maxStrOut[0] = static_cast<float>(dims[0]) / static_cast<float>(textureDims);
+//    maxStrOut[1] = static_cast<float>(dims[1]) / static_cast<float>(textureDims);
+//    maxStrOut[2] = static_cast<float>(dims[2]) / static_cast<float>(textureDims);
+//    if (debugFlag) std::cout << "max STR: " << AString::fromNumbers(maxStrOut, 3, ",") << std::endl;
 
+    std::cout << "Texture Dimensions: " << AString::fromNumbers(textureDims.data(), 3, ", ") << std::endl;
     glTexImage3D(GL_TEXTURE_3D,
                  0,
                  GL_RGBA,
-                 textureDims,
-                 textureDims,
-                 textureDims,
+                 textureDims[0],
+                 textureDims[1],
+                 textureDims[2],
                  0,
                  GL_RGBA,
                  GL_UNSIGNED_BYTE,
-                 &texture[0]);
+                 &rgbaColors[0]);
 
     glBindTexture(GL_TEXTURE_3D, 0);
     glPopClientAttrib();
@@ -2771,8 +2884,8 @@ struct TextureInfo {
     std::array<float, 3> m_maxSTR;
 };
 
-static std::map<VolumeFile*, TextureInfo> obliqueVolumeTextureInfo;
-static std::map<VolumeFile*, TextureInfo> orthogonalVolumeTextureInfo;
+static std::map<VolumeMappableInterface*, TextureInfo> obliqueVolumeTextureInfo;
+static std::map<VolumeMappableInterface*, TextureInfo> orthogonalVolumeTextureInfo;
 /**
  * Draw an oblique slice with support for outlining labels and thresholded palette data.
  *
@@ -3099,10 +3212,11 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         bool firstFlag(true);
         for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
             const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
-            VolumeFile* vf = dynamic_cast<VolumeFile*>(vdi.volumeFile);
+            VolumeMappableInterface* vf = vdi.volumeFile;
+//            VolumeFile* vf = dynamic_cast<VolumeFile*>(vdi.volumeFile);
             if (vf != NULL) {
                 if (debugFlag) {
-                    std::cout << "Vol: " << iVol << ": " << vf->getFileNameNoPath() << std::endl;
+                    //std::cout << "Vol: " << iVol << ": " << vf->getFileNameNoPath() << std::endl;
                 }
                 
                 if (firstFlag) {
@@ -3151,7 +3265,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                                                   vf,
                                                   m_displayGroup,
                                                   m_tabIndex,
-                                                  maxStr.data());
+                                                  maxStr);
                     m_fixedPipelineDrawing->testForOpenGLError("After creating texture");
                     if (textureID != 0) {
                         TextureInfo textureInfo;
