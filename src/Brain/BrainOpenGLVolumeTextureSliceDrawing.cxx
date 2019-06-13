@@ -2805,63 +2805,6 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
 
-//    const int64_t mapIndex(0);
-//    const int64_t numberOfSlices = dims[2];
-//    const int64_t numberOfRows = dims[1];
-//    const int64_t numberOfColumns = dims[0];
-//    const int64_t numSliceBytes = (numberOfRows * numberOfColumns * 4);
-//    std::vector<uint8_t> rgbaSlice(numSliceBytes);
-//
-//    const int64_t numberOfBytes = (numberOfSlices * numSliceBytes);
-//    std::vector<uint8_t> rgbaColors;
-//    rgbaColors.reserve(numberOfBytes);
-//
-//    const int64_t textureBytes = (textureDims * textureDims * textureDims * 4);
-//
-//    std::vector<uint8_t> texture(textureBytes, 0);
-//
-//    for (int64_t k = 0; k < numberOfSlices; k++) {
-//        int64_t firstVoxelIJK[3] = { 0, 0, k };
-//        int64_t rowStepIJK[3] = { 0, 1, 0 };
-//        int64_t columnStepIJK[3] = { 1, 0, 0 };
-//
-//        std::fill(rgbaSlice.begin(), rgbaSlice.end(), 0);
-//        volumeFile->getVoxelColorsForSliceInMap(mapIndex,
-//                                        firstVoxelIJK,
-//                                        rowStepIJK,
-//                                        columnStepIJK,
-//                                        numberOfRows,
-//                                        numberOfColumns,
-//                                        displayGroup,
-//                                        tabIndex,
-//                                        &rgbaSlice[0]);
-//
-//        for (int32_t j = 0; j < numberOfRows; j++) {
-//            for (int32_t i = 0; i < numberOfColumns; i++) {
-//                const int32_t sliceOffset = ((j * numberOfColumns) + i) * 4;
-//                const int32_t textureOffset = ((k * textureDims * textureDims)
-//                                               + (j * textureDims) + i) * 4;
-//                for (int32_t m = 0; m < 4; m++) {
-//                    CaretAssertVectorIndex(texture, (textureOffset + 3));
-//                    CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
-//                    texture[textureOffset + m] = rgbaSlice[sliceOffset + m];
-//                }
-//            }
-//        }
-//
-//        rgbaColors.insert(rgbaColors.end(),
-//                          rgbaSlice.begin(), rgbaSlice.end());
-//    }
-//    CaretAssert(static_cast<int64_t>(rgbaColors.size()) == numberOfBytes);
-//    CaretAssert(static_cast<int64_t>(rgbaColors.size()) ==
-//                (numberOfColumns * numberOfRows * numberOfSlices * 4));
-//
-//    maxStrOut[0] = static_cast<float>(dims[0]) / static_cast<float>(textureDims);
-//    maxStrOut[1] = static_cast<float>(dims[1]) / static_cast<float>(textureDims);
-//    maxStrOut[2] = static_cast<float>(dims[2]) / static_cast<float>(textureDims);
-//    if (debugFlag) std::cout << "max STR: " << AString::fromNumbers(maxStrOut, 3, ",") << std::endl;
-
-    std::cout << "Texture Dimensions: " << AString::fromNumbers(textureDims.data(), 3, ", ") << std::endl;
     glTexImage3D(GL_TEXTURE_3D,
                  0,
                  GL_RGBA,
