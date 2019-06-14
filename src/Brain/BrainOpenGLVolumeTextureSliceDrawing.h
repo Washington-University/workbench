@@ -62,122 +62,7 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-    private:        
-        class ObliqueSlice {
-        public:
-            enum class DataValueType {
-                INVALID,
-                CIFTI_LABEL,
-                CIFTI_PALETTE,
-                VOLUME_LABEL,
-                VOLUME_PALETTE,
-                VOLUME_RGB,
-                VOLUME_RGBA
-            };
-            
-            ObliqueSlice(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                         VolumeMappableInterface* volumeInterface,
-                         const float opacity,
-                         const int32_t mapIndex,
-                         const int32_t numberOfRows,
-                         const int32_t numberOfColumns,
-                         const int32_t browserTabIndex,
-                         const DisplayPropertiesLabels* displayPropertiesLabels,
-                         const DisplayGroupEnum::Enum displayGroup,
-                         const float originXYZ[3],
-                         const float leftToRightStepXYZ[3],
-                         const float bottomToTopStepXYZ[3],
-                         const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskingType,
-                         const float voxelEditingValue,
-                         const bool volumeEditingDrawAllVoxelsFlag,
-                         const bool identificationModeFlag,
-                         const bool bottomLayerFlag);
-            
-            void assignRgba(const bool volumeEditingDrawAllVoxelsFlag);
-            
-            void addOutlines();
-            
-            void loadData(const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskingType,
-                          const float voxelEditingValue,
-                          const bool volumeEditingDrawAllVoxelsFlag);
-            
-            bool setThresholdFileAndMap();
-            
-            bool getSelectionIJK(int32_t ijkOut[3]) const;
-            
-            void draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing);
-            
-            bool spatialMatch(const ObliqueSlice* slice);
-            
-            bool compositeSlicesRGBA(const std::vector<ObliqueSlice*>& slices);
-            
-            VolumeMappableInterface* m_volumeInterface;
-            
-            const float m_opacity;
-            
-            const CaretMappableDataFile* m_mapFile = NULL;
-            
-            const int32_t m_mapIndex;
-            
-            const int32_t m_numberOfRows;
-            
-            const int32_t m_numberOfColumns;
-            
-            const int32_t m_browserTabIndex;
-            
-            const DisplayPropertiesLabels* m_displayPropertiesLabels;
-            
-            const DisplayGroupEnum::Enum m_displayGroup;
-            
-            const int32_t m_identificationX;
-            
-            const int32_t m_identificationY;
-            
-            const bool m_identificationModeFlag;
-            
-            const bool m_bottomLayerFlag;
-            
-            CiftiMappableDataFile* m_ciftiMappableFile = NULL;
-            
-            VolumeFile* m_volumeFile = NULL;
-            
-            uint8_t m_opacityByte = 255;
-            
-            CiftiMappableDataFile* m_thresholdCiftiMappableFile = NULL;
-            
-            VolumeFile* m_thresholdVolumeFile = NULL;
-            
-            PaletteColorMapping* m_thresholdPaletteColorMapping = NULL;
-            
-            int32_t m_thresholdMapIndex = -1;
-            
-            float m_originXYZ[3];
-            
-            float m_leftToRightStepXYZ[3];
-            
-            float m_bottomToTopStepXYZ[3];
-        
-            DataValueType m_dataValueType = DataValueType::INVALID;
-            
-            std::vector<float> m_data;
-        
-            std::vector<float> m_thresholdData;
-            
-            std::vector<uint8_t> m_rgba;
-            
-            std::vector<int64_t> m_identificationIJK;
-            
-            int32_t m_validVoxelCount = 0;
-            
-            int32_t m_sliceNumberOfVoxels = 0;
-            
-            int32_t m_voxelNumberOfComponents = 1;
-            
-            std::unique_ptr<IdentificationWithColor> m_identificationHelper;
-            
-            int64_t m_selectionIJK[3];
-        };
-        
+    private:                
         BrainOpenGLVolumeTextureSliceDrawing(const BrainOpenGLVolumeTextureSliceDrawing&);
 
         BrainOpenGLVolumeTextureSliceDrawing& operator=(const BrainOpenGLVolumeTextureSliceDrawing&);
@@ -286,6 +171,42 @@ namespace caret {
         
         void resetIdentification();
         
+        bool getTextureCoordinates(const VolumeMappableInterface* vf,
+                                   const float xyz[3],
+                                   const float maxStr[3],
+                                   float rstOut[3]) const;
+        
+        bool createVolumeTexture(const VolumeMappableInterface* volumeFile,
+                                 const DisplayGroupEnum::Enum displayGroup,
+                                 const int32_t tabIndex,
+                                 const bool allowNonPowerOfTwoTextureFlag,
+                                 const bool identificationTextureFlag,
+                                 std::vector<uint8_t>& rgbaColorsOut,
+                                 std::array<int64_t, 3>& textureDimsOut,
+                                 std::array<float, 3>& maxStrOut) const;
+
+        GLuint createTextureName(const VolumeMappableInterface* volumeMappableInterface,
+                                 const bool identificationTextureFlag,
+                                 const DisplayGroupEnum::Enum displayGroup,
+                                 const int32_t tabIndex,
+                                 std::array<float, 3>& maxStrOut) const;
+        
+        void setupTextureFiltering(const CaretMappableDataFile* mapFile,
+                                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType);
+        
+        void processTextureVoxelIdentification(VolumeMappableInterface* volumeMappableInterface);
+        
+        struct TextureInfo {
+            GLuint m_textureID;
+            std::array<float, 3> m_maxSTR;
+        };
+        
+        /*
+         * These items will eventually be moved into the volume and cifti files
+         */
+        static std::map<VolumeMappableInterface*, TextureInfo> s_volumeTextureInfo;
+        static std::map<VolumeMappableInterface*, TextureInfo> s_identificationTextureInfo;
+        
         ModelVolume* m_modelVolume;
         
         ModelWholeBrain* m_modelWholeBrain;
@@ -327,6 +248,9 @@ namespace caret {
     
 #ifdef __BRAIN_OPEN_GL_VOLUME_TEXTURE_SLICE_DRAWING_DECLARE__
     const int32_t BrainOpenGLVolumeTextureSliceDrawing::IDENTIFICATION_INDICES_PER_VOXEL = 8;
+    std::map<VolumeMappableInterface*, BrainOpenGLVolumeTextureSliceDrawing::TextureInfo> BrainOpenGLVolumeTextureSliceDrawing::s_volumeTextureInfo;
+    std::map<VolumeMappableInterface*, BrainOpenGLVolumeTextureSliceDrawing::TextureInfo> BrainOpenGLVolumeTextureSliceDrawing::s_identificationTextureInfo;
+
 #endif // __BRAIN_OPEN_GL_VOLUME_TEXTURE_SLICE_DRAWING_DECLARE__
 
 } // namespace

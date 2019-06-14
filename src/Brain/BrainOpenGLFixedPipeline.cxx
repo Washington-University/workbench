@@ -5391,33 +5391,46 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
                 VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = browserTabContent->getSliceDrawingType();
                 VolumeSliceProjectionTypeEnum::Enum sliceProjectionType = browserTabContent->getSliceProjectionType();
                 
-                switch (sliceProjectionType) {
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                    {
-                        VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueMaskType = browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType();
-                        BrainOpenGLVolumeObliqueSliceDrawing volumeSliceDrawing;
-                        volumeSliceDrawing.draw(this,
-                                                browserTabContent,
-                                                twoDimSliceDrawVolumeDrawInfo,
-                                                sliceDrawingType,
-                                                sliceProjectionType,
-                                                obliqueMaskType,
-                                                viewport);
-                    }
-                        break;
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                    {
-                        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-                        volumeSliceDrawing.draw(this,
-                                                browserTabContent,
-                                                twoDimSliceDrawVolumeDrawInfo,
-                                                sliceDrawingType,
-                                                sliceProjectionType,
-                                                viewport);
-                    }
-                        break;
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_TEXTURE_VOLUME)) {
+                    VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueMaskType = browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType();
+                    BrainOpenGLVolumeTextureSliceDrawing textureSliceDrawing;
+                    textureSliceDrawing.draw(this,
+                                             browserTabContent,
+                                             twoDimSliceDrawVolumeDrawInfo,
+                                             sliceDrawingType,
+                                             sliceProjectionType,
+                                             obliqueMaskType,
+                                             viewport);
                 }
-                
+                else {
+                    switch (sliceProjectionType) {
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                        {
+                            VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueMaskType = browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType();
+                            BrainOpenGLVolumeObliqueSliceDrawing volumeSliceDrawing;
+                            volumeSliceDrawing.draw(this,
+                                                    browserTabContent,
+                                                    twoDimSliceDrawVolumeDrawInfo,
+                                                    sliceDrawingType,
+                                                    sliceProjectionType,
+                                                    obliqueMaskType,
+                                                    viewport);
+                        }
+                            break;
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                        {
+                            BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+                            volumeSliceDrawing.draw(this,
+                                                    browserTabContent,
+                                                    twoDimSliceDrawVolumeDrawInfo,
+                                                    sliceDrawingType,
+                                                    sliceProjectionType,
+                                                    viewport);
+                        }
+                            break;
+                    }
+                }
+
                 glPopAttrib();
             }
         }

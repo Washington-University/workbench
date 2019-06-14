@@ -2509,11 +2509,11 @@ BrainOpenGLVolumeTextureSliceDrawing::createObliqueTransformationMatrix(const fl
 
 /* ======================================================================= */
 
-static bool
-getTextureCoordinates(const VolumeMappableInterface* vf,
-                      const float xyz[3],
-                      const float maxStr[3],
-                      float rstOut[3])
+bool
+BrainOpenGLVolumeTextureSliceDrawing::getTextureCoordinates(const VolumeMappableInterface* vf,
+                                                            const float xyz[3],
+                                                            const float maxStr[3],
+                                                            float rstOut[3]) const
 {
     std::vector<int64_t> dims(5);
     vf->getDimensions(dims);
@@ -2525,10 +2525,29 @@ getTextureCoordinates(const VolumeMappableInterface* vf,
     float bigCornerXYZ[3] = { 0.0, 0.0, 0.0 };
     vf->indexToSpace(bigCornerIJK, bigCornerXYZ);
     
+    /*
+     * Coordinates from volume are at CENTER of the voxel
+     * so increase size of volume so that range is from
+     * outside edge to outside edge of the volume.
+     */
+    float voxelOneXYZ[3];
+    vf->indexToSpace(0, 0, 0, voxelOneXYZ);
+    float voxelTwoXYZ[3];
+    vf->indexToSpace(1, 1, 1, voxelTwoXYZ);
+    const float halfVoxelSizeXYZ[3] {
+        (voxelTwoXYZ[0] - voxelOneXYZ[0]) / 2.0f,
+        (voxelTwoXYZ[1] - voxelOneXYZ[1]) / 2.0f,
+        (voxelTwoXYZ[2] - voxelOneXYZ[2]) / 2.0f,
+    };
+    for (int32_t i = 0; i < 3; i++) {
+        smallCornerXYZ[i] -= halfVoxelSizeXYZ[i];
+        bigCornerXYZ[i]   += halfVoxelSizeXYZ[i];
+    }
+    
     const float rangeXYZ[3] = {
-        bigCornerXYZ[0] - smallCornerXYZ[0],
-        bigCornerXYZ[1] - smallCornerXYZ[1],
-        bigCornerXYZ[2] - smallCornerXYZ[2]
+        (bigCornerXYZ[0] - smallCornerXYZ[0]),
+        (bigCornerXYZ[1] - smallCornerXYZ[1]),
+        (bigCornerXYZ[2] - smallCornerXYZ[2])
     };
     
     const float normalizedOffset[3] = {
@@ -2543,38 +2562,22 @@ getTextureCoordinates(const VolumeMappableInterface* vf,
     rstOut[0] = normalizedOffset[0] * maxStr[0];
     rstOut[1] = normalizedOffset[1] * maxStr[1];
     rstOut[2] = normalizedOffset[2] * maxStr[2];
-
+    
     return true;
 }
 
-//static bool
-//createCiftiTexture(const CiftiMappableDataFile* ciftiMapFile,
-//                   const DisplayGroupEnum::Enum displayGroup,
-//                   const int32_t tabIndex,
-//                   const bool allowNonPowerOfTwoTextureFlag,
-//                   std::vector<uint8_t>& rgbaColorsOut,
-//                   std::array<int64_t, 3>& textureDimsOut,
-//                   std::array<float, 3>& maxStrOut)
-//{
-//    CaretAssert(ciftiMapFile);
-//    const CiftiFile* ciftiFile = ciftiMapFile->getCiftiFile();
-//    const CiftiXML&  ciftiXML  = ciftiMapFile->getCiftiXML();
-//    if (ciftiXML.)
-//
-//    return true;
-//}
-
-static bool
-createVolumeTexture(const VolumeMappableInterface* volumeFile,
-                    const DisplayGroupEnum::Enum displayGroup,
-                    const int32_t tabIndex,
-                    const bool allowNonPowerOfTwoTextureFlag,
-                    std::vector<uint8_t>& rgbaColorsOut,
-                    std::array<int64_t, 3>& textureDimsOut,
-                    std::array<float, 3>& maxStrOut)
+bool
+BrainOpenGLVolumeTextureSliceDrawing::createVolumeTexture(const VolumeMappableInterface* volumeFile,
+                                                          const DisplayGroupEnum::Enum displayGroup,
+                                                          const int32_t tabIndex,
+                                                          const bool allowNonPowerOfTwoTextureFlag,
+                                                          const bool identificationTextureFlag,
+                                                          std::vector<uint8_t>& rgbaColorsOut,
+                                                          std::array<int64_t, 3>& textureDimsOut,
+                                                          std::array<float, 3>& maxStrOut) const
 {
     maxStrOut.fill(0.0);
-
+    
     std::vector<int64_t> dims(5);
     volumeFile->getDimensions(dims);
     textureDimsOut.fill(256);
@@ -2599,13 +2602,12 @@ createVolumeTexture(const VolumeMappableInterface* volumeFile,
             textureDimsOut.fill(512);
         }
     }
-
+    
     const int64_t mapIndex(0);
     const int64_t numberOfSlices = dims[2];
     const int64_t numberOfRows = dims[1];
     const int64_t numberOfColumns = dims[0];
     const int64_t numSliceBytes = (numberOfRows * numberOfColumns * 4);
-    std::vector<uint8_t> rgbaSlice(numSliceBytes);
     
     if (allowNonPowerOfTwoTextureFlag) {
         textureDimsOut[0] = numberOfColumns;
@@ -2617,36 +2619,68 @@ createVolumeTexture(const VolumeMappableInterface* volumeFile,
     rgbaColorsOut.clear();
     rgbaColorsOut.resize(textureBytes, 0);
     
-    /*
-     * To avoid resampling of the voxel data, the texture has larger dimensions
-     * and the volume's voxels are placed in the bottom left corner of the texture
-     * and extra texture texel's are zeros.
-     */
-    for (int64_t k = 0; k < numberOfSlices; k++) {
-        int64_t firstVoxelIJK[3] = { 0, 0, k };
-        int64_t rowStepIJK[3] = { 0, 1, 0 };
-        int64_t columnStepIJK[3] = { 1, 0, 0 };
-        
-        std::fill(rgbaSlice.begin(), rgbaSlice.end(), 0);
-        volumeFile->getVoxelColorsForSliceInMap(mapIndex,
-                                                firstVoxelIJK,
-                                                rowStepIJK,
-                                                columnStepIJK,
-                                                numberOfRows,
-                                                numberOfColumns,
-                                                displayGroup,
-                                                tabIndex,
-                                                &rgbaSlice[0]);
-        
-        for (int32_t j = 0; j < numberOfRows; j++) {
-            for (int32_t i = 0; i < numberOfColumns; i++) {
-                const int32_t sliceOffset = ((j * numberOfColumns) + i) * 4;
-                const int32_t textureOffset = ((k * textureDimsOut[0] * textureDimsOut[1])
-                                               + (j * textureDimsOut[0]) + i) * 4;
-                for (int32_t m = 0; m < 4; m++) {
+    if (identificationTextureFlag) {
+        uint32_t offsetID = 0;
+        for (int64_t k = 0; k < numberOfSlices; k++) {
+            for (int32_t j = 0; j < numberOfRows; j++) {
+                for (int32_t i = 0; i < numberOfColumns; i++) {
+                    const int32_t textureOffset = ((k * textureDimsOut[0] * textureDimsOut[1])
+                                                   + (j * textureDimsOut[0]) + i) * 4;
                     CaretAssertVectorIndex(rgbaColorsOut, (textureOffset + 3));
-                    CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
-                    rgbaColorsOut[textureOffset + m] = rgbaSlice[sliceOffset + m];
+                    
+                    /*
+                     * An offset is used and encoded into the R, G, and B bytes.
+                     * While we could use IJK, we cannot if a dimension is
+                     * greater than 255.   With the offset, number of voxels
+                     * must only be less than 255**3.
+                     */
+                    const uint8_t offsetRed   = static_cast<uint8_t>((offsetID >> 16) & 0xff);
+                    const uint8_t offsetGreen = static_cast<uint8_t>((offsetID >> 8) & 0xff);
+                    const uint8_t offsetBlue  = static_cast<uint8_t>((offsetID) & 0xff);
+                    rgbaColorsOut[textureOffset]   = offsetRed;
+                    rgbaColorsOut[textureOffset+1] = offsetGreen;
+                    rgbaColorsOut[textureOffset+2] = offsetBlue;
+                    rgbaColorsOut[textureOffset+3] = 255;
+                    
+                    offsetID++;
+                }
+            }
+        }
+    }
+    else {
+        /*
+         * When non power-of-two textures are NOT allowed (OpenGL < 2.0)
+         * To avoid resampling of the voxel data, the texture has larger dimensions
+         * and the volume's voxels are placed in the bottom left corner of the texture
+         * and extra texture texel's are zeros.
+         */
+        std::vector<uint8_t> rgbaSlice(numSliceBytes);
+        for (int64_t k = 0; k < numberOfSlices; k++) {
+            int64_t firstVoxelIJK[3] = { 0, 0, k };
+            int64_t rowStepIJK[3] = { 0, 1, 0 };
+            int64_t columnStepIJK[3] = { 1, 0, 0 };
+            
+            std::fill(rgbaSlice.begin(), rgbaSlice.end(), 0);
+            volumeFile->getVoxelColorsForSliceInMap(mapIndex,
+                                                    firstVoxelIJK,
+                                                    rowStepIJK,
+                                                    columnStepIJK,
+                                                    numberOfRows,
+                                                    numberOfColumns,
+                                                    displayGroup,
+                                                    tabIndex,
+                                                    &rgbaSlice[0]);
+            
+            for (int32_t j = 0; j < numberOfRows; j++) {
+                for (int32_t i = 0; i < numberOfColumns; i++) {
+                    const int32_t sliceOffset = ((j * numberOfColumns) + i) * 4;
+                    const int32_t textureOffset = ((k * textureDimsOut[0] * textureDimsOut[1])
+                                                   + (j * textureDimsOut[0]) + i) * 4;
+                    for (int32_t m = 0; m < 4; m++) {
+                        CaretAssertVectorIndex(rgbaColorsOut, (textureOffset + 3));
+                        CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
+                        rgbaColorsOut[textureOffset + m] = rgbaSlice[sliceOffset + m];
+                    }
                 }
             }
         }
@@ -2656,18 +2690,17 @@ createVolumeTexture(const VolumeMappableInterface* volumeFile,
     maxStrOut[1] = static_cast<float>(dims[1]) / static_cast<float>(textureDimsOut[1]);
     maxStrOut[2] = static_cast<float>(dims[2]) / static_cast<float>(textureDimsOut[2]);
     if (debugFlag) std::cout << "max STR: " << AString::fromNumbers(maxStrOut.data(), 3, ",") << std::endl;
-
+    
     return true;
-
+    
 }
 
-static GLuint
-createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                  const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                  const VolumeMappableInterface* volumeMappableInterface,
-                  const DisplayGroupEnum::Enum displayGroup,
-                  const int32_t tabIndex,
-                  std::array<float, 3>& maxStrOut)
+GLuint
+BrainOpenGLVolumeTextureSliceDrawing::createTextureName(const VolumeMappableInterface* volumeMappableInterface,
+                                                        const bool identificationTextureFlag,
+                                                        const DisplayGroupEnum::Enum displayGroup,
+                                                        const int32_t tabIndex,
+                                                        std::array<float, 3>& maxStrOut) const
 {
     const CaretMappableDataFile* mapFile = dynamic_cast<const CaretMappableDataFile*>(volumeMappableInterface);
     CaretAssert(mapFile);
@@ -2687,6 +2720,7 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                    displayGroup,
                                    tabIndex,
                                    allowNonPowerOfTwoTextureFlag,
+                                   identificationTextureFlag,
                                    rgbaColors,
                                    textureDims,
                                    maxStrOut)) {
@@ -2698,6 +2732,7 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                    displayGroup,
                                    tabIndex,
                                    allowNonPowerOfTwoTextureFlag,
+                                   identificationTextureFlag,
                                    rgbaColors,
                                    textureDims,
                                    maxStrOut)) {
@@ -2710,10 +2745,10 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     
     GLuint  textureName(0);
     glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-
+    
     glGenTextures(1, &textureName);
     glBindTexture(GL_TEXTURE_3D, textureName);
-
+    
     glPixelStorei(GL_UNPACK_SWAP_BYTES, GL_FALSE);
     glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
@@ -2722,80 +2757,9 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
     glPixelStorei(GL_UNPACK_SKIP_IMAGES, 0);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
+    
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    /*
-     * From https://www.khronos.org/opengl/wiki/Common_Mistakes#Texture_edge_color_problem
-     * - Never use GL_CLAMP, use GL_CLAMP_TO_EDGE
-     */
-
-    if (mapFile->isMappedWithPalette()) {
-        /*
-         * This combination MIN=Linear, MAG=Nearest
-         * seems to produce voxel drawing that is
-         * nearly identical to cubic interpolation when zoomed in so
-         * that the voxels are large.  The difference is when the slices
-         * are rotated; In cubic interpolation, the "scan lines" are
-         * horizontal (left to right on the screen) but with texture,
-         * the "scan lines" follow the volume rotation.
-         *
-         * From the OpenGL documentation (man page)
-         *
-         * GL_TEXTURE_MIN_FILTER - The  texture  minifying  function  is used
-         * whenever the pixel being textured maps to an area greater than one
-         * texture  element.
-         *     GL_NEAREST - Returns the value of the texture  element  that  is
-         *         nearest  (in  Manhattan  distance) to the center of
-         *         the pixel being textured.
-         *     GL_LINEAR - Returns the weighted average of  the  four  texture
-         *         elements  that  are  closest  to  the center of the
-         *         pixel being textured.
-         *
-         * Pixel area is GREATER THAN texel area so ZOOMED OUT
-         *
-         * Thus, Pixel contains more than one texel
-         */
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        
-        /*
-         * GL_TEXTURE_MAG_FILTER - The  texture  magnification  function
-         * is used when the pixel being textured maps to an area less than or
-         * equal to one texture  element.
-         *     GL_NEAREST - Returns the value of the texture  element  that  is
-         *         nearest  (in  Manhattan  distance) to the center of
-         *         the pixel being textured.
-         *     GL_LINEAR Returns the weighted average of  the  four  texture
-         *         elements  that  are  closest  to  the center of the
-         *        pixel being textured.
-         *
-         * Pixel area is LESS THAN Texel area so ZOOMED IN
-         *
-         * Thus, pixel may be inside a texel
-         *
-         * If GL_LINEAR is used the voxel "blockiness" is smoothed out
-         */
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        
-        switch (sliceProjectionType) {
-            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                break;
-            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                break;
-        }
-        
-        GLfloat borderColor[4] = { 0.0, 0.0, 0.0, 0.0 };
-        glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    }
-    else {
-        /*
-         * No interpolation for Label or RGBA data
-         */
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-     }
     
     /*
      * Always clamp to border.  If no texels (voxels) are available, pixel
@@ -2804,7 +2768,7 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-
+    
     glTexImage3D(GL_TEXTURE_3D,
                  0,
                  GL_RGBA,
@@ -2815,20 +2779,13 @@ createTextureName(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                  GL_RGBA,
                  GL_UNSIGNED_BYTE,
                  &rgbaColors[0]);
-
+    
     glBindTexture(GL_TEXTURE_3D, 0);
     glPopClientAttrib();
     
     return textureName;
 }
 
-struct TextureInfo {
-    GLuint m_textureID;
-    std::array<float, 3> m_maxSTR;
-};
-
-static std::map<VolumeMappableInterface*, TextureInfo> obliqueVolumeTextureInfo;
-static std::map<VolumeMappableInterface*, TextureInfo> orthogonalVolumeTextureInfo;
 /**
  * Draw an oblique slice with support for outlining labels and thresholded palette data.
  *
@@ -2970,7 +2927,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
             break;
     }
     
-    const int32_t alignVoxelsFlag = 1;
+    const int32_t alignVoxelsFlag = 0;//1;
     if (alignVoxelsFlag == 1) {
         /*
          * Adjust for when selected slices are not at the origin
@@ -3155,9 +3112,8 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         bool firstFlag(true);
         for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
             const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
-            VolumeMappableInterface* vf = vdi.volumeFile;
-//            VolumeFile* vf = dynamic_cast<VolumeFile*>(vdi.volumeFile);
-            if (vf != NULL) {
+            VolumeMappableInterface* volumeInterface = vdi.volumeFile;
+            if (volumeInterface != NULL) {
                 if (debugFlag) {
                     //std::cout << "Vol: " << iVol << ": " << vf->getFileNameNoPath() << std::endl;
                 }
@@ -3176,36 +3132,27 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                 std::array<float, 3> maxStr = { 1.0, 1.0, 1.0 };
                 GLuint textureID = 0;
                 
-                switch (sliceProjectionType) {
-                    case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                    {
-                        auto idIter = obliqueVolumeTextureInfo.find(vf);
-                        if (idIter != obliqueVolumeTextureInfo.end()) {
-                            TextureInfo textureInfo = idIter->second;
-                            textureID = textureInfo.m_textureID;
-                            maxStr = textureInfo.m_maxSTR;
-                        }
-
+                if (m_identificationModeFlag) {
+                    auto idIter = s_identificationTextureInfo.find(volumeInterface);
+                    if (idIter != s_identificationTextureInfo.end()) {
+                        TextureInfo textureInfo = idIter->second;
+                        textureID = textureInfo.m_textureID;
+                        maxStr = textureInfo.m_maxSTR;
                     }
-                        break;
-                    case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                    {
-                        auto idIter = orthogonalVolumeTextureInfo.find(vf);
-                        if (idIter != orthogonalVolumeTextureInfo.end()) {
-                            TextureInfo textureInfo = idIter->second;
-                            textureID = textureInfo.m_textureID;
-                            maxStr = textureInfo.m_maxSTR;
-                        }
-                        
-                    }
-                        break;
                 }
-
+                else {
+                    auto idIter = s_volumeTextureInfo.find(volumeInterface);
+                    if (idIter != s_volumeTextureInfo.end()) {
+                        TextureInfo textureInfo = idIter->second;
+                        textureID = textureInfo.m_textureID;
+                        maxStr = textureInfo.m_maxSTR;
+                    }
+                }
+                
                 if (textureID == 0) {
                     m_fixedPipelineDrawing->testForOpenGLError("Before creating texture");
-                    textureID = createTextureName(m_fixedPipelineDrawing,
-                                                  sliceProjectionType,
-                                                  vf,
+                    textureID = createTextureName(volumeInterface,
+                                                  m_identificationModeFlag,
                                                   m_displayGroup,
                                                   m_tabIndex,
                                                   maxStr);
@@ -3215,13 +3162,11 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                         textureInfo.m_textureID = textureID;
                         textureInfo.m_maxSTR    = maxStr;
                         
-                        switch (sliceProjectionType) {
-                            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                                obliqueVolumeTextureInfo.insert(std::make_pair(vf, textureInfo));
-                                break;
-                            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                                orthogonalVolumeTextureInfo.insert(std::make_pair(vf, textureInfo));
-                                break;
+                        if (m_identificationModeFlag) {
+                            s_identificationTextureInfo.insert(std::make_pair(volumeInterface, textureInfo));
+                        }
+                        else {
+                            s_volumeTextureInfo.insert(std::make_pair(volumeInterface, textureInfo));
                         }
                         
                         /* 1.0 is highest priority texture so that texture is resident */
@@ -3237,13 +3182,13 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                 
                 if (textureID > 0) {
                     float textureBottomLeft[3];
-                    getTextureCoordinates(vf, bottomLeft, maxStr.data(), textureBottomLeft);
+                    getTextureCoordinates(volumeInterface, bottomLeft, maxStr.data(), textureBottomLeft);
                     float textureBottomRight[3];
-                    getTextureCoordinates(vf, bottomRight, maxStr.data(), textureBottomRight);
+                    getTextureCoordinates(volumeInterface, bottomRight, maxStr.data(), textureBottomRight);
                     float textureTopLeft[3];
-                    getTextureCoordinates(vf, topLeft, maxStr.data(), textureTopLeft);
+                    getTextureCoordinates(volumeInterface, topLeft, maxStr.data(), textureTopLeft);
                     float textureTopRight[3];
-                    getTextureCoordinates(vf, topRight, maxStr.data(), textureTopRight);
+                    getTextureCoordinates(volumeInterface, topRight, maxStr.data(), textureTopRight);
                     
                     if (debugFlag) {
                         std::cout << "Bottom Left RST: " << AString::fromNumbers(textureBottomLeft, 3, ", ") << std::endl;
@@ -3254,12 +3199,24 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                     }
                     
                     glDisable(GL_CULL_FACE);
-                    glDisable(GL_DEPTH_TEST);
+                    if (m_modelWholeBrain == NULL) {
+                        glDisable(GL_DEPTH_TEST);
+                    }
                     m_fixedPipelineDrawing->testForOpenGLError("Before drawing with texture");
                     glEnable(GL_TEXTURE_3D);
                     glBindTexture(GL_TEXTURE_3D, textureID);
                     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
+                    CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(volumeInterface);
+                    CaretAssert(mapFile);
+                    
+                    /*
+                     * Setup pixel to texel filtering
+                     */
+                    setupTextureFiltering(mapFile, sliceProjectionType);
+                    
+                    std::cout << "Depth Test On: " << AString::fromBool(glIsEnabled(GL_DEPTH_TEST)) << std::endl;
+                    
                     glBegin(GL_QUADS);
                     glColor4f(0.0, 0.0, 1.0, 0.0);
                     glTexCoord3fv(textureBottomLeft);
@@ -3275,1230 +3232,236 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                     glBindTexture(GL_TEXTURE_3D, 0);
                     glDisable(GL_TEXTURE_3D);
                     m_fixedPipelineDrawing->testForOpenGLError("After drawing with texture");
+                    
+                    
+                    if (m_identificationModeFlag) {
+                        processTextureVoxelIdentification(volumeInterface);
+                        
+                        /*
+                         * Exit loop so that only underlay volume is used for identification
+                         */
+                        iVol = numVolumes;
+                    }
                 }
             }
         }
         
         glPopAttrib();
-        
-        
-        
-        
-        
-//        float leftToRightStepXYZ[3] = {
-//            bottomRight[0] - bottomLeft[0],
-//            bottomRight[1] - bottomLeft[1],
-//            bottomRight[2] - bottomLeft[2]
-//        };
-//        const float bottomLeftToBottomRightDistance = MathFunctions::normalizeVector(leftToRightStepXYZ);
-//        leftToRightStepXYZ[0] *= voxelSize;
-//        leftToRightStepXYZ[1] *= voxelSize;
-//        leftToRightStepXYZ[2] *= voxelSize;
-//
-//        const int32_t numberOfRows = std::round(bottomLeftToTopLeftDistance / voxelSize);
-//        const int32_t numberOfColumns = std::round(bottomLeftToBottomRightDistance / voxelSize);
-//
-//
-//        float bottomToTopStepXYZ[3] = {
-//            topLeft[0] - bottomLeft[0],
-//            topLeft[1] - bottomLeft[1],
-//            topLeft[2] - bottomLeft[2]
-//        };
-//        MathFunctions::normalizeVector(bottomToTopStepXYZ);
-//        bottomToTopStepXYZ[0] *= voxelSize;
-//        bottomToTopStepXYZ[1] *= voxelSize;
-//        bottomToTopStepXYZ[2] *= voxelSize;
-//
-//        const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
-//        const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
-//        const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-//
-//        bool haveAlphaBlendingFlag(false);
-//        std::vector<ObliqueSlice*> slices;
-//        for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
-//            const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
-//            VolumeMappableInterface* volInter = vdi.volumeFile;
-//
-//            bool volumeEditDrawAllVoxelsFlag = false;
-//            if (voxelEditingVolumeFile != NULL) {
-//                if (voxelEditingVolumeFile == m_volumeDrawInfo[iVol].volumeFile) {
-//                    volumeEditDrawAllVoxelsFlag = true;
-//                }
-//            }
-//
-//            const bool bottomLayerFlag(iVol == 0);
-//            ObliqueSlice* slice = new ObliqueSlice(m_fixedPipelineDrawing,
-//                                                   volInter,
-//                                                   m_volumeDrawInfo[iVol].opacity,
-//                                                   m_volumeDrawInfo[iVol].mapIndex,
-//                                                   numberOfRows,
-//                                                   numberOfColumns,
-//                                                   browserTabIndex,
-//                                                   displayPropertiesLabels,
-//                                                   displayGroup,
-//                                                   bottomLeft,
-//                                                   leftToRightStepXYZ,
-//                                                   bottomToTopStepXYZ,
-//                                                   m_obliqueSliceMaskingType,
-//                                                   voxelEditingValue,
-//                                                   volumeEditDrawAllVoxelsFlag,
-//                                                   m_identificationModeFlag,
-//                                                   bottomLayerFlag);
-//            slices.push_back(slice);
-//
-//            if (m_volumeDrawInfo[iVol].opacity < 1.0) {
-//                haveAlphaBlendingFlag = true;
-//            }
-//        }
-//
-//        const int32_t numSlices = static_cast<int32_t>(slices.size());
-//        if (numSlices > 0) {
-//            bool drawEachSliceFlag = true;
-//            bool compositeFlag = true;
-//            if (haveAlphaBlendingFlag
-//                || m_identificationModeFlag) {
-//                /*
-//                 * Do not composite slices if blending is used
-//                 * or if in identification mode
-//                 */
-//                compositeFlag = false;
-//            }
-//            if (compositeFlag) {
-//                CaretAssertVectorIndex(slices, 0);
-//                ObliqueSlice* underlaySlice = slices[0];
-//                if (numSlices > 1) {
-//                    std::vector<ObliqueSlice*> overlaySlices;
-//                    for (int32_t i = 1; i < numSlices; i++) {
-//                        CaretAssertVectorIndex(slices, i);
-//                        overlaySlices.push_back(slices[i]);
-//                    }
-//                    if (underlaySlice->compositeSlicesRGBA(overlaySlices)) {
-//                        underlaySlice->draw(m_fixedPipelineDrawing);
-//                        drawEachSliceFlag = false;
-//                    }
-//                }
-//            }
-//
-//            if (drawEachSliceFlag) {
-//                for (auto s : slices) {
-//                    s->draw(m_fixedPipelineDrawing);
-//                }
-//            }
-//        }
-//
-//        for (auto s : slices) {
-//            delete s;
-//        }
-//        slices.clear();
     }
 }
 
-/**
- * Constructor for drawing an oblique slice.
- *
- * @param fixedPipelineDrawing
- *    The fixed pipeline drawing.
- * @param volumeInterface
- *    Interface for volume-type file being drawn.
- * @param opacity
- *    Opacity for drawing the slice.
- * @param mapIndex
- *    Index of map in file being drawn.
- * @param numberOfRows
- *    Number of rows used when drawing slice.
- * @param numberOfColumns
- *    Number of columns used when drawing slice.
- * @param browserTabIndex
- *    Index of browser tab being drawn.
- * @param displayPropertiesLabels
- *    Display properties for labels.
- * @param displayGroup
- *    Selected display group for labels.
- * @param originXYZ
- *    XYZ coordinate of first voxel in slice.
- * @param leftToRightStepXYZ
- *    XYZ step for one voxel in screen left to right.
- * @param bottomToTopStepXYZ
- *    XYZ step for one voxel in screen bottom to top.
- * @param maskingType
- *    Masking type to eliminate interpolation artifacts
- * @param voxelEditingValue
- *    Value used when editing voxels.
- * @param volumeEditingDrawAllVoxelsFlag
- *    Draw all voxels when editing a volume.
- * @param identificationModeFlag
- *    True if identification mode is active.
- * @param bottomLayerFlag
- *    True if bottom layer.
- */
-BrainOpenGLVolumeTextureSliceDrawing::ObliqueSlice::ObliqueSlice(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                                                 VolumeMappableInterface* volumeInterface,
-                                                                 const float opacity,
-                                                                 const int32_t mapIndex,
-                                                                 const int32_t numberOfRows,
-                                                                 const int32_t numberOfColumns,
-                                                                 const int32_t browserTabIndex,
-                                                                 const DisplayPropertiesLabels* displayPropertiesLabels,
-                                                                 const DisplayGroupEnum::Enum displayGroup,
-                                                                 const float originXYZ[3],
-                                                                 const float leftToRightStepXYZ[3],
-                                                                 const float bottomToTopStepXYZ[3],
-                                                                 const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskingType,
-                                                                 const float voxelEditingValue,
-                                                                 const bool volumeEditingDrawAllVoxelsFlag,
-                                                                 const bool identificationModeFlag,
-                                                                 const bool bottomLayerFlag)
-:
-m_volumeInterface(volumeInterface),
-m_opacity(opacity),
-m_mapFile(dynamic_cast<const CaretMappableDataFile*>(volumeInterface)),
-m_mapIndex(mapIndex),
-m_numberOfRows(numberOfRows),
-m_numberOfColumns(numberOfColumns),
-m_browserTabIndex(browserTabIndex),
-m_displayPropertiesLabels(displayPropertiesLabels),
-m_displayGroup(displayGroup),
-m_identificationX(fixedPipelineDrawing->mouseX),
-m_identificationY(fixedPipelineDrawing->mouseY),
-m_identificationModeFlag(identificationModeFlag),
-m_bottomLayerFlag(bottomLayerFlag)
+void
+BrainOpenGLVolumeTextureSliceDrawing::processTextureVoxelIdentification(VolumeMappableInterface* volumeMappableInterface)
 {
-    CaretAssert(volumeInterface);
-    CaretAssert(m_mapFile);
+    /*
+     * Saves glPixelStore parameters
+     */
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
     
-    m_opacityByte = 255;
-    if (m_opacity >= 1.0) {
-        m_opacityByte = 255;
+    /*
+     * Determine item picked by examination of color in back buffer
+     *
+     * QOpenGLWidget Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation).  This is
+     * probably why calls to glReadBuffer() always cause an
+     * OpenGL error.
+     */
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+    /* do not call glReadBuffer() */
+#else
+    glReadBuffer(GL_BACK);
+#endif
+    glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    uint8_t pixels[4];
+    glReadPixels((int)m_fixedPipelineDrawing->mouseX,
+                 (int)m_fixedPipelineDrawing->mouseY,
+                 1,
+                 1,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 pixels);
+    
+    CaretLogFine("ID color RGBA "
+                 + QString::number(pixels[0]) + ", "
+                 + QString::number(pixels[1]) + ", "
+                 + QString::number(pixels[2]) + ", "
+                 + QString::number(pixels[3]));
+    
+    std::cout << "Pixel ID: " << AString::fromNumbers(pixels, 4, ",") << std::endl;
+    
+    uint32_t alphaInt(pixels[3]);
+    if (alphaInt == 255) {
+        uint32_t redInt(pixels[0]);
+        uint32_t greenInt(pixels[1]);
+        uint32_t blueInt(pixels[2]);
+        uint32_t offset = ((redInt << 16)
+                           + (greenInt << 8)
+                           + (blueInt));
+        std::cout << "   Offset: " << offset << std::endl;
+        
+        std::vector<int64_t> dims;
+        volumeMappableInterface->getDimensions(dims);
+        const int64_t sliceSize = dims[0] * dims[1];
+        const int64_t sliceK = offset / sliceSize;
+        const int64_t sliceOffset = offset % sliceSize;
+        const int64_t sliceJ = sliceOffset / dims[0];
+        const int64_t sliceI = sliceOffset % dims[0];
+        std::cout << "   Voxel IJK: " << sliceI << ", " << sliceJ << ", " << sliceK << std::endl;
+        
+        const int64_t voxelIndices[3] {
+            sliceI,
+            sliceJ,
+            sliceK
+        };
+        
+        /*
+         * Get depth from depth buffer
+         */
+        glPixelStorei(GL_PACK_ALIGNMENT, 4);
+        float depth(0.0);
+        glReadPixels(m_fixedPipelineDrawing->mouseX,
+                     m_fixedPipelineDrawing->mouseY,
+                     1,
+                     1,
+                     GL_DEPTH_COMPONENT,
+                     GL_FLOAT,
+                     &depth);
+        
+        SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+        if (voxelID->isEnabledForSelection()) {
+            if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+                voxelID->setVoxelIdentification(m_brain,
+                                                volumeMappableInterface,
+                                                voxelIndices,
+                                                depth);
+                
+                float voxelCoordinates[3];
+                volumeMappableInterface->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
+                                 voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
+                                                                 voxelCoordinates);
+                CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
+            }
+        }
+        
+        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+        if (voxelEditID->isEnabledForSelection()) {
+            if (voxelEditID->getVolumeFileForEditing() == volumeMappableInterface) {
+                if (voxelEditID->isOtherScreenDepthCloserToViewer(depth)) {
+                    voxelEditID->setVoxelIdentification(m_brain,
+                                                        volumeMappableInterface,
+                                                        voxelIndices,
+                                                        depth);
+                    const float floatDiffXYZ[3] = { 1.0, 1.0, 1.0 };
+                    voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
+                    
+                    float voxelCoordinates[3];
+                    volumeMappableInterface->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
+                                     voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                    
+                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
+                                                                     voxelCoordinates);
+                    CaretLogFinest("Selected Voxel Editing (3D): Indices ("
+                                   + AString::fromNumbers(voxelIndices, 3, ",")
+                                   + ") Diff XYZ ("
+                                   + AString::fromNumbers(floatDiffXYZ, 3, ",")
+                                   + ")");
+                }
+            }
+        }
     }
-    if (m_opacity <= 0.0) {
-        m_opacityByte = 0;
+    
+    glPopClientAttrib();
+
+}
+
+
+/**
+ * Set the texture filtering that controls mapping of texels to pixels
+ *
+ * @param mapFile
+ *     File is is being drawn
+ * @param sliceProjectionType
+ *     Type of projection
+ */
+void
+BrainOpenGLVolumeTextureSliceDrawing::setupTextureFiltering(const CaretMappableDataFile* mapFile,
+                                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType)
+{
+    if (mapFile->isMappedWithPalette()) {
+        switch (sliceProjectionType) {
+            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            {
+                /*
+                 * This combination MIN=Linear, MAG=Nearest
+                 * seems to produce voxel drawing that is
+                 * nearly identical to cubic interpolation when zoomed in so
+                 * that the voxels are large.  The difference is when the slices
+                 * are rotated; In cubic interpolation, the "scan lines" are
+                 * horizontal (left to right on the screen) but with texture,
+                 * the "scan lines" follow the volume rotation.
+                 *
+                 * From the OpenGL documentation (man page)
+                 *
+                 * GL_TEXTURE_MIN_FILTER - The  texture  minifying  function  is used
+                 * whenever the pixel being textured maps to an area greater than one
+                 * texture  element.
+                 *     GL_NEAREST - Returns the value of the texture  element  that  is
+                 *         nearest  (in  Manhattan  distance) to the center of
+                 *         the pixel being textured.
+                 *     GL_LINEAR - Returns the weighted average of  the  four  texture
+                 *         elements  that  are  closest  to  the center of the
+                 *         pixel being textured.
+                 *
+                 * Pixel area is GREATER THAN texel area so ZOOMED OUT
+                 *
+                 * Thus, Pixel contains more than one texel
+                 */
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                
+                /*
+                 * GL_TEXTURE_MAG_FILTER - The  texture  magnification  function
+                 * is used when the pixel being textured maps to an area less than or
+                 * equal to one texture  element.
+                 *     GL_NEAREST - Returns the value of the texture  element  that  is
+                 *         nearest  (in  Manhattan  distance) to the center of
+                 *         the pixel being textured.
+                 *     GL_LINEAR Returns the weighted average of  the  four  texture
+                 *         elements  that  are  closest  to  the center of the
+                 *        pixel being textured.
+                 *
+                 * Pixel area is LESS THAN Texel area so ZOOMED IN
+                 *
+                 * Thus, pixel may be inside a texel
+                 *
+                 * If GL_LINEAR is used the voxel "blockiness" is smoothed out
+                 */
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            }
+                break;
+            case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            {
+                /*
+                 * No interpolation for orthogonal slice viewing
+                 */
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            }
+                break;
+        }
+        
+        GLfloat borderColor[4] = { 0.0, 0.0, 0.0, 0.0 };
+        glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
     }
     else {
-        m_opacityByte = static_cast<uint8_t>(m_opacity * 255.0f);
-    }
-    
-    for (int32_t i = 0; i < 3; i++) {
-        m_selectionIJK[i] = -1;
-        m_leftToRightStepXYZ[i] = leftToRightStepXYZ[i];
-        m_bottomToTopStepXYZ[i] = bottomToTopStepXYZ[i];
-        m_originXYZ[i] = originXYZ[i];
-    }
-
-    const VolumeFile* volumeFileConst =  dynamic_cast<const VolumeFile*>(volumeInterface);
-    m_volumeFile = const_cast<VolumeFile*>(volumeFileConst);
-    const CiftiMappableDataFile* ciftiMappableFileConst = dynamic_cast<const CiftiMappableDataFile*>(volumeInterface);
-    m_ciftiMappableFile = const_cast<CiftiMappableDataFile*>(ciftiMappableFileConst);
-    
-    m_dataValueType = DataValueType::INVALID;
-    if (m_mapFile->isMappedWithPalette()) {
-        if (m_volumeFile != NULL) {
-            m_dataValueType = DataValueType::VOLUME_PALETTE;
-        }
-        else if (m_ciftiMappableFile != NULL) {
-            m_dataValueType = DataValueType::CIFTI_PALETTE;
-        }
-        else {
-            CaretAssert(0);
-        }
-    }
-    else if (m_mapFile->isMappedWithLabelTable()) {
-        if (m_volumeFile != NULL) {
-            m_dataValueType = DataValueType::VOLUME_LABEL;
-        }
-        else if (m_ciftiMappableFile != NULL) {
-            m_dataValueType = DataValueType::CIFTI_LABEL;
-        }
-        else {
-            CaretAssert(0);
-        }
-    }
-    else if (m_mapFile->isMappedWithRGBA()) {
-        if (m_volumeFile != NULL) {
-            if (m_volumeFile->getNumberOfComponents() == 4) {
-                m_dataValueType = DataValueType::VOLUME_RGBA;
-            }
-            else if (m_volumeFile->getNumberOfComponents() == 3) {
-                m_dataValueType = DataValueType::VOLUME_RGB;
-            }
-        }
-        else {
-            CaretAssert(0);
-        }
-    }
-    CaretAssert(m_dataValueType != DataValueType::INVALID);
-    
-    m_sliceNumberOfVoxels     = m_numberOfRows * m_numberOfColumns;
-    m_voxelNumberOfComponents = 1;
-    switch (m_dataValueType) {
-        case DataValueType::INVALID:
-            CaretAssert(0);
-            break;
-        case DataValueType::CIFTI_LABEL:
-        case DataValueType::CIFTI_PALETTE:
-        case DataValueType::VOLUME_LABEL:
-        case DataValueType::VOLUME_PALETTE:
-            break;
-        case DataValueType::VOLUME_RGB:
-        case DataValueType::VOLUME_RGBA:
-            m_voxelNumberOfComponents = 4;
-            break;
-    }
-    m_data.reserve(m_sliceNumberOfVoxels
-                   * m_voxelNumberOfComponents);
-    
-    m_thresholdData.reserve(m_data.size());
-    
-    m_rgba.reserve(m_sliceNumberOfVoxels * 4);
-    
-    if (m_identificationModeFlag) {
-        m_identificationIJK.reserve(m_sliceNumberOfVoxels * 3);
-        m_identificationHelper.reset(new IdentificationWithColor());
-    }
-    
-    setThresholdFileAndMap();
-    
-    loadData(maskingType,
-             voxelEditingValue,
-             volumeEditingDrawAllVoxelsFlag);
-    
-    assignRgba(volumeEditingDrawAllVoxelsFlag);
-    
-    if ( ! m_identificationModeFlag) {
-        addOutlines();
-    }
-    
-    CaretAssert((m_sliceNumberOfVoxels*4) == static_cast<int32_t>(m_rgba.size()));
-}
-
-/**
- * Set thresholding file and map, if applicable.
- */
-bool
-BrainOpenGLVolumeTextureSliceDrawing::ObliqueSlice::setThresholdFileAndMap()
-{
-    switch (m_dataValueType) {
-        case DataValueType::INVALID:
-            CaretAssert(0);
-            break;
-        case DataValueType::CIFTI_LABEL:
-            break;
-        case DataValueType::CIFTI_PALETTE:
-        {
-            const PaletteColorMapping* pcm = m_ciftiMappableFile->getMapPaletteColorMapping(m_mapIndex);
-            CaretAssert(pcm);
-            switch (pcm->getThresholdType()) {
-                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
-                    break;
-                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
-                    m_thresholdCiftiMappableFile = m_ciftiMappableFile;
-                    m_thresholdMapIndex   = m_mapIndex;
-                    break;
-                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
-                {
-                    CaretMappableDataFileAndMapSelectionModel* selector = m_ciftiMappableFile->getMapThresholdFileSelectionModel(m_mapIndex);
-                    m_thresholdCiftiMappableFile = dynamic_cast<CiftiMappableDataFile*>(selector->getSelectedFile());
-                    if (m_thresholdCiftiMappableFile != NULL) {
-                        m_thresholdMapIndex = selector->getSelectedMapIndex();
-                    }
-                }
-                    break;
-                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
-                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
-                    CaretAssert(0);
-                    break;
-            }
-            if (m_thresholdCiftiMappableFile != NULL) {
-                if ((m_thresholdMapIndex >= 0)
-                    && (m_thresholdMapIndex < m_thresholdCiftiMappableFile->getNumberOfMaps())) {
-                    m_thresholdPaletteColorMapping = m_thresholdCiftiMappableFile->getMapPaletteColorMapping(m_thresholdMapIndex);
-                }
-                else {
-                    m_thresholdCiftiMappableFile = NULL;
-                    m_thresholdMapIndex = -1;
-                }
-            }
-        }
-            break;
-        case DataValueType::VOLUME_LABEL:
-            break;
-        case DataValueType::VOLUME_PALETTE:
-        {
-            const PaletteColorMapping* pcm = m_volumeFile->getMapPaletteColorMapping(m_mapIndex);
-            CaretAssert(pcm);
-            switch (pcm->getThresholdType()) {
-                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
-                    break;
-                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
-                    m_thresholdVolumeFile = m_volumeFile;
-                    m_thresholdMapIndex   = m_mapIndex;
-                    break;
-                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
-                {
-                    CaretMappableDataFileAndMapSelectionModel* selector = m_volumeFile->getMapThresholdFileSelectionModel(m_mapIndex);
-                    m_thresholdVolumeFile = dynamic_cast<VolumeFile*>(selector->getSelectedFile());
-                    if (m_thresholdVolumeFile != NULL) {
-                        m_thresholdMapIndex = selector->getSelectedMapIndex();
-                    }
-                }
-                    break;
-                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
-                case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
-                    CaretAssert(0);
-                    break;
-            }
-            if (m_thresholdVolumeFile != NULL) {
-                if ((m_thresholdMapIndex >= 0)
-                    && (m_thresholdMapIndex < m_thresholdVolumeFile->getNumberOfMaps())) {
-                    m_thresholdPaletteColorMapping = m_thresholdVolumeFile->getMapPaletteColorMapping(m_thresholdMapIndex);
-                }
-                else {
-                    m_thresholdVolumeFile = NULL;
-                    m_thresholdMapIndex = -1;
-                }
-            }
-        }
-            break;
-        case DataValueType::VOLUME_RGB:
-            break;
-        case DataValueType::VOLUME_RGBA:
-            break;
-    }
-    
-    if (m_thresholdMapIndex < 0) {
-        m_thresholdCiftiMappableFile = NULL;
-        m_thresholdVolumeFile = NULL;
-        m_thresholdPaletteColorMapping = NULL;
-    }
-    
-    return (m_thresholdMapIndex >= 0);
-}
-
-/**
- * Assign RGBA coloring for the voxels.
- *
- * @param volumeEditingDrawAllVoxelsFlag
- *    True if editing and all voxels should be drawn for selection.
- */
-void
-BrainOpenGLVolumeTextureSliceDrawing::ObliqueSlice::assignRgba(const bool volumeEditingDrawAllVoxelsFlag)
-{
-    if (m_data.empty()) {
-        return;
-    }
-    
-    switch (m_dataValueType) {
-        case DataValueType::INVALID:
-            CaretAssert(0);
-            break;
-        case DataValueType::CIFTI_LABEL:
-        case DataValueType::CIFTI_PALETTE:
-        case DataValueType::VOLUME_LABEL:
-        case DataValueType::VOLUME_PALETTE:
-            /*
-             * One data value per voxel.
-             */
-            m_rgba.resize(m_data.size() * 4);
-            break;
-        case DataValueType::VOLUME_RGB:
-        case DataValueType::VOLUME_RGBA:
-            /*
-             * For RGBA, there are four data values per voxel
-             */
-            m_rgba.resize(m_data.size());
-            break;
-    }
-
-    if (volumeEditingDrawAllVoxelsFlag) {
-        const int32_t numVoxels = static_cast<int32_t>(m_rgba.size() / 4);
-        for (int32_t i = 0; i < numVoxels; i++) {
-            const int32_t i4 = i * 4;
-            m_rgba[i4]   = 255;
-            m_rgba[i4+1] = 255;
-            m_rgba[i4+2] = 255;
-            m_rgba[i4+3] = 255;
-        }
-        
-        return;
-    }
-    
-    switch (m_dataValueType) {
-        case DataValueType::INVALID:
-            break;
-        case DataValueType::CIFTI_LABEL:
-        {
-            CaretAssert(m_ciftiMappableFile);
-            const GiftiLabelTable* labelTable = m_ciftiMappableFile->getMapLabelTable(m_mapIndex);
-            CaretAssert(labelTable);
-            NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(labelTable,
-                                                                               &m_data[0],
-                                                                               m_data.size(),
-                                                                               m_displayGroup,
-                                                                               m_browserTabIndex,
-                                                                               &m_rgba[0]);
-        }
-            break;
-        case DataValueType::CIFTI_PALETTE:
-        {
-            CaretAssert(m_ciftiMappableFile);
-            PaletteColorMapping* pcm = m_ciftiMappableFile->getMapPaletteColorMapping(m_mapIndex);
-            CaretAssert(pcm);
-            const FastStatistics* stats = m_ciftiMappableFile->getMapFastStatistics(m_mapIndex);
-            CaretAssert(stats);
-            CaretAssert(m_data.size() == m_thresholdData.size());
-            
-            PaletteColorMapping* threshPcm = ((m_thresholdPaletteColorMapping != NULL)
-                                              ? m_thresholdPaletteColorMapping
-                                              : pcm);
-            NodeAndVoxelColoring::colorScalarsWithPalette(stats,
-                                                          pcm,
-                                                          &m_data[0],
-                                                          threshPcm,
-                                                          &m_thresholdData[0],
-                                                          m_data.size(),
-                                                          &m_rgba[0]);
-        }
-            break;
-        case DataValueType::VOLUME_LABEL:
-        {
-            CaretAssert(m_volumeFile);
-            const GiftiLabelTable* labelTable = m_volumeFile->getMapLabelTable(m_mapIndex);
-            CaretAssert(labelTable);
-            NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(labelTable,
-                                                                               &m_data[0],
-                                                                               m_data.size(),
-                                                                               m_displayGroup,
-                                                                               m_browserTabIndex,
-                                                                               &m_rgba[0]);
-        }
-            break;
-        case DataValueType::VOLUME_PALETTE:
-        {
-            CaretAssert(m_volumeFile);
-            PaletteColorMapping* pcm = m_volumeFile->getMapPaletteColorMapping(m_mapIndex);
-            CaretAssert(pcm);
-            const FastStatistics* stats = m_volumeFile->getMapFastStatistics(m_mapIndex);
-            CaretAssert(stats);
-            CaretAssert(m_data.size() == m_thresholdData.size());
-            
-            PaletteColorMapping* threshPcm = ((m_thresholdPaletteColorMapping != NULL)
-                                              ? m_thresholdPaletteColorMapping
-                                              : pcm);
-            NodeAndVoxelColoring::colorScalarsWithPalette(stats,
-                                                          pcm,
-                                                          &m_data[0],
-                                                          threshPcm,
-                                                          &m_thresholdData[0],
-                                                          m_data.size(),
-                                                          &m_rgba[0]);
-        }
-            break;
-        case DataValueType::VOLUME_RGB:
-        case DataValueType::VOLUME_RGBA:
-        {
-            /*
-             * Test RGB data to see if it ranges from [0, 1] or [0, 255].
-             * Assume if any component is greater than 1, then the data is [0, 255]
-             */
-            bool range255Flag = std::any_of(m_data.begin(),
-                                            m_data.end(),
-                                            [](float f) { return f > 1.0f; });
-            
-            CaretAssert(m_data.size() == m_rgba.size());
-            const int32_t numVoxels = static_cast<int32_t>(m_data.size() / 4);
-            if (range255Flag) {
-                for (int32_t i = 0; i < numVoxels; i++) {
-                    const int32_t i4 = i * 4;
-                    m_rgba[i4] = static_cast<uint8_t>(m_data[i4]);
-                    m_rgba[i4+1] = static_cast<uint8_t>(m_data[i4+1]);
-                    m_rgba[i4+2] = static_cast<uint8_t>(m_data[i4+2]);
-                    if (m_dataValueType == DataValueType::VOLUME_RGB) {
-                        m_rgba[i4+3] = ((m_data[i4+3] > 0)
-                                        ? 255
-                                        : 0);
-                    }
-                }
-            }
-            else {
-                for (int32_t i = 0; i < numVoxels; i++) {
-                    const int32_t i4 = i * 4;
-                    m_rgba[i4]   = static_cast<uint8_t>(m_data[i4] * 255.0);
-                    m_rgba[i4+1] = static_cast<uint8_t>(m_data[i4+1] * 255.0);
-                    m_rgba[i4+2] = static_cast<uint8_t>(m_data[i4+2] * 255.0);
-                    m_rgba[i4+3] = static_cast<uint8_t>(m_data[i4+3] * 255.0);
-                }
-            }
-        }
-            break;
-    }
-}
-
-/**
- * Add any outlines for labels or thresholded palette data.
- */
-void
-BrainOpenGLVolumeTextureSliceDrawing::ObliqueSlice::addOutlines()
-{
-    LabelDrawingProperties* labelDrawingProperties = NULL;
-    PaletteColorMapping* paletteColorMapping = NULL;
-    switch (m_dataValueType) {
-        case DataValueType::INVALID:
-            break;
-        case DataValueType::CIFTI_LABEL:
-            CaretAssert(m_ciftiMappableFile);
-            labelDrawingProperties = m_ciftiMappableFile->getLabelDrawingProperties();
-            break;
-        case DataValueType::CIFTI_PALETTE:
-            CaretAssert(m_ciftiMappableFile);
-            paletteColorMapping = m_ciftiMappableFile->getMapPaletteColorMapping(m_mapIndex);
-            break;
-        case DataValueType::VOLUME_LABEL:
-            CaretAssert(m_volumeFile);
-            labelDrawingProperties = m_volumeFile->getLabelDrawingProperties();
-            break;
-        case DataValueType::VOLUME_PALETTE:
-            CaretAssert(m_volumeFile);
-            paletteColorMapping = m_volumeFile->getMapPaletteColorMapping(m_mapIndex);
-            break;
-        case DataValueType::VOLUME_RGB:
-            break;
-        case DataValueType::VOLUME_RGBA:
-            break;
-    }
-    
-    if (labelDrawingProperties != NULL) {
-        const LabelDrawingTypeEnum::Enum labelDrawingType = labelDrawingProperties->getDrawingType();
-        if (labelDrawingType != LabelDrawingTypeEnum::DRAW_FILLED) {
-            const CaretColorEnum::Enum outlineColor = labelDrawingProperties->getOutlineColor();
-            NodeAndVoxelColoring::convertSliceColoringToOutlineMode(&m_rgba[0],
-                                                                    labelDrawingType,
-                                                                    outlineColor,
-                                                                    m_numberOfColumns,
-                                                                    m_numberOfRows);
-        }
-    }
-    
-    if (paletteColorMapping != NULL) {
-        const PaletteThresholdOutlineDrawingModeEnum::Enum outlineMode = paletteColorMapping->getThresholdOutlineDrawingMode();
-        if (outlineMode != PaletteThresholdOutlineDrawingModeEnum::OFF) {
-            const CaretColorEnum::Enum outlineColor = paletteColorMapping->getThresholdOutlineDrawingColor();
-            NodeAndVoxelColoring::convertPaletteSliceColoringToOutlineMode(&m_rgba[0],
-                                                                           outlineMode,
-                                                                           outlineColor,
-                                                                           m_numberOfColumns,
-                                                                           m_numberOfRows);
-        }
-    }
-}
-
-/**
- * Loads voxels data into the 'slice'.
- *
- * @param maskingType
- *    Masking type to hide artifacts of interpolation
- * @param voxelEditingValue
- *    Value for voxels when editing a volume
- * @param volumeEditingDrawAllVoxelsFlag
- *    True if editing and all voxels should be drawn for selection.
- */
-void
-BrainOpenGLVolumeTextureSliceDrawing::ObliqueSlice::loadData(const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum maskingType,
-                                                             const float voxelEditingValue,
-                                                             const bool volumeEditingDrawAllVoxelsFlag)
-{
-    m_validVoxelCount = 0;
-    
-    bool needCiftiMapDataFlag = false;
-    switch (m_dataValueType) {
-        case DataValueType::INVALID:
-            break;
-        case DataValueType::CIFTI_LABEL:
-        case DataValueType::CIFTI_PALETTE:
-            needCiftiMapDataFlag = true;
-            break;
-        case DataValueType::VOLUME_LABEL:
-        case DataValueType::VOLUME_PALETTE:
-        case DataValueType::VOLUME_RGB:
-        case DataValueType::VOLUME_RGBA:
-            break;
-    }
-    
-    float voxelCenterOffset[3] = {
-        ((m_leftToRightStepXYZ[0] / 2.0f) + (m_bottomToTopStepXYZ[0] / 2.0f)),
-        ((m_leftToRightStepXYZ[1] / 2.0f) + (m_bottomToTopStepXYZ[1] / 2.0f)),
-        ((m_leftToRightStepXYZ[2] / 2.0f) + (m_bottomToTopStepXYZ[2] / 2.0f)),
-    };
-
-    std::vector<float> ciftiFileMapData;
-    std::vector<float> thresholdCiftiFileMapData;
-    if (needCiftiMapDataFlag) {
         /*
-         * Cifti files are slow at getting individual voxels since they
-         * provide no access to individual voxels.  The reason is that
-         * the data may be on a server (Dense data) and accessing a single
-         * voxel would require requesting the entire map.  So, for
-         * each Cifti file, get the entire map.
+         * No interpolation for Label or RGBA data
          */
-        CaretAssert(m_ciftiMappableFile);
-        m_ciftiMappableFile->getMapData(m_mapIndex,
-                                        ciftiFileMapData);
-        
-        if (m_thresholdCiftiMappableFile != NULL) {
-            m_thresholdCiftiMappableFile->getMapData(m_thresholdMapIndex,
-                                                     thresholdCiftiFileMapData);
-        }
-    }
-    
-    for (int32_t iRow = 0; iRow < m_numberOfRows; iRow++) {
-        float rowStartXYZ[3] = {
-            m_originXYZ[0] + (iRow * m_bottomToTopStepXYZ[0]),
-            m_originXYZ[1] + (iRow * m_bottomToTopStepXYZ[1]),
-            m_originXYZ[2] + (iRow * m_bottomToTopStepXYZ[2])
-        };
-        
-        for (int32_t iCol = 0; iCol < m_numberOfColumns; iCol++) {
-            
-            const float voxelBottomLeft[3] = {
-                rowStartXYZ[0] + (iCol * m_leftToRightStepXYZ[0]),
-                rowStartXYZ[1] + (iCol * m_leftToRightStepXYZ[1]),
-                rowStartXYZ[2] + (iCol * m_leftToRightStepXYZ[2])
-            };
-            
-            const float voxelCenter[3] = {
-                voxelBottomLeft[0] + voxelCenterOffset[0],
-                voxelBottomLeft[1] + voxelCenterOffset[1],
-                voxelBottomLeft[2] + voxelCenterOffset[2]
-            };
-            
-            float values[4] = { 0.0, 0.0, 0.0, 0.0 };
-            bool valueValidFlag = false;
-            
-            float thresholdValue = 0.0;
-            bool thresholdValueValidFlag = false;
-            
-            switch (m_dataValueType) {
-                case DataValueType::INVALID:
-                    CaretAssert(0);
-                    break;
-                case DataValueType::CIFTI_LABEL:
-                case DataValueType::CIFTI_PALETTE:
-                {
-                    CaretAssert(m_ciftiMappableFile);
-                    const int64_t voxelOffset = m_ciftiMappableFile->getMapDataOffsetForVoxelAtCoordinate(voxelCenter,
-                                                                                                              m_mapIndex);
-                    if (voxelOffset >= 0) {
-                        CaretAssertVectorIndex(ciftiFileMapData, voxelOffset);
-                        values[0] = ciftiFileMapData[voxelOffset];
-                        valueValidFlag = true;
-                    }
-                    
-                    if (m_thresholdCiftiMappableFile != NULL) {
-                        const int64_t thresholdVoxelOffset = m_thresholdCiftiMappableFile->getMapDataOffsetForVoxelAtCoordinate(voxelCenter,
-                                                                                                                                m_thresholdMapIndex);
-                        if (thresholdVoxelOffset >= 0) {
-                            CaretAssertVectorIndex(thresholdCiftiFileMapData, thresholdVoxelOffset);
-                            thresholdValue = thresholdCiftiFileMapData[thresholdVoxelOffset];
-                            thresholdValueValidFlag = true;
-                        }
-                    }
-                }
-                    break;
-                case DataValueType::VOLUME_LABEL:
-                {
-                    CaretAssert(m_volumeFile);
-                    values[0] = m_volumeFile->getVoxelValue(voxelCenter,
-                                                          &valueValidFlag,
-                                                          m_mapIndex,
-                                                          0);
-                }
-                    break;
-                case DataValueType::VOLUME_PALETTE:
-                {
-                    CaretAssert(m_volumeFile);
-                    values[0] = m_volumeFile->interpolateValue(voxelCenter,
-                                                             VolumeFile::CUBIC,
-                                                             &valueValidFlag,
-                                                             m_mapIndex);
-                    
-                    if (valueValidFlag
-                        && (values[0] != 0.0f)) {
-                        /*
-                         * Apply masking to oblique voxels (WB-750).
-                         * In some instances, CUBIC interpolation may result in a voxel
-                         * receiving a very small value (0.000000000000000210882405) and
-                         * this will cause the slice drawing to look very unusual.  Masking
-                         * is used to prevent this from occurring.
-                         *
-                         */
-                        bool maskValidFlag = false;
-                        float maskValue = 0.0f;
-                        switch (maskingType) {
-                            case VolumeSliceInterpolationEdgeEffectsMaskingEnum::OFF:
-                                maskValidFlag = false;
-                                break;
-                            case VolumeSliceInterpolationEdgeEffectsMaskingEnum::LOOSE:
-                                maskValue = m_volumeFile->interpolateValue(voxelCenter,
-                                                                         VolumeFile::TRILINEAR,
-                                                                         &maskValidFlag,
-                                                                         m_mapIndex);
-                                break;
-                            case VolumeSliceInterpolationEdgeEffectsMaskingEnum::TIGHT:
-                                maskValue = m_volumeFile->interpolateValue(voxelCenter,
-                                                                         VolumeFile::ENCLOSING_VOXEL,
-                                                                         &maskValidFlag,
-                                                                         m_mapIndex);
-                                break;
-                        }
-                        
-                        if (maskValidFlag
-                            && (maskValue == 0.0f)) {
-                            values[0] = 0.0f;
-                            valueValidFlag = false;
-                        }
-                    }
-                    
-                    if (m_thresholdVolumeFile != NULL) {
-                        thresholdValue = m_thresholdVolumeFile->getVoxelValue(voxelCenter,
-                                                                              &thresholdValueValidFlag,
-                                                                              m_thresholdMapIndex,
-                                                                              0);
-                    }
-                }
-                    break;
-                case DataValueType::VOLUME_RGB:
-                case DataValueType::VOLUME_RGBA:
-                {
-                    values[0] = m_volumeFile->getVoxelValue(voxelCenter,
-                                                               &valueValidFlag,
-                                                               m_mapIndex,
-                                                               0);
-                    if (valueValidFlag) {
-                        values[1] = m_volumeFile->getVoxelValue(voxelCenter,
-                                                                   &valueValidFlag,
-                                                                   m_mapIndex,
-                                                                   1);
-                        values[2] = m_volumeFile->getVoxelValue(voxelCenter,
-                                                                   &valueValidFlag,
-                                                                   m_mapIndex,
-                                                                   2);
-                        if (m_dataValueType == DataValueType::VOLUME_RGBA) {
-                            values[3] = m_volumeFile->getVoxelValue(voxelCenter,
-                                                                       &valueValidFlag,
-                                                                       m_mapIndex,
-                                                                       3);
-                        }
-                        else {
-                            values[3] = 1.0;
-                        }
-                    }
-                }
-                    break;
-            }
-            
-            if (m_thresholdMapIndex < 0) {
-                thresholdValue = values[0];
-            }
-            
-            /*
-             * Need to draw all voxels when editing
-             */
-            if (volumeEditingDrawAllVoxelsFlag) {
-                if (! valueValidFlag) {
-                    values[0] = voxelEditingValue;
-                    valueValidFlag = true;
-                }
-            }
-            
-            switch (m_dataValueType) {
-                case DataValueType::INVALID:
-                    break;
-                case DataValueType::CIFTI_LABEL:
-                case DataValueType::CIFTI_PALETTE:
-                case DataValueType::VOLUME_LABEL:
-                case DataValueType::VOLUME_PALETTE:
-                    m_data.push_back(values[0]);
-                    m_thresholdData.push_back(thresholdValue);
-                    break;
-                case DataValueType::VOLUME_RGB:
-                case DataValueType::VOLUME_RGBA:
-                    m_data.push_back(values[0]);
-                    m_data.push_back(values[1]);
-                    m_data.push_back(values[2]);
-                    m_data.push_back(values[3]);
-                    break;
-            }
-            
-            if (m_identificationModeFlag) {
-                /*
-                 * When identifying, need an IJK triplet
-                 * for each voxel
-                 */
-                int64_t ijk[3] = { -1, -1, -1 };
-                if (valueValidFlag) {
-                    if (m_volumeFile != NULL) {
-                        m_volumeFile->enclosingVoxel(voxelCenter, ijk);
-                        if ( ! m_volumeFile->indexValid(ijk)) {
-                            ijk[0] = -1;
-                            ijk[1] = -1;
-                            ijk[2] = -1;
-                            valueValidFlag = false;
-                        }
-                    }
-                    else if (m_ciftiMappableFile != NULL) {
-                        int64_t i(-1), j(-1), k(-1);
-                        m_ciftiMappableFile->enclosingVoxel(voxelCenter[0], voxelCenter[1], voxelCenter[2],
-                                                            i, j, k);
-                        if (m_ciftiMappableFile->indexValid(i, j, k)) {
-                            ijk[0] = i;
-                            ijk[1] = j;
-                            ijk[2] = k;
-                        }
-                        else {
-                            valueValidFlag = false;
-                        }
-                    }
-                }
-                m_identificationIJK.insert(m_identificationIJK.end(),
-                                           ijk, ijk + 3);
-            }
-            
-            if (valueValidFlag) {
-                m_validVoxelCount++;
-            }
-        }
-    }
-    
-    CaretAssert((m_sliceNumberOfVoxels * m_voxelNumberOfComponents) == static_cast<int32_t>(m_data.size()));
-    if (m_thresholdMapIndex >= 0) {
-        CaretAssert(m_data.size() == m_thresholdData.size());
-    }
-    
-    if (m_identificationModeFlag) {
-        CaretAssert((m_data.size() * 3) == m_identificationIJK.size());
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
 }
-
-/**
- * Draw the oblique slice with the graphics primitives.
- *
- * @param fixedPipelineDrawing
- *     The fixed pipeline drawing.
- */
-void
-BrainOpenGLVolumeTextureSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing)
-{
-    Brain* brain = fixedPipelineDrawing->m_brain;
-    SelectionItemVoxel* selectionItemVoxel = brain->getSelectionManager()->getVoxelIdentification();
-    SelectionItemVoxelEditing* selectionItemVoxelEditing = brain->getSelectionManager()->getVoxelEditingIdentification();
-
-    const GraphicsPrimitive::PrimitiveType primitiveType = GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES;
-    std::unique_ptr<GraphicsPrimitiveV3fC4ub> primitive(GraphicsPrimitive::newPrimitiveV3fC4ub(primitiveType));
-    
-    float rowXYZ[3] = {
-        m_originXYZ[0],
-        m_originXYZ[1],
-        m_originXYZ[2]
-    };
-    
-    uint8_t sliceAlpha = 255;
-    bool drawWithBlendingFlag(false);
-//    if (m_bottomLayerFlag) {
-        if (m_opacity < 1.0) {
-            sliceAlpha = static_cast<uint8_t>(m_opacity * 255.0);
-            drawWithBlendingFlag = true;
-        }
-//    }
-    
-    std::vector<int64_t> selectionIJK;
-    for (int32_t iRow = 0; iRow < m_numberOfRows; iRow++) {
-        float voxelXYZ[3] = {
-            rowXYZ[0],
-            rowXYZ[1],
-            rowXYZ[2]
-        };
-        
-        const int32_t rowRgbaOffset = (iRow * m_numberOfColumns * 4);
-        for (int32_t iCol = 0; iCol < m_numberOfColumns; iCol++) {
-            float nextXYZ[3] = {
-                voxelXYZ[0] + m_leftToRightStepXYZ[0],
-                voxelXYZ[1] + m_leftToRightStepXYZ[1],
-                voxelXYZ[2] + m_leftToRightStepXYZ[2],
-            };
-            
-            const int32_t rgbaIndex = rowRgbaOffset + (iCol * 4);
-            CaretAssertVectorIndex(m_rgba, rgbaIndex + 3);
-            const uint8_t alpha = m_rgba[rgbaIndex +3];
-            if (alpha > 0) {
-                const float upperLeftXYZ[3] = {
-                    voxelXYZ[0] + m_bottomToTopStepXYZ[0],
-                    voxelXYZ[1] + m_bottomToTopStepXYZ[1],
-                    voxelXYZ[2] + m_bottomToTopStepXYZ[2]
-                };
-                const float upperRightXYZ[3] = {
-                    nextXYZ[0] + m_bottomToTopStepXYZ[0],
-                    nextXYZ[1] + m_bottomToTopStepXYZ[1],
-                    nextXYZ[2] + m_bottomToTopStepXYZ[2]
-                };
-                uint8_t* rgba = &m_rgba[rgbaIndex];
-                if (drawWithBlendingFlag) {
-                    if ((rgba[0] > 0)
-                        || (rgba[1] > 0)
-                        || (rgba[2] > 0)) {
-                        rgba[3] = sliceAlpha;
-                    }
-                }
-                
-                /*
-                 * Each voxel is drawn with two triangles because:
-                 * (1) Voxels may be sparse and triangles strips do not support 'restart'
-                 * until newer versions of OpenGL.
-                 * (2) Support for Quads is removed in newer versions of OpenGL.
-                 */
-                primitive->addVertex(voxelXYZ,
-                                     rgba);
-                primitive->addVertex(nextXYZ,
-                                     rgba);
-                primitive->addVertex(upperLeftXYZ,
-                                     rgba);
-                primitive->addVertex(upperLeftXYZ,
-                                     rgba);
-                primitive->addVertex(nextXYZ,
-                                     rgba);
-                primitive->addVertex(upperRightXYZ,
-                                     rgba);
-                
-                if (m_identificationModeFlag) {
-                    /*
-                     * Each voxel is drawn with two triangles so need to put ID 
-                     * in twice since so that number of selections equals number
-                     * of triangles
-                     */
-                    const int32_t idIndex = ((iRow * m_numberOfColumns * 3) + (iCol * 3));
-                    CaretAssertVectorIndex(m_identificationIJK, idIndex + 2);
-                    selectionIJK.push_back(m_identificationIJK[idIndex]);
-                    selectionIJK.push_back(m_identificationIJK[idIndex+1]);
-                    selectionIJK.push_back(m_identificationIJK[idIndex+2]);
-                    selectionIJK.push_back(m_identificationIJK[idIndex]);
-                    selectionIJK.push_back(m_identificationIJK[idIndex+1]);
-                    selectionIJK.push_back(m_identificationIJK[idIndex+2]);
-                }
-            }
-            
-            voxelXYZ[0] = nextXYZ[0];
-            voxelXYZ[1] = nextXYZ[1];
-            voxelXYZ[2] = nextXYZ[2];
-        }
-        
-        rowXYZ[0] += m_bottomToTopStepXYZ[0];
-        rowXYZ[1] += m_bottomToTopStepXYZ[1];
-        rowXYZ[2] += m_bottomToTopStepXYZ[2];
-    }
-    
-    if (primitive->isValid()) {
-        if (m_identificationModeFlag) {
-            int32_t selectedIndex = -1;
-            float selectedDepth  = -1.0;
-            GraphicsEngineDataOpenGL::drawWithSelection(primitive.get(),
-                                                        fixedPipelineDrawing->mouseX,
-                                                        fixedPipelineDrawing->mouseY,
-                                                        selectedIndex,
-                                                        selectedDepth);
-            
-            if (selectedIndex >= 0) {
-                const int32_t ijkIndex = selectedIndex * 3;
-                CaretAssertVectorIndex(selectionIJK, ijkIndex + 2);
-                
-                m_selectionIJK[0] = selectionIJK[ijkIndex];
-                m_selectionIJK[1] = selectionIJK[ijkIndex+1];
-                m_selectionIJK[2] = selectionIJK[ijkIndex+2];
-                
-                if ((m_selectionIJK[0] >= 0)
-                    && (m_selectionIJK[1] >= 0)
-                    && (m_selectionIJK[2])) {
-                    if (selectionItemVoxel->isEnabledForSelection()) {
-                        if (selectionItemVoxel->isOtherScreenDepthCloserToViewer(selectedDepth)) {
-                            selectionItemVoxel->setVoxelIdentification(brain,
-                                                                       m_volumeInterface,
-                                                                       m_selectionIJK,
-                                                                       selectedDepth);
-                            
-                            float voxelCoordinates[3];
-                            m_volumeInterface->indexToSpace(m_selectionIJK[0], m_selectionIJK[1], m_selectionIJK[2],
-                                                            voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
-                            
-                            fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemVoxel,
-                                                                           voxelCoordinates);
-                            CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(m_selectionIJK, 3, ","));
-                        }
-                    }
-                    
-                    if (selectionItemVoxelEditing->isEnabledForSelection()) {
-                        if (selectionItemVoxelEditing->getVolumeFileForEditing() == m_volumeFile) {
-                            if (selectionItemVoxelEditing->isOtherScreenDepthCloserToViewer(selectedDepth)) {
-                                selectionItemVoxelEditing->setVoxelIdentification(brain,
-                                                                                  m_volumeInterface,
-                                                                                  m_selectionIJK,
-                                                                                  selectedDepth);
-                                float floatDiffXYZ[3] = {
-                                    m_leftToRightStepXYZ[0] + m_bottomToTopStepXYZ[0],
-                                    m_leftToRightStepXYZ[1] + m_bottomToTopStepXYZ[1],
-                                    m_leftToRightStepXYZ[2] + m_bottomToTopStepXYZ[2]
-                                };
-                                selectionItemVoxelEditing->setVoxelDiffXYZ(floatDiffXYZ);
-                                
-                                float voxelCoordinates[3];
-                                m_volumeInterface->indexToSpace(m_selectionIJK[0], m_selectionIJK[1], m_selectionIJK[2],
-                                                                voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
-                                
-                                fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemVoxelEditing,
-                                                                               voxelCoordinates);
-                                CaretLogFinest("Selected Voxel Editing (3D): Indices ("
-                                               + AString::fromNumbers(m_selectionIJK, 3, ",")
-                                               + ") Diff XYZ ("
-                                               + AString::fromNumbers(floatDiffXYZ, 3, ",")
-                                               + ")");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else {
-            /*
-             * Only allow layer blending when overall volume opacity is off (>= 1.0)
-             */
-            //const DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
-            const bool allowBlendingFlag(true); //dpv->getOpacity() >= 1.0f);
-            
-            glPushAttrib(GL_COLOR_BUFFER_BIT);
-            if (drawWithBlendingFlag
-                && allowBlendingFlag) {
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            }
-            GraphicsEngineDataOpenGL::draw(primitive.get());
-            glPopAttrib();
-        }
-    }
-}
-
-/**
- * @return True if the output slice indices are valid, else false.
- *
- * @param ijkOut
- *     Output slice indices.
- */
-bool
-BrainOpenGLVolumeTextureSliceDrawing::ObliqueSlice::getSelectionIJK(int32_t ijkOut[3]) const
-{
-    ijkOut[0] = m_selectionIJK[0];
-    ijkOut[1] = m_selectionIJK[1];
-    ijkOut[2] = m_selectionIJK[2];
-    return (m_selectionIJK[0] >= 0);
-}
-
-/**
- * @return True if the given slice spatially matches (voxel row/columns and coordinates).
- *
- * @param slice
- *     Slice for comparison.
- */
-bool
-BrainOpenGLVolumeTextureSliceDrawing::ObliqueSlice::spatialMatch(const ObliqueSlice* slice)
-{
-    CaretAssert(slice);
-    
-    const float diffMax = 0.001f;
-    if ((m_numberOfRows == slice->m_numberOfRows)
-        && (m_numberOfColumns == slice->m_numberOfColumns)
-        && (MathFunctions::distanceSquared3D(m_originXYZ, slice->m_originXYZ) < diffMax)
-        && (MathFunctions::distanceSquared3D(m_leftToRightStepXYZ, slice->m_leftToRightStepXYZ) < diffMax)
-        && (MathFunctions::distanceSquared3D(m_bottomToTopStepXYZ, slice->m_bottomToTopStepXYZ) < diffMax)) {
-        return true;
-    }
-    
-    return false;
-}
-
-/**
- * Composite the given slices onto this slice
- *
- * @param slices
- *     Slices that are composited.
- * @return
- *     True if able to composite all slices, else false.
- */
-bool
-BrainOpenGLVolumeTextureSliceDrawing::ObliqueSlice::compositeSlicesRGBA(const std::vector<ObliqueSlice*>& slices)
-{
-    std::vector<ObliqueSlice*> matchedSlices;
-    for (auto s : slices) {
-        if (s != this) {
-            if (spatialMatch(s)) {
-                if (m_rgba.size() == s->m_rgba.size()) {
-                    matchedSlices.push_back(s);
-                }
-                else {
-                    return false;
-                }
-            }
-        }
-    }
-    
-    if (matchedSlices.empty()) {
-        return false;
-    }
-    
-    const int32_t numSlices = static_cast<int32_t>(matchedSlices.size());
-    const int32_t rgbaLength = static_cast<int32_t>(m_rgba.size() / 4);
-    
-    for (int32_t i = 0; i < rgbaLength; i++) {
-        const int32_t i4 = i * 4;
-        for (int32_t iSlice = 0; iSlice < numSlices; iSlice++) {
-            CaretAssertVectorIndex(matchedSlices, iSlice);
-            const uint8_t* rgbaTop = &matchedSlices[iSlice]->m_rgba[i4];
-            uint8_t alphaTop = rgbaTop[3];
-            if (matchedSlices[iSlice]->m_opacity < 1.0f) {
-                float sliceAlphaFloat = ((static_cast<float>(alphaTop) / 255.0f) * matchedSlices[iSlice]->m_opacity);
-                if (sliceAlphaFloat >= 1.0f) {
-                    alphaTop = 255;
-                }
-                else if (sliceAlphaFloat <= 0.0f) {
-                    alphaTop = 0;
-                }
-                else {
-                    alphaTop = static_cast<uint8_t>(sliceAlphaFloat * 255);
-                }
-            }
-            if (alphaTop > 0) {
-                uint8_t* rgbaBottom = &m_rgba[i4];
-                if ((alphaTop == 255) ||
-                    (rgbaBottom[3] == 0)) {
-                    rgbaBottom[0] = rgbaTop[0];
-                    rgbaBottom[1] = rgbaTop[1];
-                    rgbaBottom[2] = rgbaTop[2];
-                    rgbaBottom[3] = 255;
-                }
-                else if (alphaTop > 0) {
-                    const float alpha = static_cast<float>(alphaTop) / 255.0f;
-                    const float oneMinusAlpha = 1.0f - alpha;
-                    for (int32_t m = 0; m < 3; m++) {
-                        const int32_t top    = static_cast<int32_t>(static_cast<float>(rgbaTop[m]) * alpha);
-                        const int32_t bottom = static_cast<int32_t>(static_cast<float>(rgbaBottom[m]) * oneMinusAlpha);
-                        int32_t blended = (top + bottom);
-                        if (blended > 255)    blended = 255;
-                        else if (blended < 0) blended = 0;
-                        
-                        rgbaBottom[m] = static_cast<uint8_t>(blended);
-                    }
-                    rgbaBottom[3] = 255;
-                }
-            }
-        }
-    }
-    
-    return true;
-}
-
-
-
 
