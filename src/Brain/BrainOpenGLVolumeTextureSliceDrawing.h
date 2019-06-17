@@ -152,14 +152,6 @@ namespace caret {
         void createObliqueTransformationMatrix(const float sliceCoordinates[3],
                                                Matrix4x4& obliqueTransformationMatrixOut);
         
-        void addVoxelToIdentification(const int32_t volumeIndex,
-                                      const int32_t mapIndex,
-                                      const int32_t voxelI,
-                                      const int32_t voxelJ,
-                                      const int32_t voxelK,
-                                      const float voxelDiffXYZ[3],
-                                      uint8_t rgbaForColorIdentificationOut[4]);
-        
         bool getVolumeDrawingViewDependentCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                   const float selectedSliceCoordinate,
                                                   const VolumeMappableInterface* volumeFile,
@@ -167,14 +159,10 @@ namespace caret {
                                                   int64_t culledLastVoxelIJKOut[3],
                                                   float voxelDeltaXYZOut[3]);
         
-        void processIdentification();
-        
-        void resetIdentification();
-        
-        bool getTextureCoordinates(const VolumeMappableInterface* vf,
-                                   const float xyz[3],
-                                   const float maxStr[3],
-                                   float rstOut[3]) const;
+        bool getTextureCoordinates(const VolumeMappableInterface* volumeMappableInterface,
+                                   const std::array<float, 3>& xyz,
+                                   const std::array<float, 3>& maxStr,
+                                   std::array<float, 3>& strOut) const;
         
         bool createVolumeTexture(const VolumeMappableInterface* volumeFile,
                                  const DisplayGroupEnum::Enum displayGroup,
@@ -217,7 +205,7 @@ namespace caret {
         
         Brain* m_brain;
         
-        std::vector<std::vector<float> > m_ciftiMappableFileData;
+        std::vector<std::vector<float>> m_ciftiMappableFileData;
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing;
         
@@ -237,17 +225,12 @@ namespace caret {
         
         VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum m_obliqueSliceMaskingType = VolumeSliceInterpolationEdgeEffectsMaskingEnum::OFF;
         
-        std::vector<int32_t> m_identificationIndices;
-        
         bool m_identificationModeFlag;
-        
-        static const int32_t IDENTIFICATION_INDICES_PER_VOXEL;
         
         // ADD_NEW_MEMBERS_HERE
     };
     
 #ifdef __BRAIN_OPEN_GL_VOLUME_TEXTURE_SLICE_DRAWING_DECLARE__
-    const int32_t BrainOpenGLVolumeTextureSliceDrawing::IDENTIFICATION_INDICES_PER_VOXEL = 8;
     std::map<VolumeMappableInterface*, BrainOpenGLVolumeTextureSliceDrawing::TextureInfo> BrainOpenGLVolumeTextureSliceDrawing::s_volumeTextureInfo;
     std::map<VolumeMappableInterface*, BrainOpenGLVolumeTextureSliceDrawing::TextureInfo> BrainOpenGLVolumeTextureSliceDrawing::s_identificationTextureInfo;
 

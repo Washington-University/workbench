@@ -775,8 +775,6 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewProjection(const BrainO
             break;
     }
     
-    resetIdentification();
-    
     GLboolean cullFaceOn = glIsEnabled(GL_CULL_FACE);
     
     if (drawVolumeSlicesFlag) {
@@ -801,13 +799,6 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewProjection(const BrainO
                                              obliqueTransformationMatrix);
             }
                 break;
-        }
-
-        /*
-         * Process selection
-         */
-        if (m_identificationModeFlag) {
-            processIdentification();
         }
     }
     
@@ -874,8 +865,8 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewProjection(const BrainO
  *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
  *    View plane that is displayed.
- * @param montageSliceIndex
- *    Selected montage slice index
+ * @param sliceCoordinates
+ *    Slice coordinates
  * @param planeOut
  *    OUTPUT plane of slice after transforms.
  */
@@ -1422,8 +1413,6 @@ BrainOpenGLVolumeTextureSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjec
 /**
  * Draw the axes crosshairs for an orthogonal slice.
  *
- * @param sliceProjectionType
- *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
  *    The slice plane view.
  * @param sliceCoordinatesIn
@@ -2231,158 +2220,6 @@ BrainOpenGLVolumeTextureSliceDrawing::setOrthographicProjection(const BrainOpenG
 }
 
 /**
- * Reset for volume identification.
- *
- * Clear identification indices and if identification is enabled,
- * reserve a reasonable amount of space for the indices.
- */
-void
-BrainOpenGLVolumeTextureSliceDrawing::resetIdentification()
-{
-    m_identificationIndices.clear();
-    
-    if (m_identificationModeFlag) {
-        int64_t estimatedNumberOfItems = 0;
-        
-        std::vector<int64_t> volumeDims;
-        m_volumeDrawInfo[0].volumeFile->getDimensions(volumeDims);
-        if (volumeDims.size() >= 3) {
-            const int64_t maxDim = std::max(volumeDims[0],
-                                            std::max(volumeDims[1], volumeDims[2]));
-            estimatedNumberOfItems = maxDim * maxDim * IDENTIFICATION_INDICES_PER_VOXEL;
-        }
-        
-        m_identificationIndices.reserve(estimatedNumberOfItems);
-    }
-}
-
-/**
- * Add a voxel to the identification indices.
- *
- * @param volumeIndex
- *    Index of the volume.
- * @param mapIndex
- *    Index of the volume map.
- * @param voxelI
- *    Voxel Index I
- * @param voxelJ
- *    Voxel Index J
- * @param voxelK
- *    Voxel Index K
- * @param voxelDiffXYZ
- *    Change in XYZ from voxel bottom left to top right
- * @param rgbaForColorIdentificationOut
- *    Encoded identification in RGBA color OUTPUT
- */
-void
-BrainOpenGLVolumeTextureSliceDrawing::addVoxelToIdentification(const int32_t volumeIndex,
-                                                               const int32_t mapIndex,
-                                                               const int32_t voxelI,
-                                                               const int32_t voxelJ,
-                                                               const int32_t voxelK,
-                                                               const float voxelDiffXYZ[3],
-                                                               uint8_t rgbaForColorIdentificationOut[4])
-{
-    const int32_t idIndex = m_identificationIndices.size() / IDENTIFICATION_INDICES_PER_VOXEL;
-    
-    m_fixedPipelineDrawing->colorIdentification->addItem(rgbaForColorIdentificationOut,
-                                                         SelectionItemDataTypeEnum::VOXEL,
-                                                         idIndex);
-    rgbaForColorIdentificationOut[3] = 255;
-    
-    /*
-     * ID stack requires integers to 
-     * use an integer pointer to the float values
-     */
-    CaretAssert(sizeof(float) == sizeof(int32_t));
-    const int32_t* intPointerDiffXYZ = (int32_t*)voxelDiffXYZ;
-    
-    /*
-     * If these items change, need to update reset and
-     * processing of identification.
-     */
-    m_identificationIndices.push_back(volumeIndex);
-    m_identificationIndices.push_back(mapIndex);
-    m_identificationIndices.push_back(voxelI);
-    m_identificationIndices.push_back(voxelJ);
-    m_identificationIndices.push_back(voxelK);
-    m_identificationIndices.push_back(intPointerDiffXYZ[0]);
-    m_identificationIndices.push_back(intPointerDiffXYZ[1]);
-    m_identificationIndices.push_back(intPointerDiffXYZ[2]);
-}
-
-/**
- * Process voxel identification.
- */
-void
-BrainOpenGLVolumeTextureSliceDrawing::processIdentification()
-{
-    int32_t identifiedItemIndex;
-    float depth = -1.0;
-    m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
-                                                       m_fixedPipelineDrawing->mouseX,
-                                                       m_fixedPipelineDrawing->mouseY,
-                                                       identifiedItemIndex,
-                                                       depth);
-    if (identifiedItemIndex >= 0) {
-        const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_VOXEL;
-        const int32_t volDrawInfoIndex = m_identificationIndices[idIndex];
-        CaretAssertVectorIndex(m_volumeDrawInfo, volDrawInfoIndex);
-        VolumeMappableInterface* vf = m_volumeDrawInfo[volDrawInfoIndex].volumeFile;
-        const int64_t voxelIndices[3] = {
-            m_identificationIndices[idIndex + 2],
-            m_identificationIndices[idIndex + 3],
-            m_identificationIndices[idIndex + 4]
-        };
-        
-        const float* floatDiffXYZ = (float*)&m_identificationIndices[idIndex + 5];
-        
-        SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
-        if (voxelID->isEnabledForSelection()) {
-            if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
-                voxelID->setVoxelIdentification(m_brain,
-                                                vf,
-                                                voxelIndices,
-                                                depth);
-                
-                float voxelCoordinates[3];
-                vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
-                                 voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
-                
-                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
-                                                                 voxelCoordinates);
-                CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
-            }
-        }
-        
-        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
-        if (voxelEditID->isEnabledForSelection()) {
-            if (voxelEditID->getVolumeFileForEditing() == vf) {
-                if (voxelEditID->isOtherScreenDepthCloserToViewer(depth)) {
-                    voxelEditID->setVoxelIdentification(m_brain,
-                                                        vf,
-                                                        voxelIndices,
-                                                        depth);
-                    voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
-                    
-                    float voxelCoordinates[3];
-                    vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
-                                     voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
-                    
-                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
-                                                                     voxelCoordinates);
-                    CaretLogFinest("Selected Voxel Editing (3D): Indices ("
-                                   + AString::fromNumbers(voxelIndices, 3, ",")
-                                   + ") Diff XYZ ("
-                                   + AString::fromNumbers(floatDiffXYZ, 3, ",")
-                                   + ")");
-                }
-            }
-        }
-    }
-}
-
-/**
  * Get the maximum bounds that enclose the volumes and the minimum
  * voxel spacing from the volumes.
  *
@@ -2509,21 +2346,35 @@ BrainOpenGLVolumeTextureSliceDrawing::createObliqueTransformationMatrix(const fl
 
 /* ======================================================================= */
 
+/**
+ * Get the texture coordinates for an XYZ-coordinate
+ *
+ * @param volumeMappableInterface
+ *     The volume file
+ * @param xyz
+ *     The XYZ coordinate
+ * @param maxStr
+ *     The maximum texture str coordinate
+ * @param strOut
+ *     Output texture str coordinate
+ * @return
+ *     True if output coordinate is valid, else false.
+ */
 bool
-BrainOpenGLVolumeTextureSliceDrawing::getTextureCoordinates(const VolumeMappableInterface* vf,
-                                                            const float xyz[3],
-                                                            const float maxStr[3],
-                                                            float rstOut[3]) const
+BrainOpenGLVolumeTextureSliceDrawing::getTextureCoordinates(const VolumeMappableInterface* volumeMappableInterface,
+                                                            const std::array<float, 3>& xyz,
+                                                            const std::array<float, 3>& maxStr,
+                                                            std::array<float, 3>& strOut) const
 {
     std::vector<int64_t> dims(5);
-    vf->getDimensions(dims);
+    volumeMappableInterface->getDimensions(dims);
     int64_t smallCornerIJK[3]  = { 0, 0, 0};
     float smallCornerXYZ[3] = { 0.0, 0.0, 0.0 };
-    vf->indexToSpace(smallCornerIJK, smallCornerXYZ);
+    volumeMappableInterface->indexToSpace(smallCornerIJK, smallCornerXYZ);
     
     int64_t bigCornerIJK[3] = { dims[0] - 1, dims[1] - 1, dims[2] - 1 };
     float bigCornerXYZ[3] = { 0.0, 0.0, 0.0 };
-    vf->indexToSpace(bigCornerIJK, bigCornerXYZ);
+    volumeMappableInterface->indexToSpace(bigCornerIJK, bigCornerXYZ);
     
     /*
      * Coordinates from volume are at CENTER of the voxel
@@ -2531,9 +2382,9 @@ BrainOpenGLVolumeTextureSliceDrawing::getTextureCoordinates(const VolumeMappable
      * outside edge to outside edge of the volume.
      */
     float voxelOneXYZ[3];
-    vf->indexToSpace(0, 0, 0, voxelOneXYZ);
+    volumeMappableInterface->indexToSpace(0, 0, 0, voxelOneXYZ);
     float voxelTwoXYZ[3];
-    vf->indexToSpace(1, 1, 1, voxelTwoXYZ);
+    volumeMappableInterface->indexToSpace(1, 1, 1, voxelTwoXYZ);
     const float halfVoxelSizeXYZ[3] {
         (voxelTwoXYZ[0] - voxelOneXYZ[0]) / 2.0f,
         (voxelTwoXYZ[1] - voxelOneXYZ[1]) / 2.0f,
@@ -2556,18 +2407,37 @@ BrainOpenGLVolumeTextureSliceDrawing::getTextureCoordinates(const VolumeMappable
         (xyz[2] - smallCornerXYZ[2]) / rangeXYZ[2],
     };
     
-    rstOut[0] = -1.0 + (normalizedOffset[0] * 2.0);
-    rstOut[1] = -1.0 + (normalizedOffset[1] * 2.0);
-    rstOut[2] = -1.0 + (normalizedOffset[2] * 2.0);
-    rstOut[0] = normalizedOffset[0] * maxStr[0];
-    rstOut[1] = normalizedOffset[1] * maxStr[1];
-    rstOut[2] = normalizedOffset[2] * maxStr[2];
+    strOut[0] = normalizedOffset[0] * maxStr[0];
+    strOut[1] = normalizedOffset[1] * maxStr[1];
+    strOut[2] = normalizedOffset[2] * maxStr[2];
     
     return true;
 }
 
+/**
+ * Create RGBA coloring for volume's texture
+ *
+ * @param volumeMappableInterface
+ *     The volume file
+ * @param displayGroup
+ *     Display group for current tab
+ * @param tabIndex
+ *     Index of tab
+ * @param allowNonPowerOfTwoTextureFlag
+ *     Allow non power-of-two texture
+ * @param identificationTextureFlag
+ *     True if creating texture for voxel identification
+ * @param rgbaColorsOut
+ *     Output containing RGBA coloring
+ * @param textureDimsOut
+ *     Output with dimensions for texture
+ * @param maxStrOut
+ *     Output with maximum Texture str coordinates
+ * @return
+ *     True if output rgba coloring is valid, else false.
+ */
 bool
-BrainOpenGLVolumeTextureSliceDrawing::createVolumeTexture(const VolumeMappableInterface* volumeFile,
+BrainOpenGLVolumeTextureSliceDrawing::createVolumeTexture(const VolumeMappableInterface* volumeMappableInterface,
                                                           const DisplayGroupEnum::Enum displayGroup,
                                                           const int32_t tabIndex,
                                                           const bool allowNonPowerOfTwoTextureFlag,
@@ -2579,7 +2449,7 @@ BrainOpenGLVolumeTextureSliceDrawing::createVolumeTexture(const VolumeMappableIn
     maxStrOut.fill(0.0);
     
     std::vector<int64_t> dims(5);
-    volumeFile->getDimensions(dims);
+    volumeMappableInterface->getDimensions(dims);
     textureDimsOut.fill(256);
     const int64_t dimLargest = *std::max_element(dims.begin(), dims.begin() + 3);
     if (allowNonPowerOfTwoTextureFlag) {
@@ -2587,7 +2457,7 @@ BrainOpenGLVolumeTextureSliceDrawing::createVolumeTexture(const VolumeMappableIn
     }
     else {
         if (dimLargest > 512) {
-            const CaretMappableDataFile* mapFile = dynamic_cast<const CaretMappableDataFile*>(volumeFile);
+            const CaretMappableDataFile* mapFile = dynamic_cast<const CaretMappableDataFile*>(volumeMappableInterface);
             const QString filename((mapFile != NULL)
                                    ? mapFile->getFileNameNoPath()
                                    : "no file name available");
@@ -2661,7 +2531,7 @@ BrainOpenGLVolumeTextureSliceDrawing::createVolumeTexture(const VolumeMappableIn
             int64_t columnStepIJK[3] = { 1, 0, 0 };
             
             std::fill(rgbaSlice.begin(), rgbaSlice.end(), 0);
-            volumeFile->getVoxelColorsForSliceInMap(mapIndex,
+            volumeMappableInterface->getVoxelColorsForSliceInMap(mapIndex,
                                                     firstVoxelIJK,
                                                     rowStepIJK,
                                                     columnStepIJK,
@@ -2695,6 +2565,20 @@ BrainOpenGLVolumeTextureSliceDrawing::createVolumeTexture(const VolumeMappableIn
     
 }
 
+/**
+ * Create a volume's texture
+ *
+ * @param volumeMappableInterface
+ *     The volume file
+ * @param identificationTextureFlag
+ *     True if creating texture for voxel identification
+ * @param displayGroup
+ *     Display group for current tab
+ * @param maxStrOut
+ *     Output with maximum Texture str coordinates
+ * @return
+ *     True if output rgba coloring is valid, else false.
+ */
 GLuint
 BrainOpenGLVolumeTextureSliceDrawing::createTextureName(const VolumeMappableInterface* volumeMappableInterface,
                                                         const bool identificationTextureFlag,
@@ -2769,9 +2653,13 @@ BrainOpenGLVolumeTextureSliceDrawing::createTextureName(const VolumeMappableInte
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
     
+    /*
+     * Compression works but appears lossy for palette mapped data
+     * but may be okay for label mapped data
+     */
     glTexImage3D(GL_TEXTURE_3D,
                  0,
-                 GL_RGBA,
+                 GL_RGBA, //GL_COMPRESSED_RGBA, //GL_RGBA,
                  textureDims[0],
                  textureDims[1],
                  textureDims[2],
@@ -2791,6 +2679,8 @@ BrainOpenGLVolumeTextureSliceDrawing::createTextureName(const VolumeMappableInte
  *
  * @param sliceViewPlane
  *    The plane for slice drawing.
+ * @param sliceProjectionType
+ *    The slice projection type
  * @param transformationMatrix
  *    The for oblique viewing.
  */
@@ -2821,11 +2711,6 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
     }
     
     const bool obliqueSliceModeThreeDimFlag = false;
-    
-    float m[16];
-    glGetFloatv(GL_MODELVIEW_MATRIX, m);
-    Matrix4x4 tm;
-    tm.setMatrixFromOpenGL(m);
     
     const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
     
@@ -2927,74 +2812,14 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
             break;
     }
     
-    const int32_t alignVoxelsFlag = 0;//1;
-    if (alignVoxelsFlag == 1) {
-        /*
-         * Adjust for when selected slices are not at the origin
-         */
-        const float xOffset = MathFunctions::remainder(screenOffsetX, voxelSize);
-        const float yOffset = MathFunctions::remainder(screenOffsetY, voxelSize);
-        originOffsetX -= xOffset;
-        originOffsetY -= yOffset;
-        
-        const int64_t numVoxelsToLeft = static_cast<int64_t>(MathFunctions::round(minScreenX + originOffsetX) / voxelSize);
-        const int64_t numVoxelsToRight = static_cast<int64_t>(MathFunctions::round(maxScreenX + originOffsetX) / voxelSize);
-        const int64_t numVoxelsToBottom = static_cast<int64_t>(MathFunctions::round(minScreenY + originOffsetY) / voxelSize);
-        const int64_t numVoxelsToTop = static_cast<int64_t>(MathFunctions::round(maxScreenY + originOffsetY)/ voxelSize);
-        
-        const float halfVoxel = voxelSize / 2.0;
-        
-        const float firstVoxelCenterX = (numVoxelsToLeft * voxelSize) + originOffsetX;
-        const float lastVoxelCenterX = (numVoxelsToRight * voxelSize) + originOffsetX;
-        
-        const float firstVoxelCenterY = (numVoxelsToBottom * voxelSize) + originOffsetY;
-        const float lastVoxelCenterY = (numVoxelsToTop * voxelSize) + originOffsetY;
-        
-        float newMinScreenX = firstVoxelCenterX - halfVoxel;
-        float newMaxScreenX = lastVoxelCenterX + halfVoxel;
-        float newMinScreenY = firstVoxelCenterY - halfVoxel;
-        float newMaxScreenY = lastVoxelCenterY + halfVoxel;
-        
-        if (debugFlag) {
-            const AString msg2 = ("Origin Voxel Coordinate: ("
-                                  + AString::fromNumbers(actualOrigin, 3, ",")
-                                  + "\n   Oblique Screen X: ("
-                                  + AString::number(minScreenX)
-                                  + ","
-                                  + AString::number(maxScreenX)
-                                  + ") Y: ("
-                                  + AString::number(minScreenY)
-                                  + ","
-                                  + AString::number(maxScreenY)
-                                  + ")\nNew X: ("
-                                  + AString::number(newMinScreenX)
-                                  + ","
-                                  + AString::number(newMaxScreenX)
-                                  + ") Y: ("
-                                  + AString::number(newMinScreenY)
-                                  + ","
-                                  + AString::number(newMaxScreenY)
-                                  + ") Diff: ("
-                                  + AString::number((newMaxScreenX - newMinScreenX) / voxelSize)
-                                  + ","
-                                  + AString::number((newMaxScreenY - newMinScreenY) / voxelSize)
-                                  + ")");
-            std::cout << qPrintable(msg2) << std::endl;
-        }
-        
-        minScreenX = newMinScreenX;
-        maxScreenX = newMaxScreenX;
-        minScreenY = newMinScreenY;
-        maxScreenY = newMaxScreenY;
-    }
     
     /*
      * Set the corners of the screen for the respective view
      */
-    float bottomLeft[3];
-    float bottomRight[3];
-    float topRight[3];
-    float topLeft[3];
+    std::array<float, 3> bottomLeft;
+    std::array<float, 3> bottomRight;
+    std::array<float, 3> topRight;
+    std::array<float, 3> topLeft;
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             CaretAssert(0);
@@ -3047,14 +2872,14 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
     /*
      * Transform the corners of the screen into model coordinates
      */
-    transformationMatrix.multiplyPoint3(bottomLeft);
-    transformationMatrix.multiplyPoint3(bottomRight);
-    transformationMatrix.multiplyPoint3(topRight);
-    transformationMatrix.multiplyPoint3(topLeft);
+    transformationMatrix.multiplyPoint3(bottomLeft.data());
+    transformationMatrix.multiplyPoint3(bottomRight.data());
+    transformationMatrix.multiplyPoint3(topRight.data());
+    transformationMatrix.multiplyPoint3(topLeft.data());
     
     if (debugFlag) {
-        const double bottomDist = MathFunctions::distance3D(bottomLeft, bottomRight);
-        const double topDist = MathFunctions::distance3D(topLeft, topRight);
+        const double bottomDist = MathFunctions::distance3D(bottomLeft.data(), bottomRight.data());
+        const double topDist = MathFunctions::distance3D(topLeft.data(), topRight.data());
         const double bottomVoxels = bottomDist / voxelSize;
         const double topVoxels = topDist / voxelSize;
         const AString msg = ("Bottom Dist: "
@@ -3072,10 +2897,10 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         m_fixedPipelineDrawing->setLineWidth(3.0);
         glColor3f(1.0, 0.0, 0.0);
         glBegin(GL_LINE_LOOP);
-        glVertex3fv(bottomLeft);
-        glVertex3fv(bottomRight);
-        glVertex3fv(topRight);
-        glVertex3fv(topLeft);
+        glVertex3fv(bottomLeft.data());
+        glVertex3fv(bottomRight.data());
+        glVertex3fv(topRight.data());
+        glVertex3fv(topLeft.data());
         glEnd();
     }
     
@@ -3088,8 +2913,8 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         topLeft[2] - bottomLeft[2],
     };
     MathFunctions::normalizeVector(bottomLeftToTopLeftUnitVector);
-    const double bottomLeftToTopLeftDistance = MathFunctions::distance3D(bottomLeft,
-                                                                         topLeft);
+    const double bottomLeftToTopLeftDistance = MathFunctions::distance3D(bottomLeft.data(),
+                                                                         topLeft.data());
     
     /*
      * Unit vector and distance in model coords along right side of screen
@@ -3100,14 +2925,23 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         topRight[2] - bottomRight[2]
     };
     MathFunctions::normalizeVector(bottomRightToTopRightUnitVector);
-    const double bottomRightToTopRightDistance = MathFunctions::distance3D(bottomRight,
-                                                                           topRight);
+    const double bottomRightToTopRightDistance = MathFunctions::distance3D(bottomRight.data(),
+                                                                           topRight.data());
 
     if ((bottomLeftToTopLeftDistance > 0)
         && (bottomRightToTopRightDistance > 0)) {
         glPushAttrib(GL_COLOR_BUFFER_BIT);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        
+        if (m_modelWholeBrain != NULL) {
+            glAlphaFunc(GL_GEQUAL, 0.95);
+            glEnable(GL_ALPHA_TEST);
+            glEnable(GL_DEPTH_TEST);
+        }
+        else {
+            glDisable(GL_DEPTH_TEST);
+        }
         
         bool firstFlag(true);
         for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
@@ -3181,27 +3015,24 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                 }
                 
                 if (textureID > 0) {
-                    float textureBottomLeft[3];
-                    getTextureCoordinates(volumeInterface, bottomLeft, maxStr.data(), textureBottomLeft);
-                    float textureBottomRight[3];
-                    getTextureCoordinates(volumeInterface, bottomRight, maxStr.data(), textureBottomRight);
-                    float textureTopLeft[3];
-                    getTextureCoordinates(volumeInterface, topLeft, maxStr.data(), textureTopLeft);
-                    float textureTopRight[3];
-                    getTextureCoordinates(volumeInterface, topRight, maxStr.data(), textureTopRight);
+                    std::array<float, 3> textureBottomLeft;
+                    getTextureCoordinates(volumeInterface, bottomLeft, maxStr, textureBottomLeft);
+                    std::array<float, 3> textureBottomRight;
+                    getTextureCoordinates(volumeInterface, bottomRight, maxStr, textureBottomRight);
+                    std::array<float, 3> textureTopLeft;
+                    getTextureCoordinates(volumeInterface, topLeft, maxStr, textureTopLeft);
+                    std::array<float, 3> textureTopRight;
+                    getTextureCoordinates(volumeInterface, topRight, maxStr, textureTopRight);
                     
                     if (debugFlag) {
-                        std::cout << "Bottom Left RST: " << AString::fromNumbers(textureBottomLeft, 3, ", ") << std::endl;
-                        std::cout << "Bottom Right RST: " << AString::fromNumbers(textureBottomRight, 3, ", ") << std::endl;
-                        std::cout << "Top Right RST: " << AString::fromNumbers(textureTopRight, 3, ", ") << std::endl;
-                        std::cout << "Top Left RST: " << AString::fromNumbers(textureTopLeft, 3, ", ") << std::endl;
+                        std::cout << "Bottom Left RST: " << AString::fromNumbers(textureBottomLeft.data(), 3, ", ") << std::endl;
+                        std::cout << "Bottom Right RST: " << AString::fromNumbers(textureBottomRight.data(), 3, ", ") << std::endl;
+                        std::cout << "Top Right RST: " << AString::fromNumbers(textureTopRight.data(), 3, ", ") << std::endl;
+                        std::cout << "Top Left RST: " << AString::fromNumbers(textureTopLeft.data(), 3, ", ") << std::endl;
                         std::cout << std::endl;
                     }
                     
                     glDisable(GL_CULL_FACE);
-                    if (m_modelWholeBrain == NULL) {
-                        glDisable(GL_DEPTH_TEST);
-                    }
                     m_fixedPipelineDrawing->testForOpenGLError("Before drawing with texture");
                     glEnable(GL_TEXTURE_3D);
                     glBindTexture(GL_TEXTURE_3D, textureID);
@@ -3215,18 +3046,16 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                      */
                     setupTextureFiltering(mapFile, sliceProjectionType);
                     
-                    std::cout << "Depth Test On: " << AString::fromBool(glIsEnabled(GL_DEPTH_TEST)) << std::endl;
-                    
                     glBegin(GL_QUADS);
                     glColor4f(0.0, 0.0, 1.0, 0.0);
-                    glTexCoord3fv(textureBottomLeft);
-                    glVertex3fv(bottomLeft);
-                    glTexCoord3fv(textureBottomRight);
-                    glVertex3fv(bottomRight);
-                    glTexCoord3fv(textureTopRight);
-                    glVertex3fv(topRight);
-                    glTexCoord3fv(textureTopLeft);
-                    glVertex3fv(topLeft);
+                    glTexCoord3fv(textureBottomLeft.data());
+                    glVertex3fv(bottomLeft.data());
+                    glTexCoord3fv(textureBottomRight.data());
+                    glVertex3fv(bottomRight.data());
+                    glTexCoord3fv(textureTopRight.data());
+                    glVertex3fv(topRight.data());
+                    glTexCoord3fv(textureTopLeft.data());
+                    glVertex3fv(topLeft.data());
                     glEnd();
 
                     glBindTexture(GL_TEXTURE_3D, 0);
@@ -3250,6 +3079,9 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
     }
 }
 
+/**
+ * Process identification from the texture volume
+ */
 void
 BrainOpenGLVolumeTextureSliceDrawing::processTextureVoxelIdentification(VolumeMappableInterface* volumeMappableInterface)
 {
