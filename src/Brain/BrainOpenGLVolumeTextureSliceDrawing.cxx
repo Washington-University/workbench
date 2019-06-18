@@ -2597,7 +2597,7 @@ BrainOpenGLVolumeTextureSliceDrawing::createVolumeTexture(const VolumeMappableIn
  * @param maxStrOut
  *     Output with maximum Texture str coordinates
  * @return
- *     True if output rgba coloring is valid, else false.
+ *     Valid texture ID (greater than zero) if texture was created, else 0.
  */
 GLuint
 BrainOpenGLVolumeTextureSliceDrawing::createTextureName(const VolumeMappableInterface* volumeMappableInterface,
@@ -2647,6 +2647,23 @@ BrainOpenGLVolumeTextureSliceDrawing::createTextureName(const VolumeMappableInte
         CaretAssert(0);
     }
     
+    GLint64 maxTextureSize(0);
+    glGetInteger64v(GL_MAX_3D_TEXTURE_SIZE,
+                    &maxTextureSize);
+    if (maxTextureSize > 0) {
+        for (int32_t i = 0; i < static_cast<int32_t>(textureDims.size()); i++) {
+            if (textureDims[i] > maxTextureSize) {
+                CaretLogSevere("Texture maximum dimension is "
+                               + AString::number(maxTextureSize)
+                               + ".  Volume "
+                               + mapFile->getFileNameNoPath()
+                               + " dimensions = ("
+                               + AString::fromNumbers(textureDims.data(), 3, ", ")
+                               + ")");
+                return 0;
+            }
+        }
+    }
     GLuint  textureName(0);
     glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
     
@@ -2677,6 +2694,7 @@ BrainOpenGLVolumeTextureSliceDrawing::createTextureName(const VolumeMappableInte
      * Compression works but appears lossy for palette mapped data
      * but may be okay for label mapped data
      */
+    m_fixedPipelineDrawing->testForOpenGLError("Before glTexImage3D");
     glTexImage3D(GL_TEXTURE_3D,
                  0,
                  GL_RGBA, //GL_COMPRESSED_RGBA, //GL_RGBA,
@@ -2687,7 +2705,8 @@ BrainOpenGLVolumeTextureSliceDrawing::createTextureName(const VolumeMappableInte
                  GL_RGBA,
                  GL_UNSIGNED_BYTE,
                  &rgbaColors[0]);
-    
+    m_fixedPipelineDrawing->testForOpenGLError("After glTexImage3D");
+
     glBindTexture(GL_TEXTURE_3D, 0);
     glPopClientAttrib();
     
