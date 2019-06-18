@@ -2010,18 +2010,55 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
         dimString += AString::number(dims[i]);
     }
     dataFileInformation.addNameAndValue("Dimensions", dimString);
-    const int64_t zero64 = 0;
-    if (indexValid(zero64, zero64, zero64)) {
-        float x, y, z;
-        indexToSpace(zero64, zero64, zero64, x, y, z);
-        dataFileInformation.addNameAndValue("IJK = (0,0,0)",
-                                            ("XYZ = ("
-                                             + AString::number(x)
-                                             + ", "
-                                             + AString::number(y)
-                                             + ", "
-                                             + AString::number(z)
-                                             + ")"));
+    
+    if (dims.size() >= 3) {
+        const int64_t maxI((dims[0] > 1) ? dims[0] - 1 : 0);
+        const int64_t maxJ((dims[1] > 1) ? dims[1] - 1 : 0);
+        const int64_t maxK((dims[2] > 1) ? dims[2] - 1 : 0);
+        int64_t corners[8][3] = {
+            {    0,    0,    0 },
+            { maxI,    0,    0 },
+            { maxI, maxJ,    0 },
+            {    0, maxJ,    0},
+            {    0,    0, maxK },
+            { maxI,    0, maxK },
+            { maxI, maxJ, maxK },
+            {    0, maxJ, maxK}
+        };
+        for (int32_t m = 0; m < 8; m++) {
+            const int64_t i(corners[m][0]);
+            const int64_t j(corners[m][1]);
+            const int64_t k(corners[m][2]);
+            if (indexValid(i, j, k)) {
+                float x, y, z;
+                indexToSpace(i, j, k, x, y, z);
+                dataFileInformation.addNameAndValue("IJK = ("
+                                                    + AString::number(i)
+                                                    + ","
+                                                    + AString::number(j)
+                                                    + ","
+                                                    + AString::number(k)
+                                                    + ")",
+                                                    ("XYZ = ("
+                                                     + AString::number(x)
+                                                     + ", "
+                                                     + AString::number(y)
+                                                     + ", "
+                                                     + AString::number(z)
+                                                     + ")"));
+            }
+        }
+    }
+    
+    const std::vector<std::vector<float>>& sform = getVolumeSpace().getSform();
+    QString sformName("sform");
+    for (const auto& row : sform) {
+        AString s;
+        for (const auto element : row) {
+            s.append(AString::number(element, 'f', 6) + " ");
+        }
+        dataFileInformation.addNameAndValue(sformName, s);
+        sformName.clear();
     }
     
     BoundingBox boundingBox;
