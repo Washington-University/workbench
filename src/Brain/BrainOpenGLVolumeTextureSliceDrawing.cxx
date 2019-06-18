@@ -2368,48 +2368,68 @@ BrainOpenGLVolumeTextureSliceDrawing::getTextureCoordinates(const VolumeMappable
 {
     std::vector<int64_t> dims(5);
     volumeMappableInterface->getDimensions(dims);
-    int64_t smallCornerIJK[3]  = { 0, 0, 0};
-    float smallCornerXYZ[3] = { 0.0, 0.0, 0.0 };
-    volumeMappableInterface->indexToSpace(smallCornerIJK, smallCornerXYZ);
     
-    int64_t bigCornerIJK[3] = { dims[0] - 1, dims[1] - 1, dims[2] - 1 };
-    float bigCornerXYZ[3] = { 0.0, 0.0, 0.0 };
-    volumeMappableInterface->indexToSpace(bigCornerIJK, bigCornerXYZ);
+//    int64_t smallCornerIJK[3]  = { 0, 0, 0};
+//    float smallCornerXYZ[3] = { 0.0, 0.0, 0.0 };
+//    volumeMappableInterface->indexToSpace(smallCornerIJK, smallCornerXYZ);
+//
+//    int64_t bigCornerIJK[3] = { dims[0] - 1, dims[1] - 1, dims[2] - 1 };
+//    float bigCornerXYZ[3] = { 0.0, 0.0, 0.0 };
+//    volumeMappableInterface->indexToSpace(bigCornerIJK, bigCornerXYZ);
+//
+//    /*
+//     * Coordinates from volume are at CENTER of the voxel
+//     * so increase size of volume so that range is from
+//     * outside edge to outside edge of the volume.
+//     */
+//    float voxelOneXYZ[3];
+//    volumeMappableInterface->indexToSpace(0, 0, 0, voxelOneXYZ);
+//    float voxelTwoXYZ[3];
+//    volumeMappableInterface->indexToSpace(1, 1, 1, voxelTwoXYZ);
+//    const float halfVoxelSizeXYZ[3] {
+//        (voxelTwoXYZ[0] - voxelOneXYZ[0]) / 2.0f,
+//        (voxelTwoXYZ[1] - voxelOneXYZ[1]) / 2.0f,
+//        (voxelTwoXYZ[2] - voxelOneXYZ[2]) / 2.0f,
+//    };
+//    for (int32_t i = 0; i < 3; i++) {
+//        smallCornerXYZ[i] -= halfVoxelSizeXYZ[i];
+//        bigCornerXYZ[i]   += halfVoxelSizeXYZ[i];
+//    }
+//
+//    const float rangeXYZ[3] = {
+//        (bigCornerXYZ[0] - smallCornerXYZ[0]),
+//        (bigCornerXYZ[1] - smallCornerXYZ[1]),
+//        (bigCornerXYZ[2] - smallCornerXYZ[2])
+//    };
+//
+//    const float normalizedOffset[3] = {
+//        (xyz[0] - smallCornerXYZ[0]) / rangeXYZ[0],
+//        (xyz[1] - smallCornerXYZ[1]) / rangeXYZ[1],
+//        (xyz[2] - smallCornerXYZ[2]) / rangeXYZ[2],
+//    };
+//
+//    strOut[0] = normalizedOffset[0] * maxStr[0];
+//    strOut[1] = normalizedOffset[1] * maxStr[1];
+//    strOut[2] = normalizedOffset[2] * maxStr[2];
     
-    /*
-     * Coordinates from volume are at CENTER of the voxel
-     * so increase size of volume so that range is from
-     * outside edge to outside edge of the volume.
-     */
-    float voxelOneXYZ[3];
-    volumeMappableInterface->indexToSpace(0, 0, 0, voxelOneXYZ);
-    float voxelTwoXYZ[3];
-    volumeMappableInterface->indexToSpace(1, 1, 1, voxelTwoXYZ);
-    const float halfVoxelSizeXYZ[3] {
-        (voxelTwoXYZ[0] - voxelOneXYZ[0]) / 2.0f,
-        (voxelTwoXYZ[1] - voxelOneXYZ[1]) / 2.0f,
-        (voxelTwoXYZ[2] - voxelOneXYZ[2]) / 2.0f,
-    };
-    for (int32_t i = 0; i < 3; i++) {
-        smallCornerXYZ[i] -= halfVoxelSizeXYZ[i];
-        bigCornerXYZ[i]   += halfVoxelSizeXYZ[i];
+    {
+        const VolumeSpace& volumeSpace = volumeMappableInterface->getVolumeSpace();
+        std::array<float, 3> ijk;
+        volumeSpace.spaceToIndex(xyz.data(), ijk.data());
+        
+        const std::array<float, 3> normalizedIJK {
+            (ijk[0] / dims[0]),
+            (ijk[1] / dims[1]),
+            (ijk[2] / dims[2])
+        };
+        std::array<float, 3> str {
+            (normalizedIJK[0] * maxStr[0]),
+            (normalizedIJK[1] * maxStr[1]),
+            (normalizedIJK[2] * maxStr[2])
+        };
+        
+        strOut = str;
     }
-    
-    const float rangeXYZ[3] = {
-        (bigCornerXYZ[0] - smallCornerXYZ[0]),
-        (bigCornerXYZ[1] - smallCornerXYZ[1]),
-        (bigCornerXYZ[2] - smallCornerXYZ[2])
-    };
-    
-    const float normalizedOffset[3] = {
-        (xyz[0] - smallCornerXYZ[0]) / rangeXYZ[0],
-        (xyz[1] - smallCornerXYZ[1]) / rangeXYZ[1],
-        (xyz[2] - smallCornerXYZ[2]) / rangeXYZ[2],
-    };
-    
-    strOut[0] = normalizedOffset[0] * maxStr[0];
-    strOut[1] = normalizedOffset[1] * maxStr[1];
-    strOut[2] = normalizedOffset[2] * maxStr[2];
     
     return true;
 }
@@ -3008,6 +3028,60 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                         glPrioritizeTextures(1, &textureID, &priority);
                         
                         if (debugFlag) std::cout << "Created texture: " << textureID << std::endl;
+
+                        if (debugFlag) {
+                            std::vector<int64_t> dims;
+                            volumeInterface->getDimensions(dims);
+                            if (dims.size() >= 3) {
+                                const int64_t maxI((dims[0] > 1) ? dims[0] - 1 : 0);
+                                const int64_t maxJ((dims[1] > 1) ? dims[1] - 1 : 0);
+                                const int64_t maxK((dims[2] > 1) ? dims[2] - 1 : 0);
+                                int64_t corners[8][3] = {
+                                    {    0,    0,    0 },
+                                    { maxI,    0,    0 },
+                                    { maxI, maxJ,    0 },
+                                    {    0, maxJ,    0},
+                                    {    0,    0, maxK },
+                                    { maxI,    0, maxK },
+                                    { maxI, maxJ, maxK },
+                                    {    0, maxJ, maxK}
+                                };
+                                for (int32_t m = 0; m < 8; m++) {
+                                    const int64_t i(corners[m][0]);
+                                    const int64_t j(corners[m][1]);
+                                    const int64_t k(corners[m][2]);
+                                    if (volumeInterface->indexValid(i, j, k)) {
+                                        float x, y, z;
+                                        volumeInterface->indexToSpace(i, j, k, x, y, z);
+                                        std::cout << ("IJK = ("
+                                                      + AString::number(i)
+                                                      + ","
+                                                      + AString::number(j)
+                                                      + ","
+                                                      + AString::number(k)
+                                                      + ")") << std::endl;
+                                        std::cout << ("   XYZ = ("
+                                                      + AString::number(x)
+                                                      + ", "
+                                                      + AString::number(y)
+                                                      + ", "
+                                                      + AString::number(z)
+                                                      + ")") << std::endl;
+                                        
+                                        std::array<float, 3> str;
+                                        std::array<float, 3> xyz { x, y, z };
+                                        getTextureCoordinates(volumeInterface, xyz, maxStr, str);
+                                        std::cout << ("      STR = ("
+                                                      + AString::number(str[0])
+                                                      + ", "
+                                                      + AString::number(str[1])
+                                                      + ", "
+                                                      + AString::number(str[2])
+                                                      + ")") << std::endl;
+                                    }
+                                }
+                            }
+                        }
                     }
                     else {
                         if (debugFlag) std::cout << "Failed to create texture ID" << std::endl;
@@ -3121,7 +3195,7 @@ BrainOpenGLVolumeTextureSliceDrawing::processTextureVoxelIdentification(VolumeMa
                  + QString::number(pixels[2]) + ", "
                  + QString::number(pixels[3]));
     
-    std::cout << "Pixel ID: " << AString::fromNumbers(pixels, 4, ",") << std::endl;
+    if (debugFlag) std::cout << "Pixel ID: " << AString::fromNumbers(pixels, 4, ",") << std::endl;
     
     uint32_t alphaInt(pixels[3]);
     if (alphaInt == 255) {
@@ -3131,7 +3205,7 @@ BrainOpenGLVolumeTextureSliceDrawing::processTextureVoxelIdentification(VolumeMa
         uint32_t offset = ((redInt << 16)
                            + (greenInt << 8)
                            + (blueInt));
-        std::cout << "   Offset: " << offset << std::endl;
+        if (debugFlag) std::cout << "   Offset: " << offset << std::endl;
         
         std::vector<int64_t> dims;
         volumeMappableInterface->getDimensions(dims);
@@ -3140,7 +3214,7 @@ BrainOpenGLVolumeTextureSliceDrawing::processTextureVoxelIdentification(VolumeMa
         const int64_t sliceOffset = offset % sliceSize;
         const int64_t sliceJ = sliceOffset / dims[0];
         const int64_t sliceI = sliceOffset % dims[0];
-        std::cout << "   Voxel IJK: " << sliceI << ", " << sliceJ << ", " << sliceK << std::endl;
+        if (debugFlag) std::cout << "   Voxel IJK: " << sliceI << ", " << sliceJ << ", " << sliceK << std::endl;
         
         const int64_t voxelIndices[3] {
             sliceI,
