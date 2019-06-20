@@ -3323,9 +3323,6 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                         rgbaOut[rgbaOffset+1] = mapRGBA[dataOffset4+1];
                         rgbaOut[rgbaOffset+2] = mapRGBA[dataOffset4+2];
                         uint8_t alpha = mapRGBA[dataOffset4+3];
-                        if (alpha < 0) {
-                            alpha = 0;
-                        }
                         
                         if (alpha > 0) {
                             if (labelTable != NULL) {
