@@ -66,7 +66,15 @@ namespace caret {
         BrainOpenGLVolumeTextureSliceDrawing(const BrainOpenGLVolumeTextureSliceDrawing&);
 
         BrainOpenGLVolumeTextureSliceDrawing& operator=(const BrainOpenGLVolumeTextureSliceDrawing&);
-        
+
+        void drawPrivate(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                         BrowserTabContent* browserTabContent,
+                         std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+                         const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                         const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueSliceMaskingType,
+                         const int32_t viewport[4]);
+
         void drawVolumeSlicesForAllStructuresView(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                   const int32_t viewport[4]);
         
@@ -149,7 +157,8 @@ namespace caret {
         bool getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
                                                 float spacingOut[3]);
         
-        void createObliqueTransformationMatrix(const float sliceCoordinates[3],
+        void createObliqueTransformationMatrix(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                               const float sliceCoordinates[3],
                                                Matrix4x4& obliqueTransformationMatrixOut);
         
         bool getVolumeDrawingViewDependentCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -219,7 +228,7 @@ namespace caret {
         
         double m_lookAtCenter[3];
         
-        double m_viewingMatrix[16];
+//        double m_viewingMatrix[16];
         
         double m_orthographicBounds[6];
         

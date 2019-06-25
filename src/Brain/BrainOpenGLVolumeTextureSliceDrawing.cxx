@@ -20,6 +20,9 @@
 /*LICENSE_END*/
 
 #include <cmath>
+#include <glm/ext/vector_float4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #define __BRAIN_OPEN_GL_VOLUME_TEXTURE_SLICE_DRAWING_DECLARE__
 #include "BrainOpenGLVolumeTextureSliceDrawing.h"
@@ -134,6 +137,59 @@ BrainOpenGLVolumeTextureSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
         return;
     }
     
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    drawPrivate(fixedPipelineDrawing,
+                browserTabContent,
+                volumeDrawInfo,
+                sliceDrawingType,
+                sliceProjectionType,
+                obliqueSliceMaskingType,
+                viewport);
+    
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+}
+
+/**
+ * Draw Volume Slices or slices for ALL Stuctures View.
+ *
+ * @param fixedPipelineDrawing
+ *    The OpenGL drawing.
+ * @param browserTabContent
+ *    Content of browser tab that is to be drawn.
+ * @param volumeDrawInfo
+ *    Info on each volume layers for drawing.
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param obliqueSliceMaskingType
+ *    Masking for oblique slice drawing
+ * @param viewport
+ *    The viewport (region of graphics area) for drawing slices.
+ */
+void
+BrainOpenGLVolumeTextureSliceDrawing::drawPrivate(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                  BrowserTabContent* browserTabContent,
+                                                  std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+                                                  const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                                  const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                  const VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueSliceMaskingType,
+                                                  const int32_t viewport[4])
+{
+    //    CaretAssert(sliceProjectionType == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
+    
+    if (volumeDrawInfo.empty()) {
+        return;
+    }
     CaretAssert(fixedPipelineDrawing);
     CaretAssert(browserTabContent);
     m_browserTabContent = browserTabContent;    
@@ -303,7 +359,6 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
                         drawOrientationAxes(allVP);
                         break;
                     case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                        drawOrientationAxes(allVP);
                         break;
                 }
             }
@@ -783,23 +838,25 @@ BrainOpenGLVolumeTextureSliceDrawing::drawVolumeSliceViewProjection(const BrainO
          */
         glDisable(GL_CULL_FACE);
         
+        Matrix4x4 obliqueTransformationMatrix;
         switch (sliceProjectionType) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+//                break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             {
                 /*
                  * Create the oblique slice transformation matrix
                  */
-                Matrix4x4 obliqueTransformationMatrix;
-                createObliqueTransformationMatrix(sliceCoordinates,
+                createObliqueTransformationMatrix(sliceProjectionType,
+                                                  sliceCoordinates,
                                                   obliqueTransformationMatrix);
                 
-                drawObliqueSliceWithOutlines(sliceViewPlane,
-                                             sliceProjectionType,
-                                             obliqueTransformationMatrix);
             }
                 break;
         }
+        drawObliqueSliceWithOutlines(sliceViewPlane,
+                                     sliceProjectionType,
+                                     obliqueTransformationMatrix);
     }
     
     if ( ! m_identificationModeFlag) {
@@ -919,6 +976,152 @@ BrainOpenGLVolumeTextureSliceDrawing::createSlicePlaneEquation(const VolumeSlice
     m_lookAtCenter[2] = sliceCoordinates[2];
 }
 
+///**
+// * Set the volume slice viewing transformation.  This sets the position and
+// * orientation of the camera.
+// *
+// * @param sliceProjectionType
+// *    Type of projection for the slice drawing (oblique, orthogonal)
+// * @param sliceViewPlane
+// *    View plane that is displayed.
+// * @param plane
+// *    Plane equation of selected slice.
+// * @param sliceCoordinates
+// *    Coordinates of the selected slices.
+// */
+//void
+//BrainOpenGLVolumeTextureSliceDrawing::setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+//                                                                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+//                                                                                      const Plane& plane,
+//                                                                                      const float sliceCoordinates[3])
+//{
+//    /*
+//     * Initialize the modelview matrix to the identity matrix
+//     * This places the camera at the origin, pointing down the
+//     * negative-Z axis with the up vector set to (0,1,0 =>
+//     * positive-Y is up).
+//     */
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
+//
+//    const float* userTranslation = m_browserTabContent->getTranslation();
+//
+//    /*
+//     * Move the camera with the user's translation
+//     */
+//    float viewTranslationX = 0.0;
+//    float viewTranslationY = 0.0;
+//    float viewTranslationZ = 0.0;
+//
+//    switch (sliceViewPlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
+//            viewTranslationY = sliceCoordinates[1] + userTranslation[1];
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
+//            viewTranslationY = sliceCoordinates[2] + userTranslation[2];
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//            viewTranslationX = -(sliceCoordinates[1] + userTranslation[1]);
+//            viewTranslationY =   sliceCoordinates[2] + userTranslation[2];
+//            break;
+//    }
+//
+//    glTranslatef(viewTranslationX,
+//                 viewTranslationY,
+//                 viewTranslationZ);
+//
+//
+//
+//
+//    glGetDoublev(GL_MODELVIEW_MATRIX,
+//                 m_viewingMatrix);
+//
+//    /*
+//     * Since an orthographic projection is used, the camera only needs
+//     * to be a little bit from the center along the plane's normal vector.
+//     */
+//    double planeNormal[3];
+//    plane.getNormalVector(planeNormal);
+//    double cameraXYZ[3] = {
+//        m_lookAtCenter[0] + planeNormal[0] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+//        m_lookAtCenter[1] + planeNormal[1] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+//        m_lookAtCenter[2] + planeNormal[2] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+//    };
+//
+//    /*
+//     * Set the up vector which indices which way is up (screen Y)
+//     */
+//    float up[3] = { 0.0, 0.0, 0.0 };
+//    switch (sliceViewPlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//            up[1] = 1.0;
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//            up[2] = 1.0;
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//            up[2] = 1.0;
+//            break;
+//    }
+//
+//    /*
+//     * For oblique viewing, the up vector needs to be rotated by the
+//     * oblique rotation matrix.
+//     */
+//    switch (sliceProjectionType) {
+//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+//            m_browserTabContent->getObliqueVolumeRotationMatrix().multiplyPoint3(up);
+//            break;
+//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+//            break;
+//    }
+//
+//    /*
+//     * Now set the camera to look at the selected coordinate (center)
+//     * with the camera offset a little bit from the center.
+//     * This allows the slice's voxels to be drawn in the actual coordinates.
+//     */
+//    gluLookAt(cameraXYZ[0], cameraXYZ[1], cameraXYZ[2],
+//              m_lookAtCenter[0], m_lookAtCenter[1], m_lookAtCenter[2],
+//              up[0], up[1], up[2]);
+//}
+
+/**
+ * Convert a Matrix4x4 to a glm::mat4 matrix
+ */
+static glm::mat4
+convertMatrix4x4toGlmMat4(const Matrix4x4& matrix)
+{
+    float m[16];
+    matrix.getMatrixForOpenGL(m);
+    
+    glm::mat4 out(m[0], m[1], m[2], m[3],
+                    m[4], m[5], m[6], m[7],
+                    m[8], m[9], m[10], m[11],
+                    m[12], m[13], m[14], m[15]);
+    return out;
+}
+
+/**
+ * Convert a glm::mat4 matrix to an OpenGL matrix
+ */
+static void
+mat4ToOpenGLMatrix(const glm::mat4& matrixIn,
+                   float matrixOut[16])
+{
+    int32_t indx = 0;
+    for (int32_t iRow = 0; iRow < 4; iRow++) {
+        for (int jCol = 0; jCol < 4; jCol++) {
+            matrixOut[indx] = matrixIn[iRow][jCol];
+            indx++;
+        }
+    }
+}
+
 /**
  * Set the volume slice viewing transformation.  This sets the position and
  * orientation of the camera.
@@ -938,66 +1141,42 @@ BrainOpenGLVolumeTextureSliceDrawing::setVolumeSliceViewingAndModelingTransforma
                                                                                       const Plane& plane,
                                                                                       const float sliceCoordinates[3])
 {
-    /*
-     * Initialize the modelview matrix to the identity matrix
-     * This places the camera at the origin, pointing down the
-     * negative-Z axis with the up vector set to (0,1,0 =>
-     * positive-Y is up).
-     */
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    const float* userTranslation = m_browserTabContent->getTranslation();
     
     /*
      * Move the camera with the user's translation
      */
-    float viewTranslationX = 0.0;
-    float viewTranslationY = 0.0;
-    float viewTranslationZ = 0.0;
-    
+    const float* userTranslation = m_browserTabContent->getTranslation();
+    glm::vec3 translation(0.0);
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
         case VolumeSliceViewPlaneEnum::AXIAL:
-            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
-            viewTranslationY = sliceCoordinates[1] + userTranslation[1];
+            translation[0] = sliceCoordinates[0] + userTranslation[0];
+            translation[1] = sliceCoordinates[1] + userTranslation[1];
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            viewTranslationX = sliceCoordinates[0] + userTranslation[0];
-            viewTranslationY = sliceCoordinates[2] + userTranslation[2];
+            translation[0] = sliceCoordinates[0] + userTranslation[0];
+            translation[1] = sliceCoordinates[2] + userTranslation[2];
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            viewTranslationX = -(sliceCoordinates[1] + userTranslation[1]);
-            viewTranslationY =   sliceCoordinates[2] + userTranslation[2];
+            translation[0] = -(sliceCoordinates[1] + userTranslation[1]);
+            translation[1] =   sliceCoordinates[2] + userTranslation[2];
             break;
     }
-
-    glTranslatef(viewTranslationX,
-                 viewTranslationY,
-                 viewTranslationZ);
-    
-    
-    
-    
-    glGetDoublev(GL_MODELVIEW_MATRIX,
-                 m_viewingMatrix);
     
     /*
-     * Since an orthographic projection is used, the camera only needs
+     * Since an orthographic projection is used, the eye only needs
      * to be a little bit from the center along the plane's normal vector.
      */
     double planeNormal[3];
     plane.getNormalVector(planeNormal);
-    double cameraXYZ[3] = {
-        m_lookAtCenter[0] + planeNormal[0] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-        m_lookAtCenter[1] + planeNormal[1] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-        m_lookAtCenter[2] + planeNormal[2] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
-    };
+    glm::vec3 eye(m_lookAtCenter[0] + planeNormal[0] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                  m_lookAtCenter[1] + planeNormal[1] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                  m_lookAtCenter[2] + planeNormal[2] * BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
     
     /*
      * Set the up vector which indices which way is up (screen Y)
      */
-    float up[3] = { 0.0, 0.0, 0.0 };
+    glm::vec4 up(0.0, 0.0, 0.0, 1.0);
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
         case VolumeSliceViewPlaneEnum::AXIAL:
@@ -1011,13 +1190,27 @@ BrainOpenGLVolumeTextureSliceDrawing::setVolumeSliceViewingAndModelingTransforma
             break;
     }
     
-    /*
-     * For oblique viewing, the up vector needs to be rotated by the
-     * oblique rotation matrix.
-     */
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            m_browserTabContent->getObliqueVolumeRotationMatrix().multiplyPoint3(up);
+        {
+            /*
+             * For oblique viewing, the up vector needs to be rotated by the
+             * oblique rotation matrix.
+             */
+            const Matrix4x4 obMat = m_browserTabContent->getObliqueVolumeRotationMatrix();
+            const glm::mat4 matrix = convertMatrix4x4toGlmMat4(obMat);
+            up = matrix * up;
+            
+            if (debugFlag) {
+                float upTemp[3] = { up[0], up[1], up[2] };
+                m_browserTabContent->getObliqueVolumeRotationMatrix().multiplyPoint3(upTemp);
+                float upCopy[3] = { up[0], up[1], up[2] };
+                const float dist = MathFunctions::distance3D(upTemp, upCopy);
+                if (dist >= 0.01) {
+                    std::cout << "Up vectors different by distance: " << dist << std::endl;
+                }
+            }
+        }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             break;
@@ -1028,9 +1221,18 @@ BrainOpenGLVolumeTextureSliceDrawing::setVolumeSliceViewingAndModelingTransforma
      * with the camera offset a little bit from the center.
      * This allows the slice's voxels to be drawn in the actual coordinates.
      */
-    gluLookAt(cameraXYZ[0], cameraXYZ[1], cameraXYZ[2],
-              m_lookAtCenter[0], m_lookAtCenter[1], m_lookAtCenter[2],
-              up[0], up[1], up[2]);
+//    gluLookAt(eye[0], eye[1], eye[2],
+//              m_lookAtCenter[0], m_lookAtCenter[1], m_lookAtCenter[2],
+//              up[0], up[1], up[2]);
+    glm::vec3 lookAt(m_lookAtCenter[0], m_lookAtCenter[1], m_lookAtCenter[2]);
+    glm::mat4 lookAtMatrix = glm::lookAt(eye, lookAt, glm::vec3(up));
+
+    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0), translation);
+    
+    glm::mat4 projMatrix = translationMatrix * lookAtMatrix;
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(glm::value_ptr(projMatrix));
 }
 
 /**
@@ -1931,10 +2133,14 @@ BrainOpenGLVolumeTextureSliceDrawing::drawOrientationAxes(const int viewport[4])
      */
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
-    glLoadIdentity();
-    glOrtho(left, right,
-            bottom, top,
-            nearDepth, farDepth);
+//    glLoadIdentity();
+//    glOrtho(left, right,
+//            bottom, top,
+//            nearDepth, farDepth);
+    glm::mat4 orthoMatrix = glm::ortho(left, right,
+                                       bottom, top,
+                                       nearDepth, farDepth);
+    glLoadMatrixf(glm::value_ptr(orthoMatrix));
     
     
     glMatrixMode(GL_MODELVIEW);
@@ -1945,26 +2151,21 @@ BrainOpenGLVolumeTextureSliceDrawing::drawOrientationAxes(const int viewport[4])
          * Set the viewing transformation, places 'eye' so that it looks
          * at the 'model' which is, in this case, the axes
          */
-        double eyeX = 0.0;
-        double eyeY = 0.0;
-        double eyeZ = BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance; //100.0;
-        const double centerX = 0;
-        const double centerY = 0;
-        const double centerZ = 0;
-        const double upX = 0;
-        const double upY = 1;
-        const double upZ = 0;
-        gluLookAt(eyeX, eyeY, eyeZ,
-                  centerX, centerY, centerZ,
-                  upX, upY, upZ);
-        
+        const glm::vec3 eyeXYZ(0.0, 0.0, BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance);
+        const glm::vec3 lookAtXYZ(0.0, 0.0, 0.0);
+        const glm::vec3 upVector(0.0, 1.0, 0.0);
+        glm::mat4 lookAtMatrix = glm::lookAt(eyeXYZ,
+                                             lookAtXYZ,
+                                             upVector);
+
         /*
          * Set the modeling transformation
          */
         const Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
-        double rotationMatrix[16];
-        obliqueRotationMatrix.getMatrixForOpenGL(rotationMatrix);
-        glMultMatrixd(rotationMatrix);
+        const glm::mat4 obliqueMat4 = convertMatrix4x4toGlmMat4(obliqueRotationMatrix);
+        const glm::mat4 modelMatrix = lookAtMatrix * obliqueMat4;
+        glLoadMatrixf(glm::value_ptr(modelMatrix));
+        
         
         /*
          * Disable depth buffer.  Otherwise, when volume slices are drawn
@@ -2312,13 +2513,16 @@ BrainOpenGLVolumeTextureSliceDrawing::getVoxelCoordinateBoundsAndSpacing(float b
 /**
  * Create the oblique transformation matrix.
  *
+ * @parm sliceProjectionType
+ *    The slice projection type
  * @param sliceCoordinates
  *    Slice that is being drawn.
  * @param obliqueTransformationMatrixOut
  *    OUTPUT transformation matrix for oblique viewing.
  */
 void
-BrainOpenGLVolumeTextureSliceDrawing::createObliqueTransformationMatrix(const float sliceCoordinates[3],
+BrainOpenGLVolumeTextureSliceDrawing::createObliqueTransformationMatrix(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                                        const float sliceCoordinates[3],
                                                                         Matrix4x4& obliqueTransformationMatrixOut)
 {
     /*
@@ -2326,15 +2530,24 @@ BrainOpenGLVolumeTextureSliceDrawing::createObliqueTransformationMatrix(const fl
      */
     obliqueTransformationMatrixOut.identity();
     
-    /*
-     * Get the oblique rotation matrix
-     */
-    Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
-    
-    /*
-     * Create the transformation matrix
-     */
-    obliqueTransformationMatrixOut.postmultiply(obliqueRotationMatrix);
+    switch (sliceProjectionType) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+        {
+            /*
+             * Get the oblique rotation matrix
+             */
+            Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
+            
+            /*
+             * Create the transformation matrix
+             */
+            obliqueTransformationMatrixOut.postmultiply(obliqueRotationMatrix);
+
+        }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+    }
     
     /*
      * Translate to selected coordinate
@@ -2690,6 +2903,16 @@ BrainOpenGLVolumeTextureSliceDrawing::createTextureName(const VolumeMappableInte
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
     
+    const bool enableMipMapsFlag(false);
+    if (enableMipMapsFlag) {
+        /*
+         * Generate mip-maps
+         * However does not improve quality or remove aliasing in oblique views (rotation
+         * around multiple axes)
+         */
+        glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, GL_TRUE);
+    }
+    
     /*
      * Compression works but appears lossy for palette mapped data
      * but may be okay for label mapped data
@@ -2822,35 +3045,6 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
     m_volumeDrawInfo[0].volumeFile->indexToSpace(originIJK, originVoxelXYZ);
     float actualOrigin[3];
     m_volumeDrawInfo[0].volumeFile->indexToSpace(originIJK, actualOrigin);
-    
-    float screenOffsetX = 0.0;
-    float screenOffsetY = 0.0;
-    float originOffsetX = 0.0;
-    float originOffsetY = 0.0;
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            screenOffsetX = m_lookAtCenter[0];
-            screenOffsetY = m_lookAtCenter[1];
-            originOffsetX = actualOrigin[0];
-            originOffsetY = actualOrigin[1];
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            screenOffsetX = m_lookAtCenter[0];
-            screenOffsetY = m_lookAtCenter[2];
-            originOffsetX = actualOrigin[0];
-            originOffsetY = actualOrigin[2];
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            screenOffsetX = m_lookAtCenter[1];
-            screenOffsetY = m_lookAtCenter[2];
-            originOffsetX = actualOrigin[1];
-            originOffsetY = actualOrigin[2];
-            break;
-    }
-    
     
     /*
      * Set the corners of the screen for the respective view
@@ -3317,6 +3511,7 @@ BrainOpenGLVolumeTextureSliceDrawing::setupTextureFiltering(const CaretMappableD
                                                             const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType)
 {
     if (mapFile->isMappedWithPalette()) {
+        
         switch (sliceProjectionType) {
             case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             {
@@ -3346,7 +3541,7 @@ BrainOpenGLVolumeTextureSliceDrawing::setupTextureFiltering(const CaretMappableD
                  * Thus, Pixel contains more than one texel
                  */
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                
+
                 /*
                  * GL_TEXTURE_MAG_FILTER - The  texture  magnification  function
                  * is used when the pixel being textured maps to an area less than or
@@ -3365,6 +3560,7 @@ BrainOpenGLVolumeTextureSliceDrawing::setupTextureFiltering(const CaretMappableD
                  * If GL_LINEAR is used the voxel "blockiness" is smoothed out
                  */
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                
             }
                 break;
             case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
@@ -3376,6 +3572,14 @@ BrainOpenGLVolumeTextureSliceDrawing::setupTextureFiltering(const CaretMappableD
                 glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             }
                 break;
+        }
+        
+        /*
+         * Option to smooth voxels that removes all "blocki-ness"
+         */
+        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DELELOPER_FLAG_VOXEL_SMOOTH)) {
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         }
         
         GLfloat borderColor[4] = { 0.0, 0.0, 0.0, 0.0 };

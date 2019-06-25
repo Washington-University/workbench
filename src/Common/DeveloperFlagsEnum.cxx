@@ -129,6 +129,11 @@ DeveloperFlagsEnum::initialize()
                                                 "Texture Volume Drawing",
                                                 CheckableEnum::YES,
                                                 false));
+    checkableItems.push_back(DeveloperFlagsEnum(DELELOPER_FLAG_VOXEL_SMOOTH,
+                                                "DELELOPER_FLAG_VOXEL_SMOOTH",
+                                                "Smooth Texture Volume Voxels",
+                                                CheckableEnum::YES,
+                                                false));
 
     std::vector<DeveloperFlagsEnum> notCheckableItems;
 
