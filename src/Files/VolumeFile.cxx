@@ -2402,4 +2402,30 @@ VolumeFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapI
 }
 
 
+/**
+ * @return The units for the 'interval' between two consecutive maps.
+ */
+NiftiTimeUnitsEnum::Enum
+VolumeFile::getMapIntervalUnits() const
+{
+    NiftiTimeUnitsEnum::Enum units = NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
+    
+    if (m_header != NULL && m_header->getType() == AbstractHeader::NIFTI) {
+        const NiftiHeader& myHeader = *((NiftiHeader*)m_header.getPointer());
+        
+        std::vector<int64_t> dims;
+        getDimensions(dims);
+        if (dims.size() >= 4) {
+            if (dims[3] > 1) {
+                const float timeStep = myHeader.getTimeStep();
+                if (timeStep > 0.0) {
+                    units = NiftiTimeUnitsEnum::NIFTI_UNITS_SEC;
+                }
+            }
+        }
+    }
+
+    return units;
+}
+
 

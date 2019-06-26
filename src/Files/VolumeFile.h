@@ -375,6 +375,8 @@ namespace caret {
                                                          int64_t ijkOut[3],
                                                          AString& textOut) const;
         
+        virtual NiftiTimeUnitsEnum::Enum getMapIntervalUnits() const override;
+        
     };
 
 }
