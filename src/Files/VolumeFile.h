@@ -377,6 +377,8 @@ namespace caret {
         
         virtual NiftiTimeUnitsEnum::Enum getMapIntervalUnits() const override;
         
+        virtual void getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
+                                                float& mapIntervalStepValueOut) const override;
     };
 
 }

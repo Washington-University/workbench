@@ -2417,6 +2417,9 @@ VolumeFile::getMapIntervalUnits() const
         getDimensions(dims);
         if (dims.size() >= 4) {
             if (dims[3] > 1) {
+                /*
+                 * Timestep from NiftiHeader is always seconds
+                 */
                 const float timeStep = myHeader.getTimeStep();
                 if (timeStep > 0.0) {
                     units = NiftiTimeUnitsEnum::NIFTI_UNITS_SEC;
@@ -2426,6 +2429,43 @@ VolumeFile::getMapIntervalUnits() const
     }
 
     return units;
+}
+
+/**
+ * Get the units value for the first map and the
+ * quantity of units between consecutive maps.  If the
+ * units for the maps is unknown, value of one (1) are
+ * returned for both output values.
+ *
+ * @param firstMapUnitsValueOut
+ *     Output containing units value for first map.
+ * @param mapIntervalStepValueOut
+ *     Output containing number of units between consecutive maps.
+ */
+void
+VolumeFile::getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
+                                       float& mapIntervalStepValueOut) const
+{
+    firstMapUnitsValueOut   = 0.0;
+    mapIntervalStepValueOut = 1.0;
+    
+    if (m_header != NULL && m_header->getType() == AbstractHeader::NIFTI) {
+        const NiftiHeader& myHeader = *((NiftiHeader*)m_header.getPointer());
+        
+        std::vector<int64_t> dims;
+        getDimensions(dims);
+        if (dims.size() >= 4) {
+            if (dims[3] > 1) {
+                /*
+                 * Timestep from NiftiHeader is always seconds
+                 */
+                const float timeStep = myHeader.getTimeStep();
+                if (timeStep > 0.0) {
+                    mapIntervalStepValueOut = timeStep;
+                }
+            }
+        }
+    }
 }
 
 
