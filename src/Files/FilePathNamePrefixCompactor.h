@@ -37,10 +37,7 @@ namespace caret {
         
         static void removeMatchingPathPrefixFromCaretDataFiles(const std::vector<CaretDataFile*>& caretDataFiles,
                                                                std::vector<AString>& prefixRemovedNamesOut);
-        
-        static void removeMatchingPathPrefixFromCaretDataFile(const CaretDataFile* caretDataFile,
-                                                              AString& prefixRemovedNameOut);
-        
+                
     private:
         FilePathNamePrefixCompactor();
         

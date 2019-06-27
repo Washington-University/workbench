@@ -102,18 +102,6 @@ FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const st
     }
     removeMatchingPathPrefixFromCaretDataFiles(caretDataFiles,
                                                prefixRemovedNamesOut);
-
-//    std::vector<AString> fileNames;
-//    for (std::vector<CaretMappableDataFile*>::const_iterator iter = caretMappableDataFiles.begin();
-//         iter != caretMappableDataFiles.end();
-//         iter++) {
-//        const CaretDataFile* cdf = *iter;
-//        CaretAssert(cdf);
-//        fileNames.push_back(cdf->getFileName());
-//    }
-//    
-//    removeMatchingPathPrefixFromFileNames(fileNames,
-//                                          prefixRemovedNamesOut);
 }
 
 /**
@@ -137,6 +125,7 @@ void
 FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const std::vector<CaretDataFile*>& caretDataFiles,
                                                                         std::vector<AString>& prefixRemovedNamesOut)
 {
+    std::vector<AString> filePathNames;
     std::vector<AString> fileNames;
     std::vector<AString> specialPrefixes;
     for (std::vector<CaretDataFile*>::const_iterator iter = caretDataFiles.begin();
@@ -146,58 +135,98 @@ FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const st
         CaretAssert(cdf);
         
         if (cdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
-//            CiftiConnectivityMatrixDenseDynamicFile* denseDynFile = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(cdf);
-//            cdf = denseDynFile->getParentBrainordinateDataSeriesFile();
             specialPrefixes.push_back("dynconn - ");
         }
         else {
             specialPrefixes.push_back("");
         }
         
-        fileNames.push_back(cdf->getFileName());
+        filePathNames.push_back(cdf->getFileName());
+        fileNames.push_back(cdf->getFileNameNoPath());
     }
     
-    removeMatchingPathPrefixFromFileNames(fileNames,
-                                          prefixRemovedNamesOut);
+    CaretAssert(filePathNames.size() == fileNames.size());
+    CaretAssert(filePathNames.size() == specialPrefixes.size());
     
+    const bool onlyFilesWithMatchingFileNamesFlag(true);
+    if (onlyFilesWithMatchingFileNamesFlag) {
+        const int32_t numFiles = static_cast<int32_t>(filePathNames.size());
+        std::vector<bool> cleanedFlag(numFiles, false);
+        
+        /*
+         * Initialize output to just file names (no paths)
+         */
+        prefixRemovedNamesOut = fileNames;
+        
+        for (int32_t i = 0; i < (numFiles - 1); i++) {
+            CaretAssertVectorIndex(cleanedFlag, i);
+            if (cleanedFlag[i]) {
+                continue;
+            }
+            
+            CaretAssertVectorIndex(fileNames, i);
+            const AString& name = fileNames[i];
+            
+            std::vector<int32_t> duplicateFileIndices;
+            std::vector<AString> duplicateNameFiles;
+            duplicateFileIndices.push_back(i);
+            CaretAssertVectorIndex(filePathNames, i);
+            duplicateNameFiles.push_back(filePathNames[i]);
+            
+            /*
+             * Find files with same name (excluding path)
+             */
+            for (int32_t j = i + 1; j < numFiles; j++) {
+                CaretAssertVectorIndex(cleanedFlag, j);
+                if (cleanedFlag[j]) {
+                    continue;
+                }
+                
+                CaretAssertVectorIndex(fileNames, j);
+                if (name == fileNames[j]) {
+                    duplicateFileIndices.push_back(j);
+                    CaretAssertVectorIndex(filePathNames, j);
+                    duplicateNameFiles.push_back(filePathNames[j]);
+                }
+            }
+            
+            /*
+             * If multiple files with same same, remove the matching paths
+             */
+            std::vector<AString> cleanedFileNames;
+            if (duplicateNameFiles.size() > 1) {
+                removeMatchingPathPrefixFromFileNames(duplicateNameFiles,
+                                                      cleanedFileNames);
+                
+                /*
+                 * Update the name with prefix removed for output
+                 */
+                CaretAssert(duplicateFileIndices.size() == cleanedFileNames.size());
+                const int32_t numCleanedFiles = static_cast<int32_t>(cleanedFileNames.size());
+                for (int32_t m = 0; m < numCleanedFiles; m++) {
+                    CaretAssertVectorIndex(duplicateFileIndices, m);
+                    const int32_t indx = duplicateFileIndices[m];
+                    CaretAssertVectorIndex(cleanedFileNames, m);
+                    prefixRemovedNamesOut[indx] = cleanedFileNames[m];
+                    CaretAssertVectorIndex(cleanedFlag, indx);
+                    cleanedFlag[indx] = true;
+                }
+            }
+        }
+    }
+    else {
+        /*
+         * Running this will operate on all files as if all of the them have the same file name
+         */
+        removeMatchingPathPrefixFromFileNames(filePathNames,
+                                              prefixRemovedNamesOut);
+    }
+
     const int32_t numFiles = static_cast<int32_t>(prefixRemovedNamesOut.size());
     CaretAssert(numFiles == static_cast<int32_t>(specialPrefixes.size()));
     for (int32_t i = 0; i < numFiles; i++) {
         prefixRemovedNamesOut[i].insert(0, specialPrefixes[i]);
     }
-}
-
-/**
- * Create names that show the filename followed by the path BUT remove
- * any matching prefix from the paths for a group of CaretDataFiles.
- *
- * Example Input File Name:
- *    /mnt/myelin/data/subject2/rsfmri/activity.dscalar.nii
- *    /mnt/myelin/data/subject1/rsfmri/activity.dscalar.nii
- * Output:
- *    actitivity.dscalar.nii (../subject2/rsfmri)
- *    actitivity.dscalar.nii (../subject1/rsfmri)
- *
- * @param caretDataFiles
- *     The caret data files from which names are obtained.
- * @param prefixRemovedNamesOut
- *     Names of files with matching prefixes removed.  Number of elements
- *     will match the number of elements in caretDataFiles.
- */
-void
-FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFile(const CaretDataFile* caretDataFile,
-                                                                       AString& prefixRemovedNameOut)
-{
-    std::vector<AString> nameVector;
-    nameVector.push_back(caretDataFile->getFileName());
-    
-    std::vector<AString> prefixVector;
-    removeMatchingPathPrefixFromFileNames(nameVector,
-                                          prefixVector);
-    
-    CaretAssert(nameVector.size() == prefixVector.size());
-    CaretAssert(prefixVector.size() == 1);
-    prefixRemovedNameOut = prefixVector[0];
 }
 
 /**
