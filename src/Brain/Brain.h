@@ -101,6 +101,7 @@ namespace caret {
     class Surface;
     class SurfaceFile;
     class SurfaceProjectedItem;
+    class VolumeDynamicConnectivityFile;
     class VolumeFile;
     
     class Brain : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -187,6 +188,8 @@ namespace caret {
         VolumeFile* getVolumeFile(const int32_t volumeFileIndex);
         
         const VolumeFile* getVolumeFile(const int32_t volumeFileIndex) const;
+        
+        void getVolumeDynamicConnectivityFiles(std::vector<VolumeDynamicConnectivityFile*>& volumeDynamicConnectivityFilesOut) const;
         
         void resetBrain();
         
@@ -711,6 +714,8 @@ namespace caret {
         AString convertFilePathNameToAbsolutePathName(const AString& filename) const;
         
         void initializeDenseDataSeriesFile(CiftiBrainordinateDataSeriesFile* dataSeriesFile);
+        
+        void initializeVolumeFile(VolumeFile* volumeFile);
         
         void updateChartModel();
         

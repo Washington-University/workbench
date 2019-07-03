@@ -123,6 +123,7 @@
 #include "SurfacePropertiesEditorDialog.h"
 #include "Surface.h"
 #include "TileTabsConfigurationDialog.h"
+#include "VolumeDynamicConnectivityFile.h"
 #include "VolumeMappableInterface.h"
 #include "VolumePropertiesEditorDialog.h"
 #include "WbMacroCustomOperationManager.h"
@@ -3153,6 +3154,20 @@ GuiManager::processIdentification(const int32_t tabIndex,
                     cursor.restoreCursor();
                     QMessageBox::critical(parentWidget, "", e.whatString());
                     cursor.showWaitCursor();
+                }
+            }
+        }
+        
+        if (idVoxel->isValid()) {
+            std::vector<VolumeDynamicConnectivityFile*> volumeDynConnFiles;
+            brain->getVolumeDynamicConnectivityFiles(volumeDynConnFiles);
+            
+            for (auto vdc : volumeDynConnFiles) {
+                if (vdc->isEnabledAsLayer()) {
+                    double xyzDouble[3];
+                    idVoxel->getModelXYZ(xyzDouble);
+                    float xyz[3] { static_cast<float>(xyzDouble[0]), static_cast<float>(xyzDouble[1]), static_cast<float>(xyzDouble[2]) };
+                    vdc->loadConnectivityForVoxelXYZ(xyz);
                 }
             }
         }

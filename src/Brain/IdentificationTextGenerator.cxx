@@ -73,6 +73,7 @@
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "Surface.h"
+#include "VolumeDynamicConnectivityFile.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
@@ -276,6 +277,13 @@ IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStri
     for (int32_t i = 0; i < numVolumeFiles; i++) {
         const VolumeFile* vf = brain->getVolumeFile(i);
         volumeInterfaces.push_back(vf);
+        
+        const VolumeDynamicConnectivityFile* volDynConnFile = vf->getVolumeDynamicConnectivityFile();
+        if (volDynConnFile != NULL) {
+            if (volDynConnFile->isDataValid()) {
+                volumeInterfaces.push_back(volDynConnFile);
+            }
+        }
     }
     
     /*
@@ -383,6 +391,9 @@ IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStri
                         }
                     }
                     
+                    if (dynamic_cast<const VolumeDynamicConnectivityFile*>(volumeFile) != NULL) {
+                        boldText.insert(0, "VOLUME CONNECTIVITY DYNAMIC ");
+                    }
                     idText.addLine(true,
                                    boldText,
                                    text);

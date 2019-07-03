@@ -62,7 +62,7 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
     m_sceneAssistant->add("m_connectivityDataLoaded",
                           "ConnectivityDataLoaded",
                           m_connectivityDataLoaded);
-    m_sceneAssistant->add("m_dataLoadingEnabled",
+    m_sceneAssistant->add("+",
                            &m_dataLoadingEnabled);
 }
 

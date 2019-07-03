@@ -17,6 +17,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 /*LICENSE_END*/
+
+#include <array>
 #include <cmath>
 #include <iostream>
 #include <sstream>
@@ -42,6 +44,7 @@
 #include "NiftiIO.h"
 #include "Palette.h"
 #include "SceneClass.h"
+#include "VolumeDynamicConnectivityFile.h"
 #include "VolumeFile.h"
 #include "VolumeFileEditorDelegate.h"
 #include "VolumeFileVoxelColorizer.h"
@@ -54,6 +57,7 @@ using namespace std;
 
 const float VolumeFile::INVALID_INTERP_VALUE = 0.0f;//we may want NaN or something more obvious
 bool VolumeFile::s_voxelColoringEnabled = true;
+const AString VolumeFile::s_paletteColorMappingNameInMetaData = "__DYNAMIC_FILE_PALETTE_COLOR_MAPPING__";
 
 /**
  * Static method that sets the status of voxel coloring.  Coloring may take
@@ -197,6 +201,7 @@ VolumeFile::clear()
     VolumeBase::clear();
     
     m_volumeFileEditorDelegate->clear();
+    m_lazyInitializedDynamicConnectivityFile.reset();
 }
 
 void VolumeFile::readFile(const AString& filename)
@@ -333,6 +338,22 @@ VolumeFile::writeFile(const AString& filename)
         throw DataFileException(filename,
                                 "writing multi-component volumes is not currently supported");//its a hassle, and uncommon, and there is only one 3-component type, restricted to 0-255
     }
+    
+    /*
+     * Put the child dynamic data-series file's palette in the file's metadata.
+     */
+    if (m_lazyInitializedDynamicConnectivityFile != NULL) {
+        GiftiMetaData* fileMetaData = m_lazyInitializedDynamicConnectivityFile->getCiftiXML().getFileMetaData();
+        CaretAssert(fileMetaData);
+        if (m_lazyInitializedDynamicConnectivityFile->getNumberOfMaps() > 0) {
+            fileMetaData->set(s_paletteColorMappingNameInMetaData,
+                              m_lazyInitializedDynamicConnectivityFile->getMapPaletteColorMapping(0)->encodeInXML());
+        }
+        else {
+            fileMetaData->remove(s_paletteColorMappingNameInMetaData);
+        }
+    }
+
     updateCaretExtension();
     
     NiftiHeader outHeader;//begin nifti-specific code
@@ -775,6 +796,10 @@ VolumeFile::clearModified()
     
     for (int32_t i = 0; i < numMaps; i++) {
         getMapMetaData(i)->clearModified();
+    }
+    
+    if (m_lazyInitializedDynamicConnectivityFile != NULL) {
+        m_lazyInitializedDynamicConnectivityFile->clearModified();
     }
 }
 
@@ -1934,6 +1959,10 @@ VolumeFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
         sceneClass->addClass(m_classNameHierarchy->saveToScene(sceneAttributes,
                                                                "m_classNameHierarchy"));
     }
+    if (m_lazyInitializedDynamicConnectivityFile != NULL) {
+        sceneClass->addClass(m_lazyInitializedDynamicConnectivityFile->saveToScene(sceneAttributes,
+                                                                                   "m_lazyInitializedDynamicConnectivityFile"));
+    }
 }
 
 /**
@@ -1974,6 +2003,13 @@ VolumeFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
         m_classNameHierarchy->restoreFromScene(sceneAttributes,
                                                sc);
         m_forceUpdateOfGroupAndNameHierarchy = false;
+    }
+
+    const SceneClass* dynamicFileSceneClass = sceneClass->getClass("m_lazyInitializedDynamicConnectivityFile");
+    if (dynamicFileSceneClass != NULL) {
+        VolumeDynamicConnectivityFile* denseDynamicFile = getVolumeDynamicConnectivityFile();
+        denseDynamicFile->restoreFromScene(sceneAttributes,
+                                           dynamicFileSceneClass);
     }
 }
 
@@ -2468,4 +2504,125 @@ VolumeFile::getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
     }
 }
 
+/**
+ * @return The volume dynamic connectivity file for a data-series (functional) file
+ *         that contains at least two time points.  Note that some files may
+ *         have type anatomy but still contain functional data.
+ *         Will return NULL for other types.
+ */
+const VolumeDynamicConnectivityFile*
+VolumeFile::getVolumeDynamicConnectivityFile() const
+{
+    VolumeFile* nonConstThis = const_cast<VolumeFile*>(this);
+    return nonConstThis->getVolumeDynamicConnectivityFile();
+}
+
+/**
+ * @return The volume dynamic connectivity file for a data-series (functional) file
+ *         that contains at least two time points.  Note that some files may
+ *         have type anatomy but still contain functional data.
+ *         Will return NULL for other types.
+ */
+VolumeDynamicConnectivityFile*
+VolumeFile::getVolumeDynamicConnectivityFile()
+{
+    if (m_lazyInitializedDynamicConnectivityFile == NULL) {
+        if ((getType() == SubvolumeAttributes::ANATOMY)
+            || (getType() == SubvolumeAttributes::FUNCTIONAL)) {
+            std::vector<int64_t> dims;
+            getDimensions(dims);
+            if (dims.size() >= 4) {
+                if (dims[3] > 1) {
+                    m_lazyInitializedDynamicConnectivityFile.reset(new VolumeDynamicConnectivityFile(this));
+                    
+                    m_lazyInitializedDynamicConnectivityFile->initializeFile();
+                    
+                    /*
+                     * Palette for dynamic file is in file metadata
+                     */
+                    GiftiMetaData* fileMetaData = getFileMetaData();
+                    const AString encodedPaletteColorMappingString = fileMetaData->get(s_paletteColorMappingNameInMetaData);
+                    if ( ! encodedPaletteColorMappingString.isEmpty()) {
+                        if (m_lazyInitializedDynamicConnectivityFile->getNumberOfMaps() > 0) {
+                            PaletteColorMapping* pcm = m_lazyInitializedDynamicConnectivityFile->getMapPaletteColorMapping(0);
+                            CaretAssert(pcm);
+                            pcm->decodeFromStringXML(encodedPaletteColorMappingString);
+                        }
+                    }
+                    
+                    m_lazyInitializedDynamicConnectivityFile->clearModified();
+                }
+            }
+        }
+    }
+    
+    return m_lazyInitializedDynamicConnectivityFile.get();
+}
+
+/**
+ * @return True if any of the maps in this file contain a
+ * color mapping that possesses a modified status.
+ */
+bool
+VolumeFile::isModifiedPaletteColorMapping() const
+{
+    /*
+     * This method is override because we need to know if the
+     * encapsulated dynamic dense file has a modified palette.
+     * When restoring a scene, a file with any type of modification
+     * must be reloaded to remove any modifications.  Note that
+     * when a scene is restored, files that are not modified and
+     * are in the new scene are NOT reloaded to save time.
+     */
+    if (CaretMappableDataFile::isModifiedPaletteColorMapping()) {
+        return true;
+    }
+    
+    if (m_lazyInitializedDynamicConnectivityFile != NULL) {
+        if (m_lazyInitializedDynamicConnectivityFile->isModifiedPaletteColorMapping()) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * @return The modified status for aall palettes in this file.
+ * Note that 'modified' overrides any 'modified by show scene'.
+ */
+PaletteModifiedStatusEnum::Enum
+VolumeFile::getPaletteColorMappingModifiedStatus() const
+{
+    const std::array<PaletteModifiedStatusEnum::Enum, 2> fileModStatus = { {
+        CaretMappableDataFile::getPaletteColorMappingModifiedStatus(),
+        ((m_lazyInitializedDynamicConnectivityFile != NULL)
+         ? m_lazyInitializedDynamicConnectivityFile->getPaletteColorMappingModifiedStatus()
+         : PaletteModifiedStatusEnum::UNMODIFIED)
+    } };
+    
+    PaletteModifiedStatusEnum::Enum modStatus = PaletteModifiedStatusEnum::UNMODIFIED;
+    for (auto status : fileModStatus) {
+        switch (status) {
+            case PaletteModifiedStatusEnum::MODIFIED:
+                modStatus = PaletteModifiedStatusEnum::MODIFIED;
+                break;
+            case PaletteModifiedStatusEnum::MODIFIED_BY_SHOW_SCENE:
+                modStatus = PaletteModifiedStatusEnum::MODIFIED_BY_SHOW_SCENE;
+                break;
+            case PaletteModifiedStatusEnum::UNMODIFIED:
+                break;
+        }
+        
+        if (modStatus == PaletteModifiedStatusEnum::MODIFIED) {
+            /*
+             * 'MODIFIED' overrides 'MODIFIED_BY_SHOW_SCENE'
+             * so no need to continue loop
+             */
+            break;
+        }
+    }
+    
+    return modStatus;
+}
 

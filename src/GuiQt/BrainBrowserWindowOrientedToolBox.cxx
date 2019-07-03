@@ -57,6 +57,7 @@
 #include "SceneClass.h"
 #include "SceneWindowGeometry.h"
 #include "SessionManager.h"
+#include "VolumeDynamicConnectivityFile.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineSetViewController.h"
 #include "WuQMacroManager.h"
@@ -753,6 +754,10 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     CaretAssert(vf);
                     if (vf->isMappedWithLabelTable()) {
                         haveLabels = true;
+                    }
+                    const VolumeDynamicConnectivityFile* volDynConnFile = vf->getVolumeDynamicConnectivityFile();
+                    if (volDynConnFile != NULL) {
+                        haveConnFiles = true;
                     }
                 }
                     break;

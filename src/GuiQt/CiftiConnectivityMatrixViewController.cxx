@@ -49,6 +49,7 @@
 #include "FiberTrajectoryMapProperties.h"
 #include "FilePathNamePrefixCompactor.h"
 #include "GuiManager.h"
+#include "VolumeDynamicConnectivityFile.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -156,6 +157,11 @@ CiftiConnectivityMatrixViewController::updateViewController()
         files.push_back(*matrixIter);
     }
 
+    std::vector<VolumeDynamicConnectivityFile*> volumeDynConnFiles;
+    brain->getVolumeDynamicConnectivityFiles(volumeDynConnFiles);
+    files.insert(files.end(),
+                 volumeDynConnFiles.begin(), volumeDynConnFiles.end());
+    
     WuQMacroManager* macroManager = WuQMacroManager::instance();
     
     const int32_t numFiles = static_cast<int32_t>(files.size());
@@ -257,6 +263,7 @@ CiftiConnectivityMatrixViewController::updateViewController()
         
         const CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(files[i]);
         const CiftiFiberTrajectoryFile* trajFile = dynamic_cast<const CiftiFiberTrajectoryFile*>(files[i]);
+        const VolumeDynamicConnectivityFile* volDynConnFile = dynamic_cast<VolumeDynamicConnectivityFile*>(files[i]);
         
         bool checkStatus = false;
         if (matrixFile != NULL) {
@@ -264,6 +271,9 @@ CiftiConnectivityMatrixViewController::updateViewController()
         }
         else if (trajFile != NULL) {
             checkStatus = trajFile->isDataLoadingEnabled();
+        }
+        else if (volDynConnFile != NULL) {
+            checkStatus = volDynConnFile->isDataLoadingEnabled();
         }
         else {
             CaretAssertMessage(0, "Has a new file type been added?");
@@ -276,6 +286,9 @@ CiftiConnectivityMatrixViewController::updateViewController()
         const CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<const CiftiConnectivityMatrixDenseDynamicFile*>(files[i]);
         if (dynConnFile != NULL) {
             layerCheckBox->setChecked(dynConnFile->isEnabledAsLayer());
+        }
+        else if (volDynConnFile != NULL) {
+            layerCheckBox->setChecked(volDynConnFile->isEnabledAsLayer());
         }
         else {
             layerCheckBox->setChecked(false);
@@ -297,6 +310,9 @@ CiftiConnectivityMatrixViewController::updateViewController()
             }
             
             if (dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(files[i]) != NULL) {
+                layerCheckBoxValid = true;
+            }
+            else if (dynamic_cast<VolumeDynamicConnectivityFile*>(files[i]) != NULL) {
                 layerCheckBoxValid = true;
             }
         }
@@ -328,11 +344,13 @@ CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
         QComboBox* comboBox = m_fiberOrientationFileComboBoxes[i];
         CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
         CiftiFiberTrajectoryFile* trajFile = NULL;
+        VolumeDynamicConnectivityFile* volDynConnFile = NULL;
         
         if (comboBox->isEnabled()) {
             getFileAtIndex(i,
                            matrixFile,
-                           trajFile);
+                           trajFile,
+                           volDynConnFile);
         }
         
         if (trajFile != NULL) {
@@ -387,10 +405,12 @@ CiftiConnectivityMatrixViewController::enabledCheckBoxClicked(int indx)
     
     CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
     CiftiFiberTrajectoryFile* trajFile = NULL;
-    
+    VolumeDynamicConnectivityFile* volDynConnFile(NULL);
+
     getFileAtIndex(indx,
                    matrixFile,
-                   trajFile);
+                   trajFile,
+                   volDynConnFile);
     
     if (matrixFile != NULL) {
         matrixFile->setMapDataLoadingEnabled(0,
@@ -398,6 +418,9 @@ CiftiConnectivityMatrixViewController::enabledCheckBoxClicked(int indx)
     }
     else if (trajFile != NULL) {
         trajFile->setDataLoadingEnabled(newStatus);
+    }
+    else if (volDynConnFile != NULL) {
+        volDynConnFile->setDataLoadingEnabled(newStatus);
     }
     else {
         CaretAssertMessage(0, "Has a new file type been added?");
@@ -420,16 +443,21 @@ CiftiConnectivityMatrixViewController::layerCheckBoxClicked(int indx)
     
     CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
     CiftiFiberTrajectoryFile* trajFile = NULL;
-    
+    VolumeDynamicConnectivityFile* volDynConnFile(NULL);
+
     getFileAtIndex(indx,
                    matrixFile,
-                   trajFile);
+                   trajFile,
+                   volDynConnFile);
     
     if (matrixFile != NULL) {
         CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(matrixFile);
         if (dynConnFile != NULL) {
             dynConnFile->setEnabledAsLayer(newStatus);
         }
+    }
+    else if (volDynConnFile != NULL) {
+        volDynConnFile->setEnabledAsLayer(newStatus);
     }
     else if (trajFile != NULL) {
         CaretAssertMessage(0, "Should never get caled for fiber trajectory file");
@@ -454,11 +482,14 @@ CiftiConnectivityMatrixViewController::layerCheckBoxClicked(int indx)
  *    If there is a CIFTI matrix file at the given index, this will be non-NULL.
  * @param ciftiTrajFileOut
  *    If there is a CIFTI trajectory file at the given index, this will be non-NULL.
+ * @param volDynConnFileOut
+ *    If there is a volume dynamnic connectivity files at the given index, this will be non-NULL
  */
 void
 CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
                                                       CiftiMappableConnectivityMatrixDataFile* &ciftiMatrixFileOut,
-                                                      CiftiFiberTrajectoryFile* &ciftiTrajFileOut)
+                                                      CiftiFiberTrajectoryFile* &ciftiTrajFileOut,
+                                                      VolumeDynamicConnectivityFile* &volDynConnFileOut)
 {
     CaretAssertVectorIndex(m_fileEnableCheckBoxes, indx);
     void* ptr = m_fileEnableCheckBoxes[indx]->property(FILE_POINTER_PROPERTY_NAME).value<void*>();
@@ -466,6 +497,7 @@ CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
     
     ciftiMatrixFileOut = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(mapFilePointer);
     ciftiTrajFileOut   = dynamic_cast<CiftiFiberTrajectoryFile*>(mapFilePointer);
+    volDynConnFileOut  = dynamic_cast<VolumeDynamicConnectivityFile*>(mapFilePointer);
     
     AString name = "";
     if (mapFilePointer != NULL) {
@@ -488,6 +520,9 @@ CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
     else if (ciftiTrajFileOut != NULL) {
         /* OK */
     }
+    else if (volDynConnFileOut != NULL) {
+        /* OK */
+    }
     else {
         CaretAssertMessage(0,
                            "Has a new file type been added?");
@@ -507,10 +542,12 @@ CiftiConnectivityMatrixViewController::fiberOrientationFileComboBoxActivated(int
     
     CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
     CiftiFiberTrajectoryFile* trajFile = NULL;
+    VolumeDynamicConnectivityFile* volDynConnFile(NULL);
     
     getFileAtIndex(indx,
                    matrixFile,
-                   trajFile);
+                   trajFile,
+                   volDynConnFile);
     
     CaretAssertMessage(trajFile,
                        "Selected orientation file but trajectory file is invalid.");
@@ -552,10 +589,12 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
     
     CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
     CiftiFiberTrajectoryFile* trajFile = NULL;
-    
+    VolumeDynamicConnectivityFile* volDynConnFile(NULL);
+
     getFileAtIndex(indx,
                    matrixFile,
-                   trajFile);
+                   trajFile,
+                   volDynConnFile);
     
     
     bool errorFlag = false;
@@ -579,6 +618,9 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
         else {
             errorFlag = true;
         }
+    }
+    else if (volDynConnFile != NULL) {
+        
     }
     else if (trajFile != NULL) {
         CiftiFiberTrajectoryFile* newTrajFile = trajFile->newFiberTrajectoryFileFromLoadedRowData(directoryName,

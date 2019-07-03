@@ -38,6 +38,7 @@ namespace caret {
 
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiFiberTrajectoryFile;
+    class VolumeDynamicConnectivityFile;
     
     class CiftiConnectivityMatrixViewController : public QWidget, EventListenerInterface {
         
@@ -75,7 +76,8 @@ namespace caret {
         
         void getFileAtIndex(const int32_t indx,
                             CiftiMappableConnectivityMatrixDataFile* &ciftiMatrixFileOut,
-                            CiftiFiberTrajectoryFile* &ciftiTrajFileOut);
+                            CiftiFiberTrajectoryFile* &ciftiTrajFileOut,
+                            VolumeDynamicConnectivityFile* &volDynConnFileOut);
         
         const QString m_objectNamePrefix;
         

@@ -119,6 +119,7 @@
 #include "Surface.h"
 #include "SurfaceProjectedItem.h"
 #include "SystemUtilities.h"
+#include "VolumeDynamicConnectivityFile.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 
@@ -1562,6 +1563,8 @@ Brain::addReadOrReloadVolumeFile(const FileModeAddReadReload fileMode,
         m_volumeFiles.push_back(vf);
     }
     
+    initializeVolumeFile(vf);
+    
     return vf;
 }
 
@@ -1587,6 +1590,47 @@ Brain::getVolumeFile(const int32_t volumeFileIndex)
     CaretAssertVectorIndex(m_volumeFiles, volumeFileIndex);
     return m_volumeFiles[volumeFileIndex];
 }
+
+/**
+ * Get the volume dynamic connecivity files
+ *
+ * @param volumeDynamicConnectivityFilesOut
+ *     Output with volume dynamic connectivity files
+ */
+void
+Brain::getVolumeDynamicConnectivityFiles(std::vector<VolumeDynamicConnectivityFile*>& volumeDynamicConnectivityFilesOut) const
+{
+    volumeDynamicConnectivityFilesOut.clear();
+    
+    for (auto vf : m_volumeFiles) {
+        CaretAssert(vf);
+        VolumeDynamicConnectivityFile* volDynConn = vf->getVolumeDynamicConnectivityFile();
+        if (volDynConn != NULL) {
+            if (volDynConn->isDataValid()) {
+                volumeDynamicConnectivityFilesOut.push_back(volDynConn);
+            }
+        }
+    }
+}
+
+/**
+ * Initialize a volume file.  If it is functional data and contains more than one timepoint
+ * setup its volume dynamic connectivity file.
+ */
+void
+Brain::initializeVolumeFile(VolumeFile* volumeFile)
+{
+    CaretAssert(volumeFile);
+    /*
+     * Enable dynamic connectivity using preferences
+     */
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    VolumeDynamicConnectivityFile* volDynConn = volumeFile->getVolumeDynamicConnectivityFile();
+    if (volDynConn != NULL) {
+        volDynConn->setEnabledAsLayer(prefs->isDynamicConnectivityDefaultedOn());
+    }
+}
+
 
 /**
  * Get the volume file at the given index.
@@ -4495,6 +4539,7 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                 {
                     VolumeFile* file = dynamic_cast<VolumeFile*>(caretDataFile);
                     CaretAssert(file);
+                    initializeVolumeFile(file);
                     m_volumeFiles.push_back(file);
                 }
                     break;
@@ -6553,9 +6598,13 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                               m_sceneFiles.begin(),
                               m_sceneFiles.end());
     
-    allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_volumeFiles.begin(),
-                           m_volumeFiles.end());    
+    for (auto vf : m_volumeFiles) {
+        allDataFilesOut.push_back(vf);
+        VolumeDynamicConnectivityFile* volDynConnFile = vf->getVolumeDynamicConnectivityFile();
+        if (volDynConnFile != NULL) {
+            allDataFilesOut.push_back(volDynConnFile);
+        }
+    }
 }
 
 /**

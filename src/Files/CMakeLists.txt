@@ -146,6 +146,7 @@ SurfaceResamplingMethodEnum.h
 SurfaceTypeEnum.h
 TextFile.h
 TopologyHelper.h
+VolumeDynamicConnectivityFile.h
 VolumeEditingModeEnum.h
 VolumeFile.h
 VolumeFileEditorDelegate.h
@@ -279,6 +280,7 @@ SurfaceResamplingMethodEnum.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx
 TopologyHelper.cxx
+VolumeDynamicConnectivityFile.cxx
 VolumeEditingModeEnum.cxx
 VolumeFile.cxx
 VolumeFileEditorDelegate.cxx
