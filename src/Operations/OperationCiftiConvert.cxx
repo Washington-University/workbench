@@ -257,7 +257,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         if (fromGiftiExt->getOptionalParameter(6)->m_present)
         {//-column-reset-scalars
             CiftiScalarsMap newMap;
-            newMap.setLength(numCols);
+            newMap.setLength(numRows);
             myXML.setMap(CiftiXML::ALONG_COLUMN, newMap);
         }
         if (myXML.getDimensionLength(CiftiXML::ALONG_ROW) != numCols || myXML.getDimensionLength(CiftiXML::ALONG_COLUMN) != numRows)
