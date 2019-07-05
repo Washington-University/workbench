@@ -69,7 +69,7 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* fgresetTimeunitsOpt = fgresetTimeOpt->createOptionalParameter(3, "-unit", "use a unit other than time");
     fgresetTimeunitsOpt->addStringParameter(1, "unit", "unit identifier (default SECOND)");
     fromGiftiExt->createOptionalParameter(4, "-reset-scalars", "reset mapping along rows to scalars, taking length from the gifti file");
-    fromGiftiExt->createOptionalParameter(6, "-column-reset-scalars", "reset mapping along columns to scalar (useful for changing number of sers in a sdseries file)");
+    fromGiftiExt->createOptionalParameter(6, "-column-reset-scalars", "reset mapping along columns to scalar (useful for changing number of series in a sdseries file)");
     OptionalParameter* fromGiftiReplace = fromGiftiExt->createOptionalParameter(5, "-replace-binary", "replace data with a binary file");
     fromGiftiReplace->addStringParameter(1, "binary-in", "the binary file that contains replacement data");
     fromGiftiReplace->createOptionalParameter(2, "-flip-endian", "byteswap the binary file");
@@ -227,7 +227,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         int64_t numRows = dataArrayRef->getNumberOfRows();
         OptionalParameter* fgresetTimeOpt = fromGiftiExt->getOptionalParameter(3);
         if (fgresetTimeOpt->m_present)
-        {
+        {//-reset-timepoints
             CiftiSeriesMap::Unit myUnit = CiftiSeriesMap::SECOND;
             OptionalParameter* fgresetTimeunitsOpt = fgresetTimeOpt->getOptionalParameter(3);
             if (fgresetTimeunitsOpt->m_present)
@@ -415,7 +415,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         if (outXML.getNumberOfDimensions() != 2) throw OperationException("conversion only supported for 2D cifti");
         OptionalParameter* fnresetTimeOpt = fromNifti->getOptionalParameter(4);
         if (fnresetTimeOpt->m_present)
-        {
+        {//-reset-timepoints
             CiftiSeriesMap::Unit myUnit = CiftiSeriesMap::SECOND;
             OptionalParameter* fnresetTimeunitsOpt = fnresetTimeOpt->getOptionalParameter(3);
             if (fnresetTimeunitsOpt->m_present)
@@ -427,7 +427,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             outXML.setMap(CiftiXML::ALONG_ROW, CiftiSeriesMap(myDims[3], fnresetTimeOpt->getDouble(2), fnresetTimeOpt->getDouble(1), myUnit));
         }
         if (fromNifti->getOptionalParameter(5)->m_present)
-        {
+        {//-reset-scalars
             if (fnresetTimeOpt->m_present) throw OperationException("only one of -reset-timepoints and -reset-scalars may be specified");
             CiftiScalarsMap newMap;
             newMap.setLength(myDims[3]);
