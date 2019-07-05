@@ -69,6 +69,7 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* fgresetTimeunitsOpt = fgresetTimeOpt->createOptionalParameter(3, "-unit", "use a unit other than time");
     fgresetTimeunitsOpt->addStringParameter(1, "unit", "unit identifier (default SECOND)");
     fromGiftiExt->createOptionalParameter(4, "-reset-scalars", "reset mapping along rows to scalars, taking length from the gifti file");
+    fromGiftiExt->createOptionalParameter(6, "-column-reset-scalars", "reset mapping along columns to scalar (useful for changing number of sers in a sdseries file)");
     OptionalParameter* fromGiftiReplace = fromGiftiExt->createOptionalParameter(5, "-replace-binary", "replace data with a binary file");
     fromGiftiReplace->addStringParameter(1, "binary-in", "the binary file that contains replacement data");
     fromGiftiReplace->createOptionalParameter(2, "-flip-endian", "byteswap the binary file");
@@ -247,11 +248,17 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             myXML.getSeriesMap(CiftiXML::ALONG_COLUMN).setLength(numRows);
         }
         if (fromGiftiExt->getOptionalParameter(4)->m_present)
-        {
+        {//-reset-scalars
             if (fgresetTimeOpt->m_present) throw OperationException("only one of -reset-timepoints and -reset-scalars may be specified");
             CiftiScalarsMap newMap;
             newMap.setLength(numCols);
             myXML.setMap(CiftiXML::ALONG_ROW, newMap);
+        }
+        if (fromGiftiExt->getOptionalParameter(6)->m_present)
+        {//-column-reset-scalars
+            CiftiScalarsMap newMap;
+            newMap.setLength(numCols);
+            myXML.setMap(CiftiXML::ALONG_COLUMN, newMap);
         }
         if (myXML.getDimensionLength(CiftiXML::ALONG_ROW) != numCols || myXML.getDimensionLength(CiftiXML::ALONG_COLUMN) != numRows)
         {
