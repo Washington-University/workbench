@@ -392,7 +392,8 @@ IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStri
                     }
                     
                     if (dynamic_cast<const VolumeDynamicConnectivityFile*>(volumeFile) != NULL) {
-                        boldText.insert(0, "VOLUME CONNECTIVITY DYNAMIC ");
+                        boldText.insert(0,
+                                        (DataFileTypeEnum::toOverlayTypeName(DataFileTypeEnum::VOLUME_DYNAMIC) + " "));
                     }
                     idText.addLine(true,
                                    boldText,
@@ -473,6 +474,8 @@ IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStri
                                 CaretAssert(0);
                                 break;
                             case DataFileTypeEnum::VOLUME:
+                                break;
+                            case DataFileTypeEnum::VOLUME_DYNAMIC:
                                 break;
                         }
                         if (limitMapIndicesFlag) {
@@ -625,6 +628,8 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                     CaretAssert(0);
                     break;
                 case DataFileTypeEnum::VOLUME:
+                    break;
+                case DataFileTypeEnum::VOLUME_DYNAMIC:
                     break;
             }
             if (limitMapIndicesFlag) {

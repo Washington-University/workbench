@@ -490,6 +490,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     break;
                 case DataFileTypeEnum::VOLUME:
                     break;
+                case DataFileTypeEnum::VOLUME_DYNAMIC:
+                    break;
                 case DataFileTypeEnum::UNKNOWN:
                     break;
             }

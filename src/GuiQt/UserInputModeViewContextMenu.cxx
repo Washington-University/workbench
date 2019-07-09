@@ -76,6 +76,7 @@
 #include "Surface.h"
 #include "UserInputModeFociWidget.h"
 #include "UserInputTileTabsContextMenu.h"
+#include "VolumeDynamicConnectivityFile.h"
 #include "VolumeFile.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
@@ -671,7 +672,7 @@ UserInputModeViewContextMenu::addLabelRegionOfInterestActions()
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     std::vector<CiftiFiberTrajectoryFile*> ciftiFiberTrajectoryFiles;
     std::vector<ChartableLineSeriesBrainordinateInterface*> chartableFiles;
-    
+    std::vector<VolumeDynamicConnectivityFile*> volDynConnFiles;
     /*
      * Get all files in displayed overlays
      */
@@ -700,18 +701,24 @@ UserInputModeViewContextMenu::addLabelRegionOfInterestActions()
         if (lineSeriesFile != NULL) {
             chartableFiles.push_back(lineSeriesFile);
         }
+        
+        VolumeDynamicConnectivityFile* volDynnFile = dynamic_cast<VolumeDynamicConnectivityFile*>(mapFile);
+        if (volDynnFile != NULL) {
+            volDynConnFiles.push_back(volDynnFile);
+        }
     }
-    const bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
-    const bool haveCiftiFiberTrajectoryFiles = (ciftiFiberTrajectoryFiles.empty() == false);
-    const bool haveChartableFiles = (chartableFiles.empty() == false);
+    const bool hasDynamicConnectivity = ( ( ! ciftiMatrixFiles.empty())
+                                       || ( ! volDynConnFiles.empty()));
+    const bool haveCiftiFiberTrajectoryFiles = ( ! ciftiFiberTrajectoryFiles.empty());
+    const bool haveChartableFiles = ( ! chartableFiles.empty());
 
     /*
      * Actions for each file type
      */
-    QList<QAction*> ciftiConnectivityActions;
-    QActionGroup* ciftiConnectivityActionGroup = new QActionGroup(this);
-    QObject::connect(ciftiConnectivityActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(parcelCiftiConnectivityActionSelected(QAction*)));
+    QList<QAction*> connectivityActions;
+    QActionGroup* connectivityActionGroup = new QActionGroup(this);
+    QObject::connect(connectivityActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(connectivityActionSelected(QAction*)));
     
     QList<QAction*> ciftiFiberTrajectoryActions;
     QActionGroup* ciftiFiberTrajectoryActionGroup = new QActionGroup(this);
@@ -730,7 +737,7 @@ UserInputModeViewContextMenu::addLabelRegionOfInterestActions()
                                       + "\" from map \""
                                       + parcelConnectivity->mapName
                                       + "\"");
-        if (hasCiftiConnectivity) {
+        if (hasDynamicConnectivity) {
             bool matchFlag = false;
             if (parcelType == ParcelType::PARCEL_TYPE_SURFACE_NODES) {
                 matchFlag = true;
@@ -747,14 +754,23 @@ UserInputModeViewContextMenu::addLabelRegionOfInterestActions()
                         break;
                     }
                 }
+                
+                for (auto volDynFile : volDynConnFiles) {
+                    if (volDynFile->matchesDimensions(parcelConnectivity->volumeDimensions[0],
+                                                      parcelConnectivity->volumeDimensions[1],
+                                                      parcelConnectivity->volumeDimensions[2])) {
+                        matchFlag = true;
+                        break;
+                    }
+                }
             }
             
             if (matchFlag) {
                 const AString actionName("Show Connectivity for "
                                          + sourceLabelName);
-                QAction* action = ciftiConnectivityActionGroup->addAction(actionName);
+                QAction* action = connectivityActionGroup->addAction(actionName);
                 action->setData(qVariantFromValue((void*)parcelConnectivity));
-                ciftiConnectivityActions.push_back(action);
+                connectivityActions.push_back(action);
             }
         }
         
@@ -802,7 +818,7 @@ UserInputModeViewContextMenu::addLabelRegionOfInterestActions()
         }
     }
 
-    addActionsToMenu(ciftiConnectivityActions,
+    addActionsToMenu(connectivityActions,
                      true);
     addActionsToMenu(ciftiFiberTrajectoryActions,
                      true);
@@ -981,7 +997,7 @@ UserInputModeViewContextMenu::addFociActions()
  *    Action that was selected.
  */
 void
-UserInputModeViewContextMenu::parcelCiftiConnectivityActionSelected(QAction* action)
+UserInputModeViewContextMenu::connectivityActionSelected(QAction* action)
 {
     void* pointer = action->data().value<void*>();
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
@@ -1043,6 +1059,15 @@ UserInputModeViewContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
                 pc->ciftiConnectivityManager->loadAverageDataForVoxelIndices(pc->brain,
                                                                              pc->volumeDimensions,
                                                                              voxelIndices);
+                
+            {
+                std::vector<VolumeDynamicConnectivityFile*> volDynConnFiles;
+                pc->brain->getVolumeDynamicConnectivityFiles(volDynConnFiles);
+                for (auto vdcf : volDynConnFiles) {
+                    vdcf->loadMapAverageDataForVoxelIndices(pc->volumeDimensions,
+                                                            voxelIndices);
+                }
+            }
                 break;
         }
     }

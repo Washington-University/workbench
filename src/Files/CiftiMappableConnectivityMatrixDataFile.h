@@ -67,7 +67,7 @@ namespace caret {
         virtual bool loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
                                                        const int64_t volumeDimensionIJK[3],
                                                        const std::vector<VoxelIJK>& voxelIndices);
-
+        
         void loadDataForRowIndex(const int64_t rowIndex);
         
         void loadDataForColumnIndex(const int64_t rowIndex);

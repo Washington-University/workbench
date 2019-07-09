@@ -488,7 +488,8 @@ FileInformation::getCanonicalPath() const
 AString
 FileInformation::getFileExtension() const
 {
-    const std::vector<AString> workbenchExtensions = DataFileTypeEnum::getFilesExtensionsForEveryFile();
+    const bool includeNonWritableFileTypesFlag(true);
+    const std::vector<AString> workbenchExtensions = DataFileTypeEnum::getFilesExtensionsForEveryFile(includeNonWritableFileTypesFlag);
 
     for (std::vector<AString>::const_iterator extIter = workbenchExtensions.begin();
          extIter != workbenchExtensions.end();

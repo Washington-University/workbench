@@ -786,6 +786,7 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
     dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC);
     dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY);
     dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY);
+    dataFileTypesToExclude.push_back(DataFileTypeEnum::VOLUME_DYNAMIC);
     
     switch (testModifiedMode) {
         case TEST_FOR_MODIFIED_FILES_MODE_FOR_EXIT:

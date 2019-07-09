@@ -217,12 +217,12 @@ CiftiConnectivityMatrixViewController::updateViewController()
             
             copyToolButton = new QToolButton();
             copyToolButton->setText("Copy");
-            copyToolButton->setToolTip("Copy loaded row data to a new CIFTI Scalar File");
+            copyToolButton->setToolTip("Copy loaded connectivity data into a writable file that is added to layers");
             m_fileCopyToolButtons.push_back(copyToolButton);
             copyToolButton->setObjectName(objectNamePrefix
                                          + "CopyButton");
             macroManager->addMacroSupportToObject(copyToolButton,
-                                                  "Copy load row to new CIFTI scalar file for " + descriptivePrefix);
+                                                  "Copy load row to new CIFTI scalar or Volume file for " + descriptivePrefix);
             
             comboBox = new QComboBox();
             m_fiberOrientationFileComboBoxes.push_back(comboBox);
@@ -620,7 +620,20 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
         }
     }
     else if (volDynConnFile != NULL) {
-        
+        VolumeFile* newVolumeFile = volDynConnFile->newVolumeFileFromLoadedData(directoryName,
+                                                                               errorMessage);
+        if (newVolumeFile != NULL) {
+            EventDataFileAdd dataFileAdd(newVolumeFile);
+            EventManager::get()->sendEvent(dataFileAdd.getPointer());
+            
+            if (dataFileAdd.isError()) {
+                errorMessage = dataFileAdd.getErrorMessage();
+                errorFlag = true;
+            }
+        }
+        else {
+            errorFlag = true;
+        }
     }
     else if (trajFile != NULL) {
         CiftiFiberTrajectoryFile* newTrajFile = trajFile->newFiberTrajectoryFileFromLoadedRowData(directoryName,

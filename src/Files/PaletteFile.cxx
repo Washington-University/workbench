@@ -1700,6 +1700,8 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
         case DataFileTypeEnum::VOLUME:
             checkVolume = true;
             break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            break;
     }
     
     if (invalid) {

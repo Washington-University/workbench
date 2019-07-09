@@ -853,6 +853,8 @@ Brain::resetBrainKeepSceneFiles()
                 break;
             case DataFileTypeEnum::VOLUME:
                 break;
+            case DataFileTypeEnum::VOLUME_DYNAMIC:
+                break;
         }
         
         if (keepFileFlag) {
@@ -4543,6 +4545,9 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     m_volumeFiles.push_back(file);
                 }
                     break;
+                case DataFileTypeEnum::VOLUME_DYNAMIC:
+                    CaretAssertMessage(0, "Volume Dynamic files are never added to the brain");
+                    break;
             }
             
             m_specFile->addCaretDataFile(caretDataFile);
@@ -5402,6 +5407,9 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 caretDataFileRead  = addReadOrReloadVolumeFile(fileMode,
                                                    caretDataFile,
                                                    dataFileName);
+                break;
+            case DataFileTypeEnum::VOLUME_DYNAMIC:
+                CaretAssertMessage(0, "Volume dynamic files are never read by the Brain");
                 break;
         }
         
@@ -6824,6 +6832,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::VOLUME:
             break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            break;
     }
 }
 
@@ -6845,10 +6855,72 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
     }
     
     /*
-     * Dense dynamic files are encapsulated in a dense-series file
-     * so they do not get removed.
+     * dynamic files are not removable.
      */
-    if (caretDataFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+    bool canBeRemovedFlag(true);
+    switch (caretDataFile->getDataFileType()) {
+        case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+            break;
+        case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            canBeRemovedFlag = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::IMAGE:
+            break;
+        case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::METRIC:
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            canBeRemovedFlag = false;
+            break;
+    }
+    if ( ! canBeRemovedFlag) {
         return false;
     }
     

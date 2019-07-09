@@ -1356,7 +1356,11 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                                         break;
                                     case DataFileTypeEnum::VOLUME:
                                         break;
+                                    case DataFileTypeEnum::VOLUME_DYNAMIC:
+                                        validDiskFileFlag = false;
+                                        break;
                                     case DataFileTypeEnum::UNKNOWN:
+                                        validDiskFileFlag = false;
                                         break;
                                 }
                             }

@@ -40,6 +40,7 @@
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "Surface.h"
+#include "VolumeDynamicConnectivityFile.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -385,10 +386,75 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
         }
         
         if (useIt) {
-            if (mapFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
-                CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(mapFile);
-                CaretAssert(dynConnFile);
-                useIt = dynConnFile->isEnabledAsLayer();
+            switch (mapFile->getDataFileType()) {
+                case DataFileTypeEnum::ANNOTATION:
+                    break;
+                case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+                    break;
+                case DataFileTypeEnum::BORDER:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                {
+                    CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(mapFile);
+                    CaretAssert(dynConnFile);
+                    useIt = dynConnFile->isEnabledAsLayer();
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                    break;
+                case DataFileTypeEnum::FOCI:
+                    break;
+                case DataFileTypeEnum::IMAGE:
+                    break;
+                case DataFileTypeEnum::LABEL:
+                    break;
+                case DataFileTypeEnum::METRIC:
+                    break;
+                case DataFileTypeEnum::PALETTE:
+                    break;
+                case DataFileTypeEnum::RGBA:
+                    break;
+                case DataFileTypeEnum::SCENE:
+                    break;
+                case DataFileTypeEnum::SPECIFICATION:
+                    break;
+                case DataFileTypeEnum::SURFACE:
+                    break;
+                case DataFileTypeEnum::UNKNOWN:
+                    break;
+                case DataFileTypeEnum::VOLUME:
+                    break;
+                case DataFileTypeEnum::VOLUME_DYNAMIC:
+                    {
+                        VolumeDynamicConnectivityFile* volDynFile = dynamic_cast<VolumeDynamicConnectivityFile*>(mapFile);
+                        CaretAssert(volDynFile);
+                        useIt = volDynFile->isEnabledAsLayer();
+                    }
+                    break;
             }
         }
         

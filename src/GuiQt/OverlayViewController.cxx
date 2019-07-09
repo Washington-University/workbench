@@ -989,9 +989,71 @@ OverlayViewController::menuConstructionAboutToShow()
                 menuText += suffix;
             }
             
-            const bool notDynConnFileFlag = (caretDataFile->getDataFileType() != DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC);
-            m_constructionReloadFileAction->setEnabled(notDynConnFileFlag);
-            m_copyPathAndFileNameToClipboardAction->setEnabled(notDynConnFileFlag);
+            bool dynConnFlag(false);
+            switch (caretDataFile->getDataFileType()) {
+                case DataFileTypeEnum::ANNOTATION:
+                    break;
+                case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+                    break;
+                case DataFileTypeEnum::BORDER:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                    dynConnFlag = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                    break;
+                case DataFileTypeEnum::FOCI:
+                    break;
+                case DataFileTypeEnum::IMAGE:
+                    break;
+                case DataFileTypeEnum::LABEL:
+                    break;
+                case DataFileTypeEnum::METRIC:
+                    break;
+                case DataFileTypeEnum::PALETTE:
+                    break;
+                case DataFileTypeEnum::RGBA:
+                    break;
+                case DataFileTypeEnum::SCENE:
+                    break;
+                case DataFileTypeEnum::SPECIFICATION:
+                    break;
+                case DataFileTypeEnum::SURFACE:
+                    break;
+                case DataFileTypeEnum::UNKNOWN:
+                    break;
+                case DataFileTypeEnum::VOLUME:
+                    break;
+                case DataFileTypeEnum::VOLUME_DYNAMIC:
+                    dynConnFlag = true;
+                    break;
+            }
+            m_constructionReloadFileAction->setEnabled( ! dynConnFlag);
+            m_copyPathAndFileNameToClipboardAction->setEnabled( ! dynConnFlag);
         }
         
         m_constructionReloadFileAction->setText(menuText);

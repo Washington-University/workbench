@@ -129,6 +129,8 @@ namespace caret {
         static const AString s_paletteColorMappingNameInMetaData;
         
     protected:
+        VolumeFile(const DataFileTypeEnum::Enum dataFileType);
+        
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);
         

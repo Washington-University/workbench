@@ -516,6 +516,8 @@ namespace caret {
                                                          AString& textOut) const;
         
 
+        void updateAfterFileDataChanges();
+        
     protected:
         CaretMappableDataFile(const CaretMappableDataFile&);
 
@@ -524,8 +526,6 @@ namespace caret {
         ChartDataCartesian* helpCreateCartesianChartData(const std::vector<float>& data);
         
         void helpGetSupportedLineSeriesChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const;
-        
-        void updateAfterFileDataChanges();
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);

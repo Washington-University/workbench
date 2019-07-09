@@ -1172,6 +1172,8 @@ ChartTwoOverlay::isAllMapsSupported() const
                             break;
                         case DataFileTypeEnum::VOLUME:
                             break;
+                        case DataFileTypeEnum::VOLUME_DYNAMIC:
+                            break;
                     }
                 }
             }

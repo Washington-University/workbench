@@ -31,6 +31,7 @@
 
 namespace caret {
     class ConnectivityCorrelation;
+    class ConnectivityDataLoaded;
     
     class VolumeDynamicConnectivityFile : public VolumeFile {
         
@@ -65,13 +66,23 @@ namespace caret {
         
         void setEnabledAsLayer(const bool enabled);
         
-        void loadConnectivityForVoxelIndex(const int64_t ijk[3]);
+        bool loadConnectivityForVoxelXYZ(const float xyz[3]);
         
-        void loadConnectivityForVoxelXYZ(const float xyz[3]);
+        bool loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+                                               const std::vector<VoxelIJK>& voxelIndices);
         
         bool isDataLoadingEnabled() const;
         
         void setDataLoadingEnabled(const bool enabled);
+        
+        const ConnectivityDataLoaded* getConnectivityDataLoaded() const;
+        
+        bool matchesDimensions(const int64_t dimI,
+                               const int64_t dimJ,
+                               const int64_t dimK) const;
+        
+        VolumeFile* newVolumeFileFromLoadedData(const AString& directoryName,
+                                                AString& errorMessageOut);
         
         // ADD_NEW_METHODS_HERE
 
@@ -81,13 +92,15 @@ namespace caret {
           
           
     protected: 
-        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-                                             SceneClass* sceneClass);
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                             SceneClass* sceneClass) override;
 
-        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-                                                  const SceneClass* sceneClass);
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                                  const SceneClass* sceneClass) override;
 
     private:
+        void clearPrivateData();
+        
         void clearVoxels();
         
         void getTimePointsForVoxel(const int64_t i,
@@ -105,6 +118,11 @@ namespace caret {
                                     + (timePointIndex * m_timePointIndexStride));
             return offset;
         }
+        
+        bool loadConnectivityForVoxelIndex(const int64_t ijk[3]);
+        
+        bool getConnectivityForVoxelIndex(const int64_t ijk[3],
+                                          std::vector<float>& voxelsOut) ;
         
         const VolumeFile* m_parentVolumeFile;
         
@@ -128,11 +146,15 @@ namespace caret {
         
         int64_t m_dimTime = 0;
         
+        AString m_dataLoadedName;
+        
         bool m_validDataFlag = false;
         
         bool m_enabledAsLayer = true;
         
         bool m_dataLoadingEnabledFlag = true;
+        
+        std::unique_ptr<ConnectivityDataLoaded> m_connectivityDataLoaded;
         
         // ADD_NEW_MEMBERS_HERE
 

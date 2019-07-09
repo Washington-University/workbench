@@ -1154,6 +1154,8 @@ GiftiTypeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile
             break;
         case DataFileTypeEnum::VOLUME:
             break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            break;
     }
     
     if (giftiFlag) {
@@ -1286,6 +1288,8 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
             case DataFileTypeEnum::UNKNOWN:
                 break;
             case DataFileTypeEnum::VOLUME:
+                break;
+            case DataFileTypeEnum::VOLUME_DYNAMIC:
                 break;
         }
     }

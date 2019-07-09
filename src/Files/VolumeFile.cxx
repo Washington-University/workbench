@@ -79,6 +79,19 @@ VolumeFile::setVoxelColoringEnabled(const bool enabled)
                            : "Volume coloring is disabled."));
 }
 
+/** protected, used by dynamic volume file */
+VolumeFile::VolumeFile(const DataFileTypeEnum::Enum dataFileType)
+: VolumeBase(), CaretMappableDataFile(dataFileType)
+{//CaretPointers initialize to NULL, and this isn't an operator=
+    CaretAssert((dataFileType == DataFileTypeEnum::VOLUME)
+                || (dataFileType == DataFileTypeEnum::VOLUME_DYNAMIC));
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartingEnabledForTab[i] = false;
+    }
+    validateMembers();
+}
+
 
 VolumeFile::VolumeFile()
 : VolumeBase(), CaretMappableDataFile(DataFileTypeEnum::VOLUME)

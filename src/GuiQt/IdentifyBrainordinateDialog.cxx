@@ -183,6 +183,8 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                 break;
             case DataFileTypeEnum::VOLUME:
                 break;
+            case DataFileTypeEnum::VOLUME_DYNAMIC:
+                break;
         }
         
         if (parcelSourceDimension != PARCEL_SOURCE_INVALID_DIMENSION) {

@@ -389,6 +389,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
         case DataFileTypeEnum::VOLUME:
             caretDataFile = new VolumeFile();
             break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            CaretAssertMessage(0, "Never create a Volume Dynamic file");
+            break;
     }
     
     return caretDataFile;

@@ -84,7 +84,7 @@ namespace caret {
 
         void parcelCiftiFiberTrajectoryActionSelected(QAction* action);
         
-        void parcelCiftiConnectivityActionSelected(QAction* action);
+        void connectivityActionSelected(QAction* action);
 
         void parcelChartableDataActionSelected(QAction* action);
         

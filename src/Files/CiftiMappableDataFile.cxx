@@ -238,6 +238,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
         case DataFileTypeEnum::SURFACE:
         case DataFileTypeEnum::UNKNOWN:
         case DataFileTypeEnum::VOLUME:
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
             CaretAssertMessage(0, (DataFileTypeEnum::toGuiName(dataFileType)
                                    + " is not a CIFTI Mappable Data File."));
             break;
@@ -799,6 +800,7 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
         case DataFileTypeEnum::SURFACE:
         case DataFileTypeEnum::UNKNOWN:
         case DataFileTypeEnum::VOLUME:
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
             throw DataFileException(filename,
                                     DataFileTypeEnum::toGuiName(dataFileType)
                                    + " is not a CIFTI Mappable Data File.");
@@ -1935,6 +1937,8 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
         case DataFileTypeEnum::UNKNOWN:
             break;
         case DataFileTypeEnum::VOLUME:
+            break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
             break;
     }
     
@@ -4806,6 +4810,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             CaretAssert(0);
             break;
         case DataFileTypeEnum::VOLUME:
+            CaretAssert(0);
+            break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
             CaretAssert(0);
             break;
     }

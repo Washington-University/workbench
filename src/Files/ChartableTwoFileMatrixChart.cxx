@@ -148,6 +148,8 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 break;
             case DataFileTypeEnum::VOLUME:
                 break;
+            case DataFileTypeEnum::VOLUME_DYNAMIC:
+                break;
         }
         
         bool hasColumnParcelsFlag  = false;

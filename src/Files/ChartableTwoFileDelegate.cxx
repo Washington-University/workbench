@@ -174,7 +174,9 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
                 lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
             }
             break;
-            
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
+            break;
     }
     
     if (m_histogramCharting) {

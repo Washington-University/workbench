@@ -755,11 +755,15 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     if (vf->isMappedWithLabelTable()) {
                         haveLabels = true;
                     }
-                    const VolumeDynamicConnectivityFile* volDynConnFile = vf->getVolumeDynamicConnectivityFile();
-                    if (volDynConnFile != NULL) {
-                        haveConnFiles = true;
-                    }
                 }
+                    break;
+                case DataFileTypeEnum::VOLUME_DYNAMIC:
+                    haveConnFiles = true;
+//                    haveVolumes = true;
+//                    const VolumeDynamicConnectivityFile* volDynConnFile = vf->getVolumeDynamicConnectivityFile();
+//                    if (volDynConnFile != NULL) {
+//                        haveConnFiles = true;
+//                    }
                     break;
             }
         }
