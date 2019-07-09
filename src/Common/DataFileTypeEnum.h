@@ -90,7 +90,9 @@ public:
         /** Unknown */
         UNKNOWN,
         /** Volume */
-        VOLUME
+        VOLUME,
+        /** Volume */
+        VOLUME_DYNAMIC
     };
     
     /**
@@ -140,7 +142,7 @@ public:
     
     static std::vector<AString> getAllFileExtensions(const Enum enumValue);
     
-    static std::vector<AString> getFilesExtensionsForEveryFile();
+    static std::vector<AString> getFilesExtensionsForEveryFile(const bool includeNonWritableFileTypesFlag = false);
     
     static bool isFileUsedWithOneStructure(const Enum enumValue);
     

@@ -324,6 +324,12 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "nii",
                                         "nii.gz"));
+    enumData.push_back(DataFileTypeEnum(VOLUME_DYNAMIC,
+                                        "VOLUME_DYNAMIC",
+                                        "Volume - Dynamic",
+                                        "VOLUME DYNAMIC",
+                                        false,
+                                        "vol_dynconn")); // this file is never written
 }
 
 /**
@@ -612,23 +618,86 @@ DataFileTypeEnum::getAllFileExtensions(const Enum enumValue)
 
 /**
  * @return All valid file extensions for all file types except UNKNOWN
- * and CONNECTIVITY_DENSE_DYNAMIC
+ * and dynanmic connectivity files
+ *
+ * @param includeNonWritableFileTypesFlag
+ *     If true, include non-writable files such as dynamic connectvity files
  */
 std::vector<AString>
-DataFileTypeEnum::getFilesExtensionsForEveryFile()
+DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFileTypesFlag)
 {
     std::vector<AString> allExtensions;
     
     for (std::vector<DataFileTypeEnum>::iterator enumIter = enumData.begin();
          enumIter != enumData.end();
          enumIter++) {
-        if (enumIter->enumValue == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
-            /* nothing */
+        bool validFlag(true);
+        
+        switch (enumIter->enumValue) {
+            case DataFileTypeEnum::ANNOTATION:
+                break;
+            case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+                break;
+            case DataFileTypeEnum::BORDER:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                validFlag = includeNonWritableFileTypesFlag;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                break;
+            case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::IMAGE:
+                break;
+            case DataFileTypeEnum::LABEL:
+                break;
+            case DataFileTypeEnum::METRIC:
+                break;
+            case DataFileTypeEnum::PALETTE:
+                break;
+            case DataFileTypeEnum::RGBA:
+                break;
+            case DataFileTypeEnum::SCENE:
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                break;
+            case DataFileTypeEnum::SURFACE:
+                break;
+            case DataFileTypeEnum::UNKNOWN:
+                validFlag = false;
+                break;
+            case DataFileTypeEnum::VOLUME:
+                break;
+            case DataFileTypeEnum::VOLUME_DYNAMIC:
+                validFlag = includeNonWritableFileTypesFlag;
+                break;
         }
-        else if (enumIter->enumValue == DataFileTypeEnum::UNKNOWN) {
-            /* nothing */
-        }
-        else {
+        
+        if (validFlag) {
             allExtensions.insert(allExtensions.end(),
                                  enumIter->fileExtensions.begin(),
                                  enumIter->fileExtensions.end());
