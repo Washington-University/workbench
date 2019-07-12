@@ -95,6 +95,7 @@
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
+#include "MetricDynamicConnectivityFile.h"
 #include "ModelChartTwo.h"
 #include "OverlaySettingsEditorDialog.h"
 #include "MacDockMenu.h"
@@ -786,6 +787,7 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
     dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC);
     dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY);
     dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY);
+    dataFileTypesToExclude.push_back(DataFileTypeEnum::METRIC_DYNAMIC);
     dataFileTypesToExclude.push_back(DataFileTypeEnum::VOLUME_DYNAMIC);
     
     switch (testModifiedMode) {
@@ -3103,6 +3105,18 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                                         ciftiLoadingInfo);
                     chartingDataManager->loadChartForSurfaceNode(surface,
                                                                  nodeIndex);
+                    
+                    std::vector<MetricDynamicConnectivityFile*> metricDynConnFiles;
+                    brain->getMetricDynamicConnectivityFiles(metricDynConnFiles);
+                    
+                    for (auto mdc : metricDynConnFiles) {
+                        if (mdc->isEnabledAsLayer()) {
+                            mdc->loadDataForSurfaceNode(surface->getNumberOfNodes(),
+                                                        surface->getStructure(),
+                                                        nodeIndex);
+                        }
+                    }
+
                     updateGraphicsFlag = true;
                 }
                 catch (const DataFileException& e) {

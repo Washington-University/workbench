@@ -86,6 +86,7 @@ namespace caret {
     class ImageFile;
     class LabelFile;
     class MetricFile;
+    class MetricDynamicConnectivityFile;
     class ModelChart;
     class ModelChartTwo;
     class ModelSurfaceMontage;
@@ -190,6 +191,8 @@ namespace caret {
         const VolumeFile* getVolumeFile(const int32_t volumeFileIndex) const;
         
         void getVolumeDynamicConnectivityFiles(std::vector<VolumeDynamicConnectivityFile*>& volumeDynamicConnectivityFilesOut) const;
+        
+        void getMetricDynamicConnectivityFiles(std::vector<MetricDynamicConnectivityFile*>& metricDynamicConnectivityFilesOut) const;
         
         void resetBrain();
         

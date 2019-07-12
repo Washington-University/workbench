@@ -109,6 +109,7 @@ LabelDrawingProperties.h
 LabelDrawingTypeEnum.h
 LabelFile.h
 MapYokingGroupEnum.h
+MetricDynamicConnectivityFile.h
 MetricFile.h
 MetricSmoothingObject.h
 NodeAndVoxelColoring.h
@@ -243,6 +244,7 @@ LabelDrawingProperties.cxx
 LabelDrawingTypeEnum.cxx
 LabelFile.cxx
 MapYokingGroupEnum.cxx
+MetricDynamicConnectivityFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx
 NodeAndVoxelColoring.cxx

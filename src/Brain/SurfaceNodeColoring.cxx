@@ -467,7 +467,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                 overlayRGBV);
                     break;
                 case DataFileTypeEnum::METRIC:
-                    isColoringValid = this->assignMetricColoring(brainStructure, 
+                case DataFileTypeEnum::METRIC_DYNAMIC: // same as metric
+                    isColoringValid = this->assignMetricColoring(brainStructure,
                                                                  dynamic_cast<MetricFile*>(selectedMapFile),
                                                                  selectedMapIndex,
                                                                  numNodes, 

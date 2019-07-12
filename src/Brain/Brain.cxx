@@ -93,6 +93,7 @@
 #include "IdentificationManager.h"
 #include "ImageFile.h"
 #include "MathFunctions.h"
+#include "MetricDynamicConnectivityFile.h"
 #include "MetricFile.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
@@ -834,6 +835,8 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::LABEL:
                 break;
             case DataFileTypeEnum::METRIC:
+                break;
+            case DataFileTypeEnum::METRIC_DYNAMIC:
                 break;
             case DataFileTypeEnum::PALETTE:
                 keepFileFlag = false;
@@ -1610,6 +1613,32 @@ Brain::getVolumeDynamicConnectivityFiles(std::vector<VolumeDynamicConnectivityFi
         if (volDynConn != NULL) {
             if (volDynConn->isDataValid()) {
                 volumeDynamicConnectivityFilesOut.push_back(volDynConn);
+            }
+        }
+    }
+}
+
+/**
+ * Get the metric dynamic connecivity files
+ *
+ * @param metricDynamicConnectivityFilesOut
+ *     Output with metric dynamic connectivity files
+ */
+void
+Brain::getMetricDynamicConnectivityFiles(std::vector<MetricDynamicConnectivityFile*>& metricDynamicConnectivityFilesOut) const
+{
+    metricDynamicConnectivityFilesOut.clear();
+    
+    for (auto bs : m_brainStructures) {
+        std::vector<MetricFile*> metricFiles;
+        bs->getMetricFiles(metricFiles);
+        
+        for (auto mf : metricFiles) {
+            MetricDynamicConnectivityFile* metricDynConn = mf->getMetricDynamicConnectivityFile();
+            if (metricDynConn != NULL) {
+                if (metricDynConn->isDataValid()) {
+                    metricDynamicConnectivityFilesOut.push_back(metricDynConn);
+                }
             }
         }
     }
@@ -4479,6 +4508,9 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                                                  true);
                 }
                     break;
+                case DataFileTypeEnum::METRIC_DYNAMIC:
+                    CaretAssertMessage(0, "Metric dynamic files should never be added to brain");
+                    break;
                 case DataFileTypeEnum::PALETTE:
                 {
                     throw DataFileException(caretDataFile->getFileName(),
@@ -5369,6 +5401,9 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                                                    dataFileName,
                                                    structure,
                                                    markDataFileAsModified);
+                break;
+            case DataFileTypeEnum::METRIC_DYNAMIC:
+                CaretAssertMessage(0, "Metric dynamic files are never read by Brain");
                 break;
             case DataFileTypeEnum::PALETTE:
                 caretDataFileRead  = addReadOrReloadPaletteFile(fileMode,
@@ -6811,6 +6846,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::METRIC:
             break;
+        case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
         case DataFileTypeEnum::PALETTE:
             break;
         case DataFileTypeEnum::RGBA:
@@ -6901,6 +6938,9 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::LABEL:
             break;
         case DataFileTypeEnum::METRIC:
+            break;
+        case DataFileTypeEnum::METRIC_DYNAMIC:
+            canBeRemovedFlag = false;
             break;
         case DataFileTypeEnum::PALETTE:
             break;

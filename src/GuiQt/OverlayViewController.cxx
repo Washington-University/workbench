@@ -1034,6 +1034,9 @@ OverlayViewController::menuConstructionAboutToShow()
                     break;
                 case DataFileTypeEnum::METRIC:
                     break;
+                case DataFileTypeEnum::METRIC_DYNAMIC:
+                    dynConnFlag = true;
+                    break;
                 case DataFileTypeEnum::PALETTE:
                     break;
                 case DataFileTypeEnum::RGBA:

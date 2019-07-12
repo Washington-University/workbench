@@ -34,6 +34,7 @@
 #include "EventManager.h"
 #include "EventOverlayValidate.h"
 #include "LabelFile.h"
+#include "MetricDynamicConnectivityFile.h"
 #include "MetricFile.h"
 #include "PlainTextStringBuilder.h"
 #include "RgbaFile.h"
@@ -433,6 +434,13 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                 case DataFileTypeEnum::LABEL:
                     break;
                 case DataFileTypeEnum::METRIC:
+                    break;
+                case DataFileTypeEnum::METRIC_DYNAMIC:
+                {
+                    MetricDynamicConnectivityFile* metricDynFile = dynamic_cast<MetricDynamicConnectivityFile*>(mapFile);
+                    CaretAssert(metricDynFile);
+                    useIt = metricDynFile->isEnabledAsLayer();
+                }
                     break;
                 case DataFileTypeEnum::PALETTE:
                     break;

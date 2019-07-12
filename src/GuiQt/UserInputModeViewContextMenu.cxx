@@ -62,6 +62,7 @@
 #include "MapFileDataSelector.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
+#include "MetricDynamicConnectivityFile.h"
 #include "Model.h"
 #include "ProgressReportingDialog.h"
 #include "SelectionItemBorderSurface.h"
@@ -368,13 +369,21 @@ UserInputModeViewContextMenu::addBorderRegionOfInterestActions()
         Brain* brain = borderID->getBrain();
         std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
         brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
-        bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
+        bool hasConnectivityFile = (ciftiMatrixFiles.empty() == false);
+        
+        std::vector<MetricDynamicConnectivityFile*> metricDynConnFiles;
+        brain->getMetricDynamicConnectivityFiles(metricDynConnFiles);
+        for (auto mdc : metricDynConnFiles) {
+            if (mdc->isDataLoadingEnabled()) {
+                hasConnectivityFile = true;
+            }
+        }
         
         /*
          * Connectivity actions for borders
          */
-        if (hasCiftiConnectivity) {
-            const QString text = ("Show CIFTI Connectivity for Nodes Inside Border "
+        if (hasConnectivityFile) {
+            const QString text = ("Show Connectivity for Vertices Inside Border "
                                   + borderID->getBorder()->getName());
             QAction* action = WuQtUtilities::createAction(text,
                                                           "",
@@ -388,7 +397,7 @@ UserInputModeViewContextMenu::addBorderRegionOfInterestActions()
         brain->getAllChartableBrainordinateDataFiles(chartableFiles);
         
         if (chartableFiles.empty() == false) {
-            const QString text = ("Show Charts for Nodes Inside Border "
+            const QString text = ("Show Charts for Vertices Inside Border "
                                   + borderID->getBorder()->getName());
             QAction* action = WuQtUtilities::createAction(text,
                                                           "",
@@ -672,6 +681,7 @@ UserInputModeViewContextMenu::addLabelRegionOfInterestActions()
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     std::vector<CiftiFiberTrajectoryFile*> ciftiFiberTrajectoryFiles;
     std::vector<ChartableLineSeriesBrainordinateInterface*> chartableFiles;
+    std::vector<MetricDynamicConnectivityFile*> metricDynConnFiles;
     std::vector<VolumeDynamicConnectivityFile*> volDynConnFiles;
     /*
      * Get all files in displayed overlays
@@ -702,13 +712,19 @@ UserInputModeViewContextMenu::addLabelRegionOfInterestActions()
             chartableFiles.push_back(lineSeriesFile);
         }
         
+        MetricDynamicConnectivityFile* metricDynConnFile = dynamic_cast<MetricDynamicConnectivityFile*>(mapFile);
+        if (metricDynConnFile != NULL) {
+            metricDynConnFiles.push_back(metricDynConnFile);
+        }
+        
         VolumeDynamicConnectivityFile* volDynnFile = dynamic_cast<VolumeDynamicConnectivityFile*>(mapFile);
         if (volDynnFile != NULL) {
             volDynConnFiles.push_back(volDynnFile);
         }
     }
     const bool hasDynamicConnectivity = ( ( ! ciftiMatrixFiles.empty())
-                                       || ( ! volDynConnFiles.empty()));
+                                         || ( ! metricDynConnFiles.empty())
+                                         || ( ! volDynConnFiles.empty()) );
     const bool haveCiftiFiberTrajectoryFiles = ( ! ciftiFiberTrajectoryFiles.empty());
     const bool haveChartableFiles = ( ! chartableFiles.empty());
 
@@ -1054,6 +1070,15 @@ UserInputModeViewContextMenu::connectivityActionSelected(QAction* action)
                 pc->ciftiConnectivityManager->loadAverageDataForSurfaceNodes(pc->brain,
                                                                              pc->surface,
                                                                              nodeIndices);
+            {
+                std::vector<MetricDynamicConnectivityFile*> metricDynConnFiles;
+                pc->brain->getMetricDynamicConnectivityFiles(metricDynConnFiles);
+                for (auto mdcf : metricDynConnFiles) {
+                    mdcf->loadAverageDataForSurfaceNodes(pc->surface->getNumberOfNodes(),
+                                                         pc->surface->getStructure(),
+                                                         nodeIndices);
+                }
+            }
                 break;
             case ParcelType::PARCEL_TYPE_VOLUME_VOXELS:
                 pc->ciftiConnectivityManager->loadAverageDataForVoxelIndices(pc->brain,
@@ -1203,6 +1228,17 @@ UserInputModeViewContextMenu::borderCiftiConnectivitySelected()
             ciftiConnMann->loadAverageDataForSurfaceNodes(borderID->getBrain(),
                                                           surface,
                                                           nodeIndices);
+            
+            {
+                Brain* brain = GuiManager::get()->getBrain();
+                std::vector<MetricDynamicConnectivityFile*> metricDynConnFiles;
+                brain->getMetricDynamicConnectivityFiles(metricDynConnFiles);
+                for (auto mdcf : metricDynConnFiles) {
+                    mdcf->loadAverageDataForSurfaceNodes(surface->getNumberOfNodes(),
+                                                         surface->getStructure(),
+                                                         nodeIndices);
+                }
+            }
         }
         catch (const DataFileException& e) {
             cursor.restoreCursor();

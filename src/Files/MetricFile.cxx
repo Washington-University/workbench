@@ -27,6 +27,7 @@
 #include "GiftiFile.h"
 #include "MapFileDataSelector.h"
 #include "MathFunctions.h"
+#include "MetricDynamicConnectivityFile.h"
 #include "MetricFile.h"
 #include "NiftiEnums.h"
 #include "PaletteColorMapping.h"
@@ -36,11 +37,25 @@
 
 using namespace caret;
 
+const AString MetricFile::s_paletteColorMappingNameInMetaData = "__DYNAMIC_FILE_PALETTE_COLOR_MAPPING__";
+
 /**
  * Constructor.
  */
 MetricFile::MetricFile()
 : GiftiTypeFile(DataFileTypeEnum::METRIC)
+{
+    this->initializeMembersMetricFile();
+}
+
+/**
+ * Constructor for subclasses
+ *
+ * @param dataFileType
+ *    Filetype for subclass
+ */
+MetricFile::MetricFile(const DataFileTypeEnum::Enum dataFileType)
+: GiftiTypeFile(dataFileType)
 {
     this->initializeMembersMetricFile();
 }
@@ -92,6 +107,21 @@ void MetricFile::writeFile(const AString& filename)
     {
         CaretLogWarning("metric file '" + filename + "' should be saved ending in .func.gii or .shape.gii, see wb_command -gifti-help");
     }
+    /*
+     * Put the child dynamic data-series file's palette in the file's metadata.
+     */
+    if (m_lazyInitializedDynamicConnectivityFile != NULL) {
+        GiftiMetaData* fileMetaData = m_lazyInitializedDynamicConnectivityFile->getCiftiXML().getFileMetaData();
+        CaretAssert(fileMetaData);
+        if (m_lazyInitializedDynamicConnectivityFile->getNumberOfMaps() > 0) {
+            fileMetaData->set(s_paletteColorMappingNameInMetaData,
+                              m_lazyInitializedDynamicConnectivityFile->getMapPaletteColorMapping(0)->encodeInXML());
+        }
+        else {
+            fileMetaData->remove(s_paletteColorMappingNameInMetaData);
+        }
+    }
+    
     caret::GiftiTypeFile::writeFile(filename);
 }
 
@@ -740,6 +770,11 @@ MetricFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addBooleanArray("m_chartingEnabledForTab",
                                 m_chartingEnabledForTab,
                                 BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+
+    if (m_lazyInitializedDynamicConnectivityFile != NULL) {
+        sceneClass->addClass(m_lazyInitializedDynamicConnectivityFile->saveToScene(sceneAttributes,
+                                                                                   "m_lazyInitializedDynamicConnectivityFile"));
+    }
 }
 
 /**
@@ -774,6 +809,61 @@ MetricFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
             m_chartingEnabledForTab[i] = false;
         }
     }
+
+    const SceneClass* dynamicFileSceneClass = sceneClass->getClass("m_lazyInitializedDynamicConnectivityFile");
+    if (dynamicFileSceneClass != NULL) {
+        MetricDynamicConnectivityFile* denseDynamicFile = getMetricDynamicConnectivityFile();
+        denseDynamicFile->restoreFromScene(sceneAttributes,
+                                           dynamicFileSceneClass);
+    }
+}
+
+/**
+ * @return The volume dynamic connectivity file for a data-series (functional) file
+ *         that contains at least two time points.  Note that some files may
+ *         have type anatomy but still contain functional data.
+ *         Will return NULL for other types.
+ */
+const MetricDynamicConnectivityFile*
+MetricFile::getMetricDynamicConnectivityFile() const
+{
+    MetricFile* nonConstThis = const_cast<MetricFile*>(this);
+    return nonConstThis->getMetricDynamicConnectivityFile();
+}
+
+/**
+ * @return The volume dynamic connectivity file for a data-series (functional) file
+ *         that contains at least two time points.  Note that some files may
+ *         have type anatomy but still contain functional data.
+ *         Will return NULL for other types.
+ */
+MetricDynamicConnectivityFile*
+MetricFile::getMetricDynamicConnectivityFile()
+{
+    if (m_lazyInitializedDynamicConnectivityFile == NULL) {
+        if (getNumberOfMaps() > 1) {
+            m_lazyInitializedDynamicConnectivityFile.reset(new MetricDynamicConnectivityFile(this));
+            
+            m_lazyInitializedDynamicConnectivityFile->initializeFile();
+            
+            /*
+             * Palette for dynamic file is in file metadata
+             */
+            GiftiMetaData* fileMetaData = getFileMetaData();
+            const AString encodedPaletteColorMappingString = fileMetaData->get(s_paletteColorMappingNameInMetaData);
+            if ( ! encodedPaletteColorMappingString.isEmpty()) {
+                if (m_lazyInitializedDynamicConnectivityFile->getNumberOfMaps() > 0) {
+                    PaletteColorMapping* pcm = m_lazyInitializedDynamicConnectivityFile->getMapPaletteColorMapping(0);
+                    CaretAssert(pcm);
+                    pcm->decodeFromStringXML(encodedPaletteColorMappingString);
+                }
+            }
+            
+            m_lazyInitializedDynamicConnectivityFile->clearModified();
+        }
+    }
+    
+    return m_lazyInitializedDynamicConnectivityFile.get();
 }
 
 

@@ -180,6 +180,9 @@ FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const st
                 break;
             case DataFileTypeEnum::METRIC:
                 break;
+            case DataFileTypeEnum::METRIC_DYNAMIC:
+                fileSpecialPrefix = "metricdynconn - ";
+                break;
             case DataFileTypeEnum::PALETTE:
                 break;
             case DataFileTypeEnum::RGBA:

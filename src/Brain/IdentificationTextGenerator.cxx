@@ -53,6 +53,7 @@
 #include "Histogram.h"
 #include "ImageFile.h"
 #include "MapFileDataSelector.h"
+#include "MetricDynamicConnectivityFile.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartDataSeries.h"
@@ -460,6 +461,8 @@ IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStri
                                 break;
                             case DataFileTypeEnum::METRIC:
                                 break;
+                            case DataFileTypeEnum::METRIC_DYNAMIC:
+                                break;
                             case DataFileTypeEnum::PALETTE:
                                 break;
                             case DataFileTypeEnum::RGBA:
@@ -614,6 +617,8 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                     break;
                 case DataFileTypeEnum::METRIC:
                     break;
+                case DataFileTypeEnum::METRIC_DYNAMIC:
+                    break;
                 case DataFileTypeEnum::PALETTE:
                     break;
                 case DataFileTypeEnum::RGBA:
@@ -654,7 +659,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
         const int32_t numLabelFiles = brainStructure->getNumberOfLabelFiles();
         for (int32_t i = 0; i < numLabelFiles; i++) {
             const LabelFile* lf = brainStructure->getLabelFile(i);
-            AString boldText = "LABEL " + lf->getFileNameNoPath() + ":";
+            AString boldText = "LABEL " + lf->getFileNameNoPath();
             AString text;
             const int numMaps = lf->getNumberOfMaps();
             for (int32_t j = 0; j < numMaps; j++) {
@@ -667,19 +672,34 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
             idText.addLine(true, boldText, text);
         }
         
+        std::vector<MetricDynamicConnectivityFile*> metricDynConFiles;
         const int32_t numMetricFiles = brainStructure->getNumberOfMetricFiles();
         for (int32_t i = 0; i < numMetricFiles; i++) {
             const MetricFile* mf = brainStructure->getMetricFile(i);
-            AString boldText = "METRIC " + mf->getFileNameNoPath() + ":";
+            AString boldText = "METRIC " + mf->getFileNameNoPath();
             AString text;
             const int numMaps = mf->getNumberOfMaps();
             for (int32_t j = 0; j < numMaps; j++) {
                 text += (" " + AString::number(mf->getValue(nodeNumber, j)));
             }
             idText.addLine(true, boldText, text);
+            
+            const MetricDynamicConnectivityFile* mdcf = mf->getMetricDynamicConnectivityFile();
+            if (mdcf != NULL) {
+                if (mdcf->isDataValid()) {
+                    if (mdcf->isEnabledAsLayer()) {
+                        AString boldText = "METRIC DYNAMIC " + mdcf->getFileNameNoPath();
+                        AString text;
+                        const int numMaps = mdcf->getNumberOfMaps();
+                        for (int32_t j = 0; j < numMaps; j++) {
+                            text += (" " + AString::number(mdcf->getValue(nodeNumber, j)));
+                        }
+                        idText.addLine(true, boldText, text);
+                    }
+                }
+            }
         }
     }
-    
 }
 
 /**

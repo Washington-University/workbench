@@ -1723,10 +1723,21 @@ const FastStatistics* GiftiDataArray::getFastStatistics() const
     return m_fastStatistics;
 }
 
+/**
+ * Invalidate the histograms
+ */
+void
+GiftiDataArray::invalidateHistograms()
+{
+    m_histogramNeedsUpdateFlag = true;
+    m_histogramLimitedValuesNeedsUpdateFlag = true;
+}
+
 const Histogram* GiftiDataArray::getHistogram(const int32_t numberOfBuckets) const
 {
     if (this->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
-        bool updateHistogramFlag = false;
+        bool updateHistogramFlag = m_histogramNeedsUpdateFlag;
+        m_histogramNeedsUpdateFlag = false;
         if (m_histogram == NULL) {
             m_histogram.grabNew(new Histogram(numberOfBuckets));
             updateHistogramFlag = true;
@@ -1788,7 +1799,8 @@ const Histogram* GiftiDataArray::getHistogram(const int32_t numberOfBuckets,
                                               const bool includeZeroValues) const
 {
     if (this->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
-        bool updateHistogramFlag = false;
+        bool updateHistogramFlag = m_histogramLimitedValuesNeedsUpdateFlag;
+        m_histogramLimitedValuesNeedsUpdateFlag = false;
         if (m_histogramLimitedValues == NULL)
         {
             m_histogramLimitedValues.grabNew(new Histogram(numberOfBuckets));

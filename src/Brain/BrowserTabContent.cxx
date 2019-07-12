@@ -63,6 +63,7 @@
 #include "LabelFile.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
+#include "MetricDynamicConnectivityFile.h"
 #include "ModelChart.h"
 #include "ModelChartTwo.h"
 #include "ModelSurface.h"
@@ -2112,6 +2113,13 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                     case DataFileTypeEnum::LABEL:
                         break;
                     case DataFileTypeEnum::METRIC:
+                        break;
+                    case DataFileTypeEnum::METRIC_DYNAMIC:
+                    {
+                        MetricDynamicConnectivityFile* metricDynFile = dynamic_cast<MetricDynamicConnectivityFile*>(overlayDataFile);
+                        CaretAssert(metricDynFile);
+                        displayedDataFiles.insert(metricDynFile);
+                    }
                         break;
                     case DataFileTypeEnum::PALETTE:
                         break;

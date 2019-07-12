@@ -45,6 +45,7 @@
 #include "SelectionManager.h"
 #include "LabelFile.h"
 #include "MathFunctions.h"
+#include "MetricDynamicConnectivityFile.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
 #include "OverlaySet.h"
@@ -1136,9 +1137,15 @@ BrainStructure::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) co
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_labelFiles.begin(),
                            m_labelFiles.end());
-    allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_metricFiles.begin(),
-                           m_metricFiles.end());
+    for (auto mf : m_metricFiles) {
+        allDataFilesOut.push_back(mf);
+        MetricDynamicConnectivityFile* dynFile = mf->getMetricDynamicConnectivityFile();
+        if (dynFile != NULL) {
+            if (dynFile->isDataValid()) {
+                allDataFilesOut.push_back(dynFile);
+            }
+        }
+    }
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_rgbaFiles.begin(),
                            m_rgbaFiles.end());

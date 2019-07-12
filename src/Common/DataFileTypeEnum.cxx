@@ -272,7 +272,14 @@ DataFileTypeEnum::initialize()
                                         "func.gii",
                                         "shape.gii"));
     
-    enumData.push_back(DataFileTypeEnum(PALETTE, 
+    enumData.push_back(DataFileTypeEnum(METRIC_DYNAMIC,
+                                        "METRIC_DYNAMIC",
+                                        "Metric - Dynamic",
+                                        "METRIC_DYNAMIC",
+                                        true,
+                                        "func_dynconn")); // this file is never written
+    
+    enumData.push_back(DataFileTypeEnum(PALETTE,
                                         "PALETTE", 
                                         "Palette",
                                         "PALETTE",
@@ -324,6 +331,7 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "nii",
                                         "nii.gz"));
+    
     enumData.push_back(DataFileTypeEnum(VOLUME_DYNAMIC,
                                         "VOLUME_DYNAMIC",
                                         "Volume - Dynamic",
@@ -676,6 +684,9 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
             case DataFileTypeEnum::LABEL:
                 break;
             case DataFileTypeEnum::METRIC:
+                break;
+            case DataFileTypeEnum::METRIC_DYNAMIC:
+                validFlag = includeNonWritableFileTypesFlag;
                 break;
             case DataFileTypeEnum::PALETTE:
                 break;

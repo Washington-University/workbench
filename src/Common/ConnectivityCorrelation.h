@@ -34,16 +34,22 @@ namespace caret {
     class ConnectivityCorrelation : public CaretObject {
         
     public:
-        ConnectivityCorrelation(const float* data,
-                                const int64_t groupCount,
-                                const int64_t groupStride,
-                                const int64_t groupDataCount,
-                                const int64_t groupDataStride);
-        
-        ConnectivityCorrelation(const float* dataGroups[],
-                                const int64_t groupCount,
-                                const int64_t groupDataCount,
-                                const int64_t groupDataStrides[]);
+        static ConnectivityCorrelation* newInstance(const float* data,
+                                                    const int64_t numberOfBrainordinates,
+                                                    const int64_t nextBrainordinateStride,
+                                                    const int64_t numberOfTimePoints,
+                                                    const int64_t nextTimePointStride,
+                                                    AString& errorMessageOut);
+
+        static ConnectivityCorrelation* newInstanceBrainordinates(const std::vector<const float*>& brainordinateDataPointers,
+                                                                  const int64_t numberOfTimePoints,
+                                                                  const int64_t nextTimePointStride,
+                                                                  AString& errorMessageOut);
+
+        static ConnectivityCorrelation* newInstanceTimePoints(const std::vector<const float*>& timePointDataPointers,
+                                                                  const int64_t numberOfBrainordinates,
+                                                                  const int64_t nextBrainordinateStride,
+                                                                  AString& errorMessageOut);
         
         /**
          * Destructor
@@ -54,15 +60,24 @@ namespace caret {
         
         ConnectivityCorrelation& operator=(const ConnectivityCorrelation&) = delete;
         
-        void getCorrelationForGroup(const int64_t groupIndex,
-                                    std::vector<float>& dataOut);
-        
+        void getCorrelationForBrainordinate(const int64_t brainordinateIndex,
+                                            std::vector<float>& dataOut);
+
 
 
         // ADD_NEW_METHODS_HERE
         
     private:
-        class GroupData {
+        enum class DataTypeEnum {
+            INVALID,
+            BRAINORDINATES_NON_CONTIGUOUS_DATA,
+            BRAINORDINATES_CONTIGUOUS_DATA,
+            TIMEPOINTS
+        };
+        
+        ConnectivityCorrelation(const DataTypeEnum dataType);
+        
+        class BrainordinateData {
         public:
             /**
              * Constructor.
@@ -76,45 +91,100 @@ namespace caret {
              * @param sqrtSumSquared
              *    Square root of sum-squared of data
              */
-            GroupData(const float* data,
-                      const int64_t dataStride,
-                      const float mean,
-                      const float sqrtSumSquared)
+            BrainordinateData(const float* data,
+                              const int64_t dataStride)
             : m_data(data),
-            m_dataStride(dataStride),
-            m_mean(mean),
-            m_sqrt_ssxx(sqrtSumSquared) { }
+            m_dataStride(dataStride) { }
             
             const float* m_data;
             
             const int64_t m_dataStride;
+        };
+        
+        class BrainordinateMeanSS {
+        public:
+            /*
+             * Constructor
+             *
+             * @param mean
+             *    Mean value of 'data'
+             * @param sqrtSumSquared
+             *    Square root of sum-squared of data
+             */
+            BrainordinateMeanSS(const float mean,
+                                const float sqrtSumSquared)
+            : m_mean(mean),
+            m_sqrt_ssxx(sqrtSumSquared) { }
             
             const float m_mean;
             
             const float m_sqrt_ssxx;
         };
         
-        void addDataGroup(const float* data,
-                          const int64_t dataCount,
-                          const int64_t dataStride);
+        class TimePointData {
+        public:
+            /**
+             * Constructor.
+             *
+             * @param data
+             *    Pointer to data
+             * @param dataStride
+             *    Offset between consecutive elements (1 for contiguous data)
+             */
+            TimePointData(const float* data,
+                          const int64_t dataStride)
+            : m_data(data),
+            m_dataStride(dataStride)
+            {
+            }
+            
+            const float* m_data;
+            
+            const int64_t m_dataStride;
+        };
+
+        bool initializeWithBrainordinates(const std::vector<const float*>& brainordinateDataPointers,
+                                          const int64_t numberOfTimePoints,
+                                          const int64_t nextTimePointStride,
+                                          AString& errorMessageOut);
         
-        void computeDataMeanAndSumSquared(const float* data,
-                                          const int64_t dataCount,
-                                          const int64_t dataStride,
-                                          float& meanOut,
-                                          float& sumSquaredOut) const;
+        bool initializeWithTimePoints(const std::vector<const float*>& timePointDataPointers,
+                                      const int64_t numberOfBrainordinates,
+                                      const int64_t nextBrainordinateStride,
+                                      AString& errorMessageOut);
         
-        float correlationContiguousData(const int64_t fromGroupIndex,
-                                        const int64_t toGroupIndex) const;
+        void computeBrainordinateMeanAndSumSquared();
         
-        float correlationNonContiguousData(const int64_t fromGroupIndex,
-                                           const int64_t toGroupIndex) const;
+//        void computeDataMeanAndSumSquared(const float* data,
+//                                          const int64_t dataCount,
+//                                          const int64_t dataStride,
+//                                          float& meanOut,
+//                                          float& ssxxOut) const;
+//
+//        void computeDataMeanAndSumSquared(const int64_t brainordinateIndex,
+//                                          float& meanOut,
+//                                          float& sqrtSquaredOut) const;
+
+        float correlationBrainordinateContiguousData(const int64_t fromBrainordinateIndex,
+                                                     const int64_t toBrainordinateIndex) const;
         
-        const float m_dataCount;
+        float correlationBrainordinateNonContiguousData(const int64_t fromBrainordinateIndex,
+                                                        const int64_t toBrainordinateIndex) const;
+
+        float correlationTimePointData(const int64_t fromBrainordinateIndex,
+                                      const int64_t toBrainordinateIndex) const;
         
-        std::vector<std::unique_ptr<GroupData>> m_groups;
+        DataTypeEnum m_dataType = DataTypeEnum::INVALID;
         
-        bool m_contiguousDataFlag = false;
+        int64_t m_numberOfBrainordinates = -1;
+        
+        int64_t m_numberOfTimePoints = -1;
+        
+        std::vector<std::unique_ptr<BrainordinateData>> m_brainordinateData;
+        
+        std::vector<std::unique_ptr<TimePointData>> m_timePointData;
+        
+        std::vector<std::unique_ptr<BrainordinateMeanSS>> m_meanSSData;
         
         // ADD_NEW_MEMBERS_HERE
 

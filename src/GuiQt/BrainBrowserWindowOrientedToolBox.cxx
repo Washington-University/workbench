@@ -733,6 +733,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::METRIC:
                     break;
+                case DataFileTypeEnum::METRIC_DYNAMIC:
+                    haveConnFiles = true;
+                    break;
                 case DataFileTypeEnum::PALETTE:
                     break;
                 case DataFileTypeEnum::RGBA:

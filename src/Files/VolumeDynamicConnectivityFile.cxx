@@ -26,6 +26,7 @@
 #undef __VOLUME_DYNN_CONN_FILE_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "ConnectivityCorrelation.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileException.h"
@@ -474,47 +475,77 @@ VolumeDynamicConnectivityFile::loadConnectivityForVoxelIndex(const int64_t ijk[3
  * @return
  *     True if data was loaded.
  */
-
 bool
 VolumeDynamicConnectivityFile::getConnectivityForVoxelIndex(const int64_t ijk[3],
-                                                            std::vector<float>& voxelsOut) 
+                                                            std::vector<float>& voxelsOut)
 {
     bool validFlag(false);
-    if (m_voxelData != NULL) {
-        if (indexValid(ijk)) {
-            const int64_t voxelCount(m_dimI * m_dimJ * m_dimK);
-            if (m_connectivityCorrelation == NULL) {
-                /*
-                 * Need data and timepoint count from parent volume
-                 * IJK dimensions are same in this and parent volume
-                 */
-                CaretAssert(m_parentVolumeFile);
-                const float* parentVoxels = m_parentVolumeFile->getFrame(0);
-                CaretAssert(parentVoxels);
-                std::vector<int64_t> parentVolumeDimensions;
-                m_parentVolumeFile->getDimensions(parentVolumeDimensions);
-                CaretAssert(parentVolumeDimensions.size() >= 4);
-                const int64_t timePointCount = parentVolumeDimensions[3];
+    
+    if ( ! m_connectivityCorrelationFailedFlag) {
+        if (m_voxelData != NULL) {
+            if (indexValid(ijk)) {
+                const int64_t voxelCount(m_dimI * m_dimJ * m_dimK);
+                if (m_connectivityCorrelation == NULL) {
+                    /*
+                     * Need data and timepoint count from parent volume
+                     * IJK dimensions are same in this and parent volume
+                     */
+                    CaretAssert(m_parentVolumeFile);
+                    const float* parentVoxels = m_parentVolumeFile->getFrame(0);
+                    CaretAssert(parentVoxels);
+                    std::vector<int64_t> parentVolumeDimensions;
+                    m_parentVolumeFile->getDimensions(parentVolumeDimensions);
+                    CaretAssert(parentVolumeDimensions.size() >= 4);
+                    const int64_t timePointCount = parentVolumeDimensions[3];
+                    
+                    const int64_t numberOfBrainordinates(voxelCount);   // Each IJK voxel is a group
+                    const int64_t nextBrainordinateStride(1);           // All groups have one element in each 'brick'
+                    const int64_t numberOfTimePoints(timePointCount);   // Each group contains timepoints
+                    const int64_t nextTimePointStride(voxelCount);      // Each group element is in separate IJK 'brick'
+                    
+                    AString errorMessage;
+                    ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstance(parentVoxels,
+                                                                                       numberOfBrainordinates,
+                                                                                       nextBrainordinateStride,
+                                                                                       numberOfTimePoints,
+                                                                                       nextTimePointStride,
+                                                                                       errorMessage);
+                    
+                    {
+                        
+                    }
+                    if (cc != NULL) {
+                        m_connectivityCorrelation.reset(cc);
+                    }
+                    else {
+                        m_connectivityCorrelationFailedFlag = true;
+                        CaretLogSevere("Failed to create connectvity correlation for "
+                                       + m_parentVolumeFile->getFileNameNoPath());
+                    }
+                    //                m_connectivityCorrelation.reset(new ConnectivityCorrelation(parentVoxels,
+                    //                                                                            groupCount,
+                    //                                                                            groupStride,
+                    //                                                                            groupDataCount,
+                    //                                                                            groupDataStride));
+                }
                 
-                const int64_t groupCount(voxelCount);           // Each IJK voxel is a group
-                const int64_t groupStride(1);                   // All groups have one element in each 'brick'
-                const int64_t groupDataCount(timePointCount);   // Each group contains timepoints
-                const int64_t groupDataStride(voxelCount);      // Each group element is in separate IJK 'brick'
-                m_connectivityCorrelation.reset(new ConnectivityCorrelation(parentVoxels,
-                                                                            groupCount,
-                                                                            groupStride,
-                                                                            groupDataCount,
-                                                                            groupDataStride));
+                if (m_connectivityCorrelation) {
+                    const int64_t myTimePointOffset = getVoxelOffset(ijk[0], ijk[1], ijk[2], 0);
+                    m_connectivityCorrelation->getCorrelationForBrainordinate(myTimePointOffset,
+                                                                              voxelsOut);
+                    CaretAssert(voxelCount == static_cast<int64_t>(voxelsOut.size()));
+                    validFlag = true;
+                }
             }
-            
-            const int64_t myTimePointOffset = getVoxelOffset(ijk[0], ijk[1], ijk[2], 0);
-            m_connectivityCorrelation->getCorrelationForGroup(myTimePointOffset,
-                                                              voxelsOut);
-            CaretAssert(voxelCount == static_cast<int64_t>(voxelsOut.size()));
-            validFlag = true;
         }
     }
 
+    if ( ! validFlag) {
+        voxelsOut.resize(m_numberOfVoxels);
+        std::fill(voxelsOut.begin(), voxelsOut.end(),
+                  0.0f);
+    }
+    
     return validFlag;
 }
 
@@ -546,7 +577,9 @@ VolumeDynamicConnectivityFile::matchesDimensions(const int64_t dimI,
  * @return A volume file using the loaded data (will return NULL if there is an error).
  *
  * @param directoryName
+ *     Directory for file
  * @param errorMessageOut
+ *     Contains error information
  */
 VolumeFile*
 VolumeDynamicConnectivityFile::newVolumeFileFromLoadedData(const AString& directoryName,

@@ -1,5 +1,5 @@
-#ifndef __VOLUME_DYNN_CONN_FILE_H__
-#define __VOLUME_DYNN_CONN_FILE_H__
+#ifndef __METRIC_DYNAMIC_CONNECTIVITY_FILE_H__
+#define __METRIC_DYNAMIC_CONNECTIVITY_FILE_H__
 
 /*LICENSE_START*/
 /*
@@ -25,24 +25,25 @@
 
 #include <memory>
 
-#include "VolumeFile.h"
+#include "MetricFile.h"
 
 
 
 namespace caret {
+
     class ConnectivityCorrelation;
     class ConnectivityDataLoaded;
     
-    class VolumeDynamicConnectivityFile : public VolumeFile {
+    class MetricDynamicConnectivityFile : public MetricFile {
         
     public:
-        VolumeDynamicConnectivityFile(const VolumeFile* parentVolumeFile);
+        MetricDynamicConnectivityFile(MetricFile* parentMetricFile);
         
-        virtual ~VolumeDynamicConnectivityFile();
+        virtual ~MetricDynamicConnectivityFile();
         
-        VolumeDynamicConnectivityFile(const VolumeDynamicConnectivityFile&) = delete;
+        MetricDynamicConnectivityFile(const MetricDynamicConnectivityFile&) = delete;
 
-        VolumeDynamicConnectivityFile& operator=(const VolumeDynamicConnectivityFile&) = delete;
+        MetricDynamicConnectivityFile& operator=(const MetricDynamicConnectivityFile&) = delete;
         
         void initializeFile();
         
@@ -53,12 +54,12 @@ namespace caret {
         virtual void readFile(const AString& filename) override;
         
         virtual void writeFile(const AString& filename) override;
-
+        
         virtual bool supportsWriting() const override;
         
-        VolumeFile* getParentVolumeFile();
+        MetricFile* getParentMetricFile();
         
-        const VolumeFile* getParentVolumeFile() const;
+        const MetricFile* getParentMetricFile() const;
         
         bool isDataValid() const;
         
@@ -76,79 +77,44 @@ namespace caret {
         void setDataLoadingEnabled(const bool enabled);
         
         const ConnectivityDataLoaded* getConnectivityDataLoaded() const;
+
+        bool loadDataForSurfaceNode(const int32_t surfaceNumberOfNodes,
+                                    const StructureEnum::Enum structure,
+                                    const int32_t nodeIndex);
         
-        bool matchesDimensions(const int64_t dimI,
-                               const int64_t dimJ,
-                               const int64_t dimK) const;
-        
-        VolumeFile* newVolumeFileFromLoadedData(const AString& directoryName,
+        bool loadAverageDataForSurfaceNodes(const int32_t surfaceNumberOfNodes,
+                                            const StructureEnum::Enum structure,
+                                            const std::vector<int32_t>& nodeIndices);
+
+        MetricFile* newMetricFileFromLoadedData(const AString& directoryName,
                                                 AString& errorMessageOut);
         
         // ADD_NEW_METHODS_HERE
 
-          
-          
-          
-          
-          
-    protected: 
+    protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
-                                             SceneClass* sceneClass) override;
-
+                                         SceneClass* sceneClass) override;
+        
         virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
-                                                  const SceneClass* sceneClass) override;
+                                              const SceneClass* sceneClass) override;
 
     private:
         void clearPrivateData();
         
-        void clearVoxels();
+        void clearVertexValues();
         
-        void getTimePointsForVoxel(const int64_t i,
-                                   const int64_t j,
-                                   const int64_t k,
-                                   std::vector<float>& dataOut) const;
-
-        inline int64_t getVoxelOffset(const int64_t i,
-                                      const int64_t j,
-                                      const int64_t k,
-                                      const int64_t timePointIndex) const {
-            const int64_t offset = (i
-                                    + (j * m_dimI)
-                                    + (k * m_sliceStride)
-                                    + (timePointIndex * m_timePointIndexStride));
-            return offset;
-        }
+        bool getConnectivityForVertexIndex(const int32_t vertexIndex,
+                                           std::vector<float>& vertexDataOut);
         
-        bool loadConnectivityForVoxelIndex(const int64_t ijk[3]);
-        
-        bool getConnectivityForVoxelIndex(const int64_t ijk[3],
-                                          std::vector<float>& voxelsOut) ;
-        
-        const VolumeFile* m_parentVolumeFile;
+        const MetricFile* m_parentMetricFile;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
         
         std::unique_ptr<ConnectivityCorrelation> m_connectivityCorrelation;
-
-        bool m_connectivityCorrelationFailedFlag = false;
-        
-        float* m_voxelData = NULL;
-        
-        int64_t m_numberOfVoxels = 0;
-        
-        int64_t m_sliceStride = 0;
-        
-        int64_t m_timePointIndexStride = 0;
-        
-        int64_t m_dimI = 0;
-        
-        int64_t m_dimJ = 0;
-        
-        int64_t m_dimK = 0;
-        
-        int64_t m_dimTime = 0;
         
         AString m_dataLoadedName;
+        
+        int32_t m_numberOfVertices = 0;
         
         bool m_validDataFlag = false;
         
@@ -158,13 +124,15 @@ namespace caret {
         
         std::unique_ptr<ConnectivityDataLoaded> m_connectivityDataLoaded;
         
+        bool m_connectivityCorrelationFailedFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __VOLUME_DYNN_CONN_FILE_DECLARE__
+#ifdef __METRIC_DYNAMIC_CONNECTIVITY_FILE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __VOLUME_DYNN_CONN_FILE_DECLARE__
+#endif // __METRIC_DYNAMIC_CONNECTIVITY_FILE_DECLARE__
 
 } // namespace
-#endif  //__VOLUME_DYNN_CONN_FILE_H__
+#endif  //__METRIC_DYNAMIC_CONNECTIVITY_FILE_H__

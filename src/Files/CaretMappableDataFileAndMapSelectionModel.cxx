@@ -166,6 +166,9 @@ CaretMappableDataFileAndMapSelectionModel::validateDataFileTypes()
             case DataFileTypeEnum::METRIC:
                 isMappableFile = true;
                 break;
+            case DataFileTypeEnum::METRIC_DYNAMIC:
+                isMappableFile = true;;
+                break;
             case DataFileTypeEnum::PALETTE:
                 break;
             case DataFileTypeEnum::RGBA:

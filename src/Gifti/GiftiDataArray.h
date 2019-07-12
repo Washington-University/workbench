@@ -304,6 +304,8 @@ namespace caret {
                                         const float mostNegativeValueInclusive,
                                         const bool includeZeroValues) const;
         
+        void invalidateHistograms();
+        
     protected:
         
         //validate the array
@@ -412,6 +414,7 @@ namespace caret {
         
         mutable CaretPointer<Histogram> m_histogram;
         mutable int32_t m_histogramNumberOfBuckets = 100;
+        mutable bool m_histogramNeedsUpdateFlag = false;
         
         mutable CaretPointer<Histogram> m_histogramLimitedValues;
         mutable int32_t m_histogramLimitedValuesNumberOfBuckets = 100;
@@ -420,6 +423,7 @@ namespace caret {
         mutable float m_histogramLimitedValuesLeastNegativeValueInclusive;
         mutable float m_histogramLimitedValuesMostNegativeValueInclusive;
         mutable bool m_histogramLimitedValuesIncludeZeroValues;
+        mutable bool m_histogramLimitedValuesNeedsUpdateFlag = false;
         
         /// statistics about data (DO NOT COPY)
         mutable DescriptiveStatistics* descriptiveStatisticsLimitedValues;

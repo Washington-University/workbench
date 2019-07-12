@@ -77,6 +77,8 @@ public:
         LABEL,
         /** Metric */
         METRIC,
+        /** Metric Dynamic Connectivity */
+        METRIC_DYNAMIC,
         /** Palette */
         PALETTE,
         /** RGBA */
@@ -91,7 +93,7 @@ public:
         UNKNOWN,
         /** Volume */
         VOLUME,
-        /** Volume */
+        /** Volume Dynamic Connectivity*/
         VOLUME_DYNAMIC
     };
     

@@ -1679,6 +1679,8 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
         case DataFileTypeEnum::METRIC:
             checkShapeFile = true;
             break;
+        case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
         case DataFileTypeEnum::PALETTE:
             invalid = true;
             break;

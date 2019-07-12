@@ -368,6 +368,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
         case DataFileTypeEnum::METRIC:
             caretDataFile = new MetricFile();
             break;
+        case DataFileTypeEnum::METRIC_DYNAMIC:
+            CaretAssertMessage(0, "Never create a metric dynamic file");
+            break;
         case DataFileTypeEnum::PALETTE:
             caretDataFile = new PaletteFile();
             break;

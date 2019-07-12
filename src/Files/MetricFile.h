@@ -22,6 +22,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include <vector>
 #include <stdint.h>
 
@@ -32,6 +34,7 @@
 namespace caret {
 
     class GiftiDataArray;
+    class MetricDynamicConnectivityFile;
     
     /**
      * \brief A Metric data file.
@@ -99,7 +102,13 @@ namespace caret {
         //override writeFile in order to check filename against type of file
         virtual void writeFile(const AString& filename);
 
+        MetricDynamicConnectivityFile* getMetricDynamicConnectivityFile();
+        
+        const MetricDynamicConnectivityFile* getMetricDynamicConnectivityFile() const;
+        
     protected:
+        MetricFile(const DataFileTypeEnum::Enum dataFileType);
+        
         /**
          * Validate the contents of the file after it
          * has been read such as correct number of 
@@ -121,7 +130,12 @@ namespace caret {
         /** Points to actual data in each Gifti Data Array */
         std::vector<float*> columnDataPointers;
 
+        std::unique_ptr<MetricDynamicConnectivityFile> m_lazyInitializedDynamicConnectivityFile;
+        
         bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+
+        static const AString s_paletteColorMappingNameInMetaData;
+        
     };
 
 } // namespace

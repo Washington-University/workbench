@@ -1821,6 +1821,9 @@ SpecFile::isDataFileTypeAllowedInSpecFile(const DataFileTypeEnum::Enum dataFileT
             break;
         case DataFileTypeEnum::METRIC:
             break;
+        case DataFileTypeEnum::METRIC_DYNAMIC:
+            allowedFlag = false;
+            break;
         case DataFileTypeEnum::PALETTE:
             break;
         case DataFileTypeEnum::RGBA:

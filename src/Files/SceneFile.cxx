@@ -1344,6 +1344,9 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                                         break;
                                     case DataFileTypeEnum::METRIC:
                                         break;
+                                    case DataFileTypeEnum::METRIC_DYNAMIC:
+                                        validDiskFileFlag = false;
+                                        break;
                                     case DataFileTypeEnum::PALETTE:
                                         break;
                                     case DataFileTypeEnum::RGBA:

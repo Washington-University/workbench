@@ -37,109 +37,162 @@ using namespace caret;
  * \class caret::ConnectivityCorrelation
  * \brief Computes connectivity correlations
  * \ingroup Common
+ *
+ * Correlation from https://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient
  */
 
 /**
- * Constructor for data in one 'chunk' of memory
+ * Create new instance for data that is in one contiguous "chunk" of memory
  *
  * @param data
- *    Points to first data element in first group
- * @param groupCount
- *    Number of groups
- * @param groupStride
- *    Element offset between two consecutive groups (from first element in first
- *    group to first element in second group, and so on)
- * @param groupDataCount
- *    Number of data elements in a group
- * @param groupDataStride
- *    Element offset between to consecutive data values within a group
+ *    Points to first timepoint for first brainordinate
+ * @param numberOfBrainordinates
+ *    Number of brainordinates
+ * @param nextBrainordinateStride
+ *    Element offset between two consecutive brainordinates (eg: offset from first value for FIRST brainordinate
+ *    to first value for SECOND brainordinate, and so on)
+ * @param numberOfTimePoints
+ *    Number of timepoints for each brainordinate
+ * @param nextTimePointStride
+ *    Offset between two consecutive timepoints for a brainordinate
  *    Use a value of "1" for contiguous data
- *
- * Example: Cifti file with data in a matrix.  Each row contains
- * data (timepoints) for one group
- *     data            = pointer to data
- *     groupCount      = number of rows
- *     groupStride     = number of columns
- *     groupDataCount  = number of columns
- *     groupDataStride = 1
+ * @param errorMessageOut
+ *    Contains error information if NULL is returned
+ * @return
+ *    Pointer to new instance or NULL if there is an error.
  *
  * Example: Nifti file with time-series data.  Each 'brick' contains one timepoint
- *          for all groups (voxels).   4D matrix
- *     data            = pointer to data
- *     groupCount      = dim[0] * dim[1] * dim[2] (sizeof a 'brick')
- *     groupStride     = 1
- *     groupDataCount  = number of timepoints
- *     groupDataStride = dim[0] * dim[1] * dim[3] (sizeof a 'brick')
+ *          for all brainordinates.   Brainordinates are "interleaved"
+ *     data                    = pointer to data
+ *     numberOfBrainordinates  = dim[0] * dim[1] * dim[2] (sizeof a 'brick')
+ *     nextBrainordinateStride = 1
+ *     numberOfTimePoints      = number of timepoints
+ *     nextTimePointStride     = dim[0] * dim[1] * dim[3] (sizeof a 'brick')
  */
-ConnectivityCorrelation::ConnectivityCorrelation(const float* data,
-                                                 const int64_t groupCount,
-                                                 const int64_t groupStride,
-                                                 const int64_t groupDataCount,
-                                                 const int64_t groupDataStride)
-: m_dataCount(groupDataCount)
+ConnectivityCorrelation*
+ConnectivityCorrelation::newInstance(const float* data,
+                                     const int64_t numberOfBrainordinates,
+                                     const int64_t nextBrainordinateStride,
+                                     const int64_t numberOfTimePoints,
+                                     const int64_t nextTimePointStride,
+                                     AString& errorMessageOut)
 {
-    CaretAssert(data);
-    CaretAssert(groupStride >= 1);
-    CaretAssert(groupDataStride >= 1);
+    errorMessageOut.clear();
     
-    for (int64_t i = 0; i < groupCount; i++) {
-        const float* dataPointer = data + (i * groupStride);
-        addDataGroup(dataPointer,
-                     groupDataCount,
-                     groupDataStride);
+    std::vector<const float*> brainordinateDataPointers;
+    for (int64_t i = 0; i < numberOfBrainordinates; i++) {
+        const int64_t offset = i * nextBrainordinateStride;
+        brainordinateDataPointers.push_back(data
+                                            + offset);
     }
-    CaretAssert(static_cast<int64_t>(m_groups.size()) == groupCount);
     
-    m_contiguousDataFlag = (groupDataStride == 1);
+    CaretAssert(numberOfBrainordinates == static_cast<int64_t>(brainordinateDataPointers.size()));
+    
+    /*
+     * While either of the other two factory methods can be called, the new instance
+     * for brainordinates is faster when each brainordinates timepoint's are in a
+     * contigous section of memory (nextTimePointStride == 1).
+     */
+    ConnectivityCorrelation* instanceOut = newInstanceBrainordinates(brainordinateDataPointers,
+                                                                     numberOfTimePoints,
+                                                                     nextTimePointStride,
+                                                                     errorMessageOut);
+    
+    return instanceOut;
 }
 
 /**
- * Constructor for data in separate 'chunk' for each data group
+ * Create a new instance where each chunk of memory contains all timepoints for one brainordinate.
  *
- * @param dataGroups
- *    Each element is pointer to first element in each group
- * @param groupCount
- *    Number of groups (number of elements in 'dataGroups')
- * @param groupDataCount
- *    Number of data elements in a group
- * @param groupDataStrides
- *    Each element is offset between consecutive data values within each group
- *    Must contain 'groupCount' elements.
- *    OR may also be NULL which indicates elements are contigous in all groups
- *
- * Example: GIFTI file that stores each 'map' in a separate chunk of memory
- *     dataGroups       = pointers to data in each GIFTI data array
- *     groupCount       = number of rows
- *     groupStride      = number of columns
- *     groupDataCount   = number of columns
- *     groupDataStrides = NULL (data elements are consecutive)
+ * @param brainordinateDataPointers
+ *    Each element points to all timepoints for one brainordinate
+ * @param numberOfTimePoints
+ *    Number of timepoints for each brainordinate
+ * @param nextTimePointStride
+ *    Offset between two consecutive timepoints for a brainordinate
+ *    Use a value of "1" for contiguous data
+ * @param errorMessageOut
+ *    Contains error information if NULL is returned
+ * @return
+ *    Pointer to new instance or NULL if there is an error.
  */
-ConnectivityCorrelation::ConnectivityCorrelation(const float* dataGroups[],
-                                                 const int64_t groupCount,
-                                                 const int64_t groupDataCount,
-                                                 const int64_t groupDataStrides[])
-: m_dataCount(groupDataCount)
+ConnectivityCorrelation*
+ConnectivityCorrelation::newInstanceBrainordinates(const std::vector<const float*>& brainordinateDataPointers,
+                                                   const int64_t numberOfTimePoints,
+                                                   const int64_t nextTimePointStride,
+                                                   AString& errorMessageOut)
 {
-    CaretAssert(dataGroups);
-    m_contiguousDataFlag = true;
+    errorMessageOut.clear();
     
-    const bool haveStride(groupDataStrides != NULL);
-    for (int64_t i = 0; i < groupCount; i++) {
-        const int64_t dataStride(haveStride
-                                 ? groupDataStrides[i]
-                                 : 1);
-        CaretAssert(dataStride >= 1);
-        CaretAssert(dataGroups[i]);
-        
-        addDataGroup(dataGroups[i],
-                     groupDataCount,
-                     dataStride);
-        
-        if (dataStride != 1) {
-            m_contiguousDataFlag = false;
-        }
+    ConnectivityCorrelation* instanceOut = ((nextTimePointStride == 1)
+                                            ? new ConnectivityCorrelation(DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA)
+                                            : new ConnectivityCorrelation(DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA));
+    const bool validFlag = instanceOut->initializeWithBrainordinates(brainordinateDataPointers,
+                                                                     numberOfTimePoints,
+                                                                     nextTimePointStride,
+                                                                     errorMessageOut);
+    if ( ! validFlag) {
+        delete instanceOut;
+        instanceOut = NULL;
     }
-    CaretAssert(static_cast<int64_t>(m_groups.size()) == groupCount);
+    
+    return instanceOut;
+}
+
+/**
+ * Create a new instance where each chunk of memory contains one timepoint for all brainordinates
+ *
+ * @param timePointDataPointers
+ *    Each element points to all brainordinates for one timepoint
+ * @param numberOfBrainordinates
+ *    Number of brainordinates
+ * @param nextBrainordinateStride
+ *    Element offset between two consecutive brainordinates (eg: offset from first value for FIRST brainordinate
+ *    to first value for SECOND brainordinate, and so on)
+ * @param errorMessageOut
+ *    Contains error information if NULL is returned
+ * @return
+ *    Pointer to new instance or NULL if there is an error.
+ *
+ * Example: GIFTI functional file (Metric) with time-series data.  Each map contains one timepoint
+ *          for all brainordinates.
+ *     timePointDataPointers   = pointer to each map's data
+ *     numberOfBrainordinates  = Number of vertices in the GIFTI file
+ *     nextBrainordinateStride = 1
+ *     numberOfTimePoints      = number of maps in file (each map is one time point)
+ */
+ConnectivityCorrelation*
+ConnectivityCorrelation::newInstanceTimePoints(const std::vector<const float*>& timePointDataPointers,
+                                               const int64_t numberOfBrainordinates,
+                                               const int64_t nextBrainordinateStride,
+                                               AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    ConnectivityCorrelation* instanceOut = new ConnectivityCorrelation(DataTypeEnum::TIMEPOINTS);
+    const bool validFlag = instanceOut->initializeWithTimePoints(timePointDataPointers,
+                                                                 numberOfBrainordinates,
+                                                                 nextBrainordinateStride,
+                                                                 errorMessageOut);
+    if ( ! validFlag) {
+        delete instanceOut;
+        instanceOut = NULL;
+    }
+    
+    return instanceOut;
+}
+
+/**
+ * Constructor
+ *
+ * @param dataType
+ *     Type of data (brainordinate or timepoint)
+ *
+ */
+ConnectivityCorrelation::ConnectivityCorrelation(const DataTypeEnum dataType)
+: m_dataType(dataType)
+{
+    
 }
 
 /**
@@ -150,120 +203,235 @@ ConnectivityCorrelation::~ConnectivityCorrelation()
 }
 
 /**
- * Compute data's mean and sum-squared
+ * Initialize a new instance where a chunk of memory contains all timepoints for one brainordinate.
  *
- * @param data
- *     Data on which mean and sum-squared are calculated
- * @param dataCount
- *     Number of elements in data.
- * @param dataStride
- *     Element offset between consecutive data values
+ * @param brainordinateDataPointers
+ *    Each element points to all timepoints for one brainordinate
+ * @param numberOfTimePoints
+ *    Number of timepoints for each brainordinate
+ * @param nextTimePointStride
+ *    Offset between two consecutive timepoints for a brainordinate
+ *    Use a value of "1" for contiguous data
+ * @param errorMessageOut
+ *    Contains error information if NULL is returned
+ * @return
+ *    Pointer to new instance or NULL if there is an error.
  */
-void
-ConnectivityCorrelation::addDataGroup(const float* data,
-                                      const int64_t dataCount,
-                                      const int64_t dataStride)
+bool
+ConnectivityCorrelation::initializeWithBrainordinates(const std::vector<const float*>& brainordinateDataPointers,
+                                                      const int64_t numberOfTimePoints,
+                                                      const int64_t nextTimePointStride,
+                                                      AString& errorMessageOut)
 {
-    CaretAssert(data);
+    switch (m_dataType) {
+        case DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA:
+            break;
+        case DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA:
+            break;
+        case DataTypeEnum::INVALID:
+            CaretAssert(0);
+            break;
+        case DataTypeEnum::TIMEPOINTS:
+            CaretAssert(0);
+            break;
+    }
     
-    float mean(0.0f);
-    float sqrtSumSquared(0.0f);
-    computeDataMeanAndSumSquared(data,
-                                 dataCount,
-                                 dataStride,
-                                 mean,
-                                 sqrtSumSquared);
+    m_numberOfTimePoints = numberOfTimePoints;
+
+    CaretAssert(brainordinateDataPointers.size() >= 2);
+    CaretAssert(m_numberOfTimePoints >= 2);
+    CaretAssert(nextTimePointStride >= 1);
     
-    std::unique_ptr<GroupData> gd(new GroupData(data,
-                                                dataStride,
-                                                mean,
-                                                sqrtSumSquared));
-    m_groups.push_back(std::move(gd));
+    m_numberOfBrainordinates =  static_cast<int64_t>(brainordinateDataPointers.size());
+    if (m_numberOfBrainordinates < 2) {
+        errorMessageOut.appendWithNewLine("There must be at least two brainordinates");
+    }
+    if (numberOfTimePoints < 2) {
+        errorMessageOut.appendWithNewLine("There must be at least two time points");
+    }
+    if (nextTimePointStride < 1) {
+        errorMessageOut.appendWithNewLine("TimePoint stride must be at least one");
+    }
+    if ( ! errorMessageOut.isEmpty()) {
+        return false;
+    }
+    
+    for (int64_t i = 0; i < m_numberOfBrainordinates; i++) {
+        CaretAssertVectorIndex(brainordinateDataPointers, i);
+        const float* dataPointer = brainordinateDataPointers[i];
+        CaretAssert(dataPointer);
+        std::unique_ptr<BrainordinateData> gd(new BrainordinateData(dataPointer,
+                                                                    nextTimePointStride));
+        m_brainordinateData.push_back(std::move(gd));
+    }
+    CaretAssert(static_cast<int64_t>(m_brainordinateData.size()) == m_numberOfBrainordinates);
+    
+    computeBrainordinateMeanAndSumSquared();
+    
+    return true;
 }
 
 /**
- * Get correlation from the given group to all other groups
+ * Initialize a new instance where a chunk of memory contains all timepoints for one brainordinate.
  *
- * @param groupIndex
- *     Index of group to correlate to all other groups
+ * @param timePointDataPointers
+ *    Each element points to all brainordinates for one timepoint
+ * @param numberOfBrainordinates
+ *    Number of brainordinates
+ * @param nextBrainordinateStride
+ *    Element offset between two consecutive brainordinates (eg: offset from first value for FIRST brainordinate
+ *    to first value for SECOND brainordinate, and so on)
+ * @param errorMessageOut
+ *    Contains error information if NULL is returned
+ * @return
+ *    Pointer to new instance or NULL if there is an error.
+ */
+bool
+ConnectivityCorrelation::initializeWithTimePoints(const std::vector<const float*>& timePointDataPointers,
+                                                  const int64_t numberOfBrainordinates,
+                                                  const int64_t nextBrainordinateStride,
+                                                  AString& errorMessageOut)
+{
+    CaretAssert(m_dataType == DataTypeEnum::TIMEPOINTS);
+    m_numberOfBrainordinates = numberOfBrainordinates;
+    m_numberOfTimePoints = static_cast<int64_t>(timePointDataPointers.size());
+    CaretAssert(m_numberOfTimePoints >= 2);
+    CaretAssert(nextBrainordinateStride >= 1);
+    
+    if (m_numberOfBrainordinates < 2) {
+        errorMessageOut.appendWithNewLine("There must be at least two brainordinates");
+    }
+    if (m_numberOfTimePoints < 2) {
+        errorMessageOut.appendWithNewLine("There must be at least two time points");
+    }
+    if (nextBrainordinateStride < 1) {
+        errorMessageOut.appendWithNewLine("Brainordinate stride must be at least one");
+    }
+    if ( ! errorMessageOut.isEmpty()) {
+        return false;
+    }
+    
+    for (int64_t i = 0; i < m_numberOfTimePoints; i++) {
+        CaretAssertVectorIndex(timePointDataPointers, i);
+        const float* dataPointer = timePointDataPointers[i];
+        CaretAssert(dataPointer);
+        
+        std::unique_ptr<TimePointData> td(new TimePointData(dataPointer,
+                                                            nextBrainordinateStride));
+        m_timePointData.push_back(std::move(td));
+    }
+    
+    computeBrainordinateMeanAndSumSquared();
+
+    return true;
+}
+
+/**
+ * Get correlation from the given brainordinate to all other brainordinates
+ *
+ * @param brainordinateIndex
+ *     Index of brainordinate to correlate to all other brainordinates
  * @param dataOut
  *     Output with correlation values. 
  */
 void
-ConnectivityCorrelation::getCorrelationForGroup(const int64_t groupIndex,
+ConnectivityCorrelation::getCorrelationForBrainordinate(const int64_t brainordinateIndex,
                                                 std::vector<float>& dataOut)
 {
-    CaretAssertVectorIndex(m_groups, groupIndex);
-    
-    if (m_dataCount > 0) {
-        const int64_t numGroups = static_cast<int64_t>(m_groups.size());
-        dataOut.resize(numGroups);
+    CaretAssert(m_numberOfBrainordinates > 1);
+    CaretAssert(m_numberOfTimePoints > 1);
+    if (m_numberOfTimePoints > 0) {
+        if (m_numberOfBrainordinates > 0) {
+            dataOut.resize(m_numberOfBrainordinates);
 #pragma omp CARET_PARFOR schedule(dynamic)
-        for (int64_t iGroup = 0; iGroup < numGroups; iGroup++) {
-            CaretAssertVectorIndex(dataOut, iGroup);
-            if (m_contiguousDataFlag) {
-                dataOut[iGroup] = correlationContiguousData(groupIndex,
-                                                            iGroup);
-            }
-            else {
-                dataOut[iGroup] = correlationNonContiguousData(groupIndex,
-                                                               iGroup);
+            for (int64_t i = 0; i < m_numberOfBrainordinates; i++) {
+                CaretAssertVectorIndex(dataOut, i);
+                switch (m_dataType) {
+                    case DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA:
+                        dataOut[i] = correlationBrainordinateContiguousData(brainordinateIndex,
+                                                                            i);
+                        break;
+                    case DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA:
+                        dataOut[i] = correlationBrainordinateNonContiguousData(brainordinateIndex,
+                                                                               i);
+                        break;
+                    case DataTypeEnum::INVALID:
+                        CaretAssert(0);
+                        break;
+                    case DataTypeEnum::TIMEPOINTS:
+                        dataOut[i] = correlationTimePointData(brainordinateIndex,
+                                                              i);
+                        break;
+                }
             }
         }
     }
 }
 
 /**
- * Get the correlation coefficient for the two given groups
+ * Get the correlation coefficient for the two given brainordinates
  * that contain CONTIGOUS data
  *
- * @param fromGroupIndex
- *     Index of a group
- * @param toGroupIndex
- *     Index of a second group.
+ * @param fromBrainordinateIndex
+ *     Index of a brainordinate
+ * @param toBrainordinateIndex
+ *     Index of a second brainordinate.
  */
 float
-ConnectivityCorrelation::correlationContiguousData(const int64_t fromGroupIndex,
-                                                   const int64_t toGroupIndex) const
+ConnectivityCorrelation::correlationBrainordinateContiguousData(const int64_t fromBrainordinateIndex,
+                                                                const int64_t toBrainordinateIndex) const
 {
-    CaretAssertVectorIndex(m_groups, fromGroupIndex);
-    CaretAssertVectorIndex(m_groups, toGroupIndex);
+    CaretAssert(m_dataType == DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA);
     
-    const GroupData* fromGroup = m_groups[fromGroupIndex].get();
-    const GroupData* toGroup   = m_groups[toGroupIndex].get();
+    CaretAssertVectorIndex(m_brainordinateData, fromBrainordinateIndex);
+    CaretAssertVectorIndex(m_brainordinateData, toBrainordinateIndex);
+    const BrainordinateData* fromData = m_brainordinateData[fromBrainordinateIndex].get();
+    const BrainordinateData* toGroup   = m_brainordinateData[toBrainordinateIndex].get();
     
-    double xySum = dsdot(fromGroup->m_data,
+    CaretAssertVectorIndex(m_meanSSData, fromBrainordinateIndex);
+    CaretAssertVectorIndex(m_meanSSData, toBrainordinateIndex);
+    const BrainordinateMeanSS* fromMeanSS = m_meanSSData[fromBrainordinateIndex].get();
+    const BrainordinateMeanSS* toMeanSS   = m_meanSSData[toBrainordinateIndex].get();
+    
+    double xySum = dsdot(fromData->m_data,
                          toGroup->m_data,
-                         m_dataCount);
+                         m_numberOfTimePoints);
     
-    const double ssxy = xySum - (m_dataCount * fromGroup->m_mean * toGroup->m_mean);
+    const double ssxy = xySum - (m_numberOfTimePoints * fromMeanSS->m_mean * toMeanSS->m_mean);
     
     float correlationCoefficient = 0.0;
-    if ((fromGroup->m_sqrt_ssxx > 0.0)
-        && (toGroup->m_sqrt_ssxx > 0.0)) {
-        correlationCoefficient = (ssxy / (fromGroup->m_sqrt_ssxx * toGroup->m_sqrt_ssxx));
+    if ((fromMeanSS->m_sqrt_ssxx > 0.0)
+        && (toMeanSS->m_sqrt_ssxx > 0.0)) {
+        correlationCoefficient = (ssxy / (fromMeanSS->m_sqrt_ssxx * toMeanSS->m_sqrt_ssxx));
     }
     return correlationCoefficient;
 }
 
 /**
- * Get the correlation coefficient for the two given groups
+ * Get the correlation coefficient for the two given brainordinates
  * that contain NON-CONTIGOUS data
  *
- * @param fromGroupIndex
- *     Index of a group
- * @param toGroupIndex
- *     Index of a second group.
+ * @param fromBrainordinateIndex
+ *     Index of a brainordinate
+ * @param toBrainordinateIndex
+ *     Index of a second brainordinate.
  */
 float
-ConnectivityCorrelation::correlationNonContiguousData(const int64_t fromGroupIndex,
-                                                      const int64_t toGroupIndex) const
+ConnectivityCorrelation::correlationBrainordinateNonContiguousData(const int64_t fromBrainordinateIndex,
+                                                                   const int64_t toBrainordinateIndex) const
 {
-    CaretAssertVectorIndex(m_groups, fromGroupIndex);
-    CaretAssertVectorIndex(m_groups, toGroupIndex);
+    CaretAssert(m_dataType == DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA);
     
-    const GroupData* fromGroup = m_groups[fromGroupIndex].get();
-    const GroupData* toGroup   = m_groups[toGroupIndex].get();
+    CaretAssertVectorIndex(m_brainordinateData, fromBrainordinateIndex);
+    CaretAssertVectorIndex(m_brainordinateData, toBrainordinateIndex);
+    
+    const BrainordinateData* fromGroup = m_brainordinateData[fromBrainordinateIndex].get();
+    const BrainordinateData* toGroup   = m_brainordinateData[toBrainordinateIndex].get();
+    
+    CaretAssertVectorIndex(m_meanSSData, fromBrainordinateIndex);
+    CaretAssertVectorIndex(m_meanSSData, toBrainordinateIndex);
+    const BrainordinateMeanSS* fromMeanSS = m_meanSSData[fromBrainordinateIndex].get();
+    const BrainordinateMeanSS* toMeanSS   = m_meanSSData[toBrainordinateIndex].get();
     
     const float* fromData    = fromGroup->m_data;
     const int64_t fromStride = fromGroup->m_dataStride;
@@ -273,66 +441,126 @@ ConnectivityCorrelation::correlationNonContiguousData(const int64_t fromGroupInd
     int64_t fromOffset(0);
     int64_t toOffset(0);
     double xySum(0.0);
-    for (int32_t i = 0; i < m_dataCount; i++) {
+    for (int32_t i = 0; i < m_numberOfTimePoints; i++) {
         xySum += (fromData[fromOffset] * toData[toOffset]);
         fromOffset += fromStride;
         toOffset   += toStride;
     }
     
-    const double ssxy = xySum - (m_dataCount * fromGroup->m_mean * toGroup->m_mean);
+    const double ssxy = xySum - (m_numberOfTimePoints * fromMeanSS->m_mean * toMeanSS->m_mean);
     
     float correlationCoefficient = 0.0;
-    if ((fromGroup->m_sqrt_ssxx > 0.0)
-        && (toGroup->m_sqrt_ssxx > 0.0)) {
-        correlationCoefficient = (ssxy / (fromGroup->m_sqrt_ssxx * toGroup->m_sqrt_ssxx));
+    if ((fromMeanSS->m_sqrt_ssxx > 0.0)
+        && (toMeanSS->m_sqrt_ssxx > 0.0)) {
+        correlationCoefficient = (ssxy / (fromMeanSS->m_sqrt_ssxx * toMeanSS->m_sqrt_ssxx));
     }
     return correlationCoefficient;
 }
 
 /**
- * Compute data's mean and sum-squared
+ * Get the correlation coefficient for the two given brainordinates
+ * that contain NON-CONTIGOUS data
  *
- * @param data
- *     Data on which mean and sum-squared are calculated
- * @param dataCount
- *     Number of elements in data.
- * @param dataStride
- *     Element offset between consecutive data values
- * @param meanOut
- *     Output with mean of data.
- * @param sqrtSquaredOut
- *     Output with square root of (sum-squared).
+ * @param fromBrainordinateIndex
+ *     Index of a brainordinate
+ * @param toBrainordinateIndex
+ *     Index of a second brainordinate.
+ */
+float
+ConnectivityCorrelation::correlationTimePointData(const int64_t fromBrainordinateIndex,
+                                                  const int64_t toBrainordinateIndex) const
+{
+    CaretAssert(m_dataType == DataTypeEnum::TIMEPOINTS);
+
+    CaretAssert((fromBrainordinateIndex >= 0) && (fromBrainordinateIndex < m_numberOfBrainordinates));
+    CaretAssert((toBrainordinateIndex >= 0) && (toBrainordinateIndex < m_numberOfBrainordinates));
+    
+    CaretAssertVectorIndex(m_meanSSData, fromBrainordinateIndex);
+    CaretAssertVectorIndex(m_meanSSData, toBrainordinateIndex);
+    const BrainordinateMeanSS* fromMeanSS = m_meanSSData[fromBrainordinateIndex].get();
+    const BrainordinateMeanSS* toMeanSS   = m_meanSSData[toBrainordinateIndex].get();
+    
+    double xySum(0.0);
+    for (int32_t i = 0; i < m_numberOfTimePoints; i++) {
+        CaretAssertVectorIndex(m_timePointData, i);
+        const TimePointData* tpd = m_timePointData[i].get();
+        const int64_t fromOffset = (fromBrainordinateIndex * tpd->m_dataStride);
+        const int64_t toOffset   = (toBrainordinateIndex   * tpd->m_dataStride);
+        
+        xySum += (tpd->m_data[fromOffset] * tpd->m_data[toOffset]);
+    }
+    
+    const double ssxy = xySum - (m_numberOfTimePoints * fromMeanSS->m_mean * toMeanSS->m_mean);
+    
+    float correlationCoefficient = 0.0;
+    if ((fromMeanSS->m_sqrt_ssxx > 0.0)
+        && (toMeanSS->m_sqrt_ssxx > 0.0)) {
+        correlationCoefficient = (ssxy / (fromMeanSS->m_sqrt_ssxx * toMeanSS->m_sqrt_ssxx));
+    }
+    return correlationCoefficient;
+}
+
+/**
+ * Compute the mean and sum-squared for all brainordinates
  */
 void
-ConnectivityCorrelation::computeDataMeanAndSumSquared(const float* data,
-                                                      const int64_t dataCount,
-                                                      const int64_t dataStride,
-                                                      float& meanOut,
-                                                      float& sqrtSquaredOut) const
+ConnectivityCorrelation::computeBrainordinateMeanAndSumSquared()
 {
-    CaretAssert(data);
-    CaretAssert(dataStride >= 1);
+    const float numTimePointsFloat(m_numberOfTimePoints);
     
-    meanOut = 0.0;
-    sqrtSquaredOut = 0.0;
-    if (dataCount <= 0) {
-        return;
+    /*
+     * Set the size of the vector so that loop can run in parallel
+     */
+    m_meanSSData.resize(m_numberOfBrainordinates);
+    
+#pragma omp CARET_PARFOR schedule(dynamic)
+    for (int64_t i = 0; i < m_numberOfBrainordinates; i++) {
+        double sum(0.0);
+        double sumSquared(0.0);
+        
+        switch (m_dataType) {
+            case DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA:
+            case DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA:
+            {
+                CaretAssertVectorIndex(m_brainordinateData, i);
+                const float* data = m_brainordinateData[i]->m_data;
+                CaretAssert(data);
+                const int64_t stride = m_brainordinateData[i]->m_dataStride;
+                for (int64_t j = 0; j < m_numberOfTimePoints; j++) {
+                    const int64_t offset = (j * stride);
+                    const float d = data[offset];
+                    sum        += d;
+                    sumSquared += (d * d);
+                }
+            }
+                break;
+            case DataTypeEnum::INVALID:
+                CaretAssert(0);
+                break;
+            case DataTypeEnum::TIMEPOINTS:
+            {
+                for (int64_t j = 0; j < m_numberOfTimePoints; j++) {
+                    CaretAssertVectorIndex(m_timePointData, j);
+                    const int64_t offset = (i * m_timePointData[j]->m_dataStride);
+                    const float d = m_timePointData[j]->m_data[offset];
+                    sum        += d;
+                    sumSquared += (d * d);
+                }
+            }
+                break;
+        }
+
+
+        const float mean = (sum / numTimePointsFloat);
+        const float ssxxSquared = (sumSquared - (numTimePointsFloat * mean * mean));
+        const float ssxx = std::sqrt(ssxxSquared);
+        
+        BrainordinateMeanSS* bmss = new BrainordinateMeanSS(mean,
+                                                            ssxx);
+        CaretAssertVectorIndex(m_meanSSData, i);
+        m_meanSSData[i].reset(bmss);
     }
     
-    double sum = 0.0;
-    double sumSquared = 0.0;
-    
-    int64_t offset = 0;
-    for (int64_t i = 0; i < dataCount; i++) {
-//        const float d = data[i];
-        const float d = data[offset];
-        sum        += d;
-        sumSquared += (d * d);
-        offset += dataStride;
-    }
-    
-    meanOut = (sum / dataCount);
-    const float ssxx = (sumSquared - (dataCount * meanOut * meanOut));
-    sqrtSquaredOut = std::sqrt(ssxx);
+    CaretAssert(static_cast<int64_t>(m_meanSSData.size()) == m_numberOfBrainordinates);
 }
 
