@@ -342,7 +342,7 @@ TileTabsConfigurationModifier::loadRowColumnsIntoTileTabsConfiguration(AString& 
             }
             
             for (int32_t jCol = 0; jCol < numColumns; jCol++) {
-                TileTabsRowColumnElement* rce = newConfiguration.getColumn(jCol);
+                TileTabsGridRowColumnElement* rce = newConfiguration.getColumn(jCol);
                 CaretAssertVectorIndex(m_rowColumns, jCol);
                 CaretAssert(m_rowColumns[jCol]->m_stretching);
                 *rce = *m_rowColumns[jCol]->m_stretching;
@@ -371,7 +371,7 @@ TileTabsConfigurationModifier::loadRowColumnsIntoTileTabsConfiguration(AString& 
             }
             
             for (int32_t iRow = 0; iRow < numRows; iRow++) {
-                TileTabsRowColumnElement* rce = newConfiguration.getRow(iRow);
+                TileTabsGridRowColumnElement* rce = newConfiguration.getRow(iRow);
                 CaretAssertVectorIndex(m_rowColumns, iRow);
                 CaretAssert(m_rowColumns[iRow]->m_stretching);
                 *rce = *m_rowColumns[iRow]->m_stretching;
@@ -491,7 +491,7 @@ TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const std::vec
                                                 browserTabContent));
         }
         
-        m_stretching = new TileTabsRowColumnElement(*tileTabsConfiguration->getRow(rowColumnIndex));
+        m_stretching = new TileTabsGridRowColumnElement(*tileTabsConfiguration->getRow(rowColumnIndex));
     }
     else {
         for (int32_t iRow = 0; iRow < numRows; iRow++) {
@@ -507,7 +507,7 @@ TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const std::vec
                                                 browserTabContent));
         }
         
-        m_stretching = new TileTabsRowColumnElement(*tileTabsConfiguration->getColumn(rowColumnIndex));
+        m_stretching = new TileTabsGridRowColumnElement(*tileTabsConfiguration->getColumn(rowColumnIndex));
     }
 }
 
@@ -522,7 +522,7 @@ TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const int32_t 
     for (int32_t i = 0; i < numberOfElements; i++) {
         m_tabElements.push_back(new Element(i, i, NULL));
     }
-    m_stretching = new TileTabsRowColumnElement();
+    m_stretching = new TileTabsGridRowColumnElement();
 }
 
 /**
@@ -536,8 +536,8 @@ TileTabsConfigurationModifier::RowColumnContent::newInstanceContainingSpacers(co
 {
     RowColumnContent* content = new RowColumnContent(numberOfElements);
     
-    content->m_stretching->setContentType(TileTabsRowColumnContentTypeEnum::SPACE);
-    content->m_stretching->setStretchType(TileTabsRowColumnStretchTypeEnum::WEIGHT);
+    content->m_stretching->setContentType(TileTabsGridRowColumnContentTypeEnum::SPACE);
+    content->m_stretching->setStretchType(TileTabsGridRowColumnStretchTypeEnum::WEIGHT);
     content->m_stretching->setWeightStretch(1.0);
     
     return content;
@@ -570,7 +570,7 @@ TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const RowColum
         m_tabElements.push_back(new Element(*te));
     }
     
-    m_stretching = new TileTabsRowColumnElement(*obj.m_stretching);
+    m_stretching = new TileTabsGridRowColumnElement(*obj.m_stretching);
 }
 
 /**

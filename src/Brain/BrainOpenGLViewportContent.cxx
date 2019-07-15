@@ -654,21 +654,21 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
 
         for (int32_t jCol = 0; jCol < numColumns; jCol++) {
             bool spacerTabFlag = false;
-            const TileTabsRowColumnContentTypeEnum::Enum rowContentType = tileTabsConfiguration->getRow(iRowFromTop)->getContentType();
+            const TileTabsGridRowColumnContentTypeEnum::Enum rowContentType = tileTabsConfiguration->getRow(iRowFromTop)->getContentType();
             switch (rowContentType) {
-                case TileTabsRowColumnContentTypeEnum::SPACE:
+                case TileTabsGridRowColumnContentTypeEnum::SPACE:
                     spacerTabFlag = true;
                     break;
-                case TileTabsRowColumnContentTypeEnum::TAB:
+                case TileTabsGridRowColumnContentTypeEnum::TAB:
                     break;
             }
             
-            const TileTabsRowColumnContentTypeEnum::Enum tabContentType = tileTabsConfiguration->getColumn(jCol)->getContentType();
+            const TileTabsGridRowColumnContentTypeEnum::Enum tabContentType = tileTabsConfiguration->getColumn(jCol)->getContentType();
             switch (tabContentType) {
-                case TileTabsRowColumnContentTypeEnum::SPACE:
+                case TileTabsGridRowColumnContentTypeEnum::SPACE:
                     spacerTabFlag = true;
                     break;
-                case TileTabsRowColumnContentTypeEnum::TAB:
+                case TileTabsGridRowColumnContentTypeEnum::TAB:
                     break;
             }
 

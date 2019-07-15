@@ -162,7 +162,7 @@ TileTabsConfiguration::copy(const TileTabsConfiguration& rhs)
  *
  * @param Information for element.
  */
-TileTabsRowColumnElement*
+TileTabsGridRowColumnElement*
 TileTabsConfiguration::getColumn(const int32_t columnIndex)
 {
     CaretAssertVectorIndex(m_columns, columnIndex);
@@ -174,7 +174,7 @@ TileTabsConfiguration::getColumn(const int32_t columnIndex)
  *
  * @param Information for element.
  */
-const TileTabsRowColumnElement*
+const TileTabsGridRowColumnElement*
 TileTabsConfiguration::getColumn(const int32_t columnIndex) const
 {
     CaretAssertVectorIndex(m_columns, columnIndex);
@@ -186,7 +186,7 @@ TileTabsConfiguration::getColumn(const int32_t columnIndex) const
  *
  * @param Information for element.
  */
-TileTabsRowColumnElement*
+TileTabsGridRowColumnElement*
 TileTabsConfiguration::getRow(const int32_t rowIndex)
 {
     CaretAssertVectorIndex(m_rows, rowIndex);
@@ -198,7 +198,7 @@ TileTabsConfiguration::getRow(const int32_t rowIndex)
  *
  * @param Information for element.
  */
-const TileTabsRowColumnElement*
+const TileTabsGridRowColumnElement*
 TileTabsConfiguration::getRow(const int32_t rowIndex) const
 {
     CaretAssertVectorIndex(m_rows, rowIndex);
@@ -228,7 +228,7 @@ bool
 TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
                                                                  const int32_t windowHeight,
                                                                  const int32_t numberOfModelsToDraw,
-                                                                 const TileTabsConfigurationModeEnum::Enum configurationMode,
+                                                                 const TileTabsGridModeEnum::Enum configurationMode,
                                                                  std::vector<int32_t>& rowHeightsOut,
                                                                  std::vector<int32_t>& columnWidthsOut)
 {
@@ -247,7 +247,7 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
     columnWidthsOut.clear();
     
     switch (configurationMode) {
-        case TileTabsConfigurationModeEnum::AUTOMATIC:
+        case TileTabsGridModeEnum::AUTOMATIC:
         {
             /*
              * Update number of rows/columns in the default configuration
@@ -265,7 +265,7 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
                 columnWidthsOut.push_back(windowWidth / numCols);
             }
         }            break;
-        case TileTabsConfigurationModeEnum::CUSTOM:
+        case TileTabsGridModeEnum::CUSTOM:
         {
             /*
              * Rows/columns from user configuration
@@ -279,12 +279,12 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
             float rowPercentTotal = 0.0;
             float rowStretchTotal = 0.0;
             for (int32_t i = 0; i < numRows; i++) {
-                const TileTabsRowColumnElement* e = getRow(i);
+                const TileTabsGridRowColumnElement* e = getRow(i);
                 switch (e->getStretchType()) {
-                    case TileTabsRowColumnStretchTypeEnum::PERCENT:
+                    case TileTabsGridRowColumnStretchTypeEnum::PERCENT:
                         rowPercentTotal += (e->getPercentStretch() / 100.0);
                         break;
-                    case TileTabsRowColumnStretchTypeEnum::WEIGHT:
+                    case TileTabsGridRowColumnStretchTypeEnum::WEIGHT:
                         rowStretchTotal += e->getWeightStretch();
                         break;
                 }
@@ -301,12 +301,12 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
             }
             for (int32_t i = 0; i < numRows; i++) {
                 int32_t h = 0;
-                const TileTabsRowColumnElement* e = getRow(i);
+                const TileTabsGridRowColumnElement* e = getRow(i);
                 switch (e->getStretchType()) {
-                    case TileTabsRowColumnStretchTypeEnum::PERCENT:
+                    case TileTabsGridRowColumnStretchTypeEnum::PERCENT:
                         h = (e->getPercentStretch() / 100.0) * windowHeight;
                         break;
-                    case TileTabsRowColumnStretchTypeEnum::WEIGHT:
+                    case TileTabsGridRowColumnStretchTypeEnum::WEIGHT:
                         if (rowStretchTotal > 0.0) {
                             h = static_cast<int32_t>((e->getWeightStretch() / rowStretchTotal)
                                                      * windowWeightHeight);
@@ -323,12 +323,12 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
             float columnPercentTotal = 0.0;
             float columnStretchTotal = 0.0;
             for (int32_t i = 0; i < numCols; i++) {
-                const TileTabsRowColumnElement* e = getColumn(i);
+                const TileTabsGridRowColumnElement* e = getColumn(i);
                 switch (e->getStretchType()) {
-                    case TileTabsRowColumnStretchTypeEnum::PERCENT:
+                    case TileTabsGridRowColumnStretchTypeEnum::PERCENT:
                         columnPercentTotal += (e->getPercentStretch() / 100.0);
                         break;
-                    case TileTabsRowColumnStretchTypeEnum::WEIGHT:
+                    case TileTabsGridRowColumnStretchTypeEnum::WEIGHT:
                         columnStretchTotal += e->getWeightStretch();
                         break;
                 }
@@ -346,12 +346,12 @@ TileTabsConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t w
             
             for (int32_t i = 0; i < numCols; i++) {
                 int32_t w = 0;
-                const TileTabsRowColumnElement* e = getColumn(i);
+                const TileTabsGridRowColumnElement* e = getColumn(i);
                 switch (e->getStretchType()) {
-                    case TileTabsRowColumnStretchTypeEnum::PERCENT:
+                    case TileTabsGridRowColumnStretchTypeEnum::PERCENT:
                         w = (e->getPercentStretch() / 100.0) * windowWidth;
                         break;
-                    case TileTabsRowColumnStretchTypeEnum::WEIGHT:
+                    case TileTabsGridRowColumnStretchTypeEnum::WEIGHT:
                         if (columnStretchTotal > 0.0) {
                             w = static_cast<int32_t>((e->getWeightStretch() / columnStretchTotal)
                                                      * windowWeightWidth);
@@ -669,14 +669,14 @@ TileTabsConfiguration::encodeInXMLWithStreamWriterVersionTwo() const
 void
 TileTabsConfiguration::encodeRowColumnElement(QXmlStreamWriter& writer,
                                               const AString tagName,
-                                              const std::vector<TileTabsRowColumnElement>& elements) const
+                                              const std::vector<TileTabsGridRowColumnElement>& elements) const
 {
     writer.writeStartElement(tagName);
     
     for (const auto e : elements) {
         writer.writeStartElement(s_v2_elementTagName);
-        writer.writeAttribute(s_v2_contentTypeAttributeName,    TileTabsRowColumnContentTypeEnum::toName(e.getContentType()));
-        writer.writeAttribute(s_v2_stretchTypeAttributeName,    TileTabsRowColumnStretchTypeEnum::toName(e.getStretchType()));
+        writer.writeAttribute(s_v2_contentTypeAttributeName,    TileTabsGridRowColumnContentTypeEnum::toName(e.getContentType()));
+        writer.writeAttribute(s_v2_stretchTypeAttributeName,    TileTabsGridRowColumnStretchTypeEnum::toName(e.getStretchType()));
         writer.writeAttribute(s_v2_percentStretchAttributeName, AString::number(e.getPercentStretch(), 'f', 2));
         writer.writeAttribute(s_v2_weightStretchAttributeName,  AString::number(e.getWeightStretch(), 'f', 2));
         writer.writeEndElement();
@@ -879,21 +879,21 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader&
         m_columns.clear();
         
         for (int32_t i = 0; i < numberOfRows; i++) {
-            TileTabsRowColumnElement element;
+            TileTabsGridRowColumnElement element;
             CaretAssertVectorIndex(rowStretchFactors, i);
             element.setWeightStretch(rowStretchFactors[i]);
-            element.setContentType(TileTabsRowColumnContentTypeEnum::TAB);
-            element.setStretchType(TileTabsRowColumnStretchTypeEnum::WEIGHT);
+            element.setContentType(TileTabsGridRowColumnContentTypeEnum::TAB);
+            element.setStretchType(TileTabsGridRowColumnStretchTypeEnum::WEIGHT);
             m_rows.push_back(element);
         }
         CaretAssert(numberOfRows == static_cast<int32_t>(m_rows.size()));
         
         for (int32_t i = 0; i < numberOfColumns; i++) {
-            TileTabsRowColumnElement element;
+            TileTabsGridRowColumnElement element;
             CaretAssertVectorIndex(columnStretchFactors, i);
             element.setWeightStretch(columnStretchFactors[i]);
-            element.setContentType(TileTabsRowColumnContentTypeEnum::TAB);
-            element.setStretchType(TileTabsRowColumnStretchTypeEnum::WEIGHT);
+            element.setContentType(TileTabsGridRowColumnContentTypeEnum::TAB);
+            element.setStretchType(TileTabsGridRowColumnStretchTypeEnum::WEIGHT);
             m_columns.push_back(element);
         }
         CaretAssert(numberOfColumns == static_cast<int32_t>(m_columns.size()));
@@ -961,7 +961,7 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader&
                     case ReadMode::COLUMNS:
                     {
                         AString errorMessage;
-                        TileTabsRowColumnElement e;
+                        TileTabsGridRowColumnElement e;
                         if (decodeRowColumnElement(xml, e, errorMessage)) {
                             m_columns.push_back(e);
                         }
@@ -973,7 +973,7 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader&
                     case ReadMode::ROWS:
                     {
                         AString errorMessage;
-                        TileTabsRowColumnElement e;
+                        TileTabsGridRowColumnElement e;
                         if (decodeRowColumnElement(xml, e, errorMessage)) {
                             m_rows.push_back(e);
                         }
@@ -1054,7 +1054,7 @@ TileTabsConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader&
  */
 bool
 TileTabsConfiguration::decodeRowColumnElement(QXmlStreamReader& reader,
-                                              TileTabsRowColumnElement& element,
+                                              TileTabsGridRowColumnElement& element,
                                               AString& errorMessageOut)
 {
     const QXmlStreamAttributes atts = reader.attributes();
@@ -1064,7 +1064,7 @@ TileTabsConfiguration::decodeRowColumnElement(QXmlStreamReader& reader,
     if (atts.hasAttribute(s_v2_contentTypeAttributeName)) {
         bool validFlag(false);
         const AString s = atts.value(s_v2_contentTypeAttributeName).toString();
-        element.setContentType(TileTabsRowColumnContentTypeEnum::fromName(s, &validFlag));
+        element.setContentType(TileTabsGridRowColumnContentTypeEnum::fromName(s, &validFlag));
         if ( ! validFlag) {
             errorMessageOut.append("Content type \"" + s + "\" is not valid.  ");
         }
@@ -1076,7 +1076,7 @@ TileTabsConfiguration::decodeRowColumnElement(QXmlStreamReader& reader,
     if (atts.hasAttribute(s_v2_stretchTypeAttributeName)) {
         bool validFlag(false);
         const AString s = atts.value(s_v2_stretchTypeAttributeName).toString();
-        element.setStretchType(TileTabsRowColumnStretchTypeEnum::fromName(s, &validFlag));
+        element.setStretchType(TileTabsGridRowColumnStretchTypeEnum::fromName(s, &validFlag));
         if ( ! validFlag) {
             errorMessageOut.append("Stretch type \"" + s + "\" is not valid.  ");
         }

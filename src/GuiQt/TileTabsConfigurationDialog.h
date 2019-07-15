@@ -23,8 +23,8 @@
 
 #include "EventListenerInterface.h"
 #include "EventTileTabsConfigurationModification.h"
-#include "TileTabsRowColumnContentTypeEnum.h"
-#include "TileTabsRowColumnStretchTypeEnum.h"
+#include "TileTabsGridRowColumnContentTypeEnum.h"
+#include "TileTabsGridRowColumnStretchTypeEnum.h"
 #include "WuQDialogNonModal.h"
 
 class QCheckBox;
@@ -46,7 +46,7 @@ namespace caret {
     class EnumComboBoxTemplate;
     class TileTabsConfiguration;
     class TileTabElementWidgets;
-    class TileTabsRowColumnElement;
+    class TileTabsGridRowColumnElement;
     class WuQGridLayoutGroup;
     class WuQListWidget;
     
@@ -210,7 +210,7 @@ namespace caret {
         
         virtual ~TileTabElementWidgets();
 
-        void updateContent(TileTabsRowColumnElement* element);
+        void updateContent(TileTabsGridRowColumnElement* element);
         
     signals:
         void itemChanged();
@@ -234,7 +234,7 @@ namespace caret {
         TileTabsConfigurationDialog* m_tileTabsConfigurationDialog;
         const EventTileTabsConfigurationModification::RowColumnType m_rowColumnType;
         const int32_t m_index;
-        TileTabsRowColumnElement* m_element;
+        TileTabsGridRowColumnElement* m_element;
         
         QLabel* m_indexLabel;
         QAction* m_constructionAction;

@@ -23,8 +23,8 @@
 
 #include "CaretException.h"
 #include "CaretObject.h"
-#include "TileTabsConfigurationModeEnum.h"
-#include "TileTabsRowColumnElement.h"
+#include "TileTabsGridModeEnum.h"
+#include "TileTabsGridRowColumnElement.h"
 
 class QXmlStreamReader;
 class QXmlStreamWriter;
@@ -49,7 +49,7 @@ namespace caret {
         bool getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
                                                        const int32_t windowHeight,
                                                        const int32_t numberOfModelsToDraw,
-                                                       const TileTabsConfigurationModeEnum::Enum configurationMode,
+                                                       const TileTabsGridModeEnum::Enum configurationMode,
                                                        std::vector<int32_t>& rowHeightsOut,
                                                        std::vector<int32_t>& columnWidthsOut);
         
@@ -67,13 +67,13 @@ namespace caret {
 
         void setNumberOfColumns(const int32_t numberOfColumns);
         
-        TileTabsRowColumnElement* getColumn(const int32_t columnIndex);
+        TileTabsGridRowColumnElement* getColumn(const int32_t columnIndex);
         
-        const TileTabsRowColumnElement* getColumn(const int32_t columnIndex) const;
+        const TileTabsGridRowColumnElement* getColumn(const int32_t columnIndex) const;
         
-        TileTabsRowColumnElement* getRow(const int32_t rowIndex);
+        TileTabsGridRowColumnElement* getRow(const int32_t rowIndex);
         
-        const TileTabsRowColumnElement* getRow(const int32_t rowIndex) const;
+        const TileTabsGridRowColumnElement* getRow(const int32_t rowIndex) const;
         
         AString encodeInXML() const;
         
@@ -115,10 +115,10 @@ namespace caret {
         
         void encodeRowColumnElement(QXmlStreamWriter& writer,
                                     const AString tagName,
-                                    const std::vector<TileTabsRowColumnElement>& elements) const;
+                                    const std::vector<TileTabsGridRowColumnElement>& elements) const;
         
         bool decodeRowColumnElement(QXmlStreamReader& reader,
-                                    TileTabsRowColumnElement& element,
+                                    TileTabsGridRowColumnElement& element,
                                     AString& errorMessageOut);
         
         void initialize();
@@ -130,9 +130,9 @@ namespace caret {
         /** Unique identifier does not get copied */
         AString m_uniqueIdentifier;
         
-        std::vector<TileTabsRowColumnElement> m_columns;
+        std::vector<TileTabsGridRowColumnElement> m_columns;
         
-        std::vector<TileTabsRowColumnElement> m_rows;
+        std::vector<TileTabsGridRowColumnElement> m_rows;
         
         bool m_centeringCorrectionEnabled = false;
         

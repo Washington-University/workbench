@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __TILE_TABS_ROW_COLUMN_CONTENT_TYPE_ENUM_DECLARE__
-#include "TileTabsRowColumnContentTypeEnum.h"
-#undef __TILE_TABS_ROW_COLUMN_CONTENT_TYPE_ENUM_DECLARE__
+#define __TILE_TABS_GRID_ROW_COLUMN_STRETCH_TYPE_ENUM_DECLARE__
+#include "TileTabsGridRowColumnStretchTypeEnum.h"
+#undef __TILE_TABS_GRID_ROW_COLUMN_STRETCH_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::TileTabsRowColumnContentTypeEnum 
- * \brief Content type for a row or column in a tile tabs
+ * \class caret::TileTabsGridRowColumnStretchTypeEnum
+ * \brief Stretch type for tile tabs grid configuration.
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_tileTabsRowColumnContentTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_TileTabsGridRowColumnStretchTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void tileTabsRowColumnContentTypeEnumComboBoxItemActivated();
+ *             void TileTabsGridRowColumnStretchTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "TileTabsRowColumnContentTypeEnum.h"
+ *         #include "TileTabsGridRowColumnStretchTypeEnum.h"
  * 
  *     Instatiate:
- *         m_tileTabsRowColumnContentTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_tileTabsRowColumnContentTypeEnumComboBox->setup<TileTabsRowColumnContentTypeEnum,TileTabsRowColumnContentTypeEnum::Enum>();
+ *         m_TileTabsGridRowColumnStretchTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_TileTabsGridRowColumnStretchTypeEnumComboBox->setup<TileTabsGridRowColumnStretchTypeEnum,TileTabsGridRowColumnStretchTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_tileTabsRowColumnContentTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(tileTabsRowColumnContentTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_TileTabsGridRowColumnStretchTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(TileTabsGridRowColumnStretchTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_tileTabsRowColumnContentTypeEnumComboBox->setSelectedItem<TileTabsRowColumnContentTypeEnum,TileTabsRowColumnContentTypeEnum::Enum>(NEW_VALUE);
+ *         m_TileTabsGridRowColumnStretchTypeEnumComboBox->setSelectedItem<TileTabsGridRowColumnStretchTypeEnum,TileTabsGridRowColumnStretchTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const TileTabsRowColumnContentTypeEnum::Enum VARIABLE = m_tileTabsRowColumnContentTypeEnumComboBox->getSelectedItem<TileTabsRowColumnContentTypeEnum,TileTabsRowColumnContentTypeEnum::Enum>();
+ *         const TileTabsGridRowColumnStretchTypeEnum::Enum VARIABLE = m_TileTabsGridRowColumnStretchTypeEnumComboBox->getSelectedItem<TileTabsGridRowColumnStretchTypeEnum,TileTabsGridRowColumnStretchTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-TileTabsRowColumnContentTypeEnum::TileTabsRowColumnContentTypeEnum(const Enum enumValue,
+TileTabsGridRowColumnStretchTypeEnum::TileTabsGridRowColumnStretchTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ TileTabsRowColumnContentTypeEnum::TileTabsRowColumnContentTypeEnum(const Enum en
 /**
  * Destructor.
  */
-TileTabsRowColumnContentTypeEnum::~TileTabsRowColumnContentTypeEnum()
+TileTabsGridRowColumnStretchTypeEnum::~TileTabsGridRowColumnStretchTypeEnum()
 {
 }
 
@@ -99,20 +99,20 @@ TileTabsRowColumnContentTypeEnum::~TileTabsRowColumnContentTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-TileTabsRowColumnContentTypeEnum::initialize()
+TileTabsGridRowColumnStretchTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(TileTabsRowColumnContentTypeEnum(SPACE, 
-                                    "SPACE",
-                                    "Space"));
+    enumData.push_back(TileTabsGridRowColumnStretchTypeEnum(PERCENT,
+                                    "PERCENT",
+                                    "Percent"));
     
-    enumData.push_back(TileTabsRowColumnContentTypeEnum(TAB, 
-                                    "TAB", 
-                                    "Tab"));
+    enumData.push_back(TileTabsGridRowColumnStretchTypeEnum(WEIGHT,
+                                    "WEIGHT", 
+                                    "Weight"));
     
 }
 
@@ -123,14 +123,14 @@ TileTabsRowColumnContentTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const TileTabsRowColumnContentTypeEnum*
-TileTabsRowColumnContentTypeEnum::findData(const Enum enumValue)
+const TileTabsGridRowColumnStretchTypeEnum*
+TileTabsGridRowColumnStretchTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const TileTabsRowColumnContentTypeEnum* d = &enumData[i];
+        const TileTabsGridRowColumnStretchTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -147,10 +147,10 @@ TileTabsRowColumnContentTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-TileTabsRowColumnContentTypeEnum::toName(Enum enumValue) {
+TileTabsGridRowColumnStretchTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const TileTabsRowColumnContentTypeEnum* enumInstance = findData(enumValue);
+    const TileTabsGridRowColumnStretchTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -164,18 +164,18 @@ TileTabsRowColumnContentTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-TileTabsRowColumnContentTypeEnum::Enum 
-TileTabsRowColumnContentTypeEnum::fromName(const AString& name, bool* isValidOut)
+TileTabsGridRowColumnStretchTypeEnum::Enum
+TileTabsGridRowColumnStretchTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = TileTabsRowColumnContentTypeEnum::enumData[0].enumValue;
+    Enum enumValue = TileTabsGridRowColumnStretchTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<TileTabsRowColumnContentTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnStretchTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const TileTabsRowColumnContentTypeEnum& d = *iter;
+        const TileTabsGridRowColumnStretchTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -187,7 +187,7 @@ TileTabsRowColumnContentTypeEnum::fromName(const AString& name, bool* isValidOut
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type TileTabsRowColumnContentTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type TileTabsGridRowColumnStretchTypeEnum"));
     }
     return enumValue;
 }
@@ -200,10 +200,10 @@ TileTabsRowColumnContentTypeEnum::fromName(const AString& name, bool* isValidOut
  *     String representing enumerated value.
  */
 AString 
-TileTabsRowColumnContentTypeEnum::toGuiName(Enum enumValue) {
+TileTabsGridRowColumnStretchTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const TileTabsRowColumnContentTypeEnum* enumInstance = findData(enumValue);
+    const TileTabsGridRowColumnStretchTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -217,18 +217,18 @@ TileTabsRowColumnContentTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-TileTabsRowColumnContentTypeEnum::Enum 
-TileTabsRowColumnContentTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+TileTabsGridRowColumnStretchTypeEnum::Enum
+TileTabsGridRowColumnStretchTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = TileTabsRowColumnContentTypeEnum::enumData[0].enumValue;
+    Enum enumValue = TileTabsGridRowColumnStretchTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<TileTabsRowColumnContentTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnStretchTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const TileTabsRowColumnContentTypeEnum& d = *iter;
+        const TileTabsGridRowColumnStretchTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -240,7 +240,7 @@ TileTabsRowColumnContentTypeEnum::fromGuiName(const AString& guiName, bool* isVa
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type TileTabsRowColumnContentTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type TileTabsGridRowColumnStretchTypeEnum"));
     }
     return enumValue;
 }
@@ -252,10 +252,10 @@ TileTabsRowColumnContentTypeEnum::fromGuiName(const AString& guiName, bool* isVa
  *    Integer code for data type.
  */
 int32_t
-TileTabsRowColumnContentTypeEnum::toIntegerCode(Enum enumValue)
+TileTabsGridRowColumnStretchTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const TileTabsRowColumnContentTypeEnum* enumInstance = findData(enumValue);
+    const TileTabsGridRowColumnStretchTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -270,18 +270,18 @@ TileTabsRowColumnContentTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-TileTabsRowColumnContentTypeEnum::Enum
-TileTabsRowColumnContentTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+TileTabsGridRowColumnStretchTypeEnum::Enum
+TileTabsGridRowColumnStretchTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = TileTabsRowColumnContentTypeEnum::enumData[0].enumValue;
+    Enum enumValue = TileTabsGridRowColumnStretchTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<TileTabsRowColumnContentTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnStretchTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const TileTabsRowColumnContentTypeEnum& enumInstance = *iter;
+        const TileTabsGridRowColumnStretchTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -293,7 +293,7 @@ TileTabsRowColumnContentTypeEnum::fromIntegerCode(const int32_t integerCode, boo
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type TileTabsRowColumnContentTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type TileTabsGridRowColumnStretchTypeEnum"));
     }
     return enumValue;
 }
@@ -306,13 +306,13 @@ TileTabsRowColumnContentTypeEnum::fromIntegerCode(const int32_t integerCode, boo
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-TileTabsRowColumnContentTypeEnum::getAllEnums(std::vector<TileTabsRowColumnContentTypeEnum::Enum>& allEnums)
+TileTabsGridRowColumnStretchTypeEnum::getAllEnums(std::vector<TileTabsGridRowColumnStretchTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<TileTabsRowColumnContentTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnStretchTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -328,16 +328,16 @@ TileTabsRowColumnContentTypeEnum::getAllEnums(std::vector<TileTabsRowColumnConte
  *     If true, the names are sorted in alphabetical order.
  */
 void
-TileTabsRowColumnContentTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+TileTabsGridRowColumnStretchTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<TileTabsRowColumnContentTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnStretchTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(TileTabsRowColumnContentTypeEnum::toName(iter->enumValue));
+        allNames.push_back(TileTabsGridRowColumnStretchTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -354,16 +354,16 @@ TileTabsRowColumnContentTypeEnum::getAllNames(std::vector<AString>& allNames, co
  *     If true, the names are sorted in alphabetical order.
  */
 void
-TileTabsRowColumnContentTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+TileTabsGridRowColumnStretchTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<TileTabsRowColumnContentTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnStretchTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(TileTabsRowColumnContentTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(TileTabsGridRowColumnStretchTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

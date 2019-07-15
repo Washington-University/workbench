@@ -1,5 +1,5 @@
-#ifndef __TILE_TABS_ROW_COLUMN_STRETCH_TYPE_ENUM_H__
-#define __TILE_TABS_ROW_COLUMN_STRETCH_TYPE_ENUM_H__
+#ifndef __TILE_TABS_GRID_ROW_COLUMN_STRETCH_TYPE_ENUM_H__
+#define __TILE_TABS_GRID_ROW_COLUMN_STRETCH_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class TileTabsRowColumnStretchTypeEnum {
+class TileTabsGridRowColumnStretchTypeEnum {
 
 public:
     /**
@@ -42,7 +42,7 @@ public:
     };
 
 
-    ~TileTabsRowColumnStretchTypeEnum();
+    ~TileTabsGridRowColumnStretchTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -63,14 +63,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    TileTabsRowColumnStretchTypeEnum(const Enum enumValue, 
+    TileTabsGridRowColumnStretchTypeEnum(const Enum enumValue,
                  const AString& name,
                  const AString& guiName);
 
-    static const TileTabsRowColumnStretchTypeEnum* findData(const Enum enumValue);
+    static const TileTabsGridRowColumnStretchTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<TileTabsRowColumnStretchTypeEnum> enumData;
+    static std::vector<TileTabsGridRowColumnStretchTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -94,11 +94,11 @@ private:
     AString guiName;
 };
 
-#ifdef __TILE_TABS_ROW_COLUMN_STRETCH_TYPE_ENUM_DECLARE__
-std::vector<TileTabsRowColumnStretchTypeEnum> TileTabsRowColumnStretchTypeEnum::enumData;
-bool TileTabsRowColumnStretchTypeEnum::initializedFlag = false;
-int32_t TileTabsRowColumnStretchTypeEnum::integerCodeCounter = 0; 
-#endif // __TILE_TABS_ROW_COLUMN_STRETCH_TYPE_ENUM_DECLARE__
+#ifdef __TILE_TABS_GRID_ROW_COLUMN_STRETCH_TYPE_ENUM_DECLARE__
+std::vector<TileTabsGridRowColumnStretchTypeEnum> TileTabsGridRowColumnStretchTypeEnum::enumData;
+bool TileTabsGridRowColumnStretchTypeEnum::initializedFlag = false;
+int32_t TileTabsGridRowColumnStretchTypeEnum::integerCodeCounter = 0;
+#endif // __TILE_TABS_GRID_ROW_COLUMN_STRETCH_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__TILE_TABS_ROW_COLUMN_STRETCH_TYPE_ENUM_H__
+#endif  //__TILE_TABS_GRID_ROW_COLUMN_STRETCH_TYPE_ENUM_H__

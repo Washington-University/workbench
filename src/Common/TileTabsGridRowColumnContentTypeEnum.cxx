@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __TILE_TABS_CONFIGURATION_MODE_ENUM_DECLARE__
-#include "TileTabsConfigurationModeEnum.h"
-#undef __TILE_TABS_CONFIGURATION_MODE_ENUM_DECLARE__
+#define __TILE_TABS_GRID_ROW_COLUMN_CONTENT_TYPE_ENUM_DECLARE__
+#include "TileTabsGridRowColumnContentTypeEnum.h"
+#undef __TILE_TABS_GRID_ROW_COLUMN_CONTENT_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::TileTabsConfigurationModeEnum 
- * \brief Enumerated type for Tile Tab Configuration Types
+ * \class caret::TileTabsGridRowColumnContentTypeEnum
+ * \brief Content type for a row or column in a tile tabs grid 
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_tileTabsConfigurationModeEnumComboBox;
+ *         EnumComboBoxTemplate* m_TileTabsGridRowColumnContentTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void tileTabsConfigurationModeEnumComboBoxItemActivated();
+ *             void TileTabsGridRowColumnContentTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "TileTabsConfigurationModeEnum.h"
+ *         #include "TileTabsGridRowColumnContentTypeEnum.h"
  * 
  *     Instatiate:
- *         m_tileTabsConfigurationModeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_tileTabsConfigurationModeEnumComboBox->setup<TileTabsConfigurationModeEnum,TileTabsConfigurationModeEnum::Enum>();
+ *         m_TileTabsGridRowColumnContentTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_TileTabsGridRowColumnContentTypeEnumComboBox->setup<TileTabsGridRowColumnContentTypeEnum,TileTabsGridRowColumnContentTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_tileTabsConfigurationModeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(tileTabsConfigurationModeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_TileTabsGridRowColumnContentTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(TileTabsGridRowColumnContentTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_tileTabsConfigurationModeEnumComboBox->setSelectedItem<TileTabsConfigurationModeEnum,TileTabsConfigurationModeEnum::Enum>(NEW_VALUE);
+ *         m_TileTabsGridRowColumnContentTypeEnumComboBox->setSelectedItem<TileTabsGridRowColumnContentTypeEnum,TileTabsGridRowColumnContentTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const TileTabsConfigurationModeEnum::Enum VARIABLE = m_tileTabsConfigurationModeEnumComboBox->getSelectedItem<TileTabsConfigurationModeEnum,TileTabsConfigurationModeEnum::Enum>();
+ *         const TileTabsGridRowColumnContentTypeEnum::Enum VARIABLE = m_TileTabsGridRowColumnContentTypeEnumComboBox->getSelectedItem<TileTabsGridRowColumnContentTypeEnum,TileTabsGridRowColumnContentTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-TileTabsConfigurationModeEnum::TileTabsConfigurationModeEnum(const Enum enumValue,
+TileTabsGridRowColumnContentTypeEnum::TileTabsGridRowColumnContentTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ TileTabsConfigurationModeEnum::TileTabsConfigurationModeEnum(const Enum enumValu
 /**
  * Destructor.
  */
-TileTabsConfigurationModeEnum::~TileTabsConfigurationModeEnum()
+TileTabsGridRowColumnContentTypeEnum::~TileTabsGridRowColumnContentTypeEnum()
 {
 }
 
@@ -99,20 +99,20 @@ TileTabsConfigurationModeEnum::~TileTabsConfigurationModeEnum()
  * Initialize the enumerated metadata.
  */
 void
-TileTabsConfigurationModeEnum::initialize()
+TileTabsGridRowColumnContentTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(TileTabsConfigurationModeEnum(AUTOMATIC, 
-                                    "AUTOMATIC", 
-                                    "Automatic"));
+    enumData.push_back(TileTabsGridRowColumnContentTypeEnum(SPACE,
+                                    "SPACE",
+                                    "Space"));
     
-    enumData.push_back(TileTabsConfigurationModeEnum(CUSTOM, 
-                                    "CUSTOM", 
-                                    "Custom"));
+    enumData.push_back(TileTabsGridRowColumnContentTypeEnum(TAB,
+                                    "TAB", 
+                                    "Tab"));
     
 }
 
@@ -123,14 +123,14 @@ TileTabsConfigurationModeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const TileTabsConfigurationModeEnum*
-TileTabsConfigurationModeEnum::findData(const Enum enumValue)
+const TileTabsGridRowColumnContentTypeEnum*
+TileTabsGridRowColumnContentTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const TileTabsConfigurationModeEnum* d = &enumData[i];
+        const TileTabsGridRowColumnContentTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -147,10 +147,10 @@ TileTabsConfigurationModeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-TileTabsConfigurationModeEnum::toName(Enum enumValue) {
+TileTabsGridRowColumnContentTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const TileTabsConfigurationModeEnum* enumInstance = findData(enumValue);
+    const TileTabsGridRowColumnContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -164,18 +164,18 @@ TileTabsConfigurationModeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-TileTabsConfigurationModeEnum::Enum 
-TileTabsConfigurationModeEnum::fromName(const AString& name, bool* isValidOut)
+TileTabsGridRowColumnContentTypeEnum::Enum
+TileTabsGridRowColumnContentTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = TileTabsConfigurationModeEnum::enumData[0].enumValue;
+    Enum enumValue = TileTabsGridRowColumnContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<TileTabsConfigurationModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const TileTabsConfigurationModeEnum& d = *iter;
+        const TileTabsGridRowColumnContentTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -187,7 +187,7 @@ TileTabsConfigurationModeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type TileTabsConfigurationModeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type TileTabsGridRowColumnContentTypeEnum"));
     }
     return enumValue;
 }
@@ -200,10 +200,10 @@ TileTabsConfigurationModeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-TileTabsConfigurationModeEnum::toGuiName(Enum enumValue) {
+TileTabsGridRowColumnContentTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const TileTabsConfigurationModeEnum* enumInstance = findData(enumValue);
+    const TileTabsGridRowColumnContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -217,18 +217,18 @@ TileTabsConfigurationModeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-TileTabsConfigurationModeEnum::Enum 
-TileTabsConfigurationModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+TileTabsGridRowColumnContentTypeEnum::Enum
+TileTabsGridRowColumnContentTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = TileTabsConfigurationModeEnum::enumData[0].enumValue;
+    Enum enumValue = TileTabsGridRowColumnContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<TileTabsConfigurationModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const TileTabsConfigurationModeEnum& d = *iter;
+        const TileTabsGridRowColumnContentTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -240,7 +240,7 @@ TileTabsConfigurationModeEnum::fromGuiName(const AString& guiName, bool* isValid
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type TileTabsConfigurationModeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type TileTabsGridRowColumnContentTypeEnum"));
     }
     return enumValue;
 }
@@ -252,10 +252,10 @@ TileTabsConfigurationModeEnum::fromGuiName(const AString& guiName, bool* isValid
  *    Integer code for data type.
  */
 int32_t
-TileTabsConfigurationModeEnum::toIntegerCode(Enum enumValue)
+TileTabsGridRowColumnContentTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const TileTabsConfigurationModeEnum* enumInstance = findData(enumValue);
+    const TileTabsGridRowColumnContentTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -270,18 +270,18 @@ TileTabsConfigurationModeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-TileTabsConfigurationModeEnum::Enum
-TileTabsConfigurationModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+TileTabsGridRowColumnContentTypeEnum::Enum
+TileTabsGridRowColumnContentTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = TileTabsConfigurationModeEnum::enumData[0].enumValue;
+    Enum enumValue = TileTabsGridRowColumnContentTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<TileTabsConfigurationModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const TileTabsConfigurationModeEnum& enumInstance = *iter;
+        const TileTabsGridRowColumnContentTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -293,7 +293,7 @@ TileTabsConfigurationModeEnum::fromIntegerCode(const int32_t integerCode, bool* 
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type TileTabsConfigurationModeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type TileTabsGridRowColumnContentTypeEnum"));
     }
     return enumValue;
 }
@@ -306,13 +306,13 @@ TileTabsConfigurationModeEnum::fromIntegerCode(const int32_t integerCode, bool* 
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-TileTabsConfigurationModeEnum::getAllEnums(std::vector<TileTabsConfigurationModeEnum::Enum>& allEnums)
+TileTabsGridRowColumnContentTypeEnum::getAllEnums(std::vector<TileTabsGridRowColumnContentTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<TileTabsConfigurationModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -328,16 +328,16 @@ TileTabsConfigurationModeEnum::getAllEnums(std::vector<TileTabsConfigurationMode
  *     If true, the names are sorted in alphabetical order.
  */
 void
-TileTabsConfigurationModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+TileTabsGridRowColumnContentTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<TileTabsConfigurationModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(TileTabsConfigurationModeEnum::toName(iter->enumValue));
+        allNames.push_back(TileTabsGridRowColumnContentTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -354,16 +354,16 @@ TileTabsConfigurationModeEnum::getAllNames(std::vector<AString>& allNames, const
  *     If true, the names are sorted in alphabetical order.
  */
 void
-TileTabsConfigurationModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+TileTabsGridRowColumnContentTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<TileTabsConfigurationModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsGridRowColumnContentTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(TileTabsConfigurationModeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(TileTabsGridRowColumnContentTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __TILE_TABS_ROW_COLUMN_ELEMENT_DECLARE__
-#include "TileTabsRowColumnElement.h"
-#undef __TILE_TABS_ROW_COLUMN_ELEMENT_DECLARE__
+#define __TILE_TABS_GRID_ROW_COLUMN_ELEMENT_DECLARE__
+#include "TileTabsGridRowColumnElement.h"
+#undef __TILE_TABS_GRID_ROW_COLUMN_ELEMENT_DECLARE__
 
 #include "CaretAssert.h"
 using namespace caret;
@@ -29,15 +29,15 @@ using namespace caret;
 
     
 /**
- * \class caret::TileTabsRowColumnElement 
- * \brief Contents on an element in a Tile Tabs Configuration row or column.
+ * \class caret::TileTabsGridRowColumnElement
+ * \brief Contents on an element in a Tile Tabs Configuration grid row or column.
  * \ingroup Common
  */
 
 /**
  * Constructor.
  */
-TileTabsRowColumnElement::TileTabsRowColumnElement()
+TileTabsGridRowColumnElement::TileTabsGridRowColumnElement()
 : CaretObject()
 {
     clear();
@@ -46,7 +46,7 @@ TileTabsRowColumnElement::TileTabsRowColumnElement()
 /**
  * Destructor.
  */
-TileTabsRowColumnElement::~TileTabsRowColumnElement()
+TileTabsGridRowColumnElement::~TileTabsGridRowColumnElement()
 {
 }
 
@@ -55,10 +55,10 @@ TileTabsRowColumnElement::~TileTabsRowColumnElement()
  * @param obj
  *    Object that is copied.
  */
-TileTabsRowColumnElement::TileTabsRowColumnElement(const TileTabsRowColumnElement& obj)
+TileTabsGridRowColumnElement::TileTabsGridRowColumnElement(const TileTabsGridRowColumnElement& obj)
 : CaretObject(obj)
 {
-    this->copyHelperTileTabsRowColumnElement(obj);
+    this->copyHelperTileTabsGridRowColumnElement(obj);
 }
 
 /**
@@ -68,12 +68,12 @@ TileTabsRowColumnElement::TileTabsRowColumnElement(const TileTabsRowColumnElemen
  * @return 
  *    Reference to this object.
  */
-TileTabsRowColumnElement&
-TileTabsRowColumnElement::operator=(const TileTabsRowColumnElement& obj)
+TileTabsGridRowColumnElement&
+TileTabsGridRowColumnElement::operator=(const TileTabsGridRowColumnElement& obj)
 {
     if (this != &obj) {
         CaretObject::operator=(obj);
-        this->copyHelperTileTabsRowColumnElement(obj);
+        this->copyHelperTileTabsGridRowColumnElement(obj);
     }
     return *this;    
 }
@@ -84,7 +84,7 @@ TileTabsRowColumnElement::operator=(const TileTabsRowColumnElement& obj)
  *    Object that is copied.
  */
 void 
-TileTabsRowColumnElement::copyHelperTileTabsRowColumnElement(const TileTabsRowColumnElement& obj)
+TileTabsGridRowColumnElement::copyHelperTileTabsGridRowColumnElement(const TileTabsGridRowColumnElement& obj)
 {
     m_contentType    = obj.m_contentType;
     m_stretchType    = obj.m_stretchType;
@@ -96,10 +96,10 @@ TileTabsRowColumnElement::copyHelperTileTabsRowColumnElement(const TileTabsRowCo
  * Clear this instance.
  */
 void
-TileTabsRowColumnElement::clear()
+TileTabsGridRowColumnElement::clear()
 {
-    m_contentType    = TileTabsRowColumnContentTypeEnum::TAB;
-    m_stretchType    = TileTabsRowColumnStretchTypeEnum::WEIGHT;
+    m_contentType    = TileTabsGridRowColumnContentTypeEnum::TAB;
+    m_stretchType    = TileTabsGridRowColumnStretchTypeEnum::WEIGHT;
     m_percentStretch = 20.0;
     m_weightStretch  = 1.0;
 }
@@ -107,8 +107,8 @@ TileTabsRowColumnElement::clear()
 /**
  * @return Content type (spacer or tab)
  */
-TileTabsRowColumnContentTypeEnum::Enum
-TileTabsRowColumnElement::getContentType() const
+TileTabsGridRowColumnContentTypeEnum::Enum
+TileTabsGridRowColumnElement::getContentType() const
 {
     return m_contentType;
 }
@@ -120,7 +120,7 @@ TileTabsRowColumnElement::getContentType() const
  *     New value for content type.
  */
 void
-TileTabsRowColumnElement::setContentType(const TileTabsRowColumnContentTypeEnum::Enum contentType)
+TileTabsGridRowColumnElement::setContentType(const TileTabsGridRowColumnContentTypeEnum::Enum contentType)
 {
     m_contentType = contentType;
 }
@@ -128,8 +128,8 @@ TileTabsRowColumnElement::setContentType(const TileTabsRowColumnContentTypeEnum:
 /**
  * @return The stretch type (percent or weight)
  */
-TileTabsRowColumnStretchTypeEnum::Enum
-TileTabsRowColumnElement::getStretchType() const
+TileTabsGridRowColumnStretchTypeEnum::Enum
+TileTabsGridRowColumnElement::getStretchType() const
 {
     return m_stretchType;
 }
@@ -141,7 +141,7 @@ TileTabsRowColumnElement::getStretchType() const
  *     New value for stretch type.
  */
 void
-TileTabsRowColumnElement::setStretchType(const TileTabsRowColumnStretchTypeEnum::Enum stretchType)
+TileTabsGridRowColumnElement::setStretchType(const TileTabsGridRowColumnStretchTypeEnum::Enum stretchType)
 {
     m_stretchType = stretchType;
 }
@@ -150,7 +150,7 @@ TileTabsRowColumnElement::setStretchType(const TileTabsRowColumnStretchTypeEnum:
  * @return The percent stretch value.
  */
 float
-TileTabsRowColumnElement::getPercentStretch() const
+TileTabsGridRowColumnElement::getPercentStretch() const
 {
     return m_percentStretch;
 }
@@ -162,7 +162,7 @@ TileTabsRowColumnElement::getPercentStretch() const
  *     New value for percent stretch.
  */
 void
-TileTabsRowColumnElement::setPercentStretch(const float percentStretch)
+TileTabsGridRowColumnElement::setPercentStretch(const float percentStretch)
 {
     m_percentStretch = percentStretch;
 }
@@ -171,7 +171,7 @@ TileTabsRowColumnElement::setPercentStretch(const float percentStretch)
  * @return The weight stretch value.
  */
 float
-TileTabsRowColumnElement::getWeightStretch() const
+TileTabsGridRowColumnElement::getWeightStretch() const
 {
     return m_weightStretch;
 }
@@ -183,7 +183,7 @@ TileTabsRowColumnElement::getWeightStretch() const
  *     New value for weight stretch.
  */
 void
-TileTabsRowColumnElement::setWeightStretch(const float weightStretch)
+TileTabsGridRowColumnElement::setWeightStretch(const float weightStretch)
 {
     m_weightStretch = weightStretch;
 }
@@ -194,11 +194,11 @@ TileTabsRowColumnElement::setWeightStretch(const float weightStretch)
  * @return String describing this object's content.
  */
 AString
-TileTabsRowColumnElement::toString() const
+TileTabsGridRowColumnElement::toString() const
 {
-    AString s("TileTabsRowColumnElement: ");
-    s.append("ContentType=" + TileTabsRowColumnContentTypeEnum::toGuiName(m_contentType));
-    s.append(" StretchType=" + TileTabsRowColumnStretchTypeEnum::toGuiName(m_stretchType));
+    AString s("TileTabsGridRowColumnElement: ");
+    s.append("ContentType=" + TileTabsGridRowColumnContentTypeEnum::toGuiName(m_contentType));
+    s.append(" StretchType=" + TileTabsGridRowColumnStretchTypeEnum::toGuiName(m_stretchType));
     s.append(" PercentStretch=" + AString::number(m_percentStretch));
     s.append(" WeightStretch=" + AString::number(m_weightStretch));
     return s;

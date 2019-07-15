@@ -2426,17 +2426,17 @@ BrainBrowserWindow::processViewMenuAboutToShow()
         m_viewTileTabsAction->setText("Enter Tile Tabs");
     }
 
-    m_viewAutomaticTileTabsConfigurationAction->setText(getTileTabsConfigurationLabelText(TileTabsConfigurationModeEnum::AUTOMATIC,
+    m_viewAutomaticTileTabsConfigurationAction->setText(getTileTabsConfigurationLabelText(TileTabsGridModeEnum::AUTOMATIC,
                                                                                       true));
-    m_viewCustomTileTabsConfigurationAction->setText(getTileTabsConfigurationLabelText(TileTabsConfigurationModeEnum::CUSTOM,
+    m_viewCustomTileTabsConfigurationAction->setText(getTileTabsConfigurationLabelText(TileTabsGridModeEnum::CUSTOM,
                                                                                    true));
     
     BrowserWindowContent* bwc = getBrowerWindowContent();
     switch (bwc->getTileTabsConfigurationMode()) {
-        case TileTabsConfigurationModeEnum::AUTOMATIC:
+        case TileTabsGridModeEnum::AUTOMATIC:
             m_viewAutomaticTileTabsConfigurationAction->setChecked(true);
             break;
-        case TileTabsConfigurationModeEnum::CUSTOM:
+        case TileTabsGridModeEnum::CUSTOM:
             m_viewCustomTileTabsConfigurationAction->setChecked(true);
             break;
     }
@@ -2452,16 +2452,16 @@ BrainBrowserWindow::processViewMenuAboutToShow()
  *     Include the number of rows and columns.
  */
 AString
-BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsConfigurationModeEnum::Enum configurationMode,
+BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsGridModeEnum::Enum configurationMode,
                                                       const bool includeRowsAndColumnsIn) const
 {
     bool includeRowsAndColumns = includeRowsAndColumnsIn;
     AString modeLabel;
     switch (configurationMode) {
-        case TileTabsConfigurationModeEnum::AUTOMATIC:
+        case TileTabsGridModeEnum::AUTOMATIC:
             modeLabel = "Automatic";
             break;
-        case TileTabsConfigurationModeEnum::CUSTOM:
+        case TileTabsGridModeEnum::CUSTOM:
             modeLabel = "Custom";
             break;
     }
@@ -2473,12 +2473,12 @@ BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsConfiguratio
     const int32_t windowTabCount = static_cast<int32_t>(windowTabIndices.size());
     AString errorText;
     switch (configurationMode) {
-        case TileTabsConfigurationModeEnum::AUTOMATIC:
+        case TileTabsGridModeEnum::AUTOMATIC:
             TileTabsConfiguration::getRowsAndColumnsForNumberOfTabs(windowTabCount,
                                                                     configRowCount,
                                                                     configColCount);
             break;
-        case TileTabsConfigurationModeEnum::CUSTOM:
+        case TileTabsGridModeEnum::CUSTOM:
         {
             const TileTabsConfiguration* customConfig = getBrowerWindowContent()->getCustomTileTabsConfiguration();
             configRowCount = customConfig->getNumberOfRows();
@@ -2581,10 +2581,10 @@ BrainBrowserWindow::processViewTileTabsAutomaticCustomTriggered(QAction* action)
 {
     BrowserWindowContent* bwc = getBrowerWindowContent();
     if (action == m_viewAutomaticTileTabsConfigurationAction) {
-        bwc->setTileTabsConfigurationMode(TileTabsConfigurationModeEnum::AUTOMATIC);
+        bwc->setTileTabsConfigurationMode(TileTabsGridModeEnum::AUTOMATIC);
     }
     else if (action == m_viewCustomTileTabsConfigurationAction) {
-        bwc->setTileTabsConfigurationMode(TileTabsConfigurationModeEnum::CUSTOM);
+        bwc->setTileTabsConfigurationMode(TileTabsGridModeEnum::CUSTOM);
     }
     else {
         CaretAssert(0);
@@ -2603,7 +2603,7 @@ BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuItemTriggered(QA
     CaretAssert(action);
     
     BrowserWindowContent* bwc = getBrowerWindowContent();
-    bwc->setTileTabsConfigurationMode(TileTabsConfigurationModeEnum::CUSTOM);
+    bwc->setTileTabsConfigurationMode(TileTabsGridModeEnum::CUSTOM);
     
     TileTabsConfiguration* tileTabsConfig = NULL;
     for (auto& config : m_viewCustomTileTabsConfigurationActions) {

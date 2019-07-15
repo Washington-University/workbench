@@ -36,7 +36,7 @@ namespace caret {
     class EventTileTabsConfigurationModification;
     class SpacerTabContent;
     class TileTabsConfiguration;
-    class TileTabsRowColumnElement;
+    class TileTabsGridRowColumnElement;
     
     class TileTabsConfigurationModifier : public CaretObject {
         
@@ -99,7 +99,7 @@ namespace caret {
             
             std::vector<Element*> m_tabElements;
             
-            TileTabsRowColumnElement* m_stretching;
+            TileTabsGridRowColumnElement* m_stretching;
             
         private:
             RowColumnContent(const int32_t numberOfElements);

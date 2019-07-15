@@ -1,5 +1,5 @@
-#ifndef __TILE_TABS_CONFIGURATION_MODE_ENUM_H__
-#define __TILE_TABS_CONFIGURATION_MODE_ENUM_H__
+#ifndef __TILE_TABS_GRID_MODE_ENUM_H__
+#define __TILE_TABS_GRID_MODE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class TileTabsConfigurationModeEnum {
+class TileTabsGridModeEnum {
 
 public:
     /**
@@ -42,7 +42,7 @@ public:
     };
 
 
-    ~TileTabsConfigurationModeEnum();
+    ~TileTabsGridModeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -63,14 +63,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    TileTabsConfigurationModeEnum(const Enum enumValue, 
+    TileTabsGridModeEnum(const Enum enumValue,
                  const AString& name,
                  const AString& guiName);
 
-    static const TileTabsConfigurationModeEnum* findData(const Enum enumValue);
+    static const TileTabsGridModeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<TileTabsConfigurationModeEnum> enumData;
+    static std::vector<TileTabsGridModeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -94,11 +94,11 @@ private:
     AString guiName;
 };
 
-#ifdef __TILE_TABS_CONFIGURATION_MODE_ENUM_DECLARE__
-std::vector<TileTabsConfigurationModeEnum> TileTabsConfigurationModeEnum::enumData;
-bool TileTabsConfigurationModeEnum::initializedFlag = false;
-int32_t TileTabsConfigurationModeEnum::integerCodeCounter = 0; 
-#endif // __TILE_TABS_CONFIGURATION_MODE_ENUM_DECLARE__
+#ifdef __TILE_TABS_GRID_MODE_ENUM_DECLARE__
+std::vector<TileTabsGridModeEnum> TileTabsGridModeEnum::enumData;
+bool TileTabsGridModeEnum::initializedFlag = false;
+int32_t TileTabsGridModeEnum::integerCodeCounter = 0;
+#endif // __TILE_TABS_GRID_MODE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__TILE_TABS_CONFIGURATION_MODE_ENUM_H__
+#endif  //__TILE_TABS_GRID_MODE_ENUM_H__

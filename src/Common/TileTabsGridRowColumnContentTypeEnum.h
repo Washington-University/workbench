@@ -1,5 +1,5 @@
-#ifndef __TILE_TABS_ROW_COLUMN_CONTENT_TYPE_ENUM_H__
-#define __TILE_TABS_ROW_COLUMN_CONTENT_TYPE_ENUM_H__
+#ifndef __TILE_TABS_GRID_ROW_COLUMN_CONTENT_TYPE_ENUM_H__
+#define __TILE_TABS_GRID_ROW_COLUMN_CONTENT_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class TileTabsRowColumnContentTypeEnum {
+class TileTabsGridRowColumnContentTypeEnum {
 
 public:
     /**
@@ -42,7 +42,7 @@ public:
     };
 
 
-    ~TileTabsRowColumnContentTypeEnum();
+    ~TileTabsGridRowColumnContentTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -63,14 +63,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    TileTabsRowColumnContentTypeEnum(const Enum enumValue, 
+    TileTabsGridRowColumnContentTypeEnum(const Enum enumValue,
                  const AString& name,
                  const AString& guiName);
 
-    static const TileTabsRowColumnContentTypeEnum* findData(const Enum enumValue);
+    static const TileTabsGridRowColumnContentTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<TileTabsRowColumnContentTypeEnum> enumData;
+    static std::vector<TileTabsGridRowColumnContentTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -94,11 +94,11 @@ private:
     AString guiName;
 };
 
-#ifdef __TILE_TABS_ROW_COLUMN_CONTENT_TYPE_ENUM_DECLARE__
-std::vector<TileTabsRowColumnContentTypeEnum> TileTabsRowColumnContentTypeEnum::enumData;
-bool TileTabsRowColumnContentTypeEnum::initializedFlag = false;
-int32_t TileTabsRowColumnContentTypeEnum::integerCodeCounter = 0; 
-#endif // __TILE_TABS_ROW_COLUMN_CONTENT_TYPE_ENUM_DECLARE__
+#ifdef __TILE_TABS_GRID_ROW_COLUMN_CONTENT_TYPE_ENUM_DECLARE__
+std::vector<TileTabsGridRowColumnContentTypeEnum> TileTabsGridRowColumnContentTypeEnum::enumData;
+bool TileTabsGridRowColumnContentTypeEnum::initializedFlag = false;
+int32_t TileTabsGridRowColumnContentTypeEnum::integerCodeCounter = 0;
+#endif // __TILE_TABS_GRID_ROW_COLUMN_CONTENT_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__TILE_TABS_ROW_COLUMN_CONTENT_TYPE_ENUM_H__
+#endif  //__TILE_TABS_GRID_ROW_COLUMN_CONTENT_TYPE_ENUM_H__

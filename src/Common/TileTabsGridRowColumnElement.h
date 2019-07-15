@@ -1,5 +1,5 @@
-#ifndef __TILE_TABS_ROW_COLUMN_ELEMENT_H__
-#define __TILE_TABS_ROW_COLUMN_ELEMENT_H__
+#ifndef __TILE_TABS_GRID_ROW_COLUMN_ELEMENT_H__
+#define __TILE_TABS_GRID_ROW_COLUMN_ELEMENT_H__
 
 /*LICENSE_START*/
 /*
@@ -27,31 +27,31 @@
 
 #include "CaretObject.h"
 
-#include "TileTabsRowColumnContentTypeEnum.h"
-#include "TileTabsRowColumnStretchTypeEnum.h"
+#include "TileTabsGridRowColumnContentTypeEnum.h"
+#include "TileTabsGridRowColumnStretchTypeEnum.h"
 
 namespace caret {
 
-    class TileTabsRowColumnElement : public CaretObject {
+    class TileTabsGridRowColumnElement : public CaretObject {
         
     public:
-        TileTabsRowColumnElement();
+        TileTabsGridRowColumnElement();
         
-        virtual ~TileTabsRowColumnElement();
+        virtual ~TileTabsGridRowColumnElement();
         
-        TileTabsRowColumnElement(const TileTabsRowColumnElement& obj);
+        TileTabsGridRowColumnElement(const TileTabsGridRowColumnElement& obj);
 
-        TileTabsRowColumnElement& operator=(const TileTabsRowColumnElement& obj);
+        TileTabsGridRowColumnElement& operator=(const TileTabsGridRowColumnElement& obj);
         
         void clear();
         
-        TileTabsRowColumnContentTypeEnum::Enum getContentType() const;
+        TileTabsGridRowColumnContentTypeEnum::Enum getContentType() const;
         
-        void setContentType(const TileTabsRowColumnContentTypeEnum::Enum contentType);
+        void setContentType(const TileTabsGridRowColumnContentTypeEnum::Enum contentType);
 
-        TileTabsRowColumnStretchTypeEnum::Enum getStretchType() const;
+        TileTabsGridRowColumnStretchTypeEnum::Enum getStretchType() const;
         
-        void setStretchType(const TileTabsRowColumnStretchTypeEnum::Enum stretchType);
+        void setStretchType(const TileTabsGridRowColumnStretchTypeEnum::Enum stretchType);
         
         float getPercentStretch() const;
         
@@ -66,11 +66,11 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void copyHelperTileTabsRowColumnElement(const TileTabsRowColumnElement& obj);
+        void copyHelperTileTabsGridRowColumnElement(const TileTabsGridRowColumnElement& obj);
 
-        TileTabsRowColumnContentTypeEnum::Enum m_contentType = TileTabsRowColumnContentTypeEnum::TAB;
+        TileTabsGridRowColumnContentTypeEnum::Enum m_contentType = TileTabsGridRowColumnContentTypeEnum::TAB;
         
-        TileTabsRowColumnStretchTypeEnum::Enum m_stretchType = TileTabsRowColumnStretchTypeEnum::WEIGHT;
+        TileTabsGridRowColumnStretchTypeEnum::Enum m_stretchType = TileTabsGridRowColumnStretchTypeEnum::WEIGHT;
         
         float m_percentStretch = 20.0;
         
@@ -80,9 +80,9 @@ namespace caret {
 
     };
     
-#ifdef __TILE_TABS_ROW_COLUMN_ELEMENT_DECLARE__
+#ifdef __TILE_TABS_GRID_ROW_COLUMN_ELEMENT_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __TILE_TABS_ROW_COLUMN_ELEMENT_DECLARE__
+#endif // __TILE_TABS_GRID_ROW_COLUMN_ELEMENT_DECLARE__
 
 } // namespace
-#endif  //__TILE_TABS_ROW_COLUMN_ELEMENT_H__
+#endif  //__TILE_TABS_GRID_ROW_COLUMN_ELEMENT_H__

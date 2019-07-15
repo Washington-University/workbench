@@ -54,7 +54,7 @@
 #include "GuiManager.h"
 #include "SessionManager.h"
 #include "TileTabsConfiguration.h"
-#include "TileTabsRowColumnElement.h"
+#include "TileTabsGridRowColumnElement.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
 #include "WuQGridLayoutGroup.h"
@@ -474,7 +474,7 @@ TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsConfiguration
          */
         numRowElements = static_cast<int32_t>(m_rowElements.size());
         for (int32_t iRow = 0; iRow < numRowElements; iRow++) {
-            TileTabsRowColumnElement* element(NULL);
+            TileTabsGridRowColumnElement* element(NULL);
             if (iRow < numRows) {
                 element = configuration->getRow(iRow);
             }
@@ -508,7 +508,7 @@ TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsConfiguration
          */
         numColumnElements = static_cast<int32_t>(m_columnElements.size());
         for (int32_t iColumn = 0; iColumn < numColumnElements; iColumn++) {
-            TileTabsRowColumnElement* element(NULL);
+            TileTabsGridRowColumnElement* element(NULL);
             if (iColumn < numColumns) {
                 element = configuration->getColumn(iColumn);
             }
@@ -681,10 +681,10 @@ TileTabsConfigurationDialog::automaticCustomButtonClicked(QAbstractButton* butto
 {
     BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
     if (button == m_automaticConfigurationRadioButton) {
-        browserWindowContent->setTileTabsConfigurationMode(TileTabsConfigurationModeEnum::AUTOMATIC);
+        browserWindowContent->setTileTabsConfigurationMode(TileTabsGridModeEnum::AUTOMATIC);
     }
     else if (button == m_customConfigurationRadioButton) {
-        browserWindowContent->setTileTabsConfigurationMode(TileTabsConfigurationModeEnum::CUSTOM);
+        browserWindowContent->setTileTabsConfigurationMode(TileTabsGridModeEnum::CUSTOM);
     }
     else {
         CaretAssert(0);
@@ -739,10 +739,10 @@ TileTabsConfigurationDialog::updateDialog()
     }
     
     switch (browserWindowContent->getTileTabsConfigurationMode()) {
-        case TileTabsConfigurationModeEnum::AUTOMATIC:
+        case TileTabsGridModeEnum::AUTOMATIC:
             m_automaticConfigurationRadioButton->setChecked(true);
             break;
-        case TileTabsConfigurationModeEnum::CUSTOM:
+        case TileTabsGridModeEnum::CUSTOM:
             m_customConfigurationRadioButton->setChecked(true);
             break;
     }
@@ -797,9 +797,9 @@ void
 TileTabsConfigurationDialog::updateStretchFactors()
 {
     BrainBrowserWindow* browserWindow = getBrowserWindow();
-    m_automaticConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsConfigurationModeEnum::AUTOMATIC,
+    m_automaticConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsGridModeEnum::AUTOMATIC,
                                                                                               true));
-    m_customConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsConfigurationModeEnum::CUSTOM,
+    m_customConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsGridModeEnum::CUSTOM,
                                                                                            false));
     const TileTabsConfiguration* configuration = getCustomTileTabsConfiguration();
     if (configuration != NULL) {
@@ -1153,7 +1153,7 @@ m_element(NULL)
      * Content type combo box
      */
     m_contentTypeComboBox = new EnumComboBoxTemplate(this);
-    m_contentTypeComboBox->setup<TileTabsRowColumnContentTypeEnum, TileTabsRowColumnContentTypeEnum::Enum>();
+    m_contentTypeComboBox->setup<TileTabsGridRowColumnContentTypeEnum, TileTabsGridRowColumnContentTypeEnum::Enum>();
     QObject::connect(m_contentTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &TileTabElementWidgets::contentTypeActivated);
     m_contentTypeComboBox->getComboBox()->setFixedWidth(m_contentTypeComboBox->getComboBox()->sizeHint().width());
@@ -1163,7 +1163,7 @@ m_element(NULL)
      * Stretch type combo box
      */
     m_stretchTypeComboBox = new EnumComboBoxTemplate(this);
-    m_stretchTypeComboBox->setup<TileTabsRowColumnStretchTypeEnum, TileTabsRowColumnStretchTypeEnum::Enum>();
+    m_stretchTypeComboBox->setup<TileTabsGridRowColumnStretchTypeEnum, TileTabsGridRowColumnStretchTypeEnum::Enum>();
     QObject::connect(m_stretchTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &TileTabElementWidgets::stretchTypeActivated);
     m_stretchTypeComboBox->getComboBox()->setFixedWidth(m_stretchTypeComboBox->getComboBox()->sizeHint().width());
@@ -1275,23 +1275,23 @@ TileTabElementWidgets::createConstructionMenu(QToolButton* toolButton)
  * Update with the given row/column element.
  */
 void
-TileTabElementWidgets::updateContent(TileTabsRowColumnElement* element)
+TileTabElementWidgets::updateContent(TileTabsGridRowColumnElement* element)
 {
     m_element = element;
     const bool showFlag(m_element != NULL);
     
     if (showFlag) {
-        m_contentTypeComboBox->setSelectedItem<TileTabsRowColumnContentTypeEnum, TileTabsRowColumnContentTypeEnum::Enum>(element->getContentType());
-        m_stretchTypeComboBox->setSelectedItem<TileTabsRowColumnStretchTypeEnum, TileTabsRowColumnStretchTypeEnum::Enum>(element->getStretchType());
+        m_contentTypeComboBox->setSelectedItem<TileTabsGridRowColumnContentTypeEnum, TileTabsGridRowColumnContentTypeEnum::Enum>(element->getContentType());
+        m_stretchTypeComboBox->setSelectedItem<TileTabsGridRowColumnStretchTypeEnum, TileTabsGridRowColumnStretchTypeEnum::Enum>(element->getStretchType());
         QSignalBlocker valueBlocker(m_stretchValueSpinBox);
         switch (m_element->getStretchType()) {
-            case TileTabsRowColumnStretchTypeEnum::PERCENT:
+            case TileTabsGridRowColumnStretchTypeEnum::PERCENT:
                 m_stretchValueSpinBox->setRange(0.0, 100.0);
                 m_stretchValueSpinBox->setSingleStep(1.0);
                 m_stretchValueSpinBox->setValue(m_element->getPercentStretch());
                 m_stretchValueSpinBox->setSuffix("%");
                 break;
-            case TileTabsRowColumnStretchTypeEnum::WEIGHT:
+            case TileTabsGridRowColumnStretchTypeEnum::WEIGHT:
                 m_stretchValueSpinBox->setRange(0.0, 1000.0);
                 m_stretchValueSpinBox->setSingleStep(0.1);
                 m_stretchValueSpinBox->setValue(m_element->getWeightStretch());
@@ -1382,7 +1382,7 @@ void
 TileTabElementWidgets::contentTypeActivated()
 {
     if (m_element != NULL) {
-        m_element->setContentType(m_contentTypeComboBox->getSelectedItem<TileTabsRowColumnContentTypeEnum, TileTabsRowColumnContentTypeEnum::Enum>());
+        m_element->setContentType(m_contentTypeComboBox->getSelectedItem<TileTabsGridRowColumnContentTypeEnum, TileTabsGridRowColumnContentTypeEnum::Enum>());
         emit itemChanged();
     }
 }
@@ -1394,7 +1394,7 @@ void
 TileTabElementWidgets::stretchTypeActivated()
 {
     if (m_element != NULL) {
-        m_element->setStretchType(m_stretchTypeComboBox->getSelectedItem<TileTabsRowColumnStretchTypeEnum, TileTabsRowColumnStretchTypeEnum::Enum>());
+        m_element->setStretchType(m_stretchTypeComboBox->getSelectedItem<TileTabsGridRowColumnStretchTypeEnum, TileTabsGridRowColumnStretchTypeEnum::Enum>());
         emit itemChanged();
     }
 }
@@ -1407,10 +1407,10 @@ TileTabElementWidgets::stretchValueChanged(double)
 {
     if (m_element != NULL) {
         switch (m_element->getStretchType()) {
-            case TileTabsRowColumnStretchTypeEnum::PERCENT:
+            case TileTabsGridRowColumnStretchTypeEnum::PERCENT:
                 m_element->setPercentStretch(m_stretchValueSpinBox->value());
                 break;
-            case TileTabsRowColumnStretchTypeEnum::WEIGHT:
+            case TileTabsGridRowColumnStretchTypeEnum::WEIGHT:
                 m_element->setWeightStretch(m_stretchValueSpinBox->value());
                 break;
         }

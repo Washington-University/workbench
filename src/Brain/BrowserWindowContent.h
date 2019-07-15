@@ -28,7 +28,7 @@
 #include "CaretObject.h"
 
 #include "SceneableInterface.h"
-#include "TileTabsConfigurationModeEnum.h"
+#include "TileTabsGridModeEnum.h"
 
 namespace caret {
     class SceneClassAssistant;
@@ -77,9 +77,9 @@ namespace caret {
         
         const TileTabsConfiguration* getCustomTileTabsConfiguration() const;
         
-        TileTabsConfigurationModeEnum::Enum getTileTabsConfigurationMode() const;
+        TileTabsGridModeEnum::Enum getTileTabsConfigurationMode() const;
         
-        void setTileTabsConfigurationMode(const TileTabsConfigurationModeEnum::Enum configMode);
+        void setTileTabsConfigurationMode(const TileTabsGridModeEnum::Enum configMode);
         
         int32_t getSceneGraphicsWidth() const;
         
@@ -142,7 +142,7 @@ namespace caret {
         
         bool m_tileTabsEnabled = false;
         
-        TileTabsConfigurationModeEnum::Enum m_tileTabsConfigurationMode = TileTabsConfigurationModeEnum::AUTOMATIC;
+        TileTabsGridModeEnum::Enum m_tileTabsConfigurationMode = TileTabsGridModeEnum::AUTOMATIC;
         
         int32_t m_sceneGraphicsWidth = 0;
         
