@@ -250,6 +250,15 @@ BrainStructure::addMetricFile(MetricFile* metricFile,
     
     if (addFileToBrainStructure) {
         m_metricFiles.push_back(metricFile);
+
+        /*
+         * Enable dynamic connectivity using preferences
+         */
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        MetricDynamicConnectivityFile* metricDynConn = metricFile->getMetricDynamicConnectivityFile();
+        if (metricDynConn != NULL) {
+            metricDynConn->setEnabledAsLayer(prefs->isDynamicConnectivityDefaultedOn());
+        }
     }
 }
 
