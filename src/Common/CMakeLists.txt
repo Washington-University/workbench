@@ -153,6 +153,9 @@ StringTableModel.h
 StructureEnum.h
 SystemUtilities.h
 TileTabsConfiguration.h
+TileTabsConfigurationLayoutTypeEnum.h
+TileTabsBaseConfiguration.h
+TileTabsGridLayoutConfiguration.h
 TileTabsGridModeEnum.h
 TileTabsGridRowColumnContentTypeEnum.h
 TileTabsGridRowColumnElement.h
@@ -275,6 +278,9 @@ StringTableModel.cxx
 StructureEnum.cxx
 SystemUtilities.cxx
 TileTabsConfiguration.cxx
+TileTabsConfigurationLayoutTypeEnum.cxx
+TileTabsBaseConfiguration.cxx
+TileTabsGridLayoutConfiguration.cxx
 TileTabsGridModeEnum.cxx
 TileTabsGridRowColumnContentTypeEnum.cxx
 TileTabsGridRowColumnElement.cxx
