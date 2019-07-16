@@ -370,7 +370,7 @@ MetricDynamicConnectivityFile::loadAverageDataForSurfaceNodes(const int32_t surf
     m_connectivityDataLoaded->reset();
 
     std::vector<double> dataSum(m_numberOfVertices, 0.0);
-    const int64_t vertexCount = static_cast<int64_t>(nodeIndices.size());
+    int64_t vertexCount(0);
     for (auto nodeIndex : nodeIndices) {
         std::vector<float> data;
         if (getConnectivityForVertexIndex(nodeIndex, data)) {
@@ -378,6 +378,7 @@ MetricDynamicConnectivityFile::loadAverageDataForSurfaceNodes(const int32_t surf
             for (int32_t i = 0; i < m_numberOfVertices; i++) {
                 dataSum[i] += data[i];
             }
+            vertexCount++;
         }
     }
     

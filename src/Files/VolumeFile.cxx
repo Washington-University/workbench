@@ -1314,8 +1314,13 @@ VolumeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizati
 {
     modesSupportedOut.clear();
     
-    modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
-    modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
+    if (getDataFileType() == DataFileTypeEnum::VOLUME) {
+        modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+        modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
+    }
+    else if (getDataFileType() == DataFileTypeEnum::VOLUME_DYNAMIC) {
+        modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+    }
 }
 
 /**
