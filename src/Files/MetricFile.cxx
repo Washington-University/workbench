@@ -841,7 +841,8 @@ MetricDynamicConnectivityFile*
 MetricFile::getMetricDynamicConnectivityFile()
 {
     if (m_lazyInitializedDynamicConnectivityFile == NULL) {
-        if (getNumberOfMaps() > 1) {
+        const int32_t minimumNumberOfTimePoints(8);
+        if (getNumberOfMaps() >= minimumNumberOfTimePoints) {
             m_lazyInitializedDynamicConnectivityFile.reset(new MetricDynamicConnectivityFile(this));
             
             m_lazyInitializedDynamicConnectivityFile->initializeFile();

@@ -2545,7 +2545,8 @@ VolumeFile::getVolumeDynamicConnectivityFile()
             std::vector<int64_t> dims;
             getDimensions(dims);
             if (dims.size() >= 4) {
-                if (dims[3] > 1) {
+                const int64_t minimumNumberOfTimePoints(8);
+                if (dims[3] > minimumNumberOfTimePoints) {
                     m_lazyInitializedDynamicConnectivityFile.reset(new VolumeDynamicConnectivityFile(this));
                     
                     m_lazyInitializedDynamicConnectivityFile->initializeFile();
