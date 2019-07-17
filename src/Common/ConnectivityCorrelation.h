@@ -25,8 +25,8 @@
 
 #include <memory>
 
+#include "CaretAssert.h"
 #include "CaretObject.h"
-
 
 
 namespace caret {
@@ -63,6 +63,9 @@ namespace caret {
         void getCorrelationForBrainordinate(const int64_t brainordinateIndex,
                                             std::vector<float>& dataOut);
 
+        void getCorrelationForBrainordinateROI(const std::vector<int64_t>& brainordinateIndices,
+                                               std::vector<float>& dataOut);
+        
 
 
         // ADD_NEW_METHODS_HERE
@@ -77,25 +80,33 @@ namespace caret {
         
         ConnectivityCorrelation(const DataTypeEnum dataType);
         
+        /**
+         * Contains timepoints for one brainordinate
+         */
         class BrainordinateData {
         public:
             /**
              * Constructor.
              *
              * @param data
-             *    Pointer to data
+             *    Pointer to data containing a brainordinate's timepoints
              * @param dataStride
              *    Offset between consecutive elements (1 for contiguous data)
-             * @param mean
-             *    Mean value of 'data'
-             * @param sqrtSumSquared
-             *    Square root of sum-squared of data
              */
             BrainordinateData(const float* data,
                               const int64_t dataStride)
             : m_data(data),
             m_dataStride(dataStride) { }
             
+            /*
+             * @return Data value for this brainordinate at the given time point index
+             *
+             * @param timePointIndex
+             *     Index of the timepoint
+             */
+            inline float getTimePointValue(const int64_t timePointIndex) const {
+                return m_data[timePointIndex * m_dataStride];
+            }
             const float* m_data;
             
             const int64_t m_dataStride;
@@ -121,6 +132,9 @@ namespace caret {
             const float m_sqrt_ssxx;
         };
         
+        /**
+         * Contains all brainordinate values for one timepoint
+         */
         class TimePointData {
         public:
             /**
@@ -134,8 +148,16 @@ namespace caret {
             TimePointData(const float* data,
                           const int64_t dataStride)
             : m_data(data),
-            m_dataStride(dataStride)
-            {
+            m_dataStride(dataStride) { }
+            
+            /*
+             * @return Data value for this brainordinate at the given time point index
+             *
+             * @param timePointIndex
+             *     Index of the timepoint
+             */
+            inline float getBrainordinateValue(const int64_t brainordinateIndex) const {
+                return m_data[brainordinateIndex * m_dataStride];
             }
             
             const float* m_data;
@@ -143,6 +165,38 @@ namespace caret {
             const int64_t m_dataStride;
         };
 
+        /**
+         * Get the data value for the given brainordinate and timepoint indices
+         *
+         * @param brainordinateIndex
+         *     Index of the brainordinate
+         * @param timePointIndex
+         *     Index of the time point
+         * @return
+         *     The data value
+         */
+        inline float getDataValue(const int64_t brainordinateIndex,
+                                  const int64_t timePointIndex) const {
+            float dataValue(0.0);
+            
+            switch (m_dataType) {
+                case DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA:
+                case DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA:
+                    CaretAssertVectorIndex(m_brainordinateData, brainordinateIndex);
+                    dataValue = m_brainordinateData[brainordinateIndex]->getTimePointValue(timePointIndex);
+                    break;
+                case DataTypeEnum::INVALID:
+                    CaretAssert(0);
+                    break;
+                case DataTypeEnum::TIMEPOINTS:
+                    CaretAssertVectorIndex(m_timePointData, timePointIndex);
+                    dataValue = m_timePointData[timePointIndex]->getBrainordinateValue(brainordinateIndex);
+                    break;
+            }
+            
+            return dataValue;
+        }
+        
         bool initializeWithBrainordinates(const std::vector<const float*>& brainordinateDataPointers,
                                           const int64_t numberOfTimePoints,
                                           const int64_t nextTimePointStride,
@@ -155,25 +209,30 @@ namespace caret {
         
         void computeBrainordinateMeanAndSumSquared();
         
-//        void computeDataMeanAndSumSquared(const float* data,
-//                                          const int64_t dataCount,
-//                                          const int64_t dataStride,
-//                                          float& meanOut,
-//                                          float& ssxxOut) const;
-//
-//        void computeDataMeanAndSumSquared(const int64_t brainordinateIndex,
-//                                          float& meanOut,
-//                                          float& sqrtSquaredOut) const;
-
         float correlationBrainordinateContiguousData(const int64_t fromBrainordinateIndex,
                                                      const int64_t toBrainordinateIndex) const;
+        
+        float correlationBrainordinateContiguousDataAux(const float* fromBrainordinateData,
+                                                        const float fromBrainordinateMean,
+                                                        const float fromBrainordinateSSXX,
+                                                        const int64_t toBrainordinateIndex) const;
         
         float correlationBrainordinateNonContiguousData(const int64_t fromBrainordinateIndex,
                                                         const int64_t toBrainordinateIndex) const;
 
+        float correlationBrainordinateNonContiguousDataAux(const float* fromBrainordinateData,
+                                                           const float fromBrainordinateMean,
+                                                           const float fromBrainordinateSSXX,
+                                                           const int64_t toBrainordinateIndex) const;
+        
         float correlationTimePointData(const int64_t fromBrainordinateIndex,
                                       const int64_t toBrainordinateIndex) const;
         
+        float correlationTimePointDataAux(const float* fromBrainordinateData,
+                                          const float fromBrainordinateMean,
+                                          const float fromBrainordinateSSXX,
+                                          const int64_t toBrainordinateIndex) const;
+
         DataTypeEnum m_dataType = DataTypeEnum::INVALID;
         
         int64_t m_numberOfBrainordinates = -1;

@@ -106,6 +106,8 @@ namespace caret {
         bool getConnectivityForVertexIndex(const int32_t vertexIndex,
                                            std::vector<float>& vertexDataOut);
         
+        ConnectivityCorrelation* getConnectivityCorrelation();
+        
         const MetricFile* m_parentMetricFile;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;

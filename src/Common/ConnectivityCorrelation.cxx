@@ -327,6 +327,80 @@ ConnectivityCorrelation::initializeWithTimePoints(const std::vector<const float*
 }
 
 /**
+ * Get correlation from the given brainordinate ROI to all other brainordinates
+ *
+ * @param brainordinateIndices
+ *     Index of brainordinates in the ROI to correlate to all other brainordinates
+ * @param dataOut
+ *     Output with correlation values.
+ */
+void
+ConnectivityCorrelation::getCorrelationForBrainordinateROI(const std::vector<int64_t>& brainordinateIndices,
+                                                           std::vector<float>& dataOut)
+{
+    dataOut.resize(m_numberOfBrainordinates);
+    std::fill(dataOut.begin(), dataOut.end(), 0.0);
+    
+    const int64_t numBrainordinatesInROI = static_cast<int64_t>(brainordinateIndices.size());
+    if (m_numberOfTimePoints > 1) {
+        if (numBrainordinatesInROI > 0) {
+            std::vector<float> dataAverage(m_numberOfTimePoints, 0.0);
+
+            for (int32_t iTime = 0; iTime < m_numberOfTimePoints; iTime++) {
+                double timePointSum(0.0);
+                for (int64_t jBrain = 0; jBrain < numBrainordinatesInROI; jBrain++) {
+                    CaretAssertVectorIndex(brainordinateIndices, jBrain);
+                    timePointSum += getDataValue(brainordinateIndices[jBrain], iTime);
+                }
+                dataAverage[iTime] = timePointSum / static_cast<double>(numBrainordinatesInROI);
+            }
+
+            double sum(0.0);
+            double sumSquared(0.0);
+            for (int64_t j = 0; j < m_numberOfTimePoints; j++) {
+                CaretAssertVectorIndex(dataAverage, j);
+                const float d = dataAverage[j];
+                sum        += d;
+                sumSquared += (d * d);
+            }
+            const float mean = (sum / m_numberOfTimePoints);
+            const float ssxxSquared = (sumSquared - (m_numberOfTimePoints * mean * mean));
+            const float ssxx = std::sqrt(ssxxSquared);
+            
+            const float* dataPtr = &dataAverage[0];
+#pragma omp CARET_PARFOR schedule(dynamic)
+            for (int32_t iBrain = 0; iBrain < m_numberOfBrainordinates; iBrain++) {
+                CaretAssertVectorIndex(dataOut, iBrain);
+                switch (m_dataType) {
+                    case DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA:
+                        dataOut[iBrain] = correlationBrainordinateContiguousDataAux(dataPtr,
+                                                                                    mean,
+                                                                                    ssxx,
+                                                                                    iBrain);
+                        break;
+                    case DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA:
+                        dataOut[iBrain] = correlationBrainordinateNonContiguousDataAux(dataPtr,
+                                                                                       mean,
+                                                                                       ssxx,
+                                                                                       iBrain);
+                        break;
+                    case DataTypeEnum::INVALID:
+                        CaretAssert(0);
+                        break;
+                    case DataTypeEnum::TIMEPOINTS:
+                        dataOut[iBrain] = correlationTimePointDataAux(dataPtr,
+                                                                      mean,
+                                                                      ssxx,
+                                                                      iBrain);
+                        break;
+                }
+            }
+        }
+    }
+}
+
+
+/**
  * Get correlation from the given brainordinate to all other brainordinates
  *
  * @param brainordinateIndex
@@ -336,7 +410,7 @@ ConnectivityCorrelation::initializeWithTimePoints(const std::vector<const float*
  */
 void
 ConnectivityCorrelation::getCorrelationForBrainordinate(const int64_t brainordinateIndex,
-                                                std::vector<float>& dataOut)
+                                                        std::vector<float>& dataOut)
 {
     CaretAssert(m_numberOfBrainordinates > 1);
     CaretAssert(m_numberOfTimePoints > 1);
@@ -384,25 +458,53 @@ ConnectivityCorrelation::correlationBrainordinateContiguousData(const int64_t fr
     CaretAssert(m_dataType == DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA);
     
     CaretAssertVectorIndex(m_brainordinateData, fromBrainordinateIndex);
-    CaretAssertVectorIndex(m_brainordinateData, toBrainordinateIndex);
     const BrainordinateData* fromData = m_brainordinateData[fromBrainordinateIndex].get();
+    CaretAssertVectorIndex(m_meanSSData, fromBrainordinateIndex);
+    const BrainordinateMeanSS* fromMeanSS = m_meanSSData[fromBrainordinateIndex].get();
+    
+    return correlationBrainordinateContiguousDataAux(fromData->m_data,
+                                                     fromMeanSS->m_mean,
+                                                     fromMeanSS->m_sqrt_ssxx,
+                                                     toBrainordinateIndex);
+}
+
+/**
+ * Get the correlation coefficient for the two given brainordinates
+ * that contain CONTIGOUS data
+ *
+ * @param fromBrainordinateData
+ *     Data for the 'from' brainordinate
+ * @param fromBrainordinateMean
+ *     Mean of the data for the 'from' brainordinate.
+ * @param fromBrainordinateSSXX
+ *     Sum-squared of the data for the 'from' brainordinate.
+ * @param toBrainordinateIndex
+ *     Index of the 'to' brainordinate.
+ */
+float
+ConnectivityCorrelation::correlationBrainordinateContiguousDataAux(const float* fromBrainordinateData,
+                                                                   const float fromBrainordinateMean,
+                                                                   const float fromBrainordinateSSXX,
+                                                                   const int64_t toBrainordinateIndex) const
+{
+    CaretAssert(m_dataType == DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA);
+    
+    CaretAssertVectorIndex(m_brainordinateData, toBrainordinateIndex);
     const BrainordinateData* toGroup   = m_brainordinateData[toBrainordinateIndex].get();
     
-    CaretAssertVectorIndex(m_meanSSData, fromBrainordinateIndex);
     CaretAssertVectorIndex(m_meanSSData, toBrainordinateIndex);
-    const BrainordinateMeanSS* fromMeanSS = m_meanSSData[fromBrainordinateIndex].get();
     const BrainordinateMeanSS* toMeanSS   = m_meanSSData[toBrainordinateIndex].get();
     
-    double xySum = dsdot(fromData->m_data,
+    double xySum = dsdot(fromBrainordinateData,
                          toGroup->m_data,
                          m_numberOfTimePoints);
     
-    const double ssxy = xySum - (m_numberOfTimePoints * fromMeanSS->m_mean * toMeanSS->m_mean);
+    const double ssxy = xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean);
     
     float correlationCoefficient = 0.0;
-    if ((fromMeanSS->m_sqrt_ssxx > 0.0)
+    if ((fromBrainordinateSSXX > 0.0)
         && (toMeanSS->m_sqrt_ssxx > 0.0)) {
-        correlationCoefficient = (ssxy / (fromMeanSS->m_sqrt_ssxx * toMeanSS->m_sqrt_ssxx));
+        correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
     }
     return correlationCoefficient;
 }
@@ -420,39 +522,67 @@ float
 ConnectivityCorrelation::correlationBrainordinateNonContiguousData(const int64_t fromBrainordinateIndex,
                                                                    const int64_t toBrainordinateIndex) const
 {
-    CaretAssert(m_dataType == DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA);
-    
     CaretAssertVectorIndex(m_brainordinateData, fromBrainordinateIndex);
-    CaretAssertVectorIndex(m_brainordinateData, toBrainordinateIndex);
     
-    const BrainordinateData* fromGroup = m_brainordinateData[fromBrainordinateIndex].get();
-    const BrainordinateData* toGroup   = m_brainordinateData[toBrainordinateIndex].get();
+    std::vector<float> data(m_numberOfTimePoints);
+    for (int32_t iTime = 0; iTime < m_numberOfTimePoints; iTime++) {
+        data[iTime] = getDataValue(fromBrainordinateIndex, iTime);
+    }
     
     CaretAssertVectorIndex(m_meanSSData, fromBrainordinateIndex);
-    CaretAssertVectorIndex(m_meanSSData, toBrainordinateIndex);
     const BrainordinateMeanSS* fromMeanSS = m_meanSSData[fromBrainordinateIndex].get();
+    
+    
+    return correlationBrainordinateNonContiguousDataAux(&data[0],
+                                                        fromMeanSS->m_mean,
+                                                        fromMeanSS->m_sqrt_ssxx,
+                                                        toBrainordinateIndex);
+}
+
+/**
+ * Get the correlation coefficient for the two given brainordinates
+ * that contain NON-CONTIGOUS data
+ *
+ * @param fromBrainordinateData
+ *     Data for the 'from' brainordinate
+ * @param fromBrainordinateMean
+ *     Mean of the data for the 'from' brainordinate.
+ * @param fromBrainordinateSSXX
+ *     Sum-squared of the data for the 'from' brainordinate.
+ * @param toBrainordinateIndex
+ *     Index of the 'to' brainordinate.
+ */
+float
+ConnectivityCorrelation::correlationBrainordinateNonContiguousDataAux(const float* fromBrainordinateData,
+                                                                      const float fromBrainordinateMean,
+                                                                      const float fromBrainordinateSSXX,
+                                                                      const int64_t toBrainordinateIndex) const
+{
+    CaretAssert(m_dataType == DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA);
+    
+    CaretAssertVectorIndex(m_brainordinateData, toBrainordinateIndex);
+    
+    const BrainordinateData* toGroup   = m_brainordinateData[toBrainordinateIndex].get();
+    
+    CaretAssertVectorIndex(m_meanSSData, toBrainordinateIndex);
     const BrainordinateMeanSS* toMeanSS   = m_meanSSData[toBrainordinateIndex].get();
     
-    const float* fromData    = fromGroup->m_data;
-    const int64_t fromStride = fromGroup->m_dataStride;
     const float* toData      = toGroup->m_data;
     const int64_t toStride   = toGroup->m_dataStride;
     
-    int64_t fromOffset(0);
     int64_t toOffset(0);
     double xySum(0.0);
     for (int32_t i = 0; i < m_numberOfTimePoints; i++) {
-        xySum += (fromData[fromOffset] * toData[toOffset]);
-        fromOffset += fromStride;
+        xySum += (fromBrainordinateData[i] * toData[toOffset]);
         toOffset   += toStride;
     }
     
-    const double ssxy = xySum - (m_numberOfTimePoints * fromMeanSS->m_mean * toMeanSS->m_mean);
+    const double ssxy = xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean);
     
     float correlationCoefficient = 0.0;
-    if ((fromMeanSS->m_sqrt_ssxx > 0.0)
+    if ((fromBrainordinateSSXX > 0.0)
         && (toMeanSS->m_sqrt_ssxx > 0.0)) {
-        correlationCoefficient = (ssxy / (fromMeanSS->m_sqrt_ssxx * toMeanSS->m_sqrt_ssxx));
+        correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
     }
     return correlationCoefficient;
 }
@@ -475,27 +605,62 @@ ConnectivityCorrelation::correlationTimePointData(const int64_t fromBrainordinat
     CaretAssert((fromBrainordinateIndex >= 0) && (fromBrainordinateIndex < m_numberOfBrainordinates));
     CaretAssert((toBrainordinateIndex >= 0) && (toBrainordinateIndex < m_numberOfBrainordinates));
     
+    std::vector<float> data(m_numberOfTimePoints);
+    for (int32_t iTime = 0; iTime < m_numberOfTimePoints; iTime++) {
+        data[iTime] = getDataValue(fromBrainordinateIndex, iTime);
+    }
+    
     CaretAssertVectorIndex(m_meanSSData, fromBrainordinateIndex);
-    CaretAssertVectorIndex(m_meanSSData, toBrainordinateIndex);
     const BrainordinateMeanSS* fromMeanSS = m_meanSSData[fromBrainordinateIndex].get();
+    
+    
+    return correlationTimePointDataAux(&data[0],
+                                       fromMeanSS->m_mean,
+                                       fromMeanSS->m_sqrt_ssxx,
+                                       toBrainordinateIndex);
+}
+
+/**
+ * Get the correlation coefficient for the two given brainordinates
+ * that contain NON-CONTIGOUS data
+ *
+ * @param fromBrainordinateData
+ *     Data for the 'from' brainordinate
+ * @param fromBrainordinateMean
+ *     Mean of the data for the 'from' brainordinate.
+ * @param fromBrainordinateSSXX
+ *     Sum-squared of the data for the 'from' brainordinate.
+ * @param toBrainordinateIndex
+ *     Index of the 'to' brainordinate.
+ */
+float
+ConnectivityCorrelation::correlationTimePointDataAux(const float* fromBrainordinateData,
+                                                     const float fromBrainordinateMean,
+                                                     const float fromBrainordinateSSXX,
+                                                     const int64_t toBrainordinateIndex) const
+{
+    CaretAssert(m_dataType == DataTypeEnum::TIMEPOINTS);
+    
+    CaretAssert((toBrainordinateIndex >= 0) && (toBrainordinateIndex < m_numberOfBrainordinates));
+    
+    CaretAssertVectorIndex(m_meanSSData, toBrainordinateIndex);
     const BrainordinateMeanSS* toMeanSS   = m_meanSSData[toBrainordinateIndex].get();
     
     double xySum(0.0);
     for (int32_t i = 0; i < m_numberOfTimePoints; i++) {
         CaretAssertVectorIndex(m_timePointData, i);
         const TimePointData* tpd = m_timePointData[i].get();
-        const int64_t fromOffset = (fromBrainordinateIndex * tpd->m_dataStride);
         const int64_t toOffset   = (toBrainordinateIndex   * tpd->m_dataStride);
         
-        xySum += (tpd->m_data[fromOffset] * tpd->m_data[toOffset]);
+        xySum += (fromBrainordinateData[i] * tpd->m_data[toOffset]);
     }
     
-    const double ssxy = xySum - (m_numberOfTimePoints * fromMeanSS->m_mean * toMeanSS->m_mean);
+    const double ssxy = xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean);
     
     float correlationCoefficient = 0.0;
-    if ((fromMeanSS->m_sqrt_ssxx > 0.0)
+    if ((fromBrainordinateSSXX > 0.0)
         && (toMeanSS->m_sqrt_ssxx > 0.0)) {
-        correlationCoefficient = (ssxy / (fromMeanSS->m_sqrt_ssxx * toMeanSS->m_sqrt_ssxx));
+        correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
     }
     return correlationCoefficient;
 }

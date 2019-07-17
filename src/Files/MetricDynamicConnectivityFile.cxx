@@ -365,38 +365,40 @@ MetricDynamicConnectivityFile::loadAverageDataForSurfaceNodes(const int32_t surf
     if (getNumberOfNodes() != surfaceNumberOfNodes) {
         return validFlag;
     }
+    if (nodeIndices.size() < 2) {
+        return validFlag;
+    }
+    
+    ConnectivityCorrelation* connCorrelation = getConnectivityCorrelation();
+    if (connCorrelation == NULL) {
+        return validFlag;
+    }
     
     clearVertexValues();
     m_connectivityDataLoaded->reset();
 
-    std::vector<double> dataSum(m_numberOfVertices, 0.0);
-    int64_t vertexCount(0);
-    for (auto nodeIndex : nodeIndices) {
-        std::vector<float> data;
-        if (getConnectivityForVertexIndex(nodeIndex, data)) {
-            CaretAssert(m_numberOfVertices == static_cast<int64_t>(data.size()));
-            for (int32_t i = 0; i < m_numberOfVertices; i++) {
-                dataSum[i] += data[i];
-            }
-            vertexCount++;
+    float* dataPointer = const_cast<float*>(getValuePointerForColumn(0));
+    CaretAssert(dataPointer);
+
+    std::vector<int64_t> nodeIndices64(nodeIndices.begin(), nodeIndices.end());
+    std::vector<float> data(getNumberOfNodes());
+    connCorrelation->getCorrelationForBrainordinateROI(nodeIndices64,
+                                                       data);
+    const int64_t numData = static_cast<int64_t>(data.size());
+    validFlag = (numData == getNumberOfNodes());
+    if (validFlag) {
+        for (int64_t i = 0; i < numData; i++) {
+            dataPointer[i] = data[i];
         }
     }
     
-    if (vertexCount >= 1.0) {
-        float* dataPointer = const_cast<float*>(getValuePointerForColumn(0));
-        CaretAssert(dataPointer);
-        for (int32_t i = 0; i < m_numberOfVertices; i++) {
-            dataPointer[i] = static_cast<float>(dataSum[i] / vertexCount);
-        }
-        
-        validFlag = true;
-        
-        m_connectivityDataLoaded->setSurfaceAverageNodeLoading(getStructure(),
-                                                               getNumberOfNodes(),
-                                                               nodeIndices);
-    }
+    
+    m_connectivityDataLoaded->setSurfaceAverageNodeLoading(getStructure(),
+                                                           getNumberOfNodes(),
+                                                           nodeIndices);
+
     const AString mapName("Average_Vertex_Count_"
-                          + AString::number(vertexCount, 'f', 0));
+                          + AString::number(static_cast<int32_t>(nodeIndices.size())));
     m_dataLoadedName = mapName;
     const int32_t mapIndex(0);
     setMapName(mapIndex,
@@ -424,45 +426,15 @@ MetricDynamicConnectivityFile::getConnectivityForVertexIndex(const int32_t verte
                                                              std::vector<float>& vertexDataOut)
 {
     bool validFlag(false);
-    if ( ! m_connectivityCorrelationFailedFlag) {
-        if ((vertexIndex >= 0)
-            && (vertexIndex < getNumberOfNodes())) {
-            if (m_connectivityCorrelation == NULL) {
-                /*
-                 * Need data and timepoint count from parent volume
-                 * IJK dimensions are same in this and parent volume
-                 */
-                CaretAssert(m_parentMetricFile);
-                const int32_t numberOfTimePoints = m_parentMetricFile->getNumberOfMaps();
-                CaretAssert(numberOfTimePoints >= 2);
-                std::vector<const float*> timePointData;
-                for (int32_t i = 0; i < numberOfTimePoints; i++) {
-                    const float* dataPtr = m_parentMetricFile->getValuePointerForColumn(i);
-                    CaretAssert(dataPtr);
-                    timePointData.push_back(dataPtr);
-                }
-                const int64_t brainordinateStride(1);
-                AString errorMessage;
-                ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstanceTimePoints(timePointData,
-                                                                                             m_numberOfVertices,
-                                                                                             brainordinateStride,
-                                                                                             errorMessage);
-                if (cc != NULL) {
-                    m_connectivityCorrelation.reset(cc);
-                }
-                else {
-                    m_connectivityCorrelationFailedFlag = true;
-                    CaretLogSevere("Failed to create connectvity correlation for "
-                                   + m_parentMetricFile->getFileNameNoPath());
-                }
-            }
-            
-            if (m_connectivityCorrelation) {
-                m_connectivityCorrelation->getCorrelationForBrainordinate(vertexIndex,
-                                                                          vertexDataOut);
-                CaretAssert(m_numberOfVertices == static_cast<int64_t>(vertexDataOut.size()));
-                validFlag = true;
-            }
+    if ((vertexIndex >= 0)
+        && (vertexIndex < getNumberOfNodes())) {
+        ConnectivityCorrelation* connCorrelation = getConnectivityCorrelation();
+        
+        if (connCorrelation) {
+            connCorrelation->getCorrelationForBrainordinate(vertexIndex,
+                                                            vertexDataOut);
+            CaretAssert(m_numberOfVertices == static_cast<int64_t>(vertexDataOut.size()));
+            validFlag = true;
         }
     }
 
@@ -478,6 +450,45 @@ MetricDynamicConnectivityFile::getConnectivityForVertexIndex(const int32_t verte
     return validFlag;
 }
 
+/**
+ * @return Pointer to connectivity correlation or NULL if not valid
+ */
+ConnectivityCorrelation*
+MetricDynamicConnectivityFile::getConnectivityCorrelation()
+{
+    if ( ! m_connectivityCorrelationFailedFlag) {
+        if (m_connectivityCorrelation == NULL) {
+            /*
+             * Need data and timepoint count from parent file
+             */
+            CaretAssert(m_parentMetricFile);
+            const int32_t numberOfTimePoints = m_parentMetricFile->getNumberOfMaps();
+            CaretAssert(numberOfTimePoints >= 2);
+            std::vector<const float*> timePointData;
+            for (int32_t i = 0; i < numberOfTimePoints; i++) {
+                const float* dataPtr = m_parentMetricFile->getValuePointerForColumn(i);
+                CaretAssert(dataPtr);
+                timePointData.push_back(dataPtr);
+            }
+            const int64_t brainordinateStride(1);
+            AString errorMessage;
+            ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstanceTimePoints(timePointData,
+                                                                                         m_numberOfVertices,
+                                                                                         brainordinateStride,
+                                                                                         errorMessage);
+            if (cc != NULL) {
+                m_connectivityCorrelation.reset(cc);
+            }
+            else {
+                m_connectivityCorrelationFailedFlag = true;
+                CaretLogSevere("Failed to create connectvity correlation for "
+                               + m_parentMetricFile->getFileNameNoPath());
+            }
+        }
+    }
+    
+    return m_connectivityCorrelation.get();
+}
 
 /**
  * @return A metric file using the loaded data (will return NULL if there is an error).
