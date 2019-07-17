@@ -124,6 +124,9 @@ namespace caret {
         bool getConnectivityForVoxelIndex(const int64_t ijk[3],
                                           std::vector<float>& voxelsOut) ;
         
+        ConnectivityCorrelation* getConnectivityCorrelation();
+        
+
         const VolumeFile* m_parentVolumeFile;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
