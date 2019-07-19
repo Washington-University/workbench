@@ -22,9 +22,9 @@
 #include <cmath>
 #include <set>
 
-#define __TILE_TABS_GRID_LAYOUT_CONFIGURATION_DECLARE__
-#include "TileTabsGridLayoutConfiguration.h"
-#undef __TILE_TABS_GRID_LAYOUT_CONFIGURATION_DECLARE__
+#define __TILE_TABS_LAYOUT_GRID_CONFIGURATION_DECLARE__
+#include "TileTabsLayoutGridConfiguration.h"
+#undef __TILE_TABS_LAYOUT_GRID_CONFIGURATION_DECLARE__
 
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
@@ -38,7 +38,7 @@ using namespace caret;
 
     
 /**
- * \class caret::TileTabsGridLayoutConfiguration
+ * \class caret::TileTabsLayoutGridConfiguration
  * \brief Defines a tile tabs configuration
  * \ingroup Common
  */
@@ -46,8 +46,8 @@ using namespace caret;
 /**
  * Constructor that creates a 2 by 2 configuration.
  */
-TileTabsGridLayoutConfiguration::TileTabsGridLayoutConfiguration()
-: TileTabsBaseConfiguration(TileTabsConfigurationLayoutTypeEnum::GRID)
+TileTabsLayoutGridConfiguration::TileTabsLayoutGridConfiguration()
+: TileTabsLayoutBaseConfiguration(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID)
 {
     initialize();
 }
@@ -55,7 +55,7 @@ TileTabsGridLayoutConfiguration::TileTabsGridLayoutConfiguration()
 /**
  * Destructor.
  */
-TileTabsGridLayoutConfiguration::~TileTabsGridLayoutConfiguration()
+TileTabsLayoutGridConfiguration::~TileTabsLayoutGridConfiguration()
 {
 }
 
@@ -67,11 +67,11 @@ TileTabsGridLayoutConfiguration::~TileTabsGridLayoutConfiguration()
  * @param obj
  *    Object that is copied.
  */
-TileTabsGridLayoutConfiguration::TileTabsGridLayoutConfiguration(const TileTabsGridLayoutConfiguration& obj)
-: TileTabsBaseConfiguration(obj)
+TileTabsLayoutGridConfiguration::TileTabsLayoutGridConfiguration(const TileTabsLayoutGridConfiguration& obj)
+: TileTabsLayoutBaseConfiguration(obj)
 {
     initialize();
-    this->copyHelperTileTabsGridLayoutConfiguration(obj);
+    this->copyHelperTileTabsLayoutGridConfiguration(obj);
 }
 
 /**
@@ -84,12 +84,12 @@ TileTabsGridLayoutConfiguration::TileTabsGridLayoutConfiguration(const TileTabsG
  * @return 
  *    Reference to this object.
  */
-TileTabsGridLayoutConfiguration&
-TileTabsGridLayoutConfiguration::operator=(const TileTabsGridLayoutConfiguration& obj)
+TileTabsLayoutGridConfiguration&
+TileTabsLayoutGridConfiguration::operator=(const TileTabsLayoutGridConfiguration& obj)
 {
     if (this != &obj) {
-        TileTabsBaseConfiguration::operator=(obj);
-        this->copyHelperTileTabsGridLayoutConfiguration(obj);
+        TileTabsLayoutBaseConfiguration::operator=(obj);
+        this->copyHelperTileTabsLayoutGridConfiguration(obj);
     }
     return *this;    
 }
@@ -100,10 +100,10 @@ TileTabsGridLayoutConfiguration::operator=(const TileTabsGridLayoutConfiguration
  *
  * @return The new Copy.
  */
-TileTabsGridLayoutConfiguration*
-TileTabsGridLayoutConfiguration::newCopyWithNewUniqueIdentifier() const
+TileTabsLayoutBaseConfiguration*
+TileTabsLayoutGridConfiguration::newCopyWithNewUniqueIdentifier() const
 {
-    TileTabsGridLayoutConfiguration* newCopy = new TileTabsGridLayoutConfiguration(*this);
+    TileTabsLayoutGridConfiguration* newCopy = new TileTabsLayoutGridConfiguration(*this);
     CaretAssert(newCopy);
     return newCopy;
 }
@@ -113,7 +113,7 @@ TileTabsGridLayoutConfiguration::newCopyWithNewUniqueIdentifier() const
  * Initialize an instance of a tile tabs configuration.
  */
 void
-TileTabsGridLayoutConfiguration::initialize()
+TileTabsLayoutGridConfiguration::initialize()
 {
     setNumberOfRows(2);
     setNumberOfColumns(2);
@@ -127,13 +127,13 @@ TileTabsGridLayoutConfiguration::initialize()
  *    Object that is copied.
  */
 void 
-TileTabsGridLayoutConfiguration::copyHelperTileTabsGridLayoutConfiguration(const TileTabsGridLayoutConfiguration& obj)
+TileTabsLayoutGridConfiguration::copyHelperTileTabsLayoutGridConfiguration(const TileTabsLayoutGridConfiguration& obj)
 {
     if (this == &obj) {
         return;
     }
     
-    copyHelperTileTabsBaseConfiguration(obj);
+    copyHelperTileTabsLayoutBaseConfiguration(obj);
     m_columns = obj.m_columns;
     m_rows    = obj.m_rows;
     m_centeringCorrectionEnabled = obj.m_centeringCorrectionEnabled;
@@ -144,10 +144,10 @@ TileTabsGridLayoutConfiguration::copyHelperTileTabsGridLayoutConfiguration(const
  * stretch factors.   Name is NOT copied.
  */
 void
-TileTabsGridLayoutConfiguration::copy(const TileTabsGridLayoutConfiguration& rhs)
+TileTabsLayoutGridConfiguration::copy(const TileTabsLayoutGridConfiguration& rhs)
 {
     AString savedName = getName();
-    copyHelperTileTabsGridLayoutConfiguration(rhs);
+    copyHelperTileTabsLayoutGridConfiguration(rhs);
     setName(savedName);
 }
 
@@ -157,7 +157,7 @@ TileTabsGridLayoutConfiguration::copy(const TileTabsGridLayoutConfiguration& rhs
  * @param Information for element.
  */
 TileTabsGridRowColumnElement*
-TileTabsGridLayoutConfiguration::getColumn(const int32_t columnIndex)
+TileTabsLayoutGridConfiguration::getColumn(const int32_t columnIndex)
 {
     CaretAssertVectorIndex(m_columns, columnIndex);
     return &m_columns[columnIndex];
@@ -169,7 +169,7 @@ TileTabsGridLayoutConfiguration::getColumn(const int32_t columnIndex)
  * @param Information for element.
  */
 const TileTabsGridRowColumnElement*
-TileTabsGridLayoutConfiguration::getColumn(const int32_t columnIndex) const
+TileTabsLayoutGridConfiguration::getColumn(const int32_t columnIndex) const
 {
     CaretAssertVectorIndex(m_columns, columnIndex);
     return &m_columns[columnIndex];
@@ -181,7 +181,7 @@ TileTabsGridLayoutConfiguration::getColumn(const int32_t columnIndex) const
  * @param Information for element.
  */
 TileTabsGridRowColumnElement*
-TileTabsGridLayoutConfiguration::getRow(const int32_t rowIndex)
+TileTabsLayoutGridConfiguration::getRow(const int32_t rowIndex)
 {
     CaretAssertVectorIndex(m_rows, rowIndex);
     return &m_rows[rowIndex];
@@ -193,7 +193,7 @@ TileTabsGridLayoutConfiguration::getRow(const int32_t rowIndex)
  * @param Information for element.
  */
 const TileTabsGridRowColumnElement*
-TileTabsGridLayoutConfiguration::getRow(const int32_t rowIndex) const
+TileTabsLayoutGridConfiguration::getRow(const int32_t rowIndex) const
 {
     CaretAssertVectorIndex(m_rows, rowIndex);
     return &m_rows[rowIndex];
@@ -219,7 +219,7 @@ TileTabsGridLayoutConfiguration::getRow(const int32_t rowIndex) const
  *      True if the ouput is valid, else false.
  */
 bool
-TileTabsGridLayoutConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
+TileTabsLayoutGridConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
                                                                  const int32_t windowHeight,
                                                                  const int32_t numberOfModelsToDraw,
                                                                  const TileTabsGridModeEnum::Enum configurationMode,
@@ -407,7 +407,7 @@ TileTabsGridLayoutConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const
  * @return Number of rows.
  */
 int32_t
-TileTabsGridLayoutConfiguration::getNumberOfRows() const
+TileTabsLayoutGridConfiguration::getNumberOfRows() const
 {
     return m_rows.size();
 }
@@ -419,7 +419,7 @@ TileTabsGridLayoutConfiguration::getNumberOfRows() const
  *     New number of rows.
  */
 void
-TileTabsGridLayoutConfiguration::setNumberOfRows(const int32_t numberOfRows)
+TileTabsLayoutGridConfiguration::setNumberOfRows(const int32_t numberOfRows)
 {
     m_rows.resize(numberOfRows);
 }
@@ -428,7 +428,7 @@ TileTabsGridLayoutConfiguration::setNumberOfRows(const int32_t numberOfRows)
  * @return Number of columns.
  */
 int32_t
-TileTabsGridLayoutConfiguration::getNumberOfColumns() const
+TileTabsLayoutGridConfiguration::getNumberOfColumns() const
 {
     return m_columns.size();
 }
@@ -440,7 +440,7 @@ TileTabsGridLayoutConfiguration::getNumberOfColumns() const
  *     New number of rows.
  */
 void
-TileTabsGridLayoutConfiguration::setNumberOfColumns(const int32_t numberOfColumns)
+TileTabsLayoutGridConfiguration::setNumberOfColumns(const int32_t numberOfColumns)
 {
     m_columns.resize(numberOfColumns);
 }
@@ -456,7 +456,7 @@ TileTabsGridLayoutConfiguration::setNumberOfColumns(const int32_t numberOfColumn
  *     Output with number of columns.
  */
 void
-TileTabsGridLayoutConfiguration::getRowsAndColumnsForNumberOfTabs(const int32_t numberOfTabs,
+TileTabsLayoutGridConfiguration::getRowsAndColumnsForNumberOfTabs(const int32_t numberOfTabs,
                                                         int32_t& numberOfRowsOut,
                                                         int32_t& numberOfColumnsOut)
 {
@@ -477,7 +477,7 @@ TileTabsGridLayoutConfiguration::getRowsAndColumnsForNumberOfTabs(const int32_t 
  * @return True if the centering correction is enabled.
  */
 bool
-TileTabsGridLayoutConfiguration::isCenteringCorrectionEnabled() const
+TileTabsLayoutGridConfiguration::isCenteringCorrectionEnabled() const
 {
     return m_centeringCorrectionEnabled;
 }
@@ -489,7 +489,7 @@ TileTabsGridLayoutConfiguration::isCenteringCorrectionEnabled() const
  *     New status for enabling the centering correction
  */
 void
-TileTabsGridLayoutConfiguration::setCenteringCorrectionEnabled(const bool status)
+TileTabsLayoutGridConfiguration::setCenteringCorrectionEnabled(const bool status)
 {
     m_centeringCorrectionEnabled = status;
 }
@@ -503,7 +503,7 @@ TileTabsGridLayoutConfiguration::setCenteringCorrectionEnabled(const bool status
  * columns is always greater than the number of rows.
  */
 void
-TileTabsGridLayoutConfiguration::updateAutomaticConfigurationRowsAndColumns(const int32_t numberOfTabs)
+TileTabsLayoutGridConfiguration::updateAutomaticConfigurationRowsAndColumns(const int32_t numberOfTabs)
 {
     int32_t numRows(0), numCols(0);
     getRowsAndColumnsForNumberOfTabs(numberOfTabs,
@@ -521,17 +521,17 @@ TileTabsGridLayoutConfiguration::updateAutomaticConfigurationRowsAndColumns(cons
  *     Contains XML representation of configuration.
  */
 void
-TileTabsGridLayoutConfiguration::encodeInXML(AString& xmlTextOut) const
+TileTabsLayoutGridConfiguration::encodeInXMLString(AString& xmlTextOut) const
 {
     xmlTextOut = encodeVersionInXML(2);
 }
 
 /**
  * @return Encoded tile tabs configuration in XML
- * using the give XML version of TileTabsGridLayoutConfiguration.
+ * using the give XML version of TileTabsLayoutGridConfiguration.
  */
 AString
-TileTabsGridLayoutConfiguration::encodeVersionInXML(const int32_t versionNumber) const
+TileTabsLayoutGridConfiguration::encodeVersionInXML(const int32_t versionNumber) const
 {
     AString s;
     
@@ -555,7 +555,7 @@ TileTabsGridLayoutConfiguration::encodeVersionInXML(const int32_t versionNumber)
  * @return Encoded tile tabs configuration in XML with Stream Writer
  */
 AString
-TileTabsGridLayoutConfiguration::encodeInXMLWithStreamWriterVersionOne() const
+TileTabsLayoutGridConfiguration::encodeInXMLWithStreamWriterVersionOne() const
 {
     AString xmlString;
     QXmlStreamWriter writer(&xmlString);
@@ -601,7 +601,7 @@ TileTabsGridLayoutConfiguration::encodeInXMLWithStreamWriterVersionOne() const
  * @return Encoded tile tabs configuration in XML with Stream Writer
  */
 AString
-TileTabsGridLayoutConfiguration::encodeInXMLWithStreamWriterVersionTwo() const
+TileTabsLayoutGridConfiguration::encodeInXMLWithStreamWriterVersionTwo() const
 {
     AString xmlString;
     QXmlStreamWriter writer(&xmlString);
@@ -633,7 +633,7 @@ TileTabsGridLayoutConfiguration::encodeInXMLWithStreamWriterVersionTwo() const
  *     Vector of elements added to XML.
  */
 void
-TileTabsGridLayoutConfiguration::encodeRowColumnElement(QXmlStreamWriter& writer,
+TileTabsLayoutGridConfiguration::encodeRowColumnElement(QXmlStreamWriter& writer,
                                               const AString tagName,
                                               const std::vector<TileTabsGridRowColumnElement>& elements) const
 {
@@ -662,8 +662,8 @@ TileTabsGridLayoutConfiguration::encodeRowColumnElement(QXmlStreamWriter& writer
  *     The root element.
  */
 void
-TileTabsGridLayoutConfiguration::decodeFromXML(QXmlStreamReader& xml,
-                                         const QString& rootElementText)
+TileTabsLayoutGridConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
+                                                    const AString& rootElementText)
 {
     CaretAssert( ! rootElementText.isEmpty());
     
@@ -689,12 +689,12 @@ TileTabsGridLayoutConfiguration::decodeFromXML(QXmlStreamReader& xml,
                 decodeFromXMLWithStreamReaderVersionTwo(xml);
             }
             else {
-                xml.raiseError("TileTabsGridLayoutConfiguration invalid version="
+                xml.raiseError("TileTabsLayoutGridConfiguration invalid version="
                                + versionNumberText);
             }
         }
         else {
-            xml.raiseError("TileTabsGridLayoutConfiguration first element is "
+            xml.raiseError("TileTabsLayoutGridConfiguration first element is "
                            + xml.name().toString()
                            + " but should be "
                            + s_v1_rootTagName
@@ -707,7 +707,7 @@ TileTabsGridLayoutConfiguration::decodeFromXML(QXmlStreamReader& xml,
 //        AString xmlText = encodeInXMLWithStreamWriterVersionTwo();
 //        std::cout << std::endl << "NEW: " << xmlText << std::endl << std::endl;
 //        AString em;
-//        TileTabsGridLayoutConfiguration temp;
+//        TileTabsLayoutGridConfiguration temp;
 //        QXmlStreamReader tempReader(xmlText);
 //        tempReader.readNextStartElement();
 //        temp.decodeFromXMLWithStreamReaderVersionTwo(tempReader);
@@ -730,7 +730,7 @@ TileTabsGridLayoutConfiguration::decodeFromXML(QXmlStreamReader& xml,
  *   Stream XML parser.
  */
 void
-TileTabsGridLayoutConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader& xml)
+TileTabsLayoutGridConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader& xml)
 {
     std::set<QString> invalidElements;
     
@@ -860,7 +860,7 @@ TileTabsGridLayoutConfiguration::decodeFromXMLWithStreamReaderVersionOne(QXmlStr
  *   Stream XML parser.
  */
 void
-TileTabsGridLayoutConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader& xml)
+TileTabsLayoutGridConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader& xml)
 {
     m_rows.clear();
     m_columns.clear();
@@ -1004,7 +1004,7 @@ TileTabsGridLayoutConfiguration::decodeFromXMLWithStreamReaderVersionTwo(QXmlStr
  *     True if read successfully, else false.
  */
 bool
-TileTabsGridLayoutConfiguration::decodeRowColumnElement(QXmlStreamReader& reader,
+TileTabsLayoutGridConfiguration::decodeRowColumnElement(QXmlStreamReader& reader,
                                               TileTabsGridRowColumnElement& element,
                                               AString& errorMessageOut)
 {
@@ -1072,9 +1072,14 @@ TileTabsGridLayoutConfiguration::decodeRowColumnElement(QXmlStreamReader& reader
  * @return String version of an instance.
  */
 AString
-TileTabsGridLayoutConfiguration::toString() const
+TileTabsLayoutGridConfiguration::toString() const
 {
-    AString s = TileTabsBaseConfiguration::toString();
+    AString s = TileTabsLayoutBaseConfiguration::toString();
+    if ( ! s.isEmpty()) {
+        s.append("\n");
+    }
+    s.append("TileTabsLayoutGridConfiguration:");
+    s.append("\n");
     
     int32_t indx(0);
     for (const auto item : m_columns) {

@@ -1,5 +1,5 @@
-#ifndef __TILE_TABS_BASE_CONFIGURATION_H__
-#define __TILE_TABS_BASE_CONFIGURATION_H__
+#ifndef __TILE_TABS_LAYOUT_BASE_CONFIGURATION_H__
+#define __TILE_TABS_LAYOUT_BASE_CONFIGURATION_H__
 
 /*LICENSE_START*/
 /*
@@ -23,7 +23,7 @@
 
 #include "CaretException.h"
 #include "CaretObject.h"
-#include "TileTabsConfigurationLayoutTypeEnum.h"
+#include "TileTabsLayoutConfigurationTypeEnum.h"
 #include "TileTabsGridModeEnum.h"
 #include "TileTabsGridRowColumnElement.h"
 
@@ -32,23 +32,23 @@ class QXmlStreamWriter;
 
 namespace caret {
 
-    class TileTabsBaseConfiguration : public CaretObject {
+    class TileTabsLayoutBaseConfiguration : public CaretObject {
         
     protected:
-        TileTabsBaseConfiguration(const TileTabsConfigurationLayoutTypeEnum::Enum layoutType);
+        TileTabsLayoutBaseConfiguration(const TileTabsLayoutConfigurationTypeEnum::Enum layoutType);
         
     public:
-        virtual ~TileTabsBaseConfiguration();
+        virtual ~TileTabsLayoutBaseConfiguration();
         
-        TileTabsBaseConfiguration(const TileTabsBaseConfiguration& obj);
+        TileTabsLayoutBaseConfiguration(const TileTabsLayoutBaseConfiguration& obj);
 
-        TileTabsBaseConfiguration& operator=(const TileTabsBaseConfiguration& obj);
+        TileTabsLayoutBaseConfiguration& operator=(const TileTabsLayoutBaseConfiguration& obj);
         
-        void copy(const TileTabsBaseConfiguration& rhs);
+        void copy(const TileTabsLayoutBaseConfiguration& rhs);
         
-        virtual TileTabsBaseConfiguration* newCopyWithNewUniqueIdentifier() const = 0;
+        virtual TileTabsLayoutBaseConfiguration* newCopyWithNewUniqueIdentifier() const = 0;
         
-        TileTabsConfigurationLayoutTypeEnum::Enum getLayoutType() const;
+        TileTabsLayoutConfigurationTypeEnum::Enum getLayoutType() const;
 
         AString getName() const;
         
@@ -59,13 +59,13 @@ namespace caret {
         
         AString encodeInXML() const;
         
-        static TileTabsBaseConfiguration* decodeFromXML(const AString& xmlString,
+        static TileTabsLayoutBaseConfiguration* decodeFromXML(const AString& xmlString,
                                                         AString& errorMessageOut);
         
         AString toString() const override;
         
-        static bool lessThanComparisonByName(const TileTabsBaseConfiguration* ttc1,
-                                             const TileTabsBaseConfiguration* ttc2);
+        static bool lessThanComparisonByName(const TileTabsLayoutBaseConfiguration* ttc1,
+                                             const TileTabsLayoutBaseConfiguration* ttc2);
         
         // ADD_NEW_METHODS_HERE
         
@@ -81,8 +81,8 @@ namespace caret {
          * @param rootElement
          *     The root element.
          */
-        virtual void decodeFromXML(QXmlStreamReader& xml,
-                                   const QString& rootElementText) = 0;
+        virtual void decodeFromXMLString(QXmlStreamReader& xml,
+                                         const AString& rootElementText) = 0;
         
         /**
          * Encode the configuration in XML.
@@ -90,19 +90,19 @@ namespace caret {
          * @param xmlTextOut
          *     Contains XML representation of configuration.
          */
-        virtual void encodeInXML(AString& xmlTextOut) const = 0;
+        virtual void encodeInXMLString(AString& xmlTextOut) const = 0;
 
         void setUniqueIdentifierProtected(const AString& uniqueID);
         
-        void copyHelperTileTabsBaseConfiguration(const TileTabsBaseConfiguration& obj);
+        void copyHelperTileTabsLayoutBaseConfiguration(const TileTabsLayoutBaseConfiguration& obj);
         
     private:
 
-        void initializeTileTabsBaseConfiguration();
+        void initializeTileTabsLayoutBaseConfiguration();
         
         // ADD_NEW_MEMBERS_HERE
         
-        const TileTabsConfigurationLayoutTypeEnum::Enum m_layoutType;
+        const TileTabsLayoutConfigurationTypeEnum::Enum m_layoutType;
 
         AString m_name;
         
@@ -112,9 +112,9 @@ namespace caret {
         
     };
     
-#ifdef __TILE_TABS_BASE_CONFIGURATION_DECLARE__
+#ifdef __TILE_TABS_LAYOUT_BASE_CONFIGURATION_H__
 
-#endif // __TILE_TABS_BASE_CONFIGURATION_DECLARE__
+#endif // __TILE_TABS_LAYOUT_BASE_CONFIGURATION_DECLARE__
 
 } // namespace
-#endif  //__TILE_TABS_BASE_CONFIGURATION_H__
+#endif  //__TILE_TABS_LAYOUT_BASE_CONFIGURATION_DECLARE__

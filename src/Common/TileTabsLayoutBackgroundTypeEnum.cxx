@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __TILE_TABS_CONFIGURATION_LAYOUT_TYPE_ENUM_DECLARE__
-#include "TileTabsConfigurationLayoutTypeEnum.h"
-#undef __TILE_TABS_CONFIGURATION_LAYOUT_TYPE_ENUM_DECLARE__
+#define __TILE_TABS_LAYOUT_BACKGROUND_TYPE_ENUM_DECLARE__
+#include "TileTabsLayoutBackgroundTypeEnum.h"
+#undef __TILE_TABS_LAYOUT_BACKGROUND_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::TileTabsConfigurationLayoutTypeEnum 
- * \brief Types of tile tabs layouts
+ * \class caret::TileTabsLayoutBackgroundTypeEnum
+ * \brief Background type (opaque, transparent) for tabs in a tile tabs layout
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -40,30 +40,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_tileTabsConfigurationLayoutTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_TileTabsLayoutBackgroundTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void tileTabsConfigurationLayoutTypeEnumComboBoxItemActivated();
+ *             void TileTabsLayoutBackgroundTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "TileTabsConfigurationLayoutTypeEnum.h"
+ *         #include "TileTabsLayoutBackgroundTypeEnum.h"
  * 
  *     Instatiate:
- *         m_tileTabsConfigurationLayoutTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_tileTabsConfigurationLayoutTypeEnumComboBox->setup<TileTabsConfigurationLayoutTypeEnum,TileTabsConfigurationLayoutTypeEnum::Enum>();
+ *         m_TileTabsLayoutBackgroundTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_TileTabsLayoutBackgroundTypeEnumComboBox->setup<TileTabsLayoutBackgroundTypeEnum,TileTabsLayoutBackgroundTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_tileTabsConfigurationLayoutTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(tileTabsConfigurationLayoutTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_TileTabsLayoutBackgroundTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(TileTabsLayoutBackgroundTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_tileTabsConfigurationLayoutTypeEnumComboBox->setSelectedItem<TileTabsConfigurationLayoutTypeEnum,TileTabsConfigurationLayoutTypeEnum::Enum>(NEW_VALUE);
+ *         m_TileTabsLayoutBackgroundTypeEnumComboBox->setSelectedItem<TileTabsLayoutBackgroundTypeEnum,TileTabsLayoutBackgroundTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const TileTabsConfigurationLayoutTypeEnum::Enum VARIABLE = m_tileTabsConfigurationLayoutTypeEnumComboBox->getSelectedItem<TileTabsConfigurationLayoutTypeEnum,TileTabsConfigurationLayoutTypeEnum::Enum>();
+ *         const TileTabsLayoutBackgroundTypeEnum::Enum VARIABLE = m_TileTabsLayoutBackgroundTypeEnumComboBox->getSelectedItem<TileTabsLayoutBackgroundTypeEnum,TileTabsLayoutBackgroundTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-TileTabsConfigurationLayoutTypeEnum::TileTabsConfigurationLayoutTypeEnum(const Enum enumValue,
+TileTabsLayoutBackgroundTypeEnum::TileTabsLayoutBackgroundTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ TileTabsConfigurationLayoutTypeEnum::TileTabsConfigurationLayoutTypeEnum(const E
 /**
  * Destructor.
  */
-TileTabsConfigurationLayoutTypeEnum::~TileTabsConfigurationLayoutTypeEnum()
+TileTabsLayoutBackgroundTypeEnum::~TileTabsLayoutBackgroundTypeEnum()
 {
 }
 
@@ -99,20 +99,20 @@ TileTabsConfigurationLayoutTypeEnum::~TileTabsConfigurationLayoutTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-TileTabsConfigurationLayoutTypeEnum::initialize()
+TileTabsLayoutBackgroundTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(TileTabsConfigurationLayoutTypeEnum(GRID, 
-                                    "GRID", 
-                                    "Grid"));
+    enumData.push_back(TileTabsLayoutBackgroundTypeEnum(OPAQUE,
+                                    "OPAQUE", 
+                                    "Opaque"));
     
-    enumData.push_back(TileTabsConfigurationLayoutTypeEnum(MANUAL, 
-                                    "MANUAL", 
-                                    "Manual"));
+    enumData.push_back(TileTabsLayoutBackgroundTypeEnum(TRANSPARENT,
+                                    "TRANSPARENT", 
+                                    "Transparent"));
     
 }
 
@@ -123,14 +123,14 @@ TileTabsConfigurationLayoutTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const TileTabsConfigurationLayoutTypeEnum*
-TileTabsConfigurationLayoutTypeEnum::findData(const Enum enumValue)
+const TileTabsLayoutBackgroundTypeEnum*
+TileTabsLayoutBackgroundTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const TileTabsConfigurationLayoutTypeEnum* d = &enumData[i];
+        const TileTabsLayoutBackgroundTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -147,10 +147,10 @@ TileTabsConfigurationLayoutTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-TileTabsConfigurationLayoutTypeEnum::toName(Enum enumValue) {
+TileTabsLayoutBackgroundTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const TileTabsConfigurationLayoutTypeEnum* enumInstance = findData(enumValue);
+    const TileTabsLayoutBackgroundTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -164,18 +164,18 @@ TileTabsConfigurationLayoutTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-TileTabsConfigurationLayoutTypeEnum::Enum 
-TileTabsConfigurationLayoutTypeEnum::fromName(const AString& name, bool* isValidOut)
+TileTabsLayoutBackgroundTypeEnum::Enum
+TileTabsLayoutBackgroundTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = TileTabsConfigurationLayoutTypeEnum::enumData[0].enumValue;
+    Enum enumValue = TileTabsLayoutBackgroundTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<TileTabsConfigurationLayoutTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsLayoutBackgroundTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const TileTabsConfigurationLayoutTypeEnum& d = *iter;
+        const TileTabsLayoutBackgroundTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -187,7 +187,7 @@ TileTabsConfigurationLayoutTypeEnum::fromName(const AString& name, bool* isValid
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type TileTabsConfigurationLayoutTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type TileTabsLayoutBackgroundTypeEnum"));
     }
     return enumValue;
 }
@@ -200,10 +200,10 @@ TileTabsConfigurationLayoutTypeEnum::fromName(const AString& name, bool* isValid
  *     String representing enumerated value.
  */
 AString 
-TileTabsConfigurationLayoutTypeEnum::toGuiName(Enum enumValue) {
+TileTabsLayoutBackgroundTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const TileTabsConfigurationLayoutTypeEnum* enumInstance = findData(enumValue);
+    const TileTabsLayoutBackgroundTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -217,18 +217,18 @@ TileTabsConfigurationLayoutTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-TileTabsConfigurationLayoutTypeEnum::Enum 
-TileTabsConfigurationLayoutTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+TileTabsLayoutBackgroundTypeEnum::Enum
+TileTabsLayoutBackgroundTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = TileTabsConfigurationLayoutTypeEnum::enumData[0].enumValue;
+    Enum enumValue = TileTabsLayoutBackgroundTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<TileTabsConfigurationLayoutTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsLayoutBackgroundTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const TileTabsConfigurationLayoutTypeEnum& d = *iter;
+        const TileTabsLayoutBackgroundTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -240,7 +240,7 @@ TileTabsConfigurationLayoutTypeEnum::fromGuiName(const AString& guiName, bool* i
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type TileTabsConfigurationLayoutTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type TileTabsLayoutBackgroundTypeEnum"));
     }
     return enumValue;
 }
@@ -252,10 +252,10 @@ TileTabsConfigurationLayoutTypeEnum::fromGuiName(const AString& guiName, bool* i
  *    Integer code for data type.
  */
 int32_t
-TileTabsConfigurationLayoutTypeEnum::toIntegerCode(Enum enumValue)
+TileTabsLayoutBackgroundTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const TileTabsConfigurationLayoutTypeEnum* enumInstance = findData(enumValue);
+    const TileTabsLayoutBackgroundTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -270,18 +270,18 @@ TileTabsConfigurationLayoutTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-TileTabsConfigurationLayoutTypeEnum::Enum
-TileTabsConfigurationLayoutTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+TileTabsLayoutBackgroundTypeEnum::Enum
+TileTabsLayoutBackgroundTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = TileTabsConfigurationLayoutTypeEnum::enumData[0].enumValue;
+    Enum enumValue = TileTabsLayoutBackgroundTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<TileTabsConfigurationLayoutTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsLayoutBackgroundTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const TileTabsConfigurationLayoutTypeEnum& enumInstance = *iter;
+        const TileTabsLayoutBackgroundTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -293,7 +293,7 @@ TileTabsConfigurationLayoutTypeEnum::fromIntegerCode(const int32_t integerCode, 
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type TileTabsConfigurationLayoutTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type TileTabsLayoutBackgroundTypeEnum"));
     }
     return enumValue;
 }
@@ -306,13 +306,13 @@ TileTabsConfigurationLayoutTypeEnum::fromIntegerCode(const int32_t integerCode, 
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-TileTabsConfigurationLayoutTypeEnum::getAllEnums(std::vector<TileTabsConfigurationLayoutTypeEnum::Enum>& allEnums)
+TileTabsLayoutBackgroundTypeEnum::getAllEnums(std::vector<TileTabsLayoutBackgroundTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<TileTabsConfigurationLayoutTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsLayoutBackgroundTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -328,16 +328,16 @@ TileTabsConfigurationLayoutTypeEnum::getAllEnums(std::vector<TileTabsConfigurati
  *     If true, the names are sorted in alphabetical order.
  */
 void
-TileTabsConfigurationLayoutTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+TileTabsLayoutBackgroundTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<TileTabsConfigurationLayoutTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsLayoutBackgroundTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(TileTabsConfigurationLayoutTypeEnum::toName(iter->enumValue));
+        allNames.push_back(TileTabsLayoutBackgroundTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -354,16 +354,16 @@ TileTabsConfigurationLayoutTypeEnum::getAllNames(std::vector<AString>& allNames,
  *     If true, the names are sorted in alphabetical order.
  */
 void
-TileTabsConfigurationLayoutTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+TileTabsLayoutBackgroundTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<TileTabsConfigurationLayoutTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<TileTabsLayoutBackgroundTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(TileTabsConfigurationLayoutTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(TileTabsLayoutBackgroundTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

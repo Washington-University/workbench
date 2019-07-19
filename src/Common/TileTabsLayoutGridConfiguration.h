@@ -1,5 +1,5 @@
-#ifndef __TILE_TABS_GRID_LAYOUT_CONFIGURATION_H__
-#define __TILE_TABS_GRID_LAYOUT_CONFIGURATION_H__
+#ifndef __TILE_TABS_LAYOUT_GRID_CONFIGURATION_H__
+#define __TILE_TABS_LAYOUT_GRID_CONFIGURATION_H__
 
 /*LICENSE_START*/
 /*
@@ -22,7 +22,7 @@
 /*LICENSE_END*/
 
 #include "CaretException.h"
-#include "TileTabsBaseConfiguration.h"
+#include "TileTabsLayoutBaseConfiguration.h"
 #include "TileTabsGridModeEnum.h"
 #include "TileTabsGridRowColumnElement.h"
 
@@ -31,20 +31,20 @@ class QXmlStreamWriter;
 
 namespace caret {
 
-    class TileTabsGridLayoutConfiguration : public TileTabsBaseConfiguration {
+    class TileTabsLayoutGridConfiguration : public TileTabsLayoutBaseConfiguration {
         
     public:
-        TileTabsGridLayoutConfiguration();
+        TileTabsLayoutGridConfiguration();
         
-        virtual ~TileTabsGridLayoutConfiguration();
+        virtual ~TileTabsLayoutGridConfiguration();
         
-        TileTabsGridLayoutConfiguration(const TileTabsGridLayoutConfiguration& obj);
+        TileTabsLayoutGridConfiguration(const TileTabsLayoutGridConfiguration& obj);
 
-        TileTabsGridLayoutConfiguration& operator=(const TileTabsGridLayoutConfiguration& obj);
+        TileTabsLayoutGridConfiguration& operator=(const TileTabsLayoutGridConfiguration& obj);
         
-        void copy(const TileTabsGridLayoutConfiguration& rhs);
+        void copy(const TileTabsLayoutGridConfiguration& rhs);
         
-        virtual TileTabsGridLayoutConfiguration* newCopyWithNewUniqueIdentifier() const override;
+        virtual TileTabsLayoutBaseConfiguration* newCopyWithNewUniqueIdentifier() const override;
                 
         bool getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
                                                        const int32_t windowHeight,
@@ -83,14 +83,13 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
     protected:
-    public:
-        virtual void decodeFromXML(QXmlStreamReader& xml,
-                                   const QString& rootElement) override;
+        virtual void decodeFromXMLString(QXmlStreamReader& xml,
+                                         const AString& rootElement) override;
         
-        virtual void encodeInXML(AString& xmlTextOut) const override;
+        virtual void encodeInXMLString(AString& xmlTextOut) const override;
         
     private:
-        void copyHelperTileTabsGridLayoutConfiguration(const TileTabsGridLayoutConfiguration& obj);
+        void copyHelperTileTabsLayoutGridConfiguration(const TileTabsLayoutGridConfiguration& obj);
 
         void decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader& xml);
         
@@ -145,34 +144,34 @@ namespace caret {
         static const AString s_v2_centeringCorrectionName;
         
         
-        friend class TileTabsBaseConfiguration;
+        friend class TileTabsLayoutBaseConfiguration;
     };
     
-#ifdef __TILE_TABS_GRID_LAYOUT_CONFIGURATION_DECLARE__
-    const AString TileTabsGridLayoutConfiguration::s_nameTagName = "Name";
-    const AString TileTabsGridLayoutConfiguration::s_uniqueIdentifierTagName = "UniqueIdentifier";
+#ifdef __TILE_TABS_LAYOUT_GRID_CONFIGURATION_DECLARE__
+    const AString TileTabsLayoutGridConfiguration::s_nameTagName = "Name";
+    const AString TileTabsLayoutGridConfiguration::s_uniqueIdentifierTagName = "UniqueIdentifier";
 
-    const AString TileTabsGridLayoutConfiguration::s_v1_rootTagName = "TileTabsGridLayoutConfiguration";
-    const AString TileTabsGridLayoutConfiguration::s_v1_versionTagName = "Version";
-    const AString TileTabsGridLayoutConfiguration::s_v1_versionNumberAttributeName = "Number";
-    const AString TileTabsGridLayoutConfiguration::s_v1_columnStretchFactorsTagName = "ColumnStretchFactors";
-    const AString TileTabsGridLayoutConfiguration::s_v1_columnStretchFactorsSelectedCountAttributeName = "SelectedRowCount";
-    const AString TileTabsGridLayoutConfiguration::s_v1_columnStretchFactorsTotalCountAttributeName = "TotalRowCount";
-    const AString TileTabsGridLayoutConfiguration::s_v1_rowStretchFactorsTagName = "RowStretchFactors";
-    const AString TileTabsGridLayoutConfiguration::s_v1_rowStretchFactorsSelectedCountAttributeName = "SelectedColumnCount";
-    const AString TileTabsGridLayoutConfiguration::s_v1_rowStretchFactorsTotalCountAttributeName = "TotalColumnCount";
+    const AString TileTabsLayoutGridConfiguration::s_v1_rootTagName = "TileTabsConfiguration";
+    const AString TileTabsLayoutGridConfiguration::s_v1_versionTagName = "Version";
+    const AString TileTabsLayoutGridConfiguration::s_v1_versionNumberAttributeName = "Number";
+    const AString TileTabsLayoutGridConfiguration::s_v1_columnStretchFactorsTagName = "ColumnStretchFactors";
+    const AString TileTabsLayoutGridConfiguration::s_v1_columnStretchFactorsSelectedCountAttributeName = "SelectedRowCount";
+    const AString TileTabsLayoutGridConfiguration::s_v1_columnStretchFactorsTotalCountAttributeName = "TotalRowCount";
+    const AString TileTabsLayoutGridConfiguration::s_v1_rowStretchFactorsTagName = "RowStretchFactors";
+    const AString TileTabsLayoutGridConfiguration::s_v1_rowStretchFactorsSelectedCountAttributeName = "SelectedColumnCount";
+    const AString TileTabsLayoutGridConfiguration::s_v1_rowStretchFactorsTotalCountAttributeName = "TotalColumnCount";
     
-    const AString TileTabsGridLayoutConfiguration::s_v2_rootTagName = "TileTabsGridLayoutConfigurationTwo";
-    const AString TileTabsGridLayoutConfiguration::s_v2_versionAttributeName = "Version";
-    const AString TileTabsGridLayoutConfiguration::s_v2_columnsTagName = "Columns";
-    const AString TileTabsGridLayoutConfiguration::s_v2_contentTypeAttributeName = "ContentType";
-    const AString TileTabsGridLayoutConfiguration::s_v2_elementTagName = "Element";
-    const AString TileTabsGridLayoutConfiguration::s_v2_percentStretchAttributeName = "PercentStretch";
-    const AString TileTabsGridLayoutConfiguration::s_v2_rowsTagName = "Rows";
-    const AString TileTabsGridLayoutConfiguration::s_v2_stretchTypeAttributeName = "StretchType";
-    const AString TileTabsGridLayoutConfiguration::s_v2_weightStretchAttributeName = "WeightStretch";
-    const AString TileTabsGridLayoutConfiguration::s_v2_centeringCorrectionName = "CenteringCorrection";
-#endif // __TILE_TABS_GRID_LAYOUT_CONFIGURATION_DECLARE__
+    const AString TileTabsLayoutGridConfiguration::s_v2_rootTagName = "TileTabsConfigurationTwo";
+    const AString TileTabsLayoutGridConfiguration::s_v2_versionAttributeName = "Version";
+    const AString TileTabsLayoutGridConfiguration::s_v2_columnsTagName = "Columns";
+    const AString TileTabsLayoutGridConfiguration::s_v2_contentTypeAttributeName = "ContentType";
+    const AString TileTabsLayoutGridConfiguration::s_v2_elementTagName = "Element";
+    const AString TileTabsLayoutGridConfiguration::s_v2_percentStretchAttributeName = "PercentStretch";
+    const AString TileTabsLayoutGridConfiguration::s_v2_rowsTagName = "Rows";
+    const AString TileTabsLayoutGridConfiguration::s_v2_stretchTypeAttributeName = "StretchType";
+    const AString TileTabsLayoutGridConfiguration::s_v2_weightStretchAttributeName = "WeightStretch";
+    const AString TileTabsLayoutGridConfiguration::s_v2_centeringCorrectionName = "CenteringCorrection";
+#endif // __TILE_TABS_LAYOUT_GRID_CONFIGURATION_DECLARE__
 
 } // namespace
-#endif  //__TILE_TABS_GRID_LAYOUT_CONFIGURATION_H__
+#endif  //__TILE_TABS_LAYOUT_GRID_CONFIGURATION_H__

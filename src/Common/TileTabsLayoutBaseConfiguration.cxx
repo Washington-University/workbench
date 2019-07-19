@@ -22,24 +22,26 @@
 #include <cmath>
 #include <set>
 
-#define __TILE_TABS_BASE_CONFIGURATION_DECLARE__
-#include "TileTabsBaseConfiguration.h"
-#undef __TILE_TABS_BASE_CONFIGURATION_DECLARE__
+#define __TILE_TABS_LAYOUT_BASE_CONFIGURATION_DECLARE__
+#include "TileTabsLayoutBaseConfiguration.h"
+#undef __TILE_TABS_LAYOUT_BASE_CONFIGURATION_DECLARE__
 
+#include <QTextStream>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "SystemUtilities.h"
-#include "TileTabsGridLayoutConfiguration.h"
+#include "TileTabsLayoutGridConfiguration.h"
+#include "TileTabsLayoutManualConfiguration.h"
 
 using namespace caret;
 
 
     
 /**
- * \class caret::TileTabsBaseConfiguration
+ * \class caret::TileTabsLayoutBaseConfiguration
  * \brief Defines a tile tabs configuration
  * \ingroup Common
  */
@@ -47,17 +49,17 @@ using namespace caret;
 /**
  * Constructor that creates a 2 by 2 configuration.
  */
-TileTabsBaseConfiguration::TileTabsBaseConfiguration(const TileTabsConfigurationLayoutTypeEnum::Enum layoutType)
+TileTabsLayoutBaseConfiguration::TileTabsLayoutBaseConfiguration(const TileTabsLayoutConfigurationTypeEnum::Enum layoutType)
 : CaretObject(),
 m_layoutType(layoutType)
 {
-    initializeTileTabsBaseConfiguration();
+    initializeTileTabsLayoutBaseConfiguration();
 }
 
 /**
  * Destructor.
  */
-TileTabsBaseConfiguration::~TileTabsBaseConfiguration()
+TileTabsLayoutBaseConfiguration::~TileTabsLayoutBaseConfiguration()
 {
 }
 
@@ -69,14 +71,14 @@ TileTabsBaseConfiguration::~TileTabsBaseConfiguration()
  * @param obj
  *    Object that is copied.
  */
-TileTabsBaseConfiguration::TileTabsBaseConfiguration(const TileTabsBaseConfiguration& obj)
+TileTabsLayoutBaseConfiguration::TileTabsLayoutBaseConfiguration(const TileTabsLayoutBaseConfiguration& obj)
 : CaretObject(obj),
 m_layoutType(obj.m_layoutType)
 {
     const AString savedUniqueID = m_uniqueIdentifier;
-    initializeTileTabsBaseConfiguration();
+    initializeTileTabsLayoutBaseConfiguration();
     m_uniqueIdentifier = savedUniqueID;
-    this->copyHelperTileTabsBaseConfiguration(obj);
+    this->copyHelperTileTabsLayoutBaseConfiguration(obj);
 }
 
 /**
@@ -89,12 +91,12 @@ m_layoutType(obj.m_layoutType)
  * @return 
  *    Reference to this object.
  */
-TileTabsBaseConfiguration&
-TileTabsBaseConfiguration::operator=(const TileTabsBaseConfiguration& obj)
+TileTabsLayoutBaseConfiguration&
+TileTabsLayoutBaseConfiguration::operator=(const TileTabsLayoutBaseConfiguration& obj)
 {
     if (this != &obj) {
         CaretObject::operator=(obj);
-        this->copyHelperTileTabsBaseConfiguration(obj);
+        this->copyHelperTileTabsLayoutBaseConfiguration(obj);
     }
     return *this;    
 }
@@ -103,7 +105,7 @@ TileTabsBaseConfiguration::operator=(const TileTabsBaseConfiguration& obj)
  * Initialize an instance of a tile tabs configuration.
  */
 void
-TileTabsBaseConfiguration::initializeTileTabsBaseConfiguration()
+TileTabsLayoutBaseConfiguration::initializeTileTabsLayoutBaseConfiguration()
 {
     m_name.clear();
     m_uniqueIdentifier = SystemUtilities::createUniqueID();
@@ -115,7 +117,7 @@ TileTabsBaseConfiguration::initializeTileTabsBaseConfiguration()
  *    Object that is copied.
  */
 void 
-TileTabsBaseConfiguration::copyHelperTileTabsBaseConfiguration(const TileTabsBaseConfiguration& obj)
+TileTabsLayoutBaseConfiguration::copyHelperTileTabsLayoutBaseConfiguration(const TileTabsLayoutBaseConfiguration& obj)
 {
     if (this == &obj) {
         return;
@@ -130,19 +132,19 @@ TileTabsBaseConfiguration::copyHelperTileTabsBaseConfiguration(const TileTabsBas
  * stretch factors.   Name is NOT copied.
  */
 void
-TileTabsBaseConfiguration::copy(const TileTabsBaseConfiguration& rhs)
+TileTabsLayoutBaseConfiguration::copy(const TileTabsLayoutBaseConfiguration& rhs)
 {
     CaretAssertToDoFatal();  // need to do this a different way
     AString savedName = m_name;
-    copyHelperTileTabsBaseConfiguration(rhs);
+    copyHelperTileTabsLayoutBaseConfiguration(rhs);
     m_name = savedName;
 }
 
 /**
  * @return Type of layout for the configuration
  */
-TileTabsConfigurationLayoutTypeEnum::Enum
-TileTabsBaseConfiguration::getLayoutType() const
+TileTabsLayoutConfigurationTypeEnum::Enum
+TileTabsLayoutBaseConfiguration::getLayoutType() const
 {
     return m_layoutType;
 }
@@ -151,7 +153,7 @@ TileTabsBaseConfiguration::getLayoutType() const
  * @return the name of the tile tabs configuration.
  */
 AString
-TileTabsBaseConfiguration::getName() const
+TileTabsLayoutBaseConfiguration::getName() const
 {
     return m_name;
 }
@@ -160,7 +162,7 @@ TileTabsBaseConfiguration::getName() const
  * @return Get the unique identifier that uniquely identifies each configuration.
  */
 AString
-TileTabsBaseConfiguration::getUniqueIdentifier() const
+TileTabsLayoutBaseConfiguration::getUniqueIdentifier() const
 {
     return m_uniqueIdentifier;
 }
@@ -172,7 +174,7 @@ TileTabsBaseConfiguration::getUniqueIdentifier() const
  *    New name for configuration.
  */
 void
-TileTabsBaseConfiguration::setName(const AString& name)
+TileTabsLayoutBaseConfiguration::setName(const AString& name)
 {
     m_name = name;
 }
@@ -184,7 +186,7 @@ TileTabsBaseConfiguration::setName(const AString& name)
  *    New unique identifier for configuration.
  */
 void
-TileTabsBaseConfiguration::setUniqueIdentifierProtected(const AString& uniqueID)
+TileTabsLayoutBaseConfiguration::setUniqueIdentifierProtected(const AString& uniqueID)
 {
     m_uniqueIdentifier = uniqueID;
 }
@@ -194,10 +196,10 @@ TileTabsBaseConfiguration::setUniqueIdentifierProtected(const AString& uniqueID)
  * @return Encoded tile tabs configuration in XML
  */
 AString
-TileTabsBaseConfiguration::encodeInXML() const
+TileTabsLayoutBaseConfiguration::encodeInXML() const
 {
     AString s;
-    encodeInXML(s);
+    encodeInXMLString(s);
     return s;
 }
 
@@ -211,40 +213,46 @@ TileTabsBaseConfiguration::encodeInXML() const
  * @return
  *   Pointer to the configuration or NULL if there was an error.
  */
-TileTabsBaseConfiguration*
-TileTabsBaseConfiguration::decodeFromXML(const AString& xmlString,
+TileTabsLayoutBaseConfiguration*
+TileTabsLayoutBaseConfiguration::decodeFromXML(const AString& xmlString,
                                          AString& errorMessageOut)
 {
     errorMessageOut.clear();
-    TileTabsBaseConfiguration* configurationOut(NULL);
+    TileTabsLayoutBaseConfiguration* configurationOut(NULL);
     
     QXmlStreamReader xml(xmlString);
 
     if (xml.readNextStartElement()) {
         const QStringRef tagName(xml.name());
-        if (tagName == TileTabsGridLayoutConfiguration::s_v1_rootTagName) {
-            TileTabsGridLayoutConfiguration* v1 = new TileTabsGridLayoutConfiguration();
-            v1->decodeFromXML(xml,
-                              tagName.toString());
+        if (tagName == TileTabsLayoutGridConfiguration::s_v1_rootTagName) {
+            TileTabsLayoutGridConfiguration* v1 = new TileTabsLayoutGridConfiguration();
+            v1->decodeFromXMLString(xml,
+                                    tagName.toString());
             configurationOut = v1;
         }
-        else if (tagName == TileTabsGridLayoutConfiguration::s_v2_rootTagName) {
-            TileTabsGridLayoutConfiguration* v2 = new TileTabsGridLayoutConfiguration();
-            v2->decodeFromXML(xml,
-                              tagName.toString());
+        else if (tagName == TileTabsLayoutGridConfiguration::s_v2_rootTagName) {
+            TileTabsLayoutGridConfiguration* v2 = new TileTabsLayoutGridConfiguration();
+            v2->decodeFromXMLString(xml,
+                                    tagName.toString());
             configurationOut = v2;
         }
+        else if (tagName == TileTabsLayoutManualConfiguration::s_rootElementName) {
+            TileTabsLayoutManualConfiguration* manConfig = new TileTabsLayoutManualConfiguration();
+            manConfig->decodeFromXMLString(xml,
+                                           tagName.toString());
+            configurationOut = manConfig;
+        }
         else {
-            xml.raiseError("TileTabsBaseConfiguration first element is "
+            xml.raiseError("TileTabsLayoutBaseConfiguration first element is "
                            + xml.name().toString()
                            + " but should be "
-                           + TileTabsGridLayoutConfiguration::s_v1_rootTagName
+                           + TileTabsLayoutGridConfiguration::s_v1_rootTagName
                            + " or "
-                           + TileTabsGridLayoutConfiguration::s_v2_rootTagName);
+                           + TileTabsLayoutGridConfiguration::s_v2_rootTagName);
         }
     }
     else {
-        xml.raiseError("TileTabsBaseConfiguration failed to find start elemnent.");
+        xml.raiseError("TileTabsLayoutBaseConfiguration failed to find start elemnent.");
     }
 
     if (xml.hasError()) {
@@ -266,7 +274,7 @@ TileTabsBaseConfiguration::decodeFromXML(const AString& xmlString,
 //        AString xmlText = encodeInXMLWithStreamWriterVersionTwo();
 //        std::cout << std::endl << "NEW: " << xmlText << std::endl << std::endl;
 //        AString em;
-//        TileTabsBaseConfiguration temp;
+//        TileTabsLayoutBaseConfiguration temp;
 //        QXmlStreamReader tempReader(xmlText);
 //        tempReader.readNextStartElement();
 //        temp.decodeFromXMLWithStreamReaderVersionTwo(tempReader);
@@ -287,10 +295,16 @@ TileTabsBaseConfiguration::decodeFromXML(const AString& xmlString,
  * @return String version of an instance.
  */
 AString
-TileTabsBaseConfiguration::toString() const
+TileTabsLayoutBaseConfiguration::toString() const
 {
-    AString s("Name: %1, Unique ID: %2\n");
-    s = s.arg(m_name).arg(m_uniqueIdentifier);
+    QString str;
+    QTextStream ts(&str);
+    ts << "TileTabsLayoutBaseConfiguration: "
+    << " m_name=" << m_name
+    << " m_uniqueIdentifier=" << m_uniqueIdentifier
+    << " m_layoutType=" << TileTabsLayoutConfigurationTypeEnum::toName(m_layoutType);
+//    AString s("Name: %1, Unique ID: %2\n");
+//    s = s.arg(m_name).arg(m_uniqueIdentifier);
 //
 //    int32_t indx(0);
 //    for (const auto item : m_columns) {
@@ -303,7 +317,7 @@ TileTabsBaseConfiguration::toString() const
 //        indx++;
 //    }
     
-    return s;
+    return str;
 }
 
 /**
@@ -317,8 +331,8 @@ TileTabsBaseConfiguration::toString() const
  *    True if ttc1 is "less than" when compared by name, else false.
  */
 bool
-TileTabsBaseConfiguration::lessThanComparisonByName(const TileTabsBaseConfiguration* ttc1,
-                                                const TileTabsBaseConfiguration* ttc2)
+TileTabsLayoutBaseConfiguration::lessThanComparisonByName(const TileTabsLayoutBaseConfiguration* ttc1,
+                                                const TileTabsLayoutBaseConfiguration* ttc2)
 {
     if (ttc1->getName() < ttc2->getName()) {
         return true;

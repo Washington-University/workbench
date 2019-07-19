@@ -1,0 +1,462 @@
+
+/*LICENSE_START*/
+/*
+ *  Copyright (C) 2019 Washington University School of Medicine
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+/*LICENSE_END*/
+
+#include <set>
+
+#define __TILE_TABS_LAYOUT_MANUAL_CONFIGURATION_DECLARE__
+#include "TileTabsLayoutManualConfiguration.h"
+#undef __TILE_TABS_LAYOUT_MANUAL_CONFIGURATION_DECLARE__
+
+#include <QTextStream>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
+
+#include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "SystemUtilities.h"
+#include "TileTabsLayoutGridConfiguration.h"
+#include "TileTabsLayoutTabInfo.h"
+
+using namespace caret;
+
+/**
+ * \class caret::TileTabsLayoutManualConfiguration
+ * \brief Contains a manual layout for tabs
+ * \ingroup Common
+ */
+
+/**
+ * Constructor.
+ */
+TileTabsLayoutManualConfiguration::TileTabsLayoutManualConfiguration()
+: TileTabsLayoutBaseConfiguration(TileTabsLayoutConfigurationTypeEnum::MANUAL)
+{
+    
+}
+
+/**
+ * Destructor.
+ */
+TileTabsLayoutManualConfiguration::~TileTabsLayoutManualConfiguration()
+{
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+TileTabsLayoutManualConfiguration::TileTabsLayoutManualConfiguration(const TileTabsLayoutManualConfiguration& obj)
+: TileTabsLayoutBaseConfiguration(obj)
+{
+    this->copyHelperTileTabsLayoutManualConfiguration(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return 
+ *    Reference to this object.
+ */
+TileTabsLayoutManualConfiguration&
+TileTabsLayoutManualConfiguration::operator=(const TileTabsLayoutManualConfiguration& obj)
+{
+    if (this != &obj) {
+        TileTabsLayoutBaseConfiguration::operator=(obj);
+        this->copyHelperTileTabsLayoutManualConfiguration(obj);
+    }
+    return *this;    
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void 
+TileTabsLayoutManualConfiguration::copyHelperTileTabsLayoutManualConfiguration(const TileTabsLayoutManualConfiguration& obj)
+{
+    m_tabInfo.clear();
+    
+    for (const auto& ti : obj.m_tabInfo) {
+        TileTabsLayoutTabInfo* tabInfo = new TileTabsLayoutTabInfo(*ti);
+        addTabInfo(tabInfo);
+    }
+}
+
+/**
+ * Copy this instance and give it a new unique identifier.
+ * Note that copy constructor does not create a new unique identifier.
+ *
+ * @return The new Copy.
+ */
+TileTabsLayoutBaseConfiguration*
+TileTabsLayoutManualConfiguration::newCopyWithNewUniqueIdentifier() const
+{
+    TileTabsLayoutBaseConfiguration* newCopy = new TileTabsLayoutManualConfiguration(*this);
+    CaretAssert(newCopy);
+    return newCopy;
+}
+
+/**
+ * Create a manual layout from the given grid layout using the given tab indices
+ *
+ * @param gridLayout
+ *     The grid layout
+ * @param gridMode
+ *     The grid mode
+ * @param tabIndices
+ *     Indices of tabs
+ */
+TileTabsLayoutManualConfiguration*
+TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(TileTabsLayoutGridConfiguration* gridLayout,
+                                                             const TileTabsGridModeEnum::Enum gridMode,
+                                                             const std::vector<int32_t>& tabIndices)
+{
+    CaretAssert(gridLayout);
+    
+    const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
+    if (numTabs <= 0) {
+        return NULL;
+    }
+    
+    const int32_t windowWidth(10000);
+    const int32_t windowHeight(10000);
+    std::vector<int32_t> rowHeights;
+    std::vector<int32_t> columnWidths;
+    
+    if (gridLayout->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
+                                                              windowHeight,
+                                                              numTabs,
+                                                              gridMode,
+                                                              rowHeights,
+                                                              columnWidths)) {
+        const int32_t numRows = static_cast<int32_t>(rowHeights.size());
+        const int32_t numCols = static_cast<int32_t>(columnWidths.size());
+        
+        TileTabsLayoutManualConfiguration* manualLayout = new TileTabsLayoutManualConfiguration();
+        manualLayout->setName("From row:"
+                              + AString::number(rowHeights.size())
+                              + " col:"
+                              + AString::number(columnWidths.size()));
+        
+        int32_t tabCounter(0);
+        float yBottom(windowHeight);
+        for (int32_t i = 0; i < numRows; i++) {
+            CaretAssertVectorIndex(rowHeights, i);
+            const float height = rowHeights[i];
+            yBottom -= height;
+            
+            float xLeft(0.0);
+            for (int32_t j = 0; j < numCols; j++) {
+                CaretAssertVectorIndex(columnWidths, j);
+                const float width = columnWidths[j];
+                
+                CaretAssertVectorIndex(tabIndices, tabCounter);
+                const int32_t tabIndex(tabIndices[tabCounter]);
+
+                const float centerX = xLeft + (width / 2.0);
+                const float centerY = yBottom + (height / 2.0);
+                TileTabsLayoutTabInfo* tabInfo = new TileTabsLayoutTabInfo(tabIndex);
+                tabInfo->setCenterX((centerX / windowWidth) * 100.0f);
+                tabInfo->setCenterY((centerY / windowHeight) * 100.0f);
+                tabInfo->setWidth((width / windowWidth) * 100.0f);
+                tabInfo->setHeight((height / windowHeight) * 100.0f);
+                tabInfo->setStackingOrder(tabCounter);
+                tabInfo->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE);
+                
+                manualLayout->addTabInfo(tabInfo);
+                
+                xLeft += width;
+                
+                tabCounter++;
+            }
+        }
+
+        return manualLayout;
+    }
+
+    return NULL;
+}
+
+
+/**
+ * Add the tab info to this configuration.  This configuration will take
+ * ownership of the tab including destruction of it.
+ *
+ * @param tabInfo
+ *     Tab info to add.
+ */
+void
+TileTabsLayoutManualConfiguration::addTabInfo(TileTabsLayoutTabInfo* tabInfo)
+{
+    std::unique_ptr<TileTabsLayoutTabInfo> ptr(tabInfo);
+    m_tabInfo.push_back(std::move(ptr));
+}
+
+/**
+ * @return Number of tab info in this configuration
+ */
+int32_t
+TileTabsLayoutManualConfiguration::getNumberOfTabs() const
+{
+    return m_tabInfo.size();
+}
+
+/**
+ * @return The tab info at the given index
+ *
+ * @param index
+ *     Index of the tab info
+ */
+TileTabsLayoutTabInfo*
+TileTabsLayoutManualConfiguration::getTabInfo(const int32_t index)
+{
+    CaretAssertVectorIndex(m_tabInfo, index);
+    return m_tabInfo[index].get();
+}
+
+/**
+ * @return The tab info at the given index
+ *
+ * @param index
+ *     Index of the tab info
+ */
+const TileTabsLayoutTabInfo*
+TileTabsLayoutManualConfiguration::getTabInfo(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_tabInfo, index);
+    return m_tabInfo[index].get();
+}
+
+/**
+ * @return String version of an instance.
+ */
+AString
+TileTabsLayoutManualConfiguration::toString() const
+{
+    QString str(TileTabsLayoutBaseConfiguration::toString());
+    
+    QTextStream ts(&str);
+    ts << "\n" << "TileTabsLayoutManualConfiguration: " << "\n";
+    
+    for (const auto& ti : m_tabInfo) {
+        ts << ti->toString() << "\n";
+    }
+    
+    return str;
+}
+
+
+/**
+ * Encode the configuration in XML.
+ *
+ * @param xmlTextOut
+ *     Contains XML representation of configuration.
+ */
+void
+TileTabsLayoutManualConfiguration::encodeInXMLString(AString& xmlTextOut) const
+{
+    xmlTextOut.clear();
+    
+    QXmlStreamWriter writer(&xmlTextOut);
+    writer.setAutoFormatting(true);
+    
+    writer.writeStartElement(s_rootElementName);
+    writer.writeAttribute(s_rootElementAttributeName,
+                          getName());
+    writer.writeAttribute(s_rootElementAttributeVersion,
+                          s_rootElementAttributeValueVersionOne);
+    writer.writeAttribute(s_rootElementAttributeUniqueID,
+                          getUniqueIdentifier());
+    
+    for (const auto& tabInfo : m_tabInfo) {
+        writer.writeStartElement(s_tabInfoElementName);
+        writer.writeAttribute(s_tabInfoAttributeTabIndex,
+                              AString::number(tabInfo->getTabIndex()));
+        writer.writeAttribute(s_tabInfoAttributeCenterX,
+                              AString::number(tabInfo->getCenterX(), 'f', 2));
+        writer.writeAttribute(s_tabInfoAttributeCenterY,
+                              AString::number(tabInfo->getCenterY(), 'f', 2));
+        writer.writeAttribute(s_tabInfoAttributeWidth,
+                              AString::number(tabInfo->getWidth(), 'f', 2));
+        writer.writeAttribute(s_tabInfoAttributeHeight,
+                              AString::number(tabInfo->getHeight(), 'f', 2));
+        writer.writeAttribute(s_tabInfoAttributeStackingOrder,
+                              AString::number(tabInfo->getStackingOrder()));
+        writer.writeAttribute(s_tabInfoAttributeBackground,
+                              TileTabsLayoutBackgroundTypeEnum::toName(tabInfo->getBackgroundType()));
+        writer.writeEndElement();
+    }
+    
+    writer.writeEndElement();
+}
+
+/**
+ * Decode the configuration using the given XML stream reader and root element
+ * If there is an error, xml.raiseError() should be used to specify the error
+ * and caller of this method can test for the error using xml.isError().
+ *
+ * @param xml
+ *     The XML stream reader.
+ * @param rootElement
+ *     The root element.
+ */
+void
+TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
+                                                       const AString& rootElementText)
+{
+    static int32_t invalidNameCounter(1);
+    
+    CaretAssert( ! rootElementText.isEmpty());
+    
+    if (rootElementText != s_rootElementName) {
+        xml.raiseError("TileTabsLayoutManualConfiguration first element is "
+                       + rootElementText
+                       + " but should be "
+                       + s_rootElementName);
+        return;
+    }
+
+    AString errorString;
+    const QXmlStreamAttributes rootAttributes = xml.attributes();
+    
+    const AString version = rootAttributes.value(s_rootElementAttributeVersion).toString();
+    if (version != s_rootElementAttributeValueVersionOne) {
+        errorString.appendWithNewLine("Invalid version \"" + version + "\"");
+    }
+    
+    AString name = rootAttributes.value(s_rootElementAttributeName).toString();
+    if (name.isEmpty()) {
+        name = ("Tabs_" + AString::number(invalidNameCounter));
+        invalidNameCounter++;
+        CaretLogWarning("Tile Tabs Manual Configuration is missing name and has been assigned name \""
+                        + name
+                        + "\"");
+        setName(name);
+    }
+    
+    AString uniqueID = rootAttributes.value(s_rootElementAttributeUniqueID).toString();
+    if (uniqueID.isEmpty()) {
+        uniqueID = SystemUtilities::createUniqueID();
+        CaretLogWarning("Tile Tabs Manual Configuration is missing uniqueID and has been assigned uniqueID \""
+                        + uniqueID
+                        + "\"");
+        
+    }
+    setUniqueIdentifierProtected(uniqueID);
+
+    if (! errorString.isEmpty()) {
+        xml.skipCurrentElement();
+        xml.raiseError(errorString);
+        return;
+    }
+    
+    std::set<AString> invalidElementNames;
+    
+    while ( ! xml.atEnd()) {
+        xml.readNext();
+        
+        if (xml.isStartElement()) {
+            const QString elementName(xml.name().toString());
+            
+            if (elementName == s_tabInfoElementName) {
+                const QXmlStreamAttributes atts = xml.attributes();
+                const int32_t tabIndex = atts.value(s_tabInfoAttributeTabIndex).toInt();
+                const float   xCenter  = atts.value(s_tabInfoAttributeCenterX).toFloat();
+                const float   yCenter  = atts.value(s_tabInfoAttributeCenterY).toFloat();
+                const float   width    = atts.value(s_tabInfoAttributeWidth).toFloat();
+                const float   height   = atts.value(s_tabInfoAttributeHeight).toFloat();
+                const int32_t stacking = atts.value(s_tabInfoAttributeStackingOrder).toInt();
+                const QString backStr  = atts.value(s_tabInfoAttributeBackground).toString();
+                const TileTabsLayoutBackgroundTypeEnum::Enum backType = TileTabsLayoutBackgroundTypeEnum::fromName(backStr, NULL);
+                
+                TileTabsLayoutTabInfo* tabInfo = new TileTabsLayoutTabInfo(tabIndex);
+                tabInfo->setCenterX(xCenter);
+                tabInfo->setCenterY(yCenter);
+                tabInfo->setWidth(width);
+                tabInfo->setHeight(height);
+                tabInfo->setStackingOrder(stacking);
+                tabInfo->setBackgroundType(backType);
+                
+                addTabInfo(tabInfo);
+            }
+            else {
+                invalidElementNames.insert(elementName);
+            }
+        }
+    }
+//    m_centeringCorrectionEnabled = false;
+//
+//    if (rootElementText == s_v1_rootTagName) {
+//        decodeFromXMLWithStreamReaderVersionOne(xml);
+//    }
+//    else if (rootElementText == s_v2_rootTagName) {
+//        /*
+//         * Version 2 uses a different root tag than version 1.  The reason is that
+//         * the older code for decoding from XML will throw an exception if it
+//         * encounters invalid elements or the version number is invalid.  The problem
+//         * is that the exception is not caught and wb_view will terminate.
+//         */
+//        QString versionNumberText("Unknown");
+//        const QXmlStreamAttributes atts = xml.attributes();
+//        if (atts.hasAttribute(s_v2_versionAttributeName)) {
+//            versionNumberText = atts.value(s_v2_versionAttributeName).toString();
+//        }
+//
+//        if (versionNumberText == "2") {
+//            decodeFromXMLWithStreamReaderVersionTwo(xml);
+//        }
+//        else {
+//            xml.raiseError("TileTabsLayoutGridConfiguration invalid version="
+//                           + versionNumberText);
+//        }
+//    }
+//    else {
+//        xml.raiseError("TileTabsLayoutGridConfiguration first element is "
+//                       + xml.name().toString()
+//                       + " but should be "
+//                       + s_v1_rootTagName
+//                       + " or "
+//                       + s_v2_rootTagName);
+//    }
+//
+//    //    const bool debugFlag(false);
+//    //    if (debugFlag) {
+//    //        AString xmlText = encodeInXMLWithStreamWriterVersionTwo();
+//    //        std::cout << std::endl << "NEW: " << xmlText << std::endl << std::endl;
+//    //        AString em;
+//    //        TileTabsLayoutGridConfiguration temp;
+//    //        QXmlStreamReader tempReader(xmlText);
+//    //        tempReader.readNextStartElement();
+//    //        temp.decodeFromXMLWithStreamReaderVersionTwo(tempReader);
+//    //        if (tempReader.hasError()) {
+//    //            std::cout << "Decode error: " << tempReader.errorString() << std::endl;
+//    //        }
+//    //        else {
+//    //            std::cout << "Decoded: " << temp.toString() << std::endl;
+//    //        }
+//    //
+//    //        std::cout << std::endl;
+//    //    }
+//    //    return true;
+}

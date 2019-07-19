@@ -34,6 +34,8 @@
 #include "CaretPreferenceDataValue.h"
 #include "ModelTransform.h"
 #include "TileTabsConfiguration.h"
+#include "TileTabsLayoutGridConfiguration.h"
+#include "TileTabsLayoutManualConfiguration.h"
 #include "WuQMacroGroup.h"
 
 using namespace caret;
@@ -505,6 +507,58 @@ CaretPreferences::readTileTabsConfigurations(const bool performSync)
         else {
             CaretLogWarning(errorMessage);
             delete ttc;
+        }
+        
+        const bool testFlag(true);
+        if (testFlag) {
+            AString errorMessage;
+            TileTabsLayoutBaseConfiguration* config = TileTabsLayoutBaseConfiguration::decodeFromXML(configString,
+                                                                                         errorMessage);
+            if (config != NULL) {
+                std::cout << "Read config: " << config->toString() << std::endl;
+                
+                TileTabsLayoutGridConfiguration* gridConfig = dynamic_cast<TileTabsLayoutGridConfiguration*>(config);
+                if (gridConfig != NULL) {
+                    const int32_t rowCount = gridConfig->getNumberOfRows();
+                    const int32_t colCount = gridConfig->getNumberOfColumns();
+                    const int32_t numTabs = rowCount * colCount;
+                    std::vector<int32_t> tabIndices;
+                    for (int32_t i = 0; i < numTabs; i++) {
+                        tabIndices.push_back(i);
+                    }
+                    TileTabsLayoutManualConfiguration* manualLayout
+                    = TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(gridConfig,
+                                                                                   TileTabsGridModeEnum::CUSTOM,
+                                                                                   tabIndices);
+                    if (manualLayout != NULL) {
+                        std::cout << "MANUAL VERSION OF GRID LAYOUT: " << std::endl;
+                        std::cout << manualLayout->toString() << std::endl;
+                        
+                        AString xmlText = manualLayout->encodeInXML();
+                        std::cout << "XML: " << std::endl;
+                        std::cout << xmlText << std::endl << std::endl;
+                        
+                        delete manualLayout;
+                        
+                        TileTabsLayoutBaseConfiguration* configMan =
+                            TileTabsLayoutBaseConfiguration::decodeFromXML(xmlText,
+                                                                     errorMessage);
+                        if (configMan != NULL) {
+                            std::cout << "After reading manual configuration and writing it: " << std::endl;
+                            std::cout << configMan->toString() << std::endl << std::endl;
+                        }
+                        else {
+                            std::cout << "ERROR decoding from manual layout: "
+                            << errorMessage << std::endl;
+                        }
+                    }
+                }
+            }
+            else {
+                std::cout << "Error reading config: " << errorMessage << std::endl;
+                std::cout << "FROM: " << configString << std::endl;
+            }
+            std::cout << std::endl;
         }
     }
     this->qSettings->endArray();

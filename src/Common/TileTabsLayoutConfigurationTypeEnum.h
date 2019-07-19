@@ -28,21 +28,23 @@
 
 namespace caret {
 
-class TileTabsConfigurationLayoutTypeEnum {
+class TileTabsLayoutConfigurationTypeEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** */
-        GRID,
-        /** */
+        /** Automatic grid with rows/columns sufficient to show all tabs */
+        AUTOMATIC_GRID,
+        /** Grid with rows/columns customized by user */
+        CUSTOM_GRID,
+        /** Use sets bounds of layout */
         MANUAL
     };
 
 
-    ~TileTabsConfigurationLayoutTypeEnum();
+    ~TileTabsLayoutConfigurationTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -63,14 +65,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    TileTabsConfigurationLayoutTypeEnum(const Enum enumValue, 
-                 const AString& name,
-                 const AString& guiName);
+    TileTabsLayoutConfigurationTypeEnum(const Enum enumValue,
+                                        const AString& name,
+                                        const AString& guiName);
 
-    static const TileTabsConfigurationLayoutTypeEnum* findData(const Enum enumValue);
+    static const TileTabsLayoutConfigurationTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<TileTabsConfigurationLayoutTypeEnum> enumData;
+    static std::vector<TileTabsLayoutConfigurationTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -94,11 +96,11 @@ private:
     AString guiName;
 };
 
-#ifdef __TILE_TABS_CONFIGURATION_LAYOUT_TYPE_ENUM_DECLARE__
-std::vector<TileTabsConfigurationLayoutTypeEnum> TileTabsConfigurationLayoutTypeEnum::enumData;
-bool TileTabsConfigurationLayoutTypeEnum::initializedFlag = false;
-int32_t TileTabsConfigurationLayoutTypeEnum::integerCodeCounter = 0; 
-#endif // __TILE_TABS_CONFIGURATION_LAYOUT_TYPE_ENUM_DECLARE__
+#ifdef __TILE_TABS_LAYOUT_CONFIGURATION_TYPE_ENUM_DECLARE__
+std::vector<TileTabsLayoutConfigurationTypeEnum> TileTabsLayoutConfigurationTypeEnum::enumData;
+bool TileTabsLayoutConfigurationTypeEnum::initializedFlag = false;
+int32_t TileTabsLayoutConfigurationTypeEnum::integerCodeCounter = 0;
+#endif // __TILE_TABS_LAYOUT_CONFIGURATION_TYPE_ENUM_DECLARE__
 
 } // namespace
 #endif  //__TILE_TABS_CONFIGURATION_LAYOUT_TYPE_ENUM_H__
