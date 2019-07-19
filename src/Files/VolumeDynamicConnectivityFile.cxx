@@ -489,7 +489,7 @@ VolumeDynamicConnectivityFile::getConnectivityForVoxelIndex(const int64_t ijk[3]
                 const int64_t myTimePointOffset = getVoxelOffset(ijk[0], ijk[1], ijk[2], 0);
                 connCorrelation->getCorrelationForBrainordinate(myTimePointOffset,
                                                                 voxelsOut);
-                CaretAssert(m_dimI * m_dimJ * m_dimK == static_cast<int64_t>(voxelsOut.size()));
+                CaretAssert((m_dimI * m_dimJ * m_dimK) == static_cast<int64_t>(voxelsOut.size()));
                 validFlag = true;
             }
         }
