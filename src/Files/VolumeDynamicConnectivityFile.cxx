@@ -419,7 +419,6 @@ VolumeDynamicConnectivityFile::loadConnectivityForVoxelXYZ(const float xyz[3])
                             + AString::number(static_cast<int32_t>(xyz[1]))
                             + "_z"
                             + AString::number(static_cast<int32_t>(xyz[2])));
-        m_dataLoadedName = m_dataLoadedName.replace('-', 'n');
         
         return true;
     }
