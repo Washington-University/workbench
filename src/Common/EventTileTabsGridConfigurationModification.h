@@ -1,5 +1,5 @@
-#ifndef __EVENT_TILE_TABS_CONFIGURATION_MODIFICATION_H__
-#define __EVENT_TILE_TABS_CONFIGURATION_MODIFICATION_H__
+#ifndef __EVENT_TILE_TABS_GRID_CONFIGURATION_MODIFICATION_H__
+#define __EVENT_TILE_TABS_GRID_CONFIGURATION_MODIFICATION_H__
 
 /*LICENSE_START*/
 /*
@@ -31,9 +31,9 @@
 
 namespace caret {
 
-    class TileTabsConfiguration;
+    class TileTabsLayoutGridConfiguration;
     
-    class EventTileTabsConfigurationModification : public Event {
+    class EventTileTabsGridConfigurationModification : public Event {
         
     public:
         /**
@@ -57,18 +57,18 @@ namespace caret {
             MOVE_BEFORE
         };
         
-        EventTileTabsConfigurationModification(TileTabsConfiguration* tileTabsConfiguration,
+        EventTileTabsGridConfigurationModification(TileTabsLayoutGridConfiguration* tileTabsConfiguration,
                                                const int32_t rowColumnIndex,
                                                const RowColumnType rowColumnType,
                                                const Operation operation);
         
-        virtual ~EventTileTabsConfigurationModification();
+        virtual ~EventTileTabsGridConfigurationModification();
         
-        EventTileTabsConfigurationModification(const EventTileTabsConfigurationModification&) = delete;
+        EventTileTabsGridConfigurationModification(const EventTileTabsGridConfigurationModification&) = delete;
 
-        EventTileTabsConfigurationModification& operator=(const EventTileTabsConfigurationModification&) = delete;
+        EventTileTabsGridConfigurationModification& operator=(const EventTileTabsGridConfigurationModification&) = delete;
         
-        TileTabsConfiguration* getTileTabsConfiguration();
+        TileTabsLayoutGridConfiguration* getTileTabsConfiguration();
         
         int32_t getRowColumnIndex() const;
         
@@ -83,7 +83,7 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        TileTabsConfiguration* m_tileTabsConfiguration;
+        TileTabsLayoutGridConfiguration* m_tileTabsConfiguration;
         
         const int32_t m_rowColumnIndex;
         
@@ -97,9 +97,9 @@ namespace caret {
 
     };
     
-#ifdef __EVENT_TILE_TABS_CONFIGURATION_MODIFICATION_DECLARE__
+#ifdef __EVENT_TILE_TABS_GRID_CONFIGURATION_MODIFICATION_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __EVENT_TILE_TABS_CONFIGURATION_MODIFICATION_DECLARE__
+#endif // __EVENT_TILE_TABS_GRID_CONFIGURATION_MODIFICATION_DECLARE__
 
 } // namespace
-#endif  //__EVENT_TILE_TABS_CONFIGURATION_MODIFICATION_H__
+#endif  //__EVENT_TILE_TABS_GRID_CONFIGURATION_MODIFICATION_H__

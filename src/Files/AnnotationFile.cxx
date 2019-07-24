@@ -46,7 +46,7 @@
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNewClone.h"
 #include "EventManager.h"
-#include "EventTileTabsConfigurationModification.h"
+#include "EventTileTabsGridConfigurationModification.h"
 #include "GiftiMetaData.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -493,7 +493,7 @@ AnnotationFile::receiveEvent(Event* event)
         textSubEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_TILE_TABS_MODIFICATION) {
-        EventTileTabsConfigurationModification* modEvent = dynamic_cast<EventTileTabsConfigurationModification*>(event);
+        EventTileTabsGridConfigurationModification* modEvent = dynamic_cast<EventTileTabsGridConfigurationModification*>(event);
         CaretAssert(modEvent);
         updateSpacerAnnotationsAfterTileTabsModification(modEvent);
     }
@@ -1142,30 +1142,6 @@ AnnotationFile::processGroupingAnnotations(EventAnnotationGrouping* groupingEven
     
     AnnotationGroup* spaceGroup = (*spaceGroupIter).data();
     CaretAssert(spaceGroup);
-
-    
-    
-    
-    
-//    AnnotationGroupKey spaceGroupKey = groupingEvent->getAnnotationGroupKey();
-//    
-//    AnnotationGroup* spaceGroup = NULL;
-//    AnnotationGroupIterator spaceGroupIter = m_annotationGroups.end();
-//    for (spaceGroupIter = m_annotationGroups.begin();
-//         spaceGroupIter != m_annotationGroups.end();
-//         spaceGroupIter++) {
-//        QSharedPointer<AnnotationGroup> groupPointer = *spaceGroupIter;
-//        if (spaceGroupKey == groupPointer->getAnnotationGroupKey()) {
-//            spaceGroup = groupPointer.data();
-//            break;
-//        }
-//    }
-//    
-//    if (spaceGroup == NULL) {
-//        groupingEvent->setErrorMessage("PROGRAM ERROR: Did not find space group for source of grouping annotations");
-//        return;
-//    }
-
     
     groupingEvent->setEventProcessed();
     
@@ -1318,7 +1294,6 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
      * Find annotations in ONE space group that were
      * previously assigned to the previous user group.
      */
-    //AnnotationGroupIterator spaceGroupIter = m_annotationGroups.end();
     for (AnnotationGroupIterator spaceGroupIter = m_annotationGroups.begin();
          spaceGroupIter != m_annotationGroups.end();
          spaceGroupIter++) {
@@ -2173,10 +2148,10 @@ AnnotationFile::isItemSelectedForEditingInWindow(const int32_t /*windowIndex*/)
  *     The tile tabs modify event.
  */
 void
-AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTileTabsConfigurationModification* modEvent)
+AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTileTabsGridConfigurationModification* modEvent)
 {
     const int32_t rowColumnIndex = modEvent->getRowColumnIndex();
-    const bool rowFlag = (modEvent->getRowColumnType() == EventTileTabsConfigurationModification::RowColumnType::ROW);
+    const bool rowFlag = (modEvent->getRowColumnType() == EventTileTabsGridConfigurationModification::RowColumnType::ROW);
     
     int32_t deleteIndex(-1);
     int32_t shiftStartIndex(-1);
@@ -2186,35 +2161,35 @@ AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTile
     int32_t moveTwoIndex(-1);
     
     switch (modEvent->getOperation()) {
-        case EventTileTabsConfigurationModification::Operation::DELETE_IT:
+        case EventTileTabsGridConfigurationModification::Operation::DELETE_IT:
             deleteIndex     = rowColumnIndex;
             shiftStartIndex = rowColumnIndex + 1;
             break;
-        case EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER:
+        case EventTileTabsGridConfigurationModification::Operation::DUPLICATE_AFTER:
         {
             shiftStartIndex = rowColumnIndex + 1;
             duplicateFromIndex       = rowColumnIndex;
             duplicateToIndex         = rowColumnIndex + 1;
         }
             break;
-        case EventTileTabsConfigurationModification::Operation::DUPLICATE_BEFORE:
+        case EventTileTabsGridConfigurationModification::Operation::DUPLICATE_BEFORE:
         {
             shiftStartIndex = rowColumnIndex;
             duplicateFromIndex       = rowColumnIndex + 1;
             duplicateToIndex         = rowColumnIndex;
         }
             break;
-        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_BEFORE:
+        case EventTileTabsGridConfigurationModification::Operation::INSERT_SPACER_BEFORE:
             shiftStartIndex = rowColumnIndex;
             break;
-        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER:
+        case EventTileTabsGridConfigurationModification::Operation::INSERT_SPACER_AFTER:
             shiftStartIndex = rowColumnIndex + 1;
             break;
-        case EventTileTabsConfigurationModification::Operation::MOVE_AFTER:
+        case EventTileTabsGridConfigurationModification::Operation::MOVE_AFTER:
             moveOneIndex = rowColumnIndex;
             moveTwoIndex = rowColumnIndex + 1;
             break;
-        case EventTileTabsConfigurationModification::Operation::MOVE_BEFORE:
+        case EventTileTabsGridConfigurationModification::Operation::MOVE_BEFORE:
             moveOneIndex = rowColumnIndex;
             moveTwoIndex = rowColumnIndex - 1;
             break;
@@ -2242,7 +2217,7 @@ AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTile
                     int32_t columnIndex = spacerTabIndex.getColumnIndex();
                     
                     switch (modEvent->getOperation()) {
-                        case EventTileTabsConfigurationModification::Operation::DELETE_IT:
+                        case EventTileTabsGridConfigurationModification::Operation::DELETE_IT:
                         {
                             int32_t rcIndex = (rowFlag ? rowIndex : columnIndex);
                             if (rcIndex == deleteIndex) {
@@ -2264,8 +2239,8 @@ AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTile
                             }
                         }
                             break;
-                        case EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER:
-                        case EventTileTabsConfigurationModification::Operation::DUPLICATE_BEFORE:
+                        case EventTileTabsGridConfigurationModification::Operation::DUPLICATE_AFTER:
+                        case EventTileTabsGridConfigurationModification::Operation::DUPLICATE_BEFORE:
                         {
                             int32_t rcIndex = (rowFlag ? rowIndex : columnIndex);
                             /*
@@ -2302,8 +2277,8 @@ AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTile
                             }
                         }
                             break;
-                        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_BEFORE:
-                        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER:
+                        case EventTileTabsGridConfigurationModification::Operation::INSERT_SPACER_BEFORE:
+                        case EventTileTabsGridConfigurationModification::Operation::INSERT_SPACER_AFTER:
                         {
                             int32_t rcIndex = (rowFlag ? rowIndex : columnIndex);
                             if (rcIndex >= shiftStartIndex) {
@@ -2317,8 +2292,8 @@ AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTile
                             }
                         }
                             break;
-                        case EventTileTabsConfigurationModification::Operation::MOVE_AFTER:
-                        case EventTileTabsConfigurationModification::Operation::MOVE_BEFORE:
+                        case EventTileTabsGridConfigurationModification::Operation::MOVE_AFTER:
+                        case EventTileTabsGridConfigurationModification::Operation::MOVE_BEFORE:
                         {
                             int32_t rcIndex = (rowFlag ? rowIndex : columnIndex);
                             int32_t newIndex(-1);

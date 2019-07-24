@@ -33,16 +33,16 @@ namespace caret {
 
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
-    class EventTileTabsConfigurationModification;
+    class EventTileTabsGridConfigurationModification;
     class SpacerTabContent;
-    class TileTabsConfiguration;
+    class TileTabsLayoutGridConfiguration;
     class TileTabsGridRowColumnElement;
     
     class TileTabsConfigurationModifier : public CaretObject {
         
     public:
         TileTabsConfigurationModifier(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
-                                      EventTileTabsConfigurationModification* modifyEvent);
+                                      EventTileTabsGridConfigurationModification* modifyEvent);
         
         virtual ~TileTabsConfigurationModifier();
         
@@ -83,7 +83,7 @@ namespace caret {
         class RowColumnContent : public CaretObject {
         public:
             RowColumnContent(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
-                             TileTabsConfiguration* tileTabsConfiguration,
+                             TileTabsLayoutGridConfiguration* tileTabsConfiguration,
                              const int32_t rowColumnIndex,
                              const bool rowFlag);
             
@@ -115,7 +115,7 @@ namespace caret {
         
         const std::vector<const BrainOpenGLViewportContent*>& m_existingTabs;
         
-        EventTileTabsConfigurationModification* m_modifyEvent;
+        EventTileTabsGridConfigurationModification* m_modifyEvent;
         
         std::vector<RowColumnContent*> m_rowColumns;
         
@@ -124,7 +124,7 @@ namespace caret {
         /**
          * This is the current tile tabs configuration in the window so DO NOT delete it
          */
-        TileTabsConfiguration* m_currentTileTabsConfiguration = NULL;
+        TileTabsLayoutGridConfiguration* m_currentTileTabsConfiguration = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

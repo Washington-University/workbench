@@ -46,10 +46,10 @@ namespace caret {
     class BrainOpenGLWidget;
     class BrowserWindowContent;
     class BrowserTabContent;
-    class EventTileTabsConfigurationModification;
+    class EventTileTabsGridConfigurationModification;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
-    class TileTabsConfiguration;
+    class TileTabsLayoutBaseConfiguration;
 
     
     /**
@@ -335,7 +335,7 @@ namespace caret {
         
         void saveBrowserWindowContentForScene();
         
-        void modifyTileTabsConfiguration(EventTileTabsConfigurationModification* modEvent);
+        void modifyTileTabsConfiguration(EventTileTabsGridConfigurationModification* modEvent);
 
         /** Index of this window */
         const int32_t m_browserWindowIndex;
@@ -391,7 +391,7 @@ namespace caret {
         QAction* m_viewTileTabsConfigurationDialogAction;
         QAction* m_viewAutomaticTileTabsConfigurationAction;
         QAction* m_viewCustomTileTabsConfigurationAction;
-        std::vector<std::pair<QAction*, TileTabsConfiguration*>> m_viewCustomTileTabsConfigurationActions;
+        std::vector<std::pair<QAction*, AString>> m_viewCustomTileTabsConfigurationActions;
         
         QAction* m_gapsAndMarginsAction;
         

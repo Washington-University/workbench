@@ -31,6 +31,9 @@ class QXmlStreamReader;
 class QXmlStreamWriter;
 
 namespace caret {
+    
+    class TileTabsLayoutGridConfiguration;
+    class TileTabsLayoutManualConfiguration;
 
     class TileTabsLayoutBaseConfiguration : public CaretObject {
         
@@ -44,9 +47,19 @@ namespace caret {
 
         TileTabsLayoutBaseConfiguration& operator=(const TileTabsLayoutBaseConfiguration& obj);
         
-        void copy(const TileTabsLayoutBaseConfiguration& rhs);
+        /**
+         * Copy the given configuration to "this" configuration.  If given configuration
+         * does not cast to "this class type" log a warning and do not copy.
+         * Name property is not copied.
+         *
+         * @param rhs
+         *      Configuration to copy.
+         */
+        virtual void copy(const TileTabsLayoutBaseConfiguration& rhs) = 0; 
         
         virtual TileTabsLayoutBaseConfiguration* newCopyWithNewUniqueIdentifier() const = 0;
+        
+        TileTabsLayoutBaseConfiguration* newCopyWithUniqueIdentifier(const AString& uniqueIdentifier) const;
         
         TileTabsLayoutConfigurationTypeEnum::Enum getLayoutType() const;
 
@@ -63,6 +76,14 @@ namespace caret {
                                                         AString& errorMessageOut);
         
         AString toString() const override;
+        
+        virtual TileTabsLayoutGridConfiguration* castToGridConfiguration();
+
+        virtual const TileTabsLayoutGridConfiguration* castToGridConfiguration() const;
+        
+        virtual TileTabsLayoutManualConfiguration* castToManualConfiguration();
+        
+        virtual const TileTabsLayoutManualConfiguration* castToManualConfiguration() const;
         
         static bool lessThanComparisonByName(const TileTabsLayoutBaseConfiguration* ttc1,
                                              const TileTabsLayoutBaseConfiguration* ttc2);

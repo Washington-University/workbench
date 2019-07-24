@@ -81,7 +81,7 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
-#include "EventTileTabsConfigurationModification.h"
+#include "EventTileTabsGridConfigurationModification.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
 #include "FociProjectionDialog.h"
@@ -109,7 +109,8 @@
 #include "Surface.h"
 #include "SurfaceMontageConfigurationAbstract.h"
 #include "SurfaceSelectionViewController.h"
-#include "TileTabsConfiguration.h"
+#include "TileTabsLayoutGridConfiguration.h"
+#include "TileTabsLayoutManualConfiguration.h"
 #include "TileTabsConfigurationModifier.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDoubleSpinBox.h"
@@ -538,7 +539,7 @@ BrainBrowserWindow::receiveEvent(Event* event)
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_TILE_TABS_MODIFICATION) {
-        EventTileTabsConfigurationModification* modEvent = dynamic_cast<EventTileTabsConfigurationModification*>(event);
+        EventTileTabsGridConfigurationModification* modEvent = dynamic_cast<EventTileTabsGridConfigurationModification*>(event);
         CaretAssert(modEvent);
         
         if (modEvent->getWindowIndex() == this->m_browserWindowIndex) {
@@ -2483,10 +2484,10 @@ BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsGridModeEnum
     AString modeLabel;
     switch (configurationMode) {
         case TileTabsGridModeEnum::AUTOMATIC:
-            modeLabel = "Automatic";
+            modeLabel = "Automatic Grid";
             break;
         case TileTabsGridModeEnum::CUSTOM:
-            modeLabel = "Custom";
+            modeLabel = "Custom Grid";
             break;
     }
     
@@ -2498,13 +2499,13 @@ BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsGridModeEnum
     AString errorText;
     switch (configurationMode) {
         case TileTabsGridModeEnum::AUTOMATIC:
-            TileTabsConfiguration::getRowsAndColumnsForNumberOfTabs(windowTabCount,
+            TileTabsLayoutGridConfiguration::getRowsAndColumnsForNumberOfTabs(windowTabCount,
                                                                     configRowCount,
                                                                     configColCount);
             break;
         case TileTabsGridModeEnum::CUSTOM:
         {
-            const TileTabsConfiguration* customConfig = getBrowerWindowContent()->getCustomTileTabsConfiguration();
+            const TileTabsLayoutGridConfiguration* customConfig = getBrowerWindowContent()->getCustomGridTileTabsConfiguration();
             configRowCount = customConfig->getNumberOfRows();
             configColCount = customConfig->getNumberOfColumns();
             const int32_t customTabCount = (configRowCount
@@ -2541,7 +2542,7 @@ BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsGridModeEnum
  *     Event with modification information.
  */
 void
-BrainBrowserWindow::modifyTileTabsConfiguration(EventTileTabsConfigurationModification* modEvent)
+BrainBrowserWindow::modifyTileTabsConfiguration(EventTileTabsGridConfigurationModification* modEvent)
 {
     CaretAssert(modEvent);
     
@@ -2586,11 +2587,17 @@ BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuAboutToShow()
     m_viewCustomTileTabsConfigurationActions.clear();
     
     const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    std::vector<const TileTabsConfiguration*> tileTabsConfigs = prefs->getTileTabsConfigurationsSortedByName();
-    for (auto config : tileTabsConfigs) {
-        QAction* action = m_viewTileTabsLoadUserConfigurationMenu->addAction(config->getName());
+    
+    std::vector<std::pair<AString, AString>> nameUniqueIDs =
+    prefs->getTileTabsUserConfigurationsNamesAndUniqueIdentifiers();
+    
+    for (const auto nameID : nameUniqueIDs) {
+        /*
+         * Second element is user data which contains the Unique ID
+         */
+        QAction* action = m_viewTileTabsLoadUserConfigurationMenu->addAction(nameID.first);
         m_viewCustomTileTabsConfigurationActions.push_back(std::make_pair(action,
-                                                                          const_cast<TileTabsConfiguration*>(config)));
+                                                                          nameID.second));
     }
 }
 
@@ -2626,24 +2633,45 @@ BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuItemTriggered(QA
 {
     CaretAssert(action);
     
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+
     BrowserWindowContent* bwc = getBrowerWindowContent();
     bwc->setTileTabsConfigurationMode(TileTabsGridModeEnum::CUSTOM);
     
-    TileTabsConfiguration* tileTabsConfig = NULL;
+    AString tileTabsConfigID;
     for (auto& config : m_viewCustomTileTabsConfigurationActions) {
         if (config.first == action) {
-            tileTabsConfig = config.second;
-            CaretAssert(tileTabsConfig);
+            tileTabsConfigID = config.second;
             break;
         }
     }
     
-    CaretAssert(tileTabsConfig);
-    
-    bwc->getCustomTileTabsConfiguration()->copy(*tileTabsConfig);
-    
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+    std::unique_ptr<TileTabsLayoutBaseConfiguration> tileTabsConfig = prefs->getCopyOfTileTabsUserConfigurationByUniqueIdentifier(tileTabsConfigID);
+    if (tileTabsConfig) {
+        switch (tileTabsConfig->getLayoutType()) {
+            case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                CaretAssert(0);
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+            {
+                const TileTabsLayoutGridConfiguration* gridConfig = tileTabsConfig->castToGridConfiguration();
+                CaretAssert(gridConfig);
+                
+                bwc->getCustomGridTileTabsConfiguration()->copy(*gridConfig);
+            }
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                CaretAssertToDoFatal();
+                break;
+        }
+        
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+    }
+    else {
+        WuQMessageBox::errorOk(this, "Unable to find User Configuration with UniqueID: "
+                               + tileTabsConfigID);
+    }
 }
 
 /**

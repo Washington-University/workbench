@@ -83,7 +83,8 @@
 #include "SelectionItemVoxelEditing.h"
 #include "SessionManager.h"
 #include "Surface.h"
-#include "TileTabsConfiguration.h"
+#include "TileTabsLayoutGridConfiguration.h"
+#include "TileTabsLayoutManualConfiguration.h"
 #include "UserInputModeAnnotations.h"
 #include "UserInputModeBorders.h"
 #include "UserInputModeFoci.h"
@@ -582,35 +583,44 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
         /*
          * Determine if default configuration for tiles
          */
-        TileTabsConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
+        TileTabsLayoutBaseConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
         CaretAssert(tileTabsConfiguration);
         
-        /*
-         * Get the sizes of the tab tiles from the tile tabs configuration
-         */
-        if (tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
-                                                                             windowHeight,
-                                                                             numberOfTabs,
-                                                                             browserWindowContent->getTileTabsConfigurationMode(),
-                                                                             rowHeights,
-                                                                             columnsWidths)) {
-            
+        TileTabsLayoutGridConfiguration* gridConfiguration = tileTabsConfiguration->castToGridConfiguration();
+        TileTabsLayoutManualConfiguration* manualConfiguration = tileTabsConfiguration->castToManualConfiguration();
+        if (gridConfiguration != NULL) {
             /*
-             * Create the viewport drawing contents for all tabs
+             * Get the sizes of the tab tiles from the tile tabs configuration
              */
-            
-            std::vector<BrainOpenGLViewportContent*> tabViewportContent = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
-                                                                                                                                       browserWindowContent,
-                                                                                                                                       gapsAndMargins,
-                                                                                                                                       windowViewport,
-                                                                                                                                       this->windowIndex,
-                                                                                                                                       getModelEvent.getTabIndexForTileTabsHighlighting());
-            for (auto tabvp : tabViewportContent) {
-                windowContent.addTabViewport(tabvp);
+            if (gridConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
+                                                                                 windowHeight,
+                                                                                 numberOfTabs,
+                                                                                 browserWindowContent->getTileTabsConfigurationMode(),
+                                                                                 rowHeights,
+                                                                                 columnsWidths)) {
+                
+                /*
+                 * Create the viewport drawing contents for all tabs
+                 */
+                std::vector<BrainOpenGLViewportContent*> tabViewportContent = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
+                                                                                                                                           browserWindowContent,
+                                                                                                                                           gapsAndMargins,
+                                                                                                                                           windowViewport,
+                                                                                                                                           this->windowIndex,
+                                                                                                                                           getModelEvent.getTabIndexForTileTabsHighlighting());
+                for (auto tabvp : tabViewportContent) {
+                    windowContent.addTabViewport(tabvp);
+                }
+            }
+            else {
+                CaretLogSevere("Tile Tabs Row/Column sizing failed !!!");
             }
         }
+        else if (manualConfiguration != NULL) {
+            CaretAssertToDoFatal();
+        }
         else {
-            CaretLogSevere("Tile Tabs Row/Column sizing failed !!!");
+            CaretAssert(0);
         }
     }
     else if (numberOfTabs >= 1) {

@@ -32,7 +32,8 @@
 
 namespace caret {
     class SceneClassAssistant;
-    class TileTabsConfiguration;
+    class TileTabsLayoutBaseConfiguration;
+    class TileTabsLayoutGridConfiguration;
     
     class BrowserWindowContent : public CaretObject, public SceneableInterface {
         
@@ -65,17 +66,17 @@ namespace caret {
         
         void setTileTabsEnabled(const bool tileTabsEnabled);
 
-        TileTabsConfiguration* getSelectedTileTabsConfiguration();
+        TileTabsLayoutBaseConfiguration* getSelectedTileTabsConfiguration();
         
-        const TileTabsConfiguration* getSelectedTileTabsConfiguration() const;
+        const TileTabsLayoutBaseConfiguration* getSelectedTileTabsConfiguration() const;
         
-        TileTabsConfiguration* getAutomaticTileTabsConfiguration();
+        const TileTabsLayoutGridConfiguration* getAutomaticGridTileTabsConfiguration() const;
         
-        const TileTabsConfiguration* getAutomaticTileTabsConfiguration() const;
+        TileTabsLayoutGridConfiguration* getCustomGridTileTabsConfiguration();
         
-        TileTabsConfiguration* getCustomTileTabsConfiguration();
+        const TileTabsLayoutGridConfiguration* getCustomGridTileTabsConfiguration() const;
         
-        const TileTabsConfiguration* getCustomTileTabsConfiguration() const;
+        void setCustomGridTileTabsConfiguration(const TileTabsLayoutGridConfiguration* gridConfiguration);
         
         TileTabsGridModeEnum::Enum getTileTabsConfigurationMode() const;
         
@@ -148,9 +149,9 @@ namespace caret {
         
         int32_t m_sceneGraphicsHeight = 0;
         
-        std::unique_ptr<TileTabsConfiguration> m_automaticTileTabsConfiguration;
+        std::unique_ptr<TileTabsLayoutGridConfiguration> m_automaticGridTileTabsConfiguration;
         
-        std::unique_ptr<TileTabsConfiguration> m_customTileTabsConfiguration;
+        std::unique_ptr<TileTabsLayoutGridConfiguration> m_customGridTileTabsConfiguration;
         
         int32_t m_sceneSelectedTabIndex = 0;
         

@@ -22,7 +22,7 @@
 /*LICENSE_END*/
 
 #include "EventListenerInterface.h"
-#include "EventTileTabsConfigurationModification.h"
+#include "EventTileTabsGridConfigurationModification.h"
 #include "TileTabsGridRowColumnContentTypeEnum.h"
 #include "TileTabsGridRowColumnStretchTypeEnum.h"
 #include "WuQDialogNonModal.h"
@@ -44,7 +44,9 @@ namespace caret {
     class BrowserWindowContent;
     class CaretPreferences;
     class EnumComboBoxTemplate;
-    class TileTabsConfiguration;
+    class TileTabsLayoutBaseConfiguration;
+    class TileTabsLayoutGridConfiguration;
+    class TileTabsLayoutManualConfiguration;
     class TileTabElementWidgets;
     class TileTabsGridRowColumnElement;
     class WuQGridLayoutGroup;
@@ -77,8 +79,6 @@ namespace caret {
     private slots:
         void browserWindowComboBoxValueChanged(BrainBrowserWindow* browserWindow);
         
-        void newUserConfigurationButtonClicked();
-        
         void deleteUserConfigurationButtonClicked();
         
         void renameUserConfigurationButtonClicked();
@@ -87,13 +87,15 @@ namespace caret {
         
         void configurationStretchFactorWasChanged();
         
+        void addUserConfigurationPushButtonClicked();
+        
         void replaceUserConfigurationPushButtonClicked();
         
         void loadIntoActiveConfigurationPushButtonClicked();
 
         void automaticCustomButtonClicked(QAbstractButton*);
         
-        void tileTabsModificationRequested(EventTileTabsConfigurationModification& modification);
+        void tileTabsModificationRequested(EventTileTabsGridConfigurationModification& modification);
 
         void centeringCorrectionCheckBoxClicked(bool checked);
 
@@ -111,11 +113,12 @@ namespace caret {
         
         void selectTileTabConfigurationByUniqueID(const AString& uniqueID);
         
-        TileTabsConfiguration* getAutomaticTileTabsConfiguration();
+        TileTabsLayoutGridConfiguration* getCustomTileTabsGridConfiguration();
         
-        TileTabsConfiguration* getCustomTileTabsConfiguration();
+        AString getSelectedUserTileTabsConfigurationUniqueIdentifier();
         
-        TileTabsConfiguration* getSelectedUserTileTabsConfiguration();
+        bool getSelectedUserConfigurationNameAndUniqueID(AString& nameOut,
+                                                         AString& uniqueIDOut) const;
         
         QWidget* createUserConfigurationSelectionWidget();
         
@@ -125,9 +128,9 @@ namespace caret {
         
         QWidget* createCustomOptionsWidget();
         
-        void updateRowColumnStretchWidgets(TileTabsConfiguration* configuration);
+        void updateRowColumnStretchWidgets(TileTabsLayoutGridConfiguration* configuration);
         
-        void addRowColumnStretchWidget(const EventTileTabsConfigurationModification::RowColumnType rowColumnType,
+        void addRowColumnStretchWidget(const EventTileTabsGridConfigurationModification::RowColumnType rowColumnType,
                                        QGridLayout* gridLayout,
                                        std::vector<TileTabElementWidgets*>& elementVector);
         
@@ -143,6 +146,8 @@ namespace caret {
         
         BrowserWindowContent* getBrowserWindowContent();
         
+        AString getNewConfigurationName(QWidget* dialogParent);
+        
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
         QWidget* m_customConfigurationWidget;
@@ -153,11 +158,11 @@ namespace caret {
         
         QRadioButton* m_customConfigurationRadioButton;
         
-        QPushButton* m_newConfigurationPushButton;
-        
         QPushButton* m_deleteConfigurationPushButton;
         
         QPushButton* m_renameConfigurationPushButton;
+        
+        QPushButton* m_addPushButton;
         
         QPushButton* m_replacePushButton;
         
@@ -203,7 +208,7 @@ namespace caret {
         
     public:
         TileTabElementWidgets(TileTabsConfigurationDialog* tileTabsConfigurationDialog,
-                              const EventTileTabsConfigurationModification::RowColumnType rowColumnType,
+                              const EventTileTabsGridConfigurationModification::RowColumnType rowColumnType,
                               const int32_t index,
                               QGridLayout* gridLayout,
                               QObject* parent);
@@ -215,7 +220,7 @@ namespace caret {
     signals:
         void itemChanged();
         
-        void modificationRequested(EventTileTabsConfigurationModification& modification);
+        void modificationRequested(EventTileTabsGridConfigurationModification& modification);
         
     private slots:
         void constructionMenuAboutToShow();
@@ -232,7 +237,7 @@ namespace caret {
         QMenu* createConstructionMenu(QToolButton* toolButton);
         
         TileTabsConfigurationDialog* m_tileTabsConfigurationDialog;
-        const EventTileTabsConfigurationModification::RowColumnType m_rowColumnType;
+        const EventTileTabsGridConfigurationModification::RowColumnType m_rowColumnType;
         const int32_t m_index;
         TileTabsGridRowColumnElement* m_element;
         

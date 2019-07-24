@@ -34,10 +34,10 @@
 #include "EventBrowserTabNew.h"
 #include "EventBrowserWindowTileTabOperation.h"
 #include "EventManager.h"
-#include "EventTileTabsConfigurationModification.h"
+#include "EventTileTabsGridConfigurationModification.h"
 #include "GuiManager.h"
 #include "SpacerTabContent.h"
-#include "TileTabsConfiguration.h"
+#include "TileTabsLayoutGridConfiguration.h"
 
 using namespace caret;
 
@@ -58,7 +58,7 @@ static bool debugFlag = false;
  *     Event describing modification.
  */
 TileTabsConfigurationModifier::TileTabsConfigurationModifier(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
-                                                             EventTileTabsConfigurationModification* modifyEvent)
+                                                             EventTileTabsGridConfigurationModification* modifyEvent)
 : CaretObject(),
 m_existingTabs(existingTabs),
 m_modifyEvent(modifyEvent)
@@ -135,7 +135,7 @@ TileTabsConfigurationModifier::loadRowColumnsFromTileTabsConfiguration()
     const int32_t numColumns = m_currentTileTabsConfiguration->getNumberOfColumns();
     
     switch (m_modifyEvent->getRowColumnType()) {
-        case EventTileTabsConfigurationModification::RowColumnType::COLUMN:
+        case EventTileTabsGridConfigurationModification::RowColumnType::COLUMN:
             for (int32_t jCol = 0; jCol < numColumns; jCol++) {
                 m_rowColumns.push_back(new RowColumnContent(m_existingTabs,
                                                             m_modifyEvent->getTileTabsConfiguration(),
@@ -143,7 +143,7 @@ TileTabsConfigurationModifier::loadRowColumnsFromTileTabsConfiguration()
                                                             false));
             }
             break;
-        case EventTileTabsConfigurationModification::RowColumnType::ROW:
+        case EventTileTabsGridConfigurationModification::RowColumnType::ROW:
             for (int32_t iRow = 0; iRow < numRows; iRow++) {
                 m_rowColumns.push_back(new RowColumnContent(m_existingTabs,
                                                             m_modifyEvent->getTileTabsConfiguration(),
@@ -170,7 +170,7 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
     
     const int32_t numRowColumns = static_cast<int32_t>(m_rowColumns.size());
     switch (m_modifyEvent->getOperation()) {
-        case EventTileTabsConfigurationModification::Operation::DELETE_IT:
+        case EventTileTabsGridConfigurationModification::Operation::DELETE_IT:
             if (numRowColumns <= 1) {
                 errorMessageOut = "Cannot delete ROWCOL when there is only one ROWCOL";
             }
@@ -195,7 +195,7 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
                 errorMessageOut = "Invalid ROWCOL index=RCINDEX when deleting";
             }
             break;
-        case EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER:
+        case EventTileTabsGridConfigurationModification::Operation::DUPLICATE_AFTER:
             if ((rowColumnIndex >= 0)
                 && (rowColumnIndex < numRowColumns)) {
                 RowColumnContent* rowColumnCopy = m_rowColumns[rowColumnIndex]->clone(errorMessageOut);
@@ -210,7 +210,7 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
                 errorMessageOut = "Invalid ROWCOL index=RCINDEX when duplicating";
             }
             break;
-        case EventTileTabsConfigurationModification::Operation::DUPLICATE_BEFORE:
+        case EventTileTabsGridConfigurationModification::Operation::DUPLICATE_BEFORE:
             if ((rowColumnIndex >= 0)
                 && (rowColumnIndex < numRowColumns)) {
                 RowColumnContent* rowColumnCopy = m_rowColumns[rowColumnIndex]->clone(errorMessageOut);
@@ -225,8 +225,8 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
                 errorMessageOut = "Invalid ROWCOL index=RCINDEX when duplicating";
             }
             break;
-        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER:
-        case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_BEFORE:
+        case EventTileTabsGridConfigurationModification::Operation::INSERT_SPACER_AFTER:
+        case EventTileTabsGridConfigurationModification::Operation::INSERT_SPACER_BEFORE:
             if ((rowColumnIndex >= 0)
                 && (rowColumnIndex < numRowColumns)) {
                 CaretAssertVectorIndex(m_rowColumns, 0);
@@ -234,7 +234,7 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
                 RowColumnContent* rowColumnSpacer = RowColumnContent::newInstanceContainingSpacers(numberOfElements);
                 if (rowColumnSpacer != NULL) {
                     int32_t insertOffset = rowColumnIndex;
-                    if (m_modifyEvent->getOperation() == EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER) {
+                    if (m_modifyEvent->getOperation() == EventTileTabsGridConfigurationModification::Operation::INSERT_SPACER_AFTER) {
                         insertOffset++;
                     }
                     m_rowColumns.insert(m_rowColumns.begin() +
@@ -246,7 +246,7 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
                 errorMessageOut = "Invalid ROWCOL index=RCINDEX when insert spacer";
             }
             break;
-        case EventTileTabsConfigurationModification::Operation::MOVE_AFTER:
+        case EventTileTabsGridConfigurationModification::Operation::MOVE_AFTER:
             if (numRowColumns <= 1) {
                 errorMessageOut = "Cannot move ROWCOL when there is only one ROWCOL";
             }
@@ -264,7 +264,7 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
                 errorMessageOut = "Invalid ROWCOL index=RCINDEX when moving";
             }
             break;
-        case EventTileTabsConfigurationModification::Operation::MOVE_BEFORE:
+        case EventTileTabsGridConfigurationModification::Operation::MOVE_BEFORE:
             if (numRowColumns <= 1) {
                 errorMessageOut = "Cannot move ROWCOL when there is only one ROWCOL";
             }
@@ -287,10 +287,10 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
     if ( ! errorMessageOut.isEmpty()) {
         AString nameText;
         switch (m_modifyEvent->getRowColumnType()) {
-            case EventTileTabsConfigurationModification::RowColumnType::COLUMN:
+            case EventTileTabsGridConfigurationModification::RowColumnType::COLUMN:
                 nameText = " Column ";
                 break;
-            case EventTileTabsConfigurationModification::RowColumnType::ROW:
+            case EventTileTabsGridConfigurationModification::RowColumnType::ROW:
                 nameText = " Row ";
                 break;
         }
@@ -317,11 +317,11 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
 bool
 TileTabsConfigurationModifier::loadRowColumnsIntoTileTabsConfiguration(AString& errorMessageOut)
 {
-    TileTabsConfiguration newConfiguration(*m_currentTileTabsConfiguration);
+    TileTabsLayoutGridConfiguration newConfiguration(*m_currentTileTabsConfiguration);
     std::vector<BrowserTabContent*> browserTabs;
     
     switch (m_modifyEvent->getRowColumnType()) {
-        case EventTileTabsConfigurationModification::RowColumnType::COLUMN:
+        case EventTileTabsGridConfigurationModification::RowColumnType::COLUMN:
         {
             const int32_t numRows = static_cast<int32_t>(m_rowColumns[0]->m_tabElements.size());
             CaretAssert(numRows == m_currentTileTabsConfiguration->getNumberOfRows());
@@ -349,7 +349,7 @@ TileTabsConfigurationModifier::loadRowColumnsIntoTileTabsConfiguration(AString& 
             }
         }
             break;
-        case EventTileTabsConfigurationModification::RowColumnType::ROW:
+        case EventTileTabsGridConfigurationModification::RowColumnType::ROW:
         {
             const int32_t numRows = static_cast<int32_t>(m_rowColumns.size());
             const int32_t numColumns = static_cast<int32_t>(m_rowColumns[0]->m_tabElements.size());
@@ -469,7 +469,7 @@ TileTabsConfigurationModifier::Element::toString() const
  *     True if rows are being operated upon, false if operating on columns
  */
 TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
-                                                                  TileTabsConfiguration* tileTabsConfiguration,
+                                                                  TileTabsLayoutGridConfiguration* tileTabsConfiguration,
                                                                   const int32_t rowColumnIndex,
                                                                   const bool rowFlag)
 {

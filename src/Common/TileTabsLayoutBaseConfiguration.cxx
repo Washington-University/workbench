@@ -128,16 +128,22 @@ TileTabsLayoutBaseConfiguration::copyHelperTileTabsLayoutBaseConfiguration(const
 }
 
 /**
- * Copies the tile tabs configuration rows, columns, and
- * stretch factors.   Name is NOT copied.
+ * Create a copy of this configuration and set its unique identifier to
+ * the given unique identifier.
+ *
+ * @param uniqueIdentifier
+ *     The unique identifier (if empty a valid ID will be in the new configuration)
+ * @return
+ *     Pointer to the new configuration.
  */
-void
-TileTabsLayoutBaseConfiguration::copy(const TileTabsLayoutBaseConfiguration& rhs)
+TileTabsLayoutBaseConfiguration*
+TileTabsLayoutBaseConfiguration::newCopyWithUniqueIdentifier(const AString& uniqueIdentifier) const
 {
-    CaretAssertToDoFatal();  // need to do this a different way
-    AString savedName = m_name;
-    copyHelperTileTabsLayoutBaseConfiguration(rhs);
-    m_name = savedName;
+    TileTabsLayoutBaseConfiguration* config = newCopyWithNewUniqueIdentifier();
+    if ( ! uniqueIdentifier.isEmpty()) {
+        config->setUniqueIdentifierProtected(uniqueIdentifier);
+    }
+    return config;
 }
 
 /**
@@ -269,24 +275,6 @@ TileTabsLayoutBaseConfiguration::decodeFromXML(const AString& xmlString,
         return configurationOut;
     }
 
-    const bool debugFlag(false);
-    if (debugFlag) {
-//        AString xmlText = encodeInXMLWithStreamWriterVersionTwo();
-//        std::cout << std::endl << "NEW: " << xmlText << std::endl << std::endl;
-//        AString em;
-//        TileTabsLayoutBaseConfiguration temp;
-//        QXmlStreamReader tempReader(xmlText);
-//        tempReader.readNextStartElement();
-//        temp.decodeFromXMLWithStreamReaderVersionTwo(tempReader);
-//        if (tempReader.hasError()) {
-//            std::cout << "Decode error: " << tempReader.errorString() << std::endl;
-//        }
-//        else {
-//            std::cout << "Decoded: " << temp.toString() << std::endl;
-//        }
-//
-//        std::cout << std::endl;
-    }
     return configurationOut;
 }
 
@@ -303,21 +291,52 @@ TileTabsLayoutBaseConfiguration::toString() const
     << " m_name=" << m_name
     << " m_uniqueIdentifier=" << m_uniqueIdentifier
     << " m_layoutType=" << TileTabsLayoutConfigurationTypeEnum::toName(m_layoutType);
-//    AString s("Name: %1, Unique ID: %2\n");
-//    s = s.arg(m_name).arg(m_uniqueIdentifier);
-//
-//    int32_t indx(0);
-//    for (const auto item : m_columns) {
-//        s.append("   Column " + AString::number(indx) + ": " + item.toString() + "\n");
-//        indx++;
-//    }
-//    indx = 0;
-//    for (const auto item : m_rows) {
-//        s.append("   Row " + AString::number(indx) + ": " + item.toString() + "\n");
-//        indx++;
-//    }
     
     return str;
+}
+
+/**
+ * Cast to a grid configuration (avoids dynamic_cast that can be slow)
+ *
+ * @return Pointer to grid configuration or NULL if not a grid configuration.
+ */
+TileTabsLayoutGridConfiguration*
+TileTabsLayoutBaseConfiguration::castToGridConfiguration()
+{
+    return NULL;
+}
+
+/**
+ * Cast to a grid configuration (avoids dynamic_cast that can be slow)
+ *
+ * @return Pointer to grid configuration or NULL if not a grid configuration.
+ */
+const TileTabsLayoutGridConfiguration*
+TileTabsLayoutBaseConfiguration::castToGridConfiguration() const
+{
+    return NULL;
+}
+
+/**
+ * Cast to a manual configuration (avoids dynamic_cast that can be slow)
+ *
+ * @return Pointer to manual configuration or NULL if not a manual configuration.
+ */
+TileTabsLayoutManualConfiguration*
+TileTabsLayoutBaseConfiguration::castToManualConfiguration()
+{
+    return NULL;
+}
+
+/**
+ * Cast to a manual configuration (avoids dynamic_cast that can be slow)
+ *
+ * @return Pointer to manual configuration or NULL if not a manual configuration.
+ */
+const TileTabsLayoutManualConfiguration*
+TileTabsLayoutBaseConfiguration::castToManualConfiguration() const
+{
+    return NULL;
 }
 
 /**

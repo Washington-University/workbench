@@ -32,7 +32,8 @@ namespace caret {
     class BrowserWindowContent;
     class GapsAndMargins;
     class SpacerTabContent;
-    class TileTabsConfiguration;
+    class TileTabsLayoutGridConfiguration;
+    class TileTabsLayoutManualConfiguration;
     
     class BrainOpenGLViewportContent : public CaretObject {
         
@@ -152,6 +153,22 @@ namespace caret {
         
         void updateTabLockedAspectRatios(const int32_t windowIndex,
                                          const int32_t windowViewport[4]);
+
+        static std::vector<BrainOpenGLViewportContent*> createViewportContentForGridTileTabs(std::vector<BrowserTabContent*>& tabContents,
+                                                                                             BrowserWindowContent* browserWindowContent,
+                                                                                             TileTabsLayoutGridConfiguration* gridConfiguration,
+                                                                                             const GapsAndMargins* gapsAndMargins,
+                                                                                             const int32_t windowViewport[4],
+                                                                                             const int32_t windowIndex,
+                                                                                             const int32_t highlightTabIndex);
+
+        static std::vector<BrainOpenGLViewportContent*> createViewportContentForManualTileTabs(std::vector<BrowserTabContent*>& tabContents,
+                                                                                               BrowserWindowContent* browserWindowContent,
+                                                                                               TileTabsLayoutManualConfiguration* manualConfiguration,
+                                                                                               const GapsAndMargins* gapsAndMargins,
+                                                                                               const int32_t windowViewport[4],
+                                                                                               const int32_t windowIndex,
+                                                                                               const int32_t highlightTabIndex);
 
         const int m_windowIndex;
         

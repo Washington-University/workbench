@@ -48,6 +48,8 @@ namespace caret {
 
         TileTabsLayoutManualConfiguration& operator=(const TileTabsLayoutManualConfiguration& obj);
         
+        virtual void copy(const TileTabsLayoutBaseConfiguration& rhs) override;
+        
         virtual TileTabsLayoutBaseConfiguration* newCopyWithNewUniqueIdentifier() const override;
         
         virtual AString toString() const override;
@@ -59,6 +61,10 @@ namespace caret {
         TileTabsLayoutTabInfo* getTabInfo(const int32_t index);
         
         const TileTabsLayoutTabInfo* getTabInfo(const int32_t index) const;
+        
+        virtual TileTabsLayoutManualConfiguration* castToManualConfiguration() override;
+        
+        virtual const TileTabsLayoutManualConfiguration* castToManualConfiguration() const override;
         
         // ADD_NEW_METHODS_HERE
 

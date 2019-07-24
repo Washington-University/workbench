@@ -53,7 +53,8 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "SessionManager.h"
-#include "TileTabsConfiguration.h"
+#include "TileTabsLayoutGridConfiguration.h"
+#include "TileTabsLayoutManualConfiguration.h"
 #include "TileTabsGridRowColumnElement.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
@@ -160,6 +161,14 @@ TileTabsConfigurationDialog::focusGained()
 QWidget*
 TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
 {
+    m_addPushButton     = new QPushButton("Add -->");
+    m_addPushButton->setAutoDefault(false);
+    WuQtUtilities::setWordWrappedToolTip(m_addPushButton,
+                                         "Add a new User Configuration containing the Rows, Columns, and Stretch Factors "
+                                         "with those from the Custom Configuration");
+    QObject::connect(m_addPushButton, SIGNAL(clicked()),
+                     this, SLOT(addUserConfigurationPushButtonClicked()));
+
     m_replacePushButton = new QPushButton("Replace -->");
     m_replacePushButton->setAutoDefault(false);
     WuQtUtilities::setWordWrappedToolTip(m_replacePushButton,
@@ -179,6 +188,8 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addSpacing(50);
+    layout->addWidget(m_addPushButton);
+    layout->addSpacing(10);
     layout->addWidget(m_replacePushButton);
     layout->addSpacing(50);
     layout->addWidget(m_loadPushButton);
@@ -188,31 +199,106 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
 }
 
 /**
+ * @return Name for new tile tabs configuration
+ * If empty, user cancelled.
+ */
+AString
+TileTabsConfigurationDialog::getNewConfigurationName(QWidget* dialogParent)
+{
+    AString newTileTabsName;
+    
+    bool exitLoop = false;
+    while (exitLoop == false) {
+        /*
+         * Popup dialog to get name for new configuration
+         */
+        WuQDataEntryDialog ded("New Tile Tabs Configuration",
+                               dialogParent);
+        
+        QLineEdit* nameLineEdit = ded.addLineEditWidget("Configuration Name");
+        nameLineEdit->setText(newTileTabsName);
+        if (ded.exec() == WuQDataEntryDialog::Accepted) {
+            /*
+             * Make sure name is not empty
+             */
+            newTileTabsName = nameLineEdit->text().trimmed();
+            if (newTileTabsName.isEmpty()) {
+                WuQMessageBox::errorOk(dialogParent,
+                                       "Empty name is invalid.");
+            }
+            else {
+                /*
+                 * See if a configuration with the user entered name already exists
+                 */
+                const TileTabsLayoutBaseConfiguration* configuration = m_caretPreferences->getTileTabsUserConfigurationByName(newTileTabsName);
+                if (configuration != NULL) {
+                    const QString msg = ("Configuration named \""
+                                         + newTileTabsName
+                                         + "\" already exits.  Choose a different name.");
+                    WuQMessageBox::errorOk(dialogParent, msg);
+                }
+                else {
+                    /*
+                     * Have new name
+                     */
+                    exitLoop = true;
+                }
+            }
+        }
+        else {
+            /*
+             * User pressed cancel button.
+             */
+            exitLoop = true;
+            newTileTabsName = "";
+        }
+    }
+
+    return newTileTabsName;
+}
+
+/**
+ * Called when Replace to user configuration pushbutton is clicked.
+ */
+void
+TileTabsConfigurationDialog::addUserConfigurationPushButtonClicked()
+{
+    const AString newConfigName = getNewConfigurationName(m_addPushButton);
+    if (newConfigName.isEmpty()) {
+        return;
+    }
+    
+    m_blockReadConfigurationsFromPreferences = true;
+    
+    const TileTabsLayoutGridConfiguration* activeConfiguration = getCustomTileTabsGridConfiguration();
+    CaretAssert(activeConfiguration);
+
+    TileTabsLayoutGridConfiguration* configCopy = new TileTabsLayoutGridConfiguration(*activeConfiguration);
+    CaretAssert(configCopy);
+    configCopy->setName(newConfigName);
+    m_caretPreferences->addTileTabsUserConfiguration(configCopy);
+    
+    m_blockReadConfigurationsFromPreferences = false;
+    updateDialog();
+}
+
+/**
  * Called when Replace to user configuration pushbutton is clicked.
  */
 void
 TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
 {
-    m_blockReadConfigurationsFromPreferences = true;
-
-    const TileTabsConfiguration* activeConfiguration = getCustomTileTabsConfiguration();
+    const TileTabsLayoutGridConfiguration* activeConfiguration = getCustomTileTabsGridConfiguration();
     CaretAssert(activeConfiguration);
 
-    TileTabsConfiguration* userConfiguration = getSelectedUserTileTabsConfiguration();
-    if (userConfiguration == NULL) {
-        newUserConfigurationButtonClicked();
-        userConfiguration = getSelectedUserTileTabsConfiguration();
-        if (userConfiguration == NULL) {
+    const AString tileTabsUniqueID = getSelectedUserTileTabsConfigurationUniqueIdentifier();
+    if (tileTabsUniqueID.isEmpty()) {
             WuQMessageBox::errorOk(this,
-                                   "There are no user configurations");
-            m_blockReadConfigurationsFromPreferences = false;
+                                   "There are no user configurations, use Add button.");
             return;
-        }
     }
     else {
-        const AString msg("Do you want to replace "
-                          + userConfiguration->getName()
-                          + "?");
+        const AString msg("Do you want to replace the configuration?");
         if ( ! WuQMessageBox::warningOkCancel(m_replacePushButton,
                                               msg)) {
             m_blockReadConfigurationsFromPreferences = false;
@@ -220,10 +306,16 @@ TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
         }
     }
     
-    userConfiguration->copy(*activeConfiguration);
-
-    m_caretPreferences->writeTileTabsConfigurations();
+    m_blockReadConfigurationsFromPreferences = true;
     
+    AString errorMessage;
+    if ( ! m_caretPreferences->replaceTileTabsUserConfiguration(tileTabsUniqueID,
+                                                                activeConfiguration,
+                                                                errorMessage)) {
+        WuQMessageBox::errorOk(m_replacePushButton,
+                               errorMessage);
+    }
+
     m_blockReadConfigurationsFromPreferences = false;
     updateDialog();
 }
@@ -238,17 +330,38 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
         return;
     }
     
-    TileTabsConfiguration* activeConfiguration = getCustomTileTabsConfiguration();
-    CaretAssert(activeConfiguration);
-    
-    const TileTabsConfiguration* userConfiguration = getSelectedUserTileTabsConfiguration();
-    if (userConfiguration == NULL) {
-        WuQMessageBox::errorOk(this,
-                               "There are no user configurations");
+    const AString userConfigID = getSelectedUserTileTabsConfigurationUniqueIdentifier();
+    if (userConfigID.isEmpty()) {
+        WuQMessageBox::errorOk(this, "No user configuration is selected.");
         return;
     }
     
-    activeConfiguration->copy(*userConfiguration);
+    std::unique_ptr<TileTabsLayoutBaseConfiguration> userConfiguration = m_caretPreferences->getCopyOfTileTabsUserConfigurationByUniqueIdentifier(userConfigID);
+    if ( ! userConfiguration) {
+        WuQMessageBox::errorOk(this,
+                               ("User configuration with UniqueID="
+                                + userConfigID
+                                + " was not found"));
+        return;
+    }
+    
+    switch (userConfiguration->getLayoutType()) {
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+        {
+            TileTabsLayoutGridConfiguration* activeGridConfiguration = getCustomTileTabsGridConfiguration();
+            CaretAssert(activeGridConfiguration);
+            
+            const TileTabsLayoutGridConfiguration* copyConfig = userConfiguration->castToGridConfiguration();
+            CaretAssert(copyConfig);
+            
+            activeGridConfiguration->copy(*copyConfig);
+        }
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+            CaretAssertToDoFatal();
+            break;
+    }
     
     updateStretchFactors();
     updateGraphicsWindow();
@@ -257,7 +370,6 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
 /**
  * @return The browser window selected window index.
  */
-
 BrainBrowserWindow*
 TileTabsConfigurationDialog::getBrowserWindow()
 {
@@ -268,8 +380,6 @@ TileTabsConfigurationDialog::getBrowserWindow()
     BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
     return bbw;
 }
-
-
 
 /**
  * @return The browser window content for the selected window index.
@@ -304,12 +414,7 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     
     const AString newToolTip = WuQtUtilities::createWordWrappedToolTipText("Create new User Configuration by entering a name.\n"
                                                                            "It will contain rows/columns/factors from the Custom Configuration");
-    m_newConfigurationPushButton = new QPushButton("New...");
-    m_newConfigurationPushButton->setAutoDefault(false);
-    m_newConfigurationPushButton->setToolTip(newToolTip);
-    QObject::connect(m_newConfigurationPushButton, SIGNAL(clicked()),
-                     this, SLOT(newUserConfigurationButtonClicked()));
-    
+
     m_renameConfigurationPushButton = new QPushButton("Rename...");
     m_renameConfigurationPushButton->setToolTip("Rename the selected User Configuration");
     m_renameConfigurationPushButton->setAutoDefault(false);
@@ -324,9 +429,8 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     
     QGridLayout* buttonsLayout = new QGridLayout();
     buttonsLayout->setContentsMargins(0, 0, 0, 0);
-    buttonsLayout->addWidget(m_newConfigurationPushButton, 0, 0, Qt::AlignRight);
-    buttonsLayout->addWidget(m_renameConfigurationPushButton, 0, 1, Qt::AlignLeft);
-    buttonsLayout->addWidget(m_deleteConfigurationPushButton, 1, 0, 1, 2, Qt::AlignHCenter);
+    buttonsLayout->addWidget(m_renameConfigurationPushButton, 0, 1, Qt::AlignHCenter);
+    buttonsLayout->addWidget(m_deleteConfigurationPushButton, 1, 1, Qt::AlignHCenter);
     
     QGroupBox* configurationWidget = new QGroupBox("User Configurations");
     QVBoxLayout* configurationLayout = new QVBoxLayout(configurationWidget);
@@ -398,7 +502,7 @@ TileTabsConfigurationDialog::createCustomOptionsWidget()
 void
 TileTabsConfigurationDialog::centeringCorrectionCheckBoxClicked(bool checked)
 {
-    TileTabsConfiguration* config = getCustomTileTabsConfiguration();
+    TileTabsLayoutGridConfiguration* config = getCustomTileTabsGridConfiguration();
     if (config != NULL) {
         config->setCenteringCorrectionEnabled(checked);
         updateGraphicsWindow();
@@ -411,7 +515,7 @@ TileTabsConfigurationDialog::centeringCorrectionCheckBoxClicked(bool checked)
 void
 TileTabsConfigurationDialog::updateCustomOptionsWidget()
 {
-    TileTabsConfiguration* config = getCustomTileTabsConfiguration();
+    const TileTabsLayoutGridConfiguration* config = getCustomTileTabsGridConfiguration();
     if (config != NULL) {
         m_centeringCorrectionCheckBox->setChecked(config->isCenteringCorrectionEnabled());
     }
@@ -450,7 +554,7 @@ TileTabsConfigurationDialog::createRowColumnStretchWidget()
  *     Current custom configuration.
  */
 void
-TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsConfiguration* configuration)
+TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsLayoutGridConfiguration* configuration)
 {
     /*
      * Update rows
@@ -464,7 +568,7 @@ TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsConfiguration
          */
         const int32_t numToAdd = numRows - numRowElements;
         for (int32_t iRow = 0; iRow < numToAdd; iRow++) {
-            addRowColumnStretchWidget(EventTileTabsConfigurationModification::RowColumnType::ROW,
+            addRowColumnStretchWidget(EventTileTabsGridConfigurationModification::RowColumnType::ROW,
                                       m_rowElementsGridLayout,
                                       m_rowElements);
         }
@@ -498,7 +602,7 @@ TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsConfiguration
          */
         const int32_t numToAdd = numColumns - numColumnElements;
         for (int32_t iColumn = 0; iColumn < numToAdd; iColumn++) {
-            addRowColumnStretchWidget(EventTileTabsConfigurationModification::RowColumnType::COLUMN,
+            addRowColumnStretchWidget(EventTileTabsGridConfigurationModification::RowColumnType::COLUMN,
                                       m_columnElementsGridLayout,
                                       m_columnElements);
         }
@@ -521,8 +625,6 @@ TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsConfiguration
     }
     
     updateCustomOptionsWidget();
-    
-//    m_customConfigurationWidget->adjustSize();
 }
 
 /**
@@ -536,7 +638,7 @@ TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsConfiguration
  *     Container for row/column elements.
  */
 void
-TileTabsConfigurationDialog::addRowColumnStretchWidget(const EventTileTabsConfigurationModification::RowColumnType rowColumnType,
+TileTabsConfigurationDialog::addRowColumnStretchWidget(const EventTileTabsGridConfigurationModification::RowColumnType rowColumnType,
                                                        QGridLayout* gridLayout,
                                                        std::vector<TileTabElementWidgets*>& elementVector)
 {
@@ -615,7 +717,6 @@ TileTabsConfigurationDialog::createActiveConfigurationWidget()
     QScrollArea* stretchFactorScrollArea = new QScrollArea();
     stretchFactorScrollArea->setWidget(m_customConfigurationWidget);
     stretchFactorScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-//    stretchFactorScrollArea->setSizeAdjustPolicy(QScrollArea::AdjustToContents);
     stretchFactorScrollArea->setWidgetResizable(true);
     
     QGroupBox* widget = new QGroupBox("Tile Tabs Configuration in Workbench Window");
@@ -724,7 +825,7 @@ TileTabsConfigurationDialog::readConfigurationsFromPreferences()
         return;
     }
     
-    m_caretPreferences->readTileTabsConfigurations();
+    m_caretPreferences->readTileTabsUserConfigurations();
 }
 
 /**
@@ -754,28 +855,19 @@ TileTabsConfigurationDialog::updateDialog()
     QSignalBlocker blocker(m_userConfigurationSelectionListWidget);
     m_userConfigurationSelectionListWidget->clear();
     
-    std::vector<const TileTabsConfiguration*> configurations = m_caretPreferences->getTileTabsConfigurationsSortedByName();
-    const int32_t numConfig = static_cast<int32_t>(configurations.size());
-    for (int32_t i = 0; i < numConfig; i++) {
-        const TileTabsConfiguration* configuration = configurations[i];
-        
-        AString configName = configuration->getName();
-        
-        configName.append(" ("
-                          + AString::number(configuration->getNumberOfRows())
-                          + ", "
-                          + AString::number(configuration->getNumberOfColumns())
-                          + ")");
-        
+    std::vector<std::pair<AString, AString>> nameUniqueIDs =
+    m_caretPreferences->getTileTabsUserConfigurationsNamesAndUniqueIdentifiers();
+    
+    for (const auto nameID : nameUniqueIDs) {
         /*
          * Second element is user data which contains the Unique ID
          */
-        QListWidgetItem* item = new QListWidgetItem(configName);
+        QListWidgetItem* item = new QListWidgetItem(nameID.first);
         item->setData(Qt::UserRole,
-                      QVariant(configuration->getUniqueIdentifier()));
+                      QVariant(nameID.second));
         m_userConfigurationSelectionListWidget->addItem(item);
     }
-
+    
     const int32_t numItemsInComboBox = m_userConfigurationSelectionListWidget->count();
     if (defaultIndex >= numItemsInComboBox) {
         defaultIndex = numItemsInComboBox - 1;
@@ -801,9 +893,9 @@ TileTabsConfigurationDialog::updateStretchFactors()
                                                                                               true));
     m_customConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsGridModeEnum::CUSTOM,
                                                                                            false));
-    const TileTabsConfiguration* configuration = getCustomTileTabsConfiguration();
+    const TileTabsLayoutGridConfiguration* configuration = getCustomTileTabsGridConfiguration();
     if (configuration != NULL) {
-        updateRowColumnStretchWidgets(const_cast<TileTabsConfiguration*>(configuration));
+        updateRowColumnStretchWidgets(const_cast<TileTabsLayoutGridConfiguration*>(configuration));
         QSignalBlocker rowBlocker(m_numberOfRowsSpinBox);
         m_numberOfRowsSpinBox->setValue(configuration->getNumberOfRows());
         QSignalBlocker columnBlocker(m_numberOfColumnsSpinBox);
@@ -811,9 +903,6 @@ TileTabsConfigurationDialog::updateStretchFactors()
     }
     
     const bool editableFlag = ( ! m_automaticConfigurationRadioButton->isChecked());
-    
-    // This does not re-enable the construction menu
-    //m_customConfigurationWidget->setEnabled(editableFlag);
     
     m_loadPushButton->setEnabled(editableFlag);
 }
@@ -836,79 +925,6 @@ TileTabsConfigurationDialog::selectTileTabConfigurationByUniqueID(const AString&
     }
 }
 
-/**
- * Called when new user configuration button is clicked.
- */
-void
-TileTabsConfigurationDialog::newUserConfigurationButtonClicked()
-{
-    AString newTileTabsName;
-    
-    AString configurationUniqueID;
-    
-    bool exitLoop = false;
-    while (exitLoop == false) {
-        /*
-         * Popup dialog to get name for new configuration
-         */
-        WuQDataEntryDialog ded("New Tile Tabs Configuration",
-                               m_newConfigurationPushButton);
-        
-        QLineEdit* nameLineEdit = ded.addLineEditWidget("Configuration Name");
-        nameLineEdit->setText(newTileTabsName);
-        if (ded.exec() == WuQDataEntryDialog::Accepted) {
-            /*
-             * Make sure name is not empty
-             */
-            newTileTabsName = nameLineEdit->text().trimmed();
-            if (newTileTabsName.isEmpty()) {
-                WuQMessageBox::errorOk(m_newConfigurationPushButton,
-                                       "Enter a name");
-            }
-            else {
-                /*
-                 * See if a configuration with the user entered name already exists
-                 */
-                TileTabsConfiguration* configuration = m_caretPreferences->getTileTabsConfigurationByName(newTileTabsName);
-                if (configuration != NULL) {
-                    const QString msg = ("Configuration named \""
-                                         + newTileTabsName
-                                         + "\" already exits.  Rename it?");
-                    if (WuQMessageBox::warningYesNo(m_newConfigurationPushButton,
-                                                    msg)) {
-                        configuration->setName(newTileTabsName);
-                        configurationUniqueID = configuration->getUniqueIdentifier();
-                        exitLoop = true;
-                    }
-                }
-                else {
-                    /*
-                     * New configuration is copy of selected configuration (if available)
-                     */
-                    const TileTabsConfiguration* selectedConfiguration = getCustomTileTabsConfiguration();
-                    TileTabsConfiguration* configuration = ((selectedConfiguration != NULL)
-                                                            ? selectedConfiguration->newCopyWithNewUniqueIdentifier()
-                                                            : new TileTabsConfiguration());
-                    configuration->setName(newTileTabsName);
-                    configurationUniqueID = configuration->getUniqueIdentifier();
-                    m_caretPreferences->addTileTabsConfiguration(configuration);
-                    exitLoop = true;
-                }
-            }
-        }
-        else {
-            /*
-             * User pressed cancel button.
-             */
-            exitLoop = true;
-        }
-    }
-    
-    if ( ! configurationUniqueID.isEmpty()) {
-        updateDialog();
-        selectTileTabConfigurationByUniqueID(configurationUniqueID);
-    }
-}
 
 /**
  * Called when delete user configuration button is clicked.
@@ -916,17 +932,17 @@ TileTabsConfigurationDialog::newUserConfigurationButtonClicked()
 void
 TileTabsConfigurationDialog::deleteUserConfigurationButtonClicked()
 {
-    TileTabsConfiguration* configuration = getSelectedUserTileTabsConfiguration();
-    if (configuration != NULL) {
-        const AString uniqueID = configuration->getUniqueIdentifier();
-        const QString msg = ("Delete configuration named \""
-                             + configuration->getName()
-                             + "\" ?");
-        if (WuQMessageBox::warningYesNo(m_newConfigurationPushButton,
-                                        msg)) {
-            m_caretPreferences->removeTileTabsConfigurationByUniqueIdentifier(uniqueID);
-            updateDialog();
+    const QString uniqueID = getSelectedUserTileTabsConfigurationUniqueIdentifier();
+    const QString msg = ("Delete selected configuration ?");
+    if (WuQMessageBox::warningYesNo(m_deleteConfigurationPushButton,
+                                    msg)) {
+        AString errorMessage;
+        if ( ! m_caretPreferences->removeTileTabsUserConfigurationByUniqueIdentifier(uniqueID,
+                                                                                     errorMessage)) {
+            WuQMessageBox::errorOk(m_deleteConfigurationPushButton,
+                                   errorMessage);
         }
+        updateDialog();
     }
 }
 
@@ -936,12 +952,11 @@ TileTabsConfigurationDialog::deleteUserConfigurationButtonClicked()
 void
 TileTabsConfigurationDialog::renameUserConfigurationButtonClicked()
 {
-    TileTabsConfiguration* configuration = getSelectedUserTileTabsConfiguration();
-    if (configuration != NULL) {
-        m_blockReadConfigurationsFromPreferences = true;
-        
+    AString oldName;
+    AString uniqueID;
+    if (getSelectedUserConfigurationNameAndUniqueID(oldName,
+                                                    uniqueID)) {
         bool ok = false;
-        const AString oldName = configuration->getName();
         const AString newName = QInputDialog::getText(m_deleteConfigurationPushButton,
                                                       "Rename Configuration",
                                                       "Name",
@@ -949,60 +964,83 @@ TileTabsConfigurationDialog::renameUserConfigurationButtonClicked()
                                                       oldName,
                                                       &ok);
         if (ok
-            && (newName.isEmpty() == false)) {
-            configuration->setName(newName);
-            m_caretPreferences->writeTileTabsConfigurations();
+            && ( ! newName.isEmpty())) {
+            m_blockReadConfigurationsFromPreferences = true;
+            AString errorMessage;
+            if (m_caretPreferences->renameTileTabsUserConfiguration(uniqueID,
+                                                                    newName,
+                                                                    errorMessage)) {
+            }
+            else {
+                WuQMessageBox::errorOk(m_renameConfigurationPushButton,
+                                       errorMessage);
+            }
             m_blockReadConfigurationsFromPreferences = false;
             updateDialog();
         }
-        else {
-            m_blockReadConfigurationsFromPreferences = false;
-        }
-    }
-}
 
-/**
- * @return A pointer to the automatic tile tabs configuration.
- */
-TileTabsConfiguration*
-TileTabsConfigurationDialog::getAutomaticTileTabsConfiguration()
-{
-    BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    TileTabsConfiguration* configuration = browserWindowContent->getAutomaticTileTabsConfiguration();
-    CaretAssert(configuration);
-    return configuration;
+    }
 }
 
 /**
  * @return A pointer to the custom tile tabs configuration.
  */
-TileTabsConfiguration*
-TileTabsConfigurationDialog::getCustomTileTabsConfiguration()
+TileTabsLayoutGridConfiguration*
+TileTabsConfigurationDialog::getCustomTileTabsGridConfiguration()
 {
     BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    TileTabsConfiguration* configuration = browserWindowContent->getCustomTileTabsConfiguration();
+    TileTabsLayoutGridConfiguration* configuration = browserWindowContent->getCustomGridTileTabsConfiguration();
     CaretAssert(configuration);
     return configuration;
 }
 
 /**
- * @return The selected user tile tabs configuration (will be
- *         NULL if there are no user configurations).
+ * Get the name and unique identifier for the selected user configuration
+ *
+ * @param nameOut
+ *     Output with name
+ * @param uniqueIDOut
+ *     Output with Unique ID
+ * @return
+ *     True if the output data is valid or false if no configuration is selected
  */
-TileTabsConfiguration*
-TileTabsConfigurationDialog::getSelectedUserTileTabsConfiguration()
+bool
+TileTabsConfigurationDialog::getSelectedUserConfigurationNameAndUniqueID(AString& nameOut,
+                                                                         AString& uniqueIDOut) const
 {
-    TileTabsConfiguration* configuration = NULL;
+    const int32_t indx = m_userConfigurationSelectionListWidget->currentRow();
+    if ((indx >= 0)
+        && (indx < m_userConfigurationSelectionListWidget->count())) {
+        QListWidgetItem* item = m_userConfigurationSelectionListWidget->item(indx);
+        nameOut = item->text();
+        uniqueIDOut = item->data(Qt::UserRole).toString();
+        
+        return true;
+    }
+    
+    nameOut.clear();
+    uniqueIDOut.clear();
+    
+    return false;
+}
+
+/**
+ * @return The Unique Identifier of the selected user tile tabs configuration.
+ * Empty if no configuration is selected.
+ */
+AString
+TileTabsConfigurationDialog::getSelectedUserTileTabsConfigurationUniqueIdentifier()
+{
+    AString uniqueID;
     
     const int32_t indx = m_userConfigurationSelectionListWidget->currentRow();
     if ((indx >= 0)
         && (indx < m_userConfigurationSelectionListWidget->count())) {
         QListWidgetItem* item = m_userConfigurationSelectionListWidget->item(indx);
-        const AString itemID = item->data(Qt::UserRole).toString();
-        configuration = m_caretPreferences->getTileTabsConfigurationByUniqueIdentifier(itemID);
+        uniqueID = item->data(Qt::UserRole).toString();
     }
     
-    return configuration;
+    return uniqueID;
 }
 
 /**
@@ -1011,7 +1049,7 @@ TileTabsConfigurationDialog::getSelectedUserTileTabsConfiguration()
 void
 TileTabsConfigurationDialog::configurationNumberOfRowsOrColumnsChanged()
 {
-    TileTabsConfiguration* configuration = getCustomTileTabsConfiguration();
+    TileTabsLayoutGridConfiguration* configuration = getCustomTileTabsGridConfiguration();
     if (configuration != NULL) {
         configuration->setNumberOfRows(m_numberOfRowsSpinBox->value());
         configuration->setNumberOfColumns(m_numberOfColumnsSpinBox->value());
@@ -1028,7 +1066,7 @@ TileTabsConfigurationDialog::configurationNumberOfRowsOrColumnsChanged()
 void
 TileTabsConfigurationDialog::configurationStretchFactorWasChanged()
 {
-    TileTabsConfiguration* configuration = getCustomTileTabsConfiguration();
+    TileTabsLayoutGridConfiguration* configuration = getCustomTileTabsGridConfiguration();
     if (configuration == NULL) {
         return;
     }
@@ -1044,9 +1082,9 @@ TileTabsConfigurationDialog::configurationStretchFactorWasChanged()
  *     Modification that is requested.
  */
 void
-TileTabsConfigurationDialog::tileTabsModificationRequested(EventTileTabsConfigurationModification& modification)
+TileTabsConfigurationDialog::tileTabsModificationRequested(EventTileTabsGridConfigurationModification& modification)
 {
-    TileTabsConfiguration* configuration = getCustomTileTabsConfiguration();
+    TileTabsLayoutGridConfiguration* configuration = getCustomTileTabsGridConfiguration();
     if (configuration != NULL) {
         
         modification.setWindowIndex(m_browserWindowComboBox->getSelectedBrowserWindowIndex());
@@ -1100,7 +1138,7 @@ TileTabsConfigurationDialog::helpButtonClicked()
  *    Parent QObject
  */
 TileTabElementWidgets::TileTabElementWidgets(TileTabsConfigurationDialog* tileTabsConfigurationDialog,
-                                             const EventTileTabsConfigurationModification::RowColumnType rowColumnType,
+                                             const EventTileTabsGridConfigurationModification::RowColumnType rowColumnType,
                                              const int32_t index,
                                              QGridLayout* gridLayout,
                                              QObject* parent)
@@ -1113,7 +1151,7 @@ m_element(NULL)
     m_indexLabel = new QLabel(QString::number(m_index + 1));
     m_indexLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-    const AString rowColText((rowColumnType == EventTileTabsConfigurationModification::RowColumnType::ROW)
+    const AString rowColText((rowColumnType == EventTileTabsGridConfigurationModification::RowColumnType::ROW)
                              ? "Row"
                              : "Column");
     const AString contructionToolTip(WuQtUtilities::createWordWrappedToolTipText("Delete, Duplicate, or Move "
@@ -1209,52 +1247,52 @@ TileTabElementWidgets::~TileTabElementWidgets()
 QMenu*
 TileTabElementWidgets::createConstructionMenu(QToolButton* toolButton)
 {
-    const AString deleteText((m_rowColumnType == EventTileTabsConfigurationModification::RowColumnType::COLUMN)
+    const AString deleteText((m_rowColumnType == EventTileTabsGridConfigurationModification::RowColumnType::COLUMN)
                              ? "Delete this Column"
                              : "Delete this Row");
     
-    const AString duplicateAfterText((m_rowColumnType == EventTileTabsConfigurationModification::RowColumnType::COLUMN)
+    const AString duplicateAfterText((m_rowColumnType == EventTileTabsGridConfigurationModification::RowColumnType::COLUMN)
                              ? "Duplicate this Column to Right"
                              : "Duplicate this Row Below");
     
-    const AString duplicateBeforeText((m_rowColumnType == EventTileTabsConfigurationModification::RowColumnType::COLUMN)
+    const AString duplicateBeforeText((m_rowColumnType == EventTileTabsGridConfigurationModification::RowColumnType::COLUMN)
                              ? "Duplicate this Column to Left"
                              : "Duplicate this Row Above");
 
-    const AString insertSpacerAfterText((m_rowColumnType == EventTileTabsConfigurationModification::RowColumnType::COLUMN)
+    const AString insertSpacerAfterText((m_rowColumnType == EventTileTabsGridConfigurationModification::RowColumnType::COLUMN)
                                          ? "Insert Spacer Column to Right"
                                          : "Insert Spacer Row Below");
-    const AString insertSpacerBeforeText((m_rowColumnType == EventTileTabsConfigurationModification::RowColumnType::COLUMN)
+    const AString insertSpacerBeforeText((m_rowColumnType == EventTileTabsGridConfigurationModification::RowColumnType::COLUMN)
                                          ? "Insert Spacer Column to Left"
                                          : "Insert Spacer Row Above");
-    const AString moveAfterText((m_rowColumnType == EventTileTabsConfigurationModification::RowColumnType::COLUMN)
+    const AString moveAfterText((m_rowColumnType == EventTileTabsGridConfigurationModification::RowColumnType::COLUMN)
                              ? "Move this Column to Right"
                              : "Move this Row Down");
     
-    const AString moveBeforeText((m_rowColumnType == EventTileTabsConfigurationModification::RowColumnType::COLUMN)
+    const AString moveBeforeText((m_rowColumnType == EventTileTabsGridConfigurationModification::RowColumnType::COLUMN)
                              ? "Move this Column to Left"
                              : "Move this Row Up");
     
     m_menuDeleteAction = new QAction(deleteText);
-    m_menuDeleteAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::DELETE_IT));
+    m_menuDeleteAction->setData(static_cast<int>(EventTileTabsGridConfigurationModification::Operation::DELETE_IT));
     
     m_menuDuplicateAfterAction = new QAction(duplicateAfterText);
-    m_menuDuplicateAfterAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER));
+    m_menuDuplicateAfterAction->setData(static_cast<int>(EventTileTabsGridConfigurationModification::Operation::DUPLICATE_AFTER));
     
     m_menuDuplicateBeforeAction = new QAction(duplicateBeforeText);
-    m_menuDuplicateBeforeAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::DUPLICATE_BEFORE));
+    m_menuDuplicateBeforeAction->setData(static_cast<int>(EventTileTabsGridConfigurationModification::Operation::DUPLICATE_BEFORE));
     
     m_insertSpacerAfterAction = new QAction(insertSpacerAfterText);
-    m_insertSpacerAfterAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER));
+    m_insertSpacerAfterAction->setData(static_cast<int>(EventTileTabsGridConfigurationModification::Operation::INSERT_SPACER_AFTER));
 
     m_insertSpacerBeforeAction = new QAction(insertSpacerBeforeText);
-    m_insertSpacerBeforeAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::INSERT_SPACER_BEFORE));
+    m_insertSpacerBeforeAction->setData(static_cast<int>(EventTileTabsGridConfigurationModification::Operation::INSERT_SPACER_BEFORE));
     
     m_menuMoveAfterAction = new QAction(moveAfterText);
-    m_menuMoveAfterAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::MOVE_AFTER));
+    m_menuMoveAfterAction->setData(static_cast<int>(EventTileTabsGridConfigurationModification::Operation::MOVE_AFTER));
     
     m_menuMoveBeforeAction = new QAction(moveBeforeText);
-    m_menuMoveBeforeAction->setData(static_cast<int>(EventTileTabsConfigurationModification::Operation::MOVE_BEFORE));
+    m_menuMoveBeforeAction->setData(static_cast<int>(EventTileTabsGridConfigurationModification::Operation::MOVE_BEFORE));
     
     QMenu* menu = new QMenu(toolButton);
     menu->addAction(m_menuDuplicateBeforeAction);
@@ -1313,34 +1351,34 @@ void
 TileTabElementWidgets::constructionMenuTriggered(QAction* action)
 {
     if (action != NULL) {
-        const EventTileTabsConfigurationModification::Operation operation
-            = static_cast<EventTileTabsConfigurationModification::Operation>(action->data().toInt());
+        const EventTileTabsGridConfigurationModification::Operation operation
+            = static_cast<EventTileTabsGridConfigurationModification::Operation>(action->data().toInt());
         
         /*
          * This switch is here so that it will cause a compilation error
          * if the operations are changed.
          */
         switch (operation) {
-            case EventTileTabsConfigurationModification::Operation::DELETE_IT:
+            case EventTileTabsGridConfigurationModification::Operation::DELETE_IT:
                 break;
-            case EventTileTabsConfigurationModification::Operation::DUPLICATE_AFTER:
+            case EventTileTabsGridConfigurationModification::Operation::DUPLICATE_AFTER:
                 break;
-            case EventTileTabsConfigurationModification::Operation::DUPLICATE_BEFORE:
+            case EventTileTabsGridConfigurationModification::Operation::DUPLICATE_BEFORE:
                 break;
-            case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_BEFORE:
+            case EventTileTabsGridConfigurationModification::Operation::INSERT_SPACER_BEFORE:
                 break;
-            case EventTileTabsConfigurationModification::Operation::INSERT_SPACER_AFTER:
+            case EventTileTabsGridConfigurationModification::Operation::INSERT_SPACER_AFTER:
                 break;
-            case EventTileTabsConfigurationModification::Operation::MOVE_AFTER:
+            case EventTileTabsGridConfigurationModification::Operation::MOVE_AFTER:
                 break;
-            case EventTileTabsConfigurationModification::Operation::MOVE_BEFORE:
+            case EventTileTabsGridConfigurationModification::Operation::MOVE_BEFORE:
                 break;
         }
         
-        EventTileTabsConfigurationModification modification(m_tileTabsConfigurationDialog->getCustomTileTabsConfiguration(),
-                                                            m_index,
-                                                            m_rowColumnType,
-                                                            operation);
+        EventTileTabsGridConfigurationModification modification(m_tileTabsConfigurationDialog->getCustomTileTabsGridConfiguration(),
+                                                                m_index,
+                                                                m_rowColumnType,
+                                                                operation);
         emit modificationRequested(modification);
     }
     
@@ -1352,14 +1390,14 @@ TileTabElementWidgets::constructionMenuTriggered(QAction* action)
 void
 TileTabElementWidgets::constructionMenuAboutToShow()
 {
-    const TileTabsConfiguration* config = m_tileTabsConfigurationDialog->getCustomTileTabsConfiguration();
+    const TileTabsLayoutGridConfiguration* config = m_tileTabsConfigurationDialog->getCustomTileTabsGridConfiguration();
     if (config != NULL) {
         int32_t numItems(-1);
         switch (m_rowColumnType) {
-            case EventTileTabsConfigurationModification::RowColumnType::COLUMN:
+            case EventTileTabsGridConfigurationModification::RowColumnType::COLUMN:
                 numItems = config->getNumberOfColumns();
                 break;
-            case EventTileTabsConfigurationModification::RowColumnType::ROW:
+            case EventTileTabsGridConfigurationModification::RowColumnType::ROW:
                 numItems = config->getNumberOfRows();
                 break;
         }

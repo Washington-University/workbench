@@ -33,7 +33,6 @@
 #include "CaretLogger.h"
 #include "CaretPreferenceDataValue.h"
 #include "ModelTransform.h"
-#include "TileTabsConfiguration.h"
 #include "TileTabsLayoutGridConfiguration.h"
 #include "TileTabsLayoutManualConfiguration.h"
 #include "WuQMacroGroup.h"
@@ -448,10 +447,8 @@ CaretPreferences::writeMacros()
 void
 CaretPreferences::removeAllTileTabsConfigurations()
 {
-    for (std::vector<TileTabsConfiguration*>::iterator iter = this->tileTabsConfigurations.begin();
-         iter != this->tileTabsConfigurations.end();
-         iter++) {
-        delete *iter;
+    for (auto ttc : this->tileTabsConfigurations) {
+        delete ttc;
     }
     this->tileTabsConfigurations.clear();
 }
@@ -460,7 +457,7 @@ CaretPreferences::removeAllTileTabsConfigurations()
  * Write the tile tabs configurations.
  */
 void
-CaretPreferences::writeTileTabsConfigurations()
+CaretPreferences::writeTileTabsUserConfigurations()
 {
     this->qSettings->beginWriteArray(NAME_TILE_TABS_CONFIGURATIONS);
     const int32_t numViews = static_cast<int32_t>(this->tileTabsConfigurations.size());
@@ -483,7 +480,7 @@ CaretPreferences::writeTileTabsConfigurations()
  *    by a concurrently running workbench.
  */
 void
-CaretPreferences::readTileTabsConfigurations(const bool performSync)
+CaretPreferences::readTileTabsUserConfigurations(const bool performSync)
 {
     if (performSync) {
         this->qSettings->sync();
@@ -498,18 +495,17 @@ CaretPreferences::readTileTabsConfigurations(const bool performSync)
     for (int i = 0; i < numConfigurations; i++) {
         this->qSettings->setArrayIndex(i);
         const AString configString = this->qSettings->value(AString::number(i)).toString();
-        TileTabsConfiguration* ttc = new TileTabsConfiguration();
         AString errorMessage;
-        if (ttc->decodeFromXML(configString,
-                               errorMessage)) {
+        TileTabsLayoutBaseConfiguration* ttc = TileTabsLayoutBaseConfiguration::decodeFromXML(configString,
+                                                                                              errorMessage);
+        if (ttc != NULL) {
             this->tileTabsConfigurations.push_back(ttc);
         }
         else {
             CaretLogWarning(errorMessage);
-            delete ttc;
         }
         
-        const bool testFlag(true);
+        const bool testFlag(false);
         if (testFlag) {
             AString errorMessage;
             TileTabsLayoutBaseConfiguration* config = TileTabsLayoutBaseConfiguration::decodeFromXML(configString,
@@ -565,71 +561,52 @@ CaretPreferences::readTileTabsConfigurations(const bool performSync)
 }
 
 /**
- * @return The Tile tabs configurations sorted by name.
+ * @return A vector containing pairs of Name and Unique Identifier for each
+ * Tile Tabs configuration.  The items are sorted by name with 'first' being
+ * the name, and 'second' being the unique identifier.
  */
-std::vector<const TileTabsConfiguration*>
-CaretPreferences::getTileTabsConfigurationsSortedByName() const
+std::vector<std::pair<AString, AString>>
+CaretPreferences::getTileTabsUserConfigurationsNamesAndUniqueIdentifiers() const
 {
-    /*
-     * Copy the configurations and sort them by name.
-     */
-    std::vector<const TileTabsConfiguration*> configurations;
-    configurations.insert(configurations.end(),
-                          this->tileTabsConfigurations.begin(),
-                          this->tileTabsConfigurations.end());    
-    std::sort(configurations.begin(),
-              configurations.end(),
-              TileTabsConfiguration::lessThanComparisonByName);
+    std::vector<std::pair<AString, AString>> nameIDs;
     
-    return configurations;
+    for (const auto ttc : this->tileTabsConfigurations) {
+        nameIDs.push_back(std::make_pair(ttc->getName(),
+                                         ttc->getUniqueIdentifier()));
+    }
+    
+    std::sort(nameIDs.begin(),
+              nameIDs.end(),
+              [](std::pair<AString, AString>& a, std::pair<AString, AString>& b) { return a.first < b.first; });
+    
+    return nameIDs;
 }
 
 /**
- * Get the tile tabs configuration with the given unique identifier.
+ * @return A copy of the tile tabs configuration with the given unique identifier.  A copy is returned
+ * since preferenes may get updated which causes reloading of the user configurations and if the caller
+ * had a pointer to a user configuration, that pointer would be invalid (point to destroyed configuration)
+ * when preferences are updated (synced).  Pointer will be NULL if there is no user configuration with
+ * the given unique identifier.
  *
  * @param uniqueIdentifier
  *     Unique identifier of the requested tile tabs configuration.
- * @return
- *     Pointer to tile tabs configuration with the given unique identifier
- *     or NULL is it does not exist.
  */
-TileTabsConfiguration*
-CaretPreferences::getTileTabsConfigurationByUniqueIdentifier(const AString& uniqueIdentifier)
+std::unique_ptr<TileTabsLayoutBaseConfiguration>
+CaretPreferences::getCopyOfTileTabsUserConfigurationByUniqueIdentifier(const AString& uniqueIdentifier) const
 {
-    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
+    std::unique_ptr<TileTabsLayoutBaseConfiguration> pointer;
+    
+    for (std::vector<TileTabsLayoutBaseConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
          iter != this->tileTabsConfigurations.end();
          iter++) {
-        TileTabsConfiguration* ttc = *iter;
+        const TileTabsLayoutBaseConfiguration* ttc = *iter;
         if (ttc->getUniqueIdentifier() == uniqueIdentifier) {
-            return ttc;
+            pointer.reset(ttc->newCopyWithNewUniqueIdentifier());
         }
     }
-    
-    return NULL;
-}
 
-/**
- * Get the tile tabs configuration with the given unique identifier.
- * 
- * @param uniqueIdentifier
- *     Unique identifier of the requested tile tabs configuration.
- * @return 
- *     Pointer to tile tabs configuration with the given unique identifier
- *     or NULL is it does not exist.
- */
-const TileTabsConfiguration*
-CaretPreferences::getTileTabsConfigurationByUniqueIdentifier(const AString& uniqueIdentifier) const
-{
-    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
-         iter != this->tileTabsConfigurations.end();
-         iter++) {
-        const TileTabsConfiguration* ttc = *iter;
-        if (ttc->getUniqueIdentifier() == uniqueIdentifier) {
-            return ttc;
-        }
-    }
-    
-    return NULL;
+    return pointer;
 }
 
 /**
@@ -641,13 +618,13 @@ CaretPreferences::getTileTabsConfigurationByUniqueIdentifier(const AString& uniq
  *     Pointer to tile tabs configuration with the given name
  *     or NULL is it does not exist.
  */
-TileTabsConfiguration*
-CaretPreferences::getTileTabsConfigurationByName(const AString& name) const
+TileTabsLayoutBaseConfiguration*
+CaretPreferences::getTileTabsUserConfigurationByName(const AString& name) const
 {
-    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
+    for (std::vector<TileTabsLayoutBaseConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
          iter != this->tileTabsConfigurations.end();
          iter++) {
-        TileTabsConfiguration* ttc = *iter;
+        TileTabsLayoutBaseConfiguration* ttc = *iter;
         
         if (name == ttc->getName()) {
             return ttc;
@@ -658,39 +635,148 @@ CaretPreferences::getTileTabsConfigurationByName(const AString& name) const
 }
 
 /**
- * Add a new tile tabs configuration.
+ * Add a new tile tabs user configuration.
  * 
  * @param tileTabsConfiguration
  *    New tile tabs configuration that is added.
  */
 void
-CaretPreferences::addTileTabsConfiguration(TileTabsConfiguration* tileTabsConfiguration)
+CaretPreferences::addTileTabsUserConfiguration(TileTabsLayoutBaseConfiguration* tileTabsConfiguration)
 {
     this->tileTabsConfigurations.push_back(tileTabsConfiguration);
-    this->writeTileTabsConfigurations();
+    this->writeTileTabsUserConfigurations();
 }
 
 /**
- * Remove the tile tabs configuration with the given name.
+ * Replace a tile tabs configuration with another tile tabs configuration
  *
- * @param tileTabsUniqueIdentifier
- *     Unique identifier of configuration that will be removed.
+ * @param replaceUserTileTabsUniqueIdentifier
+ *     Unique identifier of configuration that is to be replaced
+ *     This user configuration will be replaced and this pointer will be INVALID after
+ *     this method is called.
+ * @param replaceWithConfiguration
+ *     This configuration is copied and replaces the other configuration.
+ * @param errorMessageOut
+ *      Contains error information if fails to replace configuration
+ * @return
+ *      True if successful, else false
  */
-void
-CaretPreferences::removeTileTabsConfigurationByUniqueIdentifier(const AString& tileTabsUniqueIdentifier)
+bool
+CaretPreferences::replaceTileTabsUserConfiguration(const AString& replaceUserTileTabsUniqueIdentifier,
+                                                   const TileTabsLayoutBaseConfiguration* replaceWithConfiguration,
+                                                   AString& errorMessageOut)
 {
-    for (std::vector<TileTabsConfiguration*>::iterator iter = this->tileTabsConfigurations.begin();
-         iter != this->tileTabsConfigurations.end();
-         iter++) {
-        TileTabsConfiguration* ttc = *iter;
-        if (ttc->getUniqueIdentifier() == tileTabsUniqueIdentifier) {
-            this->tileTabsConfigurations.erase(iter);
-            delete ttc;
+    errorMessageOut.clear();
+    
+    CaretAssert(replaceWithConfiguration);
+    
+    int32_t replaceIndex = -1;
+    const int32_t numConfigs = static_cast<int32_t>(this->tileTabsConfigurations.size());
+    for (int32_t i = 0; i < numConfigs; i++) {
+        CaretAssertVectorIndex(this->tileTabsConfigurations, i);
+        if (this->tileTabsConfigurations[i]->getUniqueIdentifier() == replaceUserTileTabsUniqueIdentifier) {
+            replaceIndex = i;
             break;
         }
     }
     
-    this->writeTileTabsConfigurations();
+    if (replaceIndex < 0) {
+        errorMessageOut = "Failed to find configuration for replacement.";
+        return false;
+    }
+    
+    /*
+     * Delete configuration since it may be a different subclass than other configuration
+     */
+    CaretAssertVectorIndex(this->tileTabsConfigurations, replaceIndex);
+    const AString uuid = this->tileTabsConfigurations[replaceIndex]->getUniqueIdentifier();
+    delete this->tileTabsConfigurations[replaceIndex];
+    
+    TileTabsLayoutBaseConfiguration* newConfig = replaceWithConfiguration->newCopyWithUniqueIdentifier(uuid);
+    CaretAssert(newConfig);
+    this->tileTabsConfigurations[replaceIndex] = newConfig;
+    
+    this->writeTileTabsUserConfigurations();
+
+    return true;
+}
+
+/**
+ * Rename the tile tabs configuration with the given name.
+ *
+ * @param tileTabsUniqueIdentifier
+ *     Unique identifier of configuration that will be renamed.
+ * @param name
+ *     New name for configuration
+ * @param errorMessageOut
+ *     Will contain error information if command fails
+ * @return
+ *     True if configuration was removed, else false.
+ */
+bool
+CaretPreferences::renameTileTabsUserConfiguration(const QString& tileTabsUniqueIdentifier,
+                                                  const AString& name,
+                                                  AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if (tileTabsUniqueIdentifier.isEmpty()) {
+        errorMessageOut = "Tile Tabs Unique Identifier is empty.";
+        return false;
+    }
+    
+    for (std::vector<TileTabsLayoutBaseConfiguration*>::iterator iter = this->tileTabsConfigurations.begin();
+         iter != this->tileTabsConfigurations.end();
+         iter++) {
+        TileTabsLayoutBaseConfiguration* ttc = *iter;
+        if (ttc->getUniqueIdentifier() == tileTabsUniqueIdentifier) {
+            ttc->setName(name);
+            this->writeTileTabsUserConfigurations();
+            return true;
+        }
+    }
+    
+    errorMessageOut = ("Did not find a Tile Tabs Configuration with UniqueID="
+                       + tileTabsUniqueIdentifier);
+    return false;
+}
+
+/**
+ * Remove the tile tabs configuration with the given unique identifier.
+ *
+ * @param tileTabsUniqueIdentifier
+ *     Unique identifier of configuration that will be removed.
+ * @param errorMessageOut
+ *     Will contain error information if command fails
+ * @return
+ *     True if configuration was removed, else false.
+ */
+bool
+CaretPreferences::removeTileTabsUserConfigurationByUniqueIdentifier(const AString& tileTabsUniqueIdentifier,
+                                                                    AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if (tileTabsUniqueIdentifier.isEmpty()) {
+        errorMessageOut = "Tile Tabs Unique Identifier is empty.";
+        return false;
+    }
+    
+    for (std::vector<TileTabsLayoutBaseConfiguration*>::iterator iter = this->tileTabsConfigurations.begin();
+         iter != this->tileTabsConfigurations.end();
+         iter++) {
+        TileTabsLayoutBaseConfiguration* ttc = *iter;
+        if (ttc->getUniqueIdentifier() == tileTabsUniqueIdentifier) {
+            this->tileTabsConfigurations.erase(iter);
+            delete ttc;
+            this->writeTileTabsUserConfigurations();
+            return true;
+        }
+    }
+    
+    errorMessageOut = ("Did not find a Tile Tabs Configuration with UniqueID="
+                       + tileTabsUniqueIdentifier);
+    return false;
 }
 
 
@@ -1795,7 +1881,7 @@ CaretPreferences::readPreferences()
     
     this->readCustomViews(false);
     
-    this->readTileTabsConfigurations(false);
+    this->readTileTabsUserConfigurations(false);
     
     this->readMacros(false);
 

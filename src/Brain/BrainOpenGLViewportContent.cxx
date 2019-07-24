@@ -40,7 +40,8 @@
 #include "ModelSurfaceMontage.h"
 #include "SpacerTabContent.h"
 #include "SurfaceMontageConfigurationAbstract.h"
-#include "TileTabsConfiguration.h"
+#include "TileTabsLayoutGridConfiguration.h"
+#include "TileTabsLayoutManualConfiguration.h"
 
 using namespace caret;
 
@@ -611,6 +612,69 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         return viewportContentsOut;
     }
     
+    TileTabsLayoutBaseConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
+    CaretAssert(tileTabsConfiguration);
+    switch (tileTabsConfiguration->getLayoutType()) {
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+            viewportContentsOut = createViewportContentForGridTileTabs(tabContents,
+                                                                       browserWindowContent,
+                                                                       tileTabsConfiguration->castToGridConfiguration(),
+                                                                       gapsAndMargins,
+                                                                       windowViewport,
+                                                                       windowIndex,
+                                                                       highlightTabIndex);
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+            viewportContentsOut = createViewportContentForManualTileTabs(tabContents,
+                                                                       browserWindowContent,
+                                                                       tileTabsConfiguration->castToManualConfiguration(),
+                                                                       gapsAndMargins,
+                                                                       windowViewport,
+                                                                       windowIndex,
+                                                                       highlightTabIndex);
+            break;
+    }
+
+    return viewportContentsOut;
+}
+
+/**
+ * Create Viewport Contents for the given tab contents, window sizes, and tile sizes
+ * for a grid configuration.
+ *
+ * @param tabContents
+ *     Content of each tab.
+ * @param browserWindowContent
+ *     Content of window.
+ * @param gridConfiguration
+ *     The grid configuration
+ * @param gapsAndMargins
+ *     Contains margins around edges of tabs
+ * @param windowViewport
+ *     The window's viewport.
+ * @param windowIndex
+ *     Index of the window.
+ * @param hightlightTabIndex
+ *     Index of tab that is highlighted when selected by user.
+ * @return
+ *     Vector containing data for drawing each model.
+ */
+std::vector<BrainOpenGLViewportContent*>
+BrainOpenGLViewportContent::createViewportContentForGridTileTabs(std::vector<BrowserTabContent*>& tabContents,
+                                                                 BrowserWindowContent* browserWindowContent,
+                                                                 TileTabsLayoutGridConfiguration* gridConfiguration,
+                                                                 const GapsAndMargins* gapsAndMargins,
+                                                                 const int32_t windowViewport[4],
+                                                                 const int32_t windowIndex,
+                                                                 const int32_t highlightTabIndex)
+{
+    std::vector<BrainOpenGLViewportContent*> viewportContentsOut;
+    
+    CaretAssert(browserWindowContent);
+    CaretAssert(gapsAndMargins);
+    CaretAssert(gridConfiguration);
+    
     int32_t windowX      = windowViewport[0];
     int32_t windowY      = windowViewport[1];
     const int32_t windowWidth  = windowViewport[2];
@@ -623,8 +687,9 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
      */
     std::vector<int32_t> rowHeights;
     std::vector<int32_t> columnWidths;
-    TileTabsConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
-    tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
+    
+    const int32_t numberOfTabs = static_cast<int32_t>(tabContents.size());
+    gridConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
                                                                      windowHeight,
                                                                      numberOfTabs,
                                                                      browserWindowContent->getTileTabsConfigurationMode(),
@@ -654,7 +719,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
 
         for (int32_t jCol = 0; jCol < numColumns; jCol++) {
             bool spacerTabFlag = false;
-            const TileTabsGridRowColumnContentTypeEnum::Enum rowContentType = tileTabsConfiguration->getRow(iRowFromTop)->getContentType();
+            const TileTabsGridRowColumnContentTypeEnum::Enum rowContentType = gridConfiguration->getRow(iRowFromTop)->getContentType();
             switch (rowContentType) {
                 case TileTabsGridRowColumnContentTypeEnum::SPACE:
                     spacerTabFlag = true;
@@ -663,7 +728,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                     break;
             }
             
-            const TileTabsGridRowColumnContentTypeEnum::Enum tabContentType = tileTabsConfiguration->getColumn(jCol)->getContentType();
+            const TileTabsGridRowColumnContentTypeEnum::Enum tabContentType = gridConfiguration->getColumn(jCol)->getContentType();
             switch (tabContentType) {
                 case TileTabsGridRowColumnContentTypeEnum::SPACE:
                     spacerTabFlag = true;
@@ -740,7 +805,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         
     }
     
-    if (tileTabsConfiguration->isCenteringCorrectionEnabled()) {
+    if (gridConfiguration->isCenteringCorrectionEnabled()) {
         /*
          * Kludge that fixes old scenes
          * NEED TO ADJUST FOR X too ?
@@ -899,6 +964,43 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
 //    }
     return viewportContentsOut;
 }
+
+    /**
+     * Create Viewport Contents for the given tab contents, window sizes, and tile sizes
+     * for a manual configuration.
+     *
+     * @param tabContents
+     *     Content of each tab.
+     * @param browserWindowContent
+     *     Content of window.
+     * @param manualConfiguration
+     *     The manual configuration
+     * @param gapsAndMargins
+     *     Contains margins around edges of tabs
+     * @param windowViewport
+     *     The window's viewport.
+     * @param windowIndex
+     *     Index of the window.
+     * @param hightlightTabIndex
+     *     Index of tab that is highlighted when selected by user.
+     * @return
+     *     Vector containing data for drawing each model.
+     */
+    std::vector<BrainOpenGLViewportContent*>
+    BrainOpenGLViewportContent::createViewportContentForManualTileTabs(std::vector<BrowserTabContent*>& tabContents,
+                                                                       BrowserWindowContent* browserWindowContent,
+                                                                       TileTabsLayoutManualConfiguration* manualConfiguration,
+                                                                       const GapsAndMargins* gapsAndMargins,
+                                                                       const int32_t windowViewport[4],
+                                                                       const int32_t windowIndex,
+                                                                       const int32_t highlightTabIndex)
+    {
+        std::vector<BrainOpenGLViewportContent*> viewportContentsOut;
+        
+        CaretAssertToDoFatal();
+        
+        return viewportContentsOut;
+    }
 
 /**
  * Create viewport from the model using the tab's viewport and the tabs margins.

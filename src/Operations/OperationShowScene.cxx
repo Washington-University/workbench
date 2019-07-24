@@ -61,7 +61,8 @@
 #include "SceneFile.h"
 #include "ScenePrimitiveArray.h"
 #include "SessionManager.h"
-#include "TileTabsConfiguration.h"
+#include "TileTabsLayoutGridConfiguration.h"
+#include "TileTabsLayoutManualConfiguration.h"
 #include "VolumeFile.h"
 
 //#include "workbench_png.h"
@@ -463,9 +464,13 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         if (restoreToTabTiles) {
             CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
             
-            TileTabsConfiguration* tileTabsConfiguration = bwc->getSelectedTileTabsConfiguration();
+            TileTabsLayoutBaseConfiguration* tileTabsConfiguration = bwc->getSelectedTileTabsConfiguration();
             CaretAssert(tileTabsConfiguration);
             
+            TileTabsLayoutGridConfiguration* gridConfig = tileTabsConfiguration->castToGridConfiguration();
+            TileTabsLayoutManualConfiguration* manualConfig = tileTabsConfiguration->castToManualConfiguration();
+
+            if (gridConfig != NULL) {
                 const std::vector<int32_t> tabIndices = bwc->getSceneTabIndices();
                 if ( ! tabIndices.empty()) {
                     std::vector<BrowserTabContent*> allTabContent;
@@ -491,12 +496,12 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     }
                     std::vector<int32_t> rowHeights;
                     std::vector<int32_t> columnWidths;
-                    if ( ! tileTabsConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
-                                                                                            windowHeight,
-                                                                                            numTabContent,
-                                                                                            bwc->getTileTabsConfigurationMode(),
-                                                                                            rowHeights,
-                                                                                            columnWidths)) {
+                    if ( ! gridConfig->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
+                                                                                 windowHeight,
+                                                                                 numTabContent,
+                                                                                 bwc->getTileTabsConfigurationMode(),
+                                                                                 rowHeights,
+                                                                                 columnWidths)) {
                         throw OperationException("Tile Tabs Row/Column sizing failed !!!");
                     }
                     
@@ -534,6 +539,13 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     }
                     viewports.clear();
                 }
+            }
+            else if (manualConfig != NULL) {
+                CaretAssertToDoFatal();
+            }
+            else {
+                throw OperationException("Tile tabs configuration is neither Grid nor Manual");
+            }
         }
         else {
             CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());

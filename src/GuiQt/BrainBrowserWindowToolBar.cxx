@@ -120,7 +120,7 @@
 #include "SurfaceSelectionModel.h"
 #include "SurfaceSelectionViewController.h"
 #include "StructureSurfaceSelectionControl.h"
-#include "TileTabsConfiguration.h"
+#include "TileTabsLayoutGridConfiguration.h"
 #include "UserInputModeAbstract.h"
 #include "VolumeFile.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -969,7 +969,7 @@ BrainBrowserWindowToolBar::allowAddingNewTab()
     /*
      * Is there space in the current configuration?
      */
-    const TileTabsConfiguration* tileTabs = browserWindowContent->getCustomTileTabsConfiguration();
+    const TileTabsLayoutGridConfiguration* tileTabs = browserWindowContent->getCustomGridTileTabsConfiguration();
     CaretAssert(tileTabs);
     const int32_t tileTabsCount = tileTabs->getNumberOfColumns() * tileTabs->getNumberOfRows();
     if (getNumberOfTabs() < tileTabsCount) {
@@ -2636,10 +2636,6 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                                                              SLOT(wholeBrainSurfaceLeftToolButtonTriggered(bool)));
     WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainLeftSurfaceToolButton);
     wholeBrainLeftSurfaceToolButton->setDefaultAction(leftSurfaceAction);
-//    leftSurfaceAction->setObjectName(objectNamePrefix
-//                                     + "SelectLeft");
-//    macroManager->addMacroSupportToObject(leftSurfaceAction,
-//                                          "Select all view left surface");
     
     /*
      * Left menu is displayed when tool button is clicked
@@ -2674,10 +2670,6 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                                                              SLOT(wholeBrainSurfaceRightToolButtonTriggered(bool)));
     WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainRightSurfaceToolButton);
     wholeBrainRightSurfaceToolButton->setDefaultAction(rightSurfaceAction);
-//    rightSurfaceAction->setObjectName(objectNamePrefix
-//                                      + "SelectRight");
-//    macroManager->addMacroSupportToObject(rightSurfaceAction,
-//                                          "Select all view right surface");
     
     /*
      * Right menu is displayed when tool button is clicked
@@ -2712,10 +2704,6 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                                                               SLOT(wholeBrainSurfaceCerebellumToolButtonTriggered(bool)));
     WuQtUtilities::setToolButtonStyleForQt5Mac(wholeBrainCerebellumSurfaceToolButton);
     wholeBrainCerebellumSurfaceToolButton->setDefaultAction(cerebellumSurfaceAction);
-//    cerebellumSurfaceAction->setObjectName(objectNamePrefix
-//                                           + "SurfaceCerebellum");
-//    macroManager->addMacroSupportToObject(cerebellumSurfaceAction,
-//                                          "Select all view cerebellum surface");
 
     /*
      * Cerebellum menu is displayed when tool button is clicked
@@ -3076,10 +3064,6 @@ BrainBrowserWindowToolBar::createModeWidget()
                                                          "Select view mode");
     WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputVolumeEditAction,
                                                          "Select volume mode");
-//    this->modeInputModeActionGroup->setObjectName(m_objectNamePrefix
-//                                                  + ":Mode_Action_Group");
-//    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeActionGroup,
-//                                                         "Selects Mode for Mouse Operations");
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);

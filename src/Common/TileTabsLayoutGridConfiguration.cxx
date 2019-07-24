@@ -140,15 +140,28 @@ TileTabsLayoutGridConfiguration::copyHelperTileTabsLayoutGridConfiguration(const
 }
 
 /**
- * Copies the tile tabs configuration rows, columns, and
- * stretch factors.   Name is NOT copied.
+ * Copy the given configuration to "this" configuration.  If given configuration
+ * does not cast to "this class type" log a warning and do not copy.
+ * Name property is not copied.
+ *
+ * @param rhs
+ *      Configuration to copy.
  */
 void
-TileTabsLayoutGridConfiguration::copy(const TileTabsLayoutGridConfiguration& rhs)
+TileTabsLayoutGridConfiguration::copy(const TileTabsLayoutBaseConfiguration& rhs)
 {
-    AString savedName = getName();
-    copyHelperTileTabsLayoutGridConfiguration(rhs);
-    setName(savedName);
+    const TileTabsLayoutGridConfiguration* gridConfig = rhs.castToGridConfiguration();
+    if (gridConfig != NULL) {
+        AString savedName = getName();
+        copyHelperTileTabsLayoutGridConfiguration(*gridConfig);
+        setName(savedName);
+    }
+    else {
+        CaretLogSevere("Attempt to copy layout configuration "
+                       + rhs.toString()
+                       + " to "
+                       + toString());
+    }
 }
 
 /**
@@ -359,34 +372,35 @@ TileTabsLayoutGridConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const
     
     if ((numRows == static_cast<int32_t>(rowHeightsOut.size()))
         && (numCols == static_cast<int32_t>(columnWidthsOut.size()))) {
-//        /*
-//         * Verify all rows fit within the window
-//         */
-//        int32_t rowHeightsSum = 0;
-//        for (int32_t i = 0; i < numRows; i++) {
-//            rowHeightsSum += rowHeightsOut[i];
-//        }
-//        if (rowHeightsSum > windowHeight) {
-//            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
-////            rowHeightsOut[numRows - 1] -= (rowHeightsSum - windowHeight);
-//        }
-//        
-//        /*
-//         * Adjust width of last column so that it does not extend beyond viewport
-//         */
-//        int32_t columnWidthsSum = 0;
-//        for (int32_t i = 0; i < numCols; i++) {
-//            columnWidthsSum += columnWidthsOut[i];
-//        }
-//        if (columnWidthsSum > windowWidth) {
-//            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
-////            columnWidthsOut[numCols - 1] = columnWidthsSum - windowWidth;
-//        }
-//        
-//        CaretLogFiner("Tile Tabs Row Heights: "
-//                      + AString::fromNumbers(rowHeightsOut, ", "));
-//        CaretLogFiner("Tile Tabs Column Widths: "
-//                      + AString::fromNumbers(columnWidthsOut, ", "));
+        const bool debugFlag(false);
+        if (debugFlag) {
+            /*
+             * Verify all rows fit within the window
+             */
+            int32_t rowHeightsSum = 0;
+            for (int32_t i = 0; i < numRows; i++) {
+                rowHeightsSum += rowHeightsOut[i];
+            }
+            if (rowHeightsSum > windowHeight) {
+                CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
+            }
+            
+            /*
+             * Adjust width of last column so that it does not extend beyond viewport
+             */
+            int32_t columnWidthsSum = 0;
+            for (int32_t i = 0; i < numCols; i++) {
+                columnWidthsSum += columnWidthsOut[i];
+            }
+            if (columnWidthsSum > windowWidth) {
+                CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
+            }
+            
+            CaretLogFiner("Tile Tabs Row Heights: "
+                          + AString::fromNumbers(rowHeightsOut, ", "));
+            CaretLogFiner("Tile Tabs Column Widths: "
+                          + AString::fromNumbers(columnWidthsOut, ", "));
+        }
         return true;
     }
     
@@ -509,7 +523,6 @@ TileTabsLayoutGridConfiguration::updateAutomaticConfigurationRowsAndColumns(cons
     getRowsAndColumnsForNumberOfTabs(numberOfTabs,
                                      numRows,
                                      numCols);
-    
     setNumberOfRows(numRows);
     setNumberOfColumns(numCols);
 }
@@ -700,27 +713,7 @@ TileTabsLayoutGridConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
                            + s_v1_rootTagName
                            + " or "
                            + s_v2_rootTagName);
-        }
-    
-//    const bool debugFlag(false);
-//    if (debugFlag) {
-//        AString xmlText = encodeInXMLWithStreamWriterVersionTwo();
-//        std::cout << std::endl << "NEW: " << xmlText << std::endl << std::endl;
-//        AString em;
-//        TileTabsLayoutGridConfiguration temp;
-//        QXmlStreamReader tempReader(xmlText);
-//        tempReader.readNextStartElement();
-//        temp.decodeFromXMLWithStreamReaderVersionTwo(tempReader);
-//        if (tempReader.hasError()) {
-//            std::cout << "Decode error: " << tempReader.errorString() << std::endl;
-//        }
-//        else {
-//            std::cout << "Decoded: " << temp.toString() << std::endl;
-//        }
-//
-//        std::cout << std::endl;
-//    }
-//    return true;
+        }    
 }
 
 /**
@@ -1093,5 +1086,27 @@ TileTabsLayoutGridConfiguration::toString() const
     }
     
     return s;
+}
+
+/**
+ * Cast to a grid configuration (avoids dynamic_cast that can be slow)
+ *
+ * @return Pointer to grid configuration or NULL if not a grid configuration.
+ */
+TileTabsLayoutGridConfiguration*
+TileTabsLayoutGridConfiguration::castToGridConfiguration()
+{
+    return this;
+}
+
+/**
+ * Cast to a grid configuration (avoids dynamic_cast that can be slow)
+ *
+ * @return Pointer to grid configuration or NULL if not a grid configuration.
+ */
+const TileTabsLayoutGridConfiguration*
+TileTabsLayoutGridConfiguration::castToGridConfiguration() const
+{
+    return this;
 }
 

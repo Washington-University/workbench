@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __EVENT_TILE_TABS_CONFIGURATION_MODIFICATION_DECLARE__
-#include "EventTileTabsConfigurationModification.h"
-#undef __EVENT_TILE_TABS_CONFIGURATION_MODIFICATION_DECLARE__
+#define __EVENT_TILE_TABS_GRID_CONFIGURATION_MODIFICATION_DECLARE__
+#include "EventTileTabsGridConfigurationModification.h"
+#undef __EVENT_TILE_TABS_GRID_CONFIGURATION_MODIFICATION_DECLARE__
 
 #include "CaretAssert.h"
 #include "EventTypeEnum.h"
@@ -31,8 +31,8 @@ using namespace caret;
 
     
 /**
- * \class caret::EventTileTabsConfigurationModification 
- * \brief Event for modifying a tile tabs configuration.
+ * \class caret::EventTileTabsGridConfigurationModification
+ * \brief Event for modifying a grid tile tabs configuration.
  * \ingroup Common
  */
 
@@ -48,7 +48,7 @@ using namespace caret;
  * @param operation
  *     Enumerated type with type of modification.
  */
-EventTileTabsConfigurationModification::EventTileTabsConfigurationModification(TileTabsConfiguration* tileTabsConfiguration,
+EventTileTabsGridConfigurationModification::EventTileTabsGridConfigurationModification(TileTabsLayoutGridConfiguration* tileTabsConfiguration,
                                                                                const int32_t rowColumnIndex,
                                                                                const RowColumnType rowColumnType,
                                                                                const Operation operation)
@@ -59,21 +59,21 @@ m_rowColumnType(rowColumnType),
 m_operation(operation),
 m_windowIndex(-1)
 {
-    
+    CaretAssert(m_tileTabsConfiguration);
 }
 
 /**
  * Destructor.
  */
-EventTileTabsConfigurationModification::~EventTileTabsConfigurationModification()
+EventTileTabsGridConfigurationModification::~EventTileTabsGridConfigurationModification()
 {
 }
 
 /**
  * @return Tile tabs configuration that is modified.
  */
-TileTabsConfiguration*
-EventTileTabsConfigurationModification::getTileTabsConfiguration()
+TileTabsLayoutGridConfiguration*
+EventTileTabsGridConfigurationModification::getTileTabsConfiguration()
 {
     return m_tileTabsConfiguration;
 }
@@ -83,7 +83,7 @@ EventTileTabsConfigurationModification::getTileTabsConfiguration()
  * @return Index of the window.
  */
 int32_t
-EventTileTabsConfigurationModification::getWindowIndex() const
+EventTileTabsGridConfigurationModification::getWindowIndex() const
 {
     return m_windowIndex;
 }
@@ -95,7 +95,7 @@ EventTileTabsConfigurationModification::getWindowIndex() const
  *     Index of the window.
  */
 void
-EventTileTabsConfigurationModification::setWindowIndex(const int32_t windowIndex)
+EventTileTabsGridConfigurationModification::setWindowIndex(const int32_t windowIndex)
 {
     m_windowIndex = windowIndex;
 }
@@ -104,7 +104,7 @@ EventTileTabsConfigurationModification::setWindowIndex(const int32_t windowIndex
  * @return The index of the row or column.
  */
 int32_t
-EventTileTabsConfigurationModification::getRowColumnIndex() const
+EventTileTabsGridConfigurationModification::getRowColumnIndex() const
 {
     return m_rowColumnIndex;
 }
@@ -112,8 +112,8 @@ EventTileTabsConfigurationModification::getRowColumnIndex() const
 /**
  * @return The type ROW or COLUMN
  */
-EventTileTabsConfigurationModification::RowColumnType
-EventTileTabsConfigurationModification::getRowColumnType() const
+EventTileTabsGridConfigurationModification::RowColumnType
+EventTileTabsGridConfigurationModification::getRowColumnType() const
 {
     return m_rowColumnType;
 }
@@ -121,8 +121,8 @@ EventTileTabsConfigurationModification::getRowColumnType() const
 /**
  * @return The operation.
  */
-EventTileTabsConfigurationModification::Operation
-EventTileTabsConfigurationModification::getOperation() const
+EventTileTabsGridConfigurationModification::Operation
+EventTileTabsGridConfigurationModification::getOperation() const
 {
     return m_operation;
 }

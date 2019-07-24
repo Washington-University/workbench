@@ -33,7 +33,7 @@
 #include "DisplayGroupAndTabItemInterface.h"
 #include "EventAnnotationGrouping.h"
 #include "EventListenerInterface.h"
-#include "EventTileTabsConfigurationModification.h"
+#include "EventTileTabsGridConfigurationModification.h"
 
 namespace caret {
 
@@ -218,7 +218,7 @@ namespace caret {
         
         AnnotationGroup* getSpaceAnnotationGroup(const Annotation* annotation);
         
-        void updateSpacerAnnotationsAfterTileTabsModification(const EventTileTabsConfigurationModification* modEvent);
+        void updateSpacerAnnotationsAfterTileTabsModification(const EventTileTabsGridConfigurationModification* modEvent);
         
         const AnnotationFileSubType m_fileSubType;
         

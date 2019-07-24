@@ -104,6 +104,31 @@ TileTabsLayoutManualConfiguration::copyHelperTileTabsLayoutManualConfiguration(c
 }
 
 /**
+ * Copy the given configuration to "this" configuration.  If given configuration
+ * does not cast to "this class type" log a warning and do not copy.
+ * Name property is not copied.
+ *
+ * @param rhs
+ *      Configuration to copy.
+ */
+void
+TileTabsLayoutManualConfiguration::copy(const TileTabsLayoutBaseConfiguration& rhs)
+{
+    const TileTabsLayoutManualConfiguration* manualConfig = rhs.castToManualConfiguration();
+    if (manualConfig != NULL) {
+        AString savedName = getName();
+        copyHelperTileTabsLayoutManualConfiguration(*manualConfig);
+        setName(savedName);
+    }
+    else {
+        CaretLogSevere("Attempt to copy layout configuration "
+                       + rhs.toString()
+                       + " to "
+                       + toString());
+    }
+}
+
+/**
  * Copy this instance and give it a new unique identifier.
  * Note that copy constructor does not create a new unique identifier.
  *
@@ -405,58 +430,27 @@ TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
             }
         }
     }
-//    m_centeringCorrectionEnabled = false;
-//
-//    if (rootElementText == s_v1_rootTagName) {
-//        decodeFromXMLWithStreamReaderVersionOne(xml);
-//    }
-//    else if (rootElementText == s_v2_rootTagName) {
-//        /*
-//         * Version 2 uses a different root tag than version 1.  The reason is that
-//         * the older code for decoding from XML will throw an exception if it
-//         * encounters invalid elements or the version number is invalid.  The problem
-//         * is that the exception is not caught and wb_view will terminate.
-//         */
-//        QString versionNumberText("Unknown");
-//        const QXmlStreamAttributes atts = xml.attributes();
-//        if (atts.hasAttribute(s_v2_versionAttributeName)) {
-//            versionNumberText = atts.value(s_v2_versionAttributeName).toString();
-//        }
-//
-//        if (versionNumberText == "2") {
-//            decodeFromXMLWithStreamReaderVersionTwo(xml);
-//        }
-//        else {
-//            xml.raiseError("TileTabsLayoutGridConfiguration invalid version="
-//                           + versionNumberText);
-//        }
-//    }
-//    else {
-//        xml.raiseError("TileTabsLayoutGridConfiguration first element is "
-//                       + xml.name().toString()
-//                       + " but should be "
-//                       + s_v1_rootTagName
-//                       + " or "
-//                       + s_v2_rootTagName);
-//    }
-//
-//    //    const bool debugFlag(false);
-//    //    if (debugFlag) {
-//    //        AString xmlText = encodeInXMLWithStreamWriterVersionTwo();
-//    //        std::cout << std::endl << "NEW: " << xmlText << std::endl << std::endl;
-//    //        AString em;
-//    //        TileTabsLayoutGridConfiguration temp;
-//    //        QXmlStreamReader tempReader(xmlText);
-//    //        tempReader.readNextStartElement();
-//    //        temp.decodeFromXMLWithStreamReaderVersionTwo(tempReader);
-//    //        if (tempReader.hasError()) {
-//    //            std::cout << "Decode error: " << tempReader.errorString() << std::endl;
-//    //        }
-//    //        else {
-//    //            std::cout << "Decoded: " << temp.toString() << std::endl;
-//    //        }
-//    //
-//    //        std::cout << std::endl;
-//    //    }
-//    //    return true;
 }
+
+/**
+ * Cast to a manual configuration (avoids dynamic_cast that can be slow)
+ *
+ * @return Pointer to manual configuration or NULL if not a manual configuration.
+ */
+TileTabsLayoutManualConfiguration*
+TileTabsLayoutManualConfiguration::castToManualConfiguration()
+{
+    return this;
+}
+
+/**
+ * Cast to a manual configuration (avoids dynamic_cast that can be slow)
+ *
+ * @return Pointer to manual configuration or NULL if not a manual configuration.
+ */
+const TileTabsLayoutManualConfiguration*
+TileTabsLayoutManualConfiguration::castToManualConfiguration() const
+{
+    return this;
+}
+

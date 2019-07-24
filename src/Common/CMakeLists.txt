@@ -110,7 +110,7 @@ EventListenerInterface.h
 EventManager.h
 EventPaletteGetByName.h
 EventProgressUpdate.h
-EventTileTabsConfigurationModification.h
+EventTileTabsGridConfigurationModification.h
 EventTypeEnum.h
 FastStatistics.h
 FileAdapter.h
@@ -152,7 +152,6 @@ StereotaxicSpaceEnum.h
 StringTableModel.h
 StructureEnum.h
 SystemUtilities.h
-TileTabsConfiguration.h
 TileTabsLayoutBackgroundTypeEnum.h
 TileTabsLayoutBaseConfiguration.h
 TileTabsLayoutConfigurationTypeEnum.h
@@ -243,7 +242,7 @@ EventListenerInterface.cxx
 EventManager.cxx
 EventPaletteGetByName.cxx
 EventProgressUpdate.cxx
-EventTileTabsConfigurationModification.cxx
+EventTileTabsGridConfigurationModification.cxx
 EventTypeEnum.cxx
 FastStatistics.cxx
 FileAdapter.cxx
@@ -280,7 +279,6 @@ StereotaxicSpaceEnum.cxx
 StringTableModel.cxx
 StructureEnum.cxx
 SystemUtilities.cxx
-TileTabsConfiguration.cxx
 TileTabsLayoutBackgroundTypeEnum.cxx
 TileTabsLayoutBaseConfiguration.cxx
 TileTabsLayoutConfigurationTypeEnum.cxx

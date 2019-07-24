@@ -40,7 +40,7 @@ namespace caret {
 
     class CaretPreferenceDataValue;
     class ModelTransform;
-    class TileTabsConfiguration;
+    class TileTabsLayoutBaseConfiguration;
     class WuQMacroGroup;
     
     class CaretPreferences : public CaretObject {
@@ -136,21 +136,28 @@ namespace caret {
         
         void setShowDataToolTipsEnabled(const bool enabled);
         
-        void readTileTabsConfigurations(const bool performSync = true);
+        void readTileTabsUserConfigurations(const bool performSync = true);
         
-        std::vector<const TileTabsConfiguration*> getTileTabsConfigurationsSortedByName() const;
+        std::vector<std::pair<AString, AString>> getTileTabsUserConfigurationsNamesAndUniqueIdentifiers() const;
         
-        TileTabsConfiguration* getTileTabsConfigurationByUniqueIdentifier(const AString& uniqueIdentifier);
+        std::unique_ptr<TileTabsLayoutBaseConfiguration> getCopyOfTileTabsUserConfigurationByUniqueIdentifier(const AString& uniqueIdentifier) const;
         
-        const TileTabsConfiguration* getTileTabsConfigurationByUniqueIdentifier(const AString& uniqueIdentifier) const;
+        TileTabsLayoutBaseConfiguration* getTileTabsUserConfigurationByName(const AString& name) const;
         
-        TileTabsConfiguration* getTileTabsConfigurationByName(const AString& name) const;
+        void addTileTabsUserConfiguration(TileTabsLayoutBaseConfiguration* tileTabsConfiguration);
         
-        void addTileTabsConfiguration(TileTabsConfiguration* tileTabsConfiguration);
+        bool replaceTileTabsUserConfiguration(const AString& replaceUserTileTabsUniqueIdentifier,
+                                              const TileTabsLayoutBaseConfiguration* replaceWithConfiguration,
+                                              AString& errorMessageOut);
         
-        void removeTileTabsConfigurationByUniqueIdentifier(const AString& tileTabsUniqueIdentifier);
+        bool renameTileTabsUserConfiguration(const QString& tileTabsUniqueIdentifier,
+                                             const AString& name,
+                                             AString& errorMessageOut);
         
-        void writeTileTabsConfigurations();
+        bool removeTileTabsUserConfigurationByUniqueIdentifier(const AString& tileTabsUniqueIdentifier,
+                                                               AString& errorMessageOut);
+        
+        void writeTileTabsUserConfigurations();
         
         void readCustomViews(const bool performSync = true);
         
@@ -287,7 +294,7 @@ namespace caret {
         
         std::vector<ModelTransform*> customViews;
 
-        std::vector<TileTabsConfiguration*> tileTabsConfigurations;
+        std::vector<TileTabsLayoutBaseConfiguration*> tileTabsConfigurations;
         
         bool displayVolumeAxesCrosshairs;
         

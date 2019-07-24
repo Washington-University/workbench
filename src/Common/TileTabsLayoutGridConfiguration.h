@@ -42,7 +42,7 @@ namespace caret {
 
         TileTabsLayoutGridConfiguration& operator=(const TileTabsLayoutGridConfiguration& obj);
         
-        void copy(const TileTabsLayoutGridConfiguration& rhs);
+        virtual void copy(const TileTabsLayoutBaseConfiguration& rhs) override;
         
         virtual TileTabsLayoutBaseConfiguration* newCopyWithNewUniqueIdentifier() const override;
                 
@@ -80,6 +80,12 @@ namespace caret {
         static void getRowsAndColumnsForNumberOfTabs(const int32_t numberOfTabs,
                                                      int32_t& numberOfRowsOut,
                                                      int32_t& numberOfColumnsOut);
+        AString encodeVersionInXML(const int32_t versionNumber) const;
+        
+        virtual TileTabsLayoutGridConfiguration* castToGridConfiguration() override;
+        
+        virtual const TileTabsLayoutGridConfiguration* castToGridConfiguration() const override;
+        
         // ADD_NEW_METHODS_HERE
         
     protected:
@@ -94,8 +100,6 @@ namespace caret {
         void decodeFromXMLWithStreamReaderVersionOne(QXmlStreamReader& xml);
         
         void decodeFromXMLWithStreamReaderVersionTwo(QXmlStreamReader& xml);
-        
-        AString encodeVersionInXML(const int32_t versionNumber) const;
         
         AString encodeInXMLWithStreamWriterVersionOne() const;
         
