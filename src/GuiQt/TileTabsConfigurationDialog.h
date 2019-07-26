@@ -47,7 +47,7 @@ namespace caret {
     class TileTabsLayoutBaseConfiguration;
     class TileTabsLayoutGridConfiguration;
     class TileTabsLayoutManualConfiguration;
-    class TileTabElementWidgets;
+    class TileTabGridRowColumnWidgets;
     class TileTabsGridRowColumnElement;
     class WuQGridLayoutGroup;
     class WuQListWidget;
@@ -132,7 +132,7 @@ namespace caret {
         
         void addRowColumnStretchWidget(const EventTileTabsGridConfigurationModification::RowColumnType rowColumnType,
                                        QGridLayout* gridLayout,
-                                       std::vector<TileTabElementWidgets*>& elementVector);
+                                       std::vector<TileTabGridRowColumnWidgets*>& elementVector);
         
         void updateStretchFactors();
         
@@ -174,9 +174,9 @@ namespace caret {
         
         QSpinBox* m_numberOfColumnsSpinBox;
         
-        std::vector<TileTabElementWidgets*> m_columnElements;
+        std::vector<TileTabGridRowColumnWidgets*> m_columnElements;
         
-        std::vector<TileTabElementWidgets*> m_rowElements;
+        std::vector<TileTabGridRowColumnWidgets*> m_rowElements;
         
         QGridLayout* m_rowElementsGridLayout = NULL;
         
@@ -194,71 +194,12 @@ namespace caret {
          */
         CaretPreferences* m_caretPreferences;
         
-        friend class TileTabElementWidgets;
+        friend class TileTabGridRowColumnWidgets;
+        friend class TileTabGridRowColumnWidgets;
         
         static const int32_t s_maximumRowsColumns = 50;
     };
     
-    
-    /**
-     * Contains widgets for one row or column of stretching.
-     */
-    class TileTabElementWidgets : public QObject {
-        Q_OBJECT
-        
-    public:
-        TileTabElementWidgets(TileTabsConfigurationDialog* tileTabsConfigurationDialog,
-                              const EventTileTabsGridConfigurationModification::RowColumnType rowColumnType,
-                              const int32_t index,
-                              QGridLayout* gridLayout,
-                              QObject* parent);
-        
-        virtual ~TileTabElementWidgets();
-
-        void updateContent(TileTabsGridRowColumnElement* element);
-        
-    signals:
-        void itemChanged();
-        
-        void modificationRequested(EventTileTabsGridConfigurationModification& modification);
-        
-    private slots:
-        void constructionMenuAboutToShow();
-        
-        void constructionMenuTriggered(QAction*);
-        
-        void contentTypeActivated();
-        
-        void stretchTypeActivated();
-        
-        void stretchValueChanged(double);
-        
-    private:
-        QMenu* createConstructionMenu(QToolButton* toolButton);
-        
-        TileTabsConfigurationDialog* m_tileTabsConfigurationDialog;
-        const EventTileTabsGridConfigurationModification::RowColumnType m_rowColumnType;
-        const int32_t m_index;
-        TileTabsGridRowColumnElement* m_element;
-        
-        QLabel* m_indexLabel;
-        QAction* m_constructionAction;
-        QToolButton* m_constructionToolButton;
-        EnumComboBoxTemplate* m_contentTypeComboBox;
-        EnumComboBoxTemplate* m_stretchTypeComboBox;
-        QDoubleSpinBox* m_stretchValueSpinBox;
-        
-        QAction* m_menuDeleteAction;
-        QAction* m_menuDuplicateAfterAction;
-        QAction* m_menuDuplicateBeforeAction;
-        QAction* m_insertSpacerAfterAction;
-        QAction* m_insertSpacerBeforeAction;
-        QAction* m_menuMoveAfterAction;
-        QAction* m_menuMoveBeforeAction;
-        
-        WuQGridLayoutGroup* m_gridLayoutGroup;
-        
-    };
     
 #ifdef __TILE_TABS_CONFIGURATION_DIALOG_DECLARE__
 //    const AString TileTabsConfigurationDialog::s_automaticConfigurationPrefix = "Automatic Configuration";

@@ -185,6 +185,7 @@ ELSE()
         SurfacePropertiesEditorDialog.h
         SurfaceSelectionViewController.h
         ThresholdingSetMapsDialog.h
+	TileTabGridRowColumnWidgets.h
         TileTabsConfigurationDialog.h
         UserInputModeAnnotationsContextMenu.h
         UserInputModeAnnotationsWidget.h
@@ -444,6 +445,7 @@ StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 ThresholdingSetMapsDialog.h
+TileTabGridRowColumnWidgets.h
 TileTabsConfigurationDialog.h
 TileTabsConfigurationModifier.h
 UserInputModeAbstract.h
@@ -716,6 +718,7 @@ StructureSurfaceSelectionControl.cxx
 SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
 ThresholdingSetMapsDialog.cxx
+TileTabGridRowColumnWidgets.cxx
 TileTabsConfigurationDialog.cxx
 TileTabsConfigurationModifier.cxx
 UserInputModeAbstract.cxx
