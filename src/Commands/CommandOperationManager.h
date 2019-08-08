@@ -65,7 +65,7 @@ namespace caret {
         
         void printHelpInfo();
         
-        void printArgumentsHelp(const AString& programName);
+        void printArgumentsHelp();
         
         void printGlobalOptions();
         
