@@ -187,6 +187,7 @@ ELSE()
         ThresholdingSetMapsDialog.h
 	TileTabGridRowColumnWidgets.h
         TileTabsConfigurationDialog.h
+	TileTabsManualTabGeometryWidget.h
         UserInputModeAnnotationsContextMenu.h
         UserInputModeAnnotationsWidget.h
         UserInputModeBordersWidget.h
@@ -448,6 +449,7 @@ ThresholdingSetMapsDialog.h
 TileTabGridRowColumnWidgets.h
 TileTabsConfigurationDialog.h
 TileTabsConfigurationModifier.h
+TileTabsManualTabGeometryWidget.h
 UserInputModeAbstract.h
 UserInputModeAnnotations.h
 UserInputModeAnnotationsContextMenu.h
@@ -721,6 +723,7 @@ ThresholdingSetMapsDialog.cxx
 TileTabGridRowColumnWidgets.cxx
 TileTabsConfigurationDialog.cxx
 TileTabsConfigurationModifier.cxx
+TileTabsManualTabGeometryWidget.cxx
 UserInputModeAbstract.cxx
 UserInputModeAnnotations.cxx
 UserInputModeAnnotationsContextMenu.cxx

@@ -47,8 +47,8 @@ BrowserWindowContent::BrowserWindowContent(const int32_t windowIndex)
 : CaretObject(),
 m_windowIndex(windowIndex)
 {
-    m_automaticGridTileTabsConfiguration.reset(new TileTabsLayoutGridConfiguration());
-    m_customGridTileTabsConfiguration.reset(new TileTabsLayoutGridConfiguration());
+    m_automaticGridTileTabsConfiguration.reset(TileTabsLayoutGridConfiguration::newInstanceAutomaticGrid());
+    m_customGridTileTabsConfiguration.reset(TileTabsLayoutGridConfiguration::newInstanceCustomGrid());
     m_validFlag = false;
     reset();
     
@@ -58,8 +58,8 @@ m_windowIndex(windowIndex)
     m_sceneAssistant->add("m_windowAspectLockedRatio", &m_windowAspectLockedRatio);
     m_sceneAssistant->add("m_allTabsInWindowAspectRatioLocked", &m_allTabsInWindowAspectRatioLocked);
     m_sceneAssistant->add("m_tileTabsEnabled", &m_tileTabsEnabled);
-    m_sceneAssistant->add<TileTabsGridModeEnum, TileTabsGridModeEnum::Enum>("m_tileTabsConfigurationMode",
-                                                                                              &m_tileTabsConfigurationMode);
+    m_sceneAssistant->add<TileTabsLayoutConfigurationTypeEnum, TileTabsLayoutConfigurationTypeEnum::Enum>("m_tileTabsConfigurationMode",
+                                                                                                          &m_tileTabsConfigurationMode);
     m_sceneAssistant->add("m_sceneGraphicsWidth", &m_sceneGraphicsWidth);
     m_sceneAssistant->add("m_sceneGraphicsHeight", &m_sceneGraphicsHeight);
     m_sceneAssistant->add("m_sceneSelectedTabIndex", &m_sceneSelectedTabIndex);
@@ -108,7 +108,7 @@ BrowserWindowContent::reset()
     m_tileTabsEnabled = false;
     m_sceneGraphicsHeight = 0;
     m_sceneGraphicsWidth  = 0;
-    m_tileTabsConfigurationMode = TileTabsGridModeEnum::AUTOMATIC;
+    m_tileTabsConfigurationMode = TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID;
     m_automaticGridTileTabsConfiguration->updateAutomaticConfigurationRowsAndColumns(1);
     /* sets rows/columns/factors to defaults */
     m_customGridTileTabsConfiguration->updateAutomaticConfigurationRowsAndColumns(1);
@@ -222,11 +222,14 @@ BrowserWindowContent::getSelectedTileTabsConfiguration()
     TileTabsLayoutBaseConfiguration* configMode = NULL;
     
     switch (m_tileTabsConfigurationMode) {
-        case TileTabsGridModeEnum::AUTOMATIC:
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
             configMode = m_automaticGridTileTabsConfiguration.get();
             break;
-        case TileTabsGridModeEnum::CUSTOM:
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
             configMode = m_customGridTileTabsConfiguration.get();
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+            return NULL;
             break;
     }
     CaretAssert(configMode);
@@ -245,16 +248,28 @@ BrowserWindowContent::getSelectedTileTabsConfiguration() const
     TileTabsLayoutBaseConfiguration* configMode = NULL;
     
     switch (m_tileTabsConfigurationMode) {
-        case TileTabsGridModeEnum::AUTOMATIC:
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
             configMode = m_automaticGridTileTabsConfiguration.get();
             break;
-        case TileTabsGridModeEnum::CUSTOM:
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
             configMode = m_customGridTileTabsConfiguration.get();
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+            CaretAssertToDoFatal();
             break;
     }
     CaretAssert(configMode);
     
     return configMode;
+}
+
+/**
+ * @return The automatic grid tile tabs configuration
+ */
+TileTabsLayoutGridConfiguration*
+BrowserWindowContent::getAutomaticGridTileTabsConfiguration()
+{
+    return m_automaticGridTileTabsConfiguration.get();
 }
 
 /**
@@ -304,7 +319,7 @@ BrowserWindowContent::setCustomGridTileTabsConfiguration(const TileTabsLayoutGri
 /**
  * @return The tile tabs configuration mode.
  */
-TileTabsGridModeEnum::Enum
+TileTabsLayoutConfigurationTypeEnum::Enum
 BrowserWindowContent::getTileTabsConfigurationMode() const
 {
     return m_tileTabsConfigurationMode;
@@ -317,7 +332,7 @@ BrowserWindowContent::getTileTabsConfigurationMode() const
  *     New value for configuration mode.
  */
 void
-BrowserWindowContent::setTileTabsConfigurationMode(const TileTabsGridModeEnum::Enum configMode)
+BrowserWindowContent::setTileTabsConfigurationMode(const TileTabsLayoutConfigurationTypeEnum::Enum configMode)
 {
     m_tileTabsConfigurationMode = configMode;
 }
@@ -539,7 +554,7 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                + "\" from BrowserWindowContent: \""
                                                + tileTabsConfig
                                                + "\"");
-            m_customGridTileTabsConfiguration.reset(new TileTabsLayoutGridConfiguration());
+            m_customGridTileTabsConfiguration.reset(TileTabsLayoutGridConfiguration::newInstanceCustomGrid());
         }
         
         /*
@@ -555,10 +570,10 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (oldTileTabsAutoPrimitive != NULL) {
         const bool autoModeSelected = oldTileTabsAutoPrimitive->booleanValue();
         if (autoModeSelected) {
-            m_tileTabsConfigurationMode = TileTabsGridModeEnum::AUTOMATIC;
+            m_tileTabsConfigurationMode = TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID;
         }
         else {
-            m_tileTabsConfigurationMode = TileTabsGridModeEnum::CUSTOM;
+            m_tileTabsConfigurationMode = TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID;
         }
     }
     
@@ -568,10 +583,10 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
          * If tile tabs was enabled, use CUSTOM, otherwise AUTOMATIC
          */
         if (m_tileTabsEnabled) {
-            m_tileTabsConfigurationMode = TileTabsGridModeEnum::CUSTOM;
+            m_tileTabsConfigurationMode = TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID;
         }
         else {
-            m_tileTabsConfigurationMode = TileTabsGridModeEnum::AUTOMATIC;
+            m_tileTabsConfigurationMode = TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID;
         }
     }
     
@@ -648,7 +663,7 @@ BrowserWindowContent::restoreFromOldBrainBrowserWindowScene(const SceneAttribute
                                                + "\" from BrowserWindowContent: \""
                                                + tileTabsConfigString
                                                + "\"");
-            m_customGridTileTabsConfiguration.reset(new TileTabsLayoutGridConfiguration());
+            m_customGridTileTabsConfiguration.reset(TileTabsLayoutGridConfiguration::newInstanceCustomGrid());
         }
     }
     
@@ -670,10 +685,10 @@ BrowserWindowContent::restoreFromOldBrainBrowserWindowScene(const SceneAttribute
      * If tile tabs was enabled, use CUSTOM, otherwise AUTOMATIC
      */
     if (m_tileTabsEnabled) {
-        m_tileTabsConfigurationMode = TileTabsGridModeEnum::CUSTOM;
+        m_tileTabsConfigurationMode = TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID;
     }
     else {
-        m_tileTabsConfigurationMode = TileTabsGridModeEnum::AUTOMATIC;
+        m_tileTabsConfigurationMode = TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID;
     }
 }
 

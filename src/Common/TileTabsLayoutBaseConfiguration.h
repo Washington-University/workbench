@@ -24,7 +24,6 @@
 #include "CaretException.h"
 #include "CaretObject.h"
 #include "TileTabsLayoutConfigurationTypeEnum.h"
-#include "TileTabsGridModeEnum.h"
 #include "TileTabsGridRowColumnElement.h"
 
 class QXmlStreamReader;

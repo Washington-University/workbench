@@ -33,7 +33,7 @@
 #include "CaretLogger.h"
 #include "SystemUtilities.h"
 #include "TileTabsLayoutGridConfiguration.h"
-#include "TileTabsLayoutTabInfo.h"
+#include "TileTabsBrowserTabGeometry.h"
 
 using namespace caret;
 
@@ -98,7 +98,7 @@ TileTabsLayoutManualConfiguration::copyHelperTileTabsLayoutManualConfiguration(c
     m_tabInfo.clear();
     
     for (const auto& ti : obj.m_tabInfo) {
-        TileTabsLayoutTabInfo* tabInfo = new TileTabsLayoutTabInfo(*ti);
+        TileTabsBrowserTabGeometry* tabInfo = new TileTabsBrowserTabGeometry(*ti);
         addTabInfo(tabInfo);
     }
 }
@@ -154,7 +154,7 @@ TileTabsLayoutManualConfiguration::newCopyWithNewUniqueIdentifier() const
  */
 TileTabsLayoutManualConfiguration*
 TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(TileTabsLayoutGridConfiguration* gridLayout,
-                                                             const TileTabsGridModeEnum::Enum gridMode,
+                                                             const TileTabsLayoutConfigurationTypeEnum::Enum gridMode,
                                                              const std::vector<int32_t>& tabIndices)
 {
     CaretAssert(gridLayout);
@@ -191,29 +191,45 @@ TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(TileTabsLayoutGridC
             const float height = rowHeights[i];
             yBottom -= height;
             
-            float xLeft(0.0);
-            for (int32_t j = 0; j < numCols; j++) {
-                CaretAssertVectorIndex(columnWidths, j);
-                const float width = columnWidths[j];
-                
-                CaretAssertVectorIndex(tabIndices, tabCounter);
-                const int32_t tabIndex(tabIndices[tabCounter]);
-
-                const float centerX = xLeft + (width / 2.0);
-                const float centerY = yBottom + (height / 2.0);
-                TileTabsLayoutTabInfo* tabInfo = new TileTabsLayoutTabInfo(tabIndex);
-                tabInfo->setCenterX((centerX / windowWidth) * 100.0f);
-                tabInfo->setCenterY((centerY / windowHeight) * 100.0f);
-                tabInfo->setWidth((width / windowWidth) * 100.0f);
-                tabInfo->setHeight((height / windowHeight) * 100.0f);
-                tabInfo->setStackingOrder(tabCounter);
-                tabInfo->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE);
-                
-                manualLayout->addTabInfo(tabInfo);
-                
-                xLeft += width;
-                
-                tabCounter++;
+            switch (gridLayout->getRow(i)->getContentType()) {
+                case TileTabsGridRowColumnContentTypeEnum::SPACE:
+                    break;
+                case TileTabsGridRowColumnContentTypeEnum::TAB:
+                {
+                    float xLeft(0.0);
+                    for (int32_t j = 0; j < numCols; j++) {
+                        CaretAssertVectorIndex(columnWidths, j);
+                        const float width = columnWidths[j];
+                        
+                        switch (gridLayout->getColumn(j)->getContentType()) {
+                            case TileTabsGridRowColumnContentTypeEnum::SPACE:
+                                break;
+                            case TileTabsGridRowColumnContentTypeEnum::TAB:
+                            {
+                                CaretAssertVectorIndex(tabIndices, tabCounter);
+                                const int32_t tabIndex(tabIndices[tabCounter]);
+                                
+                                const float centerX = xLeft + (width / 2.0);
+                                const float centerY = yBottom + (height / 2.0);
+                                TileTabsBrowserTabGeometry* tabInfo = new TileTabsBrowserTabGeometry(tabIndex);
+                                tabInfo->setCenterX((centerX / windowWidth) * 100.0f);
+                                tabInfo->setCenterY((centerY / windowHeight) * 100.0f);
+                                tabInfo->setWidth((width / windowWidth) * 100.0f);
+                                tabInfo->setHeight((height / windowHeight) * 100.0f);
+                                tabInfo->setStackingOrder(tabCounter);
+                                tabInfo->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE);
+                                
+                                manualLayout->addTabInfo(tabInfo);
+                                
+                                tabCounter++;
+                            }
+                                break;
+                        }
+                        
+                        xLeft += width;
+                    }
+                }
+                    break;
             }
         }
 
@@ -232,9 +248,9 @@ TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(TileTabsLayoutGridC
  *     Tab info to add.
  */
 void
-TileTabsLayoutManualConfiguration::addTabInfo(TileTabsLayoutTabInfo* tabInfo)
+TileTabsLayoutManualConfiguration::addTabInfo(TileTabsBrowserTabGeometry* tabInfo)
 {
-    std::unique_ptr<TileTabsLayoutTabInfo> ptr(tabInfo);
+    std::unique_ptr<TileTabsBrowserTabGeometry> ptr(tabInfo);
     m_tabInfo.push_back(std::move(ptr));
 }
 
@@ -253,7 +269,7 @@ TileTabsLayoutManualConfiguration::getNumberOfTabs() const
  * @param index
  *     Index of the tab info
  */
-TileTabsLayoutTabInfo*
+TileTabsBrowserTabGeometry*
 TileTabsLayoutManualConfiguration::getTabInfo(const int32_t index)
 {
     CaretAssertVectorIndex(m_tabInfo, index);
@@ -266,7 +282,7 @@ TileTabsLayoutManualConfiguration::getTabInfo(const int32_t index)
  * @param index
  *     Index of the tab info
  */
-const TileTabsLayoutTabInfo*
+const TileTabsBrowserTabGeometry*
 TileTabsLayoutManualConfiguration::getTabInfo(const int32_t index) const
 {
     CaretAssertVectorIndex(m_tabInfo, index);
@@ -415,7 +431,7 @@ TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
                 const QString backStr  = atts.value(s_tabInfoAttributeBackground).toString();
                 const TileTabsLayoutBackgroundTypeEnum::Enum backType = TileTabsLayoutBackgroundTypeEnum::fromName(backStr, NULL);
                 
-                TileTabsLayoutTabInfo* tabInfo = new TileTabsLayoutTabInfo(tabIndex);
+                TileTabsBrowserTabGeometry* tabInfo = new TileTabsBrowserTabGeometry(tabIndex);
                 tabInfo->setCenterX(xCenter);
                 tabInfo->setCenterY(yCenter);
                 tabInfo->setWidth(width);

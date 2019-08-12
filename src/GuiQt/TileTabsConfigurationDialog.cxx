@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
+
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
@@ -32,6 +34,7 @@
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSpinBox>
+#include <QStackedWidget>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -42,6 +45,7 @@
 
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowComboBox.h"
+#include "BrowserTabContent.h"
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
@@ -52,14 +56,18 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "MathFunctions.h"
 #include "SessionManager.h"
+#include "TileTabsBrowserTabGeometry.h"
 #include "TileTabsLayoutGridConfiguration.h"
 #include "TileTabsLayoutManualConfiguration.h"
+#include "TileTabsManualTabGeometryWidget.h"
 #include "TileTabsGridRowColumnElement.h"
 #include "TileTabGridRowColumnWidgets.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
 #include "WuQGridLayoutGroup.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQListWidget.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -87,31 +95,37 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
     m_blockReadConfigurationsFromPreferences = false;
     m_caretPreferences = SessionManager::get()->getCaretPreferences();
     
+    QWidget* workbenchWindowWidget = createWorkbenchWindowWidget();
     
-    QWidget* dialogWidget = new QWidget();
-    QHBoxLayout* configurationLayout = new QHBoxLayout(dialogWidget);
-    configurationLayout->setSpacing(0);
-    configurationLayout->addWidget(createActiveConfigurationWidget(),
-                                   0);
-    configurationLayout->addWidget(createCopyLoadPushButtonsWidget(),
-                                   0,
-                                   Qt::AlignTop);
-    configurationLayout->addWidget(createUserConfigurationSelectionWidget(),
-                                   100,
-                                   Qt::AlignTop);
     
     setApplyButtonText("");
     setStandardButtonText(QDialogButtonBox::Help,
                           "Help");
     
-    updateDialogWithSelectedTileTabsFromWindow(parentBrainBrowserWindow);
-    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
+    QWidget* dialogWidget = new QWidget();
+    QGridLayout* dialogLayout = new QGridLayout(dialogWidget);
+    dialogLayout->setColumnStretch(0, 0);
+    dialogLayout->setColumnStretch(1, 0);
+    dialogLayout->setColumnStretch(2, 100);
+    dialogLayout->addWidget(workbenchWindowWidget,
+                            0, 0, Qt::AlignLeft);
+    dialogLayout->addWidget(createConfigurationTypeWidget(),
+                            1, 0);
+    dialogLayout->addWidget(createConfigurationSettingsWidget(),
+                            2, 0);
+    dialogLayout->addWidget(createCopyLoadPushButtonsWidget(),
+                            1, 1, 2, 1);
+    dialogLayout->addWidget(createUserConfigurationSelectionWidget(),
+                            1, 2, 2, 1);
+    
     setCentralWidget(dialogWidget,
                      WuQDialog::SCROLL_AREA_NEVER);
-    resize(750,
+    updateDialogWithSelectedTileTabsFromWindow(parentBrainBrowserWindow);
+    
+    resize(900,
            500);
     
     disableAutoDefaultForAllPushButtons();
@@ -162,38 +176,37 @@ TileTabsConfigurationDialog::focusGained()
 QWidget*
 TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
 {
-    m_addPushButton     = new QPushButton("Add -->");
-    m_addPushButton->setAutoDefault(false);
-    WuQtUtilities::setWordWrappedToolTip(m_addPushButton,
-                                         "Add a new User Configuration containing the Rows, Columns, and Stretch Factors "
-                                         "with those from the Custom Configuration");
-    QObject::connect(m_addPushButton, SIGNAL(clicked()),
+    m_addConfigurationPushButton     = new QPushButton("Add -->");
+    m_addConfigurationPushButton->setAutoDefault(false);
+    WuQtUtilities::setWordWrappedToolTip(m_addConfigurationPushButton,
+                                         "Create a new User Configuration containg the Configuration Settings.  "
+                                         "A dialog is displayed to enter the name.");
+    QObject::connect(m_addConfigurationPushButton, SIGNAL(clicked()),
                      this, SLOT(addUserConfigurationPushButtonClicked()));
 
-    m_replacePushButton = new QPushButton("Replace -->");
-    m_replacePushButton->setAutoDefault(false);
-    WuQtUtilities::setWordWrappedToolTip(m_replacePushButton,
-                                         "Replace the Rows, Columns, and Stretch Factors in the User Configuration "
-                                         "with those from the Custom Configuration");
-    QObject::connect(m_replacePushButton, SIGNAL(clicked()),
+    m_replaceConfigurationPushButton = new QPushButton("Replace -->");
+    m_replaceConfigurationPushButton->setAutoDefault(false);
+    WuQtUtilities::setWordWrappedToolTip(m_replaceConfigurationPushButton,
+                                         "Replace the User Configuration with the Configuration Settings.");
+    QObject::connect(m_replaceConfigurationPushButton, SIGNAL(clicked()),
                      this, SLOT(replaceUserConfigurationPushButtonClicked()));
     
-    m_loadPushButton = new QPushButton("<-- Load");
-    m_loadPushButton->setAutoDefault(false);
-    WuQtUtilities::setWordWrappedToolTip(m_loadPushButton,
-                                         "Load the User Configuration's Rows, Columns, and Stretch Factors into "
-                                         "the Custom Configuration");
-    QObject::connect(m_loadPushButton, SIGNAL(clicked()),
+    m_loadConfigurationPushButton = new QPushButton("<-- Load");
+    m_loadConfigurationPushButton->setAutoDefault(false);
+    WuQtUtilities::setWordWrappedToolTip(m_loadConfigurationPushButton,
+                                         "Load the selected User Configuration into the Configuration Type and Settings.");
+    QObject::connect(m_loadConfigurationPushButton, SIGNAL(clicked()),
                      this, SLOT(loadIntoActiveConfigurationPushButtonClicked()));
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->addSpacing(50);
-    layout->addWidget(m_addPushButton);
+    layout->addWidget(m_addConfigurationPushButton);
     layout->addSpacing(10);
-    layout->addWidget(m_replacePushButton);
+    layout->addWidget(m_replaceConfigurationPushButton);
     layout->addSpacing(50);
-    layout->addWidget(m_loadPushButton);
+    layout->addWidget(m_loadConfigurationPushButton);
     layout->addStretch();
     
     return widget;
@@ -264,7 +277,7 @@ TileTabsConfigurationDialog::getNewConfigurationName(QWidget* dialogParent)
 void
 TileTabsConfigurationDialog::addUserConfigurationPushButtonClicked()
 {
-    const AString newConfigName = getNewConfigurationName(m_addPushButton);
+    const AString newConfigName = getNewConfigurationName(m_addConfigurationPushButton);
     if (newConfigName.isEmpty()) {
         return;
     }
@@ -300,7 +313,7 @@ TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
     }
     else {
         const AString msg("Do you want to replace the configuration?");
-        if ( ! WuQMessageBox::warningOkCancel(m_replacePushButton,
+        if ( ! WuQMessageBox::warningOkCancel(m_replaceConfigurationPushButton,
                                               msg)) {
             m_blockReadConfigurationsFromPreferences = false;
             return;
@@ -313,7 +326,7 @@ TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
     if ( ! m_caretPreferences->replaceTileTabsUserConfiguration(tileTabsUniqueID,
                                                                 activeConfiguration,
                                                                 errorMessage)) {
-        WuQMessageBox::errorOk(m_replacePushButton,
+        WuQMessageBox::errorOk(m_replaceConfigurationPushButton,
                                errorMessage);
     }
 
@@ -327,19 +340,19 @@ TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
 void
 TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
 {
-    if (m_automaticConfigurationRadioButton->isChecked()) {
+    if (m_automaticGridConfigurationRadioButton->isChecked()) {
         return;
     }
     
     const AString userConfigID = getSelectedUserTileTabsConfigurationUniqueIdentifier();
     if (userConfigID.isEmpty()) {
-        WuQMessageBox::errorOk(this, "No user configuration is selected.");
+        WuQMessageBox::errorOk(m_loadConfigurationPushButton, "No user configuration is selected.");
         return;
     }
     
     std::unique_ptr<TileTabsLayoutBaseConfiguration> userConfiguration = m_caretPreferences->getCopyOfTileTabsUserConfigurationByUniqueIdentifier(userConfigID);
     if ( ! userConfiguration) {
-        WuQMessageBox::errorOk(this,
+        WuQMessageBox::errorOk(m_loadConfigurationPushButton,
                                ("User configuration with UniqueID="
                                 + userConfigID
                                 + " was not found"));
@@ -364,7 +377,8 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             break;
     }
     
-    updateStretchFactors();
+    updateGridStretchFactors();
+    updateManualGeometryEditorWidget();
     updateGraphicsWindow();
 }
 
@@ -473,7 +487,7 @@ TileTabsConfigurationDialog::createWorkbenchWindowWidget()
  * @return The rows/columns stretch layout
  */
 QWidget*
-TileTabsConfigurationDialog::createCustomOptionsWidget()
+TileTabsConfigurationDialog::createGridCustomOptionsWidget()
 {
     const QString toolTip("<html>"
                           "Removes any space between rows and columns in the tile tabs configuration.  "
@@ -482,14 +496,14 @@ TileTabsConfigurationDialog::createCustomOptionsWidget()
                           "problem.  In addition, if the Lock Aspect option is selected prior to "
                           "to enabling tile tabs, this option may improve the layout."
                           "</html>");
-    m_centeringCorrectionCheckBox = new QCheckBox("Centering Correction");
-    m_centeringCorrectionCheckBox->setToolTip(toolTip);
-    QObject::connect(m_centeringCorrectionCheckBox, &QCheckBox::clicked,
+    m_gridCenteringCorrectionCheckBox = new QCheckBox("Custom Grid Centering Correction");
+    m_gridCenteringCorrectionCheckBox->setToolTip(toolTip);
+    QObject::connect(m_gridCenteringCorrectionCheckBox, &QCheckBox::clicked,
                      this, &TileTabsConfigurationDialog::centeringCorrectionCheckBoxClicked);
     
     QGroupBox* groupBox = new QGroupBox("Options");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
-    layout->addWidget(m_centeringCorrectionCheckBox);
+    layout->addWidget(m_gridCenteringCorrectionCheckBox);
     
     return groupBox;
 }
@@ -518,7 +532,7 @@ TileTabsConfigurationDialog::updateCustomOptionsWidget()
 {
     const TileTabsLayoutGridConfiguration* config = getCustomTileTabsGridConfiguration();
     if (config != NULL) {
-        m_centeringCorrectionCheckBox->setChecked(config->isCenteringCorrectionEnabled());
+        m_gridCenteringCorrectionCheckBox->setChecked(config->isCenteringCorrectionEnabled());
     }
 }
 
@@ -526,23 +540,61 @@ TileTabsConfigurationDialog::updateCustomOptionsWidget()
  * @return The rows/columns stretch layout
  */
 QWidget*
-TileTabsConfigurationDialog::createRowColumnStretchWidget()
+TileTabsConfigurationDialog::createGridRowColumnStretchWidget()
 {
-    QGroupBox* rowGroupBox = new QGroupBox("Rows");
-    rowGroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    m_rowElementsGridLayout = new QGridLayout(rowGroupBox);
-    WuQtUtilities::setLayoutSpacingAndMargins(m_rowElementsGridLayout, 4, 2);
+    /*
+     * Set number of rows
+     */
+    QLabel* numberOfRowsLabel = new QLabel("Rows");
+    m_numberOfGridRowsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
+                                                                              s_maximumRowsColumns,
+                                                                              1,
+                                                                              this,
+                                                                              SLOT(gridConfigurationNumberOfRowsOrColumnsChanged()));
+    m_numberOfGridRowsSpinBox->setToolTip("Number of rows for the tab configuration");
     
-    QGroupBox* columnsGroupBox = new QGroupBox("Columns");
-    m_columnElementsGridLayout = new QGridLayout(columnsGroupBox);
-    WuQtUtilities::setLayoutSpacingAndMargins(m_columnElementsGridLayout, 2, 2);
+    /*
+     * Edit content of rows
+     */
+    QGroupBox* rowGroupBox = new QGroupBox();
+    rowGroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_gridRowElementsGridLayout = new QGridLayout(rowGroupBox);
+    WuQtUtilities::setLayoutSpacingAndMargins(m_gridRowElementsGridLayout, 4, 2);
+
+    /*
+     * Set number of columns
+     */
+    QLabel* numberOfColumnsLabel = new QLabel("Columns");
+    m_numberOfGridColumnsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
+                                                                                 s_maximumRowsColumns,
+                                                                                 1,
+                                                                                 this,
+                                                                                 SLOT(gridConfigurationNumberOfRowsOrColumnsChanged()));
+    m_numberOfGridColumnsSpinBox->setToolTip("Number of columns for the tab configuration");
  
+    QGroupBox* columnsGroupBox = new QGroupBox();
+    columnsGroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_gridColumnElementsGridLayout = new QGridLayout(columnsGroupBox);
+    WuQtUtilities::setLayoutSpacingAndMargins(m_gridColumnElementsGridLayout, 2, 2);
+
+    QHBoxLayout* rowsColumnsCountLayout = new QHBoxLayout();
+    rowsColumnsCountLayout->setContentsMargins(0, 0, 0, 0);
+    rowsColumnsCountLayout->addWidget(numberOfRowsLabel);
+    rowsColumnsCountLayout->addWidget(m_numberOfGridRowsSpinBox);
+    rowsColumnsCountLayout->addWidget(numberOfColumnsLabel);
+    rowsColumnsCountLayout->addWidget(m_numberOfGridColumnsSpinBox);
+    rowsColumnsCountLayout->addStretch();
+    
+    QWidget* customGridOptionsWidget = createGridCustomOptionsWidget();
+    customGridOptionsWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    
     QWidget* widget = new QWidget;
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(rowGroupBox);
-    layout->addSpacing(6);
-    layout->addWidget(columnsGroupBox);
+    layout->setSpacing(4);
+    layout->addLayout(rowsColumnsCountLayout, 0);
+    layout->addWidget(rowGroupBox, 0, Qt::AlignLeft);
+    layout->addWidget(columnsGroupBox, 0, Qt::AlignLeft);
+    layout->addWidget(customGridOptionsWidget, 0, Qt::AlignLeft);
     layout->addStretch();
 
     return widget;
@@ -562,7 +614,7 @@ TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsLayoutGridCon
      */
     {
         const int32_t numRows  = configuration->getNumberOfRows();
-        int32_t numRowElements = static_cast<int32_t>(m_rowElements.size());
+        int32_t numRowElements = static_cast<int32_t>(m_gridRowElements.size());
         
         /**
          * Add elements as needed.
@@ -570,25 +622,25 @@ TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsLayoutGridCon
         const int32_t numToAdd = numRows - numRowElements;
         for (int32_t iRow = 0; iRow < numToAdd; iRow++) {
             addRowColumnStretchWidget(EventTileTabsGridConfigurationModification::RowColumnType::ROW,
-                                      m_rowElementsGridLayout,
-                                      m_rowElements);
+                                      m_gridRowElementsGridLayout,
+                                      m_gridRowElements);
         }
         
         /*
          * Update widgets with element content
          */
-        numRowElements = static_cast<int32_t>(m_rowElements.size());
+        numRowElements = static_cast<int32_t>(m_gridRowElements.size());
         for (int32_t iRow = 0; iRow < numRowElements; iRow++) {
             TileTabsGridRowColumnElement* element(NULL);
             if (iRow < numRows) {
                 element = configuration->getRow(iRow);
             }
             
-            CaretAssertVectorIndex(m_rowElements, iRow);
-            m_rowElements[iRow]->updateContent(element);
+            CaretAssertVectorIndex(m_gridRowElements, iRow);
+            m_gridRowElements[iRow]->updateContent(element);
         }
         
-        m_rowElementsGridLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+        m_gridRowElementsGridLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
     }
     
     /*
@@ -596,7 +648,7 @@ TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsLayoutGridCon
      */
     {
         const int32_t numColumns  = configuration->getNumberOfColumns();
-        int32_t numColumnElements = static_cast<int32_t>(m_columnElements.size());
+        int32_t numColumnElements = static_cast<int32_t>(m_gridColumnElements.size());
         
         /**
          * Add elements as needed.
@@ -604,25 +656,25 @@ TileTabsConfigurationDialog::updateRowColumnStretchWidgets(TileTabsLayoutGridCon
         const int32_t numToAdd = numColumns - numColumnElements;
         for (int32_t iColumn = 0; iColumn < numToAdd; iColumn++) {
             addRowColumnStretchWidget(EventTileTabsGridConfigurationModification::RowColumnType::COLUMN,
-                                      m_columnElementsGridLayout,
-                                      m_columnElements);
+                                      m_gridColumnElementsGridLayout,
+                                      m_gridColumnElements);
         }
         
         /*
          * Update widgets with element content
          */
-        numColumnElements = static_cast<int32_t>(m_columnElements.size());
+        numColumnElements = static_cast<int32_t>(m_gridColumnElements.size());
         for (int32_t iColumn = 0; iColumn < numColumnElements; iColumn++) {
             TileTabsGridRowColumnElement* element(NULL);
             if (iColumn < numColumns) {
                 element = configuration->getColumn(iColumn);
             }
             
-            CaretAssertVectorIndex(m_columnElements, iColumn);
-            m_columnElements[iColumn]->updateContent(element);
+            CaretAssertVectorIndex(m_gridColumnElements, iColumn);
+            m_gridColumnElements[iColumn]->updateContent(element);
         }
 
-        m_columnElementsGridLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+        m_gridColumnElementsGridLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
     }
     
     updateCustomOptionsWidget();
@@ -645,10 +697,19 @@ TileTabsConfigurationDialog::addRowColumnStretchWidget(const EventTileTabsGridCo
 {
     const int32_t index = static_cast<int32_t>(elementVector.size());
     if (index == 0) {
+        QString title("Index");
+        switch (rowColumnType) {
+            case EventTileTabsGridConfigurationModification::RowColumnType::COLUMN:
+                title = "Column";
+                break;
+            case EventTileTabsGridConfigurationModification::RowColumnType::ROW:
+                title = "Row";
+                break;
+        }
         int32_t columnIndex(0);
         int32_t row = gridLayout->rowCount();
-        gridLayout->addWidget(new QLabel("Index"), row, columnIndex++, Qt::AlignRight);
-        gridLayout->addWidget(new QLabel(" "), row, columnIndex++);
+        gridLayout->addWidget(new QLabel(title), row, columnIndex++, 1, 2, Qt::AlignHCenter);
+        columnIndex++;
         gridLayout->addWidget(new QLabel("Content"), row, columnIndex++, Qt::AlignHCenter);
         gridLayout->addWidget(new QLabel("Type"), row, columnIndex++, Qt::AlignHCenter);
         gridLayout->addWidget(new QLabel("Stretch"), row, columnIndex++, Qt::AlignHCenter);
@@ -663,97 +724,432 @@ TileTabsConfigurationDialog::addRowColumnStretchWidget(const EventTileTabsGridCo
                                                                      gridLayout,
                                                                      this);
     QObject::connect(elementWidget, &TileTabGridRowColumnWidgets::itemChanged,
-                     this, &TileTabsConfigurationDialog::configurationStretchFactorWasChanged);
+                     this, &TileTabsConfigurationDialog::gridConfigurationStretchFactorWasChanged);
     QObject::connect(elementWidget, &TileTabGridRowColumnWidgets::modificationRequested,
                      this, &TileTabsConfigurationDialog::tileTabsModificationRequested);
 
     elementVector.push_back(elementWidget);
 }
 
+/**
+ * Update the widget for manual geometry editing
+ */
+void
+TileTabsConfigurationDialog::updateManualGeometryEditorWidget()
+{
+    BrainBrowserWindow* window = getBrowserWindow();
+    CaretAssert(window);
+    std::vector<BrowserTabContent*> allBrowserTabs;
+    window->getAllTabContent(allBrowserTabs);
+
+    const int32_t numTabs = static_cast<int32_t>(allBrowserTabs.size());
+    int32_t numWidgets = static_cast<int32_t>(m_manualGeometryEditorWidgets.size());
+    
+    /*
+     * Add elements as needed
+     */
+    const int32_t numToAdd = numTabs - numWidgets;
+    for (int32_t j = 0; j < numToAdd; j++) {
+        addManualGeometryWidget(m_manualGeometryGridLayout,
+                                m_manualGeometryEditorWidgets);
+    }
+    
+    /*
+     * Update with element contents
+     */
+    numWidgets = static_cast<int32_t>(m_manualGeometryEditorWidgets.size());
+    for (int32_t iRow = 0; iRow < numWidgets; iRow++) {
+        
+        BrowserTabContent* tabContent(NULL);
+        if (iRow < numTabs) {
+            tabContent = allBrowserTabs[iRow];
+        }
+        
+        m_manualGeometryEditorWidgets[iRow]->updateContent(tabContent);
+    }
+    
+    m_manualGeometryGridLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+}
 
 /**
- * @return The active configuration widget.
+ * Called when the geomety is changed in a manual configuration
  */
+void
+TileTabsConfigurationDialog::manualConfigurationGeometryChanged()
+{
+    updateGraphicsWindow();
+}
+
+/**
+ * Add a manual geometry widget
+ *
+ * @param gridLayout
+ *     The Qt layout
+ * @param widgetsVector
+ *     Vector containing the manual editing widgets
+ */
+void
+TileTabsConfigurationDialog::addManualGeometryWidget(QGridLayout* gridLayout,
+                                                     std::vector<TileTabsManualTabGeometryWidget*>& widgetsVector)
+{
+    const int32_t index = static_cast<int32_t>(widgetsVector.size());
+    if (index == 0) {
+        int32_t columnIndex(0);
+        int32_t rowIndex = gridLayout->rowCount();
+        
+        gridLayout->setHorizontalSpacing(8);
+        gridLayout->addWidget(new QLabel("Tab"), rowIndex, columnIndex++, Qt::AlignLeft);
+        gridLayout->addWidget(new QLabel("Left"), rowIndex, columnIndex++, Qt::AlignLeft);
+        gridLayout->addWidget(new QLabel("Right"), rowIndex, columnIndex++, Qt::AlignLeft);
+        gridLayout->addWidget(new QLabel("Bottom"), rowIndex, columnIndex++, Qt::AlignLeft);
+        gridLayout->addWidget(new QLabel("Top"), rowIndex, columnIndex++, Qt::AlignLeft);
+        gridLayout->addWidget(new QLabel("Order"), rowIndex, columnIndex++, Qt::AlignLeft);
+    }
+    
+    TileTabsManualTabGeometryWidget* geometryWidget = new TileTabsManualTabGeometryWidget(this,
+                                                                                          index,
+                                                                                          gridLayout,
+                                                                                          this);
+    QObject::connect(geometryWidget, &TileTabsManualTabGeometryWidget::itemChanged,
+                     this, &TileTabsConfigurationDialog::manualConfigurationGeometryChanged);
+    
+    widgetsVector.push_back(geometryWidget);
+}
+
+/**
+ * @return New instance of the manual configuration tool button
+ */
+QToolButton*
+TileTabsConfigurationDialog::createManualConfigurationSetToolButton()
+{
+    QToolButton* toolButton = new QToolButton();
+    toolButton->setText("Set...");
+    QObject::connect(toolButton, &QToolButton::clicked,
+                     this, &TileTabsConfigurationDialog::manualConfigurationSetToolButtonClicked);
+    
+    return toolButton;
+}
+
+/**
+ * Called when manual configuration set tool button is clicked
+ */
+void
+TileTabsConfigurationDialog::manualConfigurationSetToolButtonClicked()
+{
+    QMenu menu(m_manualConfigurationSetButton);
+    QAction* setAutomaticGridAction = menu.addAction("Replace with Automatic Grid");
+    QAction* setCustomGridAction = menu.addAction("Replace with Custom Grid");
+    QAction* setColumnsAction = menu.addAction("Reset with Grid...");
+
+    QAction* selectedAction = menu.exec(m_manualConfigurationSetButton->mapToGlobal(QPoint(0,0)));
+    if (selectedAction == setColumnsAction) {
+        manualConfigurationSetMenuColumnsItemTriggered();
+    }
+    else if (selectedAction == setAutomaticGridAction) {
+        manualConfigurationSetMenuFromAutomaticItemTriggered();
+    }
+    else if (selectedAction == setCustomGridAction) {
+        manualConfigurationSetMenuFromCustomItemTriggered();
+    }
+    else if (selectedAction != NULL) {
+        CaretAssertMessage(0, "Has a new action been added but not processed?");
+    }
+    
+    updateDialog();
+}
+
+/**
+ * Called when manual configuration set columns menu item triggered
+ */
+void
+TileTabsConfigurationDialog::manualConfigurationSetMenuColumnsItemTriggered()
+{
+    WuQDataEntryDialog ded("Set Columns for Manual Layout",
+                           m_manualConfigurationSetButton);
+    QSpinBox* columnsSpinBox = ded.addSpinBox("Number of Columns", 2);
+    columnsSpinBox->setMinimum(1);
+    columnsSpinBox->setMaximum(100);
+    columnsSpinBox->setSingleStep(1);
+    const bool wrapTextFlag(true);
+    ded.setTextAtTop("Enter number of columns.  Number of rows will sufficient to show all tabs.",
+                     wrapTextFlag);
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        const int32_t numberOfColumns = columnsSpinBox->value();
+        CaretAssert(numberOfColumns >= 1);
+        
+        const BrainBrowserWindow* window = getBrowserWindow();
+        CaretAssert(window);
+        
+        std::vector<BrowserTabContent*> allTabContent;
+        window->getAllTabContent(allTabContent);
+        const int32_t numberOfTabs = static_cast<int32_t>(allTabContent.size());
+        
+        /*
+         * Note: Coordinates of manual tab geometry are in percentages [0, 100]
+         */
+        const int32_t windowWidth(100);
+        const int32_t windowHeight(100);
+        if (numberOfTabs == 1) {
+            CaretAssertVectorIndex(allTabContent, 0);
+            TileTabsBrowserTabGeometry* tabGeom = allTabContent[0]->getManualLayoutGeometry();
+            CaretAssert(tabGeom);
+            tabGeom->setMinX(0);
+            tabGeom->setMaxX(windowWidth);
+            tabGeom->setMinY(0);
+            tabGeom->setMaxY(windowHeight);
+        }
+        else if (numberOfTabs > 1) {
+            const int32_t remainder = (numberOfTabs % numberOfColumns);
+            int32_t numberOfRows = (numberOfTabs / numberOfColumns);
+            if (remainder > 0) {
+                numberOfRows++;
+            }
+            const int32_t tabWidth  = (windowWidth / numberOfColumns);
+            const int32_t tabHeight = (windowHeight / numberOfRows);
+            int32_t tabY = windowHeight - tabHeight;
+            
+            int32_t tabContentIndex = 0;
+            for (int32_t iRow = 0; iRow < numberOfRows; iRow++) {
+                int32_t tabX = 0;
+                for (int32_t iCol = 0; iCol < numberOfColumns; iCol++) {
+                    if (tabContentIndex < numberOfTabs) {
+                        CaretAssertVectorIndex(allTabContent, tabContentIndex);
+                        TileTabsBrowserTabGeometry* tabGeom = allTabContent[tabContentIndex]->getManualLayoutGeometry();
+                        CaretAssert(tabGeom);
+                        tabGeom->setMinX(tabX);
+                        tabGeom->setMaxX(tabX + tabWidth);
+                        tabGeom->setMinY(tabY);
+                        tabGeom->setMaxY(tabY + tabHeight);
+                    }
+                    
+                    tabContentIndex++;
+                    tabX += tabWidth;
+                }
+                
+                tabY -= tabHeight;
+            }
+        }
+        
+        updateDialog();
+        updateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when manual configuration set from automatic grid menu item is triggered
+ */
+void
+TileTabsConfigurationDialog::manualConfigurationSetMenuFromAutomaticItemTriggered()
+{
+    BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
+    TileTabsLayoutGridConfiguration* gridConfiguration = browserWindowContent->getAutomaticGridTileTabsConfiguration();
+    CaretAssert(gridConfiguration);
+    manualConfigurationSetMenuFromGridConfiguration(gridConfiguration);
+}
+
+/**
+ * Called when manual configuration set from custom grid menu item is triggered
+ */
+void
+TileTabsConfigurationDialog::manualConfigurationSetMenuFromCustomItemTriggered()
+{
+    TileTabsLayoutGridConfiguration* gridConfiguration = getCustomTileTabsGridConfiguration();
+    CaretAssert(gridConfiguration);
+    manualConfigurationSetMenuFromGridConfiguration(gridConfiguration);
+}
+
+/**
+ * Update the manual configuration to match a grid configuration
+ *
+ * @param gridConfiguration
+ *     The grid configuration
+ */
+void
+TileTabsConfigurationDialog::manualConfigurationSetMenuFromGridConfiguration(TileTabsLayoutGridConfiguration* gridConfiguration)
+{
+    const BrainBrowserWindow* window = getBrowserWindow();
+    CaretAssert(window);
+    
+    std::vector<BrowserTabContent*> allTabContent;
+    window->getAllTabContent(allTabContent);
+    const int32_t numTabs = static_cast<int32_t>(allTabContent.size());
+    if (numTabs <= 0) {
+        return;
+    }
+
+    const int32_t windowWidth(100);
+    const int32_t windowHeight(100);
+    std::vector<int32_t> rowHeightsInt;
+    std::vector<int32_t> columnWidthsInt;
+    
+    if (gridConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
+                                                              windowHeight,
+                                                              numTabs,
+                                                              gridConfiguration->getLayoutType(),
+                                                              rowHeightsInt,
+                                                              columnWidthsInt)) {
+        const int32_t numRows = static_cast<int32_t>(rowHeightsInt.size());
+        const int32_t numCols = static_cast<int32_t>(columnWidthsInt.size());
+        
+        const float rowSum = std::accumulate(rowHeightsInt.begin(), rowHeightsInt.end(), 0.0f);
+        std::vector<float> rowHeights;
+        for (int32_t iRow = 0; iRow < numRows; iRow++) {
+            if (rowSum > 0.0) {
+                rowHeights.push_back((rowHeightsInt[iRow] / rowSum) * 100.0);
+            }
+            else {
+                rowHeights.push_back(rowHeightsInt[iRow]);
+            }
+        }
+        CaretAssert(rowHeights.size() == rowHeightsInt.size());
+        
+        const float columnSum = std::accumulate(columnWidthsInt.begin(), columnWidthsInt.end(), 0.0f);
+        std::vector<float> columnWidths;
+        for (int32_t iCol = 0; iCol < numCols; iCol++) {
+            if (columnSum > 0.0) {
+                columnWidths.push_back((columnWidthsInt[iCol] / columnSum) * 100.0);
+            }
+            else {
+                columnWidths.push_back(columnWidthsInt[iCol]);
+            }
+        }
+        CaretAssert(columnWidths.size() == columnWidthsInt.size());
+
+        TileTabsLayoutManualConfiguration* manualLayout = new TileTabsLayoutManualConfiguration();
+        manualLayout->setName("From row:"
+                              + AString::number(rowHeights.size())
+                              + " col:"
+                              + AString::number(columnWidths.size()));
+        
+        int32_t tabCounter(0);
+        float yBottom(windowHeight);
+        for (int32_t i = 0; i < numRows; i++) {
+            CaretAssertVectorIndex(rowHeights, i);
+            const float height = rowHeights[i];
+            yBottom -= height;
+            
+            switch (gridConfiguration->getRow(i)->getContentType()) {
+                case TileTabsGridRowColumnContentTypeEnum::SPACE:
+                    break;
+                case TileTabsGridRowColumnContentTypeEnum::TAB:
+                {
+                    float xLeft(0.0);
+                    for (int32_t j = 0; j < numCols; j++) {
+                        CaretAssertVectorIndex(columnWidths, j);
+                        const float width = columnWidths[j];
+                        
+                        switch (gridConfiguration->getColumn(j)->getContentType()) {
+                            case TileTabsGridRowColumnContentTypeEnum::SPACE:
+                                break;
+                            case TileTabsGridRowColumnContentTypeEnum::TAB:
+                            {
+                                CaretAssertVectorIndex(allTabContent, tabCounter);
+                                BrowserTabContent* tabContent(allTabContent[tabCounter]);
+                                
+                                TileTabsBrowserTabGeometry* tabInfo = tabContent->getManualLayoutGeometry();
+                                tabInfo->setMinX((xLeft / windowWidth) * 100.0);
+                                tabInfo->setMaxX(((xLeft + width) / windowWidth) * 100.0);
+                                tabInfo->setMinY((yBottom / windowHeight) * 100.0);
+                                tabInfo->setMaxY(((yBottom + height) / windowHeight) * 100.0);
+
+                                tabInfo->setStackingOrder(tabCounter);
+                                tabInfo->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE);
+                                
+                                tabCounter++;
+                            }
+                                break;
+                        }
+                        
+                        xLeft += width;
+                    }
+                }
+                    break;
+            }
+        }
+    }
+
+    updateDialog();
+    updateGraphicsWindow();
+}
+
 QWidget*
-TileTabsConfigurationDialog::createActiveConfigurationWidget()
+TileTabsConfigurationDialog::createConfigurationTypeWidget()
 {
     const AString autoToolTip("Workbench adjusts the number of rows and columns so "
                               "that all tabs are displayed");
-    m_automaticConfigurationRadioButton = new QRadioButton("Automatic Configuration");
-    m_automaticConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(autoToolTip));
+    m_automaticGridConfigurationRadioButton = new QRadioButton("Automatic Configuration");
+    m_automaticGridConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(autoToolTip));
     
     const AString customToolTip("User sets the number of row, columns, and stretch factors");
-    m_customConfigurationRadioButton = new QRadioButton("Custom Configuration");
-    m_customConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(customToolTip));
+    m_customGridConfigurationRadioButton = new QRadioButton("Custom Configuration");
+    m_customGridConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(customToolTip));
+    
+    const AString manualToolTip("User sets positions and sizes of all tabs");
+    m_manualConfigurationRadioButton = new QRadioButton("Manual");
+    m_manualConfigurationRadioButton->setToolTip(WuQtUtilities::createWordWrappedToolTipText(manualToolTip));
     
     QButtonGroup* buttonGroup = new QButtonGroup(this);
-    buttonGroup->addButton(m_automaticConfigurationRadioButton);
-    buttonGroup->addButton(m_customConfigurationRadioButton);
+    buttonGroup->addButton(m_automaticGridConfigurationRadioButton);
+    buttonGroup->addButton(m_customGridConfigurationRadioButton);
+    buttonGroup->addButton(m_manualConfigurationRadioButton);
     QObject::connect(buttonGroup, static_cast<void (QButtonGroup::*)(QAbstractButton*)>(&QButtonGroup::buttonClicked),
                      this, &TileTabsConfigurationDialog::automaticCustomButtonClicked);
     
-    QLabel* rowsLabel = new QLabel("Rows");
-    m_numberOfRowsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                          s_maximumRowsColumns,
-                                                                          1,
-                                                                          this,
-                                                                          SLOT(configurationNumberOfRowsOrColumnsChanged()));
-    m_numberOfRowsSpinBox->setToolTip("Number of rows for the tab configuration");
+    m_manualConfigurationSetButton = createManualConfigurationSetToolButton();
     
-    QLabel* columnsLabel = new QLabel("Columns");
-    m_numberOfColumnsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                             s_maximumRowsColumns,
-                                                                             1,
-                                                                             this,
-                                                                             SLOT(configurationNumberOfRowsOrColumnsChanged()));
-    m_numberOfColumnsSpinBox->setToolTip("Number of columns for the tab configuration");
+    QGroupBox* layoutTypeGroupBox = new QGroupBox("Configuration Type");
+    QGridLayout* buttonTypeLayout = new QGridLayout(layoutTypeGroupBox);
+    buttonTypeLayout->setColumnStretch(0,   0);
+    buttonTypeLayout->setColumnStretch(1,   0);
+    buttonTypeLayout->setColumnStretch(2, 100);
+    buttonTypeLayout->addWidget(m_automaticGridConfigurationRadioButton,
+                                0, 0, 1, 3, Qt::AlignLeft);
+    buttonTypeLayout->addWidget(m_customGridConfigurationRadioButton,
+                                1, 0, 1, 3, Qt::AlignLeft);
+    buttonTypeLayout->addWidget(m_manualConfigurationRadioButton,
+                                2, 0, 1, 1);
+    buttonTypeLayout->addWidget(m_manualConfigurationSetButton,
+                                2, 1, 1, 2, Qt::AlignLeft);
     
-    m_customConfigurationWidget = createRowColumnStretchWidget();
-    m_customConfigurationWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    
-    m_customOptionsWidget = createCustomOptionsWidget();
-    m_customOptionsWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    return layoutTypeGroupBox;
+}
 
-
+QWidget*
+TileTabsConfigurationDialog::createConfigurationSettingsWidget()
+{
+    m_customGridConfigurationWidget = createGridRowColumnStretchWidget();
+    m_customGridConfigurationWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    
+    m_manualGeometryWidget = createManualGeometryEditingWidget();
+    
+    m_editConfigurationStackedWidget = new QStackedWidget();
+    m_editConfigurationStackedWidget->addWidget(m_customGridConfigurationWidget);
+    m_editConfigurationStackedWidget->addWidget(m_manualGeometryWidget);
+    
     QScrollArea* stretchFactorScrollArea = new QScrollArea();
-    stretchFactorScrollArea->setWidget(m_customConfigurationWidget);
+    stretchFactorScrollArea->setWidget(m_editConfigurationStackedWidget);
     stretchFactorScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     stretchFactorScrollArea->setWidgetResizable(true);
     
-    QGroupBox* widget = new QGroupBox("Tile Tabs Configuration in Workbench Window");
-    QGridLayout* widgetLayout = new QGridLayout(widget);
-    widgetLayout->setColumnStretch(0, 0);
-    widgetLayout->setColumnStretch(1, 0);
-    widgetLayout->setColumnStretch(2, 0);
-    widgetLayout->setColumnStretch(3, 0);
-    widgetLayout->setColumnStretch(4, 0);
-    widgetLayout->setColumnStretch(5, 100);
-    widgetLayout->setColumnMinimumWidth(0, 20);
-    widgetLayout->addWidget(createWorkbenchWindowWidget(),
-                            0, 0, 1, 6,
-                            Qt::AlignLeft);
-    widgetLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
-                            1, 0, 1, 6);
-    widgetLayout->addWidget(m_automaticConfigurationRadioButton,
-                            2, 0, 1, 6,
-                            Qt::AlignLeft);
-    widgetLayout->addWidget(m_customConfigurationRadioButton,
-                            3, 0, 1, 1,
-                            Qt::AlignLeft);
-    widgetLayout->addWidget(rowsLabel,
-                            3, 1, 1, 1);
-    widgetLayout->addWidget(m_numberOfRowsSpinBox,
-                            3, 2, 1, 1);
-    widgetLayout->addWidget(columnsLabel,
-                            3, 3, 1, 1);
-    widgetLayout->addWidget(m_numberOfColumnsSpinBox,
-                            3, 4, 1, 1);
-    widgetLayout->addWidget(stretchFactorScrollArea,
-                            4, 0, 1, 6);
-    widgetLayout->addWidget(m_customOptionsWidget,
-                            5, 0, 1, 6, Qt::AlignLeft);
+    QGroupBox* layoutSettingsGroupBox = new QGroupBox("Configuration Settings");
+    QVBoxLayout* settingsGroupBoxLayout = new QVBoxLayout(layoutSettingsGroupBox);
+    settingsGroupBoxLayout->addWidget(stretchFactorScrollArea);
     
-    widget->setFixedWidth(widget->sizeHint().width());
+    return layoutSettingsGroupBox;
+}
+
+/**
+ * @return The rows/columns stretch layout
+ */
+QWidget*
+TileTabsConfigurationDialog::createManualGeometryEditingWidget()
+{
+    m_manualGeometryGridLayout = new QGridLayout();
+    QWidget* widget = new QWidget;
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(m_manualGeometryGridLayout);
+    layout->addStretch();
+    WuQtUtilities::setLayoutSpacingAndMargins(m_manualGeometryGridLayout, 4, 2);
     
     return widget;
 }
@@ -782,20 +1178,24 @@ void
 TileTabsConfigurationDialog::automaticCustomButtonClicked(QAbstractButton* button)
 {
     BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    if (button == m_automaticConfigurationRadioButton) {
-        browserWindowContent->setTileTabsConfigurationMode(TileTabsGridModeEnum::AUTOMATIC);
+    if (button == m_automaticGridConfigurationRadioButton) {
+        browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID);
     }
-    else if (button == m_customConfigurationRadioButton) {
-        browserWindowContent->setTileTabsConfigurationMode(TileTabsGridModeEnum::CUSTOM);
+    else if (button == m_customGridConfigurationRadioButton) {
+        browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID);
+    }
+    else if (button == m_manualConfigurationRadioButton) {
+        browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
     }
     else {
         CaretAssert(0);
     }
-    updateStretchFactors();
+    
+    updateConfigurationEditingWidget();
+    updateGridStretchFactors();
+    updateManualGeometryEditorWidget();
     updateGraphicsWindow();
 }
-
-
 
 /**
  * Update the content of the dialog.  If tile tabs is selected in the given
@@ -830,6 +1230,39 @@ TileTabsConfigurationDialog::readConfigurationsFromPreferences()
 }
 
 /**
+ * Read the configurations from the preferences.
+ */
+void
+TileTabsConfigurationDialog::updateConfigurationEditingWidget()
+{
+    BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
+    if (browserWindowContent == NULL) {
+        return;
+    }
+    
+    bool editingEnabledFlag(false);
+    switch (browserWindowContent->getTileTabsConfigurationMode()) {
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+            m_automaticGridConfigurationRadioButton->setChecked(true);
+            m_editConfigurationStackedWidget->setCurrentWidget(m_customGridConfigurationWidget);
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+            m_customGridConfigurationRadioButton->setChecked(true);
+            m_editConfigurationStackedWidget->setCurrentWidget(m_customGridConfigurationWidget);
+            editingEnabledFlag = true;
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+            m_manualConfigurationRadioButton->setChecked(true);
+            m_editConfigurationStackedWidget->setCurrentWidget(m_manualGeometryWidget);
+            editingEnabledFlag = true;
+            break;
+    }
+    
+    m_editConfigurationStackedWidget->setEnabled(editingEnabledFlag);
+}
+
+
+/**
  * Update the content of the dialog.
  */
 void
@@ -840,14 +1273,7 @@ TileTabsConfigurationDialog::updateDialog()
         return;
     }
     
-    switch (browserWindowContent->getTileTabsConfigurationMode()) {
-        case TileTabsGridModeEnum::AUTOMATIC:
-            m_automaticConfigurationRadioButton->setChecked(true);
-            break;
-        case TileTabsGridModeEnum::CUSTOM:
-            m_customConfigurationRadioButton->setChecked(true);
-            break;
-    }
+    updateConfigurationEditingWidget();
     
     readConfigurationsFromPreferences();
     
@@ -880,32 +1306,35 @@ TileTabsConfigurationDialog::updateDialog()
         m_userConfigurationSelectionListWidget->setCurrentRow(defaultIndex);
     }
     
-    updateStretchFactors();
+    updateGridStretchFactors();
+    updateManualGeometryEditorWidget();
 }
 
 /**
  * Update the stretch factors.
  */
 void
-TileTabsConfigurationDialog::updateStretchFactors()
+TileTabsConfigurationDialog::updateGridStretchFactors()
 {
     BrainBrowserWindow* browserWindow = getBrowserWindow();
-    m_automaticConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsGridModeEnum::AUTOMATIC,
+    m_automaticGridConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID,
                                                                                               true));
-    m_customConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsGridModeEnum::CUSTOM,
-                                                                                           false));
+    m_customGridConfigurationRadioButton->setText(browserWindow->getTileTabsConfigurationLabelText(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID,
+                                                                                           true));
     const TileTabsLayoutGridConfiguration* configuration = getCustomTileTabsGridConfiguration();
     if (configuration != NULL) {
         updateRowColumnStretchWidgets(const_cast<TileTabsLayoutGridConfiguration*>(configuration));
-        QSignalBlocker rowBlocker(m_numberOfRowsSpinBox);
-        m_numberOfRowsSpinBox->setValue(configuration->getNumberOfRows());
-        QSignalBlocker columnBlocker(m_numberOfColumnsSpinBox);
-        m_numberOfColumnsSpinBox->setValue(configuration->getNumberOfColumns());
+        QSignalBlocker rowBlocker(m_numberOfGridRowsSpinBox);
+        m_numberOfGridRowsSpinBox->setValue(configuration->getNumberOfRows());
+        QSignalBlocker columnBlocker(m_numberOfGridColumnsSpinBox);
+        m_numberOfGridColumnsSpinBox->setValue(configuration->getNumberOfColumns());
     }
     
-    const bool editableFlag = ( ! m_automaticConfigurationRadioButton->isChecked());
+    const bool editableFlag = ( ! m_automaticGridConfigurationRadioButton->isChecked());
     
-    m_loadPushButton->setEnabled(editableFlag);
+    m_addConfigurationPushButton->setEnabled(editableFlag);
+    m_loadConfigurationPushButton->setEnabled(editableFlag);
+    m_replaceConfigurationPushButton->setEnabled(editableFlag);
 }
 
 /**
@@ -1048,14 +1477,14 @@ TileTabsConfigurationDialog::getSelectedUserTileTabsConfigurationUniqueIdentifie
  * Called when the number of rows or columns changes.
  */
 void
-TileTabsConfigurationDialog::configurationNumberOfRowsOrColumnsChanged()
+TileTabsConfigurationDialog::gridConfigurationNumberOfRowsOrColumnsChanged()
 {
     TileTabsLayoutGridConfiguration* configuration = getCustomTileTabsGridConfiguration();
     if (configuration != NULL) {
-        configuration->setNumberOfRows(m_numberOfRowsSpinBox->value());
-        configuration->setNumberOfColumns(m_numberOfColumnsSpinBox->value());
+        configuration->setNumberOfRows(m_numberOfGridRowsSpinBox->value());
+        configuration->setNumberOfColumns(m_numberOfGridColumnsSpinBox->value());
         
-        updateStretchFactors();
+        updateGridStretchFactors();
 
         updateGraphicsWindow();
     }
@@ -1065,14 +1494,14 @@ TileTabsConfigurationDialog::configurationNumberOfRowsOrColumnsChanged()
  * Called when a configuration stretch factor value is changed.
  */
 void
-TileTabsConfigurationDialog::configurationStretchFactorWasChanged()
+TileTabsConfigurationDialog::gridConfigurationStretchFactorWasChanged()
 {
     TileTabsLayoutGridConfiguration* configuration = getCustomTileTabsGridConfiguration();
     if (configuration == NULL) {
         return;
     }
     
-    updateStretchFactors();
+    updateGridStretchFactors();
     updateGraphicsWindow();
 }
 
@@ -1092,7 +1521,9 @@ TileTabsConfigurationDialog::tileTabsModificationRequested(EventTileTabsGridConf
         
         EventManager::get()->sendEvent(modification.getPointer());
         
-        updateStretchFactors();
+        updateGridStretchFactors();
+        
+        updateManualGeometryEditorWidget();
         
         updateGraphicsWindow();
     }

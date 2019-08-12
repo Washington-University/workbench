@@ -572,33 +572,59 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
     BrowserWindowContent* browserWindowContent = getModelEvent.getBrowserWindowContent();
     CaretAssert(browserWindowContent);
 
+    
     if (browserWindowContent->isTileTabsEnabled()
         && (numberOfTabs > 1)) {
         const int32_t windowWidth  = windowViewport[2];
         const int32_t windowHeight = windowViewport[3];
         
-        std::vector<int32_t> rowHeights;
-        std::vector<int32_t> columnsWidths;
-        
-        /*
-         * Determine if default configuration for tiles
-         */
-        TileTabsLayoutBaseConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
-        CaretAssert(tileTabsConfiguration);
-        
-        TileTabsLayoutGridConfiguration* gridConfiguration = tileTabsConfiguration->castToGridConfiguration();
-        TileTabsLayoutManualConfiguration* manualConfiguration = tileTabsConfiguration->castToManualConfiguration();
-        if (gridConfiguration != NULL) {
-            /*
-             * Get the sizes of the tab tiles from the tile tabs configuration
-             */
-            if (gridConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
-                                                                                 windowHeight,
-                                                                                 numberOfTabs,
-                                                                                 browserWindowContent->getTileTabsConfigurationMode(),
-                                                                                 rowHeights,
-                                                                                 columnsWidths)) {
+        const TileTabsLayoutConfigurationTypeEnum::Enum tileTabsConfigType = browserWindowContent->getTileTabsConfigurationMode();
+        switch (tileTabsConfigType) {
+            case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+            {
+                std::vector<int32_t> rowHeights;
+                std::vector<int32_t> columnsWidths;
                 
+                /*
+                 * Determine if default configuration for tiles
+                 */
+                TileTabsLayoutBaseConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
+                CaretAssert(tileTabsConfiguration);
+                
+                TileTabsLayoutGridConfiguration* gridConfiguration = tileTabsConfiguration->castToGridConfiguration();
+                CaretAssert(gridConfiguration);
+                if (gridConfiguration != NULL) {
+                    /*
+                     * Get the sizes of the tab tiles from the tile tabs configuration
+                     */
+                    if (gridConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
+                                                                                     windowHeight,
+                                                                                     numberOfTabs,
+                                                                                     browserWindowContent->getTileTabsConfigurationMode(),
+                                                                                     rowHeights,
+                                                                                     columnsWidths)) {
+                        
+                        /*
+                         * Create the viewport drawing contents for all tabs
+                         */
+                        std::vector<BrainOpenGLViewportContent*> tabViewportContent = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
+                                                                                                                                                   browserWindowContent,
+                                                                                                                                                   gapsAndMargins,
+                                                                                                                                                   windowViewport,
+                                                                                                                                                   this->windowIndex,
+                                                                                                                                                   getModelEvent.getTabIndexForTileTabsHighlighting());
+                        for (auto tabvp : tabViewportContent) {
+                            windowContent.addTabViewport(tabvp);
+                        }
+                    }
+                    else {
+                        CaretLogSevere("Tile Tabs Row/Column sizing failed !!!");
+                    }
+                }
+            }
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
                 /*
                  * Create the viewport drawing contents for all tabs
                  */
@@ -611,16 +637,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
                 for (auto tabvp : tabViewportContent) {
                     windowContent.addTabViewport(tabvp);
                 }
-            }
-            else {
-                CaretLogSevere("Tile Tabs Row/Column sizing failed !!!");
-            }
-        }
-        else if (manualConfiguration != NULL) {
-            CaretAssertToDoFatal();
-        }
-        else {
-            CaretAssert(0);
+                break;
         }
     }
     else if (numberOfTabs >= 1) {

@@ -23,7 +23,7 @@
 
 #include "CaretException.h"
 #include "TileTabsLayoutBaseConfiguration.h"
-#include "TileTabsGridModeEnum.h"
+#include "TileTabsLayoutConfigurationTypeEnum.h"
 #include "TileTabsGridRowColumnElement.h"
 
 class QXmlStreamReader;
@@ -34,7 +34,11 @@ namespace caret {
     class TileTabsLayoutGridConfiguration : public TileTabsLayoutBaseConfiguration {
         
     public:
-        TileTabsLayoutGridConfiguration();
+        static TileTabsLayoutGridConfiguration* newInstanceAutomaticGrid();
+        
+        static TileTabsLayoutGridConfiguration* newInstanceCustomGrid();
+        
+        TileTabsLayoutGridConfiguration(const TileTabsLayoutConfigurationTypeEnum::Enum gridConfigType);
         
         virtual ~TileTabsLayoutGridConfiguration();
         
@@ -49,7 +53,7 @@ namespace caret {
         bool getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
                                                        const int32_t windowHeight,
                                                        const int32_t numberOfModelsToDraw,
-                                                       const TileTabsGridModeEnum::Enum configurationMode,
+                                                       const TileTabsLayoutConfigurationTypeEnum::Enum configurationMode,
                                                        std::vector<int32_t>& rowHeightsOut,
                                                        std::vector<int32_t>& columnWidthsOut);
         

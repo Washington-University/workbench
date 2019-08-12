@@ -32,7 +32,7 @@
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
-#include "TileTabsGridModeEnum.h"
+#include "TileTabsLayoutConfigurationTypeEnum.h"
 
 class QAction;
 class QActionGroup;
@@ -150,7 +150,7 @@ namespace caret {
         
         bool isOpenGLContextSharingValid() const;
 
-        AString getTileTabsConfigurationLabelText(const TileTabsGridModeEnum::Enum configurationMode,
+        AString getTileTabsConfigurationLabelText(const TileTabsLayoutConfigurationTypeEnum::Enum configurationMode,
                                                   const bool includeRowsAndColumns) const;
 
         void resizeDockWidgets(const QList<QDockWidget *> &docks, const QList<int> &sizes, Qt::Orientation orientation);
@@ -391,6 +391,7 @@ namespace caret {
         QAction* m_viewTileTabsConfigurationDialogAction;
         QAction* m_viewAutomaticTileTabsConfigurationAction;
         QAction* m_viewCustomTileTabsConfigurationAction;
+        QAction* m_viewManualTileTabsConfigurationAction;
         std::vector<std::pair<QAction*, AString>> m_viewCustomTileTabsConfigurationActions;
         
         QAction* m_gapsAndMarginsAction;

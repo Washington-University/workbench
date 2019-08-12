@@ -524,7 +524,7 @@ CaretPreferences::readTileTabsUserConfigurations(const bool performSync)
                     }
                     TileTabsLayoutManualConfiguration* manualLayout
                     = TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(gridConfig,
-                                                                                   TileTabsGridModeEnum::CUSTOM,
+                                                                                   TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID,
                                                                                    tabIndices);
                     if (manualLayout != NULL) {
                         std::cout << "MANUAL VERSION OF GRID LAYOUT: " << std::endl;

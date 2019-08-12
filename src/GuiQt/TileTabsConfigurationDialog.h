@@ -36,6 +36,7 @@ class QListWidgetItem;
 class QPushButton;
 class QRadioButton;
 class QSpinBox;
+class QStackedWidget;
 class QToolButton;
 
 namespace caret {
@@ -49,6 +50,7 @@ namespace caret {
     class TileTabsLayoutManualConfiguration;
     class TileTabGridRowColumnWidgets;
     class TileTabsGridRowColumnElement;
+    class TileTabsManualTabGeometryWidget;
     class WuQGridLayoutGroup;
     class WuQListWidget;
     
@@ -83,9 +85,9 @@ namespace caret {
         
         void renameUserConfigurationButtonClicked();
         
-        void configurationNumberOfRowsOrColumnsChanged();
+        void gridConfigurationNumberOfRowsOrColumnsChanged();
         
-        void configurationStretchFactorWasChanged();
+        void gridConfigurationStretchFactorWasChanged();
         
         void addUserConfigurationPushButtonClicked();
         
@@ -98,7 +100,17 @@ namespace caret {
         void tileTabsModificationRequested(EventTileTabsGridConfigurationModification& modification);
 
         void centeringCorrectionCheckBoxClicked(bool checked);
+        
+        void manualConfigurationGeometryChanged();
 
+        void manualConfigurationSetToolButtonClicked();
+        
+        void manualConfigurationSetMenuColumnsItemTriggered();
+        
+        void manualConfigurationSetMenuFromAutomaticItemTriggered();
+        
+        void manualConfigurationSetMenuFromCustomItemTriggered();
+        
     protected:
         void focusGained();
         
@@ -122,11 +134,15 @@ namespace caret {
         
         QWidget* createUserConfigurationSelectionWidget();
         
-        QWidget* createActiveConfigurationWidget();
+        QWidget* createConfigurationTypeWidget();
         
-        QWidget* createRowColumnStretchWidget();
+        QWidget* createConfigurationSettingsWidget();
         
-        QWidget* createCustomOptionsWidget();
+        QWidget* createGridRowColumnStretchWidget();
+        
+        QWidget* createGridCustomOptionsWidget();
+        
+        QWidget* createManualGeometryEditingWidget();
         
         void updateRowColumnStretchWidgets(TileTabsLayoutGridConfiguration* configuration);
         
@@ -134,13 +150,24 @@ namespace caret {
                                        QGridLayout* gridLayout,
                                        std::vector<TileTabGridRowColumnWidgets*>& elementVector);
         
-        void updateStretchFactors();
+        void updateConfigurationEditingWidget();
+        
+        void updateManualGeometryEditorWidget();
+        
+        void addManualGeometryWidget(QGridLayout* gridLayout,
+                                     std::vector<TileTabsManualTabGeometryWidget*>& widgetsVector);
+        
+        QToolButton* createManualConfigurationSetToolButton();
+        
+        void updateGridStretchFactors();
         
         void updateGraphicsWindow();
         
         void updateCustomOptionsWidget();
         
         void readConfigurationsFromPreferences();
+        
+        void manualConfigurationSetMenuFromGridConfiguration(TileTabsLayoutGridConfiguration* gridConfiguration);
         
         BrainBrowserWindow* getBrowserWindow();
         
@@ -150,39 +177,49 @@ namespace caret {
         
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
-        QWidget* m_customConfigurationWidget;
+        QStackedWidget* m_editConfigurationStackedWidget;
         
-        QWidget* m_customOptionsWidget;
+        QWidget* m_customGridConfigurationWidget;
         
-        QRadioButton* m_automaticConfigurationRadioButton;
+        QRadioButton* m_automaticGridConfigurationRadioButton;
         
-        QRadioButton* m_customConfigurationRadioButton;
+        QRadioButton* m_customGridConfigurationRadioButton;
+        
+        QRadioButton* m_manualConfigurationRadioButton;
         
         QPushButton* m_deleteConfigurationPushButton;
         
         QPushButton* m_renameConfigurationPushButton;
         
-        QPushButton* m_addPushButton;
+        QPushButton* m_addConfigurationPushButton;
         
-        QPushButton* m_replacePushButton;
+        QPushButton* m_replaceConfigurationPushButton;
         
-        QPushButton* m_loadPushButton;
+        QPushButton* m_loadConfigurationPushButton;
         
         WuQListWidget* m_userConfigurationSelectionListWidget;
         
-        QSpinBox* m_numberOfRowsSpinBox;
+        QSpinBox* m_numberOfGridRowsSpinBox;
         
-        QSpinBox* m_numberOfColumnsSpinBox;
+        QSpinBox* m_numberOfGridColumnsSpinBox;
         
-        std::vector<TileTabGridRowColumnWidgets*> m_columnElements;
+        std::vector<TileTabGridRowColumnWidgets*> m_gridColumnElements;
         
-        std::vector<TileTabGridRowColumnWidgets*> m_rowElements;
+        std::vector<TileTabGridRowColumnWidgets*> m_gridRowElements;
         
-        QGridLayout* m_rowElementsGridLayout = NULL;
+        QGridLayout* m_gridRowElementsGridLayout = NULL;
         
-        QGridLayout* m_columnElementsGridLayout = NULL;
+        QGridLayout* m_gridColumnElementsGridLayout = NULL;
         
-        QCheckBox* m_centeringCorrectionCheckBox;
+        QCheckBox* m_gridCenteringCorrectionCheckBox;
+        
+        QWidget* m_manualGeometryWidget;
+        
+        QGridLayout* m_manualGeometryGridLayout;
+        
+        QToolButton* m_manualConfigurationSetButton;
+        
+        std::vector<TileTabsManualTabGeometryWidget*> m_manualGeometryEditorWidgets;
         
         /** Blocks reading of preferences since that may invalidate data pointers */
         bool m_blockReadConfigurationsFromPreferences;

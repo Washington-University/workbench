@@ -44,11 +44,41 @@ using namespace caret;
  */
 
 /**
+ * @return A new instance containing a automatic grid configuration
+ */
+TileTabsLayoutGridConfiguration*
+TileTabsLayoutGridConfiguration::newInstanceAutomaticGrid()
+{
+    TileTabsLayoutGridConfiguration* config = new TileTabsLayoutGridConfiguration(TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID);
+    return config;
+}
+
+/**
+ * @return A new instance containing a custom grid configuration
+ */
+TileTabsLayoutGridConfiguration*
+TileTabsLayoutGridConfiguration::newInstanceCustomGrid()
+{
+    TileTabsLayoutGridConfiguration* config = new TileTabsLayoutGridConfiguration(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID);
+    return config;
+}
+
+/**
  * Constructor that creates a 2 by 2 configuration.
  */
-TileTabsLayoutGridConfiguration::TileTabsLayoutGridConfiguration()
-: TileTabsLayoutBaseConfiguration(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID)
+TileTabsLayoutGridConfiguration::TileTabsLayoutGridConfiguration(const TileTabsLayoutConfigurationTypeEnum::Enum gridConfigType)
+: TileTabsLayoutBaseConfiguration(gridConfigType)
 {
+    switch (gridConfigType) {
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+            CaretAssert(0);
+            break;
+    }
+    
     initialize();
 }
 
@@ -235,7 +265,7 @@ bool
 TileTabsLayoutGridConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
                                                                  const int32_t windowHeight,
                                                                  const int32_t numberOfModelsToDraw,
-                                                                 const TileTabsGridModeEnum::Enum configurationMode,
+                                                                 const TileTabsLayoutConfigurationTypeEnum::Enum configurationMode,
                                                                  std::vector<int32_t>& rowHeightsOut,
                                                                  std::vector<int32_t>& columnWidthsOut)
 {
@@ -254,7 +284,7 @@ TileTabsLayoutGridConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const
     columnWidthsOut.clear();
     
     switch (configurationMode) {
-        case TileTabsGridModeEnum::AUTOMATIC:
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
         {
             /*
              * Update number of rows/columns in the default configuration
@@ -271,8 +301,9 @@ TileTabsLayoutGridConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const
             for (int32_t i = 0; i < numCols; i++) {
                 columnWidthsOut.push_back(windowWidth / numCols);
             }
-        }            break;
-        case TileTabsGridModeEnum::CUSTOM:
+        }
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
         {
             /*
              * Rows/columns from user configuration
@@ -368,6 +399,9 @@ TileTabsLayoutGridConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const
                 columnWidthsOut.push_back(w);
             }
         }            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+            CaretAssert(0);
+            break;
     }
     
     if ((numRows == static_cast<int32_t>(rowHeightsOut.size()))

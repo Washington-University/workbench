@@ -63,6 +63,7 @@ namespace caret {
     class PlainTextStringBuilder;
     class SceneClassAssistant;
     class Surface;
+    class TileTabsBrowserTabGeometry;
     class ViewingTransformations;
     class ViewingTransformationsCerebellum;
     class ViewingTransformationsVolume;
@@ -441,6 +442,10 @@ namespace caret {
         
         const ViewingTransformations* getViewingTransformation() const;
         
+        TileTabsBrowserTabGeometry* getManualLayoutGeometry();
+        
+        const TileTabsBrowserTabGeometry* getManualLayoutGeometry() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -595,6 +600,9 @@ namespace caret {
          * True if constructing an instance
          */
         bool isExecutingConstructor;
+        
+        /** Manual tab layout geometry */
+        std::unique_ptr<TileTabsBrowserTabGeometry> m_manualLayoutTabGeometry;
         
         /** Contains all active browser tab content instances */
         static std::set<BrowserTabContent*> s_allBrowserTabContent;

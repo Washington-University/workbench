@@ -106,6 +106,10 @@ TileTabsLayoutConfigurationTypeEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(TileTabsLayoutConfigurationTypeEnum(AUTOMATIC_GRID,
+                                                           "AUTOMATIC_GRID",
+                                                           "Automatic Grid"));
+    
     enumData.push_back(TileTabsLayoutConfigurationTypeEnum(CUSTOM_GRID,
                                                            "CUSTOM_GRID",
                                                            "Custom Grid"));
@@ -170,7 +174,7 @@ TileTabsLayoutConfigurationTypeEnum::fromName(const AString& nameIn, bool* isVal
     if (initializedFlag == false) initialize();
  
     /*
-     * Convert names from older versions of tile tab layouts
+     * Convert names from older versions of tile tab layout's TileTabsGridModeEnum
      */
     QString name(nameIn);
     if (name == "AUTOMATIC") {
@@ -211,7 +215,8 @@ TileTabsLayoutConfigurationTypeEnum::fromName(const AString& nameIn, bool* isVal
  *     String representing enumerated value.
  */
 AString 
-TileTabsLayoutConfigurationTypeEnum::toGuiName(Enum enumValue) {
+TileTabsLayoutConfigurationTypeEnum::toGuiName(Enum enumValue)
+{
     if (initializedFlag == false) initialize();
     
     const TileTabsLayoutConfigurationTypeEnum* enumInstance = findData(enumValue);

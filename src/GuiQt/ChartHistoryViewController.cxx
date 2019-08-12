@@ -595,7 +595,7 @@ ChartHistoryViewController::chartDataConstructionToolButtonSignalMapped(int indx
         else if (selectedAction == removeAction) {
             chartModel->removeChartAtIndex(indx);
         }
-        else {
+        else if (selectedAction != NULL) {
             CaretAssertMessage(0, "Has a new action been added but not processed?");
         }
         

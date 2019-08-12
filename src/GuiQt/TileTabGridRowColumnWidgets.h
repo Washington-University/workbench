@@ -65,7 +65,7 @@ namespace caret {
         
         void modificationRequested(EventTileTabsGridConfigurationModification& modification);
         
-        private slots:
+    private slots:
         void constructionMenuAboutToShow();
         
         void constructionMenuTriggered(QAction*);

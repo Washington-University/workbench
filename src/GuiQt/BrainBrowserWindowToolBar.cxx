@@ -956,13 +956,16 @@ BrainBrowserWindowToolBar::allowAddingNewTab()
     }
     
     /*
-     * Automatic configuration always shows all tabs
+     * Automatic configuration and manual configuration always show all tabs
      */
     switch (browserWindowContent->getTileTabsConfigurationMode()) {
-        case TileTabsGridModeEnum::AUTOMATIC:
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
             return true;
             break;
-        case TileTabsGridModeEnum::CUSTOM:
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+            return true;
             break;
     }
     

@@ -85,6 +85,7 @@
 #include "SurfaceMontageConfigurationFlatMaps.h"
 #include "SurfaceSelectionModel.h"
 #include "StructureEnum.h"
+#include "TileTabsBrowserTabGeometry.h"
 #include "VolumeFile.h"
 #include "ViewingTransformations.h"
 #include "ViewingTransformationsCerebellum.h"
@@ -152,6 +153,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_volumeSliceSettings = new VolumeSliceSettings();
     
     m_clippingPlaneGroup = new ClippingPlaneGroup();
+    
+    m_manualLayoutTabGeometry.reset(new TileTabsBrowserTabGeometry(m_tabNumber));
     
     m_sceneClassAssistant = new SceneClassAssistant();
     m_sceneClassAssistant->add("m_tabNumber", 
@@ -225,6 +228,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                                                        &m_brainModelYokingGroup);
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_chartModelYokingGroup",
                                                                        &m_chartModelYokingGroup);
+    
+    CaretAssertToDoWarning(); // need to save/restore m_manualLayoutTabGeometry
+    
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET);
     EventManager::get()->addEventListener(this,
@@ -1339,7 +1345,6 @@ BrowserTabContent::receiveEvent(Event* event)
                                 }
                                 break;
                             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                                //keepSliceCoordinateForSelectedAxis = true;
                                 break;
                         }
                         switch (m_volumeSliceSettings->getSliceDrawingType()) {
@@ -1371,7 +1376,6 @@ BrowserTabContent::receiveEvent(Event* event)
                     }
                     
                     selectSlicesAtCoordinate(volumeSliceXYZ);
-                    //m_volumeSliceSettings->selectSlicesAtCoordinate(volumeSliceXYZ);
                 }
             }
         }
@@ -2742,14 +2746,6 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                 float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
                                                                                 + (mouseDeltaY * mouseDeltaY)));
                                 
-                                //                            /*
-                                //                             * Rotation needs to be oppposite for newer
-                                //                             * oblique slice drawing for volumes that
-                                //                             * do not have a voxel corresponding to
-                                //                             * the origin.
-                                //                             */
-                                //                            mouseDelta = -mouseDelta;
-                                
                                 switch (slicePlane) {
                                     case VolumeSliceViewPlaneEnum::ALL:
                                     {
@@ -3652,8 +3648,6 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                         m.getRotation(rotationX,
                                       rotationY,
                                       rotationZ);
-                        //rotationX = -rotationX;
-                        //rotationY = 180.0 - rotationY;
                         rotationY = 90 + rotationY;
                         rotationZ = -rotationZ;
                         m.identity();
@@ -4959,6 +4953,24 @@ BrowserTabContent::updateChartModelYokedBrowserTabs()
             }
         }
     }
+}
+
+/**
+ * @return Pointer to the manual layout geometry
+ */
+TileTabsBrowserTabGeometry*
+BrowserTabContent::getManualLayoutGeometry()
+{
+    return m_manualLayoutTabGeometry.get();
+}
+
+/**
+ * @return Pointer to the manual layout geometry (const method)
+ */
+const TileTabsBrowserTabGeometry*
+BrowserTabContent::getManualLayoutGeometry() const
+{
+    return m_manualLayoutTabGeometry.get();
 }
 
 

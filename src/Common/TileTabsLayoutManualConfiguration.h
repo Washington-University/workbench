@@ -26,18 +26,19 @@
 #include <memory>
 
 #include "TileTabsLayoutBaseConfiguration.h"
-#include "TileTabsGridModeEnum.h"
+#include "TileTabsLayoutConfigurationTypeEnum.h"
 
 namespace caret {
 
+    class BrowserTabContent;
     class TileTabsLayoutGridConfiguration;
-    class TileTabsLayoutTabInfo;
+    class TileTabsBrowserTabGeometry;
     
     class TileTabsLayoutManualConfiguration : public TileTabsLayoutBaseConfiguration {
         
     public:
         static TileTabsLayoutManualConfiguration* newInstanceFromGridLayout(TileTabsLayoutGridConfiguration* gridLayout,
-                                                                            const TileTabsGridModeEnum::Enum gridMode,
+                                                                            const TileTabsLayoutConfigurationTypeEnum::Enum gridMode,
                                                                             const std::vector<int32_t>& tabIndices);
         
         TileTabsLayoutManualConfiguration();
@@ -54,13 +55,13 @@ namespace caret {
         
         virtual AString toString() const override;
         
-        void addTabInfo(TileTabsLayoutTabInfo* tabInfo);
+        void addTabInfo(TileTabsBrowserTabGeometry* tabInfo);
         
         int32_t getNumberOfTabs() const;
         
-        TileTabsLayoutTabInfo* getTabInfo(const int32_t index);
+        TileTabsBrowserTabGeometry* getTabInfo(const int32_t index);
         
-        const TileTabsLayoutTabInfo* getTabInfo(const int32_t index) const;
+        const TileTabsBrowserTabGeometry* getTabInfo(const int32_t index) const;
         
         virtual TileTabsLayoutManualConfiguration* castToManualConfiguration() override;
         
@@ -77,7 +78,7 @@ namespace caret {
     private:
         void copyHelperTileTabsLayoutManualConfiguration(const TileTabsLayoutManualConfiguration& obj);
 
-        std::vector<std::unique_ptr<TileTabsLayoutTabInfo>> m_tabInfo;
+        std::vector<std::unique_ptr<TileTabsBrowserTabGeometry>> m_tabInfo;
         
         // ADD_NEW_MEMBERS_HERE
 

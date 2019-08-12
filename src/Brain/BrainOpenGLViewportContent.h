@@ -164,7 +164,6 @@ namespace caret {
 
         static std::vector<BrainOpenGLViewportContent*> createViewportContentForManualTileTabs(std::vector<BrowserTabContent*>& tabContents,
                                                                                                BrowserWindowContent* browserWindowContent,
-                                                                                               TileTabsLayoutManualConfiguration* manualConfiguration,
                                                                                                const GapsAndMargins* gapsAndMargins,
                                                                                                const int32_t windowViewport[4],
                                                                                                const int32_t windowIndex,

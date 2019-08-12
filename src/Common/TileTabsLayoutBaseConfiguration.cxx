@@ -124,7 +124,7 @@ TileTabsLayoutBaseConfiguration::copyHelperTileTabsLayoutBaseConfiguration(const
     }
     
     m_name    = obj.m_name;
-    //DO NOT CHANGE THE UNIQUE IDENTIFIER:  m_uniqueIdentifier
+    /* DO NOT CHANGE THE UNIQUE IDENTIFIER:  m_uniqueIdentifier */
 }
 
 /**
@@ -231,13 +231,13 @@ TileTabsLayoutBaseConfiguration::decodeFromXML(const AString& xmlString,
     if (xml.readNextStartElement()) {
         const QStringRef tagName(xml.name());
         if (tagName == TileTabsLayoutGridConfiguration::s_v1_rootTagName) {
-            TileTabsLayoutGridConfiguration* v1 = new TileTabsLayoutGridConfiguration();
+            TileTabsLayoutGridConfiguration* v1 = TileTabsLayoutGridConfiguration::newInstanceCustomGrid();
             v1->decodeFromXMLString(xml,
                                     tagName.toString());
             configurationOut = v1;
         }
         else if (tagName == TileTabsLayoutGridConfiguration::s_v2_rootTagName) {
-            TileTabsLayoutGridConfiguration* v2 = new TileTabsLayoutGridConfiguration();
+            TileTabsLayoutGridConfiguration* v2 = TileTabsLayoutGridConfiguration::newInstanceCustomGrid();
             v2->decodeFromXMLString(xml,
                                     tagName.toString());
             configurationOut = v2;

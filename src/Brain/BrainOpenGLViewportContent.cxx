@@ -40,6 +40,7 @@
 #include "ModelSurfaceMontage.h"
 #include "SpacerTabContent.h"
 #include "SurfaceMontageConfigurationAbstract.h"
+#include "TileTabsBrowserTabGeometry.h"
 #include "TileTabsLayoutGridConfiguration.h"
 #include "TileTabsLayoutManualConfiguration.h"
 
@@ -612,11 +613,12 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         return viewportContentsOut;
     }
     
-    TileTabsLayoutBaseConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
-    CaretAssert(tileTabsConfiguration);
-    switch (tileTabsConfiguration->getLayoutType()) {
+    switch (browserWindowContent->getTileTabsConfigurationMode()) {
         case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
         case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+        {
+            TileTabsLayoutBaseConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
+            CaretAssert(tileTabsConfiguration);
             viewportContentsOut = createViewportContentForGridTileTabs(tabContents,
                                                                        browserWindowContent,
                                                                        tileTabsConfiguration->castToGridConfiguration(),
@@ -624,11 +626,11 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
                                                                        windowViewport,
                                                                        windowIndex,
                                                                        highlightTabIndex);
+        }
             break;
         case TileTabsLayoutConfigurationTypeEnum::MANUAL:
             viewportContentsOut = createViewportContentForManualTileTabs(tabContents,
                                                                        browserWindowContent,
-                                                                       tileTabsConfiguration->castToManualConfiguration(),
                                                                        gapsAndMargins,
                                                                        windowViewport,
                                                                        windowIndex,
@@ -956,51 +958,147 @@ BrainOpenGLViewportContent::createViewportContentForGridTileTabs(std::vector<Bro
             vpX += columnWidths[jCol];
         }
     }
+ 
+    const bool printViewportsFlag(false);
+    if (printViewportsFlag) {
+        for (auto vpc : viewportContentsOut) {
+            if (vpc->getTabIndex() == 0) {
+                std::cout << "TAB 1: " << vpc->toString() << std::endl << std::endl;
+            }
+        }
+    }
     
-//    for (auto vpc : viewportContentsOut) {
-//        if (vpc->getTabIndex() == 0) {
-//            std::cout << "TAB 1: " << vpc->toString() << std::endl << std::endl;
-//        }
-//    }
     return viewportContentsOut;
 }
 
-    /**
-     * Create Viewport Contents for the given tab contents, window sizes, and tile sizes
-     * for a manual configuration.
-     *
-     * @param tabContents
-     *     Content of each tab.
-     * @param browserWindowContent
-     *     Content of window.
-     * @param manualConfiguration
-     *     The manual configuration
-     * @param gapsAndMargins
-     *     Contains margins around edges of tabs
-     * @param windowViewport
-     *     The window's viewport.
-     * @param windowIndex
-     *     Index of the window.
-     * @param hightlightTabIndex
-     *     Index of tab that is highlighted when selected by user.
-     * @return
-     *     Vector containing data for drawing each model.
-     */
-    std::vector<BrainOpenGLViewportContent*>
-    BrainOpenGLViewportContent::createViewportContentForManualTileTabs(std::vector<BrowserTabContent*>& tabContents,
-                                                                       BrowserWindowContent* browserWindowContent,
-                                                                       TileTabsLayoutManualConfiguration* manualConfiguration,
-                                                                       const GapsAndMargins* gapsAndMargins,
-                                                                       const int32_t windowViewport[4],
-                                                                       const int32_t windowIndex,
-                                                                       const int32_t highlightTabIndex)
-    {
-        std::vector<BrainOpenGLViewportContent*> viewportContentsOut;
+/**
+ * Create Viewport Contents for the given tab contents, window sizes, and tile sizes
+ * for a manual configuration.
+ *
+ * @param tabContents
+ *     Content of each tab.
+ * @param browserWindowContent
+ *     Content of window.
+ * @param gapsAndMargins
+ *     Contains margins around edges of tabs
+ * @param windowViewport
+ *     The window's viewport.
+ * @param windowIndex
+ *     Index of the window.
+ * @param hightlightTabIndex
+ *     Index of tab that is highlighted when selected by user.
+ * @return
+ *     Vector containing data for drawing each model.
+ */
+std::vector<BrainOpenGLViewportContent*>
+BrainOpenGLViewportContent::createViewportContentForManualTileTabs(std::vector<BrowserTabContent*>& tabContents,
+                                                                   BrowserWindowContent* browserWindowContent,
+                                                                   const GapsAndMargins* gapsAndMargins,
+                                                                   const int32_t windowViewport[4],
+                                                                   const int32_t /*windowIndex*/,
+                                                                   const int32_t highlightTabIndex)
+{
+    const bool allTabsAspectLockedFlag = browserWindowContent->isAllTabsInWindowAspectRatioLocked();
+
+    std::vector<BrainOpenGLViewportContent*> viewportContentsOut;
+    
+    CaretAssert(browserWindowContent);
+    CaretAssert(gapsAndMargins);
+    
+    int32_t windowX      = windowViewport[0];
+    int32_t windowY      = windowViewport[1];
+    const int32_t windowWidth  = windowViewport[2];
+    const int32_t windowHeight = windowViewport[3];
+    
+    for (const auto tab : tabContents) {
+        CaretAssert(tab);
         
-        CaretAssertToDoFatal();
+        /*
+         * Tab Geometry is in percentages ranging [0.0, 100.0]
+         */
+        const TileTabsBrowserTabGeometry* tabGeometry = tab->getManualLayoutGeometry();
+        int32_t tabX(((tabGeometry->getMinX() / 100.0) * windowWidth) + windowX);
+        int32_t tabY(((tabGeometry->getMinY() / 100.0) * windowHeight) + windowY);
+        int32_t tabWidth((tabGeometry->getWidth() / 100.0) * windowWidth);
+        int32_t tabHeight((tabGeometry->getHeight() / 100.0) * windowHeight);
+
+        /*
+         * Is aspect ratio locked for all tabs ?
+         */
+        if (allTabsAspectLockedFlag) {
+            /**
+             * Update aspect locking for any tabs that have not been locked
+             * Locking is done here so that it will work for new tabs and
+             * for tabs from old scenes before "lock all"
+             * Aspect locking is also performed here so that it works
+             * with both GUI and Command Line Show Scene
+             */
+            if ( ! tab->isAspectRatioLocked()) {
+                if (tabWidth > 0) {
+                    const float aspectRatio = (static_cast<float>(tabHeight)
+                                               / static_cast<float>(tabWidth));
+                    
+                    tab->setAspectRatio(aspectRatio);
+                    tab->setAspectRatioLocked(true);
+                }
+            }
+        }
         
-        return viewportContentsOut;
+        /*
+         * Adjust size of tab to match aspect ratio
+         */
+        if (tab->isAspectRatioLocked()) {
+            const int32_t nonLockedWidth(tabWidth);
+            const int32_t nonLockedHeight(tabHeight);
+            BrainOpenGLViewportContent::adjustWidthHeightForAspectRatio(tab->getAspectRatio(),
+                                                                        tabWidth,
+                                                                        tabHeight);
+            
+            /*
+             * Center tab within its region
+             */
+            const int32_t offsetX = nonLockedWidth - tabWidth;
+            if (offsetX > 0) {
+                tabX += (offsetX / 2);
+            }
+            
+            const int32_t offsetY = nonLockedHeight - tabHeight;
+            if (offsetY > 0) {
+                tabY += (offsetY / 2);
+            }
+        }
+        
+        const int tabViewport[4] = {
+            tabX,
+            tabY,
+            tabWidth,
+            tabHeight
+        };
+        
+        /*
+         * Model is drawn in the model viewport inside any margins.
+         */
+        const int32_t tabIndex = tab->getTabNumber();
+        const bool highlightTabFlag(highlightTabIndex == tabIndex);
+        int modelViewport[4] = { 0, 0, 0, 0 };
+        createModelViewport(tabViewport,
+                            tabIndex,
+                            gapsAndMargins,
+                            modelViewport);
+
+        SpacerTabContent* invalidSpaceTabContent(NULL);
+        BrainOpenGLViewportContent* vpContent = new BrainOpenGLViewportContent(windowViewport,
+                                                                               tabViewport,
+                                                                               modelViewport,
+                                                                               browserWindowContent->getWindowIndex(),
+                                                                               highlightTabFlag,
+                                                                               tab,
+                                                                               invalidSpaceTabContent);
+        viewportContentsOut.push_back(vpContent);
     }
+    
+    return viewportContentsOut;
+}
 
 /**
  * Create viewport from the model using the tab's viewport and the tabs margins.
