@@ -1009,6 +1009,16 @@ BrainOpenGLViewportContent::createViewportContentForManualTileTabs(std::vector<B
     int32_t windowY      = windowViewport[1];
     const int32_t windowWidth  = windowViewport[2];
     const int32_t windowHeight = windowViewport[3];
+
+    if (tabContents.size() > 1) {
+        /*
+         * Sort tabs by stacking order
+         */
+        std::sort(tabContents.begin(),
+                  tabContents.end(),
+                  [](BrowserTabContent* a, BrowserTabContent* b) { return (a->getManualLayoutGeometry()->getStackingOrder()
+                                                                           < b->getManualLayoutGeometry()->getStackingOrder()); } );
+    }
     
     for (const auto tab : tabContents) {
         CaretAssert(tab);

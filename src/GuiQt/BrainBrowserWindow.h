@@ -44,6 +44,7 @@ namespace caret {
     class BrainBrowserWindowToolBar;
     class BrainBrowserWindowOrientedToolBox;
     class BrainOpenGLWidget;
+    class BrainOpenGLViewportContent;
     class BrowserWindowContent;
     class BrowserTabContent;
     class EventTileTabsGridConfigurationModification;
@@ -82,6 +83,8 @@ namespace caret {
         void getAllTabContentIndices(std::vector<int32_t>& allTabContentIndices) const;
         
         void removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent);
+        
+        void getAllBrainOpenGLViewportContent(std::vector<const BrainOpenGLViewportContent*>& viewportContentOut) const;
         
         int32_t getBrowserWindowIndex() const;
 

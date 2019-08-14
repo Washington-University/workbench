@@ -95,6 +95,7 @@ TileTabsLayoutManualConfiguration::operator=(const TileTabsLayoutManualConfigura
 void 
 TileTabsLayoutManualConfiguration::copyHelperTileTabsLayoutManualConfiguration(const TileTabsLayoutManualConfiguration& obj)
 {
+    copyHelperTileTabsLayoutBaseConfiguration(obj);
     m_tabInfo.clear();
     
     for (const auto& ti : obj.m_tabInfo) {
@@ -334,14 +335,14 @@ TileTabsLayoutManualConfiguration::encodeInXMLString(AString& xmlTextOut) const
         writer.writeStartElement(s_tabInfoElementName);
         writer.writeAttribute(s_tabInfoAttributeTabIndex,
                               AString::number(tabInfo->getTabIndex()));
-        writer.writeAttribute(s_tabInfoAttributeCenterX,
-                              AString::number(tabInfo->getCenterX(), 'f', 2));
-        writer.writeAttribute(s_tabInfoAttributeCenterY,
-                              AString::number(tabInfo->getCenterY(), 'f', 2));
-        writer.writeAttribute(s_tabInfoAttributeWidth,
-                              AString::number(tabInfo->getWidth(), 'f', 2));
-        writer.writeAttribute(s_tabInfoAttributeHeight,
-                              AString::number(tabInfo->getHeight(), 'f', 2));
+        writer.writeAttribute(s_tabInfoAttributeMinX,
+                              AString::number(tabInfo->getMinX(), 'f', 2));
+        writer.writeAttribute(s_tabInfoAttributeMaxX,
+                              AString::number(tabInfo->getMaxX(), 'f', 2));
+        writer.writeAttribute(s_tabInfoAttributeMinY,
+                              AString::number(tabInfo->getMinY(), 'f', 2));
+        writer.writeAttribute(s_tabInfoAttributeMaxY,
+                              AString::number(tabInfo->getMaxY(), 'f', 2));
         writer.writeAttribute(s_tabInfoAttributeStackingOrder,
                               AString::number(tabInfo->getStackingOrder()));
         writer.writeAttribute(s_tabInfoAttributeBackground,
@@ -393,9 +394,9 @@ TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
         CaretLogWarning("Tile Tabs Manual Configuration is missing name and has been assigned name \""
                         + name
                         + "\"");
-        setName(name);
     }
-    
+    setName(name);
+
     AString uniqueID = rootAttributes.value(s_rootElementAttributeUniqueID).toString();
     if (uniqueID.isEmpty()) {
         uniqueID = SystemUtilities::createUniqueID();
@@ -421,25 +422,42 @@ TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
             const QString elementName(xml.name().toString());
             
             if (elementName == s_tabInfoElementName) {
+                bool tabIndexValid(false);
+                bool minXValid(false);
+                bool maxXValid(false);
+                bool minYValid(false);
+                bool maxYValid(false);
+                bool stackingValid(false);
                 const QXmlStreamAttributes atts = xml.attributes();
-                const int32_t tabIndex = atts.value(s_tabInfoAttributeTabIndex).toInt();
-                const float   xCenter  = atts.value(s_tabInfoAttributeCenterX).toFloat();
-                const float   yCenter  = atts.value(s_tabInfoAttributeCenterY).toFloat();
-                const float   width    = atts.value(s_tabInfoAttributeWidth).toFloat();
-                const float   height   = atts.value(s_tabInfoAttributeHeight).toFloat();
-                const int32_t stacking = atts.value(s_tabInfoAttributeStackingOrder).toInt();
+                const int32_t tabIndex = atts.value(s_tabInfoAttributeTabIndex).toInt(&tabIndexValid);
+                const float   minX     = atts.value(s_tabInfoAttributeMinX).toFloat(&minXValid);
+                const float   maxX     = atts.value(s_tabInfoAttributeMaxX).toFloat(&maxXValid);
+                const float   minY     = atts.value(s_tabInfoAttributeMinY).toFloat(&minYValid);
+                const float   maxY     = atts.value(s_tabInfoAttributeMaxY).toFloat(&maxYValid);
+                const int32_t stacking = atts.value(s_tabInfoAttributeStackingOrder).toInt(&stackingValid);
                 const QString backStr  = atts.value(s_tabInfoAttributeBackground).toString();
                 const TileTabsLayoutBackgroundTypeEnum::Enum backType = TileTabsLayoutBackgroundTypeEnum::fromName(backStr, NULL);
                 
-                TileTabsBrowserTabGeometry* tabInfo = new TileTabsBrowserTabGeometry(tabIndex);
-                tabInfo->setCenterX(xCenter);
-                tabInfo->setCenterY(yCenter);
-                tabInfo->setWidth(width);
-                tabInfo->setHeight(height);
-                tabInfo->setStackingOrder(stacking);
-                tabInfo->setBackgroundType(backType);
-                
-                addTabInfo(tabInfo);
+                if (tabIndexValid
+                    && minXValid
+                    && maxXValid
+                    && minYValid
+                    && maxYValid
+                    && stackingValid) {
+                    TileTabsBrowserTabGeometry* tabInfo = new TileTabsBrowserTabGeometry(tabIndex);
+                    tabInfo->setMinX(minX);
+                    tabInfo->setMaxX(maxX);
+                    tabInfo->setMinY(minY);
+                    tabInfo->setMaxY(maxY);
+                    tabInfo->setStackingOrder(stacking);
+                    tabInfo->setBackgroundType(backType);
+                    
+                    addTabInfo(tabInfo);
+                }
+                else {
+                    CaretLogWarning("Failed to parse Manual Tile Tabs Configuration from Preferences: "
+                                    + xml.tokenString());
+                }
             }
             else {
                 invalidElementNames.insert(elementName);

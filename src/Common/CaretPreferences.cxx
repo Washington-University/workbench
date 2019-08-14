@@ -571,13 +571,25 @@ CaretPreferences::getTileTabsUserConfigurationsNamesAndUniqueIdentifiers() const
     std::vector<std::pair<AString, AString>> nameIDs;
     
     for (const auto ttc : this->tileTabsConfigurations) {
-        nameIDs.push_back(std::make_pair(ttc->getName(),
+        QString typeString;
+        switch (ttc->getLayoutType()) {
+            case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                typeString = " (AG)";
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                typeString = " (G)";
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                typeString = " (M)";
+                break;
+        }
+        nameIDs.push_back(std::make_pair(ttc->getName() + typeString,
                                          ttc->getUniqueIdentifier()));
     }
     
     std::sort(nameIDs.begin(),
               nameIDs.end(),
-              [](std::pair<AString, AString>& a, std::pair<AString, AString>& b) { return a.first < b.first; });
+              [](const std::pair<AString, AString>& a, const std::pair<AString, AString>& b) { return a.first < b.first; });
     
     return nameIDs;
 }
@@ -638,12 +650,19 @@ CaretPreferences::getTileTabsUserConfigurationByName(const AString& name) const
  * Add a new tile tabs user configuration.
  * 
  * @param tileTabsConfiguration
- *    New tile tabs configuration that is added.
+ *    New tile tabs configuration that is copied and added.
+ * @param configurationName
+ *    New name for copied configuration (ignored if empty)
  */
 void
-CaretPreferences::addTileTabsUserConfiguration(TileTabsLayoutBaseConfiguration* tileTabsConfiguration)
+CaretPreferences::addTileTabsUserConfiguration(const TileTabsLayoutBaseConfiguration* tileTabsConfiguration,
+                                               const AString& configurationName)
 {
-    this->tileTabsConfigurations.push_back(tileTabsConfiguration);
+    TileTabsLayoutBaseConfiguration* configCopy = tileTabsConfiguration->newCopyWithNewUniqueIdentifier();
+    if ( ! configurationName.isEmpty()) {
+        configCopy->setName(configurationName);
+    }
+    this->tileTabsConfigurations.push_back(configCopy);
     this->writeTileTabsUserConfigurations();
 }
 
@@ -689,11 +708,13 @@ CaretPreferences::replaceTileTabsUserConfiguration(const AString& replaceUserTil
      * Delete configuration since it may be a different subclass than other configuration
      */
     CaretAssertVectorIndex(this->tileTabsConfigurations, replaceIndex);
+    const AString name = this->tileTabsConfigurations[replaceIndex]->getName();
     const AString uuid = this->tileTabsConfigurations[replaceIndex]->getUniqueIdentifier();
     delete this->tileTabsConfigurations[replaceIndex];
     
     TileTabsLayoutBaseConfiguration* newConfig = replaceWithConfiguration->newCopyWithUniqueIdentifier(uuid);
     CaretAssert(newConfig);
+    newConfig->setName(name);
     this->tileTabsConfigurations[replaceIndex] = newConfig;
     
     this->writeTileTabsUserConfigurations();

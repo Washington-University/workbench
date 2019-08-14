@@ -23,7 +23,10 @@
 #include "BrainOpenGLWindowContent.h"
 #undef __BRAIN_OPEN_G_L_WINDOW_CONTENT_DECLARE__
 
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "TileTabsBrowserTabGeometry.h"
+
 using namespace caret;
 
 
@@ -157,6 +160,8 @@ const BrainOpenGLViewportContent*
 BrainOpenGLWindowContent::getTabViewportWithLockAspectXY(const int32_t x,
                                                          const int32_t y) const
 {
+    BrainOpenGLViewportContent* viewportContentOut(NULL);
+    
     for (const auto& vp : m_tabViewports) {
         int32_t viewport[4];
         vp->getTabViewportBeforeApplyingMargins(viewport);
@@ -164,10 +169,27 @@ BrainOpenGLWindowContent::getTabViewportWithLockAspectXY(const int32_t x,
             && (x < (viewport[0] + viewport[2]))
             && (y >= viewport[1])
             && (y < (viewport[1] + viewport[3]))) {
-            return vp.get();
+            if (viewportContentOut == NULL) {
+                viewportContentOut = vp.get();
+            }
+            else {
+                /*
+                 * Note: The tabs ONLY overlay in a manual tile tabs layout
+                 */
+                const BrowserTabContent* btc = vp.get()->getBrowserTabContent();
+                const BrowserTabContent* btcOut = viewportContentOut->getBrowserTabContent();
+                if ((btc != NULL)
+                    && (btcOut != NULL)) {
+                    if (btc->getManualLayoutGeometry()->getStackingOrder()
+                        > btcOut->getManualLayoutGeometry()->getStackingOrder()) {
+                        viewportContentOut = vp.get();
+                    }
+                }
+            }
         }
     }
-    return NULL;
+    
+    return viewportContentOut;
 }
 
 

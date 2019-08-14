@@ -92,10 +92,10 @@ namespace caret {
         
         static const AString s_tabInfoElementName;
         static const AString s_tabInfoAttributeTabIndex;
-        static const AString s_tabInfoAttributeCenterX;
-        static const AString s_tabInfoAttributeCenterY;
-        static const AString s_tabInfoAttributeWidth;
-        static const AString s_tabInfoAttributeHeight;
+        static const AString s_tabInfoAttributeMinX;
+        static const AString s_tabInfoAttributeMaxX;
+        static const AString s_tabInfoAttributeMinY;
+        static const AString s_tabInfoAttributeMaxY;
         static const AString s_tabInfoAttributeStackingOrder;
         static const AString s_tabInfoAttributeBackground;
 
@@ -112,10 +112,10 @@ namespace caret {
 
     const AString TileTabsLayoutManualConfiguration::s_tabInfoElementName = "TabInfo";
     const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeTabIndex = "TabIndex";
-    const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeCenterX = "CenterX";
-    const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeCenterY = "CenterY";
-    const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeWidth = "Width";
-    const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeHeight = "Height";
+    const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeMinX = "MinX";
+    const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeMaxX = "MaxX";
+    const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeMinY = "MinY";
+    const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeMaxY = "MaxY";
     const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeStackingOrder = "StackingOrder";
     const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeBackground = "Background";
 #endif // __TILE_TABS_LAYOUT_MANUAL_CONFIGURATION_DECLARE__

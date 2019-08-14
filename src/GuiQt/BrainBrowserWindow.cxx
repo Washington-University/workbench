@@ -2699,7 +2699,7 @@ BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuItemTriggered(QA
 QMenu*
 BrainBrowserWindow::createMenuViewTileTabsLoadUserConfiguration()
 {
-    QMenu* menu = new QMenu("Load Custom With User Configuration");
+    QMenu* menu = new QMenu("Set Tile Tabs to User Configuration");
     QObject::connect(menu, &QMenu::aboutToShow,
                      this, &BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuAboutToShow);
     QObject::connect(menu, &QMenu::triggered,
@@ -4472,6 +4472,20 @@ const BrowserWindowContent*
 BrainBrowserWindow::getBrowerWindowContent() const
 {
     return m_browserWindowContent;
+}
+
+/**
+ * Get the Brain OpenGL Viewport content for all tabs
+ *
+ * @param viewportContentOut
+ *     Contains viewport content on exit
+ */
+void
+BrainBrowserWindow::getAllBrainOpenGLViewportContent(std::vector<const BrainOpenGLViewportContent*>& viewportContentOut) const
+{
+    viewportContentOut.clear();
+    
+    viewportContentOut = m_openGLWidget->getViewportContent();
 }
 
 /**

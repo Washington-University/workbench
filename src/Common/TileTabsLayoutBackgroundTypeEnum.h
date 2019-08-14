@@ -35,9 +35,9 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Opaque */
         OPAQUE,
-        /** */
+        /** Transparent */
         TRANSPARENT
     };
 

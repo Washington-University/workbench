@@ -144,7 +144,8 @@ namespace caret {
         
         TileTabsLayoutBaseConfiguration* getTileTabsUserConfigurationByName(const AString& name) const;
         
-        void addTileTabsUserConfiguration(TileTabsLayoutBaseConfiguration* tileTabsConfiguration);
+        void addTileTabsUserConfiguration(const TileTabsLayoutBaseConfiguration* tileTabsConfiguration,
+                                          const AString& configurationName);
         
         bool replaceTileTabsUserConfiguration(const AString& replaceUserTileTabsUniqueIdentifier,
                                               const TileTabsLayoutBaseConfiguration* replaceWithConfiguration,

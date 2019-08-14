@@ -1,5 +1,5 @@
-#ifndef __TILE_TABS_LAYOUT_TAB_INFO_H__
-#define __TILE_TABS_LAYOUT_TAB_INFO_H__
+#ifndef __TILE_TABS_BROWSER_TAB_GEOMETRY_H__
+#define __TILE_TABS_BROWSER_TAB_GEOMETRY_H__
 
 /*LICENSE_START*/
 /*
@@ -31,17 +31,19 @@
 
 namespace caret {
 
-    class TileTabsLayoutTabInfo : public CaretObject {
+    class TileTabsBrowserTabGeometry : public CaretObject {
         
     public:
-        TileTabsLayoutTabInfo(const int32_t tabIndex);
+        TileTabsBrowserTabGeometry(const int32_t tabIndex);
         
-        virtual ~TileTabsLayoutTabInfo();
+        virtual ~TileTabsBrowserTabGeometry();
         
-        TileTabsLayoutTabInfo(const TileTabsLayoutTabInfo& obj);
+        TileTabsBrowserTabGeometry(const TileTabsBrowserTabGeometry& obj);
 
-        TileTabsLayoutTabInfo& operator=(const TileTabsLayoutTabInfo& obj);
+        TileTabsBrowserTabGeometry& operator=(const TileTabsBrowserTabGeometry& obj);
 
+        void copyGeometry(const TileTabsBrowserTabGeometry& geometry);
+        
         int32_t getTabIndex() const;
         
         float getCenterX() const;
@@ -93,22 +95,22 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void copyHelperTileTabsLayoutTabInfo(const TileTabsLayoutTabInfo& obj);
+        void copyHelperTileTabsBrowserTabGeometry(const TileTabsBrowserTabGeometry& obj);
 
         /** index of tab */
         int32_t m_tabIndex;
         
-        /** center x-coordinate as percentage*/
-        float m_xCenter = 50.0;
+        /** left as percentage*/
+        float m_minX = 10.0;
 
-        /** center y-coordinate as percentage*/
-        float m_yCenter = 50.0;
+        /** right as percentage*/
+        float m_maxX = 20.0;
 
-        /** width of window as percentage*/
-        float m_width = 20.0;
+        /** bottom as percentage*/
+        float m_minY = 10.0;
 
-        /** height of window as percentage*/
-        float m_height = 20.0;
+        /** topas percentage*/
+        float m_maxY = 20.0;
 
         /** Stacking order (depth in screen) of tab, greater value is 'in front'*/
         int32_t m_stackingOrder = 1;
@@ -118,11 +120,13 @@ namespace caret {
 
         // ADD_NEW_MEMBERS_HERE
 
+        /** IF NEW MEMBERS ADDED, MUST UPDATE THIS CLASS */
+        friend class TileTabsBrowserTabGeometrySceneHelper;
     };
     
-#ifdef __TILE_TABS_TAB_INFO_DECLARE__
+#ifdef __TILE_TABS_BROWSER_TAB_GEOMETRY_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __TILE_TABS_TAB_INFO_DECLARE__
+#endif // __TILE_TABS_BROWSER_TAB_GEOMETRY_DECLARE__
 
 } // namespace
-#endif  //__TILE_TABS_LAYOUT_TAB_INFO_H__
+#endif  //__TILE_TABS_BROWSER_TAB_GEOMETRY_H__

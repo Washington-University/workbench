@@ -45,9 +45,11 @@
 
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowComboBox.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
@@ -284,13 +286,34 @@ TileTabsConfigurationDialog::addUserConfigurationPushButtonClicked()
     
     m_blockReadConfigurationsFromPreferences = true;
     
-    const TileTabsLayoutGridConfiguration* activeConfiguration = getCustomTileTabsGridConfiguration();
-    CaretAssert(activeConfiguration);
-
-    TileTabsLayoutGridConfiguration* configCopy = new TileTabsLayoutGridConfiguration(*activeConfiguration);
-    CaretAssert(configCopy);
-    configCopy->setName(newConfigName);
-    m_caretPreferences->addTileTabsUserConfiguration(configCopy);
+    switch (getBrowserWindowContent()->getTileTabsConfigurationMode()) {
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+            CaretAssert(0);
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+        {
+            const TileTabsLayoutGridConfiguration* activeConfiguration = getCustomTileTabsGridConfiguration();
+            CaretAssert(activeConfiguration);
+            
+            m_caretPreferences->addTileTabsUserConfiguration(activeConfiguration,
+                                                             newConfigName);
+        }
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+        {
+            TileTabsLayoutManualConfiguration* manualConfig = createManualConfigurationFromCurrentTabs();
+            if (manualConfig != NULL) {
+                m_caretPreferences->addTileTabsUserConfiguration(manualConfig,
+                                                                 newConfigName);
+                delete manualConfig;
+            }
+            else {
+                WuQMessageBox::errorOk(m_addConfigurationPushButton,
+                                       "Tile Tabs MUST be enabled.");
+            }
+        }
+            break;
+    }
     
     m_blockReadConfigurationsFromPreferences = false;
     updateDialog();
@@ -302,9 +325,6 @@ TileTabsConfigurationDialog::addUserConfigurationPushButtonClicked()
 void
 TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
 {
-    const TileTabsLayoutGridConfiguration* activeConfiguration = getCustomTileTabsGridConfiguration();
-    CaretAssert(activeConfiguration);
-
     const AString tileTabsUniqueID = getSelectedUserTileTabsConfigurationUniqueIdentifier();
     if (tileTabsUniqueID.isEmpty()) {
             WuQMessageBox::errorOk(this,
@@ -322,12 +342,43 @@ TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
     
     m_blockReadConfigurationsFromPreferences = true;
     
-    AString errorMessage;
-    if ( ! m_caretPreferences->replaceTileTabsUserConfiguration(tileTabsUniqueID,
-                                                                activeConfiguration,
-                                                                errorMessage)) {
-        WuQMessageBox::errorOk(m_replaceConfigurationPushButton,
-                               errorMessage);
+    switch (getBrowserWindowContent()->getTileTabsConfigurationMode()) {
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+            CaretAssert(0);
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+        {
+            const TileTabsLayoutGridConfiguration* activeConfiguration = getCustomTileTabsGridConfiguration();
+            CaretAssert(activeConfiguration);
+            
+            AString errorMessage;
+            if ( ! m_caretPreferences->replaceTileTabsUserConfiguration(tileTabsUniqueID,
+                                                                        activeConfiguration,
+                                                                        errorMessage)) {
+                WuQMessageBox::errorOk(m_replaceConfigurationPushButton,
+                                       errorMessage);
+            }
+        }
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+        {
+            TileTabsLayoutManualConfiguration* manualConfig = createManualConfigurationFromCurrentTabs();
+            if (manualConfig != NULL) {
+                AString errorMessage;
+                if ( ! m_caretPreferences->replaceTileTabsUserConfiguration(tileTabsUniqueID,
+                                                                            manualConfig,
+                                                                            errorMessage)) {
+                    WuQMessageBox::errorOk(m_replaceConfigurationPushButton,
+                                           errorMessage);
+                }
+                delete manualConfig;
+            }
+            else {
+                WuQMessageBox::errorOk(m_addConfigurationPushButton,
+                                       "Tile Tabs MUST be enabled.");
+            }
+        }
+            break;
     }
 
     m_blockReadConfigurationsFromPreferences = false;
@@ -361,25 +412,192 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
     
     switch (userConfiguration->getLayoutType()) {
         case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+            CaretAssert(0);
+            break;
         case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
         {
-            TileTabsLayoutGridConfiguration* activeGridConfiguration = getCustomTileTabsGridConfiguration();
-            CaretAssert(activeGridConfiguration);
+            TileTabsLayoutGridConfiguration* customGridConfiguration = getCustomTileTabsGridConfiguration();
+            CaretAssert(customGridConfiguration);
             
-            const TileTabsLayoutGridConfiguration* copyConfig = userConfiguration->castToGridConfiguration();
-            CaretAssert(copyConfig);
+            const TileTabsLayoutGridConfiguration* userGridConfig = userConfiguration->castToGridConfiguration();
+            CaretAssert(userGridConfig);
             
-            activeGridConfiguration->copy(*copyConfig);
+            customGridConfiguration->copy(*userGridConfig);
+            
+            getBrowserWindowContent()->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID);
         }
             break;
         case TileTabsLayoutConfigurationTypeEnum::MANUAL:
-            CaretAssertToDoFatal();
+        {
+            const TileTabsLayoutManualConfiguration* userManualConfig = userConfiguration->castToManualConfiguration();
+            CaretAssert(userManualConfig);
+            const int32_t numConfigTabs = userManualConfig->getNumberOfTabs();
+            
+            if (numConfigTabs <= 0) {
+                WuQMessageBox::errorOk(m_loadConfigurationPushButton,
+                                       ("User configuration \""
+                                        + userManualConfig->getName()
+                                        + "\" is invalid (does not have any tabs)"));
+                return;
+            }
+            
+            std::vector<BrowserTabContent*> allTabContent;
+            getBrowserWindow()->getAllTabContent(allTabContent);
+            const int32_t numBrowserTabs = static_cast<int32_t>(allTabContent.size());
+            
+            const int numMissingTabs = numBrowserTabs - numConfigTabs;
+            if (numMissingTabs > 0) {
+                const QString msg("User configuration \""
+                                  + userManualConfig->getName()
+                                  + "\" contains fewer tabs than in window.  The last "
+                                  + AString::number(numMissingTabs)
+                                  + " will not change position.");
+                if ( ! WuQMessageBox::warningOkCancel(m_loadConfigurationPushButton, msg)) {
+                    return;
+                }
+            }
+            
+            std::vector<const BrainOpenGLViewportContent*> tabViewports;
+            getBrowserWindow()->getAllBrainOpenGLViewportContent(tabViewports);
+            const int32_t numViewportContent = static_cast<int32_t>(tabViewports.size());
+            
+            for (int32_t i = 0; i < numBrowserTabs; i++) {
+                CaretAssertVectorIndex(allTabContent, i);
+                TileTabsBrowserTabGeometry* tabGeometry = allTabContent[i]->getManualLayoutGeometry();
+                CaretAssert(tabGeometry);
+                
+                if (i < numConfigTabs) {
+                    const TileTabsBrowserTabGeometry* configGeometry =  userManualConfig->getTabInfo(i);
+                    CaretAssert(configGeometry);
+                    
+                    tabGeometry->copyGeometry(*configGeometry);
+                }
+                else {
+                    if (i < numViewportContent) {
+                        /*
+                         * Since no geometry available from the user configuration,
+                         * keep this tab in its current window position
+                         */
+                        const BrainOpenGLViewportContent* tabViewportContent = getViewportContentForTab(allTabContent[i]->getTabNumber());
+                        if (tabViewportContent != NULL) {
+                            int32_t windowViewport[4];
+                            tabViewportContent->getWindowViewport(windowViewport);
+                            const float minX(windowViewport[0]);
+                            const float maxX(minX + windowViewport[2]);
+                            const float minY(windowViewport[1]);
+                            const float maxY(minY + windowViewport[3]);
+                            
+                            
+                            tabGeometry->setMinX(minX);
+                            tabGeometry->setMaxX(maxX);
+                            tabGeometry->setMinY(minY);
+                            tabGeometry->setMaxY(maxY);
+                        }
+                        else {
+                            CaretLogWarning("Unable to find viewport content for tab number "
+                                            + AString::number(allTabContent[i]->getTabNumber()));
+                        }
+                    }
+                }
+            }
+            
+            getBrowserWindowContent()->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
+        }
             break;
     }
     
     updateGridStretchFactors();
     updateManualGeometryEditorWidget();
     updateGraphicsWindow();
+}
+
+/**
+ * @return the BrainOpenGLViewportContent for the tab with the given index (NULL if not found)
+ */
+const BrainOpenGLViewportContent*
+TileTabsConfigurationDialog::getViewportContentForTab(const int32_t tabIndex) const
+{
+    std::vector<const BrainOpenGLViewportContent*> tabViewports;
+    getBrowserWindow()->getAllBrainOpenGLViewportContent(tabViewports);
+    
+    for (const auto tv : tabViewports) {
+        if (tv->getTabIndex() == tabIndex) {
+            return tv;
+        }
+    }
+    
+    return NULL;
+}
+
+/**
+ * @return A manual configuration from the geometry of the current tabs.  If Tile Tabs
+ * is NOT enabled, NULL is returned.
+ */
+TileTabsLayoutManualConfiguration*
+TileTabsConfigurationDialog::createManualConfigurationFromCurrentTabs() const
+{
+    const BrainBrowserWindow* window = getBrowserWindow();
+    std::vector<BrowserTabContent*> allTabContent;
+    window->getAllTabContent(allTabContent);
+    
+    TileTabsLayoutManualConfiguration* manualConfig = new TileTabsLayoutManualConfiguration();
+    for (const auto btc : allTabContent) {
+        CaretAssert(btc);
+        const TileTabsBrowserTabGeometry* tabGeometry = btc->getManualLayoutGeometry();
+        TileTabsBrowserTabGeometry* geometryCopy = new TileTabsBrowserTabGeometry(*tabGeometry);
+        manualConfig->addTabInfo(geometryCopy);
+    }
+    
+    
+//    {
+//    std::vector<const BrainOpenGLViewportContent*> tabViewports;
+//    window->getAllBrainOpenGLViewportContent(tabViewports);
+//
+//    const float windowWidth = window->width();
+//    const float windowHeight = window->height();
+//
+//    TileTabsLayoutManualConfiguration* manualConfig = new TileTabsLayoutManualConfiguration();
+//
+//    for (const auto tv : tabViewports) {
+//        const int32_t tabIndex = tv->getTabIndex();
+//        if (tabIndex >= 0) {
+//            int32_t viewport[4];
+//            tv->getTabViewportBeforeApplyingMargins(viewport);
+//
+//            const float minX = viewport[0];
+//            const float maxX = viewport[0] + viewport[2];
+//            const float minY = viewport[1];
+//            const float maxY = viewport[1] + viewport[3];
+//
+//            TileTabsBrowserTabGeometry* geometry = new TileTabsBrowserTabGeometry(tabIndex);
+//            geometry->setMinX((minX / windowWidth)  * 100.0);
+//            geometry->setMaxX((maxX / windowWidth)  * 100.0);
+//            geometry->setMinY((minY / windowHeight) * 100.0);
+//            geometry->setMaxY((maxY / windowHeight) * 100.0);
+//
+//            geometry->setStackingOrder(tabIndex);
+//
+//            manualConfig->addTabInfo(geometry);
+//        }
+//    }
+//    }
+
+    return manualConfig;
+}
+
+
+/**
+ * @return The browser window selected window index.
+ */
+const BrainBrowserWindow*
+TileTabsConfigurationDialog::getBrowserWindow() const
+{
+    m_browserWindowComboBox->updateComboBox();
+    /*
+     * This can be NULL when wb_view is closing.
+     */
+    BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
+    return bbw;
 }
 
 /**
@@ -803,6 +1021,7 @@ TileTabsConfigurationDialog::addManualGeometryWidget(QGridLayout* gridLayout,
         gridLayout->addWidget(new QLabel("Right"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Bottom"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Top"), rowIndex, columnIndex++, Qt::AlignLeft);
+        gridLayout->addWidget(new QLabel("Background"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Order"), rowIndex, columnIndex++, Qt::AlignLeft);
     }
     
@@ -1015,11 +1234,11 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromGridConfiguration(Til
         }
         CaretAssert(columnWidths.size() == columnWidthsInt.size());
 
-        TileTabsLayoutManualConfiguration* manualLayout = new TileTabsLayoutManualConfiguration();
-        manualLayout->setName("From row:"
-                              + AString::number(rowHeights.size())
-                              + " col:"
-                              + AString::number(columnWidths.size()));
+//        TileTabsLayoutManualConfiguration* manualLayout = new TileTabsLayoutManualConfiguration();
+//        manualLayout->setName("From row:"
+//                              + AString::number(rowHeights.size())
+//                              + " col:"
+//                              + AString::number(columnWidths.size()));
         
         int32_t tabCounter(0);
         float yBottom(windowHeight);
@@ -1042,7 +1261,7 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromGridConfiguration(Til
                             case TileTabsGridRowColumnContentTypeEnum::SPACE:
                                 break;
                             case TileTabsGridRowColumnContentTypeEnum::TAB:
-                            {
+                            if (tabCounter < numTabs) {
                                 CaretAssertVectorIndex(allTabContent, tabCounter);
                                 BrowserTabContent* tabContent(allTabContent[tabCounter]);
                                 
@@ -1382,12 +1601,18 @@ TileTabsConfigurationDialog::deleteUserConfigurationButtonClicked()
 void
 TileTabsConfigurationDialog::renameUserConfigurationButtonClicked()
 {
-    AString oldName;
-    AString uniqueID;
-    if (getSelectedUserConfigurationNameAndUniqueID(oldName,
-                                                    uniqueID)) {
+    const AString uniqueID(getSelectedUserTileTabsConfigurationUniqueIdentifier());
+    if (uniqueID.isEmpty()) {
+        WuQMessageBox::errorOk(m_renameConfigurationPushButton,
+                               "Selected configuration is missing Unique Identifier (Program Error)");
+        return;
+    }
+    
+    std::unique_ptr<TileTabsLayoutBaseConfiguration> config = m_caretPreferences->getCopyOfTileTabsUserConfigurationByUniqueIdentifier(uniqueID);
+    if (config) {
+        const AString oldName = config->getName();
         bool ok = false;
-        const AString newName = QInputDialog::getText(m_deleteConfigurationPushButton,
+        const AString newName = QInputDialog::getText(m_renameConfigurationPushButton,
                                                       "Rename Configuration",
                                                       "Name",
                                                       QLineEdit::Normal,
@@ -1408,8 +1633,37 @@ TileTabsConfigurationDialog::renameUserConfigurationButtonClicked()
             m_blockReadConfigurationsFromPreferences = false;
             updateDialog();
         }
-
     }
+    else {
+        WuQMessageBox::errorOk(m_renameConfigurationPushButton, ("Unable to find configuration with unique ID="
+                                                                 + uniqueID));
+    }
+//    if (getSelectedUserConfigurationNameAndUniqueID(oldName,
+//                                                    uniqueID)) {
+//        bool ok = false;
+//        const AString newName = QInputDialog::getText(m_renameConfigurationPushButton,
+//                                                      "Rename Configuration",
+//                                                      "Name",
+//                                                      QLineEdit::Normal,
+//                                                      oldName,
+//                                                      &ok);
+//        if (ok
+//            && ( ! newName.isEmpty())) {
+//            m_blockReadConfigurationsFromPreferences = true;
+//            AString errorMessage;
+//            if (m_caretPreferences->renameTileTabsUserConfiguration(uniqueID,
+//                                                                    newName,
+//                                                                    errorMessage)) {
+//            }
+//            else {
+//                WuQMessageBox::errorOk(m_renameConfigurationPushButton,
+//                                       errorMessage);
+//            }
+//            m_blockReadConfigurationsFromPreferences = false;
+//            updateDialog();
+//        }
+//
+//    }
 }
 
 /**

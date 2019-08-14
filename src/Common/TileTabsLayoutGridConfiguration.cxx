@@ -159,9 +159,9 @@ TileTabsLayoutGridConfiguration::initialize()
 void 
 TileTabsLayoutGridConfiguration::copyHelperTileTabsLayoutGridConfiguration(const TileTabsLayoutGridConfiguration& obj)
 {
-    if (this == &obj) {
-        return;
-    }
+//    if (this == &obj) {
+//        return;
+//    }
     
     copyHelperTileTabsLayoutBaseConfiguration(obj);
     m_columns = obj.m_columns;

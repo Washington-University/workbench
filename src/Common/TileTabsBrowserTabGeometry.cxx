@@ -19,9 +19,11 @@
  */
 /*LICENSE_END*/
 
-#define __TILE_TABS_TAB_INFO_DECLARE__
-#include "TileTabsLayoutTabInfo.h"
-#undef __TILE_TABS_TAB_INFO_DECLARE__
+#define __TILE_TABS_BROWSER_TAB_GEOMETRY_DECLARE__
+#include "TileTabsBrowserTabGeometry.h"
+#undef __TILE_TABS_BROWSER_TAB_GEOMETRY_DECLARE__
+
+#include <algorithm>
 
 #include <QTextStream>
 
@@ -31,7 +33,7 @@ using namespace caret;
 
     
 /**
- * \class caret::TileTabsLayoutTabInfo
+ * \class caret::TileTabsBrowserTabGeometry
  * \brief Information about a tab's position in the window using percentage coordinates
  * \ingroup Common
  *
@@ -42,17 +44,25 @@ using namespace caret;
 /**
  * Constructor.
  */
-TileTabsLayoutTabInfo::TileTabsLayoutTabInfo(const int32_t tabIndex)
+TileTabsBrowserTabGeometry::TileTabsBrowserTabGeometry(const int32_t tabIndex)
 : CaretObject(),
 m_tabIndex(tabIndex)
 {
-    
+    const float offset(2.0);
+    const float widthHeight(20.0);
+    const float minValue(offset * (m_tabIndex + 2.0));
+    const float maxValue(minValue + widthHeight);
+    m_minX = minValue;
+    m_maxX = maxValue;
+    m_minY = minValue;
+    m_maxY = maxValue;
+    m_stackingOrder = tabIndex;
 }
 
 /**
  * Destructor.
  */
-TileTabsLayoutTabInfo::~TileTabsLayoutTabInfo()
+TileTabsBrowserTabGeometry::~TileTabsBrowserTabGeometry()
 {
 }
 
@@ -61,10 +71,10 @@ TileTabsLayoutTabInfo::~TileTabsLayoutTabInfo()
  * @param obj
  *    Object that is copied.
  */
-TileTabsLayoutTabInfo::TileTabsLayoutTabInfo(const TileTabsLayoutTabInfo& obj)
+TileTabsBrowserTabGeometry::TileTabsBrowserTabGeometry(const TileTabsBrowserTabGeometry& obj)
 : CaretObject(obj)
 {
-    this->copyHelperTileTabsLayoutTabInfo(obj);
+    this->copyHelperTileTabsBrowserTabGeometry(obj);
 }
 
 /**
@@ -74,12 +84,12 @@ TileTabsLayoutTabInfo::TileTabsLayoutTabInfo(const TileTabsLayoutTabInfo& obj)
  * @return 
  *    Reference to this object.
  */
-TileTabsLayoutTabInfo&
-TileTabsLayoutTabInfo::operator=(const TileTabsLayoutTabInfo& obj)
+TileTabsBrowserTabGeometry&
+TileTabsBrowserTabGeometry::operator=(const TileTabsBrowserTabGeometry& obj)
 {
     if (this != &obj) {
         CaretObject::operator=(obj);
-        this->copyHelperTileTabsLayoutTabInfo(obj);
+        this->copyHelperTileTabsBrowserTabGeometry(obj);
     }
     return *this;    
 }
@@ -90,22 +100,34 @@ TileTabsLayoutTabInfo::operator=(const TileTabsLayoutTabInfo& obj)
  *    Object that is copied.
  */
 void 
-TileTabsLayoutTabInfo::copyHelperTileTabsLayoutTabInfo(const TileTabsLayoutTabInfo& obj)
+TileTabsBrowserTabGeometry::copyHelperTileTabsBrowserTabGeometry(const TileTabsBrowserTabGeometry& obj)
 {
     m_tabIndex = obj.m_tabIndex;
-    m_xCenter  = obj.m_xCenter;
-    m_yCenter  = obj.m_yCenter;
-    m_width    = obj.m_width;
-    m_height   = obj.m_height;
+    m_minX     = obj.m_minX;
+    m_maxX     = obj.m_maxX;
+    m_minY     = obj.m_minY;
+    m_maxY     = obj.m_maxY;
     m_stackingOrder  = obj.m_stackingOrder;
     m_backgroundType = obj.m_backgroundType;
+}
+
+/**
+ * Copy the given geometry to 'this'
+ *
+ * @param geometry
+ *     Geometry that is copied
+ */
+void
+TileTabsBrowserTabGeometry::copyGeometry(const TileTabsBrowserTabGeometry& geometry)
+{
+    copyHelperTileTabsBrowserTabGeometry(geometry);
 }
 
 /**
  * @return Index of the tab
  */
 int32_t
-TileTabsLayoutTabInfo::getTabIndex() const
+TileTabsBrowserTabGeometry::getTabIndex() const
 {
     return m_tabIndex;
 }
@@ -115,17 +137,17 @@ TileTabsLayoutTabInfo::getTabIndex() const
  * @return String describing this object's content.
  */
 AString 
-TileTabsLayoutTabInfo::toString() const
+TileTabsBrowserTabGeometry::toString() const
 {
     AString str;
     QTextStream ts(&str);
     
-    ts << "TileTabsLayoutTabInfo: "
+    ts << "TileTabsBrowserTabGeometry: "
     << "m_tabIndex=" << m_tabIndex
-    << " m_xCenter=" << m_xCenter
-    << " m_yCenter=" << m_yCenter
-    << " m_width=" << m_width
-    << " m_height=" << m_height
+    << " m_minX=" << m_minX
+    << " m_maxX=" << m_maxX
+    << " m_minY=" << m_minY
+    << " m_maxY=" << m_maxY
     << " m_stackingOrder=" << m_stackingOrder
     << " m_backgroundType=" << TileTabsLayoutBackgroundTypeEnum::toName(m_backgroundType);
 
@@ -136,9 +158,9 @@ TileTabsLayoutTabInfo::toString() const
  * @return center x-coordinate as percentage 0% to 100%
  */
 float
-TileTabsLayoutTabInfo::getCenterX() const
+TileTabsBrowserTabGeometry::getCenterX() const
 {
-    return m_xCenter;
+    return ((m_minX + m_maxX) / 2.0);
 }
 
 /**
@@ -148,18 +170,20 @@ TileTabsLayoutTabInfo::getCenterX() const
  *    New value for center x-coordinate as percentage 0% to 100%
  */
 void
-TileTabsLayoutTabInfo::setCenterX(const float x)
+TileTabsBrowserTabGeometry::setCenterX(const float x)
 {
-    m_xCenter = x;
+    const float dx = x - getCenterX();
+    m_minX += dx;
+    m_maxX += dx;
 }
 
 /**
  * @return center y-coordinate as percentage 0% to 100%
  */
 float
-TileTabsLayoutTabInfo::getCenterY() const
+TileTabsBrowserTabGeometry::getCenterY() const
 {
-    return m_yCenter;
+    return ((m_minY + m_maxY) / 2.0);
 }
 
 /**
@@ -169,18 +193,20 @@ TileTabsLayoutTabInfo::getCenterY() const
  *    New value for center y-coordinate as percentage 0% to 100%
  */
 void
-TileTabsLayoutTabInfo::setCenterY(const float y)
+TileTabsBrowserTabGeometry::setCenterY(const float y)
 {
-    m_yCenter = y;
+    const float dy = y - getCenterY();
+    m_minY += dy;
+    m_maxY += dy;
 }
 
 /**
  * @return width as percentage 0% to 100%
  */
 float
-TileTabsLayoutTabInfo::getWidth() const
+TileTabsBrowserTabGeometry::getWidth() const
 {
-    return m_width;
+    return (m_maxX - m_minX);
 }
 
 /**
@@ -190,18 +216,21 @@ TileTabsLayoutTabInfo::getWidth() const
  *    New value for width as percentage 0% to 100%
  */
 void
-TileTabsLayoutTabInfo::setWidth(const float width)
+TileTabsBrowserTabGeometry::setWidth(const float width)
 {
-    m_width = width;
+    const float cx = getCenterX();
+    const float half = width / 2.0;
+    m_minX = cx - half;
+    m_maxX = cx + half;
 }
 
 /**
  * @return height as percentage 0% to 100%
  */
 float
-TileTabsLayoutTabInfo::getHeight() const
+TileTabsBrowserTabGeometry::getHeight() const
 {
-    return m_height;
+    return (m_maxY - m_minY);
 }
 
 /**
@@ -211,18 +240,21 @@ TileTabsLayoutTabInfo::getHeight() const
  *    New value for height as percentage 0% to 100%
  */
 void
-TileTabsLayoutTabInfo::setHeight(const float height)
+TileTabsBrowserTabGeometry::setHeight(const float height)
 {
-    m_height = height;
+    const float cy = getCenterY();
+    const float half = height / 2.0;
+    m_minY = cy - half;
+    m_maxY = cy + half;
 }
 
 /**
  * @return minimum x percentage 0% to 100% at left
  */
 float
-TileTabsLayoutTabInfo::getMinX() const
+TileTabsBrowserTabGeometry::getMinX() const
 {
-    return (m_xCenter - (m_width / 2.0));
+    return m_minX;
 }
 
 /**
@@ -232,18 +264,20 @@ TileTabsLayoutTabInfo::getMinX() const
  *    New value for minimum x percentage 0% to 100% at left
  */
 void
-TileTabsLayoutTabInfo::setMinX(const float minX)
+TileTabsBrowserTabGeometry::setMinX(const float minX)
 {
-    m_xCenter = minX + (m_width / 2.0);
+    m_minX = minX;
+    m_maxX = std::max(m_maxX,
+                      m_minX + 1.0f);
 }
 
 /**
  * @return maximum x percentage 0% to 100% at rigth
  */
 float
-TileTabsLayoutTabInfo::getMaxX() const
+TileTabsBrowserTabGeometry::getMaxX() const
 {
-    return (m_xCenter + (m_width / 2.0));
+    return m_maxX;
 }
 
 /**
@@ -253,18 +287,20 @@ TileTabsLayoutTabInfo::getMaxX() const
  *    New value for maximum x percentage 0% to 100% at right
  */
 void
-TileTabsLayoutTabInfo::setMaxX(const float maxX)
+TileTabsBrowserTabGeometry::setMaxX(const float maxX)
 {
-    m_xCenter = maxX - (m_width / 2.0);
+    m_maxX = maxX;
+    m_minX = std::min(m_minX,
+                      m_maxX - 1.0f);
 }
 
 /**
  * @return minimum y percentage 0% to 100% at bottom
  */
 float
-TileTabsLayoutTabInfo::getMinY() const
+TileTabsBrowserTabGeometry::getMinY() const
 {
-    return (m_yCenter - (m_height / 2.0));
+    return m_minY;
 }
 
 /**
@@ -274,18 +310,20 @@ TileTabsLayoutTabInfo::getMinY() const
  *    New value for minimum y percentage 0% to 100% at bottom
  */
 void
-TileTabsLayoutTabInfo::setMinY(const float minY)
+TileTabsBrowserTabGeometry::setMinY(const float minY)
 {
-    m_yCenter = minY + (m_height / 2.0);
+    m_minY = minY;
+    m_maxY = std::max(m_maxY,
+                      m_minY + 1.0f);
 }
 
 /**
  * @return maximum y percentage 0% to 100% at top
  */
 float
-TileTabsLayoutTabInfo::getMaxY() const
+TileTabsBrowserTabGeometry::getMaxY() const
 {
-    return (m_xCenter + (m_height / 2.0));
+    return m_maxY;
 }
 
 /**
@@ -295,9 +333,11 @@ TileTabsLayoutTabInfo::getMaxY() const
  *    New value for maximum y percentage 0% to 100% at top
  */
 void
-TileTabsLayoutTabInfo::setMaxY(const float maxY)
+TileTabsBrowserTabGeometry::setMaxY(const float maxY)
 {
-    m_xCenter = maxY - (m_height / 2.0);
+    m_maxY = maxY;
+    m_minY = std::min(m_minY,
+                      m_maxY - 1.0f);
 }
 
 /**
@@ -311,9 +351,9 @@ TileTabsLayoutTabInfo::setMaxY(const float maxY)
  *     Output containing lower-left X, Y, Width, and Height in window coordinates
  */
 void
-TileTabsLayoutTabInfo::getWindowViewport(const int32_t windowWidth,
-                                   const int32_t windowHeight,
-                                   int32_t viewportOut[4]) const
+TileTabsBrowserTabGeometry::getWindowViewport(const int32_t windowWidth,
+                                              const int32_t windowHeight,
+                                              int32_t viewportOut[4]) const
 {
     viewportOut[0] = static_cast<int32_t>((getMinX()   / 100.0) * windowWidth);
     viewportOut[1] = static_cast<int32_t>((getMinY()   / 100.0) * windowHeight);
@@ -325,7 +365,7 @@ TileTabsLayoutTabInfo::getWindowViewport(const int32_t windowWidth,
  * @return Stacking order (depth in screen) of tab, greater value is 'in front'
  */
 int32_t
-TileTabsLayoutTabInfo::getStackingOrder() const
+TileTabsBrowserTabGeometry::getStackingOrder() const
 {
     return m_stackingOrder;
 }
@@ -337,7 +377,7 @@ TileTabsLayoutTabInfo::getStackingOrder() const
  *    New value for Stacking order (depth in screen) of tab, greater value is 'in front'
  */
 void
-TileTabsLayoutTabInfo::setStackingOrder(const int32_t stackingOrder)
+TileTabsBrowserTabGeometry::setStackingOrder(const int32_t stackingOrder)
 {
     m_stackingOrder = stackingOrder;
 }
@@ -346,7 +386,7 @@ TileTabsLayoutTabInfo::setStackingOrder(const int32_t stackingOrder)
  * @return Type of background (opaque / transparent) for tab
  */
 TileTabsLayoutBackgroundTypeEnum::Enum
-TileTabsLayoutTabInfo::getBackgroundType() const
+TileTabsBrowserTabGeometry::getBackgroundType() const
 {
     return m_backgroundType;
 }
@@ -358,7 +398,7 @@ TileTabsLayoutTabInfo::getBackgroundType() const
  *    New value for Type of background (opaque / transparent) for tab
  */
 void
-TileTabsLayoutTabInfo::setBackgroundType(const TileTabsLayoutBackgroundTypeEnum::Enum backgroundType)
+TileTabsBrowserTabGeometry::setBackgroundType(const TileTabsLayoutBackgroundTypeEnum::Enum backgroundType)
 {
     m_backgroundType = backgroundType;
 }

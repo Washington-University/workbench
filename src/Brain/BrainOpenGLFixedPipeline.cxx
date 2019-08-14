@@ -146,6 +146,7 @@
 #include "SurfaceProjectionBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
 #include "SurfaceSelectionModel.h"
+#include "TileTabsBrowserTabGeometry.h"
 #include "TopologyHelper.h"
 #include "VolumeFile.h"
 #include "VolumeMappableInterface.h"
@@ -605,7 +606,8 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     
     this->checkForOpenGLError(NULL, "At middle of drawModels()");
     
-    for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
+    const int32_t numberOfTabs = static_cast<int32_t>(viewportContents.size());
+    for (int32_t i = 0; i < numberOfTabs; i++) {
         const BrainOpenGLViewportContent* vpContent = viewportContents[i];
         /*
          * Don't draw if off-screen
@@ -659,34 +661,80 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
          */
         updateForegroundAndBackgroundColors(vpContent);
         
-        /*
-         * If the background color for this viewport content is
-         * different that the clear color, THEN
-         * draw a rectangle with the background color.
-         */
-        if ((m_backgroundColorByte[0] != clearColorByte[0])
-            || (m_backgroundColorByte[1] != clearColorByte[1])
-            || (m_backgroundColorByte[2] != clearColorByte[2])) {
-            GLboolean depthEnabledFlag;
-            glGetBooleanv(GL_DEPTH_TEST,
-                          &depthEnabledFlag);
-            glDisable(GL_DEPTH_TEST);
-            
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            glColor3ubv(m_backgroundColorByte);
-            glBegin(GL_POLYGON);
-            glVertex2f(0.0, 0.0);
-            glVertex2f(1.0, 0.0);
-            glVertex2f(1.0, 1.0);
-            glVertex2f(0.0, 1.0);
-            glEnd();
-            
-            if (depthEnabledFlag) {
-                glEnable(GL_DEPTH_TEST);
+        bool tileTabsFlag(false);
+        const BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
+        if (tabContent != NULL) {
+            if (numberOfTabs > 1) {
+                bool opaqueFlag(false);
+                switch (tabContent->getManualLayoutGeometry()->getBackgroundType()) {
+                    case TileTabsLayoutBackgroundTypeEnum::OPAQUE:
+                        opaqueFlag = true;
+                        break;
+                    case TileTabsLayoutBackgroundTypeEnum::TRANSPARENT:
+                        break;
+                }
+                
+                glPushAttrib(GL_COLOR_BUFFER_BIT
+                             | GL_DEPTH_BUFFER_BIT
+                             | GL_SCISSOR_BIT);
+                
+                GLint tabViewport[4];
+                vpContent->getTabViewportBeforeApplyingMargins(tabViewport);
+                glClearColor(m_backgroundColorFloat[0],
+                             m_backgroundColorFloat[1],
+                             m_backgroundColorFloat[2],
+                             m_backgroundColorFloat[3]);
+                
+                glEnable(GL_SCISSOR_TEST);
+                glScissor(tabViewport[0],
+                          tabViewport[1],
+                          tabViewport[2],
+                          tabViewport[3]);
+                
+                if (opaqueFlag) {
+                    glClear(GL_COLOR_BUFFER_BIT
+                            | GL_DEPTH_BUFFER_BIT);
+                }
+                else {
+                    glClear(GL_DEPTH_BUFFER_BIT);
+                }
+                
+                glPopAttrib();
+                
+                tileTabsFlag = true;
+            }
+        }
+        
+        if ( ! tileTabsFlag) {
+            /*
+             * If the background color for this viewport content is
+             * different that the clear color, THEN
+             * draw a rectangle with the background color.
+             */
+            if ((m_backgroundColorByte[0] != clearColorByte[0])
+                || (m_backgroundColorByte[1] != clearColorByte[1])
+                || (m_backgroundColorByte[2] != clearColorByte[2])) {
+                GLboolean depthEnabledFlag;
+                glGetBooleanv(GL_DEPTH_TEST,
+                              &depthEnabledFlag);
+                glDisable(GL_DEPTH_TEST);
+                
+                glMatrixMode(GL_PROJECTION);
+                glLoadIdentity();
+                glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+                glMatrixMode(GL_MODELVIEW);
+                glLoadIdentity();
+                glColor3ubv(m_backgroundColorByte);
+                glBegin(GL_POLYGON);
+                glVertex2f(0.0, 0.0);
+                glVertex2f(1.0, 0.0);
+                glVertex2f(1.0, 1.0);
+                glVertex2f(0.0, 1.0);
+                glEnd();
+                
+                if (depthEnabledFlag) {
+                    glEnable(GL_DEPTH_TEST);
+                }
             }
         }
 

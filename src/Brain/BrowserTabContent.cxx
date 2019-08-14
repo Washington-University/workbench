@@ -86,6 +86,7 @@
 #include "SurfaceSelectionModel.h"
 #include "StructureEnum.h"
 #include "TileTabsBrowserTabGeometry.h"
+#include "TileTabsBrowserTabGeometrySceneHelper.h"
 #include "VolumeFile.h"
 #include "ViewingTransformations.h"
 #include "ViewingTransformationsCerebellum.h"
@@ -228,9 +229,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                                                        &m_brainModelYokingGroup);
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_chartModelYokingGroup",
                                                                        &m_chartModelYokingGroup);
-    
-    CaretAssertToDoWarning(); // need to save/restore m_manualLayoutTabGeometry
-    
+
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET);
     EventManager::get()->addEventListener(this,
@@ -371,6 +370,22 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     }
     
     m_volumeSurfaceOutlineSetModel->copyVolumeSurfaceOutlineSetModel(tabToClone->getVolumeSurfaceOutlineSet());
+    
+    /*
+     * For manual layout, make tab same size but put in bottom left corner
+     */
+    const TileTabsBrowserTabGeometry* cloneGeometry = tabToClone->getManualLayoutGeometry();
+    CaretAssert(cloneGeometry);
+    const float minXY(10.0f);
+    const float maxWidthHeight(100.0f - (minXY * 2));
+    float tabWidth  = MathFunctions::limitRange(cloneGeometry->getMaxX() - cloneGeometry->getMinX(), minXY, maxWidthHeight);
+    float tabHeight = MathFunctions::limitRange(cloneGeometry->getMaxY() - cloneGeometry->getMinY(), minXY, maxWidthHeight);
+    TileTabsBrowserTabGeometry* geometry = getManualLayoutGeometry();
+    CaretAssert(geometry);
+    geometry->setMinX(minXY);
+    geometry->setMaxX(geometry->getMinX() + tabWidth);
+    geometry->setMinY(minXY);
+    geometry->setMaxY(geometry->getMinY() + tabHeight);
 }
 
 /**
@@ -3560,7 +3575,11 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     m_obliqueVolumeRotationMatrix->getMatrixForOpenGL(obliqueMatrix);
     sceneClass->addFloatArray("m_obliqueVolumeRotationMatrix", obliqueMatrix, 16);
     
-    m_sceneClassAssistant->saveMembers(sceneAttributes, 
+    TileTabsBrowserTabGeometrySceneHelper geometryHelper(m_manualLayoutTabGeometry.get());
+    sceneClass->addClass(geometryHelper.saveToScene(sceneAttributes,
+                                                    "m_manualLayoutTabGeometry"));
+
+    m_sceneClassAssistant->saveMembers(sceneAttributes,
                                        sceneClass);
     
     return sceneClass;
@@ -3589,6 +3608,10 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_A;
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     
+    TileTabsBrowserTabGeometrySceneHelper geometryHelper(m_manualLayoutTabGeometry.get());
+    geometryHelper.restoreFromScene(sceneAttributes,
+                                    sceneClass->getClass("m_manualLayoutTabGeometry"));
+
     m_sceneClassAssistant->restoreMembers(sceneAttributes,
                                           sceneClass);
     

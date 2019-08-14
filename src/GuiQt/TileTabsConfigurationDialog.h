@@ -42,6 +42,7 @@ class QToolButton;
 namespace caret {
     class BrainBrowserWindow;
     class BrainBrowserWindowComboBox;
+    class BrainOpenGLViewportContent;
     class BrowserWindowContent;
     class CaretPreferences;
     class EnumComboBoxTemplate;
@@ -171,9 +172,15 @@ namespace caret {
         
         BrainBrowserWindow* getBrowserWindow();
         
+        const BrainBrowserWindow* getBrowserWindow() const;
+        
         BrowserWindowContent* getBrowserWindowContent();
         
         AString getNewConfigurationName(QWidget* dialogParent);
+        
+        const BrainOpenGLViewportContent* getViewportContentForTab(const int32_t tabIndex) const;
+
+        TileTabsLayoutManualConfiguration* createManualConfigurationFromCurrentTabs() const;
         
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
@@ -231,7 +238,6 @@ namespace caret {
          */
         CaretPreferences* m_caretPreferences;
         
-        friend class TileTabGridRowColumnWidgets;
         friend class TileTabGridRowColumnWidgets;
         
         static const int32_t s_maximumRowsColumns = 50;

@@ -66,8 +66,6 @@ TileTabsLayoutBaseConfiguration::~TileTabsLayoutBaseConfiguration()
 /**
  * Copy constructor.
  *
- * NOTE: Unique identifier remains the same ! See also: newCopyWithNewUniqueIdentifier()
- *
  * @param obj
  *    Object that is copied.
  */
@@ -75,9 +73,7 @@ TileTabsLayoutBaseConfiguration::TileTabsLayoutBaseConfiguration(const TileTabsL
 : CaretObject(obj),
 m_layoutType(obj.m_layoutType)
 {
-    const AString savedUniqueID = m_uniqueIdentifier;
     initializeTileTabsLayoutBaseConfiguration();
-    m_uniqueIdentifier = savedUniqueID;
     this->copyHelperTileTabsLayoutBaseConfiguration(obj);
 }
 
@@ -96,7 +92,9 @@ TileTabsLayoutBaseConfiguration::operator=(const TileTabsLayoutBaseConfiguration
 {
     if (this != &obj) {
         CaretObject::operator=(obj);
+        const QString savedUniqueID = m_uniqueIdentifier;
         this->copyHelperTileTabsLayoutBaseConfiguration(obj);
+        m_uniqueIdentifier = savedUniqueID;
     }
     return *this;    
 }
