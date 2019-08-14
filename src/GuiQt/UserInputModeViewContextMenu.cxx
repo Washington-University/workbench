@@ -458,7 +458,7 @@ UserInputModeViewContextMenu::createParcelConnectivities()
 
     if (idNode->isValid()
         && idVoxel->isValid()) {
-        std::cout << "Have both surface and volume ID" << std::endl;
+        /* std::cout << "Have both surface and volume ID" << std::endl; */
     }
     
     /*

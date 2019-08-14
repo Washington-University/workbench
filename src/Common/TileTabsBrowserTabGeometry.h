@@ -116,7 +116,7 @@ namespace caret {
         int32_t m_stackingOrder = 1;
 
         /** Type of background (opaque / transparent) for tab*/
-        TileTabsLayoutBackgroundTypeEnum::Enum m_backgroundType = TileTabsLayoutBackgroundTypeEnum::OPAQUE;
+        TileTabsLayoutBackgroundTypeEnum::Enum m_backgroundType = TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG;
 
         // ADD_NEW_MEMBERS_HERE
 

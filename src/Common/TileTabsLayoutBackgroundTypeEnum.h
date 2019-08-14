@@ -35,10 +35,10 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Opaque */
-        OPAQUE,
-        /** Transparent */
-        TRANSPARENT
+        /** Opaque Note: 'OPAQUE' clashes with symbol in Window OpenGL */
+        OPAQUE_BG,
+        /** Transparent Note: 'TRANSPARENT' clashes with symbol in Window OpenGL*/
+        TRANSPARENT_BG
     };
 
 

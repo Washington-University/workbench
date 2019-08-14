@@ -218,7 +218,7 @@ TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(TileTabsLayoutGridC
                                 tabInfo->setWidth((width / windowWidth) * 100.0f);
                                 tabInfo->setHeight((height / windowHeight) * 100.0f);
                                 tabInfo->setStackingOrder(tabCounter);
-                                tabInfo->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE);
+                                tabInfo->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG);
                                 
                                 manualLayout->addTabInfo(tabInfo);
                                 

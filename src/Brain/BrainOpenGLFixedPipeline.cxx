@@ -667,10 +667,10 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
             if (numberOfTabs > 1) {
                 bool opaqueFlag(false);
                 switch (tabContent->getManualLayoutGeometry()->getBackgroundType()) {
-                    case TileTabsLayoutBackgroundTypeEnum::OPAQUE:
+                    case TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG:
                         opaqueFlag = true;
                         break;
-                    case TileTabsLayoutBackgroundTypeEnum::TRANSPARENT:
+                    case TileTabsLayoutBackgroundTypeEnum::TRANSPARENT_BG:
                         break;
                 }
                 

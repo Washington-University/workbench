@@ -1272,7 +1272,7 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromGridConfiguration(Til
                                 tabInfo->setMaxY(((yBottom + height) / windowHeight) * 100.0);
 
                                 tabInfo->setStackingOrder(tabCounter);
-                                tabInfo->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE);
+                                tabInfo->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG);
                                 
                                 tabCounter++;
                             }

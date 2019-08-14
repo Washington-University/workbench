@@ -106,12 +106,12 @@ TileTabsLayoutBackgroundTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(TileTabsLayoutBackgroundTypeEnum(OPAQUE,
-                                    "OPAQUE", 
+    enumData.push_back(TileTabsLayoutBackgroundTypeEnum(OPAQUE_BG,
+                                    "OPAQUE_BG",
                                     "Opaque"));
     
-    enumData.push_back(TileTabsLayoutBackgroundTypeEnum(TRANSPARENT,
-                                    "TRANSPARENT", 
+    enumData.push_back(TileTabsLayoutBackgroundTypeEnum(TRANSPARENT_BG,
+                                    "TRANSPARENT_BG",
                                     "Transparent"));
     
 }
@@ -165,10 +165,17 @@ TileTabsLayoutBackgroundTypeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 TileTabsLayoutBackgroundTypeEnum::Enum
-TileTabsLayoutBackgroundTypeEnum::fromName(const AString& name, bool* isValidOut)
+TileTabsLayoutBackgroundTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
+    AString name(nameIn);
+    if (name == "OPAQUE") {
+        name = "OPAQUED_BG";
+    }
+    else if (name == "TRANSPARENT") {
+        name = "TRANSPARENT_BG";
+    }
     bool validFlag = false;
     Enum enumValue = TileTabsLayoutBackgroundTypeEnum::enumData[0].enumValue;
     
