@@ -114,7 +114,7 @@ void OperationVolumeMerge::useParameters(OperationParameters* myParams, Progress
     vector<int64_t> outDims = firstVol->getOriginalDimensions();
     outDims.resize(4);
     outDims[3] = subvolCount;
-    volumeOut->reinitialize(outDims, firstVol->getSform(), firstDims[4], firstVol->getType());
+    volumeOut->reinitialize(outDims, firstVol->getSform(), firstDims[4], firstVol->getType(), firstVol->m_header);
     int64_t curOutVol = 0;
     for (int i = 0; i < numInputs; ++i)
     {

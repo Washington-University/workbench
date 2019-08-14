@@ -181,7 +181,7 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
         {
             outDims[3] = 1;
         }
-        myVolOut->reinitialize(outDims, myVolIn->getSform(), myDims[4]);
+        myVolOut->reinitialize(outDims, myVolIn->getSform(), myDims[4], SubvolumeAttributes::ANATOMY, myVolIn->m_header);
         if (sumSubvols)
         {
             myVolOut->setMapName(0, "sum of extrema");
@@ -228,7 +228,7 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
         vector<VoxelIJK> minima, maxima;
         vector<int64_t> outDims = myDims;
         outDims.resize(3);
-        myVolOut->reinitialize(outDims, myVolIn->getSform(), myDims[4]);
+        myVolOut->reinitialize(outDims, myVolIn->getSform(), myDims[4], SubvolumeAttributes::ANATOMY, myVolIn->m_header);
         myVolOut->setMapName(0, "extrema of " + myVolIn->getMapName(subvol));
         myVolOut->setValueAllVoxels(0.0f);
         for (int c = 0; c < myDims[4]; ++c)

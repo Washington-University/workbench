@@ -111,7 +111,7 @@ AlgorithmVolumeWarpfieldResample::AlgorithmVolumeWarpfieldResample(ProgressObjec
     outDims[1] = refDims[1];
     outDims[2] = refDims[2];
     int64_t numMaps = inVol->getNumberOfMaps(), numComponents = inVol->getNumberOfComponents();
-    outVol->reinitialize(outDims, refSform, numComponents, inVol->getType());
+    outVol->reinitialize(outDims, refSform, numComponents, inVol->getType(), inVol->m_header);
     if (inVol->isMappedWithLabelTable())
     {
         if (myMethod != VolumeFile::ENCLOSING_VOXEL)

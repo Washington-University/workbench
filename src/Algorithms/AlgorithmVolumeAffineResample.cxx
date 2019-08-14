@@ -113,7 +113,7 @@ AlgorithmVolumeAffineResample::AlgorithmVolumeAffineResample(ProgressObject* myP
     outDims[1] = refDims[1];
     outDims[2] = refDims[2];
     int64_t numMaps = inVol->getNumberOfMaps(), numComponents = inVol->getNumberOfComponents();
-    outVol->reinitialize(outDims, refSform, numComponents, inVol->getType());
+    outVol->reinitialize(outDims, refSform, numComponents, inVol->getType(), inVol->m_header);
     FloatMatrix targetToSource = myAffine;
     targetToSource.resize(4, 4);
     targetToSource[3][0] = 0.0f;

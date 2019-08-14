@@ -236,7 +236,7 @@ AlgorithmVolumeROIsFromExtrema::AlgorithmVolumeROIsFromExtrema(ProgressObject* m
     vector<int64_t> outDims = myDims;
     outDims.resize(4);
     outDims[3] = extremaCount;
-    myVolOut->reinitialize(outDims, myVol->getSform());
+    myVolOut->reinitialize(outDims, myVol->getSform(), 1, SubvolumeAttributes::ANATOMY, myVol->m_header);
     vector<float> tempFrame(frameSize, 0.0f);
     if (sigma > 0.0f)
     {

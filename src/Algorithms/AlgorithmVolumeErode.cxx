@@ -202,7 +202,7 @@ AlgorithmVolumeErode::AlgorithmVolumeErode(ProgressObject* myProgObj, const Volu
     }
     if (subvol == -1)
     {
-        volOut->reinitialize(volIn->getOriginalDimensions(), volIn->getSform(), volIn->getNumberOfComponents(), volIn->getType());
+        volOut->reinitialize(volIn->getOriginalDimensions(), volIn->getSform(), volIn->getNumberOfComponents(), volIn->getType(), volIn->m_header);
         for (int i = 0; i < myDims[3]; ++i)
         {
             if (volIn->getType() == SubvolumeAttributes::LABEL)
@@ -223,7 +223,7 @@ AlgorithmVolumeErode::AlgorithmVolumeErode(ProgressObject* myProgObj, const Volu
     } else {
         vector<int64_t> outDims = myDims;
         outDims.resize(3);
-        volOut->reinitialize(outDims, volIn->getSform(), volIn->getNumberOfComponents(), volIn->getType());
+        volOut->reinitialize(outDims, volIn->getSform(), volIn->getNumberOfComponents(), volIn->getType(), volIn->m_header);
         if (volIn->getType() == SubvolumeAttributes::LABEL)
         {
             *(volOut->getMapLabelTable(0)) = *(volIn->getMapLabelTable(subvol));

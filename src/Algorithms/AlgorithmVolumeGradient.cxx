@@ -154,7 +154,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
     }
     if (subvolNum == -1)
     {
-        volOut->reinitialize(origDims, volIn->getSform(), myDims[4], volIn->getType());
+        volOut->reinitialize(origDims, volIn->getSform(), myDims[4], volIn->getType(), volIn->m_header);
         if (vectorsOut != NULL)
         {
             while (origDims.size() < 4)
@@ -405,7 +405,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
         }
     } else {
         origDims.resize(3);
-        volOut->reinitialize(origDims, volIn->getSform(), myDims[4], volIn->getType());
+        volOut->reinitialize(origDims, volIn->getSform(), myDims[4], volIn->getType(), volIn->m_header);
         if (vectorsOut != NULL)
         {
             origDims.push_back(3);

@@ -168,11 +168,11 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
         {
             outDims.push_back(inDims[i]);
         }
-        outVol->reinitialize(outDims, newLabel->getSform(), myDims[4], inVol->getType());
+        outVol->reinitialize(outDims, newLabel->getSform(), myDims[4], inVol->getType(), inVol->m_header);
     } else {
         vector<int64_t> outDims = newLabel->getOriginalDimensions();
         outDims.resize(3);//discard nonspatial dimentions
-        outVol->reinitialize(outDims, newLabel->getSform(), myDims[4], inVol->getType());
+        outVol->reinitialize(outDims, newLabel->getSform(), myDims[4], inVol->getType(), inVol->m_header);
     }
     outVol->setValueAllVoxels(0.0f);
     const float* labelFrame = curLabel->getFrame();

@@ -160,7 +160,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
         if (subvol == -1)
         {
             vector<int64_t> origDims = inVol->getOriginalDimensions();
-            outVol->reinitialize(origDims, volSpace, myDims[4]);
+            outVol->reinitialize(origDims, volSpace, myDims[4], inVol->getType(), inVol->m_header);
             vector<int> lists[3];
             for (int s = 0; s < myDims[3]; ++s)
             {
@@ -183,7 +183,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
             newDims[0] = origDims[0];
             newDims[1] = origDims[1];
             newDims[2] = origDims[2];
-            outVol->reinitialize(newDims, volSpace, myDims[4]);
+            outVol->reinitialize(newDims, volSpace, myDims[4], inVol->getType(), inVol->m_header);
             vector<int> lists[3];
             outVol->setMapName(0, inVol->getMapName(subvol) + ", smooth " + AString::number(kernel));
             for (int c = 0; c < myDims[4]; ++c)
@@ -244,7 +244,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
         if (subvol == -1)
         {
             vector<int64_t> origDims = inVol->getOriginalDimensions();
-            outVol->reinitialize(origDims, volSpace, myDims[4]);
+            outVol->reinitialize(origDims, volSpace, myDims[4], inVol->getType(), inVol->m_header);
             for (int s = 0; s < myDims[3]; ++s)
             {
                 outVol->setMapName(s, inVol->getMapName(s) + ", smooth " + AString::number(kernel));
@@ -261,7 +261,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
             newDims[0] = origDims[0];
             newDims[1] = origDims[1];
             newDims[2] = origDims[2];
-            outVol->reinitialize(newDims, volSpace, myDims[4]);
+            outVol->reinitialize(newDims, volSpace, myDims[4], inVol->getType(), inVol->m_header);
             outVol->setMapName(0, inVol->getMapName(subvol) + ", smooth " + AString::number(kernel));
             for (int c = 0; c < myDims[4]; ++c)
             {
