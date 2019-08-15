@@ -121,6 +121,8 @@
 #include "SurfaceSelectionViewController.h"
 #include "StructureSurfaceSelectionControl.h"
 #include "TileTabsLayoutGridConfiguration.h"
+#include "TileTabsBrowserTabGeometry.h"
+#include "TileTabsManualConfigurationModifier.h"
 #include "UserInputModeAbstract.h"
 #include "VolumeFile.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -825,11 +827,14 @@ BrainBrowserWindowToolBar::replaceBrowserTabs(const std::vector<BrowserTabConten
 
 /**
  * Adds a new tab.
+ *
+ * @return
+ *     Pointer to new tab content or NULL if tab could not be inserted
  */
-void
+BrowserTabContent*
 BrainBrowserWindowToolBar::addNewTab()
 {
-    insertNewTabAtTabBarIndex(-1);
+    return insertNewTabAtTabBarIndex(-1);
 }
 
 /**
@@ -837,12 +842,14 @@ BrainBrowserWindowToolBar::addNewTab()
  *
  * @param tabBarIndex
  *     Index in the tab bar.  If invalid, tab is appended to the end of the toolbar.
+ * @return
+ *     Pointer to new tab content or NULL if tab could not be inserted
  */
-void
+BrowserTabContent*
 BrainBrowserWindowToolBar::insertNewTabAtTabBarIndex(const int32_t tabBarIndex)
 {
     if ( ! allowAddingNewTab()) {
-        return;
+        return NULL;
     }
     
     /*
@@ -858,7 +865,7 @@ BrainBrowserWindowToolBar::insertNewTabAtTabBarIndex(const int32_t tabBarIndex)
         QMessageBox::critical(this,
                               "",
                               errorMessage);
-        return;
+        return NULL;
     }
     
     if (tabBarIndex >= 0){
@@ -877,6 +884,8 @@ BrainBrowserWindowToolBar::insertNewTabAtTabBarIndex(const int32_t tabBarIndex)
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+    
+    return tabContent;
 }
 
 
@@ -912,16 +921,18 @@ BrainBrowserWindowToolBar::insertTabContentPrivate(const InsertTabMode insertTab
             }
             break;
     }
-    
-    this->tabBar->setTabData(newTabIndex,
-                             qVariantFromValue((void*)browserTabContent));
-    
-    const int32_t numOpenTabs = this->tabBar->count();
-    this->tabBar->setTabsClosable(numOpenTabs > 1);
-    
-    this->updateTabName(newTabIndex);
-    
-    this->tabBar->setCurrentIndex(newTabIndex);
+
+    if (newTabIndex >= 0) {
+        this->tabBar->setTabData(newTabIndex,
+                                 qVariantFromValue((void*)browserTabContent));
+        
+        const int32_t numOpenTabs = this->tabBar->count();
+        this->tabBar->setTabsClosable(numOpenTabs > 1);
+        
+        this->updateTabName(newTabIndex);
+        
+        this->tabBar->setCurrentIndex(newTabIndex);
+    }
     
     this->tabBar->blockSignals(false);
 }
@@ -4535,36 +4546,7 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         EventBrowserWindowTileTabOperation* tileTabsEvent =
         dynamic_cast<EventBrowserWindowTileTabOperation*>(event);
         CaretAssert(tileTabsEvent);
-        
-        if (tileTabsEvent->getWindowIndex() == this->browserWindowIndex) {
-            const int32_t browserTabIndex = tileTabsEvent->getBrowserTabIndex();
-            int32_t tabBarIndex = getTabBarIndexWithBrowserTabIndex(browserTabIndex);
-            const EventBrowserWindowTileTabOperation::Operation operation = tileTabsEvent->getOperation();
-            switch (operation) {
-                case EventBrowserWindowTileTabOperation::OPERATION_NEW_TAB_AFTER:
-                    if (tabBarIndex >= 0) {
-                        insertNewTabAtTabBarIndex(tabBarIndex + 1);
-                    }
-                    break;
-                case EventBrowserWindowTileTabOperation::OPERATION_NEW_TAB_BEFORE:
-                    if (tabBarIndex >= 0) {
-                        insertNewTabAtTabBarIndex(tabBarIndex);
-                    }
-                    break;
-                case EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB:
-                    if (tabBarIndex >= 0) {
-                        m_tileTabsHighlightingTimerEnabledFlag = false;
-                        this->tabBar->setCurrentIndex(tabBarIndex);
-                        m_tileTabsHighlightingTimerEnabledFlag = true;
-                    }
-                    break;
-                case EventBrowserWindowTileTabOperation::OPERATION_REPLACE_TABS:
-                    replaceBrowserTabs(tileTabsEvent->getBrowserTabsForReplaceOperation());
-                    break;
-            }
-            
-            tileTabsEvent->setEventProcessed();
-        }
+        processTileTabOperationEvent(tileTabsEvent);
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_YOKED_WINDOWS) {
         EventUpdateYokedWindows* yokeUpdateEvent =
@@ -4609,6 +4591,146 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         
     }
 }
+
+/**
+ * Process a tile tab operation event.
+ *
+ * @param tileTabOperation
+ */
+void
+BrainBrowserWindowToolBar::processTileTabOperationEvent(EventBrowserWindowTileTabOperation* tileTabsEvent)
+{
+    if (tileTabsEvent->getWindowIndex() == this->browserWindowIndex) {
+        const int32_t browserTabIndex = tileTabsEvent->getBrowserTabIndex();
+        int32_t tabBarIndex = getTabBarIndexWithBrowserTabIndex(browserTabIndex);
+        const EventBrowserWindowTileTabOperation::Operation operation = tileTabsEvent->getOperation();
+        switch (operation) {
+            case EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_AFTER:
+                if (tabBarIndex >= 0) {
+                    insertNewTabAtTabBarIndex(tabBarIndex + 1);
+                }
+                break;
+            case EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_BEFORE:
+                if (tabBarIndex >= 0) {
+                    insertNewTabAtTabBarIndex(tabBarIndex);
+                }
+                break;
+            case EventBrowserWindowTileTabOperation::OPERATION_MANUAL_NEW_TAB:
+            {
+                BrowserTabContent* btc = addNewTab();
+                if (btc != NULL) {
+                    int32_t windowViewport[4];
+                    tileTabsEvent->getWindowViewport(windowViewport);
+                    
+                    const float windowWidth = windowViewport[2];
+                    const float windowHeight = windowViewport[3];
+                    const float windowArea = windowWidth * windowHeight;
+                    
+                    float tabWidth(250);
+                    float tabHeight(250);
+                    const float numTabs = getNumberOfTabs();
+                    if (windowArea > 100.0) {
+                        if (numTabs > 1) {
+                            const float area = windowArea / numTabs;
+                            tabWidth =  std::sqrt(area);
+                            tabHeight = std::sqrt(area);
+                        }
+                    }
+                    
+                    const float mouseX(tileTabsEvent->getMouseX());
+                    const float mouseY(tileTabsEvent->getMouseY());
+                    
+                    /*
+                     * Coordinates are in percentages
+                     */
+                    float tabMinX = (mouseX - (tabWidth  / 2.0));
+                    float tabMaxX = (mouseX + (tabWidth  / 2.0));
+                    float tabMinY = (mouseY - (tabHeight / 2.0));
+                    float tabMaxY = (mouseY + (tabHeight / 2.0));
+                    
+                    tabMinX = (tabMinX / windowWidth) * 100.0;
+                    tabMaxX = (tabMaxX / windowWidth) * 100.0;
+                    tabMinY = (tabMinY / windowHeight) * 100.0;
+                    tabMaxY = (tabMaxY / windowHeight) * 100.0;
+                    
+                    TileTabsBrowserTabGeometry* geometry = btc->getManualLayoutGeometry();
+                    CaretAssert(geometry);
+                    geometry->setBounds(tabMinX,
+                                        tabMaxX,
+                                        tabMinY,
+                                        tabMaxY);
+                    updateGraphicsWindow();
+                }
+            }
+                break;
+            case EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_TO_FRONT:
+            case EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_FORWARD:
+            case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK:
+            case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD:
+            {
+                TileTabsManualConfigurationModifier::TabOrderOperation tabOrderOperation = TileTabsManualConfigurationModifier::TabOrderOperation::BRING_TO_FRONT;
+                switch (operation) {
+                    case EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_AFTER:
+                    case EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_BEFORE:
+                    case EventBrowserWindowTileTabOperation::OPERATION_MANUAL_NEW_TAB:
+                        CaretAssert(0);
+                        break;
+                    case EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_TO_FRONT:
+                        tabOrderOperation = TileTabsManualConfigurationModifier::TabOrderOperation::BRING_TO_FRONT;
+                        break;
+                    case EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_FORWARD:
+                        tabOrderOperation = TileTabsManualConfigurationModifier::TabOrderOperation::BRING_FORWARD;
+                        break;
+                    case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK:
+                        tabOrderOperation = TileTabsManualConfigurationModifier::TabOrderOperation::SEND_TO_BACK;
+                        break;
+                    case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD:
+                        tabOrderOperation = TileTabsManualConfigurationModifier::TabOrderOperation::SEND_BACKWARD;
+                        break;
+                    case EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB:
+                    case EventBrowserWindowTileTabOperation::OPERATION_REPLACE_TABS:
+                        CaretAssert(0);
+                        break;
+                }
+
+                std::vector<BrowserTabContent*> allTabContent;
+                getAllTabContent(allTabContent);
+                AString errorMessage;
+                TileTabsManualConfigurationModifier modifier(allTabContent);
+                if (! modifier.runTabOrderOperation(tabOrderOperation,
+                                                    browserTabIndex,
+                                                    errorMessage)) {
+                    WuQMessageBox::errorOk(this,
+                                           errorMessage);
+                }
+            }
+                break;
+            case EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB:
+                if (tabBarIndex >= 0) {
+                    /*
+                     * Highlighting places outline around tab in graphics region
+                     */
+                    const bool highlightTabWithOutlineFlag(true);
+                    if ( ! highlightTabWithOutlineFlag) {
+                        m_tileTabsHighlightingTimerEnabledFlag = false;
+                    }
+                    this->tabBar->setCurrentIndex(tabBarIndex);
+                    if ( ! highlightTabWithOutlineFlag) {
+                        m_tileTabsHighlightingTimerEnabledFlag = true;
+                    }
+                }
+                break;
+            case EventBrowserWindowTileTabOperation::OPERATION_REPLACE_TABS:
+                replaceBrowserTabs(tileTabsEvent->getBrowserTabsForReplaceOperation());
+                break;
+        }
+        
+        tileTabsEvent->setEventProcessed();
+        
+        updateGraphicsWindow();
+    }
+}
+
 
 /**
  * Get the tab bar index containing the browser tab index.

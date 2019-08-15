@@ -41,8 +41,13 @@ namespace caret {
                                       const int32_t windowIndex,
                                       const int32_t browserTabIndex);
         enum Operation {
-            OPERATION_NEW_TAB_AFTER,
-            OPERATION_NEW_TAB_BEFORE,
+            OPERATION_GRID_NEW_TAB_AFTER,
+            OPERATION_GRID_NEW_TAB_BEFORE,
+            OPERATION_MANUAL_NEW_TAB,
+            OPERATION_ORDER_BRING_TO_FRONT,
+            OPERATION_ORDER_BRING_FORWARD,
+            OPERATION_ORDER_SEND_TO_BACK,
+            OPERATION_ORDER_SEND_BACKWARD,
             OPERATION_REPLACE_TABS,
             OPERATION_SELECT_TAB
         };
@@ -51,6 +56,9 @@ namespace caret {
                                            QWidget* parentWidget,
                                            const int32_t windowIndex,
                                            const int32_t browserTabIndex,
+                                           const int32_t windowViewport[4],
+                                           const int32_t mouseX,
+                                           const int32_t mouseY,
                                            const std::vector<BrowserTabContent*>& browserTabsForReplaceOperation);
         
         virtual ~EventBrowserWindowTileTabOperation();
@@ -62,6 +70,12 @@ namespace caret {
         int32_t getBrowserTabIndex() const;
         
         const std::vector<BrowserTabContent*> getBrowserTabsForReplaceOperation() const;
+        
+        void getWindowViewport(int32_t windowViewportOut[4]) const;
+        
+        int getMouseX() const;
+        
+        int getMouseY() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -78,7 +92,13 @@ namespace caret {
         
         const int32_t m_browserTabIndex;
         
+        const int32_t m_mouseX;
+        
+        const int32_t m_mouseY;
+
         const std::vector<BrowserTabContent*> m_browserTabsForReplaceOperation;
+        
+        int m_windowViewport[4];
         
         // ADD_NEW_MEMBERS_HERE
 

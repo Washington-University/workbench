@@ -67,6 +67,7 @@ namespace caret {
     class BrainBrowserWindowToolBarVolumeMontage;
     class BrainBrowserWindow;
     class BrowserTabContent;
+    class EventBrowserWindowTileTabOperation;
     class Model;
     class ModelSurface;
     class ModelVolumeInterface;
@@ -93,7 +94,7 @@ namespace caret {
         
         ~BrainBrowserWindowToolBar();
         
-        void addNewTab();
+        BrowserTabContent* addNewTab();
         
         void addNewDuplicatedTab(BrowserTabContent* browserTabContentToBeCloned);
         
@@ -241,6 +242,8 @@ namespace caret {
         
         void removeTabWithContent(BrowserTabContent* browserTabContent);
         
+        void processTileTabOperationEvent(EventBrowserWindowTileTabOperation* tileTabsEvent);
+        
     public slots:
         void closeSelectedTab();
 
@@ -279,11 +282,11 @@ namespace caret {
         void insertTabContentPrivate(const InsertTabMode insertTabMode,
                                      BrowserTabContent* browserTabContent,
                                      const int32_t tabBarIndex);
-        
+
         void removeTab(int index);
         void tabClosed(int index);
         
-        void insertNewTabAtTabBarIndex(int32_t tabBarIndex);
+        BrowserTabContent* insertNewTabAtTabBarIndex(int32_t tabBarIndex);
         void insertAndCloneTabContentAtTabBarIndex(const BrowserTabContent* tabContentToBeCloned,
                                                  const int32_t tabBarIndex);
         void replaceBrowserTabs(const std::vector<BrowserTabContent*>& browserTabs);

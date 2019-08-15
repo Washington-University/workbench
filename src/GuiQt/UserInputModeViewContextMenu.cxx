@@ -97,6 +97,8 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param mouseEvent
+ *    The mouse event
  * @param viewportContent
  *    Content of the viewport.
  * @param selectionManager
@@ -104,7 +106,8 @@ using namespace caret;
  * @param parentOpenGLWidget
  *    Parent OpenGL Widget on which the menu is displayed.
  */
-UserInputModeViewContextMenu::UserInputModeViewContextMenu(BrainOpenGLViewportContent* viewportContent,
+UserInputModeViewContextMenu::UserInputModeViewContextMenu(const MouseEvent& mouseEvent,
+                                                           BrainOpenGLViewportContent* viewportContent,
                                                            SelectionManager* selectionManager,
                                                            BrainOpenGLWidget* parentOpenGLWidget)
 : QMenu(parentOpenGLWidget)
@@ -116,11 +119,11 @@ UserInputModeViewContextMenu::UserInputModeViewContextMenu(BrainOpenGLViewportCo
     this->browserTabContent = viewportContent->getBrowserTabContent();
     CaretAssert(this->browserTabContent);
     
-    UserInputTileTabsContextMenu* tabMenu = new UserInputTileTabsContextMenu(this->parentOpenGLWidget,
+    UserInputTileTabsContextMenu* tabMenu = new UserInputTileTabsContextMenu(mouseEvent,
+                                                                             this->parentOpenGLWidget,
                                                                              this->viewportContent);
     if (tabMenu->isValid()) {
-        addSubMenuToMenu(tabMenu,
-                         true);
+        addMenu(tabMenu);
     }
     else {
         delete tabMenu;
@@ -129,72 +132,42 @@ UserInputModeViewContextMenu::UserInputModeViewContextMenu(BrainOpenGLViewportCo
     /*
      * Add the identification actions.
      */
-    addIdentificationActions();
+    QMenu* identifyMenu = createIdentifyMenu();
+    if (identifyMenu != NULL) {
+        addMenu(identifyMenu);
+    }
     
     /*
      * Add the border options.
      */
-    addBorderRegionOfInterestActions();
+    QMenu* borderMenu = createBorderRegionOfInterestMenu();
+    if (borderMenu != NULL) {
+        addMenu(borderMenu);
+    }
     
     /*
      * Add the chart actions
      */
-    addChartActions();
+    QMenu* chartMenu = createChartMenu();
+    if (chartMenu != NULL) {
+        addMenu(chartMenu);
+    }
     
     /*
      * Add the foci actions.
      */
-    addFociActions();
+    QMenu* fociMenu = createFociMenu();
+    if (fociMenu != NULL) {
+        addMenu(fociMenu);
+    }
     
     /*
      * Show Label ROI operations only for surfaces
      */
-    addLabelRegionOfInterestActions();
-    
-    const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
-    
-    bool showRemoveVertexSymbolsFlag = false;
-    if (this->browserTabContent != NULL) {
-        switch (this->browserTabContent->getSelectedModelType()) {
-            case ModelTypeEnum::MODEL_TYPE_CHART:
-                break;
-            case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
-                break;
-            case ModelTypeEnum::MODEL_TYPE_INVALID:
-                break;
-            case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                showRemoveVertexSymbolsFlag = true;
-                break;
-            case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                showRemoveVertexSymbolsFlag = true;
-                break;
-            case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                showRemoveVertexSymbolsFlag = true;
-                break;
-            case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                showRemoveVertexSymbolsFlag = true;
-                break;
-        }
-    }
-    if (showRemoveVertexSymbolsFlag) {
-        if (this->actions().count() > 0) {
-            this->addSeparator();
-        }
-        this->addAction("Remove All Vertex Identification Symbols",
-                        this,
-                        SLOT(removeAllNodeIdentificationSymbolsSelected()));
-    }
-    
-    if (idSymbol->isValid()) {
-        const AString text = ("Remove Identification of Vertices "
-                              + AString::number(idSymbol->getNodeNumber()));
-        
-        this->addAction(WuQtUtilities::createAction(text,
-                                                    "",
-                                                    this,
-                                                    this,
-                                                    SLOT(removeNodeIdentificationSymbolSelected())));
-    }
+    QMenu* labelMenu = createLabelRegionOfInterestMenu();
+    if (labelMenu != NULL) {
+        addMenu(labelMenu);
+    }    
 }
 
 /**
@@ -259,10 +232,10 @@ UserInputModeViewContextMenu::addSubMenuToMenu(QMenu* menu,
 }
 
 /**
- * Add the identification actions to the menu.
+ * @return The identification menu
  */
-void
-UserInputModeViewContextMenu::addIdentificationActions()
+QMenu*
+UserInputModeViewContextMenu::createIdentifyMenu()
 {
     /*
      * Accumlate identification actions
@@ -351,15 +324,68 @@ UserInputModeViewContextMenu::addIdentificationActions()
                                                                     SLOT(identifyVolumeFocusSelected())));
     }
     
-    addActionsToMenu(identificationActions,
-                     true);
+    const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = this->selectionManager->getSurfaceNodeIdentificationSymbol();
+    
+    bool showRemoveVertexSymbolsFlag = false;
+    if (this->browserTabContent != NULL) {
+        switch (this->browserTabContent->getSelectedModelType()) {
+            case ModelTypeEnum::MODEL_TYPE_CHART:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                showRemoveVertexSymbolsFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                showRemoveVertexSymbolsFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                showRemoveVertexSymbolsFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                showRemoveVertexSymbolsFlag = true;
+                break;
+        }
+    }
+    if (showRemoveVertexSymbolsFlag) {
+        identificationActions.push_back(WuQtUtilities::createAction("Remove All Vertex Identification Symbols",
+                                                                    "",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(removeAllNodeIdentificationSymbolsSelected())));
+    }
+    
+    if (idSymbol->isValid()) {
+        const AString text = ("Remove Identification of Vertices "
+                              + AString::number(idSymbol->getNodeNumber()));
+        
+        identificationActions.push_back(WuQtUtilities::createAction(text,
+                                                                    "",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(removeNodeIdentificationSymbolSelected())));
+    }
+    
+    QMenu* menu(NULL);
+    
+    if ( ! identificationActions.isEmpty()) {
+        menu = new QMenu("Identify");
+        
+        for (auto action : identificationActions) {
+            menu->addAction(action);
+        }
+    }
+    
+    return menu;
 }
 
 /**
- * Add the border region of interest actions to the menu.
+ * @return the border  menu.
  */
-void
-UserInputModeViewContextMenu::addBorderRegionOfInterestActions()
+QMenu*
+UserInputModeViewContextMenu::createBorderRegionOfInterestMenu()
 {
     SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
     
@@ -408,8 +434,19 @@ UserInputModeViewContextMenu::addBorderRegionOfInterestActions()
         }
     }
 
+    QMenu* menu(NULL);
+    
+    if ( ! borderActions.isEmpty()) {
+        menu = new QMenu("Borders");
+        
+        for (auto action : borderActions) {
+            menu->addAction(action);
+        }
+    }
     addActionsToMenu(borderActions,
                      true);
+    
+    return menu;
 }
 
 /**
@@ -668,10 +705,10 @@ UserInputModeViewContextMenu::createParcelConnectivities()
 }
 
 /**
- * Add all label region of interest options to the menu
+ * @return The label region of interest menu
  */
-void
-UserInputModeViewContextMenu::addLabelRegionOfInterestActions()
+QMenu*
+UserInputModeViewContextMenu::createLabelRegionOfInterestMenu()
 {
     createParcelConnectivities();
 
@@ -834,19 +871,29 @@ UserInputModeViewContextMenu::addLabelRegionOfInterestActions()
         }
     }
 
-    addActionsToMenu(connectivityActions,
-                     true);
-    addActionsToMenu(ciftiFiberTrajectoryActions,
-                     true);
-    addActionsToMenu(chartableDataActions,
-                     true);
+    std::vector<QAction*> allActions;
+    allActions.insert(allActions.end(), connectivityActions.begin(), connectivityActions.end());
+    allActions.insert(allActions.end(), ciftiFiberTrajectoryActions.begin(), ciftiFiberTrajectoryActions.end());
+    allActions.insert(allActions.end(), chartableDataActions.begin(), chartableDataActions.end());
+   
+    QMenu* menu(NULL);
+    
+    if ( ! allActions.empty()) {
+        menu = new QMenu("Label ROI");
+        
+        for (auto action : allActions) {
+            menu->addAction(action);
+        }
+    }
+    
+    return menu;
 }
 
 /**
  * Add chart options to the menu
  */
-void
-UserInputModeViewContextMenu::addChartActions()
+QMenu*
+UserInputModeViewContextMenu::createChartMenu()
 {
     QList<QAction*> chartActions;
 
@@ -859,7 +906,17 @@ UserInputModeViewContextMenu::addChartActions()
                                                                 SLOT(editChartLabelSelected())));
     }
     
-    addActionsToMenu(chartActions, true);
+    QMenu* menu(NULL);
+
+    if ( ! chartActions.isEmpty()) {
+        QMenu* menu = new QMenu("Chart");
+        
+        for (auto action : chartActions) {
+            menu->addAction(action);
+        }
+    }
+    
+    return menu;
 }
 
 /**
@@ -894,12 +951,12 @@ UserInputModeViewContextMenu::editChartLabelSelected()
 }
 
 /**
- * Add the foci options to the menu.
+ * @return The foci menu
  */
-void
-UserInputModeViewContextMenu::addFociActions()
+QMenu*
+UserInputModeViewContextMenu::createFociMenu()
 {
-    QList<QAction*> fociCreateActions;
+    QList<QAction*> fociActions;
     
     const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
     SelectionItemFocusSurface* focusID = this->selectionManager->getSurfaceFocusIdentification();
@@ -921,7 +978,7 @@ UserInputModeViewContextMenu::addFociActions()
                               + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
                               + ")...");
         
-        fociCreateActions.push_back(WuQtUtilities::createAction(text,
+        fociActions.push_back(WuQtUtilities::createAction(text,
                                                             "",
                                                             this,
                                                             this,
@@ -937,7 +994,7 @@ UserInputModeViewContextMenu::addFociActions()
                               + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
                               + ")...");
         
-        fociCreateActions.push_back(WuQtUtilities::createAction(text,
+        fociActions.push_back(WuQtUtilities::createAction(text,
                                                             "",
                                                             this,
                                                             this,
@@ -960,20 +1017,12 @@ UserInputModeViewContextMenu::addFociActions()
                               + ") XYZ ("
                               + AString::fromNumbers(xyz, 3, ",")
                               + ")...");
-        fociCreateActions.push_back(WuQtUtilities::createAction(text,
+        fociActions.push_back(WuQtUtilities::createAction(text,
                                                             "",
                                                             this,
                                                             this,
                                                             SLOT(createVolumeFocusSelected())));
     }
-    
-    addActionsToMenu(fociCreateActions,
-                     true);
-    
-    /*
-     * Actions for editing
-     */
-    QList<QAction*> fociEditActions;
     
     /*
      * Edit Surface Focus
@@ -982,7 +1031,7 @@ UserInputModeViewContextMenu::addFociActions()
         const QString text = ("Edit Surface Focus ("
                               + focusID->getFocus()->getName()
                               + ")");
-        fociEditActions.push_back(WuQtUtilities::createAction(text,
+        fociActions.push_back(WuQtUtilities::createAction(text,
                                                           "",
                                                           this,
                                                           this,
@@ -996,15 +1045,24 @@ UserInputModeViewContextMenu::addFociActions()
         const QString text = ("Edit Volume Focus ("
                               + focusVolID->getFocus()->getName()
                               + ")");
-        fociEditActions.push_back(WuQtUtilities::createAction(text,
+        fociActions.push_back(WuQtUtilities::createAction(text,
                                                           "",
                                                           this,
                                                           this,
                                                           SLOT(editVolumeFocusSelected())));
     }
-    
-    addActionsToMenu(fociEditActions,
-                     true);
+
+    QMenu* menu(NULL);
+   
+    if ( ! fociActions.isEmpty()) {
+        menu = new QMenu("Foci");
+        
+        for (auto action : fociActions) {
+            menu->addAction(action);
+        }
+    }
+
+    return menu;
 }
 
 /**

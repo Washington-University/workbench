@@ -46,6 +46,16 @@ namespace caret {
         
         int32_t getTabIndex() const;
         
+        void setBounds(const float minX,
+                       const float maxX,
+                       const float minY,
+                       const float maxY);
+        
+        void getBounds(float& minX,
+                       float& maxX,
+                       float& minY,
+                       float& maxY) const;
+        
         float getCenterX() const;
         
         void setCenterX(const float x);
@@ -90,6 +100,8 @@ namespace caret {
         
         void setBackgroundType(const TileTabsLayoutBackgroundTypeEnum::Enum backgroundType);
 
+        bool intersectionTest(const TileTabsBrowserTabGeometry* other) const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

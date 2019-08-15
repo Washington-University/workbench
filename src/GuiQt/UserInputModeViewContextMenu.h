@@ -42,6 +42,7 @@ namespace caret {
     class CiftiConnectivityMatrixDataFileManager;
     class CiftiFiberTrajectoryManager;
     class ChartingDataManager;
+    class MouseEvent;
     class SelectionManager;
     class LabelFile;
     class Surface;
@@ -51,7 +52,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        UserInputModeViewContextMenu(BrainOpenGLViewportContent* viewportContent,
+        UserInputModeViewContextMenu(const MouseEvent& mouseEvent,
+                                     BrainOpenGLViewportContent* viewportContent,
                                      SelectionManager* selectionManager,
                                      BrainOpenGLWidget* parentOpenGLWidget);
         
@@ -146,15 +148,15 @@ namespace caret {
         
         bool enableDataSeriesGraphsIfNoneEnabled();
         
-        void addIdentificationActions();
+        QMenu* createIdentifyMenu();
         
-        void addBorderRegionOfInterestActions();
+        QMenu* createBorderRegionOfInterestMenu();
         
-        void addChartActions();
+        QMenu* createChartMenu();
         
-        void addFociActions();
+        QMenu* createFociMenu();
         
-        void addLabelRegionOfInterestActions();
+        QMenu* createLabelRegionOfInterestMenu();
         
         void addSubMenuToMenu(QMenu* menu,
                               const bool addSeparatorBeforeMenu);

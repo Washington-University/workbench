@@ -448,7 +448,8 @@ SurfaceSelectionViewController.h
 ThresholdingSetMapsDialog.h
 TileTabGridRowColumnWidgets.h
 TileTabsConfigurationDialog.h
-TileTabsConfigurationModifier.h
+TileTabsGridConfigurationModifier.h
+TileTabsManualConfigurationModifier.h
 TileTabsManualTabGeometryWidget.h
 UserInputModeAbstract.h
 UserInputModeAnnotations.h
@@ -722,7 +723,8 @@ SurfaceSelectionViewController.cxx
 ThresholdingSetMapsDialog.cxx
 TileTabGridRowColumnWidgets.cxx
 TileTabsConfigurationDialog.cxx
-TileTabsConfigurationModifier.cxx
+TileTabsGridConfigurationModifier.cxx
+TileTabsManualConfigurationModifier.cxx
 TileTabsManualTabGeometryWidget.cxx
 UserInputModeAbstract.cxx
 UserInputModeAnnotations.cxx

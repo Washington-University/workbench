@@ -111,7 +111,7 @@
 #include "SurfaceSelectionViewController.h"
 #include "TileTabsLayoutGridConfiguration.h"
 #include "TileTabsLayoutManualConfiguration.h"
-#include "TileTabsConfigurationModifier.h"
+#include "TileTabsGridConfigurationModifier.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
@@ -2571,7 +2571,7 @@ BrainBrowserWindow::modifyTileTabsConfiguration(EventTileTabsGridConfigurationMo
         vpContent = m_openGLWidget->getViewportContent();
     }
     
-    TileTabsConfigurationModifier modifier(vpContent,
+    TileTabsGridConfigurationModifier modifier(vpContent,
                                            modEvent);
     
     AString errorMessage;

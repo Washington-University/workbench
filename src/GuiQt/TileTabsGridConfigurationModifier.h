@@ -1,5 +1,5 @@
-#ifndef __TILE_TABS_CONFIGURATION_MODIFIER_H__
-#define __TILE_TABS_CONFIGURATION_MODIFIER_H__
+#ifndef __TILE_TABS_GRID_CONFIGURATION_MODIFIER_H__
+#define __TILE_TABS_GRID_CONFIGURATION_MODIFIER_H__
 
 /*LICENSE_START*/
 /*
@@ -38,17 +38,17 @@ namespace caret {
     class TileTabsLayoutGridConfiguration;
     class TileTabsGridRowColumnElement;
     
-    class TileTabsConfigurationModifier : public CaretObject {
+    class TileTabsGridConfigurationModifier : public CaretObject {
         
     public:
-        TileTabsConfigurationModifier(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
+        TileTabsGridConfigurationModifier(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
                                       EventTileTabsGridConfigurationModification* modifyEvent);
         
-        virtual ~TileTabsConfigurationModifier();
+        virtual ~TileTabsGridConfigurationModifier();
         
-        TileTabsConfigurationModifier(const TileTabsConfigurationModifier&) = delete;
+        TileTabsGridConfigurationModifier(const TileTabsGridConfigurationModifier&) = delete;
 
-        TileTabsConfigurationModifier& operator=(const TileTabsConfigurationModifier&) = delete;
+        TileTabsGridConfigurationModifier& operator=(const TileTabsGridConfigurationModifier&) = delete;
         
         bool run(AString& errorMessageOut);
         
@@ -130,9 +130,9 @@ namespace caret {
 
     };
     
-#ifdef __TILE_TABS_CONFIGURATION_MODIFIER_DECLARE__
+#ifdef __TILE_TABS_GRID_CONFIGURATION_MODIFIER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __TILE_TABS_CONFIGURATION_MODIFIER_DECLARE__
+#endif // __TILE_TABS_GRID_CONFIGURATION_MODIFIER_DECLARE__
 
 } // namespace
-#endif  //__TILE_TABS_CONFIGURATION_MODIFIER_H__
+#endif  //__TILE_TABS_GRID_CONFIGURATION_MODIFIER_H__

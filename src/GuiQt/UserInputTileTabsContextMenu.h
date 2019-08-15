@@ -27,18 +27,22 @@
 
 #include <QMenu>
 
+#include "EventBrowserWindowTileTabOperation.h"
+
 class QWidget;
 
 namespace caret {
 
     class BrainOpenGLViewportContent;
+    class MouseEvent;
     
     class UserInputTileTabsContextMenu : public QMenu {
         
         Q_OBJECT
 
     public:
-        UserInputTileTabsContextMenu(QWidget* parentWidget,
+        UserInputTileTabsContextMenu(const MouseEvent& mouseEvent,
+                                     QWidget* parentWidget,
                                      BrainOpenGLViewportContent* viewportContent);
         
         virtual ~UserInputTileTabsContextMenu();
@@ -55,15 +59,34 @@ namespace caret {
 
         UserInputTileTabsContextMenu& operator=(const UserInputTileTabsContextMenu&);
         
+        void addItemToMenu(const QString& text,
+                           const EventBrowserWindowTileTabOperation::Operation operation);
+        
         QWidget* m_parentWidget;
         
         const int32_t m_windowIndex;
         
         const int32_t m_tabIndex;
+
+        int32_t m_windowViewport[4];
         
-        QAction* m_createNewTabBeforeAction = nullptr;
+        int32_t m_mouseWindowX = 0;
         
-        QAction* m_createNewTabAfterAction = nullptr;
+        int32_t m_mouseWindowY = 0;
+        
+        QAction* m_createNewGridTabBeforeAction = nullptr;
+        
+        QAction* m_createNewGridTabAfterAction = nullptr;
+        
+        QAction* m_createNewManualTabAction = nullptr;
+        
+        QAction* m_orderBringToFrontAction = nullptr;
+        
+        QAction* m_orderBringForwardAction = nullptr;
+        
+        QAction* m_orderSendToBackAction = nullptr;
+        
+        QAction* m_orderSendBackwardAction = nullptr;
         
         QAction* m_selectTabAction = nullptr;
         

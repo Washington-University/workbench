@@ -171,7 +171,7 @@ TileTabsLayoutBackgroundTypeEnum::fromName(const AString& nameIn, bool* isValidO
     
     AString name(nameIn);
     if (name == "OPAQUE") {
-        name = "OPAQUED_BG";
+        name = "OPAQUE_BG";
     }
     else if (name == "TRANSPARENT") {
         name = "TRANSPARENT_BG";
@@ -193,8 +193,8 @@ TileTabsLayoutBackgroundTypeEnum::fromName(const AString& nameIn, bool* isValidO
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type TileTabsLayoutBackgroundTypeEnum"));
+    else if ( ! validFlag) {
+        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type TileTabsLayoutBackgroundTypeEnum"));
     }
     return enumValue;
 }

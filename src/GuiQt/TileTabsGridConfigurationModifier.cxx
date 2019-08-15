@@ -21,9 +21,9 @@
 
 #include <algorithm>
 
-#define __TILE_TABS_CONFIGURATION_MODIFIER_DECLARE__
-#include "TileTabsConfigurationModifier.h"
-#undef __TILE_TABS_CONFIGURATION_MODIFIER_DECLARE__
+#define __TILE_TABS_GRID_CONFIGURATION_MODIFIER_DECLARE__
+#include "TileTabsGridConfigurationModifier.h"
+#undef __TILE_TABS_GRID_CONFIGURATION_MODIFIER_DECLARE__
 
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLViewportContent.h"
@@ -44,8 +44,8 @@ using namespace caret;
 static bool debugFlag = false;
     
 /**
- * \class caret::TileTabsConfigurationModifier 
- * \brief Modifies a tile tabs configuration.
+ * \class caret::TileTabsGridConfigurationModifier 
+ * \brief Modifies a tile tabs grid configuration.
  * \ingroup GuiQt
  */
 
@@ -57,7 +57,7 @@ static bool debugFlag = false;
  * @param modifyEvent
  *     Event describing modification.
  */
-TileTabsConfigurationModifier::TileTabsConfigurationModifier(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
+TileTabsGridConfigurationModifier::TileTabsGridConfigurationModifier(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
                                                              EventTileTabsGridConfigurationModification* modifyEvent)
 : CaretObject(),
 m_existingTabs(existingTabs),
@@ -71,7 +71,7 @@ m_modifyEvent(modifyEvent)
 /**
  * Destructor.
  */
-TileTabsConfigurationModifier::~TileTabsConfigurationModifier()
+TileTabsGridConfigurationModifier::~TileTabsGridConfigurationModifier()
 {
     for (auto rc : m_rowColumns) {
         delete rc;
@@ -84,7 +84,7 @@ TileTabsConfigurationModifier::~TileTabsConfigurationModifier()
  * @return String describing this object's content.
  */
 AString 
-TileTabsConfigurationModifier::toString() const
+TileTabsGridConfigurationModifier::toString() const
 {
     AString s;
     for (const auto rc : m_rowColumns) {
@@ -105,7 +105,7 @@ TileTabsConfigurationModifier::toString() const
  *     True if successful, else false.
  */
 bool
-TileTabsConfigurationModifier::run(AString& errorMessageOut)
+TileTabsGridConfigurationModifier::run(AString& errorMessageOut)
 {
     errorMessageOut.clear();
     
@@ -129,7 +129,7 @@ TileTabsConfigurationModifier::run(AString& errorMessageOut)
  * Load the rows or columns from the Tile Tabs Configuration
  */
 void
-TileTabsConfigurationModifier::loadRowColumnsFromTileTabsConfiguration()
+TileTabsGridConfigurationModifier::loadRowColumnsFromTileTabsConfiguration()
 {
     const int32_t numRows    = m_currentTileTabsConfiguration->getNumberOfRows();
     const int32_t numColumns = m_currentTileTabsConfiguration->getNumberOfColumns();
@@ -163,7 +163,7 @@ TileTabsConfigurationModifier::loadRowColumnsFromTileTabsConfiguration()
  *     True if successful, else false.
  */
 bool
-TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
+TileTabsGridConfigurationModifier::performModification(AString& errorMessageOut)
 {
 
     const int32_t rowColumnIndex = m_modifyEvent->getRowColumnIndex();
@@ -315,7 +315,7 @@ TileTabsConfigurationModifier::performModification(AString& errorMessageOut)
  *     True if successful, else false.
  */
 bool
-TileTabsConfigurationModifier::loadRowColumnsIntoTileTabsConfiguration(AString& errorMessageOut)
+TileTabsGridConfigurationModifier::loadRowColumnsIntoTileTabsConfiguration(AString& errorMessageOut)
 {
     TileTabsLayoutGridConfiguration newConfiguration(*m_currentTileTabsConfiguration);
     std::vector<BrowserTabContent*> browserTabs;
@@ -390,10 +390,16 @@ TileTabsConfigurationModifier::loadRowColumnsIntoTileTabsConfiguration(AString& 
      */
     QWidget* parentWindow(GuiManager::get()->getBrowserWindowByWindowIndex(m_modifyEvent->getWindowIndex()));
     const int32_t invalidTabIndex(-1);
+    const int32_t dummyWindowViewport[4] { -1, -1, -1, -1 };
+    const int32_t dummyMouseX(-1);
+    const int32_t dummyMouseY(-1);
     EventBrowserWindowTileTabOperation updateTabsEvent(EventBrowserWindowTileTabOperation::OPERATION_REPLACE_TABS,
                                                        parentWindow,
                                                        m_modifyEvent->getWindowIndex(),
                                                        invalidTabIndex,
+                                                       dummyWindowViewport,
+                                                       dummyMouseX,
+                                                       dummyMouseY,
                                                        browserTabs);
     EventManager::get()->sendEvent(updateTabsEvent.getPointer());
     
@@ -431,7 +437,7 @@ TileTabsConfigurationModifier::loadRowColumnsIntoTileTabsConfiguration(AString& 
  *     Browser tab content at (rowIndex, columnIndex) in the current
  *     Tile Tabs Configuration
  */
-TileTabsConfigurationModifier::Element::Element(const int32_t rowIndex,
+TileTabsGridConfigurationModifier::Element::Element(const int32_t rowIndex,
                                                 const int32_t columnIndex,
                                                 BrowserTabContent* browserTabContent)
 :
@@ -448,7 +454,7 @@ m_browserTabContent(browserTabContent)
  * @return String representation of object.
  */
 AString
-TileTabsConfigurationModifier::Element::toString() const 
+TileTabsGridConfigurationModifier::Element::toString() const 
 {
     AString s("(row=%1, column=%2)");
     s = s.arg(m_sourceRowIndex).arg(m_sourceColumnIndex);
@@ -468,7 +474,7 @@ TileTabsConfigurationModifier::Element::toString() const
  * @param rowFlag
  *     True if rows are being operated upon, false if operating on columns
  */
-TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
+TileTabsGridConfigurationModifier::RowColumnContent::RowColumnContent(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
                                                                   TileTabsLayoutGridConfiguration* tileTabsConfiguration,
                                                                   const int32_t rowColumnIndex,
                                                                   const bool rowFlag)
@@ -517,7 +523,7 @@ TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const std::vec
  * @param numberOfElements
  *     Number of elements for row/column.
  */
-TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const int32_t numberOfElements)
+TileTabsGridConfigurationModifier::RowColumnContent::RowColumnContent(const int32_t numberOfElements)
 {
     for (int32_t i = 0; i < numberOfElements; i++) {
         m_tabElements.push_back(new Element(i, i, NULL));
@@ -531,8 +537,8 @@ TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const int32_t 
  * @param numberOfElements
  *     Number of elements for row/column.
  */
-TileTabsConfigurationModifier::RowColumnContent*
-TileTabsConfigurationModifier::RowColumnContent::newInstanceContainingSpacers(const int32_t numberOfElements)
+TileTabsGridConfigurationModifier::RowColumnContent*
+TileTabsGridConfigurationModifier::RowColumnContent::newInstanceContainingSpacers(const int32_t numberOfElements)
 {
     RowColumnContent* content = new RowColumnContent(numberOfElements);
     
@@ -546,7 +552,7 @@ TileTabsConfigurationModifier::RowColumnContent::newInstanceContainingSpacers(co
 /**
  * Destructor.
  */
-TileTabsConfigurationModifier::RowColumnContent::~RowColumnContent()
+TileTabsGridConfigurationModifier::RowColumnContent::~RowColumnContent()
 {
     for (auto te : m_tabElements) {
         delete te;
@@ -563,7 +569,7 @@ TileTabsConfigurationModifier::RowColumnContent::~RowColumnContent()
  * @param obj
  *     Instance that is copied.
  */
-TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const RowColumnContent& obj)
+TileTabsGridConfigurationModifier::RowColumnContent::RowColumnContent(const RowColumnContent& obj)
 : CaretObject(obj)
 {
     for (auto te : obj.m_tabElements) {
@@ -577,7 +583,7 @@ TileTabsConfigurationModifier::RowColumnContent::RowColumnContent(const RowColum
  * @return String representation of object.
  */
 AString
-TileTabsConfigurationModifier::RowColumnContent::toString() const
+TileTabsGridConfigurationModifier::RowColumnContent::toString() const
 {
     AString s;
     for (const auto te : m_tabElements) {
@@ -594,8 +600,8 @@ TileTabsConfigurationModifier::RowColumnContent::toString() const
  * @return
  *     True if successful, else false
  */
-TileTabsConfigurationModifier::RowColumnContent*
-TileTabsConfigurationModifier::RowColumnContent::clone(AString& errorMessageOut) const
+TileTabsGridConfigurationModifier::RowColumnContent*
+TileTabsGridConfigurationModifier::RowColumnContent::clone(AString& errorMessageOut) const
 {
     RowColumnContent* cloned = new RowColumnContent(*this);
     CaretAssert(cloned);

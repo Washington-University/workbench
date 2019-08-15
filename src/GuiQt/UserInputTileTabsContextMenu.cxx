@@ -26,11 +26,13 @@
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserWindowTileTabOperation.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "MouseEvent.h"
 
 using namespace caret;
 
@@ -45,12 +47,15 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param mouseEvent
+ *     The mouse event that caused menu display
  * @param parentWidget
  *     Parent widget on which error message dialogs are displayed
  * @param viewportContent
  *     Content of the viewport under the mouse.
  */
-UserInputTileTabsContextMenu::UserInputTileTabsContextMenu(QWidget* parentWidget,
+UserInputTileTabsContextMenu::UserInputTileTabsContextMenu(const MouseEvent& mouseEvent,
+                                                           QWidget* parentWidget,
                                                            BrainOpenGLViewportContent* viewportContent)
 : QMenu("Tabs"),
 m_parentWidget(parentWidget),
@@ -62,21 +67,61 @@ m_tabIndex(viewportContent->getTabIndex())
     CaretAssert(m_windowIndex >= 0);
     CaretAssert(m_tabIndex >= 0);
     
+    int32_t tabViewport[4];
+    viewportContent->getTabViewportBeforeApplyingMargins(tabViewport);
+    
+    viewportContent->getWindowViewport(m_windowViewport);
+
+    m_mouseWindowX = mouseEvent.getX();
+    m_mouseWindowY = mouseEvent.getY();
+    
     EventBrowserTabGet tabContentEvent(m_tabIndex);
     EventManager::get()->sendEvent(tabContentEvent.getPointer());
     BrowserTabContent* tabContent = tabContentEvent.getBrowserTab();
-    if (tabContent != NULL) {
-        const AString tabNumberText(AString::number(m_tabIndex + 1));
-        
-        if (bbw->isTileTabsSelected()) {
-            m_createNewTabBeforeAction = addAction("Create New Tab Before This Tab");
-            m_createNewTabAfterAction = addAction("Create New Tab After This Tab");
-            m_selectTabAction = addAction("Select This Tab");
+    
+    if (bbw->isTileTabsSelected()) {
+        switch (bbw->getBrowerWindowContent()->getTileTabsConfigurationMode()) {
+            case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                if (tabContent != NULL) {
+                    addItemToMenu("Insert New Tab Before This Tab",
+                                  EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_BEFORE);
+                    addItemToMenu("Insert New Tab After This Tab",
+                                  EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_AFTER);
+                }
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                addItemToMenu("Insert Tab at Mouse",
+                              EventBrowserWindowTileTabOperation::OPERATION_MANUAL_NEW_TAB);
+
+                if (tabContent != NULL) {
+                    if (actions().count() > 0) {
+                        addSeparator();
+                    }
+                    addItemToMenu("Bring to Front",
+                                  EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_TO_FRONT);
+                    addItemToMenu("Bring Forward",
+                                  EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_FORWARD);
+                    addItemToMenu("Send to Back",
+                                  EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK);
+                    addItemToMenu("Send Backward",
+                                  EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD);
+                }
+                break;
         }
         
-        QObject::connect(this, &QMenu::triggered,
-                         this, &UserInputTileTabsContextMenu::actionTriggered);
+        if (tabContent != NULL) {
+            if (actions().count() > 0) {
+                addSeparator();
+            }
+            addItemToMenu("Select This Tab",
+                          EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB);
+        }
     }
+    
+    QObject::connect(this, &QMenu::triggered,
+                     this, &UserInputTileTabsContextMenu::actionTriggered);
 }
 
 /**
@@ -95,6 +140,23 @@ UserInputTileTabsContextMenu::isValid() const
     return (actions().size() > 0);
 }
 
+/**
+ * Add an operation to the menu with the given text
+ *
+ * @param text
+ *     Text for menu
+ * @param operation
+ *     The operation
+ */
+void
+UserInputTileTabsContextMenu::addItemToMenu(const QString& text,
+                                            const EventBrowserWindowTileTabOperation::Operation operation)
+{
+    QAction* action = addAction(text);
+    action->setData(static_cast<int>(operation));
+}
+
+
 
 /**
  * Gets called when an action is selected from the menu.
@@ -105,33 +167,21 @@ UserInputTileTabsContextMenu::isValid() const
 void
 UserInputTileTabsContextMenu::actionTriggered(QAction* action)
 {
-    EventBrowserWindowTileTabOperation::Operation operation = EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB;
-    bool validOperationFlag = false;
+    if (action == NULL) {
+        return;
+    }
     
-    if (action == m_createNewTabBeforeAction) {
-        operation = EventBrowserWindowTileTabOperation::OPERATION_NEW_TAB_BEFORE;
-        validOperationFlag = true;
-    }
-    else if (action == m_createNewTabAfterAction) {
-        operation = EventBrowserWindowTileTabOperation::OPERATION_NEW_TAB_AFTER;
-        validOperationFlag = true;
-    }
-    else if (action == m_selectTabAction) {
-        operation = EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB;
-        validOperationFlag = true;
-    }
-    else if (action != NULL) {
-        CaretAssertMessage(0, "Invalid menu action.  Has a new menu action been added?");
-    }
-
-    if (validOperationFlag) {
+    const int operationInt = action->data().toInt();
+    const EventBrowserWindowTileTabOperation::Operation operation = static_cast<EventBrowserWindowTileTabOperation::Operation>(operationInt);
         std::vector<BrowserTabContent*> emptyBrowserTabs;
         EventBrowserWindowTileTabOperation tileTabOperation(operation,
                                                             m_parentWidget,
                                                             m_windowIndex,
                                                             m_tabIndex,
+                                                            m_windowViewport,
+                                                            m_mouseWindowX,
+                                                            m_mouseWindowY,
                                                             emptyBrowserTabs);
         EventManager::get()->sendEvent(tileTabOperation.getPointer());
-    }
 }
 

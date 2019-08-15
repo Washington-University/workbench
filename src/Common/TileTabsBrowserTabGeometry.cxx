@@ -155,6 +155,54 @@ TileTabsBrowserTabGeometry::toString() const
 }
 
 /**
+ * Set the bounds
+ *
+ * @param minX
+ *     The minimum X value
+ * @param maxX
+ *     The maximum X value
+ * @param minY
+ *     The minimum Y value
+ * @param maxY
+ *     The maximum Y value
+ */
+void
+TileTabsBrowserTabGeometry::setBounds(const float minX,
+                                      const float maxX,
+                                      const float minY,
+                                      const float maxY)
+{
+    m_minX = minX;
+    m_maxX = maxX;
+    m_minY = minY;
+    m_maxY = maxY;
+}
+
+/**
+ * Get the bounds
+ *
+ * @param minX
+ *     The minimum X value
+ * @param maxX
+ *     The maximum X value
+ * @param minY
+ *     The minimum Y value
+ * @param maxY
+ *     The maximum Y value
+ */
+void
+TileTabsBrowserTabGeometry::getBounds(float& minX,
+                                      float& maxX,
+                                      float& minY,
+                                      float& maxY) const
+{
+    minX = m_minX;
+    maxX = m_maxX;
+    minY = m_minY;
+    maxY = m_maxY;
+}
+
+/**
  * @return center x-coordinate as percentage 0% to 100%
  */
 float
@@ -402,3 +450,54 @@ TileTabsBrowserTabGeometry::setBackgroundType(const TileTabsLayoutBackgroundType
 {
     m_backgroundType = backgroundType;
 }
+
+/**
+ * @return true if this and the given geometry intersect.
+ *         NOTE: if 'other' is 'this' true is returned (overlaps self) but this
+ *         could change so it is best to avoid testing overlap of self.
+ *
+ * @param other
+ *     Other geometry for intersection test
+ */
+bool
+TileTabsBrowserTabGeometry::intersectionTest(const TileTabsBrowserTabGeometry* other) const
+{
+    CaretAssert(other);
+    
+    /*
+     * Does self overlap
+     */
+    if (this == other) {
+        return true;
+    }
+    
+    /*
+     * Note: Since the geometry is aligned with the X- and Y-axes,
+     * we only need to test for one to be above or the the right of the other
+     *
+     * https://www.geeksforgeeks.org/find-two-rectangles-overlap/
+     * https://leetcode.com/articles/rectangle-overlap/
+     */
+    /* 'this' is on right side of 'other' */
+    if (m_minX >= other->m_maxX) {
+        return false;
+    }
+    
+    /* 'other' is on right side of 'this' */
+    if (other->m_minX >= m_maxX) {
+        return false;
+    }
+    
+    /* 'this' is above 'other */
+    if (m_minY >= other->m_maxY) {
+        return false;
+    }
+    
+    /* 'other' is above 'this' */
+    if (other->m_minY >= m_maxY) {
+        return false;
+    }
+    
+    return true;
+}
+
