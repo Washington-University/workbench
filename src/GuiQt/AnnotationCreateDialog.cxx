@@ -190,6 +190,9 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
     switch (annotationType) {
         case AnnotationTypeEnum::BOX:
             break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            CaretAssertMessage(0, "Browser Tabs do not get created !!!");
+            break;
         case AnnotationTypeEnum::COLOR_BAR:
             CaretAssertMessage(0, "Colorbars do not get created !!!");
             break;
@@ -355,6 +358,8 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
         if (threeDimSpaceFlag) {
             switch (newAnnotationInfo.m_annotationType) {
                 case AnnotationTypeEnum::BOX:
+                    break;
+                case AnnotationTypeEnum::BROWSER_TAB:
                     break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     break;
@@ -880,6 +885,8 @@ m_annotationFile(annotationFile)
         switch (annotationType) {
             case AnnotationTypeEnum::BOX:
                 break;
+            case AnnotationTypeEnum::BROWSER_TAB:
+                break;
             case AnnotationTypeEnum::COLOR_BAR:
                 break;
             case AnnotationTypeEnum::IMAGE:
@@ -940,6 +947,9 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
         bool useTextAligmentFlag = false;
         switch (m_annotationType) {
             case AnnotationTypeEnum::BOX:
+                useAverageFlag = true;
+                break;
+            case AnnotationTypeEnum::BROWSER_TAB:
                 useAverageFlag = true;
                 break;
             case AnnotationTypeEnum::COLOR_BAR:

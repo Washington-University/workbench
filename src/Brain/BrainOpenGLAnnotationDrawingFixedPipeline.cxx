@@ -29,6 +29,7 @@
 #undef __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
 
 #include "AnnotationBox.h"
+#include "AnnotationBrowserTab.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationColorBarSection.h"
 #include "AnnotationColorBarNumericText.h"
@@ -413,10 +414,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
     if (textFlag) {
         m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(*textAnnotation,
                                                                                         m_textDrawingFlags,
-                                                                                   windowXYZ[0], windowXYZ[1], windowXYZ[2],
-                                                                                    viewportWidth, viewportHeight,
-                                                                                   bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
-        
+                                                                                        windowXYZ[0], windowXYZ[1], windowXYZ[2],
+                                                                                        viewportWidth, viewportHeight,
+                                                                                        bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
+
         boundsValid = true;
     }
     else {
@@ -905,41 +906,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 }
                     break;
             }
-            
-//            /*
-//             * Skip annotation in a different window
-//             */
-//            if (annotationCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW) {
-//                const int32_t annotationWindowIndex = annotation->getWindowIndex();
-//                if ((annotationWindowIndex < 0)
-//                    || (annotationWindowIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
-//                    CaretLogSevere("Annotation has invalid window index="
-//                                   + AString::number(annotationWindowIndex)
-//                                   + " "
-//                                   + annotation->toString());
-//                }
-//                if (m_inputs->m_windowIndex != annotationWindowIndex) {
-//                    continue;
-//                }
-//            }
-//            
-//            /*
-//             * Skip annotations in a different tab
-//             */
-//            if (annotationCoordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
-//                const int32_t annotationTabIndex = annotation->getTabIndex();
-//                if ((annotationTabIndex < 0)
-//                    || (annotationTabIndex >= BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS)) {
-//                    CaretLogSevere("Annotation has invalid tab index="
-//                                   + AString::number(annotationTabIndex)
-//                                   + " "
-//                                   + annotation->toString());
-//                }
-//                if (m_inputs->m_tabIndex != annotationTabIndex) {
-//                    continue;
-//                }
-//            }
-            
+
             drawAnnotation(annotationFile,
                            annotation,
                            surfaceDisplayed);
@@ -1164,6 +1131,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
                 drawnFlag = drawBox(annotationFile,
                                     dynamic_cast<AnnotationBox*>(annotation),
                                     surfaceDisplayed);
+                break;
+            case AnnotationTypeEnum::BROWSER_TAB:
+                drawnFlag = drawBrowserTab(annotationFile,
+                                           dynamic_cast<AnnotationBrowserTab*>(annotation));
                 break;
             case AnnotationTypeEnum::COLOR_BAR:
                 drawColorBar(annotationFile,
@@ -1410,6 +1381,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOff
                                                     surfaceExtentZ,
                                                     vertexXYZ);
             break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            CaretAssertMessage(0, "Browser Tab is NEVER drawn in surface space");
+            break;
         case AnnotationTypeEnum::COLOR_BAR:
             CaretAssertMessage(0, "Color Bar is NEVER drawn in surface space");
             break;
@@ -1501,6 +1475,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOneDimAnnotationSurfaceTextureOff
     glPushMatrix();
     switch (annotation->getType()) {
         case AnnotationTypeEnum::BOX:
+        case AnnotationTypeEnum::BROWSER_TAB:
         case AnnotationTypeEnum::COLOR_BAR:
         case AnnotationTypeEnum::IMAGE:
         case AnnotationTypeEnum::OVAL:
@@ -1792,6 +1767,143 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBoxSurfaceTangentOffset(Annotatio
                                               box->getRotationAngle());
         }
     }
+    
+    return drawnFlag;
+}
+
+/**
+ * Draw an annotation browser tab.
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param browserTab
+ *    Browser tab to draw.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::drawBrowserTab(AnnotationFile* annotationFile,
+                                                          AnnotationBrowserTab* browserTab)
+{
+    CaretAssert(browserTab);
+    CaretAssert(browserTab->getType() == AnnotationTypeEnum::BROWSER_TAB);
+    
+    float annXYZ[3];
+    Surface* nullSurface(NULL);
+    if ( ! getAnnotationDrawingSpaceCoordinate(browserTab,
+                                               browserTab->getCoordinate(),
+                                               nullSurface,
+                                               annXYZ)) {
+        return false;
+    }
+    
+    float bottomLeft[3];
+    float bottomRight[3];
+    float topRight[3];
+    float topLeft[3];
+    if ( ! getAnnotationTwoDimShapeBounds(browserTab, annXYZ,
+                                          bottomLeft, bottomRight, topRight, topLeft)) {
+        return false;
+    }
+    
+    const float selectionCenterXYZ[3] = {
+        (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0f,
+        (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0f,
+        (bottomLeft[2] + bottomRight[2] + topRight[2] + topLeft[2]) / 4.0f
+    };
+    
+    if (browserTab->getLineWidthPercentage() <= 0.0f) {
+        convertObsoleteLineWidthPixelsToPercentageWidth(browserTab);
+    }
+    
+    const Surface* surfaceDisplayed(NULL);
+    const bool depthTestFlag = isDrawnWithDepthTesting(browserTab,
+                                                       surfaceDisplayed);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
+    uint8_t backgroundRGBA[4];
+    browserTab->getBackgroundColorRGBA(backgroundRGBA);
+    uint8_t foregroundRGBA[4];
+    browserTab->getLineColorRGBA(foregroundRGBA);
+    
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0);
+    const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
+    
+    bool drawnFlag = false;
+    
+    if (drawAnnotationFlag) {
+        if (m_selectionModeFlag) {
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
+            
+            const bool alwaysDrawBackgroundForSelectionFlag(true);
+            if (drawBackgroundFlag
+                || alwaysDrawBackgroundForSelectionFlag) {
+                /*
+                 * When selecting draw only background if it is enabled
+                 * since it is opaque and prevents "behind" annotations
+                 * from being selected
+                 */
+                GraphicsShape::drawBoxFilledByteColor(bottomLeft,
+                                                      bottomRight,
+                                                      topRight,
+                                                      topLeft,
+                                                      selectionColorRGBA);
+            }
+            else {
+                /*
+                 * Drawing foreground as line will still allow user to
+                 * select annotation that are inside of the box
+                 */
+                const float percentHeight = getLineWidthPercentageInSelectionMode(browserTab);
+                GraphicsShape::drawBoxOutlineByteColor(bottomLeft,
+                                                       bottomRight,
+                                                       topRight,
+                                                       topLeft,
+                                                       selectionColorRGBA,
+                                                       GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                       percentHeight);
+            }
+            
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    browserTab,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
+        }
+        else {
+            if (drawBackgroundFlag) {
+                /* may or may not need for transparent background */
+//                GraphicsShape::drawBoxFilledByteColor(bottomLeft,
+//                                                      bottomRight,
+//                                                      topRight,
+//                                                      topLeft,
+//                                                      backgroundRGBA);
+                drawnFlag = true;
+            }
+            
+            if (drawForegroundFlag) {
+//                GraphicsShape::drawBoxOutlineByteColor(bottomLeft,
+//                                                       bottomRight,
+//                                                       topRight,
+//                                                       topLeft,
+//                                                       foregroundRGBA,
+//                                                       GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+//                                                       browserTab->getLineWidthPercentage());
+                drawnFlag = true;
+            }
+        }
+        if (browserTab->isSelectedForEditing(m_inputs->m_windowIndex)) {
+            drawAnnotationTwoDimSizingHandles(annotationFile,
+                                              browserTab,
+                                              bottomLeft,
+                                              bottomRight,
+                                              topRight,
+                                              topLeft,
+                                              s_sizingHandleLineWidthInPixels,
+                                              browserTab->getRotationAngle());
+        }
+    }
+    
+    setDepthTestingStatus(savedDepthTestStatus);
     
     return drawnFlag;
 }
@@ -2823,11 +2935,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOvalSurfaceTangentOffset(Annotati
                                                                      minorAxis,
                                                                      foregroundRGBA,
                                                                      lineThickness);
-//                GraphicsShape::drawEllipseOutlineByteColor(majorAxis,
-//                                                           minorAxis,
-//                                                           foregroundRGBA,
-//                                                           GraphicsPrimitive::LineWidthType::PIXELS,
-//                                                           lineThickness);
                 glDisable(GL_POLYGON_OFFSET_FILL);
                 drawnFlag = true;
             }
@@ -4080,18 +4187,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLineSurfaceTextureOffset(Annotati
                                               selectionColorRGBA,
                                               GraphicsPrimitive::LineWidthType::PIXELS,
                                               lineThickness);
-            //            if ( ! startArrowCoordinates.empty()) {
-            //                GraphicsShape::drawLineStripMiterJoinByteColor(startArrowCoordinates,
-            //                                                               selectionColorRGBA,
-            //                                                               GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-            //                                                               lineThickness);
-            //            }
-            //            if ( ! endArrowCoordinates.empty()) {
-            //                GraphicsShape::drawLineStripMiterJoinByteColor(endArrowCoordinates,
-            //                                                               selectionColorRGBA,
-            //                                                               GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-            //                                                               lineThickness);
-            //            }
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
                                                     line,
                                                     AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
@@ -4099,40 +4194,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLineSurfaceTextureOffset(Annotati
         }
         else {
             if (drawForegroundFlag) {
-                //                    float floatRGBA[4];
-                //                    line->getLineColorRGBA(floatRGBA);
-                //                    m_brainOpenGLFixedPipeline->drawCylinder(floatRGBA,
-                //                                                             lineHeadXYZ,
-                //                                                             lineTailXYZ,
-                //                                                             lineThickness / 2);
                 GraphicsShape::drawLinesByteColor(lineCoordinates,
                                                   foregroundRGBA,
                                                   GraphicsPrimitive::LineWidthType::PIXELS,
                                                   lineThickness);
-                //                    if ( ! startArrowCoordinates.empty()) {
-                //                        if (startArrowCoordinates.size() == 9) {
-                //                            m_brainOpenGLFixedPipeline->drawCylinder(floatRGBA,
-                //                                                                     &startArrowCoordinates[0],
-                //                                                                     &startArrowCoordinates[3],
-                //                                                                     lineThickness / 2);
-                //                            m_brainOpenGLFixedPipeline->drawCylinder(floatRGBA,
-                //                                                                     &startArrowCoordinates[3],
-                //                                                                     &startArrowCoordinates[6],
-                //                                                                     lineThickness / 2);
-                //                        }
-                //                        else {
-                //                        GraphicsShape::drawLineStripMiterJoinByteColor(startArrowCoordinates,
-                //                                                                       foregroundRGBA,
-                //                                                                       GraphicsPrimitive::LineWidthType::PIXELS,
-                //                                                                       lineThickness);
-                //                        }
-                //                    }
-                //                    if ( ! endArrowCoordinates.empty()) {
-                //                        GraphicsShape::drawLineStripMiterJoinByteColor(endArrowCoordinates,
-                //                                                                       foregroundRGBA,
-                //                                                                       GraphicsPrimitive::LineWidthType::PIXELS,
-                //                                                                       lineThickness);
-                //                    }
                 drawnFlag = true;
             }
         }
@@ -4147,7 +4212,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLineSurfaceTextureOffset(Annotati
                                               line,
                                               lineHeadXYZ,
                                               lineTailXYZ,
-                                              handleThickness); //lineThickness * 2.0); //s_sizingHandleLineWidthInPixels);
+                                              handleThickness);
         }
     }
     
@@ -4268,6 +4333,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
             break;
     }
     
+    if (annotation->getType() == AnnotationTypeEnum::BROWSER_TAB) {
+        drawFilledCircleFlag  = false;
+        drawOutlineCircleFlag = false;
+        drawSphereFlag        = false;
+        drawSquareFlag        = true;
+    }
+    
     if (m_selectionModeFlag) {
         uint8_t identificationRGBA[4];
         getIdentificationColor(identificationRGBA);
@@ -4350,7 +4422,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(Ann
 
     float cornerSquareSize = 3.0 + lineThickness;
     if (tangentSurfaceOffsetFlag) {
-        cornerSquareSize = lineThickness;// * 4.0;
+        cornerSquareSize = lineThickness;
         cornerSquareSize = GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(cornerSquareSize);
     }
     
@@ -4385,7 +4457,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationOneDimSizingHandles(Ann
          */
         float startSquareSize = cornerSquareSize + 2.0;
         if (tangentSurfaceOffsetFlag) {
-            startSquareSize = cornerSquareSize;// * 1.5;
+            startSquareSize = cornerSquareSize;
         }
         drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START,
                          annotationFile,
@@ -4465,6 +4537,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
     if (modelSpaceTangentTextFlag) {
         innerSpacing = GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(innerSpacing);
     }
+    
+    /*
+     * Must shrink box around browser tab or else the box is outside of the
+     * browser tab and not seen
+     */
+    if (annotation->getType() == AnnotationTypeEnum::BROWSER_TAB) {
+        innerSpacing = -innerSpacing;
+    }
+    
     float handleTopLeft[3];
     float handleTopRight[3];
     float handleBottomRight[3];
@@ -4483,34 +4564,44 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
                                                m_selectionBoxRGBA, GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
     }
     
+    float sizeHandleSize = 5.0;
+    if (modelSpaceTangentTextFlag) {
+        sizeHandleSize = GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(sizeHandleSize);
+    }
+
+    float handleOffset(0.0);
+    if (annotation->getType() == AnnotationTypeEnum::BROWSER_TAB) {
+        if (m_selectionModeFlag) {
+            sizeHandleSize *= 4.0;
+        }
+        else {
+            sizeHandleSize *= 2.0;
+            MathFunctions::expandBox(handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft, -sizeHandleSize, -sizeHandleSize);
+        }
+    }
     const float handleLeft[3] = {
-        (handleBottomLeft[0] + handleTopLeft[0]) / 2.0f,
+        (handleBottomLeft[0] + handleTopLeft[0]) / 2.0f + handleOffset,
         (handleBottomLeft[1] + handleTopLeft[1]) / 2.0f,
         (handleBottomLeft[2] + handleTopLeft[2]) / 2.0f,
     };
     
     const float handleRight[3] = {
-        (handleBottomRight[0] + handleTopRight[0]) / 2.0f,
+        (handleBottomRight[0] + handleTopRight[0]) / 2.0f - handleOffset,
         (handleBottomRight[1] + handleTopRight[1]) / 2.0f,
         (handleBottomRight[2] + handleTopRight[2]) / 2.0f,
     };
     
     const float handleBottom[3] = {
         (handleBottomLeft[0] + handleBottomRight[0]) / 2.0f,
-        (handleBottomLeft[1] + handleBottomRight[1]) / 2.0f,
+        (handleBottomLeft[1] + handleBottomRight[1]) / 2.0f + handleOffset,
         (handleBottomLeft[2] + handleBottomRight[2]) / 2.0f,
     };
     
     const float handleTop[3] = {
         (handleTopLeft[0] + handleTopRight[0]) / 2.0f,
-        (handleTopLeft[1] + handleTopRight[1]) / 2.0f,
+        (handleTopLeft[1] + handleTopRight[1]) / 2.0f - handleOffset,
         (handleTopLeft[2] + handleTopRight[2]) / 2.0f,
     };
-    
-    float sizeHandleSize = 5.0;
-    if (modelSpaceTangentTextFlag) {
-        sizeHandleSize = GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(sizeHandleSize);
-    }
     
     if (annotation->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT)) {
         drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT,

@@ -39,6 +39,7 @@ namespace caret {
 
     class Annotation;
     class AnnotationBox;
+    class AnnotationBrowserTab;
     class AnnotationColorBar;
     class AnnotationCoordinate;
     class AnnotationFile;
@@ -210,6 +211,9 @@ namespace caret {
         bool drawBox(AnnotationFile* annotationFile,
                      AnnotationBox* box,
                        const Surface* surfaceDisplayed);
+        
+        bool drawBrowserTab(AnnotationFile* annotationFile,
+                            AnnotationBrowserTab* browserTab);
         
         bool drawBoxSurfaceTangentOffset(AnnotationFile* annotationFile,
                                          AnnotationBox* box,

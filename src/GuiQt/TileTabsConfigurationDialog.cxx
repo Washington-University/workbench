@@ -43,6 +43,7 @@
 #include "TileTabsConfigurationDialog.h"
 #undef __TILE_TABS_CONFIGURATION_DIALOG_DECLARE__
 
+#include "AnnotationBrowserTab.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowComboBox.h"
 #include "BrainOpenGLViewportContent.h"
@@ -463,14 +464,14 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             
             for (int32_t i = 0; i < numBrowserTabs; i++) {
                 CaretAssertVectorIndex(allTabContent, i);
-                TileTabsBrowserTabGeometry* tabGeometry = allTabContent[i]->getManualLayoutGeometry();
-                CaretAssert(tabGeometry);
+                AnnotationBrowserTab* browserTabAnnotation = allTabContent[i]->getManualLayoutBrowserTabAnnotation();
+                CaretAssert(browserTabAnnotation);
                 
                 if (i < numConfigTabs) {
                     const TileTabsBrowserTabGeometry* configGeometry =  userManualConfig->getTabInfo(i);
                     CaretAssert(configGeometry);
                     
-                    tabGeometry->copyGeometry(*configGeometry);
+                    browserTabAnnotation->setFromTileTabsGeometry(configGeometry);
                 }
                 else {
                     if (i < numViewportContent) {
@@ -487,11 +488,7 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
                             const float minY(windowViewport[1]);
                             const float maxY(minY + windowViewport[3]);
                             
-                            
-                            tabGeometry->setMinX(minX);
-                            tabGeometry->setMaxX(maxX);
-                            tabGeometry->setMinY(minY);
-                            tabGeometry->setMaxY(maxY);
+                            browserTabAnnotation->setBounds2D(minX, maxX, minY, maxY);
                         }
                         else {
                             CaretLogWarning("Unable to find viewport content for tab number "
@@ -543,44 +540,12 @@ TileTabsConfigurationDialog::createManualConfigurationFromCurrentTabs() const
     TileTabsLayoutManualConfiguration* manualConfig = new TileTabsLayoutManualConfiguration();
     for (const auto btc : allTabContent) {
         CaretAssert(btc);
-        const TileTabsBrowserTabGeometry* tabGeometry = btc->getManualLayoutGeometry();
-        TileTabsBrowserTabGeometry* geometryCopy = new TileTabsBrowserTabGeometry(*tabGeometry);
-        manualConfig->addTabInfo(geometryCopy);
+        const AnnotationBrowserTab* browserTabAnnotation = btc->getManualLayoutBrowserTabAnnotation();
+        CaretAssert(browserTabAnnotation);
+        TileTabsBrowserTabGeometry* geometry = new TileTabsBrowserTabGeometry(browserTabAnnotation->getTabIndex());
+        browserTabAnnotation->getTileTabsGeometry(geometry);
+        manualConfig->addTabInfo(geometry);
     }
-    
-    
-//    {
-//    std::vector<const BrainOpenGLViewportContent*> tabViewports;
-//    window->getAllBrainOpenGLViewportContent(tabViewports);
-//
-//    const float windowWidth = window->width();
-//    const float windowHeight = window->height();
-//
-//    TileTabsLayoutManualConfiguration* manualConfig = new TileTabsLayoutManualConfiguration();
-//
-//    for (const auto tv : tabViewports) {
-//        const int32_t tabIndex = tv->getTabIndex();
-//        if (tabIndex >= 0) {
-//            int32_t viewport[4];
-//            tv->getTabViewportBeforeApplyingMargins(viewport);
-//
-//            const float minX = viewport[0];
-//            const float maxX = viewport[0] + viewport[2];
-//            const float minY = viewport[1];
-//            const float maxY = viewport[1] + viewport[3];
-//
-//            TileTabsBrowserTabGeometry* geometry = new TileTabsBrowserTabGeometry(tabIndex);
-//            geometry->setMinX((minX / windowWidth)  * 100.0);
-//            geometry->setMaxX((maxX / windowWidth)  * 100.0);
-//            geometry->setMinY((minY / windowHeight) * 100.0);
-//            geometry->setMaxY((maxY / windowHeight) * 100.0);
-//
-//            geometry->setStackingOrder(tabIndex);
-//
-//            manualConfig->addTabInfo(geometry);
-//        }
-//    }
-//    }
 
     return manualConfig;
 }
@@ -1110,12 +1075,9 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuColumnsItemTriggered()
         const int32_t windowHeight(100);
         if (numberOfTabs == 1) {
             CaretAssertVectorIndex(allTabContent, 0);
-            TileTabsBrowserTabGeometry* tabGeom = allTabContent[0]->getManualLayoutGeometry();
-            CaretAssert(tabGeom);
-            tabGeom->setMinX(0);
-            tabGeom->setMaxX(windowWidth);
-            tabGeom->setMinY(0);
-            tabGeom->setMaxY(windowHeight);
+            AnnotationBrowserTab* browserTabAnnotation = allTabContent[0]->getManualLayoutBrowserTabAnnotation();
+            CaretAssert(browserTabAnnotation);
+            browserTabAnnotation->setBounds2D(0, windowWidth, 0, windowHeight);
         }
         else if (numberOfTabs > 1) {
             const int32_t remainder = (numberOfTabs % numberOfColumns);
@@ -1133,12 +1095,9 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuColumnsItemTriggered()
                 for (int32_t iCol = 0; iCol < numberOfColumns; iCol++) {
                     if (tabContentIndex < numberOfTabs) {
                         CaretAssertVectorIndex(allTabContent, tabContentIndex);
-                        TileTabsBrowserTabGeometry* tabGeom = allTabContent[tabContentIndex]->getManualLayoutGeometry();
-                        CaretAssert(tabGeom);
-                        tabGeom->setMinX(tabX);
-                        tabGeom->setMaxX(tabX + tabWidth);
-                        tabGeom->setMinY(tabY);
-                        tabGeom->setMaxY(tabY + tabHeight);
+                        AnnotationBrowserTab* browserTabAnnotation = allTabContent[tabContentIndex]->getManualLayoutBrowserTabAnnotation();
+                        CaretAssert(browserTabAnnotation);
+                        browserTabAnnotation->setBounds2D(tabX, tabX + tabWidth, tabY, tabY + tabHeight);
                     }
                     
                     tabContentIndex++;
@@ -1234,12 +1193,6 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromGridConfiguration(Til
         }
         CaretAssert(columnWidths.size() == columnWidthsInt.size());
 
-//        TileTabsLayoutManualConfiguration* manualLayout = new TileTabsLayoutManualConfiguration();
-//        manualLayout->setName("From row:"
-//                              + AString::number(rowHeights.size())
-//                              + " col:"
-//                              + AString::number(columnWidths.size()));
-        
         int32_t tabCounter(0);
         float yBottom(windowHeight);
         for (int32_t i = 0; i < numRows; i++) {
@@ -1264,15 +1217,14 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromGridConfiguration(Til
                             if (tabCounter < numTabs) {
                                 CaretAssertVectorIndex(allTabContent, tabCounter);
                                 BrowserTabContent* tabContent(allTabContent[tabCounter]);
-                                
-                                TileTabsBrowserTabGeometry* tabInfo = tabContent->getManualLayoutGeometry();
-                                tabInfo->setMinX((xLeft / windowWidth) * 100.0);
-                                tabInfo->setMaxX(((xLeft + width) / windowWidth) * 100.0);
-                                tabInfo->setMinY((yBottom / windowHeight) * 100.0);
-                                tabInfo->setMaxY(((yBottom + height) / windowHeight) * 100.0);
-
-                                tabInfo->setStackingOrder(tabCounter);
-                                tabInfo->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG);
+                                AnnotationBrowserTab* browserTabAnnotation = tabContent->getManualLayoutBrowserTabAnnotation();
+                                CaretAssert(browserTabAnnotation);
+                                browserTabAnnotation->setBounds2D((xLeft / windowWidth) * 100.0,
+                                                                  ((xLeft + width) / windowWidth) * 100.0,
+                                                                  (yBottom / windowHeight) * 100.0,
+                                                                  ((yBottom + height) / windowHeight) * 100.0);
+                                browserTabAnnotation->setStackingOrder(tabCounter);
+                                browserTabAnnotation->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG);
                                 
                                 tabCounter++;
                             }
@@ -1638,32 +1590,6 @@ TileTabsConfigurationDialog::renameUserConfigurationButtonClicked()
         WuQMessageBox::errorOk(m_renameConfigurationPushButton, ("Unable to find configuration with unique ID="
                                                                  + uniqueID));
     }
-//    if (getSelectedUserConfigurationNameAndUniqueID(oldName,
-//                                                    uniqueID)) {
-//        bool ok = false;
-//        const AString newName = QInputDialog::getText(m_renameConfigurationPushButton,
-//                                                      "Rename Configuration",
-//                                                      "Name",
-//                                                      QLineEdit::Normal,
-//                                                      oldName,
-//                                                      &ok);
-//        if (ok
-//            && ( ! newName.isEmpty())) {
-//            m_blockReadConfigurationsFromPreferences = true;
-//            AString errorMessage;
-//            if (m_caretPreferences->renameTileTabsUserConfiguration(uniqueID,
-//                                                                    newName,
-//                                                                    errorMessage)) {
-//            }
-//            else {
-//                WuQMessageBox::errorOk(m_renameConfigurationPushButton,
-//                                       errorMessage);
-//            }
-//            m_blockReadConfigurationsFromPreferences = false;
-//            updateDialog();
-//        }
-//
-//    }
 }
 
 /**

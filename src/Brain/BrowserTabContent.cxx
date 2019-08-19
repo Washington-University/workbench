@@ -26,6 +26,7 @@
 #include "BrowserTabContent.h"
 #undef __BROWSER_TAB_CONTENT_DECLARE__
 
+#include "AnnotationBrowserTab.h"
 #include "AnnotationColorBar.h"
 #include "BorderFile.h"
 #include "Brain.h"
@@ -155,6 +156,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     
     m_clippingPlaneGroup = new ClippingPlaneGroup();
     
+    m_manualLayoutBrowserTabAnnotation.reset(new AnnotationBrowserTab(AnnotationAttributesDefaultTypeEnum::NORMAL)); //;m_tabNumber));
+    m_manualLayoutBrowserTabAnnotation->setBrowserTabContent(this,
+                                                             m_tabNumber);
     m_manualLayoutTabGeometry.reset(new TileTabsBrowserTabGeometry(m_tabNumber));
     
     m_sceneClassAssistant = new SceneClassAssistant();
@@ -374,18 +378,19 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     /*
      * For manual layout, make tab same size but put in bottom left corner
      */
-    const TileTabsBrowserTabGeometry* cloneGeometry = tabToClone->getManualLayoutGeometry();
-    CaretAssert(cloneGeometry);
+    const AnnotationBrowserTab* cloneAnnotationBrowerTab = tabToClone->getManualLayoutBrowserTabAnnotation();
+    CaretAssert(cloneAnnotationBrowerTab);
     const float minXY(10.0f);
     const float maxWidthHeight(100.0f - (minXY * 2));
-    float tabWidth  = MathFunctions::limitRange(cloneGeometry->getMaxX() - cloneGeometry->getMinX(), minXY, maxWidthHeight);
-    float tabHeight = MathFunctions::limitRange(cloneGeometry->getMaxY() - cloneGeometry->getMinY(), minXY, maxWidthHeight);
-    TileTabsBrowserTabGeometry* geometry = getManualLayoutGeometry();
-    CaretAssert(geometry);
-    geometry->setMinX(minXY);
-    geometry->setMaxX(geometry->getMinX() + tabWidth);
-    geometry->setMinY(minXY);
-    geometry->setMaxY(geometry->getMinY() + tabHeight);
+    float tabWidth  = MathFunctions::limitRange(cloneAnnotationBrowerTab->getWidth(),  minXY, maxWidthHeight);
+    float tabHeight = MathFunctions::limitRange(cloneAnnotationBrowerTab->getHeight(), minXY, maxWidthHeight);
+    
+    AnnotationBrowserTab* annotationBrowserTab = getManualLayoutBrowserTabAnnotation();
+    CaretAssert(annotationBrowserTab);
+    annotationBrowserTab->setBounds2D(minXY,
+                                      minXY + tabWidth,
+                                      minXY,
+                                      minXY + tabHeight);
 }
 
 /**
@@ -3575,6 +3580,7 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     m_obliqueVolumeRotationMatrix->getMatrixForOpenGL(obliqueMatrix);
     sceneClass->addFloatArray("m_obliqueVolumeRotationMatrix", obliqueMatrix, 16);
     
+    m_manualLayoutBrowserTabAnnotation->getTileTabsGeometry(m_manualLayoutTabGeometry.get());
     TileTabsBrowserTabGeometrySceneHelper geometryHelper(m_manualLayoutTabGeometry.get());
     sceneClass->addClass(geometryHelper.saveToScene(sceneAttributes,
                                                     "m_manualLayoutTabGeometry"));
@@ -3611,6 +3617,7 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     TileTabsBrowserTabGeometrySceneHelper geometryHelper(m_manualLayoutTabGeometry.get());
     geometryHelper.restoreFromScene(sceneAttributes,
                                     sceneClass->getClass("m_manualLayoutTabGeometry"));
+    m_manualLayoutBrowserTabAnnotation->setFromTileTabsGeometry(m_manualLayoutTabGeometry.get());
 
     m_sceneClassAssistant->restoreMembers(sceneAttributes,
                                           sceneClass);
@@ -3828,7 +3835,7 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                         boundingBox->getDifferenceY()),
                                                zDiff);
                 if (zDiff > 0.0) {
-                    const float scaleAdjustment = zDiff / maxDim;  //maxDim / zDiff;
+                    const float scaleAdjustment = zDiff / maxDim;
                     float scaling = getScaling();
                     scaling *= scaleAdjustment;
                     setScaling(scaling);
@@ -4979,23 +4986,20 @@ BrowserTabContent::updateChartModelYokedBrowserTabs()
 }
 
 /**
- * @return Pointer to the manual layout geometry
+ * @return Pointer to the manual layout browser tab annotation
  */
-TileTabsBrowserTabGeometry*
-BrowserTabContent::getManualLayoutGeometry()
+AnnotationBrowserTab*
+BrowserTabContent::getManualLayoutBrowserTabAnnotation()
 {
-    return m_manualLayoutTabGeometry.get();
+    return m_manualLayoutBrowserTabAnnotation.get();
 }
 
 /**
- * @return Pointer to the manual layout geometry (const method)
+ * @return Pointer to the manual layout browser tab annotation (const method)
  */
-const TileTabsBrowserTabGeometry*
-BrowserTabContent::getManualLayoutGeometry() const
+const
+AnnotationBrowserTab*
+BrowserTabContent::getManualLayoutBrowserTabAnnotation() const
 {
-    return m_manualLayoutTabGeometry.get();
+    return m_manualLayoutBrowserTabAnnotation.get();
 }
-
-
-
-

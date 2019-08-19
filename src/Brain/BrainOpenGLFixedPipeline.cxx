@@ -35,6 +35,7 @@
 #include <QStringList>
 #include <QImage>
 
+#include "AnnotationBrowserTab.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationManager.h"
 #include "AnnotationPointSizeText.h"
@@ -56,6 +57,7 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionModel.h"
@@ -86,6 +88,7 @@
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
 #include "EventAnnotationColorBarGet.h"
+#include "EventBrowserWindowContent.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
@@ -146,7 +149,6 @@
 #include "SurfaceProjectionBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
 #include "SurfaceSelectionModel.h"
-#include "TileTabsBrowserTabGeometry.h"
 #include "TopologyHelper.h"
 #include "VolumeFile.h"
 #include "VolumeMappableInterface.h"
@@ -269,7 +271,7 @@ BrainOpenGLFixedPipeline::selectModelImplementation(const int32_t windowIndex,
     
     std::vector<const BrainOpenGLViewportContent*> viewportContentsVector;
     viewportContentsVector.push_back(viewportContent);
-    setAnnotationColorBarsForDrawing(viewportContentsVector);
+    setAnnotationColorBarsAndBrowserTabsForDrawing(viewportContentsVector);
     
     m_clippingPlaneGroup = NULL;
     
@@ -500,13 +502,13 @@ BrainOpenGLFixedPipeline::setTabViewport(const BrainOpenGLViewportContent* vpCon
 }
 
 /**
- * Get colorbars in window space.
+ * Get colorbars and browser tabs for drawing
  *
  * @param viewportContents
  *     Contents of the viewports.
  */
 void
-BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
+BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
 {
     m_annotationColorBarsForDrawing.clear();
     
@@ -536,6 +538,36 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(const std::vector<con
                 colorBar->setWindowIndex(vc->getWindowIndex());
                 m_annotationColorBarsForDrawing.push_back(colorBar);
                 break;
+            }
+        }
+    }
+    
+    std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(m_windowIndex);
+    EventManager::get()->sendEvent(windowContentEvent->getPointer());
+    const BrowserWindowContent* windowContent = windowContentEvent->getBrowserWindowContent();
+    bool drawBrowserTabAnnotationsFlag(false);
+    if (windowContent != NULL) {
+        switch (windowContent->getTileTabsConfigurationMode()) {
+            case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                drawBrowserTabAnnotationsFlag = true;
+                break;
+        }
+    }
+    
+    m_annotationBrowserTabsForDrawing.clear();
+    
+    if (drawBrowserTabAnnotationsFlag) {
+        for (const auto vc : viewportContents) {
+            BrowserTabContent* tabContent = vc->getBrowserTabContent();
+            if (tabContent != NULL) {
+                AnnotationBrowserTab* abt = tabContent->getManualLayoutBrowserTabAnnotation();
+                CaretAssert(abt);
+                abt->setWindowIndex(vc->getWindowIndex());
+                m_annotationBrowserTabsForDrawing.push_back(abt);
             }
         }
     }
@@ -570,7 +602,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     setTabViewport(NULL);
     
     m_specialCaseGraphicsAnnotations.clear();
-    setAnnotationColorBarsForDrawing(viewportContents);
+    setAnnotationColorBarsAndBrowserTabsForDrawing(viewportContents);
     
     m_tileTabsActiveFlag = (viewportContents.size() > 1);
     
@@ -666,7 +698,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
         if (tabContent != NULL) {
             if (numberOfTabs > 1) {
                 bool opaqueFlag(false);
-                switch (tabContent->getManualLayoutGeometry()->getBackgroundType()) {
+                switch (tabContent->getManualLayoutBrowserTabAnnotation()->getBackgroundType()) {
                     case TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG:
                         opaqueFlag = true;
                         break;
@@ -981,7 +1013,7 @@ BrainOpenGLFixedPipeline::drawSpacerAnnotations(const BrainOpenGLViewportContent
     
     CaretAssert(m_windowIndex == tabContent->getWindowIndex());
     this->browserTabContent = NULL;
-    m_clippingPlaneGroup = NULL; //const_cast<ClippingPlaneGroup*>(tabContent->getBrowserTabContent()->getClippingPlaneGroup());
+    m_clippingPlaneGroup = NULL;
     
     this->windowTabIndex = -1;
     
@@ -1119,10 +1151,17 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
                                                              windowDrawingMode,
                                                              annotationModeFlag);
     
+    std::vector<Annotation*> notInFileAnnotations;
+    notInFileAnnotations.insert(notInFileAnnotations.end(),
+                                m_specialCaseGraphicsAnnotations.begin(),
+                                m_specialCaseGraphicsAnnotations.end());
+    notInFileAnnotations.insert(notInFileAnnotations.end(),
+                                m_annotationBrowserTabsForDrawing.begin(),
+                                m_annotationBrowserTabsForDrawing.end());
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::WINDOW,
                                          m_annotationColorBarsForDrawing,
-                                         m_specialCaseGraphicsAnnotations,
+                                         notInFileAnnotations,
                                          annotationDrawingNullSurface,
                                          annotationDrawingUnusedSurfaceScaling);
 
@@ -1909,9 +1948,6 @@ BrainOpenGLFixedPipeline::disableLineAntiAliasing()
     if (glIsEnabled(GL_MULTISAMPLE)) {
         return;
     }
-    
-//    glDisable(GL_LINE_SMOOTH);
-//    glDisable(GL_BLEND);
 }
 
 /**

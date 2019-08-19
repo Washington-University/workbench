@@ -43,6 +43,7 @@
 namespace caret {
     
     class Annotation;
+    class AnnotationBrowserTab;
     class AnnotationText;
     class BoundingBox;
     class Brain;
@@ -507,7 +508,7 @@ namespace caret {
         
         void setTabViewport(const BrainOpenGLViewportContent* vpContent);
         
-        void setAnnotationColorBarsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents);
+        void setAnnotationColorBarsAndBrowserTabsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents);
 
         void drawTabHighlighting(const float width,
                                  const float height,
@@ -605,6 +606,8 @@ namespace caret {
         double orthographicNear;
         
         CaretPointer<BrainOpenGLAnnotationDrawingFixedPipeline> m_annotationDrawing;
+        
+        std::vector<AnnotationBrowserTab*> m_annotationBrowserTabsForDrawing;
         
         std::vector<AnnotationColorBar*> m_annotationColorBarsForDrawing;
         

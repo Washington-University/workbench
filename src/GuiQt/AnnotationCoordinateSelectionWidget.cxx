@@ -95,6 +95,9 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
             enableModelSpaceFlag   = true;
             enableSurfaceSpaceFlag = true;
             break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            enableTabSpaceFlag = false;
+            break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;
         case AnnotationTypeEnum::IMAGE:

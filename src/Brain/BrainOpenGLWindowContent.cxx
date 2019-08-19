@@ -23,9 +23,9 @@
 #include "BrainOpenGLWindowContent.h"
 #undef __BRAIN_OPEN_G_L_WINDOW_CONTENT_DECLARE__
 
+#include "AnnotationBrowserTab.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "TileTabsBrowserTabGeometry.h"
 
 using namespace caret;
 
@@ -180,8 +180,8 @@ BrainOpenGLWindowContent::getTabViewportWithLockAspectXY(const int32_t x,
                 const BrowserTabContent* btcOut = viewportContentOut->getBrowserTabContent();
                 if ((btc != NULL)
                     && (btcOut != NULL)) {
-                    if (btc->getManualLayoutGeometry()->getStackingOrder()
-                        > btcOut->getManualLayoutGeometry()->getStackingOrder()) {
+                    if (btc->getManualLayoutBrowserTabAnnotation()->getStackingOrder()
+                        > btcOut->getManualLayoutBrowserTabAnnotation()->getStackingOrder()) {
                         viewportContentOut = vp.get();
                     }
                 }

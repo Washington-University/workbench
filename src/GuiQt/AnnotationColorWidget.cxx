@@ -507,6 +507,8 @@ AnnotationColorWidget::isBothColorsSetToNoneAllowed(QWidget* widget,
                 case AnnotationTypeEnum::BOX:
                     allowBothColorsNoneFlag = false;
                     break;
+                case AnnotationTypeEnum::BROWSER_TAB:
+                    break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     break;
                 case AnnotationTypeEnum::IMAGE:

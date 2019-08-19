@@ -41,6 +41,7 @@
 
 namespace caret {
 
+    class AnnotationBrowserTab;
     class AnnotationColorBar;
     class BrainOpenGLViewportContent;
     class CaretDataFile;
@@ -442,9 +443,9 @@ namespace caret {
         
         const ViewingTransformations* getViewingTransformation() const;
         
-        TileTabsBrowserTabGeometry* getManualLayoutGeometry();
+        AnnotationBrowserTab* getManualLayoutBrowserTabAnnotation();
         
-        const TileTabsBrowserTabGeometry* getManualLayoutGeometry() const;
+        const AnnotationBrowserTab* getManualLayoutBrowserTabAnnotation() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -471,11 +472,6 @@ namespace caret {
         BrowserTabContent(const BrowserTabContent&);
         
         BrowserTabContent& operator=(const BrowserTabContent&);
-        
-//        VolumeSliceViewPlaneEnum::Enum getSliceViewPlaneForVolumeAllSliceView(const int viewport[4],
-//                                                                  const int32_t mousePressX,
-//                                                                  const int32_t mousePressY,
-//                                                                              int sliceViewportOut[4]) const;
         
         void updateBrainModelYokedBrowserTabs();
         
@@ -603,6 +599,9 @@ namespace caret {
         
         /** Manual tab layout geometry */
         std::unique_ptr<TileTabsBrowserTabGeometry> m_manualLayoutTabGeometry;
+        
+        /** Manual layout brower tab annotation */
+        std::unique_ptr<AnnotationBrowserTab> m_manualLayoutBrowserTabAnnotation;
         
         /** Contains all active browser tab content instances */
         static std::set<BrowserTabContent*> s_allBrowserTabContent;

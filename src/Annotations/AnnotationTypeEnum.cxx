@@ -110,6 +110,10 @@ AnnotationTypeEnum::initialize()
                                           "BOX",
                                           "Box"));
     
+    enumData.push_back(AnnotationTypeEnum(BROWSER_TAB,
+                                          "BROWSER_TAB",
+                                          "Browser Tab"));
+    
     enumData.push_back(AnnotationTypeEnum(COLOR_BAR,
                                           "COLOR_BAR",
                                           "Color Bar"));

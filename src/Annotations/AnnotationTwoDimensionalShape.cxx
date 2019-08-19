@@ -390,6 +390,11 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
             allowsSideResizingFlag = true;
             allowsRotationFlag = true;
             break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            allowsMovingFlag   = true;
+            allowsCornerResizingFlag = true;
+            allowsSideResizingFlag = true;
+            break;
         case AnnotationTypeEnum::COLOR_BAR:
             allowsMovingFlag   = true;
             allowsCornerResizingFlag = true;
@@ -1326,7 +1331,7 @@ AnnotationTwoDimensionalShape::rotationAngleTest(const float previousMouseXYZ[3]
                                              shapeXYZ,
                                              previousMouseXYZ);
     
-    static const float MINIMUM_ANGLE = 0.025; //0.01;
+    static const float MINIMUM_ANGLE = 0.025;
     
     if (angle > MINIMUM_ANGLE) {
         return true;

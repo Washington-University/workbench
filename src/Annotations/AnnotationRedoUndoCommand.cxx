@@ -1601,6 +1601,8 @@ AnnotationRedoUndoCommand::setModeTextCharacters(const AString& text,
         switch (annotation->getType()) {
             case AnnotationTypeEnum::BOX:
                 break;
+            case AnnotationTypeEnum::BROWSER_TAB:
+                break;
             case AnnotationTypeEnum::COLOR_BAR:
                 break;
             case AnnotationTypeEnum::IMAGE:

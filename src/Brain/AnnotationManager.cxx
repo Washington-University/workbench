@@ -25,6 +25,7 @@
 
 #include "Annotation.h"
 #include "AnnotationArrangerExecutor.h"
+#include "AnnotationBrowserTab.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationFile.h"
 #include "AnnotationGroup.h"
@@ -32,6 +33,7 @@
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationEditingSelectionInformation.h"
 #include "AnnotationTwoDimensionalShape.h"
+#include "BrowserTabContent.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -40,6 +42,7 @@
 #include "EventAnnotationChartLabelGet.h"
 #include "EventAnnotationColorBarGet.h"
 #include "EventAnnotationGroupGetWithKey.h"
+#include "EventBrowserTabGetAll.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
 #include "SceneClass.h"
@@ -206,6 +209,14 @@ AnnotationManager::deselectAllAnnotationsForEditing(const int32_t windowIndex)
     for (auto label : chartLabels) {
         label->setSelectedForEditing(windowIndex,
                                      false);
+    }
+    
+    EventBrowserTabGetAll allTabsEvent;
+    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    std::vector<BrowserTabContent*> allTabs = allTabsEvent.getAllBrowserTabs();
+    for (auto tab : allTabs) {
+        tab->getManualLayoutBrowserTabAnnotation()->setSelectedForEditing(windowIndex,
+                                                                          false);
     }
 }
 
@@ -449,6 +460,13 @@ AnnotationManager::getAllAnnotations() const
     allAnnotations.insert(allAnnotations.end(),
                           chartLabels.begin(),
                           chartLabels.end());
+    
+    EventBrowserTabGetAll allTabsEvent;
+    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    std::vector<BrowserTabContent*> allTabs = allTabsEvent.getAllBrowserTabs();
+    for (auto tab : allTabs) {
+        allAnnotations.push_back(tab->getManualLayoutBrowserTabAnnotation());
+    }
     
     return allAnnotations;
 }

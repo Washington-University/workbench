@@ -25,6 +25,7 @@
 
 #include <algorithm>
 
+#include "AnnotationBrowserTab.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -107,7 +108,7 @@ TileTabsManualConfigurationModifier::runTabOrderOperation(const TabOrderOperatio
         CaretAssert(tabContent);
         
         tabOrderAndContent.emplace_back(tabContent,
-                                        tabContent->getManualLayoutGeometry()->getStackingOrder());
+                                        tabContent->getManualLayoutBrowserTabAnnotation()->getStackingOrder());
     }
     std::sort(tabOrderAndContent.begin(),
               tabOrderAndContent.end());
@@ -133,7 +134,7 @@ TileTabsManualConfigurationModifier::runTabOrderOperation(const TabOrderOperatio
             /*
              * Find tab that is closest to 'browserTabContent' but behind and intersects it
              */
-            if (browserTabContent->getManualLayoutGeometry()->intersectionTest(tabOrderAndContent[i].m_tabContent->getManualLayoutGeometry())) {
+            if (browserTabContent->getManualLayoutBrowserTabAnnotation()->intersectionTest(tabOrderAndContent[i].m_tabContent->getManualLayoutBrowserTabAnnotation())) {
                 indexOfTabBehind = i;
             }
         }
@@ -141,7 +142,7 @@ TileTabsManualConfigurationModifier::runTabOrderOperation(const TabOrderOperatio
             /*
              * Find first (closest) tab that is in front of and intersects 'browserTabContent'
              */
-            if (browserTabContent->getManualLayoutGeometry()->intersectionTest(tabOrderAndContent[i].m_tabContent->getManualLayoutGeometry())) {
+            if (browserTabContent->getManualLayoutBrowserTabAnnotation()->intersectionTest(tabOrderAndContent[i].m_tabContent->getManualLayoutBrowserTabAnnotation())) {
                 indexOfTabInFront = i;
             }
         }
@@ -206,7 +207,7 @@ TileTabsManualConfigurationModifier::runTabOrderOperation(const TabOrderOperatio
               tabOrderAndContent.end());
     for (int32_t i = 0; i < numTabs; i++) {
         CaretAssertVectorIndex(tabOrderAndContent, i);
-        tabOrderAndContent[i].m_tabContent->getManualLayoutGeometry()->setStackingOrder(i);
+        tabOrderAndContent[i].m_tabContent->getManualLayoutBrowserTabAnnotation()->setStackingOrder(i);
     }
     
     return true;

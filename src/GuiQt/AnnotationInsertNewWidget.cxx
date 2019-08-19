@@ -561,6 +561,9 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
         case AnnotationTypeEnum::BOX:
             painter->drawRect(1, 1, width - 2, height - 2);
             break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            CaretAssertMessage(0, "No pixmap for browser tab as user does not create them like other annotations");
+            break;
         case AnnotationTypeEnum::COLOR_BAR:
             CaretAssertMessage(0, "No pixmap for colorbar as user does not create them like other annotations");
             break;

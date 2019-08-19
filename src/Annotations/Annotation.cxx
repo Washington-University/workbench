@@ -24,6 +24,7 @@
 #undef __ANNOTATION_DECLARE__
 
 #include "AnnotationBox.h"
+#include "AnnotationBrowserTab.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationGroup.h"
@@ -177,6 +178,13 @@ Annotation::clone() const
             const AnnotationBox* box = dynamic_cast<const AnnotationBox*>(this);
             CaretAssert(box);
             myClone = new AnnotationBox(*box);
+        }
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+        {
+            const AnnotationBrowserTab* browserTab = dynamic_cast<const AnnotationBrowserTab*>(this);
+            CaretAssert(browserTab);
+            myClone = new AnnotationBrowserTab(*browserTab);
         }
             break;
         case AnnotationTypeEnum::COLOR_BAR:
@@ -348,6 +356,9 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
         case AnnotationTypeEnum::BOX:
             annotation = new AnnotationBox(attributeDefaultType);
             break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            annotation = new AnnotationBrowserTab(attributeDefaultType);
+            break;
         case AnnotationTypeEnum::COLOR_BAR:
             annotation = new AnnotationColorBar(attributeDefaultType);
             break;
@@ -418,6 +429,9 @@ Annotation::initializeAnnotationMembers()
             switch (m_type) {
                 case AnnotationTypeEnum::BOX:
                     break;
+                case AnnotationTypeEnum::BROWSER_TAB:
+                    m_colorBackground = CaretColorEnum::NONE;
+                    break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     m_colorBackground = CaretColorEnum::BLACK;
                     break;
@@ -470,6 +484,9 @@ Annotation::initializeAnnotationMembers()
                         m_colorBackground = defaultColor;
                     }
                     break;
+                case AnnotationTypeEnum::BROWSER_TAB:
+                    m_colorBackground = CaretColorEnum::NONE;
+                    break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     break;
                 case AnnotationTypeEnum::IMAGE:
@@ -514,6 +531,9 @@ Annotation::initializeAnnotationMembers()
     bool disallowLineColorNoneFlag = false;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            disallowLineColorNoneFlag = true;
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             disallowLineColorNoneFlag = true;
@@ -622,6 +642,8 @@ Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
     AString typeName = AnnotationTypeEnum::toGuiName(m_type);
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;
@@ -932,129 +954,6 @@ Annotation::initializeSurfaceSpaceWithTangentOffsetRotation(const StructureEnum:
     }
     
     return;
-    
-    
-    
-    
-
-//     AnnotationTwoDimensionalShape* twoDimAnn = dynamic_cast<AnnotationTwoDimensionalShape*>(this);
-//    if (twoDimAnn != NULL) {
-//        if (isInSurfaceSpaceWithTangentOffset()) {
-//            enum class OrientationType {
-//                LEFT_TO_RIGHT         = 0,
-//                RIGHT_TO_LEFT         = 1,
-//                POSTERIOR_TO_ANTERIOR = 2,
-//                ANTERIOR_TO_POSTERIOR = 3,
-//                INFERIOR_TO_SUPERIOR  = 4,
-//                SUPERIOR_TO_INFERIOR  = 5
-//            };
-//            
-//            const OrientationType orientations[6] = {
-//                OrientationType::LEFT_TO_RIGHT,
-//                OrientationType::RIGHT_TO_LEFT,
-//                OrientationType::POSTERIOR_TO_ANTERIOR,
-//                OrientationType::ANTERIOR_TO_POSTERIOR,
-//                OrientationType::INFERIOR_TO_SUPERIOR,
-//                OrientationType::SUPERIOR_TO_INFERIOR
-//            };
-//            const float orientationVectors[6][3] {
-//                {  1.0,  0.0,  0.0 },
-//                { -1.0,  0.0,  0.0 },
-//                {  0.0,  1.0,  0.0 },
-//                {  0.0, -1.0,  0.0 },
-//                {  0.0,  0.0,  1.0 },
-//                {  0.0,  0.0, -1.0 }
-//            };
-//            
-//            
-//            /*
-//             * Find orientation that aligns with the vertex's normal vector
-//             */
-//            OrientationType matchingOrientation = OrientationType::LEFT_TO_RIGHT;
-//            float matchingAngle = 10000.0f;
-//            for (int32_t i = 0; i < 6; i++) {
-//                const float angle = MathFunctions::angleInDegreesBetweenVectors(orientationVectors[i],
-//                                                                                vertexNormal);
-//                if (angle < matchingAngle) {
-//                    matchingAngle = angle;
-//                    matchingOrientation = orientations[i];
-//                }
-//            }
-//            
-//            float surfaceUpAxisVector[3] = { 0.0f, 0.0f, 1.0f };
-//            switch (matchingOrientation) {
-//                case OrientationType::LEFT_TO_RIGHT:
-//                    break;
-//                case OrientationType::RIGHT_TO_LEFT:
-//                    break;
-//                case OrientationType::POSTERIOR_TO_ANTERIOR:
-//                    break;
-//                case OrientationType::ANTERIOR_TO_POSTERIOR:
-//                    break;
-//                case OrientationType::INFERIOR_TO_SUPERIOR:
-//                    surfaceUpAxisVector[0] = 1.0;
-//                    surfaceUpAxisVector[0] = 0.0;
-//                    surfaceUpAxisVector[0] = 0.0;
-//                    break;
-//                case OrientationType::SUPERIOR_TO_INFERIOR:
-//                    surfaceUpAxisVector[0] = -1.0;
-//                    surfaceUpAxisVector[0] =  0.0;
-//                    surfaceUpAxisVector[0] =  0.0;
-//                    break;
-//            }
-//            
-//            /*
-//             * Vector for annotation's Y (vector from bottom to top of annotation)
-//             */
-//            const float annotationUpYVector[3] {
-//                0.0,
-//                1.0,
-//                0.0
-//            };
-//            
-//            /*
-//             * Initialize the rotation angle so that the annotation's vertical axis
-//             * is aligned with the screen vertical axis when the surface is in the
-//             * analogous surface view.  For a text annotation, the text should be
-//             * flowing left to right across screen.
-//             */
-//            Matrix4x4 rotationMatrix;
-//            rotationMatrix.setMatrixToOpenGLRotationFromVector(vertexNormal);
-//            Matrix4x4 inverseMatrix(rotationMatrix);
-//            inverseMatrix.invert();
-//            inverseMatrix.multiplyPoint3(surfaceUpAxisVector);
-//            const float alignRotationAngle = MathFunctions::angleInDegreesBetweenVectors(annotationUpYVector,
-//                                                                                           surfaceUpAxisVector);
-//            float rotationAngle = alignRotationAngle;
-//            switch (matchingOrientation) {
-//                case OrientationType::LEFT_TO_RIGHT:
-//                    rotationAngle = 360.0 - rotationAngle;
-//                    break;
-//                case OrientationType::RIGHT_TO_LEFT:
-//                    break;
-//                case OrientationType::POSTERIOR_TO_ANTERIOR:
-//                    if (StructureEnum::isRight(structure)) {
-//                        rotationAngle = 360.0 - rotationAngle;
-//                    }
-//                    break;
-//                case OrientationType::ANTERIOR_TO_POSTERIOR:
-//                    if (StructureEnum::isRight(structure)) {
-//                        rotationAngle = 360.0 - rotationAngle;
-//                    }
-//                    break;
-//                case OrientationType::INFERIOR_TO_SUPERIOR:
-//                    if (StructureEnum::isRight(structure)) {
-//                        rotationAngle += 180.0;
-//                    }
-//                    break;
-//                case OrientationType::SUPERIOR_TO_INFERIOR:
-//                    rotationAngle += 90.0;
-//                    break;
-//            }
-//
-//            twoDimAnn->setRotationAngle(rotationAngle);
-//        }
-//    }
 }
 
 /**
@@ -1575,12 +1474,17 @@ Annotation::initializeProperties()
     CaretAssert(m_properties.size() >= static_cast<std::underlying_type<Property>::type>(Property::COUNT_FOR_BITSET));
     m_properties.set();
     
+    bool browserTabFlag(false);
     bool colorBarFlag = false;
     bool fillColorFlag = true;
     bool lineArrowsFlag = false;
     bool textFlag = false;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            browserTabFlag = true;
+            fillColorFlag = false;
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             colorBarFlag = true;
@@ -1616,6 +1520,17 @@ Annotation::initializeProperties()
      */
     resetProperty(Property::INVALID);
     resetProperty(Property::COUNT_FOR_BITSET);
+    
+    if (browserTabFlag) {
+        resetProperty(Property::COPY_CUT_PASTE);
+        resetProperty(Property::DELETION);
+        resetProperty(Property::DISPLAY_GROUP);
+        resetProperty(Property::GROUP);
+        resetProperty(Property::LINE_COLOR);
+        resetProperty(Property::LINE_THICKNESS);
+        resetProperty(Property::TEXT_COLOR);
+        resetProperty(Property::TEXT_EDIT);
+    }
     
     if (colorBarFlag) {
         resetProperty(Property::ARRANGE);
@@ -1911,6 +1826,8 @@ Annotation::textAnnotationResetName()
     AString suffixName;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;

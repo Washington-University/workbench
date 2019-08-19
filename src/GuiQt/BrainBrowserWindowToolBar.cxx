@@ -48,6 +48,7 @@
 #include <QTimer>
 #include <QToolButton>
 
+#include "AnnotationBrowserTab.h"
 #include "AnnotationManager.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -121,7 +122,6 @@
 #include "SurfaceSelectionViewController.h"
 #include "StructureSurfaceSelectionControl.h"
 #include "TileTabsLayoutGridConfiguration.h"
-#include "TileTabsBrowserTabGeometry.h"
 #include "TileTabsManualConfigurationModifier.h"
 #include "UserInputModeAbstract.h"
 #include "VolumeFile.h"
@@ -4653,12 +4653,12 @@ BrainBrowserWindowToolBar::processTileTabOperationEvent(EventBrowserWindowTileTa
                     tabMinY = (tabMinY / windowHeight) * 100.0;
                     tabMaxY = (tabMaxY / windowHeight) * 100.0;
                     
-                    TileTabsBrowserTabGeometry* geometry = btc->getManualLayoutGeometry();
-                    CaretAssert(geometry);
-                    geometry->setBounds(tabMinX,
-                                        tabMaxX,
-                                        tabMinY,
-                                        tabMaxY);
+                    AnnotationBrowserTab* tabAnnotation = btc->getManualLayoutBrowserTabAnnotation();
+                    CaretAssert(tabAnnotation);
+                    tabAnnotation->setBounds2D(tabMinX,
+                                               tabMaxX,
+                                               tabMinY,
+                                               tabMaxY);
                     updateGraphicsWindow();
                 }
             }

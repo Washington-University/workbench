@@ -27,6 +27,7 @@
 #include <QGridLayout>
 #include <QLabel>
 
+#include "AnnotationBrowserTab.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
@@ -134,19 +135,20 @@ TileTabsManualTabGeometryWidget::updateContent(BrowserTabContent* browserTabCont
     
     if (showFlag) {
         m_tabNumberLabel->setText(browserTabContent->getTabName());
-        TileTabsBrowserTabGeometry* geometry = m_browserTabContent->getManualLayoutGeometry();
-        CaretAssert(geometry);
-        
-        updatePercentSpinBox(m_xMinSpinBox, geometry->getMinX());
-        updatePercentSpinBox(m_xMaxSpinBox, geometry->getMaxX());
-        updatePercentSpinBox(m_yMinSpinBox, geometry->getMinY());
-        updatePercentSpinBox(m_yMaxSpinBox, geometry->getMaxY());
+        AnnotationBrowserTab* annotationBrowserTab = m_browserTabContent->getManualLayoutBrowserTabAnnotation();
+        CaretAssert(annotationBrowserTab);
+        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+        annotationBrowserTab->getBounds2D(minX, maxX, minY, maxY);
+        updatePercentSpinBox(m_xMinSpinBox, minX);
+        updatePercentSpinBox(m_xMaxSpinBox, maxX);
+        updatePercentSpinBox(m_yMinSpinBox, minY);
+        updatePercentSpinBox(m_yMaxSpinBox, maxY);
 
-        const TileTabsLayoutBackgroundTypeEnum::Enum background = geometry->getBackgroundType();
+        const TileTabsLayoutBackgroundTypeEnum::Enum background = annotationBrowserTab->getBackgroundType();
         m_TileTabsLayoutBackgroundTypeEnumComboBox->setSelectedItem<TileTabsLayoutBackgroundTypeEnum,TileTabsLayoutBackgroundTypeEnum::Enum>(background);
 
         QSignalBlocker blocker(m_stackingOrderSpinBox); // setValue() causes signal
-        m_stackingOrderSpinBox->setValue(geometry->getStackingOrder());
+        m_stackingOrderSpinBox->setValue(annotationBrowserTab->getStackingOrder());
     }
     
     m_gridLayoutGroup->setVisible(showFlag);
@@ -222,9 +224,12 @@ TileTabsManualTabGeometryWidget::xMinSpinBoxValueChanged(double value)
 {
     CaretAssert(m_browserTabContent);
     if (m_browserTabContent != NULL) {
-        TileTabsBrowserTabGeometry* geometry = m_browserTabContent->getManualLayoutGeometry();
-        CaretAssert(geometry);
-        geometry->setMinX(value);
+        AnnotationBrowserTab* annotationBrowserTab = m_browserTabContent->getManualLayoutBrowserTabAnnotation();
+        CaretAssert(annotationBrowserTab);
+        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+        annotationBrowserTab->getBounds2D(minX, maxX, minY, maxY);
+        minX = value;
+        annotationBrowserTab->setBounds2D(minX, maxX, minY, maxY);
         updateContent(m_browserTabContent); // 'geometry' ensures min < max
         emit itemChanged();
     }
@@ -241,9 +246,12 @@ TileTabsManualTabGeometryWidget::xMaxSpinBoxValueChanged(double value)
 {
     CaretAssert(m_browserTabContent);
     if (m_browserTabContent != NULL) {
-        TileTabsBrowserTabGeometry* geometry = m_browserTabContent->getManualLayoutGeometry();
-        CaretAssert(geometry);
-        geometry->setMaxX(value);
+        AnnotationBrowserTab* annotationBrowserTab = m_browserTabContent->getManualLayoutBrowserTabAnnotation();
+        CaretAssert(annotationBrowserTab);
+        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+        annotationBrowserTab->getBounds2D(minX, maxX, minY, maxY);
+        maxX = value;
+        annotationBrowserTab->setBounds2D(minX, maxX, minY, maxY);
         updateContent(m_browserTabContent); // 'geometry' ensures min < max
         emit itemChanged();
     }
@@ -260,9 +268,12 @@ TileTabsManualTabGeometryWidget::yMinSpinBoxValueChanged(double value)
 {
     CaretAssert(m_browserTabContent);
     if (m_browserTabContent != NULL) {
-        TileTabsBrowserTabGeometry* geometry = m_browserTabContent->getManualLayoutGeometry();
-        CaretAssert(geometry);
-        geometry->setMinY(value);
+        AnnotationBrowserTab* annotationBrowserTab = m_browserTabContent->getManualLayoutBrowserTabAnnotation();
+        CaretAssert(annotationBrowserTab);
+        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+        annotationBrowserTab->getBounds2D(minX, maxX, minY, maxY);
+        minY = value;
+        annotationBrowserTab->setBounds2D(minX, maxX, minY, maxY);
         updateContent(m_browserTabContent); // 'geometry' ensures min < max
         emit itemChanged();
     }
@@ -279,9 +290,12 @@ TileTabsManualTabGeometryWidget::yMaxSpinBoxValueChanged(double value)
 {
     CaretAssert(m_browserTabContent);
     if (m_browserTabContent != NULL) {
-        TileTabsBrowserTabGeometry* geometry = m_browserTabContent->getManualLayoutGeometry();
-        CaretAssert(geometry);
-        geometry->setMaxY(value);
+        AnnotationBrowserTab* annotationBrowserTab = m_browserTabContent->getManualLayoutBrowserTabAnnotation();
+        CaretAssert(annotationBrowserTab);
+        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+        annotationBrowserTab->getBounds2D(minX, maxX, minY, maxY);
+        maxY = value;
+        annotationBrowserTab->setBounds2D(minX, maxX, minY, maxY);
         updateContent(m_browserTabContent); // 'geometry' ensures min < max
         emit itemChanged();
     }
@@ -298,9 +312,9 @@ TileTabsManualTabGeometryWidget::stackingOrderValueChanged(int value)
 {
     CaretAssert(m_browserTabContent);
     if (m_browserTabContent != NULL) {
-        TileTabsBrowserTabGeometry* geometry = m_browserTabContent->getManualLayoutGeometry();
-        CaretAssert(geometry);
-        geometry->setStackingOrder(value);
+        AnnotationBrowserTab* annotationBrowserTab = m_browserTabContent->getManualLayoutBrowserTabAnnotation();
+        CaretAssert(annotationBrowserTab);
+        annotationBrowserTab->setStackingOrder(value);
         emit itemChanged();
     }
 }
@@ -316,11 +330,11 @@ TileTabsManualTabGeometryWidget::tileTabsLayoutBackgroundTypeEnumComboBoxItemAct
 {
     CaretAssert(m_browserTabContent);
     if (m_browserTabContent != NULL) {
-        TileTabsBrowserTabGeometry* geometry = m_browserTabContent->getManualLayoutGeometry();
-        CaretAssert(geometry);
-        
+        AnnotationBrowserTab* annotationBrowserTab = m_browserTabContent->getManualLayoutBrowserTabAnnotation();
+        CaretAssert(annotationBrowserTab);
+
         const TileTabsLayoutBackgroundTypeEnum::Enum backgroundType = m_TileTabsLayoutBackgroundTypeEnumComboBox->getSelectedItem<TileTabsLayoutBackgroundTypeEnum,TileTabsLayoutBackgroundTypeEnum::Enum>();
-        geometry->setBackgroundType(backgroundType);
+        annotationBrowserTab->setBackgroundType(backgroundType);
         emit itemChanged();
     }
 }

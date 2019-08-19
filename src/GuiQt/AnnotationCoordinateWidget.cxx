@@ -482,6 +482,10 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         m_zCoordSpinBox->setDecimals(digitsRightOfDecimalZ);
         m_zCoordSpinBox->blockSignals(false);
         
+        if (annotation->getType() == AnnotationTypeEnum::BROWSER_TAB) {
+            m_zCoordSpinBox->setEnabled(false);
+        }
+        
         if (surfaceFlag) {
             StructureEnum::Enum structure = StructureEnum::INVALID;
             int32_t surfaceNumberOfNodes  = -1;

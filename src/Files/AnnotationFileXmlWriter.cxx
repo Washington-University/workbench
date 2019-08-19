@@ -183,36 +183,6 @@ AnnotationFileXmlWriter::writeFileContentToXmlStreamWriter(const AnnotationFile*
     
     m_streamHelper->writeMetaData(annotationFile->getFileMetaData());
     
-//    std::vector<Annotation*> annotations;
-//    annotationFile->getAllAnnotations(annotations);
-//    const int32_t numberOfAnnotations = static_cast<int32_t>(annotations.size());
-//    for (int32_t i = 0; i < numberOfAnnotations; i++) {
-//        CaretAssertVectorIndex(annotations, i);
-//        const Annotation* annotation = annotations[i];
-//        CaretAssert(annotation);
-//        
-//        switch (annotation->getType()) {
-//            case AnnotationTypeEnum::BOX:
-//                writeBox(dynamic_cast<const AnnotationBox*>(annotation));
-//                break;
-//            case AnnotationTypeEnum::COLOR_BAR:
-//                CaretAssertMessage(0, "Color bar is NEVER written to an annotation file");
-//                break;
-//            case AnnotationTypeEnum::IMAGE:
-//                writeImage(dynamic_cast<const AnnotationImage*>(annotation));
-//                break;
-//            case AnnotationTypeEnum::LINE:
-//                writeLine(dynamic_cast<const AnnotationLine*>(annotation));
-//                break;
-//            case AnnotationTypeEnum::OVAL:
-//                writeOval(dynamic_cast<const AnnotationOval*>(annotation));
-//                break;
-//            case AnnotationTypeEnum::TEXT:
-//                writeText(dynamic_cast<const AnnotationText*>(annotation));
-//                break;
-//        }
-//    }
-
     std::vector<AnnotationGroup*> annotationGroups;
     annotationFile->getAllAnnotationGroups(annotationGroups);
     
@@ -269,6 +239,9 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
             case AnnotationTypeEnum::BOX:
                 writeBox(dynamic_cast<const AnnotationBox*>(annotation));
                 break;
+            case AnnotationTypeEnum::BROWSER_TAB:
+                CaretAssertMessage(0, "Browser Tab is NEVER written to an annotation file");
+                break;
             case AnnotationTypeEnum::COLOR_BAR:
                 CaretAssertMessage(0, "Color bar is NEVER written to an annotation file");
                 break;
@@ -286,9 +259,6 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
                 break;
         }
     }
-    
-    //    const AString indicesString = AString::fromNumbers(group->getAnnotationUniqueIdentifiers(), " ");
-    //    m_stream->writeCharacters(indicesString);
     
     m_stream->writeEndElement();
 }

@@ -28,6 +28,7 @@
 #include <limits>
 #include <numeric>
 
+#include "AnnotationBrowserTab.h"
 #include "BrowserTabContent.h"
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
@@ -1016,8 +1017,8 @@ BrainOpenGLViewportContent::createViewportContentForManualTileTabs(std::vector<B
          */
         std::sort(tabContents.begin(),
                   tabContents.end(),
-                  [](BrowserTabContent* a, BrowserTabContent* b) { return (a->getManualLayoutGeometry()->getStackingOrder()
-                                                                           < b->getManualLayoutGeometry()->getStackingOrder()); } );
+                  [](BrowserTabContent* a, BrowserTabContent* b) { return (a->getManualLayoutBrowserTabAnnotation()->getStackingOrder()
+                                                                           < b->getManualLayoutBrowserTabAnnotation()->getStackingOrder()); } );
     }
     
     for (const auto tab : tabContents) {
@@ -1026,11 +1027,15 @@ BrainOpenGLViewportContent::createViewportContentForManualTileTabs(std::vector<B
         /*
          * Tab Geometry is in percentages ranging [0.0, 100.0]
          */
-        const TileTabsBrowserTabGeometry* tabGeometry = tab->getManualLayoutGeometry();
-        int32_t tabX(((tabGeometry->getMinX() / 100.0) * windowWidth) + windowX);
-        int32_t tabY(((tabGeometry->getMinY() / 100.0) * windowHeight) + windowY);
-        int32_t tabWidth((tabGeometry->getWidth() / 100.0) * windowWidth);
-        int32_t tabHeight((tabGeometry->getHeight() / 100.0) * windowHeight);
+        const AnnotationBrowserTab* tabAnnotation = tab->getManualLayoutBrowserTabAnnotation();
+        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+        tabAnnotation->getBounds2D(minX, maxX, minY, maxY);
+        const float tabAnnWidth(maxX - minX);
+        const float tabAnnHeight(maxY - minY);
+        int32_t tabX(((minX / 100.0) * windowWidth) + windowX);
+        int32_t tabY(((minY / 100.0) * windowHeight) + windowY);
+        int32_t tabWidth((tabAnnWidth / 100.0) * windowWidth);
+        int32_t tabHeight((tabAnnHeight / 100.0) * windowHeight);
 
         /*
          * Is aspect ratio locked for all tabs ?
