@@ -561,11 +561,59 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const s
     m_annotationBrowserTabsForDrawing.clear();
     
     if (drawBrowserTabAnnotationsFlag) {
+        const CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+        const BackgroundAndForegroundColors* colors = preferences->getBackgroundAndForegroundColors();
         for (const auto vc : viewportContents) {
             BrowserTabContent* tabContent = vc->getBrowserTabContent();
             if (tabContent != NULL) {
+                uint8_t foregroundColor[4] = { 255, 255, 255, 255 };
+                uint8_t backgroundColor[4] = {   0,   0,   0, 255 };
+                colors->getColorBackgroundWindow(backgroundColor);
+                colors->getColorForegroundWindow(foregroundColor);
+
+                switch (tabContent->getSelectedModelType()) {
+                    case ModelTypeEnum::MODEL_TYPE_CHART:
+                        colors->getColorBackgroundChartView(backgroundColor);
+                        colors->getColorForegroundChartView(foregroundColor);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                        colors->getColorBackgroundChartView(backgroundColor);
+                        colors->getColorForegroundChartView(foregroundColor);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_INVALID:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                        colors->getColorBackgroundSurfaceView(backgroundColor);
+                        colors->getColorForegroundSurfaceView(foregroundColor);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                        colors->getColorBackgroundSurfaceView(backgroundColor);
+                        colors->getColorForegroundSurfaceView(foregroundColor);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                        colors->getColorBackgroundVolumeView(backgroundColor);
+                        colors->getColorForegroundVolumeView(foregroundColor);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                        colors->getColorBackgroundAllView(backgroundColor);
+                        colors->getColorForegroundAllView(foregroundColor);
+                        break;
+                }
+                
+                /*
+                 * Update the line and background colors using the
+                 * appropriate model color from preferences
+                 */
                 AnnotationBrowserTab* abt = tabContent->getManualLayoutBrowserTabAnnotation();
                 CaretAssert(abt);
+                const bool modStatus = abt->isModified();
+                abt->setCustomLineColor(foregroundColor);
+                abt->setLineColor(CaretColorEnum::CUSTOM);
+                abt->setCustomBackgroundColor(backgroundColor);
+                abt->setBackgroundColor(CaretColorEnum::CUSTOM);
+                if ( ! modStatus) {
+                    abt->clearModified();
+                }
                 abt->setWindowIndex(vc->getWindowIndex());
                 m_annotationBrowserTabsForDrawing.push_back(abt);
             }

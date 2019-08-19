@@ -333,7 +333,7 @@ namespace caret {
                                                        std::vector<float>& lineCoordinatesOut,
                                                        std::vector<float>& arrowCoordinatesOut) const;
                 
-        void setSelectionBoxColor();
+        void setSelectionBoxColor(const Annotation* annotation);
         
         void startOpenGLForDrawing(GLint* savedShadeModelOut,
                                    GLboolean* savedLightingEnabledOut);

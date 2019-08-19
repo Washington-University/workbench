@@ -582,8 +582,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     
     m_volumeSliceThickness  = sliceThickness;
     
-    setSelectionBoxColor();
-    
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At beginning of annotation drawing in space "
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
     
@@ -906,6 +904,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 }
                     break;
             }
+
+            setSelectionBoxColor(annotation);
 
             drawAnnotation(annotationFile,
                            annotation,
@@ -4728,10 +4728,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
 
 /**
  * Set the color for drawing the selection box and handles.
+ *
+ * @param annotation
+ *     Annotation this is being drawn.
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor()
+BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor(const Annotation* annotation)
 {
+    CaretAssert(annotation);
+    
     /*
      * Use the foreground color but reduce the intensity and saturation.
      */
@@ -4739,6 +4744,27 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor()
     m_selectionBoxRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[1];
     m_selectionBoxRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[2];
     m_selectionBoxRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[3];
+    
+    switch (annotation->getType()) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            /*
+             * Foreground color is loaded into browser tab by BrainOpenGLFixedPipeline
+             */
+            annotation->getLineColorRGBA(m_selectionBoxRGBA);
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::TEXT:
+            break;
+    }
     
     QColor color(m_selectionBoxRGBA[0],
                  m_selectionBoxRGBA[1],
