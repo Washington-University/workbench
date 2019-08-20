@@ -195,6 +195,16 @@ TileTabsLayoutGridConfiguration::copy(const TileTabsLayoutBaseConfiguration& rhs
 }
 
 /**
+ * @return Number of tabs in this layout
+ */
+int32_t
+TileTabsLayoutGridConfiguration::getNumberOfTabs() const
+{
+    const int32_t numTabs = getNumberOfRows() * getNumberOfColumns();
+    return numTabs;
+}
+
+/**
  * Get infoformation for the given elemnent in the columns.
  *
  * @param Information for element.

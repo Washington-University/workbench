@@ -572,9 +572,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
     BrowserWindowContent* browserWindowContent = getModelEvent.getBrowserWindowContent();
     CaretAssert(browserWindowContent);
 
-    
-    if (browserWindowContent->isTileTabsEnabled()
-        && (numberOfTabs > 1)) {
+    if (browserWindowContent->isTileTabsEnabled()) {
         const int32_t windowWidth  = windowViewport[2];
         const int32_t windowHeight = windowViewport[3];
         

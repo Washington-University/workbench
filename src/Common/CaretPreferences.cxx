@@ -577,10 +577,14 @@ CaretPreferences::getTileTabsUserConfigurationsNamesAndUniqueIdentifiers() const
                 typeString = " (AG)";
                 break;
             case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
-                typeString = " (G)";
+                typeString = (" (G,"
+                              + AString::number(ttc->getNumberOfTabs())
+                              + ")");
                 break;
             case TileTabsLayoutConfigurationTypeEnum::MANUAL:
-                typeString = " (M)";
+                typeString = (" (M,"
+                              + AString::number(ttc->getNumberOfTabs())
+                              + ")");
                 break;
         }
         nameIDs.push_back(std::make_pair(ttc->getName() + typeString,

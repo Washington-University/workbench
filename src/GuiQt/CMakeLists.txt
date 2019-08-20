@@ -355,6 +355,8 @@ DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 EventAnnotationCreateNewType.h
 EventAnnotationGetDrawnInWindow.h
+EventBrowserTabDeleteInGUI.h
+EventBrowserTabNewInGUI.h
 EventBrowserWindowDrawingContent.h
 EventBrowserWindowCreateTabs.h
 EventBrowserWindowGraphicsRedrawn.h
@@ -628,6 +630,8 @@ DataFileContentCopyMoveDialog.cxx
 DisplayGroupAndTabItemTreeWidgetItem.cxx
 DisplayGroupAndTabItemViewController.cxx
 DisplayGroupEnumComboBox.cxx
+EventBrowserTabDeleteInGUI.cxx
+EventBrowserTabNewInGUI.cxx
 EventAnnotationCreateNewType.cxx
 EventAnnotationGetDrawnInWindow.cxx
 EventBrowserWindowDrawingContent.cxx

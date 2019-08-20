@@ -57,7 +57,7 @@ namespace caret {
         
         void addTabInfo(TileTabsBrowserTabGeometry* tabInfo);
         
-        int32_t getNumberOfTabs() const;
+        virtual int32_t getNumberOfTabs() const override;
         
         TileTabsBrowserTabGeometry* getTabInfo(const int32_t index);
         

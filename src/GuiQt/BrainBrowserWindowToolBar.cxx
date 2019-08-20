@@ -81,10 +81,12 @@
 #include "DisplayPropertiesBorders.h"
 #include "EventBrowserTabNewClone.h"
 #include "EventBrowserTabDelete.h"
+#include "EventBrowserTabDeleteInGUI.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabGetAllViewed.h"
 #include "EventBrowserTabNew.h"
+#include "EventBrowserTabNewInGUI.h"
 #include "EventBrowserWindowDrawingContent.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowNew.h"
@@ -536,6 +538,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->isContructorFinished = true;
     m_tileTabsHighlightingTimerEnabledFlag = true;
     
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE_IN_GUI);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_IN_GUI);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS);
@@ -4468,7 +4472,30 @@ BrainBrowserWindowToolBar::surfaceSelectionControlChanged(
 void 
 BrainBrowserWindowToolBar::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET) {
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE_IN_GUI) {
+        EventBrowserTabDeleteInGUI* deleteTabInGuiEvent = dynamic_cast<EventBrowserTabDeleteInGUI*>(event);
+        CaretAssert(deleteTabInGuiEvent);
+
+        BrowserTabContent* tabToDelete = deleteTabInGuiEvent->getBrowserTab();
+        CaretAssert(tabToDelete);
+        
+        for (int32_t iTab = 0; iTab < this->tabBar->count(); iTab++) {
+            if (tabToDelete == getTabContentFromTab(iTab)) {
+                tabCloseSelected(iTab);
+                deleteTabInGuiEvent->setEventProcessed();
+                break;
+            }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_NEW_IN_GUI) {
+        EventBrowserTabNewInGUI* newTabEvent = dynamic_cast<EventBrowserTabNewInGUI*>(event);
+        CaretAssert(newTabEvent);
+        
+        BrowserTabContent* newTabContent = addNewTab();
+        newTabEvent->setBrowserTab(newTabContent);
+        newTabEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET) {
         EventBrowserWindowDrawingContent* getModelEvent =
             dynamic_cast<EventBrowserWindowDrawingContent*>(event);
         CaretAssert(getModelEvent);

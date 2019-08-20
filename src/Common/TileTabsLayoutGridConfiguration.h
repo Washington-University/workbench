@@ -50,6 +50,8 @@ namespace caret {
         
         virtual TileTabsLayoutBaseConfiguration* newCopyWithNewUniqueIdentifier() const override;
                 
+        virtual int32_t getNumberOfTabs() const override;
+        
         bool getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
                                                        const int32_t windowHeight,
                                                        const int32_t numberOfModelsToDraw,

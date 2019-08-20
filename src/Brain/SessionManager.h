@@ -116,6 +116,8 @@ namespace caret {
         void restorePreferencesFromScene(const SceneAttributes* sceneAttributes,
                                          const SceneClass* sceneClass);
         
+        int32_t getMaximumManualTabStackOrder() const;
+        
         /** The session manager */
         static SessionManager* s_singletonSessionManager;
         

@@ -122,7 +122,11 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_TAB_DELETE", 
                                      "Delete a browser tab"));
     
-    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_GET, 
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_DELETE_IN_GUI,
+                                     "EVENT_BROWSER_TAB_DELETE_IN_GUI",
+                                     "Delete a browser tab from/in the GUI so toolbar updated"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_GET,
                                     "EVENT_BROWSER_TAB_GET", 
                                     "Get a browser tab by number"));
     
@@ -141,6 +145,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_NEW,
                                      "EVENT_BROWSER_TAB_NEW", 
                                      "Create a browser tab"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_NEW_IN_GUI,
+                                     "EVENT_BROWSER_TAB_NEW_IN_GUI",
+                                     "Create a browser tab from/in the GUI so toolbar is updated"));
     
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_NEW_CLONE,
                                      "EVENT_BROWSER_TAB_NEW_CLONE",

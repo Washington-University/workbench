@@ -68,6 +68,7 @@ namespace caret {
         
         AString getUniqueIdentifier() const;
         
+        virtual int32_t getNumberOfTabs() const = 0;
         
         AString encodeInXML() const;
         

@@ -25,6 +25,7 @@
 #include "SessionManager.h"
 #undef __SESSION_MANAGER_DECLARE__
 
+#include "AnnotationBrowserTab.h"
 #include "ApplicationInformation.h"
 #include "BackgroundAndForegroundColorsSceneHelper.h"
 #include "Brain.h"
@@ -295,6 +296,25 @@ SessionManager::toString() const
 }
 
 /**
+ * Get the maximum stack order from all tabs
+ */
+int32_t
+SessionManager::getMaximumManualTabStackOrder() const
+{
+    int32_t maxStackOrder(0);
+    
+    for (const auto bt : m_browserTabs) {
+        if (bt != NULL) {
+            maxStackOrder = std::max(bt->getManualLayoutBrowserTabAnnotation()->getStackingOrder(),
+                                     maxStackOrder);
+        }
+    }
+    
+    return maxStackOrder;
+}
+
+
+/**
  * Receive events.
  *
  * @param event
@@ -316,6 +336,7 @@ SessionManager::receiveEvent(Event* event)
                 BrowserTabContent* tab = new BrowserTabContent(i);
                 tab->update(m_models);
                 m_browserTabs[i] = tab;
+                tab->getManualLayoutBrowserTabAnnotation()->setStackingOrder(getMaximumManualTabStackOrder() + 1);
                 tabEvent->setBrowserTab(tab);
                 createdTab = true;
                 break;
@@ -351,6 +372,8 @@ SessionManager::receiveEvent(Event* event)
             m_browserTabs[newTabIndex] = new BrowserTabContent(newTabIndex);
             m_browserTabs[newTabIndex]->update(m_models);
             m_browserTabs[newTabIndex]->cloneBrowserTabContent(m_browserTabs[cloneTabIndex]);
+            m_browserTabs[newTabIndex]->getManualLayoutBrowserTabAnnotation()->setStackingOrder(getMaximumManualTabStackOrder() + 1);
+
             cloneTabEvent->setNewBrowserTab(m_browserTabs[newTabIndex],
                                             newTabIndex);
         }

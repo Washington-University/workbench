@@ -66,6 +66,8 @@ public:
         EVENT_BRAIN_STRUCTURE_GET_ALL,
         /** Delete a browser tab. */
         EVENT_BROWSER_TAB_DELETE,
+        /** Delete a browser tab from code within the GUI so toolbar is updated. */
+        EVENT_BROWSER_TAB_DELETE_IN_GUI,
         /** Get a browser tab by tab number */
         EVENT_BROWSER_TAB_GET,
         /** Get indices of all valid browser tabs */
@@ -76,6 +78,8 @@ public:
         EVENT_BROWSER_TAB_GET_ALL_VIEWED,
         /** Create a new browser tab */
         EVENT_BROWSER_TAB_NEW,
+        /** Create a new browser tab from code within the GUI so toolbar is updated */
+        EVENT_BROWSER_TAB_NEW_IN_GUI,
         /** Create a new browser tab by cloning an existing browser tab */
         EVENT_BROWSER_TAB_NEW_CLONE,
         /** Event for browser window content */

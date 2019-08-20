@@ -53,6 +53,8 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventBrowserTabDeleteInGUI.h"
+#include "EventBrowserTabNewInGUI.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventHelpViewerDisplay.h"
@@ -444,19 +446,92 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             
             std::vector<BrowserTabContent*> allTabContent;
             getBrowserWindow()->getAllTabContent(allTabContent);
-            const int32_t numBrowserTabs = static_cast<int32_t>(allTabContent.size());
+            int32_t numBrowserTabs = static_cast<int32_t>(allTabContent.size());
             
-            const int numMissingTabs = numBrowserTabs - numConfigTabs;
-            if (numMissingTabs > 0) {
-                const QString msg("User configuration \""
-                                  + userManualConfig->getName()
-                                  + "\" contains fewer tabs than in window.  The last "
-                                  + AString::number(numMissingTabs)
-                                  + " will not change position.");
-                if ( ! WuQMessageBox::warningOkCancel(m_loadConfigurationPushButton, msg)) {
-                    return;
+            if (numBrowserTabs == numConfigTabs) {
+                /* OK */
+            }
+            else {
+                AString msg("<html>The are "
+                            + AString::number(numBrowserTabs)
+                            + " tabs in the window but the layout has space for "
+                            + AString::number(numConfigTabs)
+                            + " tabs.<p>");
+                if (numBrowserTabs < numConfigTabs) {
+                    msg.append("Do you want to add tabs to available spaces in the layout?</html>");
+                    switch (WuQMessageBox::warningYesNoCancel(m_loadConfigurationPushButton, msg, "")) {
+                        case WuQMessageBox::RESULT_CANCEL:
+                            return;
+                            break;
+                        case WuQMessageBox::RESULT_NO:
+                            break;
+                        case WuQMessageBox::RESULT_YES:
+                        {
+                            const int32_t numTabsToAdd = numConfigTabs - numBrowserTabs;
+                            for (int32_t i = 0; i < numTabsToAdd; i++) {
+                                EventBrowserTabNewInGUI newTabEvent;
+                                EventManager::get()->sendEvent(newTabEvent.getPointer());
+                                updateGraphicsWindow();
+                            }
+                        }
+                            break;
+                    }
+                }
+                else {
+                    msg.append("Do you want to:</html>");
+                    
+                    WuQDataEntryDialog dialog("New Configuration",
+                                              m_loadConfigurationPushButton,
+                                              WuQDialogNonModal::SCROLL_AREA_NEVER);
+                    dialog.setTextAtTop(msg, true);
+                    QRadioButton* closeTabsRadioButton = dialog.addRadioButton("Close extra tabs");
+                    QRadioButton* expandLayoutRadioButton = dialog.addRadioButton("Expand layout to include tabs");
+                    expandLayoutRadioButton->setChecked(true);
+                    if (dialog.exec() == WuQDataEntryDialog::Accepted) {
+                        if (closeTabsRadioButton->isChecked()) {
+                            const int32_t numTabsToDelete = numBrowserTabs - numConfigTabs;
+                            int32_t deleteIndex = numBrowserTabs - 1;
+                            for (int32_t i = 0; i < numTabsToDelete; i++) {
+                                CaretAssertVectorIndex(allTabContent, deleteIndex);
+                                EventBrowserTabDeleteInGUI deleteTabEvent(allTabContent[deleteIndex],
+                                                                          allTabContent[deleteIndex]->getTabNumber());
+                                EventManager::get()->sendEvent(deleteTabEvent.getPointer());
+                                updateGraphicsWindow();
+                                deleteIndex--;
+                            }
+                        }
+                        else if (expandLayoutRadioButton->isChecked()) {
+                            /* Position and size from within tab will be used */
+                        }
+                        else {
+                            CaretAssert(0);
+                        }
+                    }
+                    else {
+                        return;
+                    }
                 }
             }
+
+            /*
+             * Get the tabs again since the number of tabs may have changed
+             */
+            allTabContent.clear();
+            getBrowserWindow()->getAllTabContent(allTabContent);
+            numBrowserTabs = static_cast<int32_t>(allTabContent.size());
+            
+            
+//            const int32_t numMissingTabs = numBrowserTabs - numConfigTabs;
+//            if (numMissingTabs > 0) {
+//                const QString msg("User configuration \""
+//                                  + userManualConfig->getName()
+//                                  + "\" contains fewer tabs than in window.  The last "
+//                                  + AString::number(numMissingTabs)
+//                                  + " will not change position.");
+//                if ( ! WuQMessageBox::warningOkCancel(m_loadConfigurationPushButton, msg)) {
+//                    return;
+//                }
+//            }
             
             std::vector<const BrainOpenGLViewportContent*> tabViewports;
             getBrowserWindow()->getAllBrainOpenGLViewportContent(tabViewports);
@@ -481,12 +556,21 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
                          */
                         const BrainOpenGLViewportContent* tabViewportContent = getViewportContentForTab(allTabContent[i]->getTabNumber());
                         if (tabViewportContent != NULL) {
+                            int32_t tabViewport[4];
+                            tabViewportContent->getTabViewportBeforeApplyingMargins(tabViewport);
                             int32_t windowViewport[4];
                             tabViewportContent->getWindowViewport(windowViewport);
-                            const float minX(windowViewport[0]);
-                            const float maxX(minX + windowViewport[2]);
-                            const float minY(windowViewport[1]);
-                            const float maxY(minY + windowViewport[3]);
+                            const float tabX(tabViewport[0]);
+                            const float tabY(tabViewport[1]);
+                            const float tabWidth(tabViewport[2]);
+                            const float tabHeight(tabViewport[3]);
+                            const float windowWidth(windowViewport[2]);
+                            const float windowHeight(windowViewport[3]);
+                            tabViewportContent->getWindowViewport(windowViewport);
+                            const float minX((tabX / windowWidth) * 100.0);
+                            const float maxX(((tabX + tabWidth) / windowWidth) * 100.0);
+                            const float minY((tabY / windowHeight) * 100.0);
+                            const float maxY(((tabY + tabHeight) / windowHeight) * 100.0);
                             
                             browserTabAnnotation->setBounds2D(minX, maxX, minY, maxY);
                         }
@@ -503,8 +587,10 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             break;
     }
     
-    updateGridStretchFactors();
-    updateManualGeometryEditorWidget();
+    updateDialog();
+//    updateGridStretchFactors();
+//    updateManualGeometryEditorWidget();
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     updateGraphicsWindow();
 }
 

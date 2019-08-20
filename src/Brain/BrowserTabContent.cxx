@@ -250,6 +250,20 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
         setBrainModelYokingGroup(YokingGroupEnum::YOKING_GROUP_A);
         setChartModelYokingGroup(YokingGroupEnum::YOKING_GROUP_OFF);
     }
+
+    /*
+     * For manual layout, make tab same size but put in bottom left corner
+     */
+    float xy(10.0f + (5.0 * m_tabNumber));
+    const float widthHeight(20.0);
+    xy  = MathFunctions::limitRange(xy,  5.0f, 95.0f - widthHeight);
+
+    AnnotationBrowserTab* annotationBrowserTab = getManualLayoutBrowserTabAnnotation();
+    CaretAssert(annotationBrowserTab);
+    annotationBrowserTab->setBounds2D(xy,
+                                      xy + widthHeight,
+                                      xy,
+                                      xy + widthHeight);
 }
 
 /**
