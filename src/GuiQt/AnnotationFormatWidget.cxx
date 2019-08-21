@@ -42,14 +42,18 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param userInputMode
+ *     The user input mode
  * @param browserWindowIndex
  *     Index of the browser window.
  * @param parent
  *     Parent of this widget.
  */
-AnnotationFormatWidget::AnnotationFormatWidget(const int32_t browserWindowIndex,
-                                                 QWidget* parent)
+AnnotationFormatWidget::AnnotationFormatWidget(const UserInputModeEnum::Enum userInputMode,
+                                               const int32_t browserWindowIndex,
+                                               QWidget* parent)
 : QWidget(parent),
+m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* formatLabel = new QLabel("Format");
@@ -89,7 +93,8 @@ AnnotationFormatWidget::updateContent(Annotation* /*annotation*/)
 QWidget*
 AnnotationFormatWidget::createArrangeMenuToolButton()
 {
-    AnnotationMenuArrange* arrangeMenu = new AnnotationMenuArrange(m_browserWindowIndex);
+    AnnotationMenuArrange* arrangeMenu = new AnnotationMenuArrange(m_userInputMode,
+                                                                   m_browserWindowIndex);
     
     QAction* arrangeAction = new QAction("Arrange",
                                          this);

@@ -60,10 +60,12 @@ using namespace caret;
  * @param parent
  *    Parent of this widget.
  */
-AnnotationWidthHeightWidget::AnnotationWidthHeightWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+AnnotationWidthHeightWidget::AnnotationWidthHeightWidget(const UserInputModeEnum::Enum userInputMode,
+                                                         const AnnotationWidgetParentEnum::Enum parentWidgetType,
                                                          const int32_t browserWindowIndex,
                                                                          QWidget* parent)
 : QWidget(parent),
+m_userInputMode(userInputMode),
 m_parentWidgetType(parentWidgetType),
 m_browserWindowIndex(browserWindowIndex)
 {
@@ -223,7 +225,8 @@ AnnotationWidthHeightWidget::heightValueChanged(double value)
                                      annotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->applyCommand(undoCommand,
+    if ( ! annMan->applyCommand(m_userInputMode,
+                                undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
@@ -255,12 +258,14 @@ AnnotationWidthHeightWidget::widthValueChanged(double value)
 {
     std::vector<Annotation*> annotations(m_annotations2D.begin(),
                                          m_annotations2D.end());
+    
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
     undoCommand->setModeTwoDimWidth(value,
                                     annotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->applyCommand(undoCommand,
+    if ( ! annMan->applyCommand(m_userInputMode,
+                                undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);

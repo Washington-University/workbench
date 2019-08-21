@@ -2981,6 +2981,19 @@ BrainBrowserWindowToolBar::createModeWidget()
     }
     
     /*
+     * Tile tabs manual layout editing
+     */
+    this->modeInputModeTileTabsManualLayoutAction = WuQtUtilities::createAction("Tile",
+                                                                                "Edit Tile Tabs Manual Layout",
+                                                                                this);
+    this->modeInputModeTileTabsManualLayoutAction->setCheckable(true);
+    QToolButton* inputModeTileTabsManualLayoutButton = new QToolButton();
+    inputModeTileTabsManualLayoutButton->setDefaultAction(this->modeInputModeTileTabsManualLayoutAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(inputModeTileTabsManualLayoutButton);
+    this->modeInputModeTileTabsManualLayoutAction->setObjectName(m_objectNamePrefix
+                                                                 + "Mode:TileTabsManualLayout");
+    
+    /*
      * Volume Edit
      */
     this->modeInputVolumeEditAction = WuQtUtilities::createAction("Volume",
@@ -3024,8 +3037,6 @@ BrainBrowserWindowToolBar::createModeWidget()
                                      inputModeBordersToolButton,
                                      inputModeViewToolButton,
                                      inputModeVolumeEditButton);
-    inputModeFociToolButton->setSizePolicy(QSizePolicy::Preferred,
-                                           inputModeFociToolButton->sizePolicy().verticalPolicy());
     if (inputModeImageToolButton != NULL) {
         inputModeImageToolButton->setSizePolicy(QSizePolicy::Preferred,
                                                 inputModeImageToolButton->sizePolicy().verticalPolicy());
@@ -3043,11 +3054,18 @@ BrainBrowserWindowToolBar::createModeWidget()
     inputModeLayout->addWidget(inputModeBordersToolButton, modeRow, 0, 1, 2, Qt::AlignHCenter);
     modeRow++;
     if (inputModeImageToolButton != NULL) {
+        CaretAssertMessage(0, "Layout will need to be updated for location of image button and to show Tile button.");
         inputModeLayout->addWidget(inputModeFociToolButton, modeRow, 0);
         inputModeLayout->addWidget(inputModeImageToolButton, modeRow, 1);
     }
     else {
-        inputModeLayout->addWidget(inputModeFociToolButton, modeRow, 0, 1, 2, Qt::AlignHCenter);
+        inputModeFociToolButton->setSizePolicy(QSizePolicy::Preferred,
+                                               inputModeFociToolButton->sizePolicy().verticalPolicy());
+        inputModeTileTabsManualLayoutButton->setSizePolicy(QSizePolicy::Preferred,
+                                               inputModeFociToolButton->sizePolicy().verticalPolicy());
+        inputModeLayout->addWidget(inputModeFociToolButton, modeRow, 0);
+        inputModeLayout->addWidget(inputModeTileTabsManualLayoutButton, modeRow, 1);
+//        inputModeLayout->addWidget(inputModeFociToolButton, modeRow, 0, 1, 2, Qt::AlignHCenter);
     }
     modeRow++;
     inputModeLayout->addWidget(inputModeViewToolButton, modeRow, 0, 1, 2, Qt::AlignHCenter);
@@ -3063,6 +3081,7 @@ BrainBrowserWindowToolBar::createModeWidget()
         this->modeInputModeActionGroup->addAction(this->modeInputModeImageAction);
     }
     this->modeInputModeActionGroup->addAction(this->modeInputModeViewAction);
+    this->modeInputModeActionGroup->addAction(this->modeInputModeTileTabsManualLayoutAction);
     this->modeInputModeActionGroup->addAction(this->modeInputVolumeEditAction);
     QObject::connect(this->modeInputModeActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(modeInputModeActionTriggered(QAction*)));
@@ -3078,6 +3097,8 @@ BrainBrowserWindowToolBar::createModeWidget()
         WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeImageAction,
                                                              "Select image mode");
     }
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeTileTabsManualLayoutAction,
+                                                         "Select Tile Tabs Manual Layout Editing");
     WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeViewAction,
                                                          "Select view mode");
     WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputVolumeEditAction,
@@ -3158,6 +3179,9 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
              && (this->modeInputModeImageAction != NULL)) {
         inputMode = UserInputModeEnum::IMAGE;
     }
+    else if (action == this->modeInputModeTileTabsManualLayoutAction) {
+        inputMode = UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING;
+    }
     else if (action == this->modeInputVolumeEditAction) {
         inputMode = UserInputModeEnum::VOLUME_EDIT;
     }
@@ -3211,6 +3235,9 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
             if (this->modeInputModeImageAction != NULL) {
                 this->modeInputModeImageAction->setChecked(true);
             }
+            break;
+        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+            this->modeInputModeTileTabsManualLayoutAction->setChecked(true);
             break;
         case UserInputModeEnum::VOLUME_EDIT:
             this->modeInputVolumeEditAction->setChecked(true);

@@ -34,7 +34,6 @@
 #include "DisplayGroupAndTabItemViewController.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesAnnotation.h"
-#include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"

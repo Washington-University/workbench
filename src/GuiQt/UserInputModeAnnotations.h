@@ -124,6 +124,10 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        UserInputModeAnnotations(const UserInputModeEnum::Enum userInputMode,
+                                 const int32_t windowIndex);
+        
     private:
         class NewMouseDragCreateAnnotation {
         public:

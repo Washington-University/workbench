@@ -31,7 +31,7 @@
 #include "CaretPointer.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
-
+#include "UserInputModeEnum.h"
 
 namespace caret {
     class Annotation;
@@ -70,10 +70,12 @@ namespace caret {
         
         virtual ~AnnotationManager();
 
-        bool applyCommand(AnnotationRedoUndoCommand* command,
+        bool applyCommand(const UserInputModeEnum::Enum userInputMode,
+                          AnnotationRedoUndoCommand* command,
                           AString& errorMessageOut);
         
-        bool applyCommandInWindow(AnnotationRedoUndoCommand* command,
+        bool applyCommandInWindow(const UserInputModeEnum::Enum userInputMode,
+                                  AnnotationRedoUndoCommand* command,
                                   const int32_t windowIndex,
                                   AString& errorMessageOut);
         
@@ -122,20 +124,23 @@ namespace caret {
         void setAnnotationBeingDrawnInWindow(const int32_t windowIndex,
                                              const Annotation* annotation);
         
-        CaretUndoStack* getCommandRedoUndoStack();
+        CaretUndoStack* getCommandRedoUndoStack(const UserInputModeEnum::Enum userInputMode);
         
         void getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displayedFilesEvent,
                                          std::vector<AnnotationFile*>& displayedAnnotationFilesOut) const;
         
-        bool alignAnnotations(const AnnotationArrangerInputs& arrangerInputs,
+        bool alignAnnotations(const UserInputModeEnum::Enum userInputMode,
+                              const AnnotationArrangerInputs& arrangerInputs,
                               const AnnotationAlignmentEnum::Enum alignment,
                               AString& errorMessageOut);
         
-        bool distributeAnnotations(const AnnotationArrangerInputs& arrangerInputs,
-                              const AnnotationDistributeEnum::Enum distribute,
-                              AString& errorMessageOut);
-        
-        bool applyGroupingMode(const int32_t windowIndex,
+        bool distributeAnnotations(const UserInputModeEnum::Enum userInputMode,
+                                   const AnnotationArrangerInputs& arrangerInputs,
+                                   const AnnotationDistributeEnum::Enum distribute,
+                                   AString& errorMessageOut);
+
+        bool applyGroupingMode(const UserInputModeEnum::Enum userInputMode,
+                               const int32_t windowIndex,
                                const AnnotationGroupingModeEnum::Enum groupingMode,
                                AString& errorMessageOut);
         
@@ -204,8 +209,9 @@ namespace caret {
         
         CaretPointer<Annotation> m_clipboardAnnotation;
         
-        CaretPointer<CaretUndoStack> m_annotationRedoUndoStack;
+        CaretPointer<CaretUndoStack> m_annotationsExceptBrowserTabsRedoUndoStack;
         
+        CaretPointer<CaretUndoStack> m_browserTabAnnotationsRedoUndoStack;
         // ADD_NEW_MEMBERS_HERE
 
     };

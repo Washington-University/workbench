@@ -66,6 +66,7 @@ namespace caret {
     class UserInputModeBorders;
     class UserInputModeFoci;
     class UserInputModeImage;
+    class UserInputModeTileTabsManualLayout;
     class UserInputModeView;
     class UserInputModeVolumeEdit;
     class UserInputModeAbstract;
@@ -201,6 +202,7 @@ namespace caret {
         UserInputModeBorders* userInputBordersModeProcessor;
         UserInputModeFoci* userInputFociModeProcessor;
         UserInputModeImage* userInputImageModeProcessor;
+        UserInputModeTileTabsManualLayout* userInputTileTabsManualLayoutProcessor;
         UserInputModeVolumeEdit* userInputVolumeEditModeProcessor;
         
         Border* borderBeingDrawn;

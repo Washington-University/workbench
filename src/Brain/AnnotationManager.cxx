@@ -71,8 +71,11 @@ m_brain(brain)
     m_clipboardAnnotationFile = NULL;
     m_clipboardAnnotation.grabNew(NULL);
     
-    m_annotationRedoUndoStack.grabNew(new CaretUndoStack());
-    m_annotationRedoUndoStack->setUndoLimit(500);
+    m_annotationsExceptBrowserTabsRedoUndoStack.grabNew(new CaretUndoStack());
+    m_annotationsExceptBrowserTabsRedoUndoStack->setUndoLimit(500);
+    
+    m_browserTabAnnotationsRedoUndoStack.grabNew(new CaretUndoStack());
+    m_browserTabAnnotationsRedoUndoStack->setUndoLimit(100);
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
         m_annotationBeingDrawnInWindow[i] = NULL;
@@ -97,7 +100,8 @@ AnnotationManager::~AnnotationManager()
         delete m_selectionInformation[i];
     }
 
-    m_annotationRedoUndoStack->clear();
+    m_annotationsExceptBrowserTabsRedoUndoStack->clear();
+    m_browserTabAnnotationsRedoUndoStack->clear();
     
     delete m_sceneAssistant;
 }
@@ -108,7 +112,8 @@ AnnotationManager::~AnnotationManager()
 void
 AnnotationManager::reset()
 {
-    m_annotationRedoUndoStack->clear();
+    m_annotationsExceptBrowserTabsRedoUndoStack->clear();
+    m_browserTabAnnotationsRedoUndoStack->clear();
 }
 
 /**
@@ -116,16 +121,22 @@ AnnotationManager::reset()
  * the command, the command is placed on the undo stack so that the
  * user can undo or redo the command.
  *
+ * @param userInputMode
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
  * @param command
  *     Command that will be applied to the selected annotations.
  *     Annotation manager will take ownership of the command and
  *     destroy it at the appropriate time.
+ * @param errorMessageOut
+ *     Output with error information if command fails.
  */
 bool
-AnnotationManager::applyCommand(AnnotationRedoUndoCommand* command,
+AnnotationManager::applyCommand(const UserInputModeEnum::Enum userInputMode,
+                                AnnotationRedoUndoCommand* command,
                                 AString& errorMessageOut)
 {
-    return applyCommandInWindow(command,
+    return applyCommandInWindow(userInputMode,
+                                command,
                                 -1,
                                 errorMessageOut);
 }
@@ -135,15 +146,20 @@ AnnotationManager::applyCommand(AnnotationRedoUndoCommand* command,
  * the command, the command is placed on the undo stack so that the
  * user can undo or redo the command.
  *
+ * @param userInputMode
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
  * @param command
  *     Command that will be applied to the selected annotations.
  *     Annotation manager will take ownership of the command and
  *     destroy it at the appropriate time.
  * @param windowIndex
  *     Index of window in which command was requested.
+ * @param errorMessageOut
+ *     Output with error information if command fails.
  */
 bool
-AnnotationManager::applyCommandInWindow(AnnotationRedoUndoCommand* command,
+AnnotationManager::applyCommandInWindow(const UserInputModeEnum::Enum userInputMode,
+                                        AnnotationRedoUndoCommand* command,
                                         const int32_t windowIndex,
                                         AString& errorMessageOut)
 {
@@ -163,9 +179,9 @@ AnnotationManager::applyCommandInWindow(AnnotationRedoUndoCommand* command,
     /*
      * "Redo" the command and add it to the undo stack
      */
-    const bool result = m_annotationRedoUndoStack->pushAndRedo(command,
-                                                               windowIndex,
-                                                               errorMessageOut);
+    const bool result = getCommandRedoUndoStack(userInputMode)->pushAndRedo(command,
+                                                                            windowIndex,
+                                                                            errorMessageOut);
     return result;
 }
 
@@ -622,6 +638,8 @@ AnnotationManager::getAnnotationsSelectedForEditingIncludingLabels(const int32_t
 /**
  * Align annotations.
  * 
+ * @param userInputMode
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
  * @param arrangerInputs
  *    Inputs to algorithm that aligns the annotations.
  * @param errorMessageOut
@@ -630,11 +648,12 @@ AnnotationManager::getAnnotationsSelectedForEditingIncludingLabels(const int32_t
  *    True if successful, false if error.
  */
 bool
-AnnotationManager::alignAnnotations(const AnnotationArrangerInputs& arrangerInputs,
+AnnotationManager::alignAnnotations(const UserInputModeEnum::Enum userInputMode,
+                                    const AnnotationArrangerInputs& arrangerInputs,
                                     const AnnotationAlignmentEnum::Enum alignment,
                                     AString& errorMessageOut)
 {
-    AnnotationArrangerExecutor arranger;
+    AnnotationArrangerExecutor arranger(userInputMode);
     
     return arranger.alignAnnotations(this,
                                      arrangerInputs,
@@ -645,6 +664,8 @@ AnnotationManager::alignAnnotations(const AnnotationArrangerInputs& arrangerInpu
 /**
  * Align annotations.
  *
+ * @param userInputMode
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
  * @param arrangerInputs
  *    Inputs to algorithm that aligns the annotations.
  * @param errorMessageOut
@@ -653,11 +674,12 @@ AnnotationManager::alignAnnotations(const AnnotationArrangerInputs& arrangerInpu
  *    True if successful, false if error.
  */
 bool
-AnnotationManager::distributeAnnotations(const AnnotationArrangerInputs& arrangerInputs,
+AnnotationManager::distributeAnnotations(const UserInputModeEnum::Enum userInputMode,
+                                         const AnnotationArrangerInputs& arrangerInputs,
                                          const AnnotationDistributeEnum::Enum distribute,
                                          AString& errorMessageOut)
 {
-    AnnotationArrangerExecutor arranger;
+    AnnotationArrangerExecutor arranger(userInputMode);
     
     return arranger.distributeAnnotations(this,
                                      arrangerInputs,
@@ -668,6 +690,8 @@ AnnotationManager::distributeAnnotations(const AnnotationArrangerInputs& arrange
 /**
  * Apply given grouping mode valid in the given window.
  *
+ * @param userInputMode
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
  * @param windowIndex
  *     Index of the window.
  * @param groupingMode
@@ -678,7 +702,8 @@ AnnotationManager::distributeAnnotations(const AnnotationArrangerInputs& arrange
  *     True if successful, else false.
  */
 bool
-AnnotationManager::applyGroupingMode(const int32_t windowIndex,
+AnnotationManager::applyGroupingMode(const UserInputModeEnum::Enum userInputMode,
+                                     const int32_t windowIndex,
                                      const AnnotationGroupingModeEnum::Enum groupingMode,
                                      AString& errorMessageOut)
 {
@@ -717,7 +742,8 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingGroupAnnotations(annotationGroupKey,
                                                      annotations);
-            validFlag = applyCommandInWindow(command,
+            validFlag = applyCommandInWindow(userInputMode,
+                                             command,
                                              windowIndex,
                                              errorMessageOut);
         }
@@ -737,7 +763,8 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingRegroupAnnotations(annotationGroupKey);
             
-            validFlag = applyCommandInWindow(command,
+            validFlag = applyCommandInWindow(userInputMode,
+                                             command,
                                              windowIndex,
                                              errorMessageOut);
         }
@@ -758,7 +785,8 @@ AnnotationManager::applyGroupingMode(const int32_t windowIndex,
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingUngroupAnnotations(annotationGroupKey);
             
-            validFlag = applyCommandInWindow(command,
+            validFlag = applyCommandInWindow(userInputMode,
+                                             command,
                                              windowIndex,
                                              errorMessageOut);
         }
@@ -979,11 +1007,32 @@ AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displ
 
 /**
  * @return Pointer to the command redo undo stack
+ *
+ * @param userInputMode
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
  */
 CaretUndoStack*
-AnnotationManager::getCommandRedoUndoStack()
+AnnotationManager::getCommandRedoUndoStack(const UserInputModeEnum::Enum userInputMode)
 {
-    return m_annotationRedoUndoStack;
+    CaretUndoStack* undoStackOut(NULL);
+    switch (userInputMode) {
+        case UserInputModeEnum::ANNOTATIONS:
+            undoStackOut = m_annotationsExceptBrowserTabsRedoUndoStack;
+            break;
+        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+            undoStackOut = m_browserTabAnnotationsRedoUndoStack;
+            break;
+        case UserInputModeEnum::BORDERS:
+        case UserInputModeEnum::FOCI:
+        case UserInputModeEnum::IMAGE:
+        case UserInputModeEnum::INVALID:
+        case UserInputModeEnum::VIEW:
+        case UserInputModeEnum::VOLUME_EDIT:
+            CaretAssert(0);
+            break;
+    }
+    
+    return undoStackOut;
 }
 
 /**

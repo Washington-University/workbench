@@ -308,7 +308,8 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         
         AString errorMessage;
-        if ( ! annMan->applyCommand(undoCommand,
+        if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+                                    undoCommand,
                                     errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);
@@ -579,7 +580,8 @@ AnnotationColorWidget::lineColorSelected(const CaretColorEnum::Enum caretColor)
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         
         AString errorMessage;
-        if ( ! annMan->applyCommand(undoCommand,
+        if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+                                    undoCommand,
                                     errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);
@@ -680,7 +682,8 @@ AnnotationColorWidget::lineThicknessSpinBoxValueChanged(double value)
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     
     AString errorMessage;
-    if ( ! annMan->applyCommand(undoCommand,
+    if ( ! annMan->applyCommand(UserInputModeEnum::ANNOTATIONS,
+                                undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);

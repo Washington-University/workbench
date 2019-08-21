@@ -82,9 +82,48 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param windowIndex
+ *     Index of window
  */
 UserInputModeAnnotations::UserInputModeAnnotations(const int32_t windowIndex)
-: UserInputModeView(UserInputModeEnum::ANNOTATIONS),
+: UserInputModeAnnotations(UserInputModeEnum::ANNOTATIONS,
+                           windowIndex)
+{
+    
+}
+//: UserInputModeView(UserInputModeEnum::ANNOTATIONS),
+//m_browserWindowIndex(windowIndex),
+//m_annotationUnderMouse(NULL),
+//m_annotationBeingDragged(NULL)
+//{
+//    m_allowMultipleSelectionModeFlag = true;
+//    m_mode = MODE_SELECT;
+//    m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
+//    
+//    m_modeNewAnnotationFileSpaceAndType.grabNew(new NewAnnotationFileSpaceAndType(NULL,
+//                                                                                  AnnotationCoordinateSpaceEnum::VIEWPORT,
+//                                                                                  AnnotationTypeEnum::LINE));
+//    m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+//    
+//    m_annotationToolsWidget = new UserInputModeAnnotationsWidget(this,
+//                                                                 m_browserWindowIndex);
+//    setWidgetForToolBar(m_annotationToolsWidget);
+//    
+//    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE);
+//}
+
+/**
+ * Constructor.
+ *
+ * @param userInputMode
+ *     Input
+ * @param windowIndex
+ *     Index of window
+ */
+UserInputModeAnnotations::UserInputModeAnnotations(const UserInputModeEnum::Enum userInputMode,
+                                                   const int32_t windowIndex)
+: UserInputModeView(userInputMode),
 m_browserWindowIndex(windowIndex),
 m_annotationUnderMouse(NULL),
 m_annotationBeingDragged(NULL)
@@ -305,7 +344,8 @@ UserInputModeAnnotations::deleteSelectedAnnotations()
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeDeleteAnnotations(selectedAnnotations);
             AString errorMessage;
-            if ( !  annotationManager->applyCommand(undoCommand,
+            if ( !  annotationManager->applyCommand(getUserInputMode(),
+                                                    undoCommand,
                                                     errorMessage)) {
                 WuQMessageBox::errorOk(m_annotationToolsWidget,
                                        errorMessage);
@@ -542,7 +582,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                                 
                                 AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
                                 AString errorMessage;
-                                if ( ! annMan->applyCommand(undoCommand,
+                                if ( ! annMan->applyCommand(getUserInputMode(),
+                                                            undoCommand,
                                                             errorMessage)) {
                                     WuQMessageBox::errorOk(m_annotationToolsWidget,
                                                            errorMessage);
@@ -855,7 +896,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 }
                 
                 AString errorMessage;
-                if ( !  annotationManager->applyCommand(command,
+                if ( !  annotationManager->applyCommand(getUserInputMode(),
+                                                        command,
                                                         errorMessage)) {
                     WuQMessageBox::errorOk(m_annotationToolsWidget,
                                            errorMessage);
@@ -1493,7 +1535,8 @@ UserInputModeAnnotations::cutAnnotation()
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeCutAnnotations(annotationVector);
         AString errorMessage;
-        if ( ! annotationManager->applyCommand(undoCommand,
+        if ( ! annotationManager->applyCommand(getUserInputMode(),
+                                               undoCommand,
                                                errorMessage)) {
             WuQMessageBox::errorOk(m_annotationToolsWidget,
                                    errorMessage);
@@ -1566,7 +1609,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         case BrainBrowserWindowEditMenuItemEnum::REDO:
         {
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-            CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
+            CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(getUserInputMode());
             
             AString errorMessage;
             if ( ! undoStack->redo(errorMessage)) {
@@ -1584,7 +1627,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         case BrainBrowserWindowEditMenuItemEnum::UNDO:
         {
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-            CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
+            CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(getUserInputMode());
             
             AString errorMessage;
             if ( ! undoStack->undo(errorMessage)) {
@@ -1706,7 +1749,7 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
                                                    pasteSpecialTextOut);
         }
         
-        CaretUndoStack* undoStack = annotationManager->getCommandRedoUndoStack();
+        CaretUndoStack* undoStack = annotationManager->getCommandRedoUndoStack(getUserInputMode());
         
         if (undoStack->canRedo()) {
             enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::REDO);

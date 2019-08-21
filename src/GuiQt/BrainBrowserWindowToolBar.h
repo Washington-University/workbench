@@ -429,6 +429,7 @@ namespace caret {
         QAction* modeInputModeFociAction;
         QAction* modeInputModeImageAction;
         QAction* modeInputModeViewAction;
+        QAction* modeInputModeTileTabsManualLayoutAction;
         QAction* modeInputVolumeEditAction;
         
     private:

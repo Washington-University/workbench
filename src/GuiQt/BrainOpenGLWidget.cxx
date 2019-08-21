@@ -89,6 +89,7 @@
 #include "UserInputModeBorders.h"
 #include "UserInputModeFoci.h"
 #include "UserInputModeImage.h"
+#include "UserInputModeTileTabsManualLayout.h"
 #include "UserInputModeView.h"
 #include "UserInputModeVolumeEdit.h"
 #include "WuQMacroManager.h"
@@ -153,6 +154,7 @@ windowIndex(windowIndex)
     this->userInputFociModeProcessor = new UserInputModeFoci(windowIndex);
     this->userInputImageModeProcessor = new UserInputModeImage(windowIndex);
     this->userInputVolumeEditModeProcessor = new UserInputModeVolumeEdit(windowIndex);
+    this->userInputTileTabsManualLayoutProcessor = new UserInputModeTileTabsManualLayout(windowIndex);
     this->userInputViewModeProcessor = new UserInputModeView();
     this->selectedUserInputProcessor = this->userInputViewModeProcessor;
     this->selectedUserInputProcessor->initialize();
@@ -232,6 +234,7 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
     delete this->userInputBordersModeProcessor;
     delete this->userInputFociModeProcessor;
     delete this->userInputImageModeProcessor;
+    delete this->userInputTileTabsManualLayoutProcessor;
     delete this->userInputVolumeEditModeProcessor;
     this->selectedUserInputProcessor = NULL; /* DO NOT DELETE since it does not own the object to which it points */
     
@@ -1755,6 +1758,9 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                         break;
                     case UserInputModeEnum::IMAGE:
                         newUserInputProcessor = this->userInputImageModeProcessor;
+                        break;
+                    case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+                        newUserInputProcessor = this->userInputTileTabsManualLayoutProcessor;
                         break;
                     case UserInputModeEnum::VOLUME_EDIT:
                         newUserInputProcessor = this->userInputVolumeEditModeProcessor;

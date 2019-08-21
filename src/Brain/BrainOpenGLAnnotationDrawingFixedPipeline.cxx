@@ -1568,7 +1568,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBox(AnnotationFile* annotationFil
     bool drawnFlag = false;
     
     if (drawAnnotationFlag) {
-        if (m_selectionModeFlag) {
+        if (m_selectionModeFlag
+            && m_inputs->m_annotationUserInputModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
             
@@ -1681,7 +1682,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBoxSurfaceTangentOffset(Annotatio
     
     float lineThickness = ((box->getLineWidthPercentage() / 100.0)
                                  * surfaceExtentZ);
-    if (m_selectionModeFlag) {
+    if (m_selectionModeFlag
+        && m_inputs->m_annotationUserInputModeFlag) {
         lineThickness = std::max(lineThickness,
                                  s_selectionLineMinimumPixelWidth);
     }
@@ -1698,7 +1700,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBoxSurfaceTangentOffset(Annotatio
     bool drawnFlag = false;
     
     if (drawAnnotationFlag) {
-        if (m_selectionModeFlag) {
+        if (m_selectionModeFlag
+            && m_inputs->m_annotationUserInputModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
             
@@ -1831,7 +1834,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBrowserTab(AnnotationFile* annota
     bool drawnFlag = false;
     
     if (drawAnnotationFlag) {
-        if (m_selectionModeFlag) {
+        if (m_selectionModeFlag
+            && m_inputs->m_tileTabsManualLayoutUserInputModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
             
@@ -2093,7 +2097,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
     
     const bool drawBackgroundFlag = (backgroundRGBA[3] > 0.0f);
     
-    if (m_selectionModeFlag) {
+    if (m_selectionModeFlag
+        && m_inputs->m_annotationUserInputModeFlag) {
         uint8_t selectionColorRGBA[4];
         getIdentificationColor(selectionColorRGBA);
         GraphicsShape::drawBoxFilledByteColor(bottomLeft, bottomRight, topRight, topLeft,
@@ -2762,7 +2767,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOval(AnnotationFile* annotationFi
             glRotatef(-rotationAngle, 0.0f, 0.0f, 1.0f);
         }
         
-        if (m_selectionModeFlag) {
+        if (m_selectionModeFlag
+            && m_inputs->m_annotationUserInputModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
             
@@ -2869,7 +2875,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOvalSurfaceTangentOffset(Annotati
     
     float lineThickness = ((oval->getLineWidthPercentage() / 100.0)
                            * surfaceExtentZ);
-    if (m_selectionModeFlag) {
+    if (m_selectionModeFlag
+        && m_inputs->m_annotationUserInputModeFlag) {
         lineThickness = std::max(lineThickness,
                                  s_selectionLineMinimumPixelWidth);
     }
@@ -2889,7 +2896,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOvalSurfaceTangentOffset(Annotati
     const float minorAxis     = ((oval->getHeight() / 100.0f) * surfaceExtentZ);
     
     if (drawAnnotationFlag) {
-        if (m_selectionModeFlag) {
+        if (m_selectionModeFlag
+            && m_inputs->m_annotationUserInputModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
             
@@ -3282,7 +3290,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextSurfaceTangentOffset(Annotati
                                                                                 underlineStart, underlineEnd);
     
     bool textDrawnFlag = false;
-    if (m_selectionModeFlag) {
+    if (m_selectionModeFlag
+        && m_inputs->m_annotationUserInputModeFlag) {
         uint8_t selectionColorRGBA[4] = { 0, 0, 0, 0 };
         getIdentificationColor(selectionColorRGBA);
         GraphicsPrimitiveV3fN3f primitive(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
@@ -3437,7 +3446,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     bool drawnFlag = false;
     
     if (drawAnnotationFlag) {
-        if (m_selectionModeFlag) {
+        if (m_selectionModeFlag
+            && m_inputs->m_annotationUserInputModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
             GraphicsShape::drawBoxFilledByteColor(bottomLeft, bottomRight, topRight, topLeft,
@@ -3641,7 +3651,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImage(AnnotationFile* annotationF
     bool drawnFlag = false;
     
     if (drawAnnotationFlag) {
-        if (m_selectionModeFlag) {
+        if (m_selectionModeFlag
+            && m_inputs->m_annotationUserInputModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
             GraphicsShape::drawBoxFilledByteColor(bottomLeft, bottomRight, topRight, topLeft,
@@ -3742,7 +3753,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageSurfaceTangentOffset(Annotat
     
     float lineThickness = ((image->getLineWidthPercentage() / 100.0)
                            * surfaceExtentZ);
-    if (m_selectionModeFlag) {
+    if (m_selectionModeFlag
+        && m_inputs->m_annotationUserInputModeFlag) {
         lineThickness = std::max(lineThickness,
                                  s_selectionLineMinimumPixelWidth);
     }
@@ -3758,7 +3770,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawImageSurfaceTangentOffset(Annotat
     bool drawnFlag = false;
     
     if (drawAnnotationFlag) {
-        if (m_selectionModeFlag) {
+        if (m_selectionModeFlag
+            && m_inputs->m_annotationUserInputModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
             
@@ -4019,7 +4032,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     bool drawnFlag = false;
     
     if (drawForegroundFlag) {
-        if (m_selectionModeFlag) {
+        if (m_selectionModeFlag
+            && m_inputs->m_annotationUserInputModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
             
@@ -4153,7 +4167,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLineSurfaceTextureOffset(Annotati
     float lineThickness = ((line->getLineWidthPercentage() / 100.0)
                            * surfaceExtentZ);
     lineThickness *= m_surfaceViewScaling;
-    if (m_selectionModeFlag) {
+    if (m_selectionModeFlag
+        && m_inputs->m_annotationUserInputModeFlag) {
         lineThickness = std::max(lineThickness,
                                  s_selectionLineMinimumPixelWidth);
     }
@@ -4179,7 +4194,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLineSurfaceTextureOffset(Annotati
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0f);
     
     if (drawForegroundFlag) {
-        if (m_selectionModeFlag) {
+        if (m_selectionModeFlag
+            && m_inputs->m_annotationUserInputModeFlag) {
             uint8_t selectionColorRGBA[4];
             getIdentificationColor(selectionColorRGBA);
             
@@ -4340,7 +4356,24 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
         drawSquareFlag        = true;
     }
     
+    bool selectionFlag(false);
     if (m_selectionModeFlag) {
+        switch (annotation->getType()) {
+            case AnnotationTypeEnum::BOX:
+            case AnnotationTypeEnum::COLOR_BAR:
+            case AnnotationTypeEnum::IMAGE:
+            case AnnotationTypeEnum::LINE:
+            case AnnotationTypeEnum::OVAL:
+            case AnnotationTypeEnum::TEXT:
+                selectionFlag = m_inputs->m_annotationUserInputModeFlag;
+                break;
+            case AnnotationTypeEnum::BROWSER_TAB:
+                selectionFlag = m_inputs->m_tileTabsManualLayoutUserInputModeFlag;
+                break;
+        }
+    }
+    
+    if (selectionFlag) {
         uint8_t identificationRGBA[4];
         getIdentificationColor(identificationRGBA);
         GraphicsShape::drawBoxFilledByteColor(bottomLeft,
@@ -4521,11 +4554,27 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
                                                                              const float lineThickness,
                                                                              const float rotationAngle)
 {
-    if ( ! m_inputs->m_annotationUserInputModeFlag) {
-        return;
-    }
     
     CaretAssert(annotation);
+    
+    switch (annotation->getType()) {
+        case AnnotationTypeEnum::BOX:
+        case AnnotationTypeEnum::COLOR_BAR:
+        case AnnotationTypeEnum::IMAGE:
+        case AnnotationTypeEnum::LINE:
+        case AnnotationTypeEnum::OVAL:
+        case AnnotationTypeEnum::TEXT:
+            if ( ! m_inputs->m_annotationUserInputModeFlag) {
+                return;
+            }
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            if ( ! m_inputs->m_tileTabsManualLayoutUserInputModeFlag) {
+                return;
+            }
+            break;
+    }
+    
     AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
     const bool modelSpaceTangentTextFlag = annotation->isInSurfaceSpaceWithTangentOffset();
     

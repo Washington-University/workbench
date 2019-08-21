@@ -126,7 +126,11 @@ UserInputModeEnum::initialize()
                                     "IMAGE", 
                                     "Image"));
     
-    enumData.push_back(UserInputModeEnum(VIEW, 
+    enumData.push_back(UserInputModeEnum(TILE_TABS_MANUAL_LAYOUT_EDITING,
+                                         "TILE_TABS_MANUAL_LAYOUT_EDITING",
+                                         "Tile Tabs Manual Layout Editing"));
+    
+    enumData.push_back(UserInputModeEnum(VIEW,
                                     "VIEW", 
                                     "View"));
     

@@ -463,6 +463,7 @@ UserInputModeFociWidget.h
 UserInputModeFoci.h
 UserInputModeImageWidget.h
 UserInputModeImage.h
+UserInputModeTileTabsManualLayout.h
 UserInputModeView.h
 UserInputModeViewContextMenu.h
 UserInputModeVolumeEdit.h
@@ -740,6 +741,7 @@ UserInputModeFoci.cxx
 UserInputModeFociWidget.cxx
 UserInputModeImage.cxx
 UserInputModeImageWidget.cxx
+UserInputModeTileTabsManualLayout.cxx
 UserInputModeView.cxx
 UserInputModeViewContextMenu.cxx
 UserInputModeVolumeEdit.cxx

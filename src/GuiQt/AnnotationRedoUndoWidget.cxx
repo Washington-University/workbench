@@ -50,10 +50,19 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param userInputMode
+ *    The user input mode
+ * @param browserWindowIndex
+ *    The browser window index
+ * @param parent
+ *    The parent widget.
  */
-AnnotationRedoUndoWidget::AnnotationRedoUndoWidget(const int32_t browserWindowIndex,
+AnnotationRedoUndoWidget::AnnotationRedoUndoWidget(const UserInputModeEnum::Enum userInputMode,
+                                                   const int32_t browserWindowIndex,
                                                    QWidget* parent)
 : QWidget(parent),
+m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* titleLabel = new QLabel("Edit");
@@ -106,7 +115,7 @@ void
 AnnotationRedoUndoWidget::updateContent()
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
+    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(m_userInputMode);
 
     m_redoAction->setEnabled(undoStack->canRedo());
     m_redoAction->setToolTip(undoStack->redoText());
@@ -123,7 +132,7 @@ void
 AnnotationRedoUndoWidget::redoActionTriggered()
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
+    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(m_userInputMode);
     
     AString errorMessage;
     if ( ! undoStack->redoInWindow(m_browserWindowIndex,
@@ -143,7 +152,7 @@ void
 AnnotationRedoUndoWidget::undoActionTriggered()
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
+    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(m_userInputMode);
     
     AString errorMessage;
     if ( ! undoStack->undoInWindow(m_browserWindowIndex,

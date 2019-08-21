@@ -82,101 +82,23 @@ m_inputModeAnnotations(inputModeAnnotations)
 {
     CaretAssert(inputModeAnnotations);
     
-    m_textEditorWidget           = new AnnotationTextEditorWidget(m_browserWindowIndex);
-    
-    m_lineArrowTipsWidget        = new AnnotationLineArrowTipsWidget(m_browserWindowIndex);
-    
-    m_fontWidget                 = new AnnotationFontWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
-                                                            m_browserWindowIndex);
-    
-    m_colorWidget                = new AnnotationColorWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
-                                                             m_browserWindowIndex);
-    
-    m_textAlignmentWidget        = new AnnotationTextAlignmentWidget(m_browserWindowIndex);
-    
-    m_textOrientationWidget      = new AnnotationTextOrientationWidget(m_browserWindowIndex);
-    
-    m_coordinateSpaceWidget      = new AnnotationCoordinateSpaceWidget(m_browserWindowIndex);
-    
-    m_coordinateOneWidget        = new AnnotationCoordinateWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
-                                                                  AnnotationCoordinateWidget::COORDINATE_ONE,
-                                                                  m_browserWindowIndex);
-    
-    m_coordinateTwoWidget        = new AnnotationCoordinateWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
-                                                                  AnnotationCoordinateWidget::COORDINATE_TWO,
-                                                                  m_browserWindowIndex);
-    
-    m_widthHeightWidget          = new AnnotationWidthHeightWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
-                                                                   m_browserWindowIndex);
-    
-    m_rotationWidget             = new AnnotationRotationWidget(m_browserWindowIndex);
-    
-    m_formatWidget               = new AnnotationFormatWidget(m_browserWindowIndex);
-    
-    m_insertDeleteWidget         = new AnnotationInsertNewWidget(m_browserWindowIndex);
-    
-    m_deleteWidget               = new AnnotationDeleteWidget(m_browserWindowIndex);
-    
-    m_redoUndoWidget             = new AnnotationRedoUndoWidget(m_browserWindowIndex);
-    
-    /*
-     * Connect signals for setting a coordinate with the mouse.
-     */
-    QObject::connect(m_coordinateOneWidget, SIGNAL(signalSelectCoordinateWithMouse()),
-                     this, SLOT(selectCoordinateOneWithMouse()));
-    QObject::connect(m_coordinateTwoWidget, SIGNAL(signalSelectCoordinateWithMouse()),
-                     this, SLOT(selectCoordinateTwoWithMouse()));
-    
-    /*
-     * Layout top row of widgets
-     */
-    QWidget* topRowWidget = new QWidget();
-    QHBoxLayout* topRowLayout = new QHBoxLayout(topRowWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(topRowLayout, 2, 2);
-    topRowLayout->addWidget(m_colorWidget, 0, Qt::AlignTop);
-    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_lineArrowTipsWidget, 0, Qt::AlignTop);
-    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_textEditorWidget, 100, Qt::AlignTop);
-    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_fontWidget, 0, Qt::AlignTop);
-    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_textAlignmentWidget, 0, Qt::AlignTop);
-    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_textOrientationWidget, 0, Qt::AlignTop);
-    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_insertDeleteWidget, 0, Qt::AlignTop);
-    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_deleteWidget, 0, Qt::AlignTop);
-    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_formatWidget, 0, Qt::AlignTop);
-    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    topRowLayout->addWidget(m_redoUndoWidget, 0, Qt::AlignTop);
-    topRowLayout->addStretch();
-    
-    topRowWidget->setFixedHeight(topRowWidget->sizeHint().height());
-    
-    /*
-     * Layout bottom row of widgets
-     */
-    QHBoxLayout* bottomRowLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 2);
-    bottomRowLayout->addWidget(m_coordinateSpaceWidget);
-    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    bottomRowLayout->addWidget(m_coordinateOneWidget);
-    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    bottomRowLayout->addWidget(m_coordinateTwoWidget);
-    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    bottomRowLayout->addWidget(m_widthHeightWidget);
-    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    bottomRowLayout->addWidget(m_rotationWidget);
-    bottomRowLayout->addStretch();
-    
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 2);
-    layout->addWidget(topRowWidget);
-    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    layout->addLayout(bottomRowLayout);
+    switch (inputModeAnnotations->getUserInputMode()) {
+        case UserInputModeEnum::ANNOTATIONS:
+            createAnnotationWidget();
+            break;
+        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+            createTileTabsEditingWidget();
+            break;
+        case UserInputModeEnum::BORDERS:
+        case UserInputModeEnum::FOCI:
+        case UserInputModeEnum::IMAGE:
+        case UserInputModeEnum::INVALID:
+        case UserInputModeEnum::VIEW:
+        case UserInputModeEnum::VOLUME_EDIT:
+            CaretAssert(0);
+            return;
+            break;
+    }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE);
@@ -238,6 +160,157 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     
     updateWidget();
     
+}
+
+/**
+ * Create annotation mode widget
+ */
+void
+UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
+{
+    m_coordinateOneWidget        = new AnnotationCoordinateWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                  AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                                  AnnotationCoordinateWidget::COORDINATE_ONE,
+                                                                  m_browserWindowIndex);
+    
+    m_widthHeightWidget          = new AnnotationWidthHeightWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                   AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                                   m_browserWindowIndex);
+    
+    m_formatWidget               = new AnnotationFormatWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                              m_browserWindowIndex);
+    
+    m_redoUndoWidget             = new AnnotationRedoUndoWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                m_browserWindowIndex);
+    
+    /*
+     * Connect signals for setting a coordinate with the mouse.
+     */
+    QObject::connect(m_coordinateOneWidget, SIGNAL(signalSelectCoordinateWithMouse()),
+                     this, SLOT(selectCoordinateOneWithMouse()));
+    
+    /*
+     * Layout  of widgets
+     */
+    QHBoxLayout* layout = new QHBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
+    layout->addWidget(m_coordinateOneWidget);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addWidget(m_widthHeightWidget);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addWidget(m_formatWidget);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addWidget(m_redoUndoWidget);
+    layout->addStretch();
+}
+
+/*
+ * Create tile tabs mode widget
+ */
+void
+UserInputModeAnnotationsWidget::createAnnotationWidget()
+{
+    m_textEditorWidget           = new AnnotationTextEditorWidget(m_browserWindowIndex);
+    
+    m_lineArrowTipsWidget        = new AnnotationLineArrowTipsWidget(m_browserWindowIndex);
+    
+    m_fontWidget                 = new AnnotationFontWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                            m_browserWindowIndex);
+    
+    m_colorWidget                = new AnnotationColorWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                             m_browserWindowIndex);
+    
+    m_textAlignmentWidget        = new AnnotationTextAlignmentWidget(m_browserWindowIndex);
+    
+    m_textOrientationWidget      = new AnnotationTextOrientationWidget(m_browserWindowIndex);
+    
+    m_coordinateSpaceWidget      = new AnnotationCoordinateSpaceWidget(m_browserWindowIndex);
+    
+    m_coordinateOneWidget        = new AnnotationCoordinateWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                  AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                                  AnnotationCoordinateWidget::COORDINATE_ONE,
+                                                                  m_browserWindowIndex);
+    
+    m_coordinateTwoWidget        = new AnnotationCoordinateWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                  AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                                  AnnotationCoordinateWidget::COORDINATE_TWO,
+                                                                  m_browserWindowIndex);
+    
+    m_widthHeightWidget          = new AnnotationWidthHeightWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                   AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                                   m_browserWindowIndex);
+    
+    m_rotationWidget             = new AnnotationRotationWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                m_browserWindowIndex);
+    
+    m_formatWidget               = new AnnotationFormatWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                              m_browserWindowIndex);
+    
+    m_insertDeleteWidget         = new AnnotationInsertNewWidget(m_browserWindowIndex);
+    
+    m_deleteWidget               = new AnnotationDeleteWidget(m_browserWindowIndex);
+    
+    m_redoUndoWidget             = new AnnotationRedoUndoWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                m_browserWindowIndex);
+    
+    /*
+     * Connect signals for setting a coordinate with the mouse.
+     */
+    QObject::connect(m_coordinateOneWidget, SIGNAL(signalSelectCoordinateWithMouse()),
+                     this, SLOT(selectCoordinateOneWithMouse()));
+    QObject::connect(m_coordinateTwoWidget, SIGNAL(signalSelectCoordinateWithMouse()),
+                     this, SLOT(selectCoordinateTwoWithMouse()));
+    
+    /*
+     * Layout top row of widgets
+     */
+    QWidget* topRowWidget = new QWidget();
+    QHBoxLayout* topRowLayout = new QHBoxLayout(topRowWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(topRowLayout, 2, 2);
+    topRowLayout->addWidget(m_colorWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_lineArrowTipsWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_textEditorWidget, 100, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_fontWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_textAlignmentWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_textOrientationWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_insertDeleteWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_deleteWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_formatWidget, 0, Qt::AlignTop);
+    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topRowLayout->addWidget(m_redoUndoWidget, 0, Qt::AlignTop);
+    topRowLayout->addStretch();
+    
+    topRowWidget->setFixedHeight(topRowWidget->sizeHint().height());
+    
+    /*
+     * Layout bottom row of widgets
+     */
+    QHBoxLayout* bottomRowLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(bottomRowLayout, 2, 2);
+    bottomRowLayout->addWidget(m_coordinateSpaceWidget);
+    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomRowLayout->addWidget(m_coordinateOneWidget);
+    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomRowLayout->addWidget(m_coordinateTwoWidget);
+    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomRowLayout->addWidget(m_widthHeightWidget);
+    bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomRowLayout->addWidget(m_rotationWidget);
+    bottomRowLayout->addStretch();
+    
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 2);
+    layout->addWidget(topRowWidget);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addLayout(bottomRowLayout);
 }
 
 /**
@@ -328,17 +401,20 @@ UserInputModeAnnotationsWidget::updateWidget()
         }
     }
     
-    m_coordinateSpaceWidget->updateContent(selectedAnnotations);
-    m_fontWidget->updateContent(fontStyleAnnotations);
-    m_textEditorWidget->updateContent(textAnnotations);
-    m_colorWidget->updateContent(selectedAnnotations);
-    m_lineArrowTipsWidget->updateContent(lineAnnotations);
-    m_textAlignmentWidget->updateContent(textAnnotations);
-    m_textOrientationWidget->updateContent(textAnnotations);
-    m_widthHeightWidget->updateContent(twoDimAnnotations);
-    m_rotationWidget->updateContent(selectedAnnotations); //twoDimAnnotations);
-    m_insertDeleteWidget->updateContent();
-    m_deleteWidget->updateContent();
+    /*
+     * Note: pointers are initialized to NULL in the header file
+     */
+    if (m_coordinateSpaceWidget != NULL) m_coordinateSpaceWidget->updateContent(selectedAnnotations);
+    if (m_fontWidget != NULL) m_fontWidget->updateContent(fontStyleAnnotations);
+    if (m_textEditorWidget != NULL) m_textEditorWidget->updateContent(textAnnotations);
+    if (m_colorWidget != NULL) m_colorWidget->updateContent(selectedAnnotations);
+    if (m_lineArrowTipsWidget != NULL) m_lineArrowTipsWidget->updateContent(lineAnnotations);
+    if (m_textAlignmentWidget != NULL) m_textAlignmentWidget->updateContent(textAnnotations);
+    if (m_textOrientationWidget != NULL) m_textOrientationWidget->updateContent(textAnnotations);
+    if (m_widthHeightWidget != NULL) m_widthHeightWidget->updateContent(twoDimAnnotations);
+    if (m_rotationWidget != NULL) m_rotationWidget->updateContent(selectedAnnotations); //twoDimAnnotations);
+    if (m_insertDeleteWidget != NULL) m_insertDeleteWidget->updateContent();
+    if (m_deleteWidget != NULL) m_deleteWidget->updateContent();
     
     Annotation* coordEditAnnotation = NULL;
     AnnotationOneDimensionalShape* coordEditOneDimAnnotation = NULL;
@@ -346,16 +422,16 @@ UserInputModeAnnotationsWidget::updateWidget()
         coordEditAnnotation = selectedAnnotations[0];
         coordEditOneDimAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(coordEditAnnotation);
     }
-    m_coordinateOneWidget->updateContent(coordEditAnnotation);
+    if (m_coordinateOneWidget != NULL) m_coordinateOneWidget->updateContent(coordEditAnnotation);
     if (coordEditOneDimAnnotation != NULL) {
-        m_coordinateTwoWidget->updateContent(coordEditOneDimAnnotation);
-        m_coordinateTwoWidget->setVisible(true);
+        if (m_coordinateTwoWidget != NULL) m_coordinateTwoWidget->updateContent(coordEditOneDimAnnotation);
+        if (m_coordinateTwoWidget != NULL) m_coordinateTwoWidget->setVisible(true);
     }
     else {
-        m_coordinateTwoWidget->setVisible(false);
+        if (m_coordinateTwoWidget != NULL) m_coordinateTwoWidget->setVisible(false);
     }
     
-    m_redoUndoWidget->updateContent();
+    if (m_redoUndoWidget != NULL) m_redoUndoWidget->updateContent();
 }
 
 

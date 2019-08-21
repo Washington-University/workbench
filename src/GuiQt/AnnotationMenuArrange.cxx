@@ -53,14 +53,18 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param userInputMode
+ *     The user input mode
  * @param parent
  *     The parent widget.
  * @param browserWindowIndex
  *     Index of the browser window.
  */
-AnnotationMenuArrange::AnnotationMenuArrange(const int32_t browserWindowIndex,
+AnnotationMenuArrange::AnnotationMenuArrange(const UserInputModeEnum::Enum userInputMode,
+                                             const int32_t browserWindowIndex,
                                              QWidget* parent)
 : QMenu(parent),
+m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     addAlignmentSelections();
@@ -266,7 +270,8 @@ AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignm
     
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->alignAnnotations(alignMod,
+    if ( ! annMan->alignAnnotations(m_userInputMode,
+                                    alignMod,
                                     alignment,
                                     errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -304,7 +309,8 @@ AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum dist
     
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->distributeAnnotations(distributeMod,
+    if ( ! annMan->distributeAnnotations(m_userInputMode,
+                                         distributeMod,
                                          distribute,
                                          errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -327,7 +333,8 @@ AnnotationMenuArrange::applyGrouping(const AnnotationGroupingModeEnum::Enum grou
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
 
     AString errorMessage;
-    if ( ! annMan->applyGroupingMode(m_browserWindowIndex,
+    if ( ! annMan->applyGroupingMode(m_userInputMode,
+                                     m_browserWindowIndex,
                                      grouping,
                                      errorMessage)) {
         WuQMessageBox::errorOk(this,

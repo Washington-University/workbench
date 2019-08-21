@@ -26,6 +26,7 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationWidgetParentEnum.h"
+#include "UserInputModeEnum.h"
 
 class QDoubleSpinBox;
 class QSpinBox;
@@ -47,7 +48,8 @@ namespace caret {
             COORDINATE_TWO
         };
         
-        AnnotationCoordinateWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+        AnnotationCoordinateWidget(const UserInputModeEnum::Enum userInputMode,
+                                   const AnnotationWidgetParentEnum::Enum parentWidgetType,
                                    const WhichCoordinate whichCoordinate,
                                    const int32_t browserWindowIndex,
                                    QWidget* parent = 0);
@@ -80,6 +82,8 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        const UserInputModeEnum::Enum m_userInputMode;
+        
         const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
         
         const WhichCoordinate m_whichCoordinate;

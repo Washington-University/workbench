@@ -847,6 +847,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 break;
             case UserInputModeEnum::INVALID:
                 break;
+            case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+                break;
             case UserInputModeEnum::VIEW:
                 break;
             case UserInputModeEnum::VOLUME_EDIT:

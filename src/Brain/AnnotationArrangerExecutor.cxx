@@ -54,8 +54,9 @@ using namespace caret;
 /**
  * Constructor.
  */
-AnnotationArrangerExecutor::AnnotationArrangerExecutor()
+AnnotationArrangerExecutor::AnnotationArrangerExecutor(const UserInputModeEnum::Enum userInputMode)
 : CaretObject(),
+m_userInputMode(userInputMode),
 m_mode(MODE_NONE),
 m_annotationManager(NULL),
 m_alignment(AnnotationAlignmentEnum::ALIGN_BOTTOM),
@@ -75,6 +76,8 @@ AnnotationArrangerExecutor::~AnnotationArrangerExecutor()
 /**
  * Apply alignment modification to selected annotations
  *
+ * @param userInputMode
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
  * @param annotationManager
  *     The annotation manager.
  * @param arrangerInputs
@@ -115,6 +118,8 @@ AnnotationArrangerExecutor::alignAnnotations(AnnotationManager* annotationManage
 /**
  * Apply distribute modification to selected annotations
  *
+ * @param userInputMode
+ *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_MANUAL_LAYOUT_EDITING
  * @param annotationManager
  *     The annotation manager.
  * @param arrangerInputs
@@ -342,7 +347,8 @@ AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrange
                                             afterMoving);
         undoCommand->setDescription(AnnotationDistributeEnum::toGuiName(m_distribute));
         
-        validFlag = m_annotationManager->applyCommand(undoCommand,
+        validFlag = m_annotationManager->applyCommand(m_userInputMode,
+                                                      undoCommand,
                                                       errorMessage);
     }
     
@@ -452,7 +458,8 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
                                             afterMoving);
         undoCommand->setDescription(AnnotationAlignmentEnum::toGuiName(m_alignment));
         
-        validFlag = m_annotationManager->applyCommand(undoCommand,
+        validFlag = m_annotationManager->applyCommand(m_userInputMode,
+                                                      undoCommand,
                                                       errorMessage);
     }
     

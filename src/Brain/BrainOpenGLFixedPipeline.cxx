@@ -1004,6 +1004,7 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLV
          * the model annotations.
          */
         const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
+        const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING);
         BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                  this->mode,
                                                                  BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
@@ -1011,7 +1012,8 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLV
                                                                  this->windowTabIndex,
                                                                  SpacerTabIndex(),
                                                                  BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
-                                                                 annotationModeFlag);
+                                                                 annotationModeFlag,
+                                                                 tileTabsEditModeFlag);
         std::vector<AnnotationColorBar*> emptyColorBars;
         std::vector<Annotation*> emptyViewportAnnotations;
         m_annotationDrawing->drawAnnotations(&inputs,
@@ -1071,6 +1073,7 @@ BrainOpenGLFixedPipeline::drawSpacerAnnotations(const BrainOpenGLViewportContent
     spacerTabIndex = spacerTabContent->getSpacerTabIndex();
     
     const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
+    const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING);
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
@@ -1078,7 +1081,8 @@ BrainOpenGLFixedPipeline::drawSpacerAnnotations(const BrainOpenGLViewportContent
                                                              this->windowTabIndex,
                                                              spacerTabIndex,
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
-                                                             annotationModeFlag);
+                                                             annotationModeFlag,
+                                                             tileTabsEditModeFlag);
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::SPACER,
                                          m_annotationColorBarsForDrawing,
@@ -1127,6 +1131,7 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
     this->windowTabIndex = this->browserTabContent->getTabNumber();
     
     const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
+    const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING);
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
@@ -1134,7 +1139,8 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
                                                              this->windowTabIndex,
                                                              SpacerTabIndex(),
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
-                                                             annotationModeFlag);
+                                                             annotationModeFlag,
+                                                             tileTabsEditModeFlag);
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
                                          m_annotationColorBarsForDrawing,
@@ -1190,6 +1196,7 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
     this->windowTabIndex = -1;
     
     const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
+    const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING);
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
@@ -1197,7 +1204,8 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
                                                              this->windowTabIndex,
                                                              SpacerTabIndex(),
                                                              windowDrawingMode,
-                                                             annotationModeFlag);
+                                                             annotationModeFlag,
+                                                             tileTabsEditModeFlag);
     
     std::vector<Annotation*> notInFileAnnotations;
     notInFileAnnotations.insert(notInFileAnnotations.end(),
@@ -2170,6 +2178,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * the model annotations.
              */
             const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
+            const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING);
             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
@@ -2177,7 +2186,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      this->windowTabIndex,
                                                                      SpacerTabIndex(),
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
-                                                                     annotationModeFlag);
+                                                                     annotationModeFlag,
+                                                                     tileTabsEditModeFlag);
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<Annotation*> emptyViewportAnnotations;
            
@@ -2225,6 +2235,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
              * the model annotations.
              */
             const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
+            const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING);
             BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                                      this->mode,
                                                                      BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
@@ -2232,7 +2243,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      this->windowTabIndex,
                                                                      SpacerTabIndex(),
                                                                      BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
-                                                                     annotationModeFlag);
+                                                                     annotationModeFlag,
+                                                                     tileTabsEditModeFlag);
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<Annotation*> emptyViewportAnnotations;
             m_annotationDrawing->drawAnnotations(&inputs,

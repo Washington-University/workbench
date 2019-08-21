@@ -28,6 +28,7 @@
 #include "BoundingBox.h"
 #include "CaretObject.h"
 #include "SpacerTabIndex.h"
+#include "UserInputModeEnum.h"
 
 namespace caret {
 
@@ -38,7 +39,7 @@ namespace caret {
     class AnnotationArrangerExecutor : public CaretObject {
         
     public:
-        AnnotationArrangerExecutor();
+        AnnotationArrangerExecutor(const UserInputModeEnum::Enum userInputMode);
         
         virtual ~AnnotationArrangerExecutor();
         
@@ -137,6 +138,8 @@ namespace caret {
                                  std::vector<Annotation*>& annotations);
         
         void printAnnotationInfo(const QString& title);
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         Mode m_mode;
         

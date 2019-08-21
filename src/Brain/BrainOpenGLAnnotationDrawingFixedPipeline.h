@@ -71,7 +71,8 @@ namespace caret {
                    const int32_t tabIndex,
                    const SpacerTabIndex &spacerTabIndex,
                    const WindowDrawingMode windowDrawingMode,
-                   const bool annotationUserInputModeFlag)
+                   const bool annotationUserInputModeFlag,
+                   const bool tileTabsManualLayoutUserInputModeFlag)
             : m_brain(brain),
             m_drawingMode(drawingMode),
             m_centerToEyeDistance(centerToEyeDistance),
@@ -79,8 +80,9 @@ namespace caret {
             m_tabIndex(tabIndex),
             m_spacerTabIndex(spacerTabIndex),
             m_windowDrawingMode(windowDrawingMode),
-            m_annotationUserInputModeFlag(annotationUserInputModeFlag) {
-            }
+            m_annotationUserInputModeFlag(annotationUserInputModeFlag),
+            m_tileTabsManualLayoutUserInputModeFlag(tileTabsManualLayoutUserInputModeFlag)
+            { }
             
             Brain* m_brain;
             const BrainOpenGLFixedPipeline::Mode m_drawingMode;
@@ -90,6 +92,7 @@ namespace caret {
             const SpacerTabIndex m_spacerTabIndex;
             const WindowDrawingMode m_windowDrawingMode;
             const bool m_annotationUserInputModeFlag;
+            const bool m_tileTabsManualLayoutUserInputModeFlag;
         };
         
         BrainOpenGLAnnotationDrawingFixedPipeline(BrainOpenGLFixedPipeline* brainOpenGLFixedPipeline);

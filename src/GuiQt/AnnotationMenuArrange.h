@@ -29,7 +29,7 @@
 #include "AnnotationAlignmentEnum.h"
 #include "AnnotationDistributeEnum.h"
 #include "AnnotationGroupingModeEnum.h"
-
+#include "UserInputModeEnum.h"
 
 namespace caret {
 
@@ -38,7 +38,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationMenuArrange(const int32_t browserWindowIndex,
+        AnnotationMenuArrange(const UserInputModeEnum::Enum userInputMode,
+                              const int32_t browserWindowIndex,
                               QWidget* parent = 0);
         
         virtual ~AnnotationMenuArrange();
@@ -87,6 +88,8 @@ namespace caret {
                       const QRectF& rectangle,
                       const qreal x,
                       const qreal y);
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         

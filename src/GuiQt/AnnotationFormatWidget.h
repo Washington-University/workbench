@@ -25,6 +25,8 @@
 
 #include <QWidget>
 
+#include "UserInputModeEnum.h"
+
 namespace caret {
 
     class Annotation;
@@ -34,7 +36,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationFormatWidget(const int32_t browserWindowIndex,
+        AnnotationFormatWidget(const UserInputModeEnum::Enum userInputMode,
+                               const int32_t browserWindowIndex,
                                 QWidget* parent = 0);
         
         virtual ~AnnotationFormatWidget();
@@ -50,6 +53,8 @@ namespace caret {
         AnnotationFormatWidget& operator=(const AnnotationFormatWidget&);
         
         QWidget* createArrangeMenuToolButton();
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         

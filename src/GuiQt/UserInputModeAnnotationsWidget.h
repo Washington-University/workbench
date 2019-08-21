@@ -75,43 +75,47 @@ namespace caret {
 
         UserInputModeAnnotationsWidget& operator=(const UserInputModeAnnotationsWidget&);
         
+        void createAnnotationWidget();
+        
+        void createTileTabsEditingWidget();
+        
         QWidget* createInsertMenuToolButton();
         
         QWidget* createTextEditorWidget();
         
-        const int32_t m_browserWindowIndex;
+        const int32_t m_browserWindowIndex = -1;
         
-        UserInputModeAnnotations* m_inputModeAnnotations;
+        UserInputModeAnnotations* m_inputModeAnnotations = NULL;
         
-        AnnotationCoordinateSpaceWidget* m_coordinateSpaceWidget;
+        AnnotationCoordinateSpaceWidget* m_coordinateSpaceWidget = NULL;
         
-        AnnotationCoordinateWidget* m_coordinateOneWidget;
+        AnnotationCoordinateWidget* m_coordinateOneWidget = NULL;
         
-        AnnotationCoordinateWidget* m_coordinateTwoWidget;
+        AnnotationCoordinateWidget* m_coordinateTwoWidget = NULL;
         
-        AnnotationWidthHeightWidget* m_widthHeightWidget;
+        AnnotationWidthHeightWidget* m_widthHeightWidget = NULL;
         
-        AnnotationRotationWidget* m_rotationWidget;
+        AnnotationRotationWidget* m_rotationWidget = NULL;
         
-        AnnotationLineArrowTipsWidget* m_lineArrowTipsWidget;
+        AnnotationLineArrowTipsWidget* m_lineArrowTipsWidget = NULL;
         
-        AnnotationFontWidget* m_fontWidget;
+        AnnotationFontWidget* m_fontWidget = NULL;
         
-        AnnotationColorWidget* m_colorWidget;
+        AnnotationColorWidget* m_colorWidget = NULL;
         
-        AnnotationTextAlignmentWidget* m_textAlignmentWidget;
+        AnnotationTextAlignmentWidget* m_textAlignmentWidget = NULL;
         
-        AnnotationFormatWidget* m_formatWidget;
+        AnnotationFormatWidget* m_formatWidget = NULL;
         
-        AnnotationTextEditorWidget* m_textEditorWidget;
+        AnnotationTextEditorWidget* m_textEditorWidget = NULL;
         
-        AnnotationTextOrientationWidget* m_textOrientationWidget;
+        AnnotationTextOrientationWidget* m_textOrientationWidget = NULL;
         
-        AnnotationInsertNewWidget* m_insertDeleteWidget;
+        AnnotationInsertNewWidget* m_insertDeleteWidget = NULL;
         
-        AnnotationDeleteWidget* m_deleteWidget;
+        AnnotationDeleteWidget* m_deleteWidget = NULL;
         
-        AnnotationRedoUndoWidget* m_redoUndoWidget;
+        AnnotationRedoUndoWidget* m_redoUndoWidget = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

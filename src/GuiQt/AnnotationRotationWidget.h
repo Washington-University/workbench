@@ -26,6 +26,8 @@
 #include <vector>
 #include <QWidget>
 
+#include "UserInputModeEnum.h"
+
 class QDoubleSpinBox;
 
 
@@ -38,7 +40,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationRotationWidget(const int32_t browserWindowIndex,
+        AnnotationRotationWidget(const UserInputModeEnum::Enum userInputMode,
+                                 const int32_t browserWindowIndex,
                                  QWidget* parent = 0);
         
         virtual ~AnnotationRotationWidget();
@@ -59,6 +62,8 @@ namespace caret {
         AnnotationOneDimensionalShape* getValidOneDimAnnotation(Annotation* annotation);
         
         std::vector<Annotation*> m_annotations;
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         

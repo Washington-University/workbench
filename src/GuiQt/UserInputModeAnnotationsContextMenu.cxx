@@ -349,8 +349,9 @@ UserInputModeAnnotationsContextMenu::deleteAnnotations()
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeDeleteAnnotations(selectedAnnotations);
         AString errorMessage;
-        if ( ! annotationManager->applyCommand(undoCommand,
-                                    errorMessage)) {
+        if ( ! annotationManager->applyCommand(m_userInputModeAnnotations->getUserInputMode(),
+                                               undoCommand,
+                                               errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);
         }
@@ -581,7 +582,8 @@ UserInputModeAnnotationsContextMenu::duplicateAnnotationSelected(QAction* action
     undoCommand->setModeDuplicateAnnotation(m_annotationFile,
                                             annCopy);
     AString errorMessage;
-    if ( ! annotationManager->applyCommand(undoCommand,
+    if ( ! annotationManager->applyCommand(m_userInputModeAnnotations->getUserInputMode(),
+                                           undoCommand,
                                            errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
@@ -634,7 +636,8 @@ UserInputModeAnnotationsContextMenu::applyGrouping(const AnnotationGroupingModeE
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     
     AString errorMessage;
-    if ( ! annMan->applyGroupingMode(m_mouseEvent.getBrowserWindowIndex(),
+    if ( ! annMan->applyGroupingMode(m_userInputModeAnnotations->getUserInputMode(),
+                                     m_mouseEvent.getBrowserWindowIndex(),
                                      grouping,
                                      errorMessage)) {
         WuQMessageBox::errorOk(this,

@@ -80,11 +80,13 @@ using namespace caret;
  * @param parent
  *     Parent widget
  */
-AnnotationCoordinateWidget::AnnotationCoordinateWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+AnnotationCoordinateWidget::AnnotationCoordinateWidget(const UserInputModeEnum::Enum userInputMode,
+                                                       const AnnotationWidgetParentEnum::Enum parentWidgetType,
                                                        const WhichCoordinate whichCoordinate,
                                                        const int32_t browserWindowIndex,
                                                        QWidget* parent)
 : QWidget(parent),
+m_userInputMode(userInputMode),
 m_parentWidgetType(parentWidgetType),
 m_whichCoordinate(whichCoordinate),
 m_browserWindowIndex(browserWindowIndex)
@@ -655,10 +657,12 @@ AnnotationCoordinateWidget::valueChanged()
                                                           selectedAnnotations);
                         break;
                 }
+                
                 AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
 
                 AString errorMessage;
-                if ( ! annMan->applyCommand(undoCommand,
+                if ( ! annMan->applyCommand(m_userInputMode,
+                                            undoCommand,
                                             errorMessage)) {
                     WuQMessageBox::errorOk(this,
                                            errorMessage);

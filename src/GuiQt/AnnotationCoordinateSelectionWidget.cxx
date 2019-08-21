@@ -755,9 +755,28 @@ AnnotationCoordinateSelectionWidget::changeAnnotationCoordinate(Annotation* anno
     command->setDescription("Change Coordinate");
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
  
+    switch (m_annotationType) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            CaretAssert(0);
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::TEXT:
+            break;
+    }
+    
     AString errorMessage;
-    if ( ! annotationManager->applyCommand(command,
-                                errorMessage)) {
+    if ( ! annotationManager->applyCommand(UserInputModeEnum::ANNOTATIONS,
+                                           command,
+                                           errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
     }

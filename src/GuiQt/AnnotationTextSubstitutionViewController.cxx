@@ -39,7 +39,6 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "DisplayPropertiesAnnotationTextSubstitution.h"
-#include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -365,47 +364,6 @@ AnnotationTextSubstitutionViewController::updateSelections()
         fgc->m_valueIndexSpinBox->setVisible(visibleFlag);
         fgc->m_fileNameLabel->setVisible(visibleFlag);
     }
-    
-    
-    
-
-//    const DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
-//    
-//    BrowserTabContent* browserTabContent =
-//    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-//    if (browserTabContent == NULL) {
-//        return;
-//    }
-//    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//    
-//    m_displayAnnotationsCheckBox->setChecked(dpa->isDisplayAnnotations());
-//    m_displayTextAnnotationsCheckBox->setChecked(dpa->isDisplayTextAnnotations());
-//    m_displayWindowAnnotationInSingleTabViewsCheckBox->setChecked(dpa->isDisplayWindowAnnotationsInSingleTabViews(m_browserWindowIndex));
-//    
-//    Brain* brain = GuiManager::get()->getBrain();
-//    std::vector<AnnotationFile*> annotationFiles;
-//    brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
-//    
-//    std::vector<DisplayGroupAndTabItemInterface*> fileItems;
-//    for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
-//         fileIter != annotationFiles.end();
-//         fileIter++) {
-//        AnnotationFile* annFile = *fileIter;
-//        fileItems.push_back(annFile);
-//    }
-//    
-//    const DisplayGroupEnum::Enum displayGroup = dpa->getDisplayGroupForTab(browserTabIndex);
-//    m_displayGroupComboBox->setSelectedDisplayGroup(displayGroup);
-//    
-//    EventGetOrSetUserInputModeProcessor inputModeEvent(m_browserWindowIndex);
-//    EventManager::get()->sendEvent(inputModeEvent.getPointer());
-//    UserInputModeAbstract::UserInputMode mode = inputModeEvent.getUserInputMode();
-//    const bool annotationsValidFlag = (mode == UserInputModeAbstract::ANNOTATIONS);
-//    
-//    m_selectionViewController->updateContent(fileItems,
-//                                             displayGroup,
-//                                             browserTabIndex,
-//                                             annotationsValidFlag);
 }
 
 

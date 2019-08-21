@@ -27,6 +27,7 @@
 #include <QWidget>
 
 #include "AnnotationWidgetParentEnum.h"
+#include "UserInputModeEnum.h"
 
 class QDoubleSpinBox;
 
@@ -39,7 +40,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationWidthHeightWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+        AnnotationWidthHeightWidget(const UserInputModeEnum::Enum userInputMode,
+                                    const AnnotationWidgetParentEnum::Enum parentWidgetType,
                                     const int32_t browserWindowIndex,
                                     QWidget* parent = 0);
         
@@ -62,6 +64,8 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        const UserInputModeEnum::Enum m_userInputMode;
+        
         const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
         
         const int32_t m_browserWindowIndex;

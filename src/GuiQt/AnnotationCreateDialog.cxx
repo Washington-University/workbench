@@ -793,9 +793,29 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
     undoCommand->setModeCreateAnnotation(annotationFile,
                                          annotation);
     
+    CaretAssert(annotation);
+    UserInputModeEnum::Enum inputMode = UserInputModeEnum::ANNOTATIONS;
+    switch (annotation->getType()) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            inputMode = UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING;
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::TEXT:
+            break;
+    }
     AString errorMessage;
-    if ( ! annotationManager->applyCommand(undoCommand,
-                                errorMessage)) {
+    if ( ! annotationManager->applyCommand(inputMode,
+                                           undoCommand,
+                                           errorMessage)) {
         WuQMessageBox::errorOk(GuiManager::get()->getBrowserWindowByWindowIndex(browswerWindowIndex),
                                errorMessage);
     }

@@ -64,9 +64,11 @@ using namespace caret;
  * @param parent
  *    Parent of this widget.
  */
-AnnotationRotationWidget::AnnotationRotationWidget(const int32_t browserWindowIndex,
+AnnotationRotationWidget::AnnotationRotationWidget(const UserInputModeEnum::Enum userInputMode,
+                                                   const int32_t browserWindowIndex,
                                                    QWidget* parent)
 : QWidget(parent),
+m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* rotationLabel = new QLabel(" R:");
@@ -273,7 +275,8 @@ AnnotationRotationWidget::rotationValueChanged(double value)
                                           m_annotations);
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         AString errorMessage;
-        if ( ! annMan->applyCommand(undoCommand,
+        if ( ! annMan->applyCommand(m_userInputMode,
+                                    undoCommand,
                                     errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);
