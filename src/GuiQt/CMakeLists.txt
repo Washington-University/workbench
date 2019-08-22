@@ -44,6 +44,7 @@ ELSE()
 
     SET(MOC_INPUT_HEADER_FILES
         AboutWorkbenchDialog.h
+	AnnotationBoundsWidget.h
         AnnotationChangeCoordinateDialog.h
         AnnotationColorWidget.h
         AnnotationCoordinateSelectionWidget.h
@@ -264,6 +265,7 @@ ENDIF()
 #
 SET(SOURCE_FILES
 AboutWorkbenchDialog.h
+AnnotationBoundsWidget.h
 AnnotationChangeCoordinateDialog.h
 AnnotationColorWidget.h
 AnnotationCoordinateInformation.h
@@ -543,6 +545,7 @@ WuQtUtilities.h
 ZipSceneFileDialog.h
 
 AboutWorkbenchDialog.cxx
+AnnotationBoundsWidget.cxx
 AnnotationChangeCoordinateDialog.cxx
 AnnotationColorWidget.cxx
 AnnotationCoordinateInformation.cxx

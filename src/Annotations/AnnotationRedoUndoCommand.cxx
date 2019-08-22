@@ -25,6 +25,7 @@
 
 #include <cmath>
 
+#include "AnnotationBrowserTab.h"
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationLine.h"
 #include "AnnotationPercentSizeText.h"
@@ -92,6 +93,21 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
    
     switch (m_mode) {
         case AnnotationRedoUndoCommandModeEnum::INVALID:
+            break;
+        case AnnotationRedoUndoCommandModeEnum::BOUNDS_2D:
+        {
+            CaretAssert(annotation);
+            CaretAssert(annotationValue);
+            
+            AnnotationBrowserTab* annotationBrowserTab = dynamic_cast<AnnotationBrowserTab*>(annotation);
+            const AnnotationBrowserTab* annotationBrowserTabValue = dynamic_cast<const AnnotationBrowserTab*>(annotationValue);
+            CaretAssert(annotationBrowserTab);
+            CaretAssert(annotationBrowserTabValue);
+            
+            float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+            annotationBrowserTabValue->getBounds2D(minX, maxX, minY, maxY);
+            annotationBrowserTab->setBounds2D(minX, maxX, minY, maxY);
+        }
             break;
         case AnnotationRedoUndoCommandModeEnum::COLOR_BACKGROUND:
         {
@@ -791,6 +807,138 @@ AnnotationRedoUndoCommand::mergeWith(const CaretUndoCommand* command)
     return true;
 }
 
+/**
+ * Set them mode to x-minimum and create the redo/undo instances.
+ *
+ * @param newMinX
+ *     New minimum x-value of the annotation
+ * @param annotations
+ *     Annotations that receive this new bounds (browser tabs only).
+ */
+void
+AnnotationRedoUndoCommand::setBoundsMinX2D(const float newMinX,
+                                           const std::vector<Annotation*>& annotations)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::BOUNDS_2D;
+    setDescription("Bounds 2D X-Min");
+    setBounds2DHelper(BoundsType2D::MIN_X,
+                      newMinX,
+                      annotations);
+}
+
+/**
+ * Set them mode to x-maximum and create the redo/undo instances.
+ *
+ * @param newMaxX
+ *     New minimum x-value of the annotation
+ * @param annotations
+ *     Annotations that receive this new bounds (browser tabs only).
+ */
+void
+AnnotationRedoUndoCommand::setBoundsMaxX2D(const float newMaxX,
+                                           const std::vector<Annotation*>& annotations)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::BOUNDS_2D;
+    setDescription("Bounds 2D X-Max");
+    setBounds2DHelper(BoundsType2D::MAX_X,
+                      newMaxX,
+                      annotations);
+}
+
+/**
+ * Set them mode to y-minimum and create the redo/undo instances.
+ *
+ * @param newMinY
+ *     New minimum y-value of the annotation
+ * @param annotations
+ *     Annotations that receive this new bounds (browser tabs only).
+ */
+void
+AnnotationRedoUndoCommand::setBoundsMinY2D(const float newMinY,
+                                           const std::vector<Annotation*>& annotations)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::BOUNDS_2D;
+    setDescription("Bounds 2D Y-Min");
+    setBounds2DHelper(BoundsType2D::MIN_Y,
+                      newMinY,
+                      annotations);
+}
+
+/**
+ * Set them mode to y-maximum and create the redo/undo instances.
+ *
+ * @param newMaxY
+ *     New maximum y-value of the annotation
+ * @param annotations
+ *     Annotations that receive this new bounds (browser tabs only).
+ */
+void
+AnnotationRedoUndoCommand::setBoundsMaxY2D(const float newMaxY,
+                                           const std::vector<Annotation*>& annotations)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::BOUNDS_2D;
+    setDescription("Bounds 2D Y-Max");
+    setBounds2DHelper(BoundsType2D::MAX_Y,
+                      newMaxY,
+                      annotations);
+}
+
+/**
+ * Helper for bounds 2D
+ *
+ * @param boundsType
+ *     The bounds value bing set
+ * @param value
+ *     New value
+ * @param annotation
+ *     Annotations that have bounds changed.
+ */
+void
+AnnotationRedoUndoCommand::setBounds2DHelper(const BoundsType2D boundsType,
+                                             const float value,
+                                             const std::vector<Annotation*>& annotations)
+{
+    for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
+         iter != annotations.end();
+         iter++) {
+        Annotation* annotation = *iter;
+        CaretAssert(annotation);
+        
+        AnnotationBrowserTab* browserTabAnnotation = dynamic_cast<AnnotationBrowserTab*>(annotation);
+        if (browserTabAnnotation != NULL) {
+            AnnotationBrowserTab* redoAnnotation = dynamic_cast<AnnotationBrowserTab*>(browserTabAnnotation->clone());
+            CaretAssert(redoAnnotation);
+            float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+            redoAnnotation->getBounds2D(minX, maxX, minY, maxY);
+            
+            switch (boundsType) {
+                case BoundsType2D::MIN_X:
+                    minX = value;
+                    break;
+                case BoundsType2D::MAX_X:
+                    maxX = value;
+                    break;
+                case BoundsType2D::MIN_Y:
+                    minY = value;
+                    break;
+                case BoundsType2D::MAX_Y:
+                    maxY = value;
+                    break;
+            }
+            
+            redoAnnotation->setBounds2D(minX, maxX, minY, maxY);
+            
+            Annotation* undoAnnotation = browserTabAnnotation->clone();
+            AnnotationMemento* am = new AnnotationMemento(annotation,
+                                                          redoAnnotation,
+                                                          undoAnnotation);
+            m_annotationMementos.push_back(am);
+        }
+        else {
+            CaretLogWarning("Annotation for bounds setting must be a Browser Tab Annotation");
+        }
+    }
+}
 
 /**
  * Set them mode to first coordinate and create the redo/undo instances.

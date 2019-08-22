@@ -30,6 +30,8 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AnnotationBoundsWidget.h"
+#include "AnnotationBrowserTab.h"
 #include "AnnotationCoordinateSpaceWidget.h"
 #include "AnnotationCoordinateWidget.h"
 #include "AnnotationColorWidget.h"
@@ -168,6 +170,10 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
 void
 UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
 {
+    m_boundsWidget               = new AnnotationBoundsWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                              AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                              m_browserWindowIndex);
+    
     m_coordinateOneWidget        = new AnnotationCoordinateWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                   AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                                   AnnotationCoordinateWidget::COORDINATE_ONE,
@@ -175,7 +181,8 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
     
     m_widthHeightWidget          = new AnnotationWidthHeightWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                    AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
-                                                                   m_browserWindowIndex);
+                                                                   m_browserWindowIndex,
+                                                                   Qt::Vertical);
     
     m_formatWidget               = new AnnotationFormatWidget(m_inputModeAnnotations->getUserInputMode(),
                                                               m_browserWindowIndex);
@@ -183,25 +190,30 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
     m_redoUndoWidget             = new AnnotationRedoUndoWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
     
-    /*
-     * Connect signals for setting a coordinate with the mouse.
-     */
-    QObject::connect(m_coordinateOneWidget, SIGNAL(signalSelectCoordinateWithMouse()),
-                     this, SLOT(selectCoordinateOneWithMouse()));
+    QGridLayout* gridLayout = new QGridLayout(this);
+    gridLayout->setContentsMargins(2, 2, 2, 2);
+    gridLayout->setVerticalSpacing(0);
+    int column = 0;
+    gridLayout->addWidget(m_boundsWidget, 0, column);
+    gridLayout->addWidget(m_coordinateOneWidget, 1, column);
+    column++;
+    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
+    column++;
+    gridLayout->addWidget(m_widthHeightWidget, 0, column, 2, 1, Qt::AlignTop);
+    column++;
+    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
+    column++;
+    gridLayout->addWidget(m_formatWidget, 0, column, 2, 1, Qt::AlignTop);
+    column++;
+    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
+    column++;
+    gridLayout->addWidget(m_redoUndoWidget, 0, column, 2, 1, Qt::AlignTop);
+    column++;
     
-    /*
-     * Layout  of widgets
-     */
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addWidget(m_coordinateOneWidget);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_widthHeightWidget);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_formatWidget);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_redoUndoWidget);
-    layout->addStretch();
+    for (int32_t iCol = 0; iCol < column; iCol++) {
+        gridLayout->setColumnStretch(iCol, 0);
+    }
+    gridLayout->setColumnStretch(column, 100);
 }
 
 /*
@@ -238,7 +250,8 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     
     m_widthHeightWidget          = new AnnotationWidthHeightWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                    AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
-                                                                   m_browserWindowIndex);
+                                                                   m_browserWindowIndex,
+                                                                   Qt::Horizontal);
     
     m_rotationWidget             = new AnnotationRotationWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
@@ -363,6 +376,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
     
+    std::vector<AnnotationBrowserTab*> browserTabAnnotations;
     std::vector<AnnotationLine*> lineAnnotations;
     std::vector<AnnotationText*> textAnnotations;
     std::vector<AnnotationFontAttributesInterface*> fontStyleAnnotations;
@@ -374,6 +388,13 @@ UserInputModeAnnotationsWidget::updateWidget()
          iter++) {
         Annotation* ann = *iter;
         CaretAssert(ann);
+        
+        if (ann->getType() == AnnotationTypeEnum::BROWSER_TAB) {
+            AnnotationBrowserTab* abt = dynamic_cast<AnnotationBrowserTab*>(ann);
+            if (abt != NULL) {
+                browserTabAnnotations.push_back(abt);
+            }
+        }
         
         AnnotationText* annText = dynamic_cast<AnnotationText*>(ann);
         if (annText != NULL) {
@@ -404,6 +425,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     /*
      * Note: pointers are initialized to NULL in the header file
      */
+    if (m_boundsWidget != NULL) m_boundsWidget->updateContent(browserTabAnnotations);
     if (m_coordinateSpaceWidget != NULL) m_coordinateSpaceWidget->updateContent(selectedAnnotations);
     if (m_fontWidget != NULL) m_fontWidget->updateContent(fontStyleAnnotations);
     if (m_textEditorWidget != NULL) m_textEditorWidget->updateContent(textAnnotations);

@@ -110,6 +110,10 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                      "INVALID",
                                                      "Invalid"));
     
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(BOUNDS_2D,
+                                                         "BOUNDS_2D",
+                                                         "Bounds 2D"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(COLOR_BACKGROUND,
                                                      "COLOR_BACKGROUND",
                                                      "Color - Background"));

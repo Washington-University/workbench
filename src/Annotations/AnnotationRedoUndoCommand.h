@@ -49,6 +49,18 @@ namespace caret {
         
         virtual bool mergeWith(const CaretUndoCommand* command);
         
+        void setBoundsMinX2D(const float minX,
+                             const std::vector<Annotation*>& annotations);
+        
+        void setBoundsMaxX2D(const float maxX,
+                             const std::vector<Annotation*>& annotations);
+        
+        void setBoundsMinY2D(const float minY,
+                             const std::vector<Annotation*>& annotations);
+        
+        void setBoundsMaxY2D(const float maxY,
+                             const std::vector<Annotation*>& annotations);
+        
         void setModeCoordinateOne(const AnnotationCoordinate& coordinate,
                                   const std::vector<Annotation*>& annotations);
         
@@ -153,6 +165,16 @@ namespace caret {
 
     private:
         /**
+         * Used with bounds 2D helper
+         */
+        enum class BoundsType2D {
+            MIN_X,
+            MAX_X,
+            MIN_Y,
+            MAX_Y
+        };
+        
+        /**
          * The annotation memento contains copies of the
          * annotation before and after its modification.
          */
@@ -246,6 +268,10 @@ namespace caret {
 
         static bool lessThanAnnotationMemento(const AnnotationMemento* am1,
                                               const AnnotationMemento* am2);
+        
+        void setBounds2DHelper(const BoundsType2D boundsType,
+                               const float value,
+                               const std::vector<Annotation*>& annotations);
         
         AnnotationRedoUndoCommandModeEnum::Enum m_mode;
         

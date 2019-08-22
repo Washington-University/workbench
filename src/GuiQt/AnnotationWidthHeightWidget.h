@@ -43,6 +43,7 @@ namespace caret {
         AnnotationWidthHeightWidget(const UserInputModeEnum::Enum userInputMode,
                                     const AnnotationWidgetParentEnum::Enum parentWidgetType,
                                     const int32_t browserWindowIndex,
+                                    const Qt::Orientation orientation,
                                     QWidget* parent = 0);
         
         virtual ~AnnotationWidthHeightWidget();

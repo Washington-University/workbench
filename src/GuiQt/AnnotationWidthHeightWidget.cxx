@@ -24,6 +24,7 @@
 #undef __ANNOTATION_WIDTH_HEIGHT_WIDGET_DECLARE__
 
 #include <QDoubleSpinBox>
+#include <QGridLayout>
 #include <QLabel>
 #include <QHBoxLayout>
 
@@ -63,6 +64,7 @@ using namespace caret;
 AnnotationWidthHeightWidget::AnnotationWidthHeightWidget(const UserInputModeEnum::Enum userInputMode,
                                                          const AnnotationWidgetParentEnum::Enum parentWidgetType,
                                                          const int32_t browserWindowIndex,
+                                                         const Qt::Orientation orientation,
                                                                          QWidget* parent)
 : QWidget(parent),
 m_userInputMode(userInputMode),
@@ -94,12 +96,28 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setWordWrappedToolTip(m_heightSpinBox,
                                          "Percentage height of 2D Shapes (Box, Image, Oval)");
 
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addWidget(widthLabel);
-    layout->addWidget(m_widthSpinBox);
-    layout->addWidget(heightLabel);
-    layout->addWidget(m_heightSpinBox);
+    switch (orientation) {
+        case Qt::Horizontal:
+        {
+            QHBoxLayout* layout = new QHBoxLayout(this);
+            WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
+            layout->addWidget(widthLabel);
+            layout->addWidget(m_widthSpinBox);
+            layout->addWidget(heightLabel);
+            layout->addWidget(m_heightSpinBox);
+        }
+            break;
+        case Qt::Vertical:
+        {
+            QGridLayout* layout = new QGridLayout(this);
+            WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
+            layout->addWidget(widthLabel, 0, 0);
+            layout->addWidget(m_widthSpinBox, 0, 1);
+            layout->addWidget(heightLabel, 1, 0);
+            layout->addWidget(m_heightSpinBox, 1, 1);
+        }
+            break;
+    }
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);

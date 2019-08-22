@@ -3308,12 +3308,22 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
         }
     }
     
-    if (userInputProcessor->getUserInputMode() != UserInputModeEnum::ANNOTATIONS) {
-        /*
-         * Delete all selected annotations and update graphics and UI.
-         */
-        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-        annotationManager->deselectAllAnnotationsForEditing(this->browserWindowIndex);
+    switch (userInputProcessor->getUserInputMode()) {
+        case UserInputModeEnum::ANNOTATIONS:
+        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+            break;
+        case UserInputModeEnum::BORDERS:
+        case UserInputModeEnum::FOCI:
+        case UserInputModeEnum::IMAGE:
+        case UserInputModeEnum::INVALID:
+        case UserInputModeEnum::VIEW:
+        case UserInputModeEnum::VOLUME_EDIT:
+            /*
+             * Delete all selected annotations and update graphics and UI.
+             */
+            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+            annotationManager->deselectAllAnnotationsForEditing(this->browserWindowIndex);
+            break;
     }
 }
 

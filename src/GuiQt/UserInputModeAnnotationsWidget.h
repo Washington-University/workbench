@@ -32,6 +32,7 @@ class QComboBox;
 namespace caret {
 
     class Annotation;
+    class AnnotationBoundsWidget;
     class AnnotationColorWidget;
     class AnnotationCoordinateSpaceWidget;
     class AnnotationCoordinateWidget;
@@ -86,6 +87,8 @@ namespace caret {
         const int32_t m_browserWindowIndex = -1;
         
         UserInputModeAnnotations* m_inputModeAnnotations = NULL;
+        
+        AnnotationBoundsWidget* m_boundsWidget = NULL;
         
         AnnotationCoordinateSpaceWidget* m_coordinateSpaceWidget = NULL;
         
