@@ -159,7 +159,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_manualLayoutBrowserTabAnnotation.reset(new AnnotationBrowserTab(AnnotationAttributesDefaultTypeEnum::NORMAL)); //;m_tabNumber));
     m_manualLayoutBrowserTabAnnotation->setBrowserTabContent(this,
                                                              m_tabNumber);
-    m_manualLayoutTabGeometry.reset(new TileTabsBrowserTabGeometry(m_tabNumber));
     
     m_sceneClassAssistant = new SceneClassAssistant();
     m_sceneClassAssistant->add("m_tabNumber", 
@@ -3594,8 +3593,9 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     m_obliqueVolumeRotationMatrix->getMatrixForOpenGL(obliqueMatrix);
     sceneClass->addFloatArray("m_obliqueVolumeRotationMatrix", obliqueMatrix, 16);
     
-    m_manualLayoutBrowserTabAnnotation->getTileTabsGeometry(m_manualLayoutTabGeometry.get());
-    TileTabsBrowserTabGeometrySceneHelper geometryHelper(m_manualLayoutTabGeometry.get());
+    TileTabsBrowserTabGeometry manualLayoutTabGeometry(m_tabNumber);
+    m_manualLayoutBrowserTabAnnotation->getTileTabsGeometry(&manualLayoutTabGeometry);
+    TileTabsBrowserTabGeometrySceneHelper geometryHelper(&manualLayoutTabGeometry);
     sceneClass->addClass(geometryHelper.saveToScene(sceneAttributes,
                                                     "m_manualLayoutTabGeometry"));
 
@@ -3628,10 +3628,11 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_A;
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     
-    TileTabsBrowserTabGeometrySceneHelper geometryHelper(m_manualLayoutTabGeometry.get());
+    TileTabsBrowserTabGeometry manualLayoutTabGeometry(m_tabNumber);
+    TileTabsBrowserTabGeometrySceneHelper geometryHelper(&manualLayoutTabGeometry);
     geometryHelper.restoreFromScene(sceneAttributes,
                                     sceneClass->getClass("m_manualLayoutTabGeometry"));
-    m_manualLayoutBrowserTabAnnotation->setFromTileTabsGeometry(m_manualLayoutTabGeometry.get());
+    m_manualLayoutBrowserTabAnnotation->setFromTileTabsGeometry(&manualLayoutTabGeometry);
 
     m_sceneClassAssistant->restoreMembers(sceneAttributes,
                                           sceneClass);
