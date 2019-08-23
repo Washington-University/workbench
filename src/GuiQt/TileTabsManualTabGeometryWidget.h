@@ -27,6 +27,7 @@
 
 #include <QObject>
 
+class QCheckBox;
 class QGridLayout;
 class QLabel;
 class QDoubleSpinBox;
@@ -63,6 +64,8 @@ namespace caret {
         void itemChanged();
 
     private slots:
+        void showCheckBoxClicked(bool status);
+        
         void xMinSpinBoxValueChanged(double value);
         
         void xMaxSpinBoxValueChanged(double value);
@@ -88,6 +91,8 @@ namespace caret {
         const int32_t m_index;
         
         BrowserTabContent* m_browserTabContent = NULL;
+        
+        QCheckBox* m_showTabCheckBox;
         
         QLabel* m_tabNumberLabel;
         

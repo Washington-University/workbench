@@ -53,6 +53,10 @@ namespace caret {
 
         const BrowserTabContent* getBrowserTabContent() const;
         
+        bool isBrowserTabDisplayed() const;
+        
+        void setBrowserTabDisplayed(const bool status);
+        
         int32_t getTabIndex() const;
         
         int32_t getStackingOrder() const;
@@ -98,6 +102,9 @@ namespace caret {
 
         /** Browser tab that owns this annotation DO NOT DELETE */
         BrowserTabContent* m_browserTabContent = NULL;
+        
+        /** Display status of browser tab */
+        bool m_displayStatus = true;
         
         /** Index of browser tab that owns this annotation */
         int32_t m_tabIndex = -1;

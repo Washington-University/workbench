@@ -201,6 +201,26 @@ AnnotationBrowserTab::getTabIndex() const
     return m_tabIndex;
 }
 
+/**
+ * @return Display status of tab
+ */
+bool
+AnnotationBrowserTab::isBrowserTabDisplayed() const
+{
+    return m_displayStatus;
+}
+
+/**
+ * Set the display status of this tab
+ *
+ * @param status
+ *     New display status for this tab
+ */
+void
+AnnotationBrowserTab::setBrowserTabDisplayed(const bool status) 
+{
+    m_displayStatus = status;
+}
 
 /**
  * Set the browser tab annotation dimensions using the tile tabs geometry
@@ -216,7 +236,8 @@ AnnotationBrowserTab::setFromTileTabsGeometry(const TileTabsBrowserTabGeometry* 
                 geometry->getMaxX(),
                 geometry->getMinY(),
                 geometry->getMaxY());
-    m_stackingOrder = geometry->getStackingOrder();
+    m_displayStatus  = geometry->isDisplayed();
+    m_stackingOrder  = geometry->getStackingOrder();
     m_backgroundType = geometry->getBackgroundType();
 }
 
@@ -235,6 +256,7 @@ AnnotationBrowserTab::getTileTabsGeometry(TileTabsBrowserTabGeometry* geometryOu
     getBounds2D(minX, maxX, minY, maxY);
     
     geometryOut->setBounds(minX, maxX, minY, maxY);
+    geometryOut->setDisplayed(m_displayStatus);
     geometryOut->setStackingOrder(m_stackingOrder);
     geometryOut->setBackgroundType(m_backgroundType);
 }
@@ -340,6 +362,7 @@ AnnotationBrowserTab::setBackgroundType(const TileTabsLayoutBackgroundTypeEnum::
  * @return true if this and the given geometry intersect.
  *         NOTE: if 'other' is 'this' true is returned (overlaps self) but this
  *         could change so it is best to avoid testing overlap of self.
+ *         NOTE: Display status is ignored
  *
  * @param other
  *     Other geometry for intersection test

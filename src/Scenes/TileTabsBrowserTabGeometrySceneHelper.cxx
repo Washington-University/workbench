@@ -51,6 +51,8 @@ m_geometry(geometry)
     CaretAssert(m_geometry);
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
  
+    m_sceneAssistant->add("m_displayFlag",
+                          &m_geometry->m_displayFlag);
     m_sceneAssistant->add("m_tabIndex",
                           &m_geometry->m_tabIndex);
     m_sceneAssistant->add("m_minX",
@@ -132,7 +134,11 @@ TileTabsBrowserTabGeometrySceneHelper::restoreFromScene(const SceneAttributes* s
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);    
+                                     sceneClass);
+    
+    if ( ! sceneClass->getPrimitive("m_displayFlag")) {
+        m_geometry->m_displayFlag = true;
+    }
     
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,

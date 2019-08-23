@@ -333,6 +333,8 @@ TileTabsLayoutManualConfiguration::encodeInXMLString(AString& xmlTextOut) const
     
     for (const auto& tabInfo : m_tabInfo) {
         writer.writeStartElement(s_tabInfoElementName);
+        writer.writeAttribute(s_tabInfoAttributeDisplayStatus,
+                              AString::fromBool(tabInfo->isDisplayed()));
         writer.writeAttribute(s_tabInfoAttributeTabIndex,
                               AString::number(tabInfo->getTabIndex()));
         writer.writeAttribute(s_tabInfoAttributeMinX,
@@ -429,6 +431,7 @@ TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
                 bool maxYValid(false);
                 bool stackingValid(false);
                 const QXmlStreamAttributes atts = xml.attributes();
+                AString displayStatusText = atts.value(s_tabInfoAttributeDisplayStatus).toString();
                 const int32_t tabIndex = atts.value(s_tabInfoAttributeTabIndex).toInt(&tabIndexValid);
                 const float   minX     = atts.value(s_tabInfoAttributeMinX).toFloat(&minXValid);
                 const float   maxX     = atts.value(s_tabInfoAttributeMaxX).toFloat(&maxXValid);
@@ -437,6 +440,11 @@ TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
                 const int32_t stacking = atts.value(s_tabInfoAttributeStackingOrder).toInt(&stackingValid);
                 const QString backStr  = atts.value(s_tabInfoAttributeBackground).toString();
                 const TileTabsLayoutBackgroundTypeEnum::Enum backType = TileTabsLayoutBackgroundTypeEnum::fromName(backStr, NULL);
+                
+                if (displayStatusText.isEmpty()) {
+                    displayStatusText = "true";
+                }
+                const bool displayStatus = displayStatusText.toBool();
                 
                 if (tabIndexValid
                     && minXValid
@@ -449,6 +457,7 @@ TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
                     tabInfo->setMaxX(maxX);
                     tabInfo->setMinY(minY);
                     tabInfo->setMaxY(maxY);
+                    tabInfo->setDisplayed(displayStatus);
                     tabInfo->setStackingOrder(stacking);
                     tabInfo->setBackgroundType(backType);
                     

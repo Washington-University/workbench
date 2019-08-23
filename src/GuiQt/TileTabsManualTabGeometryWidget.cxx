@@ -23,6 +23,7 @@
 #include "TileTabsManualTabGeometryWidget.h"
 #undef __TILE_TABS_MANUAL_TAB_GEOMETRY_WIDGET_DECLARE__
 
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
@@ -67,6 +68,10 @@ m_index(index)
     CaretAssert(tileTabsConfigurationDialog);
     CaretAssert(gridLayout);
     
+    m_showTabCheckBox = new QCheckBox("");
+    QObject::connect(m_showTabCheckBox, &QCheckBox::clicked,
+                     this, &TileTabsManualTabGeometryWidget::showCheckBoxClicked);
+    
     m_tabNumberLabel = new QLabel("    ");
     m_tabNumberLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
@@ -105,6 +110,7 @@ m_index(index)
     m_gridLayoutGroup = new WuQGridLayoutGroup(gridLayout);
     const int32_t rowIndex(gridLayout->rowCount());
     int32_t columnIndex(0);
+    m_gridLayoutGroup->addWidget(m_showTabCheckBox, rowIndex, columnIndex++, Qt::AlignHCenter);
     m_gridLayoutGroup->addWidget(m_tabNumberLabel, rowIndex, columnIndex++, Qt::AlignLeft);
     m_gridLayoutGroup->addWidget(m_xMinSpinBox, rowIndex, columnIndex++, Qt::AlignHCenter);
     m_gridLayoutGroup->addWidget(m_xMaxSpinBox, rowIndex, columnIndex++, Qt::AlignHCenter);
@@ -144,6 +150,7 @@ TileTabsManualTabGeometryWidget::updateContent(BrowserTabContent* browserTabCont
         updatePercentSpinBox(m_yMinSpinBox, minY);
         updatePercentSpinBox(m_yMaxSpinBox, maxY);
 
+        m_showTabCheckBox->setChecked(annotationBrowserTab->isBrowserTabDisplayed());
         const TileTabsLayoutBackgroundTypeEnum::Enum background = annotationBrowserTab->getBackgroundType();
         m_TileTabsLayoutBackgroundTypeEnumComboBox->setSelectedItem<TileTabsLayoutBackgroundTypeEnum,TileTabsLayoutBackgroundTypeEnum::Enum>(background);
 
@@ -211,6 +218,24 @@ TileTabsManualTabGeometryWidget::createPercentSpinBox(const QString& toolTip,
     dsb->setKeyboardTracking(false);
     
     return dsb;
+}
+
+/**
+ * Called when show checkbox is clicked
+ *
+ * @param status
+ *     New checked status
+ */
+void
+TileTabsManualTabGeometryWidget::showCheckBoxClicked(bool status)
+{
+    CaretAssert(m_browserTabContent);
+    if (m_browserTabContent != NULL) {
+        AnnotationBrowserTab* annotationBrowserTab = m_browserTabContent->getManualLayoutBrowserTabAnnotation();
+        CaretAssert(annotationBrowserTab);
+        annotationBrowserTab->setBrowserTabDisplayed(status);
+        emit itemChanged();
+    }
 }
 
 /**

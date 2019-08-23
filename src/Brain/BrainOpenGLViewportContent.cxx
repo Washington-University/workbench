@@ -1024,10 +1024,14 @@ BrainOpenGLViewportContent::createViewportContentForManualTileTabs(std::vector<B
     for (const auto tab : tabContents) {
         CaretAssert(tab);
         
+        const AnnotationBrowserTab* tabAnnotation = tab->getManualLayoutBrowserTabAnnotation();
+        if ( ! tabAnnotation->isBrowserTabDisplayed()) {
+            continue;
+        }
+        
         /*
          * Tab Geometry is in percentages ranging [0.0, 100.0]
          */
-        const AnnotationBrowserTab* tabAnnotation = tab->getManualLayoutBrowserTabAnnotation();
         float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
         tabAnnotation->getBounds2D(minX, maxX, minY, maxY);
         const float tabAnnWidth(maxX - minX);

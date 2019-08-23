@@ -46,6 +46,10 @@ namespace caret {
         
         int32_t getTabIndex() const;
         
+        bool isDisplayed() const;
+        
+        void setDisplayed(const bool status);
+        
         void setBounds(const float minX,
                        const float maxX,
                        const float minY,
@@ -109,8 +113,11 @@ namespace caret {
     private:
         void copyHelperTileTabsBrowserTabGeometry(const TileTabsBrowserTabGeometry& obj);
 
+        /** display status of tab */
+        bool m_displayFlag = true;
+        
         /** index of tab */
-        int32_t m_tabIndex;
+        int32_t m_tabIndex = -1;
         
         /** left as percentage*/
         float m_minX = 10.0;

@@ -448,39 +448,100 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             getBrowserWindow()->getAllTabContent(allTabContent);
             int32_t numBrowserTabs = static_cast<int32_t>(allTabContent.size());
             
+            /*
+             * Display status of tabs must be set after
+             * configuration is copied from User Configurations
+             */
+            std::set<BrowserTabContent*> tabsWithDisplayStatusOn;
+            std::set<BrowserTabContent*> tabsWithDisplayStatusOff;
+            
             if (numBrowserTabs == numConfigTabs) {
                 /* OK */
             }
             else {
-                AString msg("<html>The are "
+                AString msg("<html>"
+                            "The Window contains "
                             + AString::number(numBrowserTabs)
-                            + " tabs in the window but the layout has space for "
+                            + " tabs.<br>"
+                            "The Layout has space for "
                             + AString::number(numConfigTabs)
-                            + " tabs.<p>");
+                            + " tabs"
+                            "<p>");
                 if (numBrowserTabs < numConfigTabs) {
-                    msg.append("Do you want to add tabs to available spaces in the layout?</html>");
-                    switch (WuQMessageBox::warningYesNoCancel(m_loadConfigurationPushButton, msg, "")) {
-                        case WuQMessageBox::RESULT_CANCEL:
-                            return;
-                            break;
-                        case WuQMessageBox::RESULT_NO:
-                            break;
-                        case WuQMessageBox::RESULT_YES:
-                        {
+                    msg.append("Do you want to add tabs to fill layout?:</html>");
+                    WuQDataEntryDialog dialog("Load Configuration",
+                                              m_loadConfigurationPushButton,
+                                              WuQDialogNonModal::SCROLL_AREA_NEVER);
+                    dialog.setTextAtTop(msg, true);
+                    QRadioButton* yesRadioButton = dialog.addRadioButton("Yes, add tabs to fill layout");
+                    QRadioButton* yesDisableDisplayRadioButton = dialog.addRadioButton("Yes, add tabs but disable display of them");
+                    QRadioButton* noRadioButton = dialog.addRadioButton("No, discard extra spaces in layout");
+                    yesDisableDisplayRadioButton->setChecked(true);
+                    if (dialog.exec() == WuQDataEntryDialog::Accepted) {
+                        bool addTabsFlag(false);
+                        bool showTabsFlag(false);
+                        if (yesRadioButton->isChecked()) {
+                            addTabsFlag  = true;
+                            showTabsFlag = true;
+                        }
+                        else if (yesDisableDisplayRadioButton->isChecked()) {
+                            addTabsFlag = true;
+                        }
+                        else if (noRadioButton->isChecked()) {
+                            /* No action needed */
+                        }
+                        else {
+                            CaretAssert(0);
+                        }
+                        
+                        if (addTabsFlag) {
                             const int32_t numTabsToAdd = numConfigTabs - numBrowserTabs;
                             for (int32_t i = 0; i < numTabsToAdd; i++) {
                                 EventBrowserTabNewInGUI newTabEvent;
                                 EventManager::get()->sendEvent(newTabEvent.getPointer());
+                                BrowserTabContent* btc = newTabEvent.getBrowserTab();
+//                                if (btc != NULL) {
+//                                    btc->getManualLayoutBrowserTabAnnotation()->setBrowserTabDisplayed(showTabsFlag);
+//                                }
                                 updateGraphicsWindow();
+                                if (btc != NULL) {
+                                    if (showTabsFlag) {
+                                        tabsWithDisplayStatusOn.insert(btc);
+                                    }
+                                    else {
+                                        tabsWithDisplayStatusOff.insert(btc);
+                                    }
+//                                    btc->getManualLayoutBrowserTabAnnotation()->setBrowserTabDisplayed(showTabsFlag);
+                                }
                             }
                         }
-                            break;
                     }
+                    else {
+                        return;
+                    }
+//                    msg.append("Do you want to add tabs to available spaces in the layout?</html>");
+//                    switch (WuQMessageBox::warningYesNoCancel(m_loadConfigurationPushButton, msg, "")) {
+//                        case WuQMessageBox::RESULT_CANCEL:
+//                            return;
+//                            break;
+//                        case WuQMessageBox::RESULT_NO:
+//                            break;
+//                        case WuQMessageBox::RESULT_YES:
+//                        {
+//                            const int32_t numTabsToAdd = numConfigTabs - numBrowserTabs;
+//                            for (int32_t i = 0; i < numTabsToAdd; i++) {
+//                                EventBrowserTabNewInGUI newTabEvent;
+//                                EventManager::get()->sendEvent(newTabEvent.getPointer());
+//                                updateGraphicsWindow();
+//                            }
+//                        }
+//                            break;
+//                    }
                 }
                 else {
                     msg.append("Do you want to:</html>");
                     
-                    WuQDataEntryDialog dialog("New Configuration",
+                    WuQDataEntryDialog dialog("Load Configuration",
                                               m_loadConfigurationPushButton,
                                               WuQDialogNonModal::SCROLL_AREA_NEVER);
                     dialog.setTextAtTop(msg, true);
@@ -547,6 +608,14 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
                     CaretAssert(configGeometry);
                     
                     browserTabAnnotation->setFromTileTabsGeometry(configGeometry);
+                    
+                    BrowserTabContent* btc = browserTabAnnotation->getBrowserTabContent();
+                    if (tabsWithDisplayStatusOn.find(btc) != tabsWithDisplayStatusOn.end()) {
+                        browserTabAnnotation->setBrowserTabDisplayed(true);
+                    }
+                    else if (tabsWithDisplayStatusOff.find(btc) != tabsWithDisplayStatusOff.end()) {
+                        browserTabAnnotation->setBrowserTabDisplayed(false);
+                    }
                 }
                 else {
                     if (i < numViewportContent) {
@@ -1067,7 +1136,8 @@ TileTabsConfigurationDialog::addManualGeometryWidget(QGridLayout* gridLayout,
         int32_t rowIndex = gridLayout->rowCount();
         
         gridLayout->setHorizontalSpacing(8);
-        gridLayout->addWidget(new QLabel("Tab"), rowIndex, columnIndex++, Qt::AlignLeft);
+        gridLayout->addWidget(new QLabel("Show"), rowIndex, columnIndex++, Qt::AlignLeft);
+        gridLayout->addWidget(new QLabel("Name"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Left"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Right"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Bottom"), rowIndex, columnIndex++, Qt::AlignLeft);

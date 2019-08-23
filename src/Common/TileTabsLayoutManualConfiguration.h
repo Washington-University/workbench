@@ -91,6 +91,7 @@ namespace caret {
         static const AString s_rootElementAttributeValueVersionOne;
         
         static const AString s_tabInfoElementName;
+        static const AString s_tabInfoAttributeDisplayStatus;
         static const AString s_tabInfoAttributeTabIndex;
         static const AString s_tabInfoAttributeMinX;
         static const AString s_tabInfoAttributeMaxX;
@@ -111,6 +112,7 @@ namespace caret {
     const AString TileTabsLayoutManualConfiguration::s_rootElementAttributeValueVersionOne = "1";
 
     const AString TileTabsLayoutManualConfiguration::s_tabInfoElementName = "TabInfo";
+    const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeDisplayStatus = "DisplayStatus";
     const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeTabIndex = "TabIndex";
     const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeMinX = "MinX";
     const AString TileTabsLayoutManualConfiguration::s_tabInfoAttributeMaxX = "MaxX";

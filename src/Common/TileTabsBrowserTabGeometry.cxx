@@ -102,11 +102,12 @@ TileTabsBrowserTabGeometry::operator=(const TileTabsBrowserTabGeometry& obj)
 void 
 TileTabsBrowserTabGeometry::copyHelperTileTabsBrowserTabGeometry(const TileTabsBrowserTabGeometry& obj)
 {
-    m_tabIndex = obj.m_tabIndex;
-    m_minX     = obj.m_minX;
-    m_maxX     = obj.m_maxX;
-    m_minY     = obj.m_minY;
-    m_maxY     = obj.m_maxY;
+    m_displayFlag = obj.m_displayFlag;
+    m_tabIndex    = obj.m_tabIndex;
+    m_minX        = obj.m_minX;
+    m_maxX        = obj.m_maxX;
+    m_minY        = obj.m_minY;
+    m_maxY        = obj.m_maxY;
     m_stackingOrder  = obj.m_stackingOrder;
     m_backgroundType = obj.m_backgroundType;
 }
@@ -143,7 +144,8 @@ TileTabsBrowserTabGeometry::toString() const
     QTextStream ts(&str);
     
     ts << "TileTabsBrowserTabGeometry: "
-    << "m_tabIndex=" << m_tabIndex
+    << "m_displayFlag=" << AString::fromBool(m_displayFlag)
+    << " m_tabIndex=" << m_tabIndex
     << " m_minX=" << m_minX
     << " m_maxX=" << m_maxX
     << " m_minY=" << m_minY
@@ -152,6 +154,27 @@ TileTabsBrowserTabGeometry::toString() const
     << " m_backgroundType=" << TileTabsLayoutBackgroundTypeEnum::toName(m_backgroundType);
 
     return str;
+}
+
+/**
+ * @return The display status
+ */
+bool
+TileTabsBrowserTabGeometry::isDisplayed() const
+{
+    return m_displayFlag;
+}
+
+/**
+ * Set the display status
+ *
+ * @param status
+ *     New display status
+ */
+void
+TileTabsBrowserTabGeometry::setDisplayed(const bool status)
+{
+    m_displayFlag = status;
 }
 
 /**
