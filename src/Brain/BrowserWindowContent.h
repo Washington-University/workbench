@@ -66,9 +66,9 @@ namespace caret {
         
         void setTileTabsEnabled(const bool tileTabsEnabled);
 
-        TileTabsLayoutBaseConfiguration* getSelectedTileTabsConfiguration();
+        TileTabsLayoutBaseConfiguration* getSelectedTileTabsGridConfiguration();
         
-        const TileTabsLayoutBaseConfiguration* getSelectedTileTabsConfiguration() const;
+        const TileTabsLayoutBaseConfiguration* getSelectedTileTabsGridConfiguration() const;
         
         TileTabsLayoutGridConfiguration* getAutomaticGridTileTabsConfiguration();
         

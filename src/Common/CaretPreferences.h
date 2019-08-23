@@ -138,7 +138,7 @@ namespace caret {
         
         void readTileTabsUserConfigurations(const bool performSync = true);
         
-        std::vector<std::pair<AString, AString>> getTileTabsUserConfigurationsNamesAndUniqueIdentifiers() const;
+        std::vector<std::pair<AString, AString>> getTileTabsUserConfigurationsNamesAndUniqueIdentifiers(const bool includeManualConfigurationsFlag) const;
         
         std::unique_ptr<TileTabsLayoutBaseConfiguration> getCopyOfTileTabsUserConfigurationByUniqueIdentifier(const AString& uniqueIdentifier) const;
         

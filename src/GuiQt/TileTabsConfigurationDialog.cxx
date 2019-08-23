@@ -1609,8 +1609,9 @@ TileTabsConfigurationDialog::updateDialog()
     QSignalBlocker blocker(m_userConfigurationSelectionListWidget);
     m_userConfigurationSelectionListWidget->clear();
     
+    const bool includeManualConfigurationsFlag(true);
     std::vector<std::pair<AString, AString>> nameUniqueIDs =
-    m_caretPreferences->getTileTabsUserConfigurationsNamesAndUniqueIdentifiers();
+    m_caretPreferences->getTileTabsUserConfigurationsNamesAndUniqueIdentifiers(includeManualConfigurationsFlag);
     
     for (const auto nameID : nameUniqueIDs) {
         /*

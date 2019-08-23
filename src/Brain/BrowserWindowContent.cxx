@@ -215,9 +215,11 @@ BrowserWindowContent::setTileTabsEnabled(const bool tileTabsEnabled)
  * @return The selected tile tabs configuration.  
  * This will be the automatic configuration when automatic is selected,
  * otherwise it is the custom configuration.
+ * Will return NULL if the selected tile tabs configuration is
+ * neither AUTO nor CUSTOM grid.
  */
 TileTabsLayoutBaseConfiguration*
-BrowserWindowContent::getSelectedTileTabsConfiguration()
+BrowserWindowContent::getSelectedTileTabsGridConfiguration()
 {
     TileTabsLayoutBaseConfiguration* configMode = NULL;
     
@@ -241,9 +243,11 @@ BrowserWindowContent::getSelectedTileTabsConfiguration()
  * @return The selected tile tabs configuration (const method)
  * This will be the automatic configuration when automatic is selected,
  * otherwise it is the custom configuration.
+ * Will return NULL if the selected tile tabs configuration is
+ * neither AUTO nor CUSTOM grid.
  */
 const TileTabsLayoutBaseConfiguration*
-BrowserWindowContent::getSelectedTileTabsConfiguration() const
+BrowserWindowContent::getSelectedTileTabsGridConfiguration() const
 {
     TileTabsLayoutBaseConfiguration* configMode = NULL;
     
@@ -255,7 +259,7 @@ BrowserWindowContent::getSelectedTileTabsConfiguration() const
             configMode = m_customGridTileTabsConfiguration.get();
             break;
         case TileTabsLayoutConfigurationTypeEnum::MANUAL:
-            CaretAssertToDoFatal();
+            return NULL;
             break;
     }
     CaretAssert(configMode);

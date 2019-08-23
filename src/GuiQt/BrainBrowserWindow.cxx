@@ -2604,8 +2604,9 @@ BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuAboutToShow()
     
     const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     
+    const bool includeManualConfigurationsFlag(false);
     std::vector<std::pair<AString, AString>> nameUniqueIDs =
-    prefs->getTileTabsUserConfigurationsNamesAndUniqueIdentifiers();
+    prefs->getTileTabsUserConfigurationsNamesAndUniqueIdentifiers(includeManualConfigurationsFlag);
     
     for (const auto nameID : nameUniqueIDs) {
         /*
@@ -2680,7 +2681,11 @@ BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuItemTriggered(QA
             }
                 break;
             case TileTabsLayoutConfigurationTypeEnum::MANUAL:
-                CaretAssertToDoFatal();
+                /*
+                 * The method processViewTileTabsLoadUserConfigurationMenuAboutToShow()
+                 * excludes manual configurations so we should never get here.
+                 */
+                CaretAssert(0);
                 break;
         }
         

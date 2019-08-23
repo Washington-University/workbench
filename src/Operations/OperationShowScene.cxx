@@ -464,13 +464,22 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         if (restoreToTabTiles) {
             CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
             
-            TileTabsLayoutBaseConfiguration* tileTabsConfiguration = bwc->getSelectedTileTabsConfiguration();
-            CaretAssert(tileTabsConfiguration);
+            TileTabsLayoutGridConfiguration* gridConfig = NULL; //tileTabsConfiguration->castToGridConfiguration();
+            bool manualFlag(false);
+            switch (bwc->getTileTabsConfigurationMode()) {
+                case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                    gridConfig = bwc->getCustomGridTileTabsConfiguration();
+                    break;
+                case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                    gridConfig = bwc->getCustomGridTileTabsConfiguration();
+                    break;
+                case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                    manualFlag = true;
+                    break;
+            }
             
-            TileTabsLayoutGridConfiguration* gridConfig = tileTabsConfiguration->castToGridConfiguration();
-            TileTabsLayoutManualConfiguration* manualConfig = tileTabsConfiguration->castToManualConfiguration();
-
-            if (gridConfig != NULL) {
+            if ((gridConfig != NULL)
+                || manualFlag) {
                 const std::vector<int32_t> tabIndices = bwc->getSceneTabIndices();
                 if ( ! tabIndices.empty()) {
                     std::vector<BrowserTabContent*> allTabContent;
@@ -494,15 +503,18 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     if (numTabContent <= 0) {
                         throw OperationException("Failed to find any tab content");
                     }
-                    std::vector<int32_t> rowHeights;
-                    std::vector<int32_t> columnWidths;
-                    if ( ! gridConfig->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
-                                                                                 windowHeight,
-                                                                                 numTabContent,
-                                                                                 bwc->getTileTabsConfigurationMode(),
-                                                                                 rowHeights,
-                                                                                 columnWidths)) {
-                        throw OperationException("Tile Tabs Row/Column sizing failed !!!");
+                    
+                    if (gridConfig != NULL) {
+                        std::vector<int32_t> rowHeights;
+                        std::vector<int32_t> columnWidths;
+                        if ( ! gridConfig->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
+                                                                                     windowHeight,
+                                                                                     numTabContent,
+                                                                                     bwc->getTileTabsConfigurationMode(),
+                                                                                     rowHeights,
+                                                                                     columnWidths)) {
+                            throw OperationException("Tile Tabs Row/Column sizing failed !!!");
+                        }
                     }
                     
                     const int32_t tabIndexToHighlight = -1;
@@ -539,9 +551,6 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     }
                     viewports.clear();
                 }
-            }
-            else if (manualConfig != NULL) {
-                CaretAssertToDoFatal();
             }
             else {
                 throw OperationException("Tile tabs configuration is neither Grid nor Manual");

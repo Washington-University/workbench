@@ -268,7 +268,7 @@ AnnotationBoundsWidget::valueChangedHelper(QDoubleSpinBox* spinBox,
         }
         else {
             delete undoCommand;
-            CaretAssertToDoFatal();
+            CaretAssert(0);
             return;
         }
         

@@ -564,13 +564,22 @@ CaretPreferences::readTileTabsUserConfigurations(const bool performSync)
  * @return A vector containing pairs of Name and Unique Identifier for each
  * Tile Tabs configuration.  The items are sorted by name with 'first' being
  * the name, and 'second' being the unique identifier.
+ *
+ * @param includeManualConfigurationsFlag
+ *     If true, include manual configurations; if false exclude manual configurations
  */
 std::vector<std::pair<AString, AString>>
-CaretPreferences::getTileTabsUserConfigurationsNamesAndUniqueIdentifiers() const
+CaretPreferences::getTileTabsUserConfigurationsNamesAndUniqueIdentifiers(const bool includeManualConfigurationsFlag) const
 {
     std::vector<std::pair<AString, AString>> nameIDs;
     
     for (const auto ttc : this->tileTabsConfigurations) {
+        if (ttc->getLayoutType() == TileTabsLayoutConfigurationTypeEnum::MANUAL) {
+            if ( ! includeManualConfigurationsFlag) {
+                continue;
+            }
+        }
+        
         QString typeString;
         switch (ttc->getLayoutType()) {
             case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:

@@ -618,7 +618,7 @@ BrainOpenGLViewportContent::createViewportContentForTileTabs(std::vector<Browser
         case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
         case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
         {
-            TileTabsLayoutBaseConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
+            TileTabsLayoutBaseConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsGridConfiguration();
             CaretAssert(tileTabsConfiguration);
             viewportContentsOut = createViewportContentForGridTileTabs(tabContents,
                                                                        browserWindowContent,

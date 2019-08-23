@@ -590,7 +590,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
                 /*
                  * Determine if default configuration for tiles
                  */
-                TileTabsLayoutBaseConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsConfiguration();
+                TileTabsLayoutBaseConfiguration* tileTabsConfiguration = browserWindowContent->getSelectedTileTabsGridConfiguration();
                 CaretAssert(tileTabsConfiguration);
                 
                 TileTabsLayoutGridConfiguration* gridConfiguration = tileTabsConfiguration->castToGridConfiguration();
