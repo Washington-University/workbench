@@ -459,14 +459,61 @@ CaretPreferences::removeAllTileTabsConfigurations()
 void
 CaretPreferences::writeTileTabsUserConfigurations()
 {
+    /*
+     * NOTE: The GRID and MANUAL configurations are written separately.
+     * Older versions of wb_view will correctly read the GRID configurations
+     * and ignore the MANUAL configurations (not log error messages).
+     * Newer versions of wb_view will read both.
+     */
+    
+    /*
+     * Write only GRID configurations to "NAME_TILE_TABS_CONFIGURATIONS",
+     * This allows previous versions of the software to read the configurations
+     */
     this->qSettings->beginWriteArray(NAME_TILE_TABS_CONFIGURATIONS);
     const int32_t numViews = static_cast<int32_t>(this->tileTabsConfigurations.size());
+    int32_t gridConfigCounter(0);
     for (int32_t i = 0; i < numViews; i++) {
-        this->qSettings->setArrayIndex(i);
-        this->qSettings->setValue(AString::number(i),
-                                  this->tileTabsConfigurations[i]->encodeInXML());
+        CaretAssertVectorIndex(this->tileTabsConfigurations, i);
+        const TileTabsLayoutBaseConfiguration* config = this->tileTabsConfigurations[i];
+        switch (config->getLayoutType()) {
+            case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                this->qSettings->setArrayIndex(gridConfigCounter);
+                this->qSettings->setValue(AString::number(gridConfigCounter),
+                                          config->encodeInXML());
+                gridConfigCounter++;
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                break;
+        }
     }
     this->qSettings->endArray();
+
+    /*
+     * Write only MANUAL configurations to "NAME_TILE_TABS_CONFIGURATIONS_TWO",
+     * Older versions of the software will not try to read these configurations
+     */
+    this->qSettings->beginWriteArray(NAME_TILE_TABS_CONFIGURATIONS_TWO);
+    int32_t manualConfigCounter(0);
+    for (int32_t i = 0; i < numViews; i++) {
+        CaretAssertVectorIndex(this->tileTabsConfigurations, i);
+        const TileTabsLayoutBaseConfiguration* config = this->tileTabsConfigurations[i];
+        switch (config->getLayoutType()) {
+            case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                this->qSettings->setArrayIndex(manualConfigCounter);
+                this->qSettings->setValue(AString::number(manualConfigCounter),
+                                          config->encodeInXML());
+                manualConfigCounter++;
+                break;
+        }
+    }
+    this->qSettings->endArray();
+    
     this->qSettings->sync();
 }
 
@@ -489,12 +536,42 @@ CaretPreferences::readTileTabsUserConfigurations(const bool performSync)
     this->removeAllTileTabsConfigurations();
     
     /*
-     * Read Configurations
+     * NOTE: The GRID and MANUAL configurations are written separately.
+     * Older versions of wb_view will correctly read the GRID configurations
+     * and ignore the MANUAL configurations (not log error messages).
+     * Newer versions of wb_view will read both.
      */
-    const int numConfigurations = this->qSettings->beginReadArray(NAME_TILE_TABS_CONFIGURATIONS);
-    for (int i = 0; i < numConfigurations; i++) {
+    std::vector<AString> configurationStrings;
+    
+    /*
+     * Read GRID Configurations (Array Name: NAME_TILE_TABS_CONFIGURATIONS)
+     */
+    const int numGridConfigs = this->qSettings->beginReadArray(NAME_TILE_TABS_CONFIGURATIONS);
+    for (int32_t i = 0; i < numGridConfigs; i++) {
         this->qSettings->setArrayIndex(i);
-        const AString configString = this->qSettings->value(AString::number(i)).toString();
+        const AString str = this->qSettings->value(AString::number(i)).toString();
+        configurationStrings.push_back(str);
+    }
+    this->qSettings->endArray();
+    
+    /*
+     * Read MANUAL Configurations (Array Name: NAME_TILE_TABS_CONFIGURATIONS_TWO)
+     */
+    const int numManualConfigs = this->qSettings->beginReadArray(NAME_TILE_TABS_CONFIGURATIONS_TWO);
+    for (int32_t i = 0; i < numManualConfigs; i++) {
+        this->qSettings->setArrayIndex(i);
+        const AString str = this->qSettings->value(AString::number(i)).toString();
+        configurationStrings.push_back(str);
+    }
+    this->qSettings->endArray();
+
+    /*
+     * Read from the configuration strings to create layouts
+     */
+    const int numConfigurations = static_cast<int32_t>(configurationStrings.size());
+    for (int i = 0; i < numConfigurations; i++) {
+        CaretAssertVectorIndex(configurationStrings, i);
+        const AString configString = configurationStrings[i];
         AString errorMessage;
         TileTabsLayoutBaseConfiguration* ttc = TileTabsLayoutBaseConfiguration::decodeFromXML(configString,
                                                                                               errorMessage);
@@ -557,7 +634,6 @@ CaretPreferences::readTileTabsUserConfigurations(const bool performSync)
             std::cout << std::endl;
         }
     }
-    this->qSettings->endArray();
 }
 
 /**
