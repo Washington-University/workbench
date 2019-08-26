@@ -997,10 +997,11 @@ void CommandOperationManager::printArgumentsHelp()
 {
     //guide for wrap, assuming 80 columns:                                                  |
     cout << "   To get the help information on a subcommand, run it without any additional" << endl;
-    cout << "   arguments.  Options can occur in any position within the correct scope, and" << endl;
-    cout << "   can have suboptions, which must occur within the scope of the option.  The" << endl;
-    cout << "   easiest way to get this right is to specify options and arguments in the" << endl;
-    cout << "   order they are listed.  As an example, consider this help information:" << endl;
+    cout << "   arguments.  Options can occur in any order, however suboptions and arguments" << endl;
+    cout << "   to options must occur next to their parent option.  The easiest way to get" << endl;
+    cout << "   this right is to specify options and arguments in the order they are listed." << endl;
+    cout << "   As an example, consider this abbreviated version of the -volume-math help" << endl;
+    cout << "   information:" << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "$ wb_command -volume-math" << endl;
     cout << "EVALUATE EXPRESSION ON VOLUME FILES" << endl;
@@ -1020,6 +1021,10 @@ void CommandOperationManager::printArgumentsHelp()
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "         [-repeat] - reuse a single subvolume for each subvolume of calculation" << endl;
     cout << "..." << endl;
+    cout << "      The following functions are supported:" << endl;
+    cout << "..." << endl;
+    cout << "         abs: 1 argument, the absolute value of the argument" << endl;
+    cout << "..." << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "   '<expression>' represents a required input parameter (required parameters" << endl;
     cout << "   are marked with the < and > symbols), and '<volume-out> - output' represents" << endl;
@@ -1030,35 +1035,38 @@ void CommandOperationManager::printArgumentsHelp()
     cout << "   repeatable' denotes a repeatable option (marked by the presence of the word" << endl;
     cout << "   'repeatable') with required parameters '<name>' and '<volume>', and two" << endl;
     cout << "   suboptions: '[-subvolume]', which has a required parameter '<subvol>', and" << endl;
-    cout << "   '[-repeat]', which takes no parameters. Commands also provide additional" << endl;
-    cout << "   help info below the arguments section shown in the above example.  Each" << endl;
-    cout << "   option starts a new scope, and all options and arguments end any scope that" << endl;
-    cout << "   they are not valid in.  For example, this annotated command is correct:" << endl;
+    cout << "   '[-repeat]', which takes no parameters." << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
-    cout << "$ wb_command -volume-math 'sin(x)'  sin_x.nii.gz -fixnan 0  -var x    x.nii.gz" << endl;
+    cout << "   Each option starts a new scope, and all options and arguments end any scope" << endl;
+    cout << "   that they are not valid in.  This means that for any option, you must" << endl;
+    cout << "   specify all of its arguments and any desired suboptions before specifying" << endl;
+    cout << "   any other option or argument on the same or a previous level.  For example," << endl;
+    cout << "   this annotated command is valid:" << endl;
+    cout << endl;//guide for wrap, assuming 80 columns:                                     |
+    cout << "$ wb_command -volume-math 'abs(x)'  abs_x.nii.gz -fixnan 0  -var x    x.nii.gz" << endl;
     cout << "annotation:            <expression> <volume-out>     <replace> <name> <volume>" << endl;
     cout << endl;
     cout << "   Here is another annotated command that results in the same output, but" << endl;
     cout << "   uses a different order of the options:" << endl;
     cout << endl;
-    cout << "$ wb_command -volume-math -fixnan 0     'sin(x)' -var x   x.nii.gz sin_x.nii.gz" << endl;
+    cout << "$ wb_command -volume-math -fixnan 0     'abs(x)' -var x   x.nii.gz abs_x.nii.gz" << endl;
     cout << "annotation:                 <replace> <expression> <name> <volume> <volume-out>" << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
-    cout << "   This next command is wrong, because the -fixnan option ends the scope of the" << endl;
-    cout << "   -var option before all of its required arguments are given:" << endl;
+    cout << "   This next command is invalid, because the -fixnan option ends the scope of" << endl;
+    cout << "   the -var option before all of its required arguments are given:" << endl;
     cout << endl;
-    cout << "wrong: wb_command -volume-math 'sin(x)' sin_x.nii.gz -var x -fixnan 0 x.nii.gz" << endl;
+    cout << "wrong: wb_command -volume-math 'abs(x)' abs_x.nii.gz -var x -fixnan 0 x.nii.gz" << endl;
     cout << endl;
     //guide for wrap, assuming 80 columns:                                                  |
-    cout << "   This command is incorrect because the -subvolume option occurs after the" << endl;
+    cout << "   This command is invalid because the -subvolume option occurs after the" << endl;
     cout << "   scope of the -var option has ended due to the -fixnan option:" << endl;
     cout << endl;
-    cout << "wrong: wb_command -volume-math 'sin(x)' sin_x.nii.gz -var x x.nii.gz -fixnan 0 -subvolume 1" << endl;
+    cout << "wrong: wb_command -volume-math 'abs(x)' abs_x.nii.gz -var x x.nii.gz -fixnan 0 -subvolume 1" << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
-    cout << "   This command is similarly incorrect because the -subvolume option occurs" << endl;
+    cout << "   This command is similarly invalid because the -subvolume option occurs" << endl;
     cout << "   after the scope of the -var option has ended due to the volume-out argument:" << endl;
     cout << endl;
-    cout << "wrong: wb_command -volume-math 'sin(x)' -var x x.nii.gz sin_x.nii.gz -subvolume 1 -fixnan 0" << endl;
+    cout << "wrong: wb_command -volume-math 'abs(x)' -var x x.nii.gz abs_x.nii.gz -subvolume 1 -fixnan 0" << endl;
     cout << endl;
 }
 
