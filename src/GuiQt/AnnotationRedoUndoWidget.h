@@ -29,6 +29,7 @@
 #include "UserInputModeEnum.h"
 
 namespace caret {
+    class Annotation;
 
     class AnnotationRedoUndoWidget : public QWidget {
         
@@ -41,7 +42,7 @@ namespace caret {
         
         virtual ~AnnotationRedoUndoWidget();
         
-        void updateContent();
+        void updateContent(const std::vector<Annotation*>& annotations);
         
     private slots:
         void redoActionTriggered();

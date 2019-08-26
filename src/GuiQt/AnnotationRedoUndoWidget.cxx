@@ -107,12 +107,13 @@ AnnotationRedoUndoWidget::~AnnotationRedoUndoWidget()
 }
 
 /**
- * Update with the given line annotation.
+ * Update with the selected annotations.
  *
- * @param annotationLine
+ * @param annotations
+ *     The selected annotations
  */
 void
-AnnotationRedoUndoWidget::updateContent()
+AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotations)
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(m_userInputMode);
@@ -122,6 +123,8 @@ AnnotationRedoUndoWidget::updateContent()
     
     m_undoAction->setEnabled(undoStack->canUndo());
     m_undoAction->setToolTip(undoStack->undoText());
+    
+    setEnabled( ! annotations.empty());
 }
 
 

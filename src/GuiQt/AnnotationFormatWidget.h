@@ -45,7 +45,7 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-        void updateContent(Annotation* annotation);
+        void updateContent(const std::vector<Annotation*>& annotations);
         
     private:
         AnnotationFormatWidget(const AnnotationFormatWidget&);

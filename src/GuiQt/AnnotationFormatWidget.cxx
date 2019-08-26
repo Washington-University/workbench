@@ -80,11 +80,13 @@ AnnotationFormatWidget::~AnnotationFormatWidget()
 /**
  * Update with the given annotation.
  *
- * @param annotation.
+ * @param annotations
+ *     The selected annotations
  */
 void
-AnnotationFormatWidget::updateContent(Annotation* /*annotation*/)
+AnnotationFormatWidget::updateContent(const std::vector<Annotation*>& annotations)
 {
+    setEnabled( ! annotations.empty());
 }
 
 /**

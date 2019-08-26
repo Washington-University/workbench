@@ -453,7 +453,8 @@ UserInputModeAnnotationsWidget::updateWidget()
         if (m_coordinateTwoWidget != NULL) m_coordinateTwoWidget->setVisible(false);
     }
     
-    if (m_redoUndoWidget != NULL) m_redoUndoWidget->updateContent();
+    if (m_formatWidget != NULL) m_formatWidget->updateContent(selectedAnnotations);
+    if (m_redoUndoWidget != NULL) m_redoUndoWidget->updateContent(selectedAnnotations);
 }
 
 

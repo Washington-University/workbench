@@ -34,6 +34,7 @@
 #include "AnnotationEditingSelectionInformation.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -43,6 +44,7 @@
 #include "EventAnnotationColorBarGet.h"
 #include "EventAnnotationGroupGetWithKey.h"
 #include "EventBrowserTabGetAll.h"
+#include "EventBrowserWindowContent.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
 #include "SceneClass.h"
@@ -501,6 +503,24 @@ AnnotationManager::getAnnotationEditingSelectionInformation(const int32_t window
 {
     CaretAssertArrayIndex(m_selectionInformation, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
     
+    bool manualTileTabsModeFlag(false);
+    std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(windowIndex);
+    if (windowContentEvent) {
+        EventManager::get()->sendEvent(windowContentEvent.get());
+        const BrowserWindowContent* windowContent = windowContentEvent->getBrowserWindowContent();
+        if (windowContent != NULL) {
+            switch (windowContent->getTileTabsConfigurationMode()) {
+                case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                    break;
+                case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                    break;
+                case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                    manualTileTabsModeFlag = true;
+                    break;
+            }
+        }
+    }
+    
     AnnotationEditingSelectionInformation* asi = m_selectionInformation[windowIndex];
     
     std::vector<Annotation*> allAnnotations = getAllAnnotations();
@@ -508,10 +528,11 @@ AnnotationManager::getAnnotationEditingSelectionInformation(const int32_t window
     for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
          annIter != allAnnotations.end();
          annIter++) {
-        Annotation* annotation = *annIter;
-        
+        Annotation* annotation = *annIter;        
         if (annotation->isSelectedForEditing(windowIndex)) {
-            selectedAnnotations.push_back(annotation);
+            if (manualTileTabsModeFlag) {
+                selectedAnnotations.push_back(annotation);
+            }
         }
     }
     

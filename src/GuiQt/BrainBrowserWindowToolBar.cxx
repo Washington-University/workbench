@@ -3246,7 +3246,34 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
             this->modeInputModeViewAction->setChecked(true);
             break;
     }
+
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
+    CaretAssert(browserWindow);
+    BrowserWindowContent* browserWindowContent = browserWindow->getBrowerWindowContent();
+    CaretAssert(browserWindowContent);
     
+    /*
+     * Enable "Tile" button only if Tile Tabs enabled and
+     * Manual Configuration is selected
+     */
+    bool tileModeValidFlag(false);
+    if (browserWindowContent->isTileTabsEnabled()) {
+        /*
+         * Automatic configuration and manual configuration always show all tabs
+         */
+        switch (browserWindowContent->getTileTabsConfigurationMode()) {
+            case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                tileModeValidFlag = true;
+                break;
+        }
+    }
+    this->modeInputModeTileTabsManualLayoutAction->setEnabled(tileModeValidFlag);
+    
+
     this->modeWidgetGroup->blockAllSignals(false);
 
     this->updateDisplayedModeUserInputWidget();
