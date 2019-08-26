@@ -58,10 +58,11 @@ ELSE()
         AnnotationLineArrowTipsWidget.h
         AnnotationMenuArrange.h
         AnnotationMenuFileSelection.h
+	AnnotationNameWidget.h
+        AnnotationPasteDialog.h
         AnnotationRedoUndoWidget.h
         AnnotationRotationWidget.h
         AnnotationSelectionViewController.h
-        AnnotationPasteDialog.h
         AnnotationTextAlignmentWidget.h
         AnnotationTextEditorDialog.h
         AnnotationTextEditorWidget.h
@@ -280,6 +281,7 @@ AnnotationInsertNewWidget.h
 AnnotationLineArrowTipsWidget.h
 AnnotationMenuArrange.h
 AnnotationMenuFileSelection.h
+AnnotationNameWidget.h
 AnnotationPasteDialog.h
 AnnotationRedoUndoWidget.h
 AnnotationRotationWidget.h
@@ -560,6 +562,7 @@ AnnotationInsertNewWidget.cxx
 AnnotationLineArrowTipsWidget.cxx
 AnnotationMenuArrange.cxx
 AnnotationMenuFileSelection.cxx
+AnnotationNameWidget.cxx
 AnnotationPasteDialog.cxx
 AnnotationRedoUndoWidget.cxx
 AnnotationRotationWidget.cxx

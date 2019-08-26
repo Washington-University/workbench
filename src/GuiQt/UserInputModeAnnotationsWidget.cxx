@@ -42,6 +42,7 @@
 #include "AnnotationLine.h"
 #include "AnnotationLineArrowTipsWidget.h"
 #include "AnnotationManager.h"
+#include "AnnotationNameWidget.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRedoUndoWidget.h"
 #include "AnnotationRotationWidget.h"
@@ -170,6 +171,9 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
 void
 UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
 {
+    m_nameWidget                 = new AnnotationNameWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                            m_browserWindowIndex);
+    
     m_boundsWidget               = new AnnotationBoundsWidget(m_inputModeAnnotations->getUserInputMode(),
                                                               AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                               m_browserWindowIndex);
@@ -194,6 +198,10 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
     gridLayout->setContentsMargins(2, 2, 2, 2);
     gridLayout->setVerticalSpacing(0);
     int column = 0;
+    gridLayout->addWidget(m_nameWidget, 0, column, 2, 1);
+    column++;
+    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
+    column++;
     gridLayout->addWidget(m_boundsWidget, 0, column);
     gridLayout->addWidget(m_coordinateOneWidget, 1, column);
     column++;
@@ -425,6 +433,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     /*
      * Note: pointers are initialized to NULL in the header file
      */
+    if (m_nameWidget != NULL) m_nameWidget->updateContent(selectedAnnotations);
     if (m_boundsWidget != NULL) m_boundsWidget->updateContent(browserTabAnnotations);
     if (m_coordinateSpaceWidget != NULL) m_coordinateSpaceWidget->updateContent(selectedAnnotations);
     if (m_fontWidget != NULL) m_fontWidget->updateContent(fontStyleAnnotations);

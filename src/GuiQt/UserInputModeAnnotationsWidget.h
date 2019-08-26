@@ -41,6 +41,7 @@ namespace caret {
     class AnnotationFormatWidget;
     class AnnotationInsertNewWidget;
     class AnnotationLineArrowTipsWidget;
+    class AnnotationNameWidget;
     class AnnotationRedoUndoWidget;
     class AnnotationRotationWidget;
     class AnnotationTextAlignmentWidget;
@@ -87,6 +88,8 @@ namespace caret {
         const int32_t m_browserWindowIndex = -1;
         
         UserInputModeAnnotations* m_inputModeAnnotations = NULL;
+        
+        AnnotationNameWidget* m_nameWidget = NULL;
         
         AnnotationBoundsWidget* m_boundsWidget = NULL;
         

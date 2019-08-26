@@ -138,6 +138,8 @@ AnnotationBoundsWidget::createSpinBox()
     spinBox->setDecimals(1);
     spinBox->setToolTip("0.0% => Bottom of window\n"
                         "100.0% => Top of window");
+    spinBox->setSuffix("%");
+    
     return spinBox;
 }
 
@@ -158,7 +160,7 @@ void
 AnnotationBoundsWidget::updateContent(std::vector<AnnotationBrowserTab*>& annotationBrowserTabs)
 {
     m_annotationBrowserTab = NULL;
-    if ( ! annotationBrowserTabs.empty()) {
+    if (annotationBrowserTabs.size() == 1) {
         CaretAssertVectorIndex(annotationBrowserTabs, 0);
         m_annotationBrowserTab = annotationBrowserTabs[0];
     }
