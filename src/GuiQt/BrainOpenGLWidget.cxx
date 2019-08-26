@@ -1713,7 +1713,12 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         
         if (updateOneEvent->getWindowIndex() == this->windowIndex) {
             updateOneEvent->setEventProcessed();
-            doUpdateGraphicsFlag = true;
+            if (updateOneEvent->isRepaint()) {
+                doRepaintGraphicsFlag = true;
+            }
+            else {
+                doUpdateGraphicsFlag = true;
+            }
         }
         else {
             /*

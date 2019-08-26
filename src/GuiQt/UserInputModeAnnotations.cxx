@@ -25,6 +25,7 @@
 
 #include <cmath>
 
+#include "AnnotationBrowserTab.h"
 #include "AnnotationChangeCoordinateDialog.h"
 #include "AnnotationCreateDialog.h"
 #include "AnnotationColorBar.h"
@@ -40,6 +41,7 @@
 #include "AnnotationTextEditorDialog.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
@@ -55,6 +57,7 @@
 #include "EventIdentificationRequest.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "GuiManager.h"
 #include "IdentificationManager.h"
 #include "KeyEvent.h"
@@ -1651,13 +1654,53 @@ UserInputModeAnnotations::processSelectAllAnnotations()
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     annMan->deselectAllAnnotationsForEditing(m_browserWindowIndex);
     
-    EventAnnotationGetDrawnInWindow getDrawnEvent(m_browserWindowIndex);
-    EventManager::get()->sendEvent(getDrawnEvent.getPointer());
     std::vector<Annotation*> annotationsSelected;
-    getDrawnEvent.getAnnotations(annotationsSelected);
     
-    annMan->setAnnotationsForEditing(m_browserWindowIndex,
-                                     annotationsSelected);
+    switch (getUserInputMode()) {
+        case UserInputModeEnum::ANNOTATIONS:
+        {
+            EventAnnotationGetDrawnInWindow getDrawnEvent(m_browserWindowIndex);
+            EventManager::get()->sendEvent(getDrawnEvent.getPointer());
+            getDrawnEvent.getAnnotations(annotationsSelected);
+            annMan->setAnnotationsForEditing(m_browserWindowIndex,
+                                             annotationsSelected);
+        }
+            break;
+        case UserInputModeEnum::BORDERS:
+        case UserInputModeEnum::FOCI:
+        case UserInputModeEnum::IMAGE:
+        case UserInputModeEnum::INVALID:
+            break;
+        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        {
+            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+            CaretAssert(bbw);
+            std::vector<BrowserTabContent*> allTabContent;
+            bbw->getAllTabContent(allTabContent);
+            
+            std::vector<Annotation*> annotations;
+            for (auto btc : allTabContent) {
+                AnnotationBrowserTab* bta = btc->getManualLayoutBrowserTabAnnotation();
+                if (bta->isBrowserTabDisplayed()) {
+                    annotations.push_back(bta);
+                }
+            }
+            
+            if ( ! annotations.empty()) {
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                CaretAssert(annMan);
+                annMan->setAnnotationsForEditing(m_browserWindowIndex,
+                                                 annotations);
+            }
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+        }
+            break;
+        case UserInputModeEnum::VIEW:
+            break;
+        case UserInputModeEnum::VOLUME_EDIT:
+            break;
+    }
+    
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

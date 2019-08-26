@@ -30,12 +30,15 @@ namespace caret {
     class EventGraphicsUpdateOneWindow : public Event {
         
     public:
-        EventGraphicsUpdateOneWindow(const int32_t windowIndex);
+        EventGraphicsUpdateOneWindow(const int32_t windowIndex,
+                                     const bool doRepaint = false);
         
         virtual ~EventGraphicsUpdateOneWindow();
         
         /// get the index of the window that is to be updated.
         int32_t getWindowIndex() const { return this->windowIndex; }
+        
+        bool isRepaint() const;
         
     private:
         EventGraphicsUpdateOneWindow(const EventGraphicsUpdateOneWindow&);
@@ -44,6 +47,8 @@ namespace caret {
         
         /** index of window for update */
         int32_t windowIndex;
+        
+        bool m_doRepaintFlag = false;
     };
 
 } // namespace

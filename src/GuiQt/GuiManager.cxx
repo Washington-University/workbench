@@ -1368,7 +1368,9 @@ GuiManager::receiveEvent(Event* event)
         /*
          * Draw the given window
          */
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
+        const bool doRepaintFlag(true);
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex,
+                                                                    doRepaintFlag).getPointer());
         
         /*
          * Find annotations that were drawn in the given window.

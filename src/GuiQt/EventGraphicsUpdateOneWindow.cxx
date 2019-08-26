@@ -30,11 +30,18 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param windowIndex
+ *     Index of window
+ * @param doRepaint
+ *     if true, do a repaint instead of update
  */
-EventGraphicsUpdateOneWindow::EventGraphicsUpdateOneWindow(const int32_t windowIndex)
+EventGraphicsUpdateOneWindow::EventGraphicsUpdateOneWindow(const int32_t windowIndex,
+                                                           const bool doRepaint)
 : Event(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW)
 {
-    this->windowIndex = windowIndex;
+    this->windowIndex     = windowIndex;
+    this->m_doRepaintFlag = doRepaint;
 }
 
 /*
@@ -43,5 +50,15 @@ EventGraphicsUpdateOneWindow::EventGraphicsUpdateOneWindow(const int32_t windowI
 EventGraphicsUpdateOneWindow::~EventGraphicsUpdateOneWindow()
 {
     
+}
+
+/**
+ * @return Indicates a repaint (instead of updates) is
+ * to be performed.
+ */
+bool
+EventGraphicsUpdateOneWindow::isRepaint() const
+{
+    return m_doRepaintFlag;
 }
 
