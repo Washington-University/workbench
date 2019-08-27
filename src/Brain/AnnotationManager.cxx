@@ -1113,12 +1113,12 @@ AnnotationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
 }
 
 /**
- * Expand a browser tab to fill available space in the window. MANUAL MODE ONLY !
+ * Expand selected browser tab to fill available space in the window. MANUAL MODE ONLY !
  *
  * @param tabsInWindow
  *     Tabs displayed in the window (may or may not include selected tab)
- * @param selectedTabAnnotation
- *     Tab that is expanded
+ * @param windowIndex
+ *     Index of window
  * @param userInputMode
  *     The current user input mode (browser tab always)
  * @param errorMessageOut
@@ -1127,12 +1127,19 @@ AnnotationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
  *     True no error, else false.
  */
 bool
-AnnotationManager::expandBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
-                                              AnnotationBrowserTab* selectedTabAnnotation,
-                                              const UserInputModeEnum::Enum userInputMode,
-                                              AString& errorMessageOut)
+AnnotationManager::expandSelectedBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
+                                                      const int32_t windowIndex,
+                                                      const UserInputModeEnum::Enum userInputMode,
+                                                      AString& errorMessageOut)
 {
     errorMessageOut.clear();
+    
+    AnnotationBrowserTab* selectedTabAnnotation(NULL);
+    std::vector<Annotation*> selectedAnnotations = getAnnotationsSelectedForEditing(windowIndex);
+    if (selectedAnnotations.size() == 1) {
+        CaretAssertVectorIndex(selectedAnnotations, 0);
+        selectedTabAnnotation = dynamic_cast<AnnotationBrowserTab*>(selectedAnnotations[0]);
+    }
     
     CaretAssert(selectedTabAnnotation);
     
@@ -1145,7 +1152,6 @@ AnnotationManager::expandBrowserTabAnnotation(const std::vector<BrowserTabConten
                 tabAnnotations.push_back(ta);
             }
         }
-        
         
         float newBounds[4] { 0, 0, 0, 0 };
         if (AnnotationBrowserTab::expandTab(tabAnnotations,
@@ -1168,7 +1174,7 @@ AnnotationManager::expandBrowserTabAnnotation(const std::vector<BrowserTabConten
         }
     }
     else {
-        errorMessageOut = "Selected annotation must be a browser tab";
+        errorMessageOut = "Either no annotation is selected or selected annotation is not a browser tab";
     }
     
     return false;

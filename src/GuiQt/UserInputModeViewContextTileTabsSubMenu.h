@@ -1,5 +1,5 @@
-#ifndef __USER_INPUT_TILE_TABS_CONTEXT_MENU_H__
-#define __USER_INPUT_TILE_TABS_CONTEXT_MENU_H__
+#ifndef __USER_INPUT_MODE_VIEW_CONTEXT_TILE_TABS_SUB_MENU_H__
+#define __USER_INPUT_MODE_VIEW_CONTEXT_TILE_TABS_SUB_MENU_H__
 
 /*LICENSE_START*/
 /*
@@ -36,16 +36,16 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class MouseEvent;
     
-    class UserInputTileTabsContextMenu : public QMenu {
+    class UserInputModeViewContextTileTabsSubMenu : public QMenu {
         
         Q_OBJECT
 
     public:
-        UserInputTileTabsContextMenu(const MouseEvent& mouseEvent,
+        UserInputModeViewContextTileTabsSubMenu(const MouseEvent& mouseEvent,
                                      QWidget* parentWidget,
                                      BrainOpenGLViewportContent* viewportContent);
         
-        virtual ~UserInputTileTabsContextMenu();
+        virtual ~UserInputModeViewContextTileTabsSubMenu();
 
         bool isValid() const;
 
@@ -55,9 +55,9 @@ namespace caret {
         void actionTriggered(QAction* action);
         
     private:
-        UserInputTileTabsContextMenu(const UserInputTileTabsContextMenu&);
+        UserInputModeViewContextTileTabsSubMenu(const UserInputModeViewContextTileTabsSubMenu&);
 
-        UserInputTileTabsContextMenu& operator=(const UserInputTileTabsContextMenu&);
+        UserInputModeViewContextTileTabsSubMenu& operator=(const UserInputModeViewContextTileTabsSubMenu&);
         
         void addItemToMenu(const QString& text,
                            const EventBrowserWindowTileTabOperation::Operation operation);
@@ -94,9 +94,9 @@ namespace caret {
 
     };
     
-#ifdef __USER_INPUT_TILE_TABS_CONTEXT_MENU_DECLARE__
+#ifdef __USER_INPUT_MODE_VIEW_CONTEXT_TILE_TABS_SUB_MENU_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __USER_INPUT_TILE_TABS_CONTEXT_MENU_DECLARE__
+#endif // __USER_INPUT_MODE_VIEW_CONTEXT_TILE_TABS_SUB_MENU_DECLARE__
 
 } // namespace
-#endif  //__USER_INPUT_TILE_TABS_CONTEXT_MENU_H__
+#endif  //__USER_INPUT_MODE_VIEW_CONTEXT_TILE_TABS_SUB_MENU_H__

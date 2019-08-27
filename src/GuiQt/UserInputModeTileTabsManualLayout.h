@@ -42,6 +42,10 @@ namespace caret {
 
         UserInputModeTileTabsManualLayout& operator=(const UserInputModeTileTabsManualLayout&) = delete;
         
+        virtual void showContextMenu(const MouseEvent& mouseEvent,
+                                     const QPoint& menuPosition,
+                                     BrainOpenGLWidget* openGLWidget) override;
+        
 
         // ADD_NEW_METHODS_HERE
 

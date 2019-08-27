@@ -128,6 +128,11 @@ namespace caret {
         UserInputModeAnnotations(const UserInputModeEnum::Enum userInputMode,
                                  const int32_t windowIndex);
         
+        void processMouseSelectAnnotation(const MouseEvent& mouseEvent,
+                                          const bool shiftKeyDownFlag);
+        
+        void processSelectAllAnnotations();
+        
     private:
         class NewMouseDragCreateAnnotation {
         public:
@@ -187,9 +192,6 @@ namespace caret {
         
         void processModeNewMouseLeftClick(const MouseEvent& mouseEvent);
         
-        void processMouseSelectAnnotation(const MouseEvent& mouseEvent,
-                                          const bool shiftKeyDownFlag);
-        
         void processModeSetCoordinate(const MouseEvent& mouseEvent);
         
         void setAnnotationUnderMouse(const MouseEvent& mouseEvent,
@@ -206,8 +208,6 @@ namespace caret {
         void cutAnnotation();
         
         void deleteSelectedAnnotations();
-        
-        void processSelectAllAnnotations();
         
         void resetAnnotationUnderMouse();
         
@@ -248,6 +248,8 @@ namespace caret {
          */
         friend class UserInputModeAnnotationsContextMenu;
         friend class UserInputModeAnnotationsWidget;
+        friend class UserInputModeTileTabsManualLayout;
+        friend class UserInputModeTileTabsManualLayoutContextMenu;
     };
     
 #ifdef __USER_INPUT_MODE_ANNOTATIONS_DECLARE__

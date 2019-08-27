@@ -23,7 +23,10 @@
 #include "UserInputModeTileTabsManualLayout.h"
 #undef __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_DECLARE__
 
+#include "BrainOpenGLViewportContent.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "UserInputModeTileTabsManualLayoutContextMenu.h"
 using namespace caret;
 
 
@@ -54,3 +57,48 @@ UserInputModeTileTabsManualLayout::~UserInputModeTileTabsManualLayout()
 {
 }
 
+/**
+ * Show a context menu (pop-up menu at mouse location)
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ * @param menuPosition
+ *     Point at which menu is displayed (passed to QMenu::exec())
+ * @param openGLWidget
+ *     OpenGL widget in which context menu is requested
+ */
+void
+UserInputModeTileTabsManualLayout::showContextMenu(const MouseEvent& mouseEvent,
+                                          const QPoint& menuPosition,
+                                          BrainOpenGLWidget* openGLWidget)
+{
+    BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
+    BrowserTabContent* tabContent = viewportContent->getBrowserTabContent();
+    if (tabContent == NULL) {
+        return;
+    }
+    
+    /*
+     * Select any annotation that is under the mouse.
+     * There might not be an annotation under the
+     * mouse and that is okay.
+     */
+    processMouseSelectAnnotation(mouseEvent,
+                                 false);
+    
+    UserInputModeTileTabsManualLayoutContextMenu contextMenu(this,
+                                                    mouseEvent,
+                                                    tabContent,
+                                                    openGLWidget);
+    if (contextMenu.actions().size() > 0) {
+        contextMenu.exec(menuPosition);
+        
+//        Annotation* newAnnotation = contextMenu.getNewAnnotationCreatedByContextMenu();
+//        if (newAnnotation != NULL) {
+//            selectAnnotation(newAnnotation);
+//
+//            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+//        }
+    }
+}

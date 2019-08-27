@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __USER_INPUT_TILE_TABS_CONTEXT_MENU_DECLARE__
-#include "UserInputTileTabsContextMenu.h"
-#undef __USER_INPUT_TILE_TABS_CONTEXT_MENU_DECLARE__
+#define __USER_INPUT_MODE_VIEW_CONTEXT_TILE_TABS_SUB_MENU_DECLARE__
+#include "UserInputModeViewContextTileTabsSubMenu.h"
+#undef __USER_INPUT_MODE_VIEW_CONTEXT_TILE_TABS_SUB_MENU_DECLARE__
 
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLViewportContent.h"
@@ -39,7 +39,7 @@ using namespace caret;
 
     
 /**
- * \class caret::UserInputTileTabsContextMenu 
+ * \class caret::UserInputModeViewContextTileTabsSubMenu
  * \brief Menu for tile tabs operations in a window context menu
  * \ingroup GuiQt
  */
@@ -54,7 +54,7 @@ using namespace caret;
  * @param viewportContent
  *     Content of the viewport under the mouse.
  */
-UserInputTileTabsContextMenu::UserInputTileTabsContextMenu(const MouseEvent& mouseEvent,
+UserInputModeViewContextTileTabsSubMenu::UserInputModeViewContextTileTabsSubMenu(const MouseEvent& mouseEvent,
                                                            QWidget* parentWidget,
                                                            BrainOpenGLViewportContent* viewportContent)
 : QMenu("Tabs"),
@@ -121,13 +121,13 @@ m_tabIndex(viewportContent->getTabIndex())
     }
     
     QObject::connect(this, &QMenu::triggered,
-                     this, &UserInputTileTabsContextMenu::actionTriggered);
+                     this, &UserInputModeViewContextTileTabsSubMenu::actionTriggered);
 }
 
 /**
  * Destructor.
  */
-UserInputTileTabsContextMenu::~UserInputTileTabsContextMenu()
+UserInputModeViewContextTileTabsSubMenu::~UserInputModeViewContextTileTabsSubMenu()
 {
 }
 
@@ -135,7 +135,7 @@ UserInputTileTabsContextMenu::~UserInputTileTabsContextMenu()
  * @return Is this menu valid?
  */
 bool
-UserInputTileTabsContextMenu::isValid() const
+UserInputModeViewContextTileTabsSubMenu::isValid() const
 {
     return (actions().size() > 0);
 }
@@ -149,7 +149,7 @@ UserInputTileTabsContextMenu::isValid() const
  *     The operation
  */
 void
-UserInputTileTabsContextMenu::addItemToMenu(const QString& text,
+UserInputModeViewContextTileTabsSubMenu::addItemToMenu(const QString& text,
                                             const EventBrowserWindowTileTabOperation::Operation operation)
 {
     QAction* action = addAction(text);
@@ -165,7 +165,7 @@ UserInputTileTabsContextMenu::addItemToMenu(const QString& text,
  *      Action selected by user.
  */
 void
-UserInputTileTabsContextMenu::actionTriggered(QAction* action)
+UserInputModeViewContextTileTabsSubMenu::actionTriggered(QAction* action)
 {
     if (action == NULL) {
         return;

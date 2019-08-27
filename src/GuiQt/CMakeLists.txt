@@ -195,9 +195,10 @@ ELSE()
         UserInputModeBordersWidget.h
         UserInputModeFociWidget.h
         UserInputModeImageWidget.h
+	UserInputModeTileTabsManualLayoutContextMenu.h
         UserInputModeViewContextMenu.h
+	UserInputModeViewContextTileTabsSubMenu.h
         UserInputModeVolumeEditWidget.h
-        UserInputTileTabsContextMenu.h
         UsernamePasswordWidget.h
         VolumeFileCreateDialog.h
 	VolumePropertiesEditorDialog.h
@@ -468,11 +469,12 @@ UserInputModeFoci.h
 UserInputModeImageWidget.h
 UserInputModeImage.h
 UserInputModeTileTabsManualLayout.h
+UserInputModeTileTabsManualLayoutContextMenu.h
 UserInputModeView.h
 UserInputModeViewContextMenu.h
+UserInputModeViewContextTileTabsSubMenu.h
 UserInputModeVolumeEdit.h
 UserInputModeVolumeEditWidget.h
-UserInputTileTabsContextMenu.h
 UsernamePasswordWidget.h
 ViewModeEnum.h
 VolumeFileCreateDialog.h
@@ -748,11 +750,12 @@ UserInputModeFociWidget.cxx
 UserInputModeImage.cxx
 UserInputModeImageWidget.cxx
 UserInputModeTileTabsManualLayout.cxx
+UserInputModeTileTabsManualLayoutContextMenu.cxx
 UserInputModeView.cxx
 UserInputModeViewContextMenu.cxx
+UserInputModeViewContextTileTabsSubMenu.cxx
 UserInputModeVolumeEdit.cxx
 UserInputModeVolumeEditWidget.cxx
-UserInputTileTabsContextMenu.cxx
 UsernamePasswordWidget.cxx
 ViewModeEnum.cxx
 VolumeFileCreateDialog.cxx

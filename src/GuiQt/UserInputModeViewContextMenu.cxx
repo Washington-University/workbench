@@ -76,7 +76,7 @@
 #include "SessionManager.h"
 #include "Surface.h"
 #include "UserInputModeFociWidget.h"
-#include "UserInputTileTabsContextMenu.h"
+#include "UserInputModeViewContextTileTabsSubMenu.h"
 #include "VolumeDynamicConnectivityFile.h"
 #include "VolumeFile.h"
 #include "WuQDataEntryDialog.h"
@@ -119,9 +119,9 @@ UserInputModeViewContextMenu::UserInputModeViewContextMenu(const MouseEvent& mou
     this->browserTabContent = viewportContent->getBrowserTabContent();
     CaretAssert(this->browserTabContent);
     
-    UserInputTileTabsContextMenu* tabMenu = new UserInputTileTabsContextMenu(mouseEvent,
-                                                                             this->parentOpenGLWidget,
-                                                                             this->viewportContent);
+    UserInputModeViewContextTileTabsSubMenu* tabMenu = new UserInputModeViewContextTileTabsSubMenu(mouseEvent,
+                                                                                                   this->parentOpenGLWidget,
+                                                                                                   this->viewportContent);
     if (tabMenu->isValid()) {
         addMenu(tabMenu);
     }

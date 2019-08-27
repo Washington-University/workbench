@@ -149,10 +149,10 @@ namespace caret {
         bool isGroupingModeValid(const int32_t windowIndex,
                                  const AnnotationGroupingModeEnum::Enum groupingMode) const;
         
-        bool expandBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
-                                        AnnotationBrowserTab* selectedTabAnnotation,
-                                        const UserInputModeEnum::Enum userInputMode,
-                                        AString& errorMessageOut);
+        bool expandSelectedBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
+                                                const int32_t windowIndex,
+                                                const UserInputModeEnum::Enum userInputMode,
+                                                AString& errorMessageOut);
         
         // ADD_NEW_METHODS_HERE
 

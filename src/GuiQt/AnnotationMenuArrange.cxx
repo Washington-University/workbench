@@ -334,27 +334,16 @@ AnnotationMenuArrange::processExpandTabMenuItem()
     window->getAllTabContent(allTabContent);
     
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> selectedAnnotations = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex);
-    if (selectedAnnotations.size() == 1) {
-        CaretAssertVectorIndex(selectedAnnotations, 0);
-        AnnotationBrowserTab* selectedTabAnnotation = dynamic_cast<AnnotationBrowserTab*>(selectedAnnotations[0]);
-        AString errorMessage;
-        if (selectedTabAnnotation != NULL) {
-            const bool result = annMan->expandBrowserTabAnnotation(allTabContent,
-                                                                   selectedTabAnnotation,
+    AString errorMessage;
+    const bool result = annMan->expandSelectedBrowserTabAnnotation(allTabContent,
+                                                                   m_browserWindowIndex,
                                                                    m_userInputMode,
                                                                    errorMessage);
-            if ( ! result) {
-                WuQMessageBox::errorOk(this,
-                                       errorMessage);
-            }
-        }
-        else {
-            WuQMessageBox::errorOk(this,
-                                   "Selected annotation must be a browser tab");
-        }
+    if ( ! result) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
     }
-
+    
 }
 
 /**
