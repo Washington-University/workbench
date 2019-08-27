@@ -342,6 +342,27 @@ BrowserWindowContent::setTileTabsConfigurationMode(const TileTabsLayoutConfigura
 }
 
 /**
+ * @return True if tile tabs is enabled AND a manual configuration is selected
+ */
+bool
+BrowserWindowContent::isManualModeTileTabsConfigurationEnabled() const
+{
+    if (isTileTabsEnabled()) {
+        switch (getTileTabsConfigurationMode()) {
+            case  TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                return true;
+                break;
+        }
+    }
+    return false;
+}
+
+
+/**
  * @return Width of the graphics region from scene.
  */
 int32_t

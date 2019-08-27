@@ -59,6 +59,8 @@ namespace caret {
         
         void addGroupingSelections();
         
+        void addTileTabsSelections();
+        
         void applyAlignment(const AnnotationAlignmentEnum::Enum alignment);
         
         void applyDistribute(const AnnotationDistributeEnum::Enum distribute);
@@ -89,15 +91,21 @@ namespace caret {
                       const qreal x,
                       const qreal y);
         
+        bool processTileTabsMenu(QAction* actionSelected);
+        
+        void processExpandTabMenuItem();
+        
         const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         
-        QAction* m_groupAction;
+        QAction* m_groupAction = NULL;
         
-        QAction* m_regroupAction;
+        QAction* m_regroupAction = NULL;
         
-        QAction* m_ungroupAction;
+        QAction* m_ungroupAction = NULL;
+        
+        QAction* m_tileTabsExpandToFillAction = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

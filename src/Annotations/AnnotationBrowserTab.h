@@ -79,6 +79,10 @@ namespace caret {
                          const float minY,
                          const float maxY);
         
+        static bool expandTab(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
+                              const AnnotationBrowserTab* tabToExpand,
+                              float boundOut[4]);
+        
         // ADD_NEW_METHODS_HERE
 
           

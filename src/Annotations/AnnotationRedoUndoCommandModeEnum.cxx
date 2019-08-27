@@ -110,9 +110,13 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                      "INVALID",
                                                      "Invalid"));
     
-    enumData.push_back(AnnotationRedoUndoCommandModeEnum(BOUNDS_2D,
-                                                         "BOUNDS_2D",
-                                                         "Bounds 2D"));
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(BOUNDS_2D_ALL,
+                                                         "BOUNDS_2D_ALL",
+                                                         "Bounds 2D All"));
+    
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(BOUNDS_2D_SINGLE,
+                                                         "BOUNDS_2D_SINGLE",
+                                                         "Bounds 2D Single"));
     
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(COLOR_BACKGROUND,
                                                      "COLOR_BACKGROUND",

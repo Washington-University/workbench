@@ -37,8 +37,10 @@ public:
     enum Enum {
         /** Invalid mode */
         INVALID,
-        /** Set the bounds in 2D */
-        BOUNDS_2D,
+        /** Set all of the bounds in 2D */
+        BOUNDS_2D_ALL,
+        /** Set one of the bounds in 2D */
+        BOUNDS_2D_SINGLE,
         /** Color - Background */
         COLOR_BACKGROUND,
         /** Color - Foreground */

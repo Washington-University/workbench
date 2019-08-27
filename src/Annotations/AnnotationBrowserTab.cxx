@@ -25,6 +25,7 @@
 
 #include "AnnotationCoordinate.h"
 #include "CaretAssert.h"
+#include "MathFunctions.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "TileTabsBrowserTabGeometry.h"
@@ -413,5 +414,242 @@ AnnotationBrowserTab::intersectionTest(const AnnotationBrowserTab* other) const
     }
     
     return true;
+}
+
+/**
+ * This class is used to find an expandable region
+ * for a browser tab
+ */
+class PercentageGrid {
+public:
+    /*
+     * Constructor with grid size
+     */
+    PercentageGrid(const int32_t minXY,
+                   const int32_t maxXY)
+    : m_minXY(minXY),
+    m_maxXY(maxXY),
+    m_rangeXY((maxXY - minXY) + 1) /* Add 1 since inclusive range */
+    {
+        const int32_t gridSize(m_rangeXY * m_rangeXY);
+        m_grid.resize(gridSize, 0);
+    }
+    
+    /*
+     * Test to see of ALL of the grid points with the given bounds
+     * are off
+     */
+    bool rangeOff(const int32_t minX,
+                  const int32_t maxX,
+                  const int32_t minY,
+                  const int32_t maxY) const {
+        for (int32_t i = minX; i <= maxX; i++) {
+            for (int32_t j = minY; j <= maxY; j++) {
+                const int32_t offset = (m_rangeXY * j) + i;
+                CaretAssertVectorIndex(m_grid, offset);
+                if (m_grid[offset] != 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Set grid points on for the given range
+     */
+    void setRange(const int32_t minXIn,
+                  const int32_t maxXIn,
+                  const int32_t minYIn,
+                  const int32_t maxYIn) {
+        const int32_t minX = MathFunctions::limitRange(static_cast<int32_t>(minXIn), m_minXY, m_maxXY);
+        const int32_t maxX = MathFunctions::limitRange(static_cast<int32_t>(maxXIn), m_minXY, m_maxXY);
+        const int32_t minY = MathFunctions::limitRange(static_cast<int32_t>(minYIn), m_minXY, m_maxXY);
+        const int32_t maxY = MathFunctions::limitRange(static_cast<int32_t>(maxYIn), m_minXY, m_maxXY);
+
+        for (int32_t i = minX; i <= maxX; i++) {
+            for (int32_t j = minY; j <= maxY; j++) {
+                const int32_t offset = (m_rangeXY * j) + i;
+                CaretAssertVectorIndex(m_grid, offset);
+                m_grid[offset] = 1;
+            }
+        }
+    }
+    
+    const int32_t m_minXY;
+    const int32_t m_maxXY;
+    const int32_t m_rangeXY;
+    
+    std::vector<int32_t> m_grid;
+};
+
+/**
+ * Expand the given tab using any available space around it
+ *
+ * @param browserTabsInWindow
+ *      Tabs in the window
+ * @param tabToExpand
+ *      Tab that is expanded to fill empty space
+ * @param boundsOut
+ *      Output with new bounds
+ * @return
+ *      True if new bounds are valid
+ */
+bool
+AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
+                                const AnnotationBrowserTab* tabToExpand,
+                                float boundsOut[4])
+{
+    if (tabToExpand == NULL) {
+        return false;
+    }
+    
+    /*
+     * Ensure tab for expansion is not in list of other tabs
+     */
+    std::vector<const AnnotationBrowserTab*> tabs;
+    for (auto bt : browserTabsInWindow) {
+        if (bt != tabToExpand) {
+            tabs.push_back(bt);
+        }
+    }
+    
+    /*
+     * If no other tabs, fill window
+     */
+    if (tabs.empty()) {
+        boundsOut[0] =   0.0;
+        boundsOut[1] = 100.0;
+        boundsOut[2] =   0.0;
+        boundsOut[3] = 100.0;
+        return true;
+    }
+    
+    /*
+     * Since the percentage coordinates in the window range [0, 100],
+     * create a grid that is 101 x 101 (grid will add one in constructor)
+     */
+    PercentageGrid grid(0, 100);
+    
+    /*
+     * Fill in grid points that are overlapped by
+     * all of the tabs
+     */
+    for (auto t : tabs) {
+        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+        t->getBounds2D(minX, maxX, minY, maxY);
+        grid.setRange(minX, maxX, minY, maxY);
+    }
+    
+    /*
+     * Get bounds of tab for expansion and clip to grid
+     */
+    float tabMinX(0.0), tabMaxX(0.0), tabMinY(0.0), tabMaxY(0.0);
+    tabToExpand->getBounds2D(tabMinX, tabMaxX, tabMinY, tabMaxY);
+    
+//    grid.setRange(tabMinX, tabMaxX, tabMinY, tabMaxY);
+    /*
+     * Shrink by 1 point around edges.  If the maximum of a tab
+     * is the same as a minimum of this tab, it will detect
+     * overlap and prevent expansion
+     */
+    int32_t x1 = MathFunctions::limitRange(static_cast<int32_t>(tabMinX + 1), 0, 100);
+    int32_t x2 = MathFunctions::limitRange(static_cast<int32_t>(tabMaxX - 1), 0, 100);
+    int32_t y1 = MathFunctions::limitRange(static_cast<int32_t>(tabMinY + 1), 0, 100);
+    int32_t y2 = MathFunctions::limitRange(static_cast<int32_t>(tabMaxY - 1), 0, 100);
+    grid.setRange(x1, x2, y1, y2);
+
+    bool leftDone(x1 <= 0);
+    bool rightDone(x2 >= 100);
+    bool bottomDone(y1 <= 0);
+    bool topDone(y2 >= 100);
+    
+    bool done(leftDone && rightDone && bottomDone && topDone);
+    while ( ! done) {
+        /*
+         * Try to expand at bottom by one row
+         */
+        if ( ! bottomDone) {
+            if (grid.rangeOff(x1, x2, y1 - 1, y1 - 1)) {
+                y1--;
+            }
+            else {
+                bottomDone = true;
+            }
+        }
+        
+        /*
+         * Try to expand at top by one row
+         */
+        if ( ! topDone) {
+            if (grid.rangeOff(x1, x2, y2 + 1, y2 + 1)) {
+                y2++;
+            }
+            else {
+                topDone = true;
+            }
+        }
+
+        /*
+         * Try to expand at left by one column
+         */
+        if ( ! leftDone) {
+            if (grid.rangeOff(x1 - 1, x1 - 1, y1, y2)) {
+                x1--;
+            }
+            else {
+                leftDone = true;
+            }
+        }
+        
+        /*
+         * Try to expand at right by one column
+         */
+        if ( ! rightDone) {
+            if (grid.rangeOff(x2 + 1, x2 + 1, y1, y2)) {
+                x2++;
+            }
+            else {
+                rightDone = true;
+            }
+        }
+        
+        /*
+         * Test for any sides that no longer are expandable
+         */
+        if (x1 <= 0) {
+            leftDone = true;
+        }
+        if (x2 >= 100) {
+            rightDone = true;
+        }
+        if (y1 <= 0) {
+            bottomDone = true;
+        }
+        if (y2 >= 100) {
+            topDone = true;
+        }
+        
+        /*
+         * Done if no expansion available
+         */
+        done = (leftDone && rightDone && bottomDone && topDone);
+    }
+    
+    /*
+     * If expansion available, report new bounds
+     */
+    if ((x1 < tabMinX)
+        || (x2 > tabMaxX)
+        || (y1 < tabMinY)
+        || (y2 > tabMaxY)) {
+        boundsOut[0] = x1;
+        boundsOut[1] = x2;
+        boundsOut[2] = y1;
+        boundsOut[3] = y2;
+        return true;
+    }
+    
+    return false;
 }
 

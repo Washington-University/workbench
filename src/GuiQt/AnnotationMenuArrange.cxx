@@ -27,15 +27,22 @@
 
 #include "Annotation.h"
 #include "AnnotationArrangerInputs.h"
+#include "AnnotationBrowserTab.h"
 #include "AnnotationManager.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
+#include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "EventAnnotationGrouping.h"
+#include "EventBrowserWindowContent.h"
 #include "EventGetBrainOpenGLTextRenderer.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -77,6 +84,8 @@ m_browserWindowIndex(browserWindowIndex)
     
     addGroupingSelections();
     
+    addTileTabsSelections();
+
     QObject::connect(this, SIGNAL(aboutToShow()),
                      this, SLOT(menuAboutToShow()));
     QObject::connect(this, SIGNAL(triggered(QAction*)),
@@ -182,6 +191,43 @@ AnnotationMenuArrange::addGroupingSelections()
     CaretAssert(m_ungroupAction);
 }
 
+/**
+ * Add distribution items to the menu.
+ */
+void
+AnnotationMenuArrange::addTileTabsSelections()
+{
+    bool addMenuFlag(false);
+    switch (m_userInputMode) {
+        case UserInputModeEnum::ANNOTATIONS:
+            break;
+        case UserInputModeEnum::BORDERS:
+            break;
+        case UserInputModeEnum::FOCI:
+            break;
+        case UserInputModeEnum::IMAGE:
+            break;
+        case UserInputModeEnum::INVALID:
+            break;
+        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+            addMenuFlag = true;
+            break;
+        case UserInputModeEnum::VIEW:
+            break;
+        case UserInputModeEnum::VOLUME_EDIT:
+            break;
+    }
+    
+    if ( ! addMenuFlag) {
+        return;
+    }
+    
+    addSeparator();
+    
+    m_tileTabsExpandToFillAction = addAction("Expand to Fill Empty Space");
+
+}
+
 /*
  * Gets called when the menu is about to show
  * so that its menu items can be enabled/disabled.
@@ -197,6 +243,18 @@ AnnotationMenuArrange::menuAboutToShow()
                                                             AnnotationGroupingModeEnum::REGROUP));
     m_ungroupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
                                                             AnnotationGroupingModeEnum::UNGROUP));
+    
+    if (m_tileTabsExpandToFillAction != NULL) {
+        std::unique_ptr<EventBrowserWindowContent> windowEvent = EventBrowserWindowContent::getWindowContent(m_browserWindowIndex);
+        EventManager::get()->sendEvent(windowEvent->getPointer());
+        BrowserWindowContent* bwc = windowEvent->getBrowserWindowContent();
+        CaretAssert(bwc);
+        int32_t numSelected = 0;
+        if (bwc->isManualModeTileTabsConfigurationEnabled()) {
+            numSelected = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex).size();
+        }
+        m_tileTabsExpandToFillAction->setEnabled(numSelected == 1);
+    }
 }
 
 
@@ -230,6 +288,9 @@ AnnotationMenuArrange::menuActionTriggered(QAction* action)
     else if (validGroupingFlag) {
         applyGrouping(annGroup);
     }
+    else if (processTileTabsMenu(action)) {
+        /* If true returned, a tile tabs menu item was selected */
+    }
     else {
         const AString msg("Unrecognized Enum name in Annotation Align Menu \""
                           + enumName
@@ -238,10 +299,63 @@ AnnotationMenuArrange::menuActionTriggered(QAction* action)
         CaretLogSevere(msg);
     }
 
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Process the action if it is on the Tile Tabs Menu
+ *
+ * @param actionSelected
+ *     Action selected by user
+ * @return
+ *     True if the action was on this menu, else false.
+ */
+bool
+AnnotationMenuArrange::processTileTabsMenu(QAction* actionSelected)
+{
+    bool menuSelectedFlag(false);
+    
+    if ((m_tileTabsExpandToFillAction != NULL)
+        && (actionSelected == m_tileTabsExpandToFillAction)) {
+        processExpandTabMenuItem();
+        menuSelectedFlag = true;
+    }
+    
+    return menuSelectedFlag;
+}
+
+void
+AnnotationMenuArrange::processExpandTabMenuItem()
+{
+    BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    CaretAssert(window);
+    std::vector<BrowserTabContent*> allTabContent;
+    window->getAllTabContent(allTabContent);
+    
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> selectedAnnotations = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+    if (selectedAnnotations.size() == 1) {
+        CaretAssertVectorIndex(selectedAnnotations, 0);
+        AnnotationBrowserTab* selectedTabAnnotation = dynamic_cast<AnnotationBrowserTab*>(selectedAnnotations[0]);
+        AString errorMessage;
+        if (selectedTabAnnotation != NULL) {
+            const bool result = annMan->expandBrowserTabAnnotation(allTabContent,
+                                                                   selectedTabAnnotation,
+                                                                   m_userInputMode,
+                                                                   errorMessage);
+            if ( ! result) {
+                WuQMessageBox::errorOk(this,
+                                       errorMessage);
+            }
+        }
+        else {
+            WuQMessageBox::errorOk(this,
+                                   "Selected annotation must be a browser tab");
+        }
+    }
+
+}
 
 /**
  * Apply alignment selection.

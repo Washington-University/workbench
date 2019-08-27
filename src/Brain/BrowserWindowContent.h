@@ -84,6 +84,8 @@ namespace caret {
         
         void setTileTabsConfigurationMode(const TileTabsLayoutConfigurationTypeEnum::Enum configMode);
         
+        bool isManualModeTileTabsConfigurationEnabled() const;
+        
         int32_t getSceneGraphicsWidth() const;
         
         void setSceneGraphicsWidth(const int32_t width);

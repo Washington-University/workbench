@@ -36,11 +36,13 @@
 namespace caret {
     class Annotation;
     class AnnotationArrangerInputs;
+    class AnnotationBrowserTab;
     class AnnotationFile;
     class AnnotationGroupKey;
     class AnnotationRedoUndoCommand;
     class AnnotationEditingSelectionInformation;
     class Brain;
+    class BrowserTabContent;
     class CaretUndoStack;
     class EventGetDisplayedDataFiles;
     class SceneClassAssistant;
@@ -146,6 +148,11 @@ namespace caret {
         
         bool isGroupingModeValid(const int32_t windowIndex,
                                  const AnnotationGroupingModeEnum::Enum groupingMode) const;
+        
+        bool expandBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
+                                        AnnotationBrowserTab* selectedTabAnnotation,
+                                        const UserInputModeEnum::Enum userInputMode,
+                                        AString& errorMessageOut);
         
         // ADD_NEW_METHODS_HERE
 

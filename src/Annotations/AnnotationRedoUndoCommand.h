@@ -49,6 +49,12 @@ namespace caret {
         
         virtual bool mergeWith(const CaretUndoCommand* command);
         
+        void setBoundsAll(const float minX,
+                          const float maxX,
+                          const float minY,
+                          const float maxY,
+                          Annotation* annotation);
+        
         void setBoundsMinX2D(const float minX,
                              const std::vector<Annotation*>& annotations);
         

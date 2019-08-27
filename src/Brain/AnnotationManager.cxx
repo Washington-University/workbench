@@ -1112,3 +1112,65 @@ AnnotationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     
 }
 
+/**
+ * Expand a browser tab to fill available space in the window. MANUAL MODE ONLY !
+ *
+ * @param tabsInWindow
+ *     Tabs displayed in the window (may or may not include selected tab)
+ * @param selectedTabAnnotation
+ *     Tab that is expanded
+ * @param userInputMode
+ *     The current user input mode (browser tab always)
+ * @param errorMessageOut
+ *     Contains error information if expansion has error (inability to expand is NOT an error)
+ * @return
+ *     True no error, else false.
+ */
+bool
+AnnotationManager::expandBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
+                                              AnnotationBrowserTab* selectedTabAnnotation,
+                                              const UserInputModeEnum::Enum userInputMode,
+                                              AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    CaretAssert(selectedTabAnnotation);
+    
+    if (selectedTabAnnotation != NULL) {
+        std::vector<const AnnotationBrowserTab*> tabAnnotations;
+        for (auto btc : tabsInWindow) {
+            const AnnotationBrowserTab* ta = btc->getManualLayoutBrowserTabAnnotation();
+            CaretAssert(ta);
+            if (ta != selectedTabAnnotation) {
+                tabAnnotations.push_back(ta);
+            }
+        }
+        
+        
+        float newBounds[4] { 0, 0, 0, 0 };
+        if (AnnotationBrowserTab::expandTab(tabAnnotations,
+                                            selectedTabAnnotation,
+                                            newBounds)) {
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setBoundsAll(newBounds[0],
+                                      newBounds[1],
+                                      newBounds[2],
+                                      newBounds[3],
+                                      selectedTabAnnotation);
+            if (applyCommand(userInputMode,
+                             undoCommand,
+                             errorMessageOut)) {
+                return true;
+            }
+        }
+        else {
+            errorMessageOut = "Unable to expand tab";
+        }
+    }
+    else {
+        errorMessageOut = "Selected annotation must be a browser tab";
+    }
+    
+    return false;
+}
+
