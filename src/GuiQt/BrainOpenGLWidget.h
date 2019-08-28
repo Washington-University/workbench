@@ -161,6 +161,9 @@ namespace caret {
         const BrainOpenGLViewportContent* getViewportContentAtXY(const int x,
                                                            const int y);
         
+        const BrainOpenGLViewportContent* getViewportContentManualLayoutWithoutLockAspectAtXY(const int x,
+                                                                                              const int y);
+        
         void checkForMiddleMouseButton(Qt::MouseButtons& mouseButtons,
                                        Qt::MouseButton& button,
                                        Qt::KeyboardModifiers& keyModifiers,

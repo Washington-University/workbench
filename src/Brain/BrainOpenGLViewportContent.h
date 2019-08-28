@@ -60,6 +60,8 @@ namespace caret {
         
         void getTabViewportBeforeApplyingMargins(int tabViewportOut[4]) const;
         
+        void getTabViewportManualLayoutBeforeAspectLocking(int tabViewportOut[4]) const;
+        
         void getWindowViewport(int windowViewportOut[4]) const;
         
         int getWindowIndex() const;
@@ -135,6 +137,7 @@ namespace caret {
         };
         
         BrainOpenGLViewportContent(const int windowViewport[4],
+                                   const int tabViewportManualLayoutBeforeAspectLocking[4],
                                    const int tabViewport[4],
                                    const int modelViewport[4],
                                    const int windowIndex,
@@ -181,6 +184,9 @@ namespace caret {
         int m_tabWidth;
         /** Tab viewport's Height */
         int m_tabHeight;
+        
+        /** Manual layout tab viewport before aspect locking is applied */
+        int m_tabViewportManualLayoutBeforeAspectLocking[4];
         
         /** Chart data viewport's X-coordinate */
         mutable int m_chartDataX;

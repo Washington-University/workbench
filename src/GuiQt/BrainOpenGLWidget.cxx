@@ -1271,6 +1271,30 @@ BrainOpenGLWidget::getViewportContentAtXY(const int x,
 }
 
 /**
+ * Get the viewport content at the given location WITHOUT aspect locking.
+ * @param x
+ *    X-coordinate.
+ * @param y
+ *    Y-coordinate.
+ */
+const BrainOpenGLViewportContent*
+BrainOpenGLWidget::getViewportContentManualLayoutWithoutLockAspectAtXY(const int x,
+                                                                       const int y)
+{
+    const BrainOpenGLViewportContent* tabViewportContent = m_windowContent.getTabViewportManualLayoutWithoutAspectLocking(x, y);
+    if (tabViewportContent != NULL) {
+        return tabViewportContent;
+    }
+    
+    /*
+     * If not in a tab, then use the window viewport information.
+     * This allows selection of annotations in window space that are not
+     * within a tab (tab may be small in height due to lock aspect).
+     */
+    return m_windowContent.getWindowViewport();
+}
+
+/**
  * Get all viewport content.  If tile tabs is ON, the output will contain 
  * viewport content for all tabs.  Otherwise, the output will contain viewport
  * content for only the selected tab.
@@ -1363,8 +1387,26 @@ SelectionItemAnnotation*
 BrainOpenGLWidget::performIdentificationAnnotations(const int x,
                                                     const int y)
 {
-    const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
-    
+    bool manLayoutFlag(false);
+    switch (this->selectedUserInputProcessor->getUserInputMode()) {
+        case UserInputModeEnum::ANNOTATIONS:
+            break;
+        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+            manLayoutFlag = true;
+            break;
+        case UserInputModeEnum::BORDERS:
+        case UserInputModeEnum::FOCI:
+        case UserInputModeEnum::IMAGE:
+        case UserInputModeEnum::INVALID:
+        case UserInputModeEnum::VIEW:
+        case UserInputModeEnum::VOLUME_EDIT:
+            break;
+    }
+
+    const BrainOpenGLViewportContent* idViewport = (manLayoutFlag
+                                                    ? this->getViewportContentManualLayoutWithoutLockAspectAtXY(x, y)
+                                                    : this->getViewportContentAtXY(x, y));
+
     this->makeCurrent();
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();

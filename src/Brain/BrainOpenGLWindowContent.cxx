@@ -192,6 +192,52 @@ BrainOpenGLWindowContent::getTabViewportWithLockAspectXY(const int32_t x,
     return viewportContentOut;
 }
 
+/**
+ * Get the tab viewport containing the given X/Y coordinates
+ * for a manual layout prior to aspect locking.
+ *
+ * @param x
+ *     The X-coordinate
+ * @param y
+ *     The Y-coordinate
+ * @return
+ *     Tab viewport containing the coordinate or NULL if not found.
+ */
+const BrainOpenGLViewportContent*
+BrainOpenGLWindowContent::getTabViewportManualLayoutWithoutAspectLocking(const int32_t x,
+                                                                         const int32_t y) const
+{
+    BrainOpenGLViewportContent* viewportContentOut(NULL);
+    
+    for (const auto& vp : m_tabViewports) {
+        int32_t viewport[4];
+        vp->getTabViewportManualLayoutBeforeAspectLocking(viewport);
+        if ((x >= viewport[0])
+            && (x < (viewport[0] + viewport[2]))
+            && (y >= viewport[1])
+            && (y < (viewport[1] + viewport[3]))) {
+            if (viewportContentOut == NULL) {
+                viewportContentOut = vp.get();
+            }
+            else {
+                /*
+                 * Note: The tabs ONLY overlay in a manual tile tabs layout
+                 */
+                const BrowserTabContent* btc = vp.get()->getBrowserTabContent();
+                const BrowserTabContent* btcOut = viewportContentOut->getBrowserTabContent();
+                if ((btc != NULL)
+                    && (btcOut != NULL)) {
+                    if (btc->getManualLayoutBrowserTabAnnotation()->getStackingOrder()
+                        > btcOut->getManualLayoutBrowserTabAnnotation()->getStackingOrder()) {
+                        viewportContentOut = vp.get();
+                    }
+                }
+            }
+        }
+    }
+    
+    return viewportContentOut;
+}
 
 /**
  * All viewports for all tabs.

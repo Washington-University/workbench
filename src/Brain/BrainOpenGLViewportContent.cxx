@@ -62,6 +62,8 @@ using namespace caret;
  *
  * @param windowViewport
  *    Viewport of WINDOW in which drawing takes place.
+ * @param tabViewportManualLayoutBeforeAspectLocking
+ *    Viewport before locking in a manual layout (for grid, same as tab viewport)
  * @param tabViewport
  *    Viewport for TAB in which drawing takes place.
  * @param modelViewport
@@ -78,6 +80,7 @@ using namespace caret;
  *    Spacer Tab content that is being drawn (if not NULL)
  */
 BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[4],
+                                                       const int tabViewportManualLayoutBeforeAspectLocking[4],
                                                        const int tabViewport[4],
                                                        const int modelViewport[4],
                                                        const int windowIndex,
@@ -99,6 +102,10 @@ m_spacerTabContent(spacerTabContent)
     m_tabY      = tabViewport[1];
     m_tabWidth  = tabViewport[2];
     m_tabHeight = tabViewport[3];
+    
+    for (int32_t i = 0; i < 4; i++) {
+        m_tabViewportManualLayoutBeforeAspectLocking[i] = tabViewportManualLayoutBeforeAspectLocking[i];
+    }
     
     m_modelX      = modelViewport[0];
     m_modelY      = modelViewport[1];
@@ -180,6 +187,9 @@ BrainOpenGLViewportContent::initializeMembersBrainOpenGLViewportContent()
     m_windowHeight = 0;
     m_browserTabContent = NULL;
     m_spacerTabContent  = NULL;
+    for (int32_t i = 0; i < 4; i++) {
+        m_tabViewportManualLayoutBeforeAspectLocking[i] = 0;
+    }
 }
 
 /**
@@ -209,7 +219,10 @@ BrainOpenGLViewportContent::copyHelperBrainOpenGLViewportContent(const BrainOpen
     m_windowY      = obj.m_windowY;
     m_windowWidth  = obj.m_windowWidth;
     m_windowHeight = obj.m_windowHeight;
-    
+    for (int32_t i = 0; i < 4; i++) {
+        m_tabViewportManualLayoutBeforeAspectLocking[i] = obj.m_tabViewportManualLayoutBeforeAspectLocking[i];
+    }
+
     m_browserTabContent = obj.m_browserTabContent;
     m_spacerTabContent  = obj.m_spacerTabContent;
 }
@@ -402,6 +415,20 @@ BrainOpenGLViewportContent::getTabViewportBeforeApplyingMargins(int tabViewportO
     tabViewportOut[2] = m_tabWidth;
     tabViewportOut[3] = m_tabHeight;
 }
+/**
+ * Get the viewport for drawing a tab in a manual layout before application of aspect locking
+ *
+ * @param tabViewportOut
+ *    Output into which tab viewport dimensions are loaded.
+ *    (x, y, width, height)
+ */
+void
+BrainOpenGLViewportContent::getTabViewportManualLayoutBeforeAspectLocking(int tabViewportOut[4]) const
+{
+    for (int32_t i = 0; i < 4; i++) {
+        tabViewportOut[i] = m_tabViewportManualLayoutBeforeAspectLocking[i];
+    }
+}
 
 /**
  * @return Pointer to the viewport for the window.
@@ -470,7 +497,7 @@ BrainOpenGLViewportContent::toString() const
     const QString windowMsg = QString("   Window x=%1 y=%2 w=%3 h=%4").arg(m_windowX).arg(m_windowY).arg(m_windowWidth).arg(m_windowHeight);
     const QString tabMsg    = QString("   Tab    x=%1 y=%2 w=%3 h=%4").arg(m_tabX).arg(m_tabY).arg(m_tabWidth).arg(m_tabHeight);
     const QString modelMsg  = QString("   Model  x=%1 y=%2 w=%3 h=%4").arg(m_modelX).arg(m_modelY).arg(m_modelWidth).arg(m_modelHeight);
-    
+    const QString manMsg    = QString("   Model  x=%1 y=%2 w=%3 h=%4").arg(m_tabViewportManualLayoutBeforeAspectLocking[0]).arg(m_tabViewportManualLayoutBeforeAspectLocking[1]).arg(m_tabViewportManualLayoutBeforeAspectLocking[2]).arg(m_tabViewportManualLayoutBeforeAspectLocking[3]);
     AString msgOut;
     if (m_chartDataViewportValidFlag) {
         const QString chartProjectionMsg = QString("   Chart Projection=" + m_chartDataProjectionMatrix.toFormattedString("      "));
@@ -486,6 +513,7 @@ BrainOpenGLViewportContent::toString() const
     msgOut.appendWithNewLine(windowMsg);
     msgOut.appendWithNewLine(tabMsg);
     msgOut.appendWithNewLine(modelMsg);
+    msgOut.appendWithNewLine(manMsg);
     
     return msgOut;
 }
@@ -511,6 +539,13 @@ BrainOpenGLViewportContent::createViewportForSingleTab(std::vector<BrowserTabCon
                                                        const int32_t windowIndex,
                                                        const int32_t windowViewport[4])
 {
+    const int tabViewportBeforeAspectLocking[4] = {
+        windowViewport[0],
+        windowViewport[1],
+        windowViewport[2],
+        windowViewport[3]
+    };
+    
     int tabViewport[4] = {
         windowViewport[0],
         windowViewport[1],
@@ -524,6 +559,7 @@ BrainOpenGLViewportContent::createViewportForSingleTab(std::vector<BrowserTabCon
         tabViewport[2],
         tabViewport[3]
     };
+    
     
     std::unique_ptr<EventBrowserWindowContent> eventContent = EventBrowserWindowContent::getWindowContent(windowIndex);
     EventManager::get()->sendEvent(eventContent->getPointer());
@@ -568,6 +604,7 @@ BrainOpenGLViewportContent::createViewportForSingleTab(std::vector<BrowserTabCon
 
     
     BrainOpenGLViewportContent* vpContent = new BrainOpenGLViewportContent(windowViewport,
+                                                                           tabViewportBeforeAspectLocking,
                                                                            tabViewport,
                                                                            modelViewport,
                                                                            windowIndex,
@@ -926,6 +963,7 @@ BrainOpenGLViewportContent::createViewportContentForGridTileTabs(std::vector<Bro
 
                 BrainOpenGLViewportContent* vpContent = new BrainOpenGLViewportContent(windowViewport,
                                                                                        tabViewport,
+                                                                                       tabViewport,
                                                                                        modelViewport,
                                                                                        browserWindowContent->getWindowIndex(),
                                                                                        highlightTabFlag,
@@ -946,6 +984,7 @@ BrainOpenGLViewportContent::createViewportContentForGridTileTabs(std::vector<Bro
                     rowHeights[iRow]
                 };
                 BrainOpenGLViewportContent* vpContent = new BrainOpenGLViewportContent(windowViewport,
+                                                                                       tabViewport,
                                                                                        tabViewport,
                                                                                        tabViewport,
                                                                                        browserWindowContent->getWindowIndex(),
@@ -1063,6 +1102,13 @@ BrainOpenGLViewportContent::createViewportContentForManualTileTabs(std::vector<B
             }
         }
         
+        int tabViewportBeforeAspectLocking[4] {
+            tabX,
+            tabY,
+            tabWidth,
+            tabHeight
+        };
+        
         /*
          * Adjust size of tab to match aspect ratio
          */
@@ -1107,6 +1153,7 @@ BrainOpenGLViewportContent::createViewportContentForManualTileTabs(std::vector<B
 
         SpacerTabContent* invalidSpaceTabContent(NULL);
         BrainOpenGLViewportContent* vpContent = new BrainOpenGLViewportContent(windowViewport,
+                                                                               tabViewportBeforeAspectLocking,
                                                                                tabViewport,
                                                                                modelViewport,
                                                                                browserWindowContent->getWindowIndex(),

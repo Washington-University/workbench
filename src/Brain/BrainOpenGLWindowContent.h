@@ -56,6 +56,9 @@ namespace caret {
         const BrainOpenGLViewportContent* getTabViewportWithLockAspectXY(const int32_t x,
                                                                          const int32_t y) const;
         
+        const BrainOpenGLViewportContent* getTabViewportManualLayoutWithoutAspectLocking(const int32_t x,
+                                                                                         const int32_t y) const;
+        
         const BrainOpenGLViewportContent* getWindowViewport() const;
         
         std::vector<const BrainOpenGLViewportContent*> getAllTabViewports() const;
