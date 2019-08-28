@@ -66,14 +66,16 @@ namespace caret {
         
         void applyOrderSendBackward();
         
+        void processExpandTabMenuItem();
+        
+        void processInsertNewTabMenuItem();
+        
     private:
         UserInputModeTileTabsManualLayoutContextMenu(const UserInputModeTileTabsManualLayoutContextMenu&);
 
         UserInputModeTileTabsManualLayoutContextMenu& operator=(const UserInputModeTileTabsManualLayoutContextMenu&);
         
         void applyGrouping(const AnnotationGroupingModeEnum::Enum grouping);
-        
-        void processExpandTabMenuItem();
         
         void processWindowTileTabOperation(const EventBrowserWindowTileTabOperation::Operation operation);
         

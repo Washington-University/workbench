@@ -149,12 +149,21 @@ m_parentOpenGLWidget(parentOpenGLWidget)
                                        this, SLOT(applyGroupingRegroup()));
     regroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
                                                                      AnnotationGroupingModeEnum::REGROUP));
+
+    
+    addSeparator();
+    
+    /*
+     * Insert new tab option
+     */
+    QAction* insertNewTabAction = addAction("Insert New Tab");
+    QObject::connect(insertNewTabAction, &QAction::triggered,
+                     this, &UserInputModeTileTabsManualLayoutContextMenu::processInsertNewTabMenuItem);
     
     /*
      * Expand option
      */
-    addSeparator();
-    QAction* expendToFillAction = addAction("Expand to Fill Empty Space");
+    QAction* expendToFillAction = addAction("Expand Tab to Fill Empty Space");
     QObject::connect(expendToFillAction, &QAction::triggered,
                      this, &UserInputModeTileTabsManualLayoutContextMenu::processExpandTabMenuItem);
     expendToFillAction->setEnabled(oneTabSelectedFlag);
@@ -287,6 +296,16 @@ UserInputModeTileTabsManualLayoutContextMenu::applyOrderSendBackward()
 {
     processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD);
 }
+
+/**
+ * Insert a new tab at mouse location
+ */
+void
+UserInputModeTileTabsManualLayoutContextMenu::processInsertNewTabMenuItem()
+{
+    processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_MANUAL_NEW_TAB);
+}
+
 
 /**
  * Called to process a tile tab operation

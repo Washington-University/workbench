@@ -92,21 +92,24 @@ m_tabIndex(viewportContent->getTabIndex())
                 }
                 break;
             case TileTabsLayoutConfigurationTypeEnum::MANUAL:
-                addItemToMenu("Insert Tab at Mouse",
-                              EventBrowserWindowTileTabOperation::OPERATION_MANUAL_NEW_TAB);
-
-                if (tabContent != NULL) {
-                    if (actions().count() > 0) {
-                        addSeparator();
+                const bool showManualTabLayoutOptionsFlag(false);
+                if (showManualTabLayoutOptionsFlag) {
+                    addItemToMenu("Insert Tab at Mouse",
+                                  EventBrowserWindowTileTabOperation::OPERATION_MANUAL_NEW_TAB);
+                    
+                    if (tabContent != NULL) {
+                        if (actions().count() > 0) {
+                            addSeparator();
+                        }
+                        addItemToMenu("Bring to Front",
+                                      EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_TO_FRONT);
+                        addItemToMenu("Bring Forward",
+                                      EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_FORWARD);
+                        addItemToMenu("Send to Back",
+                                      EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK);
+                        addItemToMenu("Send Backward",
+                                      EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD);
                     }
-                    addItemToMenu("Bring to Front",
-                                  EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_TO_FRONT);
-                    addItemToMenu("Bring Forward",
-                                  EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_FORWARD);
-                    addItemToMenu("Send to Back",
-                                  EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK);
-                    addItemToMenu("Send Backward",
-                                  EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD);
                 }
                 break;
         }

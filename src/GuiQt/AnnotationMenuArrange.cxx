@@ -224,7 +224,7 @@ AnnotationMenuArrange::addTileTabsSelections()
     
     addSeparator();
     
-    m_tileTabsExpandToFillAction = addAction("Expand to Fill Empty Space");
+    m_tileTabsExpandToFillAction = addAction("Expand Tab to Fill Empty Space");
 
 }
 

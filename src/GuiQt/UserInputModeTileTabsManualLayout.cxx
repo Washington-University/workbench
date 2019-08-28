@@ -74,9 +74,9 @@ UserInputModeTileTabsManualLayout::showContextMenu(const MouseEvent& mouseEvent,
 {
     BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
     BrowserTabContent* tabContent = viewportContent->getBrowserTabContent();
-    if (tabContent == NULL) {
-        return;
-    }
+//    if (tabContent == NULL) {
+//        return;
+//    }
     
     /*
      * Select any annotation that is under the mouse.

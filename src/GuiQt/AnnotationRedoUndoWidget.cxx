@@ -124,7 +124,9 @@ AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotati
     m_undoAction->setEnabled(undoStack->canUndo());
     m_undoAction->setToolTip(undoStack->undoText());
     
-    setEnabled( ! annotations.empty());
+    setEnabled(( ! annotations.empty())
+               || m_redoAction->isEnabled()
+               || m_undoAction->isEnabled());
 }
 
 

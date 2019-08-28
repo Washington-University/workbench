@@ -4744,6 +4744,29 @@ BrainBrowserWindowToolBar::processTileTabOperationEvent(EventBrowserWindowTileTa
                     tabMinY = (tabMinY / windowHeight) * 100.0;
                     tabMaxY = (tabMaxY / windowHeight) * 100.0;
                     
+                    /*
+                     * Move tab if partially outside of window
+                     */
+                    float offsetX(0.0);
+                    if (tabMinX < 0.0) {
+                        offsetX = 1.0 - tabMinX;
+                    }
+                    else if (tabMaxX >= 100) {
+                        offsetX = -(tabMaxX - 99.0);
+                    }
+                    tabMinX += offsetX;
+                    tabMaxX += offsetX;
+                    
+                    float offsetY(0.0);
+                    if (tabMinY < 0.0) {
+                        offsetY = 1.0 - tabMinY;
+                    }
+                    else if (tabMaxY >= 100.0) {
+                        offsetY = -(tabMaxY - 99.0);
+                    }
+                    tabMinY += offsetY;
+                    tabMaxY += offsetY;
+                    
                     AnnotationBrowserTab* tabAnnotation = btc->getManualLayoutBrowserTabAnnotation();
                     CaretAssert(tabAnnotation);
                     tabAnnotation->setBounds2D(tabMinX,
