@@ -59,7 +59,7 @@ WuQTabBar::~WuQTabBar()
 void
 WuQTabBar::mousePressEvent(QMouseEvent* event)
 {
-    emit mousePressedSignal();
+    emit mousePressedSignal(event);
     
     QTabBar::mousePressEvent(event);
 }
@@ -73,7 +73,7 @@ WuQTabBar::mousePressEvent(QMouseEvent* event)
 void
 WuQTabBar::mouseReleaseEvent(QMouseEvent* event)
 {
-    emit mouseReleasedSignal();
+    emit mouseReleasedSignal(event);
     
     QTabBar::mouseReleaseEvent(event);
 }

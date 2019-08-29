@@ -23,13 +23,17 @@
 #include "AnnotationNameWidget.h"
 #undef __ANNOTATION_NAME_WIDGET_DECLARE__
 
+#include <QCheckBox>
 #include <QLabel>
-#include <QHBoxLayout>
+#include <QVBoxLayout>
 
 #include "AnnotationBrowserTab.h"
 #include "AnnotationMenuArrange.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventGraphicsUpdateOneWindow.cxx"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -58,9 +62,21 @@ m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     m_nameLabel = new QLabel();
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addWidget(m_nameLabel, 100, Qt::AlignVCenter);
+    
+    m_visibilityCheckBox = new QCheckBox("Visible");
+    QObject::connect(m_visibilityCheckBox, &QCheckBox::stateChanged,
+                     this, &AnnotationNameWidget::visibilityCheckStateChanged);
+    
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->setContentsMargins(2, 2, 2, 2);
+    layout->addWidget(m_nameLabel, 0, Qt::AlignLeft);
+    layout->addWidget(m_visibilityCheckBox, 0, Qt::AlignLeft);
+    layout->addStretch();
+    
+    /*
+     * No visibility checkbox for now
+     */
+    m_visibilityCheckBox->setHidden(true);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -82,23 +98,87 @@ AnnotationNameWidget::~AnnotationNameWidget()
 void
 AnnotationNameWidget::updateContent(const std::vector<Annotation*>& annotations)
 {
-    AString name;
-    const int32_t numSelected = static_cast<int32_t>(annotations.size());
-    if (numSelected > 1) {
-        name = "+";
-    }
-    else if (numSelected == 1) {
-        CaretAssertVectorIndex(annotations, 0);
-        AnnotationBrowserTab* browserTabAnnotation = dynamic_cast<AnnotationBrowserTab*>(annotations[0]);
-        if (browserTabAnnotation != NULL) {
-            const BrowserTabContent* tabContent = browserTabAnnotation->getBrowserTabContent();
-            if (tabContent != NULL) {
-                name = tabContent->getTabName();
+    m_browserTabAnnotations.clear();
+    for (auto ann : annotations) {
+        if (ann != NULL) {
+            AnnotationBrowserTab* abt = dynamic_cast<AnnotationBrowserTab*>(ann);
+            if (abt != NULL) {
+                m_browserTabAnnotations.push_back(abt);
             }
         }
     }
+    
+    int32_t visibleCount(0);
+    int32_t hiddenCount(0);
+    AString nameText;
+    const int32_t numberOfAnnotations = static_cast<int32_t>(m_browserTabAnnotations.size());
+    
+    for (auto browserTabAnnotation : m_browserTabAnnotations) {
+        CaretAssert(browserTabAnnotation);
+        const BrowserTabContent* tabContent = browserTabAnnotation->getBrowserTabContent();
+        if (tabContent != NULL) {
+            if (numberOfAnnotations == 1) {
+                nameText = tabContent->getTabName();
+            }
+            else {
+                if ( ! nameText.isEmpty()) {
+                    nameText.append(",");
+                }
+                nameText.append(QString::number(tabContent->getTabNumber() + 1));
+            }
+        }
+        
+        if (browserTabAnnotation->isBrowserTabDisplayed()) {
+            visibleCount++;
+        }
+        else {
+            hiddenCount++;
+        }
+    }
 
-    setEnabled(numSelected > 0);
-    m_nameLabel->setText(name);
+    setEnabled(numberOfAnnotations > 0);
+    
+    m_nameLabel->setText(nameText);
+    
+    /*
+     * Need to block signals as QCheckBox::setCheckState()
+     * causes a emission of a signal
+     */
+    QSignalBlocker checkBoxBlocker(m_visibilityCheckBox);
+    if ((visibleCount > 0)
+        && (hiddenCount > 0)) {
+        m_visibilityCheckBox->setCheckState(Qt::PartiallyChecked);
+    }
+    else  if (visibleCount > 0) {
+        m_visibilityCheckBox->setCheckState(Qt::Checked);
+    }
+    else {
+        m_visibilityCheckBox->setCheckState(Qt::Unchecked);
+    }
 }
 
+/**
+ * Called when state of visibility checkbox is changed
+ */
+void
+AnnotationNameWidget::visibilityCheckStateChanged(int state)
+{
+    Qt::CheckState checkState = static_cast<Qt::CheckState>(state);
+    switch (checkState) {
+        case Qt::Unchecked:
+            for (auto bta : m_browserTabAnnotations) {
+                bta->setBrowserTabDisplayed(false);
+            }
+            break;
+        case Qt::PartiallyChecked:
+            break;
+        case Qt::Checked:
+            for (auto bta : m_browserTabAnnotations) {
+                bta->setBrowserTabDisplayed(true);
+            }
+            break;
+    }
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}

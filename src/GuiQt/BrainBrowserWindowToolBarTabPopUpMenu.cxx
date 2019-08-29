@@ -23,9 +23,22 @@
 #include "BrainBrowserWindowToolBarTabPopUpMenu.h"
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_TAB_POP_UP_MENU_DECLARE__
 
+#include "AnnotationBrowserTab.h"
+#include "AnnotationManager.h"
+#include "Brain.h"
 #include "BrainBrowserWindowToolBar.h"
+#include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
+#include "EventBrowserTabGet.h"
+#include "EventBrowserWindowContent.h"
+#include "EventGetOrSetUserInputModeProcessor.h"
+#include "EventGraphicsUpdateOneWindow.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
+#include "GuiManager.h"
 #include "WuQTabBar.h"
+
 using namespace caret;
 
 
@@ -63,6 +76,40 @@ m_tabIndexUnderMouse(tabIndexUnderMouse)
     m_numberOfTabs   = m_toolBar->tabBar->count();
     m_activeTabIndex = m_toolBar->tabBar->currentIndex();
     
+    m_browserWindowIndex = m_toolBar->browserWindowIndex;
+    static std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(windowContentEvent->getPointer());
+    const BrowserWindowContent* browserWindowContent = windowContentEvent->getBrowserWindowContent();
+    
+    if (m_tabIndexUnderMouse >= 0) {
+        BrowserTabContent* tabContent = m_toolBar->getTabContentFromTab(m_tabIndexUnderMouse);
+        m_selectedBrowserTabAnnotation = NULL;
+        m_browserTabContentIndex = -1;
+        if (tabContent != NULL) {
+            m_browserTabContentIndex = tabContent->getTabNumber();
+
+            m_selectedBrowserTabAnnotation = tabContent->getManualLayoutBrowserTabAnnotation();
+        }
+    }
+    
+    if (browserWindowContent != NULL) {
+        if (browserWindowContent->isManualModeTileTabsConfigurationEnabled()) {
+            if (m_selectedBrowserTabAnnotation != NULL) {
+                addItem(MenuItem::MANUAL_LAYOUT_SELECT_FOR_EDITING);
+
+                if (m_selectedBrowserTabAnnotation->isBrowserTabDisplayed()) {
+                    addItem(MenuItem::MANUAL_LAYOUT_SET_VISIBLE,
+                            "Hide Tab Content in Window");
+                }
+                else {
+                    addItem(MenuItem::MANUAL_LAYOUT_SET_VISIBLE,
+                            "Show Tab Content in Window");
+                }
+                addSeparator();
+            }
+        }
+    }
+    
     addItem(MenuItem::CREATE_NEW_TAB_BEFORE);
     addItem(MenuItem::CREATE_NEW_TAB_AFTER);
     addSeparator();
@@ -96,18 +143,19 @@ BrainBrowserWindowToolBarTabPopUpMenu::~BrainBrowserWindowToolBarTabPopUpMenu()
  *     Item to be added to menu.
  */
 void
-BrainBrowserWindowToolBarTabPopUpMenu::addItem(const MenuItem menuItem)
+BrainBrowserWindowToolBarTabPopUpMenu::addItem(const MenuItem menuItem,
+                                               const QString& overrideMenuItemText)
 {
     
     QString thisTabName = "This Tab";
     QString activeTabName = "Active Tab";
     
+    const int32_t activeTabIndex = m_toolBar->tabBar->currentIndex();
     const bool includeNamesInMenuFlag = false;
     if (includeNamesInMenuFlag) {
         if (m_tabIndexUnderMouse >= 0) {
             thisTabName = ("Tab \"" + m_toolBar->tabBar->tabText(m_tabIndexUnderMouse) + "\"");
         }
-        const int32_t activeTabIndex = m_toolBar->tabBar->currentIndex();
         if (activeTabIndex >= 0) {
             activeTabName = ("Tab \"" + m_toolBar->tabBar->tabText(activeTabIndex) + "\"");
         }
@@ -136,6 +184,12 @@ BrainBrowserWindowToolBarTabPopUpMenu::addItem(const MenuItem menuItem)
         case MenuItem::DUPLICATE_TAB_AT_END:
             text = "Duplicate " + thisTabName + " at End";
             break;
+        case MenuItem::MANUAL_LAYOUT_SELECT_FOR_EDITING:
+            text = "Select for Manual Layout Editing";
+            break;
+        case MenuItem::MANUAL_LAYOUT_SET_VISIBLE:
+            text = "Visible in Manual Layout";
+            break;
         case MenuItem::MOVE_TAB_TO_BEGINNING:
             text = "Move " + thisTabName + " to Beginning";
             break;
@@ -153,6 +207,10 @@ BrainBrowserWindowToolBarTabPopUpMenu::addItem(const MenuItem menuItem)
             break;
     }
     
+    if ( ! overrideMenuItemText.isEmpty()) {
+        text = overrideMenuItemText;
+    }
+    
     QAction* action = addAction(text);
     action->setData(static_cast<int>(menuItem));
     action->setEnabled(isEnabled(menuItem));
@@ -168,6 +226,9 @@ void
 BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected(QAction* action)
 {
     if (action != NULL) {
+        bool updateGraphicsFlag(false);
+        bool updateUserIterfaceFlag(false);
+        
         const BrowserTabContent* activeTabContent = m_toolBar->getTabContentFromTab(m_activeTabIndex);
         
         MenuItem menuItem = static_cast<MenuItem>(action->data().toInt());
@@ -200,6 +261,25 @@ BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected(QAction* action)
                 break;
             case MenuItem::DUPLICATE_TAB_AT_END:
                 duplicateToIndex = m_numberOfTabs;
+                break;
+            case MenuItem::MANUAL_LAYOUT_SELECT_FOR_EDITING:
+                if (m_selectedBrowserTabAnnotation != NULL) {
+                    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                    CaretAssert(annMan);
+                    annMan->selectAnnotationForEditing(m_browserWindowIndex,
+                                                       AnnotationManager::SELECTION_MODE_EXTENDED,
+                                                       true,
+                                                       m_selectedBrowserTabAnnotation);
+                    updateGraphicsFlag = true;
+                    updateUserIterfaceFlag = true;
+                }
+                break;
+            case MenuItem::MANUAL_LAYOUT_SET_VISIBLE:
+                if (m_selectedBrowserTabAnnotation != NULL) {
+                    m_selectedBrowserTabAnnotation->setBrowserTabDisplayed( ! m_selectedBrowserTabAnnotation->isBrowserTabDisplayed());
+                    updateGraphicsFlag = true;
+                    updateUserIterfaceFlag = true;
+                }
                 break;
             case MenuItem::MOVE_TAB_TO_BEGINNING:
                 moveToIndex = 0;
@@ -259,6 +339,13 @@ BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected(QAction* action)
         if (updatedActiveTabIndex >= 0) {
             m_toolBar->tabBar->setCurrentIndex(updatedActiveTabIndex);
         }
+        
+        if (updateGraphicsFlag) {
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+        }
+        if (updateUserIterfaceFlag) {
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        }
     }
 }
 
@@ -294,6 +381,38 @@ BrainBrowserWindowToolBarTabPopUpMenu::isEnabled(const MenuItem menuItem) const
             if (tabContent != NULL) {
                 enabledFlag = true;
             }
+            break;
+        case MenuItem::MANUAL_LAYOUT_SELECT_FOR_EDITING:
+        {
+            EventGetOrSetUserInputModeProcessor inputProcessorEvent(m_browserWindowIndex);
+            EventManager::get()->sendEvent(inputProcessorEvent.getPointer());
+            switch (inputProcessorEvent.getUserInputMode()) {
+                case UserInputModeEnum::ANNOTATIONS:
+                    break;
+                case UserInputModeEnum::BORDERS:
+                    break;
+                case UserInputModeEnum::FOCI:
+                    break;
+                case UserInputModeEnum::IMAGE:
+                    break;
+                case UserInputModeEnum::INVALID:
+                    break;
+                case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+                    if (m_selectedBrowserTabAnnotation != NULL) {
+                        if (m_selectedBrowserTabAnnotation->isBrowserTabDisplayed()) {
+                            enabledFlag = true;
+                        }
+                    }
+                    break;
+                case UserInputModeEnum::VIEW:
+                    break;
+                case UserInputModeEnum::VOLUME_EDIT:
+                    break;
+            }
+        }
+            break;
+        case MenuItem::MANUAL_LAYOUT_SET_VISIBLE:
+            enabledFlag = (m_selectedBrowserTabAnnotation != NULL);
             break;
         case MenuItem::MOVE_TAB_TO_BEGINNING:
             if (m_tabIndexUnderMouse > 0) {

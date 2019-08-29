@@ -500,9 +500,6 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
                                 EventBrowserTabNewInGUI newTabEvent;
                                 EventManager::get()->sendEvent(newTabEvent.getPointer());
                                 BrowserTabContent* btc = newTabEvent.getBrowserTab();
-//                                if (btc != NULL) {
-//                                    btc->getManualLayoutBrowserTabAnnotation()->setBrowserTabDisplayed(showTabsFlag);
-//                                }
                                 updateGraphicsWindow();
                                 if (btc != NULL) {
                                     if (showTabsFlag) {
@@ -511,7 +508,6 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
                                     else {
                                         tabsWithDisplayStatusOff.insert(btc);
                                     }
-//                                    btc->getManualLayoutBrowserTabAnnotation()->setBrowserTabDisplayed(showTabsFlag);
                                 }
                             }
                         }
@@ -519,24 +515,6 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
                     else {
                         return;
                     }
-//                    msg.append("Do you want to add tabs to available spaces in the layout?</html>");
-//                    switch (WuQMessageBox::warningYesNoCancel(m_loadConfigurationPushButton, msg, "")) {
-//                        case WuQMessageBox::RESULT_CANCEL:
-//                            return;
-//                            break;
-//                        case WuQMessageBox::RESULT_NO:
-//                            break;
-//                        case WuQMessageBox::RESULT_YES:
-//                        {
-//                            const int32_t numTabsToAdd = numConfigTabs - numBrowserTabs;
-//                            for (int32_t i = 0; i < numTabsToAdd; i++) {
-//                                EventBrowserTabNewInGUI newTabEvent;
-//                                EventManager::get()->sendEvent(newTabEvent.getPointer());
-//                                updateGraphicsWindow();
-//                            }
-//                        }
-//                            break;
-//                    }
                 }
                 else {
                     msg.append("Do you want to:</html>");
@@ -580,19 +558,6 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             allTabContent.clear();
             getBrowserWindow()->getAllTabContent(allTabContent);
             numBrowserTabs = static_cast<int32_t>(allTabContent.size());
-            
-            
-//            const int32_t numMissingTabs = numBrowserTabs - numConfigTabs;
-//            if (numMissingTabs > 0) {
-//                const QString msg("User configuration \""
-//                                  + userManualConfig->getName()
-//                                  + "\" contains fewer tabs than in window.  The last "
-//                                  + AString::number(numMissingTabs)
-//                                  + " will not change position.");
-//                if ( ! WuQMessageBox::warningOkCancel(m_loadConfigurationPushButton, msg)) {
-//                    return;
-//                }
-//            }
             
             std::vector<const BrainOpenGLViewportContent*> tabViewports;
             getBrowserWindow()->getAllBrainOpenGLViewportContent(tabViewports);
@@ -657,8 +622,6 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
     }
     
     updateDialog();
-//    updateGridStretchFactors();
-//    updateManualGeometryEditorWidget();
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     updateGraphicsWindow();
 }
@@ -1840,6 +1803,7 @@ TileTabsConfigurationDialog::gridConfigurationStretchFactorWasChanged()
     
     updateGridStretchFactors();
     updateGraphicsWindow();
+    
 }
 
 /**

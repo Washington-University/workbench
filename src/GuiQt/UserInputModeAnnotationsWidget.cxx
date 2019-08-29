@@ -198,7 +198,7 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
     gridLayout->setContentsMargins(2, 2, 2, 2);
     gridLayout->setVerticalSpacing(0);
     int column = 0;
-    gridLayout->addWidget(m_nameWidget, 0, column, 2, 1);
+    gridLayout->addWidget(m_nameWidget, 0, column, 2, 1, Qt::AlignTop);
     column++;
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
     column++;
@@ -443,7 +443,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     if (m_textAlignmentWidget != NULL) m_textAlignmentWidget->updateContent(textAnnotations);
     if (m_textOrientationWidget != NULL) m_textOrientationWidget->updateContent(textAnnotations);
     if (m_widthHeightWidget != NULL) m_widthHeightWidget->updateContent(twoDimAnnotations);
-    if (m_rotationWidget != NULL) m_rotationWidget->updateContent(selectedAnnotations); //twoDimAnnotations);
+    if (m_rotationWidget != NULL) m_rotationWidget->updateContent(selectedAnnotations);
     if (m_insertDeleteWidget != NULL) m_insertDeleteWidget->updateContent();
     if (m_deleteWidget != NULL) m_deleteWidget->updateContent();
     

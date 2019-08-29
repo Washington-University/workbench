@@ -29,6 +29,7 @@
 
 namespace caret {
 
+    class AnnotationBrowserTab;
     class BrainBrowserWindowToolBar;
     
     class BrainBrowserWindowToolBarTabPopUpMenu : public QMenu {
@@ -50,6 +51,8 @@ namespace caret {
     private:
         enum class MenuItem {
             NONE,
+            MANUAL_LAYOUT_SELECT_FOR_EDITING,
+            MANUAL_LAYOUT_SET_VISIBLE,
             CREATE_NEW_TAB_BEFORE,
             CREATE_NEW_TAB_AFTER,
             DUPLICATE_TAB_AT_BEGINNING,
@@ -67,7 +70,8 @@ namespace caret {
 
         BrainBrowserWindowToolBarTabPopUpMenu& operator=(const BrainBrowserWindowToolBarTabPopUpMenu&);
         
-        void addItem(const MenuItem menuItem);
+        void addItem(const MenuItem menuItem,
+                     const QString& overrideMenuItemText = "");
         
         bool isEnabled(const MenuItem menuItem) const;
         
@@ -78,6 +82,12 @@ namespace caret {
         int32_t m_numberOfTabs;
         
         int32_t m_activeTabIndex;
+        
+        int32_t m_browserTabContentIndex = -1;
+        
+        int32_t m_browserWindowIndex = -1;
+        
+        AnnotationBrowserTab* m_selectedBrowserTabAnnotation = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

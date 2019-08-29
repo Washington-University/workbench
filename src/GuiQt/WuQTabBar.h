@@ -48,9 +48,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     signals:
-        void mousePressedSignal();
+        void mousePressedSignal(QMouseEvent* event);
         
-        void mouseReleasedSignal();
+        void mouseReleasedSignal(QMouseEvent* event);
         
     protected:
         virtual void mousePressEvent(QMouseEvent* event) override;

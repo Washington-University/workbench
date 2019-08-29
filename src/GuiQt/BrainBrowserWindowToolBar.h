@@ -268,8 +268,8 @@ namespace caret {
         void tabMoved(int, int);
         void tabCloseSelected(int);
         void showTabMenu(const QPoint& pos);
-        void tabBarMousePressedSlot();
-        void tabBarMouseReleasedSlot();
+        void tabBarMousePressedSlot(QMouseEvent* event);
+        void tabBarMouseReleasedSlot(QMouseEvent* event);
         
     private:
         enum class InsertTabMode {

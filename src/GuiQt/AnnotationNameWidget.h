@@ -27,11 +27,13 @@
 
 #include "UserInputModeEnum.h"
 
+class QCheckBox;
 class QLabel;
 
 namespace caret {
 
     class Annotation;
+    class AnnotationBrowserTab;
     
     class AnnotationNameWidget : public QWidget {
         
@@ -49,6 +51,9 @@ namespace caret {
 
         void updateContent(const std::vector<Annotation*>& annotations);
         
+    private slots:
+        void visibilityCheckStateChanged(int state);
+        
     private:
         AnnotationNameWidget(const AnnotationNameWidget&);
 
@@ -59,6 +64,10 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         QLabel* m_nameLabel;
+        
+        QCheckBox* m_visibilityCheckBox;
+        
+        std::vector<AnnotationBrowserTab*> m_browserTabAnnotations;
         
         // ADD_NEW_MEMBERS_HERE
 

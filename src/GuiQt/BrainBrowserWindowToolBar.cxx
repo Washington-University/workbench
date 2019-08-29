@@ -40,6 +40,7 @@
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMouseEvent>
 #include <QMenu>
 #include <QRadioButton>
 #include <QSpinBox>
@@ -1678,38 +1679,47 @@ BrainBrowserWindowToolBar::resetTabIndexForTileTabsHighlighting()
  * Called when tab bar mouse pressed.
  */
 void
-BrainBrowserWindowToolBar::tabBarMousePressedSlot()
+BrainBrowserWindowToolBar::tabBarMousePressedSlot(QMouseEvent* event)
 {
     /*
+     * Only block if LEFT button is used without modifiers.  Otherwise, if user
+     * performs right-click with mouse to display menu, the "mouseReleased" is
+     * never called by Qt.  In addition, we don't want to block signals when
+     * the pop-up menu is displayed.
+     *
      * Dragging tabs is slow because as the tab is moved, there are many graphics
      * and user-interface updates each time the tab changes.  So, disable these updates 
      * during the time the mouse is pressed and until it is released.  Note that we
      * block the "all windows graphics" update but not the individual window update.
      * The individual window graphics update is needed to draw the box around the selected tab.
      */
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, true);
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, true);
+    if (event->button() == Qt::LeftButton) {
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, true);
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, true);
+    }
 }
 
 /**
  * Called when tab bar mouse released.
  */
 void
-BrainBrowserWindowToolBar::tabBarMouseReleasedSlot()
+BrainBrowserWindowToolBar::tabBarMouseReleasedSlot(QMouseEvent* event)
 {
     /*
      * Enable user-interface updates and graphics drawing since any tab
      * dragging has finished.
      */
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, false);
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, false);
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
-    
-    /**
-     * Causes graphics and user-interface to update.
-     * A box is drawn around selected tab.
-     */
-    selectedTabChanged(tabBar->currentIndex());
+    if (event->button() == Qt::LeftButton) {
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, false);
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, false);
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
+
+        /**
+         * Causes graphics and user-interface to update.
+         * A box is drawn around selected tab.
+         */
+        selectedTabChanged(tabBar->currentIndex());
+    }
 }
 
 /**
@@ -3065,7 +3075,6 @@ BrainBrowserWindowToolBar::createModeWidget()
                                                inputModeFociToolButton->sizePolicy().verticalPolicy());
         inputModeLayout->addWidget(inputModeFociToolButton, modeRow, 0);
         inputModeLayout->addWidget(inputModeTileTabsManualLayoutButton, modeRow, 1);
-//        inputModeLayout->addWidget(inputModeFociToolButton, modeRow, 0, 1, 2, Qt::AlignHCenter);
     }
     modeRow++;
     inputModeLayout->addWidget(inputModeViewToolButton, modeRow, 0, 1, 2, Qt::AlignHCenter);
