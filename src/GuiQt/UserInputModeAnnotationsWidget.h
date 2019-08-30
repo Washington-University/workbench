@@ -34,6 +34,7 @@ namespace caret {
     class Annotation;
     class AnnotationBoundsWidget;
     class AnnotationColorWidget;
+    class AnnotationCoordinateCenterXYWidget;
     class AnnotationCoordinateSpaceWidget;
     class AnnotationCoordinateWidget;
     class AnnotationDeleteWidget;
@@ -94,6 +95,8 @@ namespace caret {
         AnnotationBoundsWidget* m_boundsWidget = NULL;
         
         AnnotationCoordinateSpaceWidget* m_coordinateSpaceWidget = NULL;
+        
+        AnnotationCoordinateCenterXYWidget* m_coordinateCenterXYWidget = NULL;
         
         AnnotationCoordinateWidget* m_coordinateOneWidget = NULL;
         

@@ -109,12 +109,17 @@ m_browserWindowIndex(browserWindowIndex)
             break;
         case Qt::Vertical:
         {
+            QLabel* sizeLabel = new QLabel("Size");
             QGridLayout* layout = new QGridLayout(this);
             WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-            layout->addWidget(widthLabel, 0, 0);
-            layout->addWidget(m_widthSpinBox, 0, 1);
-            layout->addWidget(heightLabel, 1, 0);
-            layout->addWidget(m_heightSpinBox, 1, 1);
+            int32_t row(0);
+            layout->addWidget(sizeLabel, row, 0, 1, 2, Qt::AlignHCenter);
+            row++;
+            layout->addWidget(widthLabel, row, 0);
+            layout->addWidget(m_widthSpinBox, row, 1);
+            row++;
+            layout->addWidget(heightLabel, row, 0);
+            layout->addWidget(m_heightSpinBox, row, 1);
         }
             break;
     }

@@ -47,6 +47,7 @@ ELSE()
 	AnnotationBoundsWidget.h
         AnnotationChangeCoordinateDialog.h
         AnnotationColorWidget.h
+	AnnotationCoordinateCenterXYWidget.h
         AnnotationCoordinateSelectionWidget.h
         AnnotationCoordinateSpaceWidget.h
         AnnotationCoordinateWidget.h
@@ -270,6 +271,7 @@ AboutWorkbenchDialog.h
 AnnotationBoundsWidget.h
 AnnotationChangeCoordinateDialog.h
 AnnotationColorWidget.h
+AnnotationCoordinateCenterXYWidget.h
 AnnotationCoordinateInformation.h
 AnnotationCoordinateSelectionWidget.h
 AnnotationCoordinateSpaceWidget.h
@@ -552,6 +554,7 @@ AboutWorkbenchDialog.cxx
 AnnotationBoundsWidget.cxx
 AnnotationChangeCoordinateDialog.cxx
 AnnotationColorWidget.cxx
+AnnotationCoordinateCenterXYWidget.cxx
 AnnotationCoordinateInformation.cxx
 AnnotationCoordinateSelectionWidget.cxx
 AnnotationCoordinateSpaceWidget.cxx

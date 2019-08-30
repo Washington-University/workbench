@@ -28,8 +28,8 @@
 #include <limits>
 
 #include <QDoubleSpinBox>
+#include <QGridLayout>
 #include <QLabel>
-#include <QHBoxLayout>
 #include <QSpinBox>
 #include <QToolButton>
 #include <QToolTip>
@@ -92,6 +92,7 @@ m_browserWindowIndex(browserWindowIndex)
             break;
     }
     
+    QLabel* boundsLabel = new QLabel("Bounds");
     
     QLabel* xMinCoordLabel = new QLabel("Min X" + colonString);
     m_xMinCoordSpinBox = createSpinBox();
@@ -113,16 +114,20 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_yMaxCoordSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationBoundsWidget::yMaxValueChanged);
     
-    QHBoxLayout* coordinateLayout = new QHBoxLayout(this);
+    QGridLayout* coordinateLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(coordinateLayout, 2, 0);
-    coordinateLayout->addWidget(xMinCoordLabel);
-    coordinateLayout->addWidget(m_xMinCoordSpinBox);
-    coordinateLayout->addWidget(xMaxCoordLabel);
-    coordinateLayout->addWidget(m_xMaxCoordSpinBox);
-    coordinateLayout->addWidget(yMinCoordLabel);
-    coordinateLayout->addWidget(m_yMinCoordSpinBox);
-    coordinateLayout->addWidget(yMaxCoordLabel);
-    coordinateLayout->addWidget(m_yMaxCoordSpinBox);
+    int32_t row(0);
+    coordinateLayout->addWidget(boundsLabel, row, 0, 1, 4, Qt::AlignHCenter);
+    row++;
+    coordinateLayout->addWidget(xMinCoordLabel, row, 0);
+    coordinateLayout->addWidget(m_xMinCoordSpinBox, row, 1);
+    coordinateLayout->addWidget(xMaxCoordLabel, row, 2);
+    coordinateLayout->addWidget(m_xMaxCoordSpinBox, row, 3);
+    row++;
+    coordinateLayout->addWidget(yMinCoordLabel, row, 0);
+    coordinateLayout->addWidget(m_yMinCoordSpinBox, row, 1);
+    coordinateLayout->addWidget(yMaxCoordLabel, row, 2);
+    coordinateLayout->addWidget(m_yMaxCoordSpinBox, row, 3);
 
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);

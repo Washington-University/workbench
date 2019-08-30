@@ -32,6 +32,7 @@
 
 #include "AnnotationBoundsWidget.h"
 #include "AnnotationBrowserTab.h"
+#include "AnnotationCoordinateCenterXYWidget.h"
 #include "AnnotationCoordinateSpaceWidget.h"
 #include "AnnotationCoordinateWidget.h"
 #include "AnnotationColorWidget.h"
@@ -178,10 +179,10 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
                                                               AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                               m_browserWindowIndex);
     
-    m_coordinateOneWidget        = new AnnotationCoordinateWidget(m_inputModeAnnotations->getUserInputMode(),
-                                                                  AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
-                                                                  AnnotationCoordinateWidget::COORDINATE_ONE,
-                                                                  m_browserWindowIndex);
+    m_coordinateCenterXYWidget   = new AnnotationCoordinateCenterXYWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                          AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                                          AnnotationCoordinateCenterXYWidget::COORDINATE_ONE,
+                                                                          m_browserWindowIndex);
     
     m_widthHeightWidget          = new AnnotationWidthHeightWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                    AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
@@ -202,8 +203,11 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
     column++;
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
     column++;
-    gridLayout->addWidget(m_boundsWidget, 0, column);
-    gridLayout->addWidget(m_coordinateOneWidget, 1, column);
+    gridLayout->addWidget(m_boundsWidget, 0, column, 2, 1, Qt::AlignTop);
+    column++;
+    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
+    column++;
+    gridLayout->addWidget(m_coordinateCenterXYWidget, 0, column, 2, 1, Qt::AlignTop);
     column++;
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
     column++;
@@ -453,6 +457,7 @@ UserInputModeAnnotationsWidget::updateWidget()
         coordEditAnnotation = selectedAnnotations[0];
         coordEditOneDimAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(coordEditAnnotation);
     }
+    if (m_coordinateCenterXYWidget != NULL) m_coordinateCenterXYWidget->updateContent(selectedAnnotations);
     if (m_coordinateOneWidget != NULL) m_coordinateOneWidget->updateContent(coordEditAnnotation);
     if (coordEditOneDimAnnotation != NULL) {
         if (m_coordinateTwoWidget != NULL) m_coordinateTwoWidget->updateContent(coordEditOneDimAnnotation);
