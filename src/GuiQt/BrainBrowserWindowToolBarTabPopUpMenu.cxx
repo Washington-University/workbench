@@ -77,7 +77,7 @@ m_tabIndexUnderMouse(tabIndexUnderMouse)
     m_activeTabIndex = m_toolBar->tabBar->currentIndex();
     
     m_browserWindowIndex = m_toolBar->browserWindowIndex;
-    static std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(m_browserWindowIndex);
+    std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(m_browserWindowIndex);
     EventManager::get()->sendEvent(windowContentEvent->getPointer());
     const BrowserWindowContent* browserWindowContent = windowContentEvent->getBrowserWindowContent();
     
