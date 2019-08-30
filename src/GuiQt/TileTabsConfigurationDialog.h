@@ -112,6 +112,8 @@ namespace caret {
         
         void manualConfigurationSetMenuFromCustomItemTriggered();
         
+        void userConfigurationSelectionListWidgetItemChanged();
+        
     protected:
         void focusGained();
         
@@ -237,6 +239,8 @@ namespace caret {
          * manager.
          */
         CaretPreferences* m_caretPreferences;
+        
+        QLabel* m_configurationPreviewLabel;
         
         friend class TileTabGridRowColumnWidgets;
         

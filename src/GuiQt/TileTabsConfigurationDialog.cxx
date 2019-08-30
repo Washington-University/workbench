@@ -30,6 +30,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
+#include <QPainter>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
@@ -202,7 +203,12 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
                                          "Load the selected User Configuration into the Configuration Type and Settings.");
     QObject::connect(m_loadConfigurationPushButton, SIGNAL(clicked()),
                      this, SLOT(loadIntoActiveConfigurationPushButtonClicked()));
-    
+
+    m_configurationPreviewLabel = new QLabel();
+    QGroupBox* previewGroupBox  = new QGroupBox("Configuration Preview");
+    QVBoxLayout* previewLayout  = new QVBoxLayout(previewGroupBox);
+    previewLayout->addWidget(m_configurationPreviewLabel);
+
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -210,8 +216,10 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
     layout->addWidget(m_addConfigurationPushButton);
     layout->addSpacing(10);
     layout->addWidget(m_replaceConfigurationPushButton);
-    layout->addSpacing(50);
+    layout->addSpacing(25);
     layout->addWidget(m_loadConfigurationPushButton);
+    layout->addSpacing(25);
+    layout->addWidget(previewGroupBox);
     layout->addStretch();
     
     return widget;
@@ -722,6 +730,8 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
 {
     m_userConfigurationSelectionListWidget = new WuQListWidget();
     m_userConfigurationSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
+    QObject::connect(m_userConfigurationSelectionListWidget, &QListWidget::itemSelectionChanged,
+                     this, &TileTabsConfigurationDialog::userConfigurationSelectionListWidgetItemChanged);
     
     QHBoxLayout* selectionLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutMargins(selectionLayout,
@@ -756,6 +766,94 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
                                    0);
     
     return configurationWidget;
+}
+
+void
+TileTabsConfigurationDialog::userConfigurationSelectionListWidgetItemChanged()
+{
+    QPixmap pixmap(101, 101);
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(m_configurationPreviewLabel,
+                                                                                                 pixmap);
+    QPen pen = painter->pen();
+    pen.setWidth(3);
+    pen.setColor(QColor(255, 0, 0));
+    
+    AString uuid = getSelectedUserTileTabsConfigurationUniqueIdentifier();
+    if ( ! uuid.isEmpty()) {
+        std::unique_ptr<TileTabsLayoutBaseConfiguration> config = m_caretPreferences->getCopyOfTileTabsUserConfigurationByUniqueIdentifier(uuid);
+        switch (config->getLayoutType()) {
+            case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+            {
+                TileTabsLayoutGridConfiguration* gridConfig = config->castToGridConfiguration();
+                CaretAssert(gridConfig);
+                const int32_t numModels(gridConfig->getNumberOfRows() * gridConfig->getNumberOfColumns());
+                std::vector<int32_t> rowHeights;
+                std::vector<int32_t> columnWidths;
+                gridConfig->getRowHeightsAndColumnWidthsForWindowSize(pixmap.width(),
+                                                                      pixmap.height(),
+                                                                      numModels,
+                                                                      TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID,
+                                                                      rowHeights,
+                                                                      columnWidths);
+                
+                const int32_t numRows = static_cast<int32_t>(rowHeights.size());
+                const int32_t numCols = static_cast<int32_t>(columnWidths.size());
+                int32_t topY = pixmap.height() - 1;
+                for (int32_t iRow = 0; iRow < numRows; iRow++) {
+                    int32_t colX(0);
+                    CaretAssertVectorIndex(rowHeights, iRow);
+                    const int32_t height = rowHeights[iRow];
+                    
+                    for (int32_t jCol = 0; jCol < numCols; jCol++) {
+                        CaretAssertVectorIndex(columnWidths, jCol);
+                        const float width = columnWidths[jCol];
+                        
+                        QPoint bottomLeft(colX, topY - height);
+                        QPoint bottomRight(colX + width, topY - height);
+                        QPoint topRight(colX + width, topY);
+                        QPoint topLeft(colX, topY);
+                        painter->drawLine(bottomLeft, bottomRight);
+                        painter->drawLine(bottomRight, topRight);
+                        painter->drawLine(topRight, topLeft);
+                        painter->drawLine(topLeft, bottomLeft);
+
+                        colX += width;
+                    }
+                    
+                    topY -= height;
+                    
+                }
+            }
+                break;
+            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+            {
+                TileTabsLayoutManualConfiguration* manConfig = config->castToManualConfiguration();
+                CaretAssert(manConfig);
+                const int32_t numTabs = manConfig->getNumberOfTabs();
+                for (int32_t i = 0; i < numTabs; i++) {
+                    TileTabsBrowserTabGeometry* geom = manConfig->getTabInfo(i);
+                    CaretAssert(geom);
+                    float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+                    geom->getBounds(minX, maxX, minY, maxY);
+                    
+                    QPointF bottomLeft(minX, minY);
+                    QPointF bottomRight(maxX, minY);
+                    QPointF topRight(maxX, maxY);
+                    QPointF topLeft(minX, maxY);
+                    painter->drawLine(bottomLeft, bottomRight);
+                    painter->drawLine(bottomRight, topRight);
+                    painter->drawLine(topRight, topLeft);
+                    painter->drawLine(topLeft, bottomLeft);
+                }
+            }
+                break;
+        }
+    }
+    
+    m_configurationPreviewLabel->setPixmap(pixmap);
+    
 }
 
 /**
@@ -1599,6 +1697,7 @@ TileTabsConfigurationDialog::updateDialog()
     
     updateGridStretchFactors();
     updateManualGeometryEditorWidget();
+    userConfigurationSelectionListWidgetItemChanged();
 }
 
 /**
