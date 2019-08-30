@@ -108,6 +108,10 @@ AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const Cift
     vector<int64_t> inDims = inputXML.getDimensions();
     if (direction == CiftiXML::ALONG_ROW)
     {
+        if (inDims[0] == 1)
+        {
+            CaretLogWarning("-cifti-reduce is being used for a length=1 reduction on file '" + ciftiIn->getFileName() + "'");
+        }
         vector<float> scratchInRow(inDims[0]);
         for (MultiDimIterator<int64_t> iter(vector<int64_t>(inDims.begin() + 1, inDims.end())); !iter.atEnd(); ++iter)
         {// + 1 to exclude row dimension, because getRow/setRow
@@ -122,6 +126,10 @@ AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const Cift
             ciftiOut->setRow(&result, *iter);//if reducing along row, length of output row is 1
         }
     } else {
+        if (inDims[direction] == 1)
+        {
+            CaretLogWarning("-cifti-reduce is being used for a length=1 reduction on file '" + ciftiIn->getFileName() + "'");
+        }
         vector<vector<float> > scratchInRows(inDims[direction], vector<float>(inDims[0]));
         vector<float> outRow(inDims[0]), reduceScratch(inDims[direction]);//reduction isn't along row, so out rows will be same length as in rows
         vector<int64_t> otherDims = inDims;

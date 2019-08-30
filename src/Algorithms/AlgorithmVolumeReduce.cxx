@@ -87,6 +87,10 @@ AlgorithmVolumeReduce::AlgorithmVolumeReduce(ProgressObject* myProgObj, const Vo
     vector<int64_t> myDims, newDims = volumeIn->getOriginalDimensions();
     newDims.resize(3, 1);//have only one subvolume
     volumeIn->getDimensions(myDims);
+    if (myDims[3] == 1)
+    {
+        CaretLogWarning("-volume-reduce is being used for a length=1 reduction on file '" + volumeIn->getFileName() + "'");
+    }
     volumeOut->reinitialize(newDims, volumeIn->getSform(), myDims[4], volumeIn->getType());
     if (volumeIn->getType() == SubvolumeAttributes::LABEL)
     {
