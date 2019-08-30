@@ -79,9 +79,6 @@ m_userInputMode(userInputMode),
 m_parentWidgetType(parentWidgetType),
 m_browserWindowIndex(browserWindowIndex)
 {
-
-    m_annotationBrowserTab = NULL;
-
     QString colonString;
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
@@ -164,37 +161,97 @@ AnnotationBoundsWidget::~AnnotationBoundsWidget()
 void
 AnnotationBoundsWidget::updateContent(std::vector<AnnotationBrowserTab*>& annotationBrowserTabs)
 {
-    m_annotationBrowserTab = NULL;
-    if (annotationBrowserTabs.size() == 1) {
-        CaretAssertVectorIndex(annotationBrowserTabs, 0);
-        m_annotationBrowserTab = annotationBrowserTabs[0];
+    bool haveMultipleMinXValuesFlag(false);
+    bool haveMultipleMaxXValuesFlag(false);
+    bool haveMultipleMinYValuesFlag(false);
+    bool haveMultipleMaxYValuesFlag(false);
+
+    float valueMinX(0.0);
+    float valueMaxX(0.0);
+    float valueMinY(0.0);
+    float valueMaxY(0.0);
+    
+    bool firstFlag(true);
+    
+    m_annotationBrowserTabs = annotationBrowserTabs;
+    for (auto abt : annotationBrowserTabs) {
+        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+        abt->getBounds2D(minX, maxX, minY, maxY);
+        
+        if (firstFlag) {
+            valueMinX = minX;
+            valueMaxX = maxX;
+            valueMinY = minY;
+            valueMaxY = maxY;
+            firstFlag = false;
+        }
+        else {
+            if (minX != valueMinX) {
+                haveMultipleMinXValuesFlag = true;
+            }
+            if (maxX != valueMaxX) {
+                haveMultipleMaxXValuesFlag = true;
+            }
+            if (minY != valueMinY) {
+                haveMultipleMinYValuesFlag = true;
+            }
+            if (maxY != valueMaxY) {
+                haveMultipleMaxYValuesFlag = true;
+            }
+            
+            valueMinX = std::min(valueMinX, minX);
+            valueMaxX = std::max(valueMaxX, maxX);
+            valueMinY = std::min(valueMinY, minY);
+            valueMaxY = std::max(valueMaxY, maxY);
+        }
     }
     
-    if (m_annotationBrowserTab != NULL) {
-        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
-        m_annotationBrowserTab->getBounds2D(minX, maxX, minY, maxY);
-        
-        m_xMinCoordSpinBox->blockSignals(true);
-        m_xMinCoordSpinBox->setValue(minX);
-        m_xMinCoordSpinBox->blockSignals(false);
-        
-        m_xMaxCoordSpinBox->blockSignals(true);
-        m_xMaxCoordSpinBox->setValue(maxX);
-        m_xMaxCoordSpinBox->blockSignals(false);
-
-        m_yMinCoordSpinBox->blockSignals(true);
-        m_yMinCoordSpinBox->setValue(minY);
-        m_yMinCoordSpinBox->blockSignals(false);
-
-        m_yMaxCoordSpinBox->blockSignals(true);
-        m_yMaxCoordSpinBox->setValue(maxY);
-        m_yMaxCoordSpinBox->blockSignals(false);
-
-        setEnabled(true);
+    /*
+     * If multiple annotations are selected,
+     * a plus sign (+) is appeneded to the value
+     */
+    
+    m_xMinCoordSpinBox->blockSignals(true);
+    m_xMinCoordSpinBox->setValue(valueMinX);
+    if (haveMultipleMinXValuesFlag) {
+        m_xMinCoordSpinBox->setSuffix("%+");
     }
     else {
-        setEnabled(false);
+        m_xMinCoordSpinBox->setSuffix("%");
     }
+    m_xMinCoordSpinBox->blockSignals(false);
+
+    m_xMaxCoordSpinBox->blockSignals(true);
+    m_xMaxCoordSpinBox->setValue(valueMaxX);
+    if (haveMultipleMaxXValuesFlag) {
+        m_xMaxCoordSpinBox->setSuffix("%+");
+    }
+    else {
+        m_xMaxCoordSpinBox->setSuffix("%");
+    }
+    m_xMaxCoordSpinBox->blockSignals(false);
+    
+    m_yMinCoordSpinBox->blockSignals(true);
+    m_yMinCoordSpinBox->setValue(valueMinY);
+    if (haveMultipleMinYValuesFlag) {
+        m_yMinCoordSpinBox->setSuffix("%+");
+    }
+    else {
+        m_yMinCoordSpinBox->setSuffix("%");
+    }
+    m_yMinCoordSpinBox->blockSignals(false);
+    
+    m_yMaxCoordSpinBox->blockSignals(true);
+    m_yMaxCoordSpinBox->setValue(valueMaxY);
+    if (haveMultipleMaxYValuesFlag) {
+        m_yMaxCoordSpinBox->setSuffix("%+");
+    }
+    else {
+        m_yMaxCoordSpinBox->setSuffix("%");
+    }
+    m_yMaxCoordSpinBox->blockSignals(false);
+
+    setEnabled( ! m_annotationBrowserTabs.empty());
 }
 
 /**
@@ -257,9 +314,10 @@ void
 AnnotationBoundsWidget::valueChangedHelper(QDoubleSpinBox* spinBox,
                         float value)
 {
-    if (m_annotationBrowserTab != NULL) {
+    if ( ! m_annotationBrowserTabs.empty()) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        std::vector<Annotation*> annotations { m_annotationBrowserTab };
+        std::vector<Annotation*> annotations(m_annotationBrowserTabs.begin(),
+                                             m_annotationBrowserTabs.end());
         
         if (spinBox == m_xMinCoordSpinBox) {
             undoCommand->setBoundsMinX2D(value, annotations);
@@ -292,8 +350,7 @@ AnnotationBoundsWidget::valueChangedHelper(QDoubleSpinBox* spinBox,
         /*
          * Update as annotation might adjust/limit coordinates
          */
-        std::vector<AnnotationBrowserTab*> annTabs { m_annotationBrowserTab };
-        updateContent(annTabs);
+        updateContent(m_annotationBrowserTabs);
         
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());

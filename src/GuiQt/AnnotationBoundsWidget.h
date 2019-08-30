@@ -85,8 +85,7 @@ namespace caret {
         
         QDoubleSpinBox* m_yMaxCoordSpinBox;
         
-        AnnotationBrowserTab* m_annotationBrowserTab;
-        
+        std::vector<AnnotationBrowserTab*> m_annotationBrowserTabs;
     };
     
 #ifdef __ANNOTATION_BOUNDS_WIDGET_DECLARE__

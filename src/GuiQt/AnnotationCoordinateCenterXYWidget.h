@@ -59,14 +59,17 @@ namespace caret {
         void updateContent(std::vector<Annotation*>& selectedAnnotations);
         
     private slots:
-        void valueChanged();
+        void xValueChanged(double value);
+        
+        void yValueChanged(double value);
         
     private:
         AnnotationCoordinateCenterXYWidget(const AnnotationCoordinateCenterXYWidget&);
 
         AnnotationCoordinateCenterXYWidget& operator=(const AnnotationCoordinateCenterXYWidget&);
         
-        AnnotationCoordinate* getCoordinate();
+        void processValueChanged(QDoubleSpinBox* spinBox,
+                                 const double value);
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -82,7 +85,7 @@ namespace caret {
         
         QDoubleSpinBox* m_yCoordSpinBox;
         
-        Annotation* m_annotation;
+        std::vector<Annotation*> m_annotations;
         
     };
     
