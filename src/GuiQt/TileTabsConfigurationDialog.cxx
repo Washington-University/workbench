@@ -204,7 +204,12 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
     QObject::connect(m_loadConfigurationPushButton, SIGNAL(clicked()),
                      this, SLOT(loadIntoActiveConfigurationPushButtonClicked()));
 
+    WuQtUtilities::matchWidgetWidths(m_addConfigurationPushButton,
+                                     m_replaceConfigurationPushButton,
+                                     m_loadConfigurationPushButton);
+    
     m_configurationPreviewLabel = new QLabel();
+    m_configurationPreviewLabel->setScaledContents(true); /* scale pixmap in label to fill space */
     QGroupBox* previewGroupBox  = new QGroupBox("Configuration Preview");
     QVBoxLayout* previewLayout  = new QVBoxLayout(previewGroupBox);
     previewLayout->addWidget(m_configurationPreviewLabel);
@@ -213,11 +218,11 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->addSpacing(50);
-    layout->addWidget(m_addConfigurationPushButton);
+    layout->addWidget(m_addConfigurationPushButton, 0, Qt::AlignHCenter);
     layout->addSpacing(10);
-    layout->addWidget(m_replaceConfigurationPushButton);
+    layout->addWidget(m_replaceConfigurationPushButton, 0, Qt::AlignHCenter);
     layout->addSpacing(25);
-    layout->addWidget(m_loadConfigurationPushButton);
+    layout->addWidget(m_loadConfigurationPushButton, 0, Qt::AlignHCenter);
     layout->addSpacing(25);
     layout->addWidget(previewGroupBox);
     layout->addStretch();
@@ -758,8 +763,13 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     buttonsLayout->addWidget(m_renameConfigurationPushButton, 0, 1, Qt::AlignHCenter);
     buttonsLayout->addWidget(m_deleteConfigurationPushButton, 1, 1, Qt::AlignHCenter);
     
+//    QTabBar* tabBar = new QTabBar();
+//    tabBar->addTab("Template");
+//    tabBar->addTab("User");
     QGroupBox* configurationWidget = new QGroupBox("User Configurations");
     QVBoxLayout* configurationLayout = new QVBoxLayout(configurationWidget);
+//    configurationLayout->addWidget(tabBar,
+//                                   0);
     configurationLayout->addWidget(m_userConfigurationSelectionListWidget,
                                    100);
     configurationLayout->addLayout(buttonsLayout,
@@ -768,15 +778,24 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     return configurationWidget;
 }
 
+/**
+ * Called when a configuration is highlighted and shows an outline of the layout in the
+ * configuration preview label
+ */
 void
 TileTabsConfigurationDialog::userConfigurationSelectionListWidgetItemChanged()
 {
-    QPixmap pixmap(101, 101);
+    QPixmap pixmap(106, 106);
     QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(m_configurationPreviewLabel,
-                                                                                                 pixmap);
+                                                                                            pixmap);
+    painter->translate(3, 3);
+
     QPen pen = painter->pen();
     pen.setWidth(3);
-    pen.setColor(QColor(255, 0, 0));
+    painter->setPen(pen);
+    painter->drawRect(0, 0, 100, 100);
+    pen.setWidth(1);
+    painter->setPen(pen);
     
     AString uuid = getSelectedUserTileTabsConfigurationUniqueIdentifier();
     if ( ! uuid.isEmpty()) {
@@ -791,8 +810,10 @@ TileTabsConfigurationDialog::userConfigurationSelectionListWidgetItemChanged()
                 const int32_t numModels(gridConfig->getNumberOfRows() * gridConfig->getNumberOfColumns());
                 std::vector<int32_t> rowHeights;
                 std::vector<int32_t> columnWidths;
-                gridConfig->getRowHeightsAndColumnWidthsForWindowSize(pixmap.width(),
-                                                                      pixmap.height(),
+                const int32_t windowWidth(100);
+                const int32_t windowHeight(100);
+                gridConfig->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
+                                                                      windowHeight,
                                                                       numModels,
                                                                       TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID,
                                                                       rowHeights,
@@ -800,7 +821,7 @@ TileTabsConfigurationDialog::userConfigurationSelectionListWidgetItemChanged()
                 
                 const int32_t numRows = static_cast<int32_t>(rowHeights.size());
                 const int32_t numCols = static_cast<int32_t>(columnWidths.size());
-                int32_t topY = pixmap.height() - 1;
+                int32_t topY(windowHeight);
                 for (int32_t iRow = 0; iRow < numRows; iRow++) {
                     int32_t colX(0);
                     CaretAssertVectorIndex(rowHeights, iRow);
@@ -808,11 +829,11 @@ TileTabsConfigurationDialog::userConfigurationSelectionListWidgetItemChanged()
                     
                     for (int32_t jCol = 0; jCol < numCols; jCol++) {
                         CaretAssertVectorIndex(columnWidths, jCol);
-                        const float width = columnWidths[jCol];
+                        const int width = columnWidths[jCol];
                         
                         QPoint bottomLeft(colX, topY - height);
-                        QPoint bottomRight(colX + width, topY - height);
-                        QPoint topRight(colX + width, topY);
+                        QPoint bottomRight(colX + width - 1, topY - height);
+                        QPoint topRight(colX + width - 1, topY);
                         QPoint topLeft(colX, topY);
                         painter->drawLine(bottomLeft, bottomRight);
                         painter->drawLine(bottomRight, topRight);
