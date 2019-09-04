@@ -31,7 +31,7 @@
 #include "AnnotationMenuArrange.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateOneWindow.cxx"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "WuQtUtilities.h"

@@ -124,33 +124,35 @@ m_parentOpenGLWidget(parentOpenGLWidget)
     sendToBackAction->setEnabled(oneTabSelectedFlag);
     sendBackwardAction->setEnabled(oneTabSelectedFlag);
     
-    addSeparator();
-    
-    /*
-     * Group annotations
-     */
-    QAction* groupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::GROUP),
-                                     this, SLOT(applyGroupingGroup()));
-    groupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
-                                                                   AnnotationGroupingModeEnum::GROUP));
-    
-    /*
-     * Ungroup annotations
-     */
-    QAction* ungroupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::UNGROUP),
-                                     this, SLOT(applyGroupingUngroup()));
-    ungroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
-                                                                     AnnotationGroupingModeEnum::UNGROUP));
-    
-    /*
-     * Regroup annotations
-     */
-    QAction* regroupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::REGROUP),
-                                       this, SLOT(applyGroupingRegroup()));
-    regroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
-                                                                     AnnotationGroupingModeEnum::REGROUP));
+    const bool showGroupingOptionsFlag(false);
+    if (showGroupingOptionsFlag) {
+        addSeparator();
+        
+        /*
+         * Group annotations
+         */
+        QAction* groupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::GROUP),
+                                         this, SLOT(applyGroupingGroup()));
+        groupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
+                                                                       AnnotationGroupingModeEnum::GROUP));
+        
+        /*
+         * Ungroup annotations
+         */
+        QAction* ungroupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::UNGROUP),
+                                           this, SLOT(applyGroupingUngroup()));
+        ungroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
+                                                                         AnnotationGroupingModeEnum::UNGROUP));
+        
+        /*
+         * Regroup annotations
+         */
+        QAction* regroupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::REGROUP),
+                                           this, SLOT(applyGroupingRegroup()));
+        regroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
+                                                                         AnnotationGroupingModeEnum::REGROUP));
+    }
 
-    
     addSeparator();
     
     /*

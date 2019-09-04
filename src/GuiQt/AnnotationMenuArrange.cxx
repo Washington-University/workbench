@@ -177,6 +177,17 @@ AnnotationMenuArrange::addDistributeSelections()
 void
 AnnotationMenuArrange::addGroupingSelections()
 {
+    switch (m_menuMode) {
+        case MenuMode::ANNOTATIONS:
+            break;
+        case MenuMode::TILE_TABS:
+            /*
+             * No grouping for tile tabs
+             */
+            return;
+            break;
+    }
+    
     if ( ! actions().isEmpty()) {
         addSeparator();
     }
@@ -277,13 +288,19 @@ AnnotationMenuArrange::menuAboutToShow()
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     
-    m_groupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
-                                                          AnnotationGroupingModeEnum::GROUP));
-    m_regroupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
-                                                            AnnotationGroupingModeEnum::REGROUP));
-    m_ungroupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
-                                                            AnnotationGroupingModeEnum::UNGROUP));
-    
+    if (m_groupAction != NULL) {
+        m_groupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
+                                                              AnnotationGroupingModeEnum::GROUP));
+    }
+    if (m_regroupAction != NULL) {
+        m_regroupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
+                                                                AnnotationGroupingModeEnum::REGROUP));
+    }
+    if (m_ungroupAction != NULL) {
+        m_ungroupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
+                                                                AnnotationGroupingModeEnum::UNGROUP));
+    }
+
     switch (m_menuMode) {
         case MenuMode::ANNOTATIONS:
             break;
