@@ -29,7 +29,9 @@
 #include "AnnotationAlignmentEnum.h"
 #include "AnnotationDistributeEnum.h"
 #include "AnnotationGroupingModeEnum.h"
+#include "EventBrowserWindowTileTabOperation.h"
 #include "UserInputModeEnum.h"
+#include "UserInputModeTileTabsManualLayoutContextMenu.h"
 
 namespace caret {
 
@@ -53,6 +55,11 @@ namespace caret {
         void menuAboutToShow();
         
     private:
+        enum class MenuMode {
+            ANNOTATIONS,
+            TILE_TABS
+        };
+        
         void addAlignmentSelections();
         
         void addDistributeSelections();
@@ -60,6 +67,8 @@ namespace caret {
         void addGroupingSelections();
         
         void addTileTabsSelections();
+        
+        void addOrderingSelections();
         
         void applyAlignment(const AnnotationAlignmentEnum::Enum alignment);
         
@@ -93,11 +102,17 @@ namespace caret {
         
         bool processTileTabsMenu(QAction* actionSelected);
         
+        bool processOrderingMenuItem(QAction* actionSelected);
+        
         void processExpandTabMenuItem();
+        
+        void processWindowTileTabOperation(const EventBrowserWindowTileTabOperation::Operation operation);
         
         const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
+        
+        MenuMode m_menuMode = MenuMode::ANNOTATIONS;
         
         QAction* m_groupAction = NULL;
         
@@ -106,6 +121,14 @@ namespace caret {
         QAction* m_ungroupAction = NULL;
         
         QAction* m_tileTabsExpandToFillAction = NULL;
+        
+        QAction* m_orderingBringToFrontAction = NULL;
+        
+        QAction* m_orderingBringForwardAction = NULL;
+        
+        QAction* m_orderingSendToBackAction = NULL;
+        
+        QAction* m_orderingSendBackwardAction = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

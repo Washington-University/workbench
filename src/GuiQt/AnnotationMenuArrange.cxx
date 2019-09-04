@@ -74,13 +74,29 @@ AnnotationMenuArrange::AnnotationMenuArrange(const UserInputModeEnum::Enum userI
 m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
+    switch (m_userInputMode) {
+        case UserInputModeEnum::ANNOTATIONS:
+            m_menuMode = MenuMode::ANNOTATIONS;
+            break;
+        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+            m_menuMode = MenuMode::TILE_TABS;
+            break;
+        case UserInputModeEnum::BORDERS:
+        case UserInputModeEnum::FOCI:
+        case UserInputModeEnum::IMAGE:
+        case UserInputModeEnum::INVALID:
+        case UserInputModeEnum::VIEW:
+        case UserInputModeEnum::VOLUME_EDIT:
+            CaretAssert(0);
+            return;
+            break;
+    }
+
     addAlignmentSelections();
-    
-    addSeparator();
     
     addDistributeSelections();
 
-    addSeparator();
+    addOrderingSelections();
     
     addGroupingSelections();
     
@@ -105,6 +121,10 @@ AnnotationMenuArrange::~AnnotationMenuArrange()
 void
 AnnotationMenuArrange::addAlignmentSelections()
 {
+    if ( ! actions().isEmpty()) {
+        addSeparator();
+    }
+    
     std::vector<AnnotationAlignmentEnum::Enum> alignments;
     AnnotationAlignmentEnum::getAllEnums(alignments);
     
@@ -129,6 +149,10 @@ AnnotationMenuArrange::addAlignmentSelections()
 void
 AnnotationMenuArrange::addDistributeSelections()
 {
+    if ( ! actions().isEmpty()) {
+        addSeparator();
+    }
+    
     std::vector<AnnotationDistributeEnum::Enum> distributes;
     AnnotationDistributeEnum::getAllEnums(distributes);
     
@@ -153,6 +177,10 @@ AnnotationMenuArrange::addDistributeSelections()
 void
 AnnotationMenuArrange::addGroupingSelections()
 {
+    if ( ! actions().isEmpty()) {
+        addSeparator();
+    }
+    
     m_groupAction = NULL;
     m_regroupAction  = NULL;
     m_ungroupAction  = NULL;
@@ -197,36 +225,48 @@ AnnotationMenuArrange::addGroupingSelections()
 void
 AnnotationMenuArrange::addTileTabsSelections()
 {
-    bool addMenuFlag(false);
-    switch (m_userInputMode) {
-        case UserInputModeEnum::ANNOTATIONS:
+    switch (m_menuMode) {
+        case MenuMode::ANNOTATIONS:
             break;
-        case UserInputModeEnum::BORDERS:
-            break;
-        case UserInputModeEnum::FOCI:
-            break;
-        case UserInputModeEnum::IMAGE:
-            break;
-        case UserInputModeEnum::INVALID:
-            break;
-        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
-            addMenuFlag = true;
-            break;
-        case UserInputModeEnum::VIEW:
-            break;
-        case UserInputModeEnum::VOLUME_EDIT:
+        case MenuMode::TILE_TABS:
+        {
+            if ( ! actions().isEmpty()) {
+                addSeparator();
+            }
+            
+            m_tileTabsExpandToFillAction = addAction("Expand Tab to Fill Empty Space");
+        }
             break;
     }
-    
-    if ( ! addMenuFlag) {
-        return;
-    }
-    
-    addSeparator();
-    
-    m_tileTabsExpandToFillAction = addAction("Expand Tab to Fill Empty Space");
-
 }
+
+/**
+ * Add ordering for tile tabs mode
+ */
+void
+AnnotationMenuArrange::addOrderingSelections()
+{
+    switch (m_menuMode) {
+        case MenuMode::ANNOTATIONS:
+            break;
+        case MenuMode::TILE_TABS:
+        {
+            if ( ! actions().isEmpty()) {
+                addSeparator();
+            }
+            
+            m_orderingBringToFrontAction = addAction("Bring to Front");
+            
+            m_orderingBringForwardAction = addAction("Bring Forward");
+            
+            m_orderingSendToBackAction = addAction("Send to Back");
+            
+            m_orderingSendBackwardAction = addAction("Send Backward");
+        }
+            break;
+    }
+}
+
 
 /*
  * Gets called when the menu is about to show
@@ -244,19 +284,39 @@ AnnotationMenuArrange::menuAboutToShow()
     m_ungroupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
                                                             AnnotationGroupingModeEnum::UNGROUP));
     
-    if (m_tileTabsExpandToFillAction != NULL) {
-        std::unique_ptr<EventBrowserWindowContent> windowEvent = EventBrowserWindowContent::getWindowContent(m_browserWindowIndex);
-        EventManager::get()->sendEvent(windowEvent->getPointer());
-        BrowserWindowContent* bwc = windowEvent->getBrowserWindowContent();
-        CaretAssert(bwc);
-        int32_t numSelected = 0;
-        if (bwc->isManualModeTileTabsConfigurationEnabled()) {
-            numSelected = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex).size();
+    switch (m_menuMode) {
+        case MenuMode::ANNOTATIONS:
+            break;
+        case MenuMode::TILE_TABS:
+        {
+            std::unique_ptr<EventBrowserWindowContent> windowEvent = EventBrowserWindowContent::getWindowContent(m_browserWindowIndex);
+            EventManager::get()->sendEvent(windowEvent->getPointer());
+            BrowserWindowContent* bwc = windowEvent->getBrowserWindowContent();
+            CaretAssert(bwc);
+            int32_t numSelected = 0;
+            if (bwc->isManualModeTileTabsConfigurationEnabled()) {
+                numSelected = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex).size();
+            }
+            const bool oneSelectedFlag(numSelected == 1);
+            
+            CaretAssert(m_tileTabsExpandToFillAction);
+            m_tileTabsExpandToFillAction->setEnabled(oneSelectedFlag);
+            
+            CaretAssert(m_orderingSendToBackAction);
+            m_orderingSendToBackAction->setEnabled(oneSelectedFlag);
+            
+            CaretAssert(m_orderingSendBackwardAction);
+            m_orderingSendBackwardAction->setEnabled(oneSelectedFlag);
+            
+            CaretAssert(m_orderingBringForwardAction);
+            m_orderingBringForwardAction->setEnabled(oneSelectedFlag);
+            
+            CaretAssert(m_orderingBringToFrontAction);
+            m_orderingBringToFrontAction->setEnabled(oneSelectedFlag);
         }
-        m_tileTabsExpandToFillAction->setEnabled(numSelected == 1);
+            break;
     }
 }
-
 
 /**
  * Gets called when the user selects a menu item.
@@ -291,6 +351,9 @@ AnnotationMenuArrange::menuActionTriggered(QAction* action)
     else if (processTileTabsMenu(action)) {
         /* If true returned, a tile tabs menu item was selected */
     }
+    else if (processOrderingMenuItem(action)) {
+        /* If true returned, an ordering menu item was selected */
+    }
     else {
         const AString msg("Unrecognized Enum name in Annotation Align Menu \""
                           + enumName
@@ -323,6 +386,104 @@ AnnotationMenuArrange::processTileTabsMenu(QAction* actionSelected)
     }
     
     return menuSelectedFlag;
+}
+
+/**
+ * Process the action if it is on the Tile Tabs Menu
+ *
+ * @param actionSelected
+ *     Action selected by user
+ * @return
+ *     True if the action was on this menu, else false.
+ */
+bool
+AnnotationMenuArrange::processOrderingMenuItem(QAction* actionSelected)
+{
+    bool menuSelectedFlag(false);
+    
+    switch (m_menuMode) {
+        case MenuMode::ANNOTATIONS:
+            break;
+        case MenuMode::TILE_TABS:
+        {
+            CaretAssert(m_orderingBringToFrontAction);
+            CaretAssert(m_orderingBringForwardAction);
+            CaretAssert(m_orderingSendBackwardAction);
+            CaretAssert(m_orderingSendToBackAction);
+            
+            if (actionSelected == m_orderingBringToFrontAction) {
+                processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_TO_FRONT);
+                menuSelectedFlag = true;
+            }
+            else if (actionSelected == m_orderingBringForwardAction) {
+                processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_FORWARD);
+                menuSelectedFlag = true;
+            }
+            else if (actionSelected == m_orderingSendBackwardAction) {
+                processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD);
+                menuSelectedFlag = true;
+            }
+            else if (actionSelected == m_orderingSendToBackAction) {
+                processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK);
+                menuSelectedFlag = true;
+            }
+        }
+            break;
+    }
+    
+    return menuSelectedFlag;
+}
+
+/**
+ * Called to process a tile tab operation
+ *
+ * @param operation
+ *     The operation
+ */
+void
+AnnotationMenuArrange::processWindowTileTabOperation(const EventBrowserWindowTileTabOperation::Operation operation)
+{
+    std::vector<BrowserTabContent*> emptyBrowserTabs;
+
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    CaretAssert(bbw);
+    BrowserWindowContent* bwc = bbw->getBrowerWindowContent();
+    CaretAssert(bwc);
+    
+    int32_t tabIndex(-1);
+    if (bwc->isManualModeTileTabsConfigurationEnabled()) {
+        std::vector<Annotation*> selectedAnnotations = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+        if (selectedAnnotations.size() == 1) {
+            CaretAssertVectorIndex(selectedAnnotations, 0);
+            Annotation* ann = selectedAnnotations[0];
+            CaretAssert(ann);
+            AnnotationBrowserTab* abt = dynamic_cast<AnnotationBrowserTab*>(ann);
+            if (abt != NULL) {
+                tabIndex = abt->getTabIndex();
+            }
+            else {
+                CaretLogSevere("Program Error: Selected annotation is not a browser tab");
+            }
+        }
+        else {
+            CaretLogSevere("Program Error: Only one tab should be selected for an ordering operation");
+            return;
+        }
+    }
+
+    int windowViewport[4] { 0, 0, 10, 10 };
+    const int32_t mouseX(50);
+    const int32_t mouseY(50);
+    EventBrowserWindowTileTabOperation tileTabOperation(operation,
+                                                        bbw,
+                                                        m_browserWindowIndex,
+                                                        tabIndex,
+                                                        windowViewport,
+                                                        mouseX,
+                                                        mouseY,
+                                                        emptyBrowserTabs);
+    EventManager::get()->sendEvent(tileTabOperation.getPointer());
 }
 
 void
@@ -447,6 +608,7 @@ AnnotationMenuArrange::applyGrouping(const AnnotationGroupingModeEnum::Enum grou
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
 
 /**
  * Create an alignment pixmap.
