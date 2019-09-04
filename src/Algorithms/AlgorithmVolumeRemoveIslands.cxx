@@ -70,7 +70,7 @@ AlgorithmVolumeRemoveIslands::AlgorithmVolumeRemoveIslands(ProgressObject* myPro
                                   0, 0, 1 };
     vector<int64_t> dims;
     myVolIn->getDimensions(dims);
-    myVolOut->reinitialize(myVolIn->getOriginalDimensions(), myVolIn->getSform(), myVolIn->getNumberOfComponents(), myVolIn->getType());
+    myVolOut->reinitialize(myVolIn->getOriginalDimensions(), myVolIn->getSform(), myVolIn->getNumberOfComponents(), myVolIn->getType(), myVolIn->m_header);
     for (int s = 0; s < dims[3]; ++s)
     {
         myVolOut->setMapName(s, myVolIn->getMapName(s));

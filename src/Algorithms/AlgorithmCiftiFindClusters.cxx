@@ -90,6 +90,7 @@ OperationParameters* AlgorithmCiftiFindClusters::getParameters()
     ret->setHelpText(
         AString("Outputs a cifti file with nonzero integers for all brainordinates within a large enough cluster, and zeros elsewhere.  ") +
         "The integers denote cluster membership (by default, first cluster found will use value 1, second cluster 2, etc).  " +
+        "Cluster values are not reused across maps of the output, but instead keep counting up.  " +
         "The input cifti file must have a brain models mapping on the chosen dimension, columns for .dtseries, and either for .dconn.  " +
         "The ROI should have a brain models mapping along columns, exactly matching the mapping of the chosen direction in the input file.  " +
         "Data outside the ROI is ignored."

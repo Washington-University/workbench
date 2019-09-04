@@ -140,7 +140,7 @@ AlgorithmVolumeParcelSmoothing::AlgorithmVolumeParcelSmoothing(ProgressObject* m
     }
     if (subvolNum == -1)
     {
-        myOutVol->reinitialize(myVol->getOriginalDimensions(), myVol->getSform(), myDims[4], myVol->getType());
+        myOutVol->reinitialize(myVol->getOriginalDimensions(), myVol->getSform(), myDims[4], myVol->getType(), myVol->m_header);
         myOutVol->setValueAllVoxels(0.0f);
         for (int whichList = 0; whichList < numLabels; ++whichList)
         {
@@ -204,7 +204,7 @@ AlgorithmVolumeParcelSmoothing::AlgorithmVolumeParcelSmoothing(ProgressObject* m
     } else {
         vector<int64_t> newDims = myVol->getOriginalDimensions();
         newDims.resize(3);//discard non-spatial extra dimensions
-        myOutVol->reinitialize(newDims, myVol->getSform(), myDims[4], myVol->getType());//keep components
+        myOutVol->reinitialize(newDims, myVol->getSform(), myDims[4], myVol->getType(), myVol->m_header);//keep components
         myOutVol->setValueAllVoxels(0.0f);
         for (int whichList = 0; whichList < numLabels; ++whichList)
         {

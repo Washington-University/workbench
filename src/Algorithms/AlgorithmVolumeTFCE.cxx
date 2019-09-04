@@ -125,7 +125,7 @@ AlgorithmVolumeTFCE::AlgorithmVolumeTFCE(ProgressObject* myProgObj, const Volume
     if (myRoi != NULL) roiFrame = myRoi->getFrame();
     if (subvolNum == -1)
     {
-        myVolOut->reinitialize(myVol->getOriginalDimensions(), myVol->getSform(), dims[4]);
+        myVolOut->reinitialize(myVol->getOriginalDimensions(), myVol->getSform(), dims[4], myVol->getType(), myVol->m_header);
         const VolumeFile* toUse = myVol;
         VolumeFile smoothed;
         if (presmooth > 0.0f)
@@ -149,7 +149,7 @@ AlgorithmVolumeTFCE::AlgorithmVolumeTFCE(ProgressObject* myProgObj, const Volume
     } else {
         vector<int64_t> outDims = dims;
         outDims.resize(3);
-        myVolOut->reinitialize(outDims, myVol->getSform(), dims[4]);
+        myVolOut->reinitialize(outDims, myVol->getSform(), dims[4], myVol->getType(), myVol->m_header);
         const VolumeFile* toUse = myVol;
         int useFrame = subvolNum;
         VolumeFile smoothed;

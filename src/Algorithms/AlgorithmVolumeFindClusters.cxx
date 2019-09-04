@@ -75,6 +75,7 @@ OperationParameters* AlgorithmVolumeFindClusters::getParameters()
     ret->setHelpText(
         AString("Outputs a volume with nonzero integers for all voxels within a large enough cluster, and zeros elsewhere.  ") +
         "The integers denote cluster membership (by default, first cluster found will use value 1, second cluster 2, etc).  " +
+        "Cluster values are not reused across frames of the output, but instead keep counting up.  " +
         "By default, values greater than <value-threshold> are considered to be in a cluster, use -less-than to test for values less than the threshold.  " +
         "To apply this as a mask to the data, or to do more complicated thresholding, see -volume-math."
     );
@@ -307,7 +308,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
     int markVal = startVal;
     if (subvolNum == -1)
     {
-        volOut->reinitialize(volIn->getOriginalDimensions(), volIn->getSform(), dims[4]);
+        volOut->reinitialize(volIn->getOriginalDimensions(), volIn->getSform(), dims[4], SubvolumeAttributes::ANATOMY, volIn->m_header);
         volOut->setValueAllVoxels(0.0f);
         for (int64_t c = 0; c < dims[4]; ++c)
         {
@@ -320,7 +321,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
     } else {
         vector<int64_t> outDims = volIn->getOriginalDimensions();
         outDims.resize(3);
-        volOut->reinitialize(outDims, volIn->getSform(), dims[4]);
+        volOut->reinitialize(outDims, volIn->getSform(), dims[4], SubvolumeAttributes::ANATOMY, volIn->m_header);
         volOut->setValueAllVoxels(0.0f);
         for (int64_t c = 0; c < dims[4]; ++c)
         {

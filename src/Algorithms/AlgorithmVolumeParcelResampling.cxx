@@ -228,11 +228,11 @@ void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, const 
     inVol->getDimensions(myDims);
     if (subvolNum == -1)
     {
-        outVol->reinitialize(inVol->getOriginalDimensions(), inVol->getSform(), myDims[4], inVol->getType());
+        outVol->reinitialize(inVol->getOriginalDimensions(), inVol->getSform(), myDims[4], inVol->getType(), inVol->m_header);
     } else {
         vector<int64_t> newDims = inVol->getOriginalDimensions();
         newDims.resize(3);//discard nonspatial dimentions
-        outVol->reinitialize(newDims, inVol->getSform(), myDims[4], inVol->getType());
+        outVol->reinitialize(newDims, inVol->getSform(), myDims[4], inVol->getType(), inVol->m_header);
     }
     outVol->setValueAllVoxels(0.0f);
     const GiftiLabelTable* curTable = curLabel->getMapLabelTable(0);
@@ -475,11 +475,11 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
     inVol->getDimensions(myDims);
     if (subvolNum == -1)
     {
-        outVol->reinitialize(inVol->getOriginalDimensions(), inVol->getSform(), myDims[4], inVol->getType());
+        outVol->reinitialize(inVol->getOriginalDimensions(), inVol->getSform(), myDims[4], inVol->getType(), inVol->m_header);
     } else {
         vector<int64_t> newDims = inVol->getOriginalDimensions();
         newDims.resize(3);//discard nonspatial dimentions
-        outVol->reinitialize(newDims, inVol->getSform(), myDims[4], inVol->getType());
+        outVol->reinitialize(newDims, inVol->getSform(), myDims[4], inVol->getType(), inVol->m_header);
     }
     outVol->setValueAllVoxels(0.0f);
     const GiftiLabelTable* curTable = curLabel->getMapLabelTable(0);
