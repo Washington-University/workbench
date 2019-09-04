@@ -135,6 +135,12 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 false));
 
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
+                                                "DEVELOPER_FLAG_BALSA",
+                                                "Visit BALSA...",
+                                                CheckableEnum::NO,
+                                                false));
+    
     std::vector<DeveloperFlagsEnum> notCheckableItems;
 
     enumData.insert(enumData.end(),

@@ -197,7 +197,7 @@ IF (WORKBENCH_USE_QT5)
         SET(WB_QT_OPENGL_MODULE "OpenGL")
     ENDIF ()
 
-    FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Concurrent Core Gui Network ${WB_QT_OPENGL_MODULE} PrintSupport Test Widgets Xml)
+    FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Concurrent Core Gui Network ${WB_QT_OPENGL_MODULE} PrintSupport Test WebEngine WebEngineCore WebEngineWidgets Widgets Xml)
     IF (WORKBENCH_USE_QT5_QOPENGL_WIDGET)
         #
         # QGLWidget is deprecated in Qt 5 and is replaced with QOpenGLWidget

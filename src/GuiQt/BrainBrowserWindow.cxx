@@ -34,6 +34,7 @@
 #include <QToolButton>
 #include <QUrl>
 #include <QUuid>
+#include <QWebEngineView>
 
 #define __BRAIN_BROWSER_WINDOW_DECLARE__
 #include "BrainBrowserWindow.h"
@@ -1769,6 +1770,20 @@ BrainBrowserWindow::developerMenuFlagTriggered(QAction* action)
          *     someFunction();
          * }
          */
+        if (enumValue == DeveloperFlagsEnum::DEVELOPER_FLAG_BALSA) {
+            static WuQDialogModal* balsaDialog(NULL);
+            if (balsaDialog == NULL) {
+                QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+                balsaDialog = new WuQDialogModal("BALSA",
+                                                 this);
+                QWebEngineView* webView = new QWebEngineView();
+                balsaDialog->setCentralWidget(webView, WuQDialogModal::SCROLL_AREA_NEVER);
+                webView->setUrl(QUrl(QStringLiteral("https://balsa.wustl.edu")));
+                webView->resize(600, 800);
+            }
+            CaretAssert(balsaDialog);
+            balsaDialog->show();
+        }
         
         /*
          * Update graphics and GUI

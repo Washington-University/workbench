@@ -109,6 +109,9 @@ if(Qt5_FOUND)
         ${QT5_OPENGL_LIB_NAME}
         Qt5::PrintSupport
         Qt5::Test
+	Qt5::WebEngine
+	Qt5::WebEngineCore
+	Qt5::WebEngineWidgets
         Qt5::Widgets
         Qt5::Xml)
 endif()
