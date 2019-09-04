@@ -37,6 +37,7 @@ class QPushButton;
 class QRadioButton;
 class QSpinBox;
 class QStackedWidget;
+class QTabWidget;
 class QToolButton;
 
 namespace caret {
@@ -86,6 +87,8 @@ namespace caret {
         
         void renameUserConfigurationButtonClicked();
         
+        void showConfigurationXmlPushButtonClicked();
+        
         void gridConfigurationNumberOfRowsOrColumnsChanged();
         
         void gridConfigurationStretchFactorWasChanged();
@@ -114,26 +117,30 @@ namespace caret {
         
         void userConfigurationSelectionListWidgetItemChanged();
         
+        void templateConfigurationSelectionListWidgetItemChanged();
+        
+        void configurationSourceTabWidgetClicked(int index);
+        
     protected:
         void focusGained();
         
         virtual void helpButtonClicked() override;
         
     private:
+        enum ConfigurationSourceTypeEnum {
+            TEMPLATE,
+            USER
+        };
+        
         // ADD_NEW_MEMBERS_HERE
         
         QWidget* createCopyLoadPushButtonsWidget();
         
         QWidget* createWorkbenchWindowWidget();
         
-        void selectTileTabConfigurationByUniqueID(const AString& uniqueID);
-        
         TileTabsLayoutGridConfiguration* getCustomTileTabsGridConfiguration();
         
-        AString getSelectedUserTileTabsConfigurationUniqueIdentifier();
-        
-        bool getSelectedUserConfigurationNameAndUniqueID(AString& nameOut,
-                                                         AString& uniqueIDOut) const;
+        AString getSelectedUserTileTabsConfigurationUniqueIdentifier() const;
         
         QWidget* createUserConfigurationSelectionWidget();
         
@@ -168,7 +175,11 @@ namespace caret {
         
         void updateCustomOptionsWidget();
         
-        void readConfigurationsFromPreferences();
+        void readUserConfigurationsFromPreferences();
+        
+        void updateUserConfigurationListWidget();
+        
+        void updateTemplateConfigurationListWidget();
         
         void manualConfigurationSetMenuFromGridConfiguration(TileTabsLayoutGridConfiguration* gridConfiguration);
         
@@ -183,6 +194,20 @@ namespace caret {
         const BrainOpenGLViewportContent* getViewportContentForTab(const int32_t tabIndex) const;
 
         TileTabsLayoutManualConfiguration* createManualConfigurationFromCurrentTabs() const;
+        
+        std::unique_ptr<TileTabsLayoutBaseConfiguration> getSelectedUserConfiguration() const;
+        
+        std::unique_ptr<TileTabsLayoutBaseConfiguration> getSelectedTemplateConfiguration() const;
+        
+        ConfigurationSourceTypeEnum getSelectedConfigurationSourceType() const;
+        
+        void loadConfigurationPreviewLabel(TileTabsLayoutBaseConfiguration* configuration);
+        
+        void updatePushButtons(const ConfigurationSourceTypeEnum sourceType);
+        
+        void loadTemplateLayoutConfigurations();
+        
+        void loadTemplateLayoutConfigurationFromXML(const QString& xml);
         
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
@@ -200,13 +225,23 @@ namespace caret {
         
         QPushButton* m_renameConfigurationPushButton;
         
+        QPushButton* m_showConfigurationXmlPushButton;
+        
         QPushButton* m_addConfigurationPushButton;
         
         QPushButton* m_replaceConfigurationPushButton;
         
         QPushButton* m_loadConfigurationPushButton;
         
+        QTabWidget* m_configurationSourceTabWidget;
+        
+        int32_t m_configurationSourceTemplateTabIndex;
+        
+        int32_t m_configurationSourceUserTabIndex;
+        
         WuQListWidget* m_userConfigurationSelectionListWidget;
+        
+        WuQListWidget* m_templateConfigurationSelectionListWidget;
         
         QSpinBox* m_numberOfGridRowsSpinBox;
         
@@ -230,8 +265,10 @@ namespace caret {
         
         std::vector<TileTabsManualTabGeometryWidget*> m_manualGeometryEditorWidgets;
         
+        std::vector<std::unique_ptr<TileTabsLayoutBaseConfiguration>> m_templateLayoutConfigurations;
+        
         /** Blocks reading of preferences since that may invalidate data pointers */
-        bool m_blockReadConfigurationsFromPreferences;
+        bool m_blockReadUserConfigurationsFromPreferences;
         
         /**
          * Keep a pointer to preferences but DO NOT delete it

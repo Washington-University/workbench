@@ -76,6 +76,7 @@
 #include "WuQDataEntryDialog.h"
 #include "WuQListWidget.h"
 #include "WuQMessageBox.h"
+#include "WuQTextEditorDialog.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -98,7 +99,7 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
 : WuQDialogNonModal("Tile Tabs Configurations",
                     parentBrainBrowserWindow)
 {
-    m_blockReadConfigurationsFromPreferences = false;
+    m_blockReadUserConfigurationsFromPreferences = false;
     m_caretPreferences = SessionManager::get()->getCaretPreferences();
     
     QWidget* workbenchWindowWidget = createWorkbenchWindowWidget();
@@ -300,7 +301,7 @@ TileTabsConfigurationDialog::addUserConfigurationPushButtonClicked()
         return;
     }
     
-    m_blockReadConfigurationsFromPreferences = true;
+    m_blockReadUserConfigurationsFromPreferences = true;
     
     switch (getBrowserWindowContent()->getTileTabsConfigurationMode()) {
         case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
@@ -331,7 +332,7 @@ TileTabsConfigurationDialog::addUserConfigurationPushButtonClicked()
             break;
     }
     
-    m_blockReadConfigurationsFromPreferences = false;
+    m_blockReadUserConfigurationsFromPreferences = false;
     updateDialog();
 }
 
@@ -341,6 +342,8 @@ TileTabsConfigurationDialog::addUserConfigurationPushButtonClicked()
 void
 TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
 {
+    CaretAssert(getSelectedConfigurationSourceType() == ConfigurationSourceTypeEnum::USER);
+    
     const AString tileTabsUniqueID = getSelectedUserTileTabsConfigurationUniqueIdentifier();
     if (tileTabsUniqueID.isEmpty()) {
             WuQMessageBox::errorOk(this,
@@ -351,12 +354,12 @@ TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
         const AString msg("Do you want to replace the configuration?");
         if ( ! WuQMessageBox::warningOkCancel(m_replaceConfigurationPushButton,
                                               msg)) {
-            m_blockReadConfigurationsFromPreferences = false;
+            m_blockReadUserConfigurationsFromPreferences = false;
             return;
         }
     }
     
-    m_blockReadConfigurationsFromPreferences = true;
+    m_blockReadUserConfigurationsFromPreferences = true;
     
     switch (getBrowserWindowContent()->getTileTabsConfigurationMode()) {
         case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
@@ -397,7 +400,7 @@ TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
             break;
     }
 
-    m_blockReadConfigurationsFromPreferences = false;
+    m_blockReadUserConfigurationsFromPreferences = false;
     updateDialog();
 }
 
@@ -407,26 +410,38 @@ TileTabsConfigurationDialog::replaceUserConfigurationPushButtonClicked()
 void
 TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
 {
-    if (m_automaticGridConfigurationRadioButton->isChecked()) {
+    std::unique_ptr<TileTabsLayoutBaseConfiguration> configuration;
+    switch (getSelectedConfigurationSourceType()) {
+        case TEMPLATE:
+        {
+            configuration = getSelectedTemplateConfiguration();
+        }
+            break;
+        case USER:
+        {
+            const AString userConfigID = getSelectedUserTileTabsConfigurationUniqueIdentifier();
+            if (userConfigID.isEmpty()) {
+                WuQMessageBox::errorOk(m_loadConfigurationPushButton, "No user configuration is selected.");
+                return;
+            }
+            
+            configuration = m_caretPreferences->getCopyOfTileTabsUserConfigurationByUniqueIdentifier(userConfigID);
+            if ( ! configuration) {
+                WuQMessageBox::errorOk(m_loadConfigurationPushButton,
+                                       ("User configuration with UniqueID="
+                                        + userConfigID
+                                        + " was not found"));
+                return;
+            }
+        }
+            break;
+    }
+    
+    if ( ! configuration) {
         return;
     }
     
-    const AString userConfigID = getSelectedUserTileTabsConfigurationUniqueIdentifier();
-    if (userConfigID.isEmpty()) {
-        WuQMessageBox::errorOk(m_loadConfigurationPushButton, "No user configuration is selected.");
-        return;
-    }
-    
-    std::unique_ptr<TileTabsLayoutBaseConfiguration> userConfiguration = m_caretPreferences->getCopyOfTileTabsUserConfigurationByUniqueIdentifier(userConfigID);
-    if ( ! userConfiguration) {
-        WuQMessageBox::errorOk(m_loadConfigurationPushButton,
-                               ("User configuration with UniqueID="
-                                + userConfigID
-                                + " was not found"));
-        return;
-    }
-    
-    switch (userConfiguration->getLayoutType()) {
+    switch (configuration->getLayoutType()) {
         case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
             CaretAssert(0);
             break;
@@ -435,7 +450,7 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             TileTabsLayoutGridConfiguration* customGridConfiguration = getCustomTileTabsGridConfiguration();
             CaretAssert(customGridConfiguration);
             
-            const TileTabsLayoutGridConfiguration* userGridConfig = userConfiguration->castToGridConfiguration();
+            const TileTabsLayoutGridConfiguration* userGridConfig = configuration->castToGridConfiguration();
             CaretAssert(userGridConfig);
             
             customGridConfiguration->copy(*userGridConfig);
@@ -445,7 +460,7 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             break;
         case TileTabsLayoutConfigurationTypeEnum::MANUAL:
         {
-            const TileTabsLayoutManualConfiguration* userManualConfig = userConfiguration->castToManualConfiguration();
+            const TileTabsLayoutManualConfiguration* userManualConfig = configuration->castToManualConfiguration();
             CaretAssert(userManualConfig);
             const int32_t numConfigTabs = userManualConfig->getNumberOfTabs();
             
@@ -737,12 +752,23 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     m_userConfigurationSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
     QObject::connect(m_userConfigurationSelectionListWidget, &QListWidget::itemSelectionChanged,
                      this, &TileTabsConfigurationDialog::userConfigurationSelectionListWidgetItemChanged);
+
+    loadTemplateLayoutConfigurations();
     
-    QHBoxLayout* selectionLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutMargins(selectionLayout,
-                                    0);
-    selectionLayout->addWidget(m_userConfigurationSelectionListWidget, 100);
-    
+    m_templateConfigurationSelectionListWidget = new WuQListWidget();
+    m_templateConfigurationSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
+    for (const auto& tc : m_templateLayoutConfigurations) {
+        m_templateConfigurationSelectionListWidget->addItem(tc->getName()
+                                                            + " ("
+                                                            + AString::number(tc->getNumberOfTabs())
+                                                            + ")");
+    }
+    if (m_templateConfigurationSelectionListWidget->count() > 0) {
+        m_templateConfigurationSelectionListWidget->setCurrentRow(0);
+    }
+    QObject::connect(m_templateConfigurationSelectionListWidget, &QListWidget::itemSelectionChanged,
+                     this, &TileTabsConfigurationDialog::templateConfigurationSelectionListWidgetItemChanged);
+
     const AString newToolTip = WuQtUtilities::createWordWrappedToolTipText("Create new User Configuration by entering a name.\n"
                                                                            "It will contain rows/columns/factors from the Custom Configuration");
 
@@ -757,25 +783,124 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     m_deleteConfigurationPushButton->setAutoDefault(false);
     QObject::connect(m_deleteConfigurationPushButton, SIGNAL(clicked()),
                      this, SLOT(deleteUserConfigurationButtonClicked()));
+
+    m_showConfigurationXmlPushButton = new QPushButton("Show XML...");
+    m_showConfigurationXmlPushButton->setToolTip("Show XML representation of User Configuration");
+    m_showConfigurationXmlPushButton->setAutoDefault(false);
+    QObject::connect(m_showConfigurationXmlPushButton, &QPushButton::clicked,
+                     this, &TileTabsConfigurationDialog::showConfigurationXmlPushButtonClicked);
     
     QGridLayout* buttonsLayout = new QGridLayout();
     buttonsLayout->setContentsMargins(0, 0, 0, 0);
-    buttonsLayout->addWidget(m_renameConfigurationPushButton, 0, 1, Qt::AlignHCenter);
-    buttonsLayout->addWidget(m_deleteConfigurationPushButton, 1, 1, Qt::AlignHCenter);
+    buttonsLayout->addWidget(m_renameConfigurationPushButton,  0, 0, Qt::AlignHCenter);
+    buttonsLayout->addWidget(m_deleteConfigurationPushButton,  1, 0, Qt::AlignHCenter);
+    buttonsLayout->addWidget(m_showConfigurationXmlPushButton, 2, 0, Qt::AlignHCenter);
     
-//    QTabBar* tabBar = new QTabBar();
-//    tabBar->addTab("Template");
-//    tabBar->addTab("User");
-    QGroupBox* configurationWidget = new QGroupBox("User Configurations");
+    m_configurationSourceTabWidget = new QTabWidget();
+    m_configurationSourceTemplateTabIndex = m_configurationSourceTabWidget->addTab(m_templateConfigurationSelectionListWidget,
+                                                                         "Template");
+    m_configurationSourceUserTabIndex = m_configurationSourceTabWidget->addTab(m_userConfigurationSelectionListWidget,
+                                                                         "User");
+    m_configurationSourceTabWidget->setCurrentIndex(m_configurationSourceUserTabIndex);
+    QObject::connect(m_configurationSourceTabWidget, &QTabWidget::tabBarClicked,
+                     this, &TileTabsConfigurationDialog::configurationSourceTabWidgetClicked);
+    
+    QGroupBox* configurationWidget = new QGroupBox("Configurations");
     QVBoxLayout* configurationLayout = new QVBoxLayout(configurationWidget);
-//    configurationLayout->addWidget(tabBar,
-//                                   0);
-    configurationLayout->addWidget(m_userConfigurationSelectionListWidget,
-                                   100);
+    configurationLayout->addWidget(m_configurationSourceTabWidget,
+                                   0);
     configurationLayout->addLayout(buttonsLayout,
                                    0);
     
     return configurationWidget;
+}
+
+/**
+ * Called when configuration source tab bar is clicked by user
+ *
+ * @param index
+ *     Index of item in tab bar
+ */
+void
+TileTabsConfigurationDialog::configurationSourceTabWidgetClicked(int index)
+{
+    /*
+     * Note: This method is called before the tab widget updates
+     * its internal's with the new index.  As a result, when
+     * the selected tab changes, the index passed to this method
+     * will be different than that returned by QTabWidget::currentIndex()
+     */
+    ConfigurationSourceTypeEnum sourceType = ConfigurationSourceTypeEnum::USER;
+    if (index == m_configurationSourceUserTabIndex) {
+        sourceType = ConfigurationSourceTypeEnum::USER;
+        userConfigurationSelectionListWidgetItemChanged();
+    }
+    else if (index == m_configurationSourceTemplateTabIndex) {
+        sourceType = ConfigurationSourceTypeEnum::TEMPLATE;
+        templateConfigurationSelectionListWidgetItemChanged();
+    }
+
+    updatePushButtons(sourceType);
+}
+
+/**
+ * @return The selected configuration source type (template or user)
+ */
+TileTabsConfigurationDialog::ConfigurationSourceTypeEnum
+TileTabsConfigurationDialog::getSelectedConfigurationSourceType() const
+{
+    if (m_configurationSourceUserTabIndex == m_configurationSourceTabWidget->currentIndex()) {
+        return ConfigurationSourceTypeEnum::USER;
+    }
+    else if (m_configurationSourceTemplateTabIndex == m_configurationSourceTabWidget->currentIndex()) {
+        return ConfigurationSourceTypeEnum::TEMPLATE;
+    }
+    
+    CaretAssert(0);
+    return ConfigurationSourceTypeEnum::USER;
+}
+
+/**
+ * @return The selected user configuration
+ */
+std::unique_ptr<TileTabsLayoutBaseConfiguration>
+TileTabsConfigurationDialog::getSelectedUserConfiguration() const
+{
+    std::unique_ptr<TileTabsLayoutBaseConfiguration> config;
+    
+    AString uuid = getSelectedUserTileTabsConfigurationUniqueIdentifier();
+    if ( ! uuid.isEmpty()) {
+        config = m_caretPreferences->getCopyOfTileTabsUserConfigurationByUniqueIdentifier(uuid);
+    }
+    
+    return config;
+}
+
+/**
+ * @return The selected template configuration
+ */
+std::unique_ptr<TileTabsLayoutBaseConfiguration>
+TileTabsConfigurationDialog::getSelectedTemplateConfiguration() const
+{
+    std::unique_ptr<TileTabsLayoutBaseConfiguration> config;
+    
+    const int32_t index = m_templateConfigurationSelectionListWidget->currentIndex().row();
+    if (index >= 0) {
+        CaretAssertVectorIndex(m_templateLayoutConfigurations, index);
+        config.reset(m_templateLayoutConfigurations[index]->newCopyWithNewUniqueIdentifier());
+    }
+
+    return config;
+}
+
+/**
+ * Called when a configuration is highlighted and shows an outline of the layout in the
+ * configuration preview label
+ */
+void
+TileTabsConfigurationDialog::templateConfigurationSelectionListWidgetItemChanged()
+{
+    loadConfigurationPreviewLabel(getSelectedTemplateConfiguration().get());
 }
 
 /**
@@ -785,6 +910,21 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
 void
 TileTabsConfigurationDialog::userConfigurationSelectionListWidgetItemChanged()
 {
+    std::unique_ptr<TileTabsLayoutBaseConfiguration> config = getSelectedUserConfiguration();
+    loadConfigurationPreviewLabel(config.get());
+}
+
+/**
+ * Load the given configuration into the configuration preview label
+ *
+ * @param configuration
+ *     The configuration to show in label
+ */
+void
+TileTabsConfigurationDialog::loadConfigurationPreviewLabel(TileTabsLayoutBaseConfiguration* configuration)
+{
+
+
     QPixmap pixmap(106, 106);
     QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(m_configurationPreviewLabel,
                                                                                             pixmap);
@@ -797,15 +937,13 @@ TileTabsConfigurationDialog::userConfigurationSelectionListWidgetItemChanged()
     pen.setWidth(1);
     painter->setPen(pen);
     
-    AString uuid = getSelectedUserTileTabsConfigurationUniqueIdentifier();
-    if ( ! uuid.isEmpty()) {
-        std::unique_ptr<TileTabsLayoutBaseConfiguration> config = m_caretPreferences->getCopyOfTileTabsUserConfigurationByUniqueIdentifier(uuid);
-        switch (config->getLayoutType()) {
+    if (configuration != NULL) {
+        switch (configuration->getLayoutType()) {
             case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
                 break;
             case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
             {
-                TileTabsLayoutGridConfiguration* gridConfig = config->castToGridConfiguration();
+                TileTabsLayoutGridConfiguration* gridConfig = configuration->castToGridConfiguration();
                 CaretAssert(gridConfig);
                 const int32_t numModels(gridConfig->getNumberOfRows() * gridConfig->getNumberOfColumns());
                 std::vector<int32_t> rowHeights;
@@ -850,7 +988,7 @@ TileTabsConfigurationDialog::userConfigurationSelectionListWidgetItemChanged()
                 break;
             case TileTabsLayoutConfigurationTypeEnum::MANUAL:
             {
-                TileTabsLayoutManualConfiguration* manConfig = config->castToManualConfiguration();
+                TileTabsLayoutManualConfiguration* manConfig = configuration->castToManualConfiguration();
                 CaretAssert(manConfig);
                 const int32_t numTabs = manConfig->getNumberOfTabs();
                 for (int32_t i = 0; i < numTabs; i++) {
@@ -1537,7 +1675,7 @@ TileTabsConfigurationDialog::createConfigurationSettingsWidget()
     
     QScrollArea* stretchFactorScrollArea = new QScrollArea();
     stretchFactorScrollArea->setWidget(m_editConfigurationStackedWidget);
-    stretchFactorScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    stretchFactorScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     stretchFactorScrollArea->setWidgetResizable(true);
     
     QGroupBox* layoutSettingsGroupBox = new QGroupBox("Configuration Settings");
@@ -1626,12 +1764,12 @@ TileTabsConfigurationDialog::updateDialogWithSelectedTileTabsFromWindow(BrainBro
 }
 
 /**
- * Read the configurations from the preferences.
+ * Read the user configurations from the preferences.
  */
 void
-TileTabsConfigurationDialog::readConfigurationsFromPreferences()
+TileTabsConfigurationDialog::readUserConfigurationsFromPreferences()
 {
-    if (m_blockReadConfigurationsFromPreferences) {
+    if (m_blockReadUserConfigurationsFromPreferences) {
         return;
     }
     
@@ -1684,8 +1822,29 @@ TileTabsConfigurationDialog::updateDialog()
     
     updateConfigurationEditingWidget();
     
-    readConfigurationsFromPreferences();
+    readUserConfigurationsFromPreferences();
     
+    updateUserConfigurationListWidget();
+    
+    updateGridStretchFactors();
+    updateManualGeometryEditorWidget();
+    
+    switch (getSelectedConfigurationSourceType()) {
+        case TEMPLATE:
+            templateConfigurationSelectionListWidgetItemChanged();
+            break;
+        case USER:
+            userConfigurationSelectionListWidgetItemChanged();
+            break;
+    }
+}
+
+/**
+ * Update the user configuration list widget
+ */
+void
+TileTabsConfigurationDialog::updateUserConfigurationListWidget()
+{
     int defaultIndex = m_userConfigurationSelectionListWidget->currentRow();
     
     QSignalBlocker blocker(m_userConfigurationSelectionListWidget);
@@ -1715,10 +1874,43 @@ TileTabsConfigurationDialog::updateDialog()
     if (defaultIndex < m_userConfigurationSelectionListWidget->count()) {
         m_userConfigurationSelectionListWidget->setCurrentRow(defaultIndex);
     }
+}
+
+/**
+ * Update the template configuration list widget
+ */
+void
+TileTabsConfigurationDialog::updateTemplateConfigurationListWidget()
+{
+    int defaultIndex = m_templateConfigurationSelectionListWidget->currentRow();
     
-    updateGridStretchFactors();
-    updateManualGeometryEditorWidget();
-    userConfigurationSelectionListWidgetItemChanged();
+    QSignalBlocker blocker(m_templateConfigurationSelectionListWidget);
+    m_templateConfigurationSelectionListWidget->clear();
+    
+    const bool includeManualConfigurationsFlag(true);
+    std::vector<std::pair<AString, AString>> nameUniqueIDs =
+    m_caretPreferences->getTileTabsUserConfigurationsNamesAndUniqueIdentifiers(includeManualConfigurationsFlag);
+    
+    for (const auto nameID : nameUniqueIDs) {
+        /*
+         * Second element is user data which contains the Unique ID
+         */
+        QListWidgetItem* item = new QListWidgetItem(nameID.first);
+        item->setData(Qt::UserRole,
+                      QVariant(nameID.second));
+        m_templateConfigurationSelectionListWidget->addItem(item);
+    }
+    
+    const int32_t numItemsInComboBox = m_templateConfigurationSelectionListWidget->count();
+    if (defaultIndex >= numItemsInComboBox) {
+        defaultIndex = numItemsInComboBox - 1;
+    }
+    if (defaultIndex < 0) {
+        defaultIndex = 0;
+    }
+    if (defaultIndex < m_templateConfigurationSelectionListWidget->count()) {
+        m_templateConfigurationSelectionListWidget->setCurrentRow(defaultIndex);
+    }
 }
 
 /**
@@ -1741,31 +1933,68 @@ TileTabsConfigurationDialog::updateGridStretchFactors()
         m_numberOfGridColumnsSpinBox->setValue(configuration->getNumberOfColumns());
     }
     
-    const bool editableFlag = ( ! m_automaticGridConfigurationRadioButton->isChecked());
-    
-    m_addConfigurationPushButton->setEnabled(editableFlag);
-    m_loadConfigurationPushButton->setEnabled(editableFlag);
-    m_replaceConfigurationPushButton->setEnabled(editableFlag);
+    updatePushButtons(getSelectedConfigurationSourceType());
 }
 
 /**
- * Select the tile tabs configuration with the given name.
+ * Update the push buttons enabled status
+ *
+ * @param sourceType
+ *     The selected configuration source type.
  */
 void
-TileTabsConfigurationDialog::selectTileTabConfigurationByUniqueID(const AString& uniqueID)
+TileTabsConfigurationDialog::updatePushButtons(const ConfigurationSourceTypeEnum sourceType)
 {
-    const int32_t numItems = m_userConfigurationSelectionListWidget->count();
-    for (int32_t i = 0; i < numItems; i++) {
-        QListWidgetItem* item = m_userConfigurationSelectionListWidget->item(i);
-        const AString itemID = item->data(Qt::UserRole).toString();
-        if (itemID == uniqueID) {
-            QSignalBlocker blocker(m_userConfigurationSelectionListWidget);
-            m_userConfigurationSelectionListWidget->setCurrentItem(item);
-            break;
+    bool addEnabledFlag(false);
+    bool replaceEnabledFlag(false);
+    bool deleteRenameEnabledFlag(false);
+    bool loadEnabledFlag(false);
+    bool showXmlVisibleFlag(m_caretPreferences->isDevelopMenuEnabled());
+    bool showXmlEnabledFlag(false);
+    
+    switch (sourceType) {
+        case TEMPLATE:
+        {
+            const bool haveTemplateConfigurationFlag = (getSelectedTemplateConfiguration() != NULL);
+            if (haveTemplateConfigurationFlag) {
+                loadEnabledFlag = true;
+            }
         }
-    }
-}
+            break;
+        case USER:
+        {
+            const bool haveUserConfigurationFlag(getSelectedUserConfiguration() != NULL);
+            if (m_automaticGridConfigurationRadioButton->isChecked()) {
+                /* Nothing */
+            }
+            else {
+                addEnabledFlag = true;
+                if (haveUserConfigurationFlag) {
+                    replaceEnabledFlag = true;
+                }
+            }
 
+            if (haveUserConfigurationFlag) {
+                deleteRenameEnabledFlag = true;
+                loadEnabledFlag         = true;
+                showXmlEnabledFlag      = true;
+            }
+        }
+            break;
+    }
+    
+    m_addConfigurationPushButton->setEnabled(addEnabledFlag);
+    m_replaceConfigurationPushButton->setEnabled(replaceEnabledFlag);
+    m_loadConfigurationPushButton->setEnabled(loadEnabledFlag);
+    
+    m_renameConfigurationPushButton->setEnabled(deleteRenameEnabledFlag);
+    m_deleteConfigurationPushButton->setEnabled(deleteRenameEnabledFlag);
+    
+    m_showConfigurationXmlPushButton->setVisible(showXmlVisibleFlag);
+    m_showConfigurationXmlPushButton->setVisible(showXmlVisibleFlag
+                                                 && showXmlEnabledFlag);
+
+}
 
 /**
  * Called when delete user configuration button is clicked.
@@ -1812,7 +2041,7 @@ TileTabsConfigurationDialog::renameUserConfigurationButtonClicked()
                                                       &ok);
         if (ok
             && ( ! newName.isEmpty())) {
-            m_blockReadConfigurationsFromPreferences = true;
+            m_blockReadUserConfigurationsFromPreferences = true;
             AString errorMessage;
             if (m_caretPreferences->renameTileTabsUserConfiguration(uniqueID,
                                                                     newName,
@@ -1822,13 +2051,30 @@ TileTabsConfigurationDialog::renameUserConfigurationButtonClicked()
                 WuQMessageBox::errorOk(m_renameConfigurationPushButton,
                                        errorMessage);
             }
-            m_blockReadConfigurationsFromPreferences = false;
+            m_blockReadUserConfigurationsFromPreferences = false;
             updateDialog();
         }
     }
     else {
         WuQMessageBox::errorOk(m_renameConfigurationPushButton, ("Unable to find configuration with unique ID="
                                                                  + uniqueID));
+    }
+}
+
+/**
+ * Called when show configuration XML button is clicked
+ */
+void
+TileTabsConfigurationDialog::showConfigurationXmlPushButtonClicked()
+{
+    std::unique_ptr<TileTabsLayoutBaseConfiguration> config = getSelectedUserConfiguration();
+    if (config) {
+        const QString xml = config->encodeInXML();
+        WuQTextEditorDialog::runNonModal("XML",
+                                         xml,
+                                         WuQTextEditorDialog::TextMode::PLAIN,
+                                         WuQTextEditorDialog::WrapMode::NO,
+                                         m_showConfigurationXmlPushButton);
     }
 }
 
@@ -1845,41 +2091,11 @@ TileTabsConfigurationDialog::getCustomTileTabsGridConfiguration()
 }
 
 /**
- * Get the name and unique identifier for the selected user configuration
- *
- * @param nameOut
- *     Output with name
- * @param uniqueIDOut
- *     Output with Unique ID
- * @return
- *     True if the output data is valid or false if no configuration is selected
- */
-bool
-TileTabsConfigurationDialog::getSelectedUserConfigurationNameAndUniqueID(AString& nameOut,
-                                                                         AString& uniqueIDOut) const
-{
-    const int32_t indx = m_userConfigurationSelectionListWidget->currentRow();
-    if ((indx >= 0)
-        && (indx < m_userConfigurationSelectionListWidget->count())) {
-        QListWidgetItem* item = m_userConfigurationSelectionListWidget->item(indx);
-        nameOut = item->text();
-        uniqueIDOut = item->data(Qt::UserRole).toString();
-        
-        return true;
-    }
-    
-    nameOut.clear();
-    uniqueIDOut.clear();
-    
-    return false;
-}
-
-/**
  * @return The Unique Identifier of the selected user tile tabs configuration.
  * Empty if no configuration is selected.
  */
 AString
-TileTabsConfigurationDialog::getSelectedUserTileTabsConfigurationUniqueIdentifier()
+TileTabsConfigurationDialog::getSelectedUserTileTabsConfigurationUniqueIdentifier() const
 {
     AString uniqueID;
     
@@ -1974,5 +2190,61 @@ TileTabsConfigurationDialog::helpButtonClicked()
                                            "Tile_Tabs_Configuration");
     EventManager::get()->sendEvent(helpViewerEvent.getPointer());
 }
+
+
+/**
+ * Load the template layout configurations
+ */
+void
+TileTabsConfigurationDialog::loadTemplateLayoutConfigurations()
+{
+    {
+        const QString configXML(R""""(<TileTabsManualLayout Name="2 Left, 1 Right" Version="1" UniqueID="{cbbda258-c860-40fe-be46-c87db104d103}">"
+                                         "<TabInfo DisplayStatus="true" TabIndex="0" MinX="0.00" MaxX="50.00" MinY="50.00" MaxY="100.00" StackingOrder="0" Background="OPAQUE_BG"/>"
+                                         "<TabInfo DisplayStatus="true" TabIndex="1" MinX="50.00" MaxX="100.00" MinY="0.00" MaxY="100.00" StackingOrder="1" Background="OPAQUE_BG"/>"
+                                         "<TabInfo DisplayStatus="true" TabIndex="2" MinX="0.00" MaxX="50.00" MinY="0.00" MaxY="50.00" StackingOrder="2" Background="OPAQUE_BG"/>"
+                                         "</TileTabsManualLayout>)"""");
+        loadTemplateLayoutConfigurationFromXML(configXML);
+    }
+                                         
+     {
+         const QString configXML(R""""(<TileTabsManualLayout Name="1 Left, 2 Right" Version="1" UniqueID="{c2c55e5a-07ea-4cc2-8731-52c33532c726}">
+                                          <TabInfo DisplayStatus="true" TabIndex="0" MinX="50.00" MaxX="100.00" MinY="50.00" MaxY="100.00" StackingOrder="0" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="1" MinX="0.00" MaxX="50.00" MinY="0.00" MaxY="100.00" StackingOrder="1" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="2" MinX="50.00" MaxX="100.00" MinY="0.00" MaxY="50.00" StackingOrder="2" Background="OPAQUE_BG"/>
+                                          </TileTabsManualLayout>)"""");
+         loadTemplateLayoutConfigurationFromXML(configXML);
+     }
+                                         
+     {
+         const QString configXML(R""""(<TileTabsManualLayout Name="1 Large, 3 Small" Version="1" UniqueID="{e13c96c6-0c06-4876-8983-7ced716a2324}">
+                                          <TabInfo DisplayStatus="true" TabIndex="0" MinX="0.00" MaxX="100.00" MinY="31.00" MaxY="100.00" StackingOrder="0" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="1" MinX="0.00" MaxX="33.00" MinY="0.00" MaxY="30.00" StackingOrder="1" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="2" MinX="33.00" MaxX="66.00" MinY="0.00" MaxY="30.00" StackingOrder="2" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="3" MinX="67.00" MaxX="100.00" MinY="0.00" MaxY="30.00" StackingOrder="3" Background="OPAQUE_BG"/>
+                                          </TileTabsManualLayout>)"""");
+         loadTemplateLayoutConfigurationFromXML(configXML);
+     }
+}
+
+/**
+ * Load a template configuration from the given XML
+ */
+void
+TileTabsConfigurationDialog::loadTemplateLayoutConfigurationFromXML(const QString& xml)
+{
+    AString errorMessage;
+    TileTabsLayoutBaseConfiguration* config = TileTabsLayoutBaseConfiguration::decodeFromXML(xml,
+                                                                                             errorMessage);
+    if (config != NULL) {
+        std::unique_ptr<TileTabsLayoutBaseConfiguration> configPtr(config);
+        m_templateLayoutConfigurations.push_back(std::move(configPtr));
+    }
+    else {
+        CaretLogWarning("Failed to laod template configuration from XML:\n"
+                        + xml);
+    }
+}
+
 
 
