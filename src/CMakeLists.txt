@@ -185,6 +185,15 @@ ENDIF(OPENSSL_FOUND)
 # https://cmake.org/cmake/help/v3.5/manual/cmake-packages.7.html#manual:cmake-packages(7)
 # Modules List: http://doc.qt.io/qt-5/qtmodules.html
 #
+SET(WB_WEBKIT_COMPONENTS "")
+SET(WB_WEBKIT_LIBS "")
+SET(HAVE_QT_WEBKIT False)
+IF (HAVE_QT_WEBKIT)
+    ADD_DEFINITIONS(-DHAVE_WEBKIT)
+    SET (WB_WEBKIT_COMPONENTS "WebEngine WebEngineCore WebEngineWidgets")
+    SET (WB_WEBKIT_LIBS "Qt5::WebEngine Qt5::WebEngineCore Qt5::WebEngineWidgets")
+
+ENDIF (HAVE_QT_WEBKIT)
 SET(QT_RESULT "Not Found")
 SET(CARET_QT5_LINK "")
 IF (WORKBENCH_USE_QT5) 
@@ -197,7 +206,7 @@ IF (WORKBENCH_USE_QT5)
         SET(WB_QT_OPENGL_MODULE "OpenGL")
     ENDIF ()
 
-    FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Concurrent Core Gui Network ${WB_QT_OPENGL_MODULE} PrintSupport Test WebEngine WebEngineCore WebEngineWidgets Widgets Xml)
+    FIND_PACKAGE(Qt5 REQUIRED COMPONENTS Concurrent Core Gui Network ${WB_QT_OPENGL_MODULE} PrintSupport Test Widgets Xml ${WB_WEBKIT_COMPONENTS})
     IF (WORKBENCH_USE_QT5_QOPENGL_WIDGET)
         #
         # QGLWidget is deprecated in Qt 5 and is replaced with QOpenGLWidget

@@ -34,7 +34,9 @@
 #include <QToolButton>
 #include <QUrl>
 #include <QUuid>
+#ifdef HAVE_WEBKIT
 #include <QWebEngineView>
+#endif
 
 #define __BRAIN_BROWSER_WINDOW_DECLARE__
 #include "BrainBrowserWindow.h"
@@ -1770,6 +1772,7 @@ BrainBrowserWindow::developerMenuFlagTriggered(QAction* action)
          *     someFunction();
          * }
          */
+#ifdef HAVE_WEBKIT
         if (enumValue == DeveloperFlagsEnum::DEVELOPER_FLAG_BALSA) {
             static WuQDialogModal* balsaDialog(NULL);
             if (balsaDialog == NULL) {
@@ -1791,6 +1794,10 @@ BrainBrowserWindow::developerMenuFlagTriggered(QAction* action)
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+#else
+        WuQMessageBox::informationOk(this,
+                                     "Software was built without Qt WebKit, see src/CMakeLists.txt");
+#endif
     }
     else {
         CaretLogSevere("Failed to find develper flag for reading menu: "
