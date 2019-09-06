@@ -175,6 +175,7 @@
 #include "OperationEstimateFiberBinghams.h"
 #include "OperationFileConvert.h"
 #include "OperationFileInformation.h"
+#include "OperationFociCreate.h"
 #include "OperationFociGetProjectionVertex.h"
 #include "OperationFociListCoords.h"
 #include "OperationGiftiConvert.h"
@@ -433,6 +434,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationEstimateFiberBinghams()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFileConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFileInformation()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationFociCreate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociGetProjectionVertex()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociListCoords()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationGiftiConvert()));

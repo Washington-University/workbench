@@ -55,6 +55,7 @@ OperationEstimateFiberBinghams.h
 OperationException.h
 OperationFileConvert.h
 OperationFileInformation.h
+OperationFociCreate.h
 OperationFociGetProjectionVertex.h
 OperationFociListCoords.h
 OperationGiftiConvert.h
@@ -145,6 +146,7 @@ OperationException.cxx
 OperationEstimateFiberBinghams.cxx
 OperationFileConvert.cxx
 OperationFileInformation.cxx
+OperationFociCreate.cxx
 OperationFociGetProjectionVertex.cxx
 OperationFociListCoords.cxx
 OperationGiftiConvert.cxx
