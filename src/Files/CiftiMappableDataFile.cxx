@@ -44,6 +44,7 @@
 #include "CiftiScalarDataSeriesFile.h"
 #include "CaretTemporaryFile.h"
 #include "CiftiXML.h"
+#include "ConnectivityDataLoaded.h"
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
 #include "EventCaretPreferencesGet.h"
@@ -4543,6 +4544,48 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
             const CiftiParcelsMap dataMap = ciftiXML.getParcelsMap(m_dataReadingDirectionForCiftiXML);
             if (dataMap.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
                 readingDataParcelIndex = dataMap.getIndexForNode(nodeIndex, structure);
+            }
+            
+            /*
+             * Special case for matrix type files
+             */
+            const CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(this);
+            if (matrixFile != NULL) {
+                const ConnectivityDataLoaded* dataLoaded = matrixFile->getConnectivityDataLoaded();
+                switch (dataLoaded->getMode()) {
+                    case ConnectivityDataLoaded::MODE_NONE:
+                        return false;
+                        break;
+                    case ConnectivityDataLoaded::MODE_COLUMN:
+                    case ConnectivityDataLoaded::MODE_ROW:
+                    case ConnectivityDataLoaded::MODE_SURFACE_NODE:
+                    case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
+                    case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
+                    case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
+                    {
+                        int mappingDataParcelIndex(-1);
+                        const CiftiParcelsMap& mappingMap = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
+                        if (mappingMap.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
+                            const std::vector<CiftiParcelsMap::Parcel>& mappingParcels = mappingMap.getParcels();
+                            mappingDataParcelIndex = mappingMap.getIndexForNode(nodeIndex,
+                                                                                structure);
+                            if ((mappingDataParcelIndex >= 0)
+                                && (mappingDataParcelIndex < static_cast<int64_t>(mappingParcels.size()))) {
+                                textValueOut = mappingParcels[mappingDataParcelIndex].m_name;
+                                
+                                std::vector<float> dataLoaded;
+                                matrixFile->getMapData(0, dataLoaded);
+                                if ((mappingDataParcelIndex >= 0)
+                                    && (mappingDataParcelIndex < static_cast<int32_t>(dataLoaded.size()))) {
+                                    textValueOut += (" " + AString::number(dataLoaded[mappingDataParcelIndex]));
+                                    return true;
+                                }
+                            }
+                        }
+                        
+                    }
+                        break;
+                }
             }
             
             int64_t mappingDataParcelIndex = -1;
