@@ -209,6 +209,8 @@ namespace caret {
         
         void loadTemplateLayoutConfigurationFromXML(const QString& xml);
         
+        bool warnIfGridConfigurationTooSmallDialog(const TileTabsLayoutGridConfiguration* gridConfiguration) const;
+        
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         
         QStackedWidget* m_editConfigurationStackedWidget;

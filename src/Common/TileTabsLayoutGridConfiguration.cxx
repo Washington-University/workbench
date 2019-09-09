@@ -195,12 +195,38 @@ TileTabsLayoutGridConfiguration::copy(const TileTabsLayoutBaseConfiguration& rhs
 }
 
 /**
- * @return Number of tabs in this layout
+ * @return Number of tabs in this layout (spacers are excluded)
  */
 int32_t
 TileTabsLayoutGridConfiguration::getNumberOfTabs() const
 {
-    const int32_t numTabs = getNumberOfRows() * getNumberOfColumns();
+    /*
+     * Need to exclude spacer rows/columns
+     */
+    
+    int32_t rowCount(0);
+    for (const auto row : m_rows) {
+        switch (row.getContentType()) {
+            case TileTabsGridRowColumnContentTypeEnum::SPACE:
+                break;
+            case TileTabsGridRowColumnContentTypeEnum::TAB:
+                rowCount++;
+                break;
+        }
+    }
+    
+    int32_t columnCount(0);
+    for (const auto col : m_columns) {
+        switch (col.getContentType()) {
+            case TileTabsGridRowColumnContentTypeEnum::SPACE:
+                break;
+            case TileTabsGridRowColumnContentTypeEnum::TAB:
+                columnCount++;
+                break;
+        }
+    }
+
+    const int32_t numTabs = rowCount * columnCount;
     return numTabs;
 }
 

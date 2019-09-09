@@ -441,6 +441,10 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
         return;
     }
     
+    std::vector<BrowserTabContent*> allTabContent;
+    getBrowserWindow()->getAllTabContent(allTabContent);
+    int32_t numBrowserTabs = static_cast<int32_t>(allTabContent.size());
+    
     switch (configuration->getLayoutType()) {
         case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
             CaretAssert(0);
@@ -453,6 +457,10 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
             const TileTabsLayoutGridConfiguration* userGridConfig = configuration->castToGridConfiguration();
             CaretAssert(userGridConfig);
             
+            if ( ! warnIfGridConfigurationTooSmallDialog(userGridConfig)) {
+                return;
+            }
+
             customGridConfiguration->copy(*userGridConfig);
             
             getBrowserWindowContent()->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID);
@@ -471,10 +479,6 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
                                         + "\" is invalid (does not have any tabs)"));
                 return;
             }
-            
-            std::vector<BrowserTabContent*> allTabContent;
-            getBrowserWindow()->getAllTabContent(allTabContent);
-            int32_t numBrowserTabs = static_cast<int32_t>(allTabContent.size());
             
             /*
              * Display status of tabs must be set after
@@ -653,6 +657,51 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     updateGraphicsWindow();
 }
+
+/**
+ * If the given grid configuration contains fewer tabs than the number of tabs in the window,
+ * warn the user, with the option to continue.
+ *
+ * @param gridConfiguration
+ *     The grid configuration
+ * @return
+ *     True if processing should continue (use the configuration), else false indicating cancel.
+ */
+bool
+TileTabsConfigurationDialog::warnIfGridConfigurationTooSmallDialog(const TileTabsLayoutGridConfiguration* gridConfiguration) const
+{
+    CaretAssert(gridConfiguration);
+
+    std::vector<BrowserTabContent*> allTabContent;
+    getBrowserWindow()->getAllTabContent(allTabContent);
+    int32_t numBrowserTabs = static_cast<int32_t>(allTabContent.size());
+    
+    const int32_t numConfigTabs = gridConfiguration->getNumberOfTabs();
+    if (numConfigTabs <= 0) {
+        WuQMessageBox::errorOk(m_loadConfigurationPushButton,
+                               ("User configuration \""
+                                + gridConfiguration->getName()
+                                + "\" is invalid (does not have any tabs)"));
+        return false;
+    }
+    
+    if (numConfigTabs < numBrowserTabs) {
+        AString msg("<html>"
+                    "The Window contains "
+                    + AString::number(numBrowserTabs)
+                    + " tabs.<p>"
+                    "The Grid contains space for "
+                    + AString::number(numConfigTabs)
+                    + " tabs.<p>"
+                    "If you continue, not all tabs will be visible but you can edit the configuration to view all tabs."
+                    "</html>");
+        return WuQMessageBox::warningOkCancel(m_loadConfigurationPushButton,
+                                              msg);
+    }
+
+    return true;
+}
+
 
 /**
  * @return the BrainOpenGLViewportContent for the tab with the given index (NULL if not found)
@@ -1726,6 +1775,12 @@ TileTabsConfigurationDialog::automaticCustomButtonClicked(QAbstractButton* butto
         browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID);
     }
     else if (button == m_customGridConfigurationRadioButton) {
+        const TileTabsLayoutGridConfiguration* gridConfig = browserWindowContent->getCustomGridTileTabsConfiguration();
+        if (gridConfig != NULL) {
+            if ( ! warnIfGridConfigurationTooSmallDialog(gridConfig)) {
+                return;
+            }
+        }
         browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID);
     }
     else if (button == m_manualConfigurationRadioButton) {
