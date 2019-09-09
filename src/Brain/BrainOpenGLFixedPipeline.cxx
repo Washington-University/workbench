@@ -714,18 +714,23 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
                 continue;
             }
             
+            const bool logInvalidViewportFlag(false);
             if (tabViewport[2] <= 0) {
-                CaretLogSevere("Invalid TAB width="
-                               + AString::number(tabViewport[2])
-                               + " for index="
-                               + AString::number(i));
+                if (logInvalidViewportFlag) {
+                    CaretLogSevere("Invalid TAB width="
+                                   + AString::number(tabViewport[2])
+                                   + " for index="
+                                   + AString::number(i));
+                }
                 continue;
             }
             if (tabViewport[3] <= 0) {
-                CaretLogSevere("Invalid TAB height="
-                               + AString::number(tabViewport[3])
-                               + " for index="
-                               + AString::number(i));
+                if (logInvalidViewportFlag) {
+                    CaretLogSevere("Invalid TAB height="
+                                   + AString::number(tabViewport[3])
+                                   + " for index="
+                                   + AString::number(i));
+                }
                 continue;
             }
         }
@@ -1111,6 +1116,11 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
     
     int tabViewport[4];
     tabContent->getModelViewport(tabViewport);
+    if ((tabViewport[2] <= 0)
+        || (tabViewport[3] <= 0)) {
+        /* Viewport may be invalid when tabs edited by user */
+        return;
+    }
     CaretAssertMessage(m_brain, "m_brain must NOT be NULL for drawing window annotations.");
     glViewport(tabViewport[0],
                tabViewport[1],

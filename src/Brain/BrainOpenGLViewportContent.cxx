@@ -1133,34 +1133,41 @@ BrainOpenGLViewportContent::createViewportContentForManualTileTabs(std::vector<B
             }
         }
         
-        const int tabViewport[4] = {
-            tabX,
-            tabY,
-            tabWidth,
-            tabHeight
-        };
-        
         /*
-         * Model is drawn in the model viewport inside any margins.
+         * Tab viewport may be invalid (width or height) when the user
+         * is editing the layout in tile tags configuration dialog
          */
-        const int32_t tabIndex = tab->getTabNumber();
-        const bool highlightTabFlag(highlightTabIndex == tabIndex);
-        int modelViewport[4] = { 0, 0, 0, 0 };
-        createModelViewport(tabViewport,
-                            tabIndex,
-                            gapsAndMargins,
-                            modelViewport);
+        if ((tabWidth > 0)
+            && (tabHeight > 0)) {
+            const int tabViewport[4] = {
+                tabX,
+                tabY,
+                tabWidth,
+                tabHeight
+            };
+            
+            /*
+             * Model is drawn in the model viewport inside any margins.
+             */
+            const int32_t tabIndex = tab->getTabNumber();
+            const bool highlightTabFlag(highlightTabIndex == tabIndex);
+            int modelViewport[4] = { 0, 0, 0, 0 };
+            createModelViewport(tabViewport,
+                                tabIndex,
+                                gapsAndMargins,
+                                modelViewport);
 
-        SpacerTabContent* invalidSpaceTabContent(NULL);
-        BrainOpenGLViewportContent* vpContent = new BrainOpenGLViewportContent(windowViewport,
-                                                                               tabViewportBeforeAspectLocking,
-                                                                               tabViewport,
-                                                                               modelViewport,
-                                                                               browserWindowContent->getWindowIndex(),
-                                                                               highlightTabFlag,
-                                                                               tab,
-                                                                               invalidSpaceTabContent);
-        viewportContentsOut.push_back(vpContent);
+            SpacerTabContent* invalidSpaceTabContent(NULL);
+            BrainOpenGLViewportContent* vpContent = new BrainOpenGLViewportContent(windowViewport,
+                                                                                   tabViewportBeforeAspectLocking,
+                                                                                   tabViewport,
+                                                                                   modelViewport,
+                                                                                   browserWindowContent->getWindowIndex(),
+                                                                                   highlightTabFlag,
+                                                                                   tab,
+                                                                                   invalidSpaceTabContent);
+            viewportContentsOut.push_back(vpContent);
+        }
     }
     
     return viewportContentsOut;
