@@ -931,9 +931,6 @@ TileTabsConfigurationDialog::loadConfigurationPreviewLabel(TileTabsLayoutBaseCon
     painter->translate(3, 3);
 
     QPen pen = painter->pen();
-    pen.setWidth(3);
-    painter->setPen(pen);
-    painter->drawRect(0, 0, 100, 100);
     pen.setWidth(1);
     painter->setPen(pen);
     
@@ -2225,6 +2222,16 @@ TileTabsConfigurationDialog::loadTemplateLayoutConfigurations()
                                           </TileTabsManualLayout>)"""");
          loadTemplateLayoutConfigurationFromXML(configXML);
      }
+                                      
+      {
+          const QString configXML(R""""(<TileTabsManualLayout Name="Offset Rows" Version="1" UniqueID="{8fae9798-f20b-456e-b8e2-aba1d3cff3d4}">
+                                        <TabInfo DisplayStatus="true" TabIndex="0" MinX="0.00" MaxX="40.00" MinY="50.00" MaxY="100.00" StackingOrder="0" Background="OPAQUE_BG"/>
+                                        <TabInfo DisplayStatus="true" TabIndex="1" MinX="40.00" MaxX="80.00" MinY="50.00" MaxY="100.00" StackingOrder="1" Background="OPAQUE_BG"/>
+                                        <TabInfo DisplayStatus="true" TabIndex="2" MinX="20.00" MaxX="60.00" MinY="0.00" MaxY="50.00" StackingOrder="2" Background="TRANSPARENT_BG"/>
+                                        <TabInfo DisplayStatus="true" TabIndex="3" MinX="60.00" MaxX="100.00" MinY="0.00" MaxY="50.00" StackingOrder="3" Background="OPAQUE_BG"/>
+                                        </TileTabsManualLayout>)"""");
+          loadTemplateLayoutConfigurationFromXML(configXML);
+      }
 }
 
 /**
