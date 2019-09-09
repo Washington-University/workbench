@@ -436,6 +436,8 @@ namespace caret {
         QAction* toolBarToolButtonAction;
         QAction* toolBoxToolButtonAction;
     
+        BrainBrowserWindow* m_parentBrainBrowserWindow = NULL;
+        
         int32_t browserWindowIndex;
         
     private slots:

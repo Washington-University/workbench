@@ -167,7 +167,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                                      QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
                                                      const QString& objectNamePrefix,
                                                      BrainBrowserWindow* parentBrainBrowserWindow)
-: QToolBar(parentBrainBrowserWindow)
+: QToolBar(parentBrainBrowserWindow),
+m_parentBrainBrowserWindow(parentBrainBrowserWindow)
 {
     this->browserWindowIndex = browserWindowIndex;
     m_tabIndexForTileTabsHighlighting = -1;
@@ -959,9 +960,8 @@ BrainBrowserWindowToolBar::allowAddingNewTab()
         return true;
     }
     
-    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
-    CaretAssert(browserWindow);
-    BrowserWindowContent* browserWindowContent = browserWindow->getBrowerWindowContent();
+    CaretAssert(m_parentBrainBrowserWindow);
+    BrowserWindowContent* browserWindowContent = m_parentBrainBrowserWindow->getBrowerWindowContent();
     CaretAssert(browserWindowContent);
     
     /*
@@ -1026,9 +1026,8 @@ BrainBrowserWindowToolBar::allowAddingNewTab()
 void
 BrainBrowserWindowToolBar::showMacroDialog()
 {
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
-    CaretAssert(bbw);
-    WuQMacroManager::instance()->showMacrosDialog(bbw);
+    CaretAssert(m_parentBrainBrowserWindow);
+    WuQMacroManager::instance()->showMacrosDialog(m_parentBrainBrowserWindow);
 }
 
 /**
@@ -1630,9 +1629,8 @@ BrainBrowserWindowToolBar::selectedTabChanged(int indx)
     this->updateToolBox();
     emit viewedModelChanged();
     
-    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
-    if (browserWindow != NULL) {
-        if (browserWindow->isTileTabsSelected()) {
+    if (m_parentBrainBrowserWindow != NULL) {
+        if (m_parentBrainBrowserWindow->isTileTabsSelected()) {
             const BrowserTabContent* btc = getTabContentFromSelectedTab();
             if (btc != NULL) {
                 if (m_tileTabsHighlightingTimerEnabledFlag) {
@@ -1986,9 +1984,8 @@ BrainBrowserWindowToolBar::updateToolBar()
     
     this->updateAllTabNames();
     
-    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
-    if (browserWindow != NULL) {
-        if (browserWindow->isFullScreen()) {
+    if (m_parentBrainBrowserWindow != NULL) {
+        if (m_parentBrainBrowserWindow->isFullScreen()) {
             this->setVisible(false);
         }
         else {
@@ -3151,9 +3148,8 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
     
     if (action == this->modeInputModeAnnotationsAction) {
         if (currentMode !=  UserInputModeEnum::ANNOTATIONS) {
-            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
-            CaretAssert(bbw);
-            if ( ! bbw->changeInputModeToAnnotationsWarningDialog()) {
+            CaretAssert(m_parentBrainBrowserWindow);
+            if ( ! m_parentBrainBrowserWindow->changeInputModeToAnnotationsWarningDialog()) {
                 /*
                  * Since mode is rejected, need to update toolbar
                  */
@@ -3222,6 +3218,10 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
         return;
     }
     
+    CaretAssert(m_parentBrainBrowserWindow);
+    BrowserWindowContent* browserWindowContent = m_parentBrainBrowserWindow->getBrowerWindowContent();
+    CaretAssert(browserWindowContent);
+    
     this->modeWidgetGroup->blockAllSignals(true);
     
     EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
@@ -3256,11 +3256,6 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
             break;
     }
 
-    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
-    CaretAssert(browserWindow);
-    BrowserWindowContent* browserWindowContent = browserWindow->getBrowerWindowContent();
-    CaretAssert(browserWindowContent);
-    
     /*
      * Enable "Tile" button only if Tile Tabs enabled and
      * Manual Configuration is selected
@@ -4188,8 +4183,8 @@ BrainBrowserWindowToolBar::customViewActionTriggered()
     QAction* selectedAction = menu.exec(QCursor::pos());
     if (selectedAction != NULL) {
         if (selectedAction == editAction) {
-            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
-            GuiManager::get()->processShowCustomViewDialog(bbw);
+            CaretAssert(m_parentBrainBrowserWindow);
+            GuiManager::get()->processShowCustomViewDialog(m_parentBrainBrowserWindow);
         }
         else {
             const AString customViewName = selectedAction->text();
@@ -4574,16 +4569,14 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         CaretAssert(getModelEvent);
         
         if (getModelEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
-            BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
-
-            if (browserWindow != NULL) {
+            if (m_parentBrainBrowserWindow != NULL) {
                 const int32_t numTabs = this->tabBar->count();
                 for (int32_t i = 0; i < numTabs; i++) {
                     BrowserTabContent* btc = this->getTabContentFromTab(i);
                     getModelEvent->addBrowserTab(btc);
                 }
                 
-                BrowserWindowContent* windowContent = browserWindow->getBrowerWindowContent();
+                BrowserWindowContent* windowContent = m_parentBrainBrowserWindow->getBrowerWindowContent();
                 getModelEvent->setBrowserWindowContent(windowContent);
                 
                 if (windowContent->isTileTabsEnabled()) {
@@ -4668,9 +4661,8 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         EventBrowserTabGetAllViewed* viewedTabsEvent = dynamic_cast<EventBrowserTabGetAllViewed*>(event);
         CaretAssert(viewedTabsEvent);
         
-        BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
-        if (browserWindow != NULL) {
-            if (browserWindow->isTileTabsSelected()) {
+        if (m_parentBrainBrowserWindow != NULL) {
+            if (m_parentBrainBrowserWindow->isTileTabsSelected()) {
                 const int32_t numTabs = this->tabBar->count();
                 for (int32_t i = 0; i < numTabs; i++) {
                     BrowserTabContent* btc = this->getTabContentFromTab(i);
