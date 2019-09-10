@@ -261,6 +261,15 @@ TileTabGridRowColumnWidgets::updateContent(TileTabsGridRowColumnElement* element
                 m_stretchValueSpinBox->setSuffix("");
                 break;
         }
+
+        /*
+         * These configuration widgets are placed into a stacked widget.  The stacked widget
+         * is disabled when an automatic configuration is selected.  However, when the stacked
+         * widget is enabled (custom grid selected), the menu action fails to get reenabled and
+         * that causes the menu to remain disabled.  So, enable the menu here so that
+         * the construction menu is enabled correctly.
+         */
+        m_constructionAction->setEnabled(true);
     }
     
     m_gridLayoutGroup->setVisible(showFlag);
