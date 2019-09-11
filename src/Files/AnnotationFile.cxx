@@ -1659,6 +1659,15 @@ AnnotationFile::readFile(const AString& filename)
 void
 AnnotationFile::writeFile(const AString& filename)
 {
+    /*
+     * JWH, 11 Sep 2019
+     * WB-866 removed the ".annot" extension for the annotation file.
+     * It is possible that a user may have a disk annotation file in
+     * multiple scenes.  If this message caused the user to change
+     * the file extension from ".annot" to ".wb_annot", it could break
+     * other scenes if they are not updated.
+     * So, continue avoiding a log message if ".annot" extension is present.
+     */
     if (!(filename.endsWith(".annot") || filename.endsWith(".wb_annot")))
     {
         CaretLogWarning("annotation file '" + filename + "' should be saved ending in .annot");

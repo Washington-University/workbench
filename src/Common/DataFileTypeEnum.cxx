@@ -123,7 +123,6 @@ DataFileTypeEnum::initialize()
                                         "Annotation",
                                         "ANNOTATION",
                                         false,
-                                        "annot",
                                         "wb_annot"));
     
     enumData.push_back(DataFileTypeEnum(ANNOTATION_TEXT_SUBSTITUTION,
