@@ -106,8 +106,12 @@ public:
         OPTIONS_NONE = 0,
         /** Include the dense dynamic data file type */
         OPTIONS_INCLUDE_CONNECTIVITY_DENSE_DYNAMIC = 1,
+        /** Include the metric dynamic data file type */
+        OPTIONS_INCLUDE_METRIC_DENSE_DYNAMIC = 2,
+        /** Include the volume dynamic data file type */
+        OPTIONS_INCLUDE_VOLUME_DENSE_DYNAMIC = 4,
         /** Include the unknown data file type */
-        OPTIONS_INCLUDE_UNKNOWN = 2
+        OPTIONS_INCLUDE_UNKNOWN = 8
     };
     
     ~DataFileTypeEnum();

@@ -98,7 +98,9 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
      */
     std::vector<DataFileTypeEnum::Enum> allDataFileTypes;
     DataFileTypeEnum::getAllEnums(allDataFileTypes,
-                                  DataFileTypeEnum::OPTIONS_INCLUDE_CONNECTIVITY_DENSE_DYNAMIC);
+                                  (DataFileTypeEnum::OPTIONS_INCLUDE_CONNECTIVITY_DENSE_DYNAMIC
+                                   | DataFileTypeEnum::OPTIONS_INCLUDE_METRIC_DENSE_DYNAMIC
+                                   | DataFileTypeEnum::OPTIONS_INCLUDE_VOLUME_DENSE_DYNAMIC));
     
     std::vector<DataFileTypeEnum::Enum> supportedCiftiRowFileTypes;
     std::vector<DataFileTypeEnum::Enum> supportedLabelFileTypes;
