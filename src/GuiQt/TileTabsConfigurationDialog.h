@@ -203,7 +203,7 @@ namespace caret {
         
         void loadConfigurationPreviewLabel(TileTabsLayoutBaseConfiguration* configuration);
         
-        void updatePushButtons(const ConfigurationSourceTypeEnum sourceType);
+        void updateTemplateUserConfigurationPushButtons(const ConfigurationSourceTypeEnum sourceType);
         
         void loadTemplateLayoutConfigurations();
         
@@ -279,7 +279,7 @@ namespace caret {
          */
         CaretPreferences* m_caretPreferences;
         
-        QLabel* m_configurationPreviewLabel;
+        QLabel* m_configurationImagePreviewLabel;
         
         friend class TileTabGridRowColumnWidgets;
         

@@ -109,9 +109,21 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
     setStandardButtonText(QDialogButtonBox::Help,
                           "Help");
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
-    
+//    QWidget* dialogWidget = new QWidget();
+//    QGridLayout* dialogLayout = new QGridLayout(dialogWidget);
+//    dialogLayout->setColumnStretch(0, 0);
+//    dialogLayout->setColumnStretch(1, 0);
+//    dialogLayout->setColumnStretch(2, 100);
+//    dialogLayout->addWidget(workbenchWindowWidget,
+//                            0, 0, Qt::AlignLeft);
+//    dialogLayout->addWidget(createConfigurationTypeWidget(),
+//                            1, 0);
+//    dialogLayout->addWidget(createConfigurationSettingsWidget(),
+//                            2, 0);
+//    dialogLayout->addWidget(createCopyLoadPushButtonsWidget(),
+//                            1, 1, 2, 1);
+//    dialogLayout->addWidget(createUserConfigurationSelectionWidget(),
+//                            1, 2, 2, 1);
     QWidget* dialogWidget = new QWidget();
     QGridLayout* dialogLayout = new QGridLayout(dialogWidget);
     dialogLayout->setColumnStretch(0, 0);
@@ -122,12 +134,12 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
     dialogLayout->addWidget(createConfigurationTypeWidget(),
                             1, 0);
     dialogLayout->addWidget(createConfigurationSettingsWidget(),
-                            2, 0);
+                            2, 0, 1, 2);
     dialogLayout->addWidget(createCopyLoadPushButtonsWidget(),
-                            1, 1, 2, 1);
+                            0, 1, 2, 1, Qt::AlignBottom);
     dialogLayout->addWidget(createUserConfigurationSelectionWidget(),
-                            1, 2, 2, 1);
-    
+                            0, 2, 3, 1);
+
     setCentralWidget(dialogWidget,
                      WuQDialog::SCROLL_AREA_NEVER);
     updateDialogWithSelectedTileTabsFromWindow(parentBrainBrowserWindow);
@@ -136,6 +148,11 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
            500);
     
     disableAutoDefaultForAllPushButtons();
+
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
+    
 }
 
 /**
@@ -165,6 +182,9 @@ TileTabsConfigurationDialog::receiveEvent(Event* event)
         if (redrawEvent->getBrowserWindowIndex() == browserWindowContent->getWindowIndex()) {
                     updateDialog();
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE) {
+        updateTemplateUserConfigurationPushButtons(getSelectedConfigurationSourceType());
     }
 }
 
@@ -209,24 +229,17 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
                                      m_replaceConfigurationPushButton,
                                      m_loadConfigurationPushButton);
     
-    m_configurationPreviewLabel = new QLabel();
-    m_configurationPreviewLabel->setScaledContents(true); /* scale pixmap in label to fill space */
-    QGroupBox* previewGroupBox  = new QGroupBox("Configuration Preview");
-    QVBoxLayout* previewLayout  = new QVBoxLayout(previewGroupBox);
-    previewLayout->addWidget(m_configurationPreviewLabel);
-
     QWidget* widget = new QWidget();
+    widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addSpacing(50);
+//    layout->addSpacing(50);
     layout->addWidget(m_addConfigurationPushButton, 0, Qt::AlignHCenter);
-    layout->addSpacing(10);
+//    layout->addSpacing(10);
     layout->addWidget(m_replaceConfigurationPushButton, 0, Qt::AlignHCenter);
-    layout->addSpacing(25);
+    layout->addSpacing(10);
     layout->addWidget(m_loadConfigurationPushButton, 0, Qt::AlignHCenter);
-    layout->addSpacing(25);
-    layout->addWidget(previewGroupBox);
-    layout->addStretch();
+//    layout->addStretch();
     
     return widget;
 }
@@ -839,11 +852,19 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     QObject::connect(m_showConfigurationXmlPushButton, &QPushButton::clicked,
                      this, &TileTabsConfigurationDialog::showConfigurationXmlPushButtonClicked);
     
+    WuQtUtilities::matchWidgetWidths(m_renameConfigurationPushButton,
+                                     m_deleteConfigurationPushButton,
+                                     m_showConfigurationXmlPushButton);
+    
     QGridLayout* buttonsLayout = new QGridLayout();
     buttonsLayout->setContentsMargins(0, 0, 0, 0);
-    buttonsLayout->addWidget(m_renameConfigurationPushButton,  0, 0, Qt::AlignHCenter);
-    buttonsLayout->addWidget(m_deleteConfigurationPushButton,  1, 0, Qt::AlignHCenter);
-    buttonsLayout->addWidget(m_showConfigurationXmlPushButton, 2, 0, Qt::AlignHCenter);
+    buttonsLayout->addWidget(m_renameConfigurationPushButton,  0, 0);
+    buttonsLayout->addWidget(m_deleteConfigurationPushButton,  0, 1);
+    buttonsLayout->addWidget(m_showConfigurationXmlPushButton, 1, 0, 1, 2, Qt::AlignHCenter);
+    
+    QLabel* previewTextLabel = new QLabel("Configuration Preview");
+    m_configurationImagePreviewLabel = new QLabel();
+    m_configurationImagePreviewLabel->setScaledContents(true); /* scale pixmap in label to fill space */
     
     m_configurationSourceTabWidget = new QTabWidget();
     m_configurationSourceTemplateTabIndex = m_configurationSourceTabWidget->addTab(m_templateConfigurationSelectionListWidget,
@@ -857,6 +878,9 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     QGroupBox* configurationWidget = new QGroupBox("Configurations");
     QVBoxLayout* configurationLayout = new QVBoxLayout(configurationWidget);
     configurationLayout->addWidget(m_configurationSourceTabWidget,
+                                   0);
+    configurationLayout->addWidget(previewTextLabel);
+    configurationLayout->addWidget(m_configurationImagePreviewLabel,
                                    0);
     configurationLayout->addLayout(buttonsLayout,
                                    0);
@@ -889,7 +913,7 @@ TileTabsConfigurationDialog::configurationSourceTabWidgetClicked(int index)
         templateConfigurationSelectionListWidgetItemChanged();
     }
 
-    updatePushButtons(sourceType);
+    updateTemplateUserConfigurationPushButtons(sourceType);
 }
 
 /**
@@ -975,7 +999,7 @@ TileTabsConfigurationDialog::loadConfigurationPreviewLabel(TileTabsLayoutBaseCon
 
 
     QPixmap pixmap(106, 106);
-    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(m_configurationPreviewLabel,
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(m_configurationImagePreviewLabel,
                                                                                             pixmap);
     painter->translate(3, 3);
 
@@ -1057,7 +1081,7 @@ TileTabsConfigurationDialog::loadConfigurationPreviewLabel(TileTabsLayoutBaseCon
         }
     }
     
-    m_configurationPreviewLabel->setPixmap(pixmap);
+    m_configurationImagePreviewLabel->setPixmap(pixmap);
     
 }
 
@@ -1403,7 +1427,7 @@ TileTabsConfigurationDialog::addManualGeometryWidget(QGridLayout* gridLayout,
         
         gridLayout->setHorizontalSpacing(8);
         gridLayout->addWidget(new QLabel("Show"), rowIndex, columnIndex++, Qt::AlignLeft);
-        gridLayout->addWidget(new QLabel("Name"), rowIndex, columnIndex++, Qt::AlignLeft);
+        gridLayout->addWidget(new QLabel("Tab Name"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Left"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Right"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Bottom"), rowIndex, columnIndex++, Qt::AlignLeft);
@@ -1985,7 +2009,7 @@ TileTabsConfigurationDialog::updateGridStretchFactors()
         m_numberOfGridColumnsSpinBox->setValue(configuration->getNumberOfColumns());
     }
     
-    updatePushButtons(getSelectedConfigurationSourceType());
+    updateTemplateUserConfigurationPushButtons(getSelectedConfigurationSourceType());
 }
 
 /**
@@ -1995,7 +2019,7 @@ TileTabsConfigurationDialog::updateGridStretchFactors()
  *     The selected configuration source type.
  */
 void
-TileTabsConfigurationDialog::updatePushButtons(const ConfigurationSourceTypeEnum sourceType)
+TileTabsConfigurationDialog::updateTemplateUserConfigurationPushButtons(const ConfigurationSourceTypeEnum sourceType)
 {
     bool addEnabledFlag(false);
     bool replaceEnabledFlag(false);
@@ -2043,7 +2067,7 @@ TileTabsConfigurationDialog::updatePushButtons(const ConfigurationSourceTypeEnum
     m_deleteConfigurationPushButton->setEnabled(deleteRenameEnabledFlag);
     
     m_showConfigurationXmlPushButton->setVisible(showXmlVisibleFlag);
-    m_showConfigurationXmlPushButton->setVisible(showXmlVisibleFlag
+    m_showConfigurationXmlPushButton->setEnabled(showXmlVisibleFlag
                                                  && showXmlEnabledFlag);
 
 }
