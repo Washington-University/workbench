@@ -1905,6 +1905,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBrowserTab(AnnotationFile* annota
                                               s_sizingHandleLineWidthInPixels,
                                               browserTab->getRotationAngle());
         }
+        else if (m_inputs->m_tileTabsManualLayoutUserInputModeFlag) {
+            glPushAttrib(GL_LINE_BIT);
+            glLineStipple(1, 0xf000);
+            glEnable(GL_LINE_STIPPLE);
+            glLineWidth(1);
+            glColor4ubv(foregroundRGBA);
+            glBegin(GL_LINE_LOOP);
+            glVertex3fv(bottomLeft);
+            glVertex3fv(bottomRight);
+            glVertex3fv(topRight);
+            glVertex3fv(topLeft);
+            glEnd();
+            glPopAttrib();
+        }
     }
     
     setDepthTestingStatus(savedDepthTestStatus);
