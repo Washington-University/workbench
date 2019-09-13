@@ -2591,34 +2591,6 @@ BrainBrowserWindow::modifyTileTabsConfiguration(EventTileTabsGridConfigurationMo
 }
 
 /**
- * Update the tile tabs configuration menu just before it is shown.
- */
-void
-BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuAboutToShow()
-{
-    /*
-     * QMenu::clear will delete the actions that were in the menu
-     */
-    m_viewTileTabsLoadUserConfigurationMenu->clear();
-    m_viewCustomTileTabsConfigurationActions.clear();
-    
-    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    
-    const bool includeManualConfigurationsFlag(false);
-    std::vector<std::pair<AString, AString>> nameUniqueIDs =
-    prefs->getTileTabsUserConfigurationsNamesAndUniqueIdentifiers(includeManualConfigurationsFlag);
-    
-    for (const auto nameID : nameUniqueIDs) {
-        /*
-         * Second element is user data which contains the Unique ID
-         */
-        QAction* action = m_viewTileTabsLoadUserConfigurationMenu->addAction(nameID.first);
-        m_viewCustomTileTabsConfigurationActions.push_back(std::make_pair(action,
-                                                                          nameID.second));
-    }
-}
-
-/**
  * Called when automatic/custom menu item is selected.
  * 
  * @param action
@@ -2646,74 +2618,6 @@ BrainBrowserWindow::processViewTileTabsAutomaticCustomTriggered(QAction* action)
 }
 
 /**
- * Process an item selected from the tile tabs configuration menu.
- */
-void
-BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuItemTriggered(QAction* action)
-{
-    CaretAssert(action);
-    
-    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-
-    BrowserWindowContent* bwc = getBrowerWindowContent();
-    bwc->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID);
-    
-    AString tileTabsConfigID;
-    for (auto& config : m_viewCustomTileTabsConfigurationActions) {
-        if (config.first == action) {
-            tileTabsConfigID = config.second;
-            break;
-        }
-    }
-    
-    std::unique_ptr<TileTabsLayoutBaseConfiguration> tileTabsConfig = prefs->getCopyOfTileTabsUserConfigurationByUniqueIdentifier(tileTabsConfigID);
-    if (tileTabsConfig) {
-        switch (tileTabsConfig->getLayoutType()) {
-            case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
-                CaretAssert(0);
-                break;
-            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
-            {
-                const TileTabsLayoutGridConfiguration* gridConfig = tileTabsConfig->castToGridConfiguration();
-                CaretAssert(gridConfig);
-                
-                bwc->getCustomGridTileTabsConfiguration()->copy(*gridConfig);
-            }
-                break;
-            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
-                /*
-                 * The method processViewTileTabsLoadUserConfigurationMenuAboutToShow()
-                 * excludes manual configurations so we should never get here.
-                 */
-                CaretAssert(0);
-                break;
-        }
-        
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
-    }
-    else {
-        WuQMessageBox::errorOk(this, "Unable to find User Configuration with UniqueID: "
-                               + tileTabsConfigID);
-    }
-}
-
-/**
- * @return Instance of the tile tabs configuration menu.
- */
-QMenu*
-BrainBrowserWindow::createMenuViewTileTabsLoadUserConfiguration()
-{
-    QMenu* menu = new QMenu("Set Tile Tabs to User Configuration");
-    QObject::connect(menu, &QMenu::aboutToShow,
-                     this, &BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuAboutToShow);
-    QObject::connect(menu, &QMenu::triggered,
-                     this, &BrainBrowserWindow::processViewTileTabsLoadUserConfigurationMenuItemTriggered);
-    
-    return menu;
-}
-
-/**
  * Create the view menu.
  * @return the view menu.
  */
@@ -2723,16 +2627,18 @@ BrainBrowserWindow::createMenuView()
     QMenu* menu = new QMenu("View", this);
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processViewMenuAboutToShow()));
-    
-    QMenu* tileTabsModeMenu = new QMenu("Tile Tabs Configuration Layout");
-    tileTabsModeMenu->addAction(m_viewAutomaticTileTabsConfigurationAction);
-    tileTabsModeMenu->addAction(m_viewCustomTileTabsConfigurationAction);
-    tileTabsModeMenu->addAction(m_viewManualTileTabsConfigurationAction);
+   
+    const bool showTileTabsModeMenuFlag(false);
+    QMenu* tileTabsModeMenu(NULL);
+    if (showTileTabsModeMenuFlag) {
+        tileTabsModeMenu = new QMenu("Tile Tabs Configuration Layout");
+        tileTabsModeMenu->addAction(m_viewAutomaticTileTabsConfigurationAction);
+        tileTabsModeMenu->addAction(m_viewCustomTileTabsConfigurationAction);
+        tileTabsModeMenu->addAction(m_viewManualTileTabsConfigurationAction);
+    }
     
     m_viewMoveFeaturesToolBoxMenu = createMenuViewMoveFeaturesToolBox();
     m_viewMoveOverlayToolBoxMenu = createMenuViewMoveOverlayToolBox();
-    
-    m_viewTileTabsLoadUserConfigurationMenu = createMenuViewTileTabsLoadUserConfiguration();
     
     menu->addAction(m_showToolBarAction);
     menu->addMenu(m_viewMoveFeaturesToolBoxMenu);
@@ -2745,8 +2651,9 @@ BrainBrowserWindow::createMenuView()
     menu->addSeparator();
     menu->addAction(m_viewTileTabsAction);
     menu->addAction(m_viewTileTabsConfigurationDialogAction);
-    menu->addMenu(tileTabsModeMenu);
-    menu->addMenu(m_viewTileTabsLoadUserConfigurationMenu);
+    if (tileTabsModeMenu != NULL) {
+        menu->addMenu(tileTabsModeMenu);
+    }
     
     return menu;
 }

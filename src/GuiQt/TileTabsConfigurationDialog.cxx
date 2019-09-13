@@ -109,21 +109,6 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(BrainBrowserWindow* par
     setStandardButtonText(QDialogButtonBox::Help,
                           "Help");
     
-//    QWidget* dialogWidget = new QWidget();
-//    QGridLayout* dialogLayout = new QGridLayout(dialogWidget);
-//    dialogLayout->setColumnStretch(0, 0);
-//    dialogLayout->setColumnStretch(1, 0);
-//    dialogLayout->setColumnStretch(2, 100);
-//    dialogLayout->addWidget(workbenchWindowWidget,
-//                            0, 0, Qt::AlignLeft);
-//    dialogLayout->addWidget(createConfigurationTypeWidget(),
-//                            1, 0);
-//    dialogLayout->addWidget(createConfigurationSettingsWidget(),
-//                            2, 0);
-//    dialogLayout->addWidget(createCopyLoadPushButtonsWidget(),
-//                            1, 1, 2, 1);
-//    dialogLayout->addWidget(createUserConfigurationSelectionWidget(),
-//                            1, 2, 2, 1);
     QWidget* dialogWidget = new QWidget();
     QGridLayout* dialogLayout = new QGridLayout(dialogWidget);
     dialogLayout->setColumnStretch(0, 0);
@@ -233,13 +218,10 @@ TileTabsConfigurationDialog::createCopyLoadPushButtonsWidget()
     widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->setContentsMargins(0, 0, 0, 0);
-//    layout->addSpacing(50);
     layout->addWidget(m_addConfigurationPushButton, 0, Qt::AlignHCenter);
-//    layout->addSpacing(10);
     layout->addWidget(m_replaceConfigurationPushButton, 0, Qt::AlignHCenter);
     layout->addSpacing(10);
     layout->addWidget(m_loadConfigurationPushButton, 0, Qt::AlignHCenter);
-//    layout->addStretch();
     
     return widget;
 }
@@ -875,7 +857,7 @@ TileTabsConfigurationDialog::createUserConfigurationSelectionWidget()
     QObject::connect(m_configurationSourceTabWidget, &QTabWidget::tabBarClicked,
                      this, &TileTabsConfigurationDialog::configurationSourceTabWidgetClicked);
     
-    QGroupBox* configurationWidget = new QGroupBox("Configurations");
+    QGroupBox* configurationWidget = new QGroupBox("Configuration Library");
     QVBoxLayout* configurationLayout = new QVBoxLayout(configurationWidget);
     configurationLayout->addWidget(m_configurationSourceTabWidget,
                                    0);
@@ -1714,7 +1696,7 @@ TileTabsConfigurationDialog::createConfigurationTypeWidget()
     
     m_manualConfigurationSetButton = createManualConfigurationSetToolButton();
     
-    QGroupBox* layoutTypeGroupBox = new QGroupBox("Configuration Type");
+    QGroupBox* layoutTypeGroupBox = new QGroupBox("Active Configuration Type");
     QGridLayout* buttonTypeLayout = new QGridLayout(layoutTypeGroupBox);
     buttonTypeLayout->setColumnStretch(0,   0);
     buttonTypeLayout->setColumnStretch(1,   0);
@@ -1748,7 +1730,7 @@ TileTabsConfigurationDialog::createConfigurationSettingsWidget()
     stretchFactorScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     stretchFactorScrollArea->setWidgetResizable(true);
     
-    QGroupBox* layoutSettingsGroupBox = new QGroupBox("Configuration Settings");
+    QGroupBox* layoutSettingsGroupBox = new QGroupBox("Active Configuration Settings");
     QVBoxLayout* settingsGroupBoxLayout = new QVBoxLayout(layoutSettingsGroupBox);
     settingsGroupBoxLayout->addWidget(stretchFactorScrollArea);
     

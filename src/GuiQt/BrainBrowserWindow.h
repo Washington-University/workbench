@@ -188,8 +188,6 @@ namespace caret {
         void processShowIdentifyBrainordinateDialog();
         void processGapsAndMargins();
         
-        void processViewTileTabsLoadUserConfigurationMenuAboutToShow();
-        void processViewTileTabsLoadUserConfigurationMenuItemTriggered(QAction* action);
         void processViewTileTabsAutomaticCustomTriggered(QAction* action);
         
 
@@ -300,7 +298,6 @@ namespace caret {
         QMenu* createMenuView();
         QMenu* createMenuViewMoveOverlayToolBox();
         QMenu* createMenuViewMoveFeaturesToolBox();
-        QMenu* createMenuViewTileTabsLoadUserConfiguration();
         QMenu* createMenuConnect();
         QMenu* createMenuData();
         QMenu* createMenuSurface();
@@ -386,7 +383,6 @@ namespace caret {
         
         QMenu* m_viewMoveFeaturesToolBoxMenu;
         QMenu* m_viewMoveOverlayToolBoxMenu;
-        QMenu* m_viewTileTabsLoadUserConfigurationMenu;
         
         QAction* m_viewFullScreenAction;
         QAction* m_viewTileTabsAction;
