@@ -118,7 +118,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
         if (!ok)
         {
-            throw AlgorithmException("unrecognized structure type");
+            throw AlgorithmException("unrecognized structure type: '" + structName + "'");
         }
         LabelFile* labelOut = labelInstances[i]->getOutputLabel(2);
         MetricFile* roiOut = NULL;
