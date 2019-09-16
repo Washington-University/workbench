@@ -138,7 +138,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
         if (!ok)
         {
-            throw AlgorithmException("unrecognized structure type");
+            throw AlgorithmException("unrecognized structure type: '" + structName + "'");
         }
         MetricFile* metricOut = metricInstances[i]->getOutputMetric(2);
         MetricFile* roiOut = NULL;
@@ -158,7 +158,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
         if (!ok)
         {
-            throw AlgorithmException("unrecognized structure type");
+            throw AlgorithmException("unrecognized structure type: '" + structName + "'");
         }
         VolumeFile* volOut = volumeInstances[i]->getOutputVolume(2);
         VolumeFile* roiOut = NULL;
