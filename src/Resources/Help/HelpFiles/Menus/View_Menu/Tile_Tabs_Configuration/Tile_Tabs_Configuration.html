@@ -13,97 +13,128 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
             Tabs</b></u></a> in the <a
         href="../../../Workbench_Window/Viewing_Area/Viewing_Area.html"><u><b>Viewing
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             Area</b></u></a>.&nbsp; <br>
       <br>
-      <img src="Tile_Tabs_Configuration.png" alt="" width="805"
-        height="520"><br>
+      <img src="Tile_Tabs_Configuration.png" alt="dialog" width="600"
+        height="346"><br>
     </font>
-    <h2><font face="Calibri">Tile Tabs Configuration in Workbench Window<br>
-      </font></h2>
+    <h1><font face="Calibri">Tile Tabs Configuration in Workbench Window<br>
+      </font></h1>
     <font face="Calibri">This section contains the tile tabs
       configuration for the selected Workbench Window.&nbsp; </font><font
       face="Calibri"><font face="Calibri">If a Scene is saved, the
         selected Configuration is saved to the Scene and is restored
         when the Scene is displayed.<br>
         <br>
-      </font></font><font face="Calibri"></font> <b>Workbench Window</b>&nbsp;
+      </font></font>
+    <h2><font face="Calibri"><font face="Calibri"> </font></font> <b>Workbench
 
 
 
+
+
+        Window</b>&nbsp; </h2>
+    <br>
     Selects the window for control of the window's Tile Tabs
     Configuration <br>
-    <font face="Calibri"><br>
-    </font>
-    <h3><font face="Calibri">Layout of Tabs in a Tile Tabs Configuration</font></h3>
-    &nbsp;<font face="Calibri">A Tile Tabs Configuration is a grid
-      layout that displays all Tabs in the Window.&nbsp; Regardless of
-      the Configuration Type, the first tab will be in the top left
-      corner with subsequent tabs appearing to the right and wrapping to
-      the next row when a row is filled.&nbsp; Rows and/or columns may
-      also contain 'Spacers' (typically used for text as row/column
-      headers) and tabs skip over these spacers.<br>
-    </font><br>
-    <h3>Configuration Types<br>
-    </h3>
+    <br>
+    <h2>Active Configuration Type<br>
+    </h2>
     <ul>
-      <li><font face="Calibri"><b>Au</b><b>tomat</b><b>ic</b><b>
-            Configuration </b>- This is the default selection and
-          Workbench will adjust the number of rows and columns so that
-          all tabs are displayed.&nbsp; </font><font face="Calibri"><font
-            face="Calibri">Use Custom when Automatic does not produce
-            the desired layout of tabs.</font> </font></li>
-      <li><font face="Calibri"><b>Custom Con</b><b>figuration</b> -
-          Allows the user to customize the configuration of the Tile
-          Tabs layout including number of rows, number of columns,
-          heights of the rows, and widths of the columns.&nbsp; If the
-          Custom Configuration contains insufficient rows and columns
-          for the Window's Tabs, some tabs will not be displayed.&nbsp;
+      <li><font face="Calibri"><b>Au</b><b>tomat</b><b>ic </b><b>Grid&nbsp;
+
+
+
+
+
+
+          </b>- This is the default selection and Workbench will adjust
+          the number of rows and columns so that all tabs are
+          displayed.&nbsp; </font><font face="Calibri"><font
+            face="Calibri"><font face="Calibri">The first tab will be in
+              the top left corner with subsequent tabs appearing to the
+              right and wrapping to the next row when a row is filled</font>.&nbsp;
+
+
+
+
+
+
+            Use Custom Grid or Manual when Automatic Grid does not
+            produce the desired layout of tabs.</font> </font></li>
+      <li><font face="Calibri"><b>Custom Grid</b> - Allows the user to
+          customize the configuration of the Tile Tabs grid layout
+          including number of rows, number of columns, heights of the
+          rows, and widths of the columns.&nbsp; If the Custom
+          Configuration contains insufficient rows and columns for the
+          Window's Tabs, some tabs will not be displayed.&nbsp;
           Conversely, there will be empty space at the bottom when the
           Tile Tabs Configuration contains space for more tabs than are
           currently in the Window.&nbsp; The user may also designate
-          rows or columns that contains 'Spacers'.<br>
-        </font></li>
+          rows or columns as 'Spacers' that are typically used for text
+          annotations row/column headers.</font></li>
+      <li><font face="Calibri"><b>M</b><b>anual</b> - A better name for
+          "Manual Configuration" may be "No Configuration" as wb_view
+          makes no effort to position and size tabs in the window.&nbsp;
+          Instead, it requires the user to position and size all tabs,
+          providing the utmost in layout flexibility.&nbsp; Tabs may be
+          placed anywhere in the window including partially outside the
+          window and a tab may overlap other tabs.&nbsp; Unlike the
+          Custom Grid, there is no editing of the configuration to add
+          or remove tabs.&nbsp; Adding a new tab (File Menu -&gt; New
+          Tab), places the new tab in the window and the user will need
+          to adjust the position and size of the new tab.&nbsp; When a
+          tab is removed (File Menu -&gt; Close Tab, or clicking a tab's
+          Close button in the tab bar), the tab is removed from the
+          window opening up space for other tabs.&nbsp;&nbsp; The
+          position and size of each tab is edited on the Tile Tabs
+          Configuration Dialog or using the more powerful options in the
+          Window’s “Tile” mode.&nbsp; To assist with creating a new
+          Manual Configuration, options exist for initializing the tab
+          positions from the Automatic or Custom Grids.&nbsp; Lastly, in
+          a Manual Configuration, the display of individual tabs can be
+          disabled and may be useful when working with and possibly
+          annotating overlapping tabs.</font></li>
     </ul>
-    <h3><font face="Calibri">Custom Configuration Rows/Columns<br>
+    <h3><font face="Calibri">Manual Set Button</font></h3>
+    <p><font face="Calibri">On the right side of the Manual Selection
+        (Round) Button is a button titled "Set..".&nbsp; When "Set.." is
+        clicked, a menu appears that allows the user set initialize the
+        size and position of the tabs using using a grid. </font></p>
+    <ul>
+      <li><font face="Calibri"><b>Replace </b><b>w</b><b>ith Automatic
+            Gri</b><b>d</b> - The position and size of the tabs is
+          initialized with the Automatic Grid </font></li>
+      <li><font face="Calibri"><b>Replace </b><b>w</b><b>ith Custom
+            Grid</b> - The position and size of the tabs is initialized
+          with the Custom Grid<br>
+        </font></li>
+      <li><font face="Calibri"><b>Reset</b><b> with G</b><b>rid</b> - A
+          dialog appears asking the user for the number of
+          columns.&nbsp; The number of rows in the grid will be
+          sufficient to contain all tabs and is used to set the position
+          and size of all tabs. </font></li>
+    </ul>
+    <p><font face="Calibri">Since a user may have tile tab
+        configurations that are useful with other data sets, options are
+        available to save the current configuration or initialize the
+        current configuration with a previously saved User
+        Configuration.&nbsp; In addition, Template Configurations are
+        available to initialize the geometry of a configuration.</font><br>
+    </p>
+    <ul>
+    </ul>
+    <h2>Active Configuration Settings</h2>
+    <br>
+    <img src="Tile_Tabs_Configuration_AutomaticGrid.png" alt="dialog"
+      width="700" height="408">
+    <h3><font face="Calibri">Custom Grid Rows/Columns Editing<br>
       </font></h3>
     <h3> </h3>
     <ul>
@@ -111,25 +142,21 @@
           column.</font></li>
       <li><font face="Calibri"><b>C</b><b>onstruction Menu</b> - Allows
           the user to duplicate, move, or delete rows and columns.&nbsp;
-          <br>
         </font></li>
       <li><font face="Calibri"><b>Content</b> - The content of the row
           or column chosen from Space or Tab.&nbsp; The content of
           'Space' is limited to annotations in "Spacer Coordinate Space"
           or "Window Space" Annotations.&nbsp; The content of 'Tab' is
           limited to display of a browser tab along with annotations in
-          spaces other than "Spacer Coordinate Space." <br>
-        </font></li>
+          spaces other than "Spacer Coordinate Space." </font></li>
       <li><font face="Calibri"><b>Type</b> - The type of 'stretching'
-          chosen from Percent and Weight.<br>
-        </font></li>
+          chosen from Percent and Weight. </font></li>
       <li><font face="Calibri"><b>Stretch</b> - The stretching
           value.&nbsp; When the Type is Percent this value is a
           percentage and when the Type is weight it is the weight for
-          this row/column.<br>
-        </font></li>
+          this row/column. </font></li>
     </ul>
-    <h3> Explanation of Stretching</h3>
+    <h4> Explanation of Stretching</h4>
     <br>
     The space allocated to a row is determined by a combination of the
     Stretching Type and the Stretching Value.&nbsp; (Note that row and
@@ -144,8 +171,7 @@
     that use Percentage sum to more than 100%, then part or all of the
     last rows may not be displayed (likewise for columns).&nbsp; If
     there are no rows/columns that use Weight, then there may be blank
-    unused space, depending on the percentages used."<br>
-    <br>
+    unused space, depending on the percentages used." <br>
     <h5>Example of Percentage Stretching</h5>
     <ul>
       <li>Row 1: 20%</li>
@@ -160,8 +186,6 @@
       <li>Row 3 Height: 300 pixels (30% of 1000)<br>
       </li>
     </ul>
-    <h4><br>
-    </h4>
     <h4>Weighted Stretching Type</h4>
     When a row's Type is set to Weight, the Height of the row is
     affected by Stretching Values of all Rows with the Stretching Type
@@ -169,7 +193,6 @@
     weights from all rows are summed and the row's weight is divided by
     the sum.&nbsp; This result (row's weight divided by sum) becomes the
     percentage of the window's height allocated to the row.<br>
-    <br>
     <h5>Example of Weighted Stretching</h5>
     <ul>
       <li>Row 1: 1.0</li>
@@ -181,8 +204,7 @@
     </p>
     <ul>
       <li>Row 1 Height: 250 pixels&nbsp;&nbsp; ((1.0 / 4.0) * 1000 =
-        250)<br>
-      </li>
+        250) </li>
       <li>Row 2 Height: 500 pixels &nbsp; ((2.0 / 4.0) * 1000 = 500)</li>
       <li>Row 3 Height: 250 pixels&nbsp;&nbsp; ((1.0 / 4.0) * 1000 =
         250)</li>
@@ -192,8 +214,7 @@
     When both Percentage and Weighted Stretching are used, rows with
     Percentage stretching are assigned their requested height percentage
     and any remaining space is allocated to rows with weighted
-    Stretching.<br>
-    <br>
+    Stretching. <br>
     <h5>Example of Percentage and Weighted Stretching</h5>
     <ul>
       <li>Row 1: Percentage, 20%</li>
@@ -202,8 +223,7 @@
       <li>Row 4: Weighted, 2.0</li>
     </ul>
     <p>Result for a Window 1000 pixels in height (Note: Sum of
-      Percentages is 50% and Sum of Weights is 3.0):<br>
-    </p>
+      Percentages is 50% and Sum of Weights is 3.0): </p>
     <ul>
       <li>Row 1 Height: 200 pixels (20% of 1000)</li>
       <li>Row 2 Height: 300 pixels (30% of 1000)</li>
@@ -219,10 +239,9 @@
       <li>Row 2 Height: 300 pixels (30% of 1000)</li>
       <li>Row 3 Height: 125 pixels ((1.0 / 4.0) * 50% * 1000)</li>
       <li>Row 4 Height: 250 pixels ((2.0 / 4.0) * 50% * 1000)</li>
-      <li>Row 5 Height: 125 pixels ((1.0 / 4.0) * 50% * 1000)<br>
-      </li>
+      <li>Row 5 Height: 125 pixels ((1.0 / 4.0) * 50% * 1000)</li>
     </ul>
-    <h3>Summary of Percentage and Weighted Stretching</h3>
+    <h5>Summary of Percentage and Weighted Stretching</h5>
     <p>The advantage of using Percentage stretching is that the row will
       be allocated the requested percentage of the window's
       height.&nbsp; The disadvantage of Percentage Stretching is that if
@@ -247,38 +266,293 @@
       the same size and the Rows containing the Brain Models will occupy
       all of the remaining vertical space.<br>
     </p>
-    <h2><font face="Calibri">User Configuration</font></h2>
-    <font face="Calibri"> The User Configuration contains Tile Tabs
-      Configurations that have been created by the user.&nbsp; These
-      configurations are saved in the user's preferences and thus are
-      available in future Workbench sessions.<br>
+    <h3>Manual Editing<br>
+    </h3>
+    <p><img src="Tile_Tabs_Configuration_Manual.png" alt="dialog"
+        width="600" height="349"></p>
+    <p>In a manual configuration, the user is responsible for the
+      placement and sizing of the tab.&nbsp; <br>
+    </p>
+    <ul>
+      <li><b>Show</b> - Checkbox enables or disables the drawing of a
+        tab in the window </li>
+      <li><b>Tab Name</b> - Name of the tab </li>
+      <li><b>Left</b> - Left side of the tab.&nbsp; Value is a window
+        percentage ranging 0% (left side of window) to 100% (right side
+        of window) </li>
+      <li><b>Right</b> - Right side of the tab </li>
+      <li><b>Bottom</b> - Bottom of the tab </li>
+      <li><b>Top</b> - Top of the tab </li>
+      <li><b>Background</b> - Opaque (hides any tabs behind 'this' tab)
+        or Transparent (no background drawn so tabs behind 'this' tab
+        may be visible) </li>
+      <li><b>Order</b> - A numerical value that sets the back to front
+        order of the tab (larger numerical values are in front of
+        smaller numerical values).&nbsp; When tabs overlay, the Order
+        value is used to control the overlap of tabs (which tab is in
+        front or other tab(s)). </li>
+    </ul>
+    <br>
+    More powerful controls for editing a manual layout are available in
+    Tile Mode (Select "Tile" in Mode section of the Toolbar).<br>
+    <p> </p>
+    <h2><font face="Calibri">Configuration Library<br>
+      </font></h2>
+    <font face="Calibri"> The Configurations Library section&nbsp;
+      contains configurations that have been created by the user and
+      configurations provided by wb_view. &nbsp;&nbsp; These User
+      Configurations are saved in the user's preferences and thus are
+      available in future Workbench sessions for that user.&nbsp; The
+      Template Configurations are provided by wb_view.&nbsp; While the
+      Template Configurations are not editable by the user, the user may
+      load a Template Configuration as the Current Configuration, edit
+      it, and then save it as a User Configuration.&nbsp; The name of
+      each configuration is followed by a letter and number in
+      parenthesis.&nbsp; The number indicates the number of tabs in the
+      configuration and the letter indicates the type of configuration,
+      G=Grid, M=Manual.<br>
     </font>
     <ul>
-      <li><font face="Calibri"><b>New</b> - Click this button to create
-          a new User Configuration</font></li>
       <li><font face="Calibri"><b>Rename</b> - Click this button to
-          rename the selected User Configuration</font></li>
+          rename the selected User Configuration (Disabled for Template)
+        </font></li>
       <li><font face="Calibri"><b>Delete</b> - Click this button to
-          delete the selected User Configuration</font></li>
+          delete the selected User Configuration (Disabled for Template)
+        </font></li>
     </ul>
-    <h2><font face="Calibri">Replace and Load Push Buttons</font></h2>
+    <h3><font face="Calibri">Configuration Loading and Saving </font></h3>
     <ul>
+      <li><font face="Calibri"><b>Add </b>- Adds the Active
+          Configuration to the User Configurations that are saved to
+          Preferences.&nbsp; A dialog prompts the user for the name of
+          the new configuration. </font></li>
       <li><font face="Calibri"><b>Replace</b> - Replaces (saves) the
-          selected User Configuration with the content of the Custom
+          selected User Configuration with the content of the Active
           Configuration</font></li>
       <li><font face="Calibri"><b>Load</b> - Copies the selected User
-          Configuration into the Custom Configuration and is used for
-          the layout of the window<br>
-        </font></li>
+          Configuration into the Active Configuration using the Type
+          from the User Configuration or the Template
+          Configuration.&nbsp; If the configuration is a Custom Grid and
+          there are more tabs viewed than in the Custom Grid, a dialog
+          is displayed to warn the user.&nbsp; If the configuration is a
+          Manual Configuration and the number of tabs in the window is
+          different that the number of tabs in the configuration, a
+          dialog warns the user with the option to expand or contract
+          the number of tabs in the window.</font></li>
+    </ul>
+    <h3><font face="Calibri">Configuration Preview</font></h3>
+    <p><font face="Calibri"> The preview shows an outline of the tabs in
+        the selected Template or User Configuration so that the user can
+        see the resulting layout of tabs.<br>
+      </font></p>
+    <ul>
+    </ul>
+    <h2>Manual Configuration Editing Toolbar in Main Window</h2>
+    <img src="Window_Tile_Editing_Toolbar.png" alt="dialog" width="800"
+      height="197"><br>
+    <br>
+    The toolbar is visible when a manual configuration is active and
+    "Tile" mode is selected.<br>
+    <br>
+    Located in the Mode section of the Toolbar is new mode named
+    “Tile”.&nbsp; When Tile Tabs is enabled and the Active Configuration
+    is a Manual, “Tile” is enabled.&nbsp; When in Tile Mode, controls
+    are added at the bottom of the Toolbar for editing the position and
+    size of the selected tab(s).&nbsp; All numerical values in the
+    editing controls are in Window Percentages with zero percent at the
+    bottom/left and one-hundred percent at the right/top. <br>
+    <ul>
+      <li><b>Bounds</b> – Controls for changing the size of the tab by
+        moving the tab’s sides.&nbsp; Moving one of the bounds will
+        change the width or height of the tab.</li>
+      <li><b>Center</b> – Controls for setting the position of the tab
+        by moving the center of the tab.&nbsp; Width and height will not
+        change.</li>
+      <li><b>Size</b> – Controls for setting the width or height of the
+        tab.</li>
+      <li><b>Format</b> – Displays a menu for performing placement
+        options on the selected tab(s)</li>
+      <li><b>Edit</b> – Allows one to undo or redo a tab position or
+        size modification.<br>
+      </li>
+    </ul>
+    If multiple tabs are selected and the tabs have a different values
+    for one of the numerical values, the numerical value is followed by
+    a plus (+) sign.&nbsp; When one of the numerical values is changed,
+    it is applied to all selected tabs.&nbsp; This may be useful in some
+    situations.&nbsp; Suppose one wants two tabs to have the same left
+    bound.&nbsp; Simply select both tabs (click tabs while holding down
+    the SHIFT key), type the desired value in the Left numerical
+    control, and press the Return key.<br>
+    <h3>Format Menu</h3>
+    <br>
+    <img src="Toolbar_Arrange_Menu.png" alt="Dialog" width="399"
+      height="498"><br>
+    <ul>
+      <li><b>Align Left</b> –&nbsp; When two or more tabs are selected,
+        align the tabs so the left edges are the same as the left-most
+        tab</li>
+      <li><b>Align Center</b> – When two or more tabs are selected,
+        align the tabs so that the center X-coordinates are the same</li>
+      <li><b>Align Right</b> – When two or more tabs are selected, align
+        the tabs so the right edges are the same as the right-most tab</li>
+      <li><b>Align Top </b>– When two or more tabs are selected, align
+        the tabs so the top edges are the same as the top-most tab</li>
+      <li><b>Align Middle</b> – When two or more tabs are selected,
+        align the tabs so that the center Y-coordinates are the same</li>
+      <li><b>Align Bottom</b> – When two or more tabs are selected,
+        align the tabs so the bottom edges are the same as the
+        bottom-most tab</li>
+      <li><b>Distribute Horizontally</b> – When three or more tabs are
+        selected, adjust the positions and sizes of the tabs
+        horizontally so that they do not overlap but fill the horizontal
+        axis of the window</li>
+      <li><b>Distribute Vertically</b> - When three or more tabs are
+        selected, adjust the positions and sizes of the tabs vertically
+        so that they do not overlap but fill the vertical axis of the
+        window</li>
+      <li><b>Bring to Front</b> – When one tab is selected and the tab
+        overlaps with other tabs, move this tab forward so that this tab
+        is front of all other tabs</li>
+      <li><b>Bring Forward </b>– When one tab is selected and the tab
+        overlaps with other tabs, move this tab forward one position</li>
+      <li><b>Send to Back</b> - When one tab is selected and the tab
+        overlaps with other tabs, move this tab backward one position</li>
+      <li><b>Send Backward</b> – When one tab is selected and the tab
+        overlaps with other tabs, move this tab backward so that it is
+        behind all other tabs</li>
+      <li><b>Expand Tab to Fill Empty Space</b> – When one tab is
+        selected expand this tab so that it fills available empty space
+        around itself</li>
     </ul>
     <p><br>
     </p>
-    <blockquote>
-      <ul>
-      </ul>
-      <br>
-      <br>
-    </blockquote>
+    <h2> Context Sensitive Menu on Tabs in Tab Bar</h2>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <br>
+    <img
+src="file:///Users/john/caret7_development/caret7_source/src/Resources/Help/HelpFiles/Menus/View_Menu/Tile_Tabs_Configuration/TabBar_Tab_Menu.png"
+      alt="menu" width="400" height="452"><br>
+    <br>
+    <br>
+    This menu is displayed by right-clicking a tab in the tab bar at the
+    top of the window.&nbsp; The selections at the top of the menu are
+    new.<br>
+    <br>
+    The Active Tab is the tab that is selected and may be different than
+    the tab that is under the mouse.<br>
+    <ul>
+      <li><b>Select for Manual Layout Editing </b>– Selects the tab so
+        that its layout attributes are editable</li>
+      <li><b>Show (or Hide) Tab Content in Window</b> – Enables/Disables
+        display of tab in window and may be useful for editing
+        overlapping tabs or annotating overlapping tabs</li>
+      <li><b>Create New Tab Before This Tab</b> - Create a new tab and
+        insert it into the tab bar on the left of the tab under the
+        mouse </li>
+      <li><b>Create New Tab After This Tab</b> - Create a new tab and
+        insert it into the tab bar on the right of the tab under the
+        mouse</li>
+      <li><b>Duplicate This Tab at Beginning</b> - Duplicate the tab
+        under the mouse and insert it at the far left position in the
+        tab bar </li>
+      <li><b>Duplicate This Tab Before Active Tab</b> - Duplicate the
+        tab under the mouse and insert it on the left of the active tab
+        in the tab bar </li>
+      <li><b>Duplicate This Tab After Active Tab</b> - Duplicate the tab
+        under the mouse and insert on the right of the active tab in the
+        tab bar </li>
+      <li><b>Duplicate This Tab at End</b> - Duplicate the tab under the
+        mouse and insert it at the far right position in the tab bar</li>
+      <li><b>Move This Tab to Beginning</b> - Move the tab under the
+        mouse to the far left position in the tab bar </li>
+      <li><b>Move This Tab to Before Active Tab</b> - Move the tab under
+        the mouse to the left of the active tab </li>
+      <li><b>Move This Tab to After Active Tab</b> - Move the tab under
+        the mouse to the right of active tab </li>
+      <li><b>Move This Tab to End</b> - Move the tab under the mouse to
+        the far right side of the tab bar </li>
+      <li><b>Delete This Tab</b> - Delete the tab under the mouse </li>
+    </ul>
+    <h2> Context Sensitive (right-click) Menu in Window</h2>
+    <br>
+    <img src="RightClickPopUpMenu.png" alt="Menu" width="400"
+      height="280"><br>
+    <br>
+    This menu is displayed by right-clicking in the graphics region (are
+    where brain models are drawn).<br>
+    <br>
+    <ul>
+      <li><b>Select All </b>– Selects all displayed tabs for editing</li>
+      <li><b>Brain to Front</b> – Functionality documented in Arrange
+        Menu</li>
+      <li><b>Bring Forward</b> – Functionality documented in Arrange
+        Menu</li>
+      <li><b>Send to Back</b> – Functionality documented in Arrange Menu</li>
+      <li><b>Send Backward</b> – Functionality documented in Arrange
+        Menu</li>
+      <li><b>Insert New Tab</b> – Inserts a new tab at the mouse
+        position.</li>
+      <li><b>Expand Tab to Fill Empty Space</b> - Functionality
+        documented in Arrange Menu<br>
+      </li>
+    </ul>
+    <br>
+    <h2>Moving and Resizing Tabs with Mouse</h2>
+    <h3>Select a Tab using the Mouse</h3>
+    <ul>
+      <li>Enable Tile Tabs (View Menu -&gt; Enter Tile Tabs)</li>
+      <li>Click "Tile" in the Mode section of the Toolbar</li>
+      <li>Notice that tabs are enclosed in thin dashed lines delineating
+        the bounds of the tabs</li>
+      <li>Move the mouse over a tab and notice that the cursor
+        transforms from an arrow to four arrows indicating that the
+        mouse is over a tab. </li>
+      <li>Click the mouse over a tab to select the tab. </li>
+      <li>Notice that the tab is now delineated by solid lines with
+        sizing handles (squares at the corners and sides) indicating
+        that it is selected.&nbsp; The sizing handles at the corners
+        allow changing the width and/or height of the tab while. &nbsp;
+        The sizing handles along the sides vertical sides allow changing
+        only the width and the sizing handles on the horizontal edges
+        allow changing only the height. </li>
+    </ul>
+    <br>
+    <h3>Move a Tab using the Mouse<br>
+    </h3>
+    <ul>
+      <li>Select a tab.</li>
+      <li>Drag the mouse (hold down the left mouse button while moving
+        the mouse) to move the tab.</li>
+    </ul>
+    <h3>Resize a Tab using the Mouse<br>
+    </h3>
+    <ul>
+      <li>Select a tab.</li>
+      <li>Move the mouse over one of the sizing handles.&nbsp; The mouse
+        cursor will transform to a two-arrow cursor and the arrows
+        indicate the direction of mouse movement that will resize the
+        tab </li>
+      <li>Drag the mouse to resize the tab.</li>
+    </ul>
+    <p><br>
+    </p>
+    <h3>Moving Multiple Tabs using the Mouse<br>
+    </h3>
+    <ul>
+      <li>To select multiple tabs, first select one tab.</li>
+      <li>To select another tab, move the mouse over a tab, hold down
+        the SHIFT key and click the mouse.</li>
+      <li>Drag the mouse to move the selected tabs.</li>
+      <li>Note that resizing of multiple tabs is allowed at this time
+        and may be added at a later time. </li>
+    </ul>
+    <h2>Redo/Undo</h2>
+    The Tile Toolbar contains Redo and Undo button in the Edit
+    section.&nbsp; If a mistake is made while editing changing at tab's
+    geometry, clicking the Undo button will revert the most recent
+    modification and may be clicked again to further revert
+    modifications.<br>
     <br>
     <ul>
     </ul>
