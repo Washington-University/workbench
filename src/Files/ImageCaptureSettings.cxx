@@ -65,6 +65,14 @@ SceneableInterface()
     
     setPixelWidthAndHeight(512, 512);
     
+    /* WB-868 Defautl Custom, 300 DPI, 7.5 inches width, copy to clipboard OFF, save to file ON, no file name*/
+    m_dimensionsMode = ImageCaptureDimensionsModeEnum::IMAGE_CAPTURE_DIMENSIONS_MODE_CUSTOM;
+    setImageResolutionInSelectedUnits(300.0);
+    setSpatialWidth(7.5);
+    m_saveToFileEnabled = true;
+    m_copyToClipboardEnabled = false;
+    m_imageFileName = "";
+    
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_pixelWidth",

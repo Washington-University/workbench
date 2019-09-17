@@ -1037,6 +1037,14 @@ ImageCaptureDialog::applyButtonClicked()
         return;
     }
     
+    AString imageFileName = m_imageFileNameLineEdit->text().trimmed();
+    if (m_saveImageToFileCheckBox->isChecked()) {
+        if (imageFileName.isEmpty()) {
+            WuQMessageBox::errorOk(this, "Save to File name is empty.  Choose an Image File.");
+            return;
+        }
+    }
+    
     /*
      * Default to width of window that may exclude empty regions
      * caused by locking of aspect ratio.
@@ -1102,35 +1110,35 @@ ImageCaptureDialog::applyButtonClicked()
             QApplication::clipboard()->setImage(*imageFile.getAsQImage(),
                                                 QClipboard::Clipboard);
         }
-        
+
         if (m_saveImageToFileCheckBox->isChecked()) {
             std::vector<AString> imageFileExtensions;
             AString defaultFileExtension;
             ImageFile::getImageFileExtensions(imageFileExtensions,
                                               defaultFileExtension);
             
-            AString filename = m_imageFileNameLineEdit->text().trimmed();
+            CaretAssert( ! imageFileName.isEmpty());
             
             bool validExtension = false;
             for (std::vector<AString>::iterator extensionIterator = imageFileExtensions.begin();
                  extensionIterator != imageFileExtensions.end();
                  extensionIterator++) {
-                if (filename.endsWith(*extensionIterator)) {
+                if (imageFileName.endsWith(*extensionIterator)) {
                     validExtension = true;
                 }
             }
             
-            if (validExtension == false) {
+            if ( ! validExtension) {
                 if (defaultFileExtension.isEmpty() == false) {
-                    filename += ("." + defaultFileExtension);
+                    imageFileName += ("." + defaultFileExtension);
                 }
             }
             
             try {
-                imageFile.writeFile(filename);
+                imageFile.writeFile(imageFileName);
             }
             catch (const DataFileException& /*e*/) {
-                QString msg("Unable to save: " + filename);
+                QString msg("Unable to save: " + imageFileName);
                 WuQMessageBox::errorOk(this, msg);
                 errorFlag = true;
             }
@@ -1139,7 +1147,7 @@ ImageCaptureDialog::applyButtonClicked()
     
     ChartMatrixDisplayProperties::setManualScaleModeWindowWidthHeightScaling(1.0, 1.0);
     
-    if (errorFlag == false) {
+    if ( ! errorFlag) {
         /*
          * Display over "Capture" (the renamed Apply) button.
          */
