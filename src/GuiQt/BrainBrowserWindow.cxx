@@ -68,6 +68,7 @@
 #include "CaretLogger.h"
 #include "ElapsedTimer.h"
 #include "EventGetViewportSize.h"
+#include "EventBrowserTabReopenAvailable.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowContent.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
@@ -1345,6 +1346,17 @@ BrainBrowserWindow::createActions()
     WuQMacroManager::instance()->addMacroSupportToObject(m_duplicateTabAction,
                                                          ("Duplicate tab in Window " + QString::number(m_browserWindowIndex + 1)));
 
+
+    m_reopenLastClosedTabAction =
+    WuQtUtilities::createAction("Reopen Last Closed Tab",
+                                "Reopen the last closed tab",
+                                Qt::CTRL + Qt::SHIFT + Qt::Key_T,
+                                this,
+                                this,
+                                SLOT(processReopenLastClosedTab()));
+    m_reopenLastClosedTabAction->setObjectName(m_objectNamePrefix
+                                               + ":Menu:ReopenLastClosedTabAction"); /* NOTE: No Macro support for this item */
+    
     m_openFileAction =
     WuQtUtilities::createAction("Open File...", 
                                 "Open a data file including a spec file located on the computer",
@@ -1833,6 +1845,7 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(m_newWindowAction);
     menu->addAction(m_newTabAction);
     menu->addAction(m_duplicateTabAction);
+    menu->addAction(m_reopenLastClosedTabAction);
     menu->addSeparator();
     menu->addAction(m_openFileAction);
     menu->addAction(m_openLocationAction);
@@ -2166,6 +2179,12 @@ BrainBrowserWindow::processFileMenuAboutToShow()
         m_closeWindowAction->setText(m_closeWindowActionConfirmTitle);
         m_recentSpecFileMenu->setTitle(m_recentSpecFileMenuOpenConfirmTitle);
     }
+    
+    EventBrowserTabReopenAvailable reopenAvailableEvent;
+    EventManager::get()->sendEvent(reopenAvailableEvent.getPointer());
+    const std::vector<std::pair<int32_t, AString>> tabIndicesAndNames = reopenAvailableEvent.getTabIndicesAndNames();
+    const bool reopenTabValidFlag( ! tabIndicesAndNames.empty());
+    m_reopenLastClosedTabAction->setEnabled(reopenTabValidFlag);
 }
 
 void
@@ -4015,6 +4034,15 @@ BrainBrowserWindow::processDuplicateTab()
 {
     BrowserTabContent* previousTabContent = getBrowserTabContent();
     m_toolbar->addNewDuplicatedTab(previousTabContent);
+}
+
+/**
+ * Called to reopen the last closed tab.
+ */
+void
+BrainBrowserWindow::processReopenLastClosedTab()
+{
+    std::cout << "Reopen last closed tab" << std::endl;
 }
 
 /**

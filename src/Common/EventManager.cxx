@@ -405,6 +405,8 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_BROWSER_TAB_NEW:
         case EventTypeEnum::EVENT_BROWSER_TAB_NEW_IN_GUI:
         case EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE:
+        case EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_AVAILBLE:
+        case EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET:

@@ -46,6 +46,8 @@
 #include "EventBrowserTabIndicesGetAll.h"
 #include "EventBrowserTabNew.h"
 #include "EventBrowserTabNewClone.h"
+#include "EventBrowserTabReopenAvailable.h"
+#include "EventBrowserTabReopenClosed.h"
 #include "EventBrowserWindowContent.h"
 #include "EventCaretPreferencesGet.h"
 #include "EventModelAdd.h"
@@ -100,6 +102,8 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_AVAILBLE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_PREFERENCES_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_ADD);
@@ -435,6 +439,21 @@ SessionManager::receiveEvent(Event* event)
                 tabEvent->addBrowserTabIndex(m_browserTabs[i]->getTabNumber());
             }
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_AVAILBLE) {
+        EventBrowserTabReopenAvailable* tabEvent = dynamic_cast<EventBrowserTabReopenAvailable*>(event);
+        CaretAssert(tabEvent);
+        
+        tabEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED) {
+        EventBrowserTabReopenClosed* lastTabEvent = dynamic_cast<EventBrowserTabReopenClosed*>(event);
+        CaretAssert(lastTabEvent);
+        
+        CaretLogSevere("Reopen Last Tab event has not been implemented");
+        
+        //const int32_t windowIndex = lastTabEvent->getBrowserWindowIndex();
+        lastTabEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT) {
         EventBrowserWindowContent* windowEvent =

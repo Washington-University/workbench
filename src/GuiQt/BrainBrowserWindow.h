@@ -170,6 +170,7 @@ namespace caret {
         void processNewWindow();
         void processNewTab();
         void processDuplicateTab();
+        void processReopenLastClosedTab();
         void processDataFileLocationOpen();
         void processDataFileOpen();
         void processManageSaveLoadedFiles();
@@ -353,6 +354,8 @@ namespace caret {
         QAction* m_newTabAction;
         
         QAction* m_duplicateTabAction;
+        
+        QAction* m_reopenLastClosedTabAction;
         
         QAction* m_openFileAction;
         

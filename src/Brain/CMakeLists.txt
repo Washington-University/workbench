@@ -82,6 +82,8 @@ EventBrainStructureGetAll.h
 EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabGetAllViewed.h
+EventBrowserTabReopenAvailable.h
+EventBrowserTabReopenClosed.h
 EventBrowserWindowContent.h
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h
 EventChartOverlayValidate.h
@@ -243,6 +245,8 @@ EventBrainStructureGetAll.cxx
 EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
 EventBrowserTabGetAllViewed.cxx
+EventBrowserTabReopenAvailable.cxx
+EventBrowserTabReopenClosed.cxx
 EventBrowserWindowContent.cxx
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays.cxx
 EventChartOverlayValidate.cxx
