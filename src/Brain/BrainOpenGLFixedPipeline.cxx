@@ -1205,8 +1205,17 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
      */
     this->windowTabIndex = -1;
     
+    std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(m_windowIndex);
+    EventManager::get()->sendEvent(windowContentEvent->getPointer());
+    const BrowserWindowContent* windowContent = windowContentEvent->getBrowserWindowContent();
+    bool tileTabsEnabledFlag(false);
+    if (windowContent != NULL) {
+        tileTabsEnabledFlag = windowContent->isTileTabsEnabled();
+    }
+    
     const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::ANNOTATIONS);
-    const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING);
+    const bool tileTabsEditModeFlag = (tileTabsEnabledFlag
+                                       && (m_windowUserInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING));
     BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
                                                              this->mode,
                                                              BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
