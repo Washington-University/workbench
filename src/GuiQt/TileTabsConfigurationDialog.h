@@ -265,6 +265,10 @@ namespace caret {
         
         QToolButton* m_manualConfigurationSetButton;
         
+        QString m_setManualToAutomaticGridActionText;
+        QString m_setManualToCustomGridActionText;
+        QString m_setManualToGridColumnsActionText;
+        
         std::vector<TileTabsManualTabGeometryWidget*> m_manualGeometryEditorWidgets;
         
         std::vector<std::unique_ptr<TileTabsLayoutBaseConfiguration>> m_templateLayoutConfigurations;

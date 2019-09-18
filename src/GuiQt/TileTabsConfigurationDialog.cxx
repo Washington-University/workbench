@@ -1434,8 +1434,24 @@ TileTabsConfigurationDialog::addManualGeometryWidget(QGridLayout* gridLayout,
 QToolButton*
 TileTabsConfigurationDialog::createManualConfigurationSetToolButton()
 {
+    m_setManualToAutomaticGridActionText = "Set Bounds of Tabs from Automatic Grid";
+    m_setManualToCustomGridActionText    = "Set Bounds of Tabs from Custom Grid";
+    m_setManualToGridColumnsActionText   = "Set Bounds of Tabs from Grid...";
+
+    const QString toolTipText("<html>"
+                              "Set (replace) the bounds of all tabs using the bounds created by a grid configuration.  After "
+                              "choosing one of the selections, the user may edit individual tab bounds as desired."
+                              "<ul>"
+                              "<li><b>" + m_setManualToAutomaticGridActionText + "</b> - Tab bounds will be identical to the Automatic Grid"
+                              "<li><b>" + m_setManualToCustomGridActionText + "</b> - Tab bounds will be identical to the Custom Grid (note that a "
+                              "custom grid may not display all tabs but all tabs will be in the manual configuration)"
+                              "<li><b>" + m_setManualToGridColumnsActionText + "</b> - Using a dialog, the user is prompted to enter the number of columns in the grid and wb_view will "
+                              "set the number of rows so that the grid contains all tabs.  Tabs bounds are then set using the grid"
+                              "</ul>"
+                              "</html>");
     QToolButton* toolButton = new QToolButton();
     toolButton->setText("Set...");
+    toolButton->setToolTip(toolTipText);
     QObject::connect(toolButton, &QToolButton::clicked,
                      this, &TileTabsConfigurationDialog::manualConfigurationSetToolButtonClicked);
     
@@ -1449,9 +1465,9 @@ void
 TileTabsConfigurationDialog::manualConfigurationSetToolButtonClicked()
 {
     QMenu menu(m_manualConfigurationSetButton);
-    QAction* setAutomaticGridAction = menu.addAction("Replace with Automatic Grid");
-    QAction* setCustomGridAction = menu.addAction("Replace with Custom Grid");
-    QAction* setColumnsAction = menu.addAction("Reset with Grid...");
+    QAction* setAutomaticGridAction = menu.addAction(m_setManualToAutomaticGridActionText);
+    QAction* setCustomGridAction    = menu.addAction(m_setManualToCustomGridActionText);
+    QAction* setColumnsAction       = menu.addAction(m_setManualToGridColumnsActionText);
 
     QAction* selectedAction = menu.exec(m_manualConfigurationSetButton->mapToGlobal(QPoint(0,0)));
     if (selectedAction == setColumnsAction) {
