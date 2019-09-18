@@ -2990,8 +2990,14 @@ BrainBrowserWindowToolBar::createModeWidget()
     /*
      * Tile tabs manual layout editing
      */
+    const AString tileToolTip("<html>"
+                              "Edit Tile Tabs Manual Configuration<br><br>"
+                              "This button is enabled when: <br>"
+                              "  * Tile Tabs is enabled (View Menu -> Enter Tile Tabs)<br>"
+                              "  * Selected Tile Tab Active Configuration Type is Manual (View Menu -> Edit Tile Tabs Configuration)"
+                              "</html>");
     this->modeInputModeTileTabsManualLayoutAction = WuQtUtilities::createAction("Tile",
-                                                                                "Edit Tile Tabs Manual Layout",
+                                                                                tileToolTip,
                                                                                 this);
     this->modeInputModeTileTabsManualLayoutAction->setCheckable(true);
     QToolButton* inputModeTileTabsManualLayoutButton = new QToolButton();
