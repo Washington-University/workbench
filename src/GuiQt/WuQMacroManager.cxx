@@ -237,7 +237,7 @@ WuQMacroManager::addMacroSupportToObjectWithToolTip(QObject* object,
     
     auto existingWatcher = m_signalWatchers.find(name);
     if (existingWatcher != m_signalWatchers.end()) {
-        CaretLogSevere("Object named \""
+        CaretLogWarning("Object named \""
                        + name
                        + "\" has already been connected for macros\n"
                        + SystemUtilities::getBackTrace()

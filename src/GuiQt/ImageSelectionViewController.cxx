@@ -442,6 +442,7 @@ ImageSelectionViewController::updateImageViewController()
         for (int32_t i = 0; i < numToAdd; i++) {
             const int buttonID = static_cast<int>(m_imageRadioButtons.size());
             QRadioButton* rb = new QRadioButton("");
+            const int32_t buttonNumber(m_imageRadioButtons.size() + 1);
             m_imageRadioButtons.push_back(rb);
             
             const int row = m_imageRadioButtonLayout->rowCount();
@@ -453,10 +454,10 @@ ImageSelectionViewController::updateImageViewController()
             
             const QString buttonName(m_objectNamePrefix
                                      + ":Selection:Image"
-                                     + QString("%1").arg((int)i+1, 2, 10, QLatin1Char('0')));
+                                     + QString("%1").arg((int)buttonNumber, 2, 10, QLatin1Char('0')));
             rb->setObjectName(buttonName);
-            const QString descriptiveName("Select Image"
-                                          + QString("%1").arg(i + 1));
+            const QString descriptiveName("Select Image "
+                                          + QString("%1").arg(buttonNumber));
             WuQMacroManager::instance()->addMacroSupportToObjectWithToolTip(rb,
                                                                             descriptiveName,
                                                                             "");
