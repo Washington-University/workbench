@@ -575,7 +575,31 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
     BrowserWindowContent* browserWindowContent = getModelEvent.getBrowserWindowContent();
     CaretAssert(browserWindowContent);
 
+    /*
+     * Prior to WB-859 Manual Tile Tabs Layout System: BrainOpenGLViewportContent::createViewportContentForTileTabs() was only
+     * called IF tile tabs was enabled AND there was more than one tab.  However, we want a manual layout to function correctly,
+     * even if there is only one tab.  So when tile tabs enabled and one tab, draw as single tab for Automatic Grid and Custom Grid
+     * but draw using tile tabs for a Manual Configuration.
+     */
+    bool drawUsingTileTabsFlag(false);
     if (browserWindowContent->isTileTabsEnabled()) {
+        if (numberOfTabs > 1) {
+            drawUsingTileTabsFlag = true;
+        }
+        else if (numberOfTabs == 1) {
+            switch (browserWindowContent->getTileTabsConfigurationMode()) {
+                case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                    break;
+                case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                    break;
+                case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                    drawUsingTileTabsFlag = true;
+                    break;
+            }
+        }
+    }
+    
+    if (drawUsingTileTabsFlag) {
         const int32_t windowWidth  = windowViewport[2];
         const int32_t windowHeight = windowViewport[3];
         
