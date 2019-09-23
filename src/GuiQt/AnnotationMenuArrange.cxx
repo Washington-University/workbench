@@ -379,8 +379,8 @@ AnnotationMenuArrange::menuActionTriggered(QAction* action)
         CaretLogSevere(msg);
     }
 
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**

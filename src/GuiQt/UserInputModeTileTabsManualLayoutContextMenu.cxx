@@ -256,11 +256,13 @@ UserInputModeTileTabsManualLayoutContextMenu::processExpandTabMenuItem()
                                                                    browserWindowIndex,
                                                                    m_userInputTileTabsManualLayout->getUserInputMode(),
                                                                    errorMessage);
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+
     if ( ! result) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
-    }
-    
+    }    
 }
 
 /**

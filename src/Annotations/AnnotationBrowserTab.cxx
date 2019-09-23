@@ -439,10 +439,10 @@ public:
      * Test to see of ALL of the grid points with the given bounds
      * are off
      */
-    bool rangeOff(const int32_t minX,
-                  const int32_t maxX,
-                  const int32_t minY,
-                  const int32_t maxY) const {
+    bool isRangeOff(const int32_t minX,
+                    const int32_t maxX,
+                    const int32_t minY,
+                    const int32_t maxY) const {
         for (int32_t i = minX; i <= maxX; i++) {
             for (int32_t j = minY; j <= maxY; j++) {
                 const int32_t offset = (m_rangeXY * j) + i;
@@ -454,7 +454,7 @@ public:
         }
         return true;
     }
-    
+
     /**
      * Set grid points on for the given range
      */
@@ -566,11 +566,16 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
     
     bool done(leftDone && rightDone && bottomDone && topDone);
     while ( ! done) {
+        const int32_t xl(x1);
+        const int32_t xr(x2);
+        const int32_t yb(y1);
+        const int32_t yt(y2);
+        
         /*
          * Try to expand at bottom by one row
          */
         if ( ! bottomDone) {
-            if (grid.rangeOff(x1, x2, y1 - 1, y1 - 1)) {
+            if (grid.isRangeOff(xl, xr, yb - 1, yb - 1)) {
                 y1--;
             }
             else {
@@ -582,7 +587,7 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
          * Try to expand at top by one row
          */
         if ( ! topDone) {
-            if (grid.rangeOff(x1, x2, y2 + 1, y2 + 1)) {
+            if (grid.isRangeOff(xl, xr, yt + 1, yt + 1)) {
                 y2++;
             }
             else {
@@ -594,7 +599,7 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
          * Try to expand at left by one column
          */
         if ( ! leftDone) {
-            if (grid.rangeOff(x1 - 1, x1 - 1, y1, y2)) {
+            if (grid.isRangeOff(xl - 1, xl - 1, yb, yt)) {
                 x1--;
             }
             else {
@@ -606,7 +611,7 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
          * Try to expand at right by one column
          */
         if ( ! rightDone) {
-            if (grid.rangeOff(x2 + 1, x2 + 1, y1, y2)) {
+            if (grid.isRangeOff(xr + 1, xr + 1, yb, yt)) {
                 x2++;
             }
             else {
@@ -634,6 +639,33 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
          * Done if no expansion available
          */
         done = (leftDone && rightDone && bottomDone && topDone);
+    }
+    
+    /*
+     * When ON, an edge of the tab will expand until it overlaps the edge of the neighboring tab
+     * When OFF, an edge will move to one row or column from the neighboring tab
+     */
+    const bool allowOverlapFlag(true);
+    if (allowOverlapFlag) {
+        /*
+         * Move each edge to overlap adjacent tab(s)
+         */
+        const int32_t xl(x1);
+        const int32_t xr(x2);
+        const int32_t yb(y1);
+        const int32_t yt(y2);
+        if (grid.isRangeOff(xl, xl, yb, yt)) {       // left
+            x1 = std::max(x1 - 1, 0);
+        }
+        if (grid.isRangeOff(xr, xr, yb, yt)) {   // right
+            x2 = std::min(x2 + 1, 100);
+        }
+        if (grid.isRangeOff(xl, xr, yb, yb)) {    // bottom
+            y1 = std::max(y1 - 1, 0);
+        }
+        if (grid.isRangeOff(xl, xr, yt, yt)) { // top
+            y2 = std::min(y2 + 1, 100);
+        }
     }
     
     /*
