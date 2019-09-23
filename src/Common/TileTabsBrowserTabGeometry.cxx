@@ -28,10 +28,10 @@
 #include <QTextStream>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+
 using namespace caret;
 
-
-    
 /**
  * \class caret::TileTabsBrowserTabGeometry
  * \brief Information about a tab's position in the window using percentage coordinates

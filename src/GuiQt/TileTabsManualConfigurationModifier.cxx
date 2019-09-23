@@ -207,7 +207,7 @@ TileTabsManualConfigurationModifier::runTabOrderOperation(const TabOrderOperatio
               tabOrderAndContent.end());
     for (int32_t i = 0; i < numTabs; i++) {
         CaretAssertVectorIndex(tabOrderAndContent, i);
-        tabOrderAndContent[i].m_tabContent->getManualLayoutBrowserTabAnnotation()->setStackingOrder(i);
+        tabOrderAndContent[i].m_tabContent->getManualLayoutBrowserTabAnnotation()->setStackingOrder(i + 1);
     }
     
     return true;

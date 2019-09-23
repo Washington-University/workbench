@@ -1415,7 +1415,7 @@ TileTabsConfigurationDialog::addManualGeometryWidget(QGridLayout* gridLayout,
         gridLayout->addWidget(new QLabel("Bottom"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Top"), rowIndex, columnIndex++, Qt::AlignLeft);
         gridLayout->addWidget(new QLabel("Background"), rowIndex, columnIndex++, Qt::AlignLeft);
-        gridLayout->addWidget(new QLabel("Order"), rowIndex, columnIndex++, Qt::AlignLeft);
+        gridLayout->addWidget(new QLabel("Z-Order"), rowIndex, columnIndex++, Qt::AlignLeft);
     }
     
     TileTabsManualTabGeometryWidget* geometryWidget = new TileTabsManualTabGeometryWidget(this,
@@ -1667,7 +1667,7 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromGridConfiguration(Til
                                                                   ((xLeft + width) / windowWidth) * 100.0,
                                                                   (yBottom / windowHeight) * 100.0,
                                                                   ((yBottom + height) / windowHeight) * 100.0);
-                                browserTabAnnotation->setStackingOrder(tabCounter);
+                                browserTabAnnotation->setStackingOrder(tabCounter + 1);
                                 browserTabAnnotation->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG);
                                 
                                 tabCounter++;
@@ -2274,38 +2274,38 @@ TileTabsConfigurationDialog::loadTemplateLayoutConfigurations()
 {
     {
         const QString configXML(R""""(<TileTabsManualLayout Name="2 Left, 1 Right" Version="1" UniqueID="{cbbda258-c860-40fe-be46-c87db104d103}">"
-                                         "<TabInfo DisplayStatus="true" TabIndex="0" MinX="0.00" MaxX="50.00" MinY="50.00" MaxY="100.00" StackingOrder="0" Background="OPAQUE_BG"/>"
-                                         "<TabInfo DisplayStatus="true" TabIndex="1" MinX="50.00" MaxX="100.00" MinY="0.00" MaxY="100.00" StackingOrder="1" Background="OPAQUE_BG"/>"
-                                         "<TabInfo DisplayStatus="true" TabIndex="2" MinX="0.00" MaxX="50.00" MinY="0.00" MaxY="50.00" StackingOrder="2" Background="OPAQUE_BG"/>"
+                                         "<TabInfo DisplayStatus="true" TabIndex="0" MinX="0.00" MaxX="50.00" MinY="50.00" MaxY="100.00" StackingOrder="1" Background="OPAQUE_BG"/>"
+                                         "<TabInfo DisplayStatus="true" TabIndex="1" MinX="50.00" MaxX="100.00" MinY="0.00" MaxY="100.00" StackingOrder="2" Background="OPAQUE_BG"/>"
+                                         "<TabInfo DisplayStatus="true" TabIndex="2" MinX="0.00" MaxX="50.00" MinY="0.00" MaxY="50.00" StackingOrder="3" Background="OPAQUE_BG"/>"
                                          "</TileTabsManualLayout>)"""");
         loadTemplateLayoutConfigurationFromXML(configXML);
     }
                                          
      {
          const QString configXML(R""""(<TileTabsManualLayout Name="1 Left, 2 Right" Version="1" UniqueID="{c2c55e5a-07ea-4cc2-8731-52c33532c726}">
-                                          <TabInfo DisplayStatus="true" TabIndex="0" MinX="50.00" MaxX="100.00" MinY="50.00" MaxY="100.00" StackingOrder="0" Background="OPAQUE_BG"/>
-                                          <TabInfo DisplayStatus="true" TabIndex="1" MinX="0.00" MaxX="50.00" MinY="0.00" MaxY="100.00" StackingOrder="1" Background="OPAQUE_BG"/>
-                                          <TabInfo DisplayStatus="true" TabIndex="2" MinX="50.00" MaxX="100.00" MinY="0.00" MaxY="50.00" StackingOrder="2" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="0" MinX="50.00" MaxX="100.00" MinY="50.00" MaxY="100.00" StackingOrder="1" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="1" MinX="0.00" MaxX="50.00" MinY="0.00" MaxY="100.00" StackingOrder="2" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="2" MinX="50.00" MaxX="100.00" MinY="0.00" MaxY="50.00" StackingOrder="3" Background="OPAQUE_BG"/>
                                           </TileTabsManualLayout>)"""");
          loadTemplateLayoutConfigurationFromXML(configXML);
      }
                                          
      {
          const QString configXML(R""""(<TileTabsManualLayout Name="1 Large, 3 Small" Version="1" UniqueID="{e13c96c6-0c06-4876-8983-7ced716a2324}">
-                                          <TabInfo DisplayStatus="true" TabIndex="0" MinX="0.00" MaxX="100.00" MinY="31.00" MaxY="100.00" StackingOrder="0" Background="OPAQUE_BG"/>
-                                          <TabInfo DisplayStatus="true" TabIndex="1" MinX="0.00" MaxX="33.00" MinY="0.00" MaxY="30.00" StackingOrder="1" Background="OPAQUE_BG"/>
-                                          <TabInfo DisplayStatus="true" TabIndex="2" MinX="33.00" MaxX="66.00" MinY="0.00" MaxY="30.00" StackingOrder="2" Background="OPAQUE_BG"/>
-                                          <TabInfo DisplayStatus="true" TabIndex="3" MinX="67.00" MaxX="100.00" MinY="0.00" MaxY="30.00" StackingOrder="3" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="0" MinX="0.00" MaxX="100.00" MinY="31.00" MaxY="100.00" StackingOrder="1" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="1" MinX="0.00" MaxX="33.00" MinY="0.00" MaxY="30.00" StackingOrder="2" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="2" MinX="33.00" MaxX="66.00" MinY="0.00" MaxY="30.00" StackingOrder="3" Background="OPAQUE_BG"/>
+                                          <TabInfo DisplayStatus="true" TabIndex="3" MinX="67.00" MaxX="100.00" MinY="0.00" MaxY="30.00" StackingOrder="4" Background="OPAQUE_BG"/>
                                           </TileTabsManualLayout>)"""");
          loadTemplateLayoutConfigurationFromXML(configXML);
      }
                                       
       {
           const QString configXML(R""""(<TileTabsManualLayout Name="Offset Rows" Version="1" UniqueID="{8fae9798-f20b-456e-b8e2-aba1d3cff3d4}">
-                                        <TabInfo DisplayStatus="true" TabIndex="0" MinX="0.00" MaxX="40.00" MinY="50.00" MaxY="100.00" StackingOrder="0" Background="OPAQUE_BG"/>
-                                        <TabInfo DisplayStatus="true" TabIndex="1" MinX="40.00" MaxX="80.00" MinY="50.00" MaxY="100.00" StackingOrder="1" Background="OPAQUE_BG"/>
-                                        <TabInfo DisplayStatus="true" TabIndex="2" MinX="20.00" MaxX="60.00" MinY="0.00" MaxY="50.00" StackingOrder="2" Background="TRANSPARENT_BG"/>
-                                        <TabInfo DisplayStatus="true" TabIndex="3" MinX="60.00" MaxX="100.00" MinY="0.00" MaxY="50.00" StackingOrder="3" Background="OPAQUE_BG"/>
+                                        <TabInfo DisplayStatus="true" TabIndex="0" MinX="0.00" MaxX="40.00" MinY="50.00" MaxY="100.00" StackingOrder="1" Background="OPAQUE_BG"/>
+                                        <TabInfo DisplayStatus="true" TabIndex="1" MinX="40.00" MaxX="80.00" MinY="50.00" MaxY="100.00" StackingOrder="2" Background="OPAQUE_BG"/>
+                                        <TabInfo DisplayStatus="true" TabIndex="2" MinX="20.00" MaxX="60.00" MinY="0.00" MaxY="50.00" StackingOrder="3" Background="TRANSPARENT_BG"/>
+                                        <TabInfo DisplayStatus="true" TabIndex="3" MinX="60.00" MaxX="100.00" MinY="0.00" MaxY="50.00" StackingOrder="4" Background="OPAQUE_BG"/>
                                         </TileTabsManualLayout>)"""");
           loadTemplateLayoutConfigurationFromXML(configXML);
       }

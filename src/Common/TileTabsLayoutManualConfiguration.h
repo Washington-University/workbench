@@ -76,6 +76,8 @@ namespace caret {
         virtual void encodeInXMLString(AString& xmlTextOut) const override;
         
     private:
+        void correctOldStackingOrder();
+        
         void copyHelperTileTabsLayoutManualConfiguration(const TileTabsLayoutManualConfiguration& obj);
 
         std::vector<std::unique_ptr<TileTabsBrowserTabGeometry>> m_tabInfo;

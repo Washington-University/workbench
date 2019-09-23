@@ -217,7 +217,7 @@ TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(TileTabsLayoutGridC
                                 tabInfo->setCenterY((centerY / windowHeight) * 100.0f);
                                 tabInfo->setWidth((width / windowWidth) * 100.0f);
                                 tabInfo->setHeight((height / windowHeight) * 100.0f);
-                                tabInfo->setStackingOrder(tabCounter);
+                                tabInfo->setStackingOrder(tabCounter + 1);
                                 tabInfo->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG);
                                 
                                 manualLayout->addTabInfo(tabInfo);
@@ -471,6 +471,29 @@ TileTabsLayoutManualConfiguration::decodeFromXMLString(QXmlStreamReader& xml,
             else {
                 invalidElementNames.insert(elementName);
             }
+        }
+    }
+    
+    correctOldStackingOrder();
+}
+
+/**
+ * Correct old stacking order.  Early on, stacking order started at
+ * zero but was changed to start at one.
+ */
+void
+TileTabsLayoutManualConfiguration::correctOldStackingOrder()
+{
+    int32_t minimumStackingOrder(1);
+    for (auto& ti : m_tabInfo) {
+        if (ti->getStackingOrder() < minimumStackingOrder) {
+            minimumStackingOrder = ti->getStackingOrder();
+        }
+    }
+    if (minimumStackingOrder < 1) {
+        const int32_t offset = 1 - minimumStackingOrder;
+        for (auto& ti : m_tabInfo) {
+            ti->setStackingOrder(offset + ti->getStackingOrder());
         }
     }
 }
