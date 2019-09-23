@@ -110,6 +110,10 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                      "INVALID",
                                                      "Invalid"));
     
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(BROWSER_TAB_BACKGROUND,
+                                                         "BROWSER_TAB_BACKGROUND",
+                                                         "Browser Tab Background"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(BOUNDS_2D_ALL,
                                                          "BOUNDS_2D_ALL",
                                                          "Bounds 2D All"));

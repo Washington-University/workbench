@@ -37,6 +37,8 @@ public:
     enum Enum {
         /** Invalid mode */
         INVALID,
+        /** background for annotation browser tab */
+        BROWSER_TAB_BACKGROUND,
         /** Set all of the bounds in 2D */
         BOUNDS_2D_ALL,
         /** Set one of the bounds in 2D */

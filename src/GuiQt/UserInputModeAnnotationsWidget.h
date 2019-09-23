@@ -32,6 +32,7 @@ class QComboBox;
 namespace caret {
 
     class Annotation;
+    class AnnotationBackgroundTypeWidget;
     class AnnotationBoundsWidget;
     class AnnotationColorWidget;
     class AnnotationCoordinateCenterXYWidget;
@@ -113,6 +114,8 @@ namespace caret {
         AnnotationColorWidget* m_colorWidget = NULL;
         
         AnnotationTextAlignmentWidget* m_textAlignmentWidget = NULL;
+        
+        AnnotationBackgroundTypeWidget* m_backgroundTypeWidget = NULL;
         
         AnnotationFormatWidget* m_formatWidget = NULL;
         

@@ -30,6 +30,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AnnotationBackgroundTypeWidget.h"
 #include "AnnotationBoundsWidget.h"
 #include "AnnotationBrowserTab.h"
 #include "AnnotationCoordinateCenterXYWidget.h"
@@ -189,6 +190,10 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
                                                                    m_browserWindowIndex,
                                                                    Qt::Vertical);
     
+    m_backgroundTypeWidget       = new AnnotationBackgroundTypeWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                      AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                                      m_browserWindowIndex);
+    
     m_formatWidget               = new AnnotationFormatWidget(m_inputModeAnnotations->getUserInputMode(),
                                                               m_browserWindowIndex);
     
@@ -212,6 +217,10 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
     column++;
     gridLayout->addWidget(m_widthHeightWidget, 0, column, 2, 1, Qt::AlignTop);
+    column++;
+    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
+    column++;
+    gridLayout->addWidget(m_backgroundTypeWidget, 0, column, 2, 1, Qt::AlignTop);
     column++;
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
     column++;
@@ -467,6 +476,7 @@ UserInputModeAnnotationsWidget::updateWidget()
         if (m_coordinateTwoWidget != NULL) m_coordinateTwoWidget->setVisible(false);
     }
     
+    if (m_backgroundTypeWidget != NULL) m_backgroundTypeWidget->updateContent(browserTabAnnotations);
     if (m_formatWidget != NULL) m_formatWidget->updateContent(selectedAnnotations);
     if (m_redoUndoWidget != NULL) m_redoUndoWidget->updateContent(selectedAnnotations);
 }

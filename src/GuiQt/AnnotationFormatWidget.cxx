@@ -62,7 +62,7 @@ m_browserWindowIndex(browserWindowIndex)
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addWidget(formatLabel);
+    layout->addWidget(formatLabel, 0, Qt::AlignHCenter);
     layout->addWidget(arrangeButton);
     layout->addStretch();
     

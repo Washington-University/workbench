@@ -26,7 +26,7 @@
 #include "AnnotationText.h"
 #include "CaretColorEnum.h"
 #include "CaretUndoCommand.h"
-
+#include "TileTabsLayoutBackgroundTypeEnum.h"
 
 
 namespace caret {
@@ -54,6 +54,9 @@ namespace caret {
                           const float minY,
                           const float maxY,
                           Annotation* annotation);
+        
+        void setBrowserTabBackground(const TileTabsLayoutBackgroundTypeEnum::Enum backgroundType,
+                                     const std::vector<Annotation*>& annotations);
         
         void setBoundsMinX2D(const float minX,
                              const std::vector<Annotation*>& annotations);

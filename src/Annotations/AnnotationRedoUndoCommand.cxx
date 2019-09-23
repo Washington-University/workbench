@@ -94,6 +94,20 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
     switch (m_mode) {
         case AnnotationRedoUndoCommandModeEnum::INVALID:
             break;
+        case AnnotationRedoUndoCommandModeEnum::BROWSER_TAB_BACKGROUND:
+        {
+            CaretAssert(annotation);
+            CaretAssert(annotationValue);
+            
+            AnnotationBrowserTab* annotationBrowserTab = dynamic_cast<AnnotationBrowserTab*>(annotation);
+            const AnnotationBrowserTab* annotationBrowserTabValue = dynamic_cast<const AnnotationBrowserTab*>(annotationValue);
+            CaretAssert(annotationBrowserTab);
+            CaretAssert(annotationBrowserTabValue);
+            
+            const TileTabsLayoutBackgroundTypeEnum::Enum backgroundType = annotationBrowserTabValue->getBackgroundType();
+            annotationBrowserTab->setBackgroundType(backgroundType);
+        }
+            break;
         case AnnotationRedoUndoCommandModeEnum::BOUNDS_2D_ALL:
         case AnnotationRedoUndoCommandModeEnum::BOUNDS_2D_SINGLE:
         {
@@ -848,6 +862,46 @@ AnnotationRedoUndoCommand::setBoundsAll(const float minX,
     }
     else {
         CaretLogWarning("Annotation for bounds setting must be a Browser Tab Annotation");
+    }
+}
+
+/**
+ * Set background type and create the redo/undo instances.
+ *
+ * @param backgroundType
+ *     New value for background type
+ * @param annotations
+ *     Annotations that receive this background type (browser tabs only).
+ */
+void
+AnnotationRedoUndoCommand::setBrowserTabBackground(const TileTabsLayoutBackgroundTypeEnum::Enum backgroundType,
+                                                   const std::vector<Annotation*>& annotations)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::BROWSER_TAB_BACKGROUND;
+    setDescription("Browser Tab Background");
+    
+    for (std::vector<Annotation*>::const_iterator iter = annotations.begin();
+         iter != annotations.end();
+         iter++) {
+        Annotation* annotation = *iter;
+        CaretAssert(annotation);
+        
+        AnnotationBrowserTab* browserTabAnnotation = dynamic_cast<AnnotationBrowserTab*>(annotation);
+        if (browserTabAnnotation != NULL) {
+            AnnotationBrowserTab* redoAnnotation = dynamic_cast<AnnotationBrowserTab*>(browserTabAnnotation->clone());
+            CaretAssert(redoAnnotation);
+            
+            redoAnnotation->setBackgroundType(backgroundType);
+            
+            Annotation* undoAnnotation = browserTabAnnotation->clone();
+            AnnotationMemento* am = new AnnotationMemento(annotation,
+                                                          redoAnnotation,
+                                                          undoAnnotation);
+            m_annotationMementos.push_back(am);
+        }
+        else {
+            CaretLogWarning("Annotation for background type must be a Browser Tab Annotation");
+        }
     }
 }
 
