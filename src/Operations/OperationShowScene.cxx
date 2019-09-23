@@ -107,9 +107,9 @@ OperationShowScene::getParameters()
     
     ret->addStringParameter(3, "image-file-name", "output image file name");
     
-    ret->addIntegerParameter(4, "image-width", "width of output image(s)");
+    ret->addIntegerParameter(4, "image-width", "width of output image(s), in pixels");
     
-    ret->addIntegerParameter(5, "image-height", "height of output image(s)");
+    ret->addIntegerParameter(5, "image-height", "height of output image(s), in pixels");
     
     const QString windowSizeSwitch("-use-window-size");
     ret->createOptionalParameter(6, windowSizeSwitch, "Override image size with window size");
