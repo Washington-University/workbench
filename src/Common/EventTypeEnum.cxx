@@ -174,6 +174,10 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_WINDOW_CREATE_TABS", 
                                      "Create tabs (if needed) after loading data files"));
     
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_GET_TABS,
+                                     "EVENT_BROWSER_WINDOW_GET_TABS",
+                                     "Get the tabs in a browser window"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN,
                                      "EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN",
                                      "A Browser Window's graphics have been redrawn"));

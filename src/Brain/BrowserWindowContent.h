@@ -86,6 +86,8 @@ namespace caret {
         
         bool isManualModeTileTabsConfigurationEnabled() const;
         
+        void setManualConfigurationFromGridConfiguration(TileTabsLayoutGridConfiguration* gridConfiguration);
+        
         int32_t getSceneGraphicsWidth() const;
         
         void setSceneGraphicsWidth(const int32_t width);

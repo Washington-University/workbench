@@ -1589,100 +1589,13 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromCustomItemTriggered()
 void
 TileTabsConfigurationDialog::manualConfigurationSetMenuFromGridConfiguration(TileTabsLayoutGridConfiguration* gridConfiguration)
 {
-    const BrainBrowserWindow* window = getBrowserWindow();
-    CaretAssert(window);
-    
-    std::vector<BrowserTabContent*> allTabContent;
-    window->getAllTabContent(allTabContent);
-    const int32_t numTabs = static_cast<int32_t>(allTabContent.size());
-    if (numTabs <= 0) {
+    if (gridConfiguration == NULL) {
         return;
     }
-
-    const int32_t windowWidth(100);
-    const int32_t windowHeight(100);
-    std::vector<int32_t> rowHeightsInt;
-    std::vector<int32_t> columnWidthsInt;
+    BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
+    CaretAssert(browserWindowContent);
+    browserWindowContent->setManualConfigurationFromGridConfiguration(gridConfiguration);
     
-    if (gridConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
-                                                              windowHeight,
-                                                              numTabs,
-                                                              gridConfiguration->getLayoutType(),
-                                                              rowHeightsInt,
-                                                              columnWidthsInt)) {
-        const int32_t numRows = static_cast<int32_t>(rowHeightsInt.size());
-        const int32_t numCols = static_cast<int32_t>(columnWidthsInt.size());
-        
-        const float rowSum = std::accumulate(rowHeightsInt.begin(), rowHeightsInt.end(), 0.0f);
-        std::vector<float> rowHeights;
-        for (int32_t iRow = 0; iRow < numRows; iRow++) {
-            if (rowSum > 0.0) {
-                rowHeights.push_back((rowHeightsInt[iRow] / rowSum) * 100.0);
-            }
-            else {
-                rowHeights.push_back(rowHeightsInt[iRow]);
-            }
-        }
-        CaretAssert(rowHeights.size() == rowHeightsInt.size());
-        
-        const float columnSum = std::accumulate(columnWidthsInt.begin(), columnWidthsInt.end(), 0.0f);
-        std::vector<float> columnWidths;
-        for (int32_t iCol = 0; iCol < numCols; iCol++) {
-            if (columnSum > 0.0) {
-                columnWidths.push_back((columnWidthsInt[iCol] / columnSum) * 100.0);
-            }
-            else {
-                columnWidths.push_back(columnWidthsInt[iCol]);
-            }
-        }
-        CaretAssert(columnWidths.size() == columnWidthsInt.size());
-
-        int32_t tabCounter(0);
-        float yBottom(windowHeight);
-        for (int32_t i = 0; i < numRows; i++) {
-            CaretAssertVectorIndex(rowHeights, i);
-            const float height = rowHeights[i];
-            yBottom -= height;
-            
-            switch (gridConfiguration->getRow(i)->getContentType()) {
-                case TileTabsGridRowColumnContentTypeEnum::SPACE:
-                    break;
-                case TileTabsGridRowColumnContentTypeEnum::TAB:
-                {
-                    float xLeft(0.0);
-                    for (int32_t j = 0; j < numCols; j++) {
-                        CaretAssertVectorIndex(columnWidths, j);
-                        const float width = columnWidths[j];
-                        
-                        switch (gridConfiguration->getColumn(j)->getContentType()) {
-                            case TileTabsGridRowColumnContentTypeEnum::SPACE:
-                                break;
-                            case TileTabsGridRowColumnContentTypeEnum::TAB:
-                            if (tabCounter < numTabs) {
-                                CaretAssertVectorIndex(allTabContent, tabCounter);
-                                BrowserTabContent* tabContent(allTabContent[tabCounter]);
-                                AnnotationBrowserTab* browserTabAnnotation = tabContent->getManualLayoutBrowserTabAnnotation();
-                                CaretAssert(browserTabAnnotation);
-                                browserTabAnnotation->setBounds2D((xLeft / windowWidth) * 100.0,
-                                                                  ((xLeft + width) / windowWidth) * 100.0,
-                                                                  (yBottom / windowHeight) * 100.0,
-                                                                  ((yBottom + height) / windowHeight) * 100.0);
-                                browserTabAnnotation->setStackingOrder(tabCounter + 1);
-                                browserTabAnnotation->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG);
-                                
-                                tabCounter++;
-                            }
-                                break;
-                        }
-                        
-                        xLeft += width;
-                    }
-                }
-                    break;
-            }
-        }
-    }
-
     updateDialog();
     updateGraphicsWindow();
 }

@@ -71,6 +71,7 @@
 #include "EventBrowserTabReopenAvailable.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowContent.h"
+#include "EventBrowserWindowGetTabs.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventDataFileRead.h"
 #include "EventMacDockMenuUpdate.h"
@@ -272,6 +273,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_defaultWindowComponentStatus.isToolBarDisplayed = m_showToolBarAction->isChecked();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GET_TABS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_VIEWPORT_SIZE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
@@ -341,6 +343,18 @@ BrainBrowserWindow::receiveEvent(Event* event)
         if (m_developMenuAction != NULL) {
             m_developMenuAction->setVisible(prefs->isDevelopMenuEnabled());
             event->setEventProcessed();
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_GET_TABS) {
+        EventBrowserWindowGetTabs* tabEvent = dynamic_cast<EventBrowserWindowGetTabs*>(event);
+        CaretAssert(tabEvent);
+        if (tabEvent->getBrowserWindowIndex() == m_browserWindowIndex) {
+            std::vector<BrowserTabContent*> tabContent;
+            m_toolbar->getAllTabContent(tabContent);
+            for (auto tab : tabContent) {
+                tabEvent->addBrowserTab(tab);
+            }
+            tabEvent->setEventProcessed();
         }
     }
     else if (event->getEventType()== EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS) {

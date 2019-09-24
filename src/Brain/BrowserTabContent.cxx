@@ -259,10 +259,14 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 
     AnnotationBrowserTab* annotationBrowserTab = getManualLayoutBrowserTabAnnotation();
     CaretAssert(annotationBrowserTab);
-    annotationBrowserTab->setBounds2D(xy,
-                                      xy + widthHeight,
-                                      xy,
-                                      xy + widthHeight);
+    m_defaultManualTabGeometryBounds[0] = xy;
+    m_defaultManualTabGeometryBounds[1] = xy + widthHeight;
+    m_defaultManualTabGeometryBounds[2] = xy;
+    m_defaultManualTabGeometryBounds[3] = xy + widthHeight;
+    annotationBrowserTab->setBounds2D(m_defaultManualTabGeometryBounds[0],
+                                      m_defaultManualTabGeometryBounds[1],
+                                      m_defaultManualTabGeometryBounds[2],
+                                      m_defaultManualTabGeometryBounds[3]);
 }
 
 /**
@@ -5018,3 +5022,30 @@ BrowserTabContent::getManualLayoutBrowserTabAnnotation() const
 {
     return m_manualLayoutBrowserTabAnnotation.get();
 }
+
+/**
+ * @return True if the manual tab geometry bounds are still
+ * set to the default bounds.
+ */
+bool
+BrowserTabContent::isDefaultManualTabGeometryBounds() const
+{
+    float xMin(0.0), xMax(0.0), yMin(0.0), yMax(0.0);
+    m_manualLayoutBrowserTabAnnotation->getBounds2D(xMin, xMax, yMin, yMax);
+
+    if (xMin != m_defaultManualTabGeometryBounds[0]) {
+        return false;
+    }
+    if (xMax != m_defaultManualTabGeometryBounds[1]) {
+        return false;
+    }
+    if (yMin != m_defaultManualTabGeometryBounds[2]) {
+        return false;
+    }
+    if (yMax != m_defaultManualTabGeometryBounds[3]) {
+        return false;
+    }
+    
+    return true;
+}
+

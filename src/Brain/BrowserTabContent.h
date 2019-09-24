@@ -446,6 +446,8 @@ namespace caret {
         
         const AnnotationBrowserTab* getManualLayoutBrowserTabAnnotation() const;
         
+        bool isDefaultManualTabGeometryBounds() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -598,6 +600,9 @@ namespace caret {
         
         /** Manual layout brower tab annotation */
         std::unique_ptr<AnnotationBrowserTab> m_manualLayoutBrowserTabAnnotation;
+        
+        /** Default bounds of manual tab geometry */
+        float m_defaultManualTabGeometryBounds[4];
         
         /** Contains all active browser tab content instances */
         static std::set<BrowserTabContent*> s_allBrowserTabContent;

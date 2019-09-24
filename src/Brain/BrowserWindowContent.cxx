@@ -23,7 +23,13 @@
 #include "BrowserWindowContent.h"
 #undef __BROWSER_WINDOW_CONTENT_DECLARE__
 
+#include <numeric>
+
+#include "AnnotationBrowserTab.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventBrowserWindowGetTabs.h"
+#include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SceneIntegerArray.h"
@@ -339,8 +345,133 @@ void
 BrowserWindowContent::setTileTabsConfigurationMode(const TileTabsLayoutConfigurationTypeEnum::Enum configMode)
 {
     m_tileTabsConfigurationMode = configMode;
+    
+    switch (m_tileTabsConfigurationMode) {
+        case  TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+        {
+            EventBrowserWindowGetTabs tabsEvent(m_windowIndex);
+            EventManager::get()->sendEvent(tabsEvent.getPointer());
+            
+            std::vector<BrowserTabContent*> allTabs = tabsEvent.getBrowserTabs();
+            bool allDefaultFlag(true);
+            for (auto tab : allTabs) {
+                if ( ! tab->isDefaultManualTabGeometryBounds()) {
+                    allDefaultFlag = false;
+                    break;
+                }
+            }
+            if (allDefaultFlag) {
+                setManualConfigurationFromGridConfiguration(getAutomaticGridTileTabsConfiguration());
+            }
+        }
+            break;
+    }
 }
 
+/**
+ * Set the manual configuration from the given grid configuratin
+ *
+ * @param gridConfiguration
+ *     Grid configuration copied to manual configuration.
+ */
+void
+BrowserWindowContent::setManualConfigurationFromGridConfiguration(TileTabsLayoutGridConfiguration* gridConfiguration)
+{
+    EventBrowserWindowGetTabs tabsEvent(m_windowIndex);
+    EventManager::get()->sendEvent(tabsEvent.getPointer());
+    
+    std::vector<BrowserTabContent*> allTabs = tabsEvent.getBrowserTabs();
+    const int32_t numTabs = static_cast<int32_t>(allTabs.size());
+
+    const int32_t windowWidth(100);
+    const int32_t windowHeight(100);
+    std::vector<int32_t> rowHeightsInt;
+    std::vector<int32_t> columnWidthsInt;
+    
+    if (gridConfiguration->getRowHeightsAndColumnWidthsForWindowSize(windowWidth,
+                                                                     windowHeight,
+                                                                     numTabs,
+                                                                     gridConfiguration->getLayoutType(),
+                                                                     rowHeightsInt,
+                                                                     columnWidthsInt)) {
+        const int32_t numRows = static_cast<int32_t>(rowHeightsInt.size());
+        const int32_t numCols = static_cast<int32_t>(columnWidthsInt.size());
+        
+        const float rowSum = std::accumulate(rowHeightsInt.begin(), rowHeightsInt.end(), 0.0f);
+        std::vector<float> rowHeights;
+        for (int32_t iRow = 0; iRow < numRows; iRow++) {
+            if (rowSum > 0.0) {
+                rowHeights.push_back((rowHeightsInt[iRow] / rowSum) * 100.0);
+            }
+            else {
+                rowHeights.push_back(rowHeightsInt[iRow]);
+            }
+        }
+        CaretAssert(rowHeights.size() == rowHeightsInt.size());
+        
+        const float columnSum = std::accumulate(columnWidthsInt.begin(), columnWidthsInt.end(), 0.0f);
+        std::vector<float> columnWidths;
+        for (int32_t iCol = 0; iCol < numCols; iCol++) {
+            if (columnSum > 0.0) {
+                columnWidths.push_back((columnWidthsInt[iCol] / columnSum) * 100.0);
+            }
+            else {
+                columnWidths.push_back(columnWidthsInt[iCol]);
+            }
+        }
+        CaretAssert(columnWidths.size() == columnWidthsInt.size());
+        
+        int32_t tabCounter(0);
+        float yBottom(windowHeight);
+        for (int32_t i = 0; i < numRows; i++) {
+            CaretAssertVectorIndex(rowHeights, i);
+            const float height = rowHeights[i];
+            yBottom -= height;
+            
+            switch (gridConfiguration->getRow(i)->getContentType()) {
+                case TileTabsGridRowColumnContentTypeEnum::SPACE:
+                    break;
+                case TileTabsGridRowColumnContentTypeEnum::TAB:
+                {
+                    float xLeft(0.0);
+                    for (int32_t j = 0; j < numCols; j++) {
+                        CaretAssertVectorIndex(columnWidths, j);
+                        const float width = columnWidths[j];
+                        
+                        switch (gridConfiguration->getColumn(j)->getContentType()) {
+                            case TileTabsGridRowColumnContentTypeEnum::SPACE:
+                                break;
+                            case TileTabsGridRowColumnContentTypeEnum::TAB:
+                                if (tabCounter < numTabs) {
+                                    CaretAssertVectorIndex(allTabs, tabCounter);
+                                    BrowserTabContent* tabContent(allTabs[tabCounter]);
+                                    AnnotationBrowserTab* browserTabAnnotation = tabContent->getManualLayoutBrowserTabAnnotation();
+                                    CaretAssert(browserTabAnnotation);
+                                    browserTabAnnotation->setBounds2D((xLeft / windowWidth) * 100.0,
+                                                                      ((xLeft + width) / windowWidth) * 100.0,
+                                                                      (yBottom / windowHeight) * 100.0,
+                                                                      ((yBottom + height) / windowHeight) * 100.0);
+                                    browserTabAnnotation->setStackingOrder(tabCounter + 1);
+                                    browserTabAnnotation->setBackgroundType(TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG);
+                                    
+                                    tabCounter++;
+                                }
+                                break;
+                        }
+                        
+                        xLeft += width;
+                    }
+                }
+                    break;
+            }
+        }
+    }
+
+}
 /**
  * @return True if tile tabs is enabled AND a manual configuration is selected
  */

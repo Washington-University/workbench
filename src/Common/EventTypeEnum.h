@@ -92,6 +92,8 @@ public:
         EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET,
         /** Create tabs after loading a file */
         EVENT_BROWSER_WINDOW_CREATE_TABS,
+        /** Get tabs in a browser window */
+        EVENT_BROWSER_WINDOW_GET_TABS,
         /** Issued after a browser window's graphicshave been redrawn */
         EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN,
         /** Issued when displayed browser window menu's may change */
