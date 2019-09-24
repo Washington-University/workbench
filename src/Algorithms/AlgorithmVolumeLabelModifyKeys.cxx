@@ -26,6 +26,7 @@
 #include "GiftiLabelTable.h"
 #include "VolumeFile.h"
 
+#include <cmath>
 #include <fstream>
 #include <vector>
 

@@ -25,6 +25,7 @@
 #include "FileInformation.h"
 #include "GiftiLabel.h"
 
+#include <cmath>
 #include <fstream>
 #include <vector>
 
