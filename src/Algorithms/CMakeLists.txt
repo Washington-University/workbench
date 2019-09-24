@@ -43,6 +43,7 @@ AlgorithmCiftiFalseCorrelation.h
 AlgorithmCiftiFindClusters.h
 AlgorithmCiftiGradient.h
 AlgorithmCiftiLabelAdjacency.h
+AlgorithmCiftiLabelModifyKeys.h
 AlgorithmCiftiLabelProbability.h
 AlgorithmCiftiLabelToBorder.h
 AlgorithmCiftiLabelToROI.h
@@ -124,6 +125,7 @@ AlgorithmVolumeExtrema.h
 AlgorithmVolumeFillHoles.h
 AlgorithmVolumeFindClusters.h
 AlgorithmVolumeGradient.h
+AlgorithmVolumeLabelModifyKeys.h
 AlgorithmVolumeLabelProbability.h
 AlgorithmVolumeLabelToROI.h
 AlgorithmVolumeLabelToSurfaceMapping.h
@@ -162,6 +164,7 @@ AlgorithmCiftiFalseCorrelation.cxx
 AlgorithmCiftiFindClusters.cxx
 AlgorithmCiftiGradient.cxx
 AlgorithmCiftiLabelAdjacency.cxx
+AlgorithmCiftiLabelModifyKeys.cxx
 AlgorithmCiftiLabelProbability.cxx
 AlgorithmCiftiLabelToBorder.cxx
 AlgorithmCiftiLabelToROI.cxx
@@ -243,6 +246,7 @@ AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeFillHoles.cxx
 AlgorithmVolumeFindClusters.cxx
 AlgorithmVolumeGradient.cxx
+AlgorithmVolumeLabelModifyKeys.cxx
 AlgorithmVolumeLabelProbability.cxx
 AlgorithmVolumeLabelToROI.cxx
 AlgorithmVolumeLabelToSurfaceMapping.cxx
