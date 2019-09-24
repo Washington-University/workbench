@@ -74,6 +74,8 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     ribbonOpt->createOptionalParameter(7, "-thin-columns", "use non-overlapping polyhedra");
     OptionalParameter* gaussianOpt = ribbonOpt->createOptionalParameter(8, "-gaussian", "reduce weight to voxels that aren't near <surface>");
     gaussianOpt->addDoubleParameter(1, "scale", "value to multiply the local thickness by, to get the gaussian sigma");
+    OptionalParameter* badVertOpt = ribbonOpt->createOptionalParameter(9, "-bad-vertices-out", "output an ROI of which vertices didn't intersect any valid voxels");
+    badVertOpt->addMetricOutputParameter(1, "roi-out", "the output metric file of vertices that have no data");
     OptionalParameter* ribbonWeights = ribbonOpt->createOptionalParameter(5, "-output-weights", "write the voxel weights for a vertex to a volume file");
     ribbonWeights->addIntegerParameter(1, "vertex", "the vertex number to get the voxel weights for, 0-based");
     ribbonWeights->addVolumeOutputParameter(2, "weights-out", "volume to write the weights to");
@@ -216,6 +218,12 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                 gaussScale = (float)gaussianOpt->getDouble(1);
                 if (!(gaussScale > 0.0f)) throw AlgorithmException("gaussian scale must be positive");
             }
+            MetricFile* badVertices = NULL;
+            OptionalParameter* badVertOpt = ribbonOpt->getOptionalParameter(9);
+            if (badVertOpt->m_present)
+            {
+                badVertices = badVertOpt->getOutputMetric(1);
+            }
             int weightsOutVertex = -1;
             VolumeFile* weightsOut = NULL;
             OptionalParameter* ribbonWeights = ribbonOpt->getOptionalParameter(5);
@@ -225,7 +233,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                 weightsOut = ribbonWeights->getOutputVolume(2);
             }
             AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, myRoiVol, subdivisions, thinColumns,
-                                            mySubVol, gaussScale, weightsOutVertex, weightsOut);
+                                            mySubVol, gaussScale, badVertices, weightsOutVertex, weightsOut);
             OptionalParameter* ribbonWeightsText = ribbonOpt->getOptionalParameter(6);
             if (ribbonWeightsText->m_present)
             {//do this after the algorithm, to let it do the error condition checking
@@ -362,7 +370,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
 //ribbon mapping
 AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
                                                                  const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile* roiVol,
-                                                                 const int32_t& subdivisions, const bool& thinColumns, const int64_t& mySubVol, const float& gaussScale,
+                                                                 const int32_t& subdivisions, const bool& thinColumns, const int64_t& mySubVol, const float& gaussScale, MetricFile* badVertices,
                                                                  const int& weightsOutVertex, VolumeFile* weightsOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -382,6 +390,13 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     int64_t numNodes = mySurface->getNumberOfNodes();
     myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
     myMetricOut->setStructure(mySurface->getStructure());
+    vector<float> badVertScratch;
+    if (badVertices != NULL)
+    {
+        badVertices->setNumberOfNodesAndColumns(numNodes, 1);
+        badVertices->setStructure(mySurface->getStructure());
+        badVertScratch.resize(numNodes, 0.0f);
+    }
     if (!mySurface->hasNodeCorrespondence(*outerSurf) || !mySurface->hasNodeCorrespondence(*innerSurf))
     {
         throw AlgorithmException("all surfaces must have vertex correspondence");
@@ -444,6 +459,10 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                         myScratch[node] /= totalWeight;
                     } else {
                         myScratch[node] = 0.0f;
+                        if (thisCol == 0 && badVertices != NULL)
+                        {
+                            badVertScratch[node] = 1.0f;
+                        }
                     }
                 }
                 myMetricOut->setValuesForColumn(thisCol, myScratch);
@@ -477,10 +496,18 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                         myScratch[node] /= totalWeight;
                     } else {
                         myScratch[node] = 0.0f;
+                        if (badVertices != NULL)
+                        {
+                            badVertScratch[node] = 1.0f;
+                        }
                     }
             }
             myMetricOut->setValuesForColumn(thisCol, myScratch);
         }
+    }
+    if (badVertices != NULL)
+    {
+        badVertices->setValuesForColumn(0, badVertScratch.data());
     }
 }
 
