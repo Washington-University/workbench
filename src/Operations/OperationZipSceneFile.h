@@ -37,12 +37,13 @@ namespace caret {
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
-        static void createZipFile(const AString& sceneFileName,
+        static void createZipFile(ProgressObject* myProgObj,
+                                  const AString& sceneFileName,
                                   const AString& outputSubDirectory,
                                   const AString& zipFileName,
                                   const AString& baseDirectory,
                                   const ProgressMode progressMode,
-                                  ProgressObject* myProgObj);
+                                  const bool skipMissing = false);
     };
 
     typedef TemplateAutoOperation<OperationZipSceneFile> AutoOperationZipSceneFile;

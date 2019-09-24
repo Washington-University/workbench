@@ -64,6 +64,8 @@ OperationParameters* OperationZipSceneFile::getParameters()
     
     OptionalParameter* baseOpt = ret->createOptionalParameter(4, "-base-dir", "specify a directory that all data files are somewhere within, this will become the root of the zipfile's directory structure");
     baseOpt->addStringParameter(1, "directory", "the directory");
+    
+    ret->createOptionalParameter(5, "-skip-missing", "any missing files will generate only warnings, and the zip file will be created anyway");
 
     ret->setHelpText("If zip-file already exists, it will be overwritten.  "
         "If -base-dir is not specified, the base directory will be automatically set to the lowest level directory containing all files.  "
@@ -77,26 +79,29 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
     AString outputSubDirectory = myParams->getString(2);
     AString zipFileName = myParams->getString(3);
     OptionalParameter* baseOpt = myParams->getOptionalParameter(4);
+    bool skipMissing = myParams->getOptionalParameter(5)->m_present;
     AString myBaseDir;
     if (baseOpt->m_present)
     {
         myBaseDir = QDir::cleanPath(QDir(baseOpt->getString(1)).absolutePath());
     }
     
-    OperationZipSceneFile::createZipFile(sceneFileName,
+    OperationZipSceneFile::createZipFile(myProgObj,
+                                         sceneFileName,
                                          outputSubDirectory,
                                          zipFileName,
                                          myBaseDir,
                                          PROGRESS_COMMAND_LINE,
-                                         myProgObj);
+                                         skipMissing);
 }
 
-void OperationZipSceneFile::createZipFile(const AString& sceneFileName,
+void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
+                                          const AString& sceneFileName,
                                           const AString& outputSubDirectory,
                                           const AString& zipFileName,
                                           const AString& baseDirectory,
                                           const ProgressMode progressMode,
-                                          ProgressObject* myProgObj)
+                                          const bool skipMissing)
 {
     LevelProgress myProgress(myProgObj);
     FileInformation sceneFileInfo(sceneFileName);
@@ -225,13 +230,20 @@ void OperationZipSceneFile::createZipFile(const AString& sceneFileName,
     }
     int32_t fileIndex = 1;
     static const char *myUnits[9] = {" B    ", " KB", " MB", " GB", " TB", " PB", " EB", " ZB", " YB"};
+    int goodFileCount = 0;
     for (set<AString>::iterator iter = allFiles.begin(); iter != allFiles.end(); ++iter, ++fileIndex)
     {
         AString dataFileName = *iter;
         AString unzippedDataFileName = outputSubDirectory + "/" + dataFileName.mid(myBaseDir.size());//we know the string matches to the length of myBaseDir, and is cleaned, so we can just chop the right number of characters off
         QFile dataFileIn(dataFileName);
         if (!dataFileIn.open(QFile::ReadOnly)) {
-            throw OperationException("Unable to open \"" + dataFileName + "\" for reading: " + dataFileIn.errorString());
+            if (skipMissing)
+            {
+                CaretLogWarning("Skipping unreadable file '" + dataFileName + "'");
+                continue;
+            } else {
+                throw OperationException("Unable to open \"" + dataFileName + "\" for reading: " + dataFileIn.errorString());
+            }
         }
         float fileSize = (float)dataFileIn.size();
         int unit = 0;
@@ -293,15 +305,26 @@ void OperationZipSceneFile::createZipFile(const AString& sceneFileName,
             case PROGRESS_GUI_EVENT:
                 break;
         }
+        ++goodFileCount;
     }
     zipFile.close();
 
     switch (progressMode) {
         case PROGRESS_COMMAND_LINE:
+            if (goodFileCount != int(allFiles.size()))
+            {
+                CaretLogWarning("Zip creation skipped " + AString::number(allFiles.size() - goodFileCount) + " unreadable files");
+            }
             break;
         case PROGRESS_GUI_EVENT:
-            progressEvent.setProgress(allFiles.size(),
-                                      "Zip created successfully");
+            if (goodFileCount == int(allFiles.size()))
+            {
+                progressEvent.setProgress(allFiles.size(),
+                                        "Zip created successfully");
+            } else {
+                progressEvent.setProgress(allFiles.size(),
+                                        "Zip creation skipped " + AString::number(allFiles.size() - goodFileCount) + " unreadable files");
+            }
             EventManager::get()->sendEvent(progressEvent.getPointer());
             break;
     }
