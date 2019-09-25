@@ -780,50 +780,100 @@ BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
 void 
 BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
 {
-    const int wheelX = we->x();
-    const int wheelY = this->windowHeight[this->windowIndex] - we->y();
-    const QPoint pixelDelta = we->pixelDelta();
-    const QPoint degrees    = we->angleDelta();
-    int delta(0);
-    if ( ! pixelDelta.isNull()) {
-        delta = pixelDelta.y();
-    }
-    else if ( ! degrees.isNull()) {
-        delta = degrees.y();
+    /*
+     * Notes 24 Sep 2019
+     *
+     * QWheelEvent::pixelDelta() is not used since it is only set on Mac.
+     *
+     * Trackpad usage is when QWheelEvent::source()==Qt::MouseEventSynthesizedBySystem
+     * Mouse usage is when QWheelEvent::source()==Qt::MouseEventNotSynthesized
+     *
+     * Inverted flag is only used by Mouse on MacOS.  It is true when
+     * Preferences->Trackpad->Scroll & Zoom is ON.  The Wheel's inverted
+     * flag is ignored since Mac alters the sign of the mouse Y-value.
+     * It appears that "Scroll Direction:Natural is defaulted ON" on Macs
+     *
+     * Forward Wheel or Trackpad (moving away from user)
+     * ** Negative when MacOS->Preferences->Trackpad->Scroll&Zoom->Scroll Direction:Natural is ON
+     * ** Positive when MacOS->Preferences->Trackpad->Scroll&Zoom->Scroll Direction:Natural is OFF
+     * ** Negative when MacOS->Preferences->Mouse->Scroll Direction:Natural is ON
+     * ** Positive when MacOS->Preferences->Mouse->Scroll Direction:Natural is OFF
+     *
+     * ** Positive on Linux
+     */
+    const QPoint angleDelta = we->angleDelta();
+    if (angleDelta.isNull()) {
+        return;
     }
     
-    if (delta != 0) {
-        if ( ! we->inverted()) {
-            delta = -delta;
-        }
-        
-        /*
-         * If not limited, it is way too fast
-         */
-        const int limitValue(8);
-        delta = MathFunctions::limitRange(delta, -limitValue, limitValue);
-        
-        /*
-         * Use location of mouse press so that the model
-         * being manipulated does not change if mouse moves
-         * out of its viewport without releasing the mouse
-         * button.
-         */
-        const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
-                                                                                         wheelY);
-        if (viewportContent != NULL) {
-            MouseEvent mouseEvent(viewportContent,
-                                  this,
-                                  this->windowIndex,
-                                  wheelX,
-                                  wheelY,
-                                  0,
-                                  delta,
-                                  0,
-                                  0,
-                                  this->mouseNewDraggingStartedFlag);
-            this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
-        }
+    int32_t deltaDegrees = angleDelta.y();
+    if (deltaDegrees == 0) {
+        return;
+    }
+
+    /*
+     * While the mouse/trackpad flags are not used at this time,
+     * we also do not have access to a Linux or Windows system
+     * with a trackpad. 
+     */
+    bool mouseFlag(false);
+    bool trackpadFlag(false);
+    switch (we->source()) {
+        case Qt::MouseEventNotSynthesized:
+            mouseFlag = true;
+            break;
+        case Qt::MouseEventSynthesizedByApplication:
+            break;
+        case Qt::MouseEventSynthesizedByQt:
+            break;
+        case Qt::MouseEventSynthesizedBySystem:
+            trackpadFlag = true;
+            break;
+    }
+
+#ifdef CARET_OS_MACOSX
+    /* On Mac, "Scroll Direction:Natural" is default ON and causes a sign flip */
+    deltaDegrees = -deltaDegrees;
+#endif // CARET_OS_MACOSX
+
+    
+    const bool debugFlag(false);
+    if (debugFlag) {
+        std::cout << "Angle Delta:   " << we->angleDelta().y() << std::endl;
+        std::cout << "Inverted:      " << AString::fromBool(we->inverted()) << std::endl;
+        std::cout << "Source:        " << (int32_t)we->source() << std::endl;
+        std::cout << "Mouse Flag:    " << AString::fromBool(mouseFlag) << std::endl;
+        std::cout << "Trackpad Flag: " << AString::fromBool(trackpadFlag) << std::endl;
+    }
+
+    /*
+     * If not limited, it is way too fast
+     */
+    const int limitValue(8);
+    deltaDegrees = MathFunctions::limitRange(deltaDegrees, -limitValue, limitValue);
+    
+    /*
+     * Use location of mouse press so that the model
+     * being manipulated does not change if mouse moves
+     * out of its viewport without releasing the mouse
+     * button.
+     */
+    const int wheelX = we->x();
+    const int wheelY = this->windowHeight[this->windowIndex] - we->y();
+    const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(wheelX,
+                                                                                     wheelY);
+    if (viewportContent != NULL) {
+        MouseEvent mouseEvent(viewportContent,
+                              this,
+                              this->windowIndex,
+                              wheelX,
+                              wheelY,
+                              0,
+                              deltaDegrees,
+                              0,
+                              0,
+                              this->mouseNewDraggingStartedFlag);
+        this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
     }
 
     we->accept();
