@@ -546,12 +546,12 @@ BalsaDatabaseManager::zipSceneAndDataFiles(const SceneFile* sceneFile,
     
     bool successFlag = false;
     try {
-        OperationZipSceneFile::createZipFile(sceneFileName,
+        OperationZipSceneFile::createZipFile(NULL,
+                                             sceneFileName,
                                              extractToDirectoryName,
                                              zipFileName,
                                              basePathName,
-                                             OperationZipSceneFile::PROGRESS_GUI_EVENT,
-                                             NULL);
+                                             OperationZipSceneFile::PROGRESS_GUI_EVENT);
         successFlag = true;
     }
     catch (const CaretException& e) {

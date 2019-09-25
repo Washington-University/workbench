@@ -60,7 +60,7 @@ OperationParameters* AlgorithmLabelModifyKeys::getParameters()
         "This would change the current label with key '3' to use the key '5' instead, 5 would use 8, and 8 would use 2.  " +
         "Any collision in key values results in the label that was not specified in the remap file getting remapped to an otherwise unused key.  " +
         "Remapping more than one key to the same new key, or the same key to more than one new key, results in an error.  " +
-        "This will not change the appearance of the file when displayed, it will change the keys in the data at the same time."
+        "This will not change the appearance of the file when displayed, as it will change the key values in the data at the same time."
     );
     return ret;
 }
@@ -107,7 +107,7 @@ AlgorithmLabelModifyKeys::AlgorithmLabelModifyKeys(ProgressObject* myProgObj, co
     for (map<int32_t, int32_t>::const_iterator iter = remap.begin(); iter != remap.end(); ++iter)
     {
         const GiftiLabel* oldLabel = oldTable->getLabel(iter->first);
-        if (oldLabel == NULL) throw AlgorithmException("label " + AString::number(iter->first) + " does not exist in the input label file");
+        if (oldLabel == NULL) throw AlgorithmException("label key " + AString::number(iter->first) + " does not exist in the input file");
         GiftiLabel newLabel(*oldLabel);
         newLabel.setKey(iter->second);
         if (iter->first == oldUnlabeled)

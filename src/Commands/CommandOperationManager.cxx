@@ -44,6 +44,7 @@
 #include "AlgorithmCiftiFindClusters.h"
 #include "AlgorithmCiftiGradient.h"
 #include "AlgorithmCiftiLabelAdjacency.h"
+#include "AlgorithmCiftiLabelModifyKeys.h"
 #include "AlgorithmCiftiLabelProbability.h"
 #include "AlgorithmCiftiLabelToBorder.h"
 #include "AlgorithmCiftiLabelToROI.h"
@@ -123,6 +124,7 @@
 #include "AlgorithmVolumeFillHoles.h"
 #include "AlgorithmVolumeFindClusters.h"
 #include "AlgorithmVolumeGradient.h"
+#include "AlgorithmVolumeLabelModifyKeys.h"
 #include "AlgorithmVolumeLabelProbability.h"
 #include "AlgorithmVolumeLabelToROI.h"
 #include "AlgorithmVolumeLabelToSurfaceMapping.h"
@@ -307,6 +309,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiFindClusters()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelAdjacency()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelModifyKeys()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelProbability()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelToBorder()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelToROI()));
@@ -387,6 +390,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFillHoles()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFindClusters()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelModifyKeys()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelProbability()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToSurfaceMapping()));

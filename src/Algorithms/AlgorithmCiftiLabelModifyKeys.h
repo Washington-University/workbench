@@ -1,9 +1,9 @@
-#ifndef __OPERATION_ZIP_SCENE_FILE_H__
-#define __OPERATION_ZIP_SCENE_FILE_H__
+#ifndef __ALGORITHM_CIFTI_LABEL_MODIFY_KEYS_H__
+#define __ALGORITHM_CIFTI_LABEL_MODIFY_KEYS_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2018  Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,33 +21,28 @@
  */
 /*LICENSE_END*/
 
-#include "AbstractOperation.h"
+#include "AbstractAlgorithm.h"
+
+#include <map>
 
 namespace caret {
     
-    class OperationZipSceneFile : public AbstractOperation
+    class AlgorithmCiftiLabelModifyKeys : public AbstractAlgorithm
     {
+        AlgorithmCiftiLabelModifyKeys();
+    protected:
+        static float getSubAlgorithmWeight();
+        static float getAlgorithmInternalWeight();
     public:
-        enum ProgressMode {
-            PROGRESS_COMMAND_LINE,
-            PROGRESS_GUI_EVENT
-        };
-        
+        AlgorithmCiftiLabelModifyKeys(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const std::map<int32_t, int32_t> remap, CiftiFile* ciftiOut, const int column = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
-        static void createZipFile(ProgressObject* myProgObj,
-                                  const AString& sceneFileName,
-                                  const AString& outputSubDirectory,
-                                  const AString& zipFileName,
-                                  const AString& baseDirectory,
-                                  const ProgressMode progressMode,
-                                  const bool skipMissing = false);
     };
 
-    typedef TemplateAutoOperation<OperationZipSceneFile> AutoOperationZipSceneFile;
+    typedef TemplateAutoOperation<AlgorithmCiftiLabelModifyKeys> AutoAlgorithmCiftiLabelModifyKeys;
 
 }
 
-#endif //__OPERATION_ZIP_SCENE_FILE_H__
+#endif //__ALGORITHM_CIFTI_LABEL_MODIFY_KEYS_H__

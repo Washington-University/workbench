@@ -42,8 +42,8 @@ OperationParameters* AlgorithmName::getParameters()
     
     //ret->addMetricOutputParameter(2, "metric-out", "the output metric");
     
-    //OptionalParameter* columnSelect = ret->createOptionalParameter(3, "-column", "select a single column");
-    //columnSelect->addStringParameter(1, "column", "the column number or name");
+    //OptionalParameter* columnOpt = ret->createOptionalParameter(3, "-column", "select a single column");
+    //columnOpt->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
         AString("This is where you set the help text.  ") +
@@ -59,15 +59,12 @@ void AlgorithmName::useParameters(OperationParameters* myParams, ProgressObject*
 {
     //SurfaceFile* mySurf = myParams->getSurface(1);//gets the surface with key 1
     //MetricFile* myMetricOut = myParams->getOutputMetric(2);//gets the output metric with key 2
-    /*OptionalParameter* columnSelect = myParams->getOptionalParameter(3);//gets optional parameter with key 3
-    int columnNum = -1;
-    if (columnSelect->m_present)
-    {//set up to use the single column
-        columnNum = (int)myMetric->getMapIndexFromNameOrNumber(columnSelect->getString(1));
-        if (columnNum < 0)
-        {
-            throw AlgorithmException("invalid column specified");
-        }
+    /*OptionalParameter* columnOpt = myParams->getOptionalParameter(3);//gets option with key 3
+    int column = -1;
+    if (columnOpt->m_present)
+    {//set up to use a single column
+        column = myMetric->getMapIndexFromNameOrNumber(columnOpt->getString(1));
+        if (column < 0) throw AlgorithmException("invalid column specified");
     }//*/
     AlgorithmName(myProgObj /*INSERT PARAMETERS HERE*/);//executes the algorithm
 }
