@@ -1316,6 +1316,15 @@ BalsaDatabaseManager::getAllStudyInformation(std::vector<BalsaStudyInformation>&
     CaretHttpResponse idResponse;
     CaretHttpManager::httpRequest(caretRequest, idResponse);
     
+    idResponse.m_body.push_back('\0');
+    AString responseContent(&idResponse.m_body[0]);
+    CaretLogFine("Get All Study Information Response from "
+                 + studyIdURL
+                 + ", Response Code="
+                 + AString::number(idResponse.m_responseCode)
+                 + "\nContent:\n"
+                 + responseContent);
+    
     if (m_debugFlag) {
         std::cout << "Request all studies response Code: " << idResponse.m_responseCode << std::endl;
     }
@@ -1340,8 +1349,6 @@ BalsaDatabaseManager::getAllStudyInformation(std::vector<BalsaStudyInformation>&
         return false;
     }
     
-    idResponse.m_body.push_back('\0');
-    AString responseContent(&idResponse.m_body[0]);
     
     if (m_debugFlag) {
         std::cout << "Request all studies reply body:\n" << responseContent << std::endl << std::endl;
