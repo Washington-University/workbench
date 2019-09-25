@@ -414,7 +414,7 @@ BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>&
         }
         
         QJsonParseError jsonError;
-        QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toLatin1(),
+        QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toUtf8(),
                                                              &jsonError);
         if (jsonDocument.isNull()) {
             errorMessageOut = ("Process upload response failed.  Failed to parse JSON, error:"
@@ -720,7 +720,7 @@ BalsaDatabaseManager::updateSceneIdsFromProcessUploadResponse(SceneFile* sceneFi
                                                               AString& errorMessageOut)
 {
     QJsonParseError jsonError;
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(jsonContent.toLatin1(),
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(jsonContent.toUtf8(),
                                                          &jsonError);
     if (jsonDocument.isNull()) {
         errorMessageOut = ("Failed to parse JSON response from procssess upload, error:"
@@ -1032,7 +1032,7 @@ BalsaDatabaseManager::requestStudyID(const AString& databaseURL,
     }
     
     QJsonParseError jsonError;
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toLatin1(),
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toUtf8(),
                                                          &jsonError);
     if (jsonDocument.isNull()) {
         errorMessageOut = ("Requesting study ID failed.  Failed to parse JSON, error:"
@@ -1168,7 +1168,7 @@ BalsaDatabaseManager::getUserRoles(BalsaUserRoles& userRolesOut,
     }
     
     QJsonParseError jsonError;
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toLatin1(),
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toUtf8(),
                                                          &jsonError);
     if (jsonDocument.isNull()) {
         errorMessageOut = ("Requesting roles failed.  Failed to parse JSON, error:"
@@ -1361,7 +1361,7 @@ BalsaDatabaseManager::getAllStudyInformation(std::vector<BalsaStudyInformation>&
     }
     
     QJsonParseError jsonError;
-    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toLatin1(),
+    QJsonDocument jsonDocument = QJsonDocument::fromJson(responseContent.toUtf8(),
                                                          &jsonError);
     if (jsonDocument.isNull()) {
         errorMessageOut = ("Requesting all study information failed.  Failed to parse JSON, error:"
