@@ -419,6 +419,8 @@ BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>&
         if (jsonDocument.isNull()) {
             errorMessageOut = ("Process upload response failed.  Failed to parse JSON, error:"
                                + jsonError.errorString()
+                               + " Offset="
+                               + AString::number(jsonError.offset)
                                + "\n\n"
                                "Response Content: "
                                + responseContent);
@@ -1034,7 +1036,9 @@ BalsaDatabaseManager::requestStudyID(const AString& databaseURL,
                                                          &jsonError);
     if (jsonDocument.isNull()) {
         errorMessageOut = ("Requesting study ID failed.  Failed to parse JSON, error:"
-                           + jsonError.errorString());
+                           + jsonError.errorString()
+                           + " Offset="
+                           + AString::number(jsonError.offset));
         return false;
     }
     
@@ -1168,7 +1172,9 @@ BalsaDatabaseManager::getUserRoles(BalsaUserRoles& userRolesOut,
                                                          &jsonError);
     if (jsonDocument.isNull()) {
         errorMessageOut = ("Requesting roles failed.  Failed to parse JSON, error:"
-                           + jsonError.errorString());
+                           + jsonError.errorString()
+                           + " Offset="
+                           + AString::number(jsonError.offset));
         return false;
     }
     
@@ -1359,7 +1365,9 @@ BalsaDatabaseManager::getAllStudyInformation(std::vector<BalsaStudyInformation>&
                                                          &jsonError);
     if (jsonDocument.isNull()) {
         errorMessageOut = ("Requesting all study information failed.  Failed to parse JSON, error:"
-                           + jsonError.errorString());
+                           + jsonError.errorString()
+                           + " Offset="
+                           + AString::number(jsonError.offset));
         return false;
     }
     QByteArray json = jsonDocument.toJson();
