@@ -47,6 +47,7 @@
 #include "EventListenerInterface.h"
 #include "WuQMacroMouseEventWidgetInterface.h"
 
+class QGestureEvent;
 class QMouseEvent;
 class QWidget;
 
@@ -172,6 +173,8 @@ namespace caret {
         void captureImage(EventImageCapture* imageCaptureEvent);
         
         void repaintGraphics();
+        
+        bool processGestureEvent(QGestureEvent* gestureEvent);
         
         const int32_t windowIndex;
         

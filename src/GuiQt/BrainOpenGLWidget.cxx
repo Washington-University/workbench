@@ -27,6 +27,7 @@
 
 #include <QApplication>
 #include <QContextMenuEvent>
+#include <QGestureEvent>
 #include <QImage>
 #include <QKeyEvent>
 #include <QMouseEvent>
@@ -218,6 +219,11 @@ windowIndex(windowIndex)
 #endif
     
     s_brainOpenGLWidgets.insert(this);
+
+    /*
+     * Get pinch gesture event
+     */
+    grabGesture(Qt::PinchGesture);
 }
 
 /**
@@ -780,6 +786,15 @@ BrainOpenGLWidget::event(QEvent* event)
             
             return true;
         }
+        else if (event->type() == QEvent::Gesture) {
+            /*
+             * Qt doc (https://doc.qt.io/qt-5/gestures-overview.html#) shows using static_cast not dynamic_cast.
+             */
+            QGestureEvent* gestureEvent = static_cast<QGestureEvent*>(event);
+            if (processGestureEvent(gestureEvent)) {
+                return true;
+            }
+        }
     }
     
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
@@ -787,6 +802,72 @@ BrainOpenGLWidget::event(QEvent* event)
 #else
     return QGLWidget::event(event);
 #endif
+}
+
+/**
+ * Process a gesture event (pinch or zoom on trackpad)
+ */
+bool
+BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
+{
+    /*
+     * Disable until more time available for proper implementation
+     */
+    const bool enabledFlag(false);
+    if ( ! enabledFlag) {
+        return false;
+    }
+    
+    QGesture* pinchGesture = gestureEvent->gesture(Qt::PinchGesture);
+    if (pinchGesture != NULL) {
+        QPinchGesture* pinch = static_cast<QPinchGesture*>(pinchGesture);
+        QPinchGesture::ChangeFlags changeFlags = pinch->changeFlags();
+        if (changeFlags & QPinchGesture::ScaleFactorChanged) {
+            
+            QPoint mousePos = mapFromGlobal(QCursor::pos());
+            const int mouseX = mousePos.x();
+            const int mouseY = this->windowHeight[this->windowIndex] - mousePos.y();
+            float deltaDegrees = pinch->scaleFactor();
+            if (deltaDegrees > 1.0) {
+                deltaDegrees = 1;
+            }
+            else {
+                deltaDegrees = -1;
+            }
+            
+            /*
+             * Use location of mouse press so that the model
+             * being manipulated does not change if mouse moves
+             * out of its viewport without releasing the mouse
+             * button.
+             */
+            const BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(mouseX,
+                                                                                             mouseY);
+            if (viewportContent != NULL) {
+                MouseEvent mouseEvent(viewportContent,
+                                      this,
+                                      this->windowIndex,
+                                      mouseX,
+                                      mouseY,
+                                      0,
+                                      deltaDegrees,
+                                      0,
+                                      0,
+                                      this->mouseNewDraggingStartedFlag);
+                
+                this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
+            }
+        }
+        else if (changeFlags & QPinchGesture::RotationAngleChanged) {
+            std::cout << "Total Rotation: " << pinch->totalRotationAngle()
+            << " Rotation: " << pinch->rotationAngle() << std::endl;
+        }
+        
+        gestureEvent->accept();
+        return true;
+    }
+    
+    return false;
 }
 
 
