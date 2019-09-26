@@ -2769,6 +2769,13 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
     
     cursor.restoreCursor();
     
+    /*
+     * Set the active scene
+     */
+    EventSceneActive activeSceneEvent(EventSceneActive::MODE_SET);
+    activeSceneEvent.setScene(scene);
+    EventManager::get()->sendEvent(activeSceneEvent.getPointer());
+    
     const AString sceneErrorMessage = sceneAttributes->getErrorMessage();
     if (sceneErrorMessage.isEmpty()) {
         /*
@@ -2784,13 +2791,6 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
             prefs->addToPreviousSceneFiles(sceneFile->getFileName());
         }
-        
-        /*
-         * Set the active scene
-         */
-        EventSceneActive activeSceneEvent(EventSceneActive::MODE_SET);
-        activeSceneEvent.setScene(scene);
-        EventManager::get()->sendEvent(activeSceneEvent.getPointer());
     }
     else {
         errorMessageOut = sceneErrorMessage;
