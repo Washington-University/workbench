@@ -52,6 +52,9 @@ namespace caret {
                 
         virtual int32_t getNumberOfTabs() const override;
         
+        void getNumberOfRowsAndColumnsContainingTabs(int32_t& numberOfRowsOut,
+                                                     int32_t& numberOfColumnsOut) const;
+        
         bool getRowHeightsAndColumnWidthsForWindowSize(const int32_t windowWidth,
                                                        const int32_t windowHeight,
                                                        const int32_t numberOfModelsToDraw,

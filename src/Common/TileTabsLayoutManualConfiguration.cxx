@@ -161,9 +161,9 @@ TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(TileTabsLayoutGridC
     CaretAssert(gridLayout);
     
     const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
-    if (numTabs <= 0) {
-        return NULL;
-    }
+//    if (numTabs <= 0) {
+//        return NULL;
+//    }
     
     const int32_t windowWidth(10000);
     const int32_t windowHeight(10000);
@@ -207,8 +207,11 @@ TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(TileTabsLayoutGridC
                                 break;
                             case TileTabsGridRowColumnContentTypeEnum::TAB:
                             {
-                                CaretAssertVectorIndex(tabIndices, tabCounter);
-                                const int32_t tabIndex(tabIndices[tabCounter]);
+                                int32_t tabIndex(-1);
+                                if (tabCounter < numTabs) {
+                                    CaretAssertVectorIndex(tabIndices, tabCounter);
+                                    tabIndex = tabIndices[tabCounter];
+                                }
                                 
                                 const float centerX = xLeft + (width / 2.0);
                                 const float centerY = yBottom + (height / 2.0);

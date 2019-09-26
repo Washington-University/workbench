@@ -181,8 +181,6 @@ namespace caret {
         
         void updateTemplateConfigurationListWidget();
         
-        void manualConfigurationSetMenuFromGridConfiguration(TileTabsLayoutGridConfiguration* gridConfiguration);
-        
         BrainBrowserWindow* getBrowserWindow();
         
         const BrainBrowserWindow* getBrowserWindow() const;
@@ -210,6 +208,8 @@ namespace caret {
         void loadTemplateLayoutConfigurationFromXML(const QString& xml);
         
         bool warnIfGridConfigurationTooSmallDialog(const TileTabsLayoutGridConfiguration* gridConfiguration) const;
+        
+        bool loadIntoManualConfiguration(const TileTabsLayoutBaseConfiguration* configuration);
         
         BrainBrowserWindowComboBox* m_browserWindowComboBox;
         

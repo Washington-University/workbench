@@ -436,10 +436,6 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
         return;
     }
     
-    std::vector<BrowserTabContent*> allTabContent;
-    getBrowserWindow()->getAllTabContent(allTabContent);
-    int32_t numBrowserTabs = static_cast<int32_t>(allTabContent.size());
-    
     switch (configuration->getLayoutType()) {
         case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
             CaretAssert(0);
@@ -465,183 +461,8 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
         {
             const TileTabsLayoutManualConfiguration* userManualConfig = configuration->castToManualConfiguration();
             CaretAssert(userManualConfig);
-            const int32_t numConfigTabs = userManualConfig->getNumberOfTabs();
             
-            if (numConfigTabs <= 0) {
-                WuQMessageBox::errorOk(m_loadConfigurationPushButton,
-                                       ("User configuration \""
-                                        + userManualConfig->getName()
-                                        + "\" is invalid (does not have any tabs)"));
-                return;
-            }
-            
-            /*
-             * Display status of tabs must be set after
-             * configuration is copied from User Configurations
-             */
-            std::set<BrowserTabContent*> tabsWithDisplayStatusOn;
-            std::set<BrowserTabContent*> tabsWithDisplayStatusOff;
-            
-            if (numBrowserTabs == numConfigTabs) {
-                /* OK */
-            }
-            else {
-                AString msg("<html>"
-                            "The Window contains "
-                            + AString::number(numBrowserTabs)
-                            + " tabs.<br>"
-                            "The Layout has space for "
-                            + AString::number(numConfigTabs)
-                            + " tabs"
-                            "<p>");
-                if (numBrowserTabs < numConfigTabs) {
-                    msg.append("Do you want to add tabs to fill layout?:</html>");
-                    WuQDataEntryDialog dialog("Load Configuration",
-                                              m_loadConfigurationPushButton,
-                                              WuQDialogNonModal::SCROLL_AREA_NEVER);
-                    dialog.setTextAtTop(msg, true);
-                    QRadioButton* yesRadioButton = dialog.addRadioButton("Yes, add tabs to fill layout");
-                    QRadioButton* yesDisableDisplayRadioButton = dialog.addRadioButton("Yes, add tabs but disable display of them");
-                    QRadioButton* noRadioButton = dialog.addRadioButton("No, discard extra spaces in layout");
-                    yesDisableDisplayRadioButton->setChecked(true);
-                    if (dialog.exec() == WuQDataEntryDialog::Accepted) {
-                        bool addTabsFlag(false);
-                        bool showTabsFlag(false);
-                        if (yesRadioButton->isChecked()) {
-                            addTabsFlag  = true;
-                            showTabsFlag = true;
-                        }
-                        else if (yesDisableDisplayRadioButton->isChecked()) {
-                            addTabsFlag = true;
-                        }
-                        else if (noRadioButton->isChecked()) {
-                            /* No action needed */
-                        }
-                        else {
-                            CaretAssert(0);
-                        }
-                        
-                        if (addTabsFlag) {
-                            const int32_t numTabsToAdd = numConfigTabs - numBrowserTabs;
-                            for (int32_t i = 0; i < numTabsToAdd; i++) {
-                                EventBrowserTabNewInGUI newTabEvent;
-                                EventManager::get()->sendEvent(newTabEvent.getPointer());
-                                BrowserTabContent* btc = newTabEvent.getBrowserTab();
-                                updateGraphicsWindow();
-                                if (btc != NULL) {
-                                    if (showTabsFlag) {
-                                        tabsWithDisplayStatusOn.insert(btc);
-                                    }
-                                    else {
-                                        tabsWithDisplayStatusOff.insert(btc);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        return;
-                    }
-                }
-                else {
-                    msg.append("Do you want to:</html>");
-                    
-                    WuQDataEntryDialog dialog("Load Configuration",
-                                              m_loadConfigurationPushButton,
-                                              WuQDialogNonModal::SCROLL_AREA_NEVER);
-                    dialog.setTextAtTop(msg, true);
-                    QRadioButton* closeTabsRadioButton = dialog.addRadioButton("Close extra tabs");
-                    QRadioButton* expandLayoutRadioButton = dialog.addRadioButton("Expand layout to include tabs");
-                    expandLayoutRadioButton->setChecked(true);
-                    if (dialog.exec() == WuQDataEntryDialog::Accepted) {
-                        if (closeTabsRadioButton->isChecked()) {
-                            const int32_t numTabsToDelete = numBrowserTabs - numConfigTabs;
-                            int32_t deleteIndex = numBrowserTabs - 1;
-                            for (int32_t i = 0; i < numTabsToDelete; i++) {
-                                CaretAssertVectorIndex(allTabContent, deleteIndex);
-                                EventBrowserTabDeleteInGUI deleteTabEvent(allTabContent[deleteIndex],
-                                                                          allTabContent[deleteIndex]->getTabNumber());
-                                EventManager::get()->sendEvent(deleteTabEvent.getPointer());
-                                updateGraphicsWindow();
-                                deleteIndex--;
-                            }
-                        }
-                        else if (expandLayoutRadioButton->isChecked()) {
-                            /* Position and size from within tab will be used */
-                        }
-                        else {
-                            CaretAssert(0);
-                        }
-                    }
-                    else {
-                        return;
-                    }
-                }
-            }
-
-            /*
-             * Get the tabs again since the number of tabs may have changed
-             */
-            allTabContent.clear();
-            getBrowserWindow()->getAllTabContent(allTabContent);
-            numBrowserTabs = static_cast<int32_t>(allTabContent.size());
-            
-            std::vector<const BrainOpenGLViewportContent*> tabViewports;
-            getBrowserWindow()->getAllBrainOpenGLViewportContent(tabViewports);
-            const int32_t numViewportContent = static_cast<int32_t>(tabViewports.size());
-            
-            for (int32_t i = 0; i < numBrowserTabs; i++) {
-                CaretAssertVectorIndex(allTabContent, i);
-                AnnotationBrowserTab* browserTabAnnotation = allTabContent[i]->getManualLayoutBrowserTabAnnotation();
-                CaretAssert(browserTabAnnotation);
-                
-                if (i < numConfigTabs) {
-                    const TileTabsBrowserTabGeometry* configGeometry =  userManualConfig->getTabInfo(i);
-                    CaretAssert(configGeometry);
-                    
-                    browserTabAnnotation->setFromTileTabsGeometry(configGeometry);
-                    
-                    BrowserTabContent* btc = browserTabAnnotation->getBrowserTabContent();
-                    if (tabsWithDisplayStatusOn.find(btc) != tabsWithDisplayStatusOn.end()) {
-                        browserTabAnnotation->setBrowserTabDisplayed(true);
-                    }
-                    else if (tabsWithDisplayStatusOff.find(btc) != tabsWithDisplayStatusOff.end()) {
-                        browserTabAnnotation->setBrowserTabDisplayed(false);
-                    }
-                }
-                else {
-                    if (i < numViewportContent) {
-                        /*
-                         * Since no geometry available from the user configuration,
-                         * keep this tab in its current window position
-                         */
-                        const BrainOpenGLViewportContent* tabViewportContent = getViewportContentForTab(allTabContent[i]->getTabNumber());
-                        if (tabViewportContent != NULL) {
-                            int32_t tabViewport[4];
-                            tabViewportContent->getTabViewportBeforeApplyingMargins(tabViewport);
-                            int32_t windowViewport[4];
-                            tabViewportContent->getWindowViewport(windowViewport);
-                            const float tabX(tabViewport[0]);
-                            const float tabY(tabViewport[1]);
-                            const float tabWidth(tabViewport[2]);
-                            const float tabHeight(tabViewport[3]);
-                            const float windowWidth(windowViewport[2]);
-                            const float windowHeight(windowViewport[3]);
-                            tabViewportContent->getWindowViewport(windowViewport);
-                            const float minX((tabX / windowWidth) * 100.0);
-                            const float maxX(((tabX + tabWidth) / windowWidth) * 100.0);
-                            const float minY((tabY / windowHeight) * 100.0);
-                            const float maxY(((tabY + tabHeight) / windowHeight) * 100.0);
-                            
-                            browserTabAnnotation->setBounds2D(minX, maxX, minY, maxY);
-                        }
-                        else {
-                            CaretLogWarning("Unable to find viewport content for tab number "
-                                            + AString::number(allTabContent[i]->getTabNumber()));
-                        }
-                    }
-                }
-            }
+            loadIntoManualConfiguration(userManualConfig);
             
             getBrowserWindowContent()->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
         }
@@ -651,6 +472,251 @@ TileTabsConfigurationDialog::loadIntoActiveConfigurationPushButtonClicked()
     updateDialog();
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     updateGraphicsWindow();
+}
+
+/*
+ * Load the given configuration into the manual configuration
+ *
+ * @param configuration
+ *     Configuration that is loaded into the manual configuration
+ * @return
+ *     True if the configuration was loaded or false if user cancelled
+ */
+bool
+TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBaseConfiguration* configuration)
+{
+    CaretAssert(configuration);
+    
+    std::vector<BrowserTabContent*> allTabContent;
+    getBrowserWindow()->getAllTabContent(allTabContent);
+    int32_t numBrowserTabs = static_cast<int32_t>(allTabContent.size());
+
+    std::vector<int32_t> tabIndices;
+    for (auto tc : allTabContent) {
+        CaretAssert(tc);
+        tabIndices.push_back(tc->getTabNumber());
+    }
+
+    std::unique_ptr<TileTabsLayoutManualConfiguration> manualConfiguration;
+    
+    switch (configuration->getLayoutType()) {
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+        {
+            const TileTabsLayoutGridConfiguration* gridConfig = configuration->castToGridConfiguration();
+            CaretAssert(gridConfig);
+            
+            manualConfiguration.reset(TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(const_cast<TileTabsLayoutGridConfiguration*>(gridConfig),
+                                                                                                   gridConfig->getLayoutType(),
+                                                                                                   tabIndices));
+        }
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+        {
+            TileTabsLayoutGridConfiguration* customGridConfiguration = getCustomTileTabsGridConfiguration();
+            CaretAssert(customGridConfiguration);
+
+            const TileTabsLayoutGridConfiguration* gridConfig = configuration->castToGridConfiguration();
+            CaretAssert(gridConfig);
+            manualConfiguration.reset(TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(const_cast<TileTabsLayoutGridConfiguration*>(gridConfig),
+                                                                                                   gridConfig->getLayoutType(),
+                                                                                                   tabIndices));
+
+        }
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+        {
+            const TileTabsLayoutManualConfiguration* manConfig = configuration->castToManualConfiguration();
+            CaretAssert(manConfig);
+            manualConfiguration.reset(manConfig->newCopyWithNewUniqueIdentifier()->castToManualConfiguration());
+        }
+    }
+    
+    CaretAssert(manualConfiguration);
+    const int32_t numberOfConfigurationTabs = manualConfiguration->getNumberOfTabs();
+    if (numberOfConfigurationTabs <= 0) {
+        WuQMessageBox::errorOk(m_loadConfigurationPushButton,
+                               ("User configuration \""
+                                + configuration->getName()
+                                + "\" is invalid (does not have any tabs)"));
+        return false;
+    }
+    
+    /*
+     * Display status of tabs must be set after
+     * configuration is copied from User Configurations
+     */
+    std::set<BrowserTabContent*> tabsWithDisplayStatusOn;
+    std::set<BrowserTabContent*> tabsWithDisplayStatusOff;
+    
+    if (numBrowserTabs == numberOfConfigurationTabs) {
+        /* OK */
+    }
+    else {
+        AString msg("<html>"
+                    "The Window contains "
+                    + AString::number(numBrowserTabs)
+                    + " tabs.<br>"
+                    "The Layout has space for "
+                    + AString::number(numberOfConfigurationTabs)
+                    + " tabs"
+                    "<p>");
+        if (numBrowserTabs < numberOfConfigurationTabs) {
+            msg.append("Do you want to add tabs to fill layout?:</html>");
+            WuQDataEntryDialog dialog("Load Configuration",
+                                      m_loadConfigurationPushButton,
+                                      WuQDialogNonModal::SCROLL_AREA_NEVER);
+            dialog.setTextAtTop(msg, true);
+            QRadioButton* yesRadioButton = dialog.addRadioButton("Yes, add tabs to fill layout");
+            QRadioButton* yesDisableDisplayRadioButton = dialog.addRadioButton("Yes, add tabs but disable display of them");
+            QRadioButton* noRadioButton = dialog.addRadioButton("No, discard extra spaces in layout");
+            yesDisableDisplayRadioButton->setChecked(true);
+            if (dialog.exec() == WuQDataEntryDialog::Accepted) {
+                bool addTabsFlag(false);
+                bool showTabsFlag(false);
+                if (yesRadioButton->isChecked()) {
+                    addTabsFlag  = true;
+                    showTabsFlag = true;
+                }
+                else if (yesDisableDisplayRadioButton->isChecked()) {
+                    addTabsFlag = true;
+                }
+                else if (noRadioButton->isChecked()) {
+                    /* No action needed */
+                }
+                else {
+                    CaretAssert(0);
+                }
+                
+                if (addTabsFlag) {
+                    const int32_t numTabsToAdd = numberOfConfigurationTabs - numBrowserTabs;
+                    for (int32_t i = 0; i < numTabsToAdd; i++) {
+                        EventBrowserTabNewInGUI newTabEvent;
+                        EventManager::get()->sendEvent(newTabEvent.getPointer());
+                        BrowserTabContent* btc = newTabEvent.getBrowserTab();
+                        updateGraphicsWindow();
+                        if (btc != NULL) {
+                            if (showTabsFlag) {
+                                tabsWithDisplayStatusOn.insert(btc);
+                            }
+                            else {
+                                tabsWithDisplayStatusOff.insert(btc);
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                return false;
+            }
+        }
+        else {
+            msg.append("Do you want to:</html>");
+            
+            WuQDataEntryDialog dialog("Load Configuration",
+                                      m_loadConfigurationPushButton,
+                                      WuQDialogNonModal::SCROLL_AREA_NEVER);
+            dialog.setTextAtTop(msg, true);
+            QRadioButton* closeTabsRadioButton = dialog.addRadioButton("Close extra tabs");
+            QRadioButton* expandLayoutRadioButton = dialog.addRadioButton("Expand layout to include tabs");
+            expandLayoutRadioButton->setChecked(true);
+            if (dialog.exec() == WuQDataEntryDialog::Accepted) {
+                if (closeTabsRadioButton->isChecked()) {
+                    const int32_t numTabsToDelete = numBrowserTabs - numberOfConfigurationTabs;
+                    int32_t deleteIndex = numBrowserTabs - 1;
+                    for (int32_t i = 0; i < numTabsToDelete; i++) {
+                        CaretAssertVectorIndex(allTabContent, deleteIndex);
+                        EventBrowserTabDeleteInGUI deleteTabEvent(allTabContent[deleteIndex],
+                                                                  allTabContent[deleteIndex]->getTabNumber());
+                        EventManager::get()->sendEvent(deleteTabEvent.getPointer());
+                        updateGraphicsWindow();
+                        deleteIndex--;
+                    }
+                }
+                else if (expandLayoutRadioButton->isChecked()) {
+                    /* Position and size from within tab will be used */
+                }
+                else {
+                    CaretAssert(0);
+                }
+            }
+            else {
+                return false;
+            }
+        }
+    }
+    
+    /*
+     * Get the tabs again since the number of tabs may have changed
+     */
+    allTabContent.clear();
+    getBrowserWindow()->getAllTabContent(allTabContent);
+    numBrowserTabs = static_cast<int32_t>(allTabContent.size());
+    
+    std::vector<const BrainOpenGLViewportContent*> tabViewports;
+    getBrowserWindow()->getAllBrainOpenGLViewportContent(tabViewports);
+    const int32_t numViewportContent = static_cast<int32_t>(tabViewports.size());
+    
+    for (int32_t i = 0; i < numBrowserTabs; i++) {
+        CaretAssertVectorIndex(allTabContent, i);
+        AnnotationBrowserTab* browserTabAnnotation = allTabContent[i]->getManualLayoutBrowserTabAnnotation();
+        CaretAssert(browserTabAnnotation);
+        
+        if (i < numberOfConfigurationTabs) {
+            
+            const TileTabsBrowserTabGeometry* configGeometry =  manualConfiguration->getTabInfo(i);
+            CaretAssert(configGeometry);
+            
+            browserTabAnnotation->setFromTileTabsGeometry(configGeometry);
+            
+            BrowserTabContent* btc = browserTabAnnotation->getBrowserTabContent();
+            if (tabsWithDisplayStatusOn.find(btc) != tabsWithDisplayStatusOn.end()) {
+                browserTabAnnotation->setBrowserTabDisplayed(true);
+            }
+            else if (tabsWithDisplayStatusOff.find(btc) != tabsWithDisplayStatusOff.end()) {
+                browserTabAnnotation->setBrowserTabDisplayed(false);
+            }
+        }
+        else {
+            if (i < numViewportContent) {
+                /*
+                 * Since no geometry available from the user configuration,
+                 * keep this tab in its current window position
+                 */
+                const BrainOpenGLViewportContent* tabViewportContent = getViewportContentForTab(allTabContent[i]->getTabNumber());
+                if (tabViewportContent != NULL) {
+                    int32_t tabViewport[4];
+                    tabViewportContent->getTabViewportBeforeApplyingMargins(tabViewport);
+                    int32_t windowViewport[4];
+                    tabViewportContent->getWindowViewport(windowViewport);
+                    const float tabX(tabViewport[0]);
+                    const float tabY(tabViewport[1]);
+                    const float tabWidth(tabViewport[2]);
+                    const float tabHeight(tabViewport[3]);
+                    const float windowWidth(windowViewport[2]);
+                    const float windowHeight(windowViewport[3]);
+                    tabViewportContent->getWindowViewport(windowViewport);
+                    const float minX((tabX / windowWidth) * 100.0);
+                    const float maxX(((tabX + tabWidth) / windowWidth) * 100.0);
+                    const float minY((tabY / windowHeight) * 100.0);
+                    const float maxY(((tabY + tabHeight) / windowHeight) * 100.0);
+                    
+                    browserTabAnnotation->setBounds2D(minX, maxX, minY, maxY);
+                }
+                else {
+                    CaretLogWarning("Unable to find viewport content for tab number "
+                                    + AString::number(allTabContent[i]->getTabNumber()));
+                }
+            }
+        }
+    }
+    
+    getBrowserWindowContent()->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
+
+    updateDialog();
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    updateGraphicsWindow();
+    
+    return true;
 }
 
 /**
@@ -1492,68 +1558,47 @@ TileTabsConfigurationDialog::manualConfigurationSetToolButtonClicked()
 void
 TileTabsConfigurationDialog::manualConfigurationSetMenuColumnsItemTriggered()
 {
-    WuQDataEntryDialog ded("Set Columns for Manual Layout",
+    const BrainBrowserWindow* window = getBrowserWindow();
+    CaretAssert(window);
+    
+    std::vector<BrowserTabContent*> allTabContent;
+    window->getAllTabContent(allTabContent);
+    const int32_t numberOfTabs = static_cast<int32_t>(allTabContent.size());
+    
+    int32_t defaultNumberOfRows(1);
+    int32_t defaultNumberOfColumns(1);
+    TileTabsLayoutGridConfiguration::getRowsAndColumnsForNumberOfTabs(numberOfTabs,
+                                                                      defaultNumberOfRows,
+                                                                      defaultNumberOfColumns);
+
+    WuQDataEntryDialog ded("Create Manual Layout from Grid",
                            m_manualConfigurationSetButton);
-    QSpinBox* columnsSpinBox = ded.addSpinBox("Number of Columns", 2);
+    QSpinBox* rowsSpinBox    = ded.addSpinBox("Rows",
+                                              defaultNumberOfRows);
+    rowsSpinBox->setMinimum(1);
+    rowsSpinBox->setMaximum(100);
+    rowsSpinBox->setSingleStep(1);
+    
+    QSpinBox* columnsSpinBox = ded.addSpinBox("Columns",
+                                              defaultNumberOfColumns);
     columnsSpinBox->setMinimum(1);
     columnsSpinBox->setMaximum(100);
     columnsSpinBox->setSingleStep(1);
-    const bool wrapTextFlag(true);
-    ded.setTextAtTop("Enter number of columns.  Number of rows will sufficient to show all tabs.",
+    
+    const bool wrapTextFlag(false);
+    ded.setTextAtTop("Set rows and columns of Grid:",
                      wrapTextFlag);
     if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        const int32_t numberOfRows    = rowsSpinBox->value();
+        CaretAssert(numberOfRows >= 1);
         const int32_t numberOfColumns = columnsSpinBox->value();
         CaretAssert(numberOfColumns >= 1);
         
-        const BrainBrowserWindow* window = getBrowserWindow();
-        CaretAssert(window);
+        std::unique_ptr<TileTabsLayoutGridConfiguration> gridConfig(TileTabsLayoutGridConfiguration::newInstanceCustomGrid());
+        gridConfig->setNumberOfRows(numberOfRows);
+        gridConfig->setNumberOfColumns(numberOfColumns);
         
-        std::vector<BrowserTabContent*> allTabContent;
-        window->getAllTabContent(allTabContent);
-        const int32_t numberOfTabs = static_cast<int32_t>(allTabContent.size());
-        
-        /*
-         * Note: Coordinates of manual tab geometry are in percentages [0, 100]
-         */
-        const int32_t windowWidth(100);
-        const int32_t windowHeight(100);
-        if (numberOfTabs == 1) {
-            CaretAssertVectorIndex(allTabContent, 0);
-            AnnotationBrowserTab* browserTabAnnotation = allTabContent[0]->getManualLayoutBrowserTabAnnotation();
-            CaretAssert(browserTabAnnotation);
-            browserTabAnnotation->setBounds2D(0, windowWidth, 0, windowHeight);
-        }
-        else if (numberOfTabs > 1) {
-            const int32_t remainder = (numberOfTabs % numberOfColumns);
-            int32_t numberOfRows = (numberOfTabs / numberOfColumns);
-            if (remainder > 0) {
-                numberOfRows++;
-            }
-            const int32_t tabWidth  = (windowWidth / numberOfColumns);
-            const int32_t tabHeight = (windowHeight / numberOfRows);
-            int32_t tabY = windowHeight - tabHeight;
-            
-            int32_t tabContentIndex = 0;
-            for (int32_t iRow = 0; iRow < numberOfRows; iRow++) {
-                int32_t tabX = 0;
-                for (int32_t iCol = 0; iCol < numberOfColumns; iCol++) {
-                    if (tabContentIndex < numberOfTabs) {
-                        CaretAssertVectorIndex(allTabContent, tabContentIndex);
-                        AnnotationBrowserTab* browserTabAnnotation = allTabContent[tabContentIndex]->getManualLayoutBrowserTabAnnotation();
-                        CaretAssert(browserTabAnnotation);
-                        browserTabAnnotation->setBounds2D(tabX, tabX + tabWidth, tabY, tabY + tabHeight);
-                    }
-                    
-                    tabContentIndex++;
-                    tabX += tabWidth;
-                }
-                
-                tabY -= tabHeight;
-            }
-        }
-        
-        updateDialog();
-        updateGraphicsWindow();
+        loadIntoManualConfiguration(gridConfig.get());
     }
 }
 
@@ -1566,7 +1611,7 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromAutomaticItemTriggere
     BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
     TileTabsLayoutGridConfiguration* gridConfiguration = browserWindowContent->getAutomaticGridTileTabsConfiguration();
     CaretAssert(gridConfiguration);
-    manualConfigurationSetMenuFromGridConfiguration(gridConfiguration);
+    loadIntoManualConfiguration(gridConfiguration);
 }
 
 /**
@@ -1577,29 +1622,12 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromCustomItemTriggered()
 {
     TileTabsLayoutGridConfiguration* gridConfiguration = getCustomTileTabsGridConfiguration();
     CaretAssert(gridConfiguration);
-    manualConfigurationSetMenuFromGridConfiguration(gridConfiguration);
+    loadIntoManualConfiguration(gridConfiguration);
 }
 
 /**
- * Update the manual configuration to match a grid configuration
- *
- * @param gridConfiguration
- *     The grid configuration
+ * Create the active configuration type widget
  */
-void
-TileTabsConfigurationDialog::manualConfigurationSetMenuFromGridConfiguration(TileTabsLayoutGridConfiguration* gridConfiguration)
-{
-    if (gridConfiguration == NULL) {
-        return;
-    }
-    BrowserWindowContent* browserWindowContent = getBrowserWindowContent();
-    CaretAssert(browserWindowContent);
-    browserWindowContent->setManualConfigurationFromGridConfiguration(gridConfiguration);
-    
-    updateDialog();
-    updateGraphicsWindow();
-}
-
 QWidget*
 TileTabsConfigurationDialog::createConfigurationTypeWidget()
 {

@@ -488,7 +488,7 @@ TileTabsLayoutGridConfiguration::getRowHeightsAndColumnWidthsForWindowSize(const
 }
 
 /**
- * @return Number of rows.
+ * @return Number of rows (all rows including tabs and spacers)
  */
 int32_t
 TileTabsLayoutGridConfiguration::getNumberOfRows() const
@@ -509,7 +509,7 @@ TileTabsLayoutGridConfiguration::setNumberOfRows(const int32_t numberOfRows)
 }
 
 /**
- * @return Number of columns.
+ * @return Number of columns (All columns including tabs and spacers)
  */
 int32_t
 TileTabsLayoutGridConfiguration::getNumberOfColumns() const
@@ -527,6 +527,42 @@ void
 TileTabsLayoutGridConfiguration::setNumberOfColumns(const int32_t numberOfColumns)
 {
     m_columns.resize(numberOfColumns);
+}
+
+/**
+ * Get the number of rows and columns containing tab (excludes spacer rows/columns)
+ *
+ * @param numberOfRowsOut
+ *     Output with number of rows
+ * @param numberOfColumnsOut
+ *     Output with number of columns
+ */
+void
+TileTabsLayoutGridConfiguration::getNumberOfRowsAndColumnsContainingTabs(int32_t& numberOfRowsOut,
+                                                                         int32_t& numberOfColumnsOut) const
+{
+    numberOfRowsOut    = 0;
+    numberOfColumnsOut = 0;
+    
+    for (const auto& row : m_rows) {
+        switch (row.getContentType()) {
+            case TileTabsGridRowColumnContentTypeEnum::SPACE:
+                break;
+            case TileTabsGridRowColumnContentTypeEnum::TAB:
+                numberOfRowsOut++;
+                break;
+        }
+    }
+
+    for (const auto& col : m_columns) {
+        switch (col.getContentType()) {
+            case TileTabsGridRowColumnContentTypeEnum::SPACE:
+                break;
+            case TileTabsGridRowColumnContentTypeEnum::TAB:
+                numberOfColumnsOut++;
+                break;
+        }
+    }
 }
 
 /**
