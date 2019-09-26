@@ -254,6 +254,10 @@ namespace caret {
         
         virtual float getFixedAspectRatio() const;
         
+        int32_t getStackingOrder() const;
+        
+        void setStackingOrder(const int32_t stackingOrder);
+        
         /**
          * Apply a spatial modification to an annotation.
          *
@@ -420,6 +424,9 @@ namespace caret {
         int32_t m_uniqueKey;
         
         AnnotationGroupKey m_annotationGroupKey;
+        
+        /** Stacking order (depth in screen) of tab, greater value is 'in front'*/
+        int32_t m_stackingOrder = 1;
         
         bool m_drawnInWindowStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         

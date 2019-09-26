@@ -145,6 +145,8 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_customColorLine[2]  = obj.m_customColorLine[2];
     m_customColorLine[3]  = obj.m_customColorLine[3];
 
+    m_stackingOrder = obj.m_stackingOrder;
+    
     m_properties = obj.m_properties;
     
     *m_displayGroupAndTabItemHelper = *obj.m_displayGroupAndTabItemHelper;
@@ -601,6 +603,9 @@ Annotation::initializeAnnotationMembers()
         m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_colorLine",
                                                                     &m_colorLine);
         m_sceneAssistant->addArray("m_customColorLine", m_customColorLine, 4, 0.0);
+        
+        m_sceneAssistant->add("m_stackingOrder",
+                              &m_stackingOrder);
     }
 }
 
@@ -1918,6 +1923,28 @@ Annotation::clearDrawnInWindowStatusForAllWindows()
         CaretAssertArrayIndex(m_drawnInWindowStatus, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, iWindow);
         m_drawnInWindowStatus[iWindow] = false;
     }
+}
+
+/**
+ * @return Stacking order (depth in screen) of tab, greater value is 'in front'
+ */
+int32_t
+Annotation::getStackingOrder() const
+{
+    return m_stackingOrder;
+}
+
+/**
+ * Set Stacking order (depth in screen) of tab, greater value is 'in front'
+ *
+ * @param stackingOrder
+ *    New value for Stacking order (depth in screen) of tab, greater value is 'in front'
+ */
+void
+Annotation::setStackingOrder(const int32_t stackingOrder)
+{
+    m_stackingOrder = stackingOrder;
+    setModified();
 }
 
 

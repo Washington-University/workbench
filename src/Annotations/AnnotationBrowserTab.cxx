@@ -238,7 +238,7 @@ AnnotationBrowserTab::setFromTileTabsGeometry(const TileTabsBrowserTabGeometry* 
                 geometry->getMinY(),
                 geometry->getMaxY());
     m_displayStatus  = geometry->isDisplayed();
-    m_stackingOrder  = geometry->getStackingOrder();
+    setStackingOrder(geometry->getStackingOrder());
     m_backgroundType = geometry->getBackgroundType();
 }
 
@@ -258,7 +258,7 @@ AnnotationBrowserTab::getTileTabsGeometry(TileTabsBrowserTabGeometry* geometryOu
     
     geometryOut->setBounds(minX, maxX, minY, maxY);
     geometryOut->setDisplayed(m_displayStatus);
-    geometryOut->setStackingOrder(m_stackingOrder);
+    geometryOut->setStackingOrder(getStackingOrder());
     geometryOut->setBackgroundType(m_backgroundType);
 }
 
@@ -315,27 +315,6 @@ AnnotationBrowserTab::setBounds2D(const float minX,
     getCoordinate()->setXYZ(centerX, centerY, 0.0);
     setWidth(width);
     setHeight(height);
-}
-
-/**
- * @return Stacking order (depth in screen) of tab, greater value is 'in front'
- */
-int32_t
-AnnotationBrowserTab::getStackingOrder() const
-{
-    return m_stackingOrder;
-}
-
-/**
- * Set Stacking order (depth in screen) of tab, greater value is 'in front'
- *
- * @param stackingOrder
- *    New value for Stacking order (depth in screen) of tab, greater value is 'in front'
- */
-void
-AnnotationBrowserTab::setStackingOrder(const int32_t stackingOrder)
-{
-    m_stackingOrder = stackingOrder;
 }
 
 /**

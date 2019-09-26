@@ -59,10 +59,6 @@ namespace caret {
         
         int32_t getTabIndex() const;
         
-        int32_t getStackingOrder() const;
-        
-        void setStackingOrder(const int32_t stackingOrder);
-        
         TileTabsLayoutBackgroundTypeEnum::Enum getBackgroundType() const;
         
         void setBackgroundType(const TileTabsLayoutBackgroundTypeEnum::Enum backgroundType);
@@ -112,9 +108,6 @@ namespace caret {
         
         /** Index of browser tab that owns this annotation */
         int32_t m_tabIndex = -1;
-        
-        /** Stacking order (depth in screen) of tab, greater value is 'in front'*/
-        int32_t m_stackingOrder = 1;
         
         /** Type of background (opaque / transparent) for tab*/
         TileTabsLayoutBackgroundTypeEnum::Enum m_backgroundType = TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG;
