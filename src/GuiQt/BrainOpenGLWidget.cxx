@@ -831,12 +831,6 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
             break;
     }
 
-#ifdef CARET_OS_MACOSX
-    /* On Mac, "Scroll Direction:Natural" is default ON and causes a sign flip */
-    deltaDegrees = -deltaDegrees;
-#endif // CARET_OS_MACOSX
-
-    
     const bool debugFlag(false);
     if (debugFlag) {
         std::cout << "Angle Delta:   " << we->angleDelta().y() << std::endl;
