@@ -65,7 +65,7 @@ namespace caret {
         
         QLabel* m_nameLabel;
         
-        QCheckBox* m_visibilityCheckBox;
+        QCheckBox* m_visibilityCheckBox = NULL;
         
         std::vector<AnnotationBrowserTab*> m_browserTabAnnotations;
         

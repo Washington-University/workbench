@@ -63,20 +63,21 @@ m_browserWindowIndex(browserWindowIndex)
 {
     m_nameLabel = new QLabel();
     
-    m_visibilityCheckBox = new QCheckBox("Visible");
-    QObject::connect(m_visibilityCheckBox, &QCheckBox::stateChanged,
-                     this, &AnnotationNameWidget::visibilityCheckStateChanged);
+    m_visibilityCheckBox = NULL;
+    if (m_userInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+        m_visibilityCheckBox = new QCheckBox("Draw\nContent");
+        m_visibilityCheckBox->setTristate(false);
+        QObject::connect(m_visibilityCheckBox, &QCheckBox::stateChanged,
+                         this, &AnnotationNameWidget::visibilityCheckStateChanged);
+    }
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(2, 2, 2, 2);
     layout->addWidget(m_nameLabel, 0, Qt::AlignLeft);
-    layout->addWidget(m_visibilityCheckBox, 0, Qt::AlignLeft);
+    if (m_visibilityCheckBox != NULL) {
+        layout->addWidget(m_visibilityCheckBox, 0, Qt::AlignLeft);
+    }
     layout->addStretch();
-    
-    /*
-     * No visibility checkbox for now
-     */
-    m_visibilityCheckBox->setHidden(true);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -140,20 +141,23 @@ AnnotationNameWidget::updateContent(const std::vector<Annotation*>& annotations)
     
     m_nameLabel->setText(nameText);
     
-    /*
-     * Need to block signals as QCheckBox::setCheckState()
-     * causes a emission of a signal
-     */
-    QSignalBlocker checkBoxBlocker(m_visibilityCheckBox);
-    if ((visibleCount > 0)
-        && (hiddenCount > 0)) {
-        m_visibilityCheckBox->setCheckState(Qt::PartiallyChecked);
-    }
-    else  if (visibleCount > 0) {
-        m_visibilityCheckBox->setCheckState(Qt::Checked);
-    }
-    else {
-        m_visibilityCheckBox->setCheckState(Qt::Unchecked);
+    if (m_visibilityCheckBox != NULL) {
+        /*
+         * Need to block signals as QCheckBox::setCheckState()
+         * causes a emission of a signal
+         */
+        QSignalBlocker checkBoxBlocker(m_visibilityCheckBox);
+        if ((visibleCount > 0)
+            && (hiddenCount > 0)) {
+            /* Unchecked if status is mixed */
+            m_visibilityCheckBox->setCheckState(Qt::Unchecked);
+        }
+        else  if (visibleCount > 0) {
+            m_visibilityCheckBox->setCheckState(Qt::Checked);
+        }
+        else {
+            m_visibilityCheckBox->setCheckState(Qt::Unchecked);
+        }
     }
 }
 
