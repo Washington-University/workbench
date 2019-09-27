@@ -51,6 +51,7 @@
 
 #include "AnnotationBrowserTab.h"
 #include "AnnotationManager.h"
+#include "AnnotationStackingOrderOperation.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
@@ -125,7 +126,6 @@
 #include "SurfaceSelectionViewController.h"
 #include "StructureSurfaceSelectionControl.h"
 #include "TileTabsLayoutGridConfiguration.h"
-#include "TileTabsManualConfigurationModifier.h"
 #include "UserInputModeAbstract.h"
 #include "VolumeFile.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -4789,7 +4789,7 @@ BrainBrowserWindowToolBar::processTileTabOperationEvent(EventBrowserWindowTileTa
             case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK:
             case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD:
             {
-                TileTabsManualConfigurationModifier::TabOrderOperation tabOrderOperation = TileTabsManualConfigurationModifier::TabOrderOperation::BRING_TO_FRONT;
+                AnnotationStackingOrderOperation::OrderType orderingOperation = AnnotationStackingOrderOperation::OrderType::BRING_TO_FRONT;
                 switch (operation) {
                     case EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_AFTER:
                     case EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_BEFORE:
@@ -4797,32 +4797,50 @@ BrainBrowserWindowToolBar::processTileTabOperationEvent(EventBrowserWindowTileTa
                         CaretAssert(0);
                         break;
                     case EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_TO_FRONT:
-                        tabOrderOperation = TileTabsManualConfigurationModifier::TabOrderOperation::BRING_TO_FRONT;
+                        orderingOperation = AnnotationStackingOrderOperation::OrderType::BRING_TO_FRONT;
                         break;
                     case EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_FORWARD:
-                        tabOrderOperation = TileTabsManualConfigurationModifier::TabOrderOperation::BRING_FORWARD;
+                        orderingOperation = AnnotationStackingOrderOperation::OrderType::BRING_FORWARD;
                         break;
                     case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK:
-                        tabOrderOperation = TileTabsManualConfigurationModifier::TabOrderOperation::SEND_TO_BACK;
+                        orderingOperation = AnnotationStackingOrderOperation::OrderType::SEND_TO_BACK;
                         break;
                     case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD:
-                        tabOrderOperation = TileTabsManualConfigurationModifier::TabOrderOperation::SEND_BACKWARD;
+                        orderingOperation = AnnotationStackingOrderOperation::OrderType::SEND_BACKWARD;
                         break;
                     case EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB:
                     case EventBrowserWindowTileTabOperation::OPERATION_REPLACE_TABS:
                         CaretAssert(0);
                         break;
                 }
-
+                
                 std::vector<BrowserTabContent*> allTabContent;
                 getAllTabContent(allTabContent);
-                AString errorMessage;
-                TileTabsManualConfigurationModifier modifier(allTabContent);
-                if (! modifier.runTabOrderOperation(tabOrderOperation,
-                                                    browserTabIndex,
-                                                    errorMessage)) {
+                std::vector<Annotation*> annotations;
+                Annotation* selectedAnnotation(NULL);
+                for (auto tc : allTabContent) {
+                    AnnotationBrowserTab* abt = tc->getManualLayoutBrowserTabAnnotation();
+                    CaretAssert(abt);
+                    if (tc->getTabNumber() == browserTabIndex) {
+                        selectedAnnotation = abt;
+                    }
+                    annotations.push_back(tc->getManualLayoutBrowserTabAnnotation());
+                }
+                
+                if (selectedAnnotation != NULL) {
+                    AString errorMessage;
+                    AnnotationStackingOrderOperation modifier(annotations,
+                                                              selectedAnnotation);
+                    if (! modifier.runOrdering(orderingOperation,
+                                               errorMessage)) {
+                        WuQMessageBox::errorOk(this,
+                                               errorMessage);
+                    }
+                }
+                else {
                     WuQMessageBox::errorOk(this,
-                                           errorMessage);
+                                           ("PROGRAM ERROR: Unable to find tab with number "
+                                            + AString::number(browserTabIndex + 1)));
                 }
             }
                 break;

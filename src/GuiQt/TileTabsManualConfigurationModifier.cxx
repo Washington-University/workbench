@@ -52,6 +52,7 @@ TileTabsManualConfigurationModifier::TileTabsManualConfigurationModifier(const s
 : CaretObject(),
 m_browserTabs(browserTabContents)
 {
+    CaretAssertToDoFatal(); /* Use AnnotationStackingOrderOperation */
 }
 
 /**

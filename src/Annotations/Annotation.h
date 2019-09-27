@@ -344,7 +344,10 @@ namespace caret {
         virtual bool isItemSelectedForEditingInWindow(const int32_t windowIndex);
         
         void setDrawnInWindowStatus(const int32_t windowIndex);
-          
+        
+        virtual bool intersectionTest(const Annotation* other) const;
+        
+
     protected: 
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass) = 0;

@@ -2582,3 +2582,18 @@ Annotation::setUserDefaultLineWidthPercentage(const float lineWidthPercentage)
     s_userDefaultLineWidthPercentage = lineWidthPercentage;
 }
 
+/**
+ * @return true if this and the given annotation intersect.
+ *         NOTE: if 'other' is 'this' true is returned (overlaps self) but this
+ *         could change so it is best to avoid testing overlap of self.
+ *         NOTE: Display status is ignored
+ *
+ * @param other
+ *     Other annotation for intersection test
+ */
+bool
+Annotation::intersectionTest(const Annotation* other) const
+{
+    return false;
+}
+

@@ -63,7 +63,7 @@ namespace caret {
         
         void setBackgroundType(const TileTabsLayoutBackgroundTypeEnum::Enum backgroundType);
         
-        bool intersectionTest(const AnnotationBrowserTab* other) const;
+        virtual bool intersectionTest(const Annotation* other) const override;
 
         void getBounds2D(float& minX,
                          float& maxX,

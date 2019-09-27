@@ -51,6 +51,7 @@ AnnotationRedoUndoCommandModeEnum.h
 AnnotationEditingSelectionInformation.h
 AnnotationSizingHandleTypeEnum.h
 AnnotationSpatialModification.h
+AnnotationStackingOrderOperation.h
 AnnotationSurfaceOffsetVectorTypeEnum.h
 AnnotationText.h
 AnnotationTextAlignHorizontalEnum.h
@@ -96,6 +97,7 @@ AnnotationRedoUndoCommandModeEnum.cxx
 AnnotationEditingSelectionInformation.cxx
 AnnotationSizingHandleTypeEnum.cxx
 AnnotationSpatialModification.cxx
+AnnotationStackingOrderOperation.cxx
 AnnotationSurfaceOffsetVectorTypeEnum.cxx
 AnnotationText.cxx
 AnnotationTextAlignHorizontalEnum.cxx

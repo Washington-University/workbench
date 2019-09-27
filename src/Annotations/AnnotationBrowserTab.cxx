@@ -348,9 +348,13 @@ AnnotationBrowserTab::setBackgroundType(const TileTabsLayoutBackgroundTypeEnum::
  *     Other geometry for intersection test
  */
 bool
-AnnotationBrowserTab::intersectionTest(const AnnotationBrowserTab* other) const
+AnnotationBrowserTab::intersectionTest(const Annotation* otherAnn) const
 {
-    CaretAssert(other);
+    CaretAssert(otherAnn);
+    const AnnotationBrowserTab* other = dynamic_cast<const AnnotationBrowserTab*>(otherAnn);
+    if (other == NULL) {
+        return false;
+    }
     
     /*
      * Does self overlap
