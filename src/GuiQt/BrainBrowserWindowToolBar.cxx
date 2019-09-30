@@ -3192,6 +3192,16 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
     }
     else if (action == this->modeInputModeTileTabsManualLayoutAction) {
         inputMode = UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING;
+        
+        CaretAssert(m_parentBrainBrowserWindow);
+        BrowserWindowContent* browserWindowContent = m_parentBrainBrowserWindow->getBrowerWindowContent();
+        CaretAssert(browserWindowContent);
+        if ( ! browserWindowContent->isTileTabsEnabled()) {
+            browserWindowContent->setTileTabsEnabled(true);
+        }
+        if (browserWindowContent->getTileTabsConfigurationMode() != TileTabsLayoutConfigurationTypeEnum::MANUAL) {
+            browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
+        }
     }
     else if (action == this->modeInputVolumeEditAction) {
         inputMode = UserInputModeEnum::VOLUME_EDIT;
@@ -3261,28 +3271,6 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
             this->modeInputModeViewAction->setChecked(true);
             break;
     }
-
-    /*
-     * Enable "Tile" button only if Tile Tabs enabled and
-     * Manual Configuration is selected
-     */
-    bool tileModeValidFlag(false);
-    if (browserWindowContent->isTileTabsEnabled()) {
-        /*
-         * Automatic configuration and manual configuration always show all tabs
-         */
-        switch (browserWindowContent->getTileTabsConfigurationMode()) {
-            case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
-                break;
-            case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
-                break;
-            case TileTabsLayoutConfigurationTypeEnum::MANUAL:
-                tileModeValidFlag = true;
-                break;
-        }
-    }
-    this->modeInputModeTileTabsManualLayoutAction->setEnabled(tileModeValidFlag);
-    
 
     this->modeWidgetGroup->blockAllSignals(false);
 
