@@ -460,7 +460,6 @@ ThresholdingSetMapsDialog.h
 TileTabGridRowColumnWidgets.h
 TileTabsConfigurationDialog.h
 TileTabsGridConfigurationModifier.h
-TileTabsManualConfigurationModifier.h
 TileTabsManualTabGeometryWidget.h
 UserInputModeAbstract.h
 UserInputModeAnnotations.h
@@ -743,7 +742,6 @@ ThresholdingSetMapsDialog.cxx
 TileTabGridRowColumnWidgets.cxx
 TileTabsConfigurationDialog.cxx
 TileTabsGridConfigurationModifier.cxx
-TileTabsManualConfigurationModifier.cxx
 TileTabsManualTabGeometryWidget.cxx
 UserInputModeAbstract.cxx
 UserInputModeAnnotations.cxx

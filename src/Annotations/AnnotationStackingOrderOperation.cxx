@@ -84,6 +84,11 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
 
     CaretAssert(m_selectedAnnotation);
     
+    if ( ! filterAnnotations()) {
+        errorMessageOut = "All annotations are incompatible for ordering with selected annotation";
+        return false;
+    }
+    
     bool found(false);
     for (auto ann : m_annotations) {
         CaretAssert(ann);
@@ -129,7 +134,12 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
     int32_t indexOfAnnotationBehind(-1);
     int32_t indexOfAnnotationInFront(-1);
     const int32_t numberOfAnnotations = static_cast<int32_t>(annotationOrderAndContent.size());
-    CaretAssert(numberOfAnnotations > 2);
+    CaretAssert(numberOfAnnotations >= 2);
+    if (numberOfAnnotations < 2) {
+        errorMessageOut = "There must be at least two items for ordering";
+        return false;
+    }
+    
     for (int32_t i = 0; i < numberOfAnnotations; i++) {
         CaretAssertVectorIndex(annotationOrderAndContent, i);
         annotationOrderAndContent[i].m_stackOrder = i * 2;
@@ -231,13 +241,95 @@ AnnotationStackingOrderOperation::toString() const
 }
 
 /**
+ * Filter the annotations that are incompatible with the selected annotation
+ *
+ * @return True there are annotations remaining after filtering
+ */
+bool
+AnnotationStackingOrderOperation::filterAnnotations()
+{
+    CaretAssert(m_selectedAnnotation);
+    
+    std::vector<Annotation*> filteredAnnotations;
+    
+    if (m_selectedAnnotation->getType() == AnnotationTypeEnum::BROWSER_TAB) {
+        for (auto ann : m_annotations) {
+            CaretAssert(ann);
+            if (ann->getType() == AnnotationTypeEnum::BROWSER_TAB) {
+                filteredAnnotations.push_back(ann);
+            }
+        }
+    }
+    else {
+        const AnnotationCoordinateSpaceEnum::Enum coordSpace = m_selectedAnnotation->getCoordinateSpace();
+        
+        for (auto ann : m_annotations) {
+            CaretAssert(ann);
+            
+            if (ann->getCoordinateSpace() == coordSpace) {
+                switch (coordSpace) {
+                    case AnnotationCoordinateSpaceEnum::CHART:
+                        /* DO NOT order chart space annotations */
+                        break;
+                    case AnnotationCoordinateSpaceEnum::SPACER:
+                        if (ann->getSpacerTabIndex() == m_selectedAnnotation->getSpacerTabIndex()) {
+                            filteredAnnotations.push_back(ann);
+                        }
+                        break;
+                    case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                        /* DO NOT order stereotaxic space annotations */
+                        break;
+                    case AnnotationCoordinateSpaceEnum::SURFACE:
+                        /* DO NOT order surface space annotations */
+                        break;
+                    case AnnotationCoordinateSpaceEnum::TAB:
+                        if (ann->getTabIndex() == m_selectedAnnotation->getTabIndex()) {
+                            filteredAnnotations.push_back(ann);
+                        }
+                        break;
+                    case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                        /* DO NOT order viewport space annotations */
+                        break;
+                    case AnnotationCoordinateSpaceEnum::WINDOW:
+                        if (ann->getWindowIndex() == m_selectedAnnotation->getWindowIndex()) {
+                            filteredAnnotations.push_back(ann);
+                        }
+                        break;
+                }
+            }
+        }
+    }
+    
+    
+    m_annotations = filteredAnnotations;
+    
+    return ( ! m_annotations.empty());
+}
+
+/**
  * Examine the annotations (types, coordinate spaces, etc) to verify that
  * the annotations can be reordered.
+ *
+ * @param annotations
+ *     Annotation for reordering
+ * @param errorMessageOut
+ *     Contains error information
+ * @return
+ *     True if OK else false if there is an error
  */
 bool
 AnnotationStackingOrderOperation::validateCompatibility(const std::vector<Annotation*>& annotations,
                                                         AString& errorMesssageOut)
 {
+    /*
+     * filterAnnotations() makes validation unnecessary
+     */
+    const bool doValidationFlag(false);
+    if ( ! doValidationFlag) {
+        return true;
+    }
+    
+    
     if (annotations.empty()) {
         errorMesssageOut = "No annotations for reordering";
         return false;

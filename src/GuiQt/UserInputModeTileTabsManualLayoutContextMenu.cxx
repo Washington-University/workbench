@@ -90,10 +90,11 @@ m_parentOpenGLWidget(parentOpenGLWidget)
             m_selectedBrowserTabAnnotations.push_back(abt);
         }
     }
-    const bool oneTabSelectedFlag(m_selectedBrowserTabAnnotations.size() == 1);
+    const bool oneTabSelectedFlag((m_selectedBrowserTabAnnotations.size() == 1)
+                                  && (m_browserTabContent != NULL));
     
     /*
-     * Select All annotations
+     * Select All tabs
      */
     addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL),
               this, SLOT(selectAllAnnotations()));
@@ -320,6 +321,27 @@ UserInputModeTileTabsManualLayoutContextMenu::processInsertNewTabMenuItem()
 void
 UserInputModeTileTabsManualLayoutContextMenu::processWindowTileTabOperation(const EventBrowserWindowTileTabOperation::Operation operation)
 {
+    switch (operation) {
+        case EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_AFTER:
+            break;
+        case EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_BEFORE:
+            break;
+        case EventBrowserWindowTileTabOperation::OPERATION_MANUAL_NEW_TAB:
+            break;
+        case EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_FORWARD:
+            break;
+        case EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_TO_FRONT:
+            break;
+        case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD:
+            break;
+        case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK:
+            break;
+        case EventBrowserWindowTileTabOperation::OPERATION_REPLACE_TABS:
+            break;
+        case EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB:
+            break;
+    }
+    
     std::vector<BrowserTabContent*> emptyBrowserTabs;
     
     int tabIndex(-1);

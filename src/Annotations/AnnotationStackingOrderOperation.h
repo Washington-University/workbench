@@ -79,6 +79,8 @@ namespace caret {
             int32_t m_stackOrder = -1;
         };
         
+        bool filterAnnotations();
+        
         bool validateCompatibility(const std::vector<Annotation*>& annotations,
                                    AString& errorMesssageOut);
         
