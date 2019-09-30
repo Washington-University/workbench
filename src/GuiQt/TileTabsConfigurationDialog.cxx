@@ -746,6 +746,13 @@ TileTabsConfigurationDialog::warnIfGridConfigurationTooSmallDialog(const TileTab
         return false;
     }
     
+    if (gridConfiguration->getLayoutType() == TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID) {
+        if (gridConfiguration->isCustomDefaultFlag()) {
+            /* custom grid will get updated to show all tabs */
+            return true;
+        }
+    }
+    
     if (numConfigTabs < numBrowserTabs) {
         AString msg("<html>"
                     "The Window contains "

@@ -95,6 +95,10 @@ namespace caret {
         
         virtual const TileTabsLayoutGridConfiguration* castToGridConfiguration() const override;
         
+        bool isCustomDefaultFlag() const;
+        
+        void setCustomDefaultFlag(const bool defaultFlag);
+        
         // ADD_NEW_METHODS_HERE
         
     protected:
@@ -129,6 +133,9 @@ namespace caret {
         std::vector<TileTabsGridRowColumnElement> m_columns;
         
         std::vector<TileTabsGridRowColumnElement> m_rows;
+        
+        /** Used to track default custom config. Neither read nor/written to scene or preferences */
+        bool m_customDefaultFlag = false;
         
         bool m_centeringCorrectionEnabled = false;
         

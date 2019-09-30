@@ -149,6 +149,7 @@ TileTabsLayoutGridConfiguration::initialize()
     setNumberOfColumns(2);
 
     m_centeringCorrectionEnabled = false;
+    m_customDefaultFlag = false;
 }
 
 /**
@@ -167,6 +168,7 @@ TileTabsLayoutGridConfiguration::copyHelperTileTabsLayoutGridConfiguration(const
     m_columns = obj.m_columns;
     m_rows    = obj.m_rows;
     m_centeringCorrectionEnabled = obj.m_centeringCorrectionEnabled;
+    m_customDefaultFlag = false;
 }
 
 /**
@@ -1216,3 +1218,23 @@ TileTabsLayoutGridConfiguration::castToGridConfiguration() const
     return this;
 }
 
+/**
+ * @return Status of custom default flag (used by BrowserWindowContent)
+ */
+bool
+TileTabsLayoutGridConfiguration::isCustomDefaultFlag() const
+{
+    return m_customDefaultFlag;
+}
+
+/**
+ * Set status of custom default flag (used by BrowserWindowContent)
+ *
+ * @param defaultFlag
+ *     New status of custom default flag
+ */
+void
+TileTabsLayoutGridConfiguration::setCustomDefaultFlag(const bool defaultFlag)
+{
+    m_customDefaultFlag = defaultFlag;
+}

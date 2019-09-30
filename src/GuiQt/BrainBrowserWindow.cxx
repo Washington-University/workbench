@@ -2552,14 +2552,21 @@ BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsLayoutConfig
         case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
         {
             const TileTabsLayoutGridConfiguration* customConfig = getBrowerWindowContent()->getCustomGridTileTabsConfiguration();
-            configRowCount = customConfig->getNumberOfRows();
-            configColCount = customConfig->getNumberOfColumns();
-            const int32_t customTabCount = (configRowCount
-                                            * configColCount);
-            const int32_t hiddenCount = windowTabCount - customTabCount;
-            if (hiddenCount > 0) {
-                errorText = " (configuration too small for all tabs)";
-                includeRowsAndColumns = false;
+            if (customConfig->isCustomDefaultFlag()) {
+                TileTabsLayoutGridConfiguration::getRowsAndColumnsForNumberOfTabs(windowTabCount,
+                                                                                  configRowCount,
+                                                                                  configColCount);
+            }
+            else {
+                configRowCount = customConfig->getNumberOfRows();
+                configColCount = customConfig->getNumberOfColumns();
+                const int32_t customTabCount = (configRowCount
+                                                * configColCount);
+                const int32_t hiddenCount = windowTabCount - customTabCount;
+                if (hiddenCount > 0) {
+                    errorText = " (configuration too small for all tabs)";
+                    includeRowsAndColumns = false;
+                }
             }
         }
             break;

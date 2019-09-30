@@ -120,6 +120,7 @@ BrowserWindowContent::reset()
     m_customGridTileTabsConfiguration->updateAutomaticConfigurationRowsAndColumns(1);
     m_sceneSelectedTabIndex = 0;
     m_sceneTabIndices.clear();
+    m_customGridTileTabsConfiguration->setCustomDefaultFlag(true);
 }
 
 
@@ -350,6 +351,16 @@ BrowserWindowContent::setTileTabsConfigurationMode(const TileTabsLayoutConfigura
         case  TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
             break;
         case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+            if (m_customGridTileTabsConfiguration->isCustomDefaultFlag()) {
+                m_customGridTileTabsConfiguration->setCustomDefaultFlag(false);
+                
+                EventBrowserWindowGetTabs windowTabsEvent(m_windowIndex);
+                EventManager::get()->sendEvent(windowTabsEvent.getPointer());
+                int32_t numTabs = static_cast<int32_t>(windowTabsEvent.getBrowserTabIndices().size());
+                if (numTabs > 0) {
+                    m_customGridTileTabsConfiguration->updateAutomaticConfigurationRowsAndColumns(numTabs);
+                }
+            }
             break;
         case TileTabsLayoutConfigurationTypeEnum::MANUAL:
         {
