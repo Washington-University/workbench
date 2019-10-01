@@ -1629,7 +1629,17 @@ TileTabsConfigurationDialog::manualConfigurationSetMenuFromCustomItemTriggered()
 {
     TileTabsLayoutGridConfiguration* gridConfiguration = getCustomTileTabsGridConfiguration();
     CaretAssert(gridConfiguration);
-    loadIntoManualConfiguration(gridConfiguration);
+    if (gridConfiguration->isCustomDefaultFlag()) {
+        /*
+         * If we are here the user has not yet selected the custom grid
+         * and it defaults to the automatic configuration when selected.
+         * So, in this case, use the automatic grid.
+         */
+        manualConfigurationSetMenuFromAutomaticItemTriggered();
+    }
+    else {
+        loadIntoManualConfiguration(gridConfiguration);
+    }
 }
 
 /**
