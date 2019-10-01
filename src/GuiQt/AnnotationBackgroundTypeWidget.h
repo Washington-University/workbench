@@ -27,7 +27,7 @@
 #include "AnnotationWidgetParentEnum.h"
 #include "UserInputModeEnum.h"
 
-class QDoubleSpinBox;
+class QSpinBox;
 
 namespace caret {
 
@@ -59,6 +59,8 @@ namespace caret {
     private slots:
         void tileTabsLayoutBackgroundTypeEnumComboBoxItemActivated();
         
+        void stackingOrderValueChanged(int value);
+        
     private:
         AnnotationBackgroundTypeWidget(const AnnotationBackgroundTypeWidget&);
 
@@ -75,6 +77,9 @@ namespace caret {
         std::vector<AnnotationBrowserTab*> m_annotationBrowserTabs;
         
         EnumComboBoxTemplate* m_TileTabsLayoutBackgroundTypeEnumComboBox;
+        
+        QSpinBox* m_stackingOrderSpinBox;
+        
     };
     
 #ifdef __ANNOTATION_BACKGROUND_TYPE_WIDGET_DECLARE__

@@ -289,6 +289,11 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
                 }
             }
             break;
+        case AnnotationRedoUndoCommandModeEnum::STACKING_ORDER:
+        {
+            annotation->setStackingOrder(annotationValue->getStackingOrder());
+        }
+            break;
         case AnnotationRedoUndoCommandModeEnum::TEXT_ALIGNMENT_HORIZONTAL:
         {
             AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
@@ -904,7 +909,6 @@ AnnotationRedoUndoCommand::setBrowserTabBackground(const TileTabsLayoutBackgroun
         }
     }
 }
-
 
 /**
  * Set them mode to x-minimum and create the redo/undo instances.
@@ -1751,6 +1755,34 @@ AnnotationRedoUndoCommand::setModeRotationAngle(const float newRotationAngle,
     
 }
 
+/**
+ * Set the mode to stacking order and created the undo/redo instances
+ *
+ * @param newStackingOrder
+ *     New stacking order value
+ * @param annotations
+ *     Annotations that receive the new stacking order
+ */
+void
+AnnotationRedoUndoCommand::setModeStackingOrder(const int32_t newStackingOrder,
+                                                const std::vector<Annotation*>& annotations)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::STACKING_ORDER;
+    setDescription("Stacking Order");
+    
+    for (auto ann : annotations) {
+        CaretAssert(ann);
+        Annotation* redoAnnotation = ann->clone();
+        CaretAssert(redoAnnotation);
+        redoAnnotation->setStackingOrder(newStackingOrder);
+        
+        Annotation* undoAnnotation = ann->clone();
+        AnnotationMemento* am = new AnnotationMemento(ann,
+                                                      redoAnnotation,
+                                                      undoAnnotation);
+        m_annotationMementos.push_back(am);
+    }
+}
 
 /**
  * Set the mode to horizontal text alignment and create the undo/redo instances

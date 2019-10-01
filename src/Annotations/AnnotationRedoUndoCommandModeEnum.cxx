@@ -190,6 +190,10 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                          "ROTATION_ANGLE",
                                                          "Rotation Angle"));
     
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(STACKING_ORDER,
+                                                         "STACKING_ORDER",
+                                                         "Stacking Order"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(TEXT_ALIGNMENT_HORIZONTAL,
                                                      "TEXT_ALIGNMENT_HORIZONTAL",
                                                      "Text Alignment Horizontal"));

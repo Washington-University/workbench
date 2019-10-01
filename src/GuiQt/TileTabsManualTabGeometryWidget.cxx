@@ -97,7 +97,7 @@ m_index(index)
     m_stackingOrderSpinBox->setMinimum(-100);
     m_stackingOrderSpinBox->setMaximum(100);
     m_stackingOrderSpinBox->setSingleStep(1);
-    m_stackingOrderSpinBox->setToolTip(WuQtUtilities::createWordWrappedToolTipText(stackOrderToolTipText));
+    m_stackingOrderSpinBox->setToolTip(getStackOrderToolTipText());
     QObject::connect(m_stackingOrderSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &TileTabsManualTabGeometryWidget::stackingOrderValueChanged);
 
@@ -125,6 +125,16 @@ m_index(index)
  */
 TileTabsManualTabGeometryWidget::~TileTabsManualTabGeometryWidget()
 {
+}
+
+/**
+ * @return Tooltip text for order spin box
+ */
+QString
+TileTabsManualTabGeometryWidget::getStackOrderToolTipText()
+{
+    return WuQtUtilities::createWordWrappedToolTipText("Larger numbers are in front of other tabs.  This value only needs adjustment "
+                                                       "if this tab overlaps with another tab");
 }
 
 /**

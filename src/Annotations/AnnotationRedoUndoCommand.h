@@ -123,6 +123,9 @@ namespace caret {
         void setModeRotationAngle(const float newRotationAngle,
                                   const std::vector<Annotation*>& annotations);
         
+        void setModeStackingOrder(const int32_t newStackingOrder,
+                                  const std::vector<Annotation*>& annotations);
+        
         void setModeTextAlignmentHorizontal(const AnnotationTextAlignHorizontalEnum::Enum newHorizontalAlignment,
                                             const std::vector<Annotation*>& annotations);
         

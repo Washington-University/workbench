@@ -79,6 +79,8 @@ public:
         PASTE_ANNOTATION,
         /** Rotation Angle */
         ROTATION_ANGLE,
+        /** Stacking order */
+        STACKING_ORDER,
         /** Text Alignment Horizontal */
         TEXT_ALIGNMENT_HORIZONTAL,
         /** Text Alignment Vertical */

@@ -23,8 +23,9 @@
 #include "AnnotationBackgroundTypeWidget.h"
 #undef __ANNOTATION_BACKGROUND_TYPE_WIDGET_DECLARE__
 
+#include <QGridLayout>
 #include <QLabel>
-#include <QVBoxLayout>
+#include <QSpinBox>
 
 #include "AnnotationBrowserTab.h"
 #include "AnnotationManager.h"
@@ -37,6 +38,7 @@
 #include "GuiManager.h"
 #include "ModelChartTwo.h"
 #include "TileTabsLayoutBackgroundTypeEnum.h"
+#include "TileTabsManualTabGeometryWidget.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -84,10 +86,29 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_TileTabsLayoutBackgroundTypeEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(tileTabsLayoutBackgroundTypeEnumComboBoxItemActivated()));
 
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QLabel* stackingOrderLabel = new QLabel("Order:");
+    m_stackingOrderSpinBox = new QSpinBox();
+    m_stackingOrderSpinBox->setRange(0, 1000);
+    m_stackingOrderSpinBox->setSingleStep(1);
+    m_stackingOrderSpinBox->setToolTip(TileTabsManualTabGeometryWidget::getStackOrderToolTipText());
+    QObject::connect(m_stackingOrderSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     this, &AnnotationBackgroundTypeWidget::stackingOrderValueChanged);                                                                
+    
+    QGridLayout* layout = new QGridLayout(this);
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 100);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addWidget(backgroundLabel, 0, Qt::AlignHCenter);
-    layout->addWidget(m_TileTabsLayoutBackgroundTypeEnumComboBox->getWidget());
+    int32_t row(0);
+    layout->addWidget(backgroundLabel,
+                      row, 0, 1, 2, Qt::AlignHCenter);
+    row++;
+    layout->addWidget(m_TileTabsLayoutBackgroundTypeEnumComboBox->getWidget(),
+                      row, 0, 1, 2);
+    row++;
+    layout->addWidget(stackingOrderLabel,
+                      row, 0);
+    layout->addWidget(m_stackingOrderSpinBox,
+                      row, 1);
 
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -111,18 +132,24 @@ AnnotationBackgroundTypeWidget::updateContent(std::vector<AnnotationBrowserTab*>
     m_annotationBrowserTabs = selectedBrowserTabAnnotations;
     
     bool firstFlag(true);
-    bool haveMultipleValuesFlag(false);
-    TileTabsLayoutBackgroundTypeEnum::Enum firstValue = TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG;
+    int32_t firstOrderValue(false);
+    bool haveMultipleStackingOrderValuesFlag(false);
+    bool haveMultipleBackgroundValuesFlag(false);
+    TileTabsLayoutBackgroundTypeEnum::Enum firstBackgroundValue = TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG;
     
     if (! m_annotationBrowserTabs.empty()) {
         for (auto ann : m_annotationBrowserTabs) {
             if (firstFlag) {
-                firstValue = ann->getBackgroundType();
+                firstBackgroundValue = ann->getBackgroundType();
                 firstFlag = false;
+                firstOrderValue = ann->getStackingOrder();
             }
             else {
-                if (firstValue != ann->getBackgroundType()) {
-                    haveMultipleValuesFlag = true;
+                if (firstBackgroundValue != ann->getBackgroundType()) {
+                    haveMultipleBackgroundValuesFlag = true;
+                }
+                if (firstOrderValue != ann->getStackingOrder()) {
+                    haveMultipleStackingOrderValuesFlag = true;
                 }
             }
         }
@@ -132,15 +159,15 @@ AnnotationBackgroundTypeWidget::updateContent(std::vector<AnnotationBrowserTab*>
         setEnabled(false);
     }
     
-    m_TileTabsLayoutBackgroundTypeEnumComboBox->setSelectedItem<TileTabsLayoutBackgroundTypeEnum,TileTabsLayoutBackgroundTypeEnum::Enum>(firstValue);
+    m_TileTabsLayoutBackgroundTypeEnumComboBox->setSelectedItem<TileTabsLayoutBackgroundTypeEnum,TileTabsLayoutBackgroundTypeEnum::Enum>(firstBackgroundValue);
     
     const int32_t opaqueIndex = TileTabsLayoutBackgroundTypeEnum::toIntegerCode(TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG);
     AString opaqueText(TileTabsLayoutBackgroundTypeEnum::toGuiName(TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG));
     const int32_t transparentIndex = TileTabsLayoutBackgroundTypeEnum::toIntegerCode(TileTabsLayoutBackgroundTypeEnum::TRANSPARENT_BG);
     AString transparentText(TileTabsLayoutBackgroundTypeEnum::toGuiName(TileTabsLayoutBackgroundTypeEnum::TRANSPARENT_BG));
     
-    if (haveMultipleValuesFlag) {
-        switch (firstValue) {
+    if (haveMultipleBackgroundValuesFlag) {
+        switch (firstBackgroundValue) {
             case TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG:
                 opaqueText.append("+");
                 break;
@@ -148,6 +175,18 @@ AnnotationBackgroundTypeWidget::updateContent(std::vector<AnnotationBrowserTab*>
                 transparentText.append("+");
                 break;
         }
+    }
+    
+    /*
+     * Need to block signals as 'setValue' causes signal change
+     */
+    QSignalBlocker spinBlocker(m_stackingOrderSpinBox);
+    m_stackingOrderSpinBox->setValue(firstOrderValue);
+    if (haveMultipleStackingOrderValuesFlag) {
+        m_stackingOrderSpinBox->setSuffix("+");
+    }
+    else {
+        m_stackingOrderSpinBox->setSuffix("");
     }
     
     m_TileTabsLayoutBackgroundTypeEnumComboBox->getComboBox()->setItemText(opaqueIndex,
@@ -181,7 +220,44 @@ AnnotationBackgroundTypeWidget::tileTabsLayoutBackgroundTypeEnumComboBoxItemActi
         }
         
         /*
-         * Need to update since the anntotations may have had different backgrounds
+         * Need to update since the annotations may have had different backgrounds
+         * and need to remove the "+" symbol
+         */
+        std::vector<AnnotationBrowserTab*> annCopy = m_annotationBrowserTabs;
+        updateContent(annCopy);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    }
+}
+
+/**
+ * Called when stacking order value changed
+ *
+ * @param value
+ *     New stacking order value
+ */
+void
+AnnotationBackgroundTypeWidget::stackingOrderValueChanged(int value)
+{
+    if ( ! m_annotationBrowserTabs.empty()) {
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        std::vector<Annotation*> annotations(m_annotationBrowserTabs.begin(),
+                                             m_annotationBrowserTabs.end());
+        
+        undoCommand->setModeStackingOrder(value, annotations);
+        
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        
+        AString errorMessage;
+        if ( ! annMan->applyCommand(m_userInputMode,
+                                    undoCommand,
+                                    errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
+        
+        /*
+         * Need to update since the annotations may have had different stacking orders
          * and need to remove the "+" symbol
          */
         std::vector<AnnotationBrowserTab*> annCopy = m_annotationBrowserTabs;

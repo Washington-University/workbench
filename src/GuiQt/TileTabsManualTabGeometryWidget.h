@@ -58,6 +58,8 @@ namespace caret {
         
         void updateContent(BrowserTabContent* browserTabContent);
 
+        static QString getStackOrderToolTipText();
+        
         // ADD_NEW_METHODS_HERE
 
     signals:
