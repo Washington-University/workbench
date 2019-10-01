@@ -43,6 +43,7 @@
 #include "EventAnnotationChartLabelGet.h"
 #include "EventAnnotationColorBarGet.h"
 #include "EventAnnotationGroupGetWithKey.h"
+#include "EventAnnotationValidate.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowContent.h"
 #include "EventGetDisplayedDataFiles.h"
@@ -85,6 +86,8 @@ m_brain(brain)
     }
 
     m_sceneAssistant = new SceneClassAssistant();
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_VALIDATE);
 }
 
 /**
@@ -840,8 +843,21 @@ AnnotationManager::isGroupingModeValid(const int32_t windowIndex,
  *    An event for which this instance is listening.
  */
 void
-AnnotationManager::receiveEvent(Event* /*event*/)
+AnnotationManager::receiveEvent(Event* event)
 {
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_VALIDATE) {
+        EventAnnotationValidate* annEvent = dynamic_cast<EventAnnotationValidate*>(event);
+        CaretAssert(annEvent);
+        const Annotation* validateAnnotation = annEvent->getAnnotation();
+        
+        std::vector<Annotation*> allAnns = getAllAnnotations();
+        for (const auto ann : allAnns) {
+            if (ann == validateAnnotation) {
+                annEvent->setAnnotationValid();
+                annEvent->setEventProcessed();
+            }
+        }
+    }
 }
 
 /**

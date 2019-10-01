@@ -31,8 +31,10 @@
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "AnnotationTwoDimensionalShape.h"
+#include "CaretLogger.h"
 #include "EventAnnotationAddToRemoveFromFile.h"
 #include "EventAnnotationGrouping.h"
+#include "EventAnnotationValidate.h"
 #include "EventGetViewportSize.h"
 #include "EventManager.h"
 #include "CaretAssert.h"
@@ -89,6 +91,19 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
                                            const Annotation* annotationValue) const
 {
     CaretAssert(annotation);
+    
+    /*
+     * Test the validity of the annotation (it still exists) to
+     * avoid a crash.
+     */
+    EventAnnotationValidate validateEvent(annotation);
+    EventManager::get()->sendEvent(validateEvent.getPointer());
+    if ( ! validateEvent.isAnnotationValid()) {
+        CaretLogFine("Failed to validate annotation for redo/undo.  Annotation was likely deleted (not an error).");
+        return;
+    }
+    
+    
     const AnnotationTypeEnum::Enum annType = annotation->getType();
    
     switch (m_mode) {

@@ -69,6 +69,7 @@ EventAnnotationGroupGetWithKey.h
 EventAnnotationGrouping.h
 EventAnnotationTextSubstitutionGet.h
 EventAnnotationTextSubstitutionInvalidate.h
+EventAnnotationValidate.h
 
 Annotation.cxx
 AnnotationAlignmentEnum.cxx
@@ -115,6 +116,7 @@ EventAnnotationGroupGetWithKey.cxx
 EventAnnotationGrouping.cxx
 EventAnnotationTextSubstitutionGet.cxx
 EventAnnotationTextSubstitutionInvalidate.cxx
+EventAnnotationValidate.cxx
 )
 
 TARGET_LINK_LIBRARIES(Annotations ${CARET_QT5_LINK})

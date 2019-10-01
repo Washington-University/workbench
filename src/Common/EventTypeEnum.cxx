@@ -110,6 +110,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_TOOLBAR_UPDATE",
                                      "Event to update annotation toolbar"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_VALIDATE,
+                                     "EVENT_ANNOTATION_VALIDATE",
+                                     "Verify that an annotation is valid (valid pointer to annotation"));
+
     enumData.push_back(EventTypeEnum(EVENT_BRAIN_RESET,
                                      "EVENT_BRAIN_RESET",
                                      "Brain has been reset"));

@@ -60,6 +60,8 @@ public:
         EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE,
         /** Annotation toolbar update */
         EVENT_ANNOTATION_TOOLBAR_UPDATE,
+        /** Test a pointer to an annotation to verify that it is still valid (exists) */
+        EVENT_ANNOTATION_VALIDATE,
         /** Inform that Brain has been reset (new spec or scene loaded) */
         EVENT_BRAIN_RESET,
         /** Get all brain structures */
