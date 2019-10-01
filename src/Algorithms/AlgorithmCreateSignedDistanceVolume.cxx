@@ -24,6 +24,7 @@
 #include "CaretOMP.h"
 #include "CaretHeap.h"
 #include "MathFunctions.h"
+#include "NiftiIO.h"
 #include "SurfaceFile.h"
 
 #include <algorithm>
@@ -88,10 +89,11 @@ void AlgorithmCreateSignedDistanceVolume::useParameters(OperationParameters* myP
     vector<vector<float> > volSpace;
     vector<int64_t> volDims;
     {
-        VolumeFile myRefSpace;
-        myRefSpace.readFile(myRefName);
-        volSpace = myRefSpace.getSform();
-        myRefSpace.getDimensions(volDims);
+        NiftiIO refSpaceIO;
+        refSpaceIO.openRead(myRefName);
+        volDims = refSpaceIO.getDimensions();
+        if (volDims.size() < 3) volDims.resize(3, 1);
+        volSpace = refSpaceIO.getHeader().getSForm();
     }
     volDims.resize(3);
     VolumeFile* myVolOut = myParams->getOutputVolume(3);
