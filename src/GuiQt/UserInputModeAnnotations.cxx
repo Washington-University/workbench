@@ -1066,7 +1066,6 @@ void
 UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
                                                   SelectionItemAnnotation* annotationIDIn)
 {
-    m_annotationUnderMouse = NULL;
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
     
     
@@ -1076,9 +1075,13 @@ UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
         annotationID = openGLWidget->performIdentificationAnnotations(mouseEvent.getX(),
                                                                       mouseEvent.getY());
     }
+
     if (annotationID->isValid()) {
         m_annotationUnderMouse = annotationID->getAnnotation();
         m_annotationUnderMouseSizeHandleType = annotationID->getSizingHandle();
+    }
+    else {
+        m_annotationUnderMouse = NULL; 
     }
     
     openGLWidget->updateCursor();
