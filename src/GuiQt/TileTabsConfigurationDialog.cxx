@@ -512,9 +512,6 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
             break;
         case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
         {
-            TileTabsLayoutGridConfiguration* customGridConfiguration = getCustomTileTabsGridConfiguration();
-            CaretAssert(customGridConfiguration);
-
             const TileTabsLayoutGridConfiguration* gridConfig = configuration->castToGridConfiguration();
             CaretAssert(gridConfig);
             manualConfiguration.reset(TileTabsLayoutManualConfiguration::newInstanceFromGridLayout(const_cast<TileTabsLayoutGridConfiguration*>(gridConfig),
