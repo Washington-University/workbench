@@ -135,6 +135,8 @@ namespace caret {
 
         BrowserWindowContent& operator=(const BrowserWindowContent&);
         
+        void setCustomGridConfigurationToDefault();
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         bool m_validFlag;

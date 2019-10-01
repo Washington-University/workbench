@@ -2543,6 +2543,7 @@ BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsLayoutConfig
     
     const int32_t windowTabCount = static_cast<int32_t>(windowTabIndices.size());
     AString errorText;
+    bool customGridDefaultFlag(false);
     switch (configurationMode) {
         case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
             TileTabsLayoutGridConfiguration::getRowsAndColumnsForNumberOfTabs(windowTabCount,
@@ -2553,6 +2554,7 @@ BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsLayoutConfig
         {
             const TileTabsLayoutGridConfiguration* customConfig = getBrowerWindowContent()->getCustomGridTileTabsConfiguration();
             if (customConfig->isCustomDefaultFlag()) {
+                customGridDefaultFlag = true;
                 TileTabsLayoutGridConfiguration::getRowsAndColumnsForNumberOfTabs(windowTabCount,
                                                                                   configRowCount,
                                                                                   configColCount);
@@ -2577,11 +2579,16 @@ BrainBrowserWindow::getTileTabsConfigurationLabelText(const TileTabsLayoutConfig
     
     AString rowsColumnsText;
     if (includeRowsAndColumns) {
-        rowsColumnsText = (" ("
-                           + AString::number(configRowCount)
-                           + " Rows, "
-                           + AString::number(configColCount)
-                           + " Columns)");
+        if (customGridDefaultFlag) {
+            rowsColumnsText = " (Defaults to automatic grid when selected)";
+        }
+        else {
+            rowsColumnsText = (" ("
+                               + AString::number(configRowCount)
+                               + " Rows, "
+                               + AString::number(configColCount)
+                               + " Columns)");
+        }
     }
     
     const AString textLabel(modeLabel

@@ -116,13 +116,21 @@ BrowserWindowContent::reset()
     m_sceneGraphicsWidth  = 0;
     m_tileTabsConfigurationMode = TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID;
     m_automaticGridTileTabsConfiguration->updateAutomaticConfigurationRowsAndColumns(1);
-    /* sets rows/columns/factors to defaults */
-    m_customGridTileTabsConfiguration->updateAutomaticConfigurationRowsAndColumns(1);
+    setCustomGridConfigurationToDefault();
     m_sceneSelectedTabIndex = 0;
     m_sceneTabIndices.clear();
-    m_customGridTileTabsConfiguration->setCustomDefaultFlag(true);
 }
 
+/**
+ * Set the custom grid configuration to the default
+ */
+void
+BrowserWindowContent::setCustomGridConfigurationToDefault()
+{
+    /* sets rows/columns/factors to defaults */
+    m_customGridTileTabsConfiguration->updateAutomaticConfigurationRowsAndColumns(1);
+    m_customGridTileTabsConfiguration->setCustomDefaultFlag(true);
+}
 
 /**
  * Get a description of this object's content.
@@ -755,6 +763,23 @@ BrowserWindowContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         else {
             m_tileTabsConfigurationMode = TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID;
         }
+    }
+    
+    /*
+     * If NOT grid configuration mode for tile tabs, reset the
+     * grid configuration to its default.  When the user selects
+     * grid configuration, it will default to the automatic grid
+     * so that all tabs are displayed.
+     */
+    switch (m_tileTabsConfigurationMode) {
+        case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+            setCustomGridConfigurationToDefault();
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+            break;
+        case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+            setCustomGridConfigurationToDefault();
+            break;
     }
     
     //Uncomment if sub-classes must restore from scene
