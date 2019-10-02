@@ -881,6 +881,26 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
         viewportContents[0]->getWindowViewport(windowViewport);
         CaretAssert(m_windowIndex == viewportContents[0]->getWindowIndex());
         drawWindowAnnotations(windowViewport);
+        
+        if ( ! viewportContents.empty()) {
+            if (windowContent->isWindowAspectLocked()) {
+                /*
+                 * When window aspect is locked, the window viewport may be smaller in one dimension
+                 * than the OpenGL widget. So, fill the regions outside the window viewport with the
+                 * window background color.  This is probably only needed for manual tab configuration
+                 * since a tab may be partially outside the window viewport.
+                 */
+                CaretAssertVectorIndex(viewportContents, 0);
+                const BrainOpenGLViewportContent* vpContent = viewportContents[0];
+                int32_t windowViewportAfterAspectLocking[4];
+                vpContent->getWindowViewport(windowViewportAfterAspectLocking);
+                int32_t windowViewportBeforeAspectLocking[4];
+                vpContent->getWindowBeforeAspectLockingViewport(windowViewportBeforeAspectLocking);
+                
+                drawBackgroundInAreasOutsideWindowAspectLocking(windowViewportBeforeAspectLocking,
+                                                                windowViewportAfterAspectLocking);
+            }
+        }
     }
     
     m_specialCaseGraphicsAnnotations.clear();
@@ -7154,6 +7174,104 @@ BrainOpenGLFixedPipeline::drawTextAtModelCoords(const float modelXYZ[3],
     }
 }
 
+/**
+ * When the window aspect is locked, there may be region(s) around the window edges
+ * that are outside the viewport for the aspect locked window.  A manual tile tab
+ * configuration allows tabs to be partially outside the window.  The tab viewport cannot
+ * be altered because the tab's aspect ratio must be respected.  So, after the tabs are
+ * drawn, fill any regions outside the window aspect locked viewport.
+ *
+ * @param windowBeforeAspectLockingViewport
+ *     Window viewport before aspect locking (full size of the OpenGL widget)
+ * @param windowAfterAspectLockingViewport
+ *     Window viewport after aspect locking
+ */
+void
+BrainOpenGLFixedPipeline::drawBackgroundInAreasOutsideWindowAspectLocking(const int32_t windowBeforeAspectLockingViewport[4],
+                                                                          const int32_t windowAfterAspectLockingViewport[4])
+{
+    const int32_t beforeLeft  = windowBeforeAspectLockingViewport[0];
+    const int32_t beforeRight = beforeLeft + windowBeforeAspectLockingViewport[2];
+
+    const int32_t afterLeft   = windowAfterAspectLockingViewport[0];
+    const int32_t afterRight  = afterLeft + windowAfterAspectLockingViewport[2];
+    
+    const int32_t beforeBottom = windowBeforeAspectLockingViewport[1];
+    const int32_t beforeTop    = beforeBottom + windowBeforeAspectLockingViewport[3];
+
+    const int32_t afterBottom  = windowAfterAspectLockingViewport[1];
+    const int32_t afterTop     = afterBottom + windowAfterAspectLockingViewport[3];
+    
+    /*
+     * Null will result in window colors for background and foreground
+     */
+    updateForegroundAndBackgroundColors(NULL);
+    
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
+                                                                                             m_backgroundColorFloat));
+
+    if (afterLeft > beforeLeft) {
+        /* Left */
+        primitive->addVertex(beforeLeft, beforeBottom);
+        primitive->addVertex(afterLeft,  beforeBottom);
+        primitive->addVertex(beforeLeft, beforeTop);
+        primitive->addVertex(beforeLeft, beforeTop);
+        primitive->addVertex(afterLeft,  beforeBottom);
+        primitive->addVertex(afterLeft,  beforeTop);
+    }
+    if (beforeRight > afterRight) {
+        /* Right */
+        primitive->addVertex(afterRight,  beforeBottom);
+        primitive->addVertex(beforeRight, beforeBottom);
+        primitive->addVertex(afterRight,  beforeTop);
+        primitive->addVertex(afterRight,  beforeTop);
+        primitive->addVertex(beforeRight, beforeBottom);
+        primitive->addVertex(beforeRight, beforeTop);
+    }
+    if (afterBottom > beforeBottom) {
+        /* Bottom */
+        primitive->addVertex(beforeLeft,  beforeBottom);
+        primitive->addVertex(beforeRight, beforeBottom);
+        primitive->addVertex(beforeLeft,  afterBottom);
+        primitive->addVertex(beforeLeft,  afterBottom);
+        primitive->addVertex(beforeRight, beforeBottom);
+        primitive->addVertex(beforeRight, afterBottom);
+    }
+    if (beforeTop > afterTop) {
+        /* Top */
+        primitive->addVertex(beforeLeft,  afterTop);
+        primitive->addVertex(beforeRight, afterTop);
+        primitive->addVertex(beforeLeft,  beforeTop);
+        primitive->addVertex(beforeLeft,  beforeTop);
+        primitive->addVertex(beforeRight, afterTop);
+        primitive->addVertex(beforeRight, beforeTop);
+    }
+
+    if (primitive->getNumberOfVertices() > 0) {
+        glPushAttrib(GL_DEPTH_BUFFER_BIT
+                     | GL_VIEWPORT_BIT
+                     | GL_TRANSFORM_BIT);
+        glEnable(GL_DEPTH_TEST);
+        glViewport(windowBeforeAspectLockingViewport[0],
+                   windowBeforeAspectLockingViewport[1],
+                   windowBeforeAspectLockingViewport[2],
+                   windowBeforeAspectLockingViewport[3]);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(beforeLeft, beforeRight, beforeBottom, beforeTop, -1.0, 1.0);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        glDepthFunc(GL_ALWAYS);
+        GraphicsEngineDataOpenGL::draw(primitive.get());
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopAttrib();
+    }
+}
 
 /**
  * @return A string containing the state of OpenGL (depth testing, lighting, etc.)

@@ -516,6 +516,9 @@ namespace caret {
         
         void applyVolumePropertiesOpacity();
         
+        void drawBackgroundInAreasOutsideWindowAspectLocking(const int32_t windowBeforeAspectLockingViewport[4],
+                                                             const int32_t windowAfterAspectLockingViewport[4]);
+        
         /** Index of window */
         int32_t m_windowIndex = -1;
         

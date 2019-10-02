@@ -417,7 +417,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         }
         
         int windowViewport[4] = { 0, 0, imageWidth, imageHeight };
-        
+        const int windowBeforeAspectLockingViewport[4] = { 0, 0, imageWidth, imageHeight };
+
         const int windowWidth  = windowViewport[2];
         const int windowHeight = windowViewport[3];
         
@@ -522,6 +523,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                     BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabContent,
                                                                                  bwc,
                                                                                  gapsAndMargins,
+                                                                                 windowBeforeAspectLockingViewport,
                                                                                  windowViewport,
                                                                                  windowIndex,
                                                                                  tabIndexToHighlight);
@@ -578,6 +580,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                                                                    tabContent,
                                                                                    gapsAndMargins,
                                                                                    windowIndex,
+                                                                                   windowBeforeAspectLockingViewport,
                                                                                    windowViewport));
             std::vector<const BrainOpenGLViewportContent*> viewportContents;
             viewportContents.push_back(content);

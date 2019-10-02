@@ -64,6 +64,8 @@ namespace caret {
         
         void getWindowViewport(int windowViewportOut[4]) const;
         
+        void getWindowBeforeAspectLockingViewport(int windowBeforeAspectLockingViewportOut[4]) const;
+        
         int getWindowIndex() const;
         
         BrowserTabContent* getBrowserTabContent() const;
@@ -84,6 +86,7 @@ namespace caret {
         static std::vector<BrainOpenGLViewportContent*> createViewportContentForTileTabs(std::vector<BrowserTabContent*>& tabContents,
                                                                                          BrowserWindowContent* browserWindowContent,
                                                                                          const GapsAndMargins* gapsAndMargins,
+                                                                                         const int32_t windowBeforeAspectLockingViewport[4],
                                                                                          const int32_t windowViewport[4],
                                                                                          const int32_t windowIndex,
                                                                                          const int32_t highlightTabIndex);
@@ -92,6 +95,7 @@ namespace caret {
                                                                       BrowserTabContent* selectedTabContent,
                                                                       const GapsAndMargins* gapsAndMargins,
                                                                       const int32_t windowIndex,
+                                                                      const int32_t windowBeforeAspectLockingViewport[4],
                                                                       const int32_t windowViewport[4]);
         
         static void getSliceAllViewViewport(const int32_t tabViewport[4],
@@ -136,7 +140,8 @@ namespace caret {
             int32_t m_height;
         };
         
-        BrainOpenGLViewportContent(const int windowViewport[4],
+        BrainOpenGLViewportContent(const int32_t windowBeforeAspectLockingViewport[4],
+                                   const int windowViewport[4],
                                    const int tabViewportManualLayoutBeforeAspectLocking[4],
                                    const int tabViewport[4],
                                    const int modelViewport[4],
@@ -161,6 +166,7 @@ namespace caret {
                                                                                              BrowserWindowContent* browserWindowContent,
                                                                                              TileTabsLayoutGridConfiguration* gridConfiguration,
                                                                                              const GapsAndMargins* gapsAndMargins,
+                                                                                             const int32_t windowBeforeAspectLockingViewport[4],
                                                                                              const int32_t windowViewport[4],
                                                                                              const int32_t windowIndex,
                                                                                              const int32_t highlightTabIndex);
@@ -168,6 +174,7 @@ namespace caret {
         static std::vector<BrainOpenGLViewportContent*> createViewportContentForManualTileTabs(std::vector<BrowserTabContent*>& tabContents,
                                                                                                BrowserWindowContent* browserWindowContent,
                                                                                                const GapsAndMargins* gapsAndMargins,
+                                                                                               const int32_t windowBeforeAspectLockingViewport[4],
                                                                                                const int32_t windowViewport[4],
                                                                                                const int32_t windowIndex,
                                                                                                const int32_t highlightTabIndex);
@@ -224,6 +231,15 @@ namespace caret {
         BrowserTabContent* m_browserTabContent;
         
         SpacerTabContent* m_spacerTabContent;
+        
+        /** Window viewport's X-coordinate */
+        int m_windowBeforeAspectLockingX;
+        /** Window viewport's Y-coordinate */
+        int m_windowBeforeAspectLockingY;
+        /** Window viewport's Width */
+        int m_windowBeforeAspectLockingWidth;
+        /** Window viewport's Height */
+        int m_windowBeforeAspectLockingHeight;
         
     public:
         virtual AString toString() const;

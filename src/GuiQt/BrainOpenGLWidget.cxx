@@ -547,6 +547,13 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
         return;
     }
     
+    const int32_t windowViewportBeforeAspectLocking[4] = {
+        windowViewportIn[0],
+        windowViewportIn[1],
+        windowViewportIn[2],
+        windowViewportIn[3]
+    };
+    
     int32_t windowViewport[4] = {
         windowViewportIn[0],
         windowViewportIn[1],
@@ -642,6 +649,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
                         std::vector<BrainOpenGLViewportContent*> tabViewportContent = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
                                                                                                                                                    browserWindowContent,
                                                                                                                                                    gapsAndMargins,
+                                                                                                                                                   windowViewportBeforeAspectLocking,
                                                                                                                                                    windowViewport,
                                                                                                                                                    this->windowIndex,
                                                                                                                                                    getModelEvent.getTabIndexForTileTabsHighlighting());
@@ -662,6 +670,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
                 std::vector<BrainOpenGLViewportContent*> tabViewportContent = BrainOpenGLViewportContent::createViewportContentForTileTabs(allTabs,
                                                                                                                                            browserWindowContent,
                                                                                                                                            gapsAndMargins,
+                                                                                                                                           windowViewportBeforeAspectLocking,
                                                                                                                                            windowViewport,
                                                                                                                                            this->windowIndex,
                                                                                                                                            getModelEvent.getTabIndexForTileTabsHighlighting());
@@ -676,6 +685,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
                                                                                                 getModelEvent.getSelectedBrowserTabContent(),
                                                                                                 gapsAndMargins,
                                                                                                 this->windowIndex,
+                                                                                                windowViewportBeforeAspectLocking,
                                                                                                 windowViewport);
         windowContent.addTabViewport(vc);
     }
@@ -685,6 +695,7 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
                                                                                                                NULL,
                                                                                                                gapsAndMargins,
                                                                                                                windowIndex,
+                                                                                                               windowViewportBeforeAspectLocking,
                                                                                                                windowViewport);
     windowContent.setWindowViewport(windowViewportContent);
 }
