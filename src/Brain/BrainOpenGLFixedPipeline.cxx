@@ -686,6 +686,12 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     
     this->checkForOpenGLError(NULL, "At middle of drawModels()");
     
+    std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(m_windowIndex);
+    EventManager::get()->sendEvent(windowContentEvent->getPointer());
+    const BrowserWindowContent* windowContent = windowContentEvent->getBrowserWindowContent();
+    CaretAssert(windowContent);
+    const bool manualLayoutFlag = windowContent->isManualModeTileTabsConfigurationEnabled();
+    
     const int32_t numberOfTabs = static_cast<int32_t>(viewportContents.size());
     for (int32_t i = 0; i < numberOfTabs; i++) {
         const BrainOpenGLViewportContent* vpContent = viewportContents[i];
@@ -750,13 +756,16 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
         const BrowserTabContent* tabContent = vpContent->getBrowserTabContent();
         if (tabContent != NULL) {
             if (numberOfTabs > 1) {
-                bool opaqueFlag(false);
-                switch (tabContent->getManualLayoutBrowserTabAnnotation()->getBackgroundType()) {
-                    case TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG:
-                        opaqueFlag = true;
-                        break;
-                    case TileTabsLayoutBackgroundTypeEnum::TRANSPARENT_BG:
-                        break;
+                bool opaqueFlag(true);
+                if (manualLayoutFlag) {
+                    switch (tabContent->getManualLayoutBrowserTabAnnotation()->getBackgroundType()) {
+                        case TileTabsLayoutBackgroundTypeEnum::OPAQUE_BG:
+                            opaqueFlag = true;
+                            break;
+                        case TileTabsLayoutBackgroundTypeEnum::TRANSPARENT_BG:
+                            opaqueFlag = false;
+                            break;
+                    }
                 }
                 
                 glPushAttrib(GL_COLOR_BUFFER_BIT
