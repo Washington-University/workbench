@@ -106,6 +106,7 @@
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3f.h"
+#include "GraphicsPrimitiveV3fT3f.h"
 #include "GraphicsShape.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentifiedItemNode.h"
@@ -897,8 +898,14 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
                 int32_t windowViewportBeforeAspectLocking[4];
                 vpContent->getWindowBeforeAspectLockingViewport(windowViewportBeforeAspectLocking);
                 
-                drawBackgroundInAreasOutsideWindowAspectLocking(windowViewportBeforeAspectLocking,
-                                                                windowViewportAfterAspectLocking);
+                if (m_windowUserInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+                    drawStippledBackgroundInAreasOutsideWindowAspectLocking(windowViewportBeforeAspectLocking,
+                                                                            windowViewportAfterAspectLocking);
+                }
+                else {
+                    drawSolidBackgroundInAreasOutsideWindowAspectLocking(windowViewportBeforeAspectLocking,
+                                                                         windowViewportAfterAspectLocking);
+                }
             }
         }
     }
@@ -7187,18 +7194,18 @@ BrainOpenGLFixedPipeline::drawTextAtModelCoords(const float modelXYZ[3],
  *     Window viewport after aspect locking
  */
 void
-BrainOpenGLFixedPipeline::drawBackgroundInAreasOutsideWindowAspectLocking(const int32_t windowBeforeAspectLockingViewport[4],
-                                                                          const int32_t windowAfterAspectLockingViewport[4])
+BrainOpenGLFixedPipeline::drawSolidBackgroundInAreasOutsideWindowAspectLocking(const int32_t windowBeforeAspectLockingViewport[4],
+                                                                               const int32_t windowAfterAspectLockingViewport[4])
 {
     const int32_t beforeLeft  = windowBeforeAspectLockingViewport[0];
     const int32_t beforeRight = beforeLeft + windowBeforeAspectLockingViewport[2];
-
+    
     const int32_t afterLeft   = windowAfterAspectLockingViewport[0];
     const int32_t afterRight  = afterLeft + windowAfterAspectLockingViewport[2];
     
     const int32_t beforeBottom = windowBeforeAspectLockingViewport[1];
     const int32_t beforeTop    = beforeBottom + windowBeforeAspectLockingViewport[3];
-
+    
     const int32_t afterBottom  = windowAfterAspectLockingViewport[1];
     const int32_t afterTop     = afterBottom + windowAfterAspectLockingViewport[3];
     
@@ -7208,8 +7215,8 @@ BrainOpenGLFixedPipeline::drawBackgroundInAreasOutsideWindowAspectLocking(const 
     updateForegroundAndBackgroundColors(NULL);
     
     std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
-                                                                                             m_backgroundColorFloat));
-
+                                                                                       m_backgroundColorFloat));
+    
     if (afterLeft > beforeLeft) {
         /* Left */
         primitive->addVertex(beforeLeft, beforeBottom);
@@ -7246,9 +7253,153 @@ BrainOpenGLFixedPipeline::drawBackgroundInAreasOutsideWindowAspectLocking(const 
         primitive->addVertex(beforeRight, afterTop);
         primitive->addVertex(beforeRight, beforeTop);
     }
-
+    
     if (primitive->getNumberOfVertices() > 0) {
         glPushAttrib(GL_DEPTH_BUFFER_BIT
+                     | GL_PIXEL_MODE_BIT
+                     | GL_POLYGON_BIT
+                     | GL_POLYGON_STIPPLE_BIT
+                     | GL_VIEWPORT_BIT
+                     | GL_TRANSFORM_BIT);
+        glEnable(GL_DEPTH_TEST);
+        glViewport(windowBeforeAspectLockingViewport[0],
+                   windowBeforeAspectLockingViewport[1],
+                   windowBeforeAspectLockingViewport[2],
+                   windowBeforeAspectLockingViewport[3]);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(beforeLeft, beforeRight, beforeBottom, beforeTop, -1.0, 1.0);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        glDepthFunc(GL_ALWAYS);
+        GraphicsEngineDataOpenGL::draw(primitive.get());
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        glPopAttrib();
+    }
+}
+
+/**
+ * When the window aspect is locked, there may be region(s) around the window edges
+ * that are outside the viewport for the aspect locked window.  A manual tile tab
+ * configuration allows tabs to be partially outside the window.  The tab viewport cannot
+ * be altered because the tab's aspect ratio must be respected.  So, after the tabs are
+ * drawn, fill any regions outside the window aspect locked viewport.
+ *
+ * @param windowBeforeAspectLockingViewport
+ *     Window viewport before aspect locking (full size of the OpenGL widget)
+ * @param windowAfterAspectLockingViewport
+ *     Window viewport after aspect locking
+ */
+void
+BrainOpenGLFixedPipeline::drawStippledBackgroundInAreasOutsideWindowAspectLocking(const int32_t windowBeforeAspectLockingViewport[4],
+                                                                                  const int32_t windowAfterAspectLockingViewport[4])
+{
+    const int32_t beforeLeft  = windowBeforeAspectLockingViewport[0];
+    const int32_t beforeRight = beforeLeft + windowBeforeAspectLockingViewport[2];
+    
+    const int32_t afterLeft   = windowAfterAspectLockingViewport[0];
+    const int32_t afterRight  = afterLeft + windowAfterAspectLockingViewport[2];
+    
+    const int32_t beforeBottom = windowBeforeAspectLockingViewport[1];
+    const int32_t beforeTop    = beforeBottom + windowBeforeAspectLockingViewport[3];
+    
+    const int32_t afterBottom  = windowAfterAspectLockingViewport[1];
+    const int32_t afterTop     = afterBottom + windowAfterAspectLockingViewport[3];
+    
+    /*
+     * Null will result in window colors for background and foreground
+     */
+    updateForegroundAndBackgroundColors(NULL);
+    
+    
+    const int32_t invertedRGBA[4] = {
+        255 - m_backgroundColorByte[0],
+        255 - m_backgroundColorByte[1],
+        255 - m_backgroundColorByte[2],
+        m_backgroundColorByte[3],
+    };
+    
+    const int32_t textureDim = 8;
+    const int32_t textureSize = textureDim * textureDim * 4;
+    std::vector<uint8_t> textureRGBA(textureSize);
+    for (int32_t j = 0; j < textureDim; j++) {
+        for (int32_t i = 0; i < textureDim; i++) {
+            const int32_t offset(((textureDim * j) + i) * 4);
+            CaretAssertArrayIndex(textureRGB, textureSize, offset+2);
+            if (i == j) {
+                textureRGBA[offset]   = invertedRGBA[0];
+                textureRGBA[offset+1] = invertedRGBA[1];
+                textureRGBA[offset+2] = invertedRGBA[2];
+                textureRGBA[offset+3] = invertedRGBA[3];
+            }
+            else {
+                textureRGBA[offset]   = m_backgroundColorByte[0];
+                textureRGBA[offset+1] = m_backgroundColorByte[1];
+                textureRGBA[offset+2] = m_backgroundColorByte[2];
+                textureRGBA[offset+3] = m_backgroundColorByte[3];
+            }
+        }
+    }
+    std::unique_ptr<GraphicsPrimitiveV3fT3f> primitive(GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
+                                                                                             &textureRGBA[0],
+                                                                                             textureDim,
+                                                                                             textureDim,
+                                                                                             GraphicsPrimitive::TextureWrappingType::REPEAT));
+    
+    if (afterLeft > beforeLeft) {
+        /* Left */
+        const float maxS = static_cast<float>((afterLeft - beforeLeft)) / textureDim;
+        const float maxT = static_cast<float>((beforeTop - beforeBottom)) / textureDim;
+        primitive->addVertex(beforeLeft, beforeBottom, 0, 0);
+        primitive->addVertex(afterLeft,  beforeBottom, maxS, 0);
+        primitive->addVertex(beforeLeft, beforeTop, 0, maxT);
+        primitive->addVertex(beforeLeft, beforeTop, 0, maxT);
+        primitive->addVertex(afterLeft,  beforeBottom, maxS, 0);
+        primitive->addVertex(afterLeft,  beforeTop, maxS, maxT);
+    }
+    if (beforeRight > afterRight) {
+        /* Right */
+        const float maxS = static_cast<float>((beforeRight - afterRight)) / textureDim;
+        const float maxT = static_cast<float>((beforeTop - beforeBottom)) / textureDim;
+        primitive->addVertex(afterRight,  beforeBottom, 0, 0);
+        primitive->addVertex(beforeRight, beforeBottom, maxS, 0);
+        primitive->addVertex(afterRight,  beforeTop, 0, maxT);
+        primitive->addVertex(afterRight,  beforeTop, 0, maxT);
+        primitive->addVertex(beforeRight, beforeBottom, maxS, 0);
+        primitive->addVertex(beforeRight, beforeTop, maxS, maxT);
+    }
+    if (afterBottom > beforeBottom) {
+        /* Bottom */
+        const float maxS = static_cast<float>((beforeRight - beforeBottom)) / textureDim;
+        const float maxT = static_cast<float>((afterBottom - beforeBottom)) / textureDim;
+        primitive->addVertex(beforeLeft,  beforeBottom, 0, 0);
+        primitive->addVertex(beforeRight, beforeBottom, maxS, 0);
+        primitive->addVertex(beforeLeft,  afterBottom, 0, maxT);
+        primitive->addVertex(beforeLeft,  afterBottom, 0, maxT);
+        primitive->addVertex(beforeRight, beforeBottom, maxS, 0);
+        primitive->addVertex(beforeRight, afterBottom, maxS, maxT);
+    }
+    if (beforeTop > afterTop) {
+        /* Top */
+        const float maxS = static_cast<float>((beforeRight - beforeBottom)) / textureDim;
+        const float maxT = static_cast<float>((beforeTop - afterTop)) / textureDim;
+        primitive->addVertex(beforeLeft,  afterTop, 0, 0);
+        primitive->addVertex(beforeRight, afterTop, maxS, 0);
+        primitive->addVertex(beforeLeft,  beforeTop, 0, maxT);
+        primitive->addVertex(beforeLeft,  beforeTop, 0, maxT);
+        primitive->addVertex(beforeRight, afterTop, maxS, 0);
+        primitive->addVertex(beforeRight, beforeTop, maxS, maxT);
+    }
+    
+    if (primitive->getNumberOfVertices() > 0) {
+        glPushAttrib(GL_DEPTH_BUFFER_BIT
+                     | GL_PIXEL_MODE_BIT
+                     | GL_POLYGON_BIT
                      | GL_VIEWPORT_BIT
                      | GL_TRANSFORM_BIT);
         glEnable(GL_DEPTH_TEST);

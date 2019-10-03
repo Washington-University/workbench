@@ -516,9 +516,11 @@ namespace caret {
         
         void applyVolumePropertiesOpacity();
         
-        void drawBackgroundInAreasOutsideWindowAspectLocking(const int32_t windowBeforeAspectLockingViewport[4],
-                                                             const int32_t windowAfterAspectLockingViewport[4]);
+        void drawSolidBackgroundInAreasOutsideWindowAspectLocking(const int32_t windowBeforeAspectLockingViewport[4],
+                                                                  const int32_t windowAfterAspectLockingViewport[4]);
         
+        void drawStippledBackgroundInAreasOutsideWindowAspectLocking(const int32_t windowBeforeAspectLockingViewport[4],
+                                                                     const int32_t windowAfterAspectLockingViewport[4]);
         /** Index of window */
         int32_t m_windowIndex = -1;
         
