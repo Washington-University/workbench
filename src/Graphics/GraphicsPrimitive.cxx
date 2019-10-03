@@ -58,6 +58,8 @@ using namespace caret;
  *     Type of vertex coloring
  * @param textureDataType
  *     Data type of texture coordinates.
+ * @param textureWrappingType
+ *     Type of texture wrapping
  * @param primitiveType
  *     Type of primitive drawn (triangles, lines, etc.)
  */
@@ -66,6 +68,7 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType       vertexDataType,
                                      const ColorDataType        colorDataType,
                                      const VertexColorType      vertexColorType,
                                      const TextureDataType      textureDataType,
+                                     const TextureWrappingType  textureWrappingType,
                                      const PrimitiveType        primitiveType)
 : CaretObject(),
  EventListenerInterface(),
@@ -74,6 +77,7 @@ GraphicsPrimitive::GraphicsPrimitive(const VertexDataType       vertexDataType,
  m_colorDataType(colorDataType),
  m_vertexColorType(vertexColorType),
  m_textureDataType(textureDataType),
+ m_textureWrappingType(textureWrappingType),
  m_primitiveType(primitiveType),
  m_boundingBoxValid(false)
 {
@@ -101,6 +105,7 @@ GraphicsPrimitive::GraphicsPrimitive(const GraphicsPrimitive& obj)
  m_colorDataType(obj.m_colorDataType),
  m_vertexColorType(obj.m_vertexColorType),
  m_textureDataType(obj.m_textureDataType),
+ m_textureWrappingType(obj.m_textureWrappingType),
  m_primitiveType(obj.m_primitiveType),
  m_boundingBoxValid(false)
 {
@@ -1792,16 +1797,33 @@ GraphicsPrimitive::newPrimitiveV3fC4ub(const GraphicsPrimitive::PrimitiveType pr
     return primitive;
 }
 
+/**
+ * @return A new primitive with XYZ and texture STR.  Caller is responsible for
+ * deleting the returned pointer.
+ *
+ * @param primitiveType
+ *     Type of primitive drawn (triangles, lines, etc.)
+ * @param imageBytesRGBA
+ *     Bytes containing the image data.
+ * @param imageWidth
+ *     Width of the actual image.
+ * @param imageHeight
+ *     Height of the image.
+ * @param textureWrappingType
+ *     Type of texture wrapping (Defualt is CLAMP)
+ */
 GraphicsPrimitiveV3fT3f*
 GraphicsPrimitive::newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
-                                                   const uint8_t* imageBytesRGBA,
-                                                   const int32_t imageWidth,
-                                                   const int32_t imageHeight)
+                                      const uint8_t* imageBytesRGBA,
+                                      const int32_t imageWidth,
+                                      const int32_t imageHeight,
+                                      const TextureWrappingType textureWrappingType)
 {
     GraphicsPrimitiveV3fT3f* primitive = new GraphicsPrimitiveV3fT3f(primitiveType,
                                                                      imageBytesRGBA,
                                                                      imageWidth,
-                                                                     imageHeight);
+                                                                     imageHeight,
+                                                                     textureWrappingType);
     return primitive;
 }
 

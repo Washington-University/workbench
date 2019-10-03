@@ -234,7 +234,8 @@ AnnotationImage::getGraphicsPrimitive() const
             GraphicsPrimitiveV3fT3f* primitive = GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                        &m_imageBytesRGBA[0],
                                                                                        m_imageWidth,
-                                                                                       m_imageHeight);
+                                                                                       m_imageHeight,
+                                                                                       GraphicsPrimitive::TextureWrappingType::CLAMP);
             /*
              * A Triangle Strip (consisting of two triangles) is used
              * for drawing the image.  At this time, the XYZ coordinates

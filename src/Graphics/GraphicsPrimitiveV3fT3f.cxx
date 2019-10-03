@@ -45,16 +45,20 @@ using namespace caret;
  *     Width of the actual image.
  * @param imageHeight
  *     Height of the image.
+ * @param textureWrappingType
+ *     Type of texture wrapping (Defualt is CLAMP)
  */
 GraphicsPrimitiveV3fT3f::GraphicsPrimitiveV3fT3f(const PrimitiveType primitiveType,
                                                  const uint8_t* imageBytesRGBA,
                                                  const int32_t imageWidth,
-                                                 const int32_t imageHeight)
+                                                 const int32_t imageHeight,
+                                                 const TextureWrappingType textureWrappingType)
 : GraphicsPrimitive(VertexDataType::FLOAT_XYZ,
                     NormalVectorDataType::NONE,
                     ColorDataType::NONE,
                     VertexColorType::NONE,
                     TextureDataType::FLOAT_STR,
+                    textureWrappingType,
                     primitiveType)
 {
     setTextureImage(imageBytesRGBA,

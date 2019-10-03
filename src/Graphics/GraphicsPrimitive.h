@@ -96,6 +96,16 @@ namespace caret {
         };
         
         /**
+         * Texture wrapping type
+         */
+        enum class TextureWrappingType {
+            /** Clamp so max STR is 1.0 (default) */
+            CLAMP,
+            /** Repeat so max STR is greater than 1.0) */
+            REPEAT
+        };
+        
+        /**
          * Type of primitives for drawing.  There are NO primitives equivalent to
          * OpenGL's GL_QUAD_STRIP and GL_POLYGON.  The reason is that these
          * primitive types are removed in 3.x (probably 3.2).
@@ -282,6 +292,7 @@ namespace caret {
                           const ColorDataType        colorDataType,
                           const VertexColorType      vertexColorType,
                           const TextureDataType      textureDataType,
+                          const TextureWrappingType  textureWrappingType,
                           const PrimitiveType        primitiveType);
         
         GraphicsPrimitive(const GraphicsPrimitive& obj);
@@ -306,7 +317,8 @@ namespace caret {
         static GraphicsPrimitiveV3fT3f* newPrimitiveV3fT3f(const GraphicsPrimitive::PrimitiveType primitiveType,
                                                            const uint8_t* imageBytesRGBA,
                                                            const int32_t imageWidth,
-                                                           const int32_t imageHeight);
+                                                           const int32_t imageHeight,
+                                                           const TextureWrappingType textureWrappingType);
         
         virtual ~GraphicsPrimitive();
         
@@ -363,6 +375,11 @@ namespace caret {
          * @return Data type of texture.
          */
         inline TextureDataType getTextureDataType() const { return m_textureDataType; }
+        
+        /**
+         * @return Type of texture wrapping
+         */
+        inline TextureWrappingType getTextureWrappingType() const { return m_textureWrappingType; }
         
         /**
          * @return The float coordinates.
@@ -467,6 +484,8 @@ namespace caret {
         const VertexColorType m_vertexColorType;
         
         const TextureDataType m_textureDataType;
+        
+        const TextureWrappingType m_textureWrappingType;
         
         const PrimitiveType m_primitiveType;
 

@@ -46,6 +46,7 @@ GraphicsPrimitiveV3fC4f::GraphicsPrimitiveV3fC4f(const PrimitiveType primitiveTy
                     ColorDataType::FLOAT_RGBA,
                     VertexColorType::PER_VERTEX_RGBA,
                     TextureDataType::NONE,
+                    TextureWrappingType::CLAMP,
                     primitiveType)
 {
     
