@@ -247,7 +247,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     macroManager->addMacroSupportToObject(m_numericSubdivisionsModeComboBox->getWidget(),
                                           "Set chart axis numeric subdivisions mode");
     
-    m_userSubdivisionsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0, 100, 1);
+    m_userSubdivisionsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(0, 99, 1);
     QObject::connect(m_userSubdivisionsSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedInt); 
     m_userSubdivisionsSpinBox->setToolTip("Set subdivisions on the axis when Auto is not checked");
@@ -395,15 +395,14 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     WuQtUtilities::setLayoutSpacingAndMargins(numericsLayout, 3, 0);
     int numericsRow = 0;
     numericsLayout->addWidget(new QLabel("Format"), numericsRow, 0);
-    numericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), numericsRow, 1);
+    numericsLayout->addWidget(m_userNumericFormatComboBox->getWidget(), numericsRow, 1, 1, 2);
     numericsRow++;
     numericsLayout->addWidget(new QLabel("Decimals"), numericsRow, 0);
-    numericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, numericsRow, 1);
+    numericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, numericsRow, 1, 1, 2);
     numericsRow++;
     numericsLayout->addWidget(new QLabel("Subdivisions"), numericsRow, 0);
     numericsLayout->addWidget(m_numericSubdivisionsModeComboBox->getWidget(), numericsRow, 1);
-    numericsRow++;
-    numericsLayout->addWidget(m_userSubdivisionsSpinBox, numericsRow, 1);
+    numericsLayout->addWidget(m_userSubdivisionsSpinBox, numericsRow, 2);
     
     /*
      * Top layout
