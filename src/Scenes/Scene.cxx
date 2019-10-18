@@ -499,7 +499,9 @@ Scene::getSceneInfo() const
 void
 Scene::setSceneInfo(SceneInfo* sceneInfo)
 {
-    CaretAssert(sceneInfo);
+    if (sceneInfo == NULL) {
+        return;//TSC: SceneFileXmlStreamReader will call this with NULL argument when reading ancient scene files
+    }
     
     if (m_sceneInfo != NULL) {
         delete m_sceneInfo;
