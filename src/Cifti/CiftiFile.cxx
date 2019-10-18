@@ -39,7 +39,8 @@ namespace
     class CiftiOnDiskImpl : public CiftiFile::WriteImplInterface
     {
         mutable NiftiIO m_nifti;//because file objects aren't stateless (current position), so reading "changes" them
-        CiftiXML m_xml;//because we need to parse it to set up the dimensions anyway
+        vector<int64_t> m_matrixDims;//store the dimensions even if the xml is forgotten
+        CiftiXML m_xml;//we need to store the xml somewhere before it gets put into CiftiFile's copy
     public:
         CiftiOnDiskImpl(const QString& filename);//read-only
         CiftiOnDiskImpl(const QString& filename, const CiftiXML& xml, const CiftiVersion& version, const bool& swapEndian,
@@ -52,6 +53,7 @@ namespace
         void setRow(const float* dataIn, const std::vector<int64_t>& indexSelect);
         void setColumn(const float* dataIn, const int64_t& index);
         void close();
+        void dropXML() { m_xml = CiftiXML(); m_nifti.dropExtensions(); }
     };
     
     class CiftiMemoryImpl : public CiftiFile::WriteImplInterface
@@ -120,6 +122,8 @@ void CiftiFile::openFile(const QString& fileName)
     CaretPointer<CiftiOnDiskImpl> newRead(new CiftiOnDiskImpl(FileInformation(fileName).getAbsoluteFilePath()));//this constructor opens existing file read-only
     m_readingImpl = newRead;//it should be noted that if the constructor throws (if the file isn't readable), new guarantees the memory allocated for the object will be freed
     m_xml = newRead->getCiftiXML();
+    newRead->dropXML();//save some memory, we don't need 2 copies of the xml - figure out if there is a better way to prevent copies
+    m_xmlBroken = false;
     m_dims = m_xml.getDimensions();
     m_onDiskVersion = m_xml.getParsedVersion();
     m_fileName = fileName;
@@ -131,6 +135,7 @@ void CiftiFile::openURL(const QString& url, const QString& user, const QString& 
     CaretPointer<CiftiXnatImpl> newRead(new CiftiXnatImpl(url, user, pass));
     m_readingImpl = newRead;
     m_xml = newRead->getCiftiXML();
+    m_xmlBroken = false;
     m_dims = m_xml.getDimensions();
     m_fileName = url;
 }
@@ -141,12 +146,14 @@ void CiftiFile::openURL(const QString& url)
     CaretPointer<CiftiXnatImpl> newRead(new CiftiXnatImpl(url));
     m_readingImpl = newRead;
     m_xml = newRead->getCiftiXML();
+    m_xmlBroken = false;
     m_dims = m_xml.getDimensions();
     m_fileName = url;
 }
 
 void CiftiFile::setWritingFile(const QString& fileName, const CiftiVersion& writingVersion, const ENDIAN& endian)
 {
+    if (fileName != "" && m_xmlBroken) throw DataFileException("can't set cifti writing file when XML mappings have been forgotten");
     m_writingFile = FileInformation(fileName).getAbsoluteFilePath();//always resolve paths as soon as they enter CiftiFile, in case some clown changes directory before writing data
     m_writingImpl.grabNew(NULL);//prevent writing to previous writing implementation, let the next set...() set up for writing
     m_onDiskVersion = writingVersion;//so that we can do on-disk writing with the old version
@@ -175,6 +182,7 @@ void CiftiFile::setWritingDataTypeAndScaling(const int16_t& type, const double& 
 void CiftiFile::writeFile(const QString& fileName, const CiftiVersion& writingVersion, const ENDIAN& endian)
 {
     if (m_readingImpl == NULL || m_dims.empty()) throw DataFileException("writeFile called on uninitialized CiftiFile");
+    if (m_xmlBroken) throw DataFileException("can't write cifti file when XML mappings have been forgotten");
     bool writeSwapped = shouldSwap(endian);
     FileInformation myInfo(fileName);
     QString canonicalFilename = myInfo.getCanonicalFilePath();//NOTE: returns EMPTY STRING for nonexistant file
@@ -214,6 +222,7 @@ void CiftiFile::close()
     m_readingImpl.grabNew(NULL);
     m_dims.clear();
     m_xml = CiftiXML();
+    m_xmlBroken = false;
     m_writingFile = "";
     m_fileName = "";
     m_onDiskVersion = CiftiVersion();//for completeness, it gets reset on open anyway
@@ -287,6 +296,7 @@ void CiftiFile::setCiftiXML(const CiftiXML& xml, const bool useOldMetadata)
         m_xml = xml;
     }
     m_dims = xmlDims;
+    m_xmlBroken = false;
 }
 
 void CiftiFile::setCiftiXML(const CiftiXMLOld& xml, const bool useOldMetadata)
@@ -306,6 +316,18 @@ void CiftiFile::setCiftiXML(const CiftiXMLOld& xml, const bool useOldMetadata)
         tempMap.setLength(xml.getDimensionLength(CiftiXMLOld::ALONG_COLUMN));
     }
     setCiftiXML(tempXML, useOldMetadata);
+}
+
+void CiftiFile::forgetMapping(const int& direction)
+{
+    if (direction >= m_xml.getNumberOfDimensions())
+    {
+        CaretLogWarning("forgetMapping called on nonexistant dimension");
+        return;
+    }
+    int64_t mapLength = m_xml.getDimensionLength(direction);
+    m_xml.setMap(direction, CiftiSeriesMap(mapLength));//keep the xml dimension length the same, because it is used in convertToInMemory
+    m_xmlBroken = true;
 }
 
 void CiftiFile::setRow(const float* dataIn, const vector<int64_t>& indexSelect)
@@ -373,6 +395,7 @@ void CiftiFile::verifyWriteImpl()
             m_writingImpl.grabNew(new CiftiMemoryImpl(m_xml));
         }
     } else {//NOTE: m_onDiskVersion gets set in setWritingFile
+        if (m_xmlBroken) throw DataFileException("can't write file when XML mappings have been forgotten");
         if (m_readingImpl != NULL)
         {
             CiftiOnDiskImpl* testImpl = dynamic_cast<CiftiOnDiskImpl*>(m_readingImpl.getPointer());
@@ -514,6 +537,7 @@ CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename)
             }
         }
     }
+    m_matrixDims = m_xml.getDimensions();
 }
 
 namespace
@@ -638,9 +662,9 @@ CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename, const CiftiXML& xml, c
         outExtension->m_bytes[i] = xmlBytes[i];
     }
     outHeader.m_extensions.push_back(outExtension);
-    vector<int64_t> matrixDims = xml.getDimensions();
+    m_matrixDims = xml.getDimensions();
     vector<int64_t> niftiDims(4, 1);//the reserved space and time dims
-    niftiDims.insert(niftiDims.end(), matrixDims.begin(), matrixDims.end());
+    niftiDims.insert(niftiDims.end(), m_matrixDims.begin(), m_matrixDims.end());
     if (version.hasReversedFirstDims())
     {
         vector<int64_t> headerDims = niftiDims;
@@ -655,13 +679,16 @@ CiftiOnDiskImpl::CiftiOnDiskImpl(const QString& filename, const CiftiXML& xml, c
         outHeader.setDimensions(niftiDims);
         m_nifti.writeNew(filename, outHeader, 2, true, swapEndian);
     }
-    m_xml = xml;
+    m_matrixDims = xml.getDimensions();
+    //m_xml = xml;//a second copy of the being-written xml isn't needed, but might be okay
+    m_xml = CiftiXML();//use an empty one instead
 }
 
 void CiftiOnDiskImpl::close()
 {
     m_nifti.close();//lets this throw when there is a writing problem
-}//don't bother resetting m_xml, this instance is about to be destroyed
+    dropXML();
+}
 
 
 void CiftiOnDiskImpl::getRow(float* dataOut, const vector<int64_t>& indexSelect, const bool& tolerateShortRead) const
@@ -671,12 +698,12 @@ void CiftiOnDiskImpl::getRow(float* dataOut, const vector<int64_t>& indexSelect,
 
 void CiftiOnDiskImpl::getColumn(float* dataOut, const int64_t& index) const
 {
-    CaretAssert(m_xml.getNumberOfDimensions() == 2);//otherwise this shouldn't be called
-    CaretAssert(index >= 0 && index < m_xml.getDimensionLength(CiftiXML::ALONG_ROW));
+    CaretAssert(m_matrixDims.size() == 2);//otherwise this shouldn't be called
+    CaretAssert(index >= 0 && index < m_matrixDims[0]);
     CaretLogFine("getColumn called on CiftiOnDiskImpl, this will be slow");//generate logging messages at a low priority
     vector<int64_t> indexSelect(2);
     indexSelect[0] = index;
-    int64_t colLength = m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN);
+    int64_t colLength = m_matrixDims[1];
     for (int64_t i = 0; i < colLength; ++i)//assume if they really want getColumn on disk, they don't want their pagecache obliterated, so read it 1 element at a time
     {
         indexSelect[1] = i;
@@ -691,12 +718,12 @@ void CiftiOnDiskImpl::setRow(const float* dataIn, const vector<int64_t>& indexSe
 
 void CiftiOnDiskImpl::setColumn(const float* dataIn, const int64_t& index)
 {
-    CaretAssert(m_xml.getNumberOfDimensions() == 2);//otherwise this shouldn't be called
-    CaretAssert(index >= 0 && index < m_xml.getDimensionLength(CiftiXML::ALONG_ROW));
+    CaretAssert(m_matrixDims.size() == 2);//otherwise this shouldn't be called
+    CaretAssert(index >= 0 && index < m_matrixDims[0]);
     CaretLogFine("setColumn called on CiftiOnDiskImpl, this will be slow");//generate logging messages at a low priority
     vector<int64_t> indexSelect(2);
     indexSelect[0] = index;
-    int64_t colLength = m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN);
+    int64_t colLength = m_matrixDims[1];
     for (int64_t i = 0; i < colLength; ++i)//don't do RMW, so write it 1 element at a time
     {
         indexSelect[1] = i;

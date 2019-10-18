@@ -50,6 +50,7 @@ namespace caret
         {
             m_endianPref = NATIVE;
             setWritingDataTypeNoScaling();//default argument is float32
+            m_xmlBroken = false;
         }
         explicit CiftiFile(const QString &fileName);//calls openFile
         void openFile(const QString& fileName);//starts on-disk reading
@@ -86,6 +87,8 @@ namespace caret
         
         void setRow(const float* dataIn, const int64_t& index);//backwards compatibility for old CiftiFile
         
+        void forgetMapping(const int& direction);//HACK: reduce memory usage by modifying the XML
+        
         class ReadImplInterface
         {
         public:
@@ -114,6 +117,7 @@ namespace caret
         bool m_doWriteScaling;
         int16_t m_writingDataType;
         double m_minScalingVal, m_maxScalingVal;
+        bool m_xmlBroken;//sentinel for forgetMapping hack
         
         void verifyWriteImpl();
         static void copyImplData(const ReadImplInterface* from, WriteImplInterface* to, const std::vector<int64_t>& dims);

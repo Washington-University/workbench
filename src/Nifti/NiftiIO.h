@@ -58,6 +58,7 @@ namespace caret
         void overrideDimensions(const std::vector<int64_t>& newDims) { m_dims = newDims; }//HACK: deal with reading/writing CIFTI-1's broken headers
         void close();
         const NiftiHeader& getHeader() const { return m_header; }
+        void dropExtensions() { m_header.m_extensions.clear(); }
         const std::vector<int64_t>& getDimensions() const { return m_dims; }
         int getNumComponents() const;
         //to read/write 1 frame of a standard volume file, call with fullDims = 3, indexSelect containing indexes for any of dims 4-7 that exist
@@ -289,6 +290,7 @@ namespace caret
     TO NiftiIO::clamp(const FROM& in)
     {
         typedef std::numeric_limits<TO> mylimits;
+        if (mylimits::has_infinity && std::isinf(in)) return (TO)in;//in case we use this on float types at some point
         if (mylimits::max() < in) return mylimits::max();
         if (mylimits::lowest() > in) return mylimits::lowest();
         /*if (mylimits::is_integer)//here is a c++03 solution to missing ::lowest

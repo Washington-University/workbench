@@ -47,7 +47,7 @@ OperationParameters* OperationCiftiMerge::getParameters()
     ret->addCiftiOutputParameter(1, "cifti-out", "output cifti file");
     
     ParameterComponent* ciftiOpt = ret->createRepeatableParameter(2, "-cifti", "specify an input cifti file");
-    ciftiOpt->addCiftiParameter(1, "cifti-in", "a cifti file to use columns from");
+    ciftiOpt->addStringParameter(1, "cifti-in", "a cifti file to use columns from");
     ParameterComponent* columnOpt = ciftiOpt->createRepeatableParameter(2, "-column", "select a single column to use");
     columnOpt->addStringParameter(1, "column", "the column number (starting from 1) or name");
     OptionalParameter* upToOpt = columnOpt->createOptionalParameter(2, "-up-to", "use an inclusive range of columns");
@@ -69,10 +69,11 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
     LevelProgress myProgress(myProgObj);
     CiftiFile* ciftiOut = myParams->getOutputCifti(1);
     const vector<ParameterComponent*>& myInputs = *(myParams->getRepeatableParameterInstances(2));
-    vector<const CiftiFile*> ciftiList;
     int numInputs = (int)myInputs.size();
     if (numInputs == 0) throw OperationException("no inputs specified");
-    const CiftiFile* firstCifti = myInputs[0]->getCifti(1);
+    vector<CiftiFile> ciftiList(numInputs);
+    ciftiList[0].openFile(myInputs[0]->getString(1));
+    const CiftiFile* firstCifti = &(ciftiList[0]);
     const CiftiXML& baseXML = firstCifti->getCiftiXML();
     if (baseXML.getNumberOfDimensions() != 2) throw OperationException("only 2D cifti are supported");
     const CiftiMappingType& baseColMapping = *(baseXML.getMap(CiftiXML::ALONG_COLUMN)), &baseRowMapping = *(baseXML.getMap(CiftiXML::ALONG_ROW));
@@ -88,7 +89,11 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
     int64_t numOutColumns = 0;//output row length
     for (int i = 0; i < numInputs; ++i)
     {
-        const CiftiFile* ciftiIn = myInputs[i]->getCifti(1);
+        if (i != 0)
+        {
+            ciftiList[i].openFile(myInputs[i]->getString(1));
+        }
+        const CiftiFile* ciftiIn = &(ciftiList[i]);
         vector<int64_t> thisDims = ciftiIn->getDimensions();
         const CiftiXML& thisXML = ciftiIn->getCiftiXML();
         if (thisXML.getNumberOfDimensions() != 2) throw OperationException("only 2D cifti are supported");
@@ -115,6 +120,10 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
             }
         } else {
             numOutColumns += thisDims[0];
+        }
+        if (i != 0)//don't mess with the first file, we use its mapping for the output file
+        {
+            ciftiList[i].forgetMapping(CiftiXML::ALONG_COLUMN);//HACK: release the memory being used to store the dense or parcel mapping, to deal with thousands of inputs
         }
     }
     CiftiScalarsMap outScalarMap;//we only use one of these
@@ -143,7 +152,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
     int64_t curCol = 0, scratchRowLength = 0;
     for (int i = 0; i < numInputs; ++i)
     {
-        const CiftiFile* ciftiIn = myInputs[i]->getCifti(1);
+        const CiftiFile* ciftiIn = &(ciftiList[i]);
         vector<int64_t> thisDims = ciftiIn->getDimensions();
         const CiftiXML& thisXML = ciftiIn->getCiftiXML();
         const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
@@ -262,7 +271,7 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
         curCol = 0;
         for (int i = 0; i < numInputs; ++i)
         {
-            const CiftiFile* ciftiIn = myInputs[i]->getCifti(1);
+            const CiftiFile* ciftiIn = &(ciftiList[i]);
             vector<int64_t> thisDims = ciftiIn->getDimensions();
             const CiftiXML& thisXML = ciftiIn->getCiftiXML();
             const vector<ParameterComponent*>& columnOpts = *(myInputs[i]->getRepeatableParameterInstances(2));
