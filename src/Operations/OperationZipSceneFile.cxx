@@ -79,12 +79,12 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
     AString outputSubDirectory = myParams->getString(2);
     AString zipFileName = myParams->getString(3);
     OptionalParameter* baseOpt = myParams->getOptionalParameter(4);
-    bool skipMissing = myParams->getOptionalParameter(5)->m_present;
     AString myBaseDir;
     if (baseOpt->m_present)
     {
         myBaseDir = QDir::cleanPath(QDir(baseOpt->getString(1)).absolutePath());
     }
+    bool skipMissing = myParams->getOptionalParameter(5)->m_present;
     
     OperationZipSceneFile::createZipFile(myProgObj,
                                          sceneFileName,

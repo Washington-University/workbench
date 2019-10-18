@@ -60,6 +60,8 @@ OperationParameters* OperationZipSpecFile::getParameters()
     OptionalParameter* baseOpt = ret->createOptionalParameter(4, "-base-dir", "specify a directory that all data files are somewhere within, this will become the root of the zipfile's directory structure");
     baseOpt->addStringParameter(1, "directory", "the directory");
     
+    ret->createOptionalParameter(5, "-skip-missing", "any missing files will generate only warnings, and the zip file will be created anyway");
+    
     ret->setHelpText(AString("If zip-file already exists, it will be overwritten.  ") +
         "If -base-dir is not specified, the directory containing the spec file is used for the base directory.  " +
         "The spec file must contain only relative paths, and no data files may be outside the base directory.  " +
@@ -86,6 +88,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     {//this is actually because the path function strips the final "/" from the path, but not when it is just "/"
         myBaseDir += "/";//so, add the trailing slash to the path
     }
+    bool skipMissing = myParams->getOptionalParameter(5)->m_present;
 
     if (outputSubDirectory.isEmpty()) {
         throw OperationException("extract-dir must contain characters");
@@ -152,7 +155,12 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     }
     if (!missingDataFileNames.isEmpty())
     {
-        throw OperationException("These data files do not exist:\n" + missingDataFileNames);
+        if (skipMissing)
+        {
+            CaretLogWarning("These data files do not exist and will be skipped:\n" + missingDataFileNames);
+        } else {
+            throw OperationException("These data files do not exist:\n" + missingDataFileNames);
+        }
     }
     if (!outsideBaseDirFiles.isEmpty())
     {
@@ -181,11 +189,16 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         AString unzippedDataFileName = outputSubDirectory + "/" + dataFileName.mid(myBaseDir.size());//we know the string matches to the length of myBaseDir, and is cleaned, so we can just chop the right number of characters off
         QFile dataFileIn(dataFileName);
         if (dataFileIn.open(QFile::ReadOnly) == false) {
-            errorMessage = "Unable to open \""
-                                   + dataFileName
-                                   + "\" for reading: "
-                                   + dataFileIn.errorString();
-            break;
+            if (skipMissing)
+            {
+                continue;
+            } else {
+                errorMessage = "Unable to open \""
+                                    + dataFileName
+                                    + "\" for reading: "
+                                    + dataFileIn.errorString();
+                break;
+            }
         }
         float fileSize = (float)dataFileIn.size();
         int unit = 0;
