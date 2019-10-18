@@ -200,7 +200,7 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
                                       doubleCorr, firstFisher, firstNoDemean, firstCovar);
 }
 
-AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
+AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                                                      SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf, SurfaceFile* myCerebSurf,
                                                                      const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas,
                                                                      const float& surfKern, const float& volKern, const bool& undoFisherInput, const bool& applyFisher,
@@ -390,11 +390,60 @@ namespace
         int64_t m_chunkSize;
     };
     
-    FirstCorrPlan firstCorrMemoryPlan(int64_t totalRows)
+    bool firstCorrWarned = false;
+    
+    FirstCorrPlan firstCorrMemoryPlan(const int64_t totalRows, const int64_t cacheRowLength, const float memLimitGB, const bool inputIsMemory, const int64_t inputRowLength, const int64_t /*mapSize*/)
     {
-        FirstCorrPlan ret;//FIXME: actually do something with the memory limit
+        FirstCorrPlan ret;
         ret.m_cacheFullInput = true;
         ret.m_chunkSize = totalRows;
+        if (memLimitGB < 0.0f)
+        {
+            return ret;
+        }
+        int64_t inputRowBytes = sizeof(float) * inputRowLength;
+        int64_t mem_limit_bytes = int64_t(memLimitGB * 1024 * 1024 * 1024);
+        int64_t full_input_cache_bytes = inputRowBytes * cacheRowLength;//cache is a part of a square dconn, sized by the column length of the input
+        int64_t cache_bytes = sizeof(float) * totalRows * cacheRowLength;
+        int64_t input_memory_bytes = 0;
+        if (inputIsMemory)
+        {
+            input_memory_bytes = full_input_cache_bytes;
+        }
+        int64_t in_use_bytes = cache_bytes + input_memory_bytes;//the metric/volume file used to store the second correlation before gradient isn't allocated until after cacheRows()
+        int64_t available_bytes = mem_limit_bytes - in_use_bytes;
+        if (available_bytes <= 0)
+        {
+            //the user may have specified 0, just use minimum memory...
+            if (!inputIsMemory && !firstCorrWarned)
+            {
+                CaretLogWarning("double correlation specified with extremely low memory limit, this may take a long time and do a lot of IO");
+                firstCorrWarned = true;
+            }
+            ret.m_chunkSize = 1;
+            ret.m_cacheFullInput = false;
+            return ret;
+        }
+        if (full_input_cache_bytes > available_bytes)
+        {
+            ret.m_cacheFullInput = false;
+            int64_t maxChunkSize = available_bytes / inputRowBytes;
+            if (maxChunkSize < 1) maxChunkSize = 1;
+            int64_t numPasses = (totalRows - 1) / maxChunkSize + 1;//compute number of passes to find the minimum chunk size to do that number of passes
+            ret.m_chunkSize = (totalRows - 1) / numPasses + 1;//technically, unequal chunks is slightly less computation and same total IO, but equal chunks makes IO more consistent
+            if (ret.m_chunkSize < 1)
+            {
+                if (!inputIsMemory && !firstCorrWarned)
+                {
+                    CaretLogWarning("double correlation specified with extremely low memory limit, this may take a long time and do a lot of IO");
+                    firstCorrWarned = true;
+                }
+                ret.m_chunkSize = 1;
+                return ret;
+            }
+        }
+        //default is to cache full input
+        //unlike ordinary correlation, the memory for storing the in-progress output has already been dictated to us, so there is no advantage to chunking any smaller than the input cache
         return ret;
     }
 }
@@ -442,7 +491,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     }
     if (cacheFullInput)
     {
-        cacheRows(rowsToCache);
+        cacheRows(rowsToCache, mapSize);
     }
     CaretPointer<MetricSmoothingObject> mySmooth;
     if (surfKern > 0.0f)
@@ -460,7 +509,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
             {
                 rowsToCache.push_back(myMap[i].m_ciftiIndex);
             }
-            cacheRows(rowsToCache);
+            cacheRows(rowsToCache, mapSize);
         }
         int curRow = 0;//because we can't trust the order threads hit the critical section
         MetricFile computeMetric;
@@ -586,7 +635,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     }
     if (cacheFullInput)
     {
-        cacheRows(rowsToCache);
+        cacheRows(rowsToCache, mapSize);
     }
     CaretPointer<MetricSmoothingObject> mySmooth;
     if (surfKern > 0.0f)
@@ -604,7 +653,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
             {
                 rowsToCache.push_back(myMap[i].m_ciftiIndex);
             }
-            cacheRows(rowsToCache);
+            cacheRows(rowsToCache, mapSize);
         }
         int numSurfNodes = mySurf->getNumberOfNodes();
 #pragma omp CARET_PAR
@@ -793,7 +842,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     }
     if (cacheFullInput)
     {
-        cacheRows(rowsToCache);
+        cacheRows(rowsToCache, mapSize);
     }
     for (int startpos = 0; startpos < mapSize; startpos += numCacheRows)
     {
@@ -806,7 +855,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
             {
                 rowsToCache.push_back(myMap[i].m_ciftiIndex);
             }
-            cacheRows(rowsToCache);
+            cacheRows(rowsToCache, mapSize);
         }
         int curRow = 0;//because we can't trust the order threads hit the critical section
         vector<int64_t> computeDims = newdims;
@@ -942,7 +991,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     }
     if (cacheFullInput)
     {
-        cacheRows(rowsToCache);
+        cacheRows(rowsToCache, mapSize);
     }
     for (int startpos = 0; startpos < mapSize; startpos += numCacheRows)
     {
@@ -955,7 +1004,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
             {
                 rowsToCache.push_back(myMap[i].m_ciftiIndex);
             }
-            cacheRows(rowsToCache);
+            cacheRows(rowsToCache, mapSize);
         }
         int curRow = 0;//because we can't trust the order threads hit the critical section
         vector<int64_t> computeDims = newdims;
@@ -1052,7 +1101,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     }
 }
 
-void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const float& memLimitGB, const bool& undoFisherInput, const bool& applyFisher,
+void AlgorithmCiftiCorrelationGradient::init(CiftiFile* input, const float& memLimitGB, const bool& undoFisherInput, const bool& applyFisher,
                                              const bool& covariance, const bool doubleCorr, const bool firstFisher, const bool firstNoDemean, const bool firstCovar)
 {
     if (input->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("input cifti file must have brain models mapping along column");
@@ -1075,7 +1124,6 @@ void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const float
         m_firstNoDemean = firstNoDemean;
         m_firstCovar = firstCovar;
         m_firstCorrInfo.resize(colLength);
-        //TODO: deal with doubleCorr in getRow/#cacheRows
     } else {
         m_numCols = m_inputCifti->getNumberOfColumns();
         m_rowLengthFirst = 0;//trick to get the memory computations to work out
@@ -1085,7 +1133,7 @@ void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const float
     m_outColumn.resize(colLength);
 }
 
-void AlgorithmCiftiCorrelationGradient::cacheRows(const vector<int64_t>& ciftiIndices)
+void AlgorithmCiftiCorrelationGradient::cacheRows(const vector<int64_t>& ciftiIndices, const int64_t mapSize)
 {
     clearCache();//clear first, to be sure we never keep a cache around too long
     int64_t numIndices = (int64_t)ciftiIndices.size();
@@ -1098,8 +1146,8 @@ void AlgorithmCiftiCorrelationGradient::cacheRows(const vector<int64_t>& ciftiIn
             m_rowInfo[ciftiIndices[i]].m_cacheIndex = i;
         }
         vector<vector<float> > preparedInput;
-        FirstCorrPlan plan = firstCorrMemoryPlan(numIndices);
-        if (plan.m_cacheFullInput)
+        FirstCorrPlan plan = firstCorrMemoryPlan(numIndices, m_numCols, m_memLimitGB, m_inputCifti->isInMemory(), m_rowLengthFirst, mapSize);
+        if (plan.m_cacheFullInput)//we could cache full input while still chunking computation, but there is no reason to for first corr...
         {
             preparedInput.resize(m_numCols, vector<float>(m_rowLengthFirst));
             for (int64_t i = 0; i < m_numCols; ++i)
@@ -1219,7 +1267,7 @@ const float* AlgorithmCiftiCorrelationGradient::getRow(const int& ciftiIndex, fl
     } else {
         ret = scratchStorage;
         if (m_doubleCorr)
-        {//will only happen with a memory limit that prevents caching entire row range - need to take a look at this when memory limit is extended to this case
+        {//will only happen with a memory limit that prevents caching entire row range - may need a closer look
             vector<float> fixedRow(m_rowLengthFirst), movingRow(m_rowLengthFirst);
             m_inputCifti->getRow(fixedRow.data(), ciftiIndex);
             adjustRow(fixedRow.data(), m_rowLengthFirst, m_firstCorrInfo[ciftiIndex], false, m_firstCovar, m_firstNoDemean);
@@ -1245,19 +1293,24 @@ const float* AlgorithmCiftiCorrelationGradient::getRow(const int& ciftiIndex, fl
 }
 
 int AlgorithmCiftiCorrelationGradient::numRowsForMem(const int64_t& inrowBytes, const int64_t& outrowBytes, const int& numRows, bool& cacheFullInputOut)
-{
+{//double corr might benefit from some reworking
     if (m_memLimitGB < 0.0f)
     {
         cacheFullInputOut = true;
         return numRows;
     }
     int64_t targetBytes = (int64_t)(m_memLimitGB * 1024 * 1024 * 1024);
-    bool inputIsMemory = m_inputCifti->isInMemory();//FIXME: double corr
-    if (inputIsMemory) targetBytes -= numRows * inrowBytes;//count in-memory input against the total too - TODO: if in memory, don't cache input rows at all?
+    int64_t inputFileSize = sizeof(float) * m_inputCifti->getNumberOfColumns() * m_inputCifti->getNumberOfRows();
+    bool inputIsMemory = m_inputCifti->isInMemory();//TODO: if in memory, we don't really need to cache input rows as much...
+    if (inputIsMemory)
+    {
+        targetBytes -= inputFileSize;//count in-memory input against the total too
+    }
     targetBytes -= numRows * sizeof(RowInfo) + 2 * outrowBytes;//storage for mean, stdev, and info about caching, output structures
     if (targetBytes < 1)
     {
-        cacheFullInputOut = false;//the most memory conservation possible, though it will take a LOT of time and do a LOT of IO
+        if (!inputIsMemory) CaretLogWarning("extremely low memory limit used, this may take a long time and do a lot of IO");
+        cacheFullInputOut = false;//the most memory conservation possible
         return 1;
     }
     if (inrowBytes * numRows < targetBytes)//if we can cache the full input, compute the number of passes needed and compare
@@ -1282,7 +1335,7 @@ int AlgorithmCiftiCorrelationGradient::numRowsForMem(const int64_t& inrowBytes, 
         fullPasses = numPassesPartial - 1;
         int64_t partialCorrSkip = (fullPasses * numRowsPartial * (numRowsPartial - 1) + (numRows - fullPasses * numRowsPartial) * (numRows - fullPasses * numRowsPartial - 1)) / 2;
         int ret;
-        if (partialCorrSkip > fullCorrSkip * 1.05f)//prefer full caching slightly - include a bias factor in options?
+        if (!m_doubleCorr && partialCorrSkip > fullCorrSkip * 1.05f)//prefer full caching slightly - always cache full if possible when doing double corr, recomputation is much more expensive than rereading
         {//assume IO and row adjustment (unfisher, subtract mean) won't be the limiting factor, since IO should be balanced during correlation due to evenly sized passes when not fully cached
             cacheFullInputOut = false;
             ret = numRowsPartial;
@@ -1294,6 +1347,23 @@ int AlgorithmCiftiCorrelationGradient::numRowsForMem(const int64_t& inrowBytes, 
         if (ret > numRows) ret = numRows;
         return ret;
     } else {//if we can't cache the whole thing, split passes evenly
+        if (m_doubleCorr)
+        {
+            if (!inputIsMemory)
+            {//getting a correlation row outside of the cached range will cause a huge IO increase, so convert input to memory if at all possible
+                if (inputFileSize < targetBytes - (inrowBytes + outrowBytes) * sqrt(numRows))//TODO: consider edge cases
+                {
+                    m_inputCifti->convertToInMemory();
+                    inputIsMemory = true;
+                } else {
+                    if (!firstCorrWarned)
+                    {
+                        CaretLogWarning("double correlation specified with low memory limit, this may take an extremely long time and do a lot of IO");
+                        firstCorrWarned = true;
+                    }
+                }
+            }
+        }
         cacheFullInputOut = false;
         int64_t div = max((int64_t)1, (outrowBytes + inrowBytes) * numRows);
 #ifdef CARET_OMP

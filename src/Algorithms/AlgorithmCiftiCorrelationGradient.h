@@ -57,14 +57,14 @@ namespace caret {
         std::vector<float> m_outColumn;
         int64_t m_numCols;
         bool m_undoFisherInput, m_applyFisher, m_covariance;
-        const CiftiFile* m_inputCifti;//so that accesses work through the cache functions
+        CiftiFile* m_inputCifti;
         int64_t m_rowLengthFirst;//for -double-correlation
         bool m_doubleCorr, m_firstCovar, m_firstNoDemean, m_firstFisher;
         float m_memLimitGB;
-        void cacheRows(const std::vector<int64_t>& ciftiIndices);//grabs the rows and does whatever it needs to, using as much IO bandwidth and CPU resources as available/needed
+        void cacheRows(const std::vector<int64_t>& ciftiIndices, const int64_t mapSize);//grabs the rows and does whatever it needs to, using as much IO bandwidth and CPU resources as available/needed
         void clearCache();
         const float* getRow(const int& ciftiIndex, float& rootResidSqr, float* scratchStorage);
-        void init(const CiftiFile* input, const float& memLimitGB, const bool& undoFisherInput, const bool& applyFisher, const bool& covariance,
+        void init(CiftiFile* input, const float& memLimitGB, const bool& undoFisherInput, const bool& applyFisher, const bool& covariance,
                   const bool doubleCorr, const bool firstFisher, const bool firstNoDemean, const bool firstCovar);
         int numRowsForMem(const int64_t& inrowBytes, const int64_t& outrowBytes, const int& numRows, bool& cacheFullInput);
         //void processSurfaceComponentLocal(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf);
@@ -77,7 +77,7 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
+        AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                           SurfaceFile* myLeftSurf = NULL, SurfaceFile* myRightSurf = NULL, SurfaceFile* myCerebSurf = NULL,
                                           const MetricFile* myLeftAreas = NULL, const MetricFile* myRightAreas = NULL, const MetricFile* myCerebAreas = NULL,
                                           const float& surfKern = -1.0f, const float& volKern = -1.0f, const bool& undoFisherInput = false, const bool& applyFisher = false,
