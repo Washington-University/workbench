@@ -503,8 +503,6 @@ BrainOpenGLFixedPipeline::setTabViewport(const BrainOpenGLViewportContent* vpCon
  *
  * @param viewportContents
  *     Contents of the viewports.
- * @param windowColorBarsOut
- *     Output with window color bars in the viewports.
  */
 void
 BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
@@ -512,31 +510,36 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsForDrawing(const std::vector<con
     m_annotationColorBarsForDrawing.clear();
     
     /*
-     * When in tile tabs, a tab may have a color bar in window
-     * space that appears in a different tab.  So, we need to 
-     * get all color bars.  Otherwise, the user will not be able
-     * to select a color when it is displayed in a different tab.
+     * This event gets EVERY color bar, even those
+     * in other windows
      */
     EventAnnotationColorBarGet colorBarEvent;
     EventManager::get()->sendEvent(colorBarEvent.getPointer());
-    m_annotationColorBarsForDrawing = colorBarEvent.getAnnotationColorBars();
+    std::vector<AnnotationColorBar*> allColorBars = colorBarEvent.getAnnotationColorBars();
     
     /*
-     * Tab index is always set in BrowserTabContent when it receives
-     * EventAnnotationColorBarGet event.  So, the tab index should always
-     * be valid.  The user can place the color bar in window space so 
-     * update the window index so that color bar's in window space
-     * are drawn and drawn only in the window containing the color bar.
+     * Find the color bars contained in the viewports and
+     * exclude color bars not in the viewports (color bars that
+     * are in other windows or other tabs while in single
+     * tab view).
      */
-    for (auto colorBar : m_annotationColorBarsForDrawing) {
+    for (auto colorBar : allColorBars) {
         const int32_t tabIndex = colorBar->getTabIndex();
         for (auto vc : viewportContents) {
             if (vc->getTabIndex() == tabIndex) {
+                /*
+                 * While color bars are associated with tabs, the color bar
+                 * may be in window space so always update the window index
+                 * (users can move tabs to other windows).
+                 */
                 colorBar->setWindowIndex(vc->getWindowIndex());
+                m_annotationColorBarsForDrawing.push_back(colorBar);
+                break;
             }
         }
     }
 }
+
 
 /**
  * Draw models in their respective viewports.
