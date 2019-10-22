@@ -106,6 +106,8 @@ namespace caret {
 
         virtual void mouseMoveWithShift(const MouseEvent& mouseEvent);
         
+        virtual void gestureEvent(const GestureEvent& gestureEvent);
+        
         virtual void showContextMenu(const MouseEvent& mouseEvent,
                                      const QPoint& menuPosition,
                                      BrainOpenGLWidget* openGLWidget);

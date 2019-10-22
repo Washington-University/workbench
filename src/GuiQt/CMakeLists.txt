@@ -394,6 +394,7 @@ FociProjectionDialog.h
 FociPropertiesEditorDialog.h
 FociSelectionViewController.h
 GapsAndMarginsDialog.h
+GestureEvent.h
 GiftiLabelTableEditor.h
 GiftiLabelTableSelectionComboBox.h
 GroupAndNameHierarchyTreeWidgetItem.h
@@ -676,6 +677,7 @@ FociProjectionDialog.cxx
 FociPropertiesEditorDialog.cxx
 FociSelectionViewController.cxx
 GapsAndMarginsDialog.cxx
+GestureEvent.cxx
 GiftiLabelTableEditor.cxx
 GiftiLabelTableSelectionComboBox.cxx
 GroupAndNameHierarchyTreeWidgetItem.cxx

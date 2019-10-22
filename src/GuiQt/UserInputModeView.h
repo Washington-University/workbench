@@ -27,6 +27,8 @@
 
 namespace caret {
 
+    class BrainOpenGLViewportContent;
+
     class UserInputModeView : public UserInputModeAbstract {
         
     public:
@@ -58,6 +60,8 @@ namespace caret {
         
         virtual void mouseLeftDragWithShift(const MouseEvent& mouseEvent);
 
+        virtual void gestureEvent(const GestureEvent& gestureEvent);
+        
         virtual void showContextMenu(const MouseEvent& mouseEvent,
                                      const QPoint& menuPosition,
                                      BrainOpenGLWidget* openGLWidget);
@@ -71,6 +75,8 @@ namespace caret {
         UserInputModeView& operator=(const UserInputModeView&);
 
         void updateGraphics(const MouseEvent& mouseEvent);
+        
+        void updateGraphics(const BrainOpenGLViewportContent* viewportContent);
         
         void processModelViewIdentification(BrainOpenGLViewportContent* viewportContent,
                                             BrainOpenGLWidget* openGLWidget,

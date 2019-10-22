@@ -405,6 +405,19 @@ PreferencesDialog::createMiscellaneousWidget()
     m_allWidgets->add(m_miscDevelopMenuEnabledComboBox);
     
     /*
+     * Gestures enabled
+     */
+    const QString gesturesToolTip("Pinch two fingers to zoom; Rotate with two fingers");
+    m_guiGesturesEnabledComboBox = new WuQTrueFalseComboBox("On",
+                                                            "Off",
+                                                            this);
+    WuQtUtilities::setWordWrappedToolTip(m_guiGesturesEnabledComboBox->getWidget(),
+                                         gesturesToolTip);
+    QObject::connect(m_guiGesturesEnabledComboBox, &WuQTrueFalseComboBox::statusChanged,
+                     this, &PreferencesDialog::miscGuiGesturesEnabledComboBoxChanged);
+    m_allWidgets->add(m_guiGesturesEnabledComboBox);
+    
+    /*
      * Manage Files View Files Type
      */
     m_miscSpecFileDialogViewFilesTypeEnumComboBox = new EnumComboBoxTemplate(this);
@@ -429,6 +442,9 @@ PreferencesDialog::createMiscellaneousWidget()
     addWidgetToLayout(gridLayout,
                       "Show Splash Screen at Startup: ",
                       m_miscSplashScreenShowAtStartupComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Enable Trackpad Gestures",
+                      m_guiGesturesEnabledComboBox->getWidget());
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -462,6 +478,7 @@ PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
     
     m_miscSpecFileDialogViewFilesTypeEnumComboBox->setSelectedItem<SpecFileDialogViewFilesTypeEnum,SpecFileDialogViewFilesTypeEnum::Enum>(prefs->getManageFilesViewFileType());
 
+    m_guiGesturesEnabledComboBox->setStatus(prefs->isGuiGesturesEnabled());
 }
 
 /**
@@ -1105,6 +1122,19 @@ PreferencesDialog::miscDevelopMenuEnabledComboBoxChanged(bool value)
     prefs->setDevelopMenuEnabled(value);
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
+}
+
+/**
+ * Called when gui gestures enabled changed.
+ *
+ * @param value
+ *   New value.
+ */
+void
+PreferencesDialog::miscGuiGesturesEnabledComboBoxChanged(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setGuiGesturesEnabled(value);
 }
 
 /**

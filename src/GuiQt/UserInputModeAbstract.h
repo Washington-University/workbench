@@ -34,6 +34,7 @@ namespace caret {
 
     class BrainOpenGLViewportContent;
     class BrainOpenGLWidget;
+    class GestureEvent;
     class KeyEvent;
     class MouseEvent;
     
@@ -190,6 +191,14 @@ namespace caret {
          *     Mouse event information.
          */
         virtual void mouseMoveWithShift(const MouseEvent& /*mouseEvent*/) { }
+        
+        /**
+         * Process a gesture event (pinch zoom; or rotate)
+         *
+         * @param gestureEvent
+         *     Gesture event information.
+         */
+        virtual void gestureEvent(const GestureEvent& /*gestureEvent*/) { }
         
         /**
          * Show a context menu (pop-up menu at mouse location)

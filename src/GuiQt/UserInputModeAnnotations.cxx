@@ -58,6 +58,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "GestureEvent.h"
 #include "GuiManager.h"
 #include "IdentificationManager.h"
 #include "KeyEvent.h"
@@ -1245,6 +1246,69 @@ UserInputModeAnnotations::mouseMoveWithShift(const MouseEvent& mouseEvent)
 {
     setAnnotationUnderMouse(mouseEvent,
                             NULL);
+}
+
+/**
+ * Process a gesture event (pinch zoom; or rotate)
+ *
+ * @param gestureEvent
+ *     Gesture event information.
+ */
+void
+UserInputModeAnnotations::gestureEvent(const GestureEvent& gestureEvent)
+{
+    BrainOpenGLViewportContent* viewportContent = gestureEvent.getViewportContent();
+    if (viewportContent == NULL) {
+        return;
+    }
+    
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
+    switch (gestureEvent.getType()) {
+        case GestureEvent::Type::PINCH:
+            break;
+        case GestureEvent::Type::ROTATE:
+        {
+            float deltaRotateAngle = gestureEvent.getValue();
+            
+            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+            std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+            
+            float rotationAngle(0.0);
+            std::vector<AnnotationTwoDimensionalShape*> twoDimAnns;
+            for (auto a : selectedAnnotations) {
+                AnnotationTwoDimensionalShape* a2d = a->castToTwoDimensionalShape();
+                if (a2d != NULL) {
+                    if (a2d->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION)) {
+                        if (twoDimAnns.empty()) {
+                            rotationAngle = a2d->getRotationAngle() + deltaRotateAngle;
+                        }
+                        twoDimAnns.push_back(a2d);
+                    }
+                }
+            }
+            
+            if ( ! twoDimAnns.empty()) {
+                AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+                std::vector<Annotation*> modAnns(twoDimAnns.begin(),
+                                                 twoDimAnns.end());
+                command->setModeRotationAngle(rotationAngle,
+                                              modAnns);
+                AString errorMessage;
+                if ( !  annotationManager->applyCommand(getUserInputMode(),
+                                                        command,
+                                                        errorMessage)) {
+                    WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                           errorMessage);
+                }
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            }
+        }
+    }
 }
 
 /**

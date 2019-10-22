@@ -39,6 +39,7 @@ namespace caret {
         
     public:
         enum class DataType {
+            BOOLEAN,
             FLOAT,
             INTEGER,
             STRING

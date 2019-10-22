@@ -75,6 +75,12 @@ CaretPreferences::CaretPreferences()
                                                                     defAllSliceLayout));
     m_preferenceDataValues.push_back(m_volumeAllSlicePlanesLayout.get());
     
+    m_guiGesturesEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                            "guiGesturesEnabled",
+                                                            CaretPreferenceDataValue::DataType::BOOLEAN,
+                                                            CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                            false));
+                               
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
 }
 
@@ -1547,6 +1553,27 @@ CaretPreferences::setVolumeAllSlicePlanesLayout(const VolumeSliceViewAllPlanesLa
 {
     const QString stringValue = VolumeSliceViewAllPlanesLayoutEnum::toName(allViewLayout);
     m_volumeAllSlicePlanesLayout->setValue(stringValue);
+}
+
+/**
+ * @retrurn Gestures enabled in GUI
+ */
+bool
+CaretPreferences::isGuiGesturesEnabled() const
+{
+    return m_guiGesturesEnabled->getValue().toBool();
+}
+
+/**
+ * Set Gestures enabled in GUI
+ *
+ *  @param status
+ *   New enabled status
+ */
+void
+CaretPreferences::setGuiGesturesEnabled(const bool status)
+{
+    m_guiGesturesEnabled->setValue(status);
 }
 
 /**

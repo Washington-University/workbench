@@ -37,6 +37,7 @@
 #include "EventUpdateYokedWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
+#include "GestureEvent.h"
 #include "GuiManager.h"
 #include "MouseEvent.h"
 #include "SelectionItemChartTwoLabel.h"
@@ -387,6 +388,50 @@ UserInputModeView::mouseLeftDragWithShift(const MouseEvent& mouseEvent)
 }
 
 /**
+ * Process a gesture event (pinch zoom; or rotate)
+ *
+ * @param gestureEvent
+ *     Gesture event information.
+ */
+void
+UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
+{
+    BrainOpenGLViewportContent* viewportContent = gestureEvent.getViewportContent();
+    if (viewportContent == NULL) {
+        return;
+    }
+    
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
+    switch (gestureEvent.getType()) {
+        case GestureEvent::Type::PINCH:
+        {
+            float deltaY(gestureEvent.getValue());
+            if (deltaY > 0.0) {
+                float scaleFactor(0.0);
+                if (deltaY > 1.0) {
+                    scaleFactor = 2.0;
+                }
+                else if (deltaY < 1.0) {
+                    scaleFactor = -2.0;
+                }
+                if (scaleFactor != 0.0) {
+                    browserTabContent->applyMouseScaling(0.0f,
+                                                         scaleFactor);
+                    updateGraphics(viewportContent);
+                }
+            }
+        }
+            break;
+        case GestureEvent::Type::ROTATE:
+            break;
+    }
+}
+
+/**
  * Show a context menu (pop-up menu at mouse location)
  *
  * @param mouseEvent
@@ -419,6 +464,51 @@ UserInputModeView::showContextMenu(const MouseEvent& mouseEvent,
                                              idManager,
                                              openGLWidget);
     contextMenu.exec(menuPosition);
+}
+
+/**
+ * If this windows is yoked, issue an event to update other
+ * windows that are using the same yoking.
+ *
+ * @param viewportContent
+ *    Content of the viewport
+ */
+void
+UserInputModeView::updateGraphics(const BrainOpenGLViewportContent* viewportContent)
+{
+    bool issuedYokeEvent = false;
+    if (viewportContent != NULL) {
+        BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+        const int32_t browserWindowIndex = viewportContent->getWindowIndex();
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
+        
+        YokingGroupEnum::Enum brainYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+        YokingGroupEnum::Enum chartYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+        
+        if (browserTabContent != NULL) {
+            if (browserTabContent->isBrainModelYoked()) {
+                brainYokingGroup = browserTabContent->getBrainModelYokingGroup();
+                issuedYokeEvent = true;
+            }
+            if (browserTabContent->isChartModelYoked()) {
+                chartYokingGroup = browserTabContent->getChartModelYokingGroup();
+                issuedYokeEvent = true;
+            }
+            
+            if (issuedYokeEvent) {
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventUpdateYokedWindows(brainYokingGroup,
+                                                                       chartYokingGroup).getPointer());
+            }
+        }
+    }
+    
+    /*
+     * If not yoked, just need to update graphics.
+     */
+    if ( ! issuedYokeEvent) {
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(viewportContent->getWindowIndex()).getPointer());
+    }
 }
 
 /**

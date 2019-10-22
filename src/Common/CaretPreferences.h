@@ -214,6 +214,10 @@ namespace caret {
         
         void setDynamicConnectivityDefaultedOn(const bool defaultedOn);
         
+        bool isGuiGesturesEnabled() const;
+        
+        void setGuiGesturesEnabled(const bool status);
+        
         WuQMacroGroup* getMacros();
         
         const WuQMacroGroup* getMacros() const;
@@ -311,6 +315,8 @@ namespace caret {
         
         std::unique_ptr<CaretPreferenceDataValue> m_volumeCrossHairGapPreference;
 
+        std::unique_ptr<CaretPreferenceDataValue> m_guiGesturesEnabled;
+        
         std::vector<CaretPreferenceDataValue*> m_preferenceDataValues;
         
         bool splashScreenEnabled;
