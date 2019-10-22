@@ -835,25 +835,9 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
     QGesture* pinchGesture = gestureEvent->gesture(Qt::PinchGesture);
     if (pinchGesture != NULL) {
         const Qt::GestureState state = pinchGesture->state();
-        switch (state) {
-            case Qt::GestureCanceled:
-                break;
-            case Qt::GestureFinished:
-                std::cout << "Gesture finished" << std::endl;
-                break;
-            case Qt::GestureStarted:
-                std::cout << "Gesture started" << std::endl;
-                break;
-            case Qt::GestureUpdated:
-                std::cout << "Gesture updated" << std::endl;
-                break;
-            case Qt::NoGesture:
-                break;
-        }
         
         QPinchGesture* pinch = static_cast<QPinchGesture*>(pinchGesture);
         const QPointF startPoint = pinch->startCenterPoint();
-        std::cout << "Start Center Point: " << startPoint.x() << " " << startPoint.y() << std::endl;
         
         GestureEvent::State gestureState = GestureEvent::State::START;
         bool validFlag(false);
@@ -889,13 +873,7 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
             
             QPinchGesture::ChangeFlags changeFlags = pinch->changeFlags();
             if (changeFlags & QPinchGesture::ScaleFactorChanged) {
-                QPoint mousePos = mapFromGlobal(QCursor::pos());
-                const int mouseX = mousePos.x();
-                const int mouseY = this->windowHeight[this->windowIndex] - mousePos.y();
                 float deltaDegrees = pinch->scaleFactor();
-                std::cout << "Pinch scale factor: " << deltaDegrees
-                << " Last scale factor: " << pinch->lastScaleFactor()
-                << std::endl;
                 if (deltaDegrees > 1.0) {
                     deltaDegrees = 1;
                 }
@@ -920,26 +898,9 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
                                               GestureEvent::Type::PINCH,
                                               pinch->scaleFactor());
                     this->selectedUserInputProcessor->gestureEvent(gestureEvent);
-                    
-//                    MouseEvent mouseEvent(viewportContent,
-//                                          this,
-//                                          this->windowIndex,
-//                                          mouseX,
-//                                          mouseY,
-//                                          0,
-//                                          deltaDegrees,
-//                                          0,
-//                                          0,
-//                                          this->mouseNewDraggingStartedFlag);
-                    
-//                    this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
                 }
             }
             else if (changeFlags & QPinchGesture::RotationAngleChanged) {
-                std::cout << "Total Rotation: " << pinch->totalRotationAngle()
-                << " Rotation: " << pinch->rotationAngle()
-                << " Last Rotation Angle: " << pinch->lastRotationAngle() << std::endl;
-                
                 GestureEvent gestureEvent(viewportContent,
                                           this,
                                           this->windowIndex,
