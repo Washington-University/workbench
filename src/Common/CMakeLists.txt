@@ -326,6 +326,7 @@ IF (EXISTS ${GIT_REPOSITORY})
         COMMAND ${CMAKE_COMMAND}
             -DINFILE="${CMAKE_SOURCE_DIR}/Common/ApplicationInformation.cxx.in"
             -DOUTFILE="${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx"
+            -DVERSION="${WB_VERSION}"
             -P "${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in"
         WORKING_DIRECTORY ${GIT_REPOSITORY}/..
         DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in ${GIT_REPOSITORY}/HEAD ${GIT_REPOSITORY}/index
@@ -337,6 +338,7 @@ ELSE(EXISTS ${GIT_REPOSITORY})
         COMMAND ${CMAKE_COMMAND}
             -DINFILE="${CMAKE_SOURCE_DIR}/Common/ApplicationInformation.cxx.in"
             -DOUTFILE="${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx"
+            -DVERSION="${WB_VERSION}"
             -P "${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
         DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in

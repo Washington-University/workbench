@@ -63,12 +63,9 @@ ApplicationInformation::ApplicationInformation()
             break;
     }
     /*
-     * When updating version, also update these
-     * items in Desktop/CMakeLists.txt:
-     *    SET (MACOSX_BUNDLE_SHORT_VERSION_STRING 1.3.2)
-     *    SET (MACOSX_BUNDLE_BUNDLE_VERSION 1.3.2)
+     * Version now gets set at the top of the main CMakeLists.txt only.
      */
-    this->version = "1.3.2";
+    this->version = "@VERSION@";
     this->commit = "Commit: @COMMIT@";
     this->commitDate = "Commit Date: @COMMIT_DATE@";
 
