@@ -104,10 +104,10 @@ namespace caret {
         std::vector<Annotation*> getAnnotationsSelectedForEditingInSpaces(const int32_t windowIndex,
                                                                 const std::vector<AnnotationCoordinateSpaceEnum::Enum>& spaces) const;
         
-        void getAnnotationsSelectedForEditing(const int32_t windowIndex,
+        void getAnnotationsAndFilesSelectedForEditing(const int32_t windowIndex,
                                     std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const;
         
-        void getAnnotationsSelectedForEditingIncludingLabels(const int32_t windowIndex,
+        void getAnnotationsAndFilesSelectedForEditingIncludingLabels(const int32_t windowIndex,
                                               std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const;
         
         bool isAnnotationOnClipboardValid() const;

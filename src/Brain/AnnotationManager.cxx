@@ -50,7 +50,7 @@
 #include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
-
+#include "EventUserInputModeGet.h"
 
 using namespace caret;
 
@@ -506,24 +506,28 @@ AnnotationManager::getAnnotationEditingSelectionInformation(const int32_t window
 {
     CaretAssertArrayIndex(m_selectionInformation, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
     
-    bool manualTileTabsModeFlag(false);
-    std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(windowIndex);
-    if (windowContentEvent) {
-        EventManager::get()->sendEvent(windowContentEvent.get());
-        const BrowserWindowContent* windowContent = windowContentEvent->getBrowserWindowContent();
-        if (windowContent != NULL) {
-            switch (windowContent->getTileTabsConfigurationMode()) {
-                case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
-                    break;
-                case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
-                    break;
-                case TileTabsLayoutConfigurationTypeEnum::MANUAL:
-                    manualTileTabsModeFlag = true;
-                    break;
-            }
-        }
-    }
+//    bool manualTileTabsModeFlag(false);
+//    std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(windowIndex);
+//    if (windowContentEvent) {
+//        EventManager::get()->sendEvent(windowContentEvent.get());
+//        const BrowserWindowContent* windowContent = windowContentEvent->getBrowserWindowContent();
+//        if (windowContent != NULL) {
+//            switch (windowContent->getTileTabsConfigurationMode()) {
+//                case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+//                    break;
+//                case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+//                    break;
+//                case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+//                    manualTileTabsModeFlag = true;
+//                    break;
+//            }
+//        }
+//    }
     
+    EventUserInputModeGet modeEvent(windowIndex);
+    EventManager::get()->sendEvent(modeEvent.getPointer());
+    const bool tileModeFlag = (modeEvent.getUserInputMode() == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING);
+
     AnnotationEditingSelectionInformation* asi = m_selectionInformation[windowIndex];
     
     std::vector<Annotation*> allAnnotations = getAllAnnotations();
@@ -533,7 +537,12 @@ AnnotationManager::getAnnotationEditingSelectionInformation(const int32_t window
          annIter++) {
         Annotation* annotation = *annIter;        
         if (annotation->isSelectedForEditing(windowIndex)) {
-            if (manualTileTabsModeFlag) {
+            if (tileModeFlag) {
+                if (annotation->getType() == AnnotationTypeEnum::BROWSER_TAB) {
+                    selectedAnnotations.push_back(annotation);
+                }
+            }
+            else if (annotation->getType() != AnnotationTypeEnum::BROWSER_TAB) {
                 selectedAnnotations.push_back(annotation);
             }
         }
@@ -604,11 +613,18 @@ AnnotationManager::getAnnotationsSelectedForEditingInSpaces(const int32_t window
  *    A 'pair' containing a selected annotation and the file that contains the annotation.
  */
 void
-AnnotationManager::getAnnotationsSelectedForEditing(const int32_t windowIndex,
+AnnotationManager::getAnnotationsAndFilesSelectedForEditing(const int32_t windowIndex,
                                           std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const
 {
     annotationsAndFileOut.clear();
 
+    EventUserInputModeGet modeEvent(windowIndex);
+    EventManager::get()->sendEvent(modeEvent.getPointer());
+    if (modeEvent.getUserInputMode() == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+        /* In Tile Editing mode and browser tabs are not in files */
+        return;
+    }
+    
     std::vector<AnnotationFile*> annotationFiles;
     m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
     
@@ -629,7 +645,6 @@ AnnotationManager::getAnnotationsSelectedForEditing(const int32_t windowIndex,
             }
         }
     }
-    
 }
 
 /**
@@ -642,10 +657,19 @@ AnnotationManager::getAnnotationsSelectedForEditing(const int32_t windowIndex,
  *    A 'pair' containing a selected annotation and the file that contains the annotation.
  */
 void
-AnnotationManager::getAnnotationsSelectedForEditingIncludingLabels(const int32_t windowIndex,
+AnnotationManager::getAnnotationsAndFilesSelectedForEditingIncludingLabels(const int32_t windowIndex,
                                                      std::vector<std::pair<Annotation*, AnnotationFile*> >& annotationsAndFileOut) const
 {
-    getAnnotationsSelectedForEditing(windowIndex,
+    annotationsAndFileOut.clear();
+    
+    EventUserInputModeGet modeEvent(windowIndex);
+    EventManager::get()->sendEvent(modeEvent.getPointer());
+    if (modeEvent.getUserInputMode() == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+        /* In Tile Editing mode and browser tabs are not in files */
+        return;
+    }
+
+    getAnnotationsAndFilesSelectedForEditing(windowIndex,
                                      annotationsAndFileOut);
     
     EventAnnotationChartLabelGet chartLabelEvent;

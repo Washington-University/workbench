@@ -68,6 +68,7 @@
 #include "EventIdentificationRequest.h"
 #include "EventMovieManualModeRecording.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventUserInputModeGet.h"
 #include "FtglFontTextRenderer.h"
 #include "GestureEvent.h"
 #include "GuiManager.h"
@@ -179,6 +180,7 @@ windowIndex(windowIndex)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_USER_INPUT_MODE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IDENTIFICATION_REQUEST);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IMAGE_CAPTURE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MOVIE_RECORDING_MANUAL_MODE_CAPTURE);
@@ -834,8 +836,6 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
     
     QGesture* pinchGesture = gestureEvent->gesture(Qt::PinchGesture);
     if (pinchGesture != NULL) {
-        const Qt::GestureState state = pinchGesture->state();
-        
         QPinchGesture* pinch = static_cast<QPinchGesture*>(pinchGesture);
         const QPointF startPoint = pinch->startCenterPoint();
         
@@ -1933,6 +1933,15 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             if (needUpdate) {
                 doUpdateGraphicsFlag = true;
             }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GET_USER_INPUT_MODE) {
+        EventUserInputModeGet* modeEvent = dynamic_cast<EventUserInputModeGet*>(event);
+        CaretAssert(modeEvent);
+        
+        if (modeEvent->getWindowIndex() == this->windowIndex) {
+            modeEvent->setUserInputMode(this->selectedUserInputProcessor->getUserInputMode());
+            modeEvent->setEventProcessed();
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE) {

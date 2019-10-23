@@ -140,6 +140,8 @@ public:
         EVENT_GET_OR_SET_USER_INPUT_MODE,
         /** Get the text renderer for a window */
         EVENT_GET_TEXT_RENDERER_FOR_WINDOW,
+        /** Get the user input mode for a window */
+        EVENT_GET_USER_INPUT_MODE,
         /** Get the viewport size for model, tab, window */
         EVENT_GET_VIEWPORT_SIZE,
         /** Create a buffer object for an OpenGL context */

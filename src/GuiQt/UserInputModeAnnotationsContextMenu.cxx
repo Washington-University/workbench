@@ -92,7 +92,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
     const int32_t browserWindexIndex = m_mouseEvent.getBrowserWindowIndex();
     std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->getAnnotationsSelectedForEditingIncludingLabels(browserWindexIndex,
+    annotationManager->getAnnotationsAndFilesSelectedForEditingIncludingLabels(browserWindexIndex,
                                                                        selectedAnnotations);
     
     m_annotationFile = NULL;

@@ -106,6 +106,7 @@ EventSceneActive.h
 EventSpacerTabGet.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
+EventUserInputModeGet.h
 FeatureColoringTypeEnum.h
 FiberOrientationSamplesLoader.h
 FiberOrientationSamplesVector.h
@@ -270,6 +271,7 @@ EventSceneActive.cxx
 EventSpacerTabGet.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
+EventUserInputModeGet.cxx
 FeatureColoringTypeEnum.cxx
 FiberOrientationSamplesLoader.cxx
 FiberOrientationSymbolTypeEnum.cxx

@@ -1589,8 +1589,8 @@ UserInputModeAnnotations::cutAnnotation()
 {
     std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex,
-                                              selectedAnnotations);
+    annotationManager->getAnnotationsAndFilesSelectedForEditing(m_browserWindowIndex,
+                                                                selectedAnnotations);
     
     if (selectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(selectedAnnotations, 0);
@@ -1638,7 +1638,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         {
             AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
             std::vector<std::pair<Annotation*, AnnotationFile*> > selectedAnnotations;
-            annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex,
+            annotationManager->getAnnotationsAndFilesSelectedForEditing(m_browserWindowIndex,
                                                       selectedAnnotations);
             
             if (selectedAnnotations.size() == 1) {

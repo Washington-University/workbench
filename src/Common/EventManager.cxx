@@ -433,6 +433,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_GET_NODE_DATA_FILES:
         case EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE:
         case EventTypeEnum::EVENT_GET_TEXT_RENDERER_FOR_WINDOW:
+        case EventTypeEnum::EVENT_GET_USER_INPUT_MODE:
         case EventTypeEnum::EVENT_GET_VIEWPORT_SIZE:
         case EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT:
         case EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_TEXTURE_NAME:
