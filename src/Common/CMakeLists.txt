@@ -326,9 +326,10 @@ IF (EXISTS ${GIT_REPOSITORY})
         COMMAND ${CMAKE_COMMAND}
             -DINFILE="${CMAKE_SOURCE_DIR}/Common/ApplicationInformation.cxx.in"
             -DOUTFILE="${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx"
+            -DVERSION="${WB_VERSION}"
             -P "${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in"
         WORKING_DIRECTORY ${GIT_REPOSITORY}/..
-        DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in ${GIT_REPOSITORY}/HEAD ${GIT_REPOSITORY}/index
+        DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in ${CMAKE_SOURCE_DIR}/CMakeLists.txt ${GIT_REPOSITORY}/HEAD ${GIT_REPOSITORY}/index
         COMMENT "Setting commit info"
     )
 ELSE(EXISTS ${GIT_REPOSITORY})
@@ -337,9 +338,10 @@ ELSE(EXISTS ${GIT_REPOSITORY})
         COMMAND ${CMAKE_COMMAND}
             -DINFILE="${CMAKE_SOURCE_DIR}/Common/ApplicationInformation.cxx.in"
             -DOUTFILE="${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx"
+            -DVERSION="${WB_VERSION}"
             -P "${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
-        DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in
+        DEPENDS ApplicationInformation.cxx.in ${CMAKE_SOURCE_DIR}/CMakeScripts/git_commit_info.cmake.in ${CMAKE_SOURCE_DIR}/CMakeLists.txt
         COMMENT "No repository found, setting commit info to 'unknown'.  Reconfigure to look for the repository again."
     )
 ENDIF(EXISTS ${GIT_REPOSITORY})

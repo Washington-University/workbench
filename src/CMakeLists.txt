@@ -3,6 +3,7 @@
 #
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 
+SET(WB_VERSION "1.4.0")
 #
 # Set to true for verbose output when debugging this file
 #
