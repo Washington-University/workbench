@@ -459,6 +459,10 @@ AnnotationFontWidget::updateFontSizeControls()
 void
 AnnotationFontWidget::updateFontStyleControls()
 {
+    m_boldFontAction->setEnabled(false);
+    m_italicFontAction->setEnabled(false);
+    m_underlineFontAction->setEnabled(false);
+
     if ( ! m_annotationsFontStyle.empty()) {
         bool boldOnFlag        = true;
         bool italicOnFlag      = true;

@@ -1603,7 +1603,7 @@ Annotation::initializeProperties()
     setProperty(Property::LINE_ARROWS, lineArrowsFlag);
     setProperty(Property::TEXT_ALIGNMENT, textFlag);
     setProperty(Property::TEXT_EDIT, textFlag);
-    setProperty(Property::TEXT_COLOR, textFlag);
+    setProperty(Property::TEXT_COLOR, colorBarFlag | textFlag);
     setProperty(Property::TEXT_FONT_NAME, colorBarFlag | textFlag);
     setProperty(Property::TEXT_FONT_SIZE, colorBarFlag | textFlag);
     setProperty(Property::TEXT_FONT_STYLE, textFlag);
@@ -1625,7 +1625,6 @@ Annotation::initializeProperties()
         resetProperty(Property::GROUP);
         resetProperty(Property::LINE_COLOR);
         resetProperty(Property::LINE_THICKNESS);
-        resetProperty(Property::TEXT_COLOR);
         resetProperty(Property::TEXT_EDIT);
         
         setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
