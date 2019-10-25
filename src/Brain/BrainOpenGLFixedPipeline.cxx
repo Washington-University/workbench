@@ -1515,6 +1515,10 @@ BrainOpenGLFixedPipeline::applyClippingPlanes(const ClippingDataType clippingDat
     
     CaretAssert(m_clippingPlaneGroup);
     
+    if ( ! m_clippingPlaneGroup->isEnabled()) {
+        return;
+    }
+    
     float rotation[3];
     m_clippingPlaneGroup->getRotationAngles(rotation);
 

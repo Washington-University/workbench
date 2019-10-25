@@ -82,6 +82,7 @@ ELSE()
         BrainBrowserWindowComboBox.h
         BrainBrowserWindowOrientedToolBox.h
         BrainBrowserWindowToolBar.h
+        BrainBrowserWindowToolBarAllSurface.h
         BrainBrowserWindowToolBarChartAttributes.h
         BrainBrowserWindowToolBarChartAxes.h
         BrainBrowserWindowToolBarChartTwoAttributes.h
@@ -90,13 +91,15 @@ ELSE()
         BrainBrowserWindowToolBarChartTwoTitle.h
         BrainBrowserWindowToolBarChartTwoType.h
         BrainBrowserWindowToolBarChartType.h
-        BrainBrowserWindowToolBarClipping.h
         BrainBrowserWindowToolBarComponent.h
+	BrainBrowserWindowToolBarOrientation.h
         BrainBrowserWindowToolBarSlicePlane.h
         BrainBrowserWindowToolBarSliceSelection.h
+	BrainBrowserWindowToolBarSurface.h
         BrainBrowserWindowToolBarSurfaceMontage.h
         BrainBrowserWindowToolBarTab.h
         BrainBrowserWindowToolBarTabPopUpMenu.h
+	BrainBrowserWindowToolBarView.h
         BrainBrowserWindowToolBarVolumeMontage.h
         BrainOpenGLWidget.h
         BugReportDialog.h
@@ -118,7 +121,7 @@ ELSE()
         ChartToolBoxViewController.h
         CiftiConnectivityMatrixViewController.h
         CiftiParcelSelectionComboBox.h
-        ClippingPlanesDialog.h
+	ClippingPlanesWidget.h
         ColorEditorWidget.h
         CopyPaletteColorMappingToFilesDialog.h
         CustomViewDialog.h
@@ -314,6 +317,7 @@ BrainBrowserWindowComboBox.h
 BrainBrowserWindowEditMenuItemEnum.h
 BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowToolBar.h
+BrainBrowserWindowToolBarAllSurface.h
 BrainBrowserWindowToolBarChartAttributes.h
 BrainBrowserWindowToolBarChartAxes.h
 BrainBrowserWindowToolBarChartTwoAttributes.h
@@ -322,13 +326,15 @@ BrainBrowserWindowToolBarChartTwoOrientation.h
 BrainBrowserWindowToolBarChartTwoTitle.h
 BrainBrowserWindowToolBarChartTwoType.h
 BrainBrowserWindowToolBarChartType.h
-BrainBrowserWindowToolBarClipping.h
 BrainBrowserWindowToolBarComponent.h
+BrainBrowserWindowToolBarOrientation.h
 BrainBrowserWindowToolBarSlicePlane.h
 BrainBrowserWindowToolBarSliceSelection.h
+BrainBrowserWindowToolBarSurface.h
 BrainBrowserWindowToolBarSurfaceMontage.h
 BrainBrowserWindowToolBarTab.h
 BrainBrowserWindowToolBarTabPopUpMenu.h
+BrainBrowserWindowToolBarView.h
 BrainBrowserWindowToolBarVolumeMontage.h
 BrainOpenGLWidget.h
 BugReportDialog.h
@@ -350,7 +356,7 @@ ChartSelectionViewController.h
 ChartToolBoxViewController.h
 CiftiConnectivityMatrixViewController.h
 CiftiParcelSelectionComboBox.h
-ClippingPlanesDialog.h
+ClippingPlanesWidget.h
 ColorEditorWidget.h
 CopyPaletteColorMappingToFilesDialog.h
 CursorDisplayScoped.h
@@ -598,6 +604,7 @@ BrainBrowserWindowComboBox.cxx
 BrainBrowserWindowEditMenuItemEnum.cxx
 BrainBrowserWindowOrientedToolBox.cxx
 BrainBrowserWindowToolBar.cxx
+BrainBrowserWindowToolBarAllSurface.cxx
 BrainBrowserWindowToolBarChartAttributes.cxx
 BrainBrowserWindowToolBarChartAxes.cxx
 BrainBrowserWindowToolBarChartTwoAttributes.cxx
@@ -606,13 +613,15 @@ BrainBrowserWindowToolBarChartTwoOrientation.cxx
 BrainBrowserWindowToolBarChartTwoTitle.cxx
 BrainBrowserWindowToolBarChartTwoType.cxx
 BrainBrowserWindowToolBarChartType.cxx
-BrainBrowserWindowToolBarClipping.cxx
 BrainBrowserWindowToolBarComponent.cxx
+BrainBrowserWindowToolBarOrientation.cxx
 BrainBrowserWindowToolBarSlicePlane.cxx
 BrainBrowserWindowToolBarSliceSelection.cxx
+BrainBrowserWindowToolBarSurface.cxx
 BrainBrowserWindowToolBarSurfaceMontage.cxx
 BrainBrowserWindowToolBarTab.cxx
 BrainBrowserWindowToolBarTabPopUpMenu.cxx
+BrainBrowserWindowToolBarView.cxx
 BrainBrowserWindowToolBarVolumeMontage.cxx
 BrainOpenGLWidget.cxx
 BugReportDialog.cxx
@@ -634,7 +643,7 @@ ChartSelectionViewController.cxx
 ChartToolBoxViewController.cxx
 CiftiConnectivityMatrixViewController.cxx
 CiftiParcelSelectionComboBox.cxx
-ClippingPlanesDialog.cxx
+ClippingPlanesWidget.cxx
 ColorEditorWidget.cxx
 CopyPaletteColorMappingToFilesDialog.cxx
 CursorDisplayScoped.cxx

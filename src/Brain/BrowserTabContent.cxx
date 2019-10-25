@@ -4013,6 +4013,7 @@ BrowserTabContent::setClippingPlaneTransformation(const float panning[3],
     updateYokedModelBrowserTabs();
 }
 
+
 /**
  * Get the clipping plane group (const method).
  *
@@ -4034,6 +4035,25 @@ BrowserTabContent::resetClippingPlaneTransformation()
 {
     m_clippingPlaneGroup->resetTransformation();
     updateYokedModelBrowserTabs();
+}
+
+/**
+ * @return Clipping planes enabled
+ */
+bool BrowserTabContent::isClippingPlanesEnabled()
+{
+    return m_clippingPlaneGroup->isEnabled();
+}
+
+/**
+ * Set clipping planes enabled
+ * @param status
+ *  New enabled status
+ */
+void
+BrowserTabContent::setClippingPlanesEnabled(const bool status)
+{
+    m_clippingPlaneGroup->setEnabled(status);
 }
 
 /**

@@ -25,12 +25,15 @@
 
 #include "BrainBrowserWindowToolBarComponent.h"
 
+class QAction;
 class QCheckBox;
 class QLabel;
+class QMenu;
 class QToolButton;
 
 namespace caret {
     class BrainBrowserWindowToolBar;
+    class ClippingPlanesWidget;
     class EnumComboBoxTemplate;
     
     class BrainBrowserWindowToolBarTab : public BrainBrowserWindowToolBarComponent {
@@ -54,10 +57,16 @@ namespace caret {
         
         void lightingEnabledCheckBoxChecked(bool checked);
         
+        void clippingPlanesActionToggled(bool checked);
+        
+        void clippingPlanesMenuAboutToShow();
+        
     private:
         BrainBrowserWindowToolBarTab(const BrainBrowserWindowToolBarTab&);
 
         BrainBrowserWindowToolBarTab& operator=(const BrainBrowserWindowToolBarTab&);
+        
+        QMenu* createClippingPlanesMenu();
         
         QLabel* m_yokeToLabel;
         
@@ -69,9 +78,13 @@ namespace caret {
         
         QToolButton* m_lockWindowAndAllTabAspectButton;
         
-        QCheckBox* m_lightingEnabledCheckBox;
+        QAction* m_lightingAction;
         
         QLabel* m_macroRecordingLabel;
+        
+        QAction* m_clippingPlanesAction;
+        
+        ClippingPlanesWidget* m_clippingPlanesWidget;
         
         // ADD_NEW_MEMBERS_HERE
 

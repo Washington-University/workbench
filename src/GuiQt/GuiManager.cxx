@@ -56,7 +56,6 @@
 #include "CiftiFiberTrajectoryManager.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiScalarDataSeriesFile.h"
-#include "ClippingPlanesDialog.h"
 #include "CursorDisplayScoped.h"
 #include "CursorManager.h"
 #include "CustomViewDialog.h"
@@ -178,7 +177,6 @@ GuiManager::initializeGuiManager()
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
     
     m_bugReportDialog = NULL;
-    m_clippingPlanesDialog = NULL;
     m_customViewDialog = NULL;
     m_gapsAndMarginsDialog = NULL;
     this->imageCaptureDialog = NULL;
@@ -2426,26 +2424,6 @@ GuiManager::addParentLessNonModalDialog(QWidget* dialog)
     CaretAssert(dialog);
     m_parentlessNonModalDialogs.insert(dialog);
 }
-
-
-/**
- * Show the clipping planes dialog.
- * @param browserWindow
- *    Window on which dialog was requested.
- */
-void
-GuiManager::processShowClippingPlanesDialog(BrainBrowserWindow* browserWindow)
-{
-    if (m_clippingPlanesDialog == NULL) {
-        m_clippingPlanesDialog = new ClippingPlanesDialog(browserWindow);
-        this->addNonModalDialog(m_clippingPlanesDialog);
-    }
-    
-    const int32_t browserWindowIndex = browserWindow->getBrowserWindowIndex();
-    m_clippingPlanesDialog->updateContent(browserWindowIndex);
-    m_clippingPlanesDialog->showDialog();
-}
-
 
 /**
  * Show the custom view dialog.

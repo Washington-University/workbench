@@ -46,7 +46,6 @@ namespace caret {
     class BrowserTabContent;
     class BugReportDialog;
     class ChartTwoLineSeriesHistoryDialog;
-    class ClippingPlanesDialog;
     class CursorManager;
     class CustomViewDialog;
     class GapsAndMarginsDialog;
@@ -142,7 +141,6 @@ namespace caret {
         
         void processShowBugReportDialog(BrainBrowserWindow* browserWindow,
                                         const AString& openGLInformation);
-        void processShowClippingPlanesDialog(BrainBrowserWindow* browserWindow);
         void processShowCustomViewDialog(BrainBrowserWindow* browserWindow);
         void processShowGapsAndMarginsDialog(BrainBrowserWindow* browserWindow);
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
@@ -270,8 +268,6 @@ namespace caret {
         ChartTwoLineSeriesHistoryDialog* m_chartTwoLineSeriesHistoryDialog;
         
         TileTabsConfigurationDialog* m_tileTabsConfigurationDialog;
-        
-        ClippingPlanesDialog* m_clippingPlanesDialog;
         
         CustomViewDialog* m_customViewDialog;
         

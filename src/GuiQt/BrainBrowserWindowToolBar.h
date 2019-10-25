@@ -26,6 +26,7 @@
 #include <QStack>
 #include <QToolBar>
 
+#include "BrainBrowserWindowToolBarOrientation.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventListenerInterface.h"
 #include "ModelTypeEnum.h"
@@ -51,6 +52,7 @@ class QVBoxLayout;
 
 namespace caret {
     
+    class BrainBrowserWindowToolBarAllSurface;
     class BrainBrowserWindowToolBarChartAxes;
     class BrainBrowserWindowToolBarChartAttributes;
     class BrainBrowserWindowToolBarChartTwoAttributes;
@@ -59,11 +61,12 @@ namespace caret {
     class BrainBrowserWindowToolBarChartTwoTitle;
     class BrainBrowserWindowToolBarChartTwoType;
     class BrainBrowserWindowToolBarChartType;
-    class BrainBrowserWindowToolBarClipping;
     class BrainBrowserWindowToolBarSlicePlane;
     class BrainBrowserWindowToolBarSliceSelection;
+    class BrainBrowserWindowToolBarSurface;
     class BrainBrowserWindowToolBarSurfaceMontage;
     class BrainBrowserWindowToolBarTab;
+    class BrainBrowserWindowToolBarView;
     class BrainBrowserWindowToolBarVolumeMontage;
     class BrainBrowserWindow;
     class BrowserTabContent;
@@ -145,6 +148,7 @@ namespace caret {
         void updateToolBox();
         void updateAllTabNames();
         void updateTabName(const int32_t tabIndex);
+        void emitViewModelChangedSignal(); // for use by friend classes
         
         QWidget* createViewWidget();
         QWidget* createOrientationWidget();
@@ -162,7 +166,6 @@ namespace caret {
         QWidget* createChartTypeTwoWidget();
         QWidget* createSingleSurfaceOptionsWidget();
         QWidget* createSurfaceMontageOptionsWidget();
-        QWidget* createClippingOptionsWidget();
         QWidget* createVolumeMontageWidget();
         QWidget* createVolumePlaneWidget();
         
@@ -184,7 +187,6 @@ namespace caret {
         void updateChartTypeTwoWidget(BrowserTabContent* browserTabContent);
         void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
         void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
-        void updateClippingOptionsWidget(BrowserTabContent* browserTabContent);
         
         QWidget* createToolWidget(const QString& name,
                                   QWidget* childWidget,
@@ -200,7 +202,6 @@ namespace caret {
         QWidget* windowWidget;
         QWidget* singleSurfaceSelectionWidget;
         QWidget* surfaceMontageSelectionWidget;
-        QWidget* m_clippingOptionsWidget;
         QWidget* volumeMontageWidget;
         QWidget* volumePlaneWidget;
         QWidget* chartTypeWidget;
@@ -212,11 +213,7 @@ namespace caret {
         QWidget* chartTwoAxesWidget;
         QWidget* chartTwoTitleWidget;
         
-        WuQWidgetObjectGroup* viewWidgetGroup;
-        WuQWidgetObjectGroup* orientationWidgetGroup;
-        WuQWidgetObjectGroup* wholeBrainSurfaceOptionsWidgetGroup;
         WuQWidgetObjectGroup* modeWidgetGroup;
-        WuQWidgetObjectGroup* singleSurfaceSelectionWidgetGroup;
         
         QVBoxLayout* m_toolBarMainLayout;
         
@@ -293,114 +290,20 @@ namespace caret {
         
         BrowserTabContent* createNewTab(AString& errorMessage);
         
-        QRadioButton* viewModeSurfaceRadioButton;
-        QRadioButton* viewModeSurfaceMontageRadioButton;
-        QRadioButton* viewModeVolumeRadioButton;
-        QRadioButton* viewModeWholeBrainRadioButton;
-        QRadioButton* viewModeChartOneRadioButton;
-        QRadioButton* viewModeChartTwoRadioButton;
-        
         QAction* customViewAction;
 
     private slots:
-        void viewModeRadioButtonClicked(QAbstractButton*);
-        
         void customViewActionTriggered();
         
         void sceneToolButtonClicked();
         
     private:
-        QAction* orientationLateralMedialToolButtonAction;
-        QAction* orientationDorsalVentralToolButtonAction;
-        QAction* orientationAnteriorPosteriorToolButtonAction;
-        
-        QToolButton* orientationLateralMedialToolButton;
-        QToolButton* orientationDorsalVentralToolButton;
-        QToolButton* orientationAnteriorPosteriorToolButton;
-        
-        QAction* orientationLeftOrLateralToolButtonAction;
-        QAction* orientationRightOrMedialToolButtonAction;
-        QAction* orientationAnteriorToolButtonAction;
-        QAction* orientationPosteriorToolButtonAction;
-        QAction* orientationDorsalToolButtonAction;
-        QAction* orientationVentralToolButtonAction;
-        
-        QToolButton* orientationLeftOrLateralToolButton;
-        QToolButton* orientationRightOrMedialToolButton;
-        QToolButton* orientationAnteriorToolButton;
-        QToolButton* orientationPosteriorToolButton;
-        QToolButton* orientationDorsalToolButton;
-        QToolButton* orientationVentralToolButton;
-
-        QAction* orientationResetToolButtonAction;
-        QToolButton* orientationCustomViewSelectToolButton;
-        
-        QIcon* viewOrientationLeftIcon;
-        QIcon* viewOrientationRightIcon;
-        QIcon* viewOrientationAnteriorIcon;
-        QIcon* viewOrientationPosteriorIcon;
-        QIcon* viewOrientationDorsalIcon;
-        QIcon* viewOrientationVentralIcon;
-        QIcon* viewOrientationLeftLateralIcon;
-        QIcon* viewOrientationLeftMedialIcon;
-        QIcon* viewOrientationRightLateralIcon;
-        QIcon* viewOrientationRightMedialIcon;
         
         QToolButton* m_movieToolButton = NULL;
         
-    private slots:
-        void orientationLeftOrLateralToolButtonTriggered(bool checked);
-        void orientationRightOrMedialToolButtonTriggered(bool checked);
-        void orientationAnteriorToolButtonTriggered(bool checked);
-        void orientationPosteriorToolButtonTriggered(bool checked);
-        void orientationDorsalToolButtonTriggered(bool checked);
-        void orientationVentralToolButtonTriggered(bool checked);
-        void orientationResetToolButtonTriggered(bool checked);
-        
-        void orientationLateralMedialToolButtonTriggered(bool checked);
-        void orientationDorsalVentralToolButtonTriggered(bool checked);
-        void orientationAnteriorPosteriorToolButtonTriggered(bool checked);
-
     
     private:
-        QComboBox*      wholeBrainSurfaceTypeComboBox;
-        QCheckBox*      wholeBrainSurfaceLeftCheckBox;
-        QCheckBox*      wholeBrainSurfaceRightCheckBox;
-        QCheckBox*      wholeBrainSurfaceCerebellumCheckBox;
-        QMenu*          wholeBrainSurfaceLeftMenu;
-        QMenu*          wholeBrainSurfaceRightMenu;
-        QMenu*          wholeBrainSurfaceCerebellumMenu;
-        QDoubleSpinBox* wholeBrainSurfaceSeparationLeftRightSpinBox;
-        QDoubleSpinBox* wholeBrainSurfaceSeparationCerebellumSpinBox;
-        QCheckBox*      wholeBrainSurfaceMatchCheckBox;
-        void updateAllWholeBrainSurfaceMenus();
-        void updateWholeBrainSurfaceMenu(QMenu* menu,
-                                         const StructureEnum::Enum structure);
-
-    private slots:
-        void wholeBrainSurfaceTypeComboBoxIndexChanged(int indx);
-        void wholeBrainSurfaceLeftCheckBoxStateChanged(int state);
-        void wholeBrainSurfaceRightCheckBoxStateChanged(int state);
-        void wholeBrainSurfaceCerebellumCheckBoxStateChanged(int state);
-        void wholeBrainSurfaceSeparationLeftRightSpinBoxValueChanged(double d);
-        void wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(double d);
-        void wholeBrainSurfaceLeftToolButtonTriggered(bool checked);
-        void wholeBrainSurfaceRightToolButtonTriggered(bool checked);
-        void wholeBrainSurfaceCerebellumToolButtonTriggered(bool checked);
-        void wholeBrainSurfaceMatchCheckBoxClicked(bool checked);
-        
-        void wholeBrainSurfaceLeftMenuTriggered(QAction*);
-        void wholeBrainSurfaceRightMenuTriggered(QAction*);
-        void wholeBrainSurfaceCerebellumMenuTriggered(QAction*);
-
-    private:
-        StructureSurfaceSelectionControl* surfaceSurfaceSelectionControl;
-        
-    private slots:
-        void surfaceSelectionControlChanged(const StructureEnum::Enum,
-                                            ModelSurface*);
-        
-    private:
+        BrainBrowserWindowToolBarAllSurface* m_allSurfaceToolBarComponent;
         BrainBrowserWindowToolBarChartAxes* m_chartAxisToolBarComponent;
         BrainBrowserWindowToolBarChartTwoType* m_chartTwoTypeToolBarComponent;
         BrainBrowserWindowToolBarChartType* m_chartTypeToolBarComponent;
@@ -409,28 +312,28 @@ namespace caret {
         BrainBrowserWindowToolBarChartTwoOrientation* m_chartTwoOrientationToolBarComponent;
         BrainBrowserWindowToolBarChartTwoAttributes* m_chartTwoAttributesToolBarComponent;
         BrainBrowserWindowToolBarChartTwoTitle* m_chartTwoTitleToolBarComponent;
-
+        BrainBrowserWindowToolBarOrientation* m_orientationToolBarComponent;
+        BrainBrowserWindowToolBarSurface* m_surfaceToolBarComponent;
         BrainBrowserWindowToolBarSurfaceMontage* m_surfaceMontageToolBarComponent;
-        
-        BrainBrowserWindowToolBarClipping* m_clippingToolBarComponent;
+        BrainBrowserWindowToolBarView* m_viewToolBarComponent;
         BrainBrowserWindowToolBarSlicePlane* m_slicePlaneComponent;
         BrainBrowserWindowToolBarSliceSelection* m_sliceSelectionComponent;
         BrainBrowserWindowToolBarVolumeMontage* m_volumeMontageComponent;
         BrainBrowserWindowToolBarTab* m_tabOptionsComponent;
         
     private slots:
-        void modeInputModeActionTriggered(QAction*);
+        void modeInputModeRadioButtonClicked(QAbstractButton*);
         
     private:
         void updateDisplayedModeUserInputWidget();
-        QActionGroup* modeInputModeActionGroup;
-        QAction* modeInputModeAnnotationsAction;
-        QAction* modeInputModeBordersAction;
-        QAction* modeInputModeFociAction;
-        QAction* modeInputModeImageAction;
-        QAction* modeInputModeViewAction;
-        QAction* modeInputModeTileTabsManualLayoutAction;
-        QAction* modeInputVolumeEditAction;
+        QButtonGroup* modeInputModeRadioButtonGroup;
+        QRadioButton* modeInputModeAnnotationsRadioButton;
+        QRadioButton* modeInputModeBordersRadioButton;
+        QRadioButton* modeInputModeFociRadioButton;
+        QRadioButton* modeInputModeImageRadioButton;
+        QRadioButton* modeInputModeViewRadioButton;
+        QRadioButton* modeInputModeTileTabsManualLayoutRadioButton;
+        QRadioButton* modeInputVolumeEditRadioButton;
         
     private:
         QAction* toolBarToolButtonAction;
@@ -445,19 +348,22 @@ namespace caret {
         
     private:
         friend class BrainBrowserWindow;
+        friend class BrainBrowserWindowToolBarAllSurface;
         friend class BrainBrowserWindowToolBarChartAxes;
         friend class BrainBrowserWindowToolBarChartTwoAxes;
         friend class BrainBrowserWindowToolBarChartTwoOrientation;
         friend class BrainBrowserWindowToolBarChartTwoAttributes;
-
         friend class BrainBrowserWindowToolBarChartTwoType;
         friend class BrainBrowserWindowToolBarChartType;
-        friend class BrainBrowserWindowToolBarClipping;
         friend class BrainBrowserWindowToolBarComponent;
+        friend class BrainBrowserWindowToolBarMode;
+        friend class BrainBrowserWindowToolBarOrientation;
         friend class BrainBrowserWindowToolBarSurfaceMontage;
         friend class BrainBrowserWindowToolBarSlicePlane;
         friend class BrainBrowserWindowToolBarSliceSelection;
+        friend class BrainBrowserWindowToolBarSurface;
         friend class BrainBrowserWindowToolBarTab;
+        friend class BrainBrowserWindowToolBarView;
         friend class BrainBrowserWindowToolBarVolumeMontage;
         
         /**

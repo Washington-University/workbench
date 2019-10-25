@@ -50,6 +50,7 @@ ClippingPlaneGroup::ClippingPlaneGroup()
     resetToDefaultValues();
     
     m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_enabledStatus", &m_enabledStatus);
     m_sceneAssistant->add("m_displayClippingBoxStatus", &m_displayClippingBoxStatus);
     m_sceneAssistant->addArray("m_translation", m_translation, 3, 0.0);
     m_sceneAssistant->addArray("m_thickness", m_thickness, 3, 20.0);
@@ -113,6 +114,8 @@ ClippingPlaneGroup::copyHelperClippingPlaneGroup(const ClippingPlaneGroup& obj)
         m_thickness[i]       = obj.m_thickness[i];
     }
     
+    /* m_enabledStatus NOT copied */
+    
     m_rotationMatrix = obj.m_rotationMatrix;
     
     m_xAxisSelectionStatus = obj.m_xAxisSelectionStatus;
@@ -126,6 +129,26 @@ ClippingPlaneGroup::copyHelperClippingPlaneGroup(const ClippingPlaneGroup& obj)
     m_displayClippingBoxStatus = obj.m_displayClippingBoxStatus;
     
     invalidateActiveClippingPlainEquations();
+}
+
+/**
+ * @return Enabled status
+ */
+bool
+ClippingPlaneGroup::isEnabled() const
+{
+    return m_enabledStatus;
+}
+
+/**
+ * Set clipping planes enabled
+ * @param status
+ *   New enabled status
+ */
+void
+ClippingPlaneGroup::setEnabled(const bool status)
+{
+    m_enabledStatus = status;
 }
 
 /**
@@ -154,8 +177,6 @@ void
 ClippingPlaneGroup::resetToDefaultValues()
 {
     resetTransformation();
-    
-    m_displayClippingBoxStatus = false;
     
     m_xAxisSelectionStatus = false;
     m_yAxisSelectionStatus = false;
@@ -550,11 +571,13 @@ ClippingPlaneGroup::isDisplayClippingBoxSelected() const
 bool
 ClippingPlaneGroup::isFeaturesAndAnyAxisSelected() const
 {
-    if (m_featuresSelectionStatus) {
-        if (m_xAxisSelectionStatus
-            || m_yAxisSelectionStatus
-            || m_zAxisSelectionStatus) {
-            return true;
+    if (m_enabledStatus) {
+        if (m_featuresSelectionStatus) {
+            if (m_xAxisSelectionStatus
+                || m_yAxisSelectionStatus
+                || m_zAxisSelectionStatus) {
+                return true;
+            }
         }
     }
     
@@ -814,7 +837,7 @@ ClippingPlaneGroup::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "ClippingPlaneGroup",
-                                            1);
+                                            2);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -844,6 +867,7 @@ void
 ClippingPlaneGroup::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass)
 {
+    m_enabledStatus = false;
     resetToDefaultValues();
     
     if (sceneClass == NULL) {
@@ -862,6 +886,15 @@ ClippingPlaneGroup::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     else {
         m_rotationMatrix.identity();
+    }
+
+    if (sceneClass->getVersionNumber() < 2) {
+        /*
+         * Enabled status was added in version 2
+         */
+        m_enabledStatus = (m_xAxisSelectionStatus
+                           || m_yAxisSelectionStatus
+                           || m_zAxisSelectionStatus);
     }
     
     //Uncomment if sub-classes must restore from scene

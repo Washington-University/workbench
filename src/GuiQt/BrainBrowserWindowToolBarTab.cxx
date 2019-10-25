@@ -26,15 +26,19 @@
 #include <QAction>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
+#include <QGridLayout>
 #include <QLabel>
+#include <QMenu>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <QWidgetAction>
 
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ClippingPlanesWidget.h"
 #include "EnumComboBoxTemplate.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
@@ -90,31 +94,87 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
+    QIcon shadingIcon;
+    const bool shadingIconValid = WuQtUtilities::loadIcon(":/ToolBar/lighting.png",
+                                                          shadingIcon);
     const AString lightToolTip = WuQtUtilities::createWordWrappedToolTipText("Enables shading on surfaces.  Shading affects "
                                                                              "palette colors (but not by much) and in rare circumstances it "
                                                                              "may be helpful to turn shading off.");
-    m_lightingEnabledCheckBox = new QCheckBox("Shading");
-    m_lightingEnabledCheckBox->setToolTip(lightToolTip);
-    QObject::connect(m_lightingEnabledCheckBox, &QCheckBox::clicked,
+
+    m_lightingAction = new QAction(this);
+    m_lightingAction->setCheckable(true);
+    if (shadingIconValid) {
+        m_lightingAction->setIcon(shadingIcon);
+    }
+    else {
+        m_lightingAction->setText("L");
+    }
+    m_lightingAction->setToolTip(lightToolTip);
+    m_lightingAction->setObjectName(objectNamePrefix
+                                    + ":Tab:EnableShading");
+    QObject::connect(m_lightingAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarTab::lightingEnabledCheckBoxChecked);
-    m_lightingEnabledCheckBox->setObjectName(objectNamePrefix
-                                 + ":Tab:EnableShading");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_lightingEnabledCheckBox,
+    WuQMacroManager::instance()->addMacroSupportToObject(m_lightingAction,
                                                          "Enable shading");
+
+    QToolButton* lightingToolButton = new QToolButton();
+    lightingToolButton->setDefaultAction(m_lightingAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(lightingToolButton);
+
+    QIcon clippingIcon;
+    const bool clippingIconValid =
+    WuQtUtilities::loadIcon(":/ToolBar/clipping.png",
+                            clippingIcon);
     
+    m_clippingPlanesAction = new QAction(this);
+    m_clippingPlanesAction->setCheckable(true);
+    if (clippingIconValid) {
+        m_clippingPlanesAction->setIcon(clippingIcon);
+    }
+    else {
+        m_clippingPlanesAction->setText("C");
+    }
+    m_clippingPlanesAction->setToolTip("Enable clipping planes, click arrow to edit");
+    m_clippingPlanesAction->setMenu(createClippingPlanesMenu());
+    m_clippingPlanesAction->setObjectName(objectNamePrefix
+                                          + ":Tab:ClippingPlanes");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_clippingPlanesAction,
+                                                         "Enable clipping planes");
+    QObject::connect(m_clippingPlanesAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarTab::clippingPlanesActionToggled);
+    
+    QToolButton* clippingPlanesToolButton = new QToolButton();
+    clippingPlanesToolButton->setDefaultAction(m_clippingPlanesAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(clippingPlanesToolButton);
+
     m_macroRecordingLabel = new QLabel("");
     
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QGridLayout* layout = new QGridLayout(this);
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 0);
+    layout->setColumnStretch(2, 100);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
-    layout->addWidget(m_yokeToLabel);
-    layout->addWidget(m_yokingGroupComboBox->getWidget());
-    layout->addWidget(m_lockWindowAndAllTabAspectButton);
-    layout->addWidget(m_lightingEnabledCheckBox);
-    layout->addWidget(m_macroRecordingLabel);
+    int32_t row(0);
+    layout->addWidget(m_yokeToLabel,
+                      row, 0, 1, 3, Qt::AlignLeft);
+    row++;
+    layout->addWidget(m_yokingGroupComboBox->getWidget(),
+                      row, 0, 1, 3, Qt::AlignLeft);
+    row++;
+    layout->addWidget(m_lockWindowAndAllTabAspectButton,
+                      row, 0, 1, 3, Qt::AlignLeft);
+    row++;
+    layout->addWidget(lightingToolButton,
+                      row, 0);
+    layout->addWidget(clippingPlanesToolButton,
+                      row, 1);
+    row++;
+    layout->addWidget(m_macroRecordingLabel,
+                      row, 0, 1, 3, Qt::AlignLeft);
     
     addToWidgetGroup(m_yokeToLabel);
     addToWidgetGroup(m_yokingGroupComboBox->getWidget());
-    addToWidgetGroup(m_lightingEnabledCheckBox);
+    addToWidgetGroup(lightingToolButton);
     addToWidgetGroup(m_macroRecordingLabel);
 }
 
@@ -169,7 +229,7 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
         m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getBrainModelYokingGroup());
     }
     
-    m_lightingEnabledCheckBox->setChecked(browserTabContent->isLightingEnabled());
+    m_lightingAction->setChecked(browserTabContent->isLightingEnabled());
     
     m_macroRecordingLabel->setText("");
     switch (WuQMacroManager::instance()->getMode()) {
@@ -182,6 +242,8 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
         case WuQMacroModeEnum::RUNNING:
             break;
     }
+    
+    m_clippingPlanesAction->setChecked(browserTabContent->isClippingPlanesEnabled());
     
     blockAllSignals(false);
 }
@@ -247,3 +309,52 @@ BrainBrowserWindowToolBarTab::yokeToGroupComboBoxIndexChanged()
 
     this->updateGraphicsWindow();
 }
+
+/**
+ * @return Instance of the clipping menu
+ */
+QMenu*
+BrainBrowserWindowToolBarTab::createClippingPlanesMenu()
+{
+    m_clippingPlanesWidget = new ClippingPlanesWidget();
+    QWidgetAction* clippingPlanesAction = new QWidgetAction(this);
+    clippingPlanesAction->setDefaultWidget(m_clippingPlanesWidget);
+    
+    QMenu* menu = new QMenu(this);
+    menu->addAction(clippingPlanesAction);
+    QObject::connect(menu, &QMenu::aboutToShow,
+                     this, &BrainBrowserWindowToolBarTab::clippingPlanesMenuAboutToShow);
+    return menu;
+}
+
+/**
+ * Called when clipping planes action is toggled
+ * @param checked
+ *     New checked status
+ */
+void
+BrainBrowserWindowToolBarTab::clippingPlanesActionToggled(bool checked)
+{
+    BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
+    if (browserTabContent != NULL) {
+        browserTabContent->setClippingPlanesEnabled(checked);
+        updateContent(browserTabContent);
+        updateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when clipping menu is about to show
+ */
+void
+BrainBrowserWindowToolBarTab::clippingPlanesMenuAboutToShow()
+{
+    int32_t tabIndex = -1;
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent != NULL) {
+        tabIndex = browserTabContent->getTabNumber();
+    }
+
+    m_clippingPlanesWidget->updateContent(tabIndex);
+}
+

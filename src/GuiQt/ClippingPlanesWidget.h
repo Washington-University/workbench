@@ -1,5 +1,5 @@
-#ifndef __CLIPPING_PLANES_DIALOG_H__
-#define __CLIPPING_PLANES_DIALOG_H__
+#ifndef __CLIPPING_PLANES_WIDGET_H__
+#define __CLIPPING_PLANES_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -22,59 +22,50 @@
 /*LICENSE_END*/
 
 
-#include "WuQDialogNonModal.h"
+#include <QWidget>
 
 #include "EventListenerInterface.h"
 
 class QCheckBox;
 class QDoubleSpinBox;
-class QPushButton;
 
 namespace caret {
-    class BrainBrowserWindow;
-    class BrainBrowserWindowComboBox;
+    class BrowserTabContent;
     class WuQWidgetObjectGroup;
     
-    class ClippingPlanesDialog : public WuQDialogNonModal, public EventListenerInterface {
+    class ClippingPlanesWidget : public QWidget {
         
         Q_OBJECT
 
     public:
-        ClippingPlanesDialog(QWidget* parent);
+        ClippingPlanesWidget(QWidget* parent = 0);
         
-        virtual ~ClippingPlanesDialog();
+        virtual ~ClippingPlanesWidget();
         
-
-        void updateDialog();
-        
-        void updateContent(const int32_t browserWindowIndex);
+        void updateContent(const int32_t tabIndex);
         
         // ADD_NEW_METHODS_HERE
-
-        virtual void receiveEvent(Event* event);
-
     private slots:
-        void browserWindowComboBoxValueChanged(BrainBrowserWindow* browserWindow);
-        
         void clippingValueChanged();
         
-    protected:
-        void focusGained();
-        
-        virtual DialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
+        void resetButtonClicked();
         
     private:
         void updateGraphicsWindow();
         
-        ClippingPlanesDialog(const ClippingPlanesDialog&);
+        ClippingPlanesWidget(const ClippingPlanesWidget&);
 
-        ClippingPlanesDialog& operator=(const ClippingPlanesDialog&);
+        ClippingPlanesWidget& operator=(const ClippingPlanesWidget&);
         
-        QPushButton* m_resetPushButton;
+        QWidget* createClippingBoxWidget();
         
-        BrainBrowserWindowComboBox* m_browserWindowComboBox;
+        QWidget* createClippingAxesWidget();
         
-        WuQWidgetObjectGroup* m_clippingWidgetGroup;
+        QWidget* createClippingDataTypeWidget();
+        
+        BrowserTabContent* getBrowserTabContent();
+        
+        int32_t m_tabIndex = -1;
         
         QDoubleSpinBox* m_xPanDoubleSpinBox;
         
@@ -96,15 +87,27 @@ namespace caret {
         
         QCheckBox* m_displayClippingBoxCheckBox;
         
-        bool m_blockDialogUpdate;
+        QCheckBox* m_xClippingEnabledCheckBox;
+        
+        QCheckBox* m_yClippingEnabledCheckBox;
+        
+        QCheckBox* m_zClippingEnabledCheckBox;
+        
+        QCheckBox* m_surfaceClippingEnabledCheckBox;
+        
+        QCheckBox* m_volumeClippingEnabledCheckBox;
+        
+        QCheckBox* m_featuresClippingEnabledCheckBox;
+        
+        QString m_objectNamePrefix;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CLIPPING_PLANES_DIALOG_DECLARE__
+#ifdef __CLIPPING_PLANES_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CLIPPING_PLANES_DIALOG_DECLARE__
+#endif // __CLIPPING_PLANES_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__CLIPPING_PLANES_DIALOG_H__
+#endif  //__CLIPPING_PLANES_WIDGET_H__

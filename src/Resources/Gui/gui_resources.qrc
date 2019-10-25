@@ -17,10 +17,12 @@
 <file>./Splash/startup_image.png</file>
 <file>./Splash/twitter.png</file>
 <file>./ToolBar/clapboard.png</file>
+<file>./ToolBar/clipping.png</file>
 <file>./ToolBar/features_toolbox.png</file>
 <file>./ToolBar/help.png</file>
 <file>./ToolBar/identify.png</file>
 <file>./ToolBar/info.png</file>
+<file>./ToolBar/lighting.png</file>
 <file>./ToolBar/macro.png</file>
 <file>./ToolBar/movie.png</file>
 <file>./ToolBar/overlay_toolbox.png</file>

@@ -216,6 +216,10 @@ namespace caret {
 
         void resetClippingPlaneTransformation();
         
+        bool isClippingPlanesEnabled();
+        
+        void setClippingPlanesEnabled(const bool status);
+        
         const float* getTranslation() const;
         
         void getTranslation(float translationOut[3]) const;

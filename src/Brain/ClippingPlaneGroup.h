@@ -47,6 +47,10 @@ namespace caret {
         
         void resetToDefaultValues();
         
+        bool isEnabled() const;
+        
+        void setEnabled(const bool status);
+        
         std::vector<const Plane*> getActiveClippingPlanesForStructure(const StructureEnum::Enum structure) const;
         
         void getTranslation(float translation[3]) const;
@@ -168,6 +172,8 @@ namespace caret {
         Matrix4x4 m_rotationMatrix;
         
         float m_thickness[3];
+        
+        bool m_enabledStatus = false;
         
         bool m_xAxisSelectionStatus;
         

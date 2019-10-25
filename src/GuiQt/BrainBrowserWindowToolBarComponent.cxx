@@ -155,4 +155,12 @@ BrainBrowserWindowToolBarComponent::updateUserInterface()
     m_parentToolBar->updateUserInterface();
 }
 
+/**
+ * @return Parent window toolbar
+ */
+BrainBrowserWindowToolBar*
+BrainBrowserWindowToolBarComponent::getParentToolBar()
+{
+    return m_parentToolBar;
+}
 

@@ -65,6 +65,8 @@ namespace caret {
         
         void blockAllSignals(const bool status);
         
+        BrainBrowserWindowToolBar* getParentToolBar();
+        
     public:
 
         // ADD_NEW_METHODS_HERE
