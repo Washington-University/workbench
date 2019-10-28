@@ -96,6 +96,7 @@
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowNew.h"
 #include "EventBrowserWindowTileTabOperation.h"
+#include "EventUserInputModeGet.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -130,6 +131,18 @@
 #include "StructureSurfaceSelectionControl.h"
 #include "TileTabsLayoutGridConfiguration.h"
 #include "UserInputModeAbstract.h"
+#include "UserInputModeAnnotations.h"
+#include "UserInputModeAnnotationsWidget.h"
+#include "UserInputModeBorders.h"
+#include "UserInputModeBordersWidget.h"
+#include "UserInputModeFoci.h"
+#include "UserInputModeFociWidget.h"
+#include "UserInputModeImage.h"
+#include "UserInputModeImageWidget.h"
+#include "UserInputModeTileTabsManualLayout.h"
+#include "UserInputModeView.h"
+#include "UserInputModeVolumeEdit.h"
+#include "UserInputModeVolumeEditWidget.h"
 #include "VolumeFile.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSurfaceOutlineSetModel.h"
@@ -439,6 +452,24 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
     
+    this->userInputAnnotationsModeProcessor = new UserInputModeAnnotations(browserWindowIndex);
+    this->userInputBordersModeProcessor = new UserInputModeBorders(browserWindowIndex);
+    this->userInputFociModeProcessor = new UserInputModeFoci(browserWindowIndex);
+    this->userInputImageModeProcessor = new UserInputModeImage(browserWindowIndex);
+    this->userInputVolumeEditModeProcessor = new UserInputModeVolumeEdit(browserWindowIndex);
+    this->userInputTileTabsManualLayoutProcessor = new UserInputModeTileTabsManualLayout(browserWindowIndex);
+    this->userInputViewModeProcessor = new UserInputModeView();
+    this->selectedUserInputProcessor = this->userInputViewModeProcessor;
+    this->selectedUserInputProcessor->initialize();
+
+    this->annotateModeWidget = this->userInputAnnotationsModeProcessor->getWidgetForToolBar();
+    this->bordersModeWidget = this->userInputBordersModeProcessor->getWidgetForToolBar();
+    this->fociModeWidget = this->userInputFociModeProcessor->getWidgetForToolBar();
+    this->imageModeWidget = this->userInputImageModeProcessor->getWidgetForToolBar();
+    this->tileModeWidget = this->userInputTileTabsManualLayoutProcessor->getWidgetForToolBar();
+    this->volumeModeWidget = this->userInputVolumeEditModeProcessor->getWidgetForToolBar();
+    
+
     /*
      * Layout the toolbar's widgets.
      */
@@ -481,22 +512,21 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->toolbarWidgetLayout->addWidget(this->chartAttributesWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->windowWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->annotateModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
 
+    this->toolbarWidgetLayout->addWidget(this->bordersModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
+    
+    this->toolbarWidgetLayout->addWidget(this->fociModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
+    
+    this->toolbarWidgetLayout->addWidget(this->imageModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
+    
+    this->toolbarWidgetLayout->addWidget(this->tileModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
+    
+    this->toolbarWidgetLayout->addWidget(this->volumeModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
+    
     this->toolbarWidgetLayout->addStretch();
 
-    /*
-     * Widget below toolbar for user input mode mouse controls
-     */
-    this->userInputControlsWidgetLayout = new QHBoxLayout();
-    this->userInputControlsWidgetLayout->addSpacing(5);
-    WuQtUtilities::setLayoutSpacingAndMargins(this->userInputControlsWidgetLayout, 0, 0);
-    this->userInputControlsWidget = new QWidget();
-    QVBoxLayout* userInputLayout = new QVBoxLayout(this->userInputControlsWidget);
-    WuQtUtilities::setLayoutSpacingAndMargins(userInputLayout, 2, 0);
-    userInputLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    userInputLayout->addLayout(this->userInputControlsWidgetLayout);
-    userInputControlsWidgetActiveInputWidget = NULL;
-    
     /*
      * Arrange the tabbar and the toolbar vertically.
      */
@@ -505,7 +535,6 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     WuQtUtilities::setLayoutSpacingAndMargins(m_toolBarMainLayout, 1, 0);
     m_toolBarMainLayout->addWidget(this->tabBarWidget);
     m_toolBarMainLayout->addWidget(m_toolbarWidget);
-    m_toolBarMainLayout->addWidget(this->userInputControlsWidget);
     
     this->addWidget(w);
     
@@ -535,6 +564,8 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_USER_INPUT_MODE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 
     QObject::connect(this->tabBar, &WuQTabBar::mousePressedSignal,
@@ -559,6 +590,15 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
         this->tabClosed(i);
     }
 
+    delete this->userInputViewModeProcessor;
+    delete this->userInputAnnotationsModeProcessor;
+    delete this->userInputBordersModeProcessor;
+    delete this->userInputFociModeProcessor;
+    delete this->userInputImageModeProcessor;
+    delete this->userInputTileTabsManualLayoutProcessor;
+    delete this->userInputVolumeEditModeProcessor;
+    this->selectedUserInputProcessor = NULL; /* DO NOT DELETE since it does not own the object to which it points */
+    
     this->isDestructionInProgress = false;
 }
 
@@ -1797,84 +1837,120 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showChartTwoTitleWidget = false;
     
     bool showModeWidget = true;
-    bool showWindowWidget = true;
+    bool showViewWidget = false;
+    bool showWindowWidget = false;
     
-    switch (viewModel) {
-        case ModelTypeEnum::MODEL_TYPE_INVALID:
+    bool showAnnotateModeWidget(false);
+    bool showBorderModeWidget(false);
+    bool showFociModeWidget(false);
+    bool showImageModeWidget(false);
+    bool showTileModeWidget(false);
+    bool showVolumeModeWidget(false);
+    
+    CaretAssert(this->selectedUserInputProcessor);
+    switch (this->selectedUserInputProcessor->getUserInputMode()) {
+        case UserInputModeEnum::ANNOTATIONS:
+            showAnnotateModeWidget = true;
             break;
-        case ModelTypeEnum::MODEL_TYPE_SURFACE:
-            showOrientationWidget = true;
-            showSingleSurfaceOptionsWidget = true;
+        case UserInputModeEnum::BORDERS:
+            showBorderModeWidget = true;
             break;
-        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-            showOrientationWidget = true;
-            showSurfaceMontageOptionsWidget = true;
+        case UserInputModeEnum::FOCI:
+            showFociModeWidget = true;
             break;
-        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-            showVolumeIndicesWidget = true;
-            showVolumePlaneWidget = true;
-            showVolumeMontageWidget = true;
+        case UserInputModeEnum::IMAGE:
+            showImageModeWidget = true;
             break;
-        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-            showOrientationWidget = true;
-            showWholeBrainSurfaceOptionsWidget = true;
-            showVolumeIndicesWidget = true;
+        case UserInputModeEnum::INVALID:
             break;
-        case ModelTypeEnum::MODEL_TYPE_CHART:
-        {
-            ModelChart* modelChart = browserTabContent->getDisplayedChartOneModel();
-            if (modelChart != NULL) {
-                showChartOneTypeWidget = true;
-                switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                        break;
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                        showChartOneAttributesWidget = true;
-                        break;
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-                        showChartOneAttributesWidget = true;
-                        break;
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
-                        showChartOneAxesWidget = true;
-                        showChartOneAttributesWidget = true;
-                        break;
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
-                        showChartOneAxesWidget = true;
-                        showChartOneAttributesWidget = true;
-                        break;
-                    case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
-                        showChartOneAxesWidget = true;
-                        showChartOneAttributesWidget = true;
-                        break;
+        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+            showTileModeWidget = true;
+            break;
+        case UserInputModeEnum::VIEW:
+            showWindowWidget = true;
+            showViewWidget   = true;
+            
+            switch (viewModel) {
+                case ModelTypeEnum::MODEL_TYPE_INVALID:
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                    showOrientationWidget = true;
+                    showSingleSurfaceOptionsWidget = true;
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                    showOrientationWidget = true;
+                    showSurfaceMontageOptionsWidget = true;
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                    showVolumeIndicesWidget = true;
+                    showVolumePlaneWidget = true;
+                    showVolumeMontageWidget = true;
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                    showOrientationWidget = true;
+                    showWholeBrainSurfaceOptionsWidget = true;
+                    showVolumeIndicesWidget = true;
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_CHART:
+                {
+                    ModelChart* modelChart = browserTabContent->getDisplayedChartOneModel();
+                    if (modelChart != NULL) {
+                        showChartOneTypeWidget = true;
+                        switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
+                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                                break;
+                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                                showChartOneAttributesWidget = true;
+                                break;
+                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                                showChartOneAttributesWidget = true;
+                                break;
+                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                                showChartOneAxesWidget = true;
+                                showChartOneAttributesWidget = true;
+                                break;
+                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                                showChartOneAxesWidget = true;
+                                showChartOneAttributesWidget = true;
+                                break;
+                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                                showChartOneAxesWidget = true;
+                                showChartOneAttributesWidget = true;
+                                break;
+                        }
+                    }
                 }
-            }
-        }
-            break;
-        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
-        {
-            ModelChartTwo* modelChartTwo = browserTabContent->getDisplayedChartTwoModel();
-            if (modelChartTwo != NULL) {
-                switch (modelChartTwo->getSelectedChartTwoDataType(browserTabContent->getTabNumber())) {
-                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                        break;
-                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-                        showChartTwoAxesWidget = true;
-                        showChartTwoTitleWidget = true;
-                        break;
-                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-                        showChartTwoAxesWidget = true;
-                        showChartTwoTitleWidget = true;
-                        break;
-                    case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                        showChartTwoOrientationWidget = true;
-                        showChartTwoAttributesWidget  = true;
-                        showChartTwoTitleWidget = true;
-                        break;
+                    break;
+                case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                {
+                    ModelChartTwo* modelChartTwo = browserTabContent->getDisplayedChartTwoModel();
+                    if (modelChartTwo != NULL) {
+                        switch (modelChartTwo->getSelectedChartTwoDataType(browserTabContent->getTabNumber())) {
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                                break;
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                                showChartTwoAxesWidget = true;
+                                showChartTwoTitleWidget = true;
+                                break;
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                                showChartTwoAxesWidget = true;
+                                showChartTwoTitleWidget = true;
+                                break;
+                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                                showChartTwoOrientationWidget = true;
+                                showChartTwoAttributesWidget  = true;
+                                showChartTwoTitleWidget = true;
+                                break;
+                        }
+                        
+                        showChartTwoTypeWidget = true;
+                    }
                 }
-                
-                showChartTwoTypeWidget = true;
+                    break;
             }
-        }
+            break;
+        case UserInputModeEnum::VOLUME_EDIT:
+            showVolumeModeWidget = true;
             break;
     }
     
@@ -1884,6 +1960,8 @@ BrainBrowserWindowToolBar::updateToolBar()
      * expanded with empty space as other widgets
      * are turned on and off.
      */
+    this->modeWidget->setVisible(false);
+    this->viewWidget->setVisible(false);
     this->orientationWidget->setVisible(false);
     this->wholeBrainSurfaceOptionsWidget->setVisible(false);
     this->singleSurfaceSelectionWidget->setVisible(false);
@@ -1899,9 +1977,15 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
     this->volumeMontageWidget->setVisible(false);
-    this->modeWidget->setVisible(false);
     this->windowWidget->setVisible(false);
     
+    this->annotateModeWidget->setVisible(false);
+    this->bordersModeWidget->setVisible(false);
+    this->fociModeWidget->setVisible(false);
+    this->imageModeWidget->setVisible(false);
+    this->tileModeWidget->setVisible(false);
+    this->volumeModeWidget->setVisible(false);
+
     this->orientationWidget->setVisible(showOrientationWidget);
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
     this->singleSurfaceSelectionWidget->setVisible(showSingleSurfaceOptionsWidget);
@@ -1918,7 +2002,15 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
     this->modeWidget->setVisible(showModeWidget);
+    this->viewWidget->setVisible(showViewWidget);
     this->windowWidget->setVisible(showWindowWidget);
+    
+    this->annotateModeWidget->setVisible(showAnnotateModeWidget);
+    this->bordersModeWidget->setVisible(showBorderModeWidget);
+    this->fociModeWidget->setVisible(showFociModeWidget);
+    this->imageModeWidget->setVisible(showImageModeWidget);
+    this->tileModeWidget->setVisible(showTileModeWidget);
+    this->volumeModeWidget->setVisible(showVolumeModeWidget);
 
     updateToolBarComponents(browserTabContent);
     
@@ -2158,7 +2250,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     /*
      * Image
      */
-    const bool showImageButtonFlag = false;
+    const bool showImageButtonFlag = true;
     this->modeInputModeImageRadioButton = NULL;
     if (showImageButtonFlag) {
         this->modeInputModeImageRadioButton = new QRadioButton("Image");
@@ -2285,9 +2377,7 @@ BrainBrowserWindowToolBar::modeInputModeRadioButtonClicked(QAbstractButton* butt
         return;
     }
 
-    EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
-    EventManager::get()->sendEvent(getInputModeEvent.getPointer());
-    const UserInputModeEnum::Enum currentMode = getInputModeEvent.getUserInputMode();
+    const UserInputModeEnum::Enum currentMode = this->selectedUserInputProcessor->getUserInputMode();
     
     UserInputModeEnum::Enum inputMode = UserInputModeEnum::INVALID;
     
@@ -2318,8 +2408,6 @@ BrainBrowserWindowToolBar::modeInputModeRadioButtonClicked(QAbstractButton* butt
             dpb->setDisplayed(displayGroup, 
                               browserTabIndex,
                               true);
-            this->updateUserInterface();
-            this->updateGraphicsWindow();
         }
     }
     else if (button == this->modeInputModeFociRadioButton) {
@@ -2354,8 +2442,9 @@ BrainBrowserWindowToolBar::modeInputModeRadioButtonClicked(QAbstractButton* butt
     
     EventManager::get()->sendEvent(EventGetOrSetUserInputModeProcessor(this->browserWindowIndex,
                                                                        inputMode).getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    
+    this->updateUserInterface();
+    this->updateGraphicsWindow();
+
     this->updateModeWidget(tabContent);
     this->updateDisplayedModeUserInputWidget();
 }
@@ -2379,10 +2468,7 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
     
     this->modeWidgetGroup->blockAllSignals(true);
     
-    EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
-    EventManager::get()->sendEvent(getInputModeEvent.getPointer());
-
-    switch (getInputModeEvent.getUserInputMode()) {
+    switch (this->selectedUserInputProcessor->getUserInputMode()) {
         case UserInputModeEnum::INVALID:
             /* may get here when program is exiting and widgets are being destroyed */
             break;
@@ -2419,60 +2505,7 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
 void
 BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
 {
-    EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
-    EventManager::get()->sendEvent(getInputModeEvent.getPointer());
-    
-    UserInputModeAbstract* userInputProcessor = getInputModeEvent.getUserInputProcessor();
-    QWidget* userInputWidget = userInputProcessor->getWidgetForToolBar();
-    
-    /*
-     * If a widget is display and needs to change,
-     * remove the old widget.
-     */
-    if (this->userInputControlsWidgetActiveInputWidget != NULL) {
-        if (userInputWidget != this->userInputControlsWidgetActiveInputWidget) {
-            /*
-             * Remove the current input widget:
-             * (1) Set its visibility to false
-             * (2) Remove the widget from the toolbar's layout
-             * (3) Set its parent to NULL.
-             *
-             * Why is the parent set to NULL?
-             * 
-             * When a widget is put into a layout, the widget is put into
-             * a QWidgetItem (subclass of QLayoutItem).  
-             *
-             * QLayout::removeWidget() will delete the QWidgetItem but
-             * it does not reset the parent for the widget that was in
-             * QWidgetItem.  So the user will need to delete the widget
-             * unless it is placed into a layout.
-             *
-             * After removing the widget, set the widget's parent to NULL.
-             * As a result, when the input receiver (owner of the widget) 
-             * is deleted, it can examine the parent, and, if the parent
-             * is NULL, it can delete the widget preventing a memory link
-             * and a possible crash.
-             */
-            this->userInputControlsWidgetActiveInputWidget->setVisible(false);
-            this->userInputControlsWidgetLayout->removeWidget(this->userInputControlsWidgetActiveInputWidget);
-            this->userInputControlsWidgetActiveInputWidget->setParent(NULL);
-            this->userInputControlsWidgetActiveInputWidget = NULL;
-        }
-    }
-    if (this->userInputControlsWidgetActiveInputWidget == NULL) {
-        if (userInputWidget != NULL) {
-            this->userInputControlsWidgetActiveInputWidget = userInputWidget;
-            this->userInputControlsWidgetActiveInputWidget->setVisible(true);
-            this->userInputControlsWidgetLayout->addWidget(this->userInputControlsWidgetActiveInputWidget);
-            this->userInputControlsWidget->setVisible(true);
-            this->userInputControlsWidgetLayout->update();
-        }
-        else {
-            this->userInputControlsWidget->setVisible(false);
-        }
-    }
-    
-    switch (userInputProcessor->getUserInputMode()) {
+    switch (this->selectedUserInputProcessor->getUserInputMode()) {
         case UserInputModeEnum::ANNOTATIONS:
         case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
             break;
@@ -3171,6 +3204,70 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
                 getModelEvent->setSelectedBrowserTabContent(this->getTabContentFromSelectedTab());
             }
             getModelEvent->setEventProcessed();
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GET_USER_INPUT_MODE) {
+        EventUserInputModeGet* modeEvent = dynamic_cast<EventUserInputModeGet*>(event);
+        CaretAssert(modeEvent);
+        
+        if (modeEvent->getWindowIndex() == this->browserWindowIndex) {
+            modeEvent->setUserInputMode(this->selectedUserInputProcessor->getUserInputMode());
+            modeEvent->setEventProcessed();
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE) {
+        EventGetOrSetUserInputModeProcessor* inputModeEvent =
+        dynamic_cast<EventGetOrSetUserInputModeProcessor*>(event);
+        CaretAssert(inputModeEvent);
+        
+        if (inputModeEvent->getWindowIndex() == this->browserWindowIndex) {
+            if (inputModeEvent->isGetUserInputMode()) {
+                inputModeEvent->setUserInputProcessor(this->selectedUserInputProcessor);
+            }
+            else if (inputModeEvent->isSetUserInputMode()) {
+                UserInputModeAbstract* newUserInputProcessor = NULL;
+                switch (inputModeEvent->getUserInputMode()) {
+                    case UserInputModeEnum::INVALID:
+                        CaretAssertMessage(0, "INVALID is NOT allowed for user input mode");
+                        break;
+                    case UserInputModeEnum::ANNOTATIONS:
+                        newUserInputProcessor = this->userInputAnnotationsModeProcessor;
+                        break;
+                    case UserInputModeEnum::BORDERS:
+                        newUserInputProcessor = this->userInputBordersModeProcessor;
+                        break;
+                    case UserInputModeEnum::FOCI:
+                        newUserInputProcessor = this->userInputFociModeProcessor;
+                        break;
+                    case UserInputModeEnum::IMAGE:
+                        newUserInputProcessor = this->userInputImageModeProcessor;
+                        break;
+                    case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+                        newUserInputProcessor = this->userInputTileTabsManualLayoutProcessor;
+                        break;
+                    case UserInputModeEnum::VOLUME_EDIT:
+                        newUserInputProcessor = this->userInputVolumeEditModeProcessor;
+                        break;
+                    case UserInputModeEnum::VIEW:
+                        newUserInputProcessor = this->userInputViewModeProcessor;
+                        break;
+                }
+                
+                if ((newUserInputProcessor == this->userInputAnnotationsModeProcessor)
+                    || (this->selectedUserInputProcessor == this->userInputAnnotationsModeProcessor)) {
+                    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                    CaretAssert(annMan);
+                    annMan->deselectAllAnnotationsForEditing(this->browserWindowIndex);
+                }
+                if (newUserInputProcessor != NULL) {
+                    if (newUserInputProcessor != this->selectedUserInputProcessor) {
+                        this->selectedUserInputProcessor->finish();
+                        this->selectedUserInputProcessor = newUserInputProcessor;
+                        this->selectedUserInputProcessor->initialize();
+                    }
+                }
+            }
+            inputModeEvent->setEventProcessed();
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {

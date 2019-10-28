@@ -79,6 +79,14 @@ namespace caret {
     class Surface;
     class SurfaceSelectionViewController;
     class StructureSurfaceSelectionControl;
+    class UserInputModeAnnotations;
+    class UserInputModeBorders;
+    class UserInputModeFoci;
+    class UserInputModeImage;
+    class UserInputModeTileTabsManualLayout;
+    class UserInputModeView;
+    class UserInputModeVolumeEdit;
+    class UserInputModeAbstract;
     class WuQTabBar;
     class WuQWidgetObjectGroup;
     
@@ -213,6 +221,22 @@ namespace caret {
         QWidget* chartTwoAxesWidget;
         QWidget* chartTwoTitleWidget;
         
+        UserInputModeAbstract* selectedUserInputProcessor = NULL;
+        UserInputModeAnnotations* userInputAnnotationsModeProcessor;
+        UserInputModeView* userInputViewModeProcessor;
+        UserInputModeBorders* userInputBordersModeProcessor;
+        UserInputModeFoci* userInputFociModeProcessor;
+        UserInputModeImage* userInputImageModeProcessor;
+        UserInputModeTileTabsManualLayout* userInputTileTabsManualLayoutProcessor;
+        UserInputModeVolumeEdit* userInputVolumeEditModeProcessor;
+        
+        QWidget* annotateModeWidget;
+        QWidget* bordersModeWidget;
+        QWidget* fociModeWidget;
+        QWidget* imageModeWidget;
+        QWidget* tileModeWidget;
+        QWidget* volumeModeWidget;
+        
         WuQWidgetObjectGroup* modeWidgetGroup;
         
         QVBoxLayout* m_toolBarMainLayout;
@@ -223,15 +247,6 @@ namespace caret {
         
         QWidget* tabBarWidget;
         WuQTabBar* tabBar;
-        
-        /** Widget displayed at bottom of toolbar for mouse input controls */
-        QWidget* userInputControlsWidget;
-
-        /** Layout for widget displayed at bottom of toolbar for mouse input controls */
-        QHBoxLayout* userInputControlsWidgetLayout;
-
-        /** Is set to the user input widget provided by the user input processor */
-        QWidget* userInputControlsWidgetActiveInputWidget;
         
         void removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent);
         

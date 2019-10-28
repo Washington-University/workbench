@@ -50,8 +50,7 @@ namespace caret {
             EDIT_OPERATION_PROPERTIES
         };
         
-        UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
-                             const int32_t windowIndex);
+        UserInputModeBorders(const int32_t windowIndex);
         
         virtual ~UserInputModeBorders();
         
@@ -80,6 +79,8 @@ namespace caret {
         virtual AString toString() const;
         
         bool isHighlightBorderEndPoints() const;
+        
+        Border* getBorderBeingDrawn() const;
         
     private:
         /*
@@ -121,11 +122,7 @@ namespace caret {
         
         EditOperation editOperation;
         
-        /** 
-         * Pointer to border drawn by OpenGL.  Since owned
-         * by OpenGL, DO NOT delete this!!!
-         */
-        Border* borderBeingDrawnByOpenGL;
+        Border* borderBeingDrawn;
         
         int32_t windowIndex;
     };

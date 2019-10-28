@@ -70,11 +70,10 @@ using namespace caret;
  * @param windowIndex
  *    Index of the browser window using this border processing.
  */
-UserInputModeBorders::UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
-                                           const int32_t windowIndex)
+UserInputModeBorders::UserInputModeBorders(const int32_t windowIndex)
 : UserInputModeView(UserInputModeEnum::BORDERS)
 {
-    this->borderBeingDrawnByOpenGL = borderBeingDrawnByOpenGL;
+    this->borderBeingDrawn = new Border();
     this->windowIndex = windowIndex;
     this->mode = MODE_DRAW;
     this->drawOperation = DRAW_OPERATION_CREATE;
@@ -88,6 +87,8 @@ UserInputModeBorders::UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
  */
 UserInputModeBorders::~UserInputModeBorders()
 {
+    delete this->borderBeingDrawn;
+    this->borderBeingDrawn = NULL;
 }
 
 /**
@@ -106,13 +107,6 @@ UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
     SurfaceProjectedItem* spi = new SurfaceProjectedItem();
     
     AString txt;
-//    if (projectedItem.isStereotaxicXYZValid()) {
-//        spi->setStereotaxicXYZ(projectedItem.getStereotaxicXYZ());
-//        
-//        txt += ("Projected Position: " 
-//                + AString::fromNumbers(projectedItem.getStereotaxicXYZ(), 3, ","));
-//    }
-    
     if (projectedItem.getBarycentricProjection()->isValid()) {
         SurfaceProjectionBarycentric* bp = projectedItem.getBarycentricProjection();
         
@@ -131,12 +125,12 @@ UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
 
     if (spi->isStereotaxicXYZValid()
         || spi->getBarycentricProjection()->isValid()) {
-        if (borderBeingDrawnByOpenGL->getNumberOfPoints() == 0 || borderBeingDrawnByOpenGL->getStructure() == projectedItem.getStructure())
+        if (this->borderBeingDrawn->getNumberOfPoints() == 0 || this->borderBeingDrawn->getStructure() == projectedItem.getStructure())
         {
             spi->setStructure(projectedItem.getStructure());
-            this->borderBeingDrawnByOpenGL->addPoint(spi);
+            this->borderBeingDrawn->addPoint(spi);
         } else {
-            const AString prevName(StructureEnum::toGuiName(borderBeingDrawnByOpenGL->getStructure()));
+            const AString prevName(StructureEnum::toGuiName(this->borderBeingDrawn->getStructure()));
             const AString newName(StructureEnum::toGuiName(projectedItem.getStructure()));
             WuQMessageBox::errorOk(borderToolsWidget,
                                    ("The last point added is on "
@@ -230,7 +224,7 @@ UserInputModeBorders::setMode(const Mode mode)
 {
     if (this->mode != mode) {
         this->mode = mode;
-        this->borderBeingDrawnByOpenGL->clear();
+        this->borderBeingDrawn->clear();
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
     }
     this->borderToolsWidget->updateWidget();
@@ -278,7 +272,7 @@ UserInputModeBorders::isHighlightBorderEndPoints() const
 void
 UserInputModeBorders::drawOperationFinish()
 {
-    this->borderBeingDrawnByOpenGL->clear();
+    this->borderBeingDrawn->clear();
 
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().addBorder().getPointer());
@@ -290,7 +284,7 @@ UserInputModeBorders::drawOperationFinish()
 void 
 UserInputModeBorders::drawOperationUndo()
 {
-    this->borderBeingDrawnByOpenGL->removeLastPoint();
+    this->borderBeingDrawn->removeLastPoint();
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
 }
 
@@ -300,7 +294,7 @@ UserInputModeBorders::drawOperationUndo()
 void 
 UserInputModeBorders::drawOperationReset()
 {
-    this->borderBeingDrawnByOpenGL->clear();
+    this->borderBeingDrawn->clear();
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
 }
 
@@ -417,7 +411,6 @@ UserInputModeBorders::mouseLeftClick(const MouseEvent& mouseEvent)
             if (idBorder->isValid()) {
                 Brain* brain = idBorder->getBrain();
                 Surface* surface = idBorder->getSurface();
-                //BorderFile* borderFile = idBorder->getBorderFile();
                 Border* border = idBorder->getBorder();
                 this->borderToolsWidget->executeRoiInsideSelectedBorderOperation(brain,
                                                                                  surface,
@@ -522,4 +515,12 @@ UserInputModeBorders::showContextMenu(const MouseEvent& mouseEvent,
                                        openGLWidget);
 }
 
+/**
+ * @return The border being drawn
+ */
+Border*
+UserInputModeBorders::getBorderBeingDrawn() const
+{
+    return this->borderBeingDrawn;
+}
 

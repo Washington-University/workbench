@@ -235,6 +235,9 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
         gridLayout->setColumnStretch(iCol, 0);
     }
     gridLayout->setColumnStretch(column, 100);
+    
+    const int numRows = gridLayout->rowCount();
+    gridLayout->setRowStretch(numRows, 100);
 }
 
 /*
@@ -345,6 +348,7 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     layout->addWidget(topRowWidget);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(bottomRowLayout);
+    layout->addStretch();
 }
 
 /**

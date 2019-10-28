@@ -22,6 +22,7 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QComboBox>
+#include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QStackedWidget>
@@ -103,13 +104,21 @@ UserInputModeFociWidget::UserInputModeFociWidget(UserInputModeFoci* inputModeFoc
     m_operationStackedWidget->addWidget(m_editOperationWidget);
     //m_operationStackedWidget->addWidget(m_taskOperationWidget);
     
-    QHBoxLayout* layout = new QHBoxLayout(this);
+    QGridLayout* layout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addWidget(nameLabel);
-    layout->addWidget(modeWidget);
-    layout->addSpacing(10);
-    layout->addWidget(m_operationStackedWidget);
-    layout->addStretch();
+    layout->setColumnStretch(0,   0);
+    layout->setColumnStretch(1,   0);
+    layout->setColumnStretch(2, 100);
+    int32_t row(0);
+    layout->addWidget(nameLabel,
+                      row, 0);
+    layout->addWidget(modeWidget,
+                      row, 1);
+    row++;
+    layout->addWidget(m_operationStackedWidget,
+                      row, 0, 1, 3, Qt::AlignLeft);
+    row++;
+    layout->setRowStretch(row, 100);
 }
 
 /**

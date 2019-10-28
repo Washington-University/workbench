@@ -27,6 +27,7 @@
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QGridLayout>
 #include <QInputDialog>
 #include <QLabel>
 #include <QStackedWidget>
@@ -121,13 +122,21 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     this->operationStackedWidget->addWidget(this->widgetEditOperation);
     this->operationStackedWidget->addWidget(this->widgetRoiOperation);
     
-    QHBoxLayout* layout = new QHBoxLayout(this);
+    QGridLayout* layout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addWidget(nameLabel);
-    layout->addWidget(this->widgetMode);
-    layout->addSpacing(10);
-    layout->addWidget(this->operationStackedWidget);
-    layout->addStretch();
+    layout->setColumnStretch(0,   0);
+    layout->setColumnStretch(1,   0);
+    layout->setColumnStretch(2, 100);
+    int32_t row(0);
+    layout->addWidget(nameLabel,
+                      row, 0);
+    layout->addWidget(this->widgetMode,
+                      row, 1);
+    row++;
+    layout->addWidget(this->operationStackedWidget,
+                      row, 0, 1, 3, Qt::AlignLeft);
+    row++;
+    layout->setRowStretch(row, 100);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
 }
@@ -157,6 +166,8 @@ UserInputModeBordersWidget::receiveEvent(Event* event)
             delete m_borderOptimizeDialog;
             m_borderOptimizeDialog = NULL;
         }
+        
+        this->inputModeBorders->borderBeingDrawn->clear();
         
         brainEvent->setEventProcessed();
     }
@@ -548,7 +559,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     }
     const int32_t browserTabIndex = btc->getTabNumber();
     
-    if (this->inputModeBorders->borderBeingDrawnByOpenGL->verifyAllPointsOnSameStructure() == false) {
+    if (this->inputModeBorders->borderBeingDrawn->verifyAllPointsOnSameStructure() == false) {
         WuQMessageBox::errorOk(this, "Error: Border points are on more than one structure.");
         return;
     }
@@ -578,7 +589,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
             break;
     }
     
-    if (this->inputModeBorders->borderBeingDrawnByOpenGL->getNumberOfPoints() < minimumNumberOfBorderPoints) {
+    if (this->inputModeBorders->borderBeingDrawn->getNumberOfPoints() < minimumNumberOfBorderPoints) {
         WuQMessageBox::errorOk(this,
                                ("There must be at least "
                                 + AString::number(minimumNumberOfBorderPoints)
@@ -599,12 +610,12 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     }
     else if (wholeBrainController != NULL) {
         brain = wholeBrainController->getBrain();
-        const StructureEnum::Enum structure = this->inputModeBorders->borderBeingDrawnByOpenGL->getStructure();
+        const StructureEnum::Enum structure = this->inputModeBorders->borderBeingDrawn->getStructure();
         surface = wholeBrainController->getSelectedSurface(structure, btc->getTabNumber());
     }
     else if (surfaceMontageController != NULL) {
         brain = surfaceMontageController->getBrain();
-        const StructureEnum::Enum structure = this->inputModeBorders->borderBeingDrawnByOpenGL->getStructure();
+        const StructureEnum::Enum structure = this->inputModeBorders->borderBeingDrawn->getStructure();
         surface = surfaceMontageController->getSelectedSurface(structure, btc->getTabNumber());
     }
     
@@ -632,7 +643,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
         case UserInputModeBorders::DRAW_OPERATION_CREATE:
         {
             std::unique_ptr<BorderPropertiesEditorDialog> finishBorderDialog(
-                    BorderPropertiesEditorDialog::newInstanceFinishBorder(this->inputModeBorders->borderBeingDrawnByOpenGL,
+                    BorderPropertiesEditorDialog::newInstanceFinishBorder(this->inputModeBorders->borderBeingDrawn,
                                                                           surface,
                                                                           this));
             if (finishBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
@@ -644,7 +655,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
             processBorderOptimization(displayGroup,
                                       browserTabIndex,
                                       surface,
-                                      this->inputModeBorders->borderBeingDrawnByOpenGL);
+                                      this->inputModeBorders->borderBeingDrawn);
             break;
         case UserInputModeBorders::DRAW_OPERATION_ERASE:
         case UserInputModeBorders::DRAW_OPERATION_EXTEND:
@@ -666,7 +677,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                         borderFile->findAllBordersWithPointsNearBothSegmentEndPoints(displayGroup,
                                                                                      browserTabIndex,
                                                                                      surface,
-                                                                                     this->inputModeBorders->borderBeingDrawnByOpenGL,
+                                                                                     this->inputModeBorders->borderBeingDrawn,
                                                                                      nearestTolerance,
                                                                                      bordersFoundFromFile);
                         break;
@@ -674,15 +685,9 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                         borderFile->findAllBordersWithAnyPointNearSegmentFirstPoint(displayGroup,
                                                                                     browserTabIndex,
                                                                                     surface,
-                                                                                    this->inputModeBorders->borderBeingDrawnByOpenGL,
+                                                                                    this->inputModeBorders->borderBeingDrawn,
                                                                                     nearestTolerance,
                                                                                     bordersFoundFromFile);
-//                        borderFile->findAllBordersWithEndPointNearSegmentFirstPoint(displayGroup,
-//                                                                                  browserTabIndex,
-//                                                                                  surface,
-//                                                                                  this->inputModeBorders->borderBeingDrawnByOpenGL,
-//                                                                                  nearestTolerance,
-//                                                                                  bordersFoundFromFile);
                         break;
                     case UserInputModeBorders::DRAW_OPERATION_OPTIMIZE:
                         CaretAssert(0);
@@ -691,7 +696,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                         borderFile->findAllBordersWithPointsNearBothSegmentEndPoints(displayGroup,
                                                                                      browserTabIndex,
                                                                                      surface,
-                                                                                     this->inputModeBorders->borderBeingDrawnByOpenGL,
+                                                                                     this->inputModeBorders->borderBeingDrawn,
                                                                                      nearestTolerance,
                                                                                      bordersFoundFromFile);
                         break;
@@ -762,21 +767,19 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                                         break;
                                     case UserInputModeBorders::DRAW_OPERATION_ERASE:
                                         border->reviseEraseFromEnd(surface,
-                                                                   this->inputModeBorders->borderBeingDrawnByOpenGL);
+                                                                   this->inputModeBorders->borderBeingDrawn);
                                         break;
                                     case UserInputModeBorders::DRAW_OPERATION_EXTEND:
                                         border->reviseExtendFromPointIndex(surface,
                                                                            borderPointIndex,
-                                                                           this->inputModeBorders->borderBeingDrawnByOpenGL);
-                                        //border->reviseExtendFromEnd(surface,
-                                        //                            this->inputModeBorders->borderBeingDrawnByOpenGL);
+                                                                           this->inputModeBorders->borderBeingDrawn);
                                         break;
                                     case UserInputModeBorders::DRAW_OPERATION_OPTIMIZE:
                                         CaretAssert(0);
                                         break;
                                     case UserInputModeBorders::DRAW_OPERATION_REPLACE:
                                         border->reviseReplaceSegment(surface,
-                                                                     this->inputModeBorders->borderBeingDrawnByOpenGL);
+                                                                     this->inputModeBorders->borderBeingDrawn);
                                         break;
                                 }
                                 
@@ -795,7 +798,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                     }
                     else {
                         setLastEditedBorder(undoBorders);
-                        this->inputModeBorders->borderBeingDrawnByOpenGL->clear();
+                        this->inputModeBorders->borderBeingDrawn->clear();
                     }
                     
                     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -951,7 +954,7 @@ UserInputModeBordersWidget::processBorderOptimization(const DisplayGroupEnum::En
         setLastEditedBorder(undoBorders);
         
         if ( ! m_borderOptimizeDialog->isKeepBoundaryBorderSelected()) {
-            this->inputModeBorders->borderBeingDrawnByOpenGL->clear();
+            this->inputModeBorders->borderBeingDrawn->clear();
         }
     }
     

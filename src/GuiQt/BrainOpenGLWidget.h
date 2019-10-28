@@ -45,6 +45,7 @@
 #include "BrainOpenGLWindowContent.h"
 #include "CaretPointer.h"
 #include "EventListenerInterface.h"
+#include "UserInputModeEnum.h"
 #include "WuQMacroMouseEventWidgetInterface.h"
 
 class QGestureEvent;
@@ -53,7 +54,6 @@ class QWidget;
 
 namespace caret {
 
-    class Border;
     class BrainOpenGL;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
@@ -63,13 +63,6 @@ namespace caret {
     class Model;
     class MouseEvent;
     class SurfaceProjectedItem;
-    class UserInputModeAnnotations;
-    class UserInputModeBorders;
-    class UserInputModeFoci;
-    class UserInputModeImage;
-    class UserInputModeTileTabsManualLayout;
-    class UserInputModeView;
-    class UserInputModeVolumeEdit;
     class UserInputModeAbstract;
     class VolumeFile;
     
@@ -104,8 +97,6 @@ namespace caret {
                                const int y,
                                SurfaceProjectedItem& projectionOut);
  
-        Border* getBorderBeingDrawn();
-        
         static void initializeDefaultGLFormat();
         
         QString getOpenGLInformation();
@@ -176,6 +167,10 @@ namespace caret {
         
         bool processGestureEvent(QGestureEvent* gestureEvent);
         
+        UserInputModeAbstract* getSelectedInputProcessor() const;
+        
+        UserInputModeEnum::Enum getSelectedInputMode() const;
+        
         const int32_t windowIndex;
         
         BrainOpenGLWindowContent m_windowContent;
@@ -201,17 +196,6 @@ namespace caret {
         int lastMouseY;
         
         bool m_newKeyPressStartedFlag;
-        
-        UserInputModeAbstract* selectedUserInputProcessor;
-        UserInputModeAnnotations* userInputAnnotationsModeProcessor;
-        UserInputModeView* userInputViewModeProcessor;
-        UserInputModeBorders* userInputBordersModeProcessor;
-        UserInputModeFoci* userInputFociModeProcessor;
-        UserInputModeImage* userInputImageModeProcessor;
-        UserInputModeTileTabsManualLayout* userInputTileTabsManualLayoutProcessor;
-        UserInputModeVolumeEdit* userInputVolumeEditModeProcessor;
-        
-        Border* borderBeingDrawn;
         
         bool    m_mousePositionValid;
         CaretPointer<MouseEvent> m_mousePositionEvent;

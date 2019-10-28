@@ -86,6 +86,7 @@ m_windowIndex(windowIndex)
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     layout->addWidget(createSelectionToolBar());
     layout->addWidget(createModeToolBar());
+    layout->addStretch();
     setSizePolicy(sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_VOLUME_EDITING_TOOLBAR);

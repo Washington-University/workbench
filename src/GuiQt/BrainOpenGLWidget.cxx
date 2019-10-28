@@ -137,8 +137,6 @@ windowIndex(windowIndex)
                   + AString::number(windowIndex + 1)
                   + ":OpenGLWidget");
 
-    this->borderBeingDrawn = new Border();
-    
     m_mousePositionValid = false;
     m_mousePositionEvent.grabNew(new MouseEvent(NULL,
                                                 NULL,
@@ -151,16 +149,6 @@ windowIndex(windowIndex)
                                                 0,
                                                 false));
     
-    this->userInputAnnotationsModeProcessor = new UserInputModeAnnotations(windowIndex);
-    this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
-                                                                   windowIndex);
-    this->userInputFociModeProcessor = new UserInputModeFoci(windowIndex);
-    this->userInputImageModeProcessor = new UserInputModeImage(windowIndex);
-    this->userInputVolumeEditModeProcessor = new UserInputModeVolumeEdit(windowIndex);
-    this->userInputTileTabsManualLayoutProcessor = new UserInputModeTileTabsManualLayout(windowIndex);
-    this->userInputViewModeProcessor = new UserInputModeView();
-    this->selectedUserInputProcessor = this->userInputViewModeProcessor;
-    this->selectedUserInputProcessor->initialize();
     this->mousePressX = -10000;
     this->mousePressY = -10000;
     this->mouseNewDraggingStartedFlag = false;
@@ -179,8 +167,6 @@ windowIndex(windowIndex)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_TIMING_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_USER_INPUT_MODE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IDENTIFICATION_REQUEST);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IMAGE_CAPTURE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MOVIE_RECORDING_MANUAL_MODE_CAPTURE);
@@ -237,17 +223,6 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
     makeCurrent();
     
     this->clearDrawingViewportContents();
-    
-    delete this->userInputViewModeProcessor;
-    delete this->userInputAnnotationsModeProcessor;
-    delete this->userInputBordersModeProcessor;
-    delete this->userInputFociModeProcessor;
-    delete this->userInputImageModeProcessor;
-    delete this->userInputTileTabsManualLayoutProcessor;
-    delete this->userInputVolumeEditModeProcessor;
-    this->selectedUserInputProcessor = NULL; /* DO NOT DELETE since it does not own the object to which it points */
-    
-    delete this->borderBeingDrawn;
     
     EventManager::get()->removeAllEventsFromListener(this);
     
@@ -437,15 +412,6 @@ BrainOpenGLWidget::resizeGL(int w, int h)
 }
 
 /**
- * @return Pointer to the border that is being drawn.
- */
-Border* 
-BrainOpenGLWidget::getBorderBeingDrawn()
-{
-    return this->borderBeingDrawn;
-}
-
-/**
  * Clear the contents for drawing into the viewports.
  */
 void 
@@ -463,7 +429,7 @@ BrainOpenGLWidget::updateCursor()
     /*
      * Set the cursor to that requested by the user input processor
      */
-    CursorEnum::Enum cursor = this->selectedUserInputProcessor->getCursor();
+    CursorEnum::Enum cursor = getSelectedInputProcessor()->getCursor();
     
     GuiManager::get()->getCursorManager()->setCursorForWidget(this,
                                                               cursor);
@@ -497,7 +463,7 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
                             windowContent);
     
     s_singletonOpenGL->drawModels(this->windowIndex,
-                                  this->selectedUserInputProcessor->getUserInputMode(),
+                                  getSelectedInputMode(),
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   windowContent.getAllTabViewports());
@@ -572,12 +538,16 @@ BrainOpenGLWidget::getDrawingWindowContent(const int32_t windowViewportIn[4],
         }
     }
     
+    UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
+    
     /*
      * Highlighting of border points
      */
     s_singletonOpenGL->setDrawHighlightedEndPoints(false);
-    if (this->selectedUserInputProcessor == this->userInputBordersModeProcessor) {
-        s_singletonOpenGL->setDrawHighlightedEndPoints(this->userInputBordersModeProcessor->isHighlightBorderEndPoints());
+    if (inputProcessor->getUserInputMode() == UserInputModeEnum::BORDERS) {
+        UserInputModeBorders* borderInputProcessor = dynamic_cast<UserInputModeBorders*>(inputProcessor);
+        CaretAssert(borderInputProcessor);
+        s_singletonOpenGL->setDrawHighlightedEndPoints(borderInputProcessor->isHighlightBorderEndPoints());
     }
     
     const GapsAndMargins* gapsAndMargins = GuiManager::get()->getBrain()->getGapsAndMargins();
@@ -730,14 +700,18 @@ BrainOpenGLWidget::paintGL()
     getDrawingWindowContent(windowViewport,
                             m_windowContent);
     
-    if (this->selectedUserInputProcessor == userInputBordersModeProcessor) {
-        s_singletonOpenGL->setBorderBeingDrawn(this->borderBeingDrawn);
+    UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
+    const UserInputModeEnum::Enum inputMode = inputProcessor->getUserInputMode();
+    if (inputMode == UserInputModeEnum::BORDERS) {
+        UserInputModeBorders* borderInputMode = dynamic_cast<UserInputModeBorders*>(inputProcessor);
+        CaretAssert(borderInputMode);
+        s_singletonOpenGL->setBorderBeingDrawn(borderInputMode->getBorderBeingDrawn());
     }
     else {
         s_singletonOpenGL->setBorderBeingDrawn(NULL);
     }
     s_singletonOpenGL->drawModels(this->windowIndex,
-                                  this->selectedUserInputProcessor->getUserInputMode(),
+                                  inputMode,
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   m_windowContent.getAllTabViewports());
@@ -871,6 +845,8 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
         if (validFlag) {
             CaretAssert(viewportContent);
             
+            UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
+            
             QPinchGesture::ChangeFlags changeFlags = pinch->changeFlags();
             if (changeFlags & QPinchGesture::ScaleFactorChanged) {
                 float deltaDegrees = pinch->scaleFactor();
@@ -897,7 +873,7 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
                                               gestureState,
                                               GestureEvent::Type::PINCH,
                                               pinch->scaleFactor());
-                    this->selectedUserInputProcessor->gestureEvent(gestureEvent);
+                    inputProcessor->gestureEvent(gestureEvent);
                 }
             }
             else if (changeFlags & QPinchGesture::RotationAngleChanged) {
@@ -910,7 +886,7 @@ BrainOpenGLWidget::processGestureEvent(QGestureEvent* gestureEvent)
                                           GestureEvent::Type::ROTATE,
                                           pinch->rotationAngle() - pinch->lastRotationAngle());
 
-                this->selectedUserInputProcessor->gestureEvent(gestureEvent);
+                inputProcessor->gestureEvent(gestureEvent);
             }
             
             gestureEvent->accept();
@@ -947,9 +923,11 @@ BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
                               mouseY,
                               false);
         
-        this->selectedUserInputProcessor->showContextMenu(mouseEvent,
-                                                          contextMenuEvent->globalPos(),
-                                                          this);
+        UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
+        
+        inputProcessor->showContextMenu(mouseEvent,
+                                        contextMenuEvent->globalPos(),
+                                        this);
     }
 }
 
@@ -1051,7 +1029,10 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
                               0,
                               0,
                               this->mouseNewDraggingStartedFlag);
-        this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
+        
+        UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
+        
+        inputProcessor->mouseLeftDragWithCtrl(mouseEvent);
     }
 
     we->accept();
@@ -1114,7 +1095,9 @@ BrainOpenGLWidget::keyPressEvent(QKeyEvent* e)
                       m_newKeyPressStartedFlag,
                       shiftKeyDownFlag);
     
-    const bool keyWasProcessedFlag = this->selectedUserInputProcessor->keyPressEvent(keyEvent);
+    UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
+    
+    const bool keyWasProcessedFlag = inputProcessor->keyPressEvent(keyEvent);
     
     e->accept();
     
@@ -1216,7 +1199,9 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
                                   this->mouseNewDraggingStartedFlag);
             
             if (keyModifiers == Qt::NoModifier) {
-                this->selectedUserInputProcessor->mouseLeftPress(mouseEvent);
+                UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
+                
+                inputProcessor->mouseLeftPress(mouseEvent);
             }
             else if (keyModifiers == Qt::ShiftModifier) {
                 /* not implemented  this->selectedUserInputProcessor->mouseLeftPressWithShift(mouseEvent); */
@@ -1266,6 +1251,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
         const int absDX = (dx >= 0) ? dx : -dx;
         const int absDY = (dy >= 0) ? dy : -dy;
 
+        UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
+        
         {
             /*
              * Mouse button RELEASE event
@@ -1283,7 +1270,7 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                                       this->mousePressX,
                                       this->mousePressY,
                                       this->mouseNewDraggingStartedFlag);
-                this->selectedUserInputProcessor->mouseLeftRelease(mouseEvent);
+                inputProcessor->mouseLeftRelease(mouseEvent);
             }
         }
         
@@ -1310,14 +1297,14 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                                       this->mouseNewDraggingStartedFlag);
                 
                 if (keyModifiers == Qt::NoModifier) {
-                    this->selectedUserInputProcessor->mouseLeftClick(mouseEvent);
+                    inputProcessor->mouseLeftClick(mouseEvent);
                 }
                 else if (keyModifiers == Qt::ShiftModifier) {
-                    this->selectedUserInputProcessor->mouseLeftClickWithShift(mouseEvent);
+                    inputProcessor->mouseLeftClickWithShift(mouseEvent);
                 }
                 else if (keyModifiers == (Qt::ShiftModifier
                                           | Qt::ControlModifier)) {
-                    this->selectedUserInputProcessor->mouseLeftClickWithCtrlShift(mouseEvent);
+                    inputProcessor->mouseLeftClickWithCtrlShift(mouseEvent);
                 }
             }
         }
@@ -1376,7 +1363,7 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
                                       this->mousePressY,
                                       this->mouseNewDraggingStartedFlag);
                 
-                this->selectedUserInputProcessor->mouseLeftDoubleClick(mouseEvent);
+                getSelectedInputProcessor()->mouseLeftDoubleClick(mouseEvent);
             }
         }
     }
@@ -1397,7 +1384,7 @@ BrainOpenGLWidget::leaveEvent(QEvent* /*e*/)
 {
     m_mousePositionValid = false;
     
-    this->selectedUserInputProcessor->setMousePosition(m_mousePositionEvent,
+    getSelectedInputProcessor()->setMousePosition(m_mousePositionEvent,
                                                        m_mousePositionValid);
 }
 
@@ -1498,7 +1485,7 @@ BrainOpenGLWidget::performIdentification(const int x,
     
     if (idViewport != NULL) {
         s_singletonOpenGL->selectModel(this->windowIndex,
-                                       this->selectedUserInputProcessor->getUserInputMode(),
+                                       getSelectedInputMode(),
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   idViewport,
@@ -1543,8 +1530,9 @@ SelectionItemAnnotation*
 BrainOpenGLWidget::performIdentificationAnnotations(const int x,
                                                     const int y)
 {
+    const UserInputModeEnum::Enum inputMode = getSelectedInputMode();
     bool manLayoutFlag(false);
-    switch (this->selectedUserInputProcessor->getUserInputMode()) {
+    switch (inputMode) {
         case UserInputModeEnum::ANNOTATIONS:
             break;
         case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
@@ -1581,7 +1569,7 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
          const int idY = y - vp[1];
          */
         s_singletonOpenGL->selectModel(this->windowIndex,
-                                       this->selectedUserInputProcessor->getUserInputMode(),
+                                       inputMode,
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   idViewport,
@@ -1648,7 +1636,7 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
          const int idY = y - vp[1];
          */
         s_singletonOpenGL->selectModel(this->windowIndex,
-                                       this->selectedUserInputProcessor->getUserInputMode(),
+                                       getSelectedInputMode(),
                                   GuiManager::get()->getBrain(),
                                   m_contextShareGroupPointer,
                                   idViewport,
@@ -1698,7 +1686,7 @@ BrainOpenGLWidget::performProjection(const int x,
     
     if (projectionViewport != NULL) {
         s_singletonOpenGL->projectToModel(this->windowIndex,
-                                          this->selectedUserInputProcessor->getUserInputMode(),
+                                          getSelectedInputMode(),
                                      GuiManager::get()->getBrain(),
                                      m_contextShareGroupPointer,
                                      projectionViewport,
@@ -1752,6 +1740,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     const int mouseX = me->x();
     const int mouseY = this->windowHeight[this->windowIndex] - me->y();
     
+    UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
+    
     if (mouseButtons == Qt::LeftButton) {
         this->mouseMovementMinimumX = std::min(this->mouseMovementMinimumX, mouseX);
         this->mouseMovementMaximumX = std::max(this->mouseMovementMaximumX, mouseX);
@@ -1786,20 +1776,20 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                                       this->mouseNewDraggingStartedFlag);
                 
                 if (keyModifiers == Qt::NoModifier) {
-                    this->selectedUserInputProcessor->mouseLeftDrag(mouseEvent);
+                    inputProcessor->mouseLeftDrag(mouseEvent);
                 }
                 else if (keyModifiers == Qt::ControlModifier) {
-                    this->selectedUserInputProcessor->mouseLeftDragWithCtrl(mouseEvent);
+                    inputProcessor->mouseLeftDragWithCtrl(mouseEvent);
                 }
                 else if (keyModifiers == Qt::ShiftModifier) {
-                    this->selectedUserInputProcessor->mouseLeftDragWithShift(mouseEvent);
+                    inputProcessor->mouseLeftDragWithShift(mouseEvent);
                 }
                 else if (keyModifiers == Qt::AltModifier) {
-                    this->selectedUserInputProcessor->mouseLeftDragWithAlt(mouseEvent);
+                    inputProcessor->mouseLeftDragWithAlt(mouseEvent);
                 }
                 else if (keyModifiers == (Qt::ShiftModifier
                                           | Qt::ControlModifier)) {
-                    this->selectedUserInputProcessor->mouseLeftDragWithCtrlShift(mouseEvent);
+                    inputProcessor->mouseLeftDragWithCtrlShift(mouseEvent);
                 }
                 
                 this->mouseNewDraggingStartedFlag = false;
@@ -1825,10 +1815,10 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                                   this->mouseNewDraggingStartedFlag);
             
             if (keyModifiers == Qt::NoModifier) {
-                this->selectedUserInputProcessor->mouseMove(mouseEvent);
+                inputProcessor->mouseMove(mouseEvent);
             }
             else if (keyModifiers == Qt::ShiftModifier) {
-                this->selectedUserInputProcessor->mouseMoveWithShift(mouseEvent);
+                inputProcessor->mouseMoveWithShift(mouseEvent);
             }
         }
     }
@@ -1847,7 +1837,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                                                     this->mousePressY,
                                                     this->mouseNewDraggingStartedFlag));
         
-        this->selectedUserInputProcessor->setMousePosition(m_mousePositionEvent,
+        inputProcessor->setMousePosition(m_mousePositionEvent,
                                                            m_mousePositionValid);
     }
     else {
@@ -1876,8 +1866,6 @@ BrainOpenGLWidget::receiveEvent(Event* event)
     if (event->getEventType() == EventTypeEnum::EVENT_BRAIN_RESET) {
         EventBrainReset* brainResetEvent = dynamic_cast<EventBrainReset*>(event);
         CaretAssert(brainResetEvent);
-        
-        this->borderBeingDrawn->clear();
         
         brainResetEvent->setEventProcessed();
     }
@@ -1935,70 +1923,6 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             }
         }
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_GET_USER_INPUT_MODE) {
-        EventUserInputModeGet* modeEvent = dynamic_cast<EventUserInputModeGet*>(event);
-        CaretAssert(modeEvent);
-        
-        if (modeEvent->getWindowIndex() == this->windowIndex) {
-            modeEvent->setUserInputMode(this->selectedUserInputProcessor->getUserInputMode());
-            modeEvent->setEventProcessed();
-        }
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE) {
-        EventGetOrSetUserInputModeProcessor* inputModeEvent =
-        dynamic_cast<EventGetOrSetUserInputModeProcessor*>(event);
-        CaretAssert(inputModeEvent);
-        
-        if (inputModeEvent->getWindowIndex() == this->windowIndex) {
-            if (inputModeEvent->isGetUserInputMode()) {
-                inputModeEvent->setUserInputProcessor(this->selectedUserInputProcessor);
-            }
-            else if (inputModeEvent->isSetUserInputMode()) {
-                UserInputModeAbstract* newUserInputProcessor = NULL;
-                switch (inputModeEvent->getUserInputMode()) {
-                    case UserInputModeEnum::INVALID:
-                        CaretAssertMessage(0, "INVALID is NOT allowed for user input mode");
-                        break;
-                    case UserInputModeEnum::ANNOTATIONS:
-                        newUserInputProcessor = this->userInputAnnotationsModeProcessor;
-                        break;
-                    case UserInputModeEnum::BORDERS:
-                        newUserInputProcessor = this->userInputBordersModeProcessor;
-                        break;
-                    case UserInputModeEnum::FOCI:
-                        newUserInputProcessor = this->userInputFociModeProcessor;
-                        break;
-                    case UserInputModeEnum::IMAGE:
-                        newUserInputProcessor = this->userInputImageModeProcessor;
-                        break;
-                    case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
-                        newUserInputProcessor = this->userInputTileTabsManualLayoutProcessor;
-                        break;
-                    case UserInputModeEnum::VOLUME_EDIT:
-                        newUserInputProcessor = this->userInputVolumeEditModeProcessor;
-                        break;
-                    case UserInputModeEnum::VIEW:
-                        newUserInputProcessor = this->userInputViewModeProcessor;
-                        break;
-                }
-                
-                if ((newUserInputProcessor == this->userInputAnnotationsModeProcessor)
-                    || (this->selectedUserInputProcessor == this->userInputAnnotationsModeProcessor)) {
-                    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-                    CaretAssert(annMan);
-                    annMan->deselectAllAnnotationsForEditing(this->windowIndex);
-                }
-                if (newUserInputProcessor != NULL) {
-                    if (newUserInputProcessor != this->selectedUserInputProcessor) {
-                        this->selectedUserInputProcessor->finish();
-                        this->selectedUserInputProcessor = newUserInputProcessor;
-                        this->selectedUserInputProcessor->initialize();
-                    }
-                }
-            }
-            inputModeEvent->setEventProcessed();
-        }
-    }
     else if (event->getEventType() == EventTypeEnum::EVENT_IMAGE_CAPTURE) {
         EventImageCapture* imageCaptureEvent = dynamic_cast<EventImageCapture*>(event);
         CaretAssert(imageCaptureEvent);
@@ -2050,7 +1974,7 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         CaretAssert(guiUpdateEvent);
         guiUpdateEvent->setEventProcessed();
         
-        this->selectedUserInputProcessor->update();
+        getSelectedInputProcessor()->update();
     }
     else {
         
@@ -2494,6 +2418,28 @@ BrainOpenGLWidget::processMouseEventFromMacro(QMouseEvent* me)
             break;
     }
     m_mousePositionValid = false;
+}
+
+/*
+ * @return The selected input processor
+ */
+UserInputModeAbstract*
+BrainOpenGLWidget::getSelectedInputProcessor() const
+{
+    EventGetOrSetUserInputModeProcessor getInputModeEvent(this->windowIndex);
+    EventManager::get()->sendEvent(getInputModeEvent.getPointer());
+    UserInputModeAbstract* inputProcessor = getInputModeEvent.getUserInputProcessor();
+    CaretAssert(inputProcessor);
+    return inputProcessor;
+}
+
+/*
+ * @return The selected input mode
+ */
+UserInputModeEnum::Enum
+BrainOpenGLWidget::getSelectedInputMode() const
+{
+    return getSelectedInputProcessor()->getUserInputMode();
 }
 
 
