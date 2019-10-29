@@ -26,10 +26,9 @@
 
 #include "AString.h"
 
+class QAbstractButton;
 class QAction;
-class QActionGroup;
-class QComboBox;
-class QStackedWidget;
+class QRadioButton;
 
 namespace caret {
 
@@ -57,9 +56,7 @@ namespace caret {
         
         void createLastIdentificationFocusActionTriggered();
         
-        void editOperationActionTriggered(QAction*);
-        
-        void modeComboBoxSelection(int);
+        void modeRadioButtonClicked(QAbstractButton* button);
         
     private:
         UserInputModeFociWidget(const UserInputModeFociWidget&);
@@ -68,32 +65,17 @@ namespace caret {
         
         QWidget* createModeWidget();
         
-        QWidget* createCreateOperationWidget();
-        
-        QWidget* createEditOperationWidget();
-        
-        QWidget* createTaskOperationWidget();
-        
-        void setActionGroupByActionData(QActionGroup* actionGroup,
-                                        const int dataInteger);
-        
         // ADD_NEW_MEMBERS_HERE
 
         UserInputModeFoci* m_inputModeFoci;
         
         const int32_t m_windowIndex;
         
-        QComboBox* m_modeComboBox;
+        QRadioButton* m_modeCreateLastIdRadioButton;
         
-        QActionGroup* m_editOperationActionGroup;
+        QRadioButton* m_modeDeleteRadioButton;
         
-        QWidget* m_createOperationWidget;
-        
-        QWidget* m_editOperationWidget;
-        
-        QWidget* m_taskOperationWidget;
-        
-        QStackedWidget* m_operationStackedWidget;
+        QRadioButton* m_modePropertiesRadioButton;
         
         QString m_transformToolTipText;
         

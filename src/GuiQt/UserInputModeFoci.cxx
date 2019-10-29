@@ -66,8 +66,7 @@ UserInputModeFoci::UserInputModeFoci(const int32_t windowIndex)
 {
     m_inputModeFociWidget = new UserInputModeFociWidget(this,
                                                         windowIndex);
-    m_mode = MODE_CREATE;
-    m_editOperation = EDIT_OPERATION_PROPERTIES;
+    m_mode = MODE_CREATE_AT_ID;
     setWidgetForToolBar(m_inputModeFociWidget);
 }
 
@@ -101,26 +100,6 @@ UserInputModeFoci::setMode(const Mode mode)
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_windowIndex).getPointer());
     }
     this->m_inputModeFociWidget->updateWidget();
-}
-
-/**
- * @return The edit operation.
- */
-UserInputModeFoci::EditOperation
-UserInputModeFoci::getEditOperation() const
-{
-    return m_editOperation;
-}
-
-/**
- * Set the edit operation.
- * @param editOperation
- *   New edit operation.
- */
-void
-UserInputModeFoci::setEditOperation(const EditOperation editOperation)
-{
-    m_editOperation = editOperation;
 }
 
 /**
@@ -161,21 +140,13 @@ UserInputModeFoci::getCursor() const
     CursorEnum::Enum cursor = CursorEnum::CURSOR_DEFAULT;
     
     switch (m_mode) {
-        case MODE_CREATE:
+        case MODE_CREATE_AT_ID:
+            break;
+        case MODE_DELETE:
+            cursor = CursorEnum::CURSOR_CROSS;
             break;
         case MODE_EDIT:
-            cursor = CursorEnum::CURSOR_POINTING_HAND;
-            switch (m_editOperation) {
-                case EDIT_OPERATION_DELETE:
-                    cursor = CursorEnum::CURSOR_CROSS;
-                    break;
-                case EDIT_OPERATION_PROPERTIES:
-                    cursor = CursorEnum::CURSOR_WHATS_THIS;
-                    break;
-            }
-            break;
-        case MODE_OPERATIONS:
-            cursor = CursorEnum::CURSOR_POINTING_HAND;
+            cursor = CursorEnum::CURSOR_WHATS_THIS;
             break;
     }
     
@@ -233,7 +204,7 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
                                         true);
     
     switch (m_mode) {
-        case MODE_CREATE:
+        case MODE_CREATE_AT_ID:
         {
             SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
             SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
@@ -285,6 +256,7 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
                                                         m_inputModeFociWidget);
             }
         }            break;
+        case MODE_DELETE:
         case MODE_EDIT:
         {
             FociFile* fociFile = NULL;
@@ -308,22 +280,25 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
             
             if ((fociFile != NULL)
                 && (focus != NULL)) {
-                switch (m_editOperation) {
-                    case EDIT_OPERATION_DELETE:
+                switch (m_mode) {
+                    case MODE_CREATE_AT_ID:
+                        break;
+                    case MODE_DELETE:
+                    {
                         fociFile->removeFocus(focus);
                         updateAfterFociChanged();
+                    }
                         break;
-                    case EDIT_OPERATION_PROPERTIES:
+                    case MODE_EDIT:
                     {
                         FociPropertiesEditorDialog::editFocus(fociFile,
                                                               focus,
                                                               openGLWidget);
                     }
+                        break;
                 }
             }
         }
-            break;
-        case MODE_OPERATIONS:
             break;
     }
 }

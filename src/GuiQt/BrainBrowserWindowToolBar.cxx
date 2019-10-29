@@ -464,7 +464,11 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
 
     this->annotateModeWidget = this->userInputAnnotationsModeProcessor->getWidgetForToolBar();
     this->bordersModeWidget = this->userInputBordersModeProcessor->getWidgetForToolBar();
-    this->fociModeWidget = this->userInputFociModeProcessor->getWidgetForToolBar();
+    this->fociModeWidget = createToolWidget("Foci Operations",
+                                            this->userInputFociModeProcessor->getWidgetForToolBar(),
+                                            WIDGET_PLACEMENT_NONE,
+                                            WIDGET_PLACEMENT_TOP,
+                                            0);
     this->imageModeWidget = this->userInputImageModeProcessor->getWidgetForToolBar();
     this->tileModeWidget = this->userInputTileTabsManualLayoutProcessor->getWidgetForToolBar();
     this->volumeModeWidget = this->userInputVolumeEditModeProcessor->getWidgetForToolBar();
@@ -515,9 +519,9 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     
     this->toolbarWidgetLayout->addWidget(this->annotateModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
 
-    this->toolbarWidgetLayout->addWidget(this->bordersModeWidget, 0, Qt::AlignLeft); //) | Qt::AlignTop);
+    this->toolbarWidgetLayout->addWidget(this->bordersModeWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->fociModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
+    this->toolbarWidgetLayout->addWidget(this->fociModeWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->imageModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
     

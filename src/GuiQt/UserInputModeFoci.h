@@ -37,14 +37,9 @@ namespace caret {
         
     public:
         enum Mode {
-            MODE_CREATE,
-            MODE_EDIT,
-            MODE_OPERATIONS
-        };
-        
-        enum EditOperation {
-            EDIT_OPERATION_DELETE,
-            EDIT_OPERATION_PROPERTIES
+            MODE_CREATE_AT_ID,
+            MODE_DELETE,
+            MODE_EDIT
         };
         
         UserInputModeFoci(const int32_t windowIndex);
@@ -81,10 +76,6 @@ namespace caret {
         
         void setMode(const Mode mode);
         
-        EditOperation getEditOperation() const;
-        
-        void setEditOperation(const EditOperation editOperation);
-        
         void updateAfterFociChanged();
         
         Surface* getAnatomicalSurfaceForSurface(Surface* surface);
@@ -96,8 +87,6 @@ namespace caret {
         UserInputModeFociWidget* m_inputModeFociWidget;
         
         Mode m_mode;
-        
-        EditOperation m_editOperation;
     };
     
 #ifdef __USER_INPUT_MODE_FOCI_DECLARE__
