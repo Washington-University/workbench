@@ -67,6 +67,10 @@ Copyright (C) 2008 Sam Hocevar <sam@zoy.org>
 Copyright (C) 2008 Sean Morrison <learner@brlcad.org>
 licensed under Expat, see FtglFont/COPYING
 
+GLMath/*
+Copyright (c) 2005 - 2014 G-Truc Creation
+licensed under "Happy Bunny" or Expat, see GLMath/copying.txt
+
 Common/Base64.*, Common/DataCompressZLib.*, Common/MathFunctions.*, Nifti/Matrix4x4.cxx:
 use code from VTK, http://www.kitware.com/opensource/vtk.html or http://www.vtk.org/
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
