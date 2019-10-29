@@ -49,6 +49,7 @@
 #include "BorderPropertiesEditorDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
+#include "BrainBrowserWindowToolBar.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -120,23 +121,20 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     this->operationStackedWidget->addWidget(this->widgetEditOperation);
     this->operationStackedWidget->addWidget(this->widgetRoiOperation);
 
-    /*
-     * Using a grid layout allows the vertical bar to stretch down.
-     * In a box layout, stretching is in box's orientation.
-     */
-    QGridLayout* gridLayout = new QGridLayout(this);
-    gridLayout->setContentsMargins(2, 2, 2, 2);
-    gridLayout->setVerticalSpacing(0);
-    gridLayout->addWidget(this->widgetMode,
-                          0, 0, Qt::AlignTop);
-    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
-                          0, 1, 2, 1);
-    gridLayout->addWidget(this->operationStackedWidget,
-                          0, 2, Qt::AlignTop);
-    gridLayout->setRowStretch(0, 0);
-    gridLayout->setRowStretch(1, 0);
-    gridLayout->setRowStretch(2, 100);
-
+    QHBoxLayout* layout = new QHBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
+    layout->addWidget(BrainBrowserWindowToolBar::createToolWidget("Border<br>Mode",
+                                                                  this->widgetMode,
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_RIGHT,
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
+                                                                  0));
+    layout->addWidget(BrainBrowserWindowToolBar::createToolWidget("Border<br>Operations",
+                                                                  this->operationStackedWidget,
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_NONE,
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
+                                                                  0));
+    layout->addStretch();
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
 }
 

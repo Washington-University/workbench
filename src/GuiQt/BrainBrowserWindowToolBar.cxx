@@ -463,12 +463,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->selectedUserInputProcessor->initialize();
 
     this->annotateModeWidget = this->userInputAnnotationsModeProcessor->getWidgetForToolBar();
-//    this->bordersModeWidget = this->userInputBordersModeProcessor->getWidgetForToolBar();
-    this->bordersModeWidget = createToolWidget("Border Operations",
-                                               this->userInputBordersModeProcessor->getWidgetForToolBar(),
-                                               WIDGET_PLACEMENT_NONE,
-                                               WIDGET_PLACEMENT_TOP,
-                                               0);
+    this->bordersModeWidget = this->userInputBordersModeProcessor->getWidgetForToolBar();
     this->fociModeWidget = this->userInputFociModeProcessor->getWidgetForToolBar();
     this->imageModeWidget = this->userInputImageModeProcessor->getWidgetForToolBar();
     this->tileModeWidget = this->userInputTileTabsManualLayoutProcessor->getWidgetForToolBar();
