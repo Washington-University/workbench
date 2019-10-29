@@ -469,7 +469,11 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
                                             WIDGET_PLACEMENT_NONE,
                                             WIDGET_PLACEMENT_TOP,
                                             0);
-    this->imageModeWidget = this->userInputImageModeProcessor->getWidgetForToolBar();
+    this->imageModeWidget = createToolWidget("Image Operations",
+                                             this->userInputImageModeProcessor->getWidgetForToolBar(),
+                                             WIDGET_PLACEMENT_NONE,
+                                             WIDGET_PLACEMENT_TOP,
+                                             0);
     this->tileModeWidget = this->userInputTileTabsManualLayoutProcessor->getWidgetForToolBar();
     this->volumeModeWidget = this->userInputVolumeEditModeProcessor->getWidgetForToolBar();
     
@@ -517,17 +521,17 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     
     this->toolbarWidgetLayout->addWidget(this->windowWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->annotateModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
+    this->toolbarWidgetLayout->addWidget(this->annotateModeWidget, 0, Qt::AlignLeft);
 
     this->toolbarWidgetLayout->addWidget(this->bordersModeWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->fociModeWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->imageModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
+    this->toolbarWidgetLayout->addWidget(this->imageModeWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->tileModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
+    this->toolbarWidgetLayout->addWidget(this->tileModeWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->volumeModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
+    this->toolbarWidgetLayout->addWidget(this->volumeModeWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addStretch();
 

@@ -26,7 +26,9 @@
 
 #include "AString.h"
 
+class QAbstractButton;
 class QActionGroup;
+class QRadioButton;
 class QToolButton;
 
 namespace caret {
@@ -53,17 +55,12 @@ namespace caret {
         
         void deleteAllActionTriggered();
         
-        void editOperationActionTriggered(QAction*);
-        
+        void addDeleteRadioButtonClicked(QAbstractButton* button);
+
     private:
         UserInputModeImageWidget(const UserInputModeImageWidget&);
 
         UserInputModeImageWidget& operator=(const UserInputModeImageWidget&);
-        
-        QWidget* createEditOperationWidget();
-        
-        void setActionGroupByActionData(QActionGroup* actionGroup,
-                                        const int dataInteger);
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -71,13 +68,13 @@ namespace caret {
         
         const int32_t m_windowIndex;
         
-        QActionGroup* m_editOperationActionGroup;
+        QRadioButton* m_addControlPointRadioButton;
+        
+        QRadioButton* m_deleteControlPointRadioButton;
         
         QToolButton* m_deleteAllToolButton;
         
         QToolButton* m_convertToolButton;
-        
-        QWidget* m_editOperationWidget;
         
         QString m_transformToolTipText;
         

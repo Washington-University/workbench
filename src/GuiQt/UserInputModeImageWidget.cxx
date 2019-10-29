@@ -21,9 +21,11 @@
 
 #include <QAction>
 #include <QActionGroup>
+#include <QButtonGroup>
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QRadioButton>
 #include <QStackedWidget>
 #include <QToolButton>
 
@@ -92,118 +94,41 @@ UserInputModeImageWidget::UserInputModeImageWidget(UserInputModeImage* inputMode
                               );
     
     m_inputModeImage = inputModeImage;
-    QLabel* nameLabel = new QLabel("Image Control Points ");
     
-    m_editOperationWidget = createEditOperationWidget();
-    
-    
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addWidget(nameLabel);
-    layout->addSpacing(10);
-    layout->addWidget(m_editOperationWidget);
-    layout->addStretch();
-}
-
-/**
- * Destructor.
- */
-UserInputModeImageWidget::~UserInputModeImageWidget()
-{
-    
-}
-
-/**
- * Update the contents of the widget.
- */
-void
-UserInputModeImageWidget::updateWidget()
-{
-    setActionGroupByActionData(m_editOperationActionGroup,
-                               (int)m_inputModeImage->getEditOperation());
-}
-
-/**
- * Set the action with its data value of the given integer
- * as the active action.
- * @param actionGroup
- *   Action group for which action is selected.
- * @param dataInteger
- *   Integer value for data attribute.
- */
-void
-UserInputModeImageWidget::setActionGroupByActionData(QActionGroup* actionGroup,
-                                                       const int dataInteger)
-{
-    actionGroup->blockSignals(true);
-    const QList<QAction*> actionList = actionGroup->actions();
-    QListIterator<QAction*> iter(actionList);
-    while (iter.hasNext()) {
-        QAction* action = iter.next();
-        const int actionDataInteger = action->data().toInt();
-        if (dataInteger == actionDataInteger) {
-            action->setChecked(true);
-            break;
-        }
-    }
-    actionGroup->blockSignals(false);
-}
-
-
-/**
- * @return The edit widget.
- */
-QWidget*
-UserInputModeImageWidget::createEditOperationWidget()
-{
     /*
      * Add button
      */
     const AString addToolTipText = ("Click the mouse over an image and volume slice "
                                     "to add a control point."
                                     + m_transformToolTipText);
-    QAction* addAction = WuQtUtilities::createAction("Add",
-                                                     WuQtUtilities::createWordWrappedToolTipText(addToolTipText),
-                                                     this);
-    addAction->setCheckable(true);
-    addAction->setData(static_cast<int>(UserInputModeImage::EDIT_OPERATION_ADD));
-    QToolButton* addToolButton = new QToolButton();
-    addToolButton->setDefaultAction(addAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(addToolButton);
+    
+    m_addControlPointRadioButton = new QRadioButton("Add");
+    m_addControlPointRadioButton->setChecked(true);
+    m_addControlPointRadioButton->setToolTip(addToolTipText);
     
     /*
      * Delete button
      */
     const AString deleteToolTipText = ("Delete a control point by clicking the mouse over the control point."
-                               + m_transformToolTipText);
-    QAction* deleteAction = WuQtUtilities::createAction("Delete",
-                                                        WuQtUtilities::createWordWrappedToolTipText(deleteToolTipText),
-                                                        this);
-    deleteAction->setCheckable(true);
-    deleteAction->setData(static_cast<int>(UserInputModeImage::EDIT_OPERATION_DELETE));
-    QToolButton* deleteToolButton = new QToolButton();
-    deleteToolButton->setDefaultAction(deleteAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(deleteToolButton);
+                                       + m_transformToolTipText);
+    m_deleteControlPointRadioButton = new QRadioButton("Delete");
     
-    /*
-     * Action group to make add/delete actions mutually exclusive
-     */
-    m_editOperationActionGroup = new QActionGroup(this);
-    m_editOperationActionGroup->addAction(deleteAction);
-    m_editOperationActionGroup->addAction(addAction);
-    m_editOperationActionGroup->setExclusive(true);
-    QObject::connect(m_editOperationActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(editOperationActionTriggered(QAction*)));
+    QButtonGroup* addDeleteButtonGroup = new QButtonGroup(this);
+    addDeleteButtonGroup->addButton(m_addControlPointRadioButton);
+    addDeleteButtonGroup->addButton(m_deleteControlPointRadioButton);
+    QObject::connect(addDeleteButtonGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked),
+                     this, &UserInputModeImageWidget::addDeleteRadioButtonClicked);
+    
     
     /*
      * Convert button
      */
     const AString convertToolTipText = ("Convert image to volume");
     QAction* convertAction = WuQtUtilities::createAction("Convert...",
-                                                           WuQtUtilities::createWordWrappedToolTipText(convertToolTipText),
-                                                           this,
-                                                           this,
-                                                           SLOT(convertActionTriggered()));
+                                                         WuQtUtilities::createWordWrappedToolTipText(convertToolTipText),
+                                                         this,
+                                                         this,
+                                                         SLOT(convertActionTriggered()));
     convertAction->setCheckable(false);
     m_convertToolButton = new QToolButton();
     m_convertToolButton->setDefaultAction(convertAction);
@@ -223,20 +148,42 @@ UserInputModeImageWidget::createEditOperationWidget()
     m_deleteAllToolButton->setDefaultAction(deleteAllAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_deleteAllToolButton);
     
+    QLabel* mouseModeLabel = new QLabel("Control Points:");
     
-    QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
+    QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
-    layout->addWidget(addToolButton);
-    layout->addWidget(deleteToolButton);
-    layout->addSpacing(15);
+    layout->addWidget(mouseModeLabel);
+    layout->addWidget(m_addControlPointRadioButton);
+    layout->addWidget(m_deleteControlPointRadioButton);
+    layout->addSpacing(10);
     layout->addWidget(m_deleteAllToolButton);
-    layout->addSpacing(35);
+    layout->addSpacing(12);
     layout->addWidget(m_convertToolButton);
     layout->addStretch();
+}
+
+/**
+ * Destructor.
+ */
+UserInputModeImageWidget::~UserInputModeImageWidget()
+{
     
-//    widget->setFixedWidth(widget->sizeHint().width());
-    return widget;
+}
+
+/**
+ * Update the contents of the widget.
+ */
+void
+UserInputModeImageWidget::updateWidget()
+{
+    switch (m_inputModeImage->getEditOperation()) {
+        case UserInputModeImage::EDIT_OPERATION_ADD:
+            m_addControlPointRadioButton->setChecked(true);
+            break;
+        case UserInputModeImage::EDIT_OPERATION_DELETE:
+            m_deleteControlPointRadioButton->setChecked(true);
+            break;
+    }
 }
 
 /**
@@ -276,17 +223,22 @@ UserInputModeImageWidget::deleteAllActionTriggered()
     }
 }
 
-
 /**
- * Called when an edit operation button is selected.
- * @param action
- *     Action that was selected.
+ * Called when a add/delete  radio button is selected..
+ * @param button
+ *   button selected.
  */
 void
-UserInputModeImageWidget::editOperationActionTriggered(QAction* action)
+UserInputModeImageWidget::addDeleteRadioButtonClicked(QAbstractButton* button)
 {
-    const int editModeInteger = action->data().toInt();
-    const UserInputModeImage::EditOperation editOperation = static_cast<UserInputModeImage::EditOperation>(editModeInteger);
-    m_inputModeImage->setEditOperation(editOperation);
+    if (button == m_addControlPointRadioButton) {
+        m_inputModeImage->setEditOperation(UserInputModeImage::EDIT_OPERATION_ADD);
+    }
+    else if (button == m_deleteControlPointRadioButton) {
+        m_inputModeImage->setEditOperation(UserInputModeImage::EDIT_OPERATION_DELETE);
+    }
+    else {
+        CaretAssert(0);
+    }
 }
 
