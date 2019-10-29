@@ -27,9 +27,10 @@
 #include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
 
+class QAbstractButton;
 class QAction;
-class QActionGroup;
 class QComboBox;
+class QRadioButton;
 class QStackedWidget;
 class QToolButton;
 
@@ -64,15 +65,17 @@ namespace caret {
         
     private slots:
         void adjustViewActionTriggered();
-        void drawOperationActionTriggered(QAction*);
-        void editOperationActionTriggered(QAction*);
-        
-        void modeComboBoxSelection(int);
         
         void drawResetButtonClicked();
         void drawUndoButtonClicked();
         void drawUndoLastEditButtonClicked();
         void drawFinishButtonClicked();
+        
+        void modeRadioButtonClicked(QAbstractButton* button);
+        
+        void drawRadioButtonClicked(QAbstractButton* button);
+        
+        void editRadioButtonClicked(QAbstractButton* button);
         
     private:
         class BorderFileAndBorderMemento {
@@ -91,13 +94,6 @@ namespace caret {
 
         UserInputModeBordersWidget& operator=(const UserInputModeBordersWidget&);
         
-        void setActionGroupByActionData(QActionGroup* actionGroup, 
-                                        const int dataInteger);
-        
-        QActionGroup* drawOperationActionGroup;
-        
-        QActionGroup* editOperationActionGroup;
-        
         QWidget* createModeWidget();
         
         QWidget* createDrawOperationWidget();
@@ -115,7 +111,25 @@ namespace caret {
                                        Surface* surface,
                                        Border* borderDrawnByUser);
         
-        QComboBox* modeComboBox;
+        QRadioButton* m_modeDrawRadioButton;
+        
+        QRadioButton* m_modeEditRadioButton;
+        
+        QRadioButton* m_modeRoiRadioButton;
+        
+        QRadioButton* m_drawNewRadioButton;
+        
+        QRadioButton* m_drawEraseRadioButton;
+        
+        QRadioButton* m_drawExtendRadioButton;
+        
+        QRadioButton* m_drawOptimizeRadioButton;
+        
+        QRadioButton* m_drawReplaceRadioButton;
+        
+        QRadioButton* m_editDeleteRadioButton;
+        
+        QRadioButton* m_editPropertiesRadioButton;
         
         QWidget* widgetMode;
         

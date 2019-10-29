@@ -23,13 +23,14 @@
 #include <memory>
 
 #include <QAction>
-#include <QActionGroup>
 #include <QBoxLayout>
-#include <QCheckBox>
+#include <QButtonGroup>
 #include <QComboBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QInputDialog>
 #include <QLabel>
+#include <QRadioButton>
 #include <QStackedWidget>
 #include <QToolButton>
 
@@ -105,10 +106,7 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     
     this->inputModeBorders = inputModeBorders;
     
-    QLabel* nameLabel = new QLabel("Borders ");
-    
     this->widgetMode = this->createModeWidget();
-    
     resetLastEditedBorder();
     
     this->widgetDrawOperation = this->createDrawOperationWidget();
@@ -121,23 +119,24 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     this->operationStackedWidget->addWidget(this->widgetDrawOperation);
     this->operationStackedWidget->addWidget(this->widgetEditOperation);
     this->operationStackedWidget->addWidget(this->widgetRoiOperation);
-    
-    QGridLayout* layout = new QGridLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->setColumnStretch(0,   0);
-    layout->setColumnStretch(1,   0);
-    layout->setColumnStretch(2, 100);
-    int32_t row(0);
-    layout->addWidget(nameLabel,
-                      row, 0);
-    layout->addWidget(this->widgetMode,
-                      row, 1);
-    row++;
-    layout->addWidget(this->operationStackedWidget,
-                      row, 0, 1, 3, Qt::AlignLeft);
-    row++;
-    layout->setRowStretch(row, 100);
-    
+
+    /*
+     * Using a grid layout allows the vertical bar to stretch down.
+     * In a box layout, stretching is in box's orientation.
+     */
+    QGridLayout* gridLayout = new QGridLayout(this);
+    gridLayout->setContentsMargins(2, 2, 2, 2);
+    gridLayout->setVerticalSpacing(0);
+    gridLayout->addWidget(this->widgetMode,
+                          0, 0, Qt::AlignTop);
+    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
+                          0, 1, 2, 1);
+    gridLayout->addWidget(this->operationStackedWidget,
+                          0, 2, Qt::AlignTop);
+    gridLayout->setRowStretch(0, 0);
+    gridLayout->setRowStretch(1, 0);
+    gridLayout->setRowStretch(2, 100);
+
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
 }
 
@@ -185,53 +184,43 @@ UserInputModeBordersWidget::updateWidget()
     switch (this->inputModeBorders->getMode()) {
         case UserInputModeBorders::MODE_DRAW:
             this->operationStackedWidget->setCurrentWidget(this->widgetDrawOperation);
-            this->setActionGroupByActionData(this->drawOperationActionGroup,
-                                             inputModeBorders->getDrawOperation());
             resetLastEditedBorder();
             break;
         case UserInputModeBorders::MODE_EDIT:
             this->operationStackedWidget->setCurrentWidget(this->widgetEditOperation);
-            this->setActionGroupByActionData(this->editOperationActionGroup, 
-                                             inputModeBorders->getEditOperation());
             break;
         case UserInputModeBorders::MODE_ROI:
             this->operationStackedWidget->setCurrentWidget(this->widgetRoiOperation);
             resetLastEditedBorder();
             break;
     }
-    const int selectedModeInteger = (int)this->inputModeBorders->getMode();
-
-    const int modeComboBoxIndex = this->modeComboBox->findData(selectedModeInteger);
-    CaretAssert(modeComboBoxIndex >= 0);
-    this->modeComboBox->blockSignals(true);
-    this->modeComboBox->setCurrentIndex(modeComboBoxIndex);
-    this->modeComboBox->blockSignals(false);
-}
-
-/**
- * Set the action with its data value of the given integer
- * as the active action.
- * @param actionGroup
- *   Action group for which action is selected.
- * @param dataInteger
- *   Integer value for data attribute.
- */
-void 
-UserInputModeBordersWidget::setActionGroupByActionData(QActionGroup* actionGroup, 
-                                                       const int dataInteger)
-{
-    actionGroup->blockSignals(true);
-    const QList<QAction*> actionList = actionGroup->actions();
-    QListIterator<QAction*> iter(actionList);
-    while (iter.hasNext()) {
-        QAction* action = iter.next();
-        const int actionDataInteger = action->data().toInt();
-        if (dataInteger == actionDataInteger) {
-            action->setChecked(true);
+    
+    switch (this->inputModeBorders->getDrawOperation()) {
+        case UserInputModeBorders::DRAW_OPERATION_CREATE:
+            m_drawNewRadioButton->setChecked(true);
             break;
-        }
+        case UserInputModeBorders::DRAW_OPERATION_ERASE:
+            m_drawEraseRadioButton->setChecked(true);
+            break;
+        case UserInputModeBorders::DRAW_OPERATION_EXTEND:
+            m_drawExtendRadioButton->setChecked(true);
+            break;
+        case UserInputModeBorders::DRAW_OPERATION_OPTIMIZE:
+            m_drawOptimizeRadioButton->setChecked(true);
+            break;
+        case UserInputModeBorders::DRAW_OPERATION_REPLACE:
+            m_drawReplaceRadioButton->setChecked(true);
+            break;
     }
-    actionGroup->blockSignals(false);
+    
+    switch (this->inputModeBorders->getEditOperation()) {
+        case UserInputModeBorders::EDIT_OPERATION_DELETE:
+            m_editDeleteRadioButton->setChecked(true);
+            break;
+        case UserInputModeBorders::EDIT_OPERATION_PROPERTIES:
+            m_editPropertiesRadioButton->setChecked(true);
+            break;
+    }
 }
 
 /**
@@ -240,36 +229,56 @@ UserInputModeBordersWidget::setActionGroupByActionData(QActionGroup* actionGroup
 QWidget* 
 UserInputModeBordersWidget::createModeWidget()
 {
-    this->modeComboBox = new QComboBox();
-    this->modeComboBox->addItem("Draw", (int)UserInputModeBorders::MODE_DRAW);
-    this->modeComboBox->addItem("Edit", (int)UserInputModeBorders::MODE_EDIT);
-    this->modeComboBox->addItem("ROI", (int)UserInputModeBorders::MODE_ROI);
-    QObject::connect(this->modeComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(modeComboBoxSelection(int)));
-        
-    QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
-    layout->addWidget(this->modeComboBox);
+    m_modeDrawRadioButton = new QRadioButton("Draw");
+    m_modeDrawRadioButton->setChecked(true);
     
+    m_modeEditRadioButton = new QRadioButton("Edit");
+    
+    m_modeRoiRadioButton = new QRadioButton("ROI");
+    
+    QButtonGroup* buttonGroup = new QButtonGroup(this);
+    buttonGroup->addButton(m_modeDrawRadioButton);
+    buttonGroup->addButton(m_modeEditRadioButton);
+    buttonGroup->addButton(m_modeRoiRadioButton);
+    QObject::connect(buttonGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked),
+                     this, &UserInputModeBordersWidget::modeRadioButtonClicked);
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
+    layout->addWidget(m_modeDrawRadioButton);
+    layout->addWidget(m_modeEditRadioButton);
+    layout->addWidget(m_modeRoiRadioButton);
+    layout->addStretch();
+
     widget->setFixedWidth(widget->sizeHint().width());
     
     return widget;
 }
 
 /**
- * Called when a mode is selected from the mode combo box.
- * @param indx
- *   Index of item selected.
+ * Called when a mode radio button is selected..
+ * @param button
+ *   button selected.
  */
-void 
-UserInputModeBordersWidget::modeComboBoxSelection(int indx)
+void
+UserInputModeBordersWidget::modeRadioButtonClicked(QAbstractButton* button)
 {
-    const int modeInteger = this->modeComboBox->itemData(indx).toInt();
-    const UserInputModeBorders::Mode mode = (UserInputModeBorders::Mode)modeInteger;
-    this->inputModeBorders->setMode(mode);
+    if (button == m_modeDrawRadioButton) {
+        this->inputModeBorders->setMode(UserInputModeBorders::MODE_DRAW);
+    }
+    else if (button == m_modeEditRadioButton) {
+        this->inputModeBorders->setMode(UserInputModeBorders::MODE_EDIT);
+    }
+    else if (button == m_modeRoiRadioButton) {
+        this->inputModeBorders->setMode(UserInputModeBorders::MODE_ROI);
+    }
+    else {
+        CaretAssert(0);
+    }
     resetLastEditedBorder();
 }
+
 
 /**
  * @return The draw operation widget.
@@ -288,14 +297,9 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                  "or hold down the Shift key and click the mouse to display a "
                                  "dialog for assigning the borders attributes (name and color). "
                                      + m_transformToolTipText);
-    QAction* drawAction = WuQtUtilities::createAction("New",
-                                                      WuQtUtilities::createWordWrappedToolTipText(drawToolTipText),
-                                                      this);
-    drawAction->setCheckable(true);
-    drawAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_CREATE));
-    QToolButton* drawToolButton = new QToolButton();
-    drawToolButton->setDefaultAction(drawAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(drawToolButton);
+    m_drawNewRadioButton = new QRadioButton("New");
+    WuQtUtilities::setWordWrappedToolTip(m_drawNewRadioButton,
+                                         drawToolTipText);
     
     /*
      * Erase
@@ -306,14 +310,9 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                       "Press the Finish button or hold down the Shift key and click the "
                                       "mouse remove the border section."
                                       + m_transformToolTipText);
-    QAction* eraseAction = WuQtUtilities::createAction("Erase",
-                                                       WuQtUtilities::createWordWrappedToolTipText(eraseToolTipText),
-                                                       this);
-    eraseAction->setCheckable(true);
-    eraseAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_ERASE));
-    QToolButton* eraseToolButton = new QToolButton();
-    eraseToolButton->setDefaultAction(eraseAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(eraseToolButton);
+    m_drawEraseRadioButton = new QRadioButton("Erase");
+    WuQtUtilities::setWordWrappedToolTip(m_drawEraseRadioButton,
+                                         eraseToolTipText);
     
     /*
      * Extend
@@ -328,14 +327,9 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                        "from that point to the nearest end point in the border and then the extension "
                                        "will be added."
                                        + m_transformToolTipText);
-    QAction* extendAction = WuQtUtilities::createAction("Extend", 
-                                                        WuQtUtilities::createWordWrappedToolTipText(extendToolTipText),
-                                                        this);
-    extendAction->setCheckable(true);
-    extendAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_EXTEND));
-    QToolButton* extendToolButton = new QToolButton();
-    extendToolButton->setDefaultAction(extendAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(extendToolButton);
+    m_drawExtendRadioButton = new QRadioButton("Extend");
+    WuQtUtilities::setWordWrappedToolTip(m_drawExtendRadioButton,
+                                         extendToolTipText);
     
     /*
      * Replace
@@ -350,14 +344,9 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                         "Both the first point and the last point in the segment must "
                                         "overlap points in the border."
                                         + m_transformToolTipText);
-    QAction* replaceAction = WuQtUtilities::createAction("Replace",
-                                                         WuQtUtilities::createWordWrappedToolTipText(replaceToolTipText),
-                                                         this);
-    replaceAction->setCheckable(true);
-    replaceAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_REPLACE));
-    QToolButton* replaceToolButton = new QToolButton();
-    replaceToolButton->setDefaultAction(replaceAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(replaceToolButton);
+    m_drawReplaceRadioButton = new QRadioButton("Replace");
+    WuQtUtilities::setWordWrappedToolTip(m_drawReplaceRadioButton,
+                                         replaceToolTipText);
     
     /*
      * Optimize
@@ -365,15 +354,19 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     const AString optimizeToolTipText("A new border optimization process automatically repositions a manually drawn "
                                       "border segment to follow the most probable path based on spatial gradients of "
                                       "a set of user-selected feature maps (useful for cortical parcellation).");
-    QAction* optimizeAction = WuQtUtilities::createAction("Optimize",
-                                                          WuQtUtilities::createWordWrappedToolTipText(optimizeToolTipText),
-                                                          this);
-    optimizeAction->setCheckable(true);
-    optimizeAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_OPTIMIZE));
-    QToolButton* optimizeToolButton = new QToolButton();
-    optimizeToolButton->setDefaultAction(optimizeAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(optimizeToolButton);
+    m_drawOptimizeRadioButton = new QRadioButton("Optimize");
+    WuQtUtilities::setWordWrappedToolTip(m_drawOptimizeRadioButton,
+                                         optimizeToolTipText);
     
+    QButtonGroup* drawButtonGroup = new QButtonGroup(this);
+    drawButtonGroup->addButton(m_drawNewRadioButton);
+    drawButtonGroup->addButton(m_drawEraseRadioButton);
+    drawButtonGroup->addButton(m_drawExtendRadioButton);
+    drawButtonGroup->addButton(m_drawOptimizeRadioButton);
+    drawButtonGroup->addButton(m_drawReplaceRadioButton);
+    QObject::connect(drawButtonGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked),
+                     this, &UserInputModeBordersWidget::drawRadioButtonClicked);
+
     /*
      * Finish
      */
@@ -392,7 +385,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     /*
      * Undo
      */
-    QAction* undoAction = WuQtUtilities::createAction("Undo", 
+    QAction* undoAction = WuQtUtilities::createAction("Undo Point",
                                                       "Remove (undo) the last point in the\n"
                                                       "drawn border segment.  If the button\n"
                                                       "is held down, it will repeat removal\n"
@@ -430,30 +423,31 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     resetToolButton->setDefaultAction(resetAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
     
-    this->drawOperationActionGroup = new QActionGroup(this);
-    this->drawOperationActionGroup->addAction(drawAction);
-    this->drawOperationActionGroup->addAction(eraseAction);
-    this->drawOperationActionGroup->addAction(extendAction);
-    this->drawOperationActionGroup->addAction(optimizeAction);
-    this->drawOperationActionGroup->addAction(replaceAction);
-    this->drawOperationActionGroup->setExclusive(true);
-    QObject::connect(this->drawOperationActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(drawOperationActionTriggered(QAction*)));
+    
+    QVBoxLayout* modeLayout = new QVBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(modeLayout, 4, 2);
+    modeLayout->addWidget(m_drawNewRadioButton);
+    modeLayout->addWidget(m_drawEraseRadioButton);
+    modeLayout->addWidget(m_drawExtendRadioButton);
+    modeLayout->addWidget(m_drawOptimizeRadioButton);
+    modeLayout->addWidget(m_drawReplaceRadioButton);
+    modeLayout->addStretch();
+    
+    QVBoxLayout* finishUndoLayout = new QVBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(finishUndoLayout, 4, 2);
+    finishUndoLayout->addWidget(finishToolButton);
+    finishUndoLayout->addWidget(m_undoFinishToolButton);
+    finishUndoLayout->addWidget(undoToolButton);
+    finishUndoLayout->addSpacing(5);
+    finishUndoLayout->addWidget(resetToolButton);
+    finishUndoLayout->addStretch();
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
-    layout->addWidget(drawToolButton);
-    layout->addWidget(eraseToolButton);
-    layout->addWidget(extendToolButton);
-    layout->addWidget(optimizeToolButton);
-    layout->addWidget(replaceToolButton);
-    layout->addSpacing(10);
-    layout->addWidget(finishToolButton);
-    layout->addWidget(m_undoFinishToolButton);
-    layout->addSpacing(10);
-    layout->addWidget(undoToolButton);
-    layout->addWidget(resetToolButton);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+    layout->addLayout(modeLayout);
+    layout->addLayout(finishUndoLayout);
+    layout->addStretch();
     
     widget->setFixedWidth(widget->sizeHint().width());
     return widget;
@@ -976,17 +970,28 @@ UserInputModeBordersWidget::adjustViewActionTriggered()
 }
 
 /**
- * Called when a draw mode button is clicked.
- * @param action
- *    Action that was triggered.
+ * Called when a draw radio button is clicked.
+ * @param button
+ *    Button that was clicked
  */
-void 
-UserInputModeBordersWidget::drawOperationActionTriggered(QAction* action)
+void
+UserInputModeBordersWidget::drawRadioButtonClicked(QAbstractButton* button)
 {
-    const int drawModeInteger = action->data().toInt();
-    const UserInputModeBorders::DrawOperation drawOperation = 
-        static_cast<UserInputModeBorders::DrawOperation>(drawModeInteger);
-    this->inputModeBorders->setDrawOperation(drawOperation);
+    if (button == m_drawNewRadioButton) {
+        this->inputModeBorders->setDrawOperation(UserInputModeBorders::DRAW_OPERATION_CREATE);
+    }
+    else if (button == m_drawEraseRadioButton) {
+        this->inputModeBorders->setDrawOperation(UserInputModeBorders::DRAW_OPERATION_ERASE);
+    }
+    else if (button == m_drawExtendRadioButton) {
+        this->inputModeBorders->setDrawOperation(UserInputModeBorders::DRAW_OPERATION_EXTEND);
+    }
+    else if (button == m_drawOptimizeRadioButton) {
+        this->inputModeBorders->setDrawOperation(UserInputModeBorders::DRAW_OPERATION_OPTIMIZE);
+    }
+    else if (button == m_drawReplaceRadioButton) {
+        this->inputModeBorders->setDrawOperation(UserInputModeBorders::DRAW_OPERATION_REPLACE);
+    }
 }
 
 /**
@@ -998,56 +1003,52 @@ UserInputModeBordersWidget::createEditOperationWidget()
     const AString deleteToolTipText = ("Delete a border by clicking the mouse over "
                                        "any point in the border."
                                        + m_transformToolTipText);
-    QAction* deleteAction = WuQtUtilities::createAction("Delete",
-                                                        WuQtUtilities::createWordWrappedToolTipText(deleteToolTipText),
-                                                        this);
-    deleteAction->setCheckable(true);
-    deleteAction->setData(static_cast<int>(UserInputModeBorders::EDIT_OPERATION_DELETE));
-    QToolButton* deleteToolButton = new QToolButton();
-    deleteToolButton->setDefaultAction(deleteAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(deleteToolButton);
+    m_editDeleteRadioButton = new QRadioButton("Delete");
+    WuQtUtilities::setWordWrappedToolTip(m_editDeleteRadioButton,
+                                         deleteToolTipText);
+    
     
     const AString propertiesToolTipText = ("A dialog for editing a border's properties is displayed by "
                                            "clicking any point in a border."
                                            + m_transformToolTipText);
-    QAction* propertiesAction = WuQtUtilities::createAction("Properties", 
-                                                         WuQtUtilities::createWordWrappedToolTipText(propertiesToolTipText),
-                                                         this);
-    propertiesAction->setCheckable(true);
-    propertiesAction->setData(static_cast<int>(UserInputModeBorders::EDIT_OPERATION_PROPERTIES));
-    QToolButton* propertiesToolButton = new QToolButton();
-    propertiesToolButton->setDefaultAction(propertiesAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(propertiesToolButton);
+    m_editPropertiesRadioButton = new QRadioButton("Properties");
+    WuQtUtilities::setWordWrappedToolTip(m_editPropertiesRadioButton,
+                                         propertiesToolTipText);
     
-    this->editOperationActionGroup = new QActionGroup(this);
-    this->editOperationActionGroup->addAction(deleteAction);
-    this->editOperationActionGroup->addAction(propertiesAction);
-    this->editOperationActionGroup->setExclusive(true);
-    QObject::connect(this->editOperationActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(editOperationActionTriggered(QAction*)));
+    QButtonGroup* editButtonGroup = new QButtonGroup(this);
+    editButtonGroup->addButton(m_editDeleteRadioButton);
+    editButtonGroup->addButton(m_editPropertiesRadioButton);
+    QObject::connect(editButtonGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked),
+                     this, &UserInputModeBordersWidget::editRadioButtonClicked);
     
     QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
-    layout->addWidget(deleteToolButton);
-    layout->addWidget(propertiesToolButton);
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
+    layout->addWidget(m_editDeleteRadioButton);
+    layout->addWidget(m_editPropertiesRadioButton);
+    layout->addStretch();
     
     widget->setFixedWidth(widget->sizeHint().width());
     return widget;
 }
 
 /**
- * Called when a edit button is clicked.
- * @param action
- *    Action that was triggered.
+ * Called when a edit radio button is clicked.
+ * @param button
+ *    Button that was clicked
  */
-void 
-UserInputModeBordersWidget::editOperationActionTriggered(QAction* action)
+void
+UserInputModeBordersWidget::editRadioButtonClicked(QAbstractButton* button)
 {
-    const int editModeInteger = action->data().toInt();
-    const UserInputModeBorders::EditOperation editOperation = 
-    static_cast<UserInputModeBorders::EditOperation>(editModeInteger);
-    this->inputModeBorders->setEditOperation(editOperation);
+    if (button == m_editDeleteRadioButton) {
+        this->inputModeBorders->setEditOperation(UserInputModeBorders::EDIT_OPERATION_DELETE);
+    }
+    else if (button == m_editPropertiesRadioButton) {
+        this->inputModeBorders->setEditOperation(UserInputModeBorders::EDIT_OPERATION_PROPERTIES);
+    }
+    else {
+        CaretAssert(0);
+    }
 }
 
 /**

@@ -125,10 +125,6 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
 
-    signals:
-        void viewedModelChanged();
-        
-    private:        
         enum WidgetPlacement {
             WIDGET_PLACEMENT_NONE,
             WIDGET_PLACEMENT_BOTTOM,
@@ -136,6 +132,17 @@ namespace caret {
             WIDGET_PLACEMENT_RIGHT,
             WIDGET_PLACEMENT_TOP
         };
+        
+        static QWidget* createToolWidget(const QString& name,
+                                         QWidget* childWidget,
+                                         const WidgetPlacement verticalBarPlacement,
+                                         const WidgetPlacement contentPlacement,
+                                         const int horizontalStretching);
+        
+    signals:
+        void viewedModelChanged();
+        
+    private:        
         
         BrainBrowserWindowToolBar(const BrainBrowserWindowToolBar&);
         BrainBrowserWindowToolBar& operator=(const BrainBrowserWindowToolBar&);
@@ -196,12 +203,6 @@ namespace caret {
         void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
         void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
         
-        QWidget* createToolWidget(const QString& name,
-                                  QWidget* childWidget,
-                                  const WidgetPlacement verticalBarPlacement,
-                                  const WidgetPlacement contentPlacement,
-                                  const int horizontalStretching);
-        
         QWidget* viewWidget;
         QWidget* orientationWidget;
         QWidget* wholeBrainSurfaceOptionsWidget;
@@ -230,6 +231,7 @@ namespace caret {
         UserInputModeTileTabsManualLayout* userInputTileTabsManualLayoutProcessor;
         UserInputModeVolumeEdit* userInputVolumeEditModeProcessor;
         
+        /* DO NOT delete these as the corresponding processor is the parent */
         QWidget* annotateModeWidget;
         QWidget* bordersModeWidget;
         QWidget* fociModeWidget;

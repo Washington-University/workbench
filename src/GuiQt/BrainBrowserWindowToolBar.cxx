@@ -463,7 +463,12 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->selectedUserInputProcessor->initialize();
 
     this->annotateModeWidget = this->userInputAnnotationsModeProcessor->getWidgetForToolBar();
-    this->bordersModeWidget = this->userInputBordersModeProcessor->getWidgetForToolBar();
+//    this->bordersModeWidget = this->userInputBordersModeProcessor->getWidgetForToolBar();
+    this->bordersModeWidget = createToolWidget("Border Operations",
+                                               this->userInputBordersModeProcessor->getWidgetForToolBar(),
+                                               WIDGET_PLACEMENT_NONE,
+                                               WIDGET_PLACEMENT_TOP,
+                                               0);
     this->fociModeWidget = this->userInputFociModeProcessor->getWidgetForToolBar();
     this->imageModeWidget = this->userInputImageModeProcessor->getWidgetForToolBar();
     this->tileModeWidget = this->userInputTileTabsManualLayoutProcessor->getWidgetForToolBar();
@@ -515,7 +520,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     
     this->toolbarWidgetLayout->addWidget(this->annotateModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
 
-    this->toolbarWidgetLayout->addWidget(this->bordersModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
+    this->toolbarWidgetLayout->addWidget(this->bordersModeWidget, 0, Qt::AlignLeft); //) | Qt::AlignTop);
     
     this->toolbarWidgetLayout->addWidget(this->fociModeWidget, 0, Qt::AlignLeft | Qt::AlignTop);
     
@@ -3038,6 +3043,7 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
             CaretAssert(0);
     }
     layout->addWidget(nameLabel, 2, 0, 1, 2, Qt::AlignHCenter);
+    layout->setRowStretch(2, 0);
     
     const bool addVerticalBarOnLeftSide = (verticalBarPlacement == WIDGET_PLACEMENT_LEFT);
     const bool addVerticalBarOnRightSide = (verticalBarPlacement == WIDGET_PLACEMENT_RIGHT);
