@@ -1,0 +1,5 @@
+Version is 0.9.9.6
+
+From the download, only need the 'glm' directory and the 'copying.txt' (license file).  Docs, Utils, and other stuff not needed.
+
+https://glm.g-truc.net/0.9.9/index.html
