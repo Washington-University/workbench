@@ -24,15 +24,18 @@
 #undef __USER_INPUT_MODE_VOLUME_EDIT_WIDGET_DECLARE__
 
 #include <QAction>
+#include <QButtonGroup>
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QRadioButton>
 #include <QSpinBox>
 #include <QToolButton>
 #include <QVBoxLayout>
 
 #include "Brain.h"
+#include "BrainBrowserWindowToolBar.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventDataFileAdd.h"
@@ -82,13 +85,20 @@ m_windowIndex(windowIndex)
 {
     CaretAssert(inputModeVolumeEdit);
     
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
-    layout->addWidget(createSelectionToolBar());
-    layout->addWidget(createModeToolBar());
+    layout->addWidget(BrainBrowserWindowToolBar::createToolWidget("Voxel Operation",
+                                                                  createOperationWidget(),
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_RIGHT,
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
+                                                                  0));
+    layout->addWidget(BrainBrowserWindowToolBar::createToolWidget("Options",
+                                                                  createSelectionToolBar(),
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_NONE,
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
+                                                                  0));
     layout->addStretch();
-    setSizePolicy(sizePolicy().horizontalPolicy(), QSizePolicy::Fixed);
-    
+  
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_VOLUME_EDITING_TOOLBAR);
 }
 
@@ -133,8 +143,8 @@ UserInputModeVolumeEditWidget::updateWidget()
         
         if (volumeEditInfo.m_volumeFile != NULL) {
             if (volumeEditInfo.m_volumeFile->isMappedWithLabelTable()) {
-                m_voxelLabelValueToolButton->setVisible(true);
-                m_voxelFloatValueSpinBox->setVisible(false);
+                m_voxelLabelValueToolButton->setEnabled(true);
+                m_voxelFloatValueSpinBox->setEnabled(false);
 
                 AString buttonText = m_voxelLabelValueAction->text();
                 GiftiLabelTable* labelTable = volumeEditInfo.m_volumeFile->getMapLabelTable(volumeEditInfo.m_mapIndex);
@@ -180,8 +190,8 @@ UserInputModeVolumeEditWidget::updateWidget()
                 isValid = true;
             }
             else if (volumeEditInfo.m_volumeFile->isMappedWithPalette()) {
-                m_voxelLabelValueToolButton->setVisible(false);
-                m_voxelFloatValueSpinBox->setVisible(true);
+                m_voxelLabelValueToolButton->setEnabled(false);
+                m_voxelFloatValueSpinBox->setEnabled(true);
                 isValid = true;
             }
             else if (volumeEditInfo.m_volumeFile->isMappedWithRGBA()) {
@@ -193,32 +203,15 @@ UserInputModeVolumeEditWidget::updateWidget()
             
             m_addMapsToolButton->defaultAction()->setEnabled(isValid);
             
-            const bool orthogonalFlag = (volumeEditInfo.m_sliceProjectionType
-                                         == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
-            
-            QList<QAction*> modeActions = m_volumeEditModeActionGroup->actions();
-            const int32_t numModeActions = modeActions.size();
-            for (int32_t i = 0; i < numModeActions; i++) {
-                QAction* action = modeActions.at(i);
-                
-                const int modeInt = action->data().toInt();
-                
-                bool validFlag = false;
-                VolumeEditingModeEnum::Enum mode = VolumeEditingModeEnum::fromIntegerCode(modeInt,
-                                                                                          &validFlag);
-                CaretAssert(validFlag);
-
-                bool modeEnabledFlag = false;
-                
-                if (orthogonalFlag) {
-                    modeEnabledFlag = true;
-                }
-                else {
-                    modeEnabledFlag = VolumeEditingModeEnum::isObliqueEditingAllowed(mode);
-                }
-                
-                action->setEnabled(modeEnabledFlag);
-            }
+            m_modeOnRadioButton->setEnabled(isModeButtonEnabled(VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON));
+            m_modeOffRadioButton->setEnabled(isModeButtonEnabled(VolumeEditingModeEnum::VOLUME_EDITING_MODE_OFF));
+            m_modeDilateRadioButton->setEnabled(isModeButtonEnabled(VolumeEditingModeEnum::VOLUME_EDITING_MODE_DILATE));
+            m_modeErodeRadioButton->setEnabled(isModeButtonEnabled(VolumeEditingModeEnum::VOLUME_EDITING_MODE_ERODE));
+            m_modeFillTwoDimRadioButton->setEnabled(isModeButtonEnabled(VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_2D));
+            m_modeFillThreeDimRadioButton->setEnabled(isModeButtonEnabled(VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_3D));
+            m_modeRemoveTwoDimRadioButton->setEnabled(isModeButtonEnabled(VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_2D));
+            m_modeRemoveThreeDimRadioButton->setEnabled(isModeButtonEnabled(VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_3D));
+            m_modeRetainThreeDimRadioButton->setEnabled(isModeButtonEnabled(VolumeEditingModeEnum::VOLUME_EDITING_MODE_RETAIN_CONNECTED_3D));
         }
     }
     
@@ -226,12 +219,38 @@ UserInputModeVolumeEditWidget::updateWidget()
 }
 
 /**
+ * @return True if the button for the given mode is valid
+ */
+bool
+UserInputModeVolumeEditWidget::isModeButtonEnabled(const VolumeEditingModeEnum::Enum mode) const
+{
+    bool modeEnabledFlag(false);
+    UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
+    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+        m_lockAction->setChecked(volumeEditInfo.m_volumeFileEditorDelegate->isLocked(volumeEditInfo.m_mapIndex));
+        
+        if (volumeEditInfo.m_volumeFile != NULL) {
+            const bool orthogonalFlag = (volumeEditInfo.m_sliceProjectionType
+                                         == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
+            if (orthogonalFlag) {
+                modeEnabledFlag = true;
+            }
+            else {
+                modeEnabledFlag = VolumeEditingModeEnum::isObliqueEditingAllowed(mode);
+            }
+        }
+    }
+    return modeEnabledFlag;
+}
+                                                
+
+/**
  * @return Create and return the selection toolbar.
  */
 QWidget*
 UserInputModeVolumeEditWidget::createSelectionToolBar()
 {
-    QLabel* volumeLabel = new QLabel("Volume:");
+    QLabel* volumeLabel = new QLabel("File");
     
     m_newFileToolButton = new QToolButton();
     m_newFileToolButton->setDefaultAction(WuQtUtilities::createAction("New",
@@ -258,34 +277,10 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     WuQtUtilities::setToolButtonStyleForQt5Mac(lockFileToolButton);
     
     
-    QLabel* editLabel = new QLabel("Edit:");
-    
-    QToolButton* undoToolButton = new QToolButton();
-    undoToolButton->setDefaultAction(WuQtUtilities::createAction("Undo",
-                                                                    "Undo the last volume edit",
-                                                                    this,
-                                                                    this, SLOT(undoActionTriggered())));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
-    
-    
-    QToolButton* redoToolButton = new QToolButton();
-    redoToolButton->setDefaultAction(WuQtUtilities::createAction("Redo",
-                                                                    "Redo (or is it undo) the last undo",
-                                                                    this,
-                                                                    this, SLOT(redoActionTriggered())));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
-    
-    
-    QToolButton* resetToolButton = new QToolButton();
-    resetToolButton->setDefaultAction(WuQtUtilities::createAction("Reset",
-                                                                    "Reset all edting of the volume",
-                                                                    this,
-                                                                    this, SLOT(resetActionTriggered())));
-    WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
 
-    QLabel* brushSizeLabel = new QLabel("Brush Size:");
+    QLabel* brushSizeLabel = new QLabel("Brush");
     const int MIN_BRUSH_SIZE = 1;
-    const int MAX_BRUSH_SIZE = 999;
+    const int MAX_BRUSH_SIZE = 99;
     m_xBrushSizeSpinBox = new WuQSpinBoxOddValue(this);
     m_xBrushSizeSpinBox->setRange(MIN_BRUSH_SIZE, MAX_BRUSH_SIZE);
     QObject::connect(m_xBrushSizeSpinBox, SIGNAL(valueChanged(int)),
@@ -307,7 +302,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     m_zBrushSizeSpinBox->getWidget()->setToolTip("Axial brush size (voxels).\n"
                                                  "Must be an odd value.");
     
-    m_voxelValueLabel = new QLabel("Value:");
+    m_voxelValueLabel = new QLabel("Value");
     m_voxelFloatValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1000.0,
                                                                                          1000.0,
                                                                                          1.0, 1,
@@ -315,7 +310,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                                          SLOT(voxelValueChanged(double)));
     m_voxelFloatValueSpinBox->setValue(1.0);
 
-    m_voxelLabelValueAction = WuQtUtilities::createAction("XXX",
+    m_voxelLabelValueAction = WuQtUtilities::createAction("Label",
                                                           "Choose Label for Voxels",
                                                           this,
                                                           this, SLOT(labelValueActionTriggered()));
@@ -323,85 +318,174 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     m_voxelLabelValueToolButton->setDefaultAction(m_voxelLabelValueAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_voxelLabelValueToolButton);
     
-    const int SPACE = 10;
-    QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
-    layout->addWidget(volumeLabel);
-    layout->addWidget(m_newFileToolButton);
-    layout->addWidget(m_addMapsToolButton);
-    layout->addWidget(lockFileToolButton);
-    layout->addSpacing(SPACE);
-    layout->addWidget(editLabel);
-    layout->addWidget(undoToolButton);
-    layout->addWidget(redoToolButton);
-    layout->addWidget(resetToolButton);
-    layout->addSpacing(SPACE);
-    layout->addWidget(brushSizeLabel);
-    layout->addWidget(m_xBrushSizeSpinBox->getWidget());
-    layout->addWidget(m_yBrushSizeSpinBox->getWidget());
-    layout->addWidget(m_zBrushSizeSpinBox->getWidget());
-    layout->addSpacing(SPACE);
-    layout->addWidget(m_voxelValueLabel);
-    layout->addWidget(m_voxelFloatValueSpinBox);
-    layout->addWidget(m_voxelLabelValueToolButton);
-    layout->addStretch();
+    m_voxelLabelValueToolButton->setFixedWidth(m_voxelLabelValueToolButton->sizeHint().width());
+    m_voxelFloatValueSpinBox->setFixedWidth(m_voxelLabelValueToolButton->sizeHint().width());
     
+    WuQtUtilities::matchWidgetWidths(m_newFileToolButton, m_addMapsToolButton, lockFileToolButton);
+    const int32_t spinBoxWidth(20 + m_newFileToolButton->sizeHint().width());
+    m_xBrushSizeSpinBox->setFixedWidth(spinBoxWidth);
+    m_yBrushSizeSpinBox->setFixedWidth(spinBoxWidth);
+    m_zBrushSizeSpinBox->setFixedWidth(spinBoxWidth);
+    m_voxelFloatValueSpinBox->setFixedWidth(spinBoxWidth);
+    
+    QGridLayout* gridLayout = new QGridLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 4, 2);
+    int32_t row(0);
+    int32_t col(0);
+    gridLayout->addWidget(volumeLabel, row++, col, Qt::AlignHCenter);
+    gridLayout->addWidget(m_newFileToolButton, row++, col);
+    gridLayout->addWidget(m_addMapsToolButton, row++, col);
+    gridLayout->addWidget(lockFileToolButton, row++, col);
+    row = 0;
+    col++;
+    gridLayout->addWidget(brushSizeLabel, row++, col, Qt::AlignHCenter);
+    gridLayout->addWidget(m_xBrushSizeSpinBox->getWidget(), row++, col);
+    gridLayout->addWidget(m_yBrushSizeSpinBox->getWidget(), row++, col);
+    gridLayout->addWidget(m_zBrushSizeSpinBox->getWidget(), row++, col);
+    row = 0;
+    col++;
+    gridLayout->addWidget(m_voxelValueLabel, row++, col, Qt::AlignHCenter);
+    gridLayout->addWidget(m_voxelFloatValueSpinBox, row++, col);
+    gridLayout->addWidget(m_voxelLabelValueToolButton, row++, col);
+
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
+    layout->addLayout(gridLayout);
+    layout->addStretch();
+
     return widget;
 }
 
 /**
+ * @return Create and return the edit widget.
+ */
+QWidget*
+UserInputModeVolumeEditWidget::createEditWidget()
+{
+    QToolButton* undoToolButton = new QToolButton();
+    undoToolButton->setDefaultAction(WuQtUtilities::createAction("Undo",
+                                                                 "Undo the last volume edit",
+                                                                 this,
+                                                                 this, SLOT(undoActionTriggered())));
+    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
+    
+    
+    QToolButton* redoToolButton = new QToolButton();
+    redoToolButton->setDefaultAction(WuQtUtilities::createAction("Redo",
+                                                                 "Redo (or is it undo) the last undo",
+                                                                 this,
+                                                                 this, SLOT(redoActionTriggered())));
+    WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
+    
+    
+    QToolButton* resetToolButton = new QToolButton();
+    resetToolButton->setDefaultAction(WuQtUtilities::createAction("Reset",
+                                                                  "Reset all edting of the volume",
+                                                                  this,
+                                                                  this, SLOT(resetActionTriggered())));
+    WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
+    
+    QWidget* widget = new QWidget();
+    QHBoxLayout* editLayout = new QHBoxLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(editLayout, 4, 2);
+    editLayout->addStretch();
+    editLayout->addWidget(undoToolButton);
+    editLayout->addWidget(redoToolButton);
+    editLayout->addWidget(resetToolButton);
+    editLayout->addStretch();
+
+    return widget;
+}
+
+/**
+ * @return Radio button for selection of the given mode
+ *  @mode The editing mode
+ */
+QRadioButton*
+UserInputModeVolumeEditWidget::createModeRadioButton(const VolumeEditingModeEnum::Enum mode)
+{
+    QRadioButton* rb = new QRadioButton(VolumeEditingModeEnum::toGuiName(mode));
+    WuQtUtilities::setWordWrappedToolTip(rb, VolumeEditingModeEnum::toToolTip(mode));
+    
+    return rb;
+}
+/**
  * @return Create and return the mode toolbar.
  */
 QWidget*
-UserInputModeVolumeEditWidget::createModeToolBar()
+UserInputModeVolumeEditWidget::createOperationWidget()
 {
-    QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
+    m_modeOnRadioButton = createModeRadioButton(VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON);
+    m_modeOnRadioButton->setChecked(true);
     
-    QLabel* modeLabel = new QLabel("Mode:");
-    layout->addWidget(modeLabel);
+    m_modeOffRadioButton = createModeRadioButton(VolumeEditingModeEnum::VOLUME_EDITING_MODE_OFF);
     
-    m_volumeEditModeActionGroup = new QActionGroup(this);
-    m_volumeEditModeActionGroup->setExclusive(true);
-    QObject::connect(m_volumeEditModeActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(editingModeActionTriggered(QAction*)));
+    m_modeDilateRadioButton = createModeRadioButton(VolumeEditingModeEnum::VOLUME_EDITING_MODE_DILATE);
     
-    std::vector<VolumeEditingModeEnum::Enum> editModes;
-    VolumeEditingModeEnum::getAllEnums(editModes);
+    m_modeErodeRadioButton = createModeRadioButton(VolumeEditingModeEnum::VOLUME_EDITING_MODE_ERODE);
     
-    bool firstActionFlag = true;
-    for (std::vector<VolumeEditingModeEnum::Enum>::iterator iter = editModes.begin();
-         iter != editModes.end();
-         iter++) {
-        const VolumeEditingModeEnum::Enum mode = *iter;
-        
-        const int     modeInt  = VolumeEditingModeEnum::toIntegerCode(mode);
-        const AString modeName = VolumeEditingModeEnum::toGuiName(mode);
-        const AString toolTip  = WuQtUtilities::createWordWrappedToolTipText(VolumeEditingModeEnum::toToolTip(mode));
-        
-        QAction* action = new QAction(modeName,
-                                      this);
-        action->setData(modeInt);
-        action->setToolTip(toolTip);
-        action->setCheckable(true);
-        if (firstActionFlag) {
-            firstActionFlag = false;
-            action->setChecked(true);
-        }
-        
-        m_volumeEditModeActionGroup->addAction(action);
-        
-        QToolButton* toolButton = new QToolButton();
-        toolButton->setDefaultAction(action);
-        WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
+    m_modeFillTwoDimRadioButton = createModeRadioButton(VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_2D);
+    
+    m_modeFillThreeDimRadioButton = createModeRadioButton(VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_3D);
+    
+    m_modeRemoveTwoDimRadioButton = createModeRadioButton(VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_2D);
+    
+    m_modeRemoveThreeDimRadioButton = createModeRadioButton(VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_3D);
+    
+    m_modeRetainThreeDimRadioButton = createModeRadioButton(VolumeEditingModeEnum::VOLUME_EDITING_MODE_RETAIN_CONNECTED_3D);
+    
+    QButtonGroup* buttonGroup = new QButtonGroup(this);
+    buttonGroup->addButton(m_modeOnRadioButton);
+    buttonGroup->addButton(m_modeOffRadioButton);
+    buttonGroup->addButton(m_modeDilateRadioButton);
+    buttonGroup->addButton(m_modeErodeRadioButton);
+    buttonGroup->addButton(m_modeFillTwoDimRadioButton);
+    buttonGroup->addButton(m_modeFillThreeDimRadioButton);
+    buttonGroup->addButton(m_modeRemoveTwoDimRadioButton);
+    buttonGroup->addButton(m_modeRemoveThreeDimRadioButton);
+    buttonGroup->addButton(m_modeRetainThreeDimRadioButton);
 
-        layout->addWidget(toolButton);
-    }
+    QGridLayout* gridLayout = new QGridLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 4, 2);
+    int32_t row(0);
+    gridLayout->addWidget(m_modeOnRadioButton,
+                          row, 0);
+    row++;
+    gridLayout->addWidget(m_modeOffRadioButton,
+                          row, 0);
+    row++;
+    gridLayout->addWidget(m_modeDilateRadioButton,
+                          row, 0);
+    row++;
+    gridLayout->addWidget(m_modeErodeRadioButton,
+                          row, 0);
+    row++;
     
+    row = 0;
+    gridLayout->addWidget(m_modeFillTwoDimRadioButton,
+                          row, 1);
+    row++;
+    gridLayout->addWidget(m_modeFillThreeDimRadioButton,
+                          row, 1);
+    row++;
+    gridLayout->addWidget(m_modeRemoveTwoDimRadioButton,
+                          row, 1);
+    row++;
+    gridLayout->addWidget(m_modeRemoveThreeDimRadioButton,
+                          row, 1);
+    row++;
+    gridLayout->addWidget(m_modeRetainThreeDimRadioButton,
+                          row, 1);
+    row++;
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
+    layout->addLayout(gridLayout);
+    layout->addWidget(createEditWidget());
     layout->addStretch();
-    
+
     return widget;
 }
 
@@ -438,15 +522,38 @@ UserInputModeVolumeEditWidget::getEditingParameters(VolumeEditingModeEnum::Enum&
 VolumeEditingModeEnum::Enum
 UserInputModeVolumeEditWidget::getEditingMode() const
 {
-    QAction* action = m_volumeEditModeActionGroup->checkedAction();
-    CaretAssert(action);
+    VolumeEditingModeEnum::Enum editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON;
     
-    const int modeInt = action->data().toInt();
-    
-    bool validFlag = false;
-    const VolumeEditingModeEnum::Enum editMode = VolumeEditingModeEnum::fromIntegerCode(modeInt,
-                                                                                        &validFlag);
-    CaretAssert(validFlag);
+    if (m_modeOnRadioButton->isChecked()) {
+        editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON;
+    }
+    else if (m_modeOffRadioButton->isChecked()) {
+        editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_OFF;
+    }
+    else if (m_modeDilateRadioButton->isChecked()) {
+        editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_DILATE;
+    }
+    else if (m_modeErodeRadioButton->isChecked()) {
+        editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_ERODE;
+    }
+    else if (m_modeFillTwoDimRadioButton->isChecked()) {
+        editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_2D;
+    }
+    else if (m_modeFillThreeDimRadioButton->isChecked()) {
+        editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_3D;
+    }
+    else if (m_modeRemoveTwoDimRadioButton->isChecked()) {
+        editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_2D;
+    }
+    else if (m_modeRemoveThreeDimRadioButton->isChecked()) {
+        editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_3D;
+    }
+    else if (m_modeRetainThreeDimRadioButton->isChecked()) {
+        editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_RETAIN_CONNECTED_3D;
+    }
+    else {
+        CaretAssert(0);
+    }
     
     return editMode;
 }

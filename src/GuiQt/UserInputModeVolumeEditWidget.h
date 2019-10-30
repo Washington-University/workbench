@@ -28,113 +28,136 @@
 #include "UserInputModeVolumeEdit.h"
 #include "VolumeEditingModeEnum.h"
 
+class QAbstractButton;
 class QAction;
-class QActionGroup;
 class QDoubleSpinBox;
 class QLabel;
+class QRadioButton;
 class QSpinBox;
 class QToolButton;
 
 namespace caret {
 
-    class UserInputModeVolumeEdit;
-    class WuQSpinBoxOddValue;
+class WuQSpinBoxOddValue;
+
+class UserInputModeVolumeEditWidget : public QWidget,
+public EventListenerInterface {
     
-    class UserInputModeVolumeEditWidget : public QWidget,
-                                          public EventListenerInterface {
-        
-        Q_OBJECT
-
-    public:
-        UserInputModeVolumeEditWidget(UserInputModeVolumeEdit* inputModeVolumeEdit,
-                                      const int32_t windowIndex,
-                                      QWidget* parent = 0);
-        
-        virtual ~UserInputModeVolumeEditWidget();
-        
-        void receiveEvent(Event* event);
-                                              
-        void updateWidget();
-        
-        void getEditingParameters(VolumeEditingModeEnum::Enum& editingModeOut,
-                                  int32_t brushSizesOut[3],
-                                  float& floatValueOut,
-                                  AString& labelNameOut) const;
-        
-        VolumeEditingModeEnum::Enum getEditingMode() const;
-        
-        // ADD_NEW_METHODS_HERE
-
+    Q_OBJECT
+    
+public:
+    UserInputModeVolumeEditWidget(UserInputModeVolumeEdit* inputModeVolumeEdit,
+                                  const int32_t windowIndex,
+                                  QWidget* parent = 0);
+    
+    virtual ~UserInputModeVolumeEditWidget();
+    
+    void receiveEvent(Event* event);
+    
+    void updateWidget();
+    
+    void getEditingParameters(VolumeEditingModeEnum::Enum& editingModeOut,
+                              int32_t brushSizesOut[3],
+                              float& floatValueOut,
+                              AString& labelNameOut) const;
+    
+    VolumeEditingModeEnum::Enum getEditingMode() const;
+    
+    // ADD_NEW_METHODS_HERE
+    
     private slots:
-        void newFileActionTriggered();
-        
-        void lockFileActionTriggered();
-        
-        void undoActionTriggered();
-        
-        void redoActionTriggered();
-        
-        void resetActionTriggered();
-        
-        void xBrushSizeValueChanged(int);
-        
-        void yBrushSizeValueChanged(int);
-        
-        void zBrushSizeValueChanged(int);
-        
-        void voxelValueChanged(double);
-        
-        void labelValueActionTriggered();
-        
-        void editingModeActionTriggered(QAction*);
-                                              
-        void addMapsActionTriggered();
-        
-    private:
-        UserInputModeVolumeEditWidget(const UserInputModeVolumeEditWidget&);
-
-        UserInputModeVolumeEditWidget& operator=(const UserInputModeVolumeEditWidget&);
-        
-        QWidget* createSelectionToolBar();
-        
-        QWidget* createModeToolBar();
-        
-        void viewVolumeInNewOverlay(VolumeFile* vf,
-                                    const int32_t mapIndex);
-                                              
-        QAction* m_lockAction;
-        
-        UserInputModeVolumeEdit* m_inputModeVolumeEdit;
-        
-        const int32_t m_windowIndex;
-        
-        QActionGroup* m_volumeEditModeActionGroup;
-        
-        QToolButton* m_newFileToolButton;
-        
-        WuQSpinBoxOddValue* m_xBrushSizeSpinBox;
-        
-        WuQSpinBoxOddValue* m_yBrushSizeSpinBox;
-        
-        WuQSpinBoxOddValue* m_zBrushSizeSpinBox;
-        
-        QLabel* m_voxelValueLabel;
-        
-        QAction* m_voxelLabelValueAction;
-        
-        QToolButton* m_voxelLabelValueToolButton;
-        
-        QDoubleSpinBox* m_voxelFloatValueSpinBox;
-        
-        QToolButton* m_addMapsToolButton;
-                                              
-        // ADD_NEW_MEMBERS_HERE
-
-    };
+    void newFileActionTriggered();
     
+    void lockFileActionTriggered();
+    
+    void undoActionTriggered();
+    
+    void redoActionTriggered();
+    
+    void resetActionTriggered();
+    
+    void xBrushSizeValueChanged(int);
+    
+    void yBrushSizeValueChanged(int);
+    
+    void zBrushSizeValueChanged(int);
+    
+    void voxelValueChanged(double);
+    
+    void labelValueActionTriggered();
+    
+    void editingModeActionTriggered(QAction*);
+    
+    void addMapsActionTriggered();
+    
+private:
+    UserInputModeVolumeEditWidget(const UserInputModeVolumeEditWidget&);
+    
+    UserInputModeVolumeEditWidget& operator=(const UserInputModeVolumeEditWidget&);
+    
+    QWidget* createSelectionToolBar();
+    
+    QWidget* createOperationWidget();
+    
+    QWidget* createEditWidget();
+    
+    void viewVolumeInNewOverlay(VolumeFile* vf,
+                                const int32_t mapIndex);
+    
+    bool isModeButtonEnabled(const VolumeEditingModeEnum::Enum mode) const;
+    
+    QRadioButton* createModeRadioButton(const VolumeEditingModeEnum::Enum mode);
+    
+    QAction* m_lockAction;
+    
+    UserInputModeVolumeEdit* m_inputModeVolumeEdit;
+    
+    const int32_t m_windowIndex;
+    
+    QToolButton* m_newFileToolButton;
+    
+    WuQSpinBoxOddValue* m_xBrushSizeSpinBox;
+    
+    WuQSpinBoxOddValue* m_yBrushSizeSpinBox;
+    
+    WuQSpinBoxOddValue* m_zBrushSizeSpinBox;
+    
+    QLabel* m_voxelValueLabel;
+    
+    QAction* m_voxelLabelValueAction;
+    
+    QToolButton* m_voxelLabelValueToolButton;
+    
+    QDoubleSpinBox* m_voxelFloatValueSpinBox;
+    
+    QToolButton* m_addMapsToolButton;
+    
+    QRadioButton* m_modeOnRadioButton;
+    
+    QRadioButton* m_modeOffRadioButton;
+    
+    QRadioButton* m_modeDilateRadioButton;
+    
+    QRadioButton* m_modeErodeRadioButton;
+    
+    QRadioButton* m_modeFillTwoDimRadioButton;
+    
+    QRadioButton* m_modeFillThreeDimRadioButton;
+    
+    QRadioButton* m_modeRemoveTwoDimRadioButton;
+    
+    QRadioButton* m_modeRemoveThreeDimRadioButton;
+    
+    QRadioButton* m_modeRetainThreeDimRadioButton;
+    
+    // ADD_NEW_MEMBERS_HERE
+    
+};
+
 #ifdef __USER_INPUT_MODE_VOLUME_EDIT_WIDGET_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+// <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __USER_INPUT_MODE_VOLUME_EDIT_WIDGET_DECLARE__
 
 } // namespace
 #endif  //__USER_INPUT_MODE_VOLUME_EDIT_WIDGET_H__
+
