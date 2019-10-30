@@ -62,9 +62,11 @@ m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     m_nameLabel = new QLabel();
+    QLabel* editTabLabel = NULL;
     
     m_visibilityCheckBox = NULL;
     if (m_userInputMode == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING) {
+        editTabLabel = new QLabel("Edit Tab(s)");
         m_visibilityCheckBox = new QCheckBox("Draw\nContent");
         m_visibilityCheckBox->setTristate(false);
         QObject::connect(m_visibilityCheckBox, &QCheckBox::stateChanged,
@@ -73,6 +75,9 @@ m_browserWindowIndex(browserWindowIndex)
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(2, 2, 2, 2);
+    if (editTabLabel != NULL) {
+        layout->addWidget(editTabLabel);
+    }
     layout->addWidget(m_nameLabel, 0, Qt::AlignLeft);
     if (m_visibilityCheckBox != NULL) {
         layout->addWidget(m_visibilityCheckBox, 0, Qt::AlignLeft);

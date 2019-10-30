@@ -478,7 +478,12 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
                                              WIDGET_PLACEMENT_NONE,
                                              WIDGET_PLACEMENT_TOP,
                                              0);
-    this->tileModeWidget = this->userInputTileTabsManualLayoutProcessor->getWidgetForToolBar();
+    this->tileModeWidget = createToolWidget("",
+                                            this->userInputTileTabsManualLayoutProcessor->getWidgetForToolBar(),
+                                            WIDGET_PLACEMENT_NONE,
+                                            WIDGET_PLACEMENT_TOP,
+                                            0);
+    
     this->volumeModeWidget = this->userInputVolumeEditModeProcessor->getWidgetForToolBar();
     
 

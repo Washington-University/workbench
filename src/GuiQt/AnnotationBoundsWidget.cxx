@@ -96,7 +96,7 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_xMinCoordSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationBoundsWidget::xMinValueChanged);
     
-    QLabel* xMaxCoordLabel = new QLabel(" Max X" + colonString);
+    QLabel* xMaxCoordLabel = new QLabel("Max X" + colonString);
     m_xMaxCoordSpinBox = createSpinBox();
     QObject::connect(m_xMaxCoordSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationBoundsWidget::xMaxValueChanged);
@@ -106,7 +106,7 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_yMinCoordSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationBoundsWidget::yMinValueChanged);
 
-    QLabel* yMaxCoordLabel = new QLabel(" Max Y" + colonString);
+    QLabel* yMaxCoordLabel = new QLabel("Max Y" + colonString);
     m_yMaxCoordSpinBox = createSpinBox();
     QObject::connect(m_yMaxCoordSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationBoundsWidget::yMaxValueChanged);
@@ -118,13 +118,15 @@ m_browserWindowIndex(browserWindowIndex)
     row++;
     coordinateLayout->addWidget(xMinCoordLabel, row, 0);
     coordinateLayout->addWidget(m_xMinCoordSpinBox, row, 1);
-    coordinateLayout->addWidget(xMaxCoordLabel, row, 2);
-    coordinateLayout->addWidget(m_xMaxCoordSpinBox, row, 3);
+    row++;
+    coordinateLayout->addWidget(xMaxCoordLabel, row, 0);
+    coordinateLayout->addWidget(m_xMaxCoordSpinBox, row, 1);
     row++;
     coordinateLayout->addWidget(yMinCoordLabel, row, 0);
     coordinateLayout->addWidget(m_yMinCoordSpinBox, row, 1);
-    coordinateLayout->addWidget(yMaxCoordLabel, row, 2);
-    coordinateLayout->addWidget(m_yMaxCoordSpinBox, row, 3);
+    row++;
+    coordinateLayout->addWidget(yMaxCoordLabel, row, 0);
+    coordinateLayout->addWidget(m_yMaxCoordSpinBox, row, 1);
 
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);

@@ -200,45 +200,33 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
     m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Vertical,
                                                                 m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
+
+    QVBoxLayout* centerSizeLayout = new QVBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(centerSizeLayout, 2, 0);
+    centerSizeLayout->addWidget(m_coordinateCenterXYWidget);
+    centerSizeLayout->addWidget(m_widthHeightWidget);
+    centerSizeLayout->addStretch();
     
-    QGridLayout* gridLayout = new QGridLayout(this);
-    gridLayout->setContentsMargins(2, 2, 2, 2);
-    gridLayout->setVerticalSpacing(0);
-    int column = 0;
-    gridLayout->addWidget(m_nameWidget, 0, column, 2, 1, Qt::AlignTop);
-    column++;
-    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
-    column++;
-    gridLayout->addWidget(m_boundsWidget, 0, column, 2, 1, Qt::AlignTop);
-    column++;
-    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
-    column++;
-    gridLayout->addWidget(m_coordinateCenterXYWidget, 0, column, 2, 1, Qt::AlignTop);
-    column++;
-    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
-    column++;
-    gridLayout->addWidget(m_widthHeightWidget, 0, column, 2, 1, Qt::AlignTop);
-    column++;
-    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
-    column++;
-    gridLayout->addWidget(m_backgroundTypeWidget, 0, column, 2, 1, Qt::AlignTop);
-    column++;
-    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
-    column++;
-    gridLayout->addWidget(m_formatWidget, 0, column, 2, 1, Qt::AlignTop);
-    column++;
-    gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
-    column++;
-    gridLayout->addWidget(m_redoUndoWidget, 0, column, 2, 1, Qt::AlignTop);
-    column++;
+    QVBoxLayout* formatRedoLayout = new QVBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(formatRedoLayout, 2, 0);
+    formatRedoLayout->addWidget(m_formatWidget);
+    formatRedoLayout->addSpacing(12);
+    formatRedoLayout->addWidget(m_redoUndoWidget);
+    formatRedoLayout->addStretch();
     
-    for (int32_t iCol = 0; iCol < column; iCol++) {
-        gridLayout->setColumnStretch(iCol, 0);
-    }
-    gridLayout->setColumnStretch(column, 100);
-    
-    const int numRows = gridLayout->rowCount();
-    gridLayout->setRowStretch(numRows, 100);
+    QHBoxLayout* layout = new QHBoxLayout(this);
+    layout->setContentsMargins(2, 2, 2, 2);
+    layout->setSpacing(8);
+    layout->addWidget(m_nameWidget, 0, Qt::AlignTop);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addWidget(m_boundsWidget, 0, Qt::AlignTop);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addLayout(centerSizeLayout);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addWidget(m_backgroundTypeWidget, 0, Qt::AlignTop);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addLayout(formatRedoLayout);
+    layout->addStretch();
 }
 
 /*
