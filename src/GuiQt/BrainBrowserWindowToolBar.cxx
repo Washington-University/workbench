@@ -462,7 +462,11 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->selectedUserInputProcessor = this->userInputViewModeProcessor;
     this->selectedUserInputProcessor->initialize();
 
-    this->annotateModeWidget = this->userInputAnnotationsModeProcessor->getWidgetForToolBar();
+    this->annotateModeWidget = createToolWidget("",
+                                                this->userInputAnnotationsModeProcessor->getWidgetForToolBar(),
+                                                WIDGET_PLACEMENT_NONE,
+                                                WIDGET_PLACEMENT_TOP,
+                                                0);
     this->bordersModeWidget = this->userInputBordersModeProcessor->getWidgetForToolBar();
     this->fociModeWidget = createToolWidget("Foci Operations",
                                             this->userInputFociModeProcessor->getWidgetForToolBar(),
@@ -560,6 +564,14 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
                                     -1);
         }
     }
+    
+    /*
+     * The height of the toolbar is set here.  Prior to calling
+     * updateToolBar(), all widgets still have a 'visible' status
+     * and thus the sizeHint().height() is the maximum height.
+     */
+    const int32_t toolBarHeight = m_toolbarWidget->sizeHint().height();
+    m_toolbarWidget->setFixedHeight(toolBarHeight);
     
     this->updateToolBar();
     
@@ -2033,20 +2045,6 @@ BrainBrowserWindowToolBar::updateToolBar()
         }
     }
     
-    /*
-     * Try to avoid resizing of Toolbar widget (view, orientation, etc)
-     * height when models are changed. Let it grow but never shrink.
-     */
-    if (isVisible()) {
-        if (m_toolbarWidget->isVisible()) {
-            const int sizeHintHeight = m_toolbarWidget->sizeHint().height();
-            const int actualHeight = m_toolbarWidget->height();
-            if (sizeHintHeight >= actualHeight) {
-                m_toolbarWidget->setFixedHeight(sizeHintHeight);
-            }
-        }
-    }
-    
     m_performingUpdateFlag = false;
 }
 
@@ -3019,8 +3017,11 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
                                             const WidgetPlacement contentPlacement,
                                             const int /*horizontalStretching*/)
 {
-    QLabel* nameLabel = new QLabel("<html><center>" + name + "</center></html>");
-    nameLabel->setFixedHeight(nameLabel->sizeHint().height());
+    QLabel* nameLabel(NULL);
+    if ( ! name.isEmpty()) {
+        nameLabel = new QLabel("<html><center>" + name + "</center></html>");
+        nameLabel->setFixedHeight(nameLabel->sizeHint().height());
+    }
     
     QWidget* w = new QWidget();
     QGridLayout* layout = new QGridLayout(w);
@@ -3045,8 +3046,10 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
         default:
             CaretAssert(0);
     }
-    layout->addWidget(nameLabel, 2, 0, 1, 2, Qt::AlignHCenter);
-    layout->setRowStretch(2, 0);
+    if (nameLabel != NULL) {
+        layout->addWidget(nameLabel, 2, 0, 1, 2, Qt::AlignHCenter);
+        layout->setRowStretch(2, 0);
+    }
     
     const bool addVerticalBarOnLeftSide = (verticalBarPlacement == WIDGET_PLACEMENT_LEFT);
     const bool addVerticalBarOnRightSide = (verticalBarPlacement == WIDGET_PLACEMENT_RIGHT);

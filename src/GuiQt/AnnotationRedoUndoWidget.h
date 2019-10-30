@@ -36,7 +36,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationRedoUndoWidget(const UserInputModeEnum::Enum userInputMode,
+        AnnotationRedoUndoWidget(const Qt::Orientation orientation,
+                                 const UserInputModeEnum::Enum userInputMode,
                                  const int32_t browserWindowIndex,
                                  QWidget* parent = 0);
         

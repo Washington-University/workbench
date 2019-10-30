@@ -58,7 +58,8 @@ using namespace caret;
  * @param parent
  *    The parent widget.
  */
-AnnotationRedoUndoWidget::AnnotationRedoUndoWidget(const UserInputModeEnum::Enum userInputMode,
+AnnotationRedoUndoWidget::AnnotationRedoUndoWidget(const Qt::Orientation orientation,
+                                                   const UserInputModeEnum::Enum userInputMode,
                                                    const int32_t browserWindowIndex,
                                                    QWidget* parent)
 : QWidget(parent),
@@ -87,12 +88,24 @@ m_browserWindowIndex(browserWindowIndex)
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
-    gridLayout->addWidget(titleLabel,
-                          0, 0, 1, 1, Qt::AlignHCenter);
-    gridLayout->addWidget(redoToolButton,
-                          1, 0, Qt::AlignHCenter);
-    gridLayout->addWidget(undoToolButton,
-                          2, 0, Qt::AlignHCenter);
+    switch (orientation) {
+        case Qt::Horizontal:
+            gridLayout->addWidget(titleLabel,
+                                  0, 0, 1, 2, Qt::AlignHCenter);
+            gridLayout->addWidget(redoToolButton,
+                                  1, 0, Qt::AlignHCenter);
+            gridLayout->addWidget(undoToolButton,
+                                  1, 1, Qt::AlignHCenter);
+            break;
+        case Qt::Vertical:
+            gridLayout->addWidget(titleLabel,
+                                  0, 0, Qt::AlignHCenter);
+            gridLayout->addWidget(redoToolButton,
+                                  1, 0, Qt::AlignHCenter);
+            gridLayout->addWidget(undoToolButton,
+                                  2, 0, Qt::AlignHCenter);
+            break;
+    }
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);

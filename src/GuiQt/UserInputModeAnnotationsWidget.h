@@ -123,7 +123,7 @@ namespace caret {
         
         AnnotationTextOrientationWidget* m_textOrientationWidget = NULL;
         
-        AnnotationInsertNewWidget* m_insertDeleteWidget = NULL;
+        AnnotationInsertNewWidget* m_insertNewWidget = NULL;
         
         AnnotationDeleteWidget* m_deleteWidget = NULL;
         
