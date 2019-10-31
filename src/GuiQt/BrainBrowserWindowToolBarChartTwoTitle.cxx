@@ -93,7 +93,7 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
     editTitleToolButton->setDefaultAction(editTitleAction);
     
     m_titleSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_titleSizeSpinBox->setRangePercentage(0.0, 100.0);
+    m_titleSizeSpinBox->setRangePercentage(0.0, 99.0);
     QObject::connect(m_titleSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged);
     m_titleSizeSpinBox->setToolTip("Set height of title as percentage of tab height");
@@ -103,7 +103,7 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
                                           "Set chart title height");
     
     m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_paddingSizeSpinBox->setRangePercentage(0.0, 100.0);
+    m_paddingSizeSpinBox->setRangePercentage(0.0, 99.0);
     QObject::connect(m_paddingSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoTitle::sizeSpinBoxValueChanged);
     m_paddingSizeSpinBox->getWidget()->setObjectName(objectNamePrefix
@@ -113,7 +113,7 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
     
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height");
     QGridLayout* layout = new QGridLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 3, 0); //4, 5);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 3, 0);
     int row = 0;
     layout->addWidget(m_showTitleCheckBox, row, 0, 1, 2, Qt::AlignHCenter);
     row++;
@@ -125,9 +125,6 @@ BrainBrowserWindowToolBarChartTwoTitle::BrainBrowserWindowToolBarChartTwoTitle(B
     row++;
     layout->addWidget(editTitleToolButton, row, 0, 1, 2, Qt::AlignHCenter);
     row++;
-    
-    setSizePolicy(QSizePolicy::Fixed,
-                  QSizePolicy::Fixed);
 }
 
 /**

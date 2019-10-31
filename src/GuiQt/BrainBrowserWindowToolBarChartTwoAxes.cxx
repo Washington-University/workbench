@@ -260,7 +260,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
      * Size spin boxes
      */
     m_labelSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_labelSizeSpinBox->setRangePercentage(0.0, 100.0);
+    m_labelSizeSpinBox->setRangePercentage(0.0, 99.0);
+    m_labelSizeSpinBox->setDecimals(1);
     QObject::connect(m_labelSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_labelSizeSpinBox->setToolTip("Set height of label as percentage of tab height for selected axis");
@@ -270,7 +271,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                                           "Set chart axis label height");
     
     m_numericsSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_numericsSizeSpinBox->setRangePercentage(0.0, 100.0);
+    m_numericsSizeSpinBox->setRangePercentage(0.0, 99.0);
+    m_numericsSizeSpinBox->setDecimals(1);
     QObject::connect(m_numericsSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_numericsSizeSpinBox->setToolTip("Set height of numeric values as percentage of tab height for selected axis");
@@ -280,7 +282,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                                           "Set chart axis numerics height");
     
     m_linesTicksSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_linesTicksSizeSpinBox->setRangePercentage(0.0, 100.0);
+    m_linesTicksSizeSpinBox->setDecimals(1);
+    m_linesTicksSizeSpinBox->setRangePercentage(0.0, 99.0);
     QObject::connect(m_linesTicksSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::axisLineThicknessChanged);
     m_linesTicksSizeSpinBox->setToolTip("Set thickness of axis lines as percentage of tab height for ALL axes");
@@ -290,7 +293,8 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
                                           "Set chart axis ticks height");
     
     m_paddingSizeSpinBox = new WuQDoubleSpinBox(this);
-    m_paddingSizeSpinBox->setRangePercentage(0.0, 100.0);
+    m_paddingSizeSpinBox->setDecimals(1);
+    m_paddingSizeSpinBox->setRangePercentage(0.0, 99.0);
     QObject::connect(m_paddingSizeSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarChartTwoAxes::valueChangedDouble);
     m_paddingSizeSpinBox->setToolTip("Set padding (space between edge and labels) as percentage of tab height for selected axis");
@@ -386,6 +390,12 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     rangeRow++;
     rangeLayout->addWidget(new QLabel("Min"), rangeRow, 0);
     rangeLayout->addWidget(m_userMinimumValueSpinBox->getWidget(), rangeRow, 1);
+
+    QHBoxLayout* subdivLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(subdivLayout, 3, 0);
+    subdivLayout->addWidget(new QLabel("Subdiv"));
+    subdivLayout->addWidget(m_numericSubdivisionsModeComboBox->getWidget());
+    subdivLayout->addWidget(m_userSubdivisionsSpinBox);
     
     /*
      * Numerics widgets layout
@@ -400,9 +410,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     numericsLayout->addWidget(new QLabel("Decimals"), numericsRow, 0);
     numericsLayout->addWidget(m_userDigitsRightOfDecimalSpinBox, numericsRow, 1, 1, 2);
     numericsRow++;
-    numericsLayout->addWidget(new QLabel("Subdivisions"), numericsRow, 0);
-    numericsLayout->addWidget(m_numericSubdivisionsModeComboBox->getWidget(), numericsRow, 1);
-    numericsLayout->addWidget(m_userSubdivisionsSpinBox, numericsRow, 2);
+    numericsLayout->addLayout(subdivLayout, numericsRow, 0, 1, 3);
     
     /*
      * Top layout
@@ -425,7 +433,6 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     gridLayout->setHorizontalSpacing(4);
     gridLayout->setVerticalSpacing(1);
     gridLayout->setContentsMargins(0, 0, 0, 0);
-//    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
     gridLayout->addLayout(topLayout, 0, 0, 1, 7);
     gridLayout->addWidget(showWidget, 1, 0, Qt::AlignTop);
     gridLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 1, 1);
@@ -436,7 +443,7 @@ BrainBrowserWindowToolBarChartTwoAxes::BrainBrowserWindowToolBarChartTwoAxes(Bra
     gridLayout->addWidget(numericsWidget, 1, 6, Qt::AlignTop);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0); //2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
     layout->addLayout(gridLayout);
     layout->addStretch();
 
