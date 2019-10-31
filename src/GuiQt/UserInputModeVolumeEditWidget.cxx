@@ -89,12 +89,12 @@ m_windowIndex(windowIndex)
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     layout->addWidget(BrainBrowserWindowToolBar::createToolWidget("Voxel Operation",
                                                                   createOperationWidget(),
-                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_RIGHT,
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_LEFT,
                                                                   BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
                                                                   0));
     layout->addWidget(BrainBrowserWindowToolBar::createToolWidget("Options",
                                                                   createSelectionToolBar(),
-                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_NONE,
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_LEFT,
                                                                   BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
                                                                   0));
     layout->addStretch();

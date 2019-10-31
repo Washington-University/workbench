@@ -208,7 +208,7 @@ namespace caret {
         QWidget* wholeBrainSurfaceOptionsWidget;
         QWidget* volumeIndicesWidget;
         QWidget* modeWidget;
-        QWidget* windowWidget;
+        QWidget* tabMiscWidget;
         QWidget* singleSurfaceSelectionWidget;
         QWidget* surfaceMontageSelectionWidget;
         QWidget* volumeMontageWidget;

@@ -446,7 +446,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
     this->modeWidget = this->createModeWidget();
-    this->windowWidget = this->createTabOptionsWidget(toolBarLockWindowAndAllTabAspectRatioButton);
+    this->tabMiscWidget = this->createTabOptionsWidget(toolBarLockWindowAndAllTabAspectRatioButton);
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
@@ -470,12 +470,12 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->bordersModeWidget = this->userInputBordersModeProcessor->getWidgetForToolBar();
     this->fociModeWidget = createToolWidget("Foci Operations",
                                             this->userInputFociModeProcessor->getWidgetForToolBar(),
-                                            WIDGET_PLACEMENT_NONE,
+                                            WIDGET_PLACEMENT_LEFT,
                                             WIDGET_PLACEMENT_TOP,
                                             0);
     this->imageModeWidget = createToolWidget("Image Operations",
                                              this->userInputImageModeProcessor->getWidgetForToolBar(),
-                                             WIDGET_PLACEMENT_NONE,
+                                             WIDGET_PLACEMENT_LEFT,
                                              WIDGET_PLACEMENT_TOP,
                                              0);
     this->tileModeWidget = createToolWidget("",
@@ -528,7 +528,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     
     this->toolbarWidgetLayout->addWidget(this->chartAttributesWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->windowWidget, 0, Qt::AlignLeft);
+    this->toolbarWidgetLayout->addWidget(this->tabMiscWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->annotateModeWidget, 0, Qt::AlignLeft);
 
@@ -1863,7 +1863,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     
     bool showModeWidget = true;
     bool showViewWidget = false;
-    bool showWindowWidget = false;
+    bool showTabMiscWidget = false;
     
     bool showAnnotateModeWidget(false);
     bool showBorderModeWidget(false);
@@ -1872,19 +1872,61 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showTileModeWidget(false);
     bool showVolumeModeWidget(false);
     
+    bool showViewModeWidgetsFlag(false);
+    
+    /*
+     * Viewed models may not be compatible
+     * with all user input modes
+     */
+    bool borderCompatibleViewFlag(false);
+    bool fociCompatibleViewFlag(false);
+    bool imageCompatibleViewFlag(false);
+    bool volumeEditCompatibleViewFlag(false);
+    switch (viewModel) {
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            borderCompatibleViewFlag = true;
+            fociCompatibleViewFlag   = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            borderCompatibleViewFlag = true;
+            fociCompatibleViewFlag   = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            imageCompatibleViewFlag      = true;
+            volumeEditCompatibleViewFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            borderCompatibleViewFlag = true;
+            fociCompatibleViewFlag   = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            break;
+    }
+
+    
+    /*
+     * Enable widgets for selected input mode
+     */
     CaretAssert(this->selectedUserInputProcessor);
     switch (this->selectedUserInputProcessor->getUserInputMode()) {
         case UserInputModeEnum::ANNOTATIONS:
             showAnnotateModeWidget = true;
             break;
         case UserInputModeEnum::BORDERS:
-            showBorderModeWidget = true;
+            showViewModeWidgetsFlag = true;
+            showBorderModeWidget    = borderCompatibleViewFlag;
             break;
         case UserInputModeEnum::FOCI:
-            showFociModeWidget = true;
+            showViewModeWidgetsFlag = true;
+            showFociModeWidget      = fociCompatibleViewFlag;
             break;
         case UserInputModeEnum::IMAGE:
-            showImageModeWidget = true;
+            showViewModeWidgetsFlag = true;
+            showImageModeWidget     = imageCompatibleViewFlag;
             break;
         case UserInputModeEnum::INVALID:
             break;
@@ -1892,91 +1934,99 @@ BrainBrowserWindowToolBar::updateToolBar()
             showTileModeWidget = true;
             break;
         case UserInputModeEnum::VIEW:
-            showWindowWidget = true;
-            showViewWidget   = true;
-            
-            switch (viewModel) {
-                case ModelTypeEnum::MODEL_TYPE_INVALID:
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                    showOrientationWidget = true;
-                    showSingleSurfaceOptionsWidget = true;
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                    showOrientationWidget = true;
-                    showSurfaceMontageOptionsWidget = true;
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                    showVolumeIndicesWidget = true;
-                    showVolumePlaneWidget = true;
-                    showVolumeMontageWidget = true;
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                    showOrientationWidget = true;
-                    showWholeBrainSurfaceOptionsWidget = true;
-                    showVolumeIndicesWidget = true;
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_CHART:
-                {
-                    ModelChart* modelChart = browserTabContent->getDisplayedChartOneModel();
-                    if (modelChart != NULL) {
-                        showChartOneTypeWidget = true;
-                        switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
-                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                                break;
-                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
-                                showChartOneAttributesWidget = true;
-                                break;
-                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
-                                showChartOneAttributesWidget = true;
-                                break;
-                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
-                                showChartOneAxesWidget = true;
-                                showChartOneAttributesWidget = true;
-                                break;
-                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
-                                showChartOneAxesWidget = true;
-                                showChartOneAttributesWidget = true;
-                                break;
-                            case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
-                                showChartOneAxesWidget = true;
-                                showChartOneAttributesWidget = true;
-                                break;
-                        }
-                    }
-                }
-                    break;
-                case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
-                {
-                    ModelChartTwo* modelChartTwo = browserTabContent->getDisplayedChartTwoModel();
-                    if (modelChartTwo != NULL) {
-                        switch (modelChartTwo->getSelectedChartTwoDataType(browserTabContent->getTabNumber())) {
-                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                                break;
-                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
-                                showChartTwoAxesWidget = true;
-                                showChartTwoTitleWidget = true;
-                                break;
-                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
-                                showChartTwoAxesWidget = true;
-                                showChartTwoTitleWidget = true;
-                                break;
-                            case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                                showChartTwoOrientationWidget = true;
-                                showChartTwoAttributesWidget  = true;
-                                showChartTwoTitleWidget = true;
-                                break;
-                        }
-                        
-                        showChartTwoTypeWidget = true;
-                    }
-                }
-                    break;
-            }
+            showViewModeWidgetsFlag = true;
+            showTabMiscWidget = true;
             break;
         case UserInputModeEnum::VOLUME_EDIT:
-            showVolumeModeWidget = true;
+            showViewModeWidgetsFlag = true;
+            showVolumeModeWidget    = volumeEditCompatibleViewFlag;
             break;
+    }
+    
+    /*
+     * Note that view mode widgets are shown in other modes.
+     */
+    if (showViewModeWidgetsFlag) {
+        showViewWidget   = true;
+        
+        switch (viewModel) {
+            case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                showOrientationWidget = true;
+                showSingleSurfaceOptionsWidget = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                showOrientationWidget = true;
+                showSurfaceMontageOptionsWidget = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                showVolumeIndicesWidget = true;
+                showVolumePlaneWidget = true;
+                showVolumeMontageWidget = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                showOrientationWidget = true;
+                showWholeBrainSurfaceOptionsWidget = true;
+                showVolumeIndicesWidget = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_CHART:
+            {
+                ModelChart* modelChart = browserTabContent->getDisplayedChartOneModel();
+                if (modelChart != NULL) {
+                    showChartOneTypeWidget = true;
+                    switch (modelChart->getSelectedChartOneDataType(browserTabContent->getTabNumber())) {
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                            break;
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_LAYER:
+                            showChartOneAttributesWidget = true;
+                            break;
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_MATRIX_SERIES:
+                            showChartOneAttributesWidget = true;
+                            break;
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_TIME_SERIES:
+                            showChartOneAxesWidget = true;
+                            showChartOneAttributesWidget = true;
+                            break;
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_FREQUENCY_SERIES:
+                            showChartOneAxesWidget = true;
+                            showChartOneAttributesWidget = true;
+                            break;
+                        case ChartOneDataTypeEnum::CHART_DATA_TYPE_LINE_DATA_SERIES:
+                            showChartOneAxesWidget = true;
+                            showChartOneAttributesWidget = true;
+                            break;
+                    }
+                }
+            }
+                break;
+            case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            {
+                ModelChartTwo* modelChartTwo = browserTabContent->getDisplayedChartTwoModel();
+                if (modelChartTwo != NULL) {
+                    switch (modelChartTwo->getSelectedChartTwoDataType(browserTabContent->getTabNumber())) {
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                            break;
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_HISTOGRAM:
+                            showChartTwoAxesWidget = true;
+                            showChartTwoTitleWidget = true;
+                            break;
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES:
+                            showChartTwoAxesWidget = true;
+                            showChartTwoTitleWidget = true;
+                            break;
+                        case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                            showChartTwoOrientationWidget = true;
+                            showChartTwoAttributesWidget  = true;
+                            showChartTwoTitleWidget = true;
+                            break;
+                    }
+                    
+                    showChartTwoTypeWidget = true;
+                }
+            }
+                break;
+        }
     }
     
     /*
@@ -2002,7 +2052,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
     this->volumeMontageWidget->setVisible(false);
-    this->windowWidget->setVisible(false);
+    this->tabMiscWidget->setVisible(false);
     
     this->annotateModeWidget->setVisible(false);
     this->bordersModeWidget->setVisible(false);
@@ -2028,7 +2078,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
     this->modeWidget->setVisible(showModeWidget);
     this->viewWidget->setVisible(showViewWidget);
-    this->windowWidget->setVisible(showWindowWidget);
+    this->tabMiscWidget->setVisible(showTabMiscWidget);
     
     this->annotateModeWidget->setVisible(showAnnotateModeWidget);
     this->bordersModeWidget->setVisible(showBorderModeWidget);
@@ -2568,7 +2618,7 @@ BrainBrowserWindowToolBar::createTabOptionsWidget(QToolButton* toolBarLockWindow
 void 
 BrainBrowserWindowToolBar::updateTabOptionsWidget(BrowserTabContent* browserTabContent)
 {
-    if (this->windowWidget->isHidden()) {
+    if (this->tabMiscWidget->isHidden()) {
         return;
     }
     

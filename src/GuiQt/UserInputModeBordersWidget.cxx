@@ -125,12 +125,12 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     layout->addWidget(BrainBrowserWindowToolBar::createToolWidget("Border<br>Mode",
                                                                   this->widgetMode,
-                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_RIGHT,
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_LEFT,
                                                                   BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
                                                                   0));
     layout->addWidget(BrainBrowserWindowToolBar::createToolWidget("Border<br>Operations",
                                                                   this->operationStackedWidget,
-                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_NONE,
+                                                                  BrainBrowserWindowToolBar::WIDGET_PLACEMENT_LEFT,
                                                                   BrainBrowserWindowToolBar::WIDGET_PLACEMENT_TOP,
                                                                   0));
     layout->addStretch();
