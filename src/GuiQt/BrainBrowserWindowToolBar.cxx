@@ -464,7 +464,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
 
     this->annotateModeWidget = createToolWidget("",
                                                 this->userInputAnnotationsModeProcessor->getWidgetForToolBar(),
-                                                WIDGET_PLACEMENT_NONE,
+                                                WIDGET_PLACEMENT_LEFT,
                                                 WIDGET_PLACEMENT_TOP,
                                                 0);
     this->bordersModeWidget = this->userInputBordersModeProcessor->getWidgetForToolBar();
@@ -480,7 +480,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
                                              0);
     this->tileModeWidget = createToolWidget("",
                                             this->userInputTileTabsManualLayoutProcessor->getWidgetForToolBar(),
-                                            WIDGET_PLACEMENT_NONE,
+                                            WIDGET_PLACEMENT_LEFT,
                                             WIDGET_PLACEMENT_TOP,
                                             0);
     
@@ -494,9 +494,9 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->toolbarWidgetLayout = new QHBoxLayout(m_toolbarWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(this->toolbarWidgetLayout, 2, 1);
     
-    this->toolbarWidgetLayout->addWidget(this->modeWidget, 0, Qt::AlignLeft);
-    
     this->toolbarWidgetLayout->addWidget(this->viewWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->modeWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->orientationWidget, 0, Qt::AlignLeft);
     
@@ -1862,7 +1862,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showChartTwoTitleWidget = false;
     
     bool showModeWidget = true;
-    bool showViewWidget = false;
+    bool showViewWidget = true;
     bool showTabMiscWidget = false;
     
     bool showAnnotateModeWidget(false);
@@ -2061,6 +2061,17 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->tileModeWidget->setVisible(false);
     this->volumeModeWidget->setVisible(false);
 
+    updateToolBarComponents(browserTabContent);
+    
+    this->annotateModeWidget->setVisible(showAnnotateModeWidget);
+    this->bordersModeWidget->setVisible(showBorderModeWidget);
+    this->fociModeWidget->setVisible(showFociModeWidget);
+    this->imageModeWidget->setVisible(showImageModeWidget);
+    this->tileModeWidget->setVisible(showTileModeWidget);
+    this->volumeModeWidget->setVisible(showVolumeModeWidget);
+    
+    this->modeWidget->setVisible(showModeWidget);
+    this->viewWidget->setVisible(showViewWidget);
     this->orientationWidget->setVisible(showOrientationWidget);
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
     this->singleSurfaceSelectionWidget->setVisible(showSingleSurfaceOptionsWidget);
@@ -2076,17 +2087,8 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
-    this->modeWidget->setVisible(showModeWidget);
-    this->viewWidget->setVisible(showViewWidget);
     this->tabMiscWidget->setVisible(showTabMiscWidget);
     
-    this->annotateModeWidget->setVisible(showAnnotateModeWidget);
-    this->bordersModeWidget->setVisible(showBorderModeWidget);
-    this->fociModeWidget->setVisible(showFociModeWidget);
-    this->imageModeWidget->setVisible(showImageModeWidget);
-    this->tileModeWidget->setVisible(showTileModeWidget);
-    this->volumeModeWidget->setVisible(showVolumeModeWidget);
-
     updateToolBarComponents(browserTabContent);
     
     this->updateAllTabNames();
@@ -2129,6 +2131,7 @@ BrainBrowserWindowToolBar::updateToolBarComponents(BrowserTabContent* browserTab
         this->updateVolumeMontageWidget(browserTabContent);
         this->updateVolumePlaneWidget(browserTabContent);
         this->updateModeWidget(browserTabContent);
+        this->updateViewWidget(browserTabContent);
         this->updateTabOptionsWidget(browserTabContent);
     }
 }
@@ -2145,7 +2148,7 @@ BrainBrowserWindowToolBar::createViewWidget()
                                                                this);
     QWidget* w = this->createToolWidget("View", 
                                         m_viewToolBarComponent, 
-                                        WIDGET_PLACEMENT_NONE, 
+                                        WIDGET_PLACEMENT_NONE,
                                         WIDGET_PLACEMENT_TOP,
                                         0);
     return w;
@@ -2419,7 +2422,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     
     QWidget* w = this->createToolWidget("Mode", 
                                         widget, 
-                                        WIDGET_PLACEMENT_RIGHT,
+                                        WIDGET_PLACEMENT_LEFT,
                                         WIDGET_PLACEMENT_TOP,
                                         0);
     return w;

@@ -355,6 +355,9 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
     layout->addWidget(topRowWidget);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    
+    setSizePolicy(QSizePolicy::Fixed,
+                  sizePolicy().verticalPolicy());
     layout->addLayout(bottomRowLayout);
 }
 
