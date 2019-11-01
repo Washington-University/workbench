@@ -35,7 +35,7 @@
 #include "AnnotationBrowserTab.h"
 #include "AnnotationCoordinateCenterXYWidget.h"
 #include "AnnotationCoordinateSpaceWidget.h"
-#include "AnnotationCoordinateWidget.h"
+#include "AnnotationCoordinatesWidget.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationDeleteWidget.h"
 #include "AnnotationFontWidget.h"
@@ -252,14 +252,8 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     QLabel* coordinateSpaceLabel = new QLabel("Space");
     m_coordinateSpaceWidget      = new AnnotationCoordinateSpaceWidget(m_browserWindowIndex);
     
-    m_coordinateOneWidget        = new AnnotationCoordinateWidget(m_inputModeAnnotations->getUserInputMode(),
+    m_coordinatesWidget        = new AnnotationCoordinatesWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                   AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
-                                                                  AnnotationCoordinateWidget::COORDINATE_ONE,
-                                                                  m_browserWindowIndex);
-    
-    m_coordinateTwoWidget        = new AnnotationCoordinateWidget(m_inputModeAnnotations->getUserInputMode(),
-                                                                  AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
-                                                                  AnnotationCoordinateWidget::COORDINATE_TWO,
                                                                   m_browserWindowIndex);
     
     m_widthHeightWidget          = new AnnotationWidthHeightWidget(m_inputModeAnnotations->getUserInputMode(),
@@ -281,13 +275,13 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
                                                                 m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
     
-    /*
-     * Connect signals for setting a coordinate with the mouse.
-     */
-    QObject::connect(m_coordinateOneWidget, SIGNAL(signalSelectCoordinateWithMouse()),
-                     this, SLOT(selectCoordinateOneWithMouse()));
-    QObject::connect(m_coordinateTwoWidget, SIGNAL(signalSelectCoordinateWithMouse()),
-                     this, SLOT(selectCoordinateTwoWithMouse()));
+//    /*
+//     * Connect signals for setting a coordinate with the mouse.
+//     */
+//    QObject::connect(m_coordinateOneWidget, SIGNAL(signalSelectCoordinateWithMouse()),
+//                     this, SLOT(selectCoordinateOneWithMouse()));
+//    QObject::connect(m_coordinateTwoWidget, SIGNAL(signalSelectCoordinateWithMouse()),
+//                     this, SLOT(selectCoordinateTwoWithMouse()));
     
     /*
      * Layout top row of widgets
@@ -309,11 +303,6 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topRowLayout->addWidget(m_insertNewWidget, 0, Qt::AlignTop);
     topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-//    topRowLayout->addWidget(m_deleteWidget, 0, Qt::AlignTop);
-//    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-//    topRowLayout->addWidget(m_formatWidget, 0, Qt::AlignTop);
-//    topRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-//    topRowLayout->addWidget(m_redoUndoWidget, 0, Qt::AlignTop);
     topRowLayout->addStretch();
     
     topRowWidget->setFixedHeight(topRowWidget->sizeHint().height());
@@ -329,8 +318,7 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     column++;
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
     column++;
-    bottomRowLayout->addWidget(m_coordinateOneWidget, 0, column);
-    bottomRowLayout->addWidget(m_coordinateTwoWidget, 1, column);
+    bottomRowLayout->addWidget(m_coordinatesWidget, 0, column, 2, 1);
     column++;
     bottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, column, 2, 1);
     column++;
@@ -481,15 +469,7 @@ UserInputModeAnnotationsWidget::updateWidget()
         coordEditOneDimAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(coordEditAnnotation);
     }
     if (m_coordinateCenterXYWidget != NULL) m_coordinateCenterXYWidget->updateContent(selectedAnnotations);
-    if (m_coordinateOneWidget != NULL) m_coordinateOneWidget->updateContent(coordEditAnnotation);
-    if (coordEditOneDimAnnotation != NULL) {
-        if (m_coordinateTwoWidget != NULL) m_coordinateTwoWidget->updateContent(coordEditOneDimAnnotation);
-        if (m_coordinateTwoWidget != NULL) m_coordinateTwoWidget->setVisible(true);
-    }
-    else {
-        if (m_coordinateTwoWidget != NULL) m_coordinateTwoWidget->setVisible(false);
-    }
-    
+    if (m_coordinatesWidget != NULL) m_coordinatesWidget->updateContent(coordEditAnnotation);    
     if (m_backgroundTypeWidget != NULL) m_backgroundTypeWidget->updateContent(browserTabAnnotations);
     if (m_formatWidget != NULL) m_formatWidget->updateContent(selectedAnnotations);
     if (m_redoUndoWidget != NULL) m_redoUndoWidget->updateContent(selectedAnnotations);

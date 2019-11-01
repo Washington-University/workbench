@@ -19,18 +19,20 @@
  */
 /*LICENSE_END*/
 
-#define __ANNOTATION_COORDINATE_WIDGET_DECLARE__
-#include "AnnotationCoordinateWidget.h"
-#undef __ANNOTATION_COORDINATE_WIDGET_DECLARE__
+#define __ANNOTATION_COORDINATES_WIDGET_DECLARE__
+#include "AnnotationCoordinatesWidget.h"
+#undef __ANNOTATION_COORDINATES_WIDGET_DECLARE__
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
 
 #include <QDoubleSpinBox>
+#include <QGridLayout>
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QSpinBox>
+#include <QStackedLayout>
 #include <QToolButton>
 #include <QToolTip>
 
@@ -64,7 +66,7 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationCoordinateWidget 
+ * \class caret::AnnotationCoordinatesWidget
  * \brief Widget for editing annotation coordinate
  * \ingroup GuiQt
  */
@@ -72,28 +74,27 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @param
- * @param whichCoordinate
- *     Which coordinate, one (or only), or two
+ * @param userInputMode
+ *  The user input mode
+ * @param parentWidgetType
+ *     Type of parent widget
  * @param browserWindowIndex
  *     Index of browser window
  * @param parent
  *     Parent widget
  */
-AnnotationCoordinateWidget::AnnotationCoordinateWidget(const UserInputModeEnum::Enum userInputMode,
+AnnotationCoordinatesWidget::AnnotationCoordinatesWidget(const UserInputModeEnum::Enum userInputMode,
                                                        const AnnotationWidgetParentEnum::Enum parentWidgetType,
-                                                       const WhichCoordinate whichCoordinate,
                                                        const int32_t browserWindowIndex,
                                                        QWidget* parent)
 : QWidget(parent),
 m_userInputMode(userInputMode),
 m_parentWidgetType(parentWidgetType),
-m_whichCoordinate(whichCoordinate),
 m_browserWindowIndex(browserWindowIndex)
 {
 
     m_annotation = NULL;
-
+    
     QString colonString;
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
@@ -103,136 +104,46 @@ m_browserWindowIndex(browserWindowIndex)
             CaretAssert(0);
             break;
     }
-    
-    QLabel* surfaceVertexLabel = new QLabel("Vertex:");
-    m_surfaceStructureComboBox = new StructureEnumComboBox(this);
-    m_surfaceStructureComboBox->listOnlyValidStructures();
-    m_surfaceStructureComboBox->getWidget()->setToolTip("Select surface structure");
-    QObject::connect(m_surfaceStructureComboBox, SIGNAL(structureSelected(const StructureEnum::Enum)),
-                     this, SLOT(valueChanged()));
-    
-    m_surfaceNodeIndexSpinBox = new QSpinBox();
-    m_surfaceNodeIndexSpinBox->setRange(0, 1000000);
-    m_surfaceNodeIndexSpinBox->setSingleStep(1);
-    m_surfaceNodeIndexSpinBox->setToolTip("Select surface vertex");
-    QObject::connect(m_surfaceNodeIndexSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(valueChanged()));
-    
-    m_surfaceOffsetLengthSpinBox = new QDoubleSpinBox();
-    m_surfaceOffsetLengthSpinBox->setRange(0.0, 999.0);
-    m_surfaceOffsetLengthSpinBox->setSingleStep(0.1);
-    m_surfaceOffsetLengthSpinBox->setToolTip("Offset of annotation from surface vertex");
-    QObject::connect(m_surfaceOffsetLengthSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(surfaceOffsetLengthValueChanged(double)));
-    
-    const int digitsRightOfDecimal = 1;
     QLabel* xCoordLabel = new QLabel(" X" + colonString);
-    m_xCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 0.1, digitsRightOfDecimal,
-                                                                                     this, SLOT(valueChanged()));
-    WuQtUtilities::setWordWrappedToolTip(m_xCoordSpinBox,
-                                         "X-coordinate of annotation\n"
-                                         "   STEREOTAXIC: Stereotaxic X-Coordinate\n"
-                                         "   TAB and WINDOW X-Range: [0.0%, 100.0%]\n"
-                                         "      0.0% => Left side of tab/window\n"
-                                         "      100.0% => Right side of tab/window\n");
-    
     QLabel* yCoordLabel = new QLabel(" Y" + colonString);
-    m_yCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 100.0, 0.1, digitsRightOfDecimal,
-                                                                                     this, SLOT(valueChanged()));
-    WuQtUtilities::setWordWrappedToolTip(m_yCoordSpinBox,
-                                         "Y-coordinate of annotation\n"
-                                         "   STEREOTAXIC: Stereotaxic Y-Coordinate\n"
-                                         "   TAB and WINDOW Y-Range: [0.0%, 100.0%]\n"
-                                         "      0.0% => Bottom of tab/window\n"
-                                         "      100.0% => Top of tab/window\n");
-    
     QLabel* zCoordLabel = new QLabel(" Z" + colonString);
-    m_zCoordSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-100.0, 100.0, 0.1, digitsRightOfDecimal,
-                                                                                     this, SLOT(valueChanged()));
-    WuQtUtilities::setWordWrappedToolTip(m_zCoordSpinBox,
-                                         "Z-coordinate of annotation\n"
-                                         "   STEREOTAXIC: Stereotaxic Z-Coordinate\n"
-                                         "   TAB and WINDOW DEPTH Range: [0.0%, 100.0%]\n"
-                                         "         0.0% => Toward's viewer\n"
-                                         "       100.0% => Away from viewer\n");
+    QLabel* surfaceVertexLabel = new QLabel("Vertex:");
 
-    const float spinBoxMaximumWidth = 80.0f;
-    m_xCoordSpinBox->setMaximumWidth(spinBoxMaximumWidth);
-    m_yCoordSpinBox->setMaximumWidth(spinBoxMaximumWidth);
-    m_zCoordSpinBox->setMaximumWidth(spinBoxMaximumWidth);
-    
-    m_surfaceOffsetVectorTypeComboBox = NULL;
-    switch (m_whichCoordinate) {
-        case COORDINATE_ONE:
-            m_surfaceOffsetVectorTypeComboBox = new EnumComboBoxTemplate(this);
-            m_surfaceOffsetVectorTypeComboBox->setup<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>();
-            QObject::connect(m_surfaceOffsetVectorTypeComboBox, SIGNAL(itemActivated()),
-                             this, SLOT(surfaceOffsetVectorTypeChanged()));
-            m_surfaceOffsetVectorTypeComboBox->getWidget()->setFixedWidth(45);
-            m_surfaceOffsetVectorTypeComboBox->getWidget()->setToolTip("Vector for surface offset:\n"
-                                                                       "   C - Centroid thru Vertex, Faces Viewer\n"
-                                                                       "   N - Vertex Normal, Faces Viewer\n"
-                                                                       "   T - Tangent, Rotates with Surface");
-            break;
-        case COORDINATE_TWO:
-            break;
-    }
-    
-    m_plusButtonToolTipText = ("Click the mouse to set the new location for the coordinate.\n"
-                               "After clicking the mouse, a dialog allows selection of the\n"
-                               "coordinate space.");
-    
-
-    QToolButton* setCoordinateToolButton = NULL;
-    switch (m_parentWidgetType) {
-        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
-            /** disabled as change space cause grouping problems.   setCoordinateToolButton = new QToolButton(); */
-            break;
-        case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
-            CaretAssert(0);
-            break;
-    }
-    
-    if (setCoordinateToolButton != NULL) {
-        QAction* setCoordinateAction = WuQtUtilities::createAction("+",
-                                                                   ("After pressing this button: \n"
-                                                                    + m_plusButtonToolTipText),
-                                                                   this,
-                                                                   this,
-                                                                   SLOT(setCoordinateActionTriggered()));
-        setCoordinateToolButton->setDefaultAction(setCoordinateAction);
-        WuQtUtilities::setToolButtonStyleForQt5Mac(setCoordinateToolButton);
-    }
+    createCoordinateWidgets(0);
+    createCoordinateWidgets(1);
     
     m_surfaceWidget = new QWidget();
-    QHBoxLayout* surfaceLayout = new QHBoxLayout(m_surfaceWidget);
+    QGridLayout* surfaceLayout = new QGridLayout(m_surfaceWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(surfaceLayout, 2, 0);
-    surfaceLayout->addWidget(surfaceVertexLabel);
-    surfaceLayout->addWidget(m_surfaceStructureComboBox->getWidget());
-    surfaceLayout->addWidget(m_surfaceNodeIndexSpinBox);
+    surfaceLayout->addWidget(surfaceVertexLabel, 0, 0);
+    surfaceLayout->addWidget(m_surfaceStructureComboBox->getWidget(), 0, 1);
+    surfaceLayout->addWidget(m_surfaceNodeIndexSpinBox[0], 0, 2);
+    surfaceLayout->addWidget(m_surfaceNodeIndexSpinBox[1], 1, 2);
     if (m_surfaceOffsetVectorTypeComboBox != NULL) {
-        surfaceLayout->addWidget(m_surfaceOffsetVectorTypeComboBox->getWidget());
+        surfaceLayout->addWidget(m_surfaceOffsetVectorTypeComboBox->getWidget(), 0, 3);
     }
-    surfaceLayout->addWidget(m_surfaceOffsetLengthSpinBox);
-    
+    surfaceLayout->addWidget(m_surfaceOffsetLengthSpinBox[0], 0, 4);
+    surfaceLayout->addWidget(m_surfaceOffsetLengthSpinBox[1], 1, 4);
+    surfaceLayout->setColumnStretch(surfaceLayout->columnCount(), 100);
+
     m_coordinateWidget = new QWidget();
-    QHBoxLayout* coordinateLayout = new QHBoxLayout(m_coordinateWidget);
+    QGridLayout* coordinateLayout = new QGridLayout(m_coordinateWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(coordinateLayout, 2, 0);
-    coordinateLayout->addWidget(xCoordLabel);
-    coordinateLayout->addWidget(m_xCoordSpinBox);
-    coordinateLayout->addWidget(yCoordLabel);
-    coordinateLayout->addWidget(m_yCoordSpinBox);
-    coordinateLayout->addWidget(zCoordLabel);
-    coordinateLayout->addWidget(m_zCoordSpinBox);
-    
-    
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addWidget(m_surfaceWidget);
-    layout->addWidget(m_coordinateWidget);
-    if (setCoordinateToolButton != NULL) {
-        layout->addWidget(setCoordinateToolButton);
-    }
+    coordinateLayout->addWidget(xCoordLabel, 0, 0);
+    coordinateLayout->addWidget(m_xCoordSpinBox[0], 0, 1);
+    coordinateLayout->addWidget(m_xCoordSpinBox[1], 1, 1);
+    coordinateLayout->addWidget(yCoordLabel, 0, 2);
+    coordinateLayout->addWidget(m_yCoordSpinBox[0], 0, 3);
+    coordinateLayout->addWidget(m_yCoordSpinBox[1], 1, 3);
+    coordinateLayout->addWidget(zCoordLabel, 0, 4);
+    coordinateLayout->addWidget(m_zCoordSpinBox[0], 0, 5);
+    coordinateLayout->addWidget(m_zCoordSpinBox[1], 1, 5);
+    coordinateLayout->setColumnStretch(coordinateLayout->columnCount(), 100);
+
+    m_stackedLayout = new QStackedLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(m_stackedLayout, 2, 2);
+    m_stackedLayout->addWidget(m_surfaceWidget);
+    m_stackedLayout->addWidget(m_coordinateWidget);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -241,12 +152,93 @@ m_browserWindowIndex(browserWindowIndex)
 /**
  * Destructor.
  */
-AnnotationCoordinateWidget::~AnnotationCoordinateWidget()
+AnnotationCoordinatesWidget::~AnnotationCoordinatesWidget()
 {
 }
 
+/**
+ * Create the widgets for the given coordinate index
+ * @param coordinateIndex
+ *   Index of the coordinate
+ */
+void
+AnnotationCoordinatesWidget::createCoordinateWidgets(const int32_t coordinateIndex)
+{
+    if (coordinateIndex == 0) {
+        m_surfaceStructureComboBox = new StructureEnumComboBox(this);
+        m_surfaceStructureComboBox->listOnlyValidStructures();
+        m_surfaceStructureComboBox->getWidget()->setToolTip("Select surface structure");
+        QObject::connect(m_surfaceStructureComboBox, SIGNAL(structureSelected(const StructureEnum::Enum)),
+                         this, SLOT(valueChangedCoordinateOne()));
+    }
+    
+    m_surfaceNodeIndexSpinBox[coordinateIndex] = new QSpinBox();
+    m_surfaceNodeIndexSpinBox[coordinateIndex]->setRange(0, 1000000);
+    m_surfaceNodeIndexSpinBox[coordinateIndex]->setSingleStep(1);
+    m_surfaceNodeIndexSpinBox[coordinateIndex]->setToolTip("Select surface vertex");
+    switch (coordinateIndex) {
+        case 0:
+            QObject::connect(m_surfaceNodeIndexSpinBox[coordinateIndex], SIGNAL(valueChanged(int)),
+                             this, SLOT(valueChangedCoordinateOne()));
+            break;
+        case 1:
+            QObject::connect(m_surfaceNodeIndexSpinBox[coordinateIndex], SIGNAL(valueChanged(int)),
+                             this, SLOT(valueChangedCoordinateTwo()));
+            break;
+        default:
+            CaretAssert(0);
+            break;
+    }
+    
+    m_surfaceOffsetLengthSpinBox[coordinateIndex] = new QDoubleSpinBox();
+    m_surfaceOffsetLengthSpinBox[coordinateIndex]->setRange(0.0, 999.0);
+    m_surfaceOffsetLengthSpinBox[coordinateIndex]->setSingleStep(0.1);
+    m_surfaceOffsetLengthSpinBox[coordinateIndex]->setToolTip("Offset of annotation from surface vertex");
+    switch (coordinateIndex) {
+        case 0:
+            QObject::connect(m_surfaceOffsetLengthSpinBox[coordinateIndex], SIGNAL(valueChanged(double)),
+                             this, SLOT(surfaceOffsetLengthValueOneChanged(double)));
+            break;
+        case 1:
+            QObject::connect(m_surfaceOffsetLengthSpinBox[coordinateIndex], SIGNAL(valueChanged(double)),
+                             this, SLOT(surfaceOffsetLengthValueTwoChanged(double)));
+            break;
+        default:
+            CaretAssert(0);
+            break;
+    }
+
+    m_xCoordSpinBox[coordinateIndex] = createCoordinateSpinBox(coordinateIndex, "X");
+    
+    m_yCoordSpinBox[coordinateIndex] = createCoordinateSpinBox(coordinateIndex, "Y");
+    
+    m_zCoordSpinBox[coordinateIndex] = createCoordinateSpinBox(coordinateIndex, "Z");
+    
+    const float spinBoxMaximumWidth = 80.0f;
+    m_xCoordSpinBox[coordinateIndex]->setMaximumWidth(spinBoxMaximumWidth);
+    m_yCoordSpinBox[coordinateIndex]->setMaximumWidth(spinBoxMaximumWidth);
+    m_zCoordSpinBox[coordinateIndex]->setMaximumWidth(spinBoxMaximumWidth);
+    
+    if (coordinateIndex == 0) {
+        m_surfaceOffsetVectorTypeComboBox = new EnumComboBoxTemplate(this);
+        m_surfaceOffsetVectorTypeComboBox->setup<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>();
+        QObject::connect(m_surfaceOffsetVectorTypeComboBox, SIGNAL(itemActivated()),
+                         this, SLOT(surfaceOffsetVectorTypeChanged()));
+        m_surfaceOffsetVectorTypeComboBox->getWidget()->setFixedWidth(55);
+        m_surfaceOffsetVectorTypeComboBox->getWidget()->setToolTip("Vector for surface offset:\n"
+                                                                   "   C - Centroid thru Vertex, Faces Viewer\n"
+                                                                   "   N - Vertex Normal, Faces Viewer\n"
+                                                                   "   T - Tangent, Rotates with Surface");
+    }
+}
+
+/**
+ * @return Coordinate for given indx
+ * @param const int32_t coordinateIndex
+ *    Index of coordinate
+ */
 AnnotationCoordinate*
-AnnotationCoordinateWidget::getCoordinate()
+AnnotationCoordinatesWidget::getCoordinate(const int32_t coordinateIndex)
 {
     AnnotationCoordinate* ac = NULL;
     
@@ -255,8 +247,8 @@ AnnotationCoordinateWidget::getCoordinate()
         AnnotationOneDimensionalShape* oneDimShape = dynamic_cast<AnnotationOneDimensionalShape*>(m_annotation);
         AnnotationTwoDimensionalShape* twoDimShape = dynamic_cast<AnnotationTwoDimensionalShape*>(m_annotation);
         
-        switch (m_whichCoordinate) {
-            case COORDINATE_ONE:
+        switch (coordinateIndex) {
+            case 0:
                 if (oneDimShape != NULL) {
                     ac = oneDimShape->getStartCoordinate();
                 }
@@ -264,10 +256,13 @@ AnnotationCoordinateWidget::getCoordinate()
                     ac = twoDimShape->getCoordinate();
                 }
                 break;
-            case COORDINATE_TWO:
+            case 1:
                 if (oneDimShape != NULL) {
                     ac = oneDimShape->getEndCoordinate();
                 }
+                break;
+            default:
+                CaretAssert(0);
                 break;
         }
     }
@@ -282,7 +277,7 @@ AnnotationCoordinateWidget::getCoordinate()
  * @param coordinate.
  */
 void
-AnnotationCoordinateWidget::updateContent(Annotation* annotation)
+AnnotationCoordinatesWidget::updateContent(Annotation* annotation)
 {
     m_annotation = NULL;
     if (annotation != NULL) {
@@ -293,12 +288,90 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
     
     m_surfaceStructureComboBox->listOnlyValidStructures();
     
-    const AnnotationCoordinate* coordinate = getCoordinate();
+    updateCoordinate(0,
+                      getCoordinate(0));
+    updateCoordinate(1,
+                     getCoordinate(1));
+
+    bool surfaceSpaceFlag(false);
+    bool viewportSpaceFlag(false);
+    if (m_annotation != NULL) {
+        switch (m_annotation->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+                break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
+                break;
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+                surfaceSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+                break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                viewportSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                break;
+        }
+        if (viewportSpaceFlag) {
+            setEnabled(false);
+        }
+        else {
+            setEnabled(true);
+        }
+    }
+    else {
+        setEnabled(false);
+    }
     
-    bool surfaceFlag    = false;
+    if (surfaceSpaceFlag) {
+        m_stackedLayout->setCurrentWidget(m_surfaceWidget);
+    }
+    else {
+        m_stackedLayout->setCurrentWidget(m_coordinateWidget);
+    }
+}
+
+/**
+ * Update coordinate for given index
+ *
+ * @param coordinateIndex
+ *    Index of coordinate
+ * @param coordinate
+ *    The coordinate
+ */
+void
+AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
+                                              const AnnotationCoordinate* coordinate)
+{
+    bool surfaceFlag(false);
+    bool xyzFlag(false);
+    
+    double xMin =  0.0;
+    double xMax =  0.0;
+    double yMin =  0.0;
+    double yMax =  0.0;
+    double zMin  = 0.0;
+    double zMax  = 0.0;
+    double xStep = 0.1;
+    double yStep = 0.1;
+    double zStep = 0.1;
+    QString suffix;
+    float xyz[3] { 0.0, 0.0, 0.0 };
+
+    int32_t digitsRightOfDecimalX = 2;
+    int32_t digitsRightOfDecimalY = 2;
+    int32_t digitsRightOfDecimalZ = 2;
+
+    StructureEnum::Enum structure = StructureEnum::INVALID;
+    int32_t surfaceNumberOfNodes  = -1;
+    int32_t surfaceNodeIndex      = -1;
+    float   surfaceOffsetLength   = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
+    AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVector = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
     
     if (coordinate != NULL) {
-        float xyz[3];
+        xyzFlag = true;
         coordinate->getXYZ(xyz);
         
         bool viewportSpaceFlag = false;
@@ -308,19 +381,6 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
         const double zDepthMaximum =     100.0;
         const double coordinateMinimum = -std::numeric_limits<float>::max();
         const double coordinateMaximum =  std::numeric_limits<float>::max();
-        double xMin =  0.0;
-        double xMax =  0.0;
-        double yMin =  0.0;
-        double yMax =  0.0;
-        double zMin  = 0.0;
-        double zMax  = 0.0;
-        double xStep = 0.1;
-        double yStep = 0.1;
-        double zStep = 0.1;
-        QString suffix;
-        int32_t digitsRightOfDecimalX = 2;
-        int32_t digitsRightOfDecimalY = 2;
-        int32_t digitsRightOfDecimalZ = 2;
         switch (m_annotation->getCoordinateSpace()) {
             case AnnotationCoordinateSpaceEnum::CHART:
             {
@@ -334,7 +394,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 digitsRightOfDecimalX = 3;
                 xStep = 1.0;
                 yStep = 1.0;
-
+                
                 BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
                 CaretAssert(bbw);
                 BrowserTabContent* browserTabContent = bbw->getBrowserTabContent();
@@ -424,6 +484,7 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 break;
             case AnnotationCoordinateSpaceEnum::SURFACE:
                 surfaceFlag = true;
+                xyzFlag     = false;
                 break;
             case AnnotationCoordinateSpaceEnum::TAB:
                 xMin = percentageMinimum;
@@ -456,121 +517,138 @@ AnnotationCoordinateWidget::updateContent(Annotation* annotation)
                 suffix = "%";
                 break;
         }
-        
-        m_xCoordSpinBox->blockSignals(true);
-        m_xCoordSpinBox->setRange(xMin,
-                                  xMax);
-        m_xCoordSpinBox->setSingleStep(xStep);
-        m_xCoordSpinBox->setSuffix(suffix);
-        m_xCoordSpinBox->setValue(xyz[0]);
-        m_xCoordSpinBox->setDecimals(digitsRightOfDecimalX);
-        m_xCoordSpinBox->blockSignals(false);
-        
-        m_yCoordSpinBox->blockSignals(true);
-        m_yCoordSpinBox->setRange(yMin,
-                                  yMax);
-        m_yCoordSpinBox->setSingleStep(yStep);
-        m_yCoordSpinBox->setSuffix(suffix);
-        m_yCoordSpinBox->setValue(xyz[1]);
-        m_yCoordSpinBox->setDecimals(digitsRightOfDecimalY);
-        m_yCoordSpinBox->blockSignals(false);
-        
-        m_zCoordSpinBox->blockSignals(true);
-        m_zCoordSpinBox->setRange(zMin,
-                                  zMax);
-        m_zCoordSpinBox->setSingleStep(zStep);
-        m_zCoordSpinBox->setSuffix(suffix);
-        m_zCoordSpinBox->setValue(xyz[2]);
-        m_zCoordSpinBox->setDecimals(digitsRightOfDecimalZ);
-        m_zCoordSpinBox->blockSignals(false);
-        
-        m_zCoordSpinBox->setEnabled(true);
-        if (annotation->getType() == AnnotationTypeEnum::BROWSER_TAB) {
-            m_zCoordSpinBox->setEnabled(false);
-        }
-        
-        if (surfaceFlag) {
-            StructureEnum::Enum structure = StructureEnum::INVALID;
-            int32_t surfaceNumberOfNodes  = -1;
-            int32_t surfaceNodeIndex      = -1;
-            float   surfaceOffsetLength   = AnnotationCoordinate::getDefaultSurfaceOffsetLength();
-            AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceOffsetVector = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
-            coordinate->getSurfaceSpace(structure,
-                                        surfaceNumberOfNodes,
-                                        surfaceNodeIndex,
-                                        surfaceOffsetLength,
-                                        surfaceOffsetVector);
-            m_surfaceStructureComboBox->setSelectedStructure(structure);
-            m_surfaceNodeIndexSpinBox->blockSignals(true);
-            m_surfaceNodeIndexSpinBox->setValue(surfaceNodeIndex);
-            m_surfaceNodeIndexSpinBox->blockSignals(false);
-
-            if (m_surfaceOffsetVectorTypeComboBox != NULL) {
-                m_surfaceOffsetVectorTypeComboBox->setSelectedItem<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>(surfaceOffsetVector);
-            }
-            
-            m_surfaceOffsetLengthSpinBox->blockSignals(true);
-            m_surfaceOffsetLengthSpinBox->setValue(surfaceOffsetLength);
-            m_surfaceOffsetLengthSpinBox->blockSignals(false);
-            
-            AnnotationCoordinate::setUserDefautlSurfaceOffsetVectorType(surfaceOffsetVector);
-            AnnotationCoordinate::setUserDefaultSurfaceOffsetLength(surfaceOffsetLength);
-        }
-        
-        if (viewportSpaceFlag) {
-            setEnabled(false);
-        }
-        else {
-            setEnabled(true);
-        }
     }
-    else {
-        setEnabled(false);
+
+    m_xCoordSpinBox[coordinateIndex]->blockSignals(true);
+    m_xCoordSpinBox[coordinateIndex]->setRange(xMin,
+                              xMax);
+    m_xCoordSpinBox[coordinateIndex]->setSingleStep(xStep);
+    m_xCoordSpinBox[coordinateIndex]->setSuffix(suffix);
+    m_xCoordSpinBox[coordinateIndex]->setValue(xyz[0]);
+    m_xCoordSpinBox[coordinateIndex]->setDecimals(digitsRightOfDecimalX);
+    m_xCoordSpinBox[coordinateIndex]->blockSignals(false);
+    m_xCoordSpinBox[coordinateIndex]->setEnabled(xyzFlag);
+    
+    m_yCoordSpinBox[coordinateIndex]->blockSignals(true);
+    m_yCoordSpinBox[coordinateIndex]->setRange(yMin,
+                              yMax);
+    m_yCoordSpinBox[coordinateIndex]->setSingleStep(yStep);
+    m_yCoordSpinBox[coordinateIndex]->setSuffix(suffix);
+    m_yCoordSpinBox[coordinateIndex]->setValue(xyz[1]);
+    m_yCoordSpinBox[coordinateIndex]->setDecimals(digitsRightOfDecimalY);
+    m_yCoordSpinBox[coordinateIndex]->blockSignals(false);
+    m_yCoordSpinBox[coordinateIndex]->setEnabled(xyzFlag);
+    
+    m_zCoordSpinBox[coordinateIndex]->blockSignals(true);
+    m_zCoordSpinBox[coordinateIndex]->setRange(zMin,
+                              zMax);
+    m_zCoordSpinBox[coordinateIndex]->setSingleStep(zStep);
+    m_zCoordSpinBox[coordinateIndex]->setSuffix(suffix);
+    m_zCoordSpinBox[coordinateIndex]->setValue(xyz[2]);
+    m_zCoordSpinBox[coordinateIndex]->setDecimals(digitsRightOfDecimalZ);
+    m_zCoordSpinBox[coordinateIndex]->blockSignals(false);
+    m_zCoordSpinBox[coordinateIndex]->setEnabled(xyzFlag);
+
+    if (m_annotation != NULL) {
+        if (m_annotation->getType() == AnnotationTypeEnum::BROWSER_TAB) {
+            m_zCoordSpinBox[coordinateIndex]->setEnabled(false);
+        }
     }
     
-    m_surfaceWidget->setVisible(surfaceFlag);
-    m_coordinateWidget->setVisible( ! surfaceFlag);
+    if (surfaceFlag) {
+        coordinate->getSurfaceSpace(structure,
+                                    surfaceNumberOfNodes,
+                                    surfaceNodeIndex,
+                                    surfaceOffsetLength,
+                                    surfaceOffsetVector);
+        if (coordinateIndex == 0) {
+            m_surfaceStructureComboBox->setSelectedStructure(structure);
+            m_surfaceOffsetVectorTypeComboBox->setSelectedItem<AnnotationSurfaceOffsetVectorTypeEnum,AnnotationSurfaceOffsetVectorTypeEnum::Enum>(surfaceOffsetVector);
+        }
+        
+        m_surfaceNodeIndexSpinBox[coordinateIndex]->blockSignals(true);
+        m_surfaceNodeIndexSpinBox[coordinateIndex]->setValue(surfaceNodeIndex);
+        m_surfaceNodeIndexSpinBox[coordinateIndex]->blockSignals(false);
+        
+        m_surfaceOffsetLengthSpinBox[coordinateIndex]->blockSignals(true);
+        m_surfaceOffsetLengthSpinBox[coordinateIndex]->setValue(surfaceOffsetLength);
+        m_surfaceOffsetLengthSpinBox[coordinateIndex]->blockSignals(false);
+        
+        AnnotationCoordinate::setUserDefautlSurfaceOffsetVectorType(surfaceOffsetVector);
+        AnnotationCoordinate::setUserDefaultSurfaceOffsetLength(surfaceOffsetLength);
+    }
+    if (coordinateIndex == 0) {
+        m_surfaceStructureComboBox->getWidget()->setEnabled(surfaceFlag);
+        m_surfaceOffsetVectorTypeComboBox->getWidget()->setEnabled(surfaceFlag);
+    }
+    m_surfaceNodeIndexSpinBox[coordinateIndex]->setEnabled(surfaceFlag);
+    m_surfaceOffsetLengthSpinBox[coordinateIndex]->setEnabled(surfaceFlag);
 }
 
 /**
- * Called when surface offset value changed.
- *   
+ * Called when surface offset one value changed.
+ *
  * @param value
  *    New value.
  */
 void
-AnnotationCoordinateWidget::surfaceOffsetLengthValueChanged(double value)
+AnnotationCoordinatesWidget::surfaceOffsetLengthValueOneChanged(double value)
 {
-    const AnnotationCoordinate* coordinate = getCoordinate();
-    if ((m_annotation != NULL)
-        && (coordinate != NULL)) {
-        AnnotationCoordinate::setUserDefaultSurfaceOffsetLength(value);
-        valueChanged();
-    }
+    AnnotationCoordinate::setUserDefaultSurfaceOffsetLength(value);
+    valueChangedCoordinateOne();
+}
+
+/**
+ * Called when surface offset Two value changed.
+ *
+ * @param value
+ *    New value.
+ */
+void
+AnnotationCoordinatesWidget::surfaceOffsetLengthValueTwoChanged(double value)
+{
+    AnnotationCoordinate::setUserDefaultSurfaceOffsetLength(value);
+    valueChangedCoordinateTwo();
 }
 
 /**
  * Called when surface offset vector type is changed.
  */
 void
-AnnotationCoordinateWidget::surfaceOffsetVectorTypeChanged()
+AnnotationCoordinatesWidget::surfaceOffsetVectorTypeChanged()
 {
-    const AnnotationCoordinate* coordinate = getCoordinate();
-    if ((m_annotation != NULL)
-        && (coordinate != NULL)) {
-        CaretAssert(m_surfaceOffsetVectorTypeComboBox);
-        AnnotationCoordinate::setUserDefautlSurfaceOffsetVectorType(m_surfaceOffsetVectorTypeComboBox->getSelectedItem<AnnotationSurfaceOffsetVectorTypeEnum, AnnotationSurfaceOffsetVectorTypeEnum::Enum>());
-        valueChanged();
-    }
+    CaretAssert(m_surfaceOffsetVectorTypeComboBox);
+    AnnotationCoordinate::setUserDefautlSurfaceOffsetVectorType(m_surfaceOffsetVectorTypeComboBox->getSelectedItem<AnnotationSurfaceOffsetVectorTypeEnum, AnnotationSurfaceOffsetVectorTypeEnum::Enum>());
+    valueChangedCoordinateOne();
+    valueChangedCoordinateTwo();
 }
 
 /**
  * Gets called when a coordinate value is changed.
  */
 void
-AnnotationCoordinateWidget::valueChanged()
+AnnotationCoordinatesWidget::valueChangedCoordinateOne()
 {
-    const AnnotationCoordinate* coordinate = getCoordinate();
+    valueChangedCoordinate(0);
+}
+/**
+ * Gets called when a coordinate value is changed.
+ */
+void
+AnnotationCoordinatesWidget::valueChangedCoordinateTwo()
+{
+    valueChangedCoordinate(1);
+}
+
+/**
+ * Gets called when a coordinate value is changed.
+ * @param coordinateIndex
+ *    Index of coordinate
+ */
+void
+AnnotationCoordinatesWidget::valueChangedCoordinate(const int32_t coordinateIndex)
+{
+    const AnnotationCoordinate* coordinate = getCoordinate(coordinateIndex);
     if ((m_annotation != NULL)
         && (coordinate != NULL)) {
         bool surfaceFlag = false;
@@ -609,12 +687,9 @@ AnnotationCoordinateWidget::valueChanged()
                                                 surfaceOffsetLength,
                                                 surfaceOffsetVector);
                     structure = m_surfaceStructureComboBox->getSelectedStructure();
-                    surfaceNodeIndex = m_surfaceNodeIndexSpinBox->value();
-                    surfaceOffsetLength = m_surfaceOffsetLengthSpinBox->value();
-                    
-                    if (m_surfaceOffsetVectorTypeComboBox != NULL) {
-                        surfaceOffsetVector = m_surfaceOffsetVectorTypeComboBox->getSelectedItem<AnnotationSurfaceOffsetVectorTypeEnum, AnnotationSurfaceOffsetVectorTypeEnum::Enum>();
-                    }
+                    surfaceOffsetVector = m_surfaceOffsetVectorTypeComboBox->getSelectedItem<AnnotationSurfaceOffsetVectorTypeEnum, AnnotationSurfaceOffsetVectorTypeEnum::Enum>();
+                    surfaceNodeIndex = m_surfaceNodeIndexSpinBox[coordinateIndex]->value();
+                    surfaceOffsetLength = m_surfaceOffsetLengthSpinBox[coordinateIndex]->value();
                     
                     coordinateCopy.setSurfaceSpace(structure,
                                                    surfaceNumberOfNodes,
@@ -624,9 +699,9 @@ AnnotationCoordinateWidget::valueChanged()
                 }
                 else {
                     float xyz[3] = {
-                        (float)m_xCoordSpinBox->value(),
-                        (float)m_yCoordSpinBox->value(),
-                        (float)m_zCoordSpinBox->value()
+                        (float)m_xCoordSpinBox[coordinateIndex]->value(),
+                        (float)m_yCoordSpinBox[coordinateIndex]->value(),
+                        (float)m_zCoordSpinBox[coordinateIndex]->value()
                     };
                     coordinateCopy.setXYZ(xyz);
                 }
@@ -648,14 +723,17 @@ AnnotationCoordinateWidget::valueChanged()
                 }
                 
                 AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-                switch (m_whichCoordinate) {
-                    case COORDINATE_ONE:
+                switch (coordinateIndex) {
+                    case 0:
                         undoCommand->setModeCoordinateOne(coordinateCopy,
                                                           selectedAnnotations);
                         break;
-                    case COORDINATE_TWO:
+                    case 1:
                         undoCommand->setModeCoordinateTwo(coordinateCopy,
                                                           selectedAnnotations);
+                        break;
+                    default:
+                        CaretAssert(0);
                         break;
                 }
                 
@@ -689,16 +767,46 @@ AnnotationCoordinateWidget::valueChanged()
 }
 
 /**
- * Called when the set coordinate button is clicked.
+ * @return Spin box with axis character in tool tip
+ * @param coordinateIndex
+ *     Index of coordinate
+ * @param axisCharacter
+ *     Character for axis
  */
-void
-AnnotationCoordinateWidget::setCoordinateActionTriggered()
+QDoubleSpinBox*
+AnnotationCoordinatesWidget::createCoordinateSpinBox(const int32_t coordinateIndex,
+                                                     const QString& axisCharacter)
 {
-    QPoint middlePos(width() / 2,
-                     height() / 2);
-    QToolTip::showText(mapToGlobal(middlePos),
-                       m_plusButtonToolTipText,
-                       this);
+    const int digitsRightOfDecimal = 1;
     
-    signalSelectCoordinateWithMouse();
+    QDoubleSpinBox* sb(NULL);
+    switch (coordinateIndex) {
+        case 0:
+            sb = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
+                                                                                100.0,
+                                                                                0.1,
+                                                                                digitsRightOfDecimal,
+                                                                                this,
+                                                                                SLOT(valueChangedCoordinateOne()));
+            break;
+        case 1:
+            sb = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0,
+                                                                                100.0,
+                                                                                0.1,
+                                                                                digitsRightOfDecimal,
+                                                                                this,
+                                                                                SLOT(valueChangedCoordinateTwo()));
+            break;
+        default:
+            break;
+    }
+    CaretAssert(sb);
+    WuQtUtilities::setWordWrappedToolTip(sb,
+                                         axisCharacter + "-coordinate of annotation\n"
+                                         "   STEREOTAXIC: Stereotaxic " + axisCharacter + "-Coordinate\n"
+                                         "   TAB and WINDOW " + axisCharacter + "-Range: [0.0%, 100.0%]\n"
+                                         "      0.0% => Left side of tab/window\n"
+                                         "      100.0% => Right side of tab/window\n");
+    return sb;
 }
+

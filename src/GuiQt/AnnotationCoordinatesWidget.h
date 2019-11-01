@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_COORDINATE_WIDGET_H__
-#define __ANNOTATION_COORDINATE_WIDGET_H__
+#ifndef __ANNOTATION_COORDINATES_WIDGET_H__
+#define __ANNOTATION_COORDINATES_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -30,6 +30,7 @@
 
 class QDoubleSpinBox;
 class QSpinBox;
+class QStackedLayout;
 
 namespace caret {
 
@@ -38,47 +39,50 @@ namespace caret {
     class EnumComboBoxTemplate;
     class StructureEnumComboBox;
     
-    class AnnotationCoordinateWidget : public QWidget {
+    class AnnotationCoordinatesWidget : public QWidget {
         
         Q_OBJECT
 
-    public:
-        enum WhichCoordinate {
-            COORDINATE_ONE,
-            COORDINATE_TWO
-        };
-        
-        AnnotationCoordinateWidget(const UserInputModeEnum::Enum userInputMode,
+    public:        
+        AnnotationCoordinatesWidget(const UserInputModeEnum::Enum userInputMode,
                                    const AnnotationWidgetParentEnum::Enum parentWidgetType,
-                                   const WhichCoordinate whichCoordinate,
                                    const int32_t browserWindowIndex,
                                    QWidget* parent = 0);
         
-        virtual ~AnnotationCoordinateWidget();
+        virtual ~AnnotationCoordinatesWidget();
         
 
         // ADD_NEW_METHODS_HERE
 
         void updateContent(Annotation* annotation);
         
-    signals:
-        void signalSelectCoordinateWithMouse();
-        
     private slots:
-        void valueChanged();
+        void valueChangedCoordinateOne();
         
-        void setCoordinateActionTriggered();
+        void valueChangedCoordinateTwo();
         
-        void surfaceOffsetLengthValueChanged(double);
+        void surfaceOffsetLengthValueOneChanged(double);
+        
+        void surfaceOffsetLengthValueTwoChanged(double);
         
         void surfaceOffsetVectorTypeChanged();
         
     private:
-        AnnotationCoordinateWidget(const AnnotationCoordinateWidget&);
+        AnnotationCoordinatesWidget(const AnnotationCoordinatesWidget&);
 
-        AnnotationCoordinateWidget& operator=(const AnnotationCoordinateWidget&);
+        AnnotationCoordinatesWidget& operator=(const AnnotationCoordinatesWidget&);
         
-        AnnotationCoordinate* getCoordinate();
+        AnnotationCoordinate* getCoordinate(const int32_t coordinateIndex);
+        
+        QDoubleSpinBox* createCoordinateSpinBox(const int32_t coordinateIndex,
+                                                const QString& axisCharacter);
+        
+        void createCoordinateWidgets(const int32_t coordinateIndex);
+        
+        void updateCoordinate(const int32_t coordinateIndex,
+                              const AnnotationCoordinate* coordinate);
+        
+        void valueChangedCoordinate(const int32_t coordinateIndex);
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -86,9 +90,9 @@ namespace caret {
         
         const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
         
-        const WhichCoordinate m_whichCoordinate;
-        
         const int32_t m_browserWindowIndex;
+        
+        QStackedLayout* m_stackedLayout;
         
         QWidget* m_surfaceWidget;
         
@@ -96,17 +100,17 @@ namespace caret {
         
         StructureEnumComboBox* m_surfaceStructureComboBox;
         
-        QSpinBox* m_surfaceNodeIndexSpinBox;
+        QSpinBox* m_surfaceNodeIndexSpinBox[2];
         
         EnumComboBoxTemplate* m_surfaceOffsetVectorTypeComboBox;
         
-        QDoubleSpinBox* m_surfaceOffsetLengthSpinBox;
+        QDoubleSpinBox* m_surfaceOffsetLengthSpinBox[2];
         
-        QDoubleSpinBox* m_xCoordSpinBox;
+        QDoubleSpinBox* m_xCoordSpinBox[2];
         
-        QDoubleSpinBox* m_yCoordSpinBox;
+        QDoubleSpinBox* m_yCoordSpinBox[2];
         
-        QDoubleSpinBox* m_zCoordSpinBox;
+        QDoubleSpinBox* m_zCoordSpinBox[2];
 
         Annotation* m_annotation;
         
@@ -114,9 +118,9 @@ namespace caret {
         
     };
     
-#ifdef __ANNOTATION_COORDINATE_WIDGET_DECLARE__
+#ifdef __ANNOTATION_COORDINATES_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_COORDINATE_WIDGET_DECLARE__
+#endif // __ANNOTATION_COORDINATES_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_COORDINATE_WIDGET_H__
+#endif  //__ANNOTATION_COORDINATES_WIDGET_H__

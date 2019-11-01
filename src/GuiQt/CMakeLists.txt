@@ -51,7 +51,7 @@ ELSE()
 	AnnotationCoordinateCenterXYWidget.h
         AnnotationCoordinateSelectionWidget.h
         AnnotationCoordinateSpaceWidget.h
-        AnnotationCoordinateWidget.h
+        AnnotationCoordinatesWidget.h
         AnnotationCreateDialog.h
         AnnotationDeleteWidget.h
         AnnotationFontWidget.h
@@ -280,7 +280,7 @@ AnnotationCoordinateCenterXYWidget.h
 AnnotationCoordinateInformation.h
 AnnotationCoordinateSelectionWidget.h
 AnnotationCoordinateSpaceWidget.h
-AnnotationCoordinateWidget.h
+AnnotationCoordinatesWidget.h
 AnnotationCreateDialog.h
 AnnotationDeleteWidget.h
 AnnotationFontWidget.h
@@ -567,7 +567,7 @@ AnnotationCoordinateCenterXYWidget.cxx
 AnnotationCoordinateInformation.cxx
 AnnotationCoordinateSelectionWidget.cxx
 AnnotationCoordinateSpaceWidget.cxx
-AnnotationCoordinateWidget.cxx
+AnnotationCoordinatesWidget.cxx
 AnnotationCreateDialog.cxx
 AnnotationDeleteWidget.cxx
 AnnotationFontWidget.cxx

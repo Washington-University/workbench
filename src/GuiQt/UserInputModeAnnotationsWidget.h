@@ -37,7 +37,7 @@ namespace caret {
     class AnnotationColorWidget;
     class AnnotationCoordinateCenterXYWidget;
     class AnnotationCoordinateSpaceWidget;
-    class AnnotationCoordinateWidget;
+    class AnnotationCoordinatesWidget;
     class AnnotationDeleteWidget;
     class AnnotationFontWidget;
     class AnnotationFormatWidget;
@@ -99,9 +99,7 @@ namespace caret {
         
         AnnotationCoordinateCenterXYWidget* m_coordinateCenterXYWidget = NULL;
         
-        AnnotationCoordinateWidget* m_coordinateOneWidget = NULL;
-        
-        AnnotationCoordinateWidget* m_coordinateTwoWidget = NULL;
+        AnnotationCoordinatesWidget* m_coordinatesWidget = NULL;
         
         AnnotationWidthHeightWidget* m_widthHeightWidget = NULL;
         
