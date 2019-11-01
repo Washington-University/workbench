@@ -88,10 +88,7 @@ AlgorithmAnnotationResample::getParameters()
                         "Only annotations in surface space are modified, no changes are made to "
                         "annotations in other spaces.  "
                         "The -surface-pair option may be repeated for additional "
-                        "structures used by surface space annotations."
-                        "\n\n"
-                        "Note: -source-surface and -target-surface options are deprecated "
-                        "and will be removed.");
+                        "structures used by surface space annotations.");
 
     ret->setHelpText(helpText);
     
