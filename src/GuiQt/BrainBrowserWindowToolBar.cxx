@@ -2314,7 +2314,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     /*
      * Image
      */
-    const bool showImageButtonFlag = true;
+    const bool showImageButtonFlag(false);
     this->modeInputModeImageRadioButton = NULL;
     if (showImageButtonFlag) {
         this->modeInputModeImageRadioButton = new QRadioButton("Image");
