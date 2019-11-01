@@ -2307,7 +2307,7 @@ BrainBrowserWindowToolBar::createModeWidget()
      * Foci
      */
     this->modeInputModeFociRadioButton = new QRadioButton("Foci");
-    this->setToolTip("Perform foci operations with mouse");
+    this->modeInputModeFociRadioButton->setToolTip("Perform foci operations with mouse");
     this->modeInputModeFociRadioButton->setObjectName(m_objectNamePrefix
                                                         + ":Mode:Foci");
     
