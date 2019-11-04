@@ -447,7 +447,11 @@ UserInputModeVolumeEditWidget::createOperationWidget()
     buttonGroup->addButton(m_modeRetainThreeDimRadioButton);
 
     QGridLayout* gridLayout = new QGridLayout();
+#ifdef CARET_OS_LINUX
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 2);
+#else
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 4, 2);
+#endif
     int32_t row(0);
     gridLayout->addWidget(m_modeOnRadioButton,
                           row, 0);
@@ -481,7 +485,11 @@ UserInputModeVolumeEditWidget::createOperationWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
+#ifdef CARET_OS_LINUX
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+#else
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
+#endif
     layout->addLayout(gridLayout);
     layout->addWidget(createEditWidget());
     layout->addStretch();
