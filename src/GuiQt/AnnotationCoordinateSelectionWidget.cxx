@@ -403,9 +403,10 @@ m_optionalSecondCoordInfo(optionalSecondCoordInfo)
      * compilation error which may indicate the code in this method
      * needs to be updated.
      */
-    const AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::TAB;
+    AnnotationCoordinateSpaceEnum::Enum space = AnnotationCoordinateSpaceEnum::TAB;
     switch (space) {
         case AnnotationCoordinateSpaceEnum::CHART:
+        case AnnotationCoordinateSpaceEnum::SPACER:
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
         case AnnotationCoordinateSpaceEnum::SURFACE:
         case AnnotationCoordinateSpaceEnum::TAB:
