@@ -62,7 +62,7 @@ OperationParameters* OperationFociCreate::getParameters()
         AString("Creates a foci file from names, coordinates, and RGB values in a text file.  ") +
         "The text file must have the following format (2 lines per focus):\n\n" +
         "<focus-name>\n"
-        "<x> <x> <z> <red> <green> <blue>\n...\n\n" +
+        "<red> <green> <blue> <x> <y> <z> \n...\n\n" +
         "Foci names are specified on a separate line from their coordinates and color, in order to let foci names contain spaces.  " +
         "Whitespace is trimmed from both ends of the foci name, but is kept if it is in the middle of a name.  " +
         "The values of <red>, <green>, <blue> and must be integers from 0 to 255, and will specify the color the foci is drawn as.\n\n" +
