@@ -1,5 +1,5 @@
 language: cpp
-dist: trusty
+dist: bionic
 
 notifications:
     email: false
@@ -13,10 +13,8 @@ git:
 
 addons:
     apt:
-        sources:
-            - sourceline: ppa:beineri/opt-qt571-trusty
         packages:
-            - qt57base
+            - qt5-default
             - zlib1g-dev
             - libosmesa6-dev
             - libssl-dev
@@ -29,7 +27,6 @@ env:
         - OMP_NUM_THREADS=4
 
 before_install:
-    - source /opt/qt57/bin/qt57-env.sh
     - mkdir ../build
     - cd ../build
 
