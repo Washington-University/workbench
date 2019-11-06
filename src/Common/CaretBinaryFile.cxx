@@ -103,12 +103,12 @@ QString CaretBinaryFile::getFilename() const
 
 bool CaretBinaryFile::getOpenForRead()
 {
-    return (m_curMode | READ) != 0;
+    return (m_curMode & READ) != 0;
 }
 
 bool CaretBinaryFile::getOpenForWrite()
 {
-    return (m_curMode | WRITE) != 0;
+    return (m_curMode & WRITE) != 0;
 }
 
 void CaretBinaryFile::open(const QString& filename, const OpenMode& opmode)
