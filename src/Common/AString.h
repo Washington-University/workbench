@@ -35,7 +35,6 @@ namespace caret {
         AString(QChar c) : QString(c) {}
         AString(int size, QChar c) : QString(size, c) {}
         AString(const QLatin1String &latin1) : QString(latin1) {}
-        AString(const AString &string) : QString(string) {}
         AString(const QString &string) : QString(string) {}
         
         AString(const char *ch) : QString(ch){}
