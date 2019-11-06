@@ -34,6 +34,6 @@ before_install:
     - cd ../build
 
 script:
-    - cmake -D CMAKE_CXX_FLAGS="-Wno-narrowing" -D CMAKE_BUILD_TYPE=Release -D WORKBENCH_MESA_DIR=/usr ../workbench/src
+    - cmake -D CMAKE_CXX_FLAGS="-W -Wall -Wno-narrowing" -D CMAKE_BUILD_TYPE=Release -D WORKBENCH_MESA_DIR=/usr ../workbench/src
     - make -j 4
     - ctest
