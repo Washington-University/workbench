@@ -229,6 +229,7 @@ ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
             switch (structure) {
                 case StructureEnum::CEREBELLUM:
                     selectionModels.push_back(smcfm->getCerebellumSurfaceSelectionModel());
+                    break;
                 case StructureEnum::CORTEX_LEFT:
                     selectionModels.push_back(smcfm->getLeftSurfaceSelectionModel());
                     break;

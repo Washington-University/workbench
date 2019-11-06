@@ -358,12 +358,6 @@ AlgorithmAnnotationResample::setupSurfaces(const std::vector<const SurfaceFile*>
                                      + sts->m_source->getFileName());
         }
     }
-    
-    for (auto iter : m_surfaces) {
-        CaretAssert(iter.second);
-        CaretAssert(iter.second->m_source);
-        CaretAssert(iter.second->m_target);
-    }
 }
 
 /**

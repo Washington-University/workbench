@@ -153,6 +153,7 @@ public:
     CiftiLabelElement()
     {
         m_red = m_green = m_blue = m_alpha = m_x = m_y = m_z = 0.0;
+        m_key = 0;
     }
     unsigned long long m_key;/*!< Corresponding index, starting at zero, of a row and/or column of the connectivity matrix.*/
     float m_red;/*!<  Red color component for label. Value is floating point with range 0.0 to 1.0.*/

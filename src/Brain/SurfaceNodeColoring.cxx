@@ -510,6 +510,7 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                         case PaletteThresholdOutlineDrawingModeEnum::OUTLINE:
                             hideDataFlag    = true;
                             showOutlineFlag = true;
+                            break;
                         case PaletteThresholdOutlineDrawingModeEnum::OUTLINE_AND_DATA:
                             showOutlineFlag = true;
                             break;

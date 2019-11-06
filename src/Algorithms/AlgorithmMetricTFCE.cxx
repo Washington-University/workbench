@@ -230,6 +230,7 @@ namespace
             first = true;
             accumVal = 0.0;
             totalArea = 0.0;
+            lastVal = 0.0f;
         }
         void addMember(const int& node, const float& val, const float& area, const float& param_e, const float& param_h)
         {

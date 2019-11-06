@@ -485,13 +485,11 @@ VolumeDynamicConnectivityFile::getConnectivityForVoxelIndex(const int64_t ijk[3]
     ConnectivityCorrelation* connCorrelation = getConnectivityCorrelation();
     if (connCorrelation != NULL) {
         if (indexValid(ijk)) {
-            const int64_t voxelCount(m_dimI * m_dimJ * m_dimK);
-            
             if (connCorrelation) {
                 const int64_t myTimePointOffset = getVoxelOffset(ijk[0], ijk[1], ijk[2], 0);
                 connCorrelation->getCorrelationForBrainordinate(myTimePointOffset,
                                                                 voxelsOut);
-                CaretAssert(voxelCount == static_cast<int64_t>(voxelsOut.size()));
+                CaretAssert(m_dimI * m_dimJ * m_dimK == static_cast<int64_t>(voxelsOut.size()));
                 validFlag = true;
             }
         }

@@ -200,6 +200,7 @@ namespace
             first = true;
             accumVal = 0.0;
             totalVolume = 0.0;
+            lastVal = 0.0f;
         }
         void addMember(const VoxelIJK& voxel, const float& val, const float& voxel_volume, const float& param_e, const float& param_h)
         {
