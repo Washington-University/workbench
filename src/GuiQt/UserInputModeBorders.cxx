@@ -389,7 +389,7 @@ UserInputModeBorders::mouseLeftClick(const MouseEvent& mouseEvent)
                         case EDIT_OPERATION_PROPERTIES:
                         {
                             Border* border = idBorder->getBorder();
-                            std::auto_ptr<BorderPropertiesEditorDialog> editBorderDialog(
+                            std::unique_ptr<BorderPropertiesEditorDialog> editBorderDialog(
                                                                                          BorderPropertiesEditorDialog::newInstanceEditBorder(borderFile,
                                                                                                                                              border,
                                                                                                                                              openGLWidget));

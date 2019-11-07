@@ -1093,8 +1093,8 @@ BrainOpenGLVolumeTextureSliceDrawing::createSlicePlaneEquation(const VolumeSlice
 /**
  * Convert a Matrix4x4 to a glm::mat4 matrix
  */
-static glm::mat4
-convertMatrix4x4toGlmMat4(const Matrix4x4& matrix)
+glm::mat4
+BrainOpenGLVolumeTextureSliceDrawing::convertMatrix4x4toGlmMat4(const Matrix4x4& matrix) const
 {
     float m[16];
     matrix.getMatrixForOpenGL(m);
@@ -1109,9 +1109,9 @@ convertMatrix4x4toGlmMat4(const Matrix4x4& matrix)
 /**
  * Convert a glm::mat4 matrix to an OpenGL matrix
  */
-static void
-mat4ToOpenGLMatrix(const glm::mat4& matrixIn,
-                   float matrixOut[16])
+void
+BrainOpenGLVolumeTextureSliceDrawing::mat4ToOpenGLMatrix(const glm::mat4& matrixIn,
+                                                         float matrixOut[16]) const
 {
     int32_t indx = 0;
     for (int32_t iRow = 0; iRow < 4; iRow++) {
@@ -2956,7 +2956,8 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
      * we need to draw EVERY voxel since the user may click
      * regions where the voxels are "off".
      */
-    float voxelEditingValue = 1.0;
+    // value unused at this time but will likely be needed later if this volume rendering is fully implemented
+    //float voxelEditingValue = 1.0;
     VolumeFile* voxelEditingVolumeFile = NULL;
     if (m_identificationModeFlag) {
         SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
@@ -2965,7 +2966,7 @@ BrainOpenGLVolumeTextureSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
             if (voxelEditingVolumeFile != NULL) {
                 if (voxelEditingVolumeFile->isMappedWithLabelTable()) {
                     if (voxelEditingVolumeFile->getNumberOfMaps() > 0) {
-                        voxelEditingValue = voxelEditingVolumeFile->getMapLabelTable(0)->getUnassignedLabelKey();
+                        //voxelEditingValue = voxelEditingVolumeFile->getMapLabelTable(0)->getUnassignedLabelKey();
                     }
                 }
             }

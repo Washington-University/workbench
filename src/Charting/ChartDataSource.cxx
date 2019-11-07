@@ -158,6 +158,7 @@ ChartDataSource::operator==(const ChartDataSource& rhs) const
                 && (m_nodeIndicesAverage == rhs.m_nodeIndicesAverage)) {
                 return true;
             }
+            break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK:
             if ((m_voxelXYZ[0] == rhs.m_voxelXYZ[0])
                 && (m_voxelXYZ[1] == rhs.m_voxelXYZ[1])
@@ -235,6 +236,7 @@ ChartDataSource::operator<(const ChartDataSource& rhs) const
                     }
                 }
             }
+            break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK:
             if (m_voxelXYZ[0] < rhs.m_voxelXYZ[0]) {
                 return true;

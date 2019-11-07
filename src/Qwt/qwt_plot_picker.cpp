@@ -310,6 +310,7 @@ bool QwtPlotPicker::end( bool ok )
                 dpa[i] = invTransform( points[i] );
 
             Q_EMIT selected( dpa );
+            break;
         }
         default:
             break;

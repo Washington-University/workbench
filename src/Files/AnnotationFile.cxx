@@ -414,12 +414,14 @@ AnnotationFile::receiveEvent(Event* event)
                         annEvent->setSuccessful(true);
                     }
                 }
+                break;
             case EventAnnotationAddToRemoveFromFile::MODE_UNPASTE:
                 if (annotationFile == this) {
                     if (removeAnnotationWithUndoRedo(annotation)) {
                         annEvent->setSuccessful(true);
                     }
                 }
+                break;
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GROUP_GET_WITH_KEY) {

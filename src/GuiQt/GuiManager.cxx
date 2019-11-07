@@ -1522,6 +1522,7 @@ GuiManager::receiveEvent(Event* event)
                                                             overlayEditor);
                 }
             }
+                break;
             case EventOverlaySettingsEditorDialogRequest::MODE_UPDATE_ALL:
                 for (std::set<OverlaySettingsEditorDialog*>::iterator overlayEditorIter = m_overlaySettingsEditors.begin();
                      overlayEditorIter != m_overlaySettingsEditors.end();

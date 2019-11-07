@@ -619,6 +619,7 @@ int QwtDate::utcOffset( const QDateTime &dateTime )
 #else
             seconds = dateTime.utcOffset();
 #endif
+            break;
         }
         default:
         {

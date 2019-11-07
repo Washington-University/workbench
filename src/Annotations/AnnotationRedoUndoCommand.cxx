@@ -195,10 +195,13 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             break;
         case AnnotationRedoUndoCommandModeEnum::GROUPING_GROUP:
             CaretAssert(0);
+            break;
         case AnnotationRedoUndoCommandModeEnum::GROUPING_REGROUP:
             CaretAssert(0);
+            break;
         case AnnotationRedoUndoCommandModeEnum::GROUPING_UNGROUP:
             CaretAssert(0);
+            break;
         case AnnotationRedoUndoCommandModeEnum::LINE_ARROW_START:
             if ((annType == AnnotationTypeEnum::LINE)
                 && (annotationValue->getType() == AnnotationTypeEnum::LINE)) {

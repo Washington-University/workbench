@@ -1378,7 +1378,7 @@ BorderFile::readFile(const AString& filename)
     }
     
     /*BorderFileSaxReader saxReader(this);
-    std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
+    std::unique_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
         parser->parseFile(filename, &saxReader);
     }

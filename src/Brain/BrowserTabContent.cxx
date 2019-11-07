@@ -477,6 +477,7 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
         switch (model->getModelType()) {
             case ModelTypeEnum::MODEL_TYPE_CHART:
                 chartOneFlag = true;
+                break;
             case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
                 chartTwoFlag = true;
                 break;

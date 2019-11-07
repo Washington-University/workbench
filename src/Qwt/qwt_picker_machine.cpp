@@ -82,6 +82,7 @@ QList<QwtPickerMachine::Command> QwtPickerTrackerMachine::transition(
             cmdList += End;
             setState( 0 );
         }
+            break;
         default:
             break;
     }
@@ -532,6 +533,7 @@ QList<QwtPickerMachine::Command> QwtPickerDragLineMachine::transition(
                 cmdList += End;
                 setState( 0 );
             }
+            break;
         }
         default:
             break;

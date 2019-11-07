@@ -263,30 +263,62 @@ Logger::setLevel(const LogLevelEnum::Enum level)
     this->finestLoggingEnabled  = false;
     
     /*
-     * Notice that levels are arranged from
-     * from LOWEST to HIGHEST and that most 
-     * have not break statements.  Thus
-     * 'falling through' the 'case' statements
-     * sets the higher levels of logging.
+     * Code is a bit verbose but eliminates
+     * fall-through warning from compiler
      */
     switch (this->level) {
         case LogLevelEnum::OFF:
             break;
         case LogLevelEnum::ALL:
+            this->finestLoggingEnabled  = true;
+            this->finerLoggingEnabled   = true;
+            this->fineLoggingEnabled    = true;
+            this->configLoggingEnabled  = true;
+            this->infoLoggingEnabled    = true;
+            this->warningLoggingEnabled = true;
+            this->severeLoggingEnabled  = true;
+            break;
         case LogLevelEnum::FINEST:
-            this->finestLoggingEnabled = true;
+            this->finestLoggingEnabled  = true;
+            this->finerLoggingEnabled   = true;
+            this->fineLoggingEnabled    = true;
+            this->configLoggingEnabled  = true;
+            this->infoLoggingEnabled    = true;
+            this->warningLoggingEnabled = true;
+            this->severeLoggingEnabled  = true;
+            break;
         case LogLevelEnum::FINER:
-            this->finerLoggingEnabled = true;
+            this->finerLoggingEnabled   = true;
+            this->fineLoggingEnabled    = true;
+            this->configLoggingEnabled  = true;
+            this->infoLoggingEnabled    = true;
+            this->warningLoggingEnabled = true;
+            this->severeLoggingEnabled  = true;
+            break;
         case LogLevelEnum::FINE:
-            this->fineLoggingEnabled = true;
+            this->fineLoggingEnabled    = true;
+            this->configLoggingEnabled  = true;
+            this->infoLoggingEnabled    = true;
+            this->warningLoggingEnabled = true;
+            this->severeLoggingEnabled  = true;
+            break;
         case LogLevelEnum::CONFIG:
-            this->configLoggingEnabled = true;
+            this->configLoggingEnabled  = true;
+            this->infoLoggingEnabled    = true;
+            this->warningLoggingEnabled = true;
+            this->severeLoggingEnabled  = true;
+            break;
         case LogLevelEnum::INFO:
-            this->infoLoggingEnabled = true;
+            this->infoLoggingEnabled    = true;
+            this->warningLoggingEnabled = true;
+            this->severeLoggingEnabled  = true;
+            break;
         case LogLevelEnum::WARNING:
             this->warningLoggingEnabled = true;
+            this->severeLoggingEnabled  = true;
+            break;
         case LogLevelEnum::SEVERE:
-            this->severeLoggingEnabled = true;
+            this->severeLoggingEnabled  = true;
             break;
     }
 }

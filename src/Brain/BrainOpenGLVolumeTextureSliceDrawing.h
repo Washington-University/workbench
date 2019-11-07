@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <array>
+#include <glm/mat4x4.hpp>
 
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
@@ -167,6 +168,11 @@ namespace caret {
                                                   int64_t culledFirstVoxelIJKOut[3],
                                                   int64_t culledLastVoxelIJKOut[3],
                                                   float voxelDeltaXYZOut[3]);
+        
+        glm::mat4 convertMatrix4x4toGlmMat4(const Matrix4x4& matrix) const;
+        
+        void mat4ToOpenGLMatrix(const glm::mat4& matrixIn,
+                                float matrixOut[16]) const;
         
         bool getTextureCoordinates(const VolumeMappableInterface* volumeMappableInterface,
                                    const std::array<float, 3>& xyz,

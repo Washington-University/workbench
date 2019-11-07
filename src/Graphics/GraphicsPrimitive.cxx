@@ -751,6 +751,7 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
                     const float* xyz = &m_floatNormalVectorXYZ[i * 3];
                     s.append(AString("   N:%1, %2, %3").arg(xyz[0], 7, 'f', 5).arg(xyz[1], 7, 'f', 5).arg(xyz[2], 7, 'f', 5));
                 }
+                    break;
                 case NormalVectorDataType::NONE:
                     break;
             }

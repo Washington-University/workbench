@@ -631,7 +631,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     switch (this->inputModeBorders->getDrawOperation()) {
         case UserInputModeBorders::DRAW_OPERATION_CREATE:
         {
-            std::auto_ptr<BorderPropertiesEditorDialog> finishBorderDialog(
+            std::unique_ptr<BorderPropertiesEditorDialog> finishBorderDialog(
                     BorderPropertiesEditorDialog::newInstanceFinishBorder(this->inputModeBorders->borderBeingDrawnByOpenGL,
                                                                           surface,
                                                                           this));
