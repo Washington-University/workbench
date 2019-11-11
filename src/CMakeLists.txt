@@ -30,7 +30,9 @@ set (WORKBENCH_QT5_DISABLE_DEPRECATED FALSE CACHE BOOL
      "If TRUE, use of Qt 5 deprecated functionality will cause compiler to fail")
 set (WORKBENCH_USE_CMAKE_AUTOMOC FALSE CACHE BOOL 
      "If TRUE, use CMAKE_AUTOMOC command for generating 'moc' files")
-set (WORKBENCH_USE_QT5 TRUE CACHE BOOL 
+set (WORKBENCH_INCLUDE_HELP_HTML_RESOURCES TRUE CACHE BOOL
+     "If TRUE, help (html) pages in src/Resources/Help are available in wb_view")
+set (WORKBENCH_USE_QT5 TRUE CACHE BOOL
      "If TRUE, require Qt5, else Qt4.<NEWLINE>Specify as argument to cmake: -DWORKBENCH_USE_QT5=TRUE")
 set (WORKBENCH_USE_QT5_QOPENGL_WIDGET FALSE CACHE BOOL 
      "With Qt5, QOpenGLWidget instead of deprecated QGLWidget")
@@ -517,6 +519,14 @@ IF (EXISTS ${WORKBENCH_MESA_DIR})
         ENDIF (EXISTS ${OSMESA_LIBRARY_FOUND} AND EXISTS ${OSMESA_GL_LIBRARY_FOUND} AND EXISTS ${OSMESA_GLU_LIBRARY_FOUND})
     ENDIF (EXISTS ${WORKBENCH_MESA_DIR}/include/GL/osmesa.h)
 ENDIF (EXISTS ${WORKBENCH_MESA_DIR})
+
+##########################################################################################
+#
+# Definition for include Help Files in Resources
+#
+IF (WORKBENCH_INCLUDE_HELP_HTML_RESOURCES)
+    ADD_DEFINITIONS(-DWORKBENCH_HAVE_HELP_HTML)
+ENDIF (WORKBENCH_INCLUDE_HELP_HTML_RESOURCES)
 
 ##########################################################################################
 #

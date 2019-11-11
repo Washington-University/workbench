@@ -38,11 +38,16 @@ ENDIF (UNIX)
 
 #
 # Resources
+# Help can be excluded
 #
 SET (RESOURCES_QRC_FILE
      ../Resources/General/general_resources.qrc
-     ../Resources/Gui/gui_resources.qrc
-     ../Resources/Help/help_resources.qrc)
+     ../Resources/Gui/gui_resources.qrc)
+IF (WORKBENCH_INCLUDE_HELP_HTML_RESOURCES)
+    LIST (APPEND RESOURCES_QRC_FILE
+          ../Resources/Help/help_resources.qrc)
+ENDIF (WORKBENCH_INCLUDE_HELP_HTML_RESOURCES)
+
 IF (Qt5_FOUND)
     QT5_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
 ELSE (Qt5_FOUND)
