@@ -1602,7 +1602,9 @@ GuiManager::receiveEvent(Event* event)
         
         showHideHelpDialog(true,
                            helpEvent->getBrainBrowserWindow());
-        m_helpViewerDialog->showHelpPageWithName(helpEvent->getHelpPageName());
+        if (m_helpViewerDialog != NULL) {
+            m_helpViewerDialog->showHelpPageWithName(helpEvent->getHelpPageName());
+        }
         
         helpEvent->setEventProcessed();
     }
@@ -2177,7 +2179,7 @@ GuiManager::showHideHelpDialog(const bool status,
         
         m_helpViewerDialog->showDialog();
     }
-    else {
+    else if (m_helpViewerDialog != NULL) {
         m_helpViewerDialog->close();
     }
     
