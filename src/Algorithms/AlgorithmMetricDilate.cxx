@@ -194,6 +194,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         myAreas = corrAreas->getValuePointerForColumn(0);
     }
     bool linear = (myMethod == LINEAR), nearest = (myMethod == NEAREST);
+    FastStatistics spacingStats;
     if (!linear && badNodeRoi != NULL)//if we know which nodes need to have their values replaced, then we can do the same thing at each vertex for each column
     {
         if (nearest)
@@ -202,6 +203,8 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         } else {
             precomputeStencils(myStencils, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, exponent, legacyCutoff);
         }
+    } else {
+        mySurf->getNodesSpacingStatistics(spacingStats);//use mean spacing to help set minimum stencil distance, since native surfaces might have a minimum of 0
     }
     if (columnNum == -1)
     {
@@ -213,7 +216,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
             myMetricOut->setColumnName(thisCol, myMetric->getColumnName(thisCol));
             if (badNodeRoi == NULL)
             {
-                processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff);
+                processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff, spacingStats.getMean());
             } else {
                 switch (myMethod)
                 {
@@ -224,7 +227,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
                         processColumn(colScratch.data(), numNodes, myInputData, myStencils);
                         break;
                     case LINEAR:
-                        processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff);
+                        processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff, spacingStats.getMean());
                         break;
                 }
             }
@@ -237,7 +240,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum));
         if (badNodeRoi == NULL)
         {
-            processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff);
+            processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff, spacingStats.getMean());
         } else {
             switch (myMethod)
             {
@@ -248,7 +251,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
                     processColumn(colScratch.data(), numNodes, myInputData, myStencils);
                     break;
                 case LINEAR:
-                    processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff);
+                    processColumn(colScratch.data(), myInputData, mySurf, myAreas, badNodeRoi, dataRoi, corrAreas, distance, nearest, linear, exponent, legacyCutoff, spacingStats.getMean());
                     break;
             }
         }
@@ -306,11 +309,9 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const int& numNodes
 
 void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInputData, const SurfaceFile* mySurf, const float* myAreas,
                                           const MetricFile* badNodeRoi, const MetricFile* dataRoi, const MetricFile* corrAreas,
-                                          const float& distance, const bool& nearest, const bool& linear, const float& exponent, const bool legacyCutoff)
+                                          const float& distance, const bool& nearest, const bool& linear, const float& exponent, const bool legacyCutoff, const float meanSpacing)
 {
-    FastStatistics spacingStats;
-    mySurf->getNodesSpacingStatistics(spacingStats);//use mean spacing to help set minimum stencil distance, since native surfaces might have a minimum of 0
-    float cutoffBase = max(2.0f * distance, 2.0f * spacingStats.getMean()), cutoffRatio = max(1.1f, pow(49.0f, 1.0f / (exponent - 2.0f)));//find what ratio from closest vertex corresponds to having 98% of total weight accounted for on a plane, assuming non-adverse ROI
+    float cutoffBase = max(2.0f * distance, 2.0f * meanSpacing), cutoffRatio = max(1.1f, pow(49.0f, 1.0f / (exponent - 2.0f)));//find what ratio from closest vertex corresponds to having 98% of total weight accounted for on a plane, assuming non-adverse ROI
     float legacyCutoffRatio = 1.5f, test = pow(10.0f, 1.0f / exponent);//old logic: find what cutoff ratio corresponds to a tenth of weight, but don't use more than a 1.5 * nearest cutoff
     if (test > 1.0f && test < legacyCutoffRatio)//if it is less than 1, the exponent is weird, so simply ignore it and use default
     {//this generally cut off early, causing the result to behave like a higher exponent was used

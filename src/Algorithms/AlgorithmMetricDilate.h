@@ -42,7 +42,7 @@ namespace caret {
         void processColumn(float* colScratch, const int& numNodes, const float* myInputData, std::vector<std::pair<int, StencilElem> > myStencils);
         void processColumn(float* colScratch, const float* myInputData, const SurfaceFile* mySurf, const float* myAreas,
                            const MetricFile* badNodeRoi, const MetricFile* dataRoi, const MetricFile* corrAreas,
-                           const float& distance, const bool& nearest, const bool& linear, const float& exponent, const bool legacyCutoff);
+                           const float& distance, const bool& nearest, const bool& linear, const float& exponent, const bool legacyCutoff, const float meanSpacing);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
