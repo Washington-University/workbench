@@ -94,28 +94,7 @@ UserInputModeAnnotations::UserInputModeAnnotations(const int32_t windowIndex)
 : UserInputModeAnnotations(UserInputModeEnum::ANNOTATIONS,
                            windowIndex)
 {
-    
 }
-//: UserInputModeView(UserInputModeEnum::ANNOTATIONS),
-//m_browserWindowIndex(windowIndex),
-//m_annotationUnderMouse(NULL),
-//m_annotationBeingDragged(NULL)
-//{
-//    m_allowMultipleSelectionModeFlag = true;
-//    m_mode = MODE_SELECT;
-//    m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
-//    
-//    m_modeNewAnnotationFileSpaceAndType.grabNew(new NewAnnotationFileSpaceAndType(NULL,
-//                                                                                  AnnotationCoordinateSpaceEnum::VIEWPORT,
-//                                                                                  AnnotationTypeEnum::LINE));
-//    m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
-//    
-//    m_annotationToolsWidget = new UserInputModeAnnotationsWidget(this,
-//                                                                 m_browserWindowIndex);
-//    setWidgetForToolBar(m_annotationToolsWidget);
-//    
-//    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE);
-//}
 
 /**
  * Constructor.

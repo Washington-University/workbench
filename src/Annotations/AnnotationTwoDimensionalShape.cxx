@@ -27,6 +27,7 @@
 
 #include "AnnotationColorBar.h"
 #include "AnnotationCoordinate.h"
+#include "AnnotationScaleBar.h"
 #include "AnnotationSpatialModification.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -355,11 +356,15 @@ AnnotationTwoDimensionalShape::applyCoordinatesSizeAndRotationFromOther(const An
     setWindowIndex(otherAnnotation->getWindowIndex());
     
     /*
-     * Switch color bar to manual positioning
+     * Switch color or scale bar to manual positioning
      */
     AnnotationColorBar* colorBar = dynamic_cast<AnnotationColorBar*>(this);
     if (colorBar != NULL) {
         colorBar->setPositionMode(AnnotationColorBarPositionModeEnum::MANUAL);
+    }
+    AnnotationScaleBar* scaleBar = castToScaleBar();
+    if (scaleBar != NULL) {
+        scaleBar->setPositionMode(AnnotationColorBarPositionModeEnum::MANUAL);
     }
 }
 
@@ -413,6 +418,9 @@ AnnotationTwoDimensionalShape::isSizeHandleValid(const AnnotationSizingHandleTyp
             allowsCornerResizingFlag = true;
             allowsSideResizingFlag = true;
             allowsRotationFlag = true;
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            allowsMovingFlag   = true;
             break;
         case AnnotationTypeEnum::TEXT:
             allowsMovingFlag   = true;
@@ -1219,7 +1227,36 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
             break;
     }
     
-    if (validCoordinatesFlag) {
+    if (validCoordinatesFlag
+        && (getType() == AnnotationTypeEnum::SCALE_BAR)) {
+        validCoordinatesFlag = false;
+        
+        AnnotationScaleBar* scaleBar = castToScaleBar();
+        CaretAssert(scaleBar);
+        scaleBar->setPositionMode(AnnotationColorBarPositionModeEnum::MANUAL);
+        
+        /*
+         * Scale bar has coordinate at its left side
+         */
+        const float averageX = ((bottomLeftXYZ[0] + topLeftXYZ[0]) / 2.0);
+        const float averageY = ((bottomLeftXYZ[1] + topLeftXYZ[1]) / 2.0);
+        const float newX = 100.0 * (averageX / spatialModification.m_viewportWidth);
+        const float newY = 100.0 * (averageY / spatialModification.m_viewportHeight);
+        if ((newX >= 0.0)
+            && (newX <= 100.0)
+            && (newY >= 0.0)
+            && (newY <= 100.0)) {
+            AnnotationCoordinate* ac = getCoordinate();
+            float xyz[3];
+            ac->getXYZ(xyz);
+            xyz[0] = newX;
+            xyz[1] = newY;
+            ac->setXYZ(xyz);
+            
+            validCoordinatesFlag = true;
+        }
+    }
+    else if (validCoordinatesFlag) {
         /*
          * Using the updated corners of the annotation, convert back to normalized x, y, width, and aspect ratio
          */
@@ -1536,36 +1573,87 @@ AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
      * NOTE: Annotation's height and width are 'relative' ([0.0, 100.0] percentage) of window size.
      * So want HALF of width/height
      */
-    const float width = getWidth();
-    float halfWidth  = (width  / 200.0) * viewportWidth;
-    const float halfHeight = (getHeight() / 200.0) * viewportHeight;
-    if (isFixedAspectRatio()) {
-        halfWidth = halfHeight / getFixedAspectRatio();
+    
+    if (getType() == AnnotationTypeEnum::SCALE_BAR) {
+        const AnnotationScaleBar* scaleBar = castToScaleBar();
+        CaretAssert(scaleBar);
+        
+        float convertToMM(1.0);
+        switch (scaleBar->getLengthUnits()) {
+            case AnnotationScaleBarUnitsTypeEnum::CENTIMETERS:
+                convertToMM = 10.0;
+                break;
+            case AnnotationScaleBarUnitsTypeEnum::MICROMETERS:
+                convertToMM = 0.10;
+                break;
+            case AnnotationScaleBarUnitsTypeEnum::MILLIMETERS:
+                convertToMM = 1.0;
+                break;
+        }
+        
+        const float scaleBarLengthModelCoords = scaleBar->getLength() * convertToMM;
+        const float orthographicWidth = scaleBar->getDrawingOrthographicWidth();
+        if (orthographicWidth <= 0.0) {
+            return false;
+        }
+        
+        /*
+         * Scale bar uses line width for height not annotation height
+         */
+        const float tabPercentageWidth = (scaleBarLengthModelCoords / orthographicWidth);
+        const float scaleBarWidthPixels = viewportWidth * tabPercentageWidth;
+        const float halfHeight = (getLineWidthPercentage() / 200.0) * viewportHeight;
+
+        /*
+         * Scale bar coordinate is at left and its length
+         * is set by the user (does not use annotation width)
+         */
+        bottomLeftOut[0]  = viewportXYZ[0];
+        bottomLeftOut[1]  = viewportXYZ[1] - halfHeight;
+        bottomLeftOut[2]  = viewportXYZ[2];
+        bottomRightOut[0] = viewportXYZ[0] + scaleBarWidthPixels;
+        bottomRightOut[1] = viewportXYZ[1] - halfHeight;
+        bottomRightOut[2] = viewportXYZ[2];
+        topRightOut[0]    = viewportXYZ[0] + scaleBarWidthPixels;
+        topRightOut[1]    = viewportXYZ[1] + halfHeight;
+        topRightOut[2]    = viewportXYZ[2];
+        topLeftOut[0]     = viewportXYZ[0];
+        topLeftOut[1]     = viewportXYZ[1] + halfHeight;
+        topLeftOut[2]     = viewportXYZ[2];
+    }
+    else {
+        const float width = getWidth();
+        float halfWidth  = (width  / 200.0) * viewportWidth;
+        const float halfHeight = (getHeight() / 200.0) * viewportHeight;
+        if (isFixedAspectRatio()) {
+            halfWidth = halfHeight / getFixedAspectRatio();
+        }
+        
+        bottomLeftOut[0]  = viewportXYZ[0] - halfWidth;
+        bottomLeftOut[1]  = viewportXYZ[1] - halfHeight;
+        bottomLeftOut[2]  = viewportXYZ[2];
+        bottomRightOut[0] = viewportXYZ[0] + halfWidth;
+        bottomRightOut[1] = viewportXYZ[1] - halfHeight;
+        bottomRightOut[2] = viewportXYZ[2];
+        topRightOut[0]    = viewportXYZ[0] + halfWidth;
+        topRightOut[1]    = viewportXYZ[1] + halfHeight;
+        topRightOut[2]    = viewportXYZ[2];
+        topLeftOut[0]     = viewportXYZ[0] - halfWidth;
+        topLeftOut[1]     = viewportXYZ[1] + halfHeight;
+        topLeftOut[2]     = viewportXYZ[2];
+        
+        if (m_rotationAngle != 0) {
+            Matrix4x4 matrix;
+            matrix.translate(-viewportXYZ[0], -viewportXYZ[1], -viewportXYZ[2]);
+            matrix.rotateZ(-m_rotationAngle);
+            matrix.translate(viewportXYZ[0], viewportXYZ[1], viewportXYZ[2]);
+            matrix.multiplyPoint3(bottomLeftOut);
+            matrix.multiplyPoint3(bottomRightOut);
+            matrix.multiplyPoint3(topRightOut);
+            matrix.multiplyPoint3(topLeftOut);
+        }
     }
     
-    bottomLeftOut[0]  = viewportXYZ[0] - halfWidth;
-    bottomLeftOut[1]  = viewportXYZ[1] - halfHeight;
-    bottomLeftOut[2]  = viewportXYZ[2];
-    bottomRightOut[0] = viewportXYZ[0] + halfWidth;
-    bottomRightOut[1] = viewportXYZ[1] - halfHeight;
-    bottomRightOut[2] = viewportXYZ[2];
-    topRightOut[0]    = viewportXYZ[0] + halfWidth;
-    topRightOut[1]    = viewportXYZ[1] + halfHeight;
-    topRightOut[2]    = viewportXYZ[2];
-    topLeftOut[0]     = viewportXYZ[0] - halfWidth;
-    topLeftOut[1]     = viewportXYZ[1] + halfHeight;
-    topLeftOut[2]     = viewportXYZ[2];
-    
-    if (m_rotationAngle != 0) {
-        Matrix4x4 matrix;
-        matrix.translate(-viewportXYZ[0], -viewportXYZ[1], -viewportXYZ[2]);
-        matrix.rotateZ(-m_rotationAngle);
-        matrix.translate(viewportXYZ[0], viewportXYZ[1], viewportXYZ[2]);
-        matrix.multiplyPoint3(bottomLeftOut);
-        matrix.multiplyPoint3(bottomRightOut);
-        matrix.multiplyPoint3(topRightOut);
-        matrix.multiplyPoint3(topLeftOut);
-    }
     return true;
 }
 

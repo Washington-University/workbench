@@ -44,6 +44,7 @@ namespace caret {
     
     class Annotation;
     class AnnotationBrowserTab;
+    class AnnotationScaleBar;
     class AnnotationText;
     class BoundingBox;
     class Brain;
@@ -521,6 +522,13 @@ namespace caret {
         
         void drawStippledBackgroundInAreasOutsideWindowAspectLocking(const int32_t windowBeforeAspectLockingViewport[4],
                                                                      const int32_t windowAfterAspectLockingViewport[4]);
+        
+        void setupScaleBarDrawingInformation(BrowserTabContent* browserTabContent);
+        
+        void setupScaleBarDrawingInformation(BrowserTabContent* browserTabContent,
+                                             const float orthographicProjectionLeft,
+                                             const float orthographicProjectionRight);
+        
         /** Index of window */
         int32_t m_windowIndex = -1;
         
@@ -615,6 +623,8 @@ namespace caret {
         std::vector<AnnotationBrowserTab*> m_annotationBrowserTabsForDrawing;
         
         std::vector<AnnotationColorBar*> m_annotationColorBarsForDrawing;
+        
+        std::vector<AnnotationScaleBar*> m_annotationScaleBarsForDrawing;
         
         /** Some graphics using annotations for some elements so user can select and edit them */
         std::vector<Annotation*> m_specialCaseGraphicsAnnotations;

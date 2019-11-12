@@ -33,6 +33,7 @@
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
+#include "AnnotationScaleBar.h"
 #include "AnnotationText.h"
 #include "BrainConstants.h"
 #include "CaretAssert.h"
@@ -217,6 +218,13 @@ Annotation::clone() const
             myClone = new AnnotationOval(*oval);
         }
             break;
+        case AnnotationTypeEnum::SCALE_BAR:
+        {
+            const AnnotationScaleBar* scaleBar = dynamic_cast<const AnnotationScaleBar*>(this);
+            CaretAssert(scaleBar);
+            myClone = new AnnotationScaleBar(*scaleBar);
+        }
+            break;
         case AnnotationTypeEnum::TEXT:
         {
             const AnnotationText* text = dynamic_cast<const AnnotationText*>(this);
@@ -373,6 +381,9 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
         case AnnotationTypeEnum::OVAL:
             annotation = new AnnotationOval(attributeDefaultType);
             break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            annotation = new AnnotationScaleBar(attributeDefaultType);
+            break;
         case AnnotationTypeEnum::TEXT:
             annotation = new AnnotationPercentSizeText(attributeDefaultType);
             break;
@@ -443,6 +454,9 @@ Annotation::initializeAnnotationMembers()
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
+                case AnnotationTypeEnum::SCALE_BAR:
+                    m_colorBackground = CaretColorEnum::BLACK;
+                    break;
                 case AnnotationTypeEnum::TEXT:
                     m_colorBackground = CaretColorEnum::NONE;
                     m_colorLine = CaretColorEnum::NONE;
@@ -503,6 +517,8 @@ Annotation::initializeAnnotationMembers()
                         m_colorBackground = defaultColor;
                     }
                     break;
+                case AnnotationTypeEnum::SCALE_BAR:
+                    break;
                 case AnnotationTypeEnum::TEXT:
                     m_colorLine          = s_userDefaultForTextColorLine;
                     m_customColorLine[0] = s_userDefaultForTextCustomColorLine[0];
@@ -546,6 +562,9 @@ Annotation::initializeAnnotationMembers()
             disallowLineColorNoneFlag = true;
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            disallowLineColorNoneFlag = true;
             break;
         case AnnotationTypeEnum::TEXT:
             break;
@@ -657,6 +676,8 @@ Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
         case AnnotationTypeEnum::LINE:
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
             break;
         case AnnotationTypeEnum::TEXT:
         {
@@ -1483,6 +1504,7 @@ Annotation::initializeProperties()
     bool colorBarFlag = false;
     bool fillColorFlag = true;
     bool lineArrowsFlag = false;
+    bool scaleBarFlag = false;
     bool textFlag = false;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
@@ -1503,6 +1525,9 @@ Annotation::initializeProperties()
             break;
         case AnnotationTypeEnum::OVAL:
             break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            scaleBarFlag = true;
+            break;
         case AnnotationTypeEnum::TEXT:
             textFlag = true;
             break;
@@ -1512,9 +1537,9 @@ Annotation::initializeProperties()
     setProperty(Property::LINE_ARROWS, lineArrowsFlag);
     setProperty(Property::TEXT_ALIGNMENT, textFlag);
     setProperty(Property::TEXT_EDIT, textFlag);
-    setProperty(Property::TEXT_COLOR, colorBarFlag | textFlag);
-    setProperty(Property::TEXT_FONT_NAME, colorBarFlag | textFlag);
-    setProperty(Property::TEXT_FONT_SIZE, colorBarFlag | textFlag);
+    setProperty(Property::TEXT_COLOR, colorBarFlag | scaleBarFlag | textFlag);
+    setProperty(Property::TEXT_FONT_NAME, colorBarFlag | scaleBarFlag | textFlag);
+    setProperty(Property::TEXT_FONT_SIZE, colorBarFlag | scaleBarFlag | textFlag);
     setProperty(Property::TEXT_FONT_STYLE, textFlag);
     setProperty(Property::TEXT_ORIENTATION, textFlag);
     
@@ -1841,6 +1866,8 @@ Annotation::textAnnotationResetName()
         case AnnotationTypeEnum::LINE:
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
             break;
         case AnnotationTypeEnum::TEXT:
         {

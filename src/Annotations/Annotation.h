@@ -38,6 +38,8 @@
 
 
 namespace caret {
+    class AnnotationScaleBar;
+    
     class AnnotationOneDimensionalShape;
     class AnnotationTwoDimensionalShape;
     class AnnotationSpatialModification;
@@ -132,6 +134,18 @@ namespace caret {
         
         virtual const AnnotationTwoDimensionalShape* castToTwoDimensionalShape() const = 0;
 
+        /**
+         * @return this annotation cast to AnnotationScaleBar (NULL if not a scale bar)
+         * Intended for overriding by the annotation type
+         */
+        virtual AnnotationScaleBar* castToScaleBar() { return NULL; }
+        
+        /**
+         * @return this annotation cast to AnnotationScaleBar (NULL if not a scale bar) const method
+         * Intended for overriding by the annotation type
+         */
+        virtual const AnnotationScaleBar* castToScaleBar() const { return NULL; }
+        
         bool testProperty(const Property property) const;
         
         bool testPropertiesAny(const Property propertyOne,

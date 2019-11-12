@@ -741,8 +741,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
                                                         sliceViewPlane,
                                                         slicePlane,
                                                         sliceCoordinates);
+        /*
+         * Only set for two-d view, 3D view (VIEW -> ALL) is set when surfaces are drawn
+         */
+        m_fixedPipelineDrawing->setupScaleBarDrawingInformation(m_browserTabContent,
+                                                                m_orthographicBounds[0],
+                                                                m_orthographicBounds[1]);
     }
-    
+
     SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
     SelectionItemVoxelEditing* voxelEditingID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
     

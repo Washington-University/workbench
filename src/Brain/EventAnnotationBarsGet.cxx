@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __EVENT_ANNOTATION_COLOR_BAR_GET_DECLARE__
-#include "EventAnnotationColorBarGet.h"
-#undef __EVENT_ANNOTATION_COLOR_BAR_GET_DECLARE__
+#define __EVENT_ANNOTATION_BARS_GET_DECLARE__
+#include "EventAnnotationBarsGet.h"
+#undef __EVENT_ANNOTATION_BARS_GET_DECLARE__
 
 #include "CaretAssert.h"
 #include "EventTypeEnum.h"
@@ -31,43 +31,43 @@ using namespace caret;
 
     
 /**
- * \class caret::EventAnnotationColorBarGet 
+ * \class caret::EventAnnotationBarsGet
  * \brief Event to get annontation color bars for tab(s).
  * \ingroup Brain
  */
 
 /**
- * Constructor for getting annotations for ALL tabs.
+ * Constructor for getting annotation bars for ALL tabs.
  */
-EventAnnotationColorBarGet::EventAnnotationColorBarGet()
-: Event(EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET),
+EventAnnotationBarsGet::EventAnnotationBarsGet()
+: Event(EventTypeEnum::EVENT_ANNOTATION_BARS_GET),
 m_allTabsFlag(true)
 {
     
 }
 
 /**
- * Constructor for getting annotations for the given tab index.
+ * Constructor for getting annotation bars for the given tab index.
  *
  * @param tabIndex
- *     Index of tab for which color bars are requested.
+ *     Index of tab for which annotation bars are requested.
  */
-EventAnnotationColorBarGet::EventAnnotationColorBarGet(const int32_t tabIndex)
-: Event(EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET),
+EventAnnotationBarsGet::EventAnnotationBarsGet(const int32_t tabIndex)
+: Event(EventTypeEnum::EVENT_ANNOTATION_BARS_GET),
 m_allTabsFlag(false)
 {
     m_tabIndices.insert(tabIndex);
 }
 
 /**
- * Constructor for getting annotations for the given tab indices.
+ * Constructor for getting annotation bars for the given tab indices.
  *
  * @param tabIndices
- *     Indices of tabs for which color bars are requested.  If 
- *     the indices are empty no colorbars will be gotten.
+ *     Indices of tabs for which annotation bars are requested.  If
+ *     the indices are empty no bars will be gotten.
  */
-EventAnnotationColorBarGet::EventAnnotationColorBarGet(const std::vector<int32_t>& tabIndices)
-: Event(EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET),
+EventAnnotationBarsGet::EventAnnotationBarsGet(const std::vector<int32_t>& tabIndices)
+: Event(EventTypeEnum::EVENT_ANNOTATION_BARS_GET),
 m_allTabsFlag(false)
 {
     m_tabIndices.insert(tabIndices.begin(),
@@ -77,18 +77,18 @@ m_allTabsFlag(false)
 /**
  * Destructor.
  */
-EventAnnotationColorBarGet::~EventAnnotationColorBarGet()
+EventAnnotationBarsGet::~EventAnnotationBarsGet()
 {
 }
 
 /**
  * Add annotation color bars.
- * 
+ *
  * @param annotationColorBars
  *     Annotation color bars that are added.
  */
 void
-EventAnnotationColorBarGet::addAnnotationColorBars(const std::vector<AnnotationColorBar*>& annotationColorBars)
+EventAnnotationBarsGet::addAnnotationColorBars(const std::vector<AnnotationColorBar*>& annotationColorBars)
 {
     m_annotationColorBars.insert(m_annotationColorBars.end(),
                                  annotationColorBars.begin(),
@@ -96,15 +96,28 @@ EventAnnotationColorBarGet::addAnnotationColorBars(const std::vector<AnnotationC
 }
 
 /**
- * Are annotation color bars requested for the given tab index.
+ * Add annotation scale bars.
+ *
+ * @param annotationScaleBar
+ *     Annotation scale bar that is added.
+ */
+void
+EventAnnotationBarsGet::addAnnotationScaleBar(AnnotationScaleBar* annotationScaleBar)
+{
+    m_annotationScaleBars.push_back(annotationScaleBar);
+}
+
+
+/**
+ * Are annotation bars requested for the given tab index.
  *
  * @param tabIndex
  *     Index of tab.
  * @return
- *     True if annotations are requested for the given tab index, else false.
+ *     True if annotation bars are requested for the given tab index, else false.
  */
 bool
-EventAnnotationColorBarGet::isGetAnnotationColorBarsForTabIndex(const int32_t tabIndex)
+EventAnnotationBarsGet::isGetAnnotationColorBarsForTabIndex(const int32_t tabIndex)
 {
     if (m_allTabsFlag) {
         return true;
@@ -120,8 +133,16 @@ EventAnnotationColorBarGet::isGetAnnotationColorBarsForTabIndex(const int32_t ta
  * @return The annotation color bars after event completes.
  */
 std::vector<AnnotationColorBar*>
-EventAnnotationColorBarGet::getAnnotationColorBars() const
+EventAnnotationBarsGet::getAnnotationColorBars() const
 {
     return m_annotationColorBars;
 }
 
+/**
+ * @return The annotation scale bars after event completes.
+ */
+std::vector<AnnotationScaleBar*>
+EventAnnotationBarsGet::getAnnotationScaleBars() const
+{
+    return m_annotationScaleBars;
+}

@@ -32,6 +32,7 @@
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationEditingSelectionInformation.h"
+#include "AnnotationScaleBar.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "BrowserTabContent.h"
 #include "BrowserWindowContent.h"
@@ -41,7 +42,7 @@
 #include "CaretUndoStack.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "EventAnnotationChartLabelGet.h"
-#include "EventAnnotationColorBarGet.h"
+#include "EventAnnotationBarsGet.h"
 #include "EventAnnotationGroupGetWithKey.h"
 #include "EventAnnotationValidate.h"
 #include "EventBrowserTabGetAll.h"
@@ -212,15 +213,21 @@ AnnotationManager::deselectAllAnnotationsForEditing(const int32_t windowIndex)
                                         false);
     }
 
-    EventAnnotationColorBarGet colorBarEvent;
-    EventManager::get()->sendEvent(colorBarEvent.getPointer());
-    std::vector<AnnotationColorBar*> colorBars = colorBarEvent.getAnnotationColorBars();
+    EventAnnotationBarsGet barsEvent;
+    EventManager::get()->sendEvent(barsEvent.getPointer());
+    std::vector<AnnotationColorBar*> colorBars = barsEvent.getAnnotationColorBars();
 
     for (std::vector<AnnotationColorBar*>::iterator iter = colorBars.begin();
          iter != colorBars.end();
          iter++) {
         AnnotationColorBar* cb = *iter;
         cb->setSelectedForEditing(windowIndex,
+                                  false);
+    }
+    
+    std::vector<AnnotationScaleBar*> scaleBars = barsEvent.getAnnotationScaleBars();
+    for (auto sb : scaleBars) {
+        sb->setSelectedForEditing(windowIndex,
                                   false);
     }
     
@@ -465,14 +472,18 @@ AnnotationManager::getAllAnnotations() const
         }
     }
 
-    EventAnnotationColorBarGet colorBarEvent;
-    EventManager::get()->sendEvent(colorBarEvent.getPointer());
-    std::vector<AnnotationColorBar*> colorBars = colorBarEvent.getAnnotationColorBars();
-    
+    EventAnnotationBarsGet barsEvent;
+    EventManager::get()->sendEvent(barsEvent.getPointer());
+    std::vector<AnnotationColorBar*> colorBars = barsEvent.getAnnotationColorBars();
     for (std::vector<AnnotationColorBar*>::iterator iter = colorBars.begin();
          iter != colorBars.end();
          iter++) {
         allAnnotations.push_back(*iter);
+    }
+    
+    std::vector<AnnotationScaleBar*> scaleBars = barsEvent.getAnnotationScaleBars();
+    for (auto sb : scaleBars) {
+        allAnnotations.push_back(sb);
     }
 
     EventAnnotationChartLabelGet chartLabelEvent;

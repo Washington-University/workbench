@@ -28,6 +28,8 @@
 
 #include "AnnotationBrowserTab.h"
 #include "AnnotationColorBar.h"
+#include "AnnotationCoordinate.h"
+#include "AnnotationScaleBar.h"
 #include "BorderFile.h"
 #include "Brain.h"
 #include "BrainOpenGLViewportContent.h"
@@ -53,7 +55,7 @@
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFoci.h"
-#include "EventAnnotationColorBarGet.h"
+#include "EventAnnotationBarsGet.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventCaretMappableDataFileMapsViewedInOverlays.h"
 #include "EventIdentificationHighlightLocation.h"
@@ -134,6 +136,11 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_displayVolumeMontageAxesCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
     m_volumeMontageCoordinatePrecision = prefs->getVolumeMontageCoordinatePrecision();
 
+    m_scaleBar.reset(new AnnotationScaleBar(AnnotationAttributesDefaultTypeEnum::NORMAL));
+    m_scaleBar->setTabIndex(m_tabNumber);
+    m_scaleBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+    m_scaleBar->getCoordinate()->setXYZ(10.0, 10.0, 0.0);
+    
     m_lightingEnabled = true;
     
     m_aspectRatio = 1.0;
@@ -234,7 +241,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                                                        &m_chartModelYokingGroup);
 
     EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET);
+                                          EventTypeEnum::EVENT_ANNOTATION_BARS_GET);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     EventManager::get()->addEventListener(this,
@@ -1336,14 +1343,22 @@ BrowserTabContent::setAspectRatio(const float aspectRatio)
 void
 BrowserTabContent::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET) {
-        EventAnnotationColorBarGet* colorBarEvent = dynamic_cast<EventAnnotationColorBarGet*>(event);
-        CaretAssert(colorBarEvent);
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_BARS_GET) {
+        EventAnnotationBarsGet* barsEvent = dynamic_cast<EventAnnotationBarsGet*>(event);
+        CaretAssert(barsEvent);
         
-        if (colorBarEvent->isGetAnnotationColorBarsForTabIndex(m_tabNumber)) {
+        if (barsEvent->isGetAnnotationColorBarsForTabIndex(m_tabNumber)) {
             std::vector<AnnotationColorBar*> colorBars;
             getAnnotationColorBars(colorBars);
-            colorBarEvent->addAnnotationColorBars(colorBars);
+
+            barsEvent->addAnnotationColorBars(colorBars);
+            
+            if (m_scaleBar->isDisplayed()) {
+                /*
+                 * Scale bar is derived from color bar
+                 */
+                barsEvent->addAnnotationScaleBar(m_scaleBar.get());
+            }
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
@@ -5067,5 +5082,23 @@ BrowserTabContent::isDefaultManualTabGeometryBounds() const
     }
     
     return true;
+}
+
+/**
+ * @return Pointer to the scale bar
+ */
+AnnotationScaleBar*
+BrowserTabContent::getScaleBar()
+{
+    return m_scaleBar.get();
+}
+
+/**
+ * @return Pointer to the scale bar
+ */
+const AnnotationScaleBar*
+BrowserTabContent::getScaleBar() const
+{
+    return m_scaleBar.get();
 }
 

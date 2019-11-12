@@ -194,7 +194,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
             CaretAssertMessage(0, "Browser Tabs do not get created !!!");
             break;
         case AnnotationTypeEnum::COLOR_BAR:
-            CaretAssertMessage(0, "Colorbars do not get created !!!");
+            CaretAssertMessage(0, "Color bars do not get created !!!");
             break;
         case AnnotationTypeEnum::IMAGE:
             needImageOrTextFlag = true;
@@ -202,6 +202,9 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
         case AnnotationTypeEnum::LINE:
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            CaretAssertMessage(0, "Scale bars do not get created !!!");
             break;
         case AnnotationTypeEnum::TEXT:
             needImageOrTextFlag = true;
@@ -374,6 +377,8 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                     return NULL;
                     break;
                 case AnnotationTypeEnum::OVAL:
+                    break;
+                case AnnotationTypeEnum::SCALE_BAR:
                     break;
                 case AnnotationTypeEnum::TEXT:
                     break;
@@ -809,6 +814,8 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
             break;
         case AnnotationTypeEnum::OVAL:
             break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            break;
         case AnnotationTypeEnum::TEXT:
             break;
     }
@@ -916,6 +923,8 @@ m_annotationFile(annotationFile)
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;
+            case AnnotationTypeEnum::SCALE_BAR:
+                break;
             case AnnotationTypeEnum::TEXT:
                 break;
         }
@@ -983,6 +992,9 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                 break;
             case AnnotationTypeEnum::LINE:
                 useAverageFlag = false;
+                break;
+            case AnnotationTypeEnum::SCALE_BAR:
+                useAverageFlag = true;
                 break;
             case AnnotationTypeEnum::TEXT:
                 useTextAligmentFlag = true;

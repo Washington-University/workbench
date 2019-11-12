@@ -672,7 +672,7 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
         return NULL;
     }
     
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET, true);
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_ANNOTATION_BARS_GET, true);
     
     int32_t windowIndex = -1;
     
@@ -749,7 +749,7 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     
     bbw->resetGraphicsWidgetMinimumSize();
     
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_ANNOTATION_COLOR_BAR_GET, false);
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_ANNOTATION_BARS_GET, false);
 
     return bbw;
 }

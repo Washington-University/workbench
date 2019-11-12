@@ -78,9 +78,9 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_CHART_LABEL_GET",
                                      "Event to get annotation chart labels"));
     
-    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_COLOR_BAR_GET,
-                                     "EVENT_ANNOTATION_COLOR_BAR_GET",
-                                     "Event to get annotation color bars from tab(s)"));
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_BARS_GET,
+                                     "EVENT_ANNOTATION_BARS_GET",
+                                     "Event to get annotation color and scale bars from tab(s)"));
     
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_CREATE_NEW_TYPE,
                                      "EVENT_ANNOTATION_CREATE_NEW_TYPE",

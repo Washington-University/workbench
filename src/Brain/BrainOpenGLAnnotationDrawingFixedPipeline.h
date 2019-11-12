@@ -47,6 +47,7 @@ namespace caret {
     class AnnotationLine;
     class AnnotationOneDimensionalShape;
     class AnnotationOval;
+    class AnnotationScaleBar;
     class AnnotationText;
     class AnnotationTwoDimensionalShape;
     class Brain;
@@ -102,6 +103,7 @@ namespace caret {
         void drawAnnotations(Inputs* inputs,
                              const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                              std::vector<AnnotationColorBar*>& colorBars,
+                             std::vector<AnnotationScaleBar*>& scaleBars,
                              std::vector<Annotation*>& notInFileAnnotations,
                              const Surface* surfaceDisplayed,
                              const float surfaceViewScaling);
@@ -173,6 +175,7 @@ namespace caret {
         
         void drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                      std::vector<AnnotationColorBar*>& colorBars,
+                                     std::vector<AnnotationScaleBar*>& scaleBars,
                                      std::vector<Annotation*>& viewportAnnotations,
                                      const Surface* surfaceDisplayed,
                                      const float sliceThickness);
@@ -249,6 +252,9 @@ namespace caret {
                                           AnnotationOval* oval,
                                           const float surfaceExtentZ,
                                           const float vertexXYZ[3]);
+        
+        void drawScaleBar(AnnotationFile* annotationFile,
+                          AnnotationScaleBar* scaleBar);
         
         bool drawText(AnnotationFile* annotationFile,
                       AnnotationText* text,

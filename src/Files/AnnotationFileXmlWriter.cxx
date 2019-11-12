@@ -254,6 +254,9 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
             case AnnotationTypeEnum::OVAL:
                 writeOval(dynamic_cast<const AnnotationOval*>(annotation));
                 break;
+            case AnnotationTypeEnum::SCALE_BAR:
+                CaretAssertMessage(0, "Scale bar is NEVER written to an annotation file");
+                break;
             case AnnotationTypeEnum::TEXT:
                 writeText(dynamic_cast<const AnnotationText*>(annotation));
                 break;

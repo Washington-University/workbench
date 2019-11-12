@@ -144,7 +144,34 @@ AnnotationWidthHeightWidget::~AnnotationWidthHeightWidget()
 void
 AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalShape*>& annotations2D)
 {
-    m_annotations2D = annotations2D;
+    m_annotations2D.clear();
+    for (auto a2d : annotations2D) {
+        bool includeFlag(true);
+        
+        switch (a2d->getType()) {
+            case AnnotationTypeEnum::BOX:
+                break;
+            case AnnotationTypeEnum::BROWSER_TAB:
+                break;
+            case AnnotationTypeEnum::COLOR_BAR:
+                break;
+            case AnnotationTypeEnum::IMAGE:
+                break;
+            case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::OVAL:
+                break;
+            case AnnotationTypeEnum::SCALE_BAR:
+                /* Scale bar width/height not adjustable */
+                includeFlag = false;
+                break;
+            case AnnotationTypeEnum::TEXT:
+                break;
+        }
+        if (includeFlag) {
+            m_annotations2D.push_back(a2d);
+        }
+    }
     
     if ( ! m_annotations2D.empty()) {
         float widthValue = 0.0;
@@ -197,6 +224,7 @@ AnnotationWidthHeightWidget::updateContent(std::vector<AnnotationTwoDimensionalS
             else {
                 m_widthSpinBox->setSuffix("%");
             }
+            m_widthSpinBox->setEnabled(true);
             m_widthSpinBox->blockSignals(false);
             
             m_heightSpinBox->blockSignals(true);

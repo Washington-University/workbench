@@ -41,6 +41,7 @@
 #include "AnnotationCoordinate.h"
 #include "AnnotationOneDimensionalShape.h"
 #include "AnnotationRedoUndoCommand.h"
+#include "AnnotationScaleBar.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -718,6 +719,12 @@ AnnotationCoordinatesWidget::valueChangedCoordinate(const int32_t coordinateInde
                         AnnotationColorBar* colorBar = dynamic_cast<AnnotationColorBar*>(ann);
                         CaretAssert(colorBar);
                         colorBar->setPositionMode(AnnotationColorBarPositionModeEnum::MANUAL);
+                        updateUserInterfaceFlag = true;
+                    }
+                    else if (ann->getType() == AnnotationTypeEnum::SCALE_BAR) {
+                        AnnotationScaleBar* scaleBar = ann->castToScaleBar();
+                        CaretAssert(scaleBar);
+                        scaleBar->setPositionMode(AnnotationColorBarPositionModeEnum::MANUAL);
                         updateUserInterfaceFlag = true;
                     }
                 }

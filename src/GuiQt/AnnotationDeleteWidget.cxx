@@ -166,6 +166,8 @@ AnnotationDeleteWidget::deleteActionTriggered()
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
+                case AnnotationTypeEnum::SCALE_BAR:
+                    break;
                 case AnnotationTypeEnum::TEXT:
                     break;
             }

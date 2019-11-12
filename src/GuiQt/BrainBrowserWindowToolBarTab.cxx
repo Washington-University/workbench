@@ -29,10 +29,12 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QMenu>
+#include <QPainter>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QWidgetAction>
 
+#include "AnnotationScaleBar.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
@@ -41,6 +43,7 @@
 #include "ClippingPlanesWidget.h"
 #include "EnumComboBoxTemplate.h"
 #include "GuiManager.h"
+#include "ScaleBarWidget.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 #include "YokingGroupEnum.h"
@@ -94,6 +97,9 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
+    /*
+     * Lighting action and button
+     */
     QIcon shadingIcon;
     const bool shadingIconValid = WuQtUtilities::loadIcon(":/ToolBar/lighting.png",
                                                           shadingIcon);
@@ -121,6 +127,9 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     lightingToolButton->setDefaultAction(m_lightingAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(lightingToolButton);
 
+    /*
+     * Clipping action and button
+     */
     QIcon clippingIcon;
     const bool clippingIconValid =
     WuQtUtilities::loadIcon(":/ToolBar/clipping.png",
@@ -134,7 +143,7 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     else {
         m_clippingPlanesAction->setText("C");
     }
-    m_clippingPlanesAction->setToolTip("Enable clipping planes, click arrow to edit");
+    m_clippingPlanesAction->setToolTip("Enable clipping planes; click arrow to edit");
     m_clippingPlanesAction->setMenu(createClippingPlanesMenu());
     m_clippingPlanesAction->setObjectName(objectNamePrefix
                                           + ":Tab:ClippingPlanes");
@@ -146,6 +155,23 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     QToolButton* clippingPlanesToolButton = new QToolButton();
     clippingPlanesToolButton->setDefaultAction(m_clippingPlanesAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(clippingPlanesToolButton);
+
+    /*
+     * Scale bar action and button
+     */
+    QToolButton* scaleBarToolButton = new QToolButton();
+    QPixmap scaleBarPixmap = createScaleBarPixmap(scaleBarToolButton);
+    m_scaleBarAction = new QAction(this);
+    m_scaleBarAction->setCheckable(true);
+    m_scaleBarAction->setToolTip("Enable scale bar; click arrow to edit");
+    m_scaleBarAction->setIcon(QIcon(scaleBarPixmap));
+    m_scaleBarAction->setMenu(createScaleBarMenu());
+    QObject::connect(m_scaleBarAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarTab::scaleBarActionToggled);
+
+    scaleBarToolButton->setDefaultAction(m_scaleBarAction);
+//    scaleBarToolButton->setIconSize(scaleBarPixmap.size());
+    WuQtUtilities::setToolButtonStyleForQt5Mac(scaleBarToolButton);
 
     m_macroRecordingLabel = new QLabel("");
     
@@ -168,6 +194,8 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
                       row, 0);
     layout->addWidget(clippingPlanesToolButton,
                       row, 1);
+    layout->addWidget(scaleBarToolButton,
+                      row, 2);
     row++;
     layout->addWidget(m_macroRecordingLabel,
                       row, 0, 1, 3, Qt::AlignLeft);
@@ -244,6 +272,7 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     }
     
     m_clippingPlanesAction->setChecked(browserTabContent->isClippingPlanesEnabled());
+    m_scaleBarAction->setChecked(browserTabContent->getScaleBar()->isDisplayed());
     
     blockAllSignals(false);
 }
@@ -356,5 +385,121 @@ BrainBrowserWindowToolBarTab::clippingPlanesMenuAboutToShow()
     }
 
     m_clippingPlanesWidget->updateContent(tabIndex);
+}
+
+/**
+ * @return Instance of the scale bar menu
+ */
+QMenu*
+BrainBrowserWindowToolBarTab::createScaleBarMenu()
+{
+    m_scaleBarWidget = new ScaleBarWidget();
+    QWidgetAction* scaleBarAction = new QWidgetAction(this);
+    scaleBarAction->setDefaultWidget(m_scaleBarWidget);
+    
+    QMenu* menu = new QMenu(this);
+    menu->addAction(scaleBarAction);
+    QObject::connect(menu, &QMenu::aboutToShow,
+                     this, &BrainBrowserWindowToolBarTab::scaleBarMenuAboutToShow);
+    return menu;
+}
+
+/**
+ * Called when scale bar action is toggled
+ * @param checked
+ *     New checked status
+ */
+void
+BrainBrowserWindowToolBarTab::scaleBarActionToggled(bool checked)
+{
+    BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
+    if (browserTabContent != NULL) {
+        browserTabContent->getScaleBar()->setDisplayed(checked);
+        updateContent(browserTabContent);
+        updateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when scale bar is about to show
+ */
+void
+BrainBrowserWindowToolBarTab::scaleBarMenuAboutToShow()
+{
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    m_scaleBarWidget->updateContent(browserTabContent);
+}
+
+
+/**
+ * Create an ruler icon for Scale Bar tool button
+ *
+ * @param widget
+ *    To color the pixmap with backround and foreground,
+ *    the palette from the given widget is used.
+ * @return
+ *    Pixmap with icon
+ */
+
+QPixmap
+BrainBrowserWindowToolBarTab::createScaleBarPixmap(const QWidget* widget)
+{
+    CaretAssert(widget);
+    
+    /*
+     * Create a small, square pixmap that will contain
+     * the foreground color around the pixmap's perimeter.
+     */
+    float width  = 24.0;
+    float height = 24.0;
+    float margin = 1.0;
+    
+    QPixmap pixmap(static_cast<int>(width),
+                   static_cast<int>(height));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginBottomLeft(widget,
+                                                                                                pixmap);
+    
+    const float leftX(margin);
+    const float rightX(width - margin);
+    const float centerX((leftX + rightX) / 2.0);
+    const float leftCenterX((leftX + centerX) / 2.0);
+    const float rightCenterX((rightX + centerX) / 2.0);
+    const float y(margin + 2.0);
+    const float smallTickHeight(8.0);
+    const float mediumTickHeight(smallTickHeight * 1.3);
+    const float bigTickHeight(smallTickHeight * 1.65);
+    
+    QPen pen = painter->pen();
+    pen.setWidth(4);
+    painter->setPen(pen);
+    
+    /* bottom line */
+    painter->drawLine(QLineF(leftX, y,
+                             rightX, y));
+    
+    pen.setWidth(2);
+    painter->setPen(pen);
+    
+    /* left tick */
+    painter->drawLine(QLineF(leftX, y,
+                             leftX, y + bigTickHeight));
+                      
+    /* right tick */
+    painter->drawLine(QLineF(rightX, margin,
+                             rightX, y + bigTickHeight));
+    
+    /* center tick */
+    painter->drawLine(QLineF(centerX, y,
+                             centerX, y + mediumTickHeight));
+
+    /* left-center tick */
+    painter->drawLine(QLineF(leftCenterX, y,
+                             leftCenterX, y + smallTickHeight));
+
+    /* right-center tick */
+    painter->drawLine(QLineF(rightCenterX, y,
+                             rightCenterX, y + smallTickHeight));
+    
+    return pixmap;
 }
 

@@ -49,6 +49,8 @@ AnnotationPointSizeText.h
 AnnotationRedoUndoCommand.h
 AnnotationRedoUndoCommandModeEnum.h
 AnnotationEditingSelectionInformation.h
+AnnotationScaleBar.h
+AnnotationScaleBarUnitsTypeEnum.h
 AnnotationSizingHandleTypeEnum.h
 AnnotationSpatialModification.h
 AnnotationStackingOrderOperation.h
@@ -96,6 +98,8 @@ AnnotationPointSizeText.cxx
 AnnotationRedoUndoCommand.cxx
 AnnotationRedoUndoCommandModeEnum.cxx
 AnnotationEditingSelectionInformation.cxx
+AnnotationScaleBar.cxx
+AnnotationScaleBarUnitsTypeEnum.cxx
 AnnotationSizingHandleTypeEnum.cxx
 AnnotationSpatialModification.cxx
 AnnotationStackingOrderOperation.cxx

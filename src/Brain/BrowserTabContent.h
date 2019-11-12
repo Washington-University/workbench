@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 #include <set>
 
 #include "CaretObject.h"
@@ -43,6 +44,7 @@ namespace caret {
 
     class AnnotationBrowserTab;
     class AnnotationColorBar;
+    class AnnotationScaleBar;
     class BrainOpenGLViewportContent;
     class CaretDataFile;
     class CaretMappableDataFile;
@@ -452,6 +454,10 @@ namespace caret {
         
         bool isDefaultManualTabGeometryBounds() const;
         
+        AnnotationScaleBar* getScaleBar();
+        
+        const AnnotationScaleBar* getScaleBar() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -569,6 +575,8 @@ namespace caret {
         
         /** Whole brain surface settings. */
         WholeBrainSurfaceSettings* m_wholeBrainSurfaceSettings;
+        
+        std::unique_ptr<AnnotationScaleBar> m_scaleBar;
         
         /** aspect ratio */
         float m_aspectRatio;

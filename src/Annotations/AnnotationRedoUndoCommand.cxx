@@ -1905,6 +1905,8 @@ AnnotationRedoUndoCommand::setModeTextCharacters(const AString& text,
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;
+            case AnnotationTypeEnum::SCALE_BAR:
+                break;
             case AnnotationTypeEnum::TEXT:
                 redoAnnotation = dynamic_cast<AnnotationText*>(annotation->clone());
                 break;

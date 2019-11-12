@@ -1,9 +1,9 @@
-#ifndef __ANNOTATION_TYPE_ENUM_H__
-#define __ANNOTATION_TYPE_ENUM_H__
+#ifndef __ANNOTATION_SCALE_BAR_UNITS_TYPE_ENUM_H__
+#define __ANNOTATION_SCALE_BAR_UNITS_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2015 Washington University School of Medicine
+ *  Copyright (C) 2019 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,33 +28,23 @@
 
 namespace caret {
 
-class AnnotationTypeEnum {
+class AnnotationScaleBarUnitsTypeEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Box */
-        BOX,
-        /** Browser Tab */
-        BROWSER_TAB,
-        /** Colorbar */
-        COLOR_BAR,
-        /** Image */
-        IMAGE,
-        /** Line */
-        LINE,
-        /** Oval */
-        OVAL,
-        /** Scale Bar */
-        SCALE_BAR,
-        /** Text */
-        TEXT
+        /** micrometers*/
+        MICROMETERS,
+        /** millimeters*/
+        MILLIMETERS,
+        /** centimeters */
+        CENTIMETERS
     };
 
 
-    ~AnnotationTypeEnum();
+    ~AnnotationScaleBarUnitsTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -75,14 +65,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    AnnotationTypeEnum(const Enum enumValue, 
+    AnnotationScaleBarUnitsTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const AnnotationTypeEnum* findData(const Enum enumValue);
+    static const AnnotationScaleBarUnitsTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<AnnotationTypeEnum> enumData;
+    static std::vector<AnnotationScaleBarUnitsTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -106,11 +96,11 @@ private:
     AString guiName;
 };
 
-#ifdef __ANNOTATION_TYPE_ENUM_DECLARE__
-std::vector<AnnotationTypeEnum> AnnotationTypeEnum::enumData;
-bool AnnotationTypeEnum::initializedFlag = false;
-int32_t AnnotationTypeEnum::integerCodeCounter = 0; 
-#endif // __ANNOTATION_TYPE_ENUM_DECLARE__
+#ifdef __ANNOTATION_SCALE_BAR_UNITS_TYPE_ENUM_DECLARE__
+std::vector<AnnotationScaleBarUnitsTypeEnum> AnnotationScaleBarUnitsTypeEnum::enumData;
+bool AnnotationScaleBarUnitsTypeEnum::initializedFlag = false;
+int32_t AnnotationScaleBarUnitsTypeEnum::integerCodeCounter = 0; 
+#endif // __ANNOTATION_SCALE_BAR_UNITS_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_TYPE_ENUM_H__
+#endif  //__ANNOTATION_SCALE_BAR_UNITS_TYPE_ENUM_H__

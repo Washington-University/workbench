@@ -617,6 +617,9 @@ AnnotationInsertNewWidget::createShapePixmap(const QWidget* widget,
         case AnnotationTypeEnum::OVAL:
             painter->drawEllipse(1, 1, width - 1, height - 1);
             break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            CaretAssertMessage(0, "No pixmap for scale bar as user does not create them like other annotations");
+            break;
         case AnnotationTypeEnum::TEXT:
         {
             QFont font = painter->font();

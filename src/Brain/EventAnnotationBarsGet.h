@@ -1,5 +1,5 @@
-#ifndef __EVENT_ANNOTATION_COLOR_BAR_GET_H__
-#define __EVENT_ANNOTATION_COLOR_BAR_GET_H__
+#ifndef __EVENT_ANNOTATION_BARS_GET_H__
+#define __EVENT_ANNOTATION_BARS_GET_H__
 
 /*LICENSE_START*/
 /*
@@ -29,30 +29,35 @@
 
 namespace caret {
     class AnnotationColorBar;
+    class AnnotationScaleBar;
     
-    class EventAnnotationColorBarGet : public Event {
+    class EventAnnotationBarsGet : public Event {
         
     public:
-        EventAnnotationColorBarGet();
+        EventAnnotationBarsGet();
         
-        EventAnnotationColorBarGet(const int32_t tabIndex);
+        EventAnnotationBarsGet(const int32_t tabIndex);
         
-        EventAnnotationColorBarGet(const std::vector<int32_t>& tabIndices);
+        EventAnnotationBarsGet(const std::vector<int32_t>& tabIndices);
         
-        virtual ~EventAnnotationColorBarGet();
+        virtual ~EventAnnotationBarsGet();
         
         void addAnnotationColorBars(const std::vector<AnnotationColorBar*>& colorBars);
+        
+        void addAnnotationScaleBar(AnnotationScaleBar* scaleBar);
         
         bool isGetAnnotationColorBarsForTabIndex(const int32_t tabIndex);
         
         std::vector<AnnotationColorBar*> getAnnotationColorBars() const;
 
+        std::vector<AnnotationScaleBar*> getAnnotationScaleBars() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:
-        EventAnnotationColorBarGet(const EventAnnotationColorBarGet&);
+        EventAnnotationBarsGet(const EventAnnotationBarsGet&);
 
-        EventAnnotationColorBarGet& operator=(const EventAnnotationColorBarGet&);
+        EventAnnotationBarsGet& operator=(const EventAnnotationBarsGet&);
         
         bool m_allTabsFlag;
         
@@ -60,13 +65,15 @@ namespace caret {
         
         std::vector<AnnotationColorBar*> m_annotationColorBars;
         
+        std::vector<AnnotationScaleBar*> m_annotationScaleBars;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __EVENT_ANNOTATION_COLOR_BAR_GET_DECLARE__
+#ifdef __EVENT_ANNOTATION_BARS_GET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __EVENT_ANNOTATION_COLOR_BAR_GET_DECLARE__
+#endif // __EVENT_ANNOTATION_BARS_GET_DECLARE__
 
 } // namespace
-#endif  //__EVENT_ANNOTATION_COLOR_BAR_GET_H__
+#endif  //__EVENT_ANNOTATION_BARS_GET_H__

@@ -19,6 +19,7 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 #include <cmath>
 #include <limits>
 
@@ -40,6 +41,7 @@
 #include "AnnotationManager.h"
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
+#include "AnnotationScaleBar.h"
 #include "AnnotationText.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
@@ -428,6 +430,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
                                                    bottomRightOut,
                                                    topRightOut,
                                                    topLeftOut);
+        
     }
     
     return boundsValid;
@@ -492,9 +495,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
         m_volumeSpacePlaneValid = true;
         
         std::vector<AnnotationColorBar*> emptyColorBars;
+        std::vector<AnnotationScaleBar*> emptyScaleBars;
         std::vector<Annotation*> emptyNotInFileAnnotations;
         drawAnnotationsInternal(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                 emptyColorBars,
+                                emptyScaleBars,
                                 emptyNotInFileAnnotations,
                                 NULL,
                                 sliceThickness);
@@ -513,6 +518,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
  *     Coordinate space of annotation that are drawn.
  * @param colorbars
  *     Colorbars that will be drawn.
+ * @param scalebars
+ *     Scalebars that will be drawn.
  * @param notInFileAnnotations
  *     Annotations that are not in a file but need to be drawn.
  * @param surfaceDisplayed
@@ -524,6 +531,7 @@ void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
                                                            const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                            std::vector<AnnotationColorBar*>& colorBars,
+                                                           std::vector<AnnotationScaleBar*>& scaleBars,
                                                            std::vector<Annotation*>& notInFileAnnotations,
                                                            const Surface* surfaceDisplayed,
                                                            const float surfaceViewScaling)
@@ -538,6 +546,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
     
     drawAnnotationsInternal(drawingCoordinateSpace,
                             colorBars,
+                            scaleBars,
                             notInFileAnnotations,
                             surfaceDisplayed,
                             sliceThickness);
@@ -552,6 +561,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
  *     Coordinate space of annotation that are drawn.
  * @param colorbars
  *     Colorbars that will be drawn.
+ * @param scalebars
+ *     Scale that will be drawn.
  * @param notInFileAnnotations
  *     Annotations that are not in a file but need to be drawn.
  * @param surfaceDisplayed
@@ -564,6 +575,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                                    std::vector<AnnotationColorBar*>& colorBars,
+                                                                   std::vector<AnnotationScaleBar*>& scaleBars,
                                                                    std::vector<Annotation*>& notInFileAnnotations,
                                                                    const Surface* surfaceDisplayed,
                                                                    const float sliceThickness)
@@ -703,7 +715,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     
     /*
      * Draw annotations from all files.
-     * NOTE: iFile == numAnnFiles, the annotation colorbars 
+     * NOTE: iFile == numAnnFiles, the annotation colorbars and scale bars
      * and annotation chart labels are drawn
      */
     const int32_t numAnnFiles = static_cast<int32_t>(allAnnotationFiles.size());
@@ -735,17 +747,34 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                      * Note: Positions are in percentages ranging [0.0, 100.0]
                      */
                     const float yStart = 4.0;
-                    float x = 14.0;
                     float y = yStart;
                     int32_t lastTabIndex = -1;
                     bool firstColorBarFlag = true;
-                    if ( ! colorBars.empty()) {
-                        for (std::vector<AnnotationColorBar*>::iterator cbIter = colorBars.begin();
-                             cbIter != colorBars.end();
-                             cbIter++) {
-                            AnnotationColorBar* cb = *cbIter;
-                            if (cb->getCoordinateSpace() == drawingCoordinateSpace) {
-                                switch  (cb->getPositionMode()) {
+                    std::vector<AnnotationTwoDimensionalShape*> colorAndScaleBars;
+                    colorAndScaleBars.insert(colorAndScaleBars.end(),
+                                             colorBars.begin(), colorBars.end());
+                    colorAndScaleBars.insert(colorAndScaleBars.end(),
+                                             scaleBars.begin(), scaleBars.end());
+                    if ( ! colorAndScaleBars.empty()) {
+                        for (auto annBar : colorAndScaleBars) {
+                            if (annBar->getCoordinateSpace() == drawingCoordinateSpace) {
+                                AnnotationColorBarPositionModeEnum::Enum positionMode = AnnotationColorBarPositionModeEnum::AUTOMATIC;
+                                AnnotationColorBar* colorBar = dynamic_cast<AnnotationColorBar*>(annBar);
+                                float x = 14.0;
+                                if (colorBar != NULL) {
+                                    positionMode = colorBar->getPositionMode();
+                                }
+                                else {
+                                    AnnotationScaleBar* scaleBar = annBar->castToScaleBar();
+                                    if (scaleBar != NULL) {
+                                        positionMode = scaleBar->getPositionMode();
+                                        x = 2.0;
+                                    }
+                                    else {
+                                        CaretAssert(0);
+                                    }
+                                }
+                                switch  (positionMode) {
                                     case AnnotationColorBarPositionModeEnum::AUTOMATIC:
                                     {
                                         /*
@@ -754,7 +783,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                                          * colorbar or bottom of screen.  Second time to move the
                                          * Y to the top of this annotation.
                                          */
-                                        const float halfHeight = cb->getHeight() / 2.0;
+                                        const float halfHeight =annBar->getHeight() / 2.0;
                                         if (firstColorBarFlag) {
                                             firstColorBarFlag = false;
                                             y = 4;
@@ -763,28 +792,28 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                                             }
                                             
                                             if (drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
-                                                lastTabIndex = cb->getTabIndex();
+                                                lastTabIndex = annBar->getTabIndex();
                                             }
                                         }
                                         else {
                                             y += halfHeight;
                                             
                                             if (drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::TAB) {
-                                                if (cb->getTabIndex() != lastTabIndex) {
+                                                if (annBar->getTabIndex() != lastTabIndex) {
                                                     /*
                                                      * First color bar in tab is at bottom of tab
                                                      */
                                                     y = yStart;
                                                 }
-                                                lastTabIndex = cb->getTabIndex();
+                                                lastTabIndex = annBar->getTabIndex();
                                             }
                                         }
                                         
                                         float xyz[3];
-                                        cb->getCoordinate()->getXYZ(xyz);
+                                        annBar->getCoordinate()->getXYZ(xyz);
                                         xyz[0] = x;
                                         xyz[1] = y;
-                                        cb->getCoordinate()->setXYZ(xyz);
+                                        annBar->getCoordinate()->setXYZ(xyz);
                                         y += halfHeight;
                                     }
                                         break;
@@ -796,6 +825,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                         annotationsFromFile.insert(annotationsFromFile.end(),
                                                    colorBars.begin(),
                                                    colorBars.end());
+                        annotationsFromFile.insert(annotationsFromFile.end(),
+                                                   scaleBars.begin(),
+                                                   scaleBars.end());
                     }
                 }
                     break;
@@ -1155,6 +1187,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
                                      dynamic_cast<AnnotationOval*>(annotation),
                                      surfaceDisplayed);
                 break;
+            case AnnotationTypeEnum::SCALE_BAR:
+                drawScaleBar(annotationFile,
+                             annotation->castToScaleBar());
+                break;
             case AnnotationTypeEnum::TEXT:
                 drawnFlag = drawText(annotationFile,
                                      dynamic_cast<AnnotationText*>(annotation),
@@ -1402,6 +1438,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoDimAnnotationSurfaceTextureOff
                                                      surfaceExtentZ,
                                                      vertexXYZ);
             break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            CaretAssertMessage(0, "Scale Bar is NEVER drawn in surface space");
+            break;
         case AnnotationTypeEnum::TEXT:
             drawnFlag = drawTextSurfaceTangentOffset(annotationFile,
                                                      dynamic_cast<AnnotationText*>(annotation),
@@ -1479,6 +1518,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOneDimAnnotationSurfaceTextureOff
         case AnnotationTypeEnum::COLOR_BAR:
         case AnnotationTypeEnum::IMAGE:
         case AnnotationTypeEnum::OVAL:
+        case AnnotationTypeEnum::SCALE_BAR:
         case AnnotationTypeEnum::TEXT:
             CaretAssert(0);
             break;
@@ -1926,6 +1966,313 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawBrowserTab(AnnotationFile* annota
     return drawnFlag;
 }
 
+/**
+ * Draw an annotation scale bar.
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param scaleBar
+ *    Scale bar to draw.
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotationFile,
+                                                        AnnotationScaleBar* scaleBar)
+{
+    CaretAssert(scaleBar);
+    
+    if ( ! scaleBar->isDisplayed()) {
+        return;
+    }
+    
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    const float orthographicWidth = scaleBar->getDrawingOrthographicWidth();
+    if (orthographicWidth <= 0.0) {
+        return;
+    }
+    const float modelViewportWidth(scaleBar->getDrawingViewportWidth());
+    if (modelViewportWidth <= 0.0) {
+        return;
+    }
+    
+    const float tabViewportWidth(viewport[2]);
+    if (tabViewportWidth <= 0.0) {
+        return;
+    }
+    
+    /*
+     * The 'tabViewportWidth' is the viewport of the tab.  The tab
+     * may contain drawing of multiple models such as Surface Montage
+     * or Volume Montage.  The 'modelViepwortWidth' is the width of the
+     * viewport contains a single drawn model (eg: one slice in a
+     * volume montage or one surface in a 2x2 surface montage).
+     * The 'adjustedViewportWidth' ensures tab bar is correct length
+     *
+     */
+    const float widthScaling = modelViewportWidth / tabViewportWidth;
+    
+    std::array<float, 3> startXYZ;
+    if ( ! getAnnotationDrawingSpaceCoordinate(scaleBar,
+                                               scaleBar->getCoordinate(),
+                                               NULL,
+                                               startXYZ.data())) {
+        return;
+    }
+    
+    /*
+     * Bounds of scale bar excluding any text
+     */
+    std::array<float, 3> barBottomLeft;
+    std::array<float, 3> barBottomRight;
+    std::array<float, 3> barTopRight;
+    std::array<float, 3> barTopLeft;
+    if ( ! getAnnotationTwoDimShapeBounds(scaleBar, startXYZ.data(),
+                                          barBottomLeft.data(), barBottomRight.data(), barTopRight.data(), barTopLeft.data())) {
+        return;
+    }
+    
+    /*
+     * Adjust right end to account for viewport width differences
+     */
+    const float width = (barBottomRight[0] - barBottomLeft[0]) * widthScaling;
+    barBottomRight[0] = barBottomLeft[0] + width;
+    barTopRight[0]    = barTopLeft[0]    + width;
+    
+    const bool depthTestFlag(false);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
+    uint8_t backgroundRGBA[4];
+    scaleBar->getBackgroundColorRGBA(backgroundRGBA);
+    uint8_t foregroundRGBA[4];
+    scaleBar->getLineColorRGBA(foregroundRGBA);
+    
+    const bool drawBackgroundFlag = (backgroundRGBA[3] > 0);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0);
+    const bool drawAnnotationFlag = (drawBackgroundFlag || drawForegroundFlag);
+    
+    bool drawnFlag = false;
+    
+    bool fontTooSmallFlag(false);
+    if (drawAnnotationFlag) {
+        /*
+         * Set text position here since bounding box will
+         * change to include the text
+         */
+        const float textOffsetX(5.0);
+        const float textDrawingXYZ[3] {
+            ((barBottomRight[0] + barTopRight[0]) / 2.0f) + textOffsetX,
+            ((barBottomRight[1] + barTopRight[1]) / 2.0f),
+            ((barBottomRight[2] + barTopRight[2]) / 2.0f)
+        };
+        
+        /*
+         * Need size of text for drawing background and selection box
+         */
+        const int32_t numDecimals(1);
+        QString lengthText(QString::number(scaleBar->getLength(), 'f', numDecimals));
+        if (scaleBar->isShowLengthUnitsText()) {
+            lengthText.append(AnnotationScaleBarUnitsTypeEnum::toGuiName(scaleBar->getLengthUnits()));
+        }
+        
+        AnnotationPercentSizeText annLengthText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+        annLengthText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+        annLengthText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+        annLengthText.setFont(scaleBar->getFont());
+        annLengthText.setFontPercentViewportSize(scaleBar->getFontPercentViewportSize());
+        annLengthText.setTextColor(CaretColorEnum::CUSTOM);
+        float rgba[4];
+        scaleBar->getTextColorRGBA(rgba);
+        annLengthText.setCustomTextColor(rgba);
+        annLengthText.setRotationAngle(0.0);
+        annLengthText.setText(lengthText);
+        
+        BrainOpenGLTextRenderInterface::DrawingFlags textDrawingFlags;
+        textDrawingFlags.setDrawSubstitutedText(false);
+        
+        /*
+         * Initialize bounds for bar and length text
+         */
+        std::array<float, 3> barWithTextBottomLeft(barBottomLeft);
+        std::array<float, 3> barWithTextBottomRight(barBottomRight);
+        std::array<float, 3> barWithTextTopLeft(barTopLeft);
+        std::array<float, 3> barWithTextTopRight(barTopRight);
+
+        if (scaleBar->isShowLengthText()) {
+            double textWidth(0.0);
+            double textHeight(0.0);
+            m_brainOpenGLFixedPipeline->getTextRenderer()->getTextWidthHeightInPixels(annLengthText,
+                                                                                      textDrawingFlags,
+                                                                                      viewport[2],
+                                                                                      viewport[3],
+                                                                                      textWidth,
+                                                                                      textHeight);
+            /*
+             * Adjust right side for text so that sizing handle
+             * enloses both scale bar and text
+             */
+            barWithTextBottomRight[0] += (textWidth + textOffsetX);
+            barWithTextTopRight[0]    += (textWidth + textOffsetX);
+            
+            const float barHeight = barWithTextTopLeft[1] - barWithTextBottomRight[1];
+            float extraHeight(0.0);
+            if (textHeight > barHeight) {
+                /*
+                 * Increase height so background is slightly bigger vertically than text
+                 */
+                extraHeight = ((textHeight - barHeight) / 2.0);
+            }
+            else {
+                /*
+                 * Space above and below bar in the background
+                 */
+                extraHeight = 2.0;
+            }
+            barWithTextBottomLeft[1]  -= extraHeight;
+            barWithTextBottomRight[1] -= extraHeight;
+            barWithTextTopRight[1]    += extraHeight;
+            barWithTextTopLeft[1]     += extraHeight;
+        }
+        
+        if (m_selectionModeFlag
+            && m_inputs->m_annotationUserInputModeFlag) {
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
+            
+            if (drawBackgroundFlag) {
+                /*
+                 * When selecting draw only background if it is enabled
+                 * since it is opaque and prevents "behind" annotations
+                 * from being selected
+                 */
+                GraphicsShape::drawBoxFilledByteColor(barWithTextBottomLeft.data(),
+                                                      barWithTextBottomRight.data(),
+                                                      barWithTextTopRight.data(),
+                                                      barWithTextTopLeft.data(),
+                                                      selectionColorRGBA);
+            }
+            else {
+                /*
+                 * Drawing foreground as line will still allow user to
+                 * select annotation that are inside of the box
+                 */
+                const float percentHeight = getLineWidthPercentageInSelectionMode(scaleBar);
+                GraphicsShape::drawBoxOutlineByteColor(barWithTextBottomLeft.data(),
+                                                       barWithTextBottomRight.data(),
+                                                       barWithTextTopRight.data(),
+                                                       barWithTextTopLeft.data(),
+                                                       selectionColorRGBA,
+                                                       GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                                       percentHeight);
+            }
+            
+            const float selectionCenterXYZ[3] = {
+                (barWithTextBottomLeft[0] + barWithTextBottomRight[0] + barWithTextTopRight[0] + barWithTextTopLeft[0]) / 4.0f,
+                (barWithTextBottomLeft[1] + barWithTextBottomRight[1] + barWithTextTopRight[1] + barWithTextTopLeft[1]) / 4.0f,
+                (barWithTextBottomLeft[2] + barWithTextBottomRight[2] + barWithTextTopRight[2] + barWithTextTopLeft[2]) / 4.0f
+            };
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    scaleBar,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    selectionCenterXYZ));
+        }
+        else {
+            if (drawBackgroundFlag) {
+                /*
+                 * Draws background for bar and text
+                 */
+                const float extraOnLeft(4);
+                barWithTextBottomLeft[0] -= extraOnLeft;
+                barWithTextTopLeft[0]    -= extraOnLeft;
+                GraphicsShape::drawBoxFilledByteColor(barWithTextBottomLeft.data(),
+                                                      barWithTextBottomRight.data(),
+                                                      barWithTextTopRight.data(),
+                                                      barWithTextTopLeft.data(),
+                                                      backgroundRGBA);
+                drawnFlag = true;
+            }
+            
+            if (drawForegroundFlag) {
+                /*
+                 * Draws bar only
+                 */
+                GraphicsShape::drawBoxFilledByteColor(barBottomLeft.data(),
+                                                      barBottomRight.data(),
+                                                      barTopRight.data(),
+                                                      barTopLeft.data(),
+                                                      foregroundRGBA);
+//                GraphicsShape::drawBoxOutlineByteColor(barBottomLeft.data(),
+//                                                       barBottomRight.data(),
+//                                                       barTopRight.data(),
+//                                                       barTopLeft.data(),
+//                                                       foregroundRGBA,
+//                                                       GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+//                                                       scaleBar->getLineWidthPercentage());
+                drawnFlag = true;
+            }
+            
+            if (drawnFlag) {
+//                const int32_t numDecimals(1);
+//                QString lengthText(QString::number(scaleBar->getLength(), 'f', numDecimals));
+//                if (scaleBar->isShowLengthUnitsText()) {
+//                    lengthText.append(AnnotationScaleBarUnitsTypeEnum::toGuiName(scaleBar->getLengthUnits()));
+//                }
+//
+//                AnnotationPercentSizeText annLengthText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+//                annLengthText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+//                annLengthText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+//                annLengthText.setFont(scaleBar->getFont());
+//                annLengthText.setFontPercentViewportSize(scaleBar->getFontPercentViewportSize());
+//                annLengthText.setTextColor(CaretColorEnum::CUSTOM);
+//                float rgba[4];
+//                scaleBar->getTextColorRGBA(rgba);
+//                annLengthText.setCustomTextColor(rgba);
+//                annLengthText.setRotationAngle(0.0);
+//                annLengthText.setText(lengthText);
+//
+//                double textWidth(0.0);
+//                double textHeight(0.0);
+//                BrainOpenGLTextRenderInterface::DrawingFlags textDrawingFlags;
+//                textDrawingFlags.setDrawSubstitutedText(false);
+//                if (scaleBar->isShowLengthText()) {
+//                    m_brainOpenGLFixedPipeline->getTextRenderer()->getTextWidthHeightInPixels(annLengthText,
+//                                                                                              textDrawingFlags,
+//                                                                                              viewport[2],
+//                                                                                              viewport[3],
+//                                                                                              textWidth,
+//                                                                                              textHeight);
+//                }
+                
+                if (scaleBar->isShowLengthText()) {
+                    m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(textDrawingXYZ[0],
+                                                                                            textDrawingXYZ[1],
+                                                                                            textDrawingXYZ[2],
+                                                                                            annLengthText,
+                                                                                            textDrawingFlags);
+                    
+                    if (annLengthText.isFontTooSmallWhenLastDrawn()) {
+                        fontTooSmallFlag = true;
+                    }
+                }
+            }
+        }
+        
+        if (scaleBar->isSelectedForEditing(m_inputs->m_windowIndex)) {
+            drawAnnotationTwoDimSizingHandles(annotationFile,
+                                              scaleBar,
+                                              barWithTextBottomLeft.data(),
+                                              barWithTextBottomRight.data(),
+                                              barWithTextTopRight.data(),
+                                              barWithTextTopLeft.data(),
+                                              s_sizingHandleLineWidthInPixels,
+                                              scaleBar->getRotationAngle());
+        }
+    }
+    
+    scaleBar->setFontTooSmallWhenLastDrawn(fontTooSmallFlag);
+    setDepthTestingStatus(savedDepthTestStatus);
+}
+
 
 /**
  * Draw an annotation color bar.
@@ -1940,7 +2287,27 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
                                                         AnnotationColorBar* colorBar)
 {
     CaretAssert(colorBar);
-    CaretAssert(colorBar->getType() == AnnotationTypeEnum::COLOR_BAR);
+    
+    bool colorBarFlag(false);
+    bool scaleBarFlag(false);
+    switch (colorBar->getType()) {
+        case AnnotationTypeEnum::COLOR_BAR:
+            colorBarFlag = true;
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            scaleBarFlag = true;
+            break;
+        case AnnotationTypeEnum::BOX:
+        case AnnotationTypeEnum::BROWSER_TAB:
+        case AnnotationTypeEnum::TEXT:
+        case AnnotationTypeEnum::IMAGE:
+        case AnnotationTypeEnum::LINE:
+        case AnnotationTypeEnum::OVAL:
+            CaretAssert(0);
+            break;
+    }
+    CaretAssert(colorBarFlag
+                | scaleBarFlag);
     
     float annXYZ[3];
     if ( ! getAnnotationDrawingSpaceCoordinate(colorBar,
@@ -4378,6 +4745,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
             case AnnotationTypeEnum::IMAGE:
             case AnnotationTypeEnum::LINE:
             case AnnotationTypeEnum::OVAL:
+            case AnnotationTypeEnum::SCALE_BAR:
             case AnnotationTypeEnum::TEXT:
                 selectionFlag = m_inputs->m_annotationUserInputModeFlag;
                 break;
@@ -4577,6 +4945,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimSizingHandles(Ann
         case AnnotationTypeEnum::IMAGE:
         case AnnotationTypeEnum::LINE:
         case AnnotationTypeEnum::OVAL:
+        case AnnotationTypeEnum::SCALE_BAR:
         case AnnotationTypeEnum::TEXT:
             if ( ! m_inputs->m_annotationUserInputModeFlag) {
                 return;
@@ -4824,6 +5193,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor(const Annotation
         case AnnotationTypeEnum::LINE:
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
             break;
         case AnnotationTypeEnum::TEXT:
             break;

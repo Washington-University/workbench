@@ -39,6 +39,7 @@
 #include "AnnotationColorBar.h"
 #include "AnnotationManager.h"
 #include "AnnotationPointSizeText.h"
+#include "AnnotationScaleBar.h"
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
@@ -87,7 +88,7 @@
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
-#include "EventAnnotationColorBarGet.h"
+#include "EventAnnotationBarsGet.h"
 #include "EventBrowserWindowContent.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
@@ -512,14 +513,16 @@ void
 BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const std::vector<const BrainOpenGLViewportContent*>& viewportContents)
 {
     m_annotationColorBarsForDrawing.clear();
+    m_annotationScaleBarsForDrawing.clear();
     
     /*
      * This event gets EVERY color bar, even those
      * in other windows
      */
-    EventAnnotationColorBarGet colorBarEvent;
-    EventManager::get()->sendEvent(colorBarEvent.getPointer());
-    std::vector<AnnotationColorBar*> allColorBars = colorBarEvent.getAnnotationColorBars();
+    EventAnnotationBarsGet barsEvent;
+    EventManager::get()->sendEvent(barsEvent.getPointer());
+    std::vector<AnnotationColorBar*> allColorBars = barsEvent.getAnnotationColorBars();
+    std::vector<AnnotationScaleBar*> allScaleBars = barsEvent.getAnnotationScaleBars();
     
     /*
      * Find the color bars contained in the viewports and
@@ -539,6 +542,16 @@ BrainOpenGLFixedPipeline::setAnnotationColorBarsAndBrowserTabsForDrawing(const s
                 colorBar->setWindowIndex(vc->getWindowIndex());
                 m_annotationColorBarsForDrawing.push_back(colorBar);
                 break;
+            }
+        }
+    }
+    
+    for (auto scaleBar : allScaleBars) {
+        const int32_t tabIndex = scaleBar->getTabIndex();
+        for (auto vc : viewportContents) {
+            if (vc->getTabIndex() == tabIndex) {
+                scaleBar->setWindowIndex(vc->getWindowIndex());
+                m_annotationScaleBarsForDrawing.push_back(scaleBar);
             }
         }
     }
@@ -1056,10 +1069,12 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLV
                                                                  annotationModeFlag,
                                                                  tileTabsEditModeFlag);
         std::vector<AnnotationColorBar*> emptyColorBars;
+        std::vector<AnnotationScaleBar*> emptyScaleBars;
         std::vector<Annotation*> emptyViewportAnnotations;
         m_annotationDrawing->drawAnnotations(&inputs,
                                              AnnotationCoordinateSpaceEnum::CHART,
                                              emptyColorBars,
+                                             emptyScaleBars,
                                              emptyViewportAnnotations,
                                              NULL,
                                              1.0);
@@ -1127,6 +1142,7 @@ BrainOpenGLFixedPipeline::drawSpacerAnnotations(const BrainOpenGLViewportContent
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::SPACER,
                                          m_annotationColorBarsForDrawing,
+                                         m_annotationScaleBarsForDrawing,
                                          m_specialCaseGraphicsAnnotations,
                                          annotationDrawingNullSurface,
                                          annotationDrawingUnusedSurfaceScaling);
@@ -1190,6 +1206,7 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
                                          m_annotationColorBarsForDrawing,
+                                         m_annotationScaleBarsForDrawing,
                                          m_specialCaseGraphicsAnnotations,
                                          annotationDrawingNullSurface,
                                          annotationDrawingUnusedSurfaceScaling);
@@ -1272,6 +1289,7 @@ BrainOpenGLFixedPipeline::drawWindowAnnotations(const int windowViewport[4])
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::WINDOW,
                                          m_annotationColorBarsForDrawing,
+                                         m_annotationScaleBarsForDrawing,
                                          notInFileAnnotations,
                                          annotationDrawingNullSurface,
                                          annotationDrawingUnusedSurfaceScaling);
@@ -2095,6 +2113,8 @@ BrainOpenGLFixedPipeline::drawSurfaceModel(BrowserTabContent* browserTabContent,
                                                                                  surface, 
                                                                                  this->windowTabIndex);
     
+    setupScaleBarDrawingInformation(browserTabContent);
+    
     this->drawSurface(surface,
                       browserTabContent->getScaling(),
                       nodeColoringRGBA,
@@ -2249,11 +2269,13 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      tileTabsEditModeFlag);
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<Annotation*> emptyViewportAnnotations;
-           
+            std::vector<AnnotationScaleBar*> emptyScaleBars;
+
             
             m_annotationDrawing->drawAnnotations(&inputs,
                                                  AnnotationCoordinateSpaceEnum::SURFACE,
                                                  emptyColorBars,
+                                                 emptyScaleBars,
                                                  emptyViewportAnnotations,
                                                  surface,
                                                  surfaceScaling);
@@ -2261,6 +2283,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                 m_annotationDrawing->drawAnnotations(&inputs,
                                                      AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      emptyColorBars,
+                                                     emptyScaleBars,
                                                      emptyViewportAnnotations,
                                                      annotationDrawingNullSurface,
                                                      annotationDrawingUnusedSurfaceScaling);
@@ -2306,9 +2329,11 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                                                      tileTabsEditModeFlag);
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<Annotation*> emptyViewportAnnotations;
+            std::vector<AnnotationScaleBar*> emptyScaleBars;
             m_annotationDrawing->drawAnnotations(&inputs,
                                                  AnnotationCoordinateSpaceEnum::SURFACE,
                                                  emptyColorBars,
+                                                 emptyScaleBars,
                                                  emptyViewportAnnotations,
                                                  surface,
                                                  surfaceScaling);
@@ -2316,6 +2341,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                 m_annotationDrawing->drawAnnotations(&inputs,
                                                      AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                                      emptyColorBars,
+                                                     emptyScaleBars,
                                                      emptyViewportAnnotations,
                                                      annotationDrawingNullSurface,
                                                      annotationDrawingUnusedSurfaceScaling);
@@ -5432,6 +5458,10 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                                           center,
                                           mvp->getProjectionViewType());
         
+        if (ivp == 0) {
+            setupScaleBarDrawingInformation(browserTabContent);
+        }
+        
         this->drawSurface(mvp->getSurface(),
                           browserTabContent->getScaling(),
                           nodeColoringRGBA,
@@ -5442,6 +5472,55 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                savedVP[1],
                savedVP[2],
                savedVP[3]);
+}
+
+/**
+ * While drawing in model space provide information to the scale bar so that it
+ * can be drawn in the proper size when it is drawn in tab space
+ *
+ * @param browserTabContent
+ *  Content of browser tab
+ */
+void
+BrainOpenGLFixedPipeline::setupScaleBarDrawingInformation(BrowserTabContent* browserTabContent)
+{
+    setupScaleBarDrawingInformation(browserTabContent,
+                                    this->orthographicLeft,
+                                    this->orthographicRight);
+}
+
+/**
+ * While drawing in model space provide information to the scale bar so that it
+ * can be drawn in the proper size when it is drawn in tab space'
+ *
+ * @param browserTabContent
+ *  Content of browser tab
+ * @param orthographicProjectionLeft
+ *  Left side or orthographic projection
+ * @param orthographicProjectionRight
+ *  Right side or orthographic projection
+ */
+void
+BrainOpenGLFixedPipeline::setupScaleBarDrawingInformation(BrowserTabContent* browserTabContent,
+                                                          const float orthographicProjectionLeft,
+                                                          const float orthographicProjectionRight)
+{
+    CaretAssert(browserTabContent);
+    
+    const float scaling = browserTabContent->getScaling();
+    if (scaling <= 0.0) {
+        return;
+    }
+    
+    const float orthoWidth = (std::abs(orthographicProjectionRight - orthographicProjectionLeft)
+                              / browserTabContent->getScaling());
+
+    browserTabContent->getScaleBar()->setDrawingOrthographicWidth(orthoWidth);
+    
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    browserTabContent->getScaleBar()->setDrawingViewportWidth(viewport[2]);
 }
 
 /**
@@ -5539,6 +5618,8 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
     this->applyViewingTransformations(wholeBrainModel,
                                       center,
                                       ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
+    
+    setupScaleBarDrawingInformation(browserTabContent);
     
     const SurfaceTypeEnum::Enum surfaceType = wholeBrainModel->getSelectedSurfaceType(tabNumberIndex);
     

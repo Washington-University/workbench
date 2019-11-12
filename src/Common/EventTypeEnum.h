@@ -44,8 +44,8 @@ public:
         EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE,
         /** Get annnotation chart labels */
         EVENT_ANNOTATION_CHART_LABEL_GET,
-        /** Get color bars from tab(s) */
-        EVENT_ANNOTATION_COLOR_BAR_GET,
+        /** Get color and scale bars from tab(s) */
+        EVENT_ANNOTATION_BARS_GET,
         /** Annotation create new of a particular type */
         EVENT_ANNOTATION_CREATE_NEW_TYPE,
         /** Get the annotations drawn in a window */

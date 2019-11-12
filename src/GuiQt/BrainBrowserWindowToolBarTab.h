@@ -35,6 +35,7 @@ namespace caret {
     class BrainBrowserWindowToolBar;
     class ClippingPlanesWidget;
     class EnumComboBoxTemplate;
+    class ScaleBarWidget;
     
     class BrainBrowserWindowToolBarTab : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
@@ -61,12 +62,20 @@ namespace caret {
         
         void clippingPlanesMenuAboutToShow();
         
+        void scaleBarActionToggled(bool checked);
+        
+        void scaleBarMenuAboutToShow();
+        
     private:
         BrainBrowserWindowToolBarTab(const BrainBrowserWindowToolBarTab&);
 
         BrainBrowserWindowToolBarTab& operator=(const BrainBrowserWindowToolBarTab&);
         
         QMenu* createClippingPlanesMenu();
+        
+        QMenu* createScaleBarMenu();
+        
+        QPixmap createScaleBarPixmap(const QWidget* widget);
         
         QLabel* m_yokeToLabel;
         
@@ -85,6 +94,10 @@ namespace caret {
         QAction* m_clippingPlanesAction;
         
         ClippingPlanesWidget* m_clippingPlanesWidget;
+        
+        QAction* m_scaleBarAction;
+        
+        ScaleBarWidget* m_scaleBarWidget;
         
         // ADD_NEW_MEMBERS_HERE
 
