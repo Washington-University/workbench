@@ -4539,101 +4539,178 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
             break;
         case CiftiMappingType::PARCELS:
         {
-            
-            int32_t readingDataParcelIndex = -1;
-            const CiftiParcelsMap dataMap = ciftiXML.getParcelsMap(m_dataReadingDirectionForCiftiXML);
-            if (dataMap.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
-                readingDataParcelIndex = dataMap.getIndexForNode(nodeIndex, structure);
-            }
-            
-            /*
-             * Special case for matrix type files
-             */
-            const CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(this);
-            if (matrixFile != NULL) {
-                const ConnectivityDataLoaded* dataLoaded = matrixFile->getConnectivityDataLoaded();
-                switch (dataLoaded->getMode()) {
-                    case ConnectivityDataLoaded::MODE_NONE:
-                        return false;
-                        break;
-                    case ConnectivityDataLoaded::MODE_COLUMN:
-                    case ConnectivityDataLoaded::MODE_ROW:
-                    case ConnectivityDataLoaded::MODE_SURFACE_NODE:
-                    case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
-                    case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
-                    case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
-                    {
-                        int mappingDataParcelIndex(-1);
-                        const CiftiParcelsMap& mappingMap = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
-                        if (mappingMap.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
-                            const std::vector<CiftiParcelsMap::Parcel>& mappingParcels = mappingMap.getParcels();
-                            mappingDataParcelIndex = mappingMap.getIndexForNode(nodeIndex,
-                                                                                structure);
-                            if ((mappingDataParcelIndex >= 0)
-                                && (mappingDataParcelIndex < static_cast<int64_t>(mappingParcels.size()))) {
-                                textValueOut = mappingParcels[mappingDataParcelIndex].m_name;
-                                
-                                std::vector<float> dataLoaded;
-                                matrixFile->getMapData(0, dataLoaded);
+            if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL) {
+                int32_t readingDataParcelIndex = -1;
+                const CiftiParcelsMap dataMap = ciftiXML.getParcelsMap(m_dataReadingDirectionForCiftiXML);
+                if (dataMap.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
+                    readingDataParcelIndex = dataMap.getIndexForNode(nodeIndex, structure);
+                }
+                
+                /*
+                 * Special case for matrix type files
+                 */
+                const CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(this);
+                if (matrixFile != NULL) {
+                    const ConnectivityDataLoaded* dataLoaded = matrixFile->getConnectivityDataLoaded();
+                    switch (dataLoaded->getMode()) {
+                        case ConnectivityDataLoaded::MODE_NONE:
+                            return false;
+                            break;
+                        case ConnectivityDataLoaded::MODE_COLUMN:
+                        case ConnectivityDataLoaded::MODE_ROW:
+                        case ConnectivityDataLoaded::MODE_SURFACE_NODE:
+                        case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
+                        case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
+                        case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
+                        {
+                            int mappingDataParcelIndex(-1);
+                            const CiftiParcelsMap& mappingMap = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
+                            if (mappingMap.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
+                                const std::vector<CiftiParcelsMap::Parcel>& mappingParcels = mappingMap.getParcels();
+                                mappingDataParcelIndex = mappingMap.getIndexForNode(nodeIndex,
+                                                                                    structure);
                                 if ((mappingDataParcelIndex >= 0)
-                                    && (mappingDataParcelIndex < static_cast<int32_t>(dataLoaded.size()))) {
-                                    textValueOut += (" " + AString::number(dataLoaded[mappingDataParcelIndex]));
-                                    return true;
+                                    && (mappingDataParcelIndex < static_cast<int64_t>(mappingParcels.size()))) {
+                                    textValueOut = mappingParcels[mappingDataParcelIndex].m_name;
+                                    
+                                    std::vector<float> dataLoaded;
+                                    matrixFile->getMapData(0, dataLoaded);
+                                    if ((mappingDataParcelIndex >= 0)
+                                        && (mappingDataParcelIndex < static_cast<int32_t>(dataLoaded.size()))) {
+                                        textValueOut += (" " + AString::number(dataLoaded[mappingDataParcelIndex]));
+                                        return true;
+                                    }
                                 }
                             }
+                            
                         }
-                        
+                            break;
                     }
-                        break;
                 }
-            }
-            
-            int64_t mappingDataParcelIndex = -1;
-            if (readingDataParcelIndex >= 0) {
-                /*
-                 * Only get parcel name if there is a row for reading
-                 */
-                const CiftiParcelsMap& mappingMap = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
-                if (mappingMap.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
-                    const std::vector<CiftiParcelsMap::Parcel>& mappingParcels = mappingMap.getParcels();
-                    mappingDataParcelIndex = mappingMap.getIndexForNode(nodeIndex,
-                                                                        structure);
+                
+                int64_t mappingDataParcelIndex = -1;
+                if (readingDataParcelIndex >= 0) {
+                    /*
+                     * Only get parcel name if there is a row for reading
+                     */
+                    const CiftiParcelsMap& mappingMap = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
+                    if (mappingMap.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
+                        const std::vector<CiftiParcelsMap::Parcel>& mappingParcels = mappingMap.getParcels();
+                        mappingDataParcelIndex = mappingMap.getIndexForNode(nodeIndex,
+                                                                            structure);
+                        if ((mappingDataParcelIndex >= 0)
+                            && (mappingDataParcelIndex < static_cast<int64_t>(mappingParcels.size()))) {
+                            textValueOut = mappingParcels[mappingDataParcelIndex].m_name;
+                        }
+                    }
+                }
+                
+                for (std::vector<int32_t>::const_iterator mapIter = mapIndices.begin();
+                     mapIter != mapIndices.end();
+                     mapIter++) {
                     if ((mappingDataParcelIndex >= 0)
-                        && (mappingDataParcelIndex < static_cast<int64_t>(mappingParcels.size()))) {
-                        textValueOut = mappingParcels[mappingDataParcelIndex].m_name;
+                        && (readingDataParcelIndex >= 0)) {
+                        const int64_t numRows = m_ciftiFile->getNumberOfRows();
+                        const int64_t numCols = m_ciftiFile->getNumberOfColumns();
+                        
+                        switch (m_dataReadingDirectionForCiftiXML) {
+                            case CiftiXML::ALONG_COLUMN:
+                            {
+                                std::vector<float> data;
+                                data.resize(numCols);
+                                CaretAssert(readingDataParcelIndex < numRows);
+                                m_ciftiFile->getRow(&data[0], readingDataParcelIndex);
+                                CaretAssertVectorIndex(data, mappingDataParcelIndex);
+                                textValueOut += (" " + AString::number(data[mappingDataParcelIndex]));
+                            }
+                                break;
+                            case CiftiXML::ALONG_ROW:
+                            {
+                                std::vector<float> data;
+                                data.resize(numRows);
+                                CaretAssert(readingDataParcelIndex < numCols);
+                                m_ciftiFile->getColumn(&data[0], readingDataParcelIndex);
+                                CaretAssertVectorIndex(data, mappingDataParcelIndex);
+                                textValueOut += (" " + AString::number(data[mappingDataParcelIndex]));
+                            }
+                                break;
+                        }
                     }
                 }
             }
-            
-            for (std::vector<int32_t>::const_iterator mapIter = mapIndices.begin();
-                 mapIter != mapIndices.end();
-                 mapIter++) {
-                if ((mappingDataParcelIndex >= 0)
-                    && (readingDataParcelIndex >= 0)) {
-                    const int64_t numRows = m_ciftiFile->getNumberOfRows();
-                    const int64_t numCols = m_ciftiFile->getNumberOfColumns();
+            else {
+                /*
+                 * This logic is for parcels NOT in a PCONN file
+                 */
+                int64_t parcelIndex = -1;
+                const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
+                if (map.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
+                    const std::vector<CiftiParcelsMap::Parcel>& parcels = map.getParcels();
+                    parcelIndex = map.getIndexForNode(nodeIndex,
+                                                      structure);
+                    if ((parcelIndex >= 0)
+                        && (parcelIndex < static_cast<int64_t>(parcels.size()))) {
+                        textValueOut = parcels[parcelIndex].m_name;
+                    }
+                }
+                
+                for (std::vector<int32_t>::const_iterator mapIter = mapIndices.begin();
+                     mapIter != mapIndices.end();
+                     mapIter++) {
+                    const int32_t mapIndex = *mapIter;
                     
-                    switch (m_dataReadingDirectionForCiftiXML) {
-                        case CiftiXML::ALONG_COLUMN:
-                        {
-                            std::vector<float> data;
-                            data.resize(numCols);
-                            CaretAssert(readingDataParcelIndex < numRows);
-                            m_ciftiFile->getRow(&data[0], readingDataParcelIndex);
-                            CaretAssertVectorIndex(data, mappingDataParcelIndex);
-                            textValueOut += (" " + AString::number(data[mappingDataParcelIndex]));
+                    if (parcelIndex >= 0) {
+                        int64_t itemIndex = -1;
+                        switch (ciftiXML.getMappingType(m_dataReadingDirectionForCiftiXML)) {
+                            case CiftiMappingType::BRAIN_MODELS:
+                            {
+                                const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(m_dataReadingDirectionForCiftiXML);
+                                if (map.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
+                                    itemIndex = map.getIndexForNode(nodeIndex,
+                                                                    structure);
+                                }
+                            }
+                                break;
+                            case CiftiMappingType::LABELS:
+                                break;
+                            case CiftiMappingType::PARCELS:
+                                itemIndex = mapIndex;
+                                break;
+                            case CiftiMappingType::SCALARS:
+                                itemIndex = mapIndex;
+                                break;
+                            case CiftiMappingType::SERIES:
+                                itemIndex = mapIndex;
+                                break;
                         }
-                            break;
-                        case CiftiXML::ALONG_ROW:
-                        {
-                            std::vector<float> data;
-                            data.resize(numRows);
-                            CaretAssert(readingDataParcelIndex < numCols);
-                            m_ciftiFile->getColumn(&data[0], readingDataParcelIndex);
-                            CaretAssertVectorIndex(data, mappingDataParcelIndex);
-                            textValueOut += (" " + AString::number(data[mappingDataParcelIndex]));
+                        if (itemIndex >= 0) {
+                            const int64_t numRows = m_ciftiFile->getNumberOfRows();
+                            const int64_t numCols = m_ciftiFile->getNumberOfColumns();
+                            
+                            switch (m_dataReadingDirectionForCiftiXML) {
+                                case CiftiXML::ALONG_COLUMN:
+                                {
+                                    std::vector<float> data;
+                                    data.resize(numRows);
+                                    CaretAssert(parcelIndex < numCols);
+                                    m_ciftiFile->getColumn(&data[0], parcelIndex);
+                                    CaretAssertVectorIndex(data, itemIndex);
+                                    textValueOut += (" " + AString::number(data[itemIndex]));
+                                }
+                                    break;
+                                case CiftiXML::ALONG_ROW:
+                                {
+                                    std::vector<float> data;
+                                    data.resize(numCols);
+                                    CaretAssert(parcelIndex < numRows);
+                                    m_ciftiFile->getRow(&data[0], parcelIndex);
+                                    CaretAssertVectorIndex(data, itemIndex);
+                                    textValueOut += (" " + AString::number(data[itemIndex]));
+                                }
+                                    break;
+                            }
+                            
                         }
-                            break;
                     }
                 }
             }
