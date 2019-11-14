@@ -492,6 +492,8 @@ namespace caret {
         
         AString getTabNamePrefix() const override;
         
+        void initializeScaleBar();
+        
         /** Number of this tab */
         int32_t m_tabNumber;
         

@@ -29,6 +29,7 @@
 
 class QCheckBox;
 class QDoubleSpinBox;
+class QSpinBox;
 
 namespace caret {
 
@@ -64,8 +65,18 @@ namespace caret {
 
         void lengthEnumComboBoxItemActivated();
         
+        void showTickMarksCheckBoxClicked(bool status);
+        
+        void tickMarksSubdivsionsSpinBoxValueChanged(int value);
+        
     private:
         void updateGraphics();
+        
+        QWidget* createLengthWidget();
+        
+        QWidget* createMiscWidget();
+        
+        QWidget* createTickMarksWidget();
         
         AnnotationScaleBar* m_scaleBar = NULL;
         
@@ -76,6 +87,10 @@ namespace caret {
         QDoubleSpinBox* m_lengthSpinBox;
         
         EnumComboBoxTemplate* m_lengthUnitsComboBox;
+        
+        QCheckBox* m_showTickMarksCheckBox;
+        
+        QSpinBox* m_tickMarksSubdivisionsSpinBox;
         
         EnumComboBoxTemplate* m_positionModeEnumComboBox;
 

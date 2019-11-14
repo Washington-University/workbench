@@ -54,6 +54,8 @@ public:
         EVENT_ANNOTATION_GROUP_GET_WITH_KEY,
         /** Annotation grouping (group, regroup, ungroup) operation */
         EVENT_ANNOTATION_GROUPING,
+        /** Get the bounds of annotation text */
+        EVENT_ANNOTATION_TEXT_GET_BOUNDS,
         /** Get annotation text substitutions */
         EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET,
         /** Invalid annotation text substitutions */

@@ -69,6 +69,7 @@ EventAnnotationAddToRemoveFromFile.h
 EventAnnotationChartLabelGet.h
 EventAnnotationGroupGetWithKey.h
 EventAnnotationGrouping.h
+EventAnnotationTextGetBounds.h
 EventAnnotationTextSubstitutionGet.h
 EventAnnotationTextSubstitutionInvalidate.h
 EventAnnotationValidate.h
@@ -118,6 +119,7 @@ EventAnnotationAddToRemoveFromFile.cxx
 EventAnnotationChartLabelGet.cxx
 EventAnnotationGroupGetWithKey.cxx
 EventAnnotationGrouping.cxx
+EventAnnotationTextGetBounds.cxx
 EventAnnotationTextSubstitutionGet.cxx
 EventAnnotationTextSubstitutionInvalidate.cxx
 EventAnnotationValidate.cxx

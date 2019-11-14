@@ -98,6 +98,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_GROUPING",
                                      "Event for annotation grouping"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TEXT_GET_BOUNDS,
+                                     "EVENT_ANNOTATION_TEXT_GET_BOUNDS",
+                                     "Get bounds for annotation text"));
+    
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET,
                                      "EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET",
                                      "Get an annotation text substitution"));

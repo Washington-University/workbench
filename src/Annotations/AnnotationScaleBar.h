@@ -21,6 +21,9 @@
  */
 /*LICENSE_END*/
 
+#include <array>
+#include <memory>
+
 #include "AnnotationColorBarPositionModeEnum.h"
 #include "AnnotationScaleBarUnitsTypeEnum.h"
 #include "AnnotationFontAttributesInterface.h"
@@ -29,9 +32,55 @@
 
 namespace caret {
 
+    class AnnotationPercentSizeText;
+    
     class AnnotationScaleBar : public AnnotationTwoDimensionalShape, public AnnotationFontAttributesInterface {
         
     public:
+        /**
+         * Contains information for drawing scale bar, its ticks, and text
+         */
+        class DrawingInfo {
+        public:
+            /**
+             * Constructor
+             */
+            DrawingInfo() {
+                reset();
+            }
+            
+            /**
+             * Reset to invalid
+             */
+            void reset() {
+                m_backgroundBounds.fill(0.0);
+                m_barBounds.fill(0.0);
+                m_textStartXYZ.fill(0.0);
+                m_validFlag = false;
+            }
+            
+            /** Returns true if drawing info is valid */
+            bool isValid() const { return m_validFlag; }
+            
+            /** Set the validity status @param status new status */
+            void setValid(const bool status) { m_validFlag = status; }
+            
+            /** bounds are bottomLeft, bottomRight, topRight, topLeft */
+            std::array<float, 12> m_backgroundBounds;
+            
+            /** bounds are bottomLeft, bottomRight, topRight, topLeft */
+            std::array<float, 12> m_barBounds;
+
+            /** starting XYZ for text containing length characters */
+            std::array<float, 3> m_textStartXYZ;
+            
+            /** bounds are bottomLeft, bottomRight, topRight, topLeft  for each tick mark */
+            std::vector<std::array<float, 12>> m_ticksBounds;
+            
+        private:
+            bool m_validFlag = false;
+        };
+        
         AnnotationScaleBar(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         virtual ~AnnotationScaleBar();
@@ -71,6 +120,12 @@ namespace caret {
         bool isShowTickMarks() const;
         
         void setShowTickMarks(const bool status);
+        
+        int32_t getTickMarksSubdivsions() const;
+        
+        void setTickMarksSubdivisions(const int32_t subdivisions);
+        
+        float getTickMarksHeight() const;
         
         AnnotationScaleBarUnitsTypeEnum::Enum getLengthUnits() const;
         
@@ -136,7 +191,14 @@ namespace caret {
         
         void setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const override;
         
-        // ADD_NEW_METHODS_HERE
+        void getScalarBarDrawingInfo(const float viewportWidth,
+                                     const float viewportHeight,
+                                     const std::array<float, 3>& viewportXYZ,
+                                     DrawingInfo& drawingInfoOut) const;
+        
+        const AnnotationPercentSizeText* getLengthTextAnnotation() const;
+        
+                // ADD_NEW_METHODS_HERE
 
     protected:
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
@@ -158,6 +220,8 @@ namespace caret {
         
         bool m_showTickMarksFlag = false;
         
+        int32_t m_tickMarksSubdivisions = 2;
+        
         AnnotationScaleBarUnitsTypeEnum::Enum m_lengthUnits = AnnotationScaleBarUnitsTypeEnum::MILLIMETERS;
         
         float m_drawingOrthographicWidth = 0.0;
@@ -177,6 +241,8 @@ namespace caret {
         bool m_displayedFlag;
         
         mutable bool m_fontTooSmallWhenLastDrawnFlag = false;
+        
+        mutable std::unique_ptr<AnnotationPercentSizeText> m_lengthTextAnnotation;
         
         // ADD_NEW_MEMBERS_HERE
 

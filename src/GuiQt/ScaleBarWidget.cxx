@@ -26,7 +26,9 @@
 #include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
+#include <QSpinBox>
 #include <QVBoxLayout>
 
 #include "AnnotationScaleBar.h"
@@ -52,6 +54,29 @@ using namespace caret;
 ScaleBarWidget::ScaleBarWidget()
 : QWidget()
 {
+    QWidget* lengthWidget = createLengthWidget();
+    QWidget* miscWidget   = createMiscWidget();
+    QWidget* ticksWidget  = createTickMarksWidget();
+    
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addWidget(lengthWidget);
+    layout->addWidget(ticksWidget);
+    layout->addWidget(miscWidget);
+}
+
+/**
+ * Destructor.
+ */
+ScaleBarWidget::~ScaleBarWidget()
+{
+}
+
+/**
+ * @return Instance of the length widget
+ */
+QWidget*
+ScaleBarWidget::createLengthWidget()
+{
     m_showLengthTextCheckBox = new QCheckBox("Show Length");
     QObject::connect(m_showLengthTextCheckBox, &QCheckBox::clicked,
                      this, &ScaleBarWidget::showLengthCheckBoxClicked);
@@ -66,25 +91,16 @@ ScaleBarWidget::ScaleBarWidget()
     QObject::connect(m_lengthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &ScaleBarWidget::lengthSpinBoxValueChanged);
     
-    QLabel* positionModeLabel = new QLabel("Positioning");
-    m_positionModeEnumComboBox = new EnumComboBoxTemplate(this);
-    m_positionModeEnumComboBox->setup<AnnotationColorBarPositionModeEnum,AnnotationColorBarPositionModeEnum::Enum>();
-    QObject::connect(m_positionModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &ScaleBarWidget::positionModeEnumComboBoxItemActivated);
-    m_positionModeEnumComboBox->getWidget()->setToolTip("AUTOMATIC - color bars are stacked\n"
-                                                        "   in lower left corner of Tab/Window\n"
-                                                        "MANUAL - user must set the X and Y\n"
-                                                        "   coordinates in the Tab/Window\n");
-    
+
     QLabel* unitsLabel = new QLabel("Length Units");
     m_lengthUnitsComboBox = new EnumComboBoxTemplate(this);
     m_lengthUnitsComboBox->setup<AnnotationScaleBarUnitsTypeEnum,AnnotationScaleBarUnitsTypeEnum::Enum>();
     QObject::connect(m_lengthUnitsComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &ScaleBarWidget::lengthEnumComboBoxItemActivated);
     m_lengthUnitsComboBox->getWidget()->setToolTip("Units displayed at end of scale bar");
-
     
-    QGridLayout* gridLayout = new QGridLayout(this);
+    QGroupBox* groupBox = new QGroupBox("Length");
+    QGridLayout* gridLayout = new QGridLayout(groupBox);
     int32_t row(0);
     gridLayout->addWidget(m_showLengthTextCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
@@ -96,16 +112,63 @@ ScaleBarWidget::ScaleBarWidget()
     gridLayout->addWidget(unitsLabel, row, 0);
     gridLayout->addWidget(m_lengthUnitsComboBox->getWidget(), row, 1);
     row++;
-    gridLayout->addWidget(positionModeLabel, row, 0);
-    gridLayout->addWidget(m_positionModeEnumComboBox->getWidget(), row, 1);
-    row++;
+    
+    return groupBox;
 }
 
 /**
- * Destructor.
+ * @return Instance of the misc widget
  */
-ScaleBarWidget::~ScaleBarWidget()
+QWidget*
+ScaleBarWidget::createMiscWidget()
 {
+    QLabel* positionModeLabel = new QLabel("Positioning");
+    m_positionModeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_positionModeEnumComboBox->setup<AnnotationColorBarPositionModeEnum,AnnotationColorBarPositionModeEnum::Enum>();
+    QObject::connect(m_positionModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &ScaleBarWidget::positionModeEnumComboBoxItemActivated);
+    m_positionModeEnumComboBox->getWidget()->setToolTip("AUTOMATIC - color bars are stacked\n"
+                                                        "   in lower left corner of Tab/Window\n"
+                                                        "MANUAL - user must set the X and Y\n"
+                                                        "   coordinates in the Tab/Window\n");
+    
+    QGroupBox* groupBox = new QGroupBox("Misc");
+    QGridLayout* gridLayout = new QGridLayout(groupBox);
+    int32_t row(0);
+    gridLayout->addWidget(positionModeLabel, row, 0);
+    gridLayout->addWidget(m_positionModeEnumComboBox->getWidget(), row, 1);
+    row++;
+    
+    return groupBox;
+}
+
+/**
+ * @return Instance of the tick marks widget
+ */
+QWidget*
+ScaleBarWidget::createTickMarksWidget()
+{
+    m_showTickMarksCheckBox = new QCheckBox("Show Tick Marks");
+    QObject::connect(m_showTickMarksCheckBox, &QCheckBox::clicked,
+                     this, &ScaleBarWidget::showTickMarksCheckBoxClicked);
+    
+    QLabel* subdivisionsLabel = new QLabel("Subdivisions");
+    m_tickMarksSubdivisionsSpinBox = new QSpinBox();
+    m_tickMarksSubdivisionsSpinBox->setRange(0, 10);
+    QObject::connect(m_tickMarksSubdivisionsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     this, &ScaleBarWidget::tickMarksSubdivsionsSpinBoxValueChanged);
+
+    
+    QGroupBox* groupBox = new QGroupBox("Tick Marks");
+    QGridLayout* gridLayout = new QGridLayout(groupBox);
+    int32_t row(0);
+    gridLayout->addWidget(m_showTickMarksCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
+    gridLayout->addWidget(subdivisionsLabel, row, 0);
+    gridLayout->addWidget(m_tickMarksSubdivisionsSpinBox, row, 1);
+    row++;
+    
+    return groupBox;
 }
 
 /**
@@ -134,10 +197,45 @@ ScaleBarWidget::updateContent(BrowserTabContent* browserTabContent)
         
         QSignalBlocker lengthBlocker(m_lengthSpinBox);
         m_lengthSpinBox->setValue(m_scaleBar->getLength());
+        
+        m_showTickMarksCheckBox->setChecked(m_scaleBar->isShowTickMarks());
+        QSignalBlocker ticksSignalBlocker(m_tickMarksSubdivisionsSpinBox);
+        m_tickMarksSubdivisionsSpinBox->setValue(m_scaleBar->getTickMarksSubdivsions());
     }
 
     setEnabled(m_scaleBar != NULL);
 }
+
+/**
+ * Called when show length check box is clicked
+ *
+ *  @param status
+ *    New checked status
+ */
+void
+ScaleBarWidget::showTickMarksCheckBoxClicked(bool status)
+{
+    if (m_scaleBar != NULL) {
+        m_scaleBar->setShowTickMarks(status);
+        updateGraphics();
+    }
+}
+
+/**
+ * Called when tick marks subdivisions spin box value is changed
+ *
+ *  @param value
+ *    New value
+ */
+void
+ScaleBarWidget::tickMarksSubdivsionsSpinBoxValueChanged(int value)
+{
+    if (m_scaleBar != NULL) {
+        m_scaleBar->setTickMarksSubdivisions(value);
+        updateGraphics();
+    }
+}
+
 
 /**
  * Called when show length check box is clicked
@@ -172,8 +270,8 @@ ScaleBarWidget::showLengthUnitsCheckBoxClicked(bool status)
 /**
  * Called when  length double spin box value is changed
  *
- *  @param status
- *    New checked status
+ *  @param value
+ *    New value
  */
 void
 ScaleBarWidget::lengthSpinBoxValueChanged(double value)

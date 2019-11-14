@@ -1574,6 +1574,17 @@ Annotation::initializeProperties()
         
         setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
     }
+    
+    if (scaleBarFlag) {
+        resetProperty(Property::ARRANGE);
+        resetProperty(Property::COPY_CUT_PASTE);
+        resetProperty(Property::DELETION);
+        resetProperty(Property::DISPLAY_GROUP);
+        resetProperty(Property::GROUP);
+        resetProperty(Property::TEXT_EDIT);
+        
+        setProperty(Property::SCENE_CONTAINS_ATTRIBUTES);
+    }
 }
 
 /**

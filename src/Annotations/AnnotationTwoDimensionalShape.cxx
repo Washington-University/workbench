@@ -1578,48 +1578,34 @@ AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
         const AnnotationScaleBar* scaleBar = castToScaleBar();
         CaretAssert(scaleBar);
         
-        float convertToMM(1.0);
-        switch (scaleBar->getLengthUnits()) {
-            case AnnotationScaleBarUnitsTypeEnum::CENTIMETERS:
-                convertToMM = 10.0;
-                break;
-            case AnnotationScaleBarUnitsTypeEnum::MICROMETERS:
-                convertToMM = 0.10;
-                break;
-            case AnnotationScaleBarUnitsTypeEnum::MILLIMETERS:
-                convertToMM = 1.0;
-                break;
-        }
-        
-        const float scaleBarLengthModelCoords = scaleBar->getLength() * convertToMM;
-        const float orthographicWidth = scaleBar->getDrawingOrthographicWidth();
-        if (orthographicWidth <= 0.0) {
-            return false;
-        }
-        
-        /*
-         * Scale bar uses line width for height not annotation height
-         */
-        const float tabPercentageWidth = (scaleBarLengthModelCoords / orthographicWidth);
-        const float scaleBarWidthPixels = viewportWidth * tabPercentageWidth;
-        const float halfHeight = (getLineWidthPercentage() / 200.0) * viewportHeight;
+        const std::array<float, 3> vpXYZ {
+            viewportXYZ[0],
+            viewportXYZ[1],
+            viewportXYZ[2]
+        };
+        AnnotationScaleBar::DrawingInfo scaleBarDrawingInfo;
+        scaleBar->getScalarBarDrawingInfo(viewportWidth,
+                                          viewportHeight,
+                                          vpXYZ,
+                                          scaleBarDrawingInfo);
 
         /*
          * Scale bar coordinate is at left and its length
          * is set by the user (does not use annotation width)
          */
-        bottomLeftOut[0]  = viewportXYZ[0];
-        bottomLeftOut[1]  = viewportXYZ[1] - halfHeight;
-        bottomLeftOut[2]  = viewportXYZ[2];
-        bottomRightOut[0] = viewportXYZ[0] + scaleBarWidthPixels;
-        bottomRightOut[1] = viewportXYZ[1] - halfHeight;
-        bottomRightOut[2] = viewportXYZ[2];
-        topRightOut[0]    = viewportXYZ[0] + scaleBarWidthPixels;
-        topRightOut[1]    = viewportXYZ[1] + halfHeight;
-        topRightOut[2]    = viewportXYZ[2];
-        topLeftOut[0]     = viewportXYZ[0];
-        topLeftOut[1]     = viewportXYZ[1] + halfHeight;
-        topLeftOut[2]     = viewportXYZ[2];
+        const auto& bounds = scaleBarDrawingInfo.m_backgroundBounds;
+        bottomLeftOut[0]  = bounds[0];
+        bottomLeftOut[1]  = bounds[1];
+        bottomLeftOut[2]  = bounds[2];
+        bottomRightOut[0] = bounds[3];
+        bottomRightOut[1] = bounds[4];
+        bottomRightOut[2] = bounds[5];
+        topRightOut[0]    = bounds[6];
+        topRightOut[1]    = bounds[7];
+        topRightOut[2]    = bounds[8];
+        topLeftOut[0]     = bounds[9];
+        topLeftOut[1]     = bounds[10];
+        topLeftOut[2]     = bounds[11];
     }
     else {
         const float width = getWidth();

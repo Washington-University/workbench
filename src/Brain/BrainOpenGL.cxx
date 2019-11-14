@@ -32,6 +32,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "DummyFontTextRenderer.h"
+#include "EventAnnotationTextGetBounds.h"
 #include "EventGetBrainOpenGLTextRenderer.h"
 #include "EventGraphicsOpenGLCreateBufferObject.h"
 #include "EventGraphicsOpenGLCreateTextureName.h"
@@ -64,6 +65,7 @@ BrainOpenGL::BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer)
     this->borderBeingDrawn = NULL;
     m_drawHighlightedEndPoints = false;
     
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TEXT_GET_BOUNDS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_TEXT_RENDERER_FOR_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_TEXTURE_NAME);
@@ -94,7 +96,30 @@ BrainOpenGL::~BrainOpenGL()
 void
 BrainOpenGL::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT) {
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TEXT_GET_BOUNDS) {
+        EventAnnotationTextGetBounds* textBoundsEvent = dynamic_cast<EventAnnotationTextGetBounds*>(event);
+        CaretAssert(textBoundsEvent);
+        
+        if (m_textRenderer != NULL) {
+            double textWidth(0.0);
+            double textHeight(0.0);
+            BrainOpenGLTextRenderInterface::DrawingFlags textDrawingFlags;
+            textDrawingFlags.setDrawSubstitutedText(false);
+
+            m_textRenderer->getTextWidthHeightInPixels(textBoundsEvent->getAnnotationText(),
+                                                       textDrawingFlags,
+                                                       textBoundsEvent->getViewportWidth(),
+                                                       textBoundsEvent->getViewportHeight(),
+                                                       textWidth,
+                                                       textHeight);
+            
+            textBoundsEvent->setTextWidthHeight(textWidth,
+                                                textHeight);
+        }
+        
+        textBoundsEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_BUFFER_OBJECT) {
         EventGraphicsOpenGLCreateBufferObject* createBufferEvent
         = dynamic_cast<EventGraphicsOpenGLCreateBufferObject*>(event);
         CaretAssert(createBufferEvent);

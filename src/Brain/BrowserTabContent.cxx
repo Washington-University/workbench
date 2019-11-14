@@ -137,9 +137,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_volumeMontageCoordinatePrecision = prefs->getVolumeMontageCoordinatePrecision();
 
     m_scaleBar.reset(new AnnotationScaleBar(AnnotationAttributesDefaultTypeEnum::NORMAL));
-    m_scaleBar->setTabIndex(m_tabNumber);
-    m_scaleBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
-    m_scaleBar->getCoordinate()->setXYZ(10.0, 10.0, 0.0);
+    initializeScaleBar();
+    CaretAssert(m_scaleBar.get());
     
     m_lightingEnabled = true;
     
@@ -240,6 +239,10 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_chartModelYokingGroup",
                                                                        &m_chartModelYokingGroup);
 
+    m_sceneClassAssistant->add("m_scaleBar",
+                               "AnnotationScaleBar",
+                               m_scaleBar.get());
+    
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_ANNOTATION_BARS_GET);
     EventManager::get()->addEventListener(this,
@@ -3647,6 +3650,8 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_A;
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     
+    initializeScaleBar();
+
     TileTabsBrowserTabGeometry manualLayoutTabGeometry(m_tabNumber);
     TileTabsBrowserTabGeometrySceneHelper geometryHelper(&manualLayoutTabGeometry);
     geometryHelper.restoreFromScene(sceneAttributes,
@@ -5100,5 +5105,16 @@ const AnnotationScaleBar*
 BrowserTabContent::getScaleBar() const
 {
     return m_scaleBar.get();
+}
+
+/**
+ * Initialize a scale bar
+ */
+void
+BrowserTabContent::initializeScaleBar()
+{
+    m_scaleBar->setTabIndex(m_tabNumber);
+    m_scaleBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
+    m_scaleBar->getCoordinate()->setXYZ(10.0, 10.0, 0.0);
 }
 

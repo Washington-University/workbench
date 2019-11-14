@@ -1987,30 +1987,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotati
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
-    const float orthographicWidth = scaleBar->getDrawingOrthographicWidth();
-    if (orthographicWidth <= 0.0) {
-        return;
-    }
-    const float modelViewportWidth(scaleBar->getDrawingViewportWidth());
-    if (modelViewportWidth <= 0.0) {
-        return;
-    }
-    
-    const float tabViewportWidth(viewport[2]);
-    if (tabViewportWidth <= 0.0) {
-        return;
-    }
-    
-    /*
-     * The 'tabViewportWidth' is the viewport of the tab.  The tab
-     * may contain drawing of multiple models such as Surface Montage
-     * or Volume Montage.  The 'modelViepwortWidth' is the width of the
-     * viewport contains a single drawn model (eg: one slice in a
-     * volume montage or one surface in a 2x2 surface montage).
-     * The 'adjustedViewportWidth' ensures tab bar is correct length
-     *
-     */
-    const float widthScaling = modelViewportWidth / tabViewportWidth;
     
     std::array<float, 3> startXYZ;
     if ( ! getAnnotationDrawingSpaceCoordinate(scaleBar,
@@ -2019,28 +1995,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotati
                                                startXYZ.data())) {
         return;
     }
-    
-    /*
-     * Bounds of scale bar excluding any text
-     */
-    std::array<float, 3> barBottomLeft;
-    std::array<float, 3> barBottomRight;
-    std::array<float, 3> barTopRight;
-    std::array<float, 3> barTopLeft;
-    if ( ! getAnnotationTwoDimShapeBounds(scaleBar, startXYZ.data(),
-                                          barBottomLeft.data(), barBottomRight.data(), barTopRight.data(), barTopLeft.data())) {
-        return;
-    }
-    
-    /*
-     * Adjust right end to account for viewport width differences
-     */
-    const float width = (barBottomRight[0] - barBottomLeft[0]) * widthScaling;
-    barBottomRight[0] = barBottomLeft[0] + width;
-    barTopRight[0]    = barTopLeft[0]    + width;
-    
-    const bool depthTestFlag(false);
-    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
     uint8_t backgroundRGBA[4];
     scaleBar->getBackgroundColorRGBA(backgroundRGBA);
@@ -2054,86 +2008,27 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotati
     bool drawnFlag = false;
     
     bool fontTooSmallFlag(false);
+        
+    BrainOpenGLTextRenderInterface::DrawingFlags textDrawingFlags;
+    textDrawingFlags.setDrawSubstitutedText(false);
+    
+    const AnnotationPercentSizeText* annLengthText = scaleBar->getLengthTextAnnotation();
+    CaretAssert(annLengthText);
+    
+    AnnotationScaleBar::DrawingInfo scaleBarDrawingInfo;
+    scaleBar->getScalarBarDrawingInfo(viewport[2],
+                                      viewport[3],
+                                      startXYZ,
+                                      scaleBarDrawingInfo);
+    
+    if ( ! scaleBarDrawingInfo.isValid()) {
+        return;
+    }
+    
+    const bool depthTestFlag(false);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
     if (drawAnnotationFlag) {
-        /*
-         * Set text position here since bounding box will
-         * change to include the text
-         */
-        const float textOffsetX(5.0);
-        const float textDrawingXYZ[3] {
-            ((barBottomRight[0] + barTopRight[0]) / 2.0f) + textOffsetX,
-            ((barBottomRight[1] + barTopRight[1]) / 2.0f),
-            ((barBottomRight[2] + barTopRight[2]) / 2.0f)
-        };
-        
-        /*
-         * Need size of text for drawing background and selection box
-         */
-        const int32_t numDecimals(1);
-        QString lengthText(QString::number(scaleBar->getLength(), 'f', numDecimals));
-        if (scaleBar->isShowLengthUnitsText()) {
-            lengthText.append(AnnotationScaleBarUnitsTypeEnum::toGuiName(scaleBar->getLengthUnits()));
-        }
-        
-        AnnotationPercentSizeText annLengthText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        annLengthText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-        annLengthText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        annLengthText.setFont(scaleBar->getFont());
-        annLengthText.setFontPercentViewportSize(scaleBar->getFontPercentViewportSize());
-        annLengthText.setTextColor(CaretColorEnum::CUSTOM);
-        float rgba[4];
-        scaleBar->getTextColorRGBA(rgba);
-        annLengthText.setCustomTextColor(rgba);
-        annLengthText.setRotationAngle(0.0);
-        annLengthText.setText(lengthText);
-        
-        BrainOpenGLTextRenderInterface::DrawingFlags textDrawingFlags;
-        textDrawingFlags.setDrawSubstitutedText(false);
-        
-        /*
-         * Initialize bounds for bar and length text
-         */
-        std::array<float, 3> barWithTextBottomLeft(barBottomLeft);
-        std::array<float, 3> barWithTextBottomRight(barBottomRight);
-        std::array<float, 3> barWithTextTopLeft(barTopLeft);
-        std::array<float, 3> barWithTextTopRight(barTopRight);
-
-        if (scaleBar->isShowLengthText()) {
-            double textWidth(0.0);
-            double textHeight(0.0);
-            m_brainOpenGLFixedPipeline->getTextRenderer()->getTextWidthHeightInPixels(annLengthText,
-                                                                                      textDrawingFlags,
-                                                                                      viewport[2],
-                                                                                      viewport[3],
-                                                                                      textWidth,
-                                                                                      textHeight);
-            /*
-             * Adjust right side for text so that sizing handle
-             * enloses both scale bar and text
-             */
-            barWithTextBottomRight[0] += (textWidth + textOffsetX);
-            barWithTextTopRight[0]    += (textWidth + textOffsetX);
-            
-            const float barHeight = barWithTextTopLeft[1] - barWithTextBottomRight[1];
-            float extraHeight(0.0);
-            if (textHeight > barHeight) {
-                /*
-                 * Increase height so background is slightly bigger vertically than text
-                 */
-                extraHeight = ((textHeight - barHeight) / 2.0);
-            }
-            else {
-                /*
-                 * Space above and below bar in the background
-                 */
-                extraHeight = 2.0;
-            }
-            barWithTextBottomLeft[1]  -= extraHeight;
-            barWithTextBottomRight[1] -= extraHeight;
-            barWithTextTopRight[1]    += extraHeight;
-            barWithTextTopLeft[1]     += extraHeight;
-        }
-        
         if (m_selectionModeFlag
             && m_inputs->m_annotationUserInputModeFlag) {
             uint8_t selectionColorRGBA[4];
@@ -2145,10 +2040,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotati
                  * since it is opaque and prevents "behind" annotations
                  * from being selected
                  */
-                GraphicsShape::drawBoxFilledByteColor(barWithTextBottomLeft.data(),
-                                                      barWithTextBottomRight.data(),
-                                                      barWithTextTopRight.data(),
-                                                      barWithTextTopLeft.data(),
+                GraphicsShape::drawBoxFilledByteColor(&scaleBarDrawingInfo.m_backgroundBounds[0],
+                                                      &scaleBarDrawingInfo.m_backgroundBounds[3],
+                                                      &scaleBarDrawingInfo.m_backgroundBounds[6],
+                                                      &scaleBarDrawingInfo.m_backgroundBounds[9],
                                                       selectionColorRGBA);
             }
             else {
@@ -2156,20 +2051,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotati
                  * Drawing foreground as line will still allow user to
                  * select annotation that are inside of the box
                  */
-                const float percentHeight = getLineWidthPercentageInSelectionMode(scaleBar);
-                GraphicsShape::drawBoxOutlineByteColor(barWithTextBottomLeft.data(),
-                                                       barWithTextBottomRight.data(),
-                                                       barWithTextTopRight.data(),
-                                                       barWithTextTopLeft.data(),
-                                                       selectionColorRGBA,
-                                                       GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                                       percentHeight);
+                GraphicsShape::drawBoxFilledByteColor(&scaleBarDrawingInfo.m_barBounds[0],
+                                                       &scaleBarDrawingInfo.m_barBounds[3],
+                                                       &scaleBarDrawingInfo.m_barBounds[6],
+                                                       &scaleBarDrawingInfo.m_barBounds[9],
+                                                      selectionColorRGBA);
             }
             
             const float selectionCenterXYZ[3] = {
-                (barWithTextBottomLeft[0] + barWithTextBottomRight[0] + barWithTextTopRight[0] + barWithTextTopLeft[0]) / 4.0f,
-                (barWithTextBottomLeft[1] + barWithTextBottomRight[1] + barWithTextTopRight[1] + barWithTextTopLeft[1]) / 4.0f,
-                (barWithTextBottomLeft[2] + barWithTextBottomRight[2] + barWithTextTopRight[2] + barWithTextTopLeft[2]) / 4.0f
+                 (scaleBarDrawingInfo.m_backgroundBounds[0] + scaleBarDrawingInfo.m_backgroundBounds[4]) / 2.0f,
+                 (scaleBarDrawingInfo.m_backgroundBounds[1] + scaleBarDrawingInfo.m_backgroundBounds[10]) / 2.0f,
+                 scaleBarDrawingInfo.m_backgroundBounds[2]
             };
             m_selectionInfo.push_back(SelectionInfo(annotationFile,
                                                     scaleBar,
@@ -2181,13 +2073,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotati
                 /*
                  * Draws background for bar and text
                  */
-                const float extraOnLeft(4);
-                barWithTextBottomLeft[0] -= extraOnLeft;
-                barWithTextTopLeft[0]    -= extraOnLeft;
-                GraphicsShape::drawBoxFilledByteColor(barWithTextBottomLeft.data(),
-                                                      barWithTextBottomRight.data(),
-                                                      barWithTextTopRight.data(),
-                                                      barWithTextTopLeft.data(),
+                GraphicsShape::drawBoxFilledByteColor(&scaleBarDrawingInfo.m_backgroundBounds[0],
+                                                      &scaleBarDrawingInfo.m_backgroundBounds[3],
+                                                      &scaleBarDrawingInfo.m_backgroundBounds[6],
+                                                      &scaleBarDrawingInfo.m_backgroundBounds[9],
                                                       backgroundRGBA);
                 drawnFlag = true;
             }
@@ -2196,61 +2085,33 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotati
                 /*
                  * Draws bar only
                  */
-                GraphicsShape::drawBoxFilledByteColor(barBottomLeft.data(),
-                                                      barBottomRight.data(),
-                                                      barTopRight.data(),
-                                                      barTopLeft.data(),
+                GraphicsShape::drawBoxFilledByteColor(&scaleBarDrawingInfo.m_barBounds[0],
+                                                      &scaleBarDrawingInfo.m_barBounds[3],
+                                                      &scaleBarDrawingInfo.m_barBounds[6],
+                                                      &scaleBarDrawingInfo.m_barBounds[9],
                                                       foregroundRGBA);
-//                GraphicsShape::drawBoxOutlineByteColor(barBottomLeft.data(),
-//                                                       barBottomRight.data(),
-//                                                       barTopRight.data(),
-//                                                       barTopLeft.data(),
-//                                                       foregroundRGBA,
-//                                                       GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-//                                                       scaleBar->getLineWidthPercentage());
+                
+                if (scaleBar->isShowTickMarks()) {
+                    for (const auto& tickBounds : scaleBarDrawingInfo.m_ticksBounds) {
+                        GraphicsShape::drawBoxFilledByteColor(&tickBounds[0],
+                                                              &tickBounds[3],
+                                                              &tickBounds[6],
+                                                              &tickBounds[9],
+                                                              foregroundRGBA);
+                    }
+                }
+                
                 drawnFlag = true;
             }
             
             if (drawnFlag) {
-//                const int32_t numDecimals(1);
-//                QString lengthText(QString::number(scaleBar->getLength(), 'f', numDecimals));
-//                if (scaleBar->isShowLengthUnitsText()) {
-//                    lengthText.append(AnnotationScaleBarUnitsTypeEnum::toGuiName(scaleBar->getLengthUnits()));
-//                }
-//
-//                AnnotationPercentSizeText annLengthText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-//                annLengthText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-//                annLengthText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-//                annLengthText.setFont(scaleBar->getFont());
-//                annLengthText.setFontPercentViewportSize(scaleBar->getFontPercentViewportSize());
-//                annLengthText.setTextColor(CaretColorEnum::CUSTOM);
-//                float rgba[4];
-//                scaleBar->getTextColorRGBA(rgba);
-//                annLengthText.setCustomTextColor(rgba);
-//                annLengthText.setRotationAngle(0.0);
-//                annLengthText.setText(lengthText);
-//
-//                double textWidth(0.0);
-//                double textHeight(0.0);
-//                BrainOpenGLTextRenderInterface::DrawingFlags textDrawingFlags;
-//                textDrawingFlags.setDrawSubstitutedText(false);
-//                if (scaleBar->isShowLengthText()) {
-//                    m_brainOpenGLFixedPipeline->getTextRenderer()->getTextWidthHeightInPixels(annLengthText,
-//                                                                                              textDrawingFlags,
-//                                                                                              viewport[2],
-//                                                                                              viewport[3],
-//                                                                                              textWidth,
-//                                                                                              textHeight);
-//                }
-                
                 if (scaleBar->isShowLengthText()) {
-                    m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(textDrawingXYZ[0],
-                                                                                            textDrawingXYZ[1],
-                                                                                            textDrawingXYZ[2],
-                                                                                            annLengthText,
+                    m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(scaleBarDrawingInfo.m_textStartXYZ[0],
+                                                                                            scaleBarDrawingInfo.m_textStartXYZ[1],
+                                                                                            scaleBarDrawingInfo.m_textStartXYZ[2],
+                                                                                            *annLengthText,
                                                                                             textDrawingFlags);
-                    
-                    if (annLengthText.isFontTooSmallWhenLastDrawn()) {
+                    if (annLengthText->isFontTooSmallWhenLastDrawn()) {
                         fontTooSmallFlag = true;
                     }
                 }
@@ -2260,10 +2121,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotati
         if (scaleBar->isSelectedForEditing(m_inputs->m_windowIndex)) {
             drawAnnotationTwoDimSizingHandles(annotationFile,
                                               scaleBar,
-                                              barWithTextBottomLeft.data(),
-                                              barWithTextBottomRight.data(),
-                                              barWithTextTopRight.data(),
-                                              barWithTextTopLeft.data(),
+                                              &scaleBarDrawingInfo.m_backgroundBounds[0],
+                                              &scaleBarDrawingInfo.m_backgroundBounds[3],
+                                              &scaleBarDrawingInfo.m_backgroundBounds[6],
+                                              &scaleBarDrawingInfo.m_backgroundBounds[9],
                                               s_sizingHandleLineWidthInPixels,
                                               scaleBar->getRotationAngle());
         }

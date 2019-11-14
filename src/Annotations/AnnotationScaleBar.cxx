@@ -26,7 +26,10 @@
 #undef __ANNOTATION_SCALE_BAR_DECLARE__
 
 #include "AnnotationCoordinate.h"
+#include "AnnotationPercentSizeText.h"
 #include "CaretAssert.h"
+#include "EventAnnotationTextGetBounds.h"
+#include "EventManager.h"
 #include "SceneClassAssistant.h"
 
 using namespace caret;
@@ -53,8 +56,11 @@ AnnotationFontAttributesInterface()
     reset();
     
     m_sceneAssistant.grabNew(new SceneClassAssistant());
+    m_lengthTextAnnotation.reset(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
+    m_lengthTextAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+    m_lengthTextAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
-        
         m_sceneAssistant->add("m_length",
                               &m_length);
         m_sceneAssistant->add("m_showLengthTextFlag",
@@ -75,6 +81,8 @@ AnnotationFontAttributesInterface()
         
         m_sceneAssistant->add("m_showTickMarksFlag",
                               &m_showTickMarksFlag);
+        m_sceneAssistant->add("m_tickMarksSubdivisions",
+                              &m_tickMarksSubdivisions);
         m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorText",
                                                                    &m_colorText);
         m_sceneAssistant->addArray("m_customColorText",
@@ -131,6 +139,7 @@ AnnotationScaleBar::copyHelperAnnotationScaleBar(const AnnotationScaleBar& obj)
     m_showLengthTextFlag       = obj.m_showLengthTextFlag;
     m_showLengthUnitsTextFlag  = obj.m_showLengthUnitsTextFlag;
     m_showTickMarksFlag        = obj.m_showTickMarksFlag;
+    m_tickMarksSubdivisions    = obj.m_tickMarksSubdivisions;
     m_drawingOrthographicWidth = obj.m_drawingOrthographicWidth;
     m_drawingViewportWidth     = obj.m_drawingViewportWidth;
     
@@ -158,12 +167,13 @@ AnnotationScaleBar::reset()
     resetSizeAttributes();
     setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
     setTabIndex(-1);
-    setLineWidthPercentage(2.0);
+    setLineWidthPercentage(0.5);
     
     m_fontName      = AnnotationTextFontNameEnum::getDefaultFontName();
     m_positionMode  = AnnotationColorBarPositionModeEnum::AUTOMATIC;
     m_displayedFlag = false;
     m_showTickMarksFlag = false;
+    m_tickMarksSubdivisions = 2;
     
     m_colorText               = CaretColorEnum::WHITE;
     m_customColorText[0]      = 1.0;
@@ -173,6 +183,7 @@ AnnotationScaleBar::reset()
     
     setLineColor(CaretColorEnum::WHITE);
     setBackgroundColor(CaretColorEnum::BLACK);
+    setLength(25.0);
     
     m_fontTooSmallWhenLastDrawnFlag = false;
 }
@@ -267,6 +278,38 @@ void
 AnnotationScaleBar::setShowTickMarks(const bool status)
 {
     m_showTickMarksFlag = status;
+}
+
+/**
+ * @return Number of tick marks subdivisions
+ */
+int32_t
+AnnotationScaleBar::getTickMarksSubdivsions() const
+{
+    return m_tickMarksSubdivisions;
+}
+
+/**
+ * Set the number of tick marks subdivisions
+ * @param subdivisions
+ * Number of subdivisions
+ */
+void
+AnnotationScaleBar::setTickMarksSubdivisions(const int32_t subdivisions)
+{
+    m_tickMarksSubdivisions = subdivisions;
+}
+
+/**
+ * @return Length units
+ */
+
+float
+AnnotationScaleBar::getTickMarksHeight() const
+{
+    const float height(std::max(1.0,
+                                (getLineWidthPercentage() / 2.0)));
+    return height;
 }
 
 /**
@@ -717,22 +760,6 @@ AnnotationScaleBar::restoreSubClassDataFromScene(const SceneAttributes* sceneAtt
                                                                 sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
-    
-    /*
-     * Prior to WB-617 (28 Apr 2016), scenes may
-     * not have contained the color bar background
-     * color so it may be necessary to ensure 
-     * the background is not the same as the text 
-     * color.
-     */
-    if (getTextColor() == getBackgroundColor()) {
-        if (getTextColor() == CaretColorEnum::BLACK) {
-            setBackgroundColor(CaretColorEnum::WHITE);
-        }
-        else {
-            setBackgroundColor(CaretColorEnum::BLACK);
-        }
-    }
 }
 
 /**
@@ -752,4 +779,276 @@ AnnotationScaleBar::setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) co
     m_fontTooSmallWhenLastDrawnFlag = tooSmallFontFlag;
 }
 
+/**
+ * Get drawing information for drawing a scale bar
+ * *
+ * @param viewportWidth
+ *  Width of viewport
+ * @param viewportHeight
+ *  Height of viewport
+ * @param viewportXYZ
+ *  Bottom corner of viewport
+ * @param drawingInfoOut
+ *  Upon exit, contains drawing information
+ */
+void
+AnnotationScaleBar::getScalarBarDrawingInfo(const float viewportWidth,
+                                            const float viewportHeight,
+                                            const std::array<float, 3>& viewportXYZ,
+                                            DrawingInfo& drawingInfoOut) const
+{
+    drawingInfoOut.reset();
+    
+    float convertToMM(1.0);
+    switch (getLengthUnits()) {
+        case AnnotationScaleBarUnitsTypeEnum::CENTIMETERS:
+            convertToMM = 10.0;
+            break;
+        case AnnotationScaleBarUnitsTypeEnum::MICROMETERS:
+            convertToMM = 0.10;
+            break;
+        case AnnotationScaleBarUnitsTypeEnum::MILLIMETERS:
+            convertToMM = 1.0;
+            break;
+    }
+    
+    const float scaleBarLengthModelCoords(getLength() * convertToMM);
+    const float orthographicWidth(getDrawingOrthographicWidth());
+    if (orthographicWidth <= 0.0) {
+        return;
+    }
+    
+    /*
+     * Get the width and height of the text
+     */
+    EventAnnotationTextGetBounds textBoundsEvent(*getLengthTextAnnotation(),
+                                                 viewportWidth,
+                                                 viewportHeight);
+    EventManager::get()->sendEvent(textBoundsEvent.getPointer());
+    const float textDrawingWidth(textBoundsEvent.getTextWidth());
+    const float textDrawingHeight(textBoundsEvent.getTextHeight());
+
+    /*
+     * Scale bar uses line width for height not annotation height
+     */
+    const float tabPercentageWidth(scaleBarLengthModelCoords / orthographicWidth);
+    const float scaleBarWidthPixels(viewportWidth * tabPercentageWidth);
+    const float scaleBarHeightPixels((getLineWidthPercentage() / 100.0) * viewportHeight);
+    
+    std::vector<float> tickMarkBounds;
+    float tickHeight(0.0);
+    float tickWidth(0.0);
+    if (isShowTickMarks()) {
+        const int32_t numSubDiv = getTickMarksSubdivsions();
+        if (numSubDiv > 0) {
+            const int32_t tickCount(numSubDiv + 1);
+            tickWidth = scaleBarHeightPixels;
+            tickHeight = scaleBarHeightPixels;
+
+            const float halfTickWidth(tickWidth / 2.0);
+            const float startX(0.0);
+            const float endX(scaleBarWidthPixels);
+            const float xRange((endX - startX));
+            const float deltaX(xRange / numSubDiv);
+            
+            float tickX(startX);
+            const float y(0);
+            
+            /*
+             * Create bounds for each tick mark
+             */
+            for (int32_t i = 0; i < tickCount; i++) {
+                int32_t x(tickX);
+                if (i > 0) {
+                    if (i == (tickCount - 1)) {
+                        x = scaleBarWidthPixels - tickWidth;
+                    }
+                    else {
+                        x -= halfTickWidth;
+                    }
+                }
+                /* bottom left */
+                tickMarkBounds.push_back(x);
+                tickMarkBounds.push_back(y);
+                tickMarkBounds.push_back(0.0);
+                
+                /* bottom right */
+                tickMarkBounds.push_back(x + tickWidth);
+                tickMarkBounds.push_back(y);
+                tickMarkBounds.push_back(0.0);
+                
+                /* top right */
+                tickMarkBounds.push_back(x + tickWidth);
+                tickMarkBounds.push_back(y + tickHeight);
+                tickMarkBounds.push_back(0.0);
+                
+                /* top left */
+                tickMarkBounds.push_back(x);
+                tickMarkBounds.push_back(y + tickHeight);
+                tickMarkBounds.push_back(0.0);
+
+                tickX += deltaX;
+            }
+        }
+    }
+    
+    const float barAndTicksHeight(scaleBarHeightPixels + tickHeight);
+    
+    float textWidth(0.0);
+    float textHeight(0.0);
+    const float spaceBetweenScaleBarAndText(5.0);
+    if (isShowLengthText()) {
+        textWidth  = textDrawingWidth + spaceBetweenScaleBarAndText;
+        textHeight = textDrawingHeight;
+    }
+    
+    const float margin(3.0);
+    const float totalHeight = (std::max(barAndTicksHeight,
+                                        textHeight)
+                               + (margin * 2.0));
+    const float totalWidth(scaleBarWidthPixels + textWidth+ (margin * 2.0));
+    
+    /*
+     * Vertically align bar with text
+     */
+    float barOffsetY(0.0);
+    if (barAndTicksHeight < textHeight) {
+        barOffsetY = (textHeight - barAndTicksHeight) / 2.0;
+    }
+    
+    /*
+     * Overall (background) bounds
+     * bottom left
+     */
+    drawingInfoOut.m_backgroundBounds[0] = viewportXYZ[0];
+    drawingInfoOut.m_backgroundBounds[1] = viewportXYZ[1];
+    drawingInfoOut.m_backgroundBounds[2] = viewportXYZ[2];
+    
+    /* bottom right */
+    drawingInfoOut.m_backgroundBounds[3] = viewportXYZ[0] + totalWidth;
+    drawingInfoOut.m_backgroundBounds[4] = viewportXYZ[1];
+    drawingInfoOut.m_backgroundBounds[5] = viewportXYZ[2];
+    
+    /* top right */
+    drawingInfoOut.m_backgroundBounds[6] = viewportXYZ[0] + totalWidth;
+    drawingInfoOut.m_backgroundBounds[7] = viewportXYZ[1] + totalHeight;
+    drawingInfoOut.m_backgroundBounds[8] = viewportXYZ[2];
+    
+    /* top left */
+    drawingInfoOut.m_backgroundBounds[9] = viewportXYZ[0];
+    drawingInfoOut.m_backgroundBounds[10] = viewportXYZ[1] + totalHeight;
+    drawingInfoOut.m_backgroundBounds[11] = viewportXYZ[2];
+    
+    /*
+     * Bounds of the bar
+     * bottom left
+     */
+    drawingInfoOut.m_barBounds[0] = viewportXYZ[0] + margin;
+    drawingInfoOut.m_barBounds[1] = viewportXYZ[1] + margin + barOffsetY;
+    drawingInfoOut.m_barBounds[2] = viewportXYZ[2];
+    
+    /* bottom right */
+    drawingInfoOut.m_barBounds[3] = viewportXYZ[0] + margin + scaleBarWidthPixels;
+    drawingInfoOut.m_barBounds[4] = viewportXYZ[1] + margin + barOffsetY;
+    drawingInfoOut.m_barBounds[5] = viewportXYZ[2];
+    
+    /* top right */
+    drawingInfoOut.m_barBounds[6] = viewportXYZ[0] + margin + scaleBarWidthPixels;
+    drawingInfoOut.m_barBounds[7] = viewportXYZ[1] + margin + scaleBarHeightPixels + barOffsetY;
+    drawingInfoOut.m_barBounds[8] = viewportXYZ[2];
+    
+    /* top left */
+    drawingInfoOut.m_barBounds[9] = viewportXYZ[0] + margin;
+    drawingInfoOut.m_barBounds[10] = viewportXYZ[1] + margin + scaleBarHeightPixels + barOffsetY;
+    drawingInfoOut.m_barBounds[11] = viewportXYZ[2];
+    
+    if (isShowLengthText()) {
+        /*
+         * Text is on right side of the BAR
+         *   X -> to the right side of the bar
+         *   Y -> centered in BACKGROUND BOUNDS
+         *   Z -> all Z's are same
+         */
+        drawingInfoOut.m_textStartXYZ[0] = drawingInfoOut.m_barBounds[3] + spaceBetweenScaleBarAndText;
+        drawingInfoOut.m_textStartXYZ[1] = drawingInfoOut.m_backgroundBounds[4] + (totalHeight / 2.0);
+        drawingInfoOut.m_textStartXYZ[2] = drawingInfoOut.m_barBounds[5];
+    }
+    
+    if (isShowTickMarks()) {
+        const float topLeftXYZ[3] = {
+             drawingInfoOut.m_barBounds[9],
+             drawingInfoOut.m_barBounds[10],
+             drawingInfoOut.m_barBounds[11]
+        };
+        
+        const float maxBarX(drawingInfoOut.m_barBounds[3]);
+        
+        /*
+         * ticks are relative to top left of the bar
+         */
+        const int32_t numTickBounds = static_cast<int32_t>(tickMarkBounds.size() / 12);
+        for (int32_t i = 0; i < numTickBounds; i++) {
+            const int32_t i12(i * 12);
+            CaretAssertVectorIndex(tickMarkBounds, i12 + 11);
+            std::array<float, 12> tb {
+                /* bottom left */
+                tickMarkBounds[i12]   + topLeftXYZ[0],
+                tickMarkBounds[i12+1] + topLeftXYZ[1],
+                tickMarkBounds[i12+2] + topLeftXYZ[2],
+                /* bottom right */
+                tickMarkBounds[i12+3] + topLeftXYZ[0],
+                tickMarkBounds[i12+4] + topLeftXYZ[1],
+                tickMarkBounds[i12+5] + topLeftXYZ[2],
+                /* top right */
+                tickMarkBounds[i12+6] + topLeftXYZ[0],
+                tickMarkBounds[i12+7] + topLeftXYZ[1],
+                tickMarkBounds[i12+8] + topLeftXYZ[2],
+                /* top left */
+                tickMarkBounds[i12+9] + topLeftXYZ[0],
+                tickMarkBounds[i12+10] + topLeftXYZ[1],
+                tickMarkBounds[i12+11] + topLeftXYZ[2]
+            };
+            
+            /*
+             * Adjust bounds of last tick so that its right-most X-coord
+             * is the same as the scale bar
+             */
+            if (i == (numTickBounds - 1)) {
+                tb[0] = maxBarX - tickWidth;
+                tb[3] = maxBarX;
+                tb[6] = maxBarX;
+                tb[9] = maxBarX - tickWidth;
+            }
+            
+            drawingInfoOut.m_ticksBounds.push_back(tb);
+        }
+    }
+    
+    drawingInfoOut.setValid(true);
+}
+
+/**
+ * @return Pointer to annotation for drawing the length text
+ */
+const AnnotationPercentSizeText*
+AnnotationScaleBar::getLengthTextAnnotation() const
+{
+    m_lengthTextAnnotation->setFont(getFont());
+    
+    m_lengthTextAnnotation->setFontPercentViewportSize(getFontPercentViewportSize());
+    m_lengthTextAnnotation->setTextColor(CaretColorEnum::CUSTOM);
+    float rgba[4];
+    getTextColorRGBA(rgba);
+    m_lengthTextAnnotation->setCustomTextColor(rgba);
+    m_lengthTextAnnotation->setRotationAngle(0.0);
+    
+    const int32_t numDecimals(1);
+    QString lengthText(QString::number(getLength(), 'f', numDecimals));
+    if (isShowLengthUnitsText()) {
+        lengthText.append(AnnotationScaleBarUnitsTypeEnum::toGuiName(getLengthUnits()));
+    }
+    m_lengthTextAnnotation->setText(lengthText);
+    
+    return m_lengthTextAnnotation.get();
+}
 
