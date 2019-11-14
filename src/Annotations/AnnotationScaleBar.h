@@ -191,7 +191,7 @@ namespace caret {
         
         void setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const override;
         
-        void getScalarBarDrawingInfo(const float viewportWidth,
+        void getScaleBarDrawingInfo(const float viewportWidth,
                                      const float viewportHeight,
                                      const std::array<float, 3>& viewportXYZ,
                                      DrawingInfo& drawingInfoOut) const;
@@ -210,6 +210,8 @@ namespace caret {
     private:
         void copyHelperAnnotationScaleBar(const AnnotationScaleBar& obj);
 
+        void initializeScaleBarInstance();
+        
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
         
         float m_length = 10.0;

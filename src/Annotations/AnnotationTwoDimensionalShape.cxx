@@ -1236,21 +1236,19 @@ AnnotationTwoDimensionalShape::applySpatialModificationTabOrWindowSpace(const An
         scaleBar->setPositionMode(AnnotationColorBarPositionModeEnum::MANUAL);
         
         /*
-         * Scale bar has coordinate at its left side
+         * Scale bar has coordinate at its bottom left
          */
-        const float averageX = ((bottomLeftXYZ[0] + topLeftXYZ[0]) / 2.0);
-        const float averageY = ((bottomLeftXYZ[1] + topLeftXYZ[1]) / 2.0);
-        const float newX = 100.0 * (averageX / spatialModification.m_viewportWidth);
-        const float newY = 100.0 * (averageY / spatialModification.m_viewportHeight);
-        if ((newX >= 0.0)
-            && (newX <= 100.0)
-            && (newY >= 0.0)
-            && (newY <= 100.0)) {
+        const float percentagNewX = 100.0 * (bottomLeftXYZ[0] / spatialModification.m_viewportWidth);
+        const float percentagNewY = 100.0 * (bottomLeftXYZ[1] / spatialModification.m_viewportHeight);
+        if ((percentagNewX >= 0.0)
+            && (percentagNewX <= 100.0)
+            && (percentagNewY >= 0.0)
+            && (percentagNewY <= 100.0)) {
             AnnotationCoordinate* ac = getCoordinate();
             float xyz[3];
             ac->getXYZ(xyz);
-            xyz[0] = newX;
-            xyz[1] = newY;
+            xyz[0] = percentagNewX;
+            xyz[1] = percentagNewY;
             ac->setXYZ(xyz);
             
             validCoordinatesFlag = true;
@@ -1584,7 +1582,7 @@ AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
             viewportXYZ[2]
         };
         AnnotationScaleBar::DrawingInfo scaleBarDrawingInfo;
-        scaleBar->getScalarBarDrawingInfo(viewportWidth,
+        scaleBar->getScaleBarDrawingInfo(viewportWidth,
                                           viewportHeight,
                                           vpXYZ,
                                           scaleBarDrawingInfo);

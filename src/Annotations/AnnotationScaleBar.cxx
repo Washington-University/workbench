@@ -30,6 +30,7 @@
 #include "CaretAssert.h"
 #include "EventAnnotationTextGetBounds.h"
 #include "EventManager.h"
+#include "MathFunctions.h"
 #include "SceneClassAssistant.h"
 
 using namespace caret;
@@ -55,10 +56,7 @@ AnnotationFontAttributesInterface()
 {
     reset();
     
-    m_sceneAssistant.grabNew(new SceneClassAssistant());
-    m_lengthTextAnnotation.reset(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-    m_lengthTextAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-    m_lengthTextAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+    initializeScaleBarInstance();
 
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
         m_sceneAssistant->add("m_length",
@@ -105,6 +103,8 @@ AnnotationScaleBar::AnnotationScaleBar(const AnnotationScaleBar& obj)
 : AnnotationTwoDimensionalShape(obj),
 AnnotationFontAttributesInterface()
 {
+    initializeScaleBarInstance();
+    
     this->copyHelperAnnotationScaleBar(obj);
 }
 
@@ -123,6 +123,18 @@ AnnotationScaleBar::operator=(const AnnotationScaleBar& obj)
         this->copyHelperAnnotationScaleBar(obj);
     }
     return *this;    
+}
+
+/**
+ * Initialize an instance of the scale bar
+ */
+void
+AnnotationScaleBar::initializeScaleBarInstance()
+{
+    m_sceneAssistant.grabNew(new SceneClassAssistant());
+    m_lengthTextAnnotation.reset(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
+    m_lengthTextAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+    m_lengthTextAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
 }
 
 /**
@@ -154,6 +166,8 @@ AnnotationScaleBar::copyHelperAnnotationScaleBar(const AnnotationScaleBar& obj)
     m_customColorText[2]  = obj.m_customColorText[2];
     m_customColorText[3]  = obj.m_customColorText[3];
     m_fontTooSmallWhenLastDrawnFlag = obj.m_fontTooSmallWhenLastDrawnFlag;
+    
+    *m_lengthTextAnnotation = *obj.m_lengthTextAnnotation;
 }
 
 /**
@@ -792,7 +806,7 @@ AnnotationScaleBar::setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) co
  *  Upon exit, contains drawing information
  */
 void
-AnnotationScaleBar::getScalarBarDrawingInfo(const float viewportWidth,
+AnnotationScaleBar::getScaleBarDrawingInfo(const float viewportWidth,
                                             const float viewportHeight,
                                             const std::array<float, 3>& viewportXYZ,
                                             DrawingInfo& drawingInfoOut) const
@@ -845,6 +859,9 @@ AnnotationScaleBar::getScalarBarDrawingInfo(const float viewportWidth,
             tickWidth = scaleBarHeightPixels;
             tickHeight = scaleBarHeightPixels;
 
+            tickWidth  = MathFunctions::limitRange(scaleBarHeightPixels * 0.10, 2.0, 6.0);
+            tickHeight = MathFunctions::limitRange(scaleBarHeightPixels * 0.25, 4.0, 10.0);
+            
             const float halfTickWidth(tickWidth / 2.0);
             const float startX(0.0);
             const float endX(scaleBarWidthPixels);

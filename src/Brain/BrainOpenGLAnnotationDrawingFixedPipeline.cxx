@@ -2016,7 +2016,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotati
     CaretAssert(annLengthText);
     
     AnnotationScaleBar::DrawingInfo scaleBarDrawingInfo;
-    scaleBar->getScalarBarDrawingInfo(viewport[2],
+    scaleBar->getScaleBarDrawingInfo(viewport[2],
                                       viewport[3],
                                       startXYZ,
                                       scaleBarDrawingInfo);
