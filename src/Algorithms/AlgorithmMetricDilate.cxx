@@ -81,10 +81,10 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
         
     ret->setHelpText(
         AString("For all metric vertices that are designated as bad, if they neighbor a non-bad vertex with data or are within the specified distance of such a vertex, ") +
-        "replace the value with a distance weighted average of nearby non-bad vertices that have data, otherwise set the value to zero.  " +
+        "replace the value with a distance-based weighted average of nearby non-bad vertices that have data, otherwise set the value to zero.  " +
         "No matter how small <distance> is, dilation will always use at least the immediate neighbor vertices.  " +
         "If -nearest is specified, it will use the value from the closest non-bad vertex with data within range instead of a weighted average.\n\n" +
-        "If -bad-vertex-roi is specified, only vertices with a positive value in the ROI are bad.  " +
+        "If -bad-vertex-roi is specified, all vertices with a positive ROI value are bad.  " +
         "If it is not specified, only vertices that have data, with a value of zero, are bad.  " +
         "If -data-roi is not specified, all vertices are assumed to have data.\n\n" +
         "Note that the -corrected-areas option uses an approximate correction for the change in distances along a group average surface.\n\n" +
@@ -312,6 +312,7 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
                                           const float& distance, const bool& nearest, const bool& linear, const float& exponent, const bool legacyCutoff, const float meanSpacing)
 {
     float cutoffBase = max(2.0f * distance, 2.0f * meanSpacing), cutoffRatio = max(1.1f, pow(49.0f, 1.0f / (exponent - 2.0f)));//find what ratio from closest vertex corresponds to having 98% of total weight accounted for on a plane, assuming non-adverse ROI
+    float minKernel = 1.5f * meanSpacing;//small kernels are cheap for weighted, use similar minimum distance as volume dilate
     float legacyCutoffRatio = 1.5f, test = pow(10.0f, 1.0f / exponent);//old logic: find what cutoff ratio corresponds to a tenth of weight, but don't use more than a 1.5 * nearest cutoff
     if (test > 1.0f && test < legacyCutoffRatio)//if it is less than 1, the exponent is weird, so simply ignore it and use default
     {//this generally cut off early, causing the result to behave like a higher exponent was used
@@ -323,56 +324,26 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
         }
     }
     int numNodes = mySurf->getNumberOfNodes();
-    vector<char> charRoi(numNodes);
+    vector<char> charRoi(numNodes, 0);
     const float* badRoiData = NULL;
     if (badNodeRoi != NULL) badRoiData = badNodeRoi->getValuePointerForColumn(0);
     const float* dataRoiVals = NULL;
     if (dataRoi != NULL)
     {
         dataRoiVals = dataRoi->getValuePointerForColumn(0);
-        if (badRoiData != NULL)
+    }
+    for (int i = 0; i < numNodes; ++i)
+    {
+        if (badRoiData == NULL)
         {
-            for (int i = 0; i < numNodes; ++i)
+            if ((dataRoiVals == NULL || dataRoiVals[i] > 0.0f) && myInputData[i] != 0.0f)
             {
-                if (dataRoiVals[i] > 0.0f && !(badRoiData[i] > 0.0f))//"not greater than" to trap NaNs
-                {
-                    charRoi[i] = 1;
-                } else {
-                    charRoi[i] = 0;
-                }
+                charRoi[i] = 1;
             }
         } else {
-            for (int i = 0; i < numNodes; ++i)
+            if ((dataRoiVals == NULL || dataRoiVals[i] > 0.0f) && !(badRoiData[i] > 0.0f))//"not greater than" to trap NaNs
             {
-                if (dataRoiVals[i] > 0.0f && myInputData[i] != 0.0f)
-                {
-                    charRoi[i] = 1;
-                } else {
-                    charRoi[i] = 0;
-                }
-            }
-        }
-    } else {
-        if (badRoiData != NULL)
-        {
-            for (int i = 0; i < numNodes; ++i)
-            {
-                if (!(badRoiData[i] > 0.0f))//ditto
-                {
-                    charRoi[i] = 1;
-                } else {
-                    charRoi[i] = 0;
-                }
-            }
-        } else {
-            for (int i = 0; i < numNodes; ++i)
-            {
-                if (myInputData[i] != 0.0f)
-                {
-                    charRoi[i] = 1;
-                } else {
-                    charRoi[i] = 0;
-                }
+                charRoi[i] = 1;
             }
         }
     }
@@ -401,7 +372,7 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
             } else {
                 badNode = (myInputData[i] == 0.0f);
             }
-            if ((dataRoiVals == NULL || dataRoiVals[i] > 0.0f) && badNode)
+            if (badNode)
             {
                 float closestDist;//NOTE: the only time this function is called with a badRoi is when using linear, which doesn't use the closest distance
                 int closestNode = myGeoHelp->getClosestNodeInRoi(i, charRoi.data(), distance, closestDist);
@@ -512,7 +483,7 @@ void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInpu
                             } else {
                                 if (exponent > 2.0f && cutoffRatio < 100.0f && cutoffRatio > 1.0f)//if the ratio is sane, use it, but never exceed cutoffBase
                                 {
-                                    cutoffDist = max(min(cutoffRatio * closestDist, cutoffDist), cutoffBase * 0.25f);//but small kernels are rather cheap anyway, so have a minimum size just in case
+                                    cutoffDist = max(min(cutoffRatio * closestDist, cutoffDist), minKernel);//but small kernels are rather cheap anyway, so have a minimum size just in case
                                 }
                             }
                             myGeoHelp->getNodesToGeoDist(i, cutoffDist, nodeList, distList);
@@ -560,6 +531,7 @@ void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& 
     FastStatistics spacingStats;
     mySurf->getNodesSpacingStatistics(spacingStats);//use mean spacing to help set minimum stencil distance, since native surfaces might have a minimum of 0
     float cutoffBase = max(2.0f * distance, 2.0f * spacingStats.getMean()), cutoffRatio = max(1.1f, pow(49.0f, 1.0f / (exponent - 2.0f)));//find what ratio from closest vertex corresponds to having 98% of total weight accounted for on a plane, assuming non-adverse ROI
+    float minKernel = 1.5f * spacingStats.getMean();//small kernels are cheap for weighted, use similar minimum distance as volume dilate
     float legacyCutoffRatio = 1.5f, test = pow(10.0f, 1.0f / exponent);//old logic: find what cutoff ratio corresponds to a tenth of weight, but don't use more than a 1.5 * nearest cutoff
     if (test > 1.0f && test < legacyCutoffRatio)//if it is less than 1, the exponent is weird, so simply ignore it and use default
     {//this generally cut off early, causing the result to behave like a higher exponent was used
@@ -571,39 +543,22 @@ void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& 
         }
     }
     int numNodes = mySurf->getNumberOfNodes();
-    vector<char> charRoi(numNodes);
+    vector<char> charRoi(numNodes, 0);
     const float* dataRoiVals = NULL;
     int badCount = 0;
     if (dataRoi != NULL)
     {
         dataRoiVals = dataRoi->getValuePointerForColumn(0);
-        for (int i = 0; i < numNodes; ++i)
+    }
+    for (int i = 0; i < numNodes; ++i)
+    {
+        if (badNodeData[i] > 0.0f)
         {
-            if (!(badNodeData[i] > 0.0f))//in case some clown uses NaN in the ROI instead of 0
-            {
-                if (dataRoiVals[i] > 0.0f)
-                {
-                    charRoi[i] = 1;
-                } else {
-                    charRoi[i] = 0;
-                }
-            } else {
-                if (dataRoiVals[i] > 0.0f)
-                {
-                    ++badCount;
-                }
-                charRoi[i] = 0;
-            }
-        }
-    } else {
-        for (int i = 0; i < numNodes; ++i)
-        {
-            if (!(badNodeData[i] > 0.0f))
+            ++badCount;
+        } else {
+            if (dataRoiVals == NULL || dataRoiVals[i] > 0.0f)
             {
                 charRoi[i] = 1;
-            } else {
-                ++badCount;
-                charRoi[i] = 0;
             }
         }
     }
@@ -627,7 +582,7 @@ void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& 
 #pragma omp CARET_FOR schedule(dynamic)
         for (int i = 0; i < numNodes; ++i)
         {
-            if (badNodeData[i] > 0.0f && (dataRoiVals == NULL || dataRoiVals[i] > 0.0f))
+            if (badNodeData[i] > 0.0f)
             {
                 int myIndex;
 #pragma omp critical
@@ -665,7 +620,7 @@ void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& 
                     } else {
                         if (exponent > 2.0f && cutoffRatio < 100.0f && cutoffRatio > 1.0f)//if the ratio is sane, use it, but never exceed cutoffBase
                         {
-                            cutoffDist = max(min(cutoffRatio * closestDist, cutoffDist), cutoffBase * 0.25f);//but small kernels are rather cheap anyway, so have a minimum size just in case
+                            cutoffDist = max(min(cutoffRatio * closestDist, cutoffDist), minKernel);//but small kernels are rather cheap anyway, so have a minimum size just in case
                         }
                     }
                     myGeoHelp->getNodesToGeoDist(i, cutoffDist, nodeList, distList);
@@ -704,39 +659,22 @@ void AlgorithmMetricDilate::precomputeNearest(vector<pair<int, int> >& myNearest
     CaretAssert(badNodeRoi != NULL);//because it should never be called if we don't know exactly what nodes we are replacing
     const float* badNodeData = badNodeRoi->getValuePointerForColumn(0);
     int numNodes = mySurf->getNumberOfNodes();
-    vector<char> charRoi(numNodes);
+    vector<char> charRoi(numNodes, 0);
     const float* dataRoiVals = NULL;
     int badCount = 0;
     if (dataRoi != NULL)
     {
         dataRoiVals = dataRoi->getValuePointerForColumn(0);
-        for (int i = 0; i < numNodes; ++i)
+    }
+    for (int i = 0; i < numNodes; ++i)
+    {
+        if (badNodeData[i] > 0.0f)
         {
-            if (!(badNodeData[i] > 0.0f))//in case some clown uses NaN as "bad" in the ROI
-            {
-                if (dataRoiVals[i] > 0.0f)
-                {
-                    charRoi[i] = 1;
-                } else {
-                    charRoi[i] = 0;
-                }
-            } else {
-                if (dataRoiVals[i] > 0.0f)
-                {
-                    ++badCount;
-                }
-                charRoi[i] = 0;
-            }
-        }
-    } else {
-        for (int i = 0; i < numNodes; ++i)
-        {
-            if (!(badNodeData[i] > 0.0f))
+            ++badCount;
+        } else {
+            if (dataRoiVals == NULL || dataRoiVals[i] > 0.0f)
             {
                 charRoi[i] = 1;
-            } else {
-                ++badCount;
-                charRoi[i] = 0;
             }
         }
     }
@@ -760,7 +698,7 @@ void AlgorithmMetricDilate::precomputeNearest(vector<pair<int, int> >& myNearest
 #pragma omp CARET_FOR schedule(dynamic)
         for (int i = 0; i < numNodes; ++i)
         {
-            if (badNodeData[i] > 0.0f && (dataRoiVals == NULL || dataRoiVals[i] > 0.0f))
+            if (badNodeData[i] > 0.0f)
             {
                 int myIndex;
 #pragma omp critical

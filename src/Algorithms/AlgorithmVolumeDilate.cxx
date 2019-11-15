@@ -170,6 +170,7 @@ namespace
         bool checkNeighbors = distance <= voxStep[0].length() * 1.01f || distance <= voxStep[1].length() * 1.01f || distance <= voxStep[2].length() * 1.01f;
         //the single-voxel rule means we can't just base the maximum search distance on the dilation distance
         float cutoffBase = max(2.0f * distance, 2.0f * min(min(voxStep[0].length(), voxStep[1].length()), voxStep[2].length()));
+        float minKernel = 1.5f * min(min(voxStep[0].length(), voxStep[1].length()), voxStep[2].length());//small kernels are cheap, so use a minimum of face+edge neighbors in isotropic volumes in weighted mode
         vector<int64_t> myDims = volIn->getDimensions();
         //HACK: unlabeledKey is also used to fill bad voxels that the dilation doesn't reach in non-label mode
         int32_t unlabeledKey = 0;
@@ -293,7 +294,7 @@ namespace
                                 float cutoffRatio = max(1.1f, pow(49.0f, 1.0f / (exponent - 3.0f))), cutoffDist = cutoffBase;//find what cutoff ratio corresponds to a hudredth of weight
                                 if (exponent > 3.0f && cutoffRatio < 100.0f && cutoffRatio > 1.0f)//if the ratio is sane, use it, but never exceed cutoffBase
                                 {
-                                    cutoffDist = max(min(cutoffRatio * closeDist, cutoffDist), cutoffBase * 0.25f);//but small kernels are rather cheap anyway, so have a minimum size just in case
+                                    cutoffDist = max(min(cutoffRatio * closeDist, cutoffDist), minKernel);//but small kernels are rather cheap anyway, so have a minimum size just in case
                                 }
                                 inRange = locator.pointsInRange(voxcoord, cutoffDist);
                             }
