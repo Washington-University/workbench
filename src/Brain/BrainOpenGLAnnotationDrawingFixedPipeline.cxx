@@ -760,15 +760,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                             if (annBar->getCoordinateSpace() == drawingCoordinateSpace) {
                                 AnnotationColorBarPositionModeEnum::Enum positionMode = AnnotationColorBarPositionModeEnum::AUTOMATIC;
                                 AnnotationColorBar* colorBar = dynamic_cast<AnnotationColorBar*>(annBar);
+                                AnnotationScaleBar* scaleBar = annBar->castToScaleBar();
                                 float x = 14.0;
                                 if (colorBar != NULL) {
                                     positionMode = colorBar->getPositionMode();
                                 }
                                 else {
-                                    AnnotationScaleBar* scaleBar = annBar->castToScaleBar();
                                     if (scaleBar != NULL) {
                                         positionMode = scaleBar->getPositionMode();
-                                        x = 2.0;
+                                        
+                                        /*
+                                         * When drawn, color bars are at pixel X=18.5
+                                         * so try to align left side of scale bars
+                                         */
+                                        x = ((18.5 / m_modelSpaceViewport[2]) * 100.0);
                                     }
                                     else {
                                         CaretAssert(0);
@@ -783,7 +788,31 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                                          * colorbar or bottom of screen.  Second time to move the
                                          * Y to the top of this annotation.
                                          */
-                                        const float halfHeight =annBar->getHeight() / 2.0;
+                                        float halfHeight(0.0);
+                                        float yOffset(0.0);
+                                        if (scaleBar != NULL) {
+                                            /*
+                                             * Need to get scale bar height
+                                             * Will need something other than half height since
+                                             * Y=0 is at bottom of scale bar
+                                             * Half Height => yOffset, yHeight
+                                             */
+                                            float bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
+                                            float dummyXYZ[3] { 0.0, 0.0, 0.0 };
+                                            scaleBar->getShapeBounds(m_modelSpaceViewport[2], m_modelSpaceViewport[3],
+                                                                     dummyXYZ,
+                                                                     bottomLeft, bottomRight, topRight, topLeft);
+                                            const float scaleBarHeightPixels(topLeft[1] - bottomLeft[1]);
+                                            const float halfHeightPixels(scaleBarHeightPixels / 2.0);
+                                            halfHeight = (halfHeightPixels / m_modelSpaceViewport[3]) * 100.0;
+                                            
+                                            /* scale bar has origin at bottom left*/
+                                            yOffset = -halfHeight;
+                                        }
+                                        else {
+                                            /* color bar has origin in center-Y */
+                                            halfHeight = annBar->getHeight() / 2.0;
+                                        }
                                         if (firstColorBarFlag) {
                                             firstColorBarFlag = false;
                                             y = 4;
@@ -812,7 +841,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                                         float xyz[3];
                                         annBar->getCoordinate()->getXYZ(xyz);
                                         xyz[0] = x;
-                                        xyz[1] = y;
+                                        xyz[1] = y + yOffset;
                                         annBar->getCoordinate()->setXYZ(xyz);
                                         y += halfHeight;
                                     }

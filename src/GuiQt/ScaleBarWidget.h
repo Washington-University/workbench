@@ -28,6 +28,7 @@
 #include <QWidget>
 
 class QCheckBox;
+class QComboBox;
 class QDoubleSpinBox;
 class QSpinBox;
 
@@ -69,6 +70,8 @@ namespace caret {
         
         void tickMarksSubdivsionsSpinBoxValueChanged(int value);
         
+        void lengthTextLocationComboBoxActivated(int index);
+        
     private:
         void updateGraphics();
         
@@ -94,6 +97,8 @@ namespace caret {
         
         EnumComboBoxTemplate* m_positionModeEnumComboBox;
 
+        QComboBox* m_lengthTextLocationComboBox;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

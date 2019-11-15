@@ -24,6 +24,7 @@
 #undef __SCALE_BAR_WIDGET_DECLARE__
 
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -99,6 +100,15 @@ ScaleBarWidget::createLengthWidget()
                      this, &ScaleBarWidget::lengthEnumComboBoxItemActivated);
     m_lengthUnitsComboBox->getWidget()->setToolTip("Units displayed at end of scale bar");
     
+    QLabel* locationLabel = new QLabel("Location");
+    m_lengthTextLocationComboBox = new QComboBox();
+    m_lengthTextLocationComboBox->addItem("Bottom",
+                                          QVariant(static_cast<int32_t>(AnnotationScaleBar::LengthTextLocation::BOTTOM)));
+    m_lengthTextLocationComboBox->addItem("Right",
+                                          QVariant(static_cast<int32_t>(AnnotationScaleBar::LengthTextLocation::RIGHT)));
+    QObject::connect(m_lengthTextLocationComboBox, QOverload<int>::of(&QComboBox::activated),
+                     this, &ScaleBarWidget::lengthTextLocationComboBoxActivated);
+    
     QGroupBox* groupBox = new QGroupBox("Length");
     QGridLayout* gridLayout = new QGridLayout(groupBox);
     int32_t row(0);
@@ -112,7 +122,10 @@ ScaleBarWidget::createLengthWidget()
     gridLayout->addWidget(unitsLabel, row, 0);
     gridLayout->addWidget(m_lengthUnitsComboBox->getWidget(), row, 1);
     row++;
-    
+    gridLayout->addWidget(locationLabel, row, 0);
+    gridLayout->addWidget(m_lengthTextLocationComboBox, row, 1);
+    row++;
+
     return groupBox;
 }
 
@@ -201,6 +214,15 @@ ScaleBarWidget::updateContent(BrowserTabContent* browserTabContent)
         m_showTickMarksCheckBox->setChecked(m_scaleBar->isShowTickMarks());
         QSignalBlocker ticksSignalBlocker(m_tickMarksSubdivisionsSpinBox);
         m_tickMarksSubdivisionsSpinBox->setValue(m_scaleBar->getTickMarksSubdivsions());
+        
+        const AnnotationScaleBar::LengthTextLocation lengthTextLocation = m_scaleBar->getLengthTextLocation();
+        const int32_t lengthTextInteger = static_cast<int32_t>(lengthTextLocation);
+        for (int32_t i = 0; i < m_lengthTextLocationComboBox->count(); i++) {
+            if (m_lengthTextLocationComboBox->itemData(i).toInt() == lengthTextInteger) {
+                m_lengthTextLocationComboBox->setCurrentIndex(i);
+                break;
+            }
+        }
     }
 
     setEnabled(m_scaleBar != NULL);
@@ -236,6 +258,22 @@ ScaleBarWidget::tickMarksSubdivsionsSpinBoxValueChanged(int value)
     }
 }
 
+/**
+ * Called length text location value is changed
+ *
+ *  @param index
+ *    Index of item selected
+ */
+void
+ScaleBarWidget::lengthTextLocationComboBoxActivated(int index)
+{
+    if (m_scaleBar != NULL) {
+        QVariant itemData = m_lengthTextLocationComboBox->itemData(index);
+        const AnnotationScaleBar::LengthTextLocation location = static_cast<AnnotationScaleBar::LengthTextLocation>(itemData.toInt());
+        m_scaleBar->setLengthTextLocation(location);
+        updateGraphics();
+    }
+}
 
 /**
  * Called when show length check box is clicked

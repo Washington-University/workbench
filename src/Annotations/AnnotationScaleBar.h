@@ -38,6 +38,14 @@ namespace caret {
         
     public:
         /**
+         * Position of length an units text
+         */
+        enum class LengthTextLocation {
+            BOTTOM,
+            RIGHT
+        };
+        
+        /**
          * Contains information for drawing scale bar, its ticks, and text
          */
         class DrawingInfo {
@@ -198,7 +206,11 @@ namespace caret {
         
         const AnnotationPercentSizeText* getLengthTextAnnotation() const;
         
-                // ADD_NEW_METHODS_HERE
+        LengthTextLocation getLengthTextLocation() const;
+        
+        void setLengthTextLocation(const LengthTextLocation location);
+        
+        // ADD_NEW_METHODS_HERE
 
     protected:
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
@@ -241,6 +253,8 @@ namespace caret {
         float m_customColorText[4];
         
         bool m_displayedFlag;
+        
+        LengthTextLocation m_lengthTextLocation = LengthTextLocation::BOTTOM;
         
         mutable bool m_fontTooSmallWhenLastDrawnFlag = false;
         

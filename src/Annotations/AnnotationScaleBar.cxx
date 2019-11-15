@@ -787,10 +787,35 @@ AnnotationScaleBar::isFontTooSmallWhenLastDrawn() const
     return m_fontTooSmallWhenLastDrawnFlag;
 }
 
+/**
+ * Set the font too small status
+ * @param tooSmallFontFlag
+ * New status
+ */
 void
 AnnotationScaleBar::setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const
 {
     m_fontTooSmallWhenLastDrawnFlag = tooSmallFontFlag;
+}
+
+/*
+ * @return Location for length text
+ */
+AnnotationScaleBar::LengthTextLocation
+AnnotationScaleBar::getLengthTextLocation() const
+{
+    return m_lengthTextLocation;
+}
+
+/**
+ * Set the location of the length text
+ * @param location
+ * New location of length text
+ */
+void
+AnnotationScaleBar::setLengthTextLocation(const LengthTextLocation location)
+{
+    m_lengthTextLocation = location;
 }
 
 /**
@@ -909,8 +934,6 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float viewportWidth,
         }
     }
     
-    const float barAndTicksHeight(scaleBarHeightPixels + tickHeight);
-    
     float textWidth(0.0);
     float textHeight(0.0);
     const float spaceBetweenScaleBarAndText(5.0);
@@ -919,20 +942,36 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float viewportWidth,
         textHeight = textDrawingHeight;
     }
     
-    const float margin(3.0);
-    const float totalHeight = (std::max(barAndTicksHeight,
-                                        textHeight)
-                               + (margin * 2.0));
-    const float totalWidth(scaleBarWidthPixels + textWidth+ (margin * 2.0));
-    
-    /*
-     * Vertically align bar with text
-     */
-    float barOffsetY(0.0);
-    if (barAndTicksHeight < textHeight) {
-        barOffsetY = (textHeight - barAndTicksHeight) / 2.0;
+    switch (m_lengthTextLocation) {
+        case LengthTextLocation::BOTTOM:
+            break;
+        case LengthTextLocation::RIGHT:
+            break;
     }
     
+    
+    const float barAndTicksHeight(scaleBarHeightPixels + tickHeight);
+    const float margin(3.0);
+    
+    float totalWidth(0.0);
+    float totalHeight(0.0);
+    switch (m_lengthTextLocation) {
+        case LengthTextLocation::BOTTOM:
+            totalWidth = (std::max(scaleBarWidthPixels,
+                                  textWidth)
+                          + (margin * 2.0));
+            totalHeight = (barAndTicksHeight
+                           + textHeight
+                           + (margin * 2.0));
+            break;
+        case LengthTextLocation::RIGHT:
+            totalWidth = scaleBarWidthPixels + textWidth + (margin * 2.0);
+            totalHeight = (std::max(barAndTicksHeight,
+                                    textHeight)
+                           + (margin * 2.0));
+            break;
+    }
+
     /*
      * Overall (background) bounds
      * bottom left
@@ -957,38 +996,77 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float viewportWidth,
     drawingInfoOut.m_backgroundBounds[11] = viewportXYZ[2];
     
     /*
+     * Vertically align bar with text
+     */
+    float barOffsetX(0.0);
+    float barOffsetY(0.0);
+    switch (m_lengthTextLocation) {
+        case LengthTextLocation::BOTTOM:
+            if (scaleBarWidthPixels < textWidth) {
+                barOffsetX = (textWidth - scaleBarWidthPixels) / 2.0;
+            }
+            barOffsetY = textHeight;
+            break;
+        case LengthTextLocation::RIGHT:
+            if (barAndTicksHeight < textHeight) {
+                barOffsetY = (textHeight - barAndTicksHeight) / 2.0;
+            }
+            break;
+    }
+    
+    /*
      * Bounds of the bar
      * bottom left
      */
-    drawingInfoOut.m_barBounds[0] = viewportXYZ[0] + margin;
+    drawingInfoOut.m_barBounds[0] = viewportXYZ[0] + margin + barOffsetX;
     drawingInfoOut.m_barBounds[1] = viewportXYZ[1] + margin + barOffsetY;
     drawingInfoOut.m_barBounds[2] = viewportXYZ[2];
     
     /* bottom right */
-    drawingInfoOut.m_barBounds[3] = viewportXYZ[0] + margin + scaleBarWidthPixels;
+    drawingInfoOut.m_barBounds[3] = viewportXYZ[0] + margin + barOffsetX + scaleBarWidthPixels;
     drawingInfoOut.m_barBounds[4] = viewportXYZ[1] + margin + barOffsetY;
     drawingInfoOut.m_barBounds[5] = viewportXYZ[2];
     
     /* top right */
-    drawingInfoOut.m_barBounds[6] = viewportXYZ[0] + margin + scaleBarWidthPixels;
+    drawingInfoOut.m_barBounds[6] = viewportXYZ[0] + margin + barOffsetX + scaleBarWidthPixels;
     drawingInfoOut.m_barBounds[7] = viewportXYZ[1] + margin + scaleBarHeightPixels + barOffsetY;
     drawingInfoOut.m_barBounds[8] = viewportXYZ[2];
     
     /* top left */
-    drawingInfoOut.m_barBounds[9] = viewportXYZ[0] + margin;
+    drawingInfoOut.m_barBounds[9]  = viewportXYZ[0] + margin + barOffsetX;
     drawingInfoOut.m_barBounds[10] = viewportXYZ[1] + margin + scaleBarHeightPixels + barOffsetY;
     drawingInfoOut.m_barBounds[11] = viewportXYZ[2];
     
     if (isShowLengthText()) {
-        /*
-         * Text is on right side of the BAR
-         *   X -> to the right side of the bar
-         *   Y -> centered in BACKGROUND BOUNDS
-         *   Z -> all Z's are same
-         */
-        drawingInfoOut.m_textStartXYZ[0] = drawingInfoOut.m_barBounds[3] + spaceBetweenScaleBarAndText;
-        drawingInfoOut.m_textStartXYZ[1] = drawingInfoOut.m_backgroundBounds[4] + (totalHeight / 2.0);
-        drawingInfoOut.m_textStartXYZ[2] = drawingInfoOut.m_barBounds[5];
+        switch (m_lengthTextLocation) {
+            case LengthTextLocation::BOTTOM:
+            {
+                const float textOffsetX(totalWidth / 2.0);
+                
+                /* Text is below the BAR
+                 */
+                drawingInfoOut.m_textStartXYZ[0] = viewportXYZ[0] + textOffsetX;
+                drawingInfoOut.m_textStartXYZ[1] = viewportXYZ[1] + margin;
+                drawingInfoOut.m_textStartXYZ[2] = viewportXYZ[2];
+
+                m_lengthTextAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+                m_lengthTextAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+            }
+                break;
+            case LengthTextLocation::RIGHT:
+                /* Text is on right side of the BAR
+                 *   X -> to the right side of the bar
+                 *   Y -> centered in BACKGROUND BOUNDS
+                 *   Z -> all Z's are same
+                 */
+                drawingInfoOut.m_textStartXYZ[0] = drawingInfoOut.m_barBounds[3] + spaceBetweenScaleBarAndText;
+                drawingInfoOut.m_textStartXYZ[1] = drawingInfoOut.m_backgroundBounds[4] + (totalHeight / 2.0);
+                drawingInfoOut.m_textStartXYZ[2] = drawingInfoOut.m_barBounds[5];
+
+                m_lengthTextAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+                m_lengthTextAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+                break;
+        }
     }
     
     if (isShowTickMarks()) {
