@@ -463,10 +463,8 @@ UserInputModeAnnotationsWidget::updateWidget()
     if (m_deleteWidget != NULL) m_deleteWidget->updateContent();
     
     Annotation* coordEditAnnotation = NULL;
-    AnnotationOneDimensionalShape* coordEditOneDimAnnotation = NULL;
     if (selectedAnnotations.size() == 1) {
         coordEditAnnotation = selectedAnnotations[0];
-        coordEditOneDimAnnotation = dynamic_cast<AnnotationOneDimensionalShape*>(coordEditAnnotation);
     }
     if (m_coordinateCenterXYWidget != NULL) m_coordinateCenterXYWidget->updateContent(selectedAnnotations);
     if (m_coordinatesWidget != NULL) m_coordinatesWidget->updateContent(coordEditAnnotation);    

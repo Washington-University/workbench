@@ -2178,27 +2178,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawColorBar(AnnotationFile* annotati
 {
     CaretAssert(colorBar);
     
-    bool colorBarFlag(false);
-    bool scaleBarFlag(false);
-    switch (colorBar->getType()) {
-        case AnnotationTypeEnum::COLOR_BAR:
-            colorBarFlag = true;
-            break;
-        case AnnotationTypeEnum::SCALE_BAR:
-            scaleBarFlag = true;
-            break;
-        case AnnotationTypeEnum::BOX:
-        case AnnotationTypeEnum::BROWSER_TAB:
-        case AnnotationTypeEnum::TEXT:
-        case AnnotationTypeEnum::IMAGE:
-        case AnnotationTypeEnum::LINE:
-        case AnnotationTypeEnum::OVAL:
-            CaretAssert(0);
-            break;
-    }
-    CaretAssert(colorBarFlag
-                | scaleBarFlag);
-    
     float annXYZ[3];
     if ( ! getAnnotationDrawingSpaceCoordinate(colorBar,
                                          colorBar->getCoordinate(),

@@ -2527,8 +2527,6 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
     }
     
     CaretAssert(m_parentBrainBrowserWindow);
-    BrowserWindowContent* browserWindowContent = m_parentBrainBrowserWindow->getBrowerWindowContent();
-    CaretAssert(browserWindowContent);
     
     this->modeWidgetGroup->blockAllSignals(true);
     

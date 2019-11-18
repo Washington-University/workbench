@@ -1203,10 +1203,33 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
                                                              BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
                                                              annotationModeFlag,
                                                              tileTabsEditModeFlag);
+    
+    /*
+     * Scale bars on drawn on brain models
+     */
+    bool drawScaleBarsFlag(false);
+    switch (tabContent->getBrowserTabContent()->getSelectedModelType()) {
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            drawScaleBarsFlag = false;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            drawScaleBarsFlag = true;
+            break;
+    }
+    
+    std::vector<AnnotationScaleBar*> annotationScaleBarsForDrawing;
+    if (drawScaleBarsFlag) {
+        annotationScaleBarsForDrawing = m_annotationScaleBarsForDrawing;
+    }
     m_annotationDrawing->drawAnnotations(&inputs,
                                          AnnotationCoordinateSpaceEnum::TAB,
                                          m_annotationColorBarsForDrawing,
-                                         m_annotationScaleBarsForDrawing,
+                                         annotationScaleBarsForDrawing,
                                          m_specialCaseGraphicsAnnotations,
                                          annotationDrawingNullSurface,
                                          annotationDrawingUnusedSurfaceScaling);
@@ -5515,12 +5538,13 @@ BrainOpenGLFixedPipeline::setupScaleBarDrawingInformation(BrowserTabContent* bro
     const float orthoWidth = (std::abs(orthographicProjectionRight - orthographicProjectionLeft)
                               / browserTabContent->getScaling());
 
-    browserTabContent->getScaleBar()->setDrawingOrthographicWidth(orthoWidth);
+    browserTabContent->getScaleBar()->setModelSpaceOrthographicWidth(orthoWidth);
     
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
-    browserTabContent->getScaleBar()->setDrawingViewportWidth(viewport[2]);
+    browserTabContent->getScaleBar()->setModelSpaceViewportWidthAndHeight(viewport[2],
+                                                                          viewport[3]);
 }
 
 /**

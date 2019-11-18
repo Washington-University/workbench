@@ -139,13 +139,16 @@ namespace caret {
         
         void setLengthUnits(const AnnotationScaleBarUnitsTypeEnum::Enum lengthUnits);
         
-        void setDrawingOrthographicWidth(const float drawingOrthographicWidth);
+        void setModelSpaceOrthographicWidth(const float modelSpaceOrthographicWidth);
         
-        float getDrawingOrthographicWidth() const;
+        float getModelSpaceOrthographicWidth() const;
         
-        void setDrawingViewportWidth(const float drawingViewportWidth);
+        void setModelSpaceViewportWidthAndHeight(const float modelSpaceViewportWidth,
+                                                 const float modelSpaceViewportHeight);
         
-        float getDrawingViewportWidth() const;
+        float getModelSpaceViewportWidth() const;
+        
+        float getModelSpaceViewportHeight() const;
         
         virtual AnnotationTextFontNameEnum::Enum getFont() const;
         
@@ -199,10 +202,10 @@ namespace caret {
         
         void setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const override;
         
-        void getScaleBarDrawingInfo(const float viewportWidth,
-                                     const float viewportHeight,
-                                     const std::array<float, 3>& viewportXYZ,
-                                     DrawingInfo& drawingInfoOut) const;
+        void getScaleBarDrawingInfo(const float tabViewportWidth,
+                                    const float tabViewportHeight,
+                                    const std::array<float, 3>& viewportXYZ,
+                                    DrawingInfo& drawingInfoOut) const;
         
         const AnnotationPercentSizeText* getLengthTextAnnotation() const;
         
@@ -238,10 +241,12 @@ namespace caret {
         
         AnnotationScaleBarUnitsTypeEnum::Enum m_lengthUnits = AnnotationScaleBarUnitsTypeEnum::MILLIMETERS;
         
-        float m_drawingOrthographicWidth = 0.0;
+        float m_modelSpaceOrthographicWidth = 0.0;
         
-        float m_drawingViewportWidth = 0.0;
+        float m_modelSpaceViewportWidth = 0.0;
 
+        float m_modelSpaceViewportHeight = 0.0;
+        
         AnnotationTextFontNameEnum::Enum m_fontName;
         
         float m_fontPercentViewportHeight;

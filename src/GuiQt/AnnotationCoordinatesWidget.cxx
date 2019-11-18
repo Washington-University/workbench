@@ -375,7 +375,6 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
         xyzFlag = true;
         coordinate->getXYZ(xyz);
         
-        bool viewportSpaceFlag = false;
         const double percentageMinimum =   0.0;
         const double percentageMaximum = 100.0;
         const double zDepthMinimum =       0.0;
@@ -506,7 +505,6 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                 yMax = xyz[1];
                 zMin = xyz[2];
                 zMax = xyz[2];
-                viewportSpaceFlag = true;
                 break;
             case AnnotationCoordinateSpaceEnum::WINDOW:
                 xMin = percentageMinimum;

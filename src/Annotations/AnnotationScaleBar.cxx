@@ -152,8 +152,9 @@ AnnotationScaleBar::copyHelperAnnotationScaleBar(const AnnotationScaleBar& obj)
     m_showLengthUnitsTextFlag  = obj.m_showLengthUnitsTextFlag;
     m_showTickMarksFlag        = obj.m_showTickMarksFlag;
     m_tickMarksSubdivisions    = obj.m_tickMarksSubdivisions;
-    m_drawingOrthographicWidth = obj.m_drawingOrthographicWidth;
-    m_drawingViewportWidth     = obj.m_drawingViewportWidth;
+    m_modelSpaceOrthographicWidth = obj.m_modelSpaceOrthographicWidth;
+    m_modelSpaceViewportWidth     = obj.m_modelSpaceViewportWidth;
+    m_modelSpaceViewportHeight    = obj.m_modelSpaceViewportHeight;
     
     m_positionMode              = obj.m_positionMode;
     m_fontName                  = obj.m_fontName;
@@ -348,7 +349,7 @@ AnnotationScaleBar::setLengthUnits(const AnnotationScaleBarUnitsTypeEnum::Enum l
 
 /**
  * Set the orthographic width when the model is drawn
- * @param drawingOrthographicWidgth
+ * @param modelSpaceOrthographicWidth
  *  Width of the orthographic projection when the model was drawn.
  *
  *   Note: This width is set when the model is drawn in model space.  The scale bar is drawn
@@ -356,42 +357,55 @@ AnnotationScaleBar::setLengthUnits(const AnnotationScaleBarUnitsTypeEnum::Enum l
  *   scale bar's length and the tab space viewport to draw the scale bar in the proper size.
  */
 void
-AnnotationScaleBar::setDrawingOrthographicWidth(const float drawingOrthographicWidth)
+AnnotationScaleBar::setModelSpaceOrthographicWidth(const float modelSpaceOrthographicWidth)
 {
-    m_drawingOrthographicWidth = drawingOrthographicWidth;
+    m_modelSpaceOrthographicWidth = modelSpaceOrthographicWidth;
 }
 
 /**
  *  @return The orthographic width from when the model was drawn
  */
 float
-AnnotationScaleBar::getDrawingOrthographicWidth() const
+AnnotationScaleBar::getModelSpaceOrthographicWidth() const
 {
-    return m_drawingOrthographicWidth;
+    return m_modelSpaceOrthographicWidth;
 }
 
 /**
- * Set the viewport width when the model is drawn
- * @param drawingViewportWidth
+ * Set the viewport width when the model is drawn (viewport in which model was drawn)
+ * @param modelSpaceViewportWidth
  *  Width of the viewport when the model was drawn.
+ * @param modelSpaceViewportHeight
+ *  Heighty of the viewport when the model was drawn.
  *
- *   Note: This width is set when the model is drawn in model space.  The scale bar is drawn
- *   in tab space but the length of the scale bar is in model space.  This length is used with the
+ *   Note: This width and height is set when the model is drawn in model space.  The scale bar is drawn
+ *   in tab space but the length of the scale bar is in model space.  This width is used with the
  *   scale bar's length and the tab space viewport to draw the scale bar in the proper size.
  */
 void
-AnnotationScaleBar::setDrawingViewportWidth(const float drawingViewportWidth)
+AnnotationScaleBar::setModelSpaceViewportWidthAndHeight(const float modelSpaceViewportWidth,
+                                                        const float modelSpaceViewportHeight)
 {
-    m_drawingViewportWidth = drawingViewportWidth;
+    m_modelSpaceViewportWidth  = modelSpaceViewportWidth;
+    m_modelSpaceViewportHeight = modelSpaceViewportHeight;
 }
 
 /**
- *  @return The viewport width from when the model was drawn
+ *  @return The viewport width from when the model was drawn (viewport in which model is drawn)
  */
 float
-AnnotationScaleBar::getDrawingViewportWidth() const
+AnnotationScaleBar::getModelSpaceViewportWidth() const
 {
-    return m_drawingViewportWidth;
+    return m_modelSpaceViewportWidth;
+}
+
+/**
+ *  @return The viewport height from when the model was drawn (viewport in which model is drawn)
+ */
+float
+AnnotationScaleBar::getModelSpaceViewportHeight() const
+{
+    return m_modelSpaceViewportHeight;
 }
 
 /**
@@ -821,20 +835,20 @@ AnnotationScaleBar::setLengthTextLocation(const LengthTextLocation location)
 /**
  * Get drawing information for drawing a scale bar
  * *
- * @param viewportWidth
- *  Width of viewport
- * @param viewportHeight
- *  Height of viewport
+ * @param tabViewportWidth
+ *  Width of tab's viewport
+ * @param tabViewportHeight
+ *  Height of tab's viewport
  * @param viewportXYZ
  *  Bottom corner of viewport
  * @param drawingInfoOut
  *  Upon exit, contains drawing information
  */
 void
-AnnotationScaleBar::getScaleBarDrawingInfo(const float viewportWidth,
-                                            const float viewportHeight,
-                                            const std::array<float, 3>& viewportXYZ,
-                                            DrawingInfo& drawingInfoOut) const
+AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
+                                           const float tabViewportHeight,
+                                           const std::array<float, 3>& viewportXYZ,
+                                           DrawingInfo& drawingInfoOut) const
 {
     drawingInfoOut.reset();
     
@@ -852,27 +866,38 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float viewportWidth,
     }
     
     const float scaleBarLengthModelCoords(getLength() * convertToMM);
-    const float orthographicWidth(getDrawingOrthographicWidth());
+    const float orthographicWidth(getModelSpaceOrthographicWidth());
     if (orthographicWidth <= 0.0) {
+        return;
+    }
+    if (m_modelSpaceViewportWidth <= 0.0) {
+        return;
+    }
+    if (m_modelSpaceViewportHeight <= 0.0) {
         return;
     }
     
     /*
      * Get the width and height of the text
+     * Text size is percentage of the TAB's viewport width/height so that
+     * the text size is the same in and out of surface/volume montage modes
      */
     EventAnnotationTextGetBounds textBoundsEvent(*getLengthTextAnnotation(),
-                                                 viewportWidth,
-                                                 viewportHeight);
+                                                 tabViewportWidth,
+                                                 tabViewportHeight);
     EventManager::get()->sendEvent(textBoundsEvent.getPointer());
     const float textDrawingWidth(textBoundsEvent.getTextWidth());
     const float textDrawingHeight(textBoundsEvent.getTextHeight());
 
     /*
-     * Scale bar uses line width for height not annotation height
+     * Scale bar uses line width for height (not annotation height).
+     * Width of scale bar is in MODEL space so must use the model space's viewport width
+     * Height of scale bar is in TAB so must use height of TAB's viewport so that
+     * the height of scale bar is same in and out of surface/volume montage modes
      */
-    const float tabPercentageWidth(scaleBarLengthModelCoords / orthographicWidth);
-    const float scaleBarWidthPixels(viewportWidth * tabPercentageWidth);
-    const float scaleBarHeightPixels((getLineWidthPercentage() / 100.0) * viewportHeight);
+    const float percentageWidth(scaleBarLengthModelCoords / orthographicWidth);
+    const float scaleBarWidthPixels(m_modelSpaceViewportWidth * percentageWidth);
+    const float scaleBarHeightPixels((getLineWidthPercentage() / 100.0) * tabViewportHeight);
     
     std::vector<float> tickMarkBounds;
     float tickHeight(0.0);
