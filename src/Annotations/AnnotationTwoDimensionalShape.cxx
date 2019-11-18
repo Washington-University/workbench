@@ -1582,10 +1582,12 @@ AnnotationTwoDimensionalShape::getShapeBounds(const float viewportWidth,
             viewportXYZ[2]
         };
         AnnotationScaleBar::DrawingInfo scaleBarDrawingInfo;
+        const bool selectionFlag(false);
         scaleBar->getScaleBarDrawingInfo(viewportWidth,
-                                          viewportHeight,
-                                          vpXYZ,
-                                          scaleBarDrawingInfo);
+                                         viewportHeight,
+                                         vpXYZ,
+                                         selectionFlag,
+                                         scaleBarDrawingInfo);
 
         /*
          * Scale bar coordinate is at left and its length

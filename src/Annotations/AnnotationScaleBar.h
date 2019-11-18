@@ -25,6 +25,7 @@
 #include <memory>
 
 #include "AnnotationColorBarPositionModeEnum.h"
+#include "AnnotationScaleBarTextLocationEnum.h"
 #include "AnnotationScaleBarUnitsTypeEnum.h"
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationTextAlignHorizontalEnum.h"
@@ -37,14 +38,6 @@ namespace caret {
     class AnnotationScaleBar : public AnnotationTwoDimensionalShape, public AnnotationFontAttributesInterface {
         
     public:
-        /**
-         * Position of length an units text
-         */
-        enum class LengthTextLocation {
-            BOTTOM,
-            RIGHT
-        };
-        
         /**
          * Contains information for drawing scale bar, its ticks, and text
          */
@@ -64,6 +57,8 @@ namespace caret {
                 m_backgroundBounds.fill(0.0);
                 m_barBounds.fill(0.0);
                 m_textStartXYZ.fill(0.0);
+                m_textBounds.fill(0.0);
+                m_ticksBounds.clear();
                 m_validFlag = false;
             }
             
@@ -81,6 +76,9 @@ namespace caret {
 
             /** starting XYZ for text containing length characters */
             std::array<float, 3> m_textStartXYZ;
+            
+            /** bounds of the text are bottomLeft, bottomRight, topRight, topLeft */
+            std::array<float, 12> m_textBounds;
             
             /** bounds are bottomLeft, bottomRight, topRight, topLeft  for each tick mark */
             std::vector<std::array<float, 12>> m_ticksBounds;
@@ -205,13 +203,14 @@ namespace caret {
         void getScaleBarDrawingInfo(const float tabViewportWidth,
                                     const float tabViewportHeight,
                                     const std::array<float, 3>& viewportXYZ,
+                                    const bool selectionFlag,
                                     DrawingInfo& drawingInfoOut) const;
         
         const AnnotationPercentSizeText* getLengthTextAnnotation() const;
         
-        LengthTextLocation getLengthTextLocation() const;
+        AnnotationScaleBarTextLocationEnum::Enum getLengthTextLocation() const;
         
-        void setLengthTextLocation(const LengthTextLocation location);
+        void setLengthTextLocation(const AnnotationScaleBarTextLocationEnum::Enum location);
         
         // ADD_NEW_METHODS_HERE
 
@@ -259,7 +258,7 @@ namespace caret {
         
         bool m_displayedFlag;
         
-        LengthTextLocation m_lengthTextLocation = LengthTextLocation::BOTTOM;
+        AnnotationScaleBarTextLocationEnum::Enum m_lengthTextLocation = AnnotationScaleBarTextLocationEnum::BOTTOM;
         
         mutable bool m_fontTooSmallWhenLastDrawnFlag = false;
         

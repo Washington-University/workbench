@@ -50,6 +50,7 @@ AnnotationRedoUndoCommand.h
 AnnotationRedoUndoCommandModeEnum.h
 AnnotationEditingSelectionInformation.h
 AnnotationScaleBar.h
+AnnotationScaleBarTextLocationEnum.h
 AnnotationScaleBarUnitsTypeEnum.h
 AnnotationSizingHandleTypeEnum.h
 AnnotationSpatialModification.h
@@ -100,6 +101,7 @@ AnnotationRedoUndoCommand.cxx
 AnnotationRedoUndoCommandModeEnum.cxx
 AnnotationEditingSelectionInformation.cxx
 AnnotationScaleBar.cxx
+AnnotationScaleBarTextLocationEnum.cxx
 AnnotationScaleBarUnitsTypeEnum.cxx
 AnnotationSizingHandleTypeEnum.cxx
 AnnotationSpatialModification.cxx

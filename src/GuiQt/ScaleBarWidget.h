@@ -70,7 +70,7 @@ namespace caret {
         
         void tickMarksSubdivsionsSpinBoxValueChanged(int value);
         
-        void lengthTextLocationComboBoxActivated(int index);
+        void lengthTextLocationComboBoxActivated();
         
     private:
         void updateGraphics();
@@ -97,7 +97,7 @@ namespace caret {
         
         EnumComboBoxTemplate* m_positionModeEnumComboBox;
 
-        QComboBox* m_lengthTextLocationComboBox;
+        EnumComboBoxTemplate* m_lengthTextLocationComboBox;
         
         // ADD_NEW_MEMBERS_HERE
 

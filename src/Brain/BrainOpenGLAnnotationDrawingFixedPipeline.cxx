@@ -2046,9 +2046,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotati
     
     AnnotationScaleBar::DrawingInfo scaleBarDrawingInfo;
     scaleBar->getScaleBarDrawingInfo(viewport[2],
-                                      viewport[3],
-                                      startXYZ,
-                                      scaleBarDrawingInfo);
+                                     viewport[3],
+                                     startXYZ,
+                                     m_selectionModeFlag,
+                                     scaleBarDrawingInfo);
     
     if ( ! scaleBarDrawingInfo.isValid()) {
         return;
@@ -2085,6 +2086,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawScaleBar(AnnotationFile* annotati
                                                        &scaleBarDrawingInfo.m_barBounds[6],
                                                        &scaleBarDrawingInfo.m_barBounds[9],
                                                       selectionColorRGBA);
+                
+                if (scaleBar->isShowLengthText()) {
+                    /*
+                     * Drawing box where text is located so text
+                     * can be clicked to cause selection
+                     */
+                    GraphicsShape::drawBoxFilledByteColor(&scaleBarDrawingInfo.m_textBounds[0],
+                                                          &scaleBarDrawingInfo.m_textBounds[3],
+                                                          &scaleBarDrawingInfo.m_textBounds[6],
+                                                          &scaleBarDrawingInfo.m_textBounds[9],
+                                                          selectionColorRGBA);
+                }
             }
             
             const float selectionCenterXYZ[3] = {

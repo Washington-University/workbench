@@ -65,6 +65,9 @@ AnnotationFontAttributesInterface()
                               &m_showLengthTextFlag);
         m_sceneAssistant->add("m_showLengthUnitsTextFlag",
                               &m_showLengthUnitsTextFlag);
+        m_sceneAssistant->add<AnnotationScaleBarTextLocationEnum, AnnotationScaleBarTextLocationEnum::Enum>("m_lengthTextLocation",
+                                                                                                            &m_lengthTextLocation);
+        
         m_sceneAssistant->add<AnnotationScaleBarUnitsTypeEnum, AnnotationScaleBarUnitsTypeEnum::Enum>("m_lengthUnits",
                                                                                             &m_lengthUnits);
 
@@ -815,7 +818,7 @@ AnnotationScaleBar::setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) co
 /*
  * @return Location for length text
  */
-AnnotationScaleBar::LengthTextLocation
+AnnotationScaleBarTextLocationEnum::Enum
 AnnotationScaleBar::getLengthTextLocation() const
 {
     return m_lengthTextLocation;
@@ -827,7 +830,7 @@ AnnotationScaleBar::getLengthTextLocation() const
  * New location of length text
  */
 void
-AnnotationScaleBar::setLengthTextLocation(const LengthTextLocation location)
+AnnotationScaleBar::setLengthTextLocation(const AnnotationScaleBarTextLocationEnum::Enum location)
 {
     m_lengthTextLocation = location;
 }
@@ -841,6 +844,8 @@ AnnotationScaleBar::setLengthTextLocation(const LengthTextLocation location)
  *  Height of tab's viewport
  * @param viewportXYZ
  *  Bottom corner of viewport
+ *  @param selectionFlag
+ *    True if selection mode
  * @param drawingInfoOut
  *  Upon exit, contains drawing information
  */
@@ -848,6 +853,7 @@ void
 AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
                                            const float tabViewportHeight,
                                            const std::array<float, 3>& viewportXYZ,
+                                           const bool selectionFlag,
                                            DrawingInfo& drawingInfoOut) const
 {
     drawingInfoOut.reset();
@@ -897,7 +903,19 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
      */
     const float percentageWidth(scaleBarLengthModelCoords / orthographicWidth);
     const float scaleBarWidthPixels(m_modelSpaceViewportWidth * percentageWidth);
-    const float scaleBarHeightPixels((getLineWidthPercentage() / 100.0) * tabViewportHeight);
+    float scaleBarHeightPixels((getLineWidthPercentage() / 100.0) * tabViewportHeight);
+    
+    if (selectionFlag) {
+        if (getBackgroundColor() == CaretColorEnum::NONE) {
+            /*
+             * When in selection mode and there is no background,
+             * increase the with of the scale bar by a fex pixels.
+             * Otherwise, the bar may be very thin making it difficult
+             * for the user to select
+             */
+            scaleBarHeightPixels += 4;
+        }
+    }
     
     std::vector<float> tickMarkBounds;
     float tickHeight(0.0);
@@ -968,9 +986,9 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
     }
     
     switch (m_lengthTextLocation) {
-        case LengthTextLocation::BOTTOM:
+        case AnnotationScaleBarTextLocationEnum::BOTTOM:
             break;
-        case LengthTextLocation::RIGHT:
+        case AnnotationScaleBarTextLocationEnum::RIGHT:
             break;
     }
     
@@ -981,7 +999,7 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
     float totalWidth(0.0);
     float totalHeight(0.0);
     switch (m_lengthTextLocation) {
-        case LengthTextLocation::BOTTOM:
+        case AnnotationScaleBarTextLocationEnum::BOTTOM:
             totalWidth = (std::max(scaleBarWidthPixels,
                                   textWidth)
                           + (margin * 2.0));
@@ -989,7 +1007,7 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
                            + textHeight
                            + (margin * 2.0));
             break;
-        case LengthTextLocation::RIGHT:
+        case AnnotationScaleBarTextLocationEnum::RIGHT:
             totalWidth = scaleBarWidthPixels + textWidth + (margin * 2.0);
             totalHeight = (std::max(barAndTicksHeight,
                                     textHeight)
@@ -1026,13 +1044,13 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
     float barOffsetX(0.0);
     float barOffsetY(0.0);
     switch (m_lengthTextLocation) {
-        case LengthTextLocation::BOTTOM:
+        case AnnotationScaleBarTextLocationEnum::BOTTOM:
             if (scaleBarWidthPixels < textWidth) {
                 barOffsetX = (textWidth - scaleBarWidthPixels) / 2.0;
             }
             barOffsetY = textHeight;
             break;
-        case LengthTextLocation::RIGHT:
+        case AnnotationScaleBarTextLocationEnum::RIGHT:
             if (barAndTicksHeight < textHeight) {
                 barOffsetY = (textHeight - barAndTicksHeight) / 2.0;
             }
@@ -1063,12 +1081,14 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
     drawingInfoOut.m_barBounds[11] = viewportXYZ[2];
     
     if (isShowLengthText()) {
+        std::array<float, 3> textBottomLeft;
         switch (m_lengthTextLocation) {
-            case LengthTextLocation::BOTTOM:
+            case AnnotationScaleBarTextLocationEnum::BOTTOM:
             {
                 const float textOffsetX(totalWidth / 2.0);
                 
-                /* Text is below the BAR
+                /*
+                 * Text is below the BAR
                  */
                 drawingInfoOut.m_textStartXYZ[0] = viewportXYZ[0] + textOffsetX;
                 drawingInfoOut.m_textStartXYZ[1] = viewportXYZ[1] + margin;
@@ -1076,10 +1096,18 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
 
                 m_lengthTextAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
                 m_lengthTextAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                
+                /*
+                 * Offset to bottom left corner
+                 */
+                textBottomLeft[0] = drawingInfoOut.m_textStartXYZ[0] - (textWidth / 2.0);
+                textBottomLeft[1] = drawingInfoOut.m_textStartXYZ[1];
+                textBottomLeft[2] = drawingInfoOut.m_textStartXYZ[2];
             }
                 break;
-            case LengthTextLocation::RIGHT:
-                /* Text is on right side of the BAR
+            case AnnotationScaleBarTextLocationEnum::RIGHT:
+                /*
+                 * Text is on right side of the BAR
                  *   X -> to the right side of the bar
                  *   Y -> centered in BACKGROUND BOUNDS
                  *   Z -> all Z's are same
@@ -1090,8 +1118,35 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
 
                 m_lengthTextAnnotation->setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
                 m_lengthTextAnnotation->setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+
+                /*
+                 * Offset to bottom left corner
+                 */
+                textBottomLeft[0] = drawingInfoOut.m_textStartXYZ[0];
+                textBottomLeft[1] = drawingInfoOut.m_textStartXYZ[1] - (textHeight / 2.0);
+                textBottomLeft[2] = drawingInfoOut.m_textStartXYZ[2];
                 break;
         }
+
+        /* bottom left text bounds */
+        drawingInfoOut.m_textBounds[0] = textBottomLeft[0];
+        drawingInfoOut.m_textBounds[1] = textBottomLeft[1];
+        drawingInfoOut.m_textBounds[2] = textBottomLeft[2];
+
+        /* bottom right text bounds */
+        drawingInfoOut.m_textBounds[3] = textBottomLeft[0] + textWidth;
+        drawingInfoOut.m_textBounds[4] = textBottomLeft[1];
+        drawingInfoOut.m_textBounds[5] = textBottomLeft[2];
+
+        /* top right text bounds */
+        drawingInfoOut.m_textBounds[6] = textBottomLeft[0] + textWidth;
+        drawingInfoOut.m_textBounds[7] = textBottomLeft[1] + textHeight;
+        drawingInfoOut.m_textBounds[8] = textBottomLeft[2];
+
+        /* top left text bounds */
+        drawingInfoOut.m_textBounds[9]  = textBottomLeft[0];
+        drawingInfoOut.m_textBounds[10] = textBottomLeft[1] + textHeight;
+        drawingInfoOut.m_textBounds[11] = textBottomLeft[2];
     }
     
     if (isShowTickMarks()) {
