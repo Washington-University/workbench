@@ -25,7 +25,7 @@ set -ue
 
 global_cmd_line="$0 $*"
 global_script_name="wb_shortcuts"
-global_script_version="beta-0.4"
+global_script_version="beta-0.5"
 
 function version ()
 {
@@ -181,7 +181,7 @@ function border_file_concatenate ()
                         local filesize=`wc -c "$filename" | cut -d' ' -f1`
                         if ((filesize > 1000000))
                         then
-                            error "file '${!i}' seems too large to be a text file"
+                            error "file '${filename}' seems too large to be a text file"
                         fi
                     fi
                     local -a filecontents
@@ -281,7 +281,7 @@ function cifti_concatenate ()
                         local filesize=`wc -c "$filename" | cut -d' ' -f1`
                         if ((filesize > 1000000))
                         then
-                            error "file '${!i}' seems too large to be a text file"
+                            error "file '${filename}' seems too large to be a text file"
                         fi
                     fi
                     local -a filecontents
@@ -655,7 +655,7 @@ function label_concatenate ()
                         local filesize=`wc -c "$filename" | cut -d' ' -f1`
                         if ((filesize > 1000000))
                         then
-                            error "file '${!i}' seems too large to be a text file"
+                            error "file '${filename}' seems too large to be a text file"
                         fi
                     fi
                     local -a filecontents
@@ -756,7 +756,7 @@ function metric_concatenate ()
                         local filesize=`wc -c "$filename" | cut -d' ' -f1`
                         if ((filesize > 1000000))
                         then
-                            error "file '${!i}' seems too large to be a text file"
+                            error "file '${filename}' seems too large to be a text file"
                         fi
                     fi
                     local -a filecontents
@@ -841,7 +841,7 @@ function scene_file_concatenate ()
                         local filesize=`wc -c "$filename" | cut -d' ' -f1`
                         if ((filesize > 1000000))
                         then
-                            error "file '${!i}' seems too large to be a text file"
+                            error "file '${filename}' seems too large to be a text file"
                         fi
                     fi
                     local -a filecontents
@@ -942,7 +942,7 @@ function volume_concatenate ()
                         local filesize=`wc -c "$filename" | cut -d' ' -f1`
                         if ((filesize > 1000000))
                         then
-                            error "file '${!i}' seems too large to be a text file"
+                            error "file '${filename}' seems too large to be a text file"
                         fi
                     fi
                     local -a filecontents
