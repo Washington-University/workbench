@@ -1081,7 +1081,7 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
     drawingInfoOut.m_barBounds[11] = viewportXYZ[2];
     
     if (isShowLengthText()) {
-        std::array<float, 3> textBottomLeft;
+        std::array<float, 3> textBottomLeft { 0.0, 0.0, 0.0 };
         switch (m_lengthTextLocation) {
             case AnnotationScaleBarTextLocationEnum::BOTTOM:
             {
