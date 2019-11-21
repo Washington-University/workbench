@@ -848,14 +848,12 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
                                                            colorBarIcon);
     
     QLabel* barsColorLabel = new QLabel("Bars Color");
+    m_histogramBarsColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::FIXED,
+                                                              CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
+                                                              this);
+    m_histogramBarsColorComboBox->setCustomColorName("Palette");
     if (colorBarIconValid) {
-        m_histogramBarsColorComboBox = new CaretColorEnumComboBox("Palette",
-                                                                  colorBarIcon,
-                                                                  this);
-    }
-    else {
-        m_histogramBarsColorComboBox = new CaretColorEnumComboBox("Palette",
-                                                                  this);
+        m_histogramBarsColorComboBox->setCustomColorIcon(colorBarIcon);
     }
     WuQtUtilities::setToolTipAndStatusTip(m_histogramBarsColorComboBox->getWidget(),
                                           "Set histogram bars coloring");
@@ -863,14 +861,12 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
                      this, SLOT(applyAndUpdate()));
     
     QLabel* envelopeColorLabel = new QLabel("Envelope");
+    m_histogramEnvelopeColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::FIXED,
+                                                                  CaretColorEnumComboBox::NoneColorModeEnum::DISABLED,
+                                                                  this);
+    m_histogramEnvelopeColorComboBox->setCustomColorName("Palette");
     if (colorBarIconValid) {
-        m_histogramEnvelopeColorComboBox = new CaretColorEnumComboBox("Palette",
-                                                                  colorBarIcon,
-                                                                  this);
-    }
-    else {
-        m_histogramEnvelopeColorComboBox = new CaretColorEnumComboBox("Palette",
-                                                                  this);
+        m_histogramEnvelopeColorComboBox->setCustomColorIcon(colorBarIcon);
     }
     WuQtUtilities::setToolTipAndStatusTip(m_histogramEnvelopeColorComboBox->getWidget(),
                                           "Set histogram envelope coloring");

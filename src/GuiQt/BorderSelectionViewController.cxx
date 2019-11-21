@@ -207,13 +207,12 @@ BorderSelectionViewController::createAttributesWidget()
                                           "Select border coloring type");
     
     QLabel* standardColorLabel = new QLabel("Standard Color");
-    m_standardColorComboBox = new CaretColorEnumComboBox("",
-                                                         QIcon(),
-                                                         (m_objectNamePrefix
-                                                          + ":Color"),
-                                                         "Set border standard color",
-                                                         this);
+    m_standardColorComboBox = new CaretColorEnumComboBox(this);
+    m_standardColorComboBox->getWidget()->setObjectName((m_objectNamePrefix
+                                                         + ":Color"));
     m_standardColorComboBox->getWidget()->setToolTip("Select the standard color");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_standardColorComboBox->getComboBox(),
+                                                         "Select border standard color");
     QObject::connect(m_standardColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(processAttributesChanges()));
 

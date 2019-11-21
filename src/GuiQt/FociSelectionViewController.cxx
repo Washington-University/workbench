@@ -199,13 +199,12 @@ FociSelectionViewController::createAttributesWidget()
                                           "Select foci color type");
     
     QLabel* standardColorLabel = new QLabel("Standard Color");
-    m_standardColorComboBox = new CaretColorEnumComboBox("",
-                                                         QIcon(),
-                                                         (m_objectNamePrefix
-                                                          + ":Color"),
-                                                         "Select foci standard color",
-                                                         this);
+    m_standardColorComboBox = new CaretColorEnumComboBox(this);
+    m_standardColorComboBox->getWidget()->setObjectName((m_objectNamePrefix
+                                                         + ":Color"));
     m_standardColorComboBox->getWidget()->setToolTip("Select the standard color");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_standardColorComboBox->getComboBox(),
+                                                         "Select foci standard color");
     QObject::connect(m_standardColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(processAttributesChanges()));
     
