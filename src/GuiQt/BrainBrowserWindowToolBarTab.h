@@ -77,6 +77,8 @@ namespace caret {
         
         QPixmap createScaleBarPixmap(const QWidget* widget);
         
+        QString m_objectNamePrefix;
+        
         QLabel* m_yokeToLabel;
         
         EnumComboBoxTemplate* m_yokingGroupComboBox;

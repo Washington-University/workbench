@@ -80,6 +80,9 @@ m_browserWindowIndex(browserWindowIndex),
 m_parentToolBar(parentToolBar),
 m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
 {
+    m_objectNamePrefix = (objectNamePrefix
+                          + ":Tab");
+    setObjectName(m_objectNamePrefix);
     m_yokingGroupComboBox = new EnumComboBoxTemplate(this);
     m_yokingGroupComboBox->setup<YokingGroupEnum, YokingGroupEnum::Enum>();
     m_yokingGroupComboBox->getWidget()->setStatusTip("Select a yoking group (linked views)");
@@ -88,8 +91,8 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
                                                     "Surface Yoking is applied to Surface, Surface Montage\n"
                                                     "and Whole Brain.  Volume Yoking is applied to Volumes."));
     QComboBox* encapComboBox = m_yokingGroupComboBox->getComboBox();
-    encapComboBox->setObjectName(objectNamePrefix
-                                 + ":Tab:YokingGroup");
+    encapComboBox->setObjectName(m_objectNamePrefix
+                                 + ":YokingGroup");
     WuQMacroManager::instance()->addMacroSupportToObject(encapComboBox,
                                                          "Select yoking group");
     
@@ -116,8 +119,8 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
         m_lightingAction->setText("L");
     }
     m_lightingAction->setToolTip(lightToolTip);
-    m_lightingAction->setObjectName(objectNamePrefix
-                                    + ":Tab:EnableShading");
+    m_lightingAction->setObjectName(m_objectNamePrefix
+                                    + ":EnableShading");
     QObject::connect(m_lightingAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarTab::lightingEnabledCheckBoxChecked);
     WuQMacroManager::instance()->addMacroSupportToObject(m_lightingAction,
@@ -145,8 +148,8 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     }
     m_clippingPlanesAction->setToolTip("Enable clipping planes; click arrow to edit");
     m_clippingPlanesAction->setMenu(createClippingPlanesMenu());
-    m_clippingPlanesAction->setObjectName(objectNamePrefix
-                                          + ":Tab:ClippingPlanes");
+    m_clippingPlanesAction->setObjectName(m_objectNamePrefix
+                                          + ":ClippingPlanes");
     WuQMacroManager::instance()->addMacroSupportToObject(m_clippingPlanesAction,
                                                          "Enable clipping planes");
     QObject::connect(m_clippingPlanesAction, &QAction::triggered,
@@ -345,7 +348,7 @@ BrainBrowserWindowToolBarTab::yokeToGroupComboBoxIndexChanged()
 QMenu*
 BrainBrowserWindowToolBarTab::createClippingPlanesMenu()
 {
-    m_clippingPlanesWidget = new ClippingPlanesWidget();
+    m_clippingPlanesWidget = new ClippingPlanesWidget(m_objectNamePrefix);
     QWidgetAction* clippingPlanesAction = new QWidgetAction(this);
     clippingPlanesAction->setDefaultWidget(m_clippingPlanesWidget);
     
@@ -393,7 +396,7 @@ BrainBrowserWindowToolBarTab::clippingPlanesMenuAboutToShow()
 QMenu*
 BrainBrowserWindowToolBarTab::createScaleBarMenu()
 {
-    m_scaleBarWidget = new ScaleBarWidget();
+    m_scaleBarWidget = new ScaleBarWidget(m_objectNamePrefix);
     QWidgetAction* scaleBarAction = new QWidgetAction(this);
     scaleBarAction->setDefaultWidget(m_scaleBarWidget);
     

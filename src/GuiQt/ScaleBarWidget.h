@@ -43,7 +43,7 @@ namespace caret {
         Q_OBJECT
 
     public:
-        ScaleBarWidget();
+        ScaleBarWidget(const QString& objectNamePrefix);
         
         virtual ~ScaleBarWidget();
         
@@ -80,6 +80,8 @@ namespace caret {
         QWidget* createMiscWidget();
         
         QWidget* createTickMarksWidget();
+        
+        QString m_objectNamePrefix;
         
         AnnotationScaleBar* m_scaleBar = NULL;
         

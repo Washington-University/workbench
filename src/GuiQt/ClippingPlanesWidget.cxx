@@ -58,11 +58,14 @@ using namespace caret;
 /**
  * Constructor.
  */
-ClippingPlanesWidget::ClippingPlanesWidget(QWidget* parent)
+ClippingPlanesWidget::ClippingPlanesWidget(const QString& objectNamePrefix,
+                                           QWidget* parent)
 : QWidget(parent)
 {
-    m_objectNamePrefix = "ClippingPlanesWidget";
-    
+    m_objectNamePrefix = (objectNamePrefix
+                          + ":ClippingPlanesWidget");
+    setObjectName(m_objectNamePrefix);
+
     /*------------------------------------------------------------------------*/
     /*
      * Create widgets

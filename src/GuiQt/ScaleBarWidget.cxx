@@ -38,6 +38,7 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "WuQMacroManager.h"
 
 using namespace caret;
 
@@ -52,9 +53,13 @@ using namespace caret;
 /**
  * Constructor.
  */
-ScaleBarWidget::ScaleBarWidget()
+ScaleBarWidget::ScaleBarWidget(const QString& objectNamePrefix)
 : QWidget()
 {
+    m_objectNamePrefix = (objectNamePrefix
+                          + ":ScaleBarWidget");
+    setObjectName(m_objectNamePrefix);
+    
     QWidget* lengthWidget = createLengthWidget();
     QWidget* miscWidget   = createMiscWidget();
     QWidget* ticksWidget  = createTickMarksWidget();
@@ -78,34 +83,61 @@ ScaleBarWidget::~ScaleBarWidget()
 QWidget*
 ScaleBarWidget::createLengthWidget()
 {
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    
     m_showLengthTextCheckBox = new QCheckBox("Show Length");
+    m_showLengthTextCheckBox->setToolTip("Show the length of the scale bar");
     QObject::connect(m_showLengthTextCheckBox, &QCheckBox::clicked,
                      this, &ScaleBarWidget::showLengthCheckBoxClicked);
-    
+    m_showLengthTextCheckBox->setObjectName(m_objectNamePrefix
+                                              + ":m_showLengthTextCheckBox");
+    macroManager->addMacroSupportToObject(m_showLengthTextCheckBox,
+                                          "Show Length");
+
     m_showLengthUnitsCheckbox = new QCheckBox("Show Length Units");
+    m_showLengthUnitsCheckbox->setToolTip("Show the length units after the length");
     QObject::connect(m_showLengthUnitsCheckbox, &QCheckBox::clicked,
                      this, &ScaleBarWidget::showLengthUnitsCheckBoxClicked);
-    
+    m_showLengthUnitsCheckbox->setObjectName(m_objectNamePrefix
+                                            + ":m_showLengthUnitsCheckbox");
+    macroManager->addMacroSupportToObject(m_showLengthUnitsCheckbox,
+                                          "Show Length Units");
+
     QLabel* lengthLabel = new QLabel("Length");
     m_lengthSpinBox = new QDoubleSpinBox();
+    m_lengthSpinBox->setToolTip("Set the length of the scale bar");
     m_lengthSpinBox->setRange(0.0, 100000.0);
     QObject::connect(m_lengthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &ScaleBarWidget::lengthSpinBoxValueChanged);
-    
+    m_lengthSpinBox->setObjectName(m_objectNamePrefix
+                                            + ":m_lengthSpinBox");
+    macroManager->addMacroSupportToObject(m_lengthSpinBox,
+                                          "Set Length");
+
 
     QLabel* unitsLabel = new QLabel("Length Units");
     m_lengthUnitsComboBox = new EnumComboBoxTemplate(this);
+    m_lengthUnitsComboBox->getComboBox()->setToolTip("Select the units for the length of the scale bar");
     m_lengthUnitsComboBox->setup<AnnotationScaleBarUnitsTypeEnum,AnnotationScaleBarUnitsTypeEnum::Enum>();
     QObject::connect(m_lengthUnitsComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &ScaleBarWidget::lengthEnumComboBoxItemActivated);
     m_lengthUnitsComboBox->getWidget()->setToolTip("Units displayed at end of scale bar");
-    
+    m_lengthUnitsComboBox->getWidget()->setObjectName(m_objectNamePrefix
+                                            + ":m_lengthUnitsComboBox");
+    macroManager->addMacroSupportToObject(m_lengthUnitsComboBox->getComboBox(),
+                                          "Select Length Units");
+
     QLabel* locationLabel = new QLabel("Location");
     m_lengthTextLocationComboBox = new EnumComboBoxTemplate(this);
+    m_lengthTextLocationComboBox->getComboBox()->setToolTip("Set the location of the length text relative to scale bar");
     m_lengthTextLocationComboBox->setup<AnnotationScaleBarTextLocationEnum, AnnotationScaleBarTextLocationEnum::Enum>();
     QObject::connect(m_lengthTextLocationComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &ScaleBarWidget::lengthTextLocationComboBoxActivated);
-    
+    m_lengthTextLocationComboBox->getComboBox()->setObjectName(m_objectNamePrefix
+                                            + ":m_lengthTextLocationComboBox");
+    macroManager->addMacroSupportToObject(m_lengthTextLocationComboBox->getComboBox(),
+                                          "Set Location of Text");
+
     QGroupBox* groupBox = new QGroupBox("Length");
     QGridLayout* gridLayout = new QGridLayout(groupBox);
     int32_t row(0);
@@ -132,6 +164,8 @@ ScaleBarWidget::createLengthWidget()
 QWidget*
 ScaleBarWidget::createMiscWidget()
 {
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    
     QLabel* positionModeLabel = new QLabel("Positioning");
     m_positionModeEnumComboBox = new EnumComboBoxTemplate(this);
     m_positionModeEnumComboBox->setup<AnnotationColorBarPositionModeEnum,AnnotationColorBarPositionModeEnum::Enum>();
@@ -141,7 +175,11 @@ ScaleBarWidget::createMiscWidget()
                                                         "   in lower left corner of Tab/Window\n"
                                                         "MANUAL - user must set the X and Y\n"
                                                         "   coordinates in the Tab/Window\n");
-    
+    m_positionModeEnumComboBox->getComboBox()->setObjectName(m_objectNamePrefix
+                                            + ":m_positionModeEnumComboBox");
+    macroManager->addMacroSupportToObject(m_positionModeEnumComboBox->getComboBox(),
+                                          "Positionm Mode");
+
     QGroupBox* groupBox = new QGroupBox("Misc");
     QGridLayout* gridLayout = new QGridLayout(groupBox);
     int32_t row(0);
@@ -158,15 +196,27 @@ ScaleBarWidget::createMiscWidget()
 QWidget*
 ScaleBarWidget::createTickMarksWidget()
 {
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+
     m_showTickMarksCheckBox = new QCheckBox("Show Tick Marks");
+    m_showTickMarksCheckBox->setToolTip("Show tick marks on the scale bar");
     QObject::connect(m_showTickMarksCheckBox, &QCheckBox::clicked,
                      this, &ScaleBarWidget::showTickMarksCheckBoxClicked);
-    
+    m_showTickMarksCheckBox->setObjectName(m_objectNamePrefix
+                                            + ":m_showTickMarksCheckBox");
+    macroManager->addMacroSupportToObject(m_showTickMarksCheckBox,
+                                          "Show Tick Marks");
+
     QLabel* subdivisionsLabel = new QLabel("Subdivisions");
     m_tickMarksSubdivisionsSpinBox = new QSpinBox();
+    m_tickMarksSubdivisionsSpinBox->setToolTip("Set the number of subdivisions (space between tick marks");
     m_tickMarksSubdivisionsSpinBox->setRange(0, 10);
     QObject::connect(m_tickMarksSubdivisionsSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &ScaleBarWidget::tickMarksSubdivsionsSpinBoxValueChanged);
+    m_tickMarksSubdivisionsSpinBox->setObjectName(m_objectNamePrefix
+                                            + ":m_tickMarksSubdivisionsSpinBox");
+    macroManager->addMacroSupportToObject(m_tickMarksSubdivisionsSpinBox,
+                                          "Set Number of Subdivisions");
 
     
     QGroupBox* groupBox = new QGroupBox("Tick Marks");

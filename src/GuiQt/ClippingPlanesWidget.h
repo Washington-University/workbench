@@ -38,7 +38,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        ClippingPlanesWidget(QWidget* parent = 0);
+        ClippingPlanesWidget(const QString& objectNamePrefix,
+                             QWidget* parent = 0);
         
         virtual ~ClippingPlanesWidget();
         
