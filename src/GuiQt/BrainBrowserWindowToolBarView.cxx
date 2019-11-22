@@ -74,7 +74,7 @@ BrainBrowserWindowToolBarView::BrainBrowserWindowToolBarView(const QString& pare
                                           "Select Chart View");
     
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
-    this->viewModeSurfaceRadioButton->setToolTip("Show Surace View");
+    this->viewModeSurfaceRadioButton->setToolTip("Show Surface View");
     this->viewModeSurfaceRadioButton->setObjectName(objectNamePrefix
                                                     + ":Surface");
     macroManager->addMacroSupportToObject(this->viewModeSurfaceRadioButton,

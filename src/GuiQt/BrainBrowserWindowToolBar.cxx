@@ -494,9 +494,9 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->toolbarWidgetLayout = new QHBoxLayout(m_toolbarWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(this->toolbarWidgetLayout, 2, 1);
     
-    this->toolbarWidgetLayout->addWidget(this->viewWidget, 0, Qt::AlignLeft);
-    
     this->toolbarWidgetLayout->addWidget(this->modeWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->viewWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->orientationWidget, 0, Qt::AlignLeft);
     
@@ -528,8 +528,6 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     
     this->toolbarWidgetLayout->addWidget(this->chartAttributesWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->tabMiscWidget, 0, Qt::AlignLeft);
-    
     this->toolbarWidgetLayout->addWidget(this->annotateModeWidget, 0, Qt::AlignLeft);
 
     this->toolbarWidgetLayout->addWidget(this->bordersModeWidget, 0, Qt::AlignLeft);
@@ -541,6 +539,8 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->toolbarWidgetLayout->addWidget(this->tileModeWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->volumeModeWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->tabMiscWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addStretch();
 
@@ -1863,7 +1863,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     
     bool showModeWidget = true;
     bool showViewWidget = true;
-    bool showTabMiscWidget = false;
+    bool showTabMiscWidget = true;
     
     bool showAnnotateModeWidget(false);
     bool showBorderModeWidget(false);
@@ -1935,7 +1935,6 @@ BrainBrowserWindowToolBar::updateToolBar()
             break;
         case UserInputModeEnum::VIEW:
             showViewModeWidgetsFlag = true;
-            showTabMiscWidget = true;
             break;
         case UserInputModeEnum::VOLUME_EDIT:
             showViewModeWidgetsFlag = true;
@@ -2103,6 +2102,8 @@ BrainBrowserWindowToolBar::updateToolBar()
     }
     
     m_performingUpdateFlag = false;
+    
+    std::cout << "Toolbar width: " << width() << std::endl;
 }
 
 /**
@@ -2146,7 +2147,7 @@ BrainBrowserWindowToolBar::createViewWidget()
 {
     m_viewToolBarComponent = new BrainBrowserWindowToolBarView(m_objectNamePrefix,
                                                                this);
-    QWidget* w = this->createToolWidget("View", 
+    QWidget* w = this->createToolWidget("Display", 
                                         m_viewToolBarComponent, 
                                         WIDGET_PLACEMENT_NONE,
                                         WIDGET_PLACEMENT_TOP,
@@ -2298,7 +2299,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     /*
      * Borders 
      */ 
-    this->modeInputModeBordersRadioButton = new QRadioButton("Border");
+    this->modeInputModeBordersRadioButton = new QRadioButton("Edit Borders");
     this->modeInputModeBordersRadioButton->setToolTip("Perform border operations with mouse");
     this->modeInputModeBordersRadioButton->setObjectName(m_objectNamePrefix
                                                         + ":Mode:Border");
@@ -2306,7 +2307,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     /*
      * Foci
      */
-    this->modeInputModeFociRadioButton = new QRadioButton("Foci");
+    this->modeInputModeFociRadioButton = new QRadioButton("Edit Foci");
     this->modeInputModeFociRadioButton->setToolTip("Perform foci operations with mouse");
     this->modeInputModeFociRadioButton->setObjectName(m_objectNamePrefix
                                                         + ":Mode:Foci");
@@ -2332,7 +2333,7 @@ BrainBrowserWindowToolBar::createModeWidget()
                               "  * Tile Tabs is enabled (View Menu -> Enter Tile Tabs)<br>"
                               "  * Selected Tile Tab Active Configuration Type is Manual (View Menu -> Edit Tile Tabs Configuration)"
                               "</html>");
-    this->modeInputModeTileTabsManualLayoutRadioButton = new QRadioButton("Tile");
+    this->modeInputModeTileTabsManualLayoutRadioButton = new QRadioButton("Tile Layout");
     this->modeInputModeTileTabsManualLayoutRadioButton->setToolTip(tileToolTip);
     this->modeInputModeTileTabsManualLayoutRadioButton->setObjectName(m_objectNamePrefix
                                                                  + "Mode:TileTabsManualLayout");
@@ -2340,7 +2341,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     /*
      * Volume Edit
      */
-    this->modeInputVolumeEditRadioButton = new QRadioButton("Volume");
+    this->modeInputVolumeEditRadioButton = new QRadioButton("Edit Voxels");
     this->modeInputVolumeEditRadioButton->setToolTip("Edit volume voxels");
     this->modeInputVolumeEditRadioButton->setObjectName(m_objectNamePrefix
                                                         + ":Mode:Volume");
@@ -2407,14 +2408,14 @@ BrainBrowserWindowToolBar::createModeWidget()
 #else
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 2);
 #endif
+    layout->addWidget(this->modeInputModeViewRadioButton);
+    layout->addWidget(this->modeInputModeTileTabsManualLayoutRadioButton);
     layout->addWidget(this->modeInputModeAnnotationsRadioButton);
     layout->addWidget(this->modeInputModeBordersRadioButton);
     layout->addWidget(this->modeInputModeFociRadioButton);
     if (this->modeInputModeImageRadioButton != NULL) {
         layout->addWidget(this->modeInputModeImageRadioButton);
     }
-    layout->addWidget(this->modeInputModeTileTabsManualLayoutRadioButton);
-    layout->addWidget(this->modeInputModeViewRadioButton);
     layout->addWidget(this->modeInputVolumeEditRadioButton);
     
     this->modeWidgetGroup = new WuQWidgetObjectGroup(this);
@@ -2422,7 +2423,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     
     QWidget* w = this->createToolWidget("Mode", 
                                         widget, 
-                                        WIDGET_PLACEMENT_LEFT,
+                                        WIDGET_PLACEMENT_RIGHT,
                                         WIDGET_PLACEMENT_TOP,
                                         0);
     return w;
