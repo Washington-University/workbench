@@ -2102,8 +2102,6 @@ BrainBrowserWindowToolBar::updateToolBar()
     }
     
     m_performingUpdateFlag = false;
-    
-    std::cout << "Toolbar width: " << width() << std::endl;
 }
 
 /**
@@ -2147,7 +2145,7 @@ BrainBrowserWindowToolBar::createViewWidget()
 {
     m_viewToolBarComponent = new BrainBrowserWindowToolBarView(m_objectNamePrefix,
                                                                this);
-    QWidget* w = this->createToolWidget("Display", 
+    QWidget* w = this->createToolWidget("Display",
                                         m_viewToolBarComponent, 
                                         WIDGET_PLACEMENT_NONE,
                                         WIDGET_PLACEMENT_TOP,

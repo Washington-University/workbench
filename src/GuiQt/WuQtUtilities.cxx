@@ -24,6 +24,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QBoxLayout>
+#include <QComboBox>
 #include <QDesktopWidget>
 #include <QDialog>
 #include <QDir>
@@ -1695,5 +1696,26 @@ WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton* toolButton)
     void WuQtUtilities::setToolButtonStyleForQt5Mac(QToolButton*) { }
 #endif
 
+/**
+ * Rename items in combox box by replacing 'before' in the names with 'after'
+ * @param comboBox
+ * The combo box
+ * @param before
+ * If this text is found in the name it is replaced with 'after'
+ * @param after
+ * Text that replaces 'before'
+ */
+void
+WuQtUtilities::replaceComboBoxItemNames(QComboBox* comboBox,
+                                        const QString& before,
+                                        const QString& after)
+{
+    CaretAssert(comboBox);
+    const int32_t numItems = comboBox->count();
+    for (int32_t i = 0; i < numItems; i++) {
+        QString newName = comboBox->itemText(i).replace(before, after);
+        comboBox->setItemText(i, newName);
+    }
+}
 
 

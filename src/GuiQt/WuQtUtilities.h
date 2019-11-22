@@ -33,6 +33,7 @@
 
 class QAction;
 class QBoxLayout;
+class QComboBox;
 class QDialog;
 class QIcon;
 class QKeySequence;
@@ -227,6 +228,10 @@ namespace caret {
         static Qt::CheckState boolToCheckState(const bool value);
         
         static void setToolButtonStyleForQt5Mac(QToolButton* toolButton);
+        
+        static void replaceComboBoxItemNames(QComboBox* comboBox,
+                                             const QString& before,
+                                             const QString& after);
         
     private:
         static QSharedPointer<QPainter> createPixmapWidgetPainterPrivate(const QWidget* widget,

@@ -91,12 +91,13 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
                                                     "Surface Yoking is applied to Surface, Surface Montage\n"
                                                     "and Whole Brain.  Volume Yoking is applied to Volumes."));
     QComboBox* encapComboBox = m_yokingGroupComboBox->getComboBox();
+//    WuQtUtilities::replaceComboBoxItemNames(encapComboBox, "Group", "Yoke");
     encapComboBox->setObjectName(m_objectNamePrefix
                                  + ":YokingGroup");
     WuQMacroManager::instance()->addMacroSupportToObject(encapComboBox,
                                                          "Select yoking group");
     
-    m_yokeToLabel = new QLabel("Yoking:");
+    m_yokeToLabel = new QLabel("Yoke:");
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
@@ -173,39 +174,35 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
                      this, &BrainBrowserWindowToolBarTab::scaleBarActionToggled);
 
     scaleBarToolButton->setDefaultAction(m_scaleBarAction);
-//    scaleBarToolButton->setIconSize(scaleBarPixmap.size());
     WuQtUtilities::setToolButtonStyleForQt5Mac(scaleBarToolButton);
 
     m_macroRecordingLabel = new QLabel("");
     
-    QGridLayout* layout = new QGridLayout(this);
-    layout->setColumnStretch(0, 0);
-    layout->setColumnStretch(1, 0);
-    layout->setColumnStretch(2, 100);
+    QHBoxLayout* yokeLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(yokeLayout, 2, 0);
+    yokeLayout->addWidget(m_yokeToLabel);
+    yokeLayout->addWidget(m_yokingGroupComboBox->getWidget());
+    yokeLayout->addStretch();
+    
+    QHBoxLayout* buttonsLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(buttonsLayout, 2, 2);
+    buttonsLayout->addWidget(lightingToolButton);
+    buttonsLayout->addWidget(clippingPlanesToolButton);
+    buttonsLayout->addWidget(scaleBarToolButton);
+    buttonsLayout->addStretch();
+
+    QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
-    int32_t row(0);
-    layout->addWidget(m_yokeToLabel,
-                      row, 0, 1, 3, Qt::AlignLeft);
-    row++;
-    layout->addWidget(m_yokingGroupComboBox->getWidget(),
-                      row, 0, 1, 3, Qt::AlignLeft);
-    row++;
-    layout->addWidget(m_lockWindowAndAllTabAspectButton,
-                      row, 0, 1, 3, Qt::AlignLeft);
-    row++;
-    layout->addWidget(lightingToolButton,
-                      row, 0);
-    layout->addWidget(clippingPlanesToolButton,
-                      row, 1);
-    layout->addWidget(scaleBarToolButton,
-                      row, 2);
-    row++;
-    layout->addWidget(m_macroRecordingLabel,
-                      row, 0, 1, 3, Qt::AlignLeft);
+    layout->addLayout(yokeLayout);
+    layout->addWidget(m_lockWindowAndAllTabAspectButton, 0, Qt::AlignLeft);
+    layout->addLayout(buttonsLayout);
+    layout->addWidget(m_macroRecordingLabel, 0, Qt::AlignLeft);
     
     addToWidgetGroup(m_yokeToLabel);
     addToWidgetGroup(m_yokingGroupComboBox->getWidget());
     addToWidgetGroup(lightingToolButton);
+    addToWidgetGroup(clippingPlanesToolButton);
+    addToWidgetGroup(scaleBarToolButton);
     addToWidgetGroup(m_macroRecordingLabel);
 }
 
@@ -252,11 +249,11 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     }
     
     if (chartFlag) {
-        m_yokeToLabel->setText("Chart Yoking:");
+        m_yokeToLabel->setText("Chart\nYoke:");
         m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getChartModelYokingGroup());
     }
     else {
-        m_yokeToLabel->setText("Yoking:");
+        m_yokeToLabel->setText("Yoke:");
         m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getBrainModelYokingGroup());
     }
     
