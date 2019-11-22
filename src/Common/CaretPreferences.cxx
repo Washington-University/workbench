@@ -80,7 +80,13 @@ CaretPreferences::CaretPreferences()
                                                             CaretPreferenceDataValue::DataType::BOOLEAN,
                                                             CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                             false));
-                               
+ 
+    m_toolBarWidthModePreference.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                    "toolBarWidthMode",
+                                                                    CaretPreferenceDataValue::DataType::STRING,
+                                                                    CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                    ToolBarWidthModeEnum::toName(ToolBarWidthModeEnum::COMPACT)));
+    
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
 }
 
@@ -1501,6 +1507,32 @@ CaretPreferences::setBalsaUserName(const AString& userName)
     this->setString(NAME_BALSA_USER_NAME,
                     userName);
 }
+
+/**
+ * @return The toolbar's width mode
+ */
+ToolBarWidthModeEnum::Enum
+CaretPreferences::getToolBarWidthMode() const
+{
+    QString stringValue(m_toolBarWidthModePreference->getValue().toString());
+    bool validFlag(false);
+    const ToolBarWidthModeEnum::Enum enumValue =
+    ToolBarWidthModeEnum::fromName(stringValue, &validFlag);
+    return enumValue;
+}
+
+/**
+ * Set the toolbar's width mode
+ * @param widthMode
+ * The new width mode
+ */
+void
+CaretPreferences::setToolBarWidthMode(const ToolBarWidthModeEnum::Enum widthMode)
+{
+    const QString stringValue = ToolBarWidthModeEnum::toName(widthMode);
+    m_toolBarWidthModePreference->setValue(stringValue);
+}
+
 
 /**
  * @return  Are axes crosshairs displayed?

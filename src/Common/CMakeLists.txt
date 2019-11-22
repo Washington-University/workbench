@@ -161,6 +161,7 @@ TileTabsLayoutManualConfiguration.h
 TileTabsGridRowColumnContentTypeEnum.h
 TileTabsGridRowColumnElement.h
 TileTabsGridRowColumnStretchTypeEnum.h
+ToolBarWidthModeEnum.h
 TracksModificationInterface.h
 TriStateSelectionStatusEnum.h
 Vector3D.h
@@ -287,6 +288,7 @@ TileTabsLayoutManualConfiguration.cxx
 TileTabsGridRowColumnContentTypeEnum.cxx
 TileTabsGridRowColumnElement.cxx
 TileTabsGridRowColumnStretchTypeEnum.cxx
+ToolBarWidthModeEnum.cxx
 TriStateSelectionStatusEnum.cxx
 Vector3D.cxx
 VectorOperation.cxx

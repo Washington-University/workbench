@@ -1907,6 +1907,17 @@ BrainBrowserWindowToolBar::updateToolBar()
             break;
     }
 
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    const ToolBarWidthModeEnum::Enum widthMode = prefs->getToolBarWidthMode();
+    bool elongatedFlag(false);
+    switch (widthMode) {
+        case ToolBarWidthModeEnum::COMPACT:
+            elongatedFlag = false;
+            break;
+        case ToolBarWidthModeEnum::ELONGATED:
+            elongatedFlag = true;
+            break;
+    }
     
     /*
      * Enable widgets for selected input mode
@@ -1914,6 +1925,9 @@ BrainBrowserWindowToolBar::updateToolBar()
     CaretAssert(this->selectedUserInputProcessor);
     switch (this->selectedUserInputProcessor->getUserInputMode()) {
         case UserInputModeEnum::ANNOTATIONS:
+            if (elongatedFlag) {
+                showViewModeWidgetsFlag = true;
+            }
             showAnnotateModeWidget = true;
             break;
         case UserInputModeEnum::BORDERS:
@@ -1931,6 +1945,9 @@ BrainBrowserWindowToolBar::updateToolBar()
         case UserInputModeEnum::INVALID:
             break;
         case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+            if (elongatedFlag) {
+                showViewModeWidgetsFlag = true;
+            }
             showTileModeWidget = true;
             break;
         case UserInputModeEnum::VIEW:

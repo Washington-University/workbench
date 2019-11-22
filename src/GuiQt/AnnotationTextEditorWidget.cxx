@@ -83,6 +83,13 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_annotationTextConnectTypeEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(annotationTextConnectTypeEnumComboBoxItemActivated()));
     
+    /*
+     * Limit text edit width to width of combo box
+     */
+    const int32_t width = m_annotationTextConnectTypeEnumComboBox->getWidget()->sizeHint().width();
+    m_annotationTextConnectTypeEnumComboBox->getWidget()->setFixedWidth(width);
+    m_textLineEdit->setFixedWidth(width);
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(textLabel, 0, Qt::AlignHCenter);
@@ -91,7 +98,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     setSizePolicy(sizePolicy().horizontalPolicy(),
                   QSizePolicy::Fixed);
-    setMaximumWidth(200);
 }
 
 /**

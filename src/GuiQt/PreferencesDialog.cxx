@@ -44,6 +44,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
@@ -426,6 +427,17 @@ PreferencesDialog::createMiscellaneousWidget()
                      this, SLOT(miscSpecFileDialogViewFilesTypeEnumComboBoxItemActivated()));
     m_allWidgets->add(m_miscSpecFileDialogViewFilesTypeEnumComboBox->getWidget());
     
+    /*
+     * Toolbar mode
+     */
+    const QString widthToolTip("Elongated mode will show \"View\" toolbar components in all Modes but requires  "
+                               "a wide monitor (1920 width or greater).");
+    m_windowToolBarWidthModeComboBox = new EnumComboBoxTemplate(this);
+    m_windowToolBarWidthModeComboBox->setup<ToolBarWidthModeEnum, ToolBarWidthModeEnum::Enum>();
+    m_windowToolBarWidthModeComboBox->setToolTip(WuQtUtilities::createWordWrappedToolTipText(widthToolTip));
+    QObject::connect(m_windowToolBarWidthModeComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &PreferencesDialog::miscWindowToolBarWidthModeComboBoxItemActivated);
+
     QGridLayout* gridLayout = new QGridLayout();
     addWidgetToLayout(gridLayout,
                       "Dynconn As Layer Default: ",
@@ -445,6 +457,9 @@ PreferencesDialog::createMiscellaneousWidget()
     addWidgetToLayout(gridLayout,
                       "Enable Trackpad Gestures",
                       m_guiGesturesEnabledComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Window ToolBar Width Mode",
+                      m_windowToolBarWidthModeComboBox->getWidget());
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -479,6 +494,8 @@ PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
     m_miscSpecFileDialogViewFilesTypeEnumComboBox->setSelectedItem<SpecFileDialogViewFilesTypeEnum,SpecFileDialogViewFilesTypeEnum::Enum>(prefs->getManageFilesViewFileType());
 
     m_guiGesturesEnabledComboBox->setStatus(prefs->isGuiGesturesEnabled());
+    
+    m_windowToolBarWidthModeComboBox->setSelectedItem<ToolBarWidthModeEnum, ToolBarWidthModeEnum::Enum>(prefs->getToolBarWidthMode());
 }
 
 /**
@@ -681,7 +698,7 @@ PreferencesDialog::createTabDefaltsWidget()
     m_volumeAllSlicePlanesLayoutComboBox = new EnumComboBoxTemplate(this);
     m_volumeAllSlicePlanesLayoutComboBox->setup<VolumeSliceViewAllPlanesLayoutEnum,VolumeSliceViewAllPlanesLayoutEnum::Enum>();
     QObject::connect(m_volumeAllSlicePlanesLayoutComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(m_volumeAllSlicePlanesLayoutItemActivated()));
+                     this, SLOT(volumeAllSlicePlanesLayoutItemActivated()));
     m_allWidgets->add(m_volumeAllSlicePlanesLayoutComboBox->getWidget());
 
     
@@ -1049,7 +1066,7 @@ PreferencesDialog::volumeAxesMontageCoordinatesComboBoxToggled(bool value)
  * Called when ALL view slice plane layout changed by user
  */
 void
-PreferencesDialog::m_volumeAllSlicePlanesLayoutItemActivated()
+PreferencesDialog::volumeAllSlicePlanesLayoutItemActivated()
 {
     VolumeSliceViewAllPlanesLayoutEnum::Enum layoutValue = m_volumeAllSlicePlanesLayoutComboBox->getSelectedItem<VolumeSliceViewAllPlanesLayoutEnum, VolumeSliceViewAllPlanesLayoutEnum::Enum>();
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
@@ -1135,6 +1152,19 @@ PreferencesDialog::miscGuiGesturesEnabledComboBoxChanged(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setGuiGesturesEnabled(value);
+}
+
+/**
+ * Gets called window toolbar mode is changed
+ */
+void
+PreferencesDialog::miscWindowToolBarWidthModeComboBoxItemActivated()
+{
+    const ToolBarWidthModeEnum::Enum widthMode = m_windowToolBarWidthModeComboBox->getSelectedItem<ToolBarWidthModeEnum, ToolBarWidthModeEnum::Enum>();
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setToolBarWidthMode(widthMode);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**

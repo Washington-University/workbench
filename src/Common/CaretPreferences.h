@@ -31,6 +31,7 @@
 #include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
 #include "SpecFileDialogViewFilesTypeEnum.h"
+#include "ToolBarWidthModeEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
 
 class QSettings;
@@ -91,6 +92,10 @@ namespace caret {
         OpenGLDrawingMethodEnum::Enum getOpenDrawingMethod() const;
         
         void setOpenGLDrawingMethod(const OpenGLDrawingMethodEnum::Enum openGLDrawingMethod);
+        
+        ToolBarWidthModeEnum::Enum getToolBarWidthMode() const;
+        
+        void setToolBarWidthMode(const ToolBarWidthModeEnum::Enum widthMode);
         
         VolumeSliceViewAllPlanesLayoutEnum::Enum getVolumeAllSlicePlanesLayout() const;
         
@@ -316,6 +321,8 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_volumeCrossHairGapPreference;
 
         std::unique_ptr<CaretPreferenceDataValue> m_guiGesturesEnabled;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_toolBarWidthModePreference;
         
         std::vector<CaretPreferenceDataValue*> m_preferenceDataValues;
         

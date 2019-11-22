@@ -61,7 +61,7 @@ namespace caret {
         void miscSpecFileDialogViewFilesTypeEnumComboBoxItemActivated();
         void miscGuiGesturesEnabledComboBoxChanged(bool value);
         void miscDynamicConnectivityComboBoxChanged(bool value);
-        
+        void miscWindowToolBarWidthModeComboBoxItemActivated();
         void openGLDrawingMethodEnumComboBoxItemActivated();
         void openGLImageCaptureMethodEnumComboBoxItemActivated();
         
@@ -70,7 +70,7 @@ namespace caret {
         void volumeAxesMontageCoordinatesComboBoxToggled(bool value);
         void volumeMontageCoordinatePrecisionChanged(int value);
         void volumeIdentificationComboBoxToggled(bool value);
-        void m_volumeAllSlicePlanesLayoutItemActivated();
+        void volumeAllSlicePlanesLayoutItemActivated();
         
         void yokingComboBoxToggled(bool value);
         
@@ -141,6 +141,7 @@ namespace caret {
         WuQTrueFalseComboBox* m_miscSplashScreenShowAtStartupComboBox;
         EnumComboBoxTemplate* m_miscSpecFileDialogViewFilesTypeEnumComboBox;
         WuQTrueFalseComboBox* m_guiGesturesEnabledComboBox;
+        EnumComboBoxTemplate* m_windowToolBarWidthModeComboBox;
         
         EnumComboBoxTemplate* m_openGLDrawingMethodEnumComboBox;
         EnumComboBoxTemplate* m_openGLImageCaptureMethodEnumComboBox;
