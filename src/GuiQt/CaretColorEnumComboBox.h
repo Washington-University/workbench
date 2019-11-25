@@ -81,7 +81,11 @@ namespace caret {
         
         void getCustomColor(std::array<uint8_t, 3>& rgbOut) const;
         
+        void getCustomColor(std::array<uint8_t, 4>& rgbaOut) const;
+        
         void setCustomColor(const std::array<uint8_t, 3>& rgb);
+        
+        void setCustomColor(const std::array<uint8_t, 4>& rgba);
         
         void setCustomColorName(const AString& customColorName);
         
@@ -103,6 +107,9 @@ namespace caret {
         CaretColorEnumComboBox& operator=(const CaretColorEnumComboBox&);
         
     private:
+        void setIconColor(const int32_t index,
+                          const uint8_t rgba[4]);
+        
         const CustomColorModeEnum m_customColorMode;
         
         const NoneColorModeEnum m_noneColorMode;

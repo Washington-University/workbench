@@ -119,29 +119,55 @@ m_noneColorMode(noneColorMode)
         /*
          * Create an icon with the color.
          */
-        float rgba[4];
-        CaretColorEnum::toRGBAFloat(colorEnum, rgba);
+        uint8_t rgba[4];
+        CaretColorEnum::toRGBAByte(colorEnum, rgba);
         if (colorEnum == CaretColorEnum::NONE) {
-            rgba[3] = 0.0;
+            rgba[3] = 0;
         }
         else if (colorEnum == CaretColorEnum::CUSTOM) {
-            rgba[3] = 0.0;
+            rgba[3] = 0;
         }
         else {
-            rgba[3] = 1.0;
+            rgba[3] = 255;
         }
         
         if (rgba[3] > 0.0) {
-            QPixmap pm(WuQtUtilities::createCaretColorEnumPixmap(getWidget(), 10, 10, colorEnum, rgba, false));
-            QIcon icon(pm);
-            this->colorComboBox->setItemIcon(indx,
-                                             icon);
+            setIconColor(indx, rgba);
+//            QPixmap pm(WuQtUtilities::createCaretColorEnumPixmap(getWidget(), 10, 10, colorEnum, rgba, false));
+//            QIcon icon(pm);
+//            this->colorComboBox->setItemIcon(indx,
+//                                             icon);
         }
     }
     
     setSelectedColor(CaretColorEnum::BLACK);
     QObject::connect(this->colorComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(colorComboBoxIndexChanged(int)));
+}
+
+/**
+ * Set the icon color
+ * @param index
+ * Index in the combo box
+ * @param rgba
+ * RGBA components
+ */
+void
+CaretColorEnumComboBox::setIconColor(const int32_t index,
+                                     const uint8_t rgba[4])
+{
+    if (index >= 0) {
+        const float floatRGBA[4] = {
+            rgba[0] / 255.0f,
+            rgba[1] / 255.0f,
+            rgba[2] / 255.0f,
+            rgba[3] / 255.0f
+        };
+        QPixmap pm(WuQtUtilities::createCaretColorEnumPixmap(getWidget(), 10, 10, CaretColorEnum::CUSTOM, floatRGBA, false));
+        QIcon icon(pm);
+        this->colorComboBox->setItemIcon(index,
+                                         icon);
+    }
 }
 
 /**
@@ -250,6 +276,21 @@ CaretColorEnumComboBox::getCustomColor(std::array<uint8_t, 3>& rgbOut) const
 }
 
 /**
+ * Get the custom color.
+ * @param rgbaOut
+ *   Output with current custom color.
+ */
+void
+CaretColorEnumComboBox::getCustomColor(std::array<uint8_t, 4>& rgbaOut) const
+{
+    rgbaOut[0] = m_customColorRGB[0];
+    rgbaOut[1] = m_customColorRGB[1];
+    rgbaOut[2] = m_customColorRGB[2];
+    rgbaOut[3] = 255;
+}
+
+
+/**
  * Set the custom color.
  * @param rgb
  *   New custom color.
@@ -258,7 +299,26 @@ void
 CaretColorEnumComboBox::setCustomColor(const std::array<uint8_t, 3>& rgb)
 {
     m_customColorRGB = rgb;
+    uint8_t rgba[4] = {
+        m_customColorRGB[0], m_customColorRGB[1], m_customColorRGB[2], 255
+    };
+    setIconColor(m_customColorIndex, rgba);
 }
+
+/**
+ * Set the custom color.
+ * @param rgba
+ *   New custom color.
+ */
+void
+CaretColorEnumComboBox::setCustomColor(const std::array<uint8_t, 4>& rgba)
+{
+    m_customColorRGB[0] = rgba[0];
+    m_customColorRGB[1] = rgba[1];
+    m_customColorRGB[2] = rgba[2];
+    setCustomColor(m_customColorRGB);
+}
+
 /**
  * Called when a color is selected.
  * @param indx
