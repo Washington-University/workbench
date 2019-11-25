@@ -27,6 +27,8 @@
 
 #include <QWidget>
 
+#include "CaretColorEnum.h"
+
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
@@ -36,7 +38,9 @@ namespace caret {
 
     class AnnotationScaleBar;
     class BrowserTabContent;
+    class CaretColorEnumComboBox;
     class EnumComboBoxTemplate;
+    class WuQDoubleSpinBox;
 
     class ScaleBarWidget : public QWidget {
         
@@ -62,6 +66,8 @@ namespace caret {
         
         void lengthSpinBoxValueChanged(double value);
         
+        void thicknessSpinBoxValueChanged(double value);
+        
         void positionModeEnumComboBoxItemActivated();
 
         void lengthEnumComboBoxItemActivated();
@@ -72,12 +78,24 @@ namespace caret {
         
         void lengthTextLocationComboBoxActivated();
         
+        void backgroundColorComboBoxSelected(const CaretColorEnum::Enum color);
+        
+        void foregroundColorComboBoxSelected(const CaretColorEnum::Enum color);
+        
+        void fontColorComboBoxSelected(const CaretColorEnum::Enum color);
+        
+        void fontNameChanged();
+        
+        void fontSizeValueChanged(double value);
+        
     private:
         void updateGraphics();
         
-        QWidget* createLengthWidget();
+        QWidget* createBarWidget();
         
-        QWidget* createMiscWidget();
+        QWidget* createLengthTextWidget();
+        
+        QWidget* createPositionWidget();
         
         QWidget* createTickMarksWidget();
         
@@ -91,6 +109,8 @@ namespace caret {
         
         QDoubleSpinBox* m_lengthSpinBox;
         
+        QDoubleSpinBox* m_thicknessSpinBox;
+        
         EnumComboBoxTemplate* m_lengthUnitsComboBox;
         
         QCheckBox* m_showTickMarksCheckBox;
@@ -100,6 +120,20 @@ namespace caret {
         EnumComboBoxTemplate* m_positionModeEnumComboBox;
 
         EnumComboBoxTemplate* m_lengthTextLocationComboBox;
+        
+        CaretColorEnumComboBox* m_backgroundColorComboBox;
+        
+        CaretColorEnumComboBox* m_foregroundColorComboBox;
+        
+        CaretColorEnumComboBox* m_fontColorComboBox;
+        
+        EnumComboBoxTemplate* m_fontNameComboBox;
+        
+        WuQDoubleSpinBox* m_fontSizeSpinBox;
+
+        QPalette m_fontSizeSpinBoxDefaultPalette;
+        
+        QPalette m_fontSizeSpinBoxRedTextPalette;
         
         // ADD_NEW_MEMBERS_HERE
 
