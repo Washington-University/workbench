@@ -30,6 +30,9 @@
 #include "CaretPreferences.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
+#include "IdentificationFilter.h"
+#include "IdentificationHistoryManager.h"
+#include "IdentificationHistoryRecord.h"
 #include "IdentifiedItemNode.h"
 #include "IdentifiedItemVoxel.h"
 #include "MathFunctions.h"
@@ -65,6 +68,8 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_identifcationMostRecentSymbolSize = 5.0;
     m_showSurfaceIdentificationSymbols = caretPreferences->isShowSurfaceIdentificationSymbols();
     m_showVolumeIdentificationSymbols  = caretPreferences->isShowVolumeIdentificationSymbols();
+    m_identificationFilter.reset(new IdentificationFilter());
+    m_identificationHistoryManager.reset(new IdentificationHistoryManager());
     
     m_sceneAssistant->add("m_contralateralIdentificationEnabled",
                           &m_contralateralIdentificationEnabled);
@@ -85,6 +90,12 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
                           &m_showSurfaceIdentificationSymbols);
     m_sceneAssistant->add("m_showVolumeIdentificationSymbols",
                           &m_showVolumeIdentificationSymbols);
+    m_sceneAssistant->add("m_identificationFilter",
+                          "IdentificationFilter",
+                          m_identificationFilter.get());
+    m_sceneAssistant->add("m_identificationHistoryManager",
+                          "m_identificationHistoryManager",
+                          m_identificationHistoryManager.get());
     
     removeAllIdentifiedItems();
 }
@@ -136,6 +147,10 @@ IdentificationManager::addIdentifiedItemPrivate(IdentifiedItem* item)
     m_mostRecentIdentifiedItem = item;
     
     m_identifiedItems.push_back(item);
+    
+    IdentificationHistoryRecord* historyRecord = new IdentificationHistoryRecord();
+    historyRecord->setText(item->getFormattedText());
+    m_identificationHistoryManager->addHistoryRecord(historyRecord);
 }
 
 /**
@@ -153,7 +168,7 @@ IdentificationManager::getIdentificationText() const
         if (text.isEmpty() == false) {
             text += "<P></P>";
         }
-        text += item->getText();
+        text += item->getSimpleText();
     }
 
     return text;
@@ -352,6 +367,8 @@ IdentificationManager::removeAllIdentifiedItems()
         delete item;
     }
     
+    m_identificationHistoryManager->clearHistory();
+    
     m_identifiedItems.clear();
     
     m_mostRecentIdentifiedItem = NULL;
@@ -382,7 +399,8 @@ IdentificationManager::removeAllIdentifiedSymbols()
                 m_mostRecentIdentifiedItem = NULL;
             }
             
-            itemToKeep = new IdentifiedItem(item->getText());
+            itemToKeep = new IdentifiedItem(item->getSimpleText(),
+                                            item->getFormattedText());
             delete item;
         }
         else {
@@ -390,7 +408,8 @@ IdentificationManager::removeAllIdentifiedSymbols()
         }
         
         if (itemToKeep != NULL) {
-            if (itemToKeep->getText().isEmpty()) {
+            if (itemToKeep->getSimpleText().isEmpty()
+                && itemToKeep->getFormattedText().isEmpty()) {
                 delete itemToKeep;
                 itemToKeep = NULL;
             }
@@ -681,3 +700,41 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
 }
+
+/**
+ * @return Pointer to the identification filter (const method)
+ */
+const IdentificationFilter*
+IdentificationManager::getIdentificationFilter() const
+{
+    return m_identificationFilter.get();
+}
+
+/**
+ * @return Pointer to the identification filter
+ */
+IdentificationFilter*
+IdentificationManager::getIdentificationFilter()
+{
+    return m_identificationFilter.get();
+}
+
+/**
+ * @return Pointer to the identification history manager
+ */
+const IdentificationHistoryManager*
+IdentificationManager::getIdentificationHistoryManager() const
+{
+    return m_identificationHistoryManager.get();
+}
+
+/**
+ * @return Pointer to the identification history manager
+ */
+IdentificationHistoryManager*
+IdentificationManager::getIdentificationHistoryManager()
+{
+    return m_identificationHistoryManager.get();
+}
+
+

@@ -46,6 +46,7 @@
 #include "BugReportDialog.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "CaretMappableDataFile.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileMatrixChart.h"
@@ -86,6 +87,8 @@
 #include "FociPropertiesEditorDialog.h"
 #include "GapsAndMarginsDialog.h"
 #include "HelpViewerDialog.h"
+#include "HtmlTableBuilder.h"
+#include "IdentificationDisplayDialog.h"
 #include "IdentifiedItemNode.h"
 #include "IdentifiedItemVoxel.h"
 #include "IdentificationManager.h"
@@ -183,6 +186,7 @@ GuiManager::initializeGuiManager()
     this->movieDialog = NULL;
     m_movieRecordingDialog = NULL;
     m_informationDisplayDialog = NULL;
+    m_identificationDisplayDialog = NULL;
     m_identifyBrainordinateDialog = NULL;
     this->preferencesDialog = NULL;  
     this->connectomeDatabaseWebView = NULL;
@@ -2285,28 +2289,75 @@ GuiManager::showHideInfoWindowSelected(bool status)
 void 
 GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
 {
-    if (m_informationDisplayDialog == NULL) {
-        std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
-        if (bbws.empty() == false) {
-            BrainBrowserWindow* parentWindow = bbws[0];
+    bool showOldDialog(false);
+    bool showNewDialog(false);
+    
+    switch(SessionManager::get()->getCaretPreferences()->getIdentificationDisplayMode()) {
+        case IdentificationDisplayModeEnum::DIALOG:
+            showNewDialog = true;
+            break;
+        case IdentificationDisplayModeEnum::LEGACY_DIALOG:
+            showOldDialog = true;
+            break;
+        case IdentificationDisplayModeEnum::OVERLAY_TOOLBOX:
+            break;
+        case IdentificationDisplayModeEnum::DEBUG_MODE:
+            showNewDialog = true;
+            showOldDialog = true;
+            break;
+    }
+    
+    if (showOldDialog) {
+        if (m_informationDisplayDialog == NULL) {
+            std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
+            if (bbws.empty() == false) {
+                BrainBrowserWindow* parentWindow = bbws[0];
 #ifdef CARET_OS_MACOSX
-            m_informationDisplayDialog = new InformationDisplayDialog(parentWindow);
-            this->addNonModalDialog(m_informationDisplayDialog);
+                m_informationDisplayDialog = new InformationDisplayDialog(parentWindow);
+                this->addNonModalDialog(m_informationDisplayDialog);
 #else // CARET_OS_MACOSX
-            m_informationDisplayDialog = new InformationDisplayDialog(NULL);
-            addParentLessNonModalDialog(m_informationDisplayDialog);
+                m_informationDisplayDialog = new InformationDisplayDialog(NULL);
+                addParentLessNonModalDialog(m_informationDisplayDialog);
 #endif // CARET_OS_MACOSX
-            m_informationDisplayDialog->resize(600, 200);
-            m_informationDisplayDialog->setSaveWindowPositionForNextTime(true);
-            WuQtUtilities::moveWindowToSideOfParent(parentWindow,
-                                                    m_informationDisplayDialog);
+                m_informationDisplayDialog->resize(600, 200);
+                m_informationDisplayDialog->setSaveWindowPositionForNextTime(true);
+                WuQtUtilities::moveWindowToSideOfParent(parentWindow,
+                                                        m_informationDisplayDialog);
+            }
+        }
+        
+        if (forceDisplayOfDialog
+            || m_informationDisplayDialogEnabledAction->isChecked()) {
+            if (m_informationDisplayDialog != NULL) {
+                m_informationDisplayDialog->showDialog();
+            }
         }
     }
     
-    if (forceDisplayOfDialog
-        || m_informationDisplayDialogEnabledAction->isChecked()) {
-        if (m_informationDisplayDialog != NULL) {
-            m_informationDisplayDialog->showDialog();
+    if (showNewDialog) {
+        if (m_identificationDisplayDialog == NULL) {
+            std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
+            if (bbws.empty() == false) {
+                BrainBrowserWindow* parentWindow = bbws[0];
+#ifdef CARET_OS_MACOSX
+                m_identificationDisplayDialog = new IdentificationDisplayDialog(parentWindow);
+                this->addNonModalDialog(m_identificationDisplayDialog);
+#else // CARET_OS_MACOSX
+                m_identificationDisplayDialog = new IdentificationDisplayDialog(NULL);
+                addParentLessNonModalDialog(m_identificationDisplayDialog);
+#endif // CARET_OS_MACOSX
+                m_identificationDisplayDialog->resize(600, 200);
+                m_identificationDisplayDialog->setSaveWindowPositionForNextTime(true);
+                WuQtUtilities::moveWindowToSideOfParent(parentWindow,
+                                                        m_identificationDisplayDialog);
+            }
+        }
+        
+        if (forceDisplayOfDialog
+            || m_informationDisplayDialogEnabledAction->isChecked()) {
+            if (m_identificationDisplayDialog != NULL) {
+                m_identificationDisplayDialog->showDialog();
+            }
         }
     }
 }
@@ -2655,9 +2706,31 @@ GuiManager::saveToScene(const SceneAttributes* sceneAttributes,
     /*
      * Save information window
      */
-    if (m_informationDisplayDialog != NULL) {
-        sceneClass->addClass(m_informationDisplayDialog->saveToScene(sceneAttributes,
-                                                                     "m_informationDisplayDialog"));
+    switch (SessionManager::get()->getCaretPreferences()->getIdentificationDisplayMode()) {
+        case IdentificationDisplayModeEnum::DIALOG:
+            if (m_informationDisplayDialog != NULL) {
+                sceneClass->addClass(m_informationDisplayDialog->saveToScene(sceneAttributes,
+                                                                             "m_informationDisplayDialog"));
+            }
+            break;
+        case IdentificationDisplayModeEnum::LEGACY_DIALOG:
+            if (m_identificationDisplayDialog != NULL) {
+                sceneClass->addClass(m_identificationDisplayDialog->saveToScene(sceneAttributes,
+                                                                                "m_identificationDisplayDialog"));
+            }
+            break;
+        case IdentificationDisplayModeEnum::OVERLAY_TOOLBOX:
+            break;
+        case IdentificationDisplayModeEnum::DEBUG_MODE:
+            if (m_informationDisplayDialog != NULL) {
+                sceneClass->addClass(m_informationDisplayDialog->saveToScene(sceneAttributes,
+                                                                             "m_informationDisplayDialog"));
+            }
+            if (m_identificationDisplayDialog != NULL) {
+                sceneClass->addClass(m_identificationDisplayDialog->saveToScene(sceneAttributes,
+                                                                                "m_identificationDisplayDialog"));
+            }
+            break;
     }
     
     /*
@@ -2888,6 +2961,33 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
         
         /*
+         * Restore identification window
+         */
+        progressEvent.setProgressMessage("Restoring Identification Window");
+        EventManager::get()->sendEvent(progressEvent.getPointer());
+        const SceneClass* idWindowClass = sceneClass->getClass("m_identificationDisplayDialog");
+        if (idWindowClass != NULL) {
+            if (m_identificationDisplayDialog == NULL) {
+                processShowInformationWindow();
+            }
+            else if (m_identificationDisplayDialog->isVisible() == false) {
+                processShowInformationWindow();
+            }
+            m_identificationDisplayDialog->restoreFromScene(sceneAttributes,
+                                                            idWindowClass);
+        }
+        else {
+            if (m_identificationDisplayDialog != NULL) {
+                /*
+                 * Will clear text
+                 */
+                m_identificationDisplayDialog->restoreFromScene(sceneAttributes,
+                                                                NULL);
+            }
+        }
+
+        
+        /*
          * Restore surface properties
          */
         progressEvent.setProgressMessage("Restoring Surface Properties Window");
@@ -3008,6 +3108,9 @@ GuiManager::processIdentification(const int32_t tabIndex,
     bool updateGraphicsFlag = false;
     bool updateInformationFlag = false;
     std::vector<AString> ciftiLoadingInfo;
+    HtmlTableBuilder ciftiLoadingInfoTableBuilder(HtmlTableBuilder::HtmlVersion::V4_01,
+                                                  3);
+    ciftiLoadingInfoTableBuilder.setTitle("CIFTI Data Loading");
     
     const QString breakAndIndent("<br>&nbsp;&nbsp;&nbsp;&nbsp;");
     SelectionItemSurfaceNodeIdentificationSymbol* nodeIdSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
@@ -3087,12 +3190,14 @@ GuiManager::processIdentification(const int32_t tabIndex,
                     ciftiConnectivityManager->loadDataForSurfaceNode(brain,
                                                                      surface,
                                                                      nodeIndex,
-                                                                     ciftiLoadingInfo);
+                                                                     ciftiLoadingInfo,
+                                                                     ciftiLoadingInfoTableBuilder);
                     
                     ciftiFiberTrajectoryManager->loadDataForSurfaceNode(brain,
                                                                         surface,
                                                                         nodeIndex,
-                                                                        ciftiLoadingInfo);
+                                                                        ciftiLoadingInfo,
+                                                                        ciftiLoadingInfoTableBuilder);
                     chartingDataManager->loadChartForSurfaceNode(surface,
                                                                  nodeIndex);
                     
@@ -3142,10 +3247,12 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 try {
                     ciftiConnectivityManager->loadDataForVoxelAtCoordinate(brain,
                                                                            xyz,
-                                                           ciftiLoadingInfo);
+                                                                           ciftiLoadingInfo,
+                                                                           ciftiLoadingInfoTableBuilder);
                     ciftiFiberTrajectoryManager->loadDataForVoxelAtCoordinate(brain,
                                                                               xyz,
-                                                                              ciftiLoadingInfo);
+                                                                              ciftiLoadingInfo,
+                                                                              ciftiLoadingInfoTableBuilder);
                 }
                 catch (const DataFileException& e) {
                     cursor.restoreCursor();
@@ -3193,7 +3300,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                                                         ciftiParcelFile,
                                                                                         rowIndex,
                                                                                         columnIndex,
-                                                                                        ciftiLoadingInfo);
+                                                                                        ciftiLoadingInfo,
+                                                                                        ciftiLoadingInfoTableBuilder);
                                 
                             }
                             catch (const DataFileException& e) {
@@ -3245,7 +3353,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
                     ciftiConnectivityManager->loadRowOrColumnFromConnectivityMatrixFile(matrixFile,
                                                                                         rowIndex,
                                                                                         columnIndex,
-                                                                                        ciftiLoadingInfo);
+                                                                                        ciftiLoadingInfo,
+                                                                                        ciftiLoadingInfoTableBuilder);
                     updateGraphicsFlag = true;
                 
                 }
@@ -3329,7 +3438,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                                                                                     ciftiParcelFile,
                                                                                                     rowIndex,
                                                                                                     colIndex,
-                                                                                                    ciftiLoadingInfo);
+                                                                                                    ciftiLoadingInfo,
+                                                                                                    ciftiLoadingInfoTableBuilder);
                                             
                                         }
                                         catch (const DataFileException& e) {
@@ -3349,7 +3459,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
                                         ciftiConnectivityManager->loadRowOrColumnFromConnectivityMatrixFile(matrixFile,
                                                                                                             rowIndex,
                                                                                                             colIndex,
-                                                                                                            ciftiLoadingInfo);
+                                                                                                            ciftiLoadingInfo,
+                                                                                                            ciftiLoadingInfoTableBuilder);
                                         updateGraphicsFlag = true;
                                         
                                     }
@@ -3418,7 +3529,9 @@ GuiManager::processIdentification(const int32_t tabIndex,
         /*
          * Generate identification manager
          */
-        const AString identificationMessage = selectionManager->getIdentificationText(brain);
+        const AString identificationMessage = selectionManager->getSimpleIdentificationText(brain);
+        AString formattedIdentificationMessage = selectionManager->getFormattedIdentificationText(brain);
+        const AString ciftiLoadingFormattedMessage = ciftiLoadingInfoTableBuilder.getAsHtmlTable();
         
         bool issuedIdentificationLocationEvent = false;
         if (idNode->isValid()) {
@@ -3449,6 +3562,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
             }
             
             identifiedItem = new IdentifiedItemNode(identificationMessage,
+                                                    formattedIdentificationMessage,
                                                     surface->getStructure(),
                                                     surface->getNumberOfNodes(),
                                                     nodeIndex);
@@ -3478,6 +3592,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 
                 if (identifiedItem == NULL) {
                     identifiedItem = new IdentifiedItemVoxel(identificationMessage,
+                                                             formattedIdentificationMessage,
                                                              xyz);
                 }
                 
@@ -3498,7 +3613,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
         
         if (identifiedItem == NULL) {
             if (identificationMessage.isEmpty() == false) {
-                identifiedItem = new IdentifiedItem(identificationMessage);
+                identifiedItem = new IdentifiedItem(identificationMessage,
+                                                    formattedIdentificationMessage);
             }
         }
         
@@ -3516,10 +3632,12 @@ GuiManager::processIdentification(const int32_t tabIndex,
         }
         if (ciftiInfo.isEmpty() == false) {
             if (identifiedItem != NULL) {
-                identifiedItem->appendText(ciftiInfo);
+                identifiedItem->appendText(ciftiInfo,
+                                           ciftiLoadingFormattedMessage);
             }
             else {
-                identifiedItem = new IdentifiedItem(ciftiInfo);
+                identifiedItem = new IdentifiedItem(ciftiInfo,
+                                                    ciftiLoadingFormattedMessage);
             }
         }
         

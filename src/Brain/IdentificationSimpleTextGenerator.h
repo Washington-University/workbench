@@ -1,5 +1,5 @@
-#ifndef __IDENTIFICATION_TEXT_GENERATOR__H_
-#define __IDENTIFICATION_TEXT_GENERATOR__H_
+#ifndef __IDENTIFICATION_SIMPLE_TEXT_GENERATOR__H_
+#define __IDENTIFICATION_SIMPLE_TEXT_GENERATOR__H_
 
 /*LICENSE_START*/
 /*
@@ -51,12 +51,12 @@ namespace caret {
     class SelectionManager;
     class IdentificationStringBuilder;
     
-    class IdentificationTextGenerator : public CaretObject {
+    class IdentificationSimpleTextGenerator : public CaretObject {
         
     public:
-        IdentificationTextGenerator();
+        IdentificationSimpleTextGenerator();
         
-        virtual ~IdentificationTextGenerator();
+        virtual ~IdentificationSimpleTextGenerator();
         
         AString createIdentificationText(const SelectionManager* idManager,
                                          const Brain* brain) const;
@@ -67,9 +67,9 @@ namespace caret {
                                   const DataToolTipsManager* dataToolTipsManager) const;
         
     private:
-        IdentificationTextGenerator(const IdentificationTextGenerator&);
+        IdentificationSimpleTextGenerator(const IdentificationSimpleTextGenerator&);
 
-        IdentificationTextGenerator& operator=(const IdentificationTextGenerator&);
+        IdentificationSimpleTextGenerator& operator=(const IdentificationSimpleTextGenerator&);
         
     public:
         virtual AString toString() const;
@@ -151,9 +151,9 @@ namespace caret {
         friend class DataToolTipsManager;
     };
     
-#ifdef __IDENTIFICATION_TEXT_GENERATOR_DECLARE__
+#ifdef __IDENTIFICATION_SIMPLE_TEXT_GENERATOR_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFICATION_TEXT_GENERATOR_DECLARE__
+#endif // __IDENTIFICATION_SIMPLE_TEXT_GENERATOR_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFICATION_TEXT_GENERATOR__H_
+#endif  //__IDENTIFICATION_SIMPLE_TEXT_GENERATOR__H_

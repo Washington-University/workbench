@@ -4457,6 +4457,8 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
  *     Index of the node
  * @param numberOfNodes
  *     Number of nodes in the surface.
+ * @param dataValueSeparator
+ *    Separator between multiple data values
  * @param numericalValuesOut
  *     Numerical values out for all map indices
  * @param numericalValuesOutValid
@@ -4477,6 +4479,7 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                                                const StructureEnum::Enum structure,
                                                const int nodeIndex,
                                                const int32_t numberOfNodes,
+                                               const AString& dataValueSeparator,
                                                std::vector<float>& numericalValuesOut,
                                                std::vector<bool>& numericalValuesOutValid,
                                                AString& textValueOut) const
@@ -4513,20 +4516,23 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                             numericalValuesOut.push_back(mapData[dataIndex]);
                             numericalValuesOutValid.push_back(true);
                             
+                            if ( ! textValueOut.isEmpty()) {
+                                textValueOut.append(dataValueSeparator);
+                            }
                             if (ciftiXML.getMappingType(m_dataReadingDirectionForCiftiXML) == CiftiMappingType::LABELS) {
                                 const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
                                 const int32_t labelKey = static_cast<int32_t>(value);
                                 const GiftiLabel* gl = glt->getLabel(labelKey);
                                 if (gl != NULL) {
-                                    textValueOut += (" " + gl->getName());
+                                    textValueOut += gl->getName();
                                 }
                                 else {
-                                    textValueOut += (" InvalidLabelKey="
+                                    textValueOut += ("InvalidLabelKey="
                                                      + AString::number(labelKey));
                                 }
                             }
                             else {
-                                textValueOut += (" " + AString::number(value, 'f'));
+                                textValueOut += (AString::number(value, 'f'));
                             }
                         }
                     }
@@ -4571,13 +4577,19 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                                                                                     structure);
                                 if ((mappingDataParcelIndex >= 0)
                                     && (mappingDataParcelIndex < static_cast<int64_t>(mappingParcels.size()))) {
-                                    textValueOut = mappingParcels[mappingDataParcelIndex].m_name;
+                                    if ( ! textValueOut.isEmpty()) {
+                                        textValueOut.append(dataValueSeparator);
+                                    }
+                                    textValueOut += mappingParcels[mappingDataParcelIndex].m_name;
                                     
                                     std::vector<float> dataLoaded;
                                     matrixFile->getMapData(0, dataLoaded);
                                     if ((mappingDataParcelIndex >= 0)
                                         && (mappingDataParcelIndex < static_cast<int32_t>(dataLoaded.size()))) {
-                                        textValueOut += (" " + AString::number(dataLoaded[mappingDataParcelIndex]));
+                                        if ( ! textValueOut.isEmpty()) {
+                                            textValueOut.append(dataValueSeparator);
+                                        }
+                                        textValueOut += (AString::number(dataLoaded[mappingDataParcelIndex]));
                                         return true;
                                     }
                                 }
@@ -4600,6 +4612,9 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                                                                             structure);
                         if ((mappingDataParcelIndex >= 0)
                             && (mappingDataParcelIndex < static_cast<int64_t>(mappingParcels.size()))) {
+                            if ( ! textValueOut.isEmpty()) {
+                                textValueOut.append(dataValueSeparator);
+                            }
                             textValueOut = mappingParcels[mappingDataParcelIndex].m_name;
                         }
                     }
@@ -4613,6 +4628,9 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                         const int64_t numRows = m_ciftiFile->getNumberOfRows();
                         const int64_t numCols = m_ciftiFile->getNumberOfColumns();
                         
+                        if ( ! textValueOut.isEmpty()) {
+                            textValueOut.append(dataValueSeparator);
+                        }
                         switch (m_dataReadingDirectionForCiftiXML) {
                             case CiftiXML::ALONG_COLUMN:
                             {
@@ -4621,7 +4639,7 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                                 CaretAssert(readingDataParcelIndex < numRows);
                                 m_ciftiFile->getRow(&data[0], readingDataParcelIndex);
                                 CaretAssertVectorIndex(data, mappingDataParcelIndex);
-                                textValueOut += (" " + AString::number(data[mappingDataParcelIndex]));
+                                textValueOut += (AString::number(data[mappingDataParcelIndex]));
                             }
                                 break;
                             case CiftiXML::ALONG_ROW:
@@ -4631,7 +4649,7 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                                 CaretAssert(readingDataParcelIndex < numCols);
                                 m_ciftiFile->getColumn(&data[0], readingDataParcelIndex);
                                 CaretAssertVectorIndex(data, mappingDataParcelIndex);
-                                textValueOut += (" " + AString::number(data[mappingDataParcelIndex]));
+                                textValueOut += (AString::number(data[mappingDataParcelIndex]));
                             }
                                 break;
                         }
@@ -4650,6 +4668,9 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                                                       structure);
                     if ((parcelIndex >= 0)
                         && (parcelIndex < static_cast<int64_t>(parcels.size()))) {
+                        if ( ! textValueOut.isEmpty()) {
+                            textValueOut.append(dataValueSeparator);
+                        }
                         textValueOut = parcels[parcelIndex].m_name;
                     }
                 }
@@ -4687,6 +4708,9 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                             const int64_t numRows = m_ciftiFile->getNumberOfRows();
                             const int64_t numCols = m_ciftiFile->getNumberOfColumns();
                             
+                            if ( ! textValueOut.isEmpty()) {
+                                textValueOut.append(dataValueSeparator);
+                            }
                             switch (m_dataReadingDirectionForCiftiXML) {
                                 case CiftiXML::ALONG_COLUMN:
                                 {
@@ -4695,7 +4719,7 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                                     CaretAssert(parcelIndex < numCols);
                                     m_ciftiFile->getColumn(&data[0], parcelIndex);
                                     CaretAssertVectorIndex(data, itemIndex);
-                                    textValueOut += (" " + AString::number(data[itemIndex]));
+                                    textValueOut += (AString::number(data[itemIndex]));
                                 }
                                     break;
                                 case CiftiXML::ALONG_ROW:
@@ -4705,7 +4729,7 @@ CiftiMappableDataFile::getMapSurfaceNodeValues(const std::vector<int32_t>& mapIn
                                     CaretAssert(parcelIndex < numRows);
                                     m_ciftiFile->getRow(&data[0], parcelIndex);
                                     CaretAssertVectorIndex(data, itemIndex);
-                                    textValueOut += (" " + AString::number(data[itemIndex]));
+                                    textValueOut += (AString::number(data[itemIndex]));
                                 }
                                     break;
                             }
@@ -4819,6 +4843,8 @@ CiftiMappableDataFile::getParcelLabelMapSurfaceNodeValue(const int32_t mapIndex,
  *    Index of the node.
  * @param numberOfNodes
  *    Number of nodes in the surface.
+ * @param dataValueSeparator
+ *    Separator between multiple data values
  * @param textOut
  *    Output containing identification information.
  */
@@ -4827,6 +4853,7 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
                                                               const StructureEnum::Enum structure,
                                                               const int nodeIndex,
                                                               const int32_t numberOfNodes,
+                                                              const AString& dataValueSeparator,
                                                               AString& textOut) const
 {
     CaretAssert(m_ciftiFile);
@@ -4942,6 +4969,7 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
                                     structure,
                                     nodeIndex,
                                     numberOfNodes,
+                                    dataValueSeparator,
                                     numericalValues,
                                     numericalValuesValid,
                                     textValue)) {
@@ -4967,6 +4995,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
                     const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
                     const int32_t labelKey = static_cast<int32_t>(value);
                     const GiftiLabel* gl = glt->getLabel(labelKey);
+                    if ( ! textOut.isEmpty()) {
+                        textOut.append(dataValueSeparator);
+                    }
                     if (gl != NULL) {
                         textOut += gl->getName();
                     }
@@ -4977,14 +5008,15 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
                     validID = true;
                 }
                 else if (isMappedWithPalette()) {
+                    if ( ! textOut.isEmpty()) {
+                        textOut.append(dataValueSeparator);
+                    }
                     textOut += AString::number(value);
                     validID = true;
                 }
                 else {
                     CaretAssert(0);
                 }
-                
-                textOut += " ";
             }
         }
     }
@@ -5002,8 +5034,10 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
                                                   numericalValue,
                                                   numericalValueValid,
                                                   textValue)) {
+                if (! textOut.isEmpty()) {
+                    textOut.append(dataValueSeparator);
+                }
                 textOut += textValue;
-                textOut += " ";
                 validID = true;
             }
         }
@@ -5511,6 +5545,8 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
  *     Indices of the maps.
  * @param xyz
  *     Coordinate of voxel.
+ * @param dataValueSeparator
+ *    Separator between multiple data values
  * @param ijkOut
  *     Voxel indices of value.
  * @param numericalValuesOut
@@ -5531,6 +5567,7 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
 bool
 CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapIndices,
                                                const float xyz[3],
+                                               const AString& dataValueSeparator,
                                                int64_t ijkOut[3],
                                                std::vector<float>& numericalValuesOut,
                                                std::vector<bool>& numericalValuesOutValid,
@@ -5591,8 +5628,10 @@ CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapInd
                 for (std::vector<int32_t>::const_iterator mapIter = mapIndices.begin();
                      mapIter != mapIndices.end();
                      mapIter++) {
-                    textValueOut += (getMapName(*mapIter)
-                                     + " ");
+                    if ( ! textValueOut.isEmpty()) {
+                        textValueOut.append(dataValueSeparator);
+                    }
+                    textValueOut += getMapName(*mapIter);
                 }
                 return true;
             }
@@ -5617,18 +5656,18 @@ CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapInd
                                 const float value = mapData[dataOffset];
                                 
                                 if (isMappedWithLabelTable()) {
-                                    textValueOut = "Invalid Label Index";
-                                    
                                     const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
                                     const int32_t labelKey = static_cast<int32_t>(value);
                                     const GiftiLabel* gl = glt->getLabel(labelKey);
+                                    if ( ! textValueOut.isEmpty()) {
+                                        textValueOut.append(dataValueSeparator);
+                                    }
                                     if (gl != NULL) {
-                                        textValueOut = (gl->getName());
+                                        textValueOut += gl->getName();
                                     }
                                     else {
                                         textValueOut += ("InvalidLabelKey="
-                                                         + AString::number(labelKey)
-                                                         + " ");
+                                                         + AString::number(labelKey));
                                     }
                                     numericalValuesOut.push_back(value);
                                     numericalValuesOutValid.push_back(false); // NOT VALID !
@@ -5636,8 +5675,10 @@ CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapInd
                                 else if (isMappedWithPalette()) {
                                     numericalValuesOut.push_back(value);
                                     numericalValuesOutValid.push_back(true);
-                                    textValueOut = (AString::number(value)
-                                                    + " ");
+                                    if ( ! textValueOut.isEmpty()) {
+                                        textValueOut.append(dataValueSeparator);
+                                    }
+                                    textValueOut += AString::number(value);
                                 }
                                 else {
                                     CaretAssert(0);
@@ -5699,7 +5740,10 @@ CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapInd
                                             CaretAssert(parcelMapIndex < numCols);
                                             m_ciftiFile->getColumn(&data[0], parcelMapIndex);
                                             CaretAssertVectorIndex(data, itemIndex);
-                                            textValueOut += (" " + AString::number(data[itemIndex]));
+                                            if ( ! textValueOut.isEmpty()) {
+                                                textValueOut.append(dataValueSeparator);
+                                            }
+                                            textValueOut += (AString::number(data[itemIndex]));
                                         }
                                             break;
                                         case CiftiXML::ALONG_ROW:
@@ -5709,7 +5753,10 @@ CiftiMappableDataFile::getMapVolumeVoxelValues(const std::vector<int32_t> mapInd
                                             CaretAssert(parcelMapIndex < numRows);
                                             m_ciftiFile->getRow(&data[0], parcelMapIndex);
                                             CaretAssertVectorIndex(data, itemIndex);
-                                            textValueOut += (" " + AString::number(data[itemIndex]));
+                                            if ( ! textValueOut.isEmpty()) {
+                                                textValueOut.append(dataValueSeparator);
+                                            }
+                                            textValueOut += (AString::number(data[itemIndex]));
                                         }
                                             break;
                                     }
@@ -5883,6 +5930,8 @@ CiftiMappableDataFile::getMapDataOffsetForVoxelAtCoordinate(const float coordina
  *    Indices of maps for which identification information is requested.
  * @param xyz
  *     Coordinate of voxel.
+ * @param dataValueSeparator
+ *    Separator between multiple data values
  * @param ijkOut
  *     Voxel indices of value.
  * @param textOut
@@ -5891,6 +5940,7 @@ CiftiMappableDataFile::getMapDataOffsetForVoxelAtCoordinate(const float coordina
 bool
 CiftiMappableDataFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                            const float xyz[3],
+                                                           const AString& dataValueSeparator,
                                                            int64_t ijkOut[3],
                                                            AString& textOut) const
 {
@@ -5908,6 +5958,7 @@ CiftiMappableDataFile::getVolumeVoxelIdentificationForMaps(const std::vector<int
     AString textValue;
     if (getMapVolumeVoxelValues(mapIndices,
                                 xyz,
+                                dataValueSeparator,
                                 ijkOut,
                                 numericalValues,
                                 numericalValuesValid,

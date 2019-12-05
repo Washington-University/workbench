@@ -429,6 +429,8 @@ namespace caret {
         
         IdentificationManager* getIdentificationManager();
 
+        const IdentificationManager* getIdentificationManager() const;
+        
         SelectionManager* getSelectionManager();
         
         BrainordinateRegionOfInterest* getBrainordinateHighlightRegionOfInterest();

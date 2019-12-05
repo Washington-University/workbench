@@ -34,7 +34,8 @@ namespace caret {
     public:
         IdentifiedItem();
         
-        IdentifiedItem(const AString& text);
+        IdentifiedItem(const AString& simpleText,
+                       const AString& formattedText);
         
         virtual ~IdentifiedItem();
         
@@ -47,12 +48,15 @@ namespace caret {
         
         virtual bool isValid() const;
         
-        void appendText(const AString& text);
+        void appendText(const AString& simpleText,
+                        const AString& formattedText);
         
         void clearText();
         
-        AString getText() const;
+        AString getSimpleText() const;
 
+        AString getFormattedText() const;
+        
         virtual AString toString() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -77,6 +81,8 @@ namespace caret {
 
         AString m_text;
 
+        AString m_formattedText;
+        
         SceneClassAssistant* m_sceneAssistant;
         
         friend class IdentificationManager;

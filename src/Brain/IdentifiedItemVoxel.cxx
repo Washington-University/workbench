@@ -49,10 +49,18 @@ IdentifiedItemVoxel::IdentifiedItemVoxel()
     
 /**
  * Constructor.
+ * @param simpleText
+ *    Text describing the identified item.
+ * @param formattedText
+ *    Formatted text describing the identified item.
+ * @param xyz
+ *    XYZ of voxel
  */
-IdentifiedItemVoxel::IdentifiedItemVoxel(const AString& text,
+IdentifiedItemVoxel::IdentifiedItemVoxel(const AString& simpleText,
+                                         const AString& formattedText,
                                          const float xyz[3])
-: IdentifiedItem(text)
+: IdentifiedItem(simpleText,
+                 formattedText)
 {
     initializeMembers();
     

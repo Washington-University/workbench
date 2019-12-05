@@ -30,6 +30,7 @@ namespace caret {
     class Brain;
     class CiftiConnectivityMatrixParcelFile;
     class CiftiMappableConnectivityMatrixDataFile;
+    class HtmlTableBuilder;
     class SurfaceFile;
     
     class CiftiConnectivityMatrixDataFileManager
@@ -44,7 +45,8 @@ namespace caret {
         bool loadDataForSurfaceNode(Brain* brain,
                                     const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex,
-                                    std::vector<AString>& rowColumnInformationOut);
+                                    std::vector<AString>& rowColumnInformationOut,
+                                    HtmlTableBuilder& htmlTableBuilder);
         
         bool loadAverageDataForSurfaceNodes(Brain* brain,
                                             const SurfaceFile* surfaceFile,
@@ -52,7 +54,8 @@ namespace caret {
         
         bool loadDataForVoxelAtCoordinate(Brain* brain,
                                           const float xyz[3],
-                                          std::vector<AString>& rowColumnInformationOut);
+                                          std::vector<AString>& rowColumnInformationOut,
+                                          HtmlTableBuilder& htmlTableBuilder);
         
         bool loadAverageDataForVoxelIndices(Brain* brain,
                                             const int64_t volumeDimensionIJK[3],
@@ -62,12 +65,14 @@ namespace caret {
                                            CiftiConnectivityMatrixParcelFile* ciftiConnMatrixFile,
                                            const int32_t rowIndex,
                                            const int32_t columnIndex,
-                                           std::vector<AString>& rowColumnInformationOut);
+                                           std::vector<AString>& rowColumnInformationOut,
+                                           HtmlTableBuilder& htmlTableBuilder);
         
         bool loadRowOrColumnFromConnectivityMatrixFile(CiftiMappableConnectivityMatrixDataFile* parcelFile,
                                                        const int32_t rowIndex,
                                                        const int32_t columnIndex,
-                                                       std::vector<AString>& rowColumnInformationOut);
+                                                       std::vector<AString>& rowColumnInformationOut,
+                                                       HtmlTableBuilder& htmlTableBuilder);
         
         bool hasNetworkFiles(Brain* brain) const;
         

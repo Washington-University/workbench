@@ -1,9 +1,9 @@
-#ifndef __IDENTIFIED_ITEM_VOXEL_H__
-#define __IDENTIFIED_ITEM_VOXEL_H__
+#ifndef __IDENTIFICATION_DISPLAY_DIALOG_H__
+#define __IDENTIFICATION_DISPLAY_DIALOG_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2015 Washington University School of Medicine
+ *  Copyright (C) 2019 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,42 +22,32 @@
 /*LICENSE_END*/
 
 
-#include "IdentifiedItem.h"
+
+#include <memory>
+
+#include "WuQDialogNonModal.h"
+
+#include "SceneableInterface.h"
 
 
 namespace caret {
+    class IdentificationDisplayWidget;
     class SceneClassAssistant;
 
-    class IdentifiedItemVoxel : public IdentifiedItem{
+    class IdentificationDisplayDialog : public WuQDialogNonModal, public SceneableInterface {
         
+        Q_OBJECT
+
     public:
-        IdentifiedItemVoxel();
+        IdentificationDisplayDialog(QWidget* parent = 0);
+        
+        virtual ~IdentificationDisplayDialog();
+        
+        IdentificationDisplayDialog(const IdentificationDisplayDialog&) = delete;
 
-        IdentifiedItemVoxel(const AString& simpleText,
-                            const AString& formattedText,
-                            const float xyz[3]);
+        IdentificationDisplayDialog& operator=(const IdentificationDisplayDialog&) = delete;
         
-        virtual ~IdentifiedItemVoxel();
-        
-        IdentifiedItemVoxel(const IdentifiedItemVoxel& obj);
-
-        IdentifiedItemVoxel& operator=(const IdentifiedItemVoxel& obj);
-
-        virtual bool isValid() const;
-        
-        void getXYZ(float xyzOut[3]) const;
-        
-        const float* getSymbolRGB() const;
-        
-        void getSymbolRGBA(uint8_t rgbaOut[4]) const;
-        
-        float getSymbolSize() const;
-        
-        void setSymbolRGB(const float* rgb);
-        
-        void setSymbolSize(const float symbolSize);
-        
-        virtual AString toString() const;
+        void updateDialog();
         
 
         // ADD_NEW_METHODS_HERE
@@ -75,7 +65,7 @@ namespace caret {
           
 // If there will be sub-classes of this class that need to save
 // and restore data from scenes, these pure virtual methods can
-// be uncommented to force their implemetation by sub-classes.
+// be uncommented to force their implementation by sub-classes.
 //    protected: 
 //        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
 //                                             SceneClass* sceneClass) = 0;
@@ -84,25 +74,17 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        void copyHelperIdentifiedItemVoxel(const IdentifiedItemVoxel& obj);
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        void initializeMembers();
+        IdentificationDisplayWidget* m_identificationWidget;
         
-        float m_xyz[3];
-        
-        float m_symbolRGB[3];
-        
-        float m_symbolSize;
-        
-        SceneClassAssistant* m_sceneAssistant;
-
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __IDENTIFIED_ITEM_VOXEL_DECLARE__
+#ifdef __IDENTIFICATION_DISPLAY_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFIED_ITEM_VOXEL_DECLARE__
+#endif // __IDENTIFICATION_DISPLAY_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFIED_ITEM_VOXEL_H__
+#endif  //__IDENTIFICATION_DISPLAY_DIALOG_H__

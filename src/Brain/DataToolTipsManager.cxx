@@ -26,14 +26,17 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretPreferences.h"
 #include "EventManager.h"
+#include "IdentificationFormattedTextGenerator.h"
 #include "IdentificationStringBuilder.h"
-#include "IdentificationTextGenerator.h"
+#include "IdentificationSimpleTextGenerator.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SelectionManager.h"
+#include "SessionManager.h"
 
 using namespace caret;
 
@@ -85,11 +88,47 @@ DataToolTipsManager::getToolTip(const Brain* brain,
     CaretAssert(browserTab);
     CaretAssert(selectionManager);
     
-    IdentificationTextGenerator itg;
-    const AString text = itg.createToolTipText(brain,
-                                               browserTab,
-                                               selectionManager,
-                                               this);
+    bool showOldToolTip(false);
+    bool showNewToolTip(false);
+    switch (SessionManager::get()->getCaretPreferences()->getIdentificationDisplayMode()) {
+        case IdentificationDisplayModeEnum::DEBUG_MODE:
+            showOldToolTip = true;
+            showNewToolTip = true;
+            break;
+        case IdentificationDisplayModeEnum::DIALOG:
+            showNewToolTip = true;
+            break;
+        case IdentificationDisplayModeEnum::LEGACY_DIALOG:
+            showOldToolTip = true;
+            break;
+        case IdentificationDisplayModeEnum::OVERLAY_TOOLBOX:
+            showNewToolTip = true;
+            break;
+    }
+    
+    AString text;
+    
+    if (showNewToolTip) {
+        IdentificationFormattedTextGenerator ftg;
+        text = ftg.createToolTipText(brain,
+                                     browserTab,
+                                     selectionManager,
+                                     this);
+    }
+    
+    if (showOldToolTip) {
+        IdentificationSimpleTextGenerator itg;
+        const AString oldText = itg.createToolTipText(brain,
+                                                      browserTab,
+                                                      selectionManager,
+                                                      this);
+        if ( ! oldText.isEmpty()) {
+            if ( ! text.isEmpty()) {
+                text.append("\n\n");
+            }
+            text.append(oldText);
+        }
+    }
 
     return text;
 }

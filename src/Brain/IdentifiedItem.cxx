@@ -48,14 +48,18 @@ IdentifiedItem::IdentifiedItem()
 /**
  * Constructor.
  *
- * @param text
+ * @param simpleText
  *    Text describing the identified item.
+ * @param formattedText
+ *    Formatted text describing the identified item.
  */
-IdentifiedItem::IdentifiedItem(const AString& text)
+IdentifiedItem::IdentifiedItem(const AString& simpleText,
+                               const AString& formattedText)
 : CaretObject()
 {
     initializeMembers();
-    m_text = text;
+    m_text = simpleText;
+    m_formattedText = formattedText;
 }
 
 /**
@@ -106,6 +110,7 @@ IdentifiedItem::initializeMembers()
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_text", &m_text);
+    m_sceneAssistant->add("m_formattedText", &m_formattedText);
 }
                           
 
@@ -135,11 +140,20 @@ IdentifiedItem::isValid() const
 
 /**
  * Append text to this item's text.
+ * @param simpleText
+ *    Text describing the identified item.
+ * @param formattedText
+ *    Formatted text describing the identified item.
  */
 void
-IdentifiedItem::appendText(const AString& text)
+IdentifiedItem::appendText(const AString& simpleText,
+                           const AString& formattedText)
 {
-    m_text += text;
+    m_text += simpleText;
+    if (m_formattedText.isEmpty()) {
+        m_formattedText.append("\n");
+    }
+    m_formattedText += formattedText;
 }
 
 /**
@@ -152,12 +166,21 @@ IdentifiedItem::clearText()
 }
 
 /**
- * @return The text describing the identified item.
+ * @return The simple text describing the identified item.
  */
 AString
-IdentifiedItem::getText() const
+IdentifiedItem::getSimpleText() const
 {
     return m_text;
+}
+
+/**
+ * @return The formatted text describing the identified item.
+ */
+AString
+IdentifiedItem::getFormattedText() const
+{
+    return m_formattedText;
 }
 
 /**
@@ -167,7 +190,8 @@ IdentifiedItem::getText() const
 AString 
 IdentifiedItem::toString() const
 {
-    return ("m_text=" + m_text);
+    return ("m_text=" + m_text
+            + "m_formattedText=" + m_formattedText);
 }
 
 /**

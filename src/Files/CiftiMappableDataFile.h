@@ -371,6 +371,7 @@ namespace caret {
         
         virtual bool getMapVolumeVoxelValues(const std::vector<int32_t> mapIndices,
                                              const float xyz[3],
+                                             const AString& dataValueSeparator,
                                              int64_t ijkOut[3],
                                              std::vector<float>& numericalValuesOut,
                                              std::vector<bool>& numericalValuesOutValid,
@@ -393,8 +394,9 @@ namespace caret {
         
         virtual bool getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                          const float xyz[3],
+                                                         const AString& dataValueSeparator,
                                                          int64_t ijkOut[3],
-                                                         AString& textOut) const;
+                                                         AString& textOut) const override;
         
         std::vector<int32_t> getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const;
         
@@ -414,6 +416,7 @@ namespace caret {
                                              const StructureEnum::Enum structure,
                                              const int nodeIndex,
                                              const int32_t numberOfNodes,
+                                             const AString& dataValueSeparator,
                                              std::vector<float>& numericalValuesOut,
                                              std::vector<bool>& numericalValuesOutValid,
                                              AString& textValueOut) const;
@@ -422,6 +425,7 @@ namespace caret {
                                                             const StructureEnum::Enum structure,
                                                             const int nodeIndex,
                                                             const int32_t numberOfNodes,
+                                                            const AString& dataValueSeparator,
                                                             AString& textOut) const override;
         
         int32_t getMappingSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;

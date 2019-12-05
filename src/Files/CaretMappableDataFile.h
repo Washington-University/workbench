@@ -508,10 +508,12 @@ namespace caret {
                                                          const StructureEnum::Enum structure,
                                                          const int nodeIndex,
                                                          const int32_t numberOfNodes,
+                                                         const AString& dataValueSeparator,
                                                          AString& textOut) const;
         
         virtual bool getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                          const float xyz[3],
+                                                         const AString& dataValueSeparator,
                                                          int64_t ijkOut[3],
                                                          AString& textOut) const;
         

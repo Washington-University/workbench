@@ -27,6 +27,8 @@
 #include "CaretAssert.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
+#include "CiftiMappableDataFile.h"
+#include "HtmlTableBuilder.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SurfaceFile.h"
@@ -59,10 +61,16 @@ CiftiFiberTrajectoryManager::~CiftiFiberTrajectoryManager()
 /**
  * Load data for the given surface node index.
  *
+ * @param brain
+ *    The brain
  * @param surfaceFile
  *    Surface File that contains the node (uses its structure).
  * @param nodeIndex
  *    Index of the surface node.
+ * @param rowColumnInformationOut
+ *    Appends one string for each row/column loaded
+ * @param htmlTableBuilder
+ *     Html table builder for cifti loading info
  * @return
  *    true if any data was loaded, else false.
  */
@@ -70,7 +78,8 @@ bool
 CiftiFiberTrajectoryManager::loadDataForSurfaceNode(Brain* brain,
                                                     const SurfaceFile* surfaceFile,
                                                     const int32_t nodeIndex,
-                                                    std::vector<AString>& rowColumnInformationOut)
+                                                    std::vector<AString>& rowColumnInformationOut,
+                                                    HtmlTableBuilder& htmlTableBuilder)
 {
     bool dataWasLoaded = false;
     
@@ -91,7 +100,10 @@ CiftiFiberTrajectoryManager::loadDataForSurfaceNode(Brain* brain,
                                               + " nodeIndex="
                                               + AString::number(nodeIndex)
                                               + ", row index= "
-                                              + AString::number(rowIndex));
+                                              + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+            htmlTableBuilder.addRow(("Vertex Index: " + AString::number(nodeIndex)),
+                                    ("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+                                    trajFile->getFileNameNoPath());
             dataWasLoaded = true;
         }
     }
@@ -102,6 +114,8 @@ CiftiFiberTrajectoryManager::loadDataForSurfaceNode(Brain* brain,
 /**
  * Load data for the given surface node index.
  *
+ * @param brain
+ *    The brain
  * @param surfaceFile
  *    Surface File that contains the node (uses its structure).
  * @param nodeIndex
@@ -144,17 +158,22 @@ CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(Brain* brain,
 
 /**
  * Load data for the voxel near the given coordinate.
+ * @param brain
+ *    The brain
  * @param xyz
  *     Coordinate of voxel.
  * @param rowColumnInformationOut
  *    Appends one string for each row/column loaded
+ * @param htmlTableBuilder
+ *     Html table builder for cifti loading info
  * @return
  *    true if any connectivity loaders are active, else false.
  */
 bool
 CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(Brain* brain,
                                                           const float xyz[3],
-                                                          std::vector<AString>& rowColumnInformationOut)
+                                                          std::vector<AString>& rowColumnInformationOut,
+                                                          HtmlTableBuilder& htmlTableBuilder)
 {
     std::vector<CiftiFiberTrajectoryFile*> ciftiTrajFiles;
     brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);
@@ -175,6 +194,9 @@ CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(Brain* brain,
                                                   + AString::fromNumbers(xyz, 3, ",")
                                                   + ", row index= "
                                                   + AString::number(rowIndex));
+                htmlTableBuilder.addRow(("Voxel XYZ: " + AString::fromNumbers(xyz, 3, ",")),
+                                        ("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+                                        trajFile->getFileNameNoPath());
                 haveData = true;
             }
         }
@@ -186,6 +208,8 @@ CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(Brain* brain,
 /**
  * Load average data for the given voxel indices.
  *
+ * @param brain
+ *    The brain
  * @param volumeDimensionIJK
  *    Dimensions of the volume.
  * @param voxelIndices

@@ -2396,6 +2396,8 @@ VolumeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) c
  *    Indices of maps for which identification information is requested.
  * @param xyz
  *     Coordinate of voxel.
+ * @param dataValueSeparator
+ *    Separator between multiple data values
  * @param ijkOut
  *     Voxel indices of value.
  * @param textOut
@@ -2404,6 +2406,7 @@ VolumeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) c
 bool
 VolumeFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                 const float xyz[3],
+                                                const AString& dataValueSeparator,
                                                 int64_t ijkOut[3],
                                                 AString& textOut) const
 {
@@ -2418,7 +2421,7 @@ VolumeFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapI
     AString valuesText;
     for (const auto mapIndex : mapIndices) {
         if ( ! valuesText.isEmpty()) {
-            valuesText.append(", ");
+            valuesText.append(dataValueSeparator);
         }
         bool validFlag(false);
         const float value = getVoxelValue(xyz,

@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __IDENTIFICATION_TEXT_GENERATOR_DECLARE__
-#include "IdentificationTextGenerator.h"
-#undef __IDENTIFICATION_TEXT_GENERATOR_DECLARE__
+#define __IDENTIFICATION_SIMPLE_TEXT_GENERATOR_DECLARE__
+#include "IdentificationSimpleTextGenerator.h"
+#undef __IDENTIFICATION_SIMPLE_TEXT_GENERATOR_DECLARE__
 
 #include "Border.h"
 #include "Brain.h"
@@ -85,7 +85,7 @@ using namespace caret;
 
     
 /**
- * \class IdentificationTextGenerator 
+ * \class IdentificationSimpleTextGenerator
  * \brief Creates text describing selected data.
  *
  * Examine the selected data and generate descriptive text.
@@ -94,7 +94,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-IdentificationTextGenerator::IdentificationTextGenerator()
+IdentificationSimpleTextGenerator::IdentificationSimpleTextGenerator()
 : CaretObject()
 {
     
@@ -103,7 +103,7 @@ IdentificationTextGenerator::IdentificationTextGenerator()
 /**
  * Destructor.
  */
-IdentificationTextGenerator::~IdentificationTextGenerator()
+IdentificationSimpleTextGenerator::~IdentificationSimpleTextGenerator()
 {
     
 }
@@ -116,7 +116,7 @@ IdentificationTextGenerator::~IdentificationTextGenerator()
  *    The brain.
  */
 AString 
-IdentificationTextGenerator::createIdentificationText(const SelectionManager* idManager,
+IdentificationSimpleTextGenerator::createIdentificationText(const SelectionManager* idManager,
                                                       const Brain* brain) const
 {
     CaretAssert(idManager);
@@ -190,7 +190,7 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
  *     String builder for identification text.
  */
 AString
-IdentificationTextGenerator::createToolTipText(const Brain* brain,
+IdentificationSimpleTextGenerator::createToolTipText(const Brain* brain,
                                                const BrowserTabContent* browserTab,
                                                const SelectionManager* selectionManager,
                                                const DataToolTipsManager* dataToolTipsManager) const
@@ -244,7 +244,7 @@ IdentificationTextGenerator::createToolTipText(const Brain* brain,
  *     Information for volume voxel ID.
  */
 void
-IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateVolumeIdentificationText(IdentificationStringBuilder& idText,
                                                               const Brain* brain,
                                                               const SelectionItemVoxel* idVolumeVoxel) const
 {
@@ -490,6 +490,7 @@ IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStri
                         int64_t voxelIJK[3];
                         if (ciftiFile->getVolumeVoxelIdentificationForMaps(mapIndices,
                                                                       xyz,
+                                                                           " ",
                                                                       voxelIJK,
                                                                       textValue)) {
                             AString boldText = (DataFileTypeEnum::toOverlayTypeName(ciftiFile->getDataFileType())
@@ -523,7 +524,7 @@ IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStri
  *     Information for surface node ID.
  */
 void 
-IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateSurfaceIdentificationText(IdentificationStringBuilder& idText,
                                                                const Brain* brain,
                                                                const SelectionItemSurfaceNode* idSurfaceNode) const
 {
@@ -647,6 +648,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                                                                             surface->getStructure(),
                                                                             nodeNumber,
                                                                             surface->getNumberOfNodes(),
+                                                                         " ",
                                                                             textValue);
             if (valid) {
                 idText.addLine(true,
@@ -711,7 +713,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
  *    Indices of maps of the file that are used in overlays.
  */
 void
-IdentificationTextGenerator::getMapIndicesOfFileUsedInOverlays(const CaretMappableDataFile* caretMappableDataFile,
+IdentificationSimpleTextGenerator::getMapIndicesOfFileUsedInOverlays(const CaretMappableDataFile* caretMappableDataFile,
                                                                std::vector<int32_t>& mapIndicesOut) const
 {
     mapIndicesOut.clear();
@@ -756,7 +758,7 @@ IdentificationTextGenerator::getMapIndicesOfFileUsedInOverlays(const CaretMappab
  *     Information for chart id.
  */
 void
-IdentificationTextGenerator::generateChartDataSeriesIdentificationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateChartDataSeriesIdentificationText(IdentificationStringBuilder& idText,
                                                                        const SelectionItemChartDataSeries* idChartDataSeries) const
 {
     if (idChartDataSeries->isValid()) {
@@ -777,7 +779,7 @@ IdentificationTextGenerator::generateChartDataSeriesIdentificationText(Identific
  *     Information for chart id.
  */
 void
-IdentificationTextGenerator::generateChartFrequencySeriesIdentificationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateChartFrequencySeriesIdentificationText(IdentificationStringBuilder& idText,
                                                                        const SelectionItemChartFrequencySeries* idChartFrequencySeries) const
 {
     if (idChartFrequencySeries->isValid()) {
@@ -798,7 +800,7 @@ IdentificationTextGenerator::generateChartFrequencySeriesIdentificationText(Iden
  *     Information for matrix chart id.
  */
 void
-IdentificationTextGenerator::generateChartMatrixIdentificationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateChartMatrixIdentificationText(IdentificationStringBuilder& idText,
                                                                    const SelectionItemChartMatrix* idChartMatrix) const
 {
     if (idChartMatrix->isValid()) {
@@ -843,7 +845,7 @@ IdentificationTextGenerator::generateChartMatrixIdentificationText(Identificatio
  *     Information for selected chart two histogram.
  */
 void
-IdentificationTextGenerator::generateChartTwoHistogramIdentificationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateChartTwoHistogramIdentificationText(IdentificationStringBuilder& idText,
                                                  const SelectionItemChartTwoHistogram* idChartTwoHistogram) const
 {
     const int32_t mapIndex    = idChartTwoHistogram->getMapIndex();
@@ -897,7 +899,7 @@ IdentificationTextGenerator::generateChartTwoHistogramIdentificationText(Identif
  *     Information for selected chart two line-series.
  */
 void
-IdentificationTextGenerator::generateChartTwoLineSeriesIdentificationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateChartTwoLineSeriesIdentificationText(IdentificationStringBuilder& idText,
                                                   const SelectionItemChartTwoLineSeries* idChartTwoLineSeries) const
 {
     if (idChartTwoLineSeries->isValid()) {
@@ -958,7 +960,7 @@ IdentificationTextGenerator::generateChartTwoLineSeriesIdentificationText(Identi
  *     Information for selected chart two matrix.
  */
 void
-IdentificationTextGenerator::generateChartTwoMatrixIdentificationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateChartTwoMatrixIdentificationText(IdentificationStringBuilder& idText,
                                               const SelectionItemChartTwoMatrix* idChartTwoMatrix) const
 {
     if (idChartTwoMatrix->isValid()) {
@@ -1027,7 +1029,7 @@ IdentificationTextGenerator::generateChartTwoMatrixIdentificationText(Identifica
  *     Information for CIFTI Connectivity Matrix Row/Column.
  */
 void
-IdentificationTextGenerator::generateCiftiConnectivityMatrixIdentificationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateCiftiConnectivityMatrixIdentificationText(IdentificationStringBuilder& idText,
                                                                                const SelectionItemCiftiConnectivityMatrixRowColumn* idCiftiConnMatrix) const
 {
     if (idCiftiConnMatrix->isValid()) {
@@ -1068,7 +1070,7 @@ IdentificationTextGenerator::generateCiftiConnectivityMatrixIdentificationText(I
  *     Source of chart data.
  */
 void
-IdentificationTextGenerator::generateChartDataSourceText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateChartDataSourceText(IdentificationStringBuilder& idText,
                                                          const AString& typeOfChartText,
                                                          const ChartDataSource* chartDataSource) const
 {
@@ -1147,7 +1149,7 @@ IdentificationTextGenerator::generateChartDataSourceText(IdentificationStringBui
  *     The map file data selector.
  */
 void
-IdentificationTextGenerator::generateMapFileSelectorText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateMapFileSelectorText(IdentificationStringBuilder& idText,
                                  const MapFileDataSelector* mapFileDataSelector) const
 {
     
@@ -1249,7 +1251,7 @@ IdentificationTextGenerator::generateMapFileSelectorText(IdentificationStringBui
  *     Information for chart id.
  */
 void
-IdentificationTextGenerator::generateChartTimeSeriesIdentificationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateChartTimeSeriesIdentificationText(IdentificationStringBuilder& idText,
                                                                        const SelectionItemChartTimeSeries* idChartTimeSeries) const
 {
     if (idChartTimeSeries->isValid()) {
@@ -1272,7 +1274,7 @@ IdentificationTextGenerator::generateChartTimeSeriesIdentificationText(Identific
  *     True if this is for tooltip.
  */
 void
-IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateSurfaceBorderIdentifcationText(IdentificationStringBuilder& idText,
                                                                     const SelectionItemBorderSurface* idSurfaceBorder,
                                                                     const bool toolTipFlag) const
 {
@@ -1325,7 +1327,7 @@ IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(Identificati
  *     True if this is for tooltip.
  */
 void
-IdentificationTextGenerator::generateSurfaceFociIdentifcationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateSurfaceFociIdentifcationText(IdentificationStringBuilder& idText,
                                                                   const SelectionItemFocusSurface* idSurfaceFocus,
                                                                   const bool toolTipFlag) const
 {
@@ -1465,7 +1467,7 @@ IdentificationTextGenerator::generateSurfaceFociIdentifcationText(Identification
  *     Information for surface focus ID.
  */
 void
-IdentificationTextGenerator::generateVolumeFociIdentifcationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateVolumeFociIdentifcationText(IdentificationStringBuilder& idText,
                                                                   const SelectionItemFocusVolume* idVolumeFocus) const
 {
     if (idVolumeFocus->isValid()) {
@@ -1548,7 +1550,7 @@ IdentificationTextGenerator::generateVolumeFociIdentifcationText(IdentificationS
  *     Information for image ID.
  */
 void
-IdentificationTextGenerator::generateImageIdentificationText(IdentificationStringBuilder& idText,
+IdentificationSimpleTextGenerator::generateImageIdentificationText(IdentificationStringBuilder& idText,
                                                              const SelectionItemImage* idImage) const
 {
     if (idImage->isValid()) {
@@ -1584,7 +1586,7 @@ IdentificationTextGenerator::generateImageIdentificationText(IdentificationStrin
  *     String builder for identification text.
  */
 void
-IdentificationTextGenerator::generateSurfaceToolTip(const Brain* brain,
+IdentificationSimpleTextGenerator::generateSurfaceToolTip(const Brain* brain,
                                                     const BrowserTabContent* browserTab,
                                                     const SelectionManager* selectionManager,
                                                     const DataToolTipsManager* dataToolTipsManager,
@@ -1663,6 +1665,7 @@ IdentificationTextGenerator::generateSurfaceToolTip(const Brain* brain,
                                                                      surfaceStructure,
                                                                      surfaceNodeIndex,
                                                                      surfaceNumberOfNodes,
+                                                                     " ",
                                                                      textValue);
                         if ( ! textValue.isEmpty()) {
                             idText.addLine(indentFlag,
@@ -1732,7 +1735,7 @@ IdentificationTextGenerator::generateSurfaceToolTip(const Brain* brain,
  *     String builder for identification text.
  */
 void
-IdentificationTextGenerator::generateVolumeToolTip(const BrowserTabContent* browserTab,
+IdentificationSimpleTextGenerator::generateVolumeToolTip(const BrowserTabContent* browserTab,
                                                    const SelectionManager* selectionManager,
                                                    const DataToolTipsManager* dataToolTipsManager,
                                                    IdentificationStringBuilder& idText) const
@@ -1812,6 +1815,7 @@ IdentificationTextGenerator::generateVolumeToolTip(const BrowserTabContent* brow
                 int64_t ijk[3];
                 mapFile->getVolumeVoxelIdentificationForMaps(mapIndices,
                                                              xyz,
+                                                             " ",
                                                              ijk,
                                                              textValue);
                 if ( ! textValue.isEmpty()) {
@@ -1831,7 +1835,7 @@ IdentificationTextGenerator::generateVolumeToolTip(const BrowserTabContent* brow
  *     Overlay set for overlay.
  */
 Overlay*
-IdentificationTextGenerator::getTopEnabledOverlay(OverlaySet* overlaySet) const
+IdentificationSimpleTextGenerator::getTopEnabledOverlay(OverlaySet* overlaySet) const
 {
     CaretAssert(overlaySet);
     const int32_t numberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
@@ -1856,7 +1860,7 @@ IdentificationTextGenerator::getTopEnabledOverlay(OverlaySet* overlaySet) const
  *     String builder for identification text.
  */
 void
-IdentificationTextGenerator::generateChartToolTip(const SelectionManager* selectionManager,
+IdentificationSimpleTextGenerator::generateChartToolTip(const SelectionManager* selectionManager,
                                                   const DataToolTipsManager* dataToolTipsManager,
                                                   IdentificationStringBuilder& idText) const
 {
@@ -1879,7 +1883,7 @@ IdentificationTextGenerator::generateChartToolTip(const SelectionManager* select
  * @return String describing this object's content.
  */
 AString 
-IdentificationTextGenerator::toString() const
+IdentificationSimpleTextGenerator::toString() const
 {
-    return "IdentificationTextGenerator";
+    return "IdentificationSimpleTextGenerator";
 }

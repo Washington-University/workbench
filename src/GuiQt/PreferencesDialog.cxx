@@ -519,6 +519,16 @@ PreferencesDialog::createIdentificationSymbolWidget()
     QObject::connect(m_dataToolTipsComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(identificationSymbolToggled()));
     
+    /*
+     * Identification Mode
+     */
+    m_identificationModeComboBox = new EnumComboBoxTemplate(this);
+    m_identificationModeComboBox->setup<IdentificationDisplayModeEnum,IdentificationDisplayModeEnum::Enum>();
+    QObject::connect(m_identificationModeComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &PreferencesDialog::identificationModeEnumComboBoxItemActivated);
+    m_allWidgets->add(m_identificationModeComboBox->getWidget());
+    
+    
     QGridLayout* gridLayout = new QGridLayout();
     int row = gridLayout->rowCount();
     gridLayout->addWidget(infoLabel,
@@ -532,6 +542,10 @@ PreferencesDialog::createIdentificationSymbolWidget()
     addWidgetToLayout(gridLayout,
                       "Show Data Tool Tips: ",
                       m_dataToolTipsComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Identification Display: ",
+                      m_identificationModeComboBox->getWidget());
+
 
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -552,6 +566,7 @@ PreferencesDialog::updateIdentificationWidget(CaretPreferences* prefs)
     m_surfaceIdentificationSymbolComboBox->setStatus(prefs->isShowSurfaceIdentificationSymbols());
     m_volumeIdentificationSymbolComboBox->setStatus(prefs->isShowVolumeIdentificationSymbols());
     m_dataToolTipsComboBox->setStatus(prefs->isShowDataToolTipsEnabled());
+    m_identificationModeComboBox->setSelectedItem<IdentificationDisplayModeEnum, IdentificationDisplayModeEnum::Enum>(prefs->getIdentificationDisplayMode());
 }
 
 /**
@@ -564,6 +579,17 @@ PreferencesDialog::identificationSymbolToggled()
     prefs->setShowSurfaceIdentificationSymbols(m_surfaceIdentificationSymbolComboBox->isTrue());
     prefs->setShowVolumeIdentificationSymbols(m_volumeIdentificationSymbolComboBox->isTrue());
     prefs->setShowDataToolTipsEnabled(m_dataToolTipsComboBox->isTrue());
+}
+
+/**
+ * Gets called when an identification display mode is changed
+ */
+void
+PreferencesDialog::identificationModeEnumComboBoxItemActivated()
+{
+    const IdentificationDisplayModeEnum::Enum idMode = m_identificationModeComboBox->getSelectedItem<IdentificationDisplayModeEnum, IdentificationDisplayModeEnum::Enum>();
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setIdentificationDisplayMode(idMode);
 }
 
 /**

@@ -52,7 +52,8 @@ namespace caret {
     class SelectionItemVoxel;
     class SelectionItemVoxelEditing;
     class SelectionItemVoxelIdentificationSymbol;
-    class IdentificationTextGenerator;
+    class IdentificationFormattedTextGenerator;
+    class IdentificationSimpleTextGenerator;
     class Surface;
     
     class SelectionManager : public CaretObject, public EventListenerInterface {
@@ -150,7 +151,9 @@ namespace caret {
         
         const SelectionItemChartTwoMatrix* getChartTwoMatrixIdentification() const;
         
-        AString getIdentificationText(const Brain* brain) const;
+        AString getSimpleIdentificationText(const Brain* brain) const;
+        
+        AString getFormattedIdentificationText(const Brain* brain) const;
         
         void filterSelections(const bool applySelectionBackgroundFiltering);
         
@@ -223,7 +226,9 @@ namespace caret {
         
         SelectionItemSurfaceTriangle* m_surfaceTriangleIdentification;
         
-        IdentificationTextGenerator* m_idTextGenerator;
+        IdentificationSimpleTextGenerator* m_idTextGenerator;
+        
+        std::unique_ptr<IdentificationFormattedTextGenerator> m_idFormattedTextGenerator;
         
         SelectionItemVoxel* m_voxelIdentification;
         

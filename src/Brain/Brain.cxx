@@ -7879,6 +7879,15 @@ Brain::getIdentificationManager()
     return m_identificationManager;
 }
 
+/**
+ * @return The identification manager.
+ */
+const IdentificationManager*
+Brain::getIdentificationManager() const
+{
+    return m_identificationManager;
+}
+
 /** Region of interest for highlighting brainordinates */
 BrainordinateRegionOfInterest*
 Brain::getBrainordinateHighlightRegionOfInterest()

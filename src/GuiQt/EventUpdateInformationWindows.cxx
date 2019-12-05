@@ -46,7 +46,8 @@ EventUpdateInformationWindows::EventUpdateInformationWindows(const AString& info
     if ( ! informationText.isEmpty()) {
         IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
         CaretAssert(idManager);
-        idManager->addIdentifiedItem(new IdentifiedItem(informationText));
+        idManager->addIdentifiedItem(new IdentifiedItem(informationText,
+                                                        informationText));
     }
     
     m_important = true;

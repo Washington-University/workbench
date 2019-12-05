@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <list>
+#include <memory>
 
 #include "CaretColorEnum.h"
 #include "SceneableInterface.h"
@@ -30,6 +31,8 @@
 namespace caret {
 
     class CaretPreferences;
+    class IdentificationFilter;
+    class IdentificationHistoryManager;
     class IdentifiedItem;
     class IdentifiedItemNode;
     class IdentifiedItemVoxel;
@@ -45,6 +48,14 @@ namespace caret {
         void addIdentifiedItem(IdentifiedItem* item);
         
         AString getIdentificationText() const;
+        
+        const IdentificationFilter* getIdentificationFilter() const;
+        
+        IdentificationFilter* getIdentificationFilter();
+        
+        const IdentificationHistoryManager* getIdentificationHistoryManager() const;
+        
+        IdentificationHistoryManager* getIdentificationHistoryManager();
         
         std::vector<IdentifiedItemNode> getNodeIdentifiedItemsForSurface(const StructureEnum::Enum structure,
                                                                          const int32_t surfaceNumberOfNodes) const;
@@ -130,6 +141,10 @@ namespace caret {
         
         CaretColorEnum::Enum m_identificationContralateralSymbolColor;
 
+        std::unique_ptr<IdentificationFilter> m_identificationFilter;
+        
+        std::unique_ptr<IdentificationHistoryManager> m_identificationHistoryManager;
+        
         /** show surface identification symbols*/
         bool m_showSurfaceIdentificationSymbols;
         

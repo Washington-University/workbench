@@ -118,6 +118,8 @@ FileInformation.h
 FloatMatrix.h
 Histogram.h
 HtmlStringBuilder.h
+HtmlTableBuilder.h
+IdentificationDisplayModeEnum.h
 ImageCaptureMethodEnum.h
 JsonHelper.h
 Logger.h
@@ -250,6 +252,8 @@ FileInformation.cxx
 FloatMatrix.cxx
 Histogram.cxx
 HtmlStringBuilder.cxx
+HtmlTableBuilder.cxx
+IdentificationDisplayModeEnum.cxx
 ImageCaptureMethodEnum.cxx
 JsonHelper.cxx
 Logger.cxx

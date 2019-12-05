@@ -1,9 +1,9 @@
-#ifndef __IDENTIFIED_ITEM_VOXEL_H__
-#define __IDENTIFIED_ITEM_VOXEL_H__
+#ifndef __IDENTIFICATION_HISTORY_MANAGER_H__
+#define __IDENTIFICATION_HISTORY_MANAGER_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2015 Washington University School of Medicine
+ *  Copyright (C) 2019 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,46 +22,47 @@
 /*LICENSE_END*/
 
 
-#include "IdentifiedItem.h"
+#include <deque>
+#include <memory>
+
+#include "CaretObject.h"
+
+#include "SceneableInterface.h"
 
 
 namespace caret {
+    class IdentificationHistoryRecord;
     class SceneClassAssistant;
 
-    class IdentifiedItemVoxel : public IdentifiedItem{
+    class IdentificationHistoryManager : public CaretObject, public SceneableInterface {
         
     public:
-        IdentifiedItemVoxel();
+        IdentificationHistoryManager();
+        
+        virtual ~IdentificationHistoryManager();
+        
+        IdentificationHistoryManager(const IdentificationHistoryManager&) = delete;
 
-        IdentifiedItemVoxel(const AString& simpleText,
-                            const AString& formattedText,
-                            const float xyz[3]);
-        
-        virtual ~IdentifiedItemVoxel();
-        
-        IdentifiedItemVoxel(const IdentifiedItemVoxel& obj);
+        IdentificationHistoryManager& operator=(const IdentificationHistoryManager&) = delete;
 
-        IdentifiedItemVoxel& operator=(const IdentifiedItemVoxel& obj);
+        AString getText() const;
+        
+        int32_t getShowLastHistoryCount() const;
+        
+        void setShowLastHistoryCount(const int32_t historyCount);
 
-        virtual bool isValid() const;
+        void clearHistory();
         
-        void getXYZ(float xyzOut[3]) const;
+        void addHistoryRecord(IdentificationHistoryRecord* historyRecord);
         
-        const float* getSymbolRGB() const;
+        int32_t getNumberOfHistoryRecords() const;
         
-        void getSymbolRGBA(uint8_t rgbaOut[4]) const;
+        const IdentificationHistoryRecord* getHistoryRecord(const int32_t historyIndex) const;
         
-        float getSymbolSize() const;
-        
-        void setSymbolRGB(const float* rgb);
-        
-        void setSymbolSize(const float symbolSize);
-        
-        virtual AString toString() const;
-        
-
         // ADD_NEW_METHODS_HERE
 
+        virtual AString toString() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
 
@@ -75,7 +76,7 @@ namespace caret {
           
 // If there will be sub-classes of this class that need to save
 // and restore data from scenes, these pure virtual methods can
-// be uncommented to force their implemetation by sub-classes.
+// be uncommented to force their implementation by sub-classes.
 //    protected: 
 //        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
 //                                             SceneClass* sceneClass) = 0;
@@ -84,25 +85,19 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        void copyHelperIdentifiedItemVoxel(const IdentifiedItemVoxel& obj);
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        void initializeMembers();
+        std::deque<std::unique_ptr<IdentificationHistoryRecord>> m_historyRecords;
         
-        float m_xyz[3];
+        int32_t m_showLastHistoryCount = 0;
         
-        float m_symbolRGB[3];
-        
-        float m_symbolSize;
-        
-        SceneClassAssistant* m_sceneAssistant;
-
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __IDENTIFIED_ITEM_VOXEL_DECLARE__
+#ifdef __IDENTIFICATION_HISTORY_MANAGER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFIED_ITEM_VOXEL_DECLARE__
+#endif // __IDENTIFICATION_HISTORY_MANAGER_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFIED_ITEM_VOXEL_H__
+#endif  //__IDENTIFICATION_HISTORY_MANAGER_H__

@@ -27,8 +27,9 @@
 #include "BackgroundAndForegroundColors.h"
 #include "BackgroundAndForegroundColorsModeEnum.h"
 #include "CaretObject.h"
-#include "LogLevelEnum.h"
+#include "IdentificationDisplayModeEnum.h"
 #include "ImageCaptureMethodEnum.h"
+#include "LogLevelEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
 #include "SpecFileDialogViewFilesTypeEnum.h"
 #include "ToolBarWidthModeEnum.h"
@@ -96,6 +97,10 @@ namespace caret {
         ToolBarWidthModeEnum::Enum getToolBarWidthMode() const;
         
         void setToolBarWidthMode(const ToolBarWidthModeEnum::Enum widthMode);
+        
+        IdentificationDisplayModeEnum::Enum getIdentificationDisplayMode() const;
+        
+        void setIdentificationDisplayMode(const IdentificationDisplayModeEnum::Enum identificationDisplayMode);
         
         VolumeSliceViewAllPlanesLayoutEnum::Enum getVolumeAllSlicePlanesLayout() const;
         
@@ -323,6 +328,8 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_guiGesturesEnabled;
         
         std::unique_ptr<CaretPreferenceDataValue> m_toolBarWidthModePreference;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_identificationDisplayModePreference;
         
         std::vector<CaretPreferenceDataValue*> m_preferenceDataValues;
         

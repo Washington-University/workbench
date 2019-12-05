@@ -1,9 +1,9 @@
-#ifndef __IDENTIFIED_ITEM_VOXEL_H__
-#define __IDENTIFIED_ITEM_VOXEL_H__
+#ifndef __IDENTIFICATION_FILTER_H__
+#define __IDENTIFICATION_FILTER_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2015 Washington University School of Medicine
+ *  Copyright (C) 2019 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,46 +22,47 @@
 /*LICENSE_END*/
 
 
-#include "IdentifiedItem.h"
+
+#include <memory>
+
+#include "CaretObject.h"
+
+#include "SceneableInterface.h"
 
 
 namespace caret {
     class SceneClassAssistant;
 
-    class IdentifiedItemVoxel : public IdentifiedItem{
+    class IdentificationFilter : public CaretObject, public SceneableInterface {
         
     public:
-        IdentifiedItemVoxel();
+        IdentificationFilter();
+        
+        virtual ~IdentificationFilter();
+        
+        IdentificationFilter(const IdentificationFilter&) = delete;
 
-        IdentifiedItemVoxel(const AString& simpleText,
-                            const AString& formattedText,
-                            const float xyz[3]);
-        
-        virtual ~IdentifiedItemVoxel();
-        
-        IdentifiedItemVoxel(const IdentifiedItemVoxel& obj);
+        IdentificationFilter& operator=(const IdentificationFilter&) = delete;
 
-        IdentifiedItemVoxel& operator=(const IdentifiedItemVoxel& obj);
+        bool isSurfaceVertexEnabled() const;
+        
+        void setSurfaceVertexEnabled(const bool surfaceVertexEnabled);
+        
+        bool isVolumeVoxelEnabled() const;
+        
+        void setVolumeVoxelEnabled(const bool volumeVoxelEnabled);
 
-        virtual bool isValid() const;
+        bool isBorderEnabled() const;
         
-        void getXYZ(float xyzOut[3]) const;
+        void setBorderEnabled(const bool borderEnabled);
         
-        const float* getSymbolRGB() const;
+        bool isFociEnabled() const;
         
-        void getSymbolRGBA(uint8_t rgbaOut[4]) const;
-        
-        float getSymbolSize() const;
-        
-        void setSymbolRGB(const float* rgb);
-        
-        void setSymbolSize(const float symbolSize);
-        
-        virtual AString toString() const;
-        
-
+        void setFociEnabled(const bool fociEnabled);
         // ADD_NEW_METHODS_HERE
 
+        virtual AString toString() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
 
@@ -75,7 +76,7 @@ namespace caret {
           
 // If there will be sub-classes of this class that need to save
 // and restore data from scenes, these pure virtual methods can
-// be uncommented to force their implemetation by sub-classes.
+// be uncommented to force their implementation by sub-classes.
 //    protected: 
 //        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
 //                                             SceneClass* sceneClass) = 0;
@@ -84,25 +85,23 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        void copyHelperIdentifiedItemVoxel(const IdentifiedItemVoxel& obj);
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
+        
+        bool m_surfaceVertexEnabled = true;
 
-        void initializeMembers();
-        
-        float m_xyz[3];
-        
-        float m_symbolRGB[3];
-        
-        float m_symbolSize;
-        
-        SceneClassAssistant* m_sceneAssistant;
+        bool m_volumeVoxelEnabled = true;
+
+        bool m_borderEnabled = true;
+
+        bool m_fociEnabled = true;
 
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __IDENTIFIED_ITEM_VOXEL_DECLARE__
+#ifdef __IDENTIFICATION_FILTER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFIED_ITEM_VOXEL_DECLARE__
+#endif // __IDENTIFICATION_FILTER_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFIED_ITEM_VOXEL_H__
+#endif  //__IDENTIFICATION_FILTER_H__

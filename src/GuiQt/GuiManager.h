@@ -51,6 +51,7 @@ namespace caret {
     class GapsAndMarginsDialog;
     class HelpViewerDialog;
     class IdentifyBrainordinateDialog;
+    class IdentificationDisplayDialog;
     class ImageFile;
     class ImageCaptureDialog;
     class InformationDisplayDialog;
@@ -284,6 +285,8 @@ namespace caret {
         InformationDisplayDialog* m_informationDisplayDialog;
         
         IdentifyBrainordinateDialog* m_identifyBrainordinateDialog;
+        
+        IdentificationDisplayDialog* m_identificationDisplayDialog = NULL;
         
         SceneDialog* sceneDialog;
         

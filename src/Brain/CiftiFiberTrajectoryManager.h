@@ -28,6 +28,7 @@
 namespace caret {
 
     class Brain;
+    class HtmlTableBuilder;
     class SurfaceFile;
     
     class CiftiFiberTrajectoryManager : public CaretObject {
@@ -40,14 +41,16 @@ namespace caret {
         bool loadDataForSurfaceNode(Brain* brain,
                                     const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex,
-                                    std::vector<AString>& rowColumnInformationOut);
+                                    std::vector<AString>& rowColumnInformationOut,
+                                    HtmlTableBuilder& htmlTableBuilder);
         
         bool loadDataAverageForSurfaceNodes(Brain* brain,
                                             const SurfaceFile* surfaceFile,
                                             const std::vector<int32_t>& nodeIndices);
         bool loadDataForVoxelAtCoordinate(Brain* brain,
                                           const float xyz[3],
-                                          std::vector<AString>& rowColumnInformationOut);
+                                          std::vector<AString>& rowColumnInformationOut,
+                                          HtmlTableBuilder& htmlTableBuilder);
         
         bool loadAverageDataForVoxelIndices(Brain* brain,
                                             const int64_t volumeDimensionIJK[3],

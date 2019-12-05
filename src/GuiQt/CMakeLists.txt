@@ -141,6 +141,8 @@ ELSE()
         GuiManager.h
         HelpViewerDialog.h
         HyperLinkTextBrowser.h
+	IdentificationDisplayDialog.h
+	IdentificationDisplayWidget.h
         IdentifyBrainordinateDialog.h
         ImageCaptureDialog.h
         ImageFileConvertToVolumeFileDialog.h
@@ -252,6 +254,7 @@ ELSE()
         WuQTimedMessageDisplay.h
         WuQTreeWidget.h
         WuQTrueFalseComboBox.h
+	WuQValueChangedSignalWatcher.h
         #WuQWebView.h
         WuQWidget.h
         WuQWidgetObjectGroup.h
@@ -409,6 +412,8 @@ GroupAndNameHierarchyViewController.h
 GuiManager.h
 HelpViewerDialog.h
 HyperLinkTextBrowser.h
+IdentificationDisplayDialog.h
+IdentificationDisplayWidget.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
 ImageFileConvertToVolumeFileDialog.h
@@ -553,6 +558,7 @@ WuQTextEditorDialog.h
 WuQTimedMessageDisplay.h
 WuQTreeWidget.h
 WuQTrueFalseComboBox.h
+WuQValueChangedSignalWatcher.h
 #WuQWebView.h
 WuQWidget.h
 WuQWidgetDisabler.h
@@ -696,6 +702,8 @@ GroupAndNameHierarchyViewController.cxx
 GuiManager.cxx
 HelpViewerDialog.cxx
 HyperLinkTextBrowser.cxx
+IdentificationDisplayDialog.cxx
+IdentificationDisplayWidget.cxx
 IdentifyBrainordinateDialog.cxx
 ImageCaptureDialog.cxx
 ImageFileConvertToVolumeFileDialog.cxx
@@ -836,6 +844,7 @@ WuQTextEditorDialog.cxx
 WuQTimedMessageDisplay.cxx
 WuQTreeWidget.cxx
 WuQTrueFalseComboBox.cxx
+WuQValueChangedSignalWatcher.cxx
 #WuQWebView.cxx
 WuQWidget.cxx
 WuQWidgetDisabler.cxx

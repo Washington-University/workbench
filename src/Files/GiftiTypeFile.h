@@ -174,7 +174,8 @@ namespace caret {
                                                          const StructureEnum::Enum structure,
                                                          const int nodeIndex,
                                                          const int32_t numberOfNodes,
-                                                         AString& textOut) const;
+                                                         const AString& dataValueSeparator,
+                                                         AString& textOut) const override;
 
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);

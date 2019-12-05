@@ -1512,10 +1512,10 @@ UserInputModeViewContextMenu::identifySurfaceBorderSelected()
     SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
     Brain* brain = borderID->getBrain();
     this->selectionManager->clearOtherSelectedItems(borderID);
-    const AString idMessage = this->selectionManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
+    idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
+                                                    this->selectionManager->getFormattedIdentificationText(brain)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
@@ -1614,10 +1614,10 @@ UserInputModeViewContextMenu::identifySurfaceFocusSelected()
     SelectionItemFocusSurface* focusID = this->selectionManager->getSurfaceFocusIdentification();
     Brain* brain = focusID->getBrain();
     this->selectionManager->clearOtherSelectedItems(focusID);
-    const AString idMessage = this->selectionManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
+    idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
+                                                    this->selectionManager->getFormattedIdentificationText(brain)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
@@ -1630,10 +1630,10 @@ UserInputModeViewContextMenu::identifyVolumeFocusSelected()
     SelectionItemFocusVolume* focusID = this->selectionManager->getVolumeFocusIdentification();
     Brain* brain = focusID->getBrain();
     this->selectionManager->clearOtherSelectedItems(focusID);
-    const AString idMessage = this->selectionManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
+    idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
+                                                    this->selectionManager->getFormattedIdentificationText(brain)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
@@ -1687,10 +1687,10 @@ UserInputModeViewContextMenu::identifyVoxelSelected()
     SelectionItemVoxel* voxelID = this->selectionManager->getVoxelIdentification();
     Brain* brain = voxelID->getBrain();
     this->selectionManager->clearOtherSelectedItems(voxelID);
-    const AString idMessage = this->selectionManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
+    idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
+                                                    this->selectionManager->getFormattedIdentificationText(brain)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 

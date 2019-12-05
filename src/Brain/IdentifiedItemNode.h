@@ -32,7 +32,8 @@ namespace caret {
     public:
         IdentifiedItemNode();
         
-        IdentifiedItemNode(const AString& text,
+        IdentifiedItemNode(const AString& simpleText,
+                           const AString& formattedText,
                            const StructureEnum::Enum structure,
                            const int32_t surfaceNumberOfNodes,
                            const int32_t nodeIndex);

@@ -75,6 +75,7 @@ namespace caret {
         void yokingComboBoxToggled(bool value);
         
         void identificationSymbolToggled();
+        void identificationModeEnumComboBoxItemActivated();
         
     private:
         enum PREF_COLOR {
@@ -160,6 +161,7 @@ namespace caret {
         WuQTrueFalseComboBox* m_surfaceIdentificationSymbolComboBox;
         WuQTrueFalseComboBox* m_volumeIdentificationSymbolComboBox;
         WuQTrueFalseComboBox* m_dataToolTipsComboBox;
+        EnumComboBoxTemplate* m_identificationModeComboBox;
         
         WuQWidgetObjectGroup* m_allWidgets;
     };

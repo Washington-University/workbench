@@ -61,8 +61,10 @@ IdentifiedItemNode::IdentifiedItemNode()
 /**
  * Constructor.
  *
- * @param text
+ * @param simpleText
  *    Text describing the identified item.
+ * @param formattedText
+ *    Formatted text describing the identified item.
  * @param structure
  *    Structure on which identification took place.
  * @param contralateralStructure
@@ -73,11 +75,13 @@ IdentifiedItemNode::IdentifiedItemNode()
  *    Index of node that was identified.
  *
  */
-IdentifiedItemNode::IdentifiedItemNode(const AString& text,
+IdentifiedItemNode::IdentifiedItemNode(const AString& simpleText,
+                                       const AString& formattedText,
                                        const StructureEnum::Enum structure,
                                        const int32_t surfaceNumberOfNodes,
                                        const int32_t nodeIndex)
-: IdentifiedItem(text)
+: IdentifiedItem(simpleText,
+                 formattedText)
 {
     initializeMembers();
     

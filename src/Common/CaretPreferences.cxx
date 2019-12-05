@@ -87,6 +87,13 @@ CaretPreferences::CaretPreferences()
                                                                     CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                     ToolBarWidthModeEnum::toName(ToolBarWidthModeEnum::COMPACT)));
     
+    m_identificationDisplayModePreference.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                             "identificationDisplayMode",
+                                                                             CaretPreferenceDataValue::DataType::STRING,
+                                                                             CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                             IdentificationDisplayModeEnum::toName(IdentificationDisplayModeEnum::LEGACY_DIALOG)));
+    m_preferenceDataValues.push_back(m_identificationDisplayModePreference.get());
+    
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
 }
 
@@ -1533,6 +1540,30 @@ CaretPreferences::setToolBarWidthMode(const ToolBarWidthModeEnum::Enum widthMode
     m_toolBarWidthModePreference->setValue(stringValue);
 }
 
+/**
+ * @return The identification display mode
+ */
+IdentificationDisplayModeEnum::Enum
+CaretPreferences::getIdentificationDisplayMode() const
+{
+    QString stringValue(m_identificationDisplayModePreference->getValue().toString());
+    bool validFlag(false);
+    const IdentificationDisplayModeEnum::Enum enumValue =
+       IdentificationDisplayModeEnum::fromName(stringValue, &validFlag);
+    return enumValue;
+}
+
+/**
+ * Set the identification display mode
+ *  @param identificationDisplayMode
+ *  New identification display mode
+ */
+void
+CaretPreferences::setIdentificationDisplayMode(const IdentificationDisplayModeEnum::Enum identificationDisplayMode)
+{
+    const QString stringValue = IdentificationDisplayModeEnum::toName(identificationDisplayMode);
+    m_identificationDisplayModePreference->setValue(stringValue);
+}
 
 /**
  * @return  Are axes crosshairs displayed?
