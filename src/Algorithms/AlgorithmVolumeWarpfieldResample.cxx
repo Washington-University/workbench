@@ -112,6 +112,7 @@ AlgorithmVolumeWarpfieldResample::AlgorithmVolumeWarpfieldResample(ProgressObjec
     outDims[2] = refDims[2];
     int64_t numMaps = inVol->getNumberOfMaps(), numComponents = inVol->getNumberOfComponents();
     outVol->reinitialize(outDims, refSform, numComponents, inVol->getType(), inVol->m_header);
+    vector<float> scratchFrame(outDims[0] * outDims[1] * outDims[2], 0.0f);
     if (inVol->isMappedWithLabelTable())
     {
         if (myMethod != VolumeFile::ENCLOSING_VOXEL)
@@ -152,13 +153,14 @@ AlgorithmVolumeWarpfieldResample::AlgorithmVolumeWarpfieldResample(ProgressObjec
                             displacement[2] = warpfield->interpolateValue(outCoord, VolumeFile::TRILINEAR, NULL, 2);
                             inCoord = outCoord + displacement;
                             float interpVal = inVol->interpolateValue(inCoord, myMethod, NULL, b, c);
-                            outVol->setValue(interpVal, i, j, k, b, c);
+                            scratchFrame[outVol->getIndex(i, j, k)] = interpVal;
                         } else {
-                            outVol->setValue(VolumeFile::INVALID_INTERP_VALUE, i, j, k, b, c);
+                            scratchFrame[outVol->getIndex(i, j, k)] = VolumeFile::INVALID_INTERP_VALUE;
                         }
                     }
                 }
             }
+            outVol->setFrame(scratchFrame.data(), b, c);
             if (myMethod == VolumeFile::CUBIC)
             {
                 inVol->freeSpline(b, c);//release memory we no longer need, if we allocated it
