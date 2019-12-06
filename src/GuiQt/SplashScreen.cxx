@@ -27,6 +27,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QToolButton>
 #include <QTreeWidget>
 #include <QUrl>
@@ -65,11 +66,6 @@ SplashScreen::SplashScreen(QWidget* parent)
 : WuQDialogModal("",
                  parent)
 {
-    /*
-     * Removes title bar
-     */
-//    this->setWindowFlags(Qt::SplashScreen);
-
     QLabel* imageLabel = NULL;
     QPixmap pixmap;
     if (WuQtUtilities::loadPixmap(":/Splash/startup_image.png", pixmap)) {
@@ -84,10 +80,6 @@ SplashScreen::SplashScreen(QWidget* parent)
     
     ApplicationInformation appInfo;
     QLabel* workbenchLabel = new QLabel(appInfo.getNameForGuiLabel());
-//    QLabel* workbenchLabel  = new QLabel("<html>"
-//                                         "Connectome<br>"
-//                                         "Workbench"
-//                                         "</html>");
     workbenchLabel->setStyleSheet(labelStyle);
     workbenchLabel->setAlignment(Qt::AlignCenter);
 
@@ -245,12 +237,15 @@ SplashScreen::dataFileTreeWidgetItemDoubleClicked(QTreeWidgetItem* item)
     
     if (item != NULL) {
         if ( ! item->isDisabled()) {
-            m_selectedDataFileName = item->data(0, Qt::UserRole).toString();
-        
-            /*
-             * Accept is like hitting OK button
-             */
-            this->accept();
+            if (item->flags() & Qt::ItemIsSelectable) {
+                m_selectedDataFileName = item->data(0, Qt::UserRole).toString();
+                
+                /*
+                 * Accept is like hitting OK button
+                 */
+                this->accept();
+
+            }
         }
     }
 }
@@ -310,23 +305,16 @@ SplashScreen::chooseDataFileViaOpenFileDialog()
 /**
  * Load Spec Files into the tree widget.
  */
-int32_t 
+int32_t
 SplashScreen::loadDataFileTreeWidget()
 {
     m_dataFileTreeWidget->clear();
     
-    QTreeWidgetItem* selectedItem = addDirectorySpecFiles();
+    QTreeWidgetItem* selectedItem = addDirectorySceneFiles();
     
-    if (selectedItem != NULL) {
-        addDirectorySceneFiles();
-    }
-    else {
-        selectedItem = addDirectorySceneFiles();
-    }
-    
-    QTreeWidgetItem* specItem = addRecentSpecFiles();
-    if (specItem != NULL) {
-        selectedItem = specItem;
+    QTreeWidgetItem* dirSpecItem = addDirectorySpecFiles();
+    if (selectedItem == NULL) {
+        selectedItem = dirSpecItem;
     }
     
     QTreeWidgetItem* sceneItem = addRecentSceneFiles();
@@ -334,15 +322,19 @@ SplashScreen::loadDataFileTreeWidget()
         selectedItem = sceneItem;
     }
     
+    QTreeWidgetItem* specItem = addRecentSpecFiles();
+    if (selectedItem == NULL) {
+        selectedItem = specItem;
+    }
+    
     int nameColWidth = 0;
     int pathColWidth = 0;
     if (selectedItem != NULL) {
         m_dataFileTreeWidget->setCurrentItem(selectedItem);
-        
-        nameColWidth = m_dataFileTreeWidget->QAbstractItemView::sizeHintForColumn(0) + 25;
-        pathColWidth = m_dataFileTreeWidget->QAbstractItemView::sizeHintForColumn(1);
-        m_dataFileTreeWidget->setColumnWidth(0,
-                                             nameColWidth);
+        m_dataFileTreeWidget->resizeColumnToContents(0);
+        m_dataFileTreeWidget->resizeColumnToContents(1);
+        nameColWidth = m_dataFileTreeWidget->columnWidth(0) + 25;
+        pathColWidth = m_dataFileTreeWidget->columnWidth(1);
         
         this->dataFileTreeWidgetItemClicked(selectedItem);
     }
@@ -368,6 +360,12 @@ SplashScreen::addRecentSpecFiles()
     std::vector<AString> recentSpecFiles;
     prefs->getPreviousSpecFiles(recentSpecFiles);
     
+    if (recentSpecFiles.empty()) {
+        return NULL;
+    }
+    
+    QTreeWidgetItem* titleItem = createTopLevelItem("Recent Spec Files",
+                                                    "-------------------------------");
     QTreeWidgetItem* firstItem = NULL;
     
     const int32_t numRecentSpecFiles = static_cast<int>(recentSpecFiles.size());
@@ -375,15 +373,6 @@ SplashScreen::addRecentSpecFiles()
         QString path;
         QString name;
         QString fullPath;
-        
-        if (firstItem == NULL) {
-            QStringList itemText;
-            itemText.append("Recent Spec Files");
-            itemText.append("-------------------------------");
-            QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
-            titleItem->setDisabled(true);
-            m_dataFileTreeWidget->addTopLevelItem(titleItem);
-        }
         
         const QString specFileName = recentSpecFiles[i];
         if (DataFile::isFileOnNetwork(specFileName)) {
@@ -400,25 +389,15 @@ SplashScreen::addRecentSpecFiles()
         }
             
         if (name.isEmpty() == false) {
-            QStringList treeText;
-            treeText.append("    " + name);
-            treeText.append(path);
-            
-            QTreeWidgetItem* lwi = new QTreeWidgetItem(treeText);
-            lwi->setData(0,
-                         Qt::UserRole, 
-                         fullPath);            
-            lwi->setData(1,
-                         Qt::UserRole, 
-                         fullPath);   
-            
-            m_dataFileTreeWidget->addTopLevelItem(lwi);
-            
+            QTreeWidgetItem* lwi = createChildItem(titleItem, name, path, fullPath);
+
             if (firstItem == NULL) {
                 firstItem = lwi;
             }
         }
     } 
+    
+    titleItem->setExpanded(true);
     
     return firstItem;
 }
@@ -433,6 +412,12 @@ SplashScreen::addRecentSceneFiles()
     std::vector<AString> recentSceneFiles;
     prefs->getPreviousSceneFiles(recentSceneFiles);
     
+    if (recentSceneFiles.empty()) {
+        return NULL;
+    }
+    
+    QTreeWidgetItem* titleItem = createTopLevelItem("Recent Scene Files",
+                                                "-------------------------------");
     QTreeWidgetItem* firstItem = NULL;
     
     const int32_t numRecentSceneFiles = static_cast<int>(recentSceneFiles.size());
@@ -440,16 +425,7 @@ SplashScreen::addRecentSceneFiles()
         QString path;
         QString name;
         QString fullPath;
-        
-        if (firstItem == NULL) {
-            QStringList itemText;
-            itemText.append("Recent Scene Files");
-            itemText.append("-------------------------------");
-            QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
-            titleItem->setDisabled(true);
-            m_dataFileTreeWidget->addTopLevelItem(titleItem);
-        }
-        
+                
         const QString sceneFileName = recentSceneFiles[i];
         if (DataFile::isFileOnNetwork(sceneFileName)) {
             const int lastSlash = sceneFileName.lastIndexOf('/');
@@ -465,25 +441,15 @@ SplashScreen::addRecentSceneFiles()
         }
         
         if (name.isEmpty() == false) {
-            QStringList treeText;
-            treeText.append("    " + name);
-            treeText.append(path);
-            
-            QTreeWidgetItem* lwi = new QTreeWidgetItem(treeText);
-            lwi->setData(0,
-                         Qt::UserRole,
-                         fullPath);
-            lwi->setData(1,
-                         Qt::UserRole,
-                         fullPath);
-            
-            m_dataFileTreeWidget->addTopLevelItem(lwi);
-            
+            QTreeWidgetItem* lwi = createChildItem(titleItem, name, path, fullPath);
+
             if (firstItem == NULL) {
                 firstItem = lwi;
             }
         }
     }
+    
+    titleItem->setExpanded(true);
     
     return firstItem;
 }
@@ -505,38 +471,25 @@ SplashScreen::addDirectorySpecFiles()
     QStringList specFileList = dir.entryList(nameFilters,
                                              QDir::Files,
                                              QDir::Name);
+    if (specFileList.isEmpty()) {
+        return NULL;
+    }
+    
+    QTreeWidgetItem* titleItem = createTopLevelItem("Current Directory Spec Files", dirName);
     const int32_t numFiles = specFileList.count();
     for (int32_t i = 0; i < numFiles; i++) {
-        if (firstItem == NULL) {
-            QStringList itemText;
-            itemText.append("Current Directory Spec Files");
-            itemText.append(dirName);
-            QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
-            titleItem->setDisabled(true);
-            m_dataFileTreeWidget->addTopLevelItem(titleItem);
-        }
-        
         FileInformation fileInfo(specFileList.at(i));
         const QString name = fileInfo.getFileName().trimmed();
         const QString fullPath = fileInfo.getAbsoluteFilePath();
         
-        QStringList treeText;
-        treeText.append("    " + name);
-        treeText.append(" . "); // Use . for current directory
-        
-        QTreeWidgetItem* lwi = new QTreeWidgetItem(treeText);
-        lwi->setData(0,
-                     Qt::UserRole, 
-                     fullPath);            
-        lwi->setData(1,
-                     Qt::UserRole, 
-                     fullPath);            
-        m_dataFileTreeWidget->addTopLevelItem(lwi);
+        QTreeWidgetItem* lwi = createChildItem(titleItem, name, " . ", fullPath);
 
         if (firstItem == NULL) {
             firstItem = lwi;
         }
     }
+    
+    titleItem->setExpanded(true);
     
     return firstItem;
 }
@@ -550,48 +503,92 @@ SplashScreen::addDirectorySceneFiles()
     Brain* brain = GuiManager::get()->getBrain();
     const QString dirName = brain->getCurrentDirectory();
     
-    QTreeWidgetItem* firstItem = NULL;
-    
     QStringList nameFilters;
     nameFilters.append("*." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SCENE));
     QDir dir(dirName);
     QStringList sceneFileList = dir.entryList(nameFilters,
                                              QDir::Files,
                                              QDir::Name);
+    if (sceneFileList.isEmpty()) {
+        return NULL;
+    }
+    
+    QTreeWidgetItem* titleItem = createTopLevelItem("Current Directory Scenes", dirName);
+    QTreeWidgetItem* firstItem = NULL;
+    
     const int32_t numFiles = sceneFileList.count();
     for (int32_t i = 0; i < numFiles; i++) {
-        if (firstItem == NULL) {
-            QStringList itemText;
-            itemText.append("Current Directory Scene");
-            itemText.append(dirName);
-            QTreeWidgetItem* titleItem = new QTreeWidgetItem(itemText);
-            titleItem->setDisabled(true);
-            m_dataFileTreeWidget->addTopLevelItem(titleItem);
-        }
-        
         FileInformation fileInfo(sceneFileList.at(i));
         const QString name = fileInfo.getFileName().trimmed();
         const QString fullPath = fileInfo.getAbsoluteFilePath();
         
-        QStringList treeText;
-        treeText.append("    " + name);
-        treeText.append(" . "); // Use . for current directory
-        
-        QTreeWidgetItem* lwi = new QTreeWidgetItem(treeText);
-        lwi->setData(0,
-                     Qt::UserRole,
-                     fullPath);
-        lwi->setData(1,
-                     Qt::UserRole,
-                     fullPath);
-        m_dataFileTreeWidget->addTopLevelItem(lwi);
+        QTreeWidgetItem* lwi = createChildItem(titleItem, name, " . ", fullPath);
         
         if (firstItem == NULL) {
             firstItem = lwi;
         }
     }
     
+    titleItem->setExpanded(true);
+    
     return firstItem;
 }
 
+/**
+ * Create a top level item with given titles for the columns
+ * @param parentItem
+ * Parent for the child item
+ * @param textOne
+ * Text for column one
+ * @param textTwo
+ * Text for second column
+ * @return New child item.
+ */
+QTreeWidgetItem*
+SplashScreen::createChildItem(QTreeWidgetItem* parentItem,
+                              const AString& textOne,
+                              const AString& textTwo,
+                              const QVariant& childData)
+{
+    CaretAssert(parentItem);
+    QStringList itemText;
+    itemText.append(textOne);
+    itemText.append(textTwo);
+    
+    QTreeWidgetItem* item = new QTreeWidgetItem(itemText);
+    item->setData(0,
+                 Qt::UserRole,
+                 childData);
+    item->setData(1,
+                 Qt::UserRole,
+                 childData);
+    CaretAssert(parentItem);
+    parentItem->addChild(item);
 
+    return item;
+}
+
+/**
+ * Create a top level item with given titles for the columns
+ * @param titleOne
+ * Title for column one
+ * @param titleTwo
+ * Title for second column
+ * @return New top-level item
+ */
+QTreeWidgetItem*
+SplashScreen::createTopLevelItem(const AString& titleOne,
+                                 const AString& titleTwo)
+{
+    QStringList itemText;
+    itemText.append(titleOne);
+    itemText.append(titleTwo);
+
+    QTreeWidgetItem* item = new QTreeWidgetItem(itemText);
+    item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
+    item->setFlags(item->flags() & (! Qt::ItemIsSelectable));
+    item->setFlags(item->flags() | Qt::ItemIsEnabled);
+    m_dataFileTreeWidget->addTopLevelItem(item);
+    
+    return item;
+}

@@ -67,6 +67,14 @@ namespace caret {
         
         QTreeWidgetItem* addDirectorySpecFiles();
         
+        QTreeWidgetItem* createTopLevelItem(const AString& titleOne,
+                                            const AString& titleTwo);
+        
+        QTreeWidgetItem* createChildItem(QTreeWidgetItem* parentItem,
+                                         const AString& textOne,
+                                         const AString& textTwo,
+                                         const QVariant& childData);
+        
         int32_t loadDataFileTreeWidget();
         
         QTreeWidget* m_dataFileTreeWidget;
