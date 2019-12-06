@@ -651,6 +651,18 @@ BalsaDatabaseManager::processUploadedFile(SceneFile* sceneFile,
                            + ".  ");
         errorMessageOut.appendWithNewLine(uploadResponse.m_errorMessage);
         
+        uploadResponse.m_body.push_back('\0');
+        AString responseContent(&uploadResponse.m_body[0]);
+        if (m_debugFlag) {
+            std::cout << errorMessageOut << std::endl;
+            std::cout << "Process Upload FAILED to BALSA reply body: " << responseContent << std::endl;
+        }
+        else {
+            CaretLogFine("Process Upload FAILED to BALSA reply error message in GUI: "
+                         + errorMessageOut
+                         + "Process Upload FAILED to BALSA reply body: "
+                         + responseContent);
+        }
         return false;
     }
 
