@@ -20,6 +20,7 @@
 
 #include "WarpfieldFile.h"
 #include "CaretAssert.h"
+#include "CaretOMP.h"
 #include "FileInformation.h"
 #include "FloatMatrix.h"
 #include "NiftiIO.h"
@@ -126,6 +127,9 @@ void WarpfieldFile::readFnirt(const AString& warpName, const AString& sourceName
     sourceTransform.getAffineVectors(sourceTransX, sourceTransY, sourceTransZ, sourceTransOff);
     Vector3D fslX, fslY, fslZ, fslOff;
     refFSL.getAffineVectors(fslX, fslY, fslZ, fslOff);
+    int64_t numVox = dims[0] * dims[1] * dims[2];
+    vector<vector<float>> scratchFrames(3, vector<float>(numVox, 0.0f));
+    #pragma omp CARET_PARFOR
     for (int64_t k = 0; k < dims[2]; ++k)
     {
         for (int64_t j = 0; j < dims[1]; ++j)
@@ -147,12 +151,15 @@ void WarpfieldFile::readFnirt(const AString& warpName, const AString& sourceName
                 }
                 Vector3D transAbsolute = fslTransAbsolute[0] * sourceTransX + fslTransAbsolute[1] * sourceTransY + fslTransAbsolute[2] * sourceTransZ + sourceTransOff;
                 Vector3D transdisplace = transAbsolute - coord;//internal format is always relative
-                newFile->setValue(transdisplace[0], i, j, k, 0);//overwrite vectors in place to save memory
-                newFile->setValue(transdisplace[1], i, j, k, 1);
-                newFile->setValue(transdisplace[2], i, j, k, 2);
+                scratchFrames[0][newFile->getIndex(i, j, k)] = transdisplace[0];
+                scratchFrames[1][newFile->getIndex(i, j, k)] = transdisplace[1];
+                scratchFrames[2][newFile->getIndex(i, j, k)] = transdisplace[2];
             }
         }
     }
+    newFile->setFrame(scratchFrames[0].data(), 0);
+    newFile->setFrame(scratchFrames[1].data(), 1);
+    newFile->setFrame(scratchFrames[2].data(), 2);
     m_warpfield = newFile;//drop the previous warpfield, and replace with the new one
 }
 
@@ -214,6 +221,9 @@ void WarpfieldFile::writeFnirt(const AString& warpname, const AString& sourceNam
     FSLTransform.getAffineVectors(FSLTransX, FSLTransY, FSLTransZ, FSLTransOff);
     Vector3D fslX, fslY, fslZ, fslOff;
     refFSL.getAffineVectors(fslX, fslY, fslZ, fslOff);
+    int64_t numVox = dims[0] * dims[1] * dims[2];
+    vector<vector<float>> scratchFrames(3, vector<float>(numVox, 0.0f));
+    #pragma omp CARET_PARFOR
     for (int64_t k = 0; k < dims[2]; ++k)
     {
         for (int64_t j = 0; j < dims[1]; ++j)
@@ -229,11 +239,14 @@ void WarpfieldFile::writeFnirt(const AString& warpname, const AString& sourceNam
                 Vector3D realabsolute = coord + realdisplacement;
                 Vector3D fslabsolute = realabsolute[0] * FSLTransX + realabsolute[1] * FSLTransY + realabsolute[2] * FSLTransZ + FSLTransOff;
                 Vector3D fsldisplace = fslabsolute - fslcoord;
-                outFile.setValue(fsldisplace[0], i, j, k, 0);
-                outFile.setValue(fsldisplace[1], i, j, k, 1);
-                outFile.setValue(fsldisplace[2], i, j, k, 2);
+                scratchFrames[0][outFile.getIndex(i, j, k)] = fsldisplace[0];
+                scratchFrames[1][outFile.getIndex(i, j, k)] = fsldisplace[1];
+                scratchFrames[2][outFile.getIndex(i, j, k)] = fsldisplace[2];
             }
         }
     }
+    outFile.setFrame(scratchFrames[0].data(), 0);
+    outFile.setFrame(scratchFrames[1].data(), 1);
+    outFile.setFrame(scratchFrames[2].data(), 2);
     outFile.writeFile(warpname);
 }
