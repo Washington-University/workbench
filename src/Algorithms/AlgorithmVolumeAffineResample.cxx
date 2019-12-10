@@ -126,6 +126,7 @@ AlgorithmVolumeAffineResample::AlgorithmVolumeAffineResample(ProgressObject* myP
     yvec[0] = targetToSource[0][1]; yvec[1] = targetToSource[1][1]; yvec[2] = targetToSource[2][1];
     zvec[0] = targetToSource[0][2]; zvec[1] = targetToSource[1][2]; zvec[2] = targetToSource[2][2];
     offset[0] = targetToSource[0][3]; offset[1] = targetToSource[1][3]; offset[2] = targetToSource[2][3];
+    vector<float> scratchFrame(outDims[0] * outDims[1] * outDims[2], 0.0f);
     if (inVol->isMappedWithLabelTable())
     {
         if (myMethod != VolumeFile::ENCLOSING_VOXEL)
@@ -160,10 +161,11 @@ AlgorithmVolumeAffineResample::AlgorithmVolumeAffineResample(ProgressObject* myP
                         outVol->indexToSpace(i, j, k, outCoord);
                         inCoord = xvec * outCoord[0] + yvec * outCoord[1] + zvec * outCoord[2] + offset;
                         float interpVal = inVol->interpolateValue(inCoord, myMethod, NULL, b, c);
-                        outVol->setValue(interpVal, i, j, k, b, c);
+                        scratchFrame[outVol->getIndex(i, j, k)] = interpVal;
                     }
                 }
             }
+            outVol->setFrame(scratchFrame.data(), b, c);
             if (myMethod == VolumeFile::CUBIC)
             {
                 inVol->freeSpline(b, c);//release memory we no longer need, if we allocated it

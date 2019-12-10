@@ -141,7 +141,7 @@ namespace caret
         CaretPointerNonsync& operator=(const CaretPointerNonsync<T2>& right);
         void grabNew(T* right);//substitute for operator= to bare pointer
         int64_t getReferenceCount() const;
-        ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
+        ///breaks the hold on the pointer that is currently held by this, NO instances that are identical to this one will delete it (setting is per-pointer-capture-event, not per-object)
         T*const& releasePointer();
         template <typename T2> friend class CaretPointerNonsync;//because for const compatibility, we need to access a different template's members
     };
@@ -164,7 +164,7 @@ namespace caret
         CaretPointer& operator=(const CaretPointer<T2>& right);
         void grabNew(T* right);
         int64_t getReferenceCount() const;
-        ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
+        ///breaks the hold on the pointer that is currently held by this, NO instances that are identical to this one will delete it (setting is per-pointer-capture-event, not per-object)
         T*const& releasePointer();
         template <typename T2> friend class CaretPointer;
     };
@@ -290,6 +290,7 @@ namespace caret
     template <typename T>
     void CaretPointerNonsync<T>::grabNew(T* right)
     {
+        if (right == NULL && m_pointer == NULL) return;//short circuit a case that doesn't need to do anything
         CaretPointerNonsync<T> temp(right);//construct from the pointer
         _caret_pointer_impl::CaretPointerShare* tempShare = temp.m_share;//swap the members
         T* tempPointer = temp.m_pointer;
@@ -422,6 +423,7 @@ namespace caret
     template <typename T>
     void CaretPointer<T>::grabNew(T* right)
     {
+        if (right == NULL && m_pointer == NULL) return;//short circuit a case that doesn't need any mutexes
         CaretPointer<T> temp(right);//construct from the pointer
         _caret_pointer_impl::CaretPointerSyncShare* tempShare = temp.m_share;//prepare to swap the members
         T* tempPointer = temp.m_pointer;
