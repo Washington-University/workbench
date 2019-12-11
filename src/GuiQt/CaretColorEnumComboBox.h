@@ -120,7 +120,7 @@ namespace caret {
         
         int32_t m_noneColorIndex = -1;
         
-        std::array<uint8_t, 3> m_customColorRGB = { 255, 255, 255 };
+        std::array<uint8_t, 3> m_customColorRGB;
     };
     
 #ifdef __CARET_COLOR_ENUM_COMBOBOX_DECLARE__

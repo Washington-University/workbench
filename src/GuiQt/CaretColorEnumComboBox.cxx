@@ -73,6 +73,8 @@ CaretColorEnumComboBox::CaretColorEnumComboBox(const CustomColorModeEnum customC
 m_customColorMode(customColorMode),
 m_noneColorMode(noneColorMode)
 {
+    m_customColorRGB.fill(255); /* white */
+    
     this->colorComboBox = new QComboBox();
     
     std::vector<CaretColorEnum::Enum> colors;
