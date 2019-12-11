@@ -36,7 +36,8 @@ namespace caret {
         BalsaStudyInformation();
         
         BalsaStudyInformation(const AString& studyID,
-                              const AString& studyTitle);
+                              const AString& studyTitle,
+                              const AString& studyExtractionDirectoryName);
         
         virtual ~BalsaStudyInformation();
         
@@ -56,6 +57,8 @@ namespace caret {
         
         void setStudyTitle(const AString& studyTitle);
 
+        AString getStudyExtractionDirectoryName() const;
+        
         bool isEditable() const;
         
         // ADD_NEW_METHODS_HERE
@@ -70,6 +73,8 @@ namespace caret {
         
         /** study title*/
         AString m_studyTitle;
+        
+        AString m_studyExtractionDirectoryName;
         
         /** editable status (true is YES) */
         bool m_editableStatus = false;

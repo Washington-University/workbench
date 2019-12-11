@@ -52,12 +52,16 @@ BalsaStudyInformation::BalsaStudyInformation()
  *     The Study Identifier
  * @param studyTitle
  *     The Study Title
+ * @param studyExtractionDirectoryName
+ *     The extraction directory name
  */
 BalsaStudyInformation::BalsaStudyInformation(const AString& studyID,
-                                             const AString& studyTitle)
+                                             const AString& studyTitle,
+                                             const AString& studyExtractionDirectoryName)
 : CaretObject(),
 m_studyID(studyID),
 m_studyTitle(studyTitle),
+m_studyExtractionDirectoryName(studyExtractionDirectoryName),
 m_editableStatus(false)
 {
 }
@@ -76,6 +80,11 @@ BalsaStudyInformation::BalsaStudyInformation(const QJsonObject& jsonObject)
         && (titleIter != jsonObject.end())) {
         m_studyID    = (*idIter).toString();
         m_studyTitle = (*titleIter).toString();
+        
+        QJsonObject::const_iterator extractIter = jsonObject.find("extract");
+        if (extractIter != jsonObject.end()) {
+            m_studyExtractionDirectoryName = (*extractIter).toString();
+        }
 
         QJsonObject::const_iterator statusIter = jsonObject.find("status");
         if (statusIter != jsonObject.end()) {
@@ -149,6 +158,7 @@ BalsaStudyInformation::copyHelperBalsaStudyInformation(const BalsaStudyInformati
 {
     m_studyID    = obj.m_studyID;
     m_studyTitle = obj.m_studyTitle;
+    m_studyExtractionDirectoryName = obj.m_studyExtractionDirectoryName;
     m_editableStatus = obj.m_editableStatus;
 }
 
@@ -199,6 +209,15 @@ void
 BalsaStudyInformation::setStudyTitle(const AString& studyTitle)
 {
     m_studyTitle = studyTitle;
+}
+
+/**
+ * @return extraction directory name
+ */
+AString
+BalsaStudyInformation::getStudyExtractionDirectoryName() const
+{
+    return m_studyExtractionDirectoryName;
 }
 
 /**

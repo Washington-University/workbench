@@ -242,8 +242,10 @@ BalsaStudySelectionDialog::newStudyButtonClicked()
                     return;
                 }
             }
+            QString dummyExtractionDirectoryName;
             m_studyInformation.emplace_back(studyID,
-                                            title);
+                                            title,
+                                            dummyExtractionDirectoryName);
             loadStudyTitleTableWidget(title);
         }
         else {
