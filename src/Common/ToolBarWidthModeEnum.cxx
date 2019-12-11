@@ -31,7 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::ToolBarWidthModeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Enumerated type for tool bar width mode
  *
  * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
@@ -108,13 +108,13 @@ ToolBarWidthModeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(ToolBarWidthModeEnum(COMPACT, 
-                                    "COMPACT", 
-                                    "Compact"));
+    enumData.push_back(ToolBarWidthModeEnum(STANDARD,
+                                    "STANDARD",
+                                    "Standard"));
     
-    enumData.push_back(ToolBarWidthModeEnum(ELONGATED, 
-                                    "ELONGATED", 
-                                    "Elongated"));
+    enumData.push_back(ToolBarWidthModeEnum(WIDE,
+                                    "WIDE",
+                                    "Wide"));
     
 }
 

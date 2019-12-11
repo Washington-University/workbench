@@ -430,7 +430,8 @@ PreferencesDialog::createMiscellaneousWidget()
     /*
      * Toolbar mode
      */
-    const QString widthToolTip("Elongated mode will show \"View\" toolbar components in all Modes but requires  "
+    const QString widthToolTip(ToolBarWidthModeEnum::toGuiName(ToolBarWidthModeEnum::WIDE)
+                               + " mode will show \"View\" toolbar components in all Modes but requires  "
                                "a wide monitor (1920 width or greater).");
     m_windowToolBarWidthModeComboBox = new EnumComboBoxTemplate(this);
     m_windowToolBarWidthModeComboBox->setup<ToolBarWidthModeEnum, ToolBarWidthModeEnum::Enum>();

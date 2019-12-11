@@ -85,7 +85,7 @@ CaretPreferences::CaretPreferences()
                                                                     "toolBarWidthMode",
                                                                     CaretPreferenceDataValue::DataType::STRING,
                                                                     CaretPreferenceDataValue::SavedInScene::SAVE_NO,
-                                                                    ToolBarWidthModeEnum::toName(ToolBarWidthModeEnum::COMPACT)));
+                                                                    ToolBarWidthModeEnum::toName(ToolBarWidthModeEnum::STANDARD)));
     
     m_identificationDisplayModePreference.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                              "identificationDisplayMode",

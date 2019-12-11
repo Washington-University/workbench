@@ -35,10 +35,10 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
-        COMPACT,
-        /** */
-        ELONGATED
+        /** Standard width */
+        STANDARD,
+        /** Expanded for wide displays */
+        WIDE
     };
 
 
