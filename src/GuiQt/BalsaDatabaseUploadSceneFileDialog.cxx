@@ -1149,6 +1149,7 @@ BalsaDatabaseUploadSceneFileDialog::selectStudyTitleButtonClicked()
         if ( ! bsi.isEmpty()) {
             m_balsaStudyIDLineEdit->setText(bsi.getStudyID());
             m_balsaStudyTitleLineEdit->setText(bsi.getStudyTitle());
+            m_extractDirectoryNameLineEdit->setText(bsi.getStudyExtractionDirectoryName());
         }
         validateUploadData();
     }
