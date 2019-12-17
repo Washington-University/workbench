@@ -95,6 +95,7 @@
 #include "ModelWholeBrain.h"
 #include "PlainTextStringBuilder.h"
 #include "ProgressReportingDialog.h"
+#include "RecentFilesDialog.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -1389,6 +1390,14 @@ BrainBrowserWindow::createActions()
                                 SLOT(processDataFileLocationOpen()));
     m_openLocationAction->setShortcutContext(Qt::ApplicationShortcut);
     
+    m_openRecentAction =
+    WuQtUtilities::createAction("Open Recent...",
+                                "Open a recent file or directory",
+                                Qt::CTRL + Qt::SHIFT + Qt::Key_O,
+                                this,
+                                this,
+                                SLOT(processOpenRecent()));
+    
     m_manageFilesAction =
     WuQtUtilities::createAction("Save/Manage Files...", 
                                 "Save and Manage Loaded Files",
@@ -1862,6 +1871,7 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(m_reopenLastClosedTabAction);
     menu->addSeparator();
     menu->addAction(m_openFileAction);
+    menu->addAction(m_openRecentAction);
     menu->addAction(m_openLocationAction);
     
     m_recentSpecFileMenuOpenConfirmTitle = "Open Recent Spec File";
@@ -3356,6 +3366,18 @@ BrainBrowserWindow::processDataFileOpen()
         s_previousOpenFileDirectory  = fd.directory().absolutePath();
         s_previousOpenFileGeometry   = fd.saveGeometry();
     }
+}
+
+/**
+ * Process the Open Recent menu item
+ */
+void
+BrainBrowserWindow::processOpenRecent()
+{
+    AString directoryOrFileName;
+    const RecentFilesDialog::ResultModeEnum result = RecentFilesDialog::runDialog(directoryOrFileName,
+                                                                                  this);
+    std::cout << "Selected: " << directoryOrFileName << std::endl;
 }
 
 /**

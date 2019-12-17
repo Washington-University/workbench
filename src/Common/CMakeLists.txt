@@ -145,6 +145,7 @@ ProgramParameters.h
 ProgramParametersException.h
 ProgressObject.h
 ProgressReportingInterface.h
+RecentFilesModeEnum.h
 ReductionEnum.h
 ReductionOperation.h
 SpacerTabIndex.h
@@ -274,6 +275,7 @@ Plane.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx
 ProgressObject.cxx
+RecentFilesModeEnum.cxx
 ReductionEnum.cxx
 ReductionOperation.cxx
 SpacerTabIndex.cxx

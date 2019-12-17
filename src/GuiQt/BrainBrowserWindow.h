@@ -173,6 +173,7 @@ namespace caret {
         void processReopenLastClosedTab();
         void processDataFileLocationOpen();
         void processDataFileOpen();
+        void processOpenRecent();
         void processManageSaveLoadedFiles();
         void processCaptureImage();
         void processMovieRecording();
@@ -360,6 +361,8 @@ namespace caret {
         QAction* m_openFileAction;
         
         QAction* m_openLocationAction;
+        
+        QAction* m_openRecentAction;
         
         QAction* m_manageFilesAction;
         

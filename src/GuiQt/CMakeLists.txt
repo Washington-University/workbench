@@ -178,6 +178,7 @@ ELSE()
         ProgressReportingDialog.h
         ProgressReportingFromEvent.h
         ProgressReportingWithSlots.h
+	RecentFilesDialog.h
         RegionOfInterestCreateFromBorderDialog.h
 	ScaleBarWidget.h
         SceneBasePathWidget.h
@@ -452,6 +453,7 @@ ProgressReportingDialog.h
 ProgressReportingFromEvent.h
 ProgressReportingWithSlots.h
 QGLWidgetTextRenderer.h
+RecentFilesDialog.h
 RegionOfInterestCreateFromBorderDialog.h
 ScaleBarWidget.h
 SceneBasePathWidget.h
@@ -742,6 +744,7 @@ ProgressReportingDialog.cxx
 ProgressReportingFromEvent.cxx
 ProgressReportingWithSlots.cxx
 QGLWidgetTextRenderer.cxx
+RecentFilesDialog.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 ScaleBarWidget.cxx
 SceneBasePathWidget.cxx
