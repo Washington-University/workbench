@@ -129,91 +129,113 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     const IdentificationFilter* filter = idManager->getIdentificationFilter();
     
     IdentificationStringBuilder idText;
-    std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder();
-    
+    std::unique_ptr<HtmlTableBuilder> chartHtmlTableBuilder = createHtmlTableBuilder(3);
+    chartHtmlTableBuilder->setTitleBold("Charts");
+    std::unique_ptr<HtmlTableBuilder> geometryHtmlTableBuilder = createHtmlTableBuilder(3);
+    geometryHtmlTableBuilder->setTitleBold("Geometry");
+    std::unique_ptr<HtmlTableBuilder> imageHtmlTableBuilder = createHtmlTableBuilder(2);
+    imageHtmlTableBuilder->setTitlePlain("Image");
+    std::unique_ptr<HtmlTableBuilder> labelHtmlTableBuilder = createHtmlTableBuilder(2);
+    labelHtmlTableBuilder->setTitlePlain("Labels");
+    std::unique_ptr<HtmlTableBuilder> layersHtmlTableBuilder = createHtmlTableBuilder(3);
+    layersHtmlTableBuilder->setTitlePlain("Layers");
+    std::unique_ptr<HtmlTableBuilder> scalarHtmlTableBuilder = createHtmlTableBuilder(2);
+    scalarHtmlTableBuilder->setTitlePlain("Scalars");
+
     const SelectionItemSurfaceNode* surfaceID = selectionManager->getSurfaceNodeIdentification();
     
     if (filter->isSurfaceVertexEnabled()) {
-        this->generateSurfaceVertexIdentificationText(*htmlTableBuilder,
+        this->generateSurfaceVertexIdentificationText(*geometryHtmlTableBuilder,
                                                       brain,
                                                       surfaceID);
     }
 
     if (filter->isVolumeVoxelEnabled()) {
-        this->generateVolumeVoxelIdentificationText(*htmlTableBuilder,
+        this->generateVolumeVoxelIdentificationText(*geometryHtmlTableBuilder,
                                                     brain,
                                                     selectionManager->getVoxelIdentification());
     }
 
-    this->generateSurfaceDataIdentificationText(*htmlTableBuilder,
+    this->generateSurfaceDataIdentificationText(*labelHtmlTableBuilder,
+                                                *scalarHtmlTableBuilder,
                                                 brain,
                                                 surfaceID);
 
-    this->generateVolumeDataIdentificationText(*htmlTableBuilder,
+    this->generateVolumeDataIdentificationText(*labelHtmlTableBuilder,
+                                               *scalarHtmlTableBuilder,
                                                brain,
                                                selectionManager->getVoxelIdentification());
 
     if (filter->isFociEnabled()) {
-        this->generateSurfaceFocusIdentifcationText(*htmlTableBuilder,
+        this->generateSurfaceFocusIdentifcationText(*layersHtmlTableBuilder,
                                                     selectionManager->getSurfaceFocusIdentification(),
                                                     false);
-        this->generateVolumeFocusIdentifcationText(*htmlTableBuilder,
+        this->generateVolumeFocusIdentifcationText(*layersHtmlTableBuilder,
                                                    selectionManager->getVolumeFocusIdentification());
     }
 
     if (filter->isBorderEnabled()) {
-        this->generateSurfaceBorderIdentifcationText(*htmlTableBuilder,
+        this->generateSurfaceBorderIdentifcationText(*layersHtmlTableBuilder,
                                                      idText,
                                                      selectionManager->getSurfaceBorderIdentification(),
                                                      false);
     }
     
     
-    this->generateChartDataSeriesIdentificationText(*htmlTableBuilder,
+    this->generateChartDataSeriesIdentificationText(*chartHtmlTableBuilder,
                                                     selectionManager->getChartDataSeriesIdentification());
     
-    this->generateChartFrequencySeriesIdentificationText(*htmlTableBuilder,
+    this->generateChartFrequencySeriesIdentificationText(*chartHtmlTableBuilder,
                                                          selectionManager->getChartFrequencySeriesIdentification());
     
-    this->generateChartTimeSeriesIdentificationText(*htmlTableBuilder,
+    this->generateChartTimeSeriesIdentificationText(*chartHtmlTableBuilder,
                                                     selectionManager->getChartTimeSeriesIdentification());
     
-    this->generateChartMatrixIdentificationText(*htmlTableBuilder,
+    this->generateChartMatrixIdentificationText(*chartHtmlTableBuilder,
                                                 selectionManager->getChartMatrixIdentification());
     
-    this->generateCiftiConnectivityMatrixIdentificationText(*htmlTableBuilder,
+    this->generateCiftiConnectivityMatrixIdentificationText(*chartHtmlTableBuilder,
                                                             selectionManager->getCiftiConnectivityMatrixRowColumnIdentification());
     
-    this->generateChartTwoHistogramIdentificationText(*htmlTableBuilder,
+    this->generateChartTwoHistogramIdentificationText(*chartHtmlTableBuilder,
                                                       idText,
                                                       selectionManager->getChartTwoHistogramIdentification(),
                                                       false);
     
-    this->generateChartTwoLineSeriesIdentificationText(*htmlTableBuilder,
+    this->generateChartTwoLineSeriesIdentificationText(*chartHtmlTableBuilder,
                                                        idText,
                                                        selectionManager->getChartTwoLineSeriesIdentification(),
                                                        false);
     
-    this->generateChartTwoMatrixIdentificationText(*htmlTableBuilder,
+    this->generateChartTwoMatrixIdentificationText(*chartHtmlTableBuilder,
                                                    idText,
                                                    selectionManager->getChartTwoMatrixIdentification(),
                                                    false);
     
-    this->generateImageIdentificationText(*htmlTableBuilder,
+    this->generateImageIdentificationText(*imageHtmlTableBuilder,
                                           selectionManager->getImageIdentification());
     
-    QString htmlString("<html>\n"
-                       "<head>\n"
-                       "<style type=\"text/css\">\n"
-                       "table { border-width: 1px; border-style: ridge; }\n"
-                       "table td { padding: 3px; }"
-                       "table th { padding: 2px; }"
-                       "</style>\n"
-                       "</head>\n"
-                       "</body>\n"
-                       + htmlTableBuilder->getAsHtmlTable()
-                       + "\n</body></html>");
-    return htmlString;
+    AString textOut;
+    textOut.append(geometryHtmlTableBuilder->getAsHtmlTable());
+    textOut.append(labelHtmlTableBuilder->getAsHtmlTable());
+    textOut.append(scalarHtmlTableBuilder->getAsHtmlTable());
+    textOut.append(layersHtmlTableBuilder->getAsHtmlTable());
+    textOut.append(chartHtmlTableBuilder->getAsHtmlTable());
+    textOut.append(imageHtmlTableBuilder->getAsHtmlTable());
+    return textOut;
+    
+//    QString htmlString("<html>\n"
+//                       "<head>\n"
+//                       "<style type=\"text/css\">\n"
+//                       "table { border-width: 1px; border-style: ridge; }\n"
+//                       "table td { padding: 3px; }"
+//                       "table th { padding: 2px; }"
+//                       "</style>\n"
+//                       "</head>\n"
+//                       "</body>\n"
+//                       + htmlTableBuilder->getAsHtmlTable()
+//                       + "\n</body></html>");
+//    return htmlString;
 }
 
 /**
@@ -299,15 +321,13 @@ IdentificationFormattedTextGenerator::generateVolumeVoxelIdentificationText(Html
     float x, y, z;
     idVolumeFile->indexToSpace(ijk[0], ijk[1], ijk[2], x, y, z);
     
-    const QString xyzText("Voxel XYZ ("
-                          + AString::number(x)
+    const QString xyzText(AString::number(x, 'f', 2)
                           + ", "
-                          + AString::number(y)
+                          + AString::number(y, 'f', 2)
                           + ", "
-                          + AString::number(z)
-                          + ")");
+                          + AString::number(z, 'f', 2));
     
-    const QString ijkText("IJK ("
+    const QString ijkText("Voxel IJK ("
                           + AString::fromNumbers(ijk, 3, ", ")
                           + ")");
 
@@ -317,23 +337,26 @@ IdentificationFormattedTextGenerator::generateVolumeVoxelIdentificationText(Html
         filename = caretDataFile->getFileNameNoPath();
     }
     
-    htmlTableBuilder.addHeaderRow(xyzText,
-                                  ijkText,
+    htmlTableBuilder.addHeaderRow(ijkText,
+                                  xyzText,
                                   filename);
 }
 
 /**
  * Generate identification text for volume data identification.
  *
- * @param htmlTableBuilder
- *     Html table builder for identification text.
+ * @param labelHtmlTableBuilder
+ *     HTML table builder for label identification text.
+ * @param scalarHtmlTableBuilder
+ *     HTML table builder for scalar identification text.
  * @param brain
  *     The brain.
  * @param idVolumeVoxel
  *     Information for volume voxel ID.
  */
 void
-IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlTableBuilder& labelHtmlTableBuilder,
+                                                                           HtmlTableBuilder& scalarHtmlTableBuilder,
                                                                        const Brain* brain,
                                                                        const SelectionItemVoxel* idVolumeVoxel) const
 {
@@ -411,7 +434,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
 
             if (volumeInterfaceFile->indexValid(vfI, vfJ, vfK)) {
                 if (volumeFile != NULL) {
-                    AString boldText("IJK ("
+                    AString ijkText("IJK ("
                                      + AString::number(vfI)
                                      + ", "
                                      + AString::number(vfJ)
@@ -432,6 +455,9 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                                 const GiftiLabel* gl = glt->getLabel(labelIndex);
                                 if (gl != NULL) {
                                     text += gl->getName();
+                                    text += (" ("
+                                             + volumeFile->getMapName(jMap)
+                                             + ")");
                                 }
                                 else {
                                     text += ("LABLE_MISSING_FOR_INDEX="
@@ -474,9 +500,16 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                         filename.append(DataFileTypeEnum::toOverlayTypeName(DataFileTypeEnum::VOLUME_DYNAMIC) + " ");
                     }
                     filename.append(volumeFile->getFileNameNoPath());
-                    htmlTableBuilder.addRow(text,
-                                            boldText,
-                                            filename);
+                    if (volumeFile->isMappedWithLabelTable()) {
+                        labelHtmlTableBuilder.addRow(text,
+                                                     //ijkText,
+                                                     filename);
+                    }
+                    else if (volumeFile->isMappedWithPalette()) {
+                        scalarHtmlTableBuilder.addRow(text,
+                                                      //ijkText,
+                                                      filename);
+                    }
                 }
                 else if (ciftiFile != NULL) {
                     if (ciftiFile->isEmpty() == false) {
@@ -491,6 +524,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                          * from all tabs.
                          */
                         bool limitMapIndicesFlag = false;
+                        bool parcelDataFlag(false);
                         switch (ciftiFile->getDataFileType()) {
                             case DataFileTypeEnum::ANNOTATION:
                                 break;
@@ -505,6 +539,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                                 break;
                             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                                parcelDataFlag = true;
                                 break;
                             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                                 limitMapIndicesFlag = true;
@@ -517,6 +552,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                                 break;
                             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                                parcelDataFlag = true;
                                 break;
                             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                                 break;
@@ -524,6 +560,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                                 limitMapIndicesFlag = true;
                                 break;
                             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                                parcelDataFlag = true;
                                 limitMapIndicesFlag = true;
                                 break;
                             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
@@ -566,12 +603,13 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
 
                         AString textValue;
                         int64_t voxelIJK[3];
+                        const QString separator("<br>");
                         if (ciftiFile->getVolumeVoxelIdentificationForMaps(mapIndices,
                                                                            xyz,
-                                                                           "<br>",
+                                                                           separator,
                                                                            voxelIJK,
                                                                            textValue)) {
-                            AString boldText = (DataFileTypeEnum::toOverlayTypeName(ciftiFile->getDataFileType())
+                            AString typeIJKText = (DataFileTypeEnum::toOverlayTypeName(ciftiFile->getDataFileType())
                                                 + " "
                                                 + "IJK ("
                                                 + AString::number(voxelIJK[0])
@@ -580,9 +618,39 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                                                 + ", "
                                                 + AString::number(voxelIJK[2])
                                                 + ")  ");
-                            htmlTableBuilder.addRow(textValue,
-                                                    boldText,
-                                                    ciftiFile->getFileNameNoPath());
+                            
+                            
+                            AString labelText;
+                            if (ciftiFile->isMappedWithLabelTable()) {
+                                labelText = textValue;
+                            }
+                            AString scalarText;
+                            if (ciftiFile->isMappedWithPalette()) {
+                                scalarText = textValue;
+                            }
+                            if (parcelDataFlag) {
+                                /*
+                                 * Parcel data has parcel name, separator, scalar value.
+                                 * Display parcel name in label table, and scalar
+                                 * value in the scalar table
+                                 */
+                                QStringList parcelAndValue = textValue.split(separator);
+                                if (parcelAndValue.size() == 2) {
+                                    labelText  = parcelAndValue.at(0);
+                                    scalarText = parcelAndValue.at(1);
+                                }
+                            }
+                            
+                            if ( ! labelText.isEmpty()) {
+                                labelHtmlTableBuilder.addRow(labelText,
+                                                             //DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
+                                                             ciftiFile->getFileNameNoPath());
+                            }
+                            if ( ! scalarText.isEmpty()) {
+                                scalarHtmlTableBuilder.addRow(scalarText,
+                                                              //DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
+                                                              ciftiFile->getFileNameNoPath());
+                            }
                         }
                     }
                 }
@@ -618,16 +686,18 @@ IdentificationFormattedTextGenerator::generateSurfaceVertexIdentificationText(Ht
                               + AString::number(xyz[1])
                               + ", "
                               + AString::number(xyz[2]));
-        htmlTableBuilder.addHeaderRow(xyzText,
-                                      ("VERTEX " + QString::number(nodeNumber)),
+        htmlTableBuilder.addHeaderRow(("VERTEX " + QString::number(nodeNumber)),
+                                      xyzText,
                                       StructureEnum::toGuiName(surface->getStructure()));
     }
 }
 
 /**
  * Generate identification text for a surface vertex.
- * @param htmlTableBuilder
- *     HTML table builder for identification text.
+ * @param labelHtmlTableBuilder
+ *     HTML table builder for label identification text.
+ * @param scalarHtmlTableBuilder
+ *     HTML table builder for scalar identification text.
  * @param brain
  *     The brain.
  * @param browserTabContent
@@ -636,7 +706,8 @@ IdentificationFormattedTextGenerator::generateSurfaceVertexIdentificationText(Ht
  *     Information for surface node ID.
  */
 void
-IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(HtmlTableBuilder& labelHtmlTableBuilder,
+                                                                            HtmlTableBuilder& scalarHtmlTableBuilder,
                                                                             const Brain* brain,
                                                                             const SelectionItemSurfaceNode* idSurfaceNode) const
 {
@@ -667,6 +738,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
              * Limit dense scalar and data series to maps selected in the overlays
              * from all tabs.
              */
+            bool parcelDataFlag(false);
             bool limitMapIndicesFlag = false;
             switch (cmdf->getDataFileType()) {
                 case DataFileTypeEnum::ANNOTATION:
@@ -682,6 +754,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                    parcelDataFlag = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                     limitMapIndicesFlag = true;
@@ -694,6 +767,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                    parcelDataFlag = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                     break;
@@ -702,6 +776,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
                     limitMapIndicesFlag = true;
+                    parcelDataFlag = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
                     limitMapIndicesFlag = true;
@@ -742,19 +817,47 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
             }
             AString textValue;
             
+            const AString separator("<br>");
             const bool valid = cmdf->getSurfaceNodeIdentificationForMaps(mapIndices,
                                                                          surface->getStructure(),
                                                                          nodeNumber,
                                                                          surface->getNumberOfNodes(),
-                                                                         "<br>",
+                                                                         separator,
                                                                          textValue);
             if (valid) {
-                htmlTableBuilder.addRow(textValue,
-                                        DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
-                                        cmdf->getFileNameNoPath());
+                AString labelText;
+                if (cmdf->isMappedWithLabelTable()) {
+                    labelText = textValue;
+                }
+                AString scalarText;
+                if (cmdf->isMappedWithPalette()) {
+                    scalarText = textValue;
+                }
+                if (parcelDataFlag) {
+                    /*
+                     * Parcel data has parcel name, separator, scalar value.
+                     * Display parcel name in label table, and scalar
+                     * value in the scalar table
+                     */
+                    QStringList parcelAndValue = textValue.split(separator);
+                    if (parcelAndValue.size() == 2) {
+                        labelText  = parcelAndValue.at(0);
+                        scalarText = parcelAndValue.at(1);
+                    }
+                }
+                
+                if ( ! labelText.isEmpty()) {
+                    labelHtmlTableBuilder.addRow(labelText,
+                                                 //DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
+                                                 cmdf->getFileNameNoPath());
+                }
+                if ( ! scalarText.isEmpty()) {
+                    scalarHtmlTableBuilder.addRow(scalarText,
+                                                  //DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType()),
+                                                  cmdf->getFileNameNoPath());
+                }
             }
         }
-        
         
         const int32_t numLabelFiles = brainStructure->getNumberOfLabelFiles();
         for (int32_t i = 0; i < numLabelFiles; i++) {
@@ -770,10 +873,13 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                     labelName = ("Map-" + AString::number(j + 1));
                 }
                 text.append(labelName);
+                text.append(" ("
+                            + lf->getMapName(j)
+                            + ")");
             }
-            htmlTableBuilder.addRow(text,
-                                    "LABEL",
-                                    lf->getFileNameNoPath());
+            labelHtmlTableBuilder.addRow(text,
+                                         //"LABEL",
+                                         lf->getFileNameNoPath());
         }
         
         std::vector<MetricDynamicConnectivityFile*> metricDynConFiles;
@@ -788,9 +894,9 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 }
                 text.append(AString::number(mf->getValue(nodeNumber, j)));
             }
-            htmlTableBuilder.addRow(text,
-                                    "METRIC",
-                                    mf->getFileNameNoPath());
+            scalarHtmlTableBuilder.addRow(text,
+                                          //"METRIC",
+                                          mf->getFileNameNoPath());
 
             const MetricDynamicConnectivityFile* mdcf = mf->getMetricDynamicConnectivityFile();
             if (mdcf != NULL) {
@@ -804,9 +910,9 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                         }
                         for (int32_t j = 0; j < numMaps; j++) {
                             text += (" " + AString::number(mf->getValue(nodeNumber, j)));
-                            htmlTableBuilder.addRow(QString::number(mf->getValue(nodeNumber, j)),
-                                                    "METRIC DYNAMIC",
-                                                    mf->getFileNameNoPath());
+                            scalarHtmlTableBuilder.addRow(QString::number(mf->getValue(nodeNumber, j)),
+                                                          //"METRIC DYNAMIC",
+                                                          mf->getFileNameNoPath());
                         }
                     }
                 }
@@ -1422,14 +1528,11 @@ IdentificationFormattedTextGenerator::generateSurfaceBorderIdentifcationText(Htm
         }
         else {
             const AString numberIndexText = ("("
-                                  + AString::number(idSurfaceBorder->getBorderIndex())
-                                  + ","
-                                  + AString::number(idSurfaceBorder->getBorderPointIndex())
-                                  + ") ("
-                                  + AString::fromNumbers(xyz, 3, ",")
-                                  + ")");
+                                             + AString::number(idSurfaceBorder->getBorderIndex())
+                                             + ","
+                                             + AString::number(idSurfaceBorder->getBorderPointIndex()));
 
-            htmlTableBuilder.addHeaderRow(AString::fromNumbers(xyz, 3, ","),
+            htmlTableBuilder.addRow(AString::fromNumbers(xyz, 3, ","),
                                           ("BORDER " + numberIndexText),
                                           ("Name: " + border->getName()
                                            + "<br>Class: " + border->getClassName()));
@@ -1510,7 +1613,7 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
                        stereoXYZText);
     }
     else {
-        htmlTableBuilder.addHeaderRow(("XYZ: " + stereoXYZText),
+        htmlTableBuilder.addRow(stereoXYZText,
                                       ("FOCUS " + AString::number(focusIndex)),
                                       ("Name: " + focus->getName() + "<br>Class: " + focus->getClassName()));
         float xyzProj[3];
@@ -1522,11 +1625,11 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
         bool projValid = false;
         AString xyzProjName = "XYZ (Projected)";
         if (spi->getBarycentricProjection()->isValid()) {
-            xyzProjName = "XYZ (Projected to Triangle)";
+            xyzProjName = "(Projected to Triangle)";
             projValid = true;
         }
         else if (spi->getVanEssenProjection()->isValid()) {
-            xyzProjName = "XYZ (Projected to Edge)";
+            xyzProjName = "(Projected to Edge)";
             projValid = true;
         }
         if (projValid) {
@@ -1535,7 +1638,7 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
                            xyzProj,
                            3,
                            true);
-            htmlTableBuilder.addRow((xyzProjName + AString::fromNumbers(xyzProj, 3, ", ")),
+            htmlTableBuilder.addRow((AString::fromNumbers(xyzProj, 3, ", ") + xyzProjName),
                                     StructureEnum::toGuiName(spi->getStructure()),
                                     "");
         }
@@ -1677,7 +1780,7 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
                                                           const DataToolTipsManager* dataToolTipsManager,
                                                           IdentificationStringBuilder& idText) const
 {
-    std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder();
+    std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder(3);
     
     const SelectionItemSurfaceNode* nodeSelection = selectionManager->getSurfaceNodeIdentification();
     CaretAssert(nodeSelection);
@@ -1942,7 +2045,7 @@ IdentificationFormattedTextGenerator::generateChartToolTip(const SelectionManage
                                                   IdentificationStringBuilder& idText) const
 {
     if (dataToolTipsManager->isShowChart()) {
-        auto htmlTableBuilder = createHtmlTableBuilder();
+        auto htmlTableBuilder = createHtmlTableBuilder(3);
         this->generateChartTwoHistogramIdentificationText(*htmlTableBuilder,
                                                           idText,
                                                           selectionManager->getChartTwoHistogramIdentification(),
@@ -1974,12 +2077,12 @@ IdentificationFormattedTextGenerator::toString() const
         
 /**
  * @return New instance of an HTML Table builder
+ * @param numberOfColumns
+ *  Number of columns in the table
  */
 std::unique_ptr<HtmlTableBuilder>
-IdentificationFormattedTextGenerator::createHtmlTableBuilder() const
+IdentificationFormattedTextGenerator::createHtmlTableBuilder(const int32_t numberOfColumns) const
 {
-    const int32_t numberOfColumns(3);
-    
     std::unique_ptr<HtmlTableBuilder> htb(new HtmlTableBuilder(HtmlTableBuilder::HtmlVersion::V4_01,
                                                                numberOfColumns));
     return htb;

@@ -3109,8 +3109,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
     bool updateInformationFlag = false;
     std::vector<AString> ciftiLoadingInfo;
     HtmlTableBuilder ciftiLoadingInfoTableBuilder(HtmlTableBuilder::HtmlVersion::V4_01,
-                                                  3);
-    ciftiLoadingInfoTableBuilder.setTitle("CIFTI Data Loading");
+                                                  2);
+    ciftiLoadingInfoTableBuilder.setTitlePlain("CIFTI Data Loading");
     
     const QString breakAndIndent("<br>&nbsp;&nbsp;&nbsp;&nbsp;");
     SelectionItemSurfaceNodeIdentificationSymbol* nodeIdSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();

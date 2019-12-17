@@ -101,8 +101,7 @@ CiftiFiberTrajectoryManager::loadDataForSurfaceNode(Brain* brain,
                                               + AString::number(nodeIndex)
                                               + ", row index= "
                                               + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
-            htmlTableBuilder.addRow(("Vertex Index: " + AString::number(nodeIndex)),
-                                    ("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+            htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                     trajFile->getFileNameNoPath());
             dataWasLoaded = true;
         }
@@ -194,8 +193,7 @@ CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(Brain* brain,
                                                   + AString::fromNumbers(xyz, 3, ",")
                                                   + ", row index= "
                                                   + AString::number(rowIndex));
-                htmlTableBuilder.addRow(("Voxel XYZ: " + AString::fromNumbers(xyz, 3, ",")),
-                                        ("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+                htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                         trajFile->getFileNameNoPath());
                 haveData = true;
             }

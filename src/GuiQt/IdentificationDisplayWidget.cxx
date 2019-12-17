@@ -28,6 +28,7 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QDoubleSpinBox>
+#include <QGuiApplication>
 #include <QScrollBar>
 #include <QSpinBox>
 #include <QTabWidget>
@@ -155,7 +156,7 @@ IdentificationDisplayWidget::updateInfoWidget(const bool scrollTextToEndFlag)
     QScrollBar* sb = m_infoTextBrowser->verticalScrollBar();
     CaretAssert(sb);
     int32_t positionValue = sb->value();
-    m_infoTextBrowser->setHtml(historyManager->getText());
+    m_infoTextBrowser->setHtml(historyManager->getHtml());
     if (scrollTextToEndFlag) {
         positionValue = sb->maximum();
         positionValue = std::max(positionValue,
@@ -175,7 +176,7 @@ IdentificationDisplayWidget::createInfoWidget()
     m_infoTextBrowser = new QTextBrowser();
     m_infoTextBrowser->setLineWrapMode(QTextEdit::NoWrap);
     m_infoTextBrowser->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-
+    
     QToolButton* clearHistoryToolButton = new QToolButton();
     clearHistoryToolButton->setText("Clear");
     clearHistoryToolButton->setToolTip("Remove all information text");

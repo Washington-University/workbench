@@ -45,7 +45,7 @@ namespace caret {
 
         IdentificationHistoryManager& operator=(const IdentificationHistoryManager&) = delete;
 
-        AString getText() const;
+        AString getHtml() const;
         
         int32_t getShowLastHistoryCount() const;
         

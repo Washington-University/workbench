@@ -62,14 +62,27 @@ HtmlTableBuilder::~HtmlTableBuilder()
 
 
 /**
- * Set the title of the table
+ * Set the title of the table using bold text
  * @param title
  * Title displayed spanning all rows at top of table
  */
 void
-HtmlTableBuilder::setTitle(const QString& title)
+HtmlTableBuilder::setTitleBold(const QString& title)
 {
-    m_title = title;
+    m_title      = title;
+    m_titleStyle = TitleStyle::BOLD;
+}
+
+/**
+ * Set the title of the table using plain text
+ * @param title
+ * Title displayed spanning all rows at top of table
+ */
+void
+HtmlTableBuilder::setTitlePlain(const QString& title)
+{
+    m_title      = title;
+    m_titleStyle = TitleStyle::PLAIN;
 }
 
 /**
@@ -248,9 +261,22 @@ HtmlTableBuilder::getAsHtmlTableV401() const
         m_tableText.append("<table> <tbody>\n");
 
         if (m_title != NULL) {
-            const QString s("<tr><th colspan=\"" + AString::number(m_numberOfColumns) + "\" align=\"left\">"
-            + m_title
-            + "</th></tr>\n");
+            QString tdTH;
+            switch (m_titleStyle) {
+                case BOLD:
+                    tdTH = "th";
+                    break;
+                case PLAIN:
+                    tdTH = "td";
+                    break;
+            }
+            const QString s("<tr><"
+                            + tdTH
+                            + " colspan=\"" + AString::number(m_numberOfColumns) + "\" align=\"left\">"
+                            + m_title
+                            + "</"
+                            + tdTH
+                            + "></tr>\n");
             m_tableText.append(s);
         }
         
@@ -259,7 +285,7 @@ HtmlTableBuilder::getAsHtmlTableV401() const
         }
         
         m_tableText.append("</tbody></table>\n");
-        m_tableText.append("<P>");
+        m_tableText.append("<p>\n");
     }
         
     return m_tableText;

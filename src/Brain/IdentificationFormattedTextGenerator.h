@@ -118,7 +118,8 @@ namespace caret {
                                                const Brain* brain,
                                                const SelectionItemSurfaceNode* idSurfaceNode) const;
         
-        void generateSurfaceDataIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+        void generateSurfaceDataIdentificationText(HtmlTableBuilder& labelHtmlTableBuilder,
+                                                   HtmlTableBuilder& scalarHtmlTableBuilder,
                                                const Brain* brain,
                                                const SelectionItemSurfaceNode* idSurfaceNode) const;
         
@@ -129,7 +130,8 @@ namespace caret {
                                               const Brain* brain,
                                               const SelectionItemVoxel* idVolumeVoxel) const;
 
-        void generateVolumeDataIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+        void generateVolumeDataIdentificationText(HtmlTableBuilder& labelHtmlTableBuilder,
+                                                  HtmlTableBuilder& scalarHtmlTableBuilder,
                                               const Brain* brain,
                                               const SelectionItemVoxel* idVolumeVoxel) const;
         
@@ -175,7 +177,7 @@ namespace caret {
         
         Overlay* getTopEnabledOverlay(OverlaySet* overlaySet) const;
 
-        std::unique_ptr<HtmlTableBuilder> createHtmlTableBuilder() const;
+        std::unique_ptr<HtmlTableBuilder> createHtmlTableBuilder(const int32_t numberOfColumns) const;
         
         friend class DataToolTipsManager;
     };

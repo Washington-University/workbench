@@ -2440,6 +2440,9 @@ VolumeFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapI
                 else {
                     valuesText.append("?");
                 }
+                valuesText.append(" ("
+                                  + getMapName(mapIndex)
+                                  + ")");
             }
             else {
                 valuesText.append(AString::number(value, 'f', 3));

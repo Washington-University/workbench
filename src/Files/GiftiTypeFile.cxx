@@ -1383,6 +1383,9 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
                             valuesText.append(dataValueSeparator);
                         }
                         valuesText.append(labelTable->getLabel(key)->getName());
+                        valuesText.append(" ("
+                                          + getMapName(mapIndex)
+                                          + ")");
                     }
                 }
                 

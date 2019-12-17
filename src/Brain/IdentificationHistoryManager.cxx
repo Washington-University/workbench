@@ -62,9 +62,17 @@ IdentificationHistoryManager::~IdentificationHistoryManager()
  * @return The identification text contaiing the last "history count" records
  */
 AString
-IdentificationHistoryManager::getText() const
+IdentificationHistoryManager::getHtml() const
 {
-    AString text("<HTML><BODY>");
+    AString text("<html>\n"
+                 "<head>\n"
+                 "<style type=\"text/css\">\n"
+                 "table { border-width: 1px; border-style: ridge; }\n"
+                 "table td { padding: 3px; }"
+                 "table th { padding: 2px; }"
+                 "</style>\n"
+                 "</head>\n"
+                 "</body>\n");
     
     /*
      * Show last history ZERO means show all records
@@ -85,7 +93,9 @@ IdentificationHistoryManager::getText() const
         }
     }
     
-    text.append("</BODY></HTML>");
+    text.append("</body></html>\n");
+    
+//    std::cout << std::endl << std::endl << text << std::endl << std::endl;
     
     return text;
 }

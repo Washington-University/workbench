@@ -196,8 +196,7 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
                 rowColumnInformationOut.push_back(pf->getFileNameNoPath()
                                                   + " column index="
                                                   + AString::number(rowColumnIndexToLoad + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
-                htmlTableBuilder.addRow("Parcel",
-                                        ("Column Index: " + AString::number(rowColumnIndexToLoad + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+                htmlTableBuilder.addRow(("Column Index: " + AString::number(rowColumnIndexToLoad + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                          pf->getFileNameNoPath());
                 break;
             case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW:
@@ -206,8 +205,7 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromParcelFile(Brain* bra
                 rowColumnInformationOut.push_back(pf->getFileNameNoPath()
                                                   + " row index="
                                                   + AString::number(rowColumnIndexToLoad + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
-                htmlTableBuilder.addRow("Parcel",
-                                        ("Row Index: " + AString::number(rowColumnIndexToLoad + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+                htmlTableBuilder.addRow(("Row Index: " + AString::number(rowColumnIndexToLoad + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                          pf->getFileNameNoPath());
                 break;
         }
@@ -232,8 +230,7 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromConnectivityMatrixFil
         rowColumnInformationOut.push_back(ciftiConnMatrixFile->getFileNameNoPath()
                                           + " row index="
                                           + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
-        htmlTableBuilder.addRow("Matrix",
-                                ("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+        htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                  ciftiConnMatrixFile->getFileNameNoPath());
     }
     else if (columnIndex >= 0) {
@@ -242,8 +239,7 @@ CiftiConnectivityMatrixDataFileManager::loadRowOrColumnFromConnectivityMatrixFil
         rowColumnInformationOut.push_back(ciftiConnMatrixFile->getFileNameNoPath()
                                           + " column index="
                                           + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
-        htmlTableBuilder.addRow("Matrix",
-                                ("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+        htmlTableBuilder.addRow(("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                  ciftiConnMatrixFile->getFileNameNoPath());
     }
     
@@ -303,8 +299,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                                   + AString::number(nodeIndex)
                                                   + ", row index="
                                                   + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
-                htmlTableBuilder.addRow(("Vertex Index: " + AString::number(nodeIndex)),
-                                        ("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+                htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                          cmf->getFileNameNoPath());
             }
             else if (columnIndex >= 0) {
@@ -316,8 +311,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
                                                   + AString::number(nodeIndex)
                                                   + ", column index="
                                                   + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
-                htmlTableBuilder.addRow(("Vertex Index: " + AString::number(nodeIndex)),
-                                        ("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+                htmlTableBuilder.addRow(("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                          cmf->getFileNameNoPath());
             }
         }
@@ -419,8 +413,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                                                   + AString::fromNumbers(xyz, 3, ",")
                                                   + ", row index="
                                                   + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
-                htmlTableBuilder.addRow(("Voxel XYZ: " + AString::fromNumbers(xyz, 3, ",")),
-                                        ("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+                htmlTableBuilder.addRow(("Row Index: " + AString::number(rowIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                          cmf->getFileNameNoPath());
             }
             else if (columnIndex >= 0) {
@@ -432,8 +425,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                                                   + AString::fromNumbers(xyz, 3, ",")
                                                   + ", column index="
                                                   + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
-                htmlTableBuilder.addRow(("Voxel XYZ: " + AString::fromNumbers(xyz, 3, ",")),
-                                        ("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
+                htmlTableBuilder.addRow(("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                          cmf->getFileNameNoPath());
             }
         }

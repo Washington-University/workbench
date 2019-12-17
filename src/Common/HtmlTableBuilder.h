@@ -49,7 +49,9 @@ namespace caret {
 
         HtmlTableBuilder& operator=(const HtmlTableBuilder&) = delete;
         
-        void setTitle(const QString& title);
+        void setTitleBold(const QString& title);
+        
+        void setTitlePlain(const QString& title);
         
         void addHeaderRow(const QString& textColOne,
                           const QString& textColTwo   = "",
@@ -68,6 +70,11 @@ namespace caret {
        // ADD_NEW_METHODS_HERE
 
     private:
+        enum TitleStyle {
+            BOLD,
+            PLAIN
+        };
+        
         void addTableDataElementToRow(QString& tableRow,
                                       const QString& rowElementTag,
                                       const QString& columnData);
@@ -86,6 +93,8 @@ namespace caret {
         const int32_t m_numberOfColumns;
         
         QString m_title;
+        
+        TitleStyle m_titleStyle = TitleStyle::PLAIN;
         
         std::vector<QString> m_tableRows;
         
