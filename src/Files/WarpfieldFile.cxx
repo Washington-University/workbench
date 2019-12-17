@@ -129,7 +129,7 @@ void WarpfieldFile::readFnirt(const AString& warpName, const AString& sourceName
     refFSL.getAffineVectors(fslX, fslY, fslZ, fslOff);
     int64_t numVox = dims[0] * dims[1] * dims[2];
     vector<vector<float>> scratchFrames(3, vector<float>(numVox, 0.0f));
-    #pragma omp CARET_PARFOR
+    #pragma omp CARET_PARFOR schedule(dynamic)
     for (int64_t k = 0; k < dims[2]; ++k)
     {
         for (int64_t j = 0; j < dims[1]; ++j)
@@ -223,7 +223,7 @@ void WarpfieldFile::writeFnirt(const AString& warpname, const AString& sourceNam
     refFSL.getAffineVectors(fslX, fslY, fslZ, fslOff);
     int64_t numVox = dims[0] * dims[1] * dims[2];
     vector<vector<float>> scratchFrames(3, vector<float>(numVox, 0.0f));
-    #pragma omp CARET_PARFOR
+    #pragma omp CARET_PARFOR schedule(dynamic)
     for (int64_t k = 0; k < dims[2]; ++k)
     {
         for (int64_t j = 0; j < dims[1]; ++j)
