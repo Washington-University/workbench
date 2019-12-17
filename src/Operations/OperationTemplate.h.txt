@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 /*
+INSTRUCTIONS:
 file->save as... and enter what you will name the class, plus .h
 
 find and replace these strings in plain text mode (not "whole word only"):
