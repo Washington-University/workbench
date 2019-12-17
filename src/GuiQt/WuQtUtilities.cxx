@@ -978,7 +978,7 @@ WuQtUtilities::matchWidgetWidths(QWidget* w1,
                                   QWidget* w9,
                                   QWidget* w10)
 {
-    QVector<QWidget*> widgets;
+    std::vector<QWidget*> widgets;
     
     if (w1 != NULL) widgets.push_back(w1);
     if (w2 != NULL) widgets.push_back(w2);
@@ -991,13 +991,25 @@ WuQtUtilities::matchWidgetWidths(QWidget* w1,
     if (w9 != NULL) widgets.push_back(w9);
     if (w10 != NULL) widgets.push_back(w10);
     
+    matchWidgetWidths(widgets);
+}
+
+/**
+ * Find the widget with the maximum width in its
+ * size hint.  Apply this width to all of the widgets.
+
+ * @param widgets
+ * Widgets that have width matched
+ */
+void
+WuQtUtilities::matchWidgetWidths(std::vector<QWidget*>& widgets)
+{
     int maxWidth = 0;
     const int num = widgets.size();
-    for (int i = 0; i < num; i++) {
-        const int w = widgets[i]->sizeHint().width();
-        if (w > maxWidth) {
-            maxWidth = w;
-        }
+    for (auto w : widgets) {
+        CaretAssert(w);
+        maxWidth = std::max(maxWidth,
+                            w->sizeHint().width());
     }
     
     if (maxWidth > 0) {
