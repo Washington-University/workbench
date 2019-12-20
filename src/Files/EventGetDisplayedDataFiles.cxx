@@ -26,8 +26,9 @@
 #undef __EVENT_GET_DISPLAYED_DATA_FILES_DECLARE__
 
 #include "CaretAssert.h"
+#include "EventBrowserTabIndicesGetAllViewed.h"
+#include "EventManager.h"
 #include "EventTypeEnum.h"
-#include "SurfaceFile.h"
 
 using namespace caret;
 
@@ -40,7 +41,33 @@ using namespace caret;
  */
 
 /**
- * Constructor for finding data files displayed in the given tab indices.
+ * Constructor for finding data files displayed in all windows/tabs.
+ * @param mode
+ *  Mode for getting tab
+ */
+EventGetDisplayedDataFiles::EventGetDisplayedDataFiles(const Mode mode)
+: Event(EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES),
+m_mode(mode)
+{
+    switch (m_mode) {
+        case Mode::FILES_IN_ALL_TABS:
+            break;
+        case Mode::FILES_IN_VIEWED_TABS:
+        {
+            EventBrowserTabIndicesGetAllViewed viewedTabs;
+            EventManager::get()->sendEvent(viewedTabs.getPointer());
+            std::vector<int32_t> indices = viewedTabs.getAllBrowserTabIndices();
+            m_tabIndices.insert(indices.begin(),
+                                indices.end());
+        }
+            break;
+        case Mode::FILES_IN_WINDOWS_TABS:
+            CaretAssertMessage(0, "Use constructor that accepts window/tab indiceds for this mode");
+            break;
+    }
+}
+/**
+ * Constructor for finding data files displayed in the given window and tab indices.
  *
  * param windowIndices
  *     Indices of windows for displayed data files.
@@ -49,7 +76,8 @@ using namespace caret;
  */
 EventGetDisplayedDataFiles::EventGetDisplayedDataFiles(const std::vector<int32_t>& windowIndices,
                                                        const std::vector<int32_t>& tabIndices)
-: Event(EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES)
+: Event(EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES),
+m_mode(Mode::FILES_IN_WINDOWS_TABS)
 {
     m_tabIndices.insert(tabIndices.begin(),
                         tabIndices.end());
@@ -65,6 +93,15 @@ EventGetDisplayedDataFiles::~EventGetDisplayedDataFiles()
 }
 
 /**
+ * @return the mode
+ */
+EventGetDisplayedDataFiles::Mode
+EventGetDisplayedDataFiles::getMode() const
+{
+    return m_mode;
+}
+
+/**
  * Is the tab index one for determining displayed data files.
  *
  * @param tabIndex
@@ -75,6 +112,16 @@ EventGetDisplayedDataFiles::~EventGetDisplayedDataFiles()
 bool
 EventGetDisplayedDataFiles::isTestForDisplayedDataFileInTabIndex(const int32_t tabIndex) const
 {
+    switch (m_mode) {
+        case Mode::FILES_IN_ALL_TABS:
+            return true;
+            break;
+        case Mode::FILES_IN_VIEWED_TABS:
+            break;
+        case Mode::FILES_IN_WINDOWS_TABS:
+            break;
+    }
+
     if (m_tabIndices.find(tabIndex) != m_tabIndices.end()) {
         return true;
     }
@@ -93,29 +140,18 @@ EventGetDisplayedDataFiles::isTestForDisplayedDataFileInTabIndex(const int32_t t
 bool
 EventGetDisplayedDataFiles::isTestForDisplayedDataFileInWindowIndex(const int32_t windowIndex) const
 {
-    if (m_windowIndices.find(windowIndex) != m_windowIndices.end()) {
-        return true;
+    switch (m_mode) {
+        case Mode::FILES_IN_ALL_TABS:
+            return true;
+            break;
+        case Mode::FILES_IN_VIEWED_TABS:
+            return true;
+            break;
+        case Mode::FILES_IN_WINDOWS_TABS:
+            break;
     }
     
-    return false;
-}
-
-/**
- * Is the given surface structure displayed?
- *
- * @param surfaceStructure
- *    The surface structure.
- * @return
- *    True if the structure is displayed, else false.
- */
-bool
-EventGetDisplayedDataFiles::isTestForDisplayedSurfaceStructure(const StructureEnum::Enum surfaceStructure) const
-{
-    setupSurfaceStrucutures();
-
-    if (std::find(m_surfaceStructures.begin(),
-                  m_surfaceStructures.end(),
-                  surfaceStructure) != m_surfaceStructures.end()) {
+    if (m_windowIndices.find(windowIndex) != m_windowIndices.end()) {
         return true;
     }
     
@@ -160,48 +196,6 @@ EventGetDisplayedDataFiles::getDisplayedDataFiles() const
 {
     return m_displayedDataFiles;
 }
-
-/**
- * @return The displayed surface structures.  Must be called
- * AFTER event completes.
- */
-std::vector<StructureEnum::Enum>
-EventGetDisplayedDataFiles::getDisplayedSurfaceStructures() const
-{
-    setupSurfaceStrucutures();
-    
-    return m_surfaceStructures;
-}
-
-/**
- * Setup the surface structures.
- */
-void
-EventGetDisplayedDataFiles::setupSurfaceStrucutures() const
-{
-    if ( ! m_surfaceStructuresValid) {
-        std::set<StructureEnum::Enum> structureSet;
-        
-        for (std::set<const CaretDataFile*>::const_iterator dataFileIter = m_displayedDataFiles.begin();
-             dataFileIter != m_displayedDataFiles.end();
-             dataFileIter++) {
-            const CaretDataFile* dataFile = *dataFileIter;
-            CaretAssert(dataFile);
-            
-            if (dataFile->getDataFileType() == DataFileTypeEnum::SURFACE) {
-                const SurfaceFile* surfaceFile = dynamic_cast<const SurfaceFile*>(dataFile);
-                CaretAssert(surfaceFile);
-                structureSet.insert(surfaceFile->getStructure());
-            }
-        }
-        
-        m_surfaceStructures.insert(m_surfaceStructures.end(),
-                                   structureSet.begin(),
-                                   structureSet.end());
-        m_surfaceStructuresValid = true;
-    }
-}
-
 
 /**
  * @return The tab indices.

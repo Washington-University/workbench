@@ -1513,9 +1513,14 @@ UserInputModeViewContextMenu::identifySurfaceBorderSelected()
     Brain* brain = borderID->getBrain();
     this->selectionManager->clearOtherSelectedItems(borderID);
     
+    int32_t tabIndex = -1;
+    if (this->browserTabContent != NULL) {
+        tabIndex = this->browserTabContent->getTabNumber();
+    }
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
-                                                    this->selectionManager->getFormattedIdentificationText(brain)));
+                                                    this->selectionManager->getFormattedIdentificationText(brain,
+                                                                                                           tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
@@ -1615,9 +1620,14 @@ UserInputModeViewContextMenu::identifySurfaceFocusSelected()
     Brain* brain = focusID->getBrain();
     this->selectionManager->clearOtherSelectedItems(focusID);
     
+    int32_t tabIndex = -1;
+    if (this->browserTabContent != NULL) {
+        tabIndex = this->browserTabContent->getTabNumber();
+    }
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
-                                                    this->selectionManager->getFormattedIdentificationText(brain)));
+                                                    this->selectionManager->getFormattedIdentificationText(brain,
+                                                                                                           tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
@@ -1631,9 +1641,14 @@ UserInputModeViewContextMenu::identifyVolumeFocusSelected()
     Brain* brain = focusID->getBrain();
     this->selectionManager->clearOtherSelectedItems(focusID);
     
+    int32_t tabIndex = -1;
+    if (this->browserTabContent != NULL) {
+        tabIndex = this->browserTabContent->getTabNumber();
+    }
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
-                                                    this->selectionManager->getFormattedIdentificationText(brain)));
+                                                    this->selectionManager->getFormattedIdentificationText(brain,
+                                                                                                           tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 
@@ -1688,9 +1703,14 @@ UserInputModeViewContextMenu::identifyVoxelSelected()
     Brain* brain = voxelID->getBrain();
     this->selectionManager->clearOtherSelectedItems(voxelID);
     
+    int32_t tabIndex = -1;
+    if (this->browserTabContent != NULL) {
+        tabIndex = this->browserTabContent->getTabNumber();
+    }
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(this->selectionManager->getSimpleIdentificationText(brain),
-                                                    this->selectionManager->getFormattedIdentificationText(brain)));
+                                                    this->selectionManager->getFormattedIdentificationText(brain,
+                                                                                                           tabIndex)));
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
 }
 

@@ -1942,9 +1942,23 @@ BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAn
                                               mapIndex);
                     
                     if (overlayDataFile != NULL) {
+                        switch (indexType) {
+                            case ChartTwoOverlay::SelectedIndexType::INVALID:
+                                if (overlay->getChartTwoDataType() == ChartTwoDataTypeEnum::CHART_DATA_TYPE_LINE_SERIES) {
+                                    mapIndex = 0;
+                                }
+                                break;
+                            case ChartTwoOverlay::SelectedIndexType::COLUMN:
+                                break;
+                            case ChartTwoOverlay::SelectedIndexType::MAP:
+                                break;
+                            case ChartTwoOverlay::SelectedIndexType::ROW:
+                                break;
+                        }
                         if (mapIndex >= 0) {
-                            fileAndMapsEvent->addChartFileAndMap(overlayDataFile,
-                                                                 mapIndex);
+                            fileAndMapsEvent->addChartTwoFileAndMap(overlayDataFile,
+                                                                    mapIndex,
+                                                                    m_tabNumber);
                         }
                     }
                 }
@@ -1969,7 +1983,8 @@ BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAn
                     if (overlayDataFile != NULL) {
                         if (mapIndex >= 0) {
                             fileAndMapsEvent->addBrainordinateFileAndMap(overlayDataFile,
-                                                                         mapIndex);
+                                                                         mapIndex,
+                                                                         m_tabNumber);
                         }
                     }
                 }

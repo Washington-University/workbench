@@ -43,12 +43,11 @@ using namespace caret;
 IdentificationFilter::IdentificationFilter()
 : CaretObject()
 {
-    
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
-    m_sceneAssistant->add("m_surfaceVertexEnabled", &m_surfaceVertexEnabled);
-    m_sceneAssistant->add("m_volumeVoxelEnabled", &m_volumeVoxelEnabled);
-    m_sceneAssistant->add("m_borderEnabled", &m_borderEnabled);
-    m_sceneAssistant->add("m_fociEnabled", &m_fociEnabled);
+    m_sceneAssistant->add<IdentificationFilterTabSelectionEnum, IdentificationFilterTabSelectionEnum::Enum>("m_tabFiltering", &m_tabFiltering);
+    m_sceneAssistant->add("m_showCiftiLoadingEnabled", &m_showCiftiLoadingEnabled);
+    m_sceneAssistant->add("m_showBorderEnabled", &m_showBorderEnabled);
+    m_sceneAssistant->add("m_showFociEnabled", &m_showFociEnabled);
 }
 
 /**
@@ -69,89 +68,88 @@ IdentificationFilter::toString() const
 }
 
 /**
- * @return show surface vertex information
+ * @return The tab filtering
  */
-bool
-IdentificationFilter::isSurfaceVertexEnabled() const
+IdentificationFilterTabSelectionEnum::Enum
+IdentificationFilter::getTabFiltering() const
 {
-    return m_surfaceVertexEnabled;
+    return m_tabFiltering;
 }
 
 /**
- * Set show surface vertex information
+ * Set the tab filtering
  *
- * @param surfaceVertexEnabled
- *    New value for show surface vertex information
+ * @param tabFiltering
+ *  New tab filtering selection
  */
 void
-IdentificationFilter::setSurfaceVertexEnabled(const bool surfaceVertexEnabled)
+IdentificationFilter::setTabFiltering(const IdentificationFilterTabSelectionEnum::Enum tabFiltering)
 {
-    m_surfaceVertexEnabled = surfaceVertexEnabled;
+    m_tabFiltering = tabFiltering;
 }
 
 /**
- * @return show volume voxel information
+ * @return show CIFTI loading information
  */
 bool
-IdentificationFilter::isVolumeVoxelEnabled() const
+IdentificationFilter::isShowCiftiLoadingEnabled() const
 {
-    return m_volumeVoxelEnabled;
+    return m_showCiftiLoadingEnabled;
 }
 
 /**
- * Set show volume voxel information
+ * Set show CIFTI loading information
  *
- * @param volumeVoxelEnabled
- *    New value for show volume voxel information
+ * @param staus
+ *    New loading status
  */
 void
-IdentificationFilter::setVolumeVoxelEnabled(const bool volumeVoxelEnabled)
+IdentificationFilter::setShowCiftiLoadingEnabled(const bool status)
 {
-    m_volumeVoxelEnabled = volumeVoxelEnabled;
+    m_showCiftiLoadingEnabled = status;
 }
 
 /**
  * @return show border information
  */
 bool
-IdentificationFilter::isBorderEnabled() const
+IdentificationFilter::isShowBorderEnabled() const
 {
-    return m_borderEnabled;
+    return m_showBorderEnabled;
 }
 
 /**
  * Set show border information
  *
- * @param borderEnabled
- *    New value for show border information
+ * @param staus
+ *    New loading status
  */
 void
-IdentificationFilter::setBorderEnabled(const bool borderEnabled)
+IdentificationFilter::setShowBorderEnabled(const bool status)
 {
-    m_borderEnabled = borderEnabled;
+    m_showBorderEnabled = status;
 }
 
 /**
  * @return show foci information
  */
 bool
-IdentificationFilter::isFociEnabled() const
+IdentificationFilter::isShowFociEnabled() const
 {
-    return m_fociEnabled;
+    return m_showFociEnabled;
 }
 
 /**
  * Set show foci information
  *
- * @param fociEnabled
- *    New value for show foci information
+ * @param staus
+ *    New loading status
  */
 void
-IdentificationFilter::setFociEnabled(const bool fociEnabled)
+IdentificationFilter::setShowFociEnabled(const bool status)
 {
-    m_fociEnabled = fociEnabled;
+    m_showFociEnabled = status;
 }
-
 
 /**
  * Save information specific to this type of model to the scene.

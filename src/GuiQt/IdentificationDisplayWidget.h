@@ -30,14 +30,18 @@
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
+class QAbstractButton;
+class QButtonGroup;
 class QCheckBox;
 class QDoubleSpinBox;
+class QRadioButton;
 class QSpinBox;
 class QTabWidget;
 class QTextBrowser;
 
 namespace caret {
     class CaretColorEnumComboBox;
+    class IdentificationFileFilteringTableWidget;
     class IdentificationHistoryManager;
     class SceneClassAssistant;
 
@@ -90,6 +94,8 @@ namespace caret {
         
         void infoRemoveSymbolsButtonClicked();
         
+        void tabFilterRadioButtonClicked(int buttonID);
+        
     private:
         void updateContent(const bool scrollTextToEndFlag);
         
@@ -118,16 +124,18 @@ namespace caret {
         QSpinBox* m_infoShowHistoryCountSpinBox;
         
         QWidget* m_filteringWidget;
+
+        QButtonGroup* m_tabFilterButtonGroup;
         
-        QCheckBox* m_filteringSurfaceVertexCheckBox;
+        std::vector<QRadioButton*> m_tabFilteringRadioButtons;
         
-        QCheckBox* m_filteringSurfaceContralateralVertexCheckBox;
-        
-        QCheckBox* m_filteringVolumeVoxelCheckBox;
+        QCheckBox* m_filteringCiftiLoadingCheckBox;
         
         QCheckBox* m_filteringBorderCheckBox;
         
         QCheckBox* m_filteringFociCheckBox;
+        
+        IdentificationFileFilteringTableWidget* m_fileFilteringTableWidget = NULL;
         
         QWidget* m_symbolsWidget;
         
@@ -142,6 +150,8 @@ namespace caret {
         QDoubleSpinBox* m_symbolsIdDiameterSpinBox;
         
         QDoubleSpinBox* m_symbolsMostRecentIdDiameterSpinBox;
+        
+        QCheckBox* m_symbolsSurfaceContralateralVertexCheckBox;
         
         // ADD_NEW_MEMBERS_HERE
 

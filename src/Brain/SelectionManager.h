@@ -153,7 +153,8 @@ namespace caret {
         
         AString getSimpleIdentificationText(const Brain* brain) const;
         
-        AString getFormattedIdentificationText(const Brain* brain) const;
+        AString getFormattedIdentificationText(const Brain* brain,
+                                               const int32_t tabIndex) const;
         
         void filterSelections(const bool applySelectionBackgroundFiltering);
         

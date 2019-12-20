@@ -102,6 +102,7 @@ Event.h
 EventAlertUser.h
 EventBrowserTabDelete.h
 EventBrowserTabIndicesGetAll.h
+EventBrowserTabIndicesGetAllViewed.h
 EventBrowserTabNew.h
 EventBrowserTabNewClone.h
 EventCaretPreferencesGet.h
@@ -237,6 +238,7 @@ Event.cxx
 EventAlertUser.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabIndicesGetAll.cxx
+EventBrowserTabIndicesGetAllViewed.cxx
 EventBrowserTabNew.cxx
 EventBrowserTabNewClone.cxx
 EventCaretPreferencesGet.cxx

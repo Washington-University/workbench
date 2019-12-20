@@ -89,6 +89,7 @@
 #include "HelpViewerDialog.h"
 #include "HtmlTableBuilder.h"
 #include "IdentificationDisplayDialog.h"
+#include "IdentificationFilter.h"
 #include "IdentifiedItemNode.h"
 #include "IdentifiedItemVoxel.h"
 #include "IdentificationManager.h"
@@ -3530,8 +3531,12 @@ GuiManager::processIdentification(const int32_t tabIndex,
          * Generate identification manager
          */
         const AString identificationMessage = selectionManager->getSimpleIdentificationText(brain);
-        AString formattedIdentificationMessage = selectionManager->getFormattedIdentificationText(brain);
-        const AString ciftiLoadingFormattedMessage = ciftiLoadingInfoTableBuilder.getAsHtmlTable();
+        AString formattedIdentificationMessage = selectionManager->getFormattedIdentificationText(brain,
+                                                                                                  tabIndex);
+        AString ciftiLoadingFormattedMessage;
+        if (identificationManager->getIdentificationFilter()->isShowCiftiLoadingEnabled()) {
+            ciftiLoadingFormattedMessage = ciftiLoadingInfoTableBuilder.getAsHtmlTable();
+        }
         
         bool issuedIdentificationLocationEvent = false;
         if (idNode->isValid()) {

@@ -22,8 +22,10 @@
 /*LICENSE_END*/
 
 #include <memory>
+#include <set>
 
 #include "CaretObject.h"
+#include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 
 namespace caret {
 
@@ -34,6 +36,7 @@ namespace caret {
     class DataToolTipsManager;
     class Focus;
     class HtmlTableBuilder;
+    class IdentificationFilter;
     class MapFileDataSelector;
     class Overlay;
     class OverlaySet;
@@ -63,7 +66,8 @@ namespace caret {
         virtual ~IdentificationFormattedTextGenerator();
         
         AString createIdentificationText(const SelectionManager* idManager,
-                                         const Brain* brain) const;
+                                         const Brain* brain,
+                                         const int32_t tabIndex) const;
         
         AString createToolTipText(const Brain* brain,
                                   const BrowserTabContent* browserTab,
@@ -79,6 +83,9 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        std::vector<EventCaretMappableDataFilesAndMapsInDisplayedOverlays::FileInfo> getFilesForIdentification(const IdentificationFilter* filter,
+                                                                                                               const int32_t tabIndex) const;
+        
         void generateSurfaceToolTip(const Brain* brain,
                                     const BrowserTabContent* browserTab,
                                     const SelectionManager* selectionManager,
@@ -120,9 +127,11 @@ namespace caret {
         
         void generateSurfaceDataIdentificationText(HtmlTableBuilder& labelHtmlTableBuilder,
                                                    HtmlTableBuilder& scalarHtmlTableBuilder,
-                                               const Brain* brain,
-                                               const SelectionItemSurfaceNode* idSurfaceNode) const;
-        
+                                                   CaretMappableDataFile* mapFile,
+                                                   const std::set<int32_t>& mapIndices,
+                                                   const Brain* brain,
+                                                   const SelectionItemSurfaceNode* idSurfaceNode) const;
+
         void generateImageIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                              const SelectionItemImage* idImage) const;
         
@@ -132,9 +141,11 @@ namespace caret {
 
         void generateVolumeDataIdentificationText(HtmlTableBuilder& labelHtmlTableBuilder,
                                                   HtmlTableBuilder& scalarHtmlTableBuilder,
-                                              const Brain* brain,
-                                              const SelectionItemVoxel* idVolumeVoxel) const;
-        
+                                                  CaretMappableDataFile* mapFile,
+                                                  const std::set<int32_t>& mapIndices,
+                                                  const Brain* brain,
+                                                  const SelectionItemVoxel* idVolumeVoxel) const;
+
         void generateChartDataSeriesIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                        const SelectionItemChartDataSeries* idChartDataSeries) const;
         
@@ -147,16 +158,22 @@ namespace caret {
         void generateChartTwoHistogramIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                          IdentificationStringBuilder& idText,
                                                          const SelectionItemChartTwoHistogram* idChartTwoHistogram,
+                                                         CaretMappableDataFile* mapFile,
+                                                         const std::set<int32_t>& mapIndices,
                                                          const bool toolTipFlag) const;
         
         void generateChartTwoLineSeriesIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                           IdentificationStringBuilder& idText,
                                                           const SelectionItemChartTwoLineSeries* idChartTwoLineSeries,
+                                                          CaretMappableDataFile* mapFile,
+                                                          const std::set<int32_t>& mapIndices,
                                                           const bool toolTipFlag) const;
         
         void generateChartTwoMatrixIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                       IdentificationStringBuilder& idText,
                                                       const SelectionItemChartTwoMatrix* idChartTwoMatrix,
+                                                      CaretMappableDataFile* mapFile,
+                                                      const std::set<int32_t>& mapIndices,
                                                       const bool toolTipFlag) const;
 
         void generateCiftiConnectivityMatrixIdentificationText(HtmlTableBuilder& htmlTableBuilder,

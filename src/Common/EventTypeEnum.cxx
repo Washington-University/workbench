@@ -150,6 +150,10 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_TAB_INDICES_GET_ALL",
                                      "Browser Tab Indices Get All"));
     
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED,
+                                     "EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED",
+                                     "Browser Tab Indices Get All Viewed"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_NEW,
                                      "EVENT_BROWSER_TAB_NEW", 
                                      "Create a browser tab"));

@@ -34,6 +34,7 @@
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
 #include "FastStatistics.h"
+#include "FileIdentificationAttributes.h"
 #include "FileInformation.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaDataXmlElements.h"
@@ -109,6 +110,7 @@ void
 CaretMappableDataFile::initializeCaretMappableDataFileInstance(const DataFileTypeEnum::Enum /*dataFileType*/)
 {
     m_labelDrawingProperties = std::unique_ptr<LabelDrawingProperties>(new LabelDrawingProperties());
+    m_fileIdentificationAttributes.reset(new FileIdentificationAttributes());
     m_applyToAllMapsSelected = false;
 }
 
@@ -361,7 +363,9 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
     sceneClass->addClass(m_labelDrawingProperties->saveToScene(sceneAttributes,
                                                                "m_labelDrawingProperties"));
     
-    
+    sceneClass->addClass(m_fileIdentificationAttributes->saveToScene(sceneAttributes,
+                                                                     "m_fileIdentificationAttributes"));
+
     if (m_chartingDelegate != NULL) {
         SceneClass* chartDelegateScene = m_chartingDelegate->saveToScene(sceneAttributes,
                                                                          "m_chartingDelegate");
@@ -491,6 +495,9 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     
     m_labelDrawingProperties->restoreFromScene(sceneAttributes,
                                                sceneClass->getClass("m_labelDrawingProperties"));
+    m_fileIdentificationAttributes->restoreFromScene(sceneAttributes,
+                                                     sceneClass->getClass("m_fileIdentificationAttributes"));
+    
     const SceneClass* chartingDelegateClass = sceneClass->getClass("m_chartingDelegate");
     ChartableTwoFileDelegate* chartDelegate = getChartingDelegate();
     chartDelegate->updateAfterFileChanged();
@@ -1524,6 +1531,24 @@ CaretMappableDataFile::getVolumeVoxelIdentificationForMaps(const std::vector<int
 {
     textOut.clear();
     return false;
+}
+
+/**
+ * @return The file identification attributes
+ */
+FileIdentificationAttributes*
+CaretMappableDataFile::getFileIdentificationAttributes()
+{
+    return m_fileIdentificationAttributes.get();
+}
+
+/**
+ * @return The file identification attributes (const method)
+ */
+const FileIdentificationAttributes*
+CaretMappableDataFile::getFileIdentificationAttributes() const
+{
+    return m_fileIdentificationAttributes.get();
 }
 
 

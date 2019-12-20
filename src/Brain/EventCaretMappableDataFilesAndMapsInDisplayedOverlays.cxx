@@ -54,17 +54,24 @@ EventCaretMappableDataFilesAndMapsInDisplayedOverlays::~EventCaretMappableDataFi
 }
 
 /**
- * Add file and map displayed in an chart overlay.
+ * Add file and map displayed in an chart one overlay.
  *
  * @param mapFile
  *     File to add.
  * @param mapIndex
  *     Index of selected map.
+ * @param tabIndex
+ * Index of the tab
  */
 void
-EventCaretMappableDataFilesAndMapsInDisplayedOverlays::addChartFileAndMap(CaretMappableDataFile* mapFile,
-                                                                          const int32_t mapIndex)
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::addChartOneFileAndMap(CaretMappableDataFile* mapFile,
+                                                                             const int32_t mapIndex,
+                                                                             const int32_t tabIndex)
 {
+    if ( ! satisfiesConstraints(tabIndex)) {
+        return;
+    }
+    
     {
     auto iter = m_mapFilesAndIndices.find(mapFile);
     if (iter != m_mapFilesAndIndices.end()) {
@@ -78,15 +85,59 @@ EventCaretMappableDataFilesAndMapsInDisplayedOverlays::addChartFileAndMap(CaretM
     }
     }
     
-    auto iter = m_chartMapFilesAndIndices.find(mapFile);
-    if (iter != m_chartMapFilesAndIndices.end()) {
+    auto iter = m_chartOneMapFilesAndIndices.find(mapFile);
+    if (iter != m_chartOneMapFilesAndIndices.end()) {
         iter->second.insert(mapIndex);
     }
     else {
         std::set<int32_t> indicesSet;
         indicesSet.insert(mapIndex);
-        m_chartMapFilesAndIndices.insert(std::make_pair(mapFile,
+        m_chartOneMapFilesAndIndices.insert(std::make_pair(mapFile,
                                                                 indicesSet));
+    }
+}
+
+/**
+ * Add file and map displayed in an chart two overlay.
+ *
+ * @param mapFile
+ *     File to add.
+ * @param mapIndex
+ *     Index of selected map.
+ * @param tabIndex
+ * Index of the tab
+ */
+void
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::addChartTwoFileAndMap(CaretMappableDataFile* mapFile,
+                                                                             const int32_t mapIndex,
+                                                                             const int32_t tabIndex)
+{
+    if ( ! satisfiesConstraints(tabIndex)) {
+        return;
+    }
+    
+    {
+        auto iter = m_mapFilesAndIndices.find(mapFile);
+        if (iter != m_mapFilesAndIndices.end()) {
+            iter->second.insert(mapIndex);
+        }
+        else {
+            std::set<int32_t> indicesSet;
+            indicesSet.insert(mapIndex);
+            m_mapFilesAndIndices.insert(std::make_pair(mapFile,
+                                                       indicesSet));
+        }
+    }
+    
+    auto iter = m_chartTwoMapFilesAndIndices.find(mapFile);
+    if (iter != m_chartTwoMapFilesAndIndices.end()) {
+        iter->second.insert(mapIndex);
+    }
+    else {
+        std::set<int32_t> indicesSet;
+        indicesSet.insert(mapIndex);
+        m_chartTwoMapFilesAndIndices.insert(std::make_pair(mapFile,
+                                                           indicesSet));
     }
 }
 
@@ -97,11 +148,18 @@ EventCaretMappableDataFilesAndMapsInDisplayedOverlays::addChartFileAndMap(CaretM
  *     File to add.
  * @param mapIndex
  *     Index of selected map.
+ * @param tabIndex
+ * Index of the tab
  */
 void
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays::addBrainordinateFileAndMap(CaretMappableDataFile* mapFile,
-                                                                                  const int32_t mapIndex)
+                                                                                  const int32_t mapIndex,
+                                                                                  const int32_t tabIndex)
 {
+    if ( ! satisfiesConstraints(tabIndex)) {
+        return;
+    }
+    
     {
     auto iter = m_mapFilesAndIndices.find(mapFile);
     if (iter != m_mapFilesAndIndices.end()) {
@@ -141,12 +199,17 @@ EventCaretMappableDataFilesAndMapsInDisplayedOverlays::getFilesAndMaps() const
                                    iter.first,
                                    iter.second));
     }
-    for (auto iter : m_chartMapFilesAndIndices) {
-        infoOut.push_back(FileInfo(OverlayType::CHART,
+    for (auto iter : m_chartOneMapFilesAndIndices) {
+        infoOut.push_back(FileInfo(OverlayType::CHART_ONE,
                                    iter.first,
                                    iter.second));
     }
-    
+    for (auto iter : m_chartTwoMapFilesAndIndices) {
+        infoOut.push_back(FileInfo(OverlayType::CHART_TWO,
+                                   iter.first,
+                                   iter.second));
+    }
+
     return infoOut;
 }
 
@@ -158,6 +221,51 @@ std::map<CaretMappableDataFile*, std::set<int32_t>>
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays::getMapFilesAndIndices() const
 {
     return m_mapFilesAndIndices;
+}
+
+/**
+ * Test to see if the given window index and tab index satisfy optional constraints
+ * @param tabIndex
+ * Index of the tab
+ */
+bool
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::satisfiesConstraints(const int32_t tabIndex)
+{
+    if (m_windowIndex >= 0) {
+//        if (windowIndex != m_windowIndex) {
+//            return false;
+//        }
+    }
+    
+    if ( ! m_tabIndices.empty()) {
+        if (m_tabIndices.find(tabIndex) == m_tabIndices.end()) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * Set a constraint to only get overlay for the given window
+ * @param windowIndex
+ * Index of the window
+ */
+void
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::setWindowIndexConstraint(const int32_t windowIndex)
+{
+    m_windowIndex = windowIndex;
+}
+
+/**
+ * Set a constraint to only get overlay for the given tabs
+ * @param tabIndices
+ * Indices of the tabs
+ */
+void
+EventCaretMappableDataFilesAndMapsInDisplayedOverlays::setTabIndicesConstraint(const std::set<int32_t>& tabIndices)
+{
+    m_tabIndices = tabIndices;
 }
 
 /**

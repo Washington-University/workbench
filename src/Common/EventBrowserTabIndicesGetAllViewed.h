@@ -1,5 +1,5 @@
-#ifndef __WU_Q_VALUE_CHANGED_SIGNAL_WATCHER_H__
-#define __WU_Q_VALUE_CHANGED_SIGNAL_WATCHER_H__
+#ifndef __EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED_H__
+#define __EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED_H__
 
 /*LICENSE_START*/
 /*
@@ -26,51 +26,41 @@
 #include <memory>
 #include <vector>
 
-#include <QObject>
+#include "Event.h"
 
-class QWidget;
+
 
 namespace caret {
 
-    class WuQValueChangedSignalWatcher : public QObject {
+    class EventBrowserTabIndicesGetAllViewed : public Event {
         
-        Q_OBJECT
-
     public:
-        WuQValueChangedSignalWatcher(QObject* parent);
+        EventBrowserTabIndicesGetAllViewed();
         
-        virtual ~WuQValueChangedSignalWatcher();
+        virtual ~EventBrowserTabIndicesGetAllViewed();
         
-        WuQValueChangedSignalWatcher(const WuQValueChangedSignalWatcher&) = delete;
+        EventBrowserTabIndicesGetAllViewed(const EventBrowserTabIndicesGetAllViewed&) = delete;
 
-        WuQValueChangedSignalWatcher& operator=(const WuQValueChangedSignalWatcher&) = delete;
+        EventBrowserTabIndicesGetAllViewed& operator=(const EventBrowserTabIndicesGetAllViewed&) = delete;
         
-        void addObject(QObject* object);
+        void addBrowserTabIndex(const int32_t browserTabIndex);
         
-        void setWidgetsVisible(const bool status);
+        std::vector<int32_t> getAllBrowserTabIndices() const;
         
-    signals:
-        void valueChanged();
+        bool isValidBrowserTabIndex(const int32_t browserTabIndex);
 
-//        private slots:
-//        void booChanged(bool);
-//        
-//        void intChanged(int);
-//        
-//        void doubleChanged(double);
-        
         // ADD_NEW_METHODS_HERE
 
     private:
-        std::vector<QWidget*> m_widgets;
-        
+        std::vector<int32_t> m_browserTabIndices;
+
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __WU_Q_VALUE_CHANGED_SIGNAL_WATCHER_DECLARE__
+#ifdef __EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_VALUE_CHANGED_SIGNAL_WATCHER_DECLARE__
+#endif // __EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_VALUE_CHANGED_SIGNAL_WATCHER_H__
+#endif  //__EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED_H__

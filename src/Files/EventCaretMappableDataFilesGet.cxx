@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
 #include <typeinfo>
 
 #include "CaretAssert.h"
@@ -108,5 +109,25 @@ EventCaretMappableDataFilesGet::getAllFiles(std::vector<CaretMappableDataFile*>&
 {
     allFilesOut = m_allCaretMappableDataFiles;
 }
+
+/**
+ * Get all map data files sorted by name of file
+ *
+ * @param allFilesOut
+ *    All map data files output.
+ */
+void
+EventCaretMappableDataFilesGet::getAllFilesSortedByName(std::vector<CaretMappableDataFile*>& allFilesOut) const
+{
+    allFilesOut = m_allCaretMappableDataFiles;
+    
+    std::sort(allFilesOut.begin(),
+              allFilesOut.end(),
+              [] (CaretMappableDataFile* lhs, CaretMappableDataFile* rhs) {
+                  const int result = lhs->getFileNameNoPath().compare(rhs->getFileNameNoPath(), Qt::CaseInsensitive);
+                  return (result < 0);
+              } );
+}
+
 
 

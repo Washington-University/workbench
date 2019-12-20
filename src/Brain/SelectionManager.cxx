@@ -457,13 +457,17 @@ SelectionManager::getSimpleIdentificationText(const Brain* brain) const
  * Get formatted text describing the current identification data.
  * @param brain
  *    Brain containing the data.
+ * @param tabIndex
+ *    Index of tab where identication took place
  */
 AString
-SelectionManager::getFormattedIdentificationText(const Brain* brain) const
+SelectionManager::getFormattedIdentificationText(const Brain* brain,
+                                                 const int32_t tabIndex) const
 {
     CaretAssert(brain);
     const AString text = m_idFormattedTextGenerator->createIdentificationText(this,
-                                                                              brain);
+                                                                              brain,
+                                                                              tabIndex);
     return text;
 }
 

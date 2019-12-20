@@ -1,5 +1,5 @@
-#ifndef __IDENTIFICATION_FILTER_H__
-#define __IDENTIFICATION_FILTER_H__
+#ifndef __FILE_IDENTIFICATION_ATTRIBUTES_H__
+#define __FILE_IDENTIFICATION_ATTRIBUTES_H__
 
 /*LICENSE_START*/
 /*
@@ -26,39 +26,36 @@
 #include <memory>
 
 #include "CaretObject.h"
-#include "IdentificationFilterTabSelectionEnum.h"
+#include "FileIdentificationMapSelectionEnum.h"
 #include "SceneableInterface.h"
 
 
 namespace caret {
     class SceneClassAssistant;
 
-    class IdentificationFilter : public CaretObject, public SceneableInterface {
+    class FileIdentificationAttributes : public CaretObject, public SceneableInterface {
         
     public:
-        IdentificationFilter();
+        FileIdentificationAttributes();
         
-        virtual ~IdentificationFilter();
+        virtual ~FileIdentificationAttributes();
         
-        IdentificationFilter(const IdentificationFilter&) = delete;
+        FileIdentificationAttributes(const FileIdentificationAttributes& obj);
 
-        IdentificationFilter& operator=(const IdentificationFilter&) = delete;
-
-        IdentificationFilterTabSelectionEnum::Enum getTabFiltering() const;
+        FileIdentificationAttributes& operator=(const FileIdentificationAttributes& obj);
         
-        void setTabFiltering(const IdentificationFilterTabSelectionEnum::Enum tabFiltering);
+        bool isEnabled() const;
         
-        bool isShowCiftiLoadingEnabled() const;
+        void setEnabled(const bool enabled);
         
-        void setShowCiftiLoadingEnabled(const bool status);
+        FileIdentificationMapSelectionEnum::Enum getMapSelectionMode() const;
         
-        bool isShowBorderEnabled() const;
+        void setMapSelectionMode(const FileIdentificationMapSelectionEnum::Enum mapSelectionMode);
         
-        void setShowBorderEnabled(const bool borderEnabled);
+        int32_t getMapIndex() const;
         
-        bool isShowFociEnabled() const;
+        void setMapIndex(const int32_t mapIndex);
         
-        void setShowFociEnabled(const bool fociEnabled);
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -85,23 +82,28 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
+        void copyHelperFileIdentificationAttributes(const FileIdentificationAttributes& obj);
+
+        void reset();
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
-        
-        IdentificationFilterTabSelectionEnum::Enum m_tabFiltering = IdentificationFilterTabSelectionEnum::ALL_DISPLAYED_TABS;
-        
-        bool m_showCiftiLoadingEnabled = true;
 
-        bool m_showBorderEnabled = true;
-
-        bool m_showFociEnabled = true;
+        /** enabled for identification*/
+        bool m_enabled = false;
+        
+        /** identifiy all maps in file*/
+        FileIdentificationMapSelectionEnum::Enum m_mapSelectionMode = FileIdentificationMapSelectionEnum::SELECTED;
+        
+        /** map selected for identification*/
+        int32_t m_mapIndex = 0;
 
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __IDENTIFICATION_FILTER_DECLARE__
+#ifdef __FILE_IDENTIFICATION_ATTRIBUTES_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFICATION_FILTER_DECLARE__
+#endif // __FILE_IDENTIFICATION_ATTRIBUTES_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFICATION_FILTER_H__
+#endif  //__FILE_IDENTIFICATION_ATTRIBUTES_H__

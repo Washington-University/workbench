@@ -39,7 +39,8 @@ namespace caret {
     public:
         enum class OverlayType {
             BRAINORDINATE,
-            CHART
+            CHART_ONE,
+            CHART_TWO
         };
 
         class FileInfo {
@@ -63,11 +64,21 @@ namespace caret {
 
         EventCaretMappableDataFilesAndMapsInDisplayedOverlays& operator=(const EventCaretMappableDataFilesAndMapsInDisplayedOverlays&) = delete;
         
+        void setWindowIndexConstraint(const int32_t windowIndex);
+        
+        void setTabIndicesConstraint(const std::set<int32_t>& tabIndices);
+        
         void addBrainordinateFileAndMap(CaretMappableDataFile* mapFile,
-                                        const int32_t mapIndex);
+                                        const int32_t mapIndex,
+                                        const int32_t tabIndex);
 
-        void addChartFileAndMap(CaretMappableDataFile* mapFile,
-                                const int32_t mapIndex);
+        void addChartOneFileAndMap(CaretMappableDataFile* mapFile,
+                                   const int32_t mapIndex,
+                                   const int32_t tabIndex);
+        
+        void addChartTwoFileAndMap(CaretMappableDataFile* mapFile,
+                                   const int32_t mapIndex,
+                                   const int32_t tabIndex);
         
         std::map<CaretMappableDataFile*, std::set<int32_t>> getMapFilesAndIndices() const;
         
@@ -76,11 +87,19 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        bool satisfiesConstraints(const int32_t tabIndex);
+        
         std::map<CaretMappableDataFile*, std::set<int32_t>> m_mapFilesAndIndices;
         
         std::map<CaretMappableDataFile*, std::set<int32_t>> m_surfaceVolumeMapFilesAndIndices;
         
-        std::map<CaretMappableDataFile*, std::set<int32_t>> m_chartMapFilesAndIndices;
+        std::map<CaretMappableDataFile*, std::set<int32_t>> m_chartOneMapFilesAndIndices;
+        
+        std::map<CaretMappableDataFile*, std::set<int32_t>> m_chartTwoMapFilesAndIndices;
+        
+        int32_t m_windowIndex = -1;
+        
+        std::set<int32_t> m_tabIndices;
         
         // ADD_NEW_MEMBERS_HERE
 

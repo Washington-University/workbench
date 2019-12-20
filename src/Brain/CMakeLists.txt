@@ -115,6 +115,7 @@ FociDrawingTypeEnum.h
 FtglFontTextRenderer.h
 GapsAndMargins.h
 IdentificationFilter.h
+IdentificationFilterTabSelectionEnum.h
 IdentificationFormattedTextGenerator.h
 IdentificationHistoryManager.h
 IdentificationHistoryRecord.h
@@ -283,6 +284,7 @@ FociDrawingTypeEnum.cxx
 FtglFontTextRenderer.cxx
 GapsAndMargins.cxx
 IdentificationFilter.cxx
+IdentificationFilterTabSelectionEnum.cxx
 IdentificationFormattedTextGenerator.cxx
 IdentificationHistoryManager.cxx
 IdentificationHistoryRecord.cxx

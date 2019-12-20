@@ -41,6 +41,8 @@ namespace caret {
         
         void getAllFiles(std::vector<CaretMappableDataFile*>& allFilesOut) const;
         
+        void getAllFilesSortedByName(std::vector<CaretMappableDataFile*>& allFilesOut) const;
+        
     private:
         enum Mode {
             MODE_ANY_DATA_FILE_TYPE,

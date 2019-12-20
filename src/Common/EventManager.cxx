@@ -404,6 +404,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL:
         case EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED:
         case EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL:
+        case EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED:
         case EventTypeEnum::EVENT_BROWSER_TAB_NEW:
         case EventTypeEnum::EVENT_BROWSER_TAB_NEW_IN_GUI:
         case EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE:

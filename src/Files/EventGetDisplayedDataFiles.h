@@ -24,8 +24,6 @@
 #include <set>
 
 #include "Event.h"
-#include "StructureEnum.h"
-
 
 namespace caret {
 
@@ -34,16 +32,24 @@ namespace caret {
     class EventGetDisplayedDataFiles : public Event {
         
     public:
+        enum class Mode {
+            FILES_IN_ALL_TABS,
+            FILES_IN_VIEWED_TABS,
+            FILES_IN_WINDOWS_TABS
+        };
+        
+        EventGetDisplayedDataFiles(const Mode mode);
+        
         EventGetDisplayedDataFiles(const std::vector<int32_t>& windowIndices,
                                    const std::vector<int32_t>& tabIndices);
         
         virtual ~EventGetDisplayedDataFiles();
         
+        Mode getMode() const;
+        
         bool isTestForDisplayedDataFileInTabIndex(const int32_t tabIndex) const;
         
         bool isTestForDisplayedDataFileInWindowIndex(const int32_t windowIndex) const;
-        
-        bool isTestForDisplayedSurfaceStructure(const StructureEnum::Enum surfaceStructure) const;
         
         void addDisplayedDataFile(const CaretDataFile* caretDataFile);
         
@@ -55,8 +61,6 @@ namespace caret {
         
         std::vector<int32_t> getWindowIndices() const;
         
-        std::vector<StructureEnum::Enum> getDisplayedSurfaceStructures() const;
-        
     private:
         EventGetDisplayedDataFiles(const EventGetDisplayedDataFiles&);
 
@@ -67,7 +71,7 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        void setupSurfaceStrucutures() const;
+        const Mode m_mode;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -76,10 +80,6 @@ namespace caret {
         std::set<int32_t> m_tabIndices;
         
         std::set<const CaretDataFile*> m_displayedDataFiles;
-        
-        mutable std::vector<StructureEnum::Enum> m_surfaceStructures;
-        
-        mutable bool m_surfaceStructuresValid;
     };
     
 #ifdef __EVENT_GET_DISPLAYED_DATA_FILES_DECLARE__

@@ -23,12 +23,15 @@
 #include "IdentificationDisplayWidget.h"
 #undef __IDENTIFICATION_DISPLAY_WIDGET_DECLARE__
 
+#include <QButtonGroup>
 #include <QCheckBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
 #include <QDoubleSpinBox>
 #include <QGuiApplication>
+#include <QRadioButton>
+#include <QScrollArea>
 #include <QScrollBar>
 #include <QSpinBox>
 #include <QTabWidget>
@@ -44,6 +47,7 @@
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "IdentificationFileFilteringTableWidget.h"
 #include "IdentificationFilter.h"
 #include "IdentificationHistoryManager.h"
 #include "IdentificationManager.h"
@@ -288,44 +292,69 @@ IdentificationDisplayWidget::getHistoryManager()
 QWidget*
 IdentificationDisplayWidget::createFilteringWidget()
 {
-    m_filteringSurfaceVertexCheckBox = new QCheckBox("Show Surface Vertex");
+    QWidget* tabFilterWidget = new QWidget(); //new QGroupBox("Overlays Identification");
+    QVBoxLayout* tabFilterLayout = new QVBoxLayout(tabFilterWidget);
+    m_tabFilterButtonGroup = new QButtonGroup(this);
+    QObject::connect(m_tabFilterButtonGroup, QOverload<int>::of(&QButtonGroup::buttonClicked),
+                     this, &IdentificationDisplayWidget::tabFilterRadioButtonClicked);
     
-    m_filteringSurfaceContralateralVertexCheckBox = new QCheckBox("Show Surface Contralateral Vertex");
+    std::vector<IdentificationFilterTabSelectionEnum::Enum> tabFilterEnums;
+    IdentificationFilterTabSelectionEnum::getAllEnums(tabFilterEnums);
+    for (auto tf : tabFilterEnums) {
+        QRadioButton* rb = new QRadioButton(IdentificationFilterTabSelectionEnum::toGuiName(tf));
+        rb->setToolTip(IdentificationFilterTabSelectionEnum::toToolTip(tf));
+        /* second argument is integer ID that encodes the integer for tab filtering enum */
+        m_tabFilterButtonGroup->addButton(rb,
+                                          IdentificationFilterTabSelectionEnum::toIntegerCode(tf));
+        tabFilterLayout->addWidget(rb);
+    }
+    tabFilterLayout->addStretch();
     
-    m_filteringVolumeVoxelCheckBox  = new QCheckBox("Show Volume Voxel");
+    m_filteringCiftiLoadingCheckBox = new QCheckBox("Show CIFTI Loading Row/Column");
     
-    m_filteringBorderCheckBox = new QCheckBox("Show Border Data");
+    m_filteringBorderCheckBox = new QCheckBox("Show Border Identification");
     
-    m_filteringFociCheckBox  = new QCheckBox("Show Foci Data");
+    m_filteringFociCheckBox  = new QCheckBox("Show Foci Identification");
     
     WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);
     QObject::connect(signalWatcher, &WuQValueChangedSignalWatcher::valueChanged,
                      this, &IdentificationDisplayWidget::filteringChanged);
-    signalWatcher->addObject(m_filteringSurfaceVertexCheckBox);
-    signalWatcher->addObject(m_filteringSurfaceContralateralVertexCheckBox);
-    signalWatcher->addObject(m_filteringVolumeVoxelCheckBox);
+    signalWatcher->addObject(m_filteringCiftiLoadingCheckBox);
     signalWatcher->addObject(m_filteringBorderCheckBox);
     signalWatcher->addObject(m_filteringFociCheckBox);
 
-    QVBoxLayout* layoutOne = new QVBoxLayout();
-    layoutOne->addWidget(m_filteringSurfaceVertexCheckBox);
-    layoutOne->addWidget(m_filteringSurfaceContralateralVertexCheckBox);
-    layoutOne->addWidget(m_filteringVolumeVoxelCheckBox);
-    layoutOne->addStretch();
+    QWidget* showDataWidget = new QWidget(); //new QGroupBox("Show Data");
+    QVBoxLayout* showLayout = new QVBoxLayout(showDataWidget);
+    showLayout->addWidget(m_filteringCiftiLoadingCheckBox);
+    showLayout->addWidget(m_filteringBorderCheckBox);
+    showLayout->addWidget(m_filteringFociCheckBox);
+    showLayout->addStretch();
     
-    QVBoxLayout* layoutTwo = new QVBoxLayout();
-    layoutTwo->addWidget(m_filteringBorderCheckBox);
-    layoutTwo->addWidget(m_filteringFociCheckBox);
-    layoutTwo->addStretch();
+    m_fileFilteringTableWidget = new IdentificationFileFilteringTableWidget();
     
+    QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->addTab(showDataWidget, "Data");
+    tabWidget->addTab(m_fileFilteringTableWidget, "Files");
+    tabWidget->addTab(tabFilterWidget, "Overlays");
+    tabWidget->setCurrentWidget(m_fileFilteringTableWidget);
+    
+    return tabWidget;
+}
 
-    QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    layout->addLayout(layoutOne);
-    layout->addLayout(layoutTwo);
-    layout->addStretch();
-    
-    return widget;
+/**
+ * Called when a tab filtering radio button is clicked
+ * @param buttonID
+ * ID of button that was clicked
+ */
+void
+IdentificationDisplayWidget::tabFilterRadioButtonClicked(int32_t buttonID)
+{
+    bool validFlag(false);
+    const IdentificationFilterTabSelectionEnum::Enum tabFilter = IdentificationFilterTabSelectionEnum::fromIntegerCode(buttonID,
+                                                                                                                       &validFlag);
+    IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
+    IdentificationFilter* filter = idManager->getIdentificationFilter();
+    filter->setTabFiltering(tabFilter);
 }
 
 /**
@@ -336,11 +365,20 @@ IdentificationDisplayWidget::updateFilteringWidget()
 {
     const IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
     const IdentificationFilter* filter = idManager->getIdentificationFilter();
-    m_filteringSurfaceVertexCheckBox->setChecked(filter->isSurfaceVertexEnabled());
-    m_filteringSurfaceContralateralVertexCheckBox->setChecked(idManager->isContralateralIdentificationEnabled());
-    m_filteringVolumeVoxelCheckBox->setChecked(filter->isVolumeVoxelEnabled());
-    m_filteringBorderCheckBox->setChecked(filter->isBorderEnabled());
-    m_filteringFociCheckBox->setChecked(filter->isFociEnabled());
+    
+    const IdentificationFilterTabSelectionEnum::Enum tabFilter = filter->getTabFiltering();
+    const int32_t integerCode = IdentificationFilterTabSelectionEnum::toIntegerCode(tabFilter);
+    QAbstractButton* filterAbstractButton = m_tabFilterButtonGroup->button(integerCode);
+    CaretAssert(filterAbstractButton);
+    QRadioButton* filterRadioButton = qobject_cast<QRadioButton*>(filterAbstractButton);
+    CaretAssert(filterRadioButton);
+    filterRadioButton->setChecked(true);
+    
+    m_filteringCiftiLoadingCheckBox->setChecked(filter->isShowCiftiLoadingEnabled());
+    m_filteringBorderCheckBox->setChecked(filter->isShowBorderEnabled());
+    m_filteringFociCheckBox->setChecked(filter->isShowFociEnabled());
+    
+    m_fileFilteringTableWidget->updateContent();
 }
 
 /**
@@ -351,11 +389,9 @@ IdentificationDisplayWidget::filteringChanged()
 {
     IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
     IdentificationFilter* filter = idManager->getIdentificationFilter();
-    filter->setSurfaceVertexEnabled(m_filteringSurfaceVertexCheckBox->isChecked());
-    idManager->setContralateralIdentificationEnabled(m_filteringSurfaceContralateralVertexCheckBox->isChecked());
-    filter->setVolumeVoxelEnabled(m_filteringVolumeVoxelCheckBox->isChecked());
-    filter->setBorderEnabled(m_filteringBorderCheckBox->isChecked());
-    filter->setFociEnabled(m_filteringFociCheckBox->isChecked());
+    filter->setShowCiftiLoadingEnabled(m_filteringCiftiLoadingCheckBox->isChecked());
+    filter->setShowBorderEnabled(m_filteringBorderCheckBox->isChecked());
+    filter->setShowFociEnabled(m_filteringFociCheckBox->isChecked());
 }
 
 /**
@@ -369,6 +405,8 @@ IdentificationDisplayWidget::updateSymbolsWidget()
     
     m_symbolsShowSurfaceIdCheckBox->setChecked(info->isShowSurfaceIdentificationSymbols());
     m_symbolsShowVolumeIdCheckBox->setChecked(info->isShowVolumeIdentificationSymbols());
+    m_symbolsSurfaceContralateralVertexCheckBox->setChecked(info->isContralateralIdentificationEnabled());
+
     m_symbolsIdColorComboBox->setSelectedColor(info->getIdentificationSymbolColor());
     m_symbolsContralateralIdColorComboBox->setSelectedColor(info->getIdentificationContralateralSymbolColor());
     QSignalBlocker symbolSizeBlocker(m_symbolsIdDiameterSpinBox);
@@ -386,6 +424,8 @@ IdentificationDisplayWidget::createsymbolsWidget()
     m_symbolsShowSurfaceIdCheckBox = new QCheckBox("Show Surface ID Symbols");
 
     m_symbolsShowVolumeIdCheckBox = new QCheckBox("Show Volume ID Symbols");
+    
+    m_symbolsSurfaceContralateralVertexCheckBox = new QCheckBox("Show Surface Contralateral Vertex");
     
     QLabel* idSymbolColorLabel = new QLabel("ID Symbol Color:");
     m_symbolsIdColorComboBox = new CaretColorEnumComboBox(CaretColorEnumComboBox::CustomColorModeEnum::DISABLED,
@@ -416,6 +456,7 @@ IdentificationDisplayWidget::createsymbolsWidget()
                      this, &IdentificationDisplayWidget::symbolChanged);
     signalWatcher->addObject(m_symbolsShowSurfaceIdCheckBox);
     signalWatcher->addObject(m_symbolsShowVolumeIdCheckBox);
+    signalWatcher->addObject(m_symbolsSurfaceContralateralVertexCheckBox);
     signalWatcher->addObject(m_symbolsIdColorComboBox);
     signalWatcher->addObject(m_symbolsContralateralIdColorComboBox);
     signalWatcher->addObject(m_symbolsIdDiameterSpinBox);
@@ -424,6 +465,7 @@ IdentificationDisplayWidget::createsymbolsWidget()
     QVBoxLayout* rightLayout = new QVBoxLayout();
     rightLayout->addWidget(m_symbolsShowSurfaceIdCheckBox);
     rightLayout->addWidget(m_symbolsShowVolumeIdCheckBox);
+    rightLayout->addWidget(m_symbolsSurfaceContralateralVertexCheckBox);
     rightLayout->addStretch();
 
     QGridLayout* leftLayout = new QGridLayout();
@@ -473,6 +515,7 @@ IdentificationDisplayWidget::symbolChanged()
     
     info->setShowSurfaceIdentificationSymbols(m_symbolsShowSurfaceIdCheckBox->isChecked());
     info->setShowVolumeIdentificationSymbols(m_symbolsShowVolumeIdCheckBox->isChecked());
+    info->setContralateralIdentificationEnabled(m_symbolsSurfaceContralateralVertexCheckBox->isChecked());
     info->setIdentificationSymbolColor(m_symbolsIdColorComboBox->getSelectedColor());
     info->setIdentificationContralateralSymbolColor(m_symbolsContralateralIdColorComboBox->getSelectedColor());
     info->setIdentificationSymbolSize(m_symbolsIdDiameterSpinBox->value());

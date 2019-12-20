@@ -89,6 +89,8 @@ FiberOrientationTrajectory.h
 FiberTrajectoryColorModel.h
 FiberTrajectoryMapProperties.h
 FiberTrajectoryDisplayModeEnum.h
+FileIdentificationAttributes.h
+FileIdentificationMapSelectionEnum.h
 FilePathNamePrefixCompactor.h
 FociFile.h
 FociFileSaxReader.h
@@ -224,6 +226,8 @@ FiberOrientationTrajectory.cxx
 FiberTrajectoryColorModel.cxx
 FiberTrajectoryDisplayModeEnum.cxx
 FiberTrajectoryMapProperties.cxx
+FileIdentificationAttributes.cxx
+FileIdentificationMapSelectionEnum.cxx
 FilePathNamePrefixCompactor.cxx
 FociFile.cxx
 FociFileSaxReader.cxx

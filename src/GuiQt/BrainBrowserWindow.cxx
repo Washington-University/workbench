@@ -72,6 +72,7 @@
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowContent.h"
 #include "EventBrowserWindowGetTabs.h"
+#include "EventBrowserTabIndicesGetAllViewed.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventDataFileRead.h"
 #include "EventMacDockMenuUpdate.h"
@@ -275,6 +276,7 @@ m_browserWindowIndex(browserWindowIndex)
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GET_TABS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_VIEWPORT_SIZE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
@@ -357,6 +359,26 @@ BrainBrowserWindow::receiveEvent(Event* event)
             }
             tabEvent->setEventProcessed();
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED) {
+        EventBrowserTabIndicesGetAllViewed* allViewedEvent = dynamic_cast<EventBrowserTabIndicesGetAllViewed*>(event);
+        CaretAssert(allViewedEvent);
+        
+        std::vector<BrowserTabContent*> tabContent;
+        if (isTileTabsSelected()) {
+            m_toolbar->getAllTabContent(tabContent);
+        }
+        else {
+            BrowserTabContent* btc = getBrowserTabContent();
+            if (btc != NULL) {
+                tabContent.push_back(btc);
+            }
+        }
+        for (auto tab : tabContent) {
+            CaretAssert(tab);
+            allViewedEvent->addBrowserTabIndex(tab->getTabNumber());
+        }
+        allViewedEvent->setEventProcessed();
     }
     else if (event->getEventType()== EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS) {
         EventCaretMappableDataFilesAndMapsInDisplayedOverlays* filesEvent = dynamic_cast<EventCaretMappableDataFilesAndMapsInDisplayedOverlays*>(event);

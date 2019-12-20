@@ -143,6 +143,8 @@ ELSE()
         HyperLinkTextBrowser.h
 	IdentificationDisplayDialog.h
 	IdentificationDisplayWidget.h
+	IdentificationFileFilteringRow.h
+	IdentificationFileFilteringTableWidget.h
         IdentifyBrainordinateDialog.h
         ImageCaptureDialog.h
         ImageFileConvertToVolumeFileDialog.h
@@ -415,6 +417,8 @@ HelpViewerDialog.h
 HyperLinkTextBrowser.h
 IdentificationDisplayDialog.h
 IdentificationDisplayWidget.h
+IdentificationFileFilteringRow.h
+IdentificationFileFilteringTableWidget.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
 ImageFileConvertToVolumeFileDialog.h
@@ -706,6 +710,8 @@ HelpViewerDialog.cxx
 HyperLinkTextBrowser.cxx
 IdentificationDisplayDialog.cxx
 IdentificationDisplayWidget.cxx
+IdentificationFileFilteringRow.cxx
+IdentificationFileFilteringTableWidget.cxx
 IdentifyBrainordinateDialog.cxx
 ImageCaptureDialog.cxx
 ImageFileConvertToVolumeFileDialog.cxx

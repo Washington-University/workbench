@@ -76,6 +76,8 @@ public:
         EVENT_BROWSER_TAB_GET,
         /** Get indices of all valid browser tabs */
         EVENT_BROWSER_TAB_INDICES_GET_ALL,
+        /** Get indices of all viewed browser tabs */
+        EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED,
         /** Get ALL (both viewed and not viewed) browser tabs */
         EVENT_BROWSER_TAB_GET_ALL,
         /** Get ALL VIEWED browser tabs (tabs that are viewed in windows) */

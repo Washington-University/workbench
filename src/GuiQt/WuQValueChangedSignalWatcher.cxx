@@ -74,6 +74,7 @@ WuQValueChangedSignalWatcher::addObject(QObject* object)
     if (checkBox != NULL) {
         QObject::connect(checkBox, &QCheckBox::clicked,
                          this, [=](bool) { emit valueChanged(); });
+        m_widgets.push_back(checkBox);
         return;
     }
     
@@ -81,6 +82,7 @@ WuQValueChangedSignalWatcher::addObject(QObject* object)
     if (doubleSpinBox != NULL) {
         QObject::connect(doubleSpinBox,  QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                          this, [=](double) { emit valueChanged(); });
+        m_widgets.push_back(doubleSpinBox);
         return;
     }
     
@@ -88,21 +90,24 @@ WuQValueChangedSignalWatcher::addObject(QObject* object)
     if (caretColorComboBox != NULL) {
         QObject::connect(caretColorComboBox, &CaretColorEnumComboBox::colorSelected,
                          this, [=](const CaretColorEnum::Enum) { emit valueChanged(); });
+        m_widgets.push_back(caretColorComboBox->getComboBox());
         return;
     }
 
     /* must be after CaretColorEnumComboBox as it is child of QComboBox */
     QComboBox* comboBox = qobject_cast<QComboBox*>(object);
-    if (caretColorComboBox != NULL) {
+    if (comboBox != NULL) {
         QObject::connect(comboBox, QOverload<int>::of(&QComboBox::activated),
                          this, [=](int) { emit valueChanged(); });
+        m_widgets.push_back(comboBox);
         return;
     }
     
     QSpinBox* spinBox = qobject_cast<QSpinBox*>(object);
-    if (doubleSpinBox != NULL) {
+    if (spinBox != NULL) {
         QObject::connect(spinBox,  QOverload<int>::of(&QSpinBox::valueChanged),
                          this, [=](int) { emit valueChanged(); });
+        m_widgets.push_back(spinBox);
         return;
     }
 
@@ -111,5 +116,21 @@ WuQValueChangedSignalWatcher::addObject(QObject* object)
                       + " not supported by WuQValueChangedSignalWatcher");
     CaretAssertMessage(0, msg);
     CaretLogSevere(msg);
+    
 }
+
+/**
+ * Set any widgets visible status
+ * @param status
+ * New visibility status
+ */
+void
+WuQValueChangedSignalWatcher::setWidgetsVisible(const bool status)
+{
+    for (QWidget* w : m_widgets) {
+        w->setVisible(status);
+    }
+}
+
+
 
