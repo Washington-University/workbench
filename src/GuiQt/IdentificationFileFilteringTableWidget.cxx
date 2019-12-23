@@ -427,8 +427,6 @@ IdentificationFileFilteringTableWidget::mapModeComboBoxChanged(int row)
     FileIdentificationAttributes* atts = m_mapFiles[row]->getFileIdentificationAttributes();
     CaretAssert(atts);
     atts->setMapSelectionMode(value);
-    
-    std::cout << "Mode row: " << row << std::endl;
 }
 
 
@@ -447,7 +445,5 @@ IdentificationFileFilteringTableWidget::mapNameComboBoxChanged(int row)
     FileIdentificationAttributes* atts = m_mapFiles[row]->getFileIdentificationAttributes();
     CaretAssert(atts);
     atts->setMapIndex(mapIndex);
-    
-    std::cout << "Map name row: " << row << std::endl;
 }
 

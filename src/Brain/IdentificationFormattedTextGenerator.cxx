@@ -901,6 +901,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
                     limitMapIndicesFlag = true;
+                    parcelDataFlag = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                     break;
@@ -956,14 +957,15 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 }
                 if (parcelDataFlag) {
                     /*
-                     * Parcel data has parcel name, separator, scalar value.
+                     * Parcel data has parcel name, separator, scalar value 1, separator, scalar value 2, etc.
                      * Display parcel name in label table, and scalar
                      * value in the scalar table
                      */
                     QStringList parcelAndValue = textValue.split(separator);
-                    if (parcelAndValue.size() == 2) {
+                    if (parcelAndValue.size() == static_cast<int>(mapIndices.size() + 1)) {
                         labelText  = parcelAndValue.at(0);
-                        scalarText = parcelAndValue.at(1);
+                        parcelAndValue.removeAt(0);
+                        scalarText = parcelAndValue.join(separator);
                     }
                 }
                 
