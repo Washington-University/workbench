@@ -60,9 +60,9 @@ namespace caret {
         
     private:
         enum COLUMNS {
-            COLUMN_FILE_NAME_LABEL = 0,
-            COLUMN_DISPLAYED_LABEL = 1,
-            COLUMN_ENABLED_CHECKBOX = 2,
+            COLUMN_ENABLED_CHECKBOX = 0,
+            COLUMN_FILE_NAME_LABEL = 1,
+            COLUMN_DISPLAYED_LABEL = 2,
             COLUMN_MAP_MODE_COMBO_BOX = 3,
             COLUMN_MAP_NAME_COMBO_BOX = 4,
             COLUMN_COUNT = 5

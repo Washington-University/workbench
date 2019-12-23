@@ -23,6 +23,7 @@
 #include <QAction>
 #include <QLayout>
 #include <QScrollArea>
+#include <QSplitter>
 #include <QToolBox>
 #include <QTabWidget>
 #include <QTimer>
@@ -51,10 +52,12 @@
 #include "FiberOrientationSelectionViewController.h"
 #include "FociSelectionViewController.h"
 #include "GuiManager.h"
+#include "IdentificationDisplayWidget.h"
 #include "ImageSelectionViewController.h"
 #include "LabelSelectionViewController.h"
 #include "OverlaySetViewController.h"
 #include "SceneClass.h"
+#include "ScenePrimitiveArray.h"
 #include "SceneWindowGeometry.h"
 #include "SessionManager.h"
 #include "VolumeDynamicConnectivityFile.h"
@@ -284,8 +287,19 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_volumeSurfaceOutlineTabIndex = addToTabWidget(m_volumeSurfaceOutlineSetViewController,
                              "Vol/Surf Outline");
     }
-        
-    setWidget(m_tabWidget);
+    
+    switch (toolBoxType) {
+        case TOOL_BOX_FEATURES:
+            setWidget(m_tabWidget);
+            break;
+        case TOOL_BOX_OVERLAYS_HORIZONTAL:
+            setWidget(createSplitterAndIdentificationWidget(Qt::Horizontal));
+            break;
+        case TOOL_BOX_OVERLAYS_VERTICAL:
+            setWidget(createSplitterAndIdentificationWidget(Qt::Vertical));
+            break;
+    }
+    
 
     if (orientation == Qt::Horizontal) {
         setMinimumHeight(200);
@@ -315,6 +329,36 @@ BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
+
+/**
+ * @return Widget containing splitter and identification widget
+ * @param orientation
+ *    Orientation for the widget
+ */
+QWidget*
+BrainBrowserWindowOrientedToolBox::createSplitterAndIdentificationWidget(const Qt::Orientation orientation)
+{
+    m_identificationWidget = new IdentificationDisplayWidget();
+    m_identificationWidget->setMinimumSize(1, 1);
+    
+    m_splitterWidget = new QSplitter(orientation);
+    m_splitterWidget->setChildrenCollapsible(true);
+    m_splitterWidget->addWidget(m_tabWidget);
+    m_splitterWidget->addWidget(m_identificationWidget);
+    switch (orientation) {
+        case Qt::Horizontal:
+            m_splitterWidget->setStretchFactor(0, 1000000);
+            m_splitterWidget->setStretchFactor(1,  1);
+            break;
+        case Qt::Vertical:
+            m_splitterWidget->setStretchFactor(0, 50);
+            m_splitterWidget->setStretchFactor(1,  50);
+            break;
+    }
+    
+    return m_splitterWidget;
+}
+
 
 /**
  * Place widget into a scroll area and then into the tab widget.
@@ -491,6 +535,19 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
                                                      "m_labelSelectionViewController"));
     }
     
+    if (m_splitterWidget != NULL) {
+        QList<int> splitterSizes = m_splitterWidget->sizes();
+        const int32_t numSizes = splitterSizes.size();
+        if (numSizes > 0) {
+            std::vector<int32_t> sizesVector;
+            for (int32_t i = 0; i < numSizes; i++) {
+                sizesVector.push_back(splitterSizes[i]);
+            }
+            
+            sceneClass->addIntegerArray("splitterSizes", &sizesVector[0], sizesVector.size());
+        }
+    }
+    
     return sceneClass;
 }
 
@@ -622,6 +679,19 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         }
 #endif
     }
+    
+    if (m_splitterWidget != NULL) {
+        const ScenePrimitiveArray* splitterSceneArray = sceneClass->getPrimitiveArray("splitterSizes");
+        if (splitterSceneArray != NULL) {
+            const int32_t numElements = splitterSceneArray->getNumberOfArrayElements();
+            QList<int> splitterSizes;
+            for (int32_t i = 0; i < numElements; i++) {
+                splitterSizes.push_back(splitterSceneArray->integerValue(i));
+            }
+            m_splitterWidget->setSizes(splitterSizes);
+        }
+    }
+    
 }
 
 /**

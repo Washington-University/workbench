@@ -88,6 +88,7 @@ IdentificationDisplayWidget::IdentificationDisplayWidget(QWidget* parent)
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
     layout->addWidget(m_tabWidget, 100);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
@@ -292,7 +293,7 @@ IdentificationDisplayWidget::getHistoryManager()
 QWidget*
 IdentificationDisplayWidget::createFilteringWidget()
 {
-    QWidget* tabFilterWidget = new QWidget(); //new QGroupBox("Overlays Identification");
+    QWidget* tabFilterWidget = new QGroupBox("Overlay Identification");
     QVBoxLayout* tabFilterLayout = new QVBoxLayout(tabFilterWidget);
     m_tabFilterButtonGroup = new QButtonGroup(this);
     QObject::connect(m_tabFilterButtonGroup, QOverload<int>::of(&QButtonGroup::buttonClicked),
@@ -310,11 +311,11 @@ IdentificationDisplayWidget::createFilteringWidget()
     }
     tabFilterLayout->addStretch();
     
-    m_filteringCiftiLoadingCheckBox = new QCheckBox("Show CIFTI Loading Row/Column");
+    m_filteringCiftiLoadingCheckBox = new QCheckBox("CIFTI Row/Column");
     
-    m_filteringBorderCheckBox = new QCheckBox("Show Border Identification");
+    m_filteringBorderCheckBox = new QCheckBox("Border");
     
-    m_filteringFociCheckBox  = new QCheckBox("Show Foci Identification");
+    m_filteringFociCheckBox  = new QCheckBox("Focus");
     
     WuQValueChangedSignalWatcher* signalWatcher = new WuQValueChangedSignalWatcher(this);
     QObject::connect(signalWatcher, &WuQValueChangedSignalWatcher::valueChanged,
@@ -323,22 +324,29 @@ IdentificationDisplayWidget::createFilteringWidget()
     signalWatcher->addObject(m_filteringBorderCheckBox);
     signalWatcher->addObject(m_filteringFociCheckBox);
 
-    QWidget* showDataWidget = new QWidget(); //new QGroupBox("Show Data");
-    QVBoxLayout* showLayout = new QVBoxLayout(showDataWidget);
-    showLayout->addWidget(m_filteringCiftiLoadingCheckBox);
-    showLayout->addWidget(m_filteringBorderCheckBox);
-    showLayout->addWidget(m_filteringFociCheckBox);
-    showLayout->addStretch();
+    QWidget* showDataWidget = new QGroupBox("Data Identification");
+    QGridLayout* showLayout = new QGridLayout(showDataWidget);
+    showLayout->addWidget(m_filteringBorderCheckBox, 0, 0);
+    showLayout->addWidget(m_filteringFociCheckBox, 1, 0);
+    showLayout->addWidget(m_filteringCiftiLoadingCheckBox, 0, 1);
     
     m_fileFilteringTableWidget = new IdentificationFileFilteringTableWidget();
+    QGroupBox* filesGroupBox = new QGroupBox("File Identification");
+    QVBoxLayout* filesLayout = new QVBoxLayout(filesGroupBox);
+    WuQtUtilities::setLayoutSpacingAndMargins(filesLayout, 0, 0);
+    filesLayout->addWidget(m_fileFilteringTableWidget, 100);
     
-    QTabWidget* tabWidget = new QTabWidget();
-    tabWidget->addTab(showDataWidget, "Data");
-    tabWidget->addTab(m_fileFilteringTableWidget, "Files");
-    tabWidget->addTab(tabFilterWidget, "Overlays");
-    tabWidget->setCurrentWidget(m_fileFilteringTableWidget);
+    QWidget* widget = new QWidget();
+    QGridLayout* layout = new QGridLayout(widget);
+    layout->setHorizontalSpacing(0);
+    layout->setVerticalSpacing(2);
+    layout->setColumnStretch(2, 100);
+    layout->setRowStretch(1, 100);
+    layout->addWidget(tabFilterWidget, 0, 0, Qt::AlignTop);
+    layout->addWidget(showDataWidget, 0, 1);
+    layout->addWidget(filesGroupBox, 1, 0, 1, 3);
     
-    return tabWidget;
+    return widget;
 }
 
 /**
