@@ -25,6 +25,7 @@
 #include <set>
 
 #include "CaretObject.h"
+#include "DataFileTypeEnum.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 
 namespace caret {
@@ -196,6 +197,8 @@ namespace caret {
 
         std::unique_ptr<HtmlTableBuilder> createHtmlTableBuilder(const int32_t numberOfColumns) const;
         
+        bool isParcelAndScalarTypeFile(const DataFileTypeEnum::Enum dataFileType) const;
+
         friend class DataToolTipsManager;
     };
     

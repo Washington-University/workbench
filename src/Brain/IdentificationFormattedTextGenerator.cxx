@@ -628,86 +628,9 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                 else if (ciftiFile != NULL) {
                     if (ciftiFile->isEmpty() == false) {
                         /*
-                         * Limit dense scalar and data series to maps selected in the overlays
-                         * from all tabs.
+                         * Does file have both label and scalar data
                          */
-                        bool limitMapIndicesFlag = false;
-                        bool parcelDataFlag(false);
-                        switch (ciftiFile->getDataFileType()) {
-                            case DataFileTypeEnum::ANNOTATION:
-                                break;
-                            case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
-                                break;
-                            case DataFileTypeEnum::BORDER:
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_DENSE:
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-                                parcelDataFlag = true;
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-                                limitMapIndicesFlag = true;
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                                limitMapIndicesFlag = true;
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-                                parcelDataFlag = true;
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
-                                limitMapIndicesFlag = true;
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
-                                parcelDataFlag = true;
-                                limitMapIndicesFlag = true;
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
-                                limitMapIndicesFlag = true;
-                                break;
-                            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
-                                break;
-                            case DataFileTypeEnum::FOCI:
-                                break;
-                            case DataFileTypeEnum::IMAGE:
-                                break;
-                            case DataFileTypeEnum::LABEL:
-                                break;
-                            case DataFileTypeEnum::METRIC:
-                                break;
-                            case DataFileTypeEnum::METRIC_DYNAMIC:
-                                break;
-                            case DataFileTypeEnum::PALETTE:
-                                break;
-                            case DataFileTypeEnum::RGBA:
-                                break;
-                            case DataFileTypeEnum::SCENE:
-                                break;
-                            case DataFileTypeEnum::SPECIFICATION:
-                                break;
-                            case DataFileTypeEnum::SURFACE:
-                                break;
-                            case DataFileTypeEnum::UNKNOWN:
-                                CaretAssert(0);
-                                break;
-                            case DataFileTypeEnum::VOLUME:
-                                break;
-                            case DataFileTypeEnum::VOLUME_DYNAMIC:
-                                break;
-                        }
-//                        if (limitMapIndicesFlag) {
-//                            getMapIndicesOfFileUsedInOverlays(ciftiFile,
-//                                                              mapIndices);
-//                        }
+                        const bool parcelDataFlag(isParcelAndScalarTypeFile(ciftiFile->getDataFileType()));
 
                         AString textValue;
                         int64_t voxelIJK[3];
@@ -738,14 +661,15 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                             }
                             if (parcelDataFlag) {
                                 /*
-                                 * Parcel data has parcel name, separator, scalar value.
+                                 * Parcel data has parcel name, separator, scalar value 1, separator, scalar value 2, etc.
                                  * Display parcel name in label table, and scalar
                                  * value in the scalar table
                                  */
                                 QStringList parcelAndValue = textValue.split(separator);
-                                if (parcelAndValue.size() == 2) {
+                                if (parcelAndValue.size() == static_cast<int>(mapIndices.size() + 1)) {
                                     labelText  = parcelAndValue.at(0);
-                                    scalarText = parcelAndValue.at(1);
+                                    parcelAndValue.removeAt(0);
+                                    scalarText = parcelAndValue.join(separator);
                                 }
                             }
                             
@@ -797,6 +721,87 @@ IdentificationFormattedTextGenerator::generateSurfaceVertexIdentificationText(Ht
                                       xyzText,
                                       StructureEnum::toGuiName(surface->getStructure()));
     }
+}
+
+/**
+ * @return Is the given data file type a parcel and scalar type file?
+ * @param dataFileType
+ * Type of data file
+ */
+bool
+IdentificationFormattedTextGenerator::isParcelAndScalarTypeFile(const DataFileTypeEnum::Enum dataFileType) const
+{
+    bool parcelDataFlag      = false;
+    
+    switch (dataFileType) {
+        case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+            break;
+        case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            parcelDataFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            parcelDataFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            parcelDataFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            parcelDataFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::IMAGE:
+            break;
+        case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::METRIC:
+            break;
+        case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            CaretAssert(0);
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            break;
+    }
+
+    return parcelDataFlag;
 }
 
 /**
@@ -856,87 +861,9 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                                 + cmdf->getFileNameNoPath());
             
             /*
-             * Limit dense scalar and data series to maps selected in the overlays
-             * from all tabs.
+             * Does file have both label and scalar data
              */
-            bool parcelDataFlag(false);
-            bool limitMapIndicesFlag = false;
-            switch (cmdf->getDataFileType()) {
-                case DataFileTypeEnum::ANNOTATION:
-                    break;
-                case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
-                    break;
-                case DataFileTypeEnum::BORDER:
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_DENSE:
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-                    parcelDataFlag = true;
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-                    limitMapIndicesFlag = true;
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                    limitMapIndicesFlag = true;
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-                    parcelDataFlag = true;
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
-                    limitMapIndicesFlag = true;
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
-                    limitMapIndicesFlag = true;
-                    parcelDataFlag = true;
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
-                    limitMapIndicesFlag = true;
-                    parcelDataFlag = true;
-                    break;
-                case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
-                    break;
-                case DataFileTypeEnum::FOCI:
-                    break;
-                case DataFileTypeEnum::IMAGE:
-                    break;
-                case DataFileTypeEnum::LABEL:
-                    break;
-                case DataFileTypeEnum::METRIC:
-                    break;
-                case DataFileTypeEnum::METRIC_DYNAMIC:
-                    break;
-                case DataFileTypeEnum::PALETTE:
-                    break;
-                case DataFileTypeEnum::RGBA:
-                    break;
-                case DataFileTypeEnum::SCENE:
-                    break;
-                case DataFileTypeEnum::SPECIFICATION:
-                    break;
-                case DataFileTypeEnum::SURFACE:
-                    break;
-                case DataFileTypeEnum::UNKNOWN:
-                    CaretAssert(0);
-                    break;
-                case DataFileTypeEnum::VOLUME:
-                    break;
-                case DataFileTypeEnum::VOLUME_DYNAMIC:
-                    break;
-            }
-//            if (limitMapIndicesFlag) {
-//                getMapIndicesOfFileUsedInOverlays(cmdf,
-//                                                  mapIndices);
-//            }
+            const bool parcelDataFlag(isParcelAndScalarTypeFile(cmdf->getDataFileType()));
             AString textValue;
             
             const AString separator("<br>");
