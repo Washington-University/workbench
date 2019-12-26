@@ -228,10 +228,6 @@ namespace caret {
                                            const float sliceCoordinates[3],
                                            const int32_t viewport[4]);
         
-        void drawOrthogonalSlice_LPI_ONLY(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                          const float sliceCoordinates[3],
-                                          const Plane& plane);
-        
         void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                  const float sliceCoordinates[3],
                                  const Plane& plane);
@@ -361,7 +357,7 @@ namespace caret {
                                                         const float sliceCoordinates[3],
                                                         const float sliceNormalVector[3]);
         
-        void processIdentification();
+        void processIdentification(const bool doNotReplaceUnderlayFlag);
         
         void resetIdentification();
         
