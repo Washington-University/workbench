@@ -80,11 +80,31 @@ IdentificationFileFilteringTableWidget::updateTableRows(const int32_t numberOfFi
 {
     const int32_t numExistingRows = rowCount();
     
-    if (numberOfFiles > numExistingRows) {
+    if (numberOfFiles != numExistingRows) {
+        /*
+         * Resize table to match number of files
+         */
         setRowCount(numberOfFiles);
         setColumnCount(COLUMN_COUNT);
+        
+        if (numExistingRows > numberOfFiles) {
+            /*
+             * Remove extra items
+             */
+            m_mapFiles.resize(numberOfFiles);
+            m_mapModeComboBoxes.resize(numberOfFiles);
+            m_mapNameComboBoxes.resize(numberOfFiles);
+        }
     }
     
+//    if (numberOfFiles > numExistingRows) {
+//        setRowCount(numberOfFiles);
+//        setColumnCount(COLUMN_COUNT);
+//    }
+    
+    /*
+     * If needed, add additional rows
+     */
     for (int32_t iRow = numExistingRows; iRow < numberOfFiles; iRow++) {
         m_mapFiles.push_back(NULL);
         
@@ -149,75 +169,75 @@ IdentificationFileFilteringTableWidget::updateTableRows(const int32_t numberOfFi
         }
     }
     
-    /*
-     * Keep but clear extra cell items
-     */
-    const int32_t numRows = rowCount();
-    for (int32_t iRow = 0; iRow < numRows; iRow++) {
-        CaretAssertVectorIndex(m_mapFiles, iRow);
-        m_mapFiles[iRow] = NULL;
-        
-        for (int32_t iCol = 0; iCol < COLUMN_COUNT; iCol++) {
-            const COLUMNS column = static_cast<COLUMNS>(iCol);
-            
-            QTableWidgetItem* tableItem(item(iRow, iCol));
-            QWidget* widget(cellWidget(iRow, iCol));
-            switch (column) {
-                case COLUMN_COUNT:
-                    CaretAssert(0);
-                    break;
-                case COLUMN_DISPLAYED_LABEL:
-                    CaretAssert(tableItem);
-                    break;
-                case COLUMN_ENABLED_CHECKBOX:
-                    CaretAssert(tableItem);
-                    break;
-                case COLUMN_FILE_NAME_LABEL:
-                    CaretAssert(tableItem);
-                    break;
-                case COLUMN_MAP_MODE_COMBO_BOX:
-                    CaretAssert(widget);
-                    break;
-                case COLUMN_MAP_NAME_COMBO_BOX:
-                    CaretAssert(widget);
-                    break;
-            }
-            
-            if (iRow < numberOfFiles) {
-                if (tableItem != NULL) {
-                    Qt::ItemFlags flags = tableItem->flags();
-                    flags.setFlag(Qt::ItemIsEnabled,
-                                  true);
-                    tableItem->setFlags(flags);
-                }
-                
-                if (widget != NULL) {
-                    widget->setEnabled(true);
-                    widget->setVisible(true);
-                }
-            }
-            else {
-                if (tableItem != NULL) {
-                    Qt::ItemFlags flags = tableItem->flags();
-                    flags.setFlag(Qt::ItemIsEnabled,
-                                  false);
-                    tableItem->setFlags(flags);
-                    
-                    tableItem->setText("");
-                    
-                    if (flags.testFlag(Qt::ItemIsUserCheckable)) {
-                        tableItem->setCheckState(Qt::Unchecked);
-                    }
-                }
-                
-                if (widget != NULL) {
-                    CaretAssert(tableItem == NULL);
-                    widget->setEnabled(false);
-                    widget->setVisible(false);
-                }
-            }
-        }
-    }
+//    /*
+//     * Keep but clear extra cell items
+//     */
+//    const int32_t numRows = rowCount();
+//    for (int32_t iRow = 0; iRow < numRows; iRow++) {
+//        CaretAssertVectorIndex(m_mapFiles, iRow);
+//        m_mapFiles[iRow] = NULL;
+//
+//        for (int32_t iCol = 0; iCol < COLUMN_COUNT; iCol++) {
+//            const COLUMNS column = static_cast<COLUMNS>(iCol);
+//
+//            QTableWidgetItem* tableItem(item(iRow, iCol));
+//            QWidget* widget(cellWidget(iRow, iCol));
+//            switch (column) {
+//                case COLUMN_COUNT:
+//                    CaretAssert(0);
+//                    break;
+//                case COLUMN_DISPLAYED_LABEL:
+//                    CaretAssert(tableItem);
+//                    break;
+//                case COLUMN_ENABLED_CHECKBOX:
+//                    CaretAssert(tableItem);
+//                    break;
+//                case COLUMN_FILE_NAME_LABEL:
+//                    CaretAssert(tableItem);
+//                    break;
+//                case COLUMN_MAP_MODE_COMBO_BOX:
+//                    CaretAssert(widget);
+//                    break;
+//                case COLUMN_MAP_NAME_COMBO_BOX:
+//                    CaretAssert(widget);
+//                    break;
+//            }
+//
+//            if (iRow < numberOfFiles) {
+//                if (tableItem != NULL) {
+//                    Qt::ItemFlags flags = tableItem->flags();
+//                    flags.setFlag(Qt::ItemIsEnabled,
+//                                  true);
+//                    tableItem->setFlags(flags);
+//                }
+//
+//                if (widget != NULL) {
+//                    widget->setEnabled(true);
+//                    widget->setVisible(true);
+//                }
+//            }
+//            else {
+//                if (tableItem != NULL) {
+//                    Qt::ItemFlags flags = tableItem->flags();
+//                    flags.setFlag(Qt::ItemIsEnabled,
+//                                  false);
+//                    tableItem->setFlags(flags);
+//
+//                    tableItem->setText("");
+//
+//                    if (flags.testFlag(Qt::ItemIsUserCheckable)) {
+//                        tableItem->setCheckState(Qt::Unchecked);
+//                    }
+//                }
+//
+//                if (widget != NULL) {
+//                    CaretAssert(tableItem == NULL);
+//                    widget->setEnabled(false);
+//                    widget->setVisible(false);
+//                }
+//            }
+//        }
+//    }
 }
 
 /**
