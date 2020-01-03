@@ -23,6 +23,8 @@
 #include "DataFileTypeEnum.h"
 #undef __DATA_FILE_TYPE_ENUM_DECLARE__
 
+#include <QDir>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 
@@ -609,6 +611,60 @@ DataFileTypeEnum::isFileUsedWithOneStructure(const Enum enumValue)
     const DataFileTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->oneStructureFlag;
 }
+
+/**
+ * @return All wild card matching (*.ext) for the given enum value.
+ * @param enumValue
+ *     Enumerated type for file extensions.
+ */
+std::vector<AString>
+DataFileTypeEnum::getWildCardMatching(const Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    std::vector<AString> wildcards;
+    for (auto ext : enumInstance->fileExtensions) {
+        wildcards.push_back("*." + ext);
+    }
+    
+    return wildcards;
+}
+
+/**
+ * Get files for the given enumerated type in the given directory
+ * @param enumValue
+ *    Enumerated type for file extensions.
+ * @param directoryPath
+ *    Name of directory
+ * @return Files in the directory for the type
+ */
+std::vector<AString>
+DataFileTypeEnum::getFilesInDirectory(const Enum enumValue,
+                                      const AString& directoryPath)
+{
+    std::vector<AString> wildCards  = DataFileTypeEnum::getWildCardMatching(enumValue);
+    
+    QStringList fileNameFilters;
+    for (auto w : wildCards) {
+        fileNameFilters.append(w);
+    }
+    
+    QDir::Filters typeFilter(QDir::Files);
+    
+    QDir dir(directoryPath);
+    QStringList fileNames = dir.entryList(fileNameFilters,
+                                          typeFilter);
+    
+    std::vector<AString> filenamesOut;
+    QStringListIterator iter(fileNames);
+    while (iter.hasNext()) {
+        filenamesOut.push_back(iter.next());
+    }
+
+    return filenamesOut;
+}
+
 
 /**
  * @return All valid file extensions for the given enum value.

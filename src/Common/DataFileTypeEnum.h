@@ -150,6 +150,11 @@ public:
     
     static std::vector<AString> getFilesExtensionsForEveryFile(const bool includeNonWritableFileTypesFlag = false);
     
+    static std::vector<AString> getWildCardMatching(const Enum enumValue);
+    
+    static std::vector<AString> getFilesInDirectory(const Enum enumValue,
+                                                    const AString& directoryPath);
+    
     static bool isFileUsedWithOneStructure(const Enum enumValue);
     
     static bool isConnectivityDataType(const Enum enumValue);
