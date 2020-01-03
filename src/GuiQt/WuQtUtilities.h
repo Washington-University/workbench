@@ -187,6 +187,8 @@ namespace caret {
                                        QWidget* w9 = 0,
                                        QWidget* w10 = 0);
         
+        static void matchWidgetHeights(std::vector<QWidget*>& widgets);
+        
         static void matchWidgetWidths(QWidget* w1,
                                        QWidget* w2,
                                        QWidget* w3 = 0,
@@ -199,6 +201,8 @@ namespace caret {
                                        QWidget* w10 = 0);
         
         static void matchWidgetWidths(std::vector<QWidget*>& widgets);
+        
+        static void matchWidgetSizes(std::vector<QWidget*>& widgets);
         
         static void setLayoutSpacingAndMargins(QLayout* layout,
                                      const int spacing,
