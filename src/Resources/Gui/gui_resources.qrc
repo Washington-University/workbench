@@ -8,6 +8,13 @@
 <file>./LayersPanel/construction.png</file>
 <file>./LayersPanel/wrench.png</file>
 <file>./PaletteSettings/chain_link_icon.png</file>
+<file>./RecentFilesDialog/favorite_filled.png</file>
+<file>./RecentFilesDialog/favorite_outline.png</file>
+<file>./RecentFilesDialog/forget.png</file>
+<file>./RecentFilesDialog/forget_on.png</file>
+<file>./RecentFilesDialog/hcp_image.png</file>
+<file>./RecentFilesDialog/share.png</file>
+<file>./RecentFilesDialog/twitter_image.png</file>
 <file>./SceneFileDialog/caution.png</file>
 <file>./SpecFileDialog/delete_icon.png</file>
 <file>./SpecFileDialog/load_icon.png</file>

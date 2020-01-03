@@ -32,17 +32,25 @@ class QActionGroup;
 class QCheckBox;
 class QLineEdit;
 class QPushButton;
-class QTableWidget;
 
 #include "RecentFilesModeEnum.h"
 
 namespace caret {
 
+    class RecentFileItem;
+    class RecentFileItemsContainer;
+    class RecentFilesTableWidget;
+    
     class RecentFilesDialog : public QDialog {
         
         Q_OBJECT
 
     public:
+        enum class RunMode {
+            OPEN_RECENT,
+            SPLASH_SCREEN
+        };
+        
         enum class ResultModeEnum {
             CANCEL,
             OPEN_DIRECTORY,
@@ -50,7 +58,8 @@ namespace caret {
             OPEN_OTHER
         };
         
-        static ResultModeEnum runDialog(AString& nameOut,
+        static ResultModeEnum runDialog(const RunMode runMode,
+                                        AString& nameOut,
                                         QWidget* parent = 0);
         
         virtual ~RecentFilesDialog();
@@ -69,6 +78,8 @@ namespace caret {
         
         void openOtherButtonClicked();
         
+        void testButtonClicked();
+        
         void filesModeActionTriggered(QAction* action);
         
         void showSceneFilesCheckBoxClicked(bool checked);
@@ -77,8 +88,17 @@ namespace caret {
         
         void nameFilterTextEdited(const QString& text);
         
+        void hcpWebsiteButtonClicked();
+        
+        void twitterButtonClicked();
+        
+        void tableWidgetItemClicked(RecentFileItem* item);
+        
+        void tableWidgetItemDoubleClicked(RecentFileItem* item);
+        
     private:
-        RecentFilesDialog(QWidget* parent = 0);
+        RecentFilesDialog(const AString& dialogTitle,
+                          QWidget* parent = 0);
         
         ResultModeEnum getResultMode();
         
@@ -90,13 +110,17 @@ namespace caret {
         
         QWidget* createFilesFilteringWidget();
         
+        QWidget* createInternetButtonsWidget();
+        
         RecentFilesModeEnum::Enum getSelectedFilesMode() const;
         
         QAction* getActionForMode(const RecentFilesModeEnum::Enum recentFilesMode) const;
         
+        void websiteLinkActivated(const QString& link);
+        
         QPushButton* m_openPushButton;
         
-        QActionGroup* m_filesModeActionGroup;
+        QActionGroup* m_fileTypeModeActionGroup;
         
         QCheckBox* m_showSceneFilesCheckBox;
         
@@ -106,7 +130,11 @@ namespace caret {
         
         ResultModeEnum m_resultMode = ResultModeEnum::CANCEL;
         
-        QTableWidget* m_filesTableWidget;
+        AString m_resultFilePathAndName;
+        
+        RecentFilesTableWidget* m_recentFilesTableWidget;
+        
+        std::unique_ptr<RecentFileItemsContainer> m_directoryItemsContainer;
         
         // ADD_NEW_MEMBERS_HERE
 

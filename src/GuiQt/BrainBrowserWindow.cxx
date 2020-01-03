@@ -3350,7 +3350,7 @@ BrainBrowserWindow::processDataFileOpen()
     fd.setFileMode(CaretFileDialog::ExistingFiles);
     fd.setViewMode(CaretFileDialog::List);
     fd.selectNameFilter(s_previousOpenFileNameFilter);
-    if (s_previousOpenFileDirectory.isEmpty() == false) {
+    if ( ! s_previousOpenFileDirectory.isEmpty()) {
         FileInformation fileInfo(s_previousOpenFileDirectory);
         if (fileInfo.exists()) {
             fd.setDirectory(s_previousOpenFileDirectory);
@@ -3397,9 +3397,42 @@ void
 BrainBrowserWindow::processOpenRecent()
 {
     AString directoryOrFileName;
-    const RecentFilesDialog::ResultModeEnum result = RecentFilesDialog::runDialog(directoryOrFileName,
+    const RecentFilesDialog::ResultModeEnum result = RecentFilesDialog::runDialog(RecentFilesDialog::RunMode::OPEN_RECENT,
+                                                                                  directoryOrFileName,
                                                                                   this);
-    std::cout << "Selected: " << directoryOrFileName << std::endl;
+    
+    switch (result) {
+        case RecentFilesDialog::ResultModeEnum::CANCEL:
+            break;
+        case RecentFilesDialog::ResultModeEnum::OPEN_DIRECTORY:
+            s_previousOpenFileDirectory = directoryOrFileName;
+            processDataFileOpen();
+            break;
+        case RecentFilesDialog::ResultModeEnum::OPEN_FILE:
+        {
+            bool validFlag(false);
+            DataFileTypeEnum::fromFileExtension(directoryOrFileName, &validFlag);
+            if ( ! validFlag) {
+                WuQMessageBox::errorOk(this, ("File is not a supported file type: "
+                                              + directoryOrFileName));
+            }
+            else {
+                std::vector<AString> filenames;
+                filenames.push_back(directoryOrFileName);
+                std::vector<DataFileTypeEnum::Enum> dataFileTypesDummyNotUsed;
+                loadFiles(this,
+                          filenames,
+                          dataFileTypesDummyNotUsed,
+                          LOAD_SPEC_FILE_WITH_DIALOG,
+                          "",
+                          "");
+            }
+        }
+            break;
+        case RecentFilesDialog::ResultModeEnum::OPEN_OTHER:
+            processDataFileOpen();
+            break;
+    }
 }
 
 /**

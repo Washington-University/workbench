@@ -146,6 +146,11 @@ ProgramParameters.h
 ProgramParametersException.h
 ProgressObject.h
 ProgressReportingInterface.h
+RecentFileItem.h
+RecentFileItemSortingKeyEnum.h
+RecentFileItemsContainer.h
+RecentFileItemsFilter.h
+RecentFileTypeEnum.h
 RecentFilesModeEnum.h
 ReductionEnum.h
 ReductionOperation.h
@@ -277,6 +282,11 @@ Plane.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx
 ProgressObject.cxx
+RecentFileItem.cxx
+RecentFileItemSortingKeyEnum.cxx
+RecentFileItemsContainer.cxx
+RecentFileItemsFilter.cxx
+RecentFileTypeEnum.cxx
 RecentFilesModeEnum.cxx
 ReductionEnum.cxx
 ReductionOperation.cxx
