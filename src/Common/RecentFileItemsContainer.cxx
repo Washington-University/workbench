@@ -197,22 +197,22 @@ RecentFileItemsContainer::sort(const RecentFileItemSortingKeyEnum::Enum sortingK
         case RecentFileItemSortingKeyEnum::DATE_ASCENDING:
             std::sort(m_recentFiles.begin(),
                       m_recentFiles.end(),
-                      [](std::unique_ptr<RecentFileItem>& a, std::unique_ptr<RecentFileItem>& b) { return a->getLastAccessDateTime() < b->getLastAccessDateTime(); });
+                      [](const std::unique_ptr<RecentFileItem>& a, const std::unique_ptr<RecentFileItem>& b) { return a->getLastAccessDateTime() < b->getLastAccessDateTime(); });
             break;
         case RecentFileItemSortingKeyEnum::DATE_DESCENDING:
             std::sort(m_recentFiles.begin(),
                       m_recentFiles.end(),
-                      [](std::unique_ptr<RecentFileItem>& a, std::unique_ptr<RecentFileItem>& b) { return a->getLastAccessDateTime() > b->getLastAccessDateTime(); });
+                      [](const std::unique_ptr<RecentFileItem>& a, const std::unique_ptr<RecentFileItem>& b) { return a->getLastAccessDateTime() > b->getLastAccessDateTime(); });
             break;
         case RecentFileItemSortingKeyEnum::NAME_ASCENDING:
             std::sort(m_recentFiles.begin(),
                       m_recentFiles.end(),
-                      [](std::unique_ptr<RecentFileItem>& a, std::unique_ptr<RecentFileItem>& b) { return a->getFileName() < b->getFileName(); });
+                      [](const std::unique_ptr<RecentFileItem>& a, const std::unique_ptr<RecentFileItem>& b) { return a->getFileName() < b->getFileName(); });
             break;
         case RecentFileItemSortingKeyEnum::NAME_DESCENDING:
             std::sort(m_recentFiles.begin(),
                       m_recentFiles.end(),
-                      [](std::unique_ptr<RecentFileItem>& a, std::unique_ptr<RecentFileItem>& b) { return a->getFileName() > b->getFileName(); });
+                      [](const std::unique_ptr<RecentFileItem>& a, const std::unique_ptr<RecentFileItem>& b) { return a->getFileName() > b->getFileName(); });
             break;
     }
 }

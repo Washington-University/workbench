@@ -586,8 +586,9 @@ SplashScreen::createTopLevelItem(const AString& titleOne,
 
     QTreeWidgetItem* item = new QTreeWidgetItem(itemText);
     item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
-    Qt::ItemFlags flags(Qt::ItemIsEnabled);
-    item->setFlags(flags);
+    Qt::ItemFlags flags = item->flags();
+    flags.setFlag(Qt::ItemIsSelectable, false);
+    flags.setFlag(Qt::ItemIsEnabled, true);
     m_dataFileTreeWidget->addTopLevelItem(item);
 
     return item;

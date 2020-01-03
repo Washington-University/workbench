@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include <memory>
 
 #include <QTableWidget>
 
