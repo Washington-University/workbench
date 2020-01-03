@@ -68,6 +68,15 @@ namespace caret {
          */
         void clicked();
         
+        /**
+         * Emitted if mouse is double-clicked over
+         * this widget (may also get clicked() signal.
+         */
+        void doubleClicked();
+        
+    protected:
+        void mouseDoubleClickEvent(QMouseEvent *event);
+    
     private:
         WuQImageLabel(const WuQImageLabel&);
 
