@@ -50,7 +50,7 @@ OperationParameters* AlgorithmSurfaceWedgeVolume::getParameters()
     
     ret->setHelpText(
         AString("Compute the volume of each vertex's area from one surface to another.  ") +
-        "The surfaces must have vertex correspondence."
+        "The surfaces must have vertex correspondence, and have consistent triangle orientation."
     );
     return ret;
 }
