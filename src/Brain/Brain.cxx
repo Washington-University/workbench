@@ -5794,6 +5794,13 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
             FileInformation oldSpecFileInfo(previousSpecFileName);
             setCurrentDirectory(oldSpecFileInfo.getPathName());
         }
+
+        const AString sceneFileName = sceneAttributes->getSceneFileName();
+        FileInformation sceneFileInfo(sceneFileName);
+        if (sceneFileInfo.exists()) {
+            AString sceneFileDirectory = sceneFileInfo.getAbsolutePath();
+            setCurrentDirectory(sceneFileDirectory);
+        }
     }
     
     /*
