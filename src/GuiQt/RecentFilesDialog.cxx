@@ -36,7 +36,9 @@
 #include <QUrl>
 
 #include "ApplicationInformation.h"
+#include "Brain.h"
 #include "CaretAssert.h"
+#include "GuiManager.h"
 #include "RecentFileItem.h"
 #include "RecentFileItemsContainer.h"
 #include "RecentFileItemsFilter.h"
@@ -74,6 +76,8 @@ RecentFilesDialog::RecentFilesDialog(const AString& dialogTitle,
     QWidget* filesFilteringWidget = createFilesFilteringWidget();
     
     m_recentFilesTableWidget = new RecentFilesTableWidget();
+    QObject::connect(m_recentFilesTableWidget, &RecentFilesTableWidget::sortingChanged,
+                     this, &RecentFilesDialog::updateFilesTableContent);
 
     QWidget* dialogButtonWidget = createDialogButtonsWidget();
     
@@ -107,7 +111,8 @@ RecentFilesDialog::RecentFilesDialog(const AString& dialogTitle,
     m_openPushButton->setAutoDefault(true);
     m_openPushButton->setDefault(true);
     
-    m_directoryItemsContainer.reset(new RecentFileItemsContainer(SystemUtilities::systemCurrentDirectory()));
+    Brain* brain = GuiManager::get()->getBrain();
+    m_directoryItemsContainer.reset(RecentFileItemsContainer::newInstanceSceneAndSpecFilesInDirectory(brain->getCurrentDirectory()));
     
     CaretAssertToDoWarning(); // need to get from preferences
     
@@ -220,11 +225,24 @@ RecentFilesDialog::createFilesFilteringWidget()
     QObject::connect(m_showSpecFilesCheckBox, &QCheckBox::clicked,
                      this, &RecentFilesDialog::showSceneFilesCheckBoxClicked);
     
+    const QString nameToolTip("<html><body>"
+                              "Enter text for wildcard (GLOB) matching:"
+                              "<ul>"
+                              "<li>c  Any character represenents iteslf (c matches c)"
+                              "<li>?  Matches any single character"
+                              "<li>*  Matches zero or more of any character"
+                              "<li>[abc]  Matches one character in the brackets"
+                              "<li>[a-c]  Matches one character from the range in the brackets"
+                              "<li>[!abc]  Matches one character NOT in the brackets"
+                              "<li>[!a-c]  Matches one character NOT from the range in the brackets"
+                              "</ul>"
+                              "</body></html>");
     QLabel* nameFilterLabel = new QLabel("Name Filter: ");
     m_nameFilterLineEdit = new QLineEdit();
     m_nameFilterLineEdit->setFixedWidth(250);
     QObject::connect(m_nameFilterLineEdit, &QLineEdit::textEdited,
                      this, &RecentFilesDialog::nameFilterTextEdited);
+    m_nameFilterLineEdit->setToolTip(nameToolTip);
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
@@ -246,7 +264,7 @@ RecentFilesDialog::createFilesFilteringWidget()
 QWidget*
 RecentFilesDialog::createDialogButtonsWidget()
 {
-    QPushButton* testPushButton = new QPushButton("Test");
+    QPushButton* testPushButton = new QPushButton("Test XML Read/Write");
     QObject::connect(testPushButton, &QPushButton::clicked,
                      this, &RecentFilesDialog::testButtonClicked);
     
@@ -287,7 +305,7 @@ RecentFilesDialog::createFileTypesButtonWidget()
     
     std::vector<QToolButton*> toolButtons;
     for (auto m : modes) {
-        AString modeName(RecentFilesModeEnum::toGuiName(m));
+        AString modeName(RecentFilesModeEnum::toGuiButtonName(m));
         int32_t spaceIndex = modeName.indexOf(' ');
         if (spaceIndex > 0) {
             /* items with multiple words span to two lines */
@@ -297,6 +315,7 @@ RecentFilesDialog::createFileTypesButtonWidget()
         QAction* action = m_fileTypeModeActionGroup->addAction(modeName);
         action->setData(RecentFilesModeEnum::toName(m));
         action->setCheckable(true);
+        action->setToolTip("");
         
         QToolButton* tb = new QToolButton();
         tb->setDefaultAction(action);
@@ -328,7 +347,8 @@ RecentFilesDialog::createFileTypesButtonWidget()
 void
 RecentFilesDialog::nameFilterTextEdited(const QString& text)
 {
-    
+    updateFilesTableContent();
+    m_nameFilterLineEdit->setFocus();
 }
 
 /**
@@ -337,7 +357,7 @@ RecentFilesDialog::nameFilterTextEdited(const QString& text)
 void
 RecentFilesDialog::showSceneFilesCheckBoxClicked(bool checked)
 {
-    
+    updateFilesTableContent();
 }
 
 /**
@@ -346,7 +366,7 @@ RecentFilesDialog::showSceneFilesCheckBoxClicked(bool checked)
 void
 RecentFilesDialog::showSpecFilesCheckBoxClicked(bool checked)
 {
-    
+    updateFilesTableContent();
 }
 
 /**
@@ -434,38 +454,68 @@ RecentFilesDialog::filesModeActionTriggered(QAction* action)
 {
     CaretAssert(action);
     
-    switch (getSelectedFilesMode()) {
-        case RecentFilesModeEnum::CURRENT_DIRECTORY_FILES:
-        {
-            RecentFileItemsFilter itemsFilter;
-            m_recentFilesTableWidget->updateContent(m_directoryItemsContainer.get(),
-                                                    itemsFilter);
-        }
-            break;
-        case RecentFilesModeEnum::FAVORITES:
-        {
-            RecentFileItemsFilter itemsFilter;
-            m_recentFilesTableWidget->updateContent(NULL,
-                                                    itemsFilter);
-        }
-            break;
-        case RecentFilesModeEnum::RECENT_DIRECTORIES:
-        {
-            RecentFileItemsFilter itemsFilter;
-            m_recentFilesTableWidget->updateContent(NULL,
-                                                    itemsFilter);
-        }
-            break;
-        case RecentFilesModeEnum::RECENT_FILES:
-        {
-            RecentFileItemsFilter itemsFilter;
-            m_recentFilesTableWidget->updateContent(NULL,
-                                                    itemsFilter);
-        }
-            break;
-    }
+    updateFilesTableContent();
+    
+//    switch (getSelectedFilesMode()) {
+//        case RecentFilesModeEnum::CURRENT_DIRECTORY_FILES:
+//        {
+//            RecentFileItemsFilter itemsFilter;
+//            m_recentFilesTableWidget->updateContent(m_directoryItemsContainer.get(),
+//                                                    itemsFilter);
+//        }
+//            break;
+//        case RecentFilesModeEnum::FAVORITES:
+//        {
+//            RecentFileItemsFilter itemsFilter;
+//            m_recentFilesTableWidget->updateContent(NULL,
+//                                                    itemsFilter);
+//        }
+//            break;
+//        case RecentFilesModeEnum::RECENT_DIRECTORIES:
+//        {
+//            RecentFileItemsFilter itemsFilter;
+//            m_recentFilesTableWidget->updateContent(NULL,
+//                                                    itemsFilter);
+//        }
+//            break;
+//        case RecentFilesModeEnum::RECENT_FILES:
+//        {
+//            RecentFileItemsFilter itemsFilter;
+//            m_recentFilesTableWidget->updateContent(NULL,
+//                                                    itemsFilter);
+//        }
+//            break;
+//    }
 }
 
+/**
+ * Update the files table widget's content
+ */
+void
+RecentFilesDialog::updateFilesTableContent()
+{
+    RecentFileItemsFilter filter;
+    RecentFileItemsContainer* itemsContainer(NULL);
+    
+    switch (getSelectedFilesMode()) {
+        case RecentFilesModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+            itemsContainer = m_directoryItemsContainer.get();
+            filter.setShowSceneFiles(m_showSceneFilesCheckBox->isChecked());
+            filter.setShowSpecFiles(m_showSpecFilesCheckBox->isChecked());
+            filter.setNameMatching(m_nameFilterLineEdit->text().trimmed());
+            break;
+        case RecentFilesModeEnum::FAVORITES:
+            filter.setFavoritesOnly(true);
+            break;
+        case RecentFilesModeEnum::RECENT_DIRECTORIES:
+            break;
+        case RecentFilesModeEnum::RECENT_FILES:
+            break;
+    }
+    
+    m_recentFilesTableWidget->updateContent(itemsContainer,
+                                            filter);
+}
 /**
  * @return The selected files mode
  */
@@ -535,14 +585,14 @@ RecentFilesDialog::openButtonClicked()
     }
     
     if (item != NULL) {
-        switch (item->getFileType()) {
-            case RecentFileTypeEnum::DIRECTORY:
+        switch (item->getFileItemType()) {
+            case RecentFileItemTypeEnum::DIRECTORY:
                 m_resultMode = ResultModeEnum::OPEN_DIRECTORY;
                 break;
-            case RecentFileTypeEnum::SCENE_FILE:
+            case RecentFileItemTypeEnum::SCENE_FILE:
                 m_resultMode = ResultModeEnum::OPEN_FILE;
                 break;
-            case RecentFileTypeEnum::SPEC_FILE:
+            case RecentFileItemTypeEnum::SPEC_FILE:
                 m_resultMode = ResultModeEnum::OPEN_FILE;
                 break;
         }

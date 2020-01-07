@@ -36,7 +36,7 @@ public:
      */
     enum Enum {
         /** Scene and Spec files in current directory */
-        CURRENT_DIRECTORY_FILES,
+        DIRECTORY_SCENE_AND_SPEC_FILES,
         /** Favorites */
         FAVORITES,
         /** Recent directories containing recently opened or saved files */
@@ -51,6 +51,8 @@ public:
     static AString toName(Enum enumValue);
     
     static Enum fromName(const AString& name, bool* isValidOut);
+    
+    static AString toGuiButtonName(Enum enumValue);
     
     static AString toGuiName(Enum enumValue);
     
@@ -68,8 +70,9 @@ public:
 
 private:
     RecentFilesModeEnum(const Enum enumValue, 
-                 const AString& name,
-                 const AString& guiName);
+                        const AString& name,
+                        const AString& guiName,
+                        const AString& guiButtonName);
 
     static const RecentFilesModeEnum* findData(const Enum enumValue);
 
@@ -98,6 +101,9 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** A user-friendly name that is displayed in the Recent Files Dialog buttons */
+    AString guiButtonName;
 };
 
 #ifdef __RECENT_FILES_MODE_ENUM_DECLARE__

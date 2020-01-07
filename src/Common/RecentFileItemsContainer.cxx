@@ -29,6 +29,7 @@
 #include <QXmlStreamWriter>
 
 #include "CaretAssert.h"
+#include "CaretPreferences.h"
 #include "DataFileTypeEnum.h"
 #include "RecentFileItem.h"
 #include "RecentFileItemsFilter.h"
@@ -44,17 +45,18 @@ using namespace caret;
  */
 
 /**
- * Constructor for scene and spec files in a directory
- * @param directoryPath
- * Path of directory
+ * Constructor.
+ * @param mode
+ * Mode for the content type in the container
+ * @param writeIfModifiedType
+ * Mode for writing if modified when instance is destroyed
  */
-RecentFileItemsContainer::RecentFileItemsContainer(const AString& directoryPath)
-: CaretObjectTracksModification()
+RecentFileItemsContainer::RecentFileItemsContainer(const RecentFilesModeEnum::Enum mode,
+                                                   const WriteIfModifiedType writeIfModifiedType)
+: CaretObjectTracksModification(),
+m_mode(mode),
+m_writeIfModifiedType(writeIfModifiedType)
 {
-    addFilesInDirectoryToRecentItems(RecentFileTypeEnum::SCENE_FILE,
-                                     directoryPath);
-    addFilesInDirectoryToRecentItems(RecentFileTypeEnum::SPEC_FILE,
-                                     directoryPath);
 }
 
 /**
@@ -62,7 +64,71 @@ RecentFileItemsContainer::RecentFileItemsContainer(const AString& directoryPath)
  */
 RecentFileItemsContainer::~RecentFileItemsContainer()
 {
+    if (isModified()) {
+        std::cout << RecentFilesModeEnum::toName(m_mode) << " is modified." << std::endl;
+        
+        switch (m_mode) {
+            case RecentFilesModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+                /* Nothing to write */
+                break;
+            case RecentFilesModeEnum::FAVORITES:
+                /* Nothing to write */
+                break;
+            case RecentFilesModeEnum::RECENT_DIRECTORIES:
+                break;
+            case RecentFilesModeEnum::RECENT_FILES:
+                break;
+        }
+    }
 }
+
+/**
+ * @return A new instance containing spec and scene files in a directory
+ * @param directoryPath
+ *    Directory from which files are read
+ */
+RecentFileItemsContainer*
+RecentFileItemsContainer::newInstanceSceneAndSpecFilesInDirectory(const AString& directoryPath)
+{
+    RecentFileItemsContainer* container = new RecentFileItemsContainer(RecentFilesModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES,
+                                                                       WriteIfModifiedType::WRITE_NO);
+    container->addFilesInDirectoryToRecentItems(RecentFileItemTypeEnum::SCENE_FILE,
+                                                directoryPath);
+    container->addFilesInDirectoryToRecentItems(RecentFileItemTypeEnum::SPEC_FILE,
+                                                directoryPath);
+    return container;
+}
+
+/**
+ * @return A new instance containing recent scene and spec files from Preferences
+ * @param preferences
+ *    The caret preferences
+ * @param writeIfModifiedType
+ * Mode for writing if modified when instance is destroyed
+ */
+RecentFileItemsContainer*
+RecentFileItemsContainer::newInstanceRecentSceneAndSpecFiles(CaretPreferences* preferences,
+                                                             const WriteIfModifiedType writeIfModifiedType)
+{
+    RecentFileItemsContainer* container(NULL);
+    return container;
+}
+
+/**
+ * @return A new instance containing recent directories from Preferences
+ * @param preferences
+ *    The caret preferences
+ * @param writeIfModifiedType
+ * Mode for writing if modified when instance is destroyed
+ */
+RecentFileItemsContainer*
+RecentFileItemsContainer::newInstanceRecentDirectories(CaretPreferences* preferences,
+                                                       const WriteIfModifiedType writeIfModifiedType)
+{
+    RecentFileItemsContainer* container(NULL);
+    return container;
+}
+
 
 /**
  *@return True if this instance has been modified, else false.
@@ -121,25 +187,25 @@ RecentFileItemsContainer::clear()
 
 /**
  * Add files of the given type and in the given directory to the recent items
- * @param recentFileType
- *  The recent file type type
+ * @param recentFileItemType
+ *  The recent file item type
  * @param directoryPaht
  *  Directory from which to get files
  */
 void
-RecentFileItemsContainer::addFilesInDirectoryToRecentItems(const RecentFileTypeEnum::Enum recentFileType,
+RecentFileItemsContainer::addFilesInDirectoryToRecentItems(const RecentFileItemTypeEnum::Enum recentFileItemType,
                                                            const AString& directoryPath)
 {
     DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::UNKNOWN;
-    switch (recentFileType) {
-        case RecentFileTypeEnum::DIRECTORY:
+    switch (recentFileItemType) {
+        case RecentFileItemTypeEnum::DIRECTORY:
             CaretAssert(0);
             return;
             break;
-        case RecentFileTypeEnum::SCENE_FILE:
+        case RecentFileItemTypeEnum::SCENE_FILE:
             dataFileType = DataFileTypeEnum::SCENE;
             break;
-        case RecentFileTypeEnum::SPEC_FILE:
+        case RecentFileItemTypeEnum::SPEC_FILE:
             dataFileType = DataFileTypeEnum::SPECIFICATION;
             break;
     }
@@ -148,8 +214,7 @@ RecentFileItemsContainer::addFilesInDirectoryToRecentItems(const RecentFileTypeE
                                                                            directoryPath);
     
     for (auto name : fileNames) {
-        std::cout << "Adding file: " << name << std::endl;
-        RecentFileItem* fileItem = new RecentFileItem(recentFileType,
+        RecentFileItem* fileItem = new RecentFileItem(recentFileItemType,
                                                       name);
         addItem(fileItem);
     }
@@ -166,14 +231,17 @@ std::vector<RecentFileItem*>
 RecentFileItemsContainer::getItems(const RecentFileItemsFilter& itemsFilter) const
 {
     std::vector<RecentFileItem*> itemsOut;
+
     
     for (const auto& item : m_recentFiles) {
-        itemsOut.push_back(item.get());
+        CaretAssert(item);
+        if (itemsFilter.testItemPassesFilter(item.get())) {
+            itemsOut.push_back(item.get());
+        }
     }
     
     return itemsOut;
 }
-
 
 /**
  * Get a description of this object's content.
@@ -320,7 +388,7 @@ RecentFileItemsContainer::readFromXMLVersionOneRecentFileItem(QXmlStreamReader& 
             else if (reader.name() == XML_TAG_RECENT_FILE_ITEM_DATE_AND_TIME) {
                 dateAndTimeString = reader.readElementText().trimmed();
             }
-            else if (reader.name() == XML_TAG_RECENT_FILE_ITEM_FILE_TYPE) {
+            else if (reader.name() == XML_TAG_RECENT_FILE_ITEM_FILE_ITEM_TYPE) {
                 fileTypeString = reader.readElementText().trimmed();
             }
             else if (reader.name() == XML_TAG_RECENT_FILE_ITEM_FAVORITE) {
@@ -347,8 +415,8 @@ RecentFileItemsContainer::readFromXMLVersionOneRecentFileItem(QXmlStreamReader& 
     }
     
     bool validFileTypeFlag(false);
-    const RecentFileTypeEnum::Enum fileType = RecentFileTypeEnum::fromName(fileTypeString,
-                                                                           &validFileTypeFlag);
+    const RecentFileItemTypeEnum::Enum fileType = RecentFileItemTypeEnum::fromName(fileTypeString,
+                                                                                   &validFileTypeFlag);
     
     if ( ! validFileTypeFlag) {
         reader.raiseError(XML_TAG_RECENT_FILE_ITEM
@@ -405,8 +473,8 @@ RecentFileItemsContainer::writeToXML(AString& xml,
                                     rfi->getLastAccessDateTimeAsString());
             writer.writeTextElement(XML_TAG_RECENT_FILE_ITEM_FAVORITE,
                                     AString::fromBool(rfi->isFavorite()));
-            writer.writeTextElement(XML_TAG_RECENT_FILE_ITEM_FILE_TYPE,
-                                    RecentFileTypeEnum::toName(rfi->getFileType()));
+            writer.writeTextElement(XML_TAG_RECENT_FILE_ITEM_FILE_ITEM_TYPE,
+                                    RecentFileItemTypeEnum::toName(rfi->getFileItemType()));
             writer.writeTextElement(XML_TAG_RECENT_FILE_ITEM_PATH_AND_FILE_NAME,
                                     rfi->getPathAndFileName());
             writer.writeEndElement();

@@ -653,13 +653,13 @@ DataFileTypeEnum::getFilesInDirectory(const Enum enumValue,
     QDir::Filters typeFilter(QDir::Files);
     
     QDir dir(directoryPath);
-    QStringList fileNames = dir.entryList(fileNameFilters,
-                                          typeFilter);
-    
     std::vector<AString> filenamesOut;
-    QStringListIterator iter(fileNames);
+
+    QFileInfoList fileInfoList = dir.entryInfoList(fileNameFilters,
+                                                   typeFilter);
+    QListIterator<QFileInfo> iter(fileInfoList);
     while (iter.hasNext()) {
-        filenamesOut.push_back(iter.next());
+        filenamesOut.push_back(iter.next().absoluteFilePath());
     }
 
     return filenamesOut;

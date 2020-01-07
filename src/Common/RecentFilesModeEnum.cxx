@@ -79,13 +79,15 @@ using namespace caret;
  *    User-friendly name for use in user-interface.
  */
 RecentFilesModeEnum::RecentFilesModeEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+                                         const AString& name,
+                                         const AString& guiName,
+                                         const AString& guiButtonName)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
     this->guiName = guiName;
+    this->guiButtonName = guiButtonName;
 }
 
 /**
@@ -112,20 +114,23 @@ RecentFilesModeEnum::initialize()
     
     enumData.push_back(RecentFilesModeEnum(FAVORITES,
                                            "FAVORITES",
+                                           "Favorites",
                                            "Favorites"));
     
     enumData.push_back(RecentFilesModeEnum(RECENT_FILES,
                                            "RECENT_FILES",
+                                           "Recent Files",
                                            "Recent Files"));
     
-    enumData.push_back(RecentFilesModeEnum(CURRENT_DIRECTORY_FILES,
-                                    "CURRENT_DIRECTORY_FILES", 
-                                    "Current Directory Files"));
+    enumData.push_back(RecentFilesModeEnum(DIRECTORY_SCENE_AND_SPEC_FILES,
+                                           "DIRECTORY_SCENE_AND_SPEC_FILES",
+                                           "Directory Scene and Spec Files",
+                                           "Current Directory"));
     
     enumData.push_back(RecentFilesModeEnum(RECENT_DIRECTORIES,
-                                    "RECENT_DIRECTORIES", 
-                                    "Recent Directories"));
-    
+                                           "RECENT_DIRECTORIES",
+                                           "Recent Directories",
+                                           "Recent Directories"));
 }
 
 /**
@@ -217,6 +222,21 @@ RecentFilesModeEnum::toGuiName(Enum enumValue) {
     
     const RecentFilesModeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
+}
+
+/**
+ * Get a GUI string representation of the enumerated type for Recent Files Dialog buttons
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     String representing enumerated value.
+ */
+AString
+RecentFilesModeEnum::toGuiButtonName(Enum enumValue) {
+    if (initializedFlag == false) initialize();
+    
+    const RecentFilesModeEnum* enumInstance = findData(enumValue);
+    return enumInstance->guiButtonName;
 }
 
 /**

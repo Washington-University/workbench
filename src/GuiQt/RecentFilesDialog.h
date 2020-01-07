@@ -96,6 +96,9 @@ namespace caret {
         
         void tableWidgetItemDoubleClicked(RecentFileItem* item);
         
+    private slots:
+        void updateFilesTableContent();
+        
     private:
         RecentFilesDialog(const AString& dialogTitle,
                           QWidget* parent = 0);

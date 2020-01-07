@@ -27,19 +27,37 @@
 
 #include "CaretObjectTracksModification.h"
 #include "RecentFileItemSortingKeyEnum.h"
-#include "RecentFileTypeEnum.h"
+#include "RecentFileItemTypeEnum.h"
+#include "RecentFilesModeEnum.h"
 
 class QXmlStreamReader;
 
 namespace caret {
 
+    class CaretPreferences;
     class RecentFileItem;
     class RecentFileItemsFilter;
     
     class RecentFileItemsContainer : public CaretObjectTracksModification {
         
     public:
-        RecentFileItemsContainer(const AString& directoryPath);
+        /*
+         * Write if modified when this container is destroyed
+         */
+        enum WriteIfModifiedType {
+            /* No, do not update preferences */
+            WRITE_NO,
+            /* Yes, update preferences */
+            WRITE_YES
+        };
+        
+        static RecentFileItemsContainer* newInstanceSceneAndSpecFilesInDirectory(const AString& directoryPath);
+        
+        static RecentFileItemsContainer* newInstanceRecentSceneAndSpecFiles(CaretPreferences* preferences,
+                                                                            const WriteIfModifiedType writeIfModifiedType);
+        
+        static RecentFileItemsContainer* newInstanceRecentDirectories(CaretPreferences* preferences,
+                                                                      const WriteIfModifiedType writeIfModifiedType);
         
         virtual ~RecentFileItemsContainer();
         
@@ -48,11 +66,7 @@ namespace caret {
         RecentFileItemsContainer& operator=(const RecentFileItemsContainer&) = delete;
 
         std::vector<RecentFileItem*> getItems(const RecentFileItemsFilter& itemsFilter) const;
-        
-        void readFromPreferences();
-        
-        void readFromDirectory(const AString& directoryName);
-        
+                
         void addItem(RecentFileItem* recentFile);
         
         void clear();
@@ -76,12 +90,19 @@ namespace caret {
         void testXmlReadingAndWriting();
         
     private:
-        void addFilesInDirectoryToRecentItems(const RecentFileTypeEnum::Enum recentFileType,
+        RecentFileItemsContainer(const RecentFilesModeEnum::Enum mode,
+                                 const WriteIfModifiedType writeIfModifiedType);
+        
+        void addFilesInDirectoryToRecentItems(const RecentFileItemTypeEnum::Enum recentFileItemType,
                                               const AString& directoryPath);
         
         void readFromXmlVersionOne(QXmlStreamReader& reader);
         
         void readFromXMLVersionOneRecentFileItem(QXmlStreamReader& reader);
+        
+        RecentFilesModeEnum::Enum m_mode;
+        
+        const WriteIfModifiedType m_writeIfModifiedType = WriteIfModifiedType::WRITE_NO;
         
         std::vector<std::unique_ptr<RecentFileItem>> m_recentFiles;
         
@@ -92,7 +113,7 @@ namespace caret {
         static const AString XML_TAG_RECENT_FILE_ITEM;
         static const AString XML_TAG_RECENT_FILE_ITEM_COMMENT;
         static const AString XML_TAG_RECENT_FILE_ITEM_DATE_AND_TIME;
-        static const AString XML_TAG_RECENT_FILE_ITEM_FILE_TYPE;
+        static const AString XML_TAG_RECENT_FILE_ITEM_FILE_ITEM_TYPE;
         static const AString XML_TAG_RECENT_FILE_ITEM_FAVORITE;
         static const AString XML_TAG_RECENT_FILE_ITEM_PATH_AND_FILE_NAME;
 
@@ -103,7 +124,7 @@ namespace caret {
     const AString RecentFileItemsContainer::XML_TAG_RECENT_FILE_ITEM = "RecentFileItem";
     const AString RecentFileItemsContainer::XML_TAG_RECENT_FILE_ITEM_COMMENT = "Comment";
     const AString RecentFileItemsContainer::XML_TAG_RECENT_FILE_ITEM_DATE_AND_TIME = "DateTime";
-    const AString RecentFileItemsContainer::XML_TAG_RECENT_FILE_ITEM_FILE_TYPE = "FileType";
+    const AString RecentFileItemsContainer::XML_TAG_RECENT_FILE_ITEM_FILE_ITEM_TYPE = "FileItemType";
     const AString RecentFileItemsContainer::XML_TAG_RECENT_FILE_ITEM_FAVORITE = "Favorite";
     const AString RecentFileItemsContainer::XML_TAG_RECENT_FILE_ITEM_PATH_AND_FILE_NAME = "PathAndFileName";
 #endif // __RECENT_FILE_ITEMS_CONTAINER_DECLARE__

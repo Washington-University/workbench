@@ -71,8 +71,8 @@ RecentFilesTableWidget::RecentFilesTableWidget()
 
     m_favoriteFilledIcon  = loadIcon(":/RecentFilesDialog/favorite_filled.png");
     m_favoriteOutlineIcon = loadIcon(":/RecentFilesDialog/favorite_outline.png");
-    m_forgetIcon          = loadIcon(":/RecentFilesDialog/forget.png");
-    m_forgetOnIcon        = loadIcon(":/RecentFilesDialog/forget_on.png");
+    m_forgetIcon          = loadIcon(":/RecentFilesDialog/forget_black.png");
+    m_forgetOnIcon        = loadIcon(":/RecentFilesDialog/forget_red.png");
     m_shareIcon           = loadIcon(":/RecentFilesDialog/share.png");
 }
 
@@ -337,6 +337,7 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
     
     update();
     tableCellClicked(selectedRowIndex, COLUMN_NAME);
+    resizeRowsToContents();
 }
 
 /**
@@ -350,6 +351,16 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
     CaretAssertVectorIndex(m_recentItems, rowIndex);
     RecentFileItem* recentItem = m_recentItems[rowIndex];
     CaretAssert(recentItem);
+    
+    bool forgetableFlag(false);
+    switch (recentItem->getFileItemType()) {
+        case RecentFileItemTypeEnum::DIRECTORY:
+            break;
+        case RecentFileItemTypeEnum::SCENE_FILE:
+            break;
+        case RecentFileItemTypeEnum::SPEC_FILE:
+            break;
+    }
     
     for (int32_t iCol = 0; iCol < COLUMN_COUNT; iCol++) {
         const COLUMNS column = static_cast<COLUMNS>(iCol);
@@ -576,6 +587,7 @@ RecentFilesTableWidget::sortIndicatorClicked(int logicalIndex,
                                              Qt::SortOrder sortOrder)
 {
     if (m_recentFileItemsContainer != NULL) {
+        bool updateFlag(false);
         const COLUMNS column = static_cast<COLUMNS>(logicalIndex);
         switch (column) {
             case COLUMN_NAME:
@@ -587,6 +599,7 @@ RecentFilesTableWidget::sortIndicatorClicked(int logicalIndex,
                         m_recentFileItemsContainer->sort(RecentFileItemSortingKeyEnum::NAME_DESCENDING);
                         break;
                 }
+                updateFlag = true;
                 break;
             case COLUMN_DATE_TIME:
                 switch (sortOrder) {
@@ -597,6 +610,7 @@ RecentFilesTableWidget::sortIndicatorClicked(int logicalIndex,
                         m_recentFileItemsContainer->sort(RecentFileItemSortingKeyEnum::DATE_DESCENDING);
                         break;
                 }
+                updateFlag = true;
                 break;
             case COLUMN_COUNT:
             case COLUMN_FAVORITE:
@@ -605,9 +619,10 @@ RecentFilesTableWidget::sortIndicatorClicked(int logicalIndex,
                 break;
         }
         
-        clearSelectedItem();
-        updateContent(m_recentFileItemsContainer,
-                      *m_recentFileItemsFilter);
+        if (updateFlag) {
+            clearSelectedItem();
+            emit sortingChanged();
+        }
     }
 }
 

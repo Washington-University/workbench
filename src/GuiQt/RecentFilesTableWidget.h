@@ -57,6 +57,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     signals:
+        void sortingChanged();
+        
         void selectedItemChanged(RecentFileItem* item);
         
         void selectedItemDoubleClicked(RecentFileItem* item);

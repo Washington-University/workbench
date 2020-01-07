@@ -26,7 +26,7 @@
 #include <memory>
 
 #include "CaretObjectTracksModification.h"
-#include "RecentFileTypeEnum.h"
+#include "RecentFileItemTypeEnum.h"
 
 class QXmlStreamWriter;
 
@@ -35,7 +35,7 @@ namespace caret {
     class RecentFileItem : public CaretObjectTracksModification {
         
     public:
-        RecentFileItem(const RecentFileTypeEnum::Enum fileType,
+        RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
                        const AString& pathAndFileName);
         
         virtual ~RecentFileItem();
@@ -46,7 +46,7 @@ namespace caret {
         
         bool operator<(const RecentFileItem& obj) const;
 
-        RecentFileTypeEnum::Enum getFileType() const;
+        RecentFileItemTypeEnum::Enum getFileItemType() const;
         
         AString getLastAccessDateTimeAsString() const;
         
@@ -85,7 +85,7 @@ namespace caret {
 
         void setLastAccessDateTime(const QDateTime& dateTime);
         
-        RecentFileTypeEnum::Enum m_fileType;
+        RecentFileItemTypeEnum::Enum m_fileItemType;
         
         QDateTime m_lastAccessDateTime;
         

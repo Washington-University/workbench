@@ -1,5 +1,5 @@
-#ifndef __RECENT_FILE_TYPE_ENUM_H__
-#define __RECENT_FILE_TYPE_ENUM_H__
+#ifndef __RECENT_FILE_ITEM_TYPE_ENUM_H__
+#define __RECENT_FILE_ITEM_TYPE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class RecentFileTypeEnum {
+class RecentFileItemTypeEnum {
 
 public:
     /**
@@ -44,7 +44,7 @@ public:
     };
 
 
-    ~RecentFileTypeEnum();
+    ~RecentFileItemTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -65,14 +65,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    RecentFileTypeEnum(const Enum enumValue, 
+    RecentFileItemTypeEnum(const Enum enumValue,
                  const AString& name,
                  const AString& guiName);
 
-    static const RecentFileTypeEnum* findData(const Enum enumValue);
+    static const RecentFileItemTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<RecentFileTypeEnum> enumData;
+    static std::vector<RecentFileItemTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -96,11 +96,11 @@ private:
     AString guiName;
 };
 
-#ifdef __RECENT_FILE_TYPE_ENUM_DECLARE__
-std::vector<RecentFileTypeEnum> RecentFileTypeEnum::enumData;
-bool RecentFileTypeEnum::initializedFlag = false;
-int32_t RecentFileTypeEnum::integerCodeCounter = 0; 
-#endif // __RECENT_FILE_TYPE_ENUM_DECLARE__
+#ifdef __RECENT_FILE_ITEM_TYPE_ENUM_DECLARE__
+std::vector<RecentFileItemTypeEnum> RecentFileItemTypeEnum::enumData;
+bool RecentFileItemTypeEnum::initializedFlag = false;
+int32_t RecentFileItemTypeEnum::integerCodeCounter = 0;
+#endif // __RECENT_FILE_ITEM_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__RECENT_FILE_TYPE_ENUM_H__
+#endif  //__RECENT_FILE_ITEM_TYPE_ENUM_H__

@@ -148,9 +148,9 @@ ProgressObject.h
 ProgressReportingInterface.h
 RecentFileItem.h
 RecentFileItemSortingKeyEnum.h
+RecentFileItemTypeEnum.h
 RecentFileItemsContainer.h
 RecentFileItemsFilter.h
-RecentFileTypeEnum.h
 RecentFilesModeEnum.h
 ReductionEnum.h
 ReductionOperation.h
@@ -284,9 +284,9 @@ ProgramParametersException.cxx
 ProgressObject.cxx
 RecentFileItem.cxx
 RecentFileItemSortingKeyEnum.cxx
+RecentFileItemTypeEnum.cxx
 RecentFileItemsContainer.cxx
 RecentFileItemsFilter.cxx
-RecentFileTypeEnum.cxx
 RecentFilesModeEnum.cxx
 ReductionEnum.cxx
 ReductionOperation.cxx

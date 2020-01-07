@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __RECENT_FILE_TYPE_ENUM_DECLARE__
-#include "RecentFileTypeEnum.h"
-#undef __RECENT_FILE_TYPE_ENUM_DECLARE__
+#define __RECENT_FILE_ITEM_TYPE_ENUM_DECLARE__
+#include "RecentFileItemTypeEnum.h"
+#undef __RECENT_FILE_ITEM_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::RecentFileTypeEnum 
+ * \class caret::RecentFileItemTypeEnum
  * \brief Types for recent file items
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
@@ -49,21 +49,21 @@ using namespace caret;
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "RecentFileTypeEnum.h"
+ *         #include "RecentFileItemTypeEnum.h"
  * 
  *     Instatiate:
  *         m_recentFileTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_recentFileTypeEnumComboBox->setup<RecentFileTypeEnum,RecentFileTypeEnum::Enum>();
+ *         m_recentFileTypeEnumComboBox->setup<RecentFileItemTypeEnum,RecentFileItemTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
  *         QObject::connect(m_recentFileTypeEnumComboBox, SIGNAL(itemActivated()),
  *                          this, SLOT(recentFileTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_recentFileTypeEnumComboBox->setSelectedItem<RecentFileTypeEnum,RecentFileTypeEnum::Enum>(NEW_VALUE);
+ *         m_recentFileTypeEnumComboBox->setSelectedItem<RecentFileItemTypeEnum,RecentFileItemTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const RecentFileTypeEnum::Enum VARIABLE = m_recentFileTypeEnumComboBox->getSelectedItem<RecentFileTypeEnum,RecentFileTypeEnum::Enum>();
+ *         const RecentFileItemTypeEnum::Enum VARIABLE = m_recentFileTypeEnumComboBox->getSelectedItem<RecentFileItemTypeEnum,RecentFileItemTypeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-RecentFileTypeEnum::RecentFileTypeEnum(const Enum enumValue,
+RecentFileItemTypeEnum::RecentFileItemTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ RecentFileTypeEnum::RecentFileTypeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-RecentFileTypeEnum::~RecentFileTypeEnum()
+RecentFileItemTypeEnum::~RecentFileItemTypeEnum()
 {
 }
 
@@ -99,22 +99,22 @@ RecentFileTypeEnum::~RecentFileTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-RecentFileTypeEnum::initialize()
+RecentFileItemTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(RecentFileTypeEnum(DIRECTORY, 
+    enumData.push_back(RecentFileItemTypeEnum(DIRECTORY,
                                     "DIRECTORY", 
                                     "Directory"));
     
-    enumData.push_back(RecentFileTypeEnum(SCENE_FILE, 
+    enumData.push_back(RecentFileItemTypeEnum(SCENE_FILE,
                                     "SCENE_FILE", 
                                     "Scene File"));
     
-    enumData.push_back(RecentFileTypeEnum(SPEC_FILE, 
+    enumData.push_back(RecentFileItemTypeEnum(SPEC_FILE,
                                     "SPEC_FILE", 
                                     "Spec File"));
     
@@ -127,14 +127,14 @@ RecentFileTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const RecentFileTypeEnum*
-RecentFileTypeEnum::findData(const Enum enumValue)
+const RecentFileItemTypeEnum*
+RecentFileItemTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const RecentFileTypeEnum* d = &enumData[i];
+        const RecentFileItemTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -151,10 +151,10 @@ RecentFileTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-RecentFileTypeEnum::toName(Enum enumValue) {
+RecentFileItemTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const RecentFileTypeEnum* enumInstance = findData(enumValue);
+    const RecentFileItemTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -168,18 +168,18 @@ RecentFileTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-RecentFileTypeEnum::Enum 
-RecentFileTypeEnum::fromName(const AString& name, bool* isValidOut)
+RecentFileItemTypeEnum::Enum
+RecentFileItemTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = RecentFileTypeEnum::enumData[0].enumValue;
+    Enum enumValue = RecentFileItemTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<RecentFileTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const RecentFileTypeEnum& d = *iter;
+        const RecentFileItemTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -191,7 +191,7 @@ RecentFileTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type RecentFileTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type RecentFileItemTypeEnum"));
     }
     return enumValue;
 }
@@ -204,10 +204,10 @@ RecentFileTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-RecentFileTypeEnum::toGuiName(Enum enumValue) {
+RecentFileItemTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const RecentFileTypeEnum* enumInstance = findData(enumValue);
+    const RecentFileItemTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -221,18 +221,18 @@ RecentFileTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-RecentFileTypeEnum::Enum 
-RecentFileTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+RecentFileItemTypeEnum::Enum
+RecentFileItemTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = RecentFileTypeEnum::enumData[0].enumValue;
+    Enum enumValue = RecentFileItemTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<RecentFileTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const RecentFileTypeEnum& d = *iter;
+        const RecentFileItemTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -244,7 +244,7 @@ RecentFileTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type RecentFileTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type RecentFileItemTypeEnum"));
     }
     return enumValue;
 }
@@ -256,10 +256,10 @@ RecentFileTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-RecentFileTypeEnum::toIntegerCode(Enum enumValue)
+RecentFileItemTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const RecentFileTypeEnum* enumInstance = findData(enumValue);
+    const RecentFileItemTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -274,18 +274,18 @@ RecentFileTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-RecentFileTypeEnum::Enum
-RecentFileTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+RecentFileItemTypeEnum::Enum
+RecentFileItemTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = RecentFileTypeEnum::enumData[0].enumValue;
+    Enum enumValue = RecentFileItemTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<RecentFileTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const RecentFileTypeEnum& enumInstance = *iter;
+        const RecentFileItemTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -297,7 +297,7 @@ RecentFileTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type RecentFileTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type RecentFileItemTypeEnum"));
     }
     return enumValue;
 }
@@ -310,13 +310,13 @@ RecentFileTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-RecentFileTypeEnum::getAllEnums(std::vector<RecentFileTypeEnum::Enum>& allEnums)
+RecentFileItemTypeEnum::getAllEnums(std::vector<RecentFileItemTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<RecentFileTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -332,16 +332,16 @@ RecentFileTypeEnum::getAllEnums(std::vector<RecentFileTypeEnum::Enum>& allEnums)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-RecentFileTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+RecentFileItemTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<RecentFileTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(RecentFileTypeEnum::toName(iter->enumValue));
+        allNames.push_back(RecentFileItemTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -358,16 +358,16 @@ RecentFileTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSor
  *     If true, the names are sorted in alphabetical order.
  */
 void
-RecentFileTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+RecentFileItemTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<RecentFileTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(RecentFileTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(RecentFileItemTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

@@ -39,15 +39,15 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param fileType
+ * @param fileItemType
  *  Type of file
  * @param pathAndFileName
  *  Path and name of a file
  */
-RecentFileItem::RecentFileItem(const RecentFileTypeEnum::Enum fileType,
+RecentFileItem::RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
                                const AString& pathAndFileName)
 : CaretObjectTracksModification(),
-m_fileType(fileType),
+m_fileItemType(fileItemType),
 m_pathAndFileName(pathAndFileName)
 {
     FileInformation fileInfo(pathAndFileName);
@@ -104,7 +104,7 @@ RecentFileItem::operator=(const RecentFileItem& obj)
 void 
 RecentFileItem::copyHelperRecentFileItem(const RecentFileItem& obj)
 {
-    m_fileType           = obj.m_fileType;
+    m_fileItemType       = obj.m_fileItemType;
     m_lastAccessDateTime = obj.m_lastAccessDateTime;
     m_pathAndFileName    = obj.m_pathAndFileName;
     m_pathName           = obj.m_pathName;
@@ -136,12 +136,12 @@ RecentFileItem::operator<(const RecentFileItem& obj) const
 }
 
 /**
- * @return The type of file
+ * @return The type of item
  */
-RecentFileTypeEnum::Enum
-RecentFileItem::getFileType() const
+RecentFileItemTypeEnum::Enum
+RecentFileItem::getFileItemType() const
 {
-    return m_fileType;
+    return m_fileItemType;
 }
 
 /**

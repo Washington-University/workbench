@@ -27,10 +27,12 @@
 
 #include "CaretObject.h"
 
-
+class QRegularExpression;
 
 namespace caret {
 
+    class RecentFileItem;
+    
     class RecentFileItemsFilter : public CaretObject {
         
     public:
@@ -42,6 +44,27 @@ namespace caret {
 
         RecentFileItemsFilter& operator=(const RecentFileItemsFilter& obj);
         
+        bool testItemPassesFilter(const RecentFileItem* recentFileItem) const;
+        
+        AString getNameMatching() const;
+        
+        void setNameMatching(const AString& nameMatching);
+        
+        bool isShowSpecFiles() const;
+        
+        void setShowSpecFiles(const bool showSpecFiles);
+        
+        bool isShowSceneFiles() const;
+        
+        void setShowSceneFiles(const bool showSceneFiles);
+
+        bool isShowDirectories() const;
+        
+        void setShowDirectories(const bool showDirectories);
+        
+        bool isFavoritesOnly() const;
+        
+        void setFavoritesOnly(const bool favoritesOnly);
 
         // ADD_NEW_METHODS_HERE
 
@@ -50,6 +73,23 @@ namespace caret {
     private:
         void copyHelperRecentFileItemsFilter(const RecentFileItemsFilter& obj);
 
+        /** name matching (glob)*/
+        AString m_nameMatching;
+        
+        /** Show spec files*/
+        bool m_showSpecFiles = false;
+        
+        /** Show scene files*/
+        bool m_showSceneFiles = false;
+
+        /** show directories*/
+        bool m_showDirectories = false;;
+        
+        /** show only favorites*/
+        bool m_favoritesOnly = false;
+        
+        mutable std::unique_ptr<QRegularExpression> m_regularExpression;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
