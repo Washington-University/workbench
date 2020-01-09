@@ -65,23 +65,6 @@ MacDockMenu::MacDockMenu(QWidget* parent)
 : QMenu(parent)
 {
     /*
-     * Recent Spec Files
-     */
-    const int32_t firstRecentSpecFileIndex = actions().size();
-    const int32_t numRecentSpecFiles = BrainBrowserWindow::loadRecentSpecFileMenu(this);
-    
-    QList<QAction*> menuActions = actions();
-    
-    const int32_t numberOfRecentSpecFileActions = menuActions.size() - firstRecentSpecFileIndex;
-    for (int32_t i = firstRecentSpecFileIndex; i < numberOfRecentSpecFileActions; i++) {
-        m_recentSpecFileActions.push_back(menuActions.at(i));
-    }
-
-    if (numRecentSpecFiles > 0) {
-        addSeparator();
-    }
-
-    /*
      * Name of spec file
      */
     const AString specFileName = GuiManager::get()->getBrain()->getSpecFile()->getFileNameNoPath();

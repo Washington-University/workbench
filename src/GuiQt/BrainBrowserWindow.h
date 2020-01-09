@@ -137,10 +137,6 @@ namespace caret {
         
         virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
         
-        static int32_t loadRecentSpecFileMenu(QMenu* recentSpecFileMenu);
-        
-        static int32_t loadRecentSceneFileMenu(QMenu* recentSpecFileMenu);
-        
         float getOpenGLWidgetAspectRatio() const;
         
         bool changeInputModeToAnnotationsWarningDialog();
@@ -204,12 +200,6 @@ namespace caret {
         
         void processMoveSelectedTabToWindowMenuAboutToBeDisplayed();
         void processMoveSelectedTabToWindowMenuSelection(QAction*);
-        
-        void processRecentSceneFileMenuAboutToBeDisplayed();
-        void processRecentSceneFileMenuSelection(QAction*);
-        
-        void processRecentSpecFileMenuAboutToBeDisplayed();
-        void processRecentSpecFileMenuSelection(QAction*);
         
         void processShowOverlayToolBox(bool);
         void processShowFeaturesToolBox(bool);
@@ -441,12 +431,6 @@ namespace caret {
         QAction* m_dataBorderFilesSplitAction;
         
         QMenu* m_moveSelectedTabToWindowMenu;
-        
-        QMenu* m_recentSpecFileMenu;
-        AString m_recentSpecFileMenuOpenConfirmTitle;
-        AString m_recentSpecFileMenuLoadNoConfirmTitle;
-        
-        QMenu* m_recentSceneFileMenu;
         
         QMenu* m_editMenu;
         QAction* m_editMenuRedoAction;
