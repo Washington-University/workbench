@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __RECENT_FILES_MODE_ENUM_DECLARE__
-#include "RecentFilesModeEnum.h"
-#undef __RECENT_FILES_MODE_ENUM_DECLARE__
+#define __RECENT_FILE_ITEMS_CONTAINER_MODE_ENUM_DECLARE__
+#include "RecentFileItemsContainerModeEnum.h"
+#undef __RECENT_FILE_ITEMS_CONTAINER_MODE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::RecentFilesModeEnum 
+ * \class caret::RecentFileItemsContainerModeEnum
  * \brief Enumerated type for types of recently opened files
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
@@ -49,21 +49,21 @@ using namespace caret;
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "RecentFilesModeEnum.h"
+ *         #include "RecentFileItemsContainerModeEnum.h"
  * 
  *     Instatiate:
  *         m_recentFilesModeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_recentFilesModeEnumComboBox->setup<RecentFilesModeEnum,RecentFilesModeEnum::Enum>();
+ *         m_recentFilesModeEnumComboBox->setup<RecentFileItemsContainerModeEnum,RecentFileItemsContainerModeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
  *         QObject::connect(m_recentFilesModeEnumComboBox, SIGNAL(itemActivated()),
  *                          this, SLOT(recentFilesModeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_recentFilesModeEnumComboBox->setSelectedItem<RecentFilesModeEnum,RecentFilesModeEnum::Enum>(NEW_VALUE);
+ *         m_recentFilesModeEnumComboBox->setSelectedItem<RecentFileItemsContainerModeEnum,RecentFileItemsContainerModeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const RecentFilesModeEnum::Enum VARIABLE = m_recentFilesModeEnumComboBox->getSelectedItem<RecentFilesModeEnum,RecentFilesModeEnum::Enum>();
+ *         const RecentFileItemsContainerModeEnum::Enum VARIABLE = m_recentFilesModeEnumComboBox->getSelectedItem<RecentFileItemsContainerModeEnum,RecentFileItemsContainerModeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-RecentFilesModeEnum::RecentFilesModeEnum(const Enum enumValue,
+RecentFileItemsContainerModeEnum::RecentFileItemsContainerModeEnum(const Enum enumValue,
                                          const AString& name,
                                          const AString& guiName,
                                          const AString& guiButtonName)
@@ -93,7 +93,7 @@ RecentFilesModeEnum::RecentFilesModeEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-RecentFilesModeEnum::~RecentFilesModeEnum()
+RecentFileItemsContainerModeEnum::~RecentFileItemsContainerModeEnum()
 {
 }
 
@@ -101,7 +101,7 @@ RecentFilesModeEnum::~RecentFilesModeEnum()
  * Initialize the enumerated metadata.
  */
 void
-RecentFilesModeEnum::initialize()
+RecentFileItemsContainerModeEnum::initialize()
 {
     if (initializedFlag) {
         return;
@@ -112,25 +112,31 @@ RecentFilesModeEnum::initialize()
      * Changing the order of these will affect the order in the recent files dialog buttons
      */
     
-    enumData.push_back(RecentFilesModeEnum(FAVORITES,
+    enumData.push_back(RecentFileItemsContainerModeEnum(FAVORITES,
                                            "FAVORITES",
                                            "Favorites",
                                            "Favorites"));
     
-    enumData.push_back(RecentFilesModeEnum(RECENT_FILES,
+    enumData.push_back(RecentFileItemsContainerModeEnum(RECENT_FILES,
                                            "RECENT_FILES",
                                            "Recent Files",
-                                           "Recent Files"));
+                                           "Recent\nFiles"));
     
-    enumData.push_back(RecentFilesModeEnum(DIRECTORY_SCENE_AND_SPEC_FILES,
+    const QString noButtonName("");
+    enumData.push_back(RecentFileItemsContainerModeEnum(OTHER,
+                                                        "OTHER",
+                                                        "Other",
+                                                        noButtonName));
+    
+    enumData.push_back(RecentFileItemsContainerModeEnum(DIRECTORY_SCENE_AND_SPEC_FILES,
                                            "DIRECTORY_SCENE_AND_SPEC_FILES",
                                            "Directory Scene and Spec Files",
-                                           "Current Directory"));
+                                           "Current\nDirectory"));
     
-    enumData.push_back(RecentFilesModeEnum(RECENT_DIRECTORIES,
+    enumData.push_back(RecentFileItemsContainerModeEnum(RECENT_DIRECTORIES,
                                            "RECENT_DIRECTORIES",
                                            "Recent Directories",
-                                           "Recent Directories"));
+                                           "Recent\nDirectories"));
 }
 
 /**
@@ -140,14 +146,14 @@ RecentFilesModeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const RecentFilesModeEnum*
-RecentFilesModeEnum::findData(const Enum enumValue)
+const RecentFileItemsContainerModeEnum*
+RecentFileItemsContainerModeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const RecentFilesModeEnum* d = &enumData[i];
+        const RecentFileItemsContainerModeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -164,10 +170,10 @@ RecentFilesModeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-RecentFilesModeEnum::toName(Enum enumValue) {
+RecentFileItemsContainerModeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const RecentFilesModeEnum* enumInstance = findData(enumValue);
+    const RecentFileItemsContainerModeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -181,18 +187,18 @@ RecentFilesModeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-RecentFilesModeEnum::Enum 
-RecentFilesModeEnum::fromName(const AString& name, bool* isValidOut)
+RecentFileItemsContainerModeEnum::Enum
+RecentFileItemsContainerModeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = getDefaultValue();
     
-    for (std::vector<RecentFilesModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemsContainerModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const RecentFilesModeEnum& d = *iter;
+        const RecentFileItemsContainerModeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -204,7 +210,7 @@ RecentFilesModeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type RecentFilesModeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type RecentFileItemsContainerModeEnum"));
     }
     return enumValue;
 }
@@ -217,10 +223,10 @@ RecentFilesModeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-RecentFilesModeEnum::toGuiName(Enum enumValue) {
+RecentFileItemsContainerModeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const RecentFilesModeEnum* enumInstance = findData(enumValue);
+    const RecentFileItemsContainerModeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -229,13 +235,13 @@ RecentFilesModeEnum::toGuiName(Enum enumValue) {
  * @param enumValue
  *     Enumerated value.
  * @return
- *     String representing enumerated value.
+ *     String representing enumerated value.  If empty string, then do not use as a button
  */
 AString
-RecentFilesModeEnum::toGuiButtonName(Enum enumValue) {
+RecentFileItemsContainerModeEnum::toGuiButtonName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const RecentFilesModeEnum* enumInstance = findData(enumValue);
+    const RecentFileItemsContainerModeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiButtonName;
 }
 
@@ -249,18 +255,18 @@ RecentFilesModeEnum::toGuiButtonName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-RecentFilesModeEnum::Enum 
-RecentFilesModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+RecentFileItemsContainerModeEnum::Enum
+RecentFileItemsContainerModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = getDefaultValue();
     
-    for (std::vector<RecentFilesModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemsContainerModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const RecentFilesModeEnum& d = *iter;
+        const RecentFileItemsContainerModeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -272,7 +278,7 @@ RecentFilesModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type RecentFilesModeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type RecentFileItemsContainerModeEnum"));
     }
     return enumValue;
 }
@@ -284,10 +290,10 @@ RecentFilesModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-RecentFilesModeEnum::toIntegerCode(Enum enumValue)
+RecentFileItemsContainerModeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const RecentFilesModeEnum* enumInstance = findData(enumValue);
+    const RecentFileItemsContainerModeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -302,18 +308,18 @@ RecentFilesModeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-RecentFilesModeEnum::Enum
-RecentFilesModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+RecentFileItemsContainerModeEnum::Enum
+RecentFileItemsContainerModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = getDefaultValue();
     
-    for (std::vector<RecentFilesModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemsContainerModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const RecentFilesModeEnum& enumInstance = *iter;
+        const RecentFileItemsContainerModeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -325,7 +331,7 @@ RecentFilesModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type RecentFilesModeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type RecentFileItemsContainerModeEnum"));
     }
     return enumValue;
 }
@@ -341,8 +347,8 @@ RecentFilesModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut
  * @return
  *     Default enum value.
  */
-RecentFilesModeEnum::Enum
-RecentFilesModeEnum::getDefaultValue()
+RecentFileItemsContainerModeEnum::Enum
+RecentFileItemsContainerModeEnum::getDefaultValue()
 {
     return RECENT_FILES;
 }
@@ -355,13 +361,13 @@ RecentFilesModeEnum::getDefaultValue()
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-RecentFilesModeEnum::getAllEnums(std::vector<RecentFilesModeEnum::Enum>& allEnums)
+RecentFileItemsContainerModeEnum::getAllEnums(std::vector<RecentFileItemsContainerModeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<RecentFilesModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemsContainerModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -377,16 +383,16 @@ RecentFilesModeEnum::getAllEnums(std::vector<RecentFilesModeEnum::Enum>& allEnum
  *     If true, the names are sorted in alphabetical order.
  */
 void
-RecentFilesModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+RecentFileItemsContainerModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<RecentFilesModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemsContainerModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(RecentFilesModeEnum::toName(iter->enumValue));
+        allNames.push_back(RecentFileItemsContainerModeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -403,16 +409,16 @@ RecentFilesModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSo
  *     If true, the names are sorted in alphabetical order.
  */
 void
-RecentFilesModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+RecentFileItemsContainerModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<RecentFilesModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<RecentFileItemsContainerModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(RecentFilesModeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(RecentFileItemsContainerModeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

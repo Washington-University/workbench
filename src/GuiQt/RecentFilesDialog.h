@@ -33,7 +33,7 @@ class QCheckBox;
 class QLineEdit;
 class QPushButton;
 
-#include "RecentFilesModeEnum.h"
+#include "RecentFileItemsContainerModeEnum.h"
 
 namespace caret {
 
@@ -115,9 +115,9 @@ namespace caret {
         
         QWidget* createInternetButtonsWidget();
         
-        RecentFilesModeEnum::Enum getSelectedFilesMode() const;
+        RecentFileItemsContainerModeEnum::Enum getSelectedFilesMode() const;
         
-        QAction* getActionForMode(const RecentFilesModeEnum::Enum recentFilesMode) const;
+        QAction* getActionForMode(const RecentFileItemsContainerModeEnum::Enum recentFilesMode) const;
         
         void websiteLinkActivated(const QString& link);
         
@@ -137,7 +137,11 @@ namespace caret {
         
         RecentFilesTableWidget* m_recentFilesTableWidget;
         
-        std::unique_ptr<RecentFileItemsContainer> m_directoryItemsContainer;
+        std::unique_ptr<RecentFileItemsContainer> m_currentDirectoryItemsContainer;
+        
+        std::unique_ptr<RecentFileItemsContainer> m_recentFilesItemsContainer;
+        
+        std::unique_ptr<RecentFileItemsContainer> m_recentDirectoryItemsContainer;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -1,5 +1,5 @@
-#ifndef __RECENT_FILES_MODE_ENUM_H__
-#define __RECENT_FILES_MODE_ENUM_H__
+#ifndef __RECENT_FILE_ITEMS_CONTAINER_MODE_ENUM_H__
+#define __RECENT_FILE_ITEMS_CONTAINER_MODE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class RecentFilesModeEnum {
+class RecentFileItemsContainerModeEnum {
 
 public:
     /**
@@ -39,6 +39,8 @@ public:
         DIRECTORY_SCENE_AND_SPEC_FILES,
         /** Favorites */
         FAVORITES,
+        /** Other usage not specific to any type of content */
+        OTHER,
         /** Recent directories containing recently opened or saved files */
         RECENT_DIRECTORIES,
         /** Recently opened Scene or Spec fiels*/
@@ -46,7 +48,7 @@ public:
     };
 
 
-    ~RecentFilesModeEnum();
+    ~RecentFileItemsContainerModeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -69,17 +71,17 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    RecentFilesModeEnum(const Enum enumValue, 
+    RecentFileItemsContainerModeEnum(const Enum enumValue,
                         const AString& name,
                         const AString& guiName,
                         const AString& guiButtonName);
 
-    static const RecentFilesModeEnum* findData(const Enum enumValue);
+    static const RecentFileItemsContainerModeEnum* findData(const Enum enumValue);
 
     static Enum getDefaultValue();
     
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<RecentFilesModeEnum> enumData;
+    static std::vector<RecentFileItemsContainerModeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -106,11 +108,11 @@ private:
     AString guiButtonName;
 };
 
-#ifdef __RECENT_FILES_MODE_ENUM_DECLARE__
-std::vector<RecentFilesModeEnum> RecentFilesModeEnum::enumData;
-bool RecentFilesModeEnum::initializedFlag = false;
-int32_t RecentFilesModeEnum::integerCodeCounter = 0; 
-#endif // __RECENT_FILES_MODE_ENUM_DECLARE__
+#ifdef __RECENT_FILE_ITEMS_CONTAINER_MODE_ENUM_DECLARE__
+std::vector<RecentFileItemsContainerModeEnum> RecentFileItemsContainerModeEnum::enumData;
+bool RecentFileItemsContainerModeEnum::initializedFlag = false;
+int32_t RecentFileItemsContainerModeEnum::integerCodeCounter = 0;
+#endif // __RECENT_FILE_ITEMS_CONTAINER_MODE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__RECENT_FILES_MODE_ENUM_H__
+#endif  //__RECENT_FILE_ITEMS_CONTAINER_MODE_ENUM_H__

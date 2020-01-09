@@ -40,6 +40,7 @@
 #include "BrainBrowserWindowComboBox.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
+#include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
 #include "Event.h"
 #include "EventManager.h"
@@ -503,7 +504,10 @@ MovieRecordingDialog::createMoviePrivate(QWidget* parent,
     AString errorMessage;
     const bool successFlag = movieRecorder->createMovie(filename,
                                                         errorMessage);
-    if ( ! successFlag) {
+    if (successFlag) {
+        SessionManager::get()->getCaretPreferences()->addToRecentFilesAndOrDirectories(filename);
+    }
+    else {
         WuQMessageBox::errorOk(parent,
                                errorMessage);
     }

@@ -29,10 +29,15 @@
 #include <QSettings>
 #include <QStringList>
 
+#include "ApplicationInformation.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferenceDataValue.h"
+#include "DataFileTypeEnum.h"
+#include "FileInformation.h"
 #include "ModelTransform.h"
+#include "RecentFileItem.h"
+#include "RecentFileItemsContainer.h"
 #include "TileTabsLayoutGridConfiguration.h"
 #include "TileTabsLayoutManualConfiguration.h"
 #include "WuQMacroGroup.h"
@@ -2255,6 +2260,319 @@ CaretPreferences::byteRgbToFloatRgb(const uint8_t byteRGB[3],
 {
     for (int32_t i = 0; i < 3; i++) {
         floatRGB[i] = static_cast<float>(byteRGB[i]) / 255.0;
+    }
+}
+
+/**
+ * Read the recent scene and spec files from preferences and add them to the given container.
+ *
+ *  @param container
+ *   Recent scene and spec files are added to this container
+ *  @param errorMessageOut
+ *   Container error information if false returned
+ *  @return True if successful, false if error.
+ */
+bool
+CaretPreferences::readRecentSceneAndSpecFiles(RecentFileItemsContainer* container,
+                                              AString& errorMessageOut)
+{
+    CaretAssert(container);
+    bool resultFlag(false);
+    errorMessageOut.clear();
+    
+    const AString xmlText = getString(NAME_RECENT_SCENE_AND_SPEC_FILES);
+    if ( ! xmlText.isEmpty()) {
+        resultFlag = container->readFromXML(xmlText,
+                                            errorMessageOut);
+    }
+    else {
+        /* Empty string (no previous value in preferences) is OK */
+        resultFlag = true;
+    }
+
+    return resultFlag;
+}
+
+/**
+ * Write the recent scene and spec files to preferences from the given container.
+ *
+ *  @param container
+ *   Recent scene and spec files written to preferences
+ *  @param errorMessageOut
+ *   Container error information if false returned
+ *  @return True if successful, false if error.
+ */
+bool
+CaretPreferences::writeRecentSceneAndSpecFiles(const RecentFileItemsContainer* container,
+                                               AString& errorMessageOut)
+{
+    CaretAssert(container);
+    bool resultFlag(false);
+    errorMessageOut.clear();
+
+    AString xmlText;
+    resultFlag = container->writeToXML(xmlText,
+                                       errorMessageOut);
+    if (resultFlag) {
+        setString(NAME_RECENT_SCENE_AND_SPEC_FILES,
+                  xmlText);
+    }
+
+    return resultFlag;
+}
+
+/**
+ * If the file is a scene or spec file (detected by extension) add it to recent scene/spec files.
+ * Always add the directory containing the file to the recent directories.
+ *
+ * @param filename
+ *  Name of file.
+ */
+void
+CaretPreferences::addToRecentFilesAndOrDirectories(const AString& directoryOrFileName)
+{
+    /*
+     * Only update recents directories if GUI application (wb_view)
+     */
+    if (ApplicationInformation().getApplicationType() != ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
+        return;
+    }
+    /*
+     * User could have a directory ending with a scene or spec file extension.
+     * While highly unlikely, make sure it is a file before adding to
+     * recent scene/spec files.
+     */
+    FileInformation fileInfo(directoryOrFileName);
+    if (fileInfo.isFile()) {
+        bool validFlag;
+        const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(directoryOrFileName,
+                                                                                        &validFlag);
+        if (validFlag) {
+            switch (dataFileType) {
+                case DataFileTypeEnum::SCENE:
+                case DataFileTypeEnum::SPECIFICATION:
+                    addToRecentSceneAndSpecFiles(directoryOrFileName);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    
+    /*
+     * Always update the recent directories
+     * unless a remote file (http, ftp, etc)
+     */
+    if ( ! fileInfo.isRemoteFile()) {
+        addToRecentDirectories(directoryOrFileName);
+    }
+}
+
+/**
+ * Add the given filename to the recent scene and spec files
+ * @param filename
+ *  Name of file.
+ */
+void
+CaretPreferences::addToRecentSceneAndSpecFiles(const AString& filename)
+{
+    /*
+     * Only update recents files if GUI application (wb_view)
+     */
+    if (ApplicationInformation().getApplicationType() != ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
+        return;
+    }
+    
+    if (filename.isEmpty()) {
+        return;
+    }
+    const AString errorPrefix("Error updating recent scene spec files ");
+    
+    RecentFileItemTypeEnum::Enum itemType = RecentFileItemTypeEnum::SCENE_FILE;
+    bool validFlag(false);
+    const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(filename,
+                                                                                    &validFlag);
+    if (validFlag) {
+        switch (dataFileType) {
+            case DataFileTypeEnum::SCENE:
+                itemType = RecentFileItemTypeEnum::SCENE_FILE;
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                itemType = RecentFileItemTypeEnum::SPEC_FILE;
+                break;
+            default:
+                CaretLogSevere(errorPrefix
+                               + "file extension is neither scene nor spec "
+                               + filename);
+                return;
+                break;
+        }
+    }
+    else {
+        CaretLogSevere(errorPrefix
+                       + "invalid file extension on "
+                       + filename);
+        return;
+    }
+    
+    std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstance());
+    CaretAssert(container);
+    
+    AString errorMessage;
+    bool successFlag(readRecentSceneAndSpecFiles(container.get(),
+                                                 errorMessage));
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during reading: "
+                       + errorMessage);
+        return;
+    }
+    
+    RecentFileItem* newItem = new RecentFileItem(itemType,
+                                                 filename);
+    newItem->setLastAccessDateTimeToCurrentDateTime();
+    container->addItem(newItem);
+    
+    successFlag = writeRecentSceneAndSpecFiles(container.get(),
+                                        errorMessage);
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during writing: "
+                       + errorMessage);
+        return;
+    }
+}
+
+
+/**
+ * Read the recent directories from preferences and add them to the given container.
+ *
+ *  @param container
+ *   Recent directories are added to this container
+ *  @param errorMessageOut
+ *   Container error information if false returned
+ *  @return True if successful, false if error.
+ */
+bool
+CaretPreferences::readRecentDirectories(RecentFileItemsContainer* container,
+                                        AString& errorMessageOut)
+{
+    CaretAssert(container);
+    bool resultFlag(false);
+    errorMessageOut.clear();
+    
+    const AString xmlText = getString(NAME_RECENT_DIRECTORIES);
+    if ( ! xmlText.isEmpty()) {
+        resultFlag = container->readFromXML(xmlText,
+                                            errorMessageOut);
+    }
+    else {
+        /* Empty string (no previous value in preferences) is OK */
+        resultFlag = true;
+    }
+
+    return resultFlag;
+}
+
+/**
+ * Write the recent directories to preferences from the given container.
+ *
+ *  @param container
+ *   Recent directories written to preferences
+ *  @param errorMessageOut
+ *   Container error information if false returned
+ *  @return True if successful, false if error.
+ */
+bool
+CaretPreferences::writeRecentDirectories(const RecentFileItemsContainer* container,
+                                         AString& errorMessageOut)
+{
+    CaretAssert(container);
+    bool resultFlag(false);
+    errorMessageOut.clear();
+    
+    AString xmlText;
+    resultFlag = container->writeToXML(xmlText,
+                                       errorMessageOut);
+    if (resultFlag) {
+        setString(NAME_RECENT_DIRECTORIES,
+                  xmlText);
+    }
+    
+    return resultFlag;
+}
+
+/**
+ * Add a directory (or parent directory of file) to the recent directories.  If the given directory/file is a file, the files parent
+ * directory is added to the recent directories.  If the parameter is neither a valid file nor valid directory,
+ * no action is taken.
+ *
+ * @param directoryOrFileName
+ *  Name of directory or file.
+ */
+void
+CaretPreferences::addToRecentDirectories(const AString& directoryOrFileName)
+{
+    /*
+     * Only update recents directories if GUI application (wb_view)
+     */
+    if (ApplicationInformation().getApplicationType() != ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
+        return;
+    }
+
+    AString directoryName(directoryOrFileName);
+    
+    if (directoryName.isEmpty()) {
+        return;
+    }
+    
+    const AString errorPrefix("Error updating recent directories ");
+    
+    FileInformation fileInfo(directoryName);
+    if ( ! fileInfo.isDirectory()) {
+        if (fileInfo.isFile()) {
+            directoryName = fileInfo.getAbsolutePath();
+            
+            if (directoryName.isEmpty()) {
+                CaretLogSevere(errorPrefix
+                               + " unable to determine path for file: "
+                               + directoryName);
+                return;
+            }
+        }
+        else {
+            CaretLogSevere(errorPrefix
+                           + " not a valid directory nor file: "
+                           + directoryName);
+            return;
+        }
+    }
+        
+    std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstance());
+    CaretAssert(container);
+    
+    AString errorMessage;
+    bool successFlag(readRecentDirectories(container.get(),
+                                           errorMessage));
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during reading: "
+                       + errorMessage);
+        return;
+    }
+    
+    RecentFileItem* newItem = new RecentFileItem(RecentFileItemTypeEnum::DIRECTORY,
+                                                 directoryName);
+    newItem->setLastAccessDateTimeToCurrentDateTime();
+    container->addItem(newItem);
+    
+    successFlag = writeRecentDirectories(container.get(),
+                                         errorMessage);
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during writing: "
+                       + errorMessage);
+        return;
     }
 }
 

@@ -42,6 +42,7 @@ namespace caret {
 
     class CaretPreferenceDataValue;
     class ModelTransform;
+    class RecentFileItemsContainer;
     class TileTabsLayoutBaseConfiguration;
     class WuQMacroGroup;
     
@@ -81,6 +82,20 @@ namespace caret {
         void getPreviousOpenFileDirectories(QStringList& previousOpenFileDirectories) const;
         
         void addToPreviousOpenFileDirectories(const AString& directoryName);
+        
+        void addToRecentFilesAndOrDirectories(const AString& directoryOrFileName);
+        
+        bool readRecentSceneAndSpecFiles(RecentFileItemsContainer* container,
+                                         AString& errorMessageOut);
+        
+        bool writeRecentSceneAndSpecFiles(const RecentFileItemsContainer* container,
+                                          AString& errorMessageOut);
+        
+        bool readRecentDirectories(RecentFileItemsContainer* container,
+                                   AString& errorMessageOut);
+        
+        bool writeRecentDirectories(const RecentFileItemsContainer* container,
+                                    AString& errorMessageOut);
         
         LogLevelEnum::Enum getLoggingLevel() const;
         
@@ -249,6 +264,10 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        void addToRecentSceneAndSpecFiles(const AString& filename);
+        
+        void addToRecentDirectories(const AString& directoryOrFileName);
+        
         bool getBoolean(const AString& name,
                         const bool defaultValue = false);
         
@@ -382,6 +401,7 @@ namespace caret {
         static const AString NAME_COLOR_FOREGROUND_VOLUME;
         static const AString NAME_COLOR_CHART_MATRIX_GRID_LINES;
         static const AString NAME_COLOR_CHART_HISTOGRAM_THRESHOLD;
+        static const AString NAME_CUSTOM_VIEWS;
         static const AString NAME_DEVELOP_MENU;
         static const AString NAME_DATA_TOOL_TIPS;
         static const AString NAME_DYNAMIC_CONNECTIVITY_ON;
@@ -394,7 +414,8 @@ namespace caret {
         static const AString NAME_PREVIOUS_SPEC_FILES;
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
         static const AString NAME_SPLASH_SCREEN;
-        static const AString NAME_CUSTOM_VIEWS;
+        static const AString NAME_RECENT_DIRECTORIES;
+        static const AString NAME_RECENT_SCENE_AND_SPEC_FILES;
         static const AString NAME_REMOTE_FILE_USER_NAME;
         static const AString NAME_REMOTE_FILE_PASSWORD;
         static const AString NAME_REMOTE_FILE_LOGIN_SAVED;
@@ -429,6 +450,7 @@ namespace caret {
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_VOLUME     = "colorForegroundVolume";
     const AString CaretPreferences::NAME_COLOR_CHART_MATRIX_GRID_LINES = "colorChartMatrixGridLines";
     const AString CaretPreferences::NAME_COLOR_CHART_HISTOGRAM_THRESHOLD = "colorChartHistogramThreshold";
+    const AString CaretPreferences::NAME_CUSTOM_VIEWS     = "customViews";
     const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";
     const AString CaretPreferences::NAME_DATA_TOOL_TIPS = "dataToolTips";
     const AString CaretPreferences::NAME_DYNAMIC_CONNECTIVITY_ON = "dynamicConnectivityDefaultedOn";
@@ -441,7 +463,8 @@ namespace caret {
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
     const AString CaretPreferences::NAME_SPLASH_SCREEN = "splashScreen";
-    const AString CaretPreferences::NAME_CUSTOM_VIEWS     = "customViews";
+    const AString CaretPreferences::NAME_RECENT_DIRECTORIES = "recentDirectories";
+    const AString CaretPreferences::NAME_RECENT_SCENE_AND_SPEC_FILES = "recentSceneAndSpecFiles";
     const AString CaretPreferences::NAME_REMOTE_FILE_USER_NAME = "remoteFileUserName";
     const AString CaretPreferences::NAME_REMOTE_FILE_PASSWORD = "remoteFilePassword";
     const AString CaretPreferences::NAME_REMOTE_FILE_LOGIN_SAVED = "removeFileLoginSaved";

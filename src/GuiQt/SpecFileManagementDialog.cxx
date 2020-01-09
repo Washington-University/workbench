@@ -1895,6 +1895,10 @@ SpecFileManagementDialog::okButtonClickedManageAndSaveFiles()
                     try {
                         m_brain->writeDataFile(caretDataFile);
                         specFileDataFile->setSavingSelected(false);
+
+                        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+                        CaretAssert(prefs);
+                        prefs->addToRecentFilesAndOrDirectories(caretDataFile->getFileName());
                     }
                     catch (const DataFileException& e) {
                         errorMessages.appendWithNewLine(e.whatString());
@@ -1915,7 +1919,7 @@ SpecFileManagementDialog::okButtonClickedManageAndSaveFiles()
         }
         else {
             m_specFile->removeAnyFileInformationIfNotInSpecAndNoCaretDataFile();
-            AString specFileErrorMessage = writeSpecFile(false);
+            AString specFileErrorMessage = writeSpecFile(true);
             if (specFileErrorMessage.isEmpty() == false) {
                 errorMessages.appendWithNewLine(specFileErrorMessage);
             }
@@ -1976,7 +1980,7 @@ SpecFileManagementDialog::writeSpecFile(const bool writeOnlyIfModified)
     try {
         m_specFile->writeFile(m_specFile->getFileName());
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->addToPreviousSpecFiles(m_specFile->getFileName());
+        prefs->addToRecentFilesAndOrDirectories(m_specFile->getFileName());
     }
     catch (const DataFileException& e) {
         errorMessage = e.whatString();
@@ -2138,6 +2142,11 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
         if (reloadEvent.isError()) {
             errorMessage.appendWithNewLine(reloadEvent.getErrorMessage());
         }
+        else {
+            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+            CaretAssert(prefs);
+            prefs->addToRecentFilesAndOrDirectories(caretDataFile->getFileName());
+        }
     }
     else {
         AString username;
@@ -2172,6 +2181,11 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
         
         if (readEvent.isError()) {
             errorMessage.appendWithNewLine(readEvent.getErrorMessage());
+        }
+        else {
+            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+            CaretAssert(prefs);
+            prefs->addToRecentFilesAndOrDirectories(caretDataFile->getFileName());
         }
     }
     

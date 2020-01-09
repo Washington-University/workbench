@@ -43,6 +43,7 @@
 #include "RecentFileItemsContainer.h"
 #include "RecentFileItemsFilter.h"
 #include "RecentFilesTableWidget.h"
+#include "SessionManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -112,11 +113,29 @@ RecentFilesDialog::RecentFilesDialog(const AString& dialogTitle,
     m_openPushButton->setDefault(true);
     
     Brain* brain = GuiManager::get()->getBrain();
-    m_directoryItemsContainer.reset(RecentFileItemsContainer::newInstanceSceneAndSpecFilesInDirectory(brain->getCurrentDirectory()));
+    m_currentDirectoryItemsContainer.reset(RecentFileItemsContainer::newInstanceSceneAndSpecFilesInDirectory(brain->getCurrentDirectory()));
     
-    CaretAssertToDoWarning(); // need to get from preferences
+    CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+    m_recentFilesItemsContainer.reset(RecentFileItemsContainer::newInstanceRecentSceneAndSpecFiles(preferences,
+                                                                                                   RecentFileItemsContainer::WriteIfModifiedType::WRITE_YES));
     
-    const RecentFilesModeEnum::Enum selectedMode = RecentFilesModeEnum::RECENT_FILES;
+    m_recentDirectoryItemsContainer.reset(RecentFileItemsContainer::newInstanceRecentDirectories(preferences,
+                                                                                                 RecentFileItemsContainer::WriteIfModifiedType::WRITE_YES));
+    
+    /*
+     * Default to a non-empty container
+     */
+    RecentFileItemsContainerModeEnum::Enum selectedMode = RecentFileItemsContainerModeEnum::RECENT_FILES;
+    if ( ! m_recentFilesItemsContainer->isEmpty()) {
+        selectedMode = RecentFileItemsContainerModeEnum::RECENT_FILES;
+    }
+    else if ( ! m_recentDirectoryItemsContainer->isEmpty()) {
+        selectedMode = RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES;
+    }
+    else if ( ! m_currentDirectoryItemsContainer->isEmpty()) {
+        selectedMode = RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES;
+    }
+    
     QAction* selectedAction = getActionForMode(selectedMode);
     selectedAction->trigger();
     
@@ -168,24 +187,7 @@ RecentFilesDialog::runDialog(const RunMode runMode,
     rfd.exec();
     
     ResultModeEnum resultMode = rfd.getResultMode();
-    switch (resultMode) {
-        case ResultModeEnum::CANCEL:
-            std::cout << "RESULT: Cancel" << std::endl;
-            break;
-        case ResultModeEnum::OPEN_DIRECTORY:
-            std::cout << "RESULT: Open Directory" << std::endl;
-            break;
-        case ResultModeEnum::OPEN_FILE:
-            std::cout << "RESULT: Open File" << std::endl;
-            break;
-        case ResultModeEnum::OPEN_OTHER:
-            std::cout << "RESULT: Open Other" << std::endl;
-            break;
-    }
-    
     nameOut = rfd.getSelectedDirectoryOrFileName();
-    
-    std::cout << "RESULT FILE NAME: " << nameOut << std::endl;
     
     return resultMode;
 }
@@ -264,10 +266,14 @@ RecentFilesDialog::createFilesFilteringWidget()
 QWidget*
 RecentFilesDialog::createDialogButtonsWidget()
 {
-    QPushButton* testPushButton = new QPushButton("Test XML Read/Write");
-    QObject::connect(testPushButton, &QPushButton::clicked,
-                     this, &RecentFilesDialog::testButtonClicked);
-    
+    bool showTestButtonFlag(false);
+    QPushButton* testPushButton(NULL);
+    if (showTestButtonFlag) {
+        testPushButton = new QPushButton("Test XML Read/Write");
+        QObject::connect(testPushButton, &QPushButton::clicked,
+                         this, &RecentFilesDialog::testButtonClicked);
+    }
+
     m_openPushButton = new QPushButton("Open");
     QObject::connect(m_openPushButton, &QPushButton::clicked,
                      this, &RecentFilesDialog::openButtonClicked);
@@ -283,8 +289,10 @@ RecentFilesDialog::createDialogButtonsWidget()
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
     layout->addStretch();
-    layout->addWidget(testPushButton);
-    layout->addSpacing(50);
+    if (testPushButton != NULL) {
+        layout->addWidget(testPushButton);
+        layout->addSpacing(50);
+    }
     layout->addWidget(openOtherPushButton);
     layout->addWidget(m_openPushButton);
     layout->addWidget(cancelPushButton);
@@ -300,20 +308,19 @@ RecentFilesDialog::createFileTypesButtonWidget()
 {
     m_fileTypeModeActionGroup = new QActionGroup(this);
     
-    std::vector<RecentFilesModeEnum::Enum> modes;
-    RecentFilesModeEnum::getAllEnums(modes);
+    std::vector<RecentFileItemsContainerModeEnum::Enum> modes;
+   RecentFileItemsContainerModeEnum::getAllEnums(modes);
     
     std::vector<QToolButton*> toolButtons;
     for (auto m : modes) {
-        AString modeName(RecentFilesModeEnum::toGuiButtonName(m));
-        int32_t spaceIndex = modeName.indexOf(' ');
-        if (spaceIndex > 0) {
-            /* items with multiple words span to two lines */
-            modeName[spaceIndex] = '\n';
+        AString buttonText(RecentFileItemsContainerModeEnum::toGuiButtonName(m));
+        if (buttonText.isEmpty()) {
+            /* Mode is not valid in dialog */
+            continue;
         }
         
-        QAction* action = m_fileTypeModeActionGroup->addAction(modeName);
-        action->setData(RecentFilesModeEnum::toName(m));
+        QAction* action = m_fileTypeModeActionGroup->addAction(buttonText);
+        action->setData(RecentFileItemsContainerModeEnum::toName(m));
         action->setCheckable(true);
         action->setToolTip("");
         
@@ -455,37 +462,6 @@ RecentFilesDialog::filesModeActionTriggered(QAction* action)
     CaretAssert(action);
     
     updateFilesTableContent();
-    
-//    switch (getSelectedFilesMode()) {
-//        case RecentFilesModeEnum::CURRENT_DIRECTORY_FILES:
-//        {
-//            RecentFileItemsFilter itemsFilter;
-//            m_recentFilesTableWidget->updateContent(m_directoryItemsContainer.get(),
-//                                                    itemsFilter);
-//        }
-//            break;
-//        case RecentFilesModeEnum::FAVORITES:
-//        {
-//            RecentFileItemsFilter itemsFilter;
-//            m_recentFilesTableWidget->updateContent(NULL,
-//                                                    itemsFilter);
-//        }
-//            break;
-//        case RecentFilesModeEnum::RECENT_DIRECTORIES:
-//        {
-//            RecentFileItemsFilter itemsFilter;
-//            m_recentFilesTableWidget->updateContent(NULL,
-//                                                    itemsFilter);
-//        }
-//            break;
-//        case RecentFilesModeEnum::RECENT_FILES:
-//        {
-//            RecentFileItemsFilter itemsFilter;
-//            m_recentFilesTableWidget->updateContent(NULL,
-//                                                    itemsFilter);
-//        }
-//            break;
-//    }
 }
 
 /**
@@ -498,18 +474,28 @@ RecentFilesDialog::updateFilesTableContent()
     RecentFileItemsContainer* itemsContainer(NULL);
     
     switch (getSelectedFilesMode()) {
-        case RecentFilesModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
-            itemsContainer = m_directoryItemsContainer.get();
+        case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+            itemsContainer = m_currentDirectoryItemsContainer.get();
             filter.setShowSceneFiles(m_showSceneFilesCheckBox->isChecked());
             filter.setShowSpecFiles(m_showSpecFilesCheckBox->isChecked());
             filter.setNameMatching(m_nameFilterLineEdit->text().trimmed());
             break;
-        case RecentFilesModeEnum::FAVORITES:
+        case RecentFileItemsContainerModeEnum::FAVORITES:
             filter.setFavoritesOnly(true);
             break;
-        case RecentFilesModeEnum::RECENT_DIRECTORIES:
+        case RecentFileItemsContainerModeEnum::OTHER:
+            CaretAssertMessage(0, "OTHER not used in dialog");
             break;
-        case RecentFilesModeEnum::RECENT_FILES:
+        case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
+            itemsContainer = m_recentDirectoryItemsContainer.get();
+            filter.setShowDirectories(true);
+            filter.setNameMatching(m_nameFilterLineEdit->text().trimmed());
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_FILES:
+            itemsContainer = m_recentFilesItemsContainer.get();
+            filter.setShowSceneFiles(m_showSceneFilesCheckBox->isChecked());
+            filter.setShowSpecFiles(m_showSpecFilesCheckBox->isChecked());
+            filter.setNameMatching(m_nameFilterLineEdit->text().trimmed());
             break;
     }
     
@@ -519,17 +505,17 @@ RecentFilesDialog::updateFilesTableContent()
 /**
  * @return The selected files mode
  */
-RecentFilesModeEnum::Enum
+RecentFileItemsContainerModeEnum::Enum
 RecentFilesDialog::getSelectedFilesMode() const
 {
-    RecentFilesModeEnum::Enum mode = RecentFilesModeEnum::RECENT_FILES;
+   RecentFileItemsContainerModeEnum::Enum mode =RecentFileItemsContainerModeEnum::RECENT_FILES;
     
     QAction* selectedAction = m_fileTypeModeActionGroup->checkedAction();
     CaretAssert(selectedAction);
     
     const AString modeName = selectedAction->data().toString();
     bool validFlag(false);
-    mode = RecentFilesModeEnum::fromName(modeName, &validFlag);
+    mode =RecentFileItemsContainerModeEnum::fromName(modeName, &validFlag);
     CaretAssert(validFlag);
     
     return mode;
@@ -541,9 +527,9 @@ RecentFilesDialog::getSelectedFilesMode() const
  *     The mode
  */
 QAction*
-RecentFilesDialog::getActionForMode(const RecentFilesModeEnum::Enum recentFilesMode) const
+RecentFilesDialog::getActionForMode(const RecentFileItemsContainerModeEnum::Enum recentFilesMode) const
 {
-    const AString modeName(RecentFilesModeEnum::toName(recentFilesMode));
+    const AString modeName(RecentFileItemsContainerModeEnum::toName(recentFilesMode));
     
     QAction* actionOut(NULL);
     
@@ -645,8 +631,8 @@ RecentFilesDialog::tableWidgetItemDoubleClicked(RecentFileItem* item)
 void
 RecentFilesDialog::testButtonClicked()
 {
-    if (m_directoryItemsContainer != NULL) {
-        m_directoryItemsContainer->testXmlReadingAndWriting();
+    if (m_currentDirectoryItemsContainer != NULL) {
+        m_currentDirectoryItemsContainer->testXmlReadingAndWriting();
     }
 }
 

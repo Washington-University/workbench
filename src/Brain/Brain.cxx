@@ -3432,14 +3432,6 @@ Brain::addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
     if (readFlag) {
         try {
             try {
-                /*
-                 * Add to recent scene files
-                 */
-                if (FileInformation(filename).exists()) {
-                    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-                    prefs->addToPreviousSceneFiles(filename);
-                }
-                
                 sf->readFile(filename);
             }
             catch (const std::bad_alloc&) {
@@ -5591,14 +5583,14 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     const AString specFileName = sf->getFileName();
     if (DataFile::isFileOnNetwork(specFileName)) {
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->addToPreviousSpecFiles(specFileName);
+        prefs->addToRecentFilesAndOrDirectories(specFileName);
     }
     else {
         FileInformation specFileInfo(specFileName);
         if (specFileInfo.exists()
             && specFileInfo.isAbsolute()) {
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            prefs->addToPreviousSpecFiles(specFileName);
+            prefs->addToRecentFilesAndOrDirectories(specFileName);
         }
     }
     
@@ -6862,10 +6854,10 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
         case DataFileTypeEnum::SCENE:
         {
             /*
-             * Add to recent scene files
+             * Add to recent scene/spec files
              */
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            prefs->addToPreviousSceneFiles(caretDataFile->getFileName());
+            prefs->addToRecentFilesAndOrDirectories(caretDataFile->getFileName());
         }
             break;
         case DataFileTypeEnum::SPECIFICATION:

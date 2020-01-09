@@ -24,11 +24,12 @@
 
 
 #include <memory>
+#include <set>
 
 #include "CaretObjectTracksModification.h"
 #include "RecentFileItemSortingKeyEnum.h"
 #include "RecentFileItemTypeEnum.h"
-#include "RecentFilesModeEnum.h"
+#include "RecentFileItemsContainerModeEnum.h"
 
 class QXmlStreamReader;
 
@@ -51,6 +52,8 @@ namespace caret {
             WRITE_YES
         };
         
+        static RecentFileItemsContainer* newInstance();
+        
         static RecentFileItemsContainer* newInstanceSceneAndSpecFilesInDirectory(const AString& directoryPath);
         
         static RecentFileItemsContainer* newInstanceRecentSceneAndSpecFiles(CaretPreferences* preferences,
@@ -65,11 +68,15 @@ namespace caret {
 
         RecentFileItemsContainer& operator=(const RecentFileItemsContainer&) = delete;
 
+        bool isEmpty() const;
+        
         std::vector<RecentFileItem*> getItems(const RecentFileItemsFilter& itemsFilter) const;
                 
         void addItem(RecentFileItem* recentFile);
         
-        void clear();
+        void removeAllItems();
+        
+        RecentFileItemsContainerModeEnum::Enum getMode() const;
         
         virtual bool isModified() const;
         
@@ -79,7 +86,8 @@ namespace caret {
 
         virtual AString toString() const;
         
-        void sort(const RecentFileItemSortingKeyEnum::Enum sortingKey);
+        static void sort(const RecentFileItemSortingKeyEnum::Enum sortingKey,
+                         std::vector<RecentFileItem*>& items);
         
         bool readFromXML(const AString& xml,
                          AString& errorMessageOut);
@@ -90,7 +98,7 @@ namespace caret {
         void testXmlReadingAndWriting();
         
     private:
-        RecentFileItemsContainer(const RecentFilesModeEnum::Enum mode,
+        RecentFileItemsContainer(const RecentFileItemsContainerModeEnum::Enum mode,
                                  const WriteIfModifiedType writeIfModifiedType);
         
         void addFilesInDirectoryToRecentItems(const RecentFileItemTypeEnum::Enum recentFileItemType,
@@ -100,11 +108,26 @@ namespace caret {
         
         void readFromXMLVersionOneRecentFileItem(QXmlStreamReader& reader);
         
-        RecentFilesModeEnum::Enum m_mode;
+        RecentFileItemsContainerModeEnum::Enum m_mode;
         
-        const WriteIfModifiedType m_writeIfModifiedType = WriteIfModifiedType::WRITE_NO;
+        CaretPreferences* m_caretPreferences = NULL;
         
-        std::vector<std::unique_ptr<RecentFileItem>> m_recentFiles;
+        const WriteIfModifiedType m_writeIfModifiedType;
+
+        /**
+         * Used with the SET containing RecentFileItems to compare using the path and filename.
+         * Without this, just pointers are inserted and that would allow duplicates with same path and filename.
+         */
+        struct ItemCompare {
+            bool operator() (const RecentFileItem* lhs, const RecentFileItem* rhs) const;
+        };
+        
+        /**
+         * Set containing RecentFileItem's.  Note use of comparison operator so that
+         * comparison is performed on content of the RecentFileItem and NOT the pointers.
+         * A set is used to avoid duplicate entries.
+         */
+        std::set<RecentFileItem*, ItemCompare> m_recentFiles;
         
         // ADD_NEW_MEMBERS_HERE
 

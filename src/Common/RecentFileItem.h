@@ -46,6 +46,8 @@ namespace caret {
         
         bool operator<(const RecentFileItem& obj) const;
 
+        bool operator==(const RecentFileItem& obj) const;
+        
         RecentFileItemTypeEnum::Enum getFileItemType() const;
         
         AString getLastAccessDateTimeAsString() const;

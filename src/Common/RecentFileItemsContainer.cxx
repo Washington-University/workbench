@@ -29,6 +29,7 @@
 #include <QXmlStreamWriter>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "DataFileTypeEnum.h"
 #include "RecentFileItem.h"
@@ -51,7 +52,7 @@ using namespace caret;
  * @param writeIfModifiedType
  * Mode for writing if modified when instance is destroyed
  */
-RecentFileItemsContainer::RecentFileItemsContainer(const RecentFilesModeEnum::Enum mode,
+RecentFileItemsContainer::RecentFileItemsContainer(const RecentFileItemsContainerModeEnum::Enum mode,
                                                    const WriteIfModifiedType writeIfModifiedType)
 : CaretObjectTracksModification(),
 m_mode(mode),
@@ -65,21 +66,63 @@ m_writeIfModifiedType(writeIfModifiedType)
 RecentFileItemsContainer::~RecentFileItemsContainer()
 {
     if (isModified()) {
-        std::cout << RecentFilesModeEnum::toName(m_mode) << " is modified." << std::endl;
-        
-        switch (m_mode) {
-            case RecentFilesModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
-                /* Nothing to write */
+        bool writeFlag(false);
+        switch (m_writeIfModifiedType) {
+            case WRITE_NO:
+                writeFlag = false;
                 break;
-            case RecentFilesModeEnum::FAVORITES:
-                /* Nothing to write */
-                break;
-            case RecentFilesModeEnum::RECENT_DIRECTORIES:
-                break;
-            case RecentFilesModeEnum::RECENT_FILES:
+            case WRITE_YES:
+                writeFlag = true;
                 break;
         }
+        
+        if (writeFlag) {
+            switch (m_mode) {
+                case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+                    /* Nothing to write */
+                    break;
+                case RecentFileItemsContainerModeEnum::FAVORITES:
+                    /* Nothing to write */
+                    break;
+                case RecentFileItemsContainerModeEnum::OTHER:
+                    /* Nothing to write */
+                    break;
+                case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
+                {
+                    CaretAssert(m_caretPreferences);
+                    AString errorMessage;
+                    if ( ! m_caretPreferences->writeRecentDirectories(this, errorMessage)) {
+                        CaretLogSevere("Failed to write recent directories to preferences: "
+                                       + errorMessage);
+                    }
+                }
+                    break;
+                case RecentFileItemsContainerModeEnum::RECENT_FILES:
+                {
+                    CaretAssert(m_caretPreferences);
+                    AString errorMessage;
+                    if ( ! m_caretPreferences->writeRecentSceneAndSpecFiles(this, errorMessage)) {
+                        CaretLogSevere("Failed to write recent scene and spec files to preferences: "
+                                       + errorMessage);
+                    }
+                }
+                    break;
+            }
+        }
     }
+    
+    removeAllItems();
+}
+
+/**
+ * @return New instance for other usage.  
+ */
+RecentFileItemsContainer*
+RecentFileItemsContainer::newInstance()
+{
+    RecentFileItemsContainer* container = new RecentFileItemsContainer(RecentFileItemsContainerModeEnum::OTHER,
+                                                                       WriteIfModifiedType::WRITE_NO);
+    return container;
 }
 
 /**
@@ -90,8 +133,9 @@ RecentFileItemsContainer::~RecentFileItemsContainer()
 RecentFileItemsContainer*
 RecentFileItemsContainer::newInstanceSceneAndSpecFilesInDirectory(const AString& directoryPath)
 {
-    RecentFileItemsContainer* container = new RecentFileItemsContainer(RecentFilesModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES,
+    RecentFileItemsContainer* container = new RecentFileItemsContainer(RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES,
                                                                        WriteIfModifiedType::WRITE_NO);
+    CaretAssert(container);
     container->addFilesInDirectoryToRecentItems(RecentFileItemTypeEnum::SCENE_FILE,
                                                 directoryPath);
     container->addFilesInDirectoryToRecentItems(RecentFileItemTypeEnum::SPEC_FILE,
@@ -110,7 +154,18 @@ RecentFileItemsContainer*
 RecentFileItemsContainer::newInstanceRecentSceneAndSpecFiles(CaretPreferences* preferences,
                                                              const WriteIfModifiedType writeIfModifiedType)
 {
-    RecentFileItemsContainer* container(NULL);
+    RecentFileItemsContainer* container = new RecentFileItemsContainer(RecentFileItemsContainerModeEnum::RECENT_FILES,
+                                                                       writeIfModifiedType);
+    CaretAssert(container);
+    container->m_caretPreferences = preferences;
+    
+    AString errorMessage;
+    const bool flag = preferences->readRecentSceneAndSpecFiles(container,
+                                                               errorMessage);
+    if ( ! flag) {
+        CaretLogSevere("Reading recent scene/spec files from preferences: "
+                       + errorMessage);
+    }
     return container;
 }
 
@@ -125,10 +180,20 @@ RecentFileItemsContainer*
 RecentFileItemsContainer::newInstanceRecentDirectories(CaretPreferences* preferences,
                                                        const WriteIfModifiedType writeIfModifiedType)
 {
-    RecentFileItemsContainer* container(NULL);
+    RecentFileItemsContainer* container = new RecentFileItemsContainer(RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES,
+                                                                       writeIfModifiedType);
+    CaretAssert(container);
+    container->m_caretPreferences = preferences;
+    
+    AString errorMessage;
+    const bool flag = preferences->readRecentDirectories(container,
+                                                         errorMessage);
+    if ( ! flag) {
+        CaretLogSevere("Reading recent directories from preferences: "
+                       + errorMessage);
+    }
     return container;
 }
-
 
 /**
  *@return True if this instance has been modified, else false.
@@ -163,25 +228,64 @@ RecentFileItemsContainer::clearModified()
 }
 
 /**
- * Add an item to this container
+ * @return The mode
+ */
+RecentFileItemsContainerModeEnum::Enum
+RecentFileItemsContainer::getMode() const
+{
+    return m_mode;
+}
+
+/**
+ * Add an item to this container.  If an item with the same name is already in the container, it is removed
+ * and the given item is added.
  * @param recentFile
- * Recent file item that is added will be managed (destroyed at appropriate time) by this container
+ * Recent file item that is added will be managed (destroyed at appropriate time) by this container1111
  */
 void
 RecentFileItemsContainer::addItem(RecentFileItem* recentFile)
 {
     CaretAssert(recentFile);
-    
-    std::unique_ptr<RecentFileItem> ptr(recentFile);
-    m_recentFiles.push_back(std::move(ptr));
+
+    /*
+     * Returned pair contains iterator (first) and a boolean (second).
+     * If the boolean is FALSE, that means the new items was NOT inserted
+     * since it duplicates an item already in the set.
+     */
+    auto iter = m_recentFiles.insert(recentFile);
+    if (iter.second) {
+        /* Item was inserted */
+    }
+    else {
+        /*
+         * Remove existing item from the set.
+         */
+        RecentFileItem* item = *iter.first;
+        CaretAssert(item);
+        m_recentFiles.erase(iter.first);
+        delete item;
+        
+        /*
+         * Insert the new item
+         */
+        auto iterTwo = m_recentFiles.insert(recentFile);
+        if ( ! iterTwo.second) {
+            CaretLogSevere("Failed to replace with recent file item "
+                           + recentFile->getPathAndFileName());
+        }
+    }
 }
 
 /**
- * Clear all items in this container
+ * Remove all items in this container
  */
 void
-RecentFileItemsContainer::clear()
+RecentFileItemsContainer::removeAllItems()
 {
+    for (auto re : m_recentFiles) {
+        CaretAssert(re);
+        delete re;
+    }
     m_recentFiles.clear();
 }
 
@@ -218,6 +322,20 @@ RecentFileItemsContainer::addFilesInDirectoryToRecentItems(const RecentFileItemT
                                                       name);
         addItem(fileItem);
     }
+    for (auto name : fileNames) {
+        RecentFileItem* fileItem = new RecentFileItem(recentFileItemType,
+                                                      name);
+        addItem(fileItem);
+    }
+}
+
+/**
+ * @return True if this container is empty (no recent file items)
+ */
+bool
+RecentFileItemsContainer::isEmpty() const
+{
+    return m_recentFiles.empty();
 }
 
 /**
@@ -235,8 +353,8 @@ RecentFileItemsContainer::getItems(const RecentFileItemsFilter& itemsFilter) con
     
     for (const auto& item : m_recentFiles) {
         CaretAssert(item);
-        if (itemsFilter.testItemPassesFilter(item.get())) {
-            itemsOut.push_back(item.get());
+        if (itemsFilter.testItemPassesFilter(item)) {
+            itemsOut.push_back(item);
         }
     }
     
@@ -259,28 +377,29 @@ RecentFileItemsContainer::toString() const
  *    Key on which to sort
  */
 void
-RecentFileItemsContainer::sort(const RecentFileItemSortingKeyEnum::Enum sortingKey)
+RecentFileItemsContainer::sort(const RecentFileItemSortingKeyEnum::Enum sortingKey,
+                               std::vector<RecentFileItem*>& items)
 {
     switch (sortingKey) {
         case RecentFileItemSortingKeyEnum::DATE_ASCENDING:
-            std::sort(m_recentFiles.begin(),
-                      m_recentFiles.end(),
-                      [](const std::unique_ptr<RecentFileItem>& a, const std::unique_ptr<RecentFileItem>& b) { return a->getLastAccessDateTime() < b->getLastAccessDateTime(); });
+            std::sort(items.begin(),
+                      items.end(),
+                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getLastAccessDateTime() < b->getLastAccessDateTime(); });
             break;
         case RecentFileItemSortingKeyEnum::DATE_DESCENDING:
-            std::sort(m_recentFiles.begin(),
-                      m_recentFiles.end(),
-                      [](const std::unique_ptr<RecentFileItem>& a, const std::unique_ptr<RecentFileItem>& b) { return a->getLastAccessDateTime() > b->getLastAccessDateTime(); });
+            std::sort(items.begin(),
+                      items.end(),
+                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getLastAccessDateTime() > b->getLastAccessDateTime(); });
             break;
         case RecentFileItemSortingKeyEnum::NAME_ASCENDING:
-            std::sort(m_recentFiles.begin(),
-                      m_recentFiles.end(),
-                      [](const std::unique_ptr<RecentFileItem>& a, const std::unique_ptr<RecentFileItem>& b) { return a->getFileName() < b->getFileName(); });
+            std::sort(items.begin(),
+                      items.end(),
+                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getFileName() < b->getFileName(); });
             break;
         case RecentFileItemSortingKeyEnum::NAME_DESCENDING:
-            std::sort(m_recentFiles.begin(),
-                      m_recentFiles.end(),
-                      [](const std::unique_ptr<RecentFileItem>& a, const std::unique_ptr<RecentFileItem>& b) { return a->getFileName() > b->getFileName(); });
+            std::sort(items.begin(),
+                      items.end(),
+                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getFileName() > b->getFileName(); });
             break;
     }
 }
@@ -299,13 +418,13 @@ RecentFileItemsContainer::readFromXML(const AString& xml,
                                       AString& errorMessageOut)
 {
     errorMessageOut.clear();
-    m_recentFiles.clear();
+    removeAllItems();
     
     QXmlStreamReader reader(xml);
     if (reader.atEnd()) {
         /* empty string is OK */
         clearModified();
-        return false;
+        return true;
     }
     
     clearModified();
@@ -439,8 +558,6 @@ RecentFileItemsContainer::readFromXMLVersionOneRecentFileItem(QXmlStreamReader& 
     item->setLastAccessDateTimeFromString(dateAndTimeString);
     
     addItem(item);
-    
-    sort(RecentFileItemSortingKeyEnum::NAME_ASCENDING);
 }
 
 /**
@@ -493,8 +610,6 @@ RecentFileItemsContainer::writeToXML(AString& xml,
 void
 RecentFileItemsContainer::testXmlReadingAndWriting()
 {
-    sort(RecentFileItemSortingKeyEnum::NAME_ASCENDING);
-    
     const int32_t validCount = static_cast<int32_t>(m_recentFiles.size());
     AString xmlOne;
     AString errorMessage;
@@ -537,4 +652,19 @@ RecentFileItemsContainer::testXmlReadingAndWriting()
     std::cout << "XML Read/Write Testing Successful" << std::endl;
 }
 
-
+/**
+ * Comparison operation used by the SET containing the RecentFileItems.
+ * @param lhs
+ *  First item for comparison.
+ * @param lhs
+ *  Second item for comparison.
+ * @return
+ *     True if "lhs" is less than "rhs"
+ */
+bool
+RecentFileItemsContainer::ItemCompare::operator() (const RecentFileItem* lhs, const RecentFileItem* rhs) const
+{
+    CaretAssert(lhs);
+    CaretAssert(rhs);
+    return (lhs->getPathAndFileName() < rhs->getPathAndFileName());
+}

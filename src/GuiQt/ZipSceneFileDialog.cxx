@@ -37,11 +37,13 @@
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "SceneBasePathWidget.h"
+#include "SessionManager.h"
 #include "SceneFile.h"
 #include "SystemUtilities.h"
 #include "WuQMessageBox.h"
@@ -255,7 +257,12 @@ ZipSceneFileDialog::okButtonClicked()
                                                                             zipFileName,
                                                                             errorMessage);
         
-        if ( ! successFlag) {
+        if (successFlag) {
+            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+            CaretAssert(prefs);
+            prefs->addToRecentFilesAndOrDirectories(m_sceneFile->getFileName());
+        }
+        else {
             if (errorMessage.isEmpty()) {
                 errorMessage = "Zipping scene file failed with unknown error.";
             }

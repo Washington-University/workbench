@@ -53,7 +53,15 @@ m_pathAndFileName(pathAndFileName)
     FileInformation fileInfo(pathAndFileName);
     m_pathAndFileName = fileInfo.getAbsoluteFilePath();
     
-    m_pathName = fileInfo.getAbsolutePath();
+    switch (m_fileItemType) {
+        case RecentFileItemTypeEnum::DIRECTORY:
+            m_pathName = m_pathAndFileName; /* directory !!! */
+            break;
+        case RecentFileItemTypeEnum::SCENE_FILE:
+        case RecentFileItemTypeEnum::SPEC_FILE:
+            m_pathName = fileInfo.getAbsolutePath();
+            break;
+    }
     m_fileName = fileInfo.getFileName();
     m_forgetFlag   = false;
     m_notFoundFlag = ( ! fileInfo.exists());
@@ -116,9 +124,9 @@ RecentFileItem::copyHelperRecentFileItem(const RecentFileItem& obj)
 }
 
 /**
- * Less than operator.
+ * Less than operator that compares by path and name
  * @param obj
- *    Instance compared to this for equality.
+ *    Instance compared to this for less than comparison.
  * @return 
  *    True if this instance is less than 'obj' instance.
  */
@@ -129,10 +137,24 @@ RecentFileItem::operator<(const RecentFileItem& obj) const
         return false;
     }
 
-    CaretAssert( ! m_lastAccessDateTime.isNull());
-    CaretAssert( ! obj.m_lastAccessDateTime.isNull());
+    return (m_pathAndFileName < obj.m_pathAndFileName);
+}
+
+/**
+ * Equality operator that compares by path and name
+ * @param obj
+ *    Instance compared to this for equality.
+ * @return
+ *    True if this instance is less than 'obj' instance.
+ */
+bool
+RecentFileItem::operator==(const RecentFileItem& obj) const
+{
+    if (this == &obj) {
+        return true;
+    }
     
-    return (m_lastAccessDateTime < obj.m_lastAccessDateTime);
+    return (m_pathAndFileName == obj.m_pathAndFileName);
 }
 
 /**

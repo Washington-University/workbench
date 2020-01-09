@@ -26,6 +26,8 @@
 #include <QTableWidget>
 
 #include "AString.h"
+#include "RecentFileItemSortingKeyEnum.h"
+#include "RecentFileItemsFilter.h"
 
 class QLabel;
 class QTableWidgetItem;
@@ -34,7 +36,6 @@ namespace caret {
     class CaretMappableDataFile;
     class RecentFileItem;
     class RecentFileItemsContainer;
-    class RecentFileItemsFilter;
     
     class RecentFilesTableWidget : public QTableWidget {
         
@@ -91,11 +92,17 @@ namespace caret {
         
         void clearSelectedItem();
         
+        void sortRecentItems();
+        
+        void updateHeaderSortingKey();
+        
+        void showShareMenuForRow(const int32_t rowIndex);
+        
         int32_t m_lastNumberRecentItems = 0;
         
         RecentFileItemsContainer* m_recentFileItemsContainer = NULL;
         
-        std::unique_ptr<RecentFileItemsFilter> m_recentFileItemsFilter;
+        RecentFileItemsFilter m_recentFileItemsFilter;
         
         std::vector<RecentFileItem*> m_recentItems;
         
@@ -111,6 +118,8 @@ namespace caret {
         
         std::unique_ptr<QIcon> m_forgetOnIcon;
         
+        RecentFileItemSortingKeyEnum::Enum m_sortingKey = RecentFileItemSortingKeyEnum::DATE_DESCENDING;
+
         static const int32_t s_pixmapSizeXY;
         
         // ADD_NEW_MEMBERS_HERE

@@ -2360,7 +2360,6 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
         SpecFile specFile;
         try {
             specFile.readFile(specFileName);
-            SessionManager::get()->getCaretPreferences()->addToPreviousSpecFiles(specFileName);
 
             
             if (m_recentSpecFileMenu->title() == m_recentSpecFileMenuOpenConfirmTitle) {
@@ -3376,13 +3375,18 @@ BrainBrowserWindow::processDataFileOpen()
                 filenamesVector.push_back(name);
             }
             
-                std::vector<DataFileTypeEnum::Enum> dataFileTypesDummyNotUsed;
-                loadFiles(this,
-                          filenamesVector,
-                          dataFileTypesDummyNotUsed,
-                          LOAD_SPEC_FILE_WITH_DIALOG,
-                          "",
-                          "");
+            std::vector<DataFileTypeEnum::Enum> dataFileTypesDummyNotUsed;
+            loadFiles(this,
+                      filenamesVector,
+                      dataFileTypesDummyNotUsed,
+                      LOAD_SPEC_FILE_WITH_DIALOG,
+                      "",
+                      "");
+            
+            for (auto name : filenamesVector) {
+                CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+                prefs->addToRecentFilesAndOrDirectories(name);
+            }
         }
         s_previousOpenFileNameFilter = fd.selectedNameFilter();
         s_previousOpenFileDirectory  = fd.directory().absolutePath();
@@ -3505,6 +3509,12 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
               loadSpecFileMode,
               userName,
               password);
+    
+    for (auto name : filenames) {
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        prefs->addToRecentFilesAndOrDirectories(name);
+    }
+
 }
 
 /**
@@ -3729,7 +3739,7 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                 specFileName = fileInfo.getAbsoluteFilePath();
             }
             if (fileInfo.exists()) {
-                SessionManager::get()->getCaretPreferences()->addToPreviousSpecFiles(specFileName);
+                SessionManager::get()->getCaretPreferences()->addToRecentFilesAndOrDirectories(specFileName);
             }
             specFile.readFile(specFileName);
             

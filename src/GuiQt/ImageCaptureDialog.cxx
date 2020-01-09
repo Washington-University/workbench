@@ -64,8 +64,6 @@
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::ImageCaptureDialog 
  * \brief Dialog for capturing images.
@@ -1136,6 +1134,7 @@ ImageCaptureDialog::applyButtonClicked()
             
             try {
                 imageFile.writeFile(imageFileName);
+                SessionManager::get()->getCaretPreferences()->addToRecentFilesAndOrDirectories(imageFileName);
             }
             catch (const DataFileException& /*e*/) {
                 QString msg("Unable to save: " + imageFileName);

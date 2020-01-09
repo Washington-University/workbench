@@ -2789,7 +2789,7 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
          */
         if ( ! sceneFile->isModified()) {
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            prefs->addToPreviousSceneFiles(sceneFile->getFileName());
+            prefs->addToRecentFilesAndOrDirectories(sceneFile->getFileName());
         }
     }
     else {

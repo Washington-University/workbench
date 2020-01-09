@@ -23,10 +23,16 @@
 #include "RecentFilesTableWidget.h"
 #undef __RECENT_FILES_TABLE_WIDGET_DECLARE__
 
+#include <QApplication>
+#include <QClipboard>
+#include <QDesktopServices>
+#include <QCursor>
 #include <QHeaderView>
 #include <QLabel>
+#include <QMenu>
 #include <QTableWidget>
 #include <QTableWidgetItem>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
@@ -53,7 +59,7 @@ RecentFilesTableWidget::RecentFilesTableWidget()
 : QTableWidget()
 {
     setAlternatingRowColors(true);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setSelectionMode(QAbstractItemView::SingleSelection);
     
     QHeaderView* horizHeader = horizontalHeader();
@@ -285,11 +291,12 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
         previousSelectedItem = NULL;
     }
     
-    m_recentFileItemsFilter.reset(new RecentFileItemsFilter(itemsFilter));
+    m_recentFileItemsFilter = itemsFilter;
     
     m_recentFileItemsContainer = recentFileItemsContainer;
     if (m_recentFileItemsContainer != NULL) {
         m_recentItems = m_recentFileItemsContainer->getItems(itemsFilter);
+        sortRecentItems();
     }
 
     const int32_t numberOfRecentItems = static_cast<int32_t>(m_recentItems.size());
@@ -338,6 +345,8 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
     update();
     tableCellClicked(selectedRowIndex, COLUMN_NAME);
     resizeRowsToContents();
+    update();
+    updateHeaderSortingKey();
 }
 
 /**
@@ -352,7 +361,23 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
     RecentFileItem* recentItem = m_recentItems[rowIndex];
     CaretAssert(recentItem);
     
-    bool forgetableFlag(false);
+    bool enabledFavoriteAndForget(false);
+    switch (m_recentFileItemsContainer->getMode()) {
+        case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+            break;
+        case RecentFileItemsContainerModeEnum::FAVORITES:
+            enabledFavoriteAndForget = true;
+            break;
+        case RecentFileItemsContainerModeEnum::OTHER:
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
+            enabledFavoriteAndForget = true;
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_FILES:
+            enabledFavoriteAndForget = true;
+            break;
+    }
+    
     switch (recentItem->getFileItemType()) {
         case RecentFileItemTypeEnum::DIRECTORY:
             break;
@@ -392,21 +417,26 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                 CaretAssert(label);
                 
                 label->setText("");
-                if (recentItem->isFavorite()) {
-                    if (m_favoriteFilledIcon) {
-                        label->setPixmap(m_favoriteFilledIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
+                if (enabledFavoriteAndForget) {
+                    if (recentItem->isFavorite()) {
+                        if (m_favoriteFilledIcon) {
+                            label->setPixmap(m_favoriteFilledIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
+                        }
+                        else {
+                            label->setText("Yes");
+                        }
                     }
                     else {
-                        label->setText("Yes");
+                        if (m_favoriteOutlineIcon) {
+                            label->setPixmap(m_favoriteOutlineIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
+                        }
+                        else {
+                            label->setText("No");
+                        }
                     }
                 }
                 else {
-                    if (m_favoriteOutlineIcon) {
-                        label->setPixmap(m_favoriteOutlineIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
-                    }
-                    else {
-                        label->setText("No");
-                    }
+                    label->setPixmap(QPixmap());
                 }
             }
                 break;
@@ -423,21 +453,26 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                  * Note: Same icon is used for forget on/off but may change
                  */
                 label->setText("");
-                if (recentItem->isForget()) {
-                    if (m_forgetOnIcon) {
-                        label->setPixmap(m_forgetOnIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
+                if (enabledFavoriteAndForget) {
+                    if (recentItem->isForget()) {
+                        if (m_forgetOnIcon) {
+                            label->setPixmap(m_forgetOnIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
+                        }
+                        else {
+                            label->setText("X");
+                        }
                     }
                     else {
-                        label->setText("X");
+                        if (m_forgetIcon) {
+                            label->setPixmap(m_forgetIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
+                        }
+                        else {
+                            label->setText("X");
+                        }
                     }
                 }
                 else {
-                    if (m_forgetIcon) {
-                        label->setPixmap(m_forgetIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
-                    }
-                    else {
-                        label->setText("X");
-                    }
+                    label->setPixmap(QPixmap());
                 }
             }
                 break;
@@ -481,7 +516,7 @@ RecentFilesTableWidget::tableCellClicked(int row, int column)
             case COLUMN_DATE_TIME:
                 break;
             case COLUMN_SHARE:
-                CaretAssertToDoWarning(); // need to pop-up share menu copy clipboard or create email
+                showShareMenuForRow(row);
                 break;
         }
     }
@@ -593,10 +628,10 @@ RecentFilesTableWidget::sortIndicatorClicked(int logicalIndex,
             case COLUMN_NAME:
                 switch (sortOrder) {
                     case Qt::AscendingOrder:
-                        m_recentFileItemsContainer->sort(RecentFileItemSortingKeyEnum::NAME_ASCENDING);
+                        m_sortingKey = RecentFileItemSortingKeyEnum::NAME_ASCENDING;
                         break;
                     case Qt::DescendingOrder:
-                        m_recentFileItemsContainer->sort(RecentFileItemSortingKeyEnum::NAME_DESCENDING);
+                        m_sortingKey = RecentFileItemSortingKeyEnum::NAME_DESCENDING;
                         break;
                 }
                 updateFlag = true;
@@ -604,10 +639,10 @@ RecentFilesTableWidget::sortIndicatorClicked(int logicalIndex,
             case COLUMN_DATE_TIME:
                 switch (sortOrder) {
                     case Qt::AscendingOrder:
-                        m_recentFileItemsContainer->sort(RecentFileItemSortingKeyEnum::DATE_ASCENDING);
+                        m_sortingKey = RecentFileItemSortingKeyEnum::DATE_ASCENDING;
                         break;
                     case Qt::DescendingOrder:
-                        m_recentFileItemsContainer->sort(RecentFileItemSortingKeyEnum::DATE_DESCENDING);
+                        m_sortingKey = RecentFileItemSortingKeyEnum::DATE_DESCENDING;
                         break;
                 }
                 updateFlag = true;
@@ -621,8 +656,89 @@ RecentFilesTableWidget::sortIndicatorClicked(int logicalIndex,
         
         if (updateFlag) {
             clearSelectedItem();
-            emit sortingChanged();
+            updateContent(m_recentFileItemsContainer,
+                          m_recentFileItemsFilter);
         }
+    }
+}
+
+/**
+ * Sort the items
+ */
+void
+RecentFilesTableWidget::sortRecentItems()
+{
+    QHeaderView* horizHeader = horizontalHeader();
+    CaretAssert(horizHeader);
+    QSignalBlocker headerBlocker(horizHeader);
+    
+    RecentFileItemsContainer::sort(m_sortingKey,
+                                   m_recentItems);
+}
+
+/**
+ * Updates the table header's sorting key (up or down arrow indicating column sorted
+ */
+void
+RecentFilesTableWidget::updateHeaderSortingKey()
+{
+    QHeaderView* horizHeader = horizontalHeader();
+    horizHeader->setSortIndicatorShown(true);
+    switch (m_sortingKey) {
+        case RecentFileItemSortingKeyEnum::DATE_ASCENDING:
+            horizHeader->setSortIndicator(COLUMN_DATE_TIME, Qt::AscendingOrder);
+            break;
+        case RecentFileItemSortingKeyEnum::DATE_DESCENDING:
+            horizHeader->setSortIndicator(COLUMN_DATE_TIME, Qt::DescendingOrder);
+            break;
+        case RecentFileItemSortingKeyEnum::NAME_ASCENDING:
+            horizHeader->setSortIndicator(COLUMN_NAME, Qt::AscendingOrder);
+            break;
+        case RecentFileItemSortingKeyEnum::NAME_DESCENDING:
+            horizHeader->setSortIndicator(COLUMN_NAME, Qt::DescendingOrder);
+            break;
+    }
+}
+
+/**
+ * Show the share menu for the give row index
+ * @param rowIndex
+ * Index of row
+ */
+void
+RecentFilesTableWidget::showShareMenuForRow(const int32_t rowIndex)
+{
+    CaretAssertVectorIndex(m_recentItems, rowIndex);
+    
+    QMenu menu(this);
+    QAction* copyToClipboardAction =  menu.addAction("Copy Pathname to Clipboard");
+    QAction* shareViaEmailAction   = menu.addAction("Email Pathname...");
+    
+    const AString pathName(m_recentItems[rowIndex]->getPathAndFileName());
+    
+    QPoint globalPos = QCursor::pos();
+    QAction* selectedAction = menu.exec(globalPos);
+    if (selectedAction == copyToClipboardAction) {
+        QClipboard* clipboard = QGuiApplication::clipboard();
+        clipboard->setText(pathName);
+    }
+    else if (selectedAction == shareViaEmailAction) {
+        AString subject;
+        switch (m_recentItems[rowIndex]->getFileItemType()) {
+            case RecentFileItemTypeEnum::DIRECTORY:
+                subject = "Directory";
+                break;
+            case RecentFileItemTypeEnum::SCENE_FILE:
+                subject = "Scene File";
+                break;
+            case RecentFileItemTypeEnum::SPEC_FILE:
+                subject = "Spec File";
+                break;
+        }
+        const QString mailArg("mailto:?&subject=" + subject
+                              + "&body=" + pathName);
+        QDesktopServices::openUrl(QUrl(mailArg,
+                                       QUrl::TolerantMode));
     }
 }
 
