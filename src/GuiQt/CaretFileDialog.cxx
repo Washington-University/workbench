@@ -28,7 +28,13 @@
 #undef __CARET_FILE_DIALOG_DECLARE__
 
 #include "Brain.h"
+#include "CaretAssert.h"
+#include "CaretPreferences.h"
 #include "GuiManager.h"
+#include "RecentFileItem.h"
+#include "RecentFileItemsFilter.h"
+#include "RecentFileItemsContainer.h"
+#include "SessionManager.h"
 
 using namespace caret;
 
@@ -176,6 +182,23 @@ CaretFileDialog::initializeCaretFileDialog()
     
     QObject::connect(this, SIGNAL(filterSelected(const QString&)),
                      this, SLOT(fileFilterWasChanged(const QString&)));
+    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    std::unique_ptr<RecentFileItemsContainer> dirsContainer(RecentFileItemsContainer::newInstanceRecentDirectories(prefs,
+                                                                                                                   RecentFileItemsContainer::WriteIfModifiedType::WRITE_NO));
+    RecentFileItemsFilter filter;
+    filter.setShowDirectories(true);
+    std::vector<RecentFileItem*> items = dirsContainer->getItems(filter);
+    const int32_t displayCount = std::min(static_cast<int32_t>(items.size()),
+                                          10);
+    
+    QStringList historyList;
+    for (int32_t i = 0; i < displayCount; i++) {
+        CaretAssertVectorIndex(items, i);
+        historyList.append(items[i]->getPathName());
+    }
+    
+    setHistory(historyList);
 }
 
 /**

@@ -108,6 +108,8 @@ namespace caret {
         void loadSceneFromCommandLine(const AString& sceneFileName,
                                       const AString& sceneNameOrNumber);
         
+        void loadDirectoryFromCommandLine(const AString& directoryName);
+        
         bool loadFilesFromNetwork(QWidget* parentForDialogs,
                                   const std::vector<AString>& filenames,
                                   const std::vector<DataFileTypeEnum::Enum> dataFileTypes,

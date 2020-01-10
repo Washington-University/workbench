@@ -193,7 +193,6 @@ ELSE()
         SceneReplaceAllDialog.h
         SceneShowOptionsDialog.h
         SpecFileManagementDialog.h
-        SplashScreen.h
         StructureEnumComboBox.h
         StructureSurfaceSelectionControl.h
         SurfacePropertiesEditorDialog.h
@@ -473,7 +472,6 @@ SceneReplaceAllDialog.h
 SceneShowOptionsDialog.h
 SceneWindowGeometry.h
 SpecFileManagementDialog.h
-SplashScreen.h
 StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
@@ -767,7 +765,6 @@ SceneReplaceAllDialog.cxx
 SceneShowOptionsDialog.cxx
 SceneWindowGeometry.cxx
 SpecFileManagementDialog.cxx
-SplashScreen.cxx
 StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
 SurfacePropertiesEditorDialog.cxx

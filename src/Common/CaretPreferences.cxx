@@ -1040,186 +1040,6 @@ CaretPreferences::setBackgroundAndForegroundColorsMode(const BackgroundAndForegr
     m_colorsMode = colorsMode;
 }
 
-
-/**
- * Get the previous spec files.
- *
- * @param previousSpecFiles
- *    Will contain previous spec files.
- */
-void 
-CaretPreferences::getPreviousSpecFiles(std::vector<AString>& previousSpecFiles) const
-{
-    previousSpecFiles = this->previousSpecFiles;
-}
-
-/**
- * Add to the previous spec files.
- * 
- * @param specFileName
- *    Spec file added to the previous spec files.
- */
-void 
-CaretPreferences::addToPreviousSpecFiles(const AString& specFileName)
-{
-    if (specFileName.isEmpty() == false) {
-        this->addToPrevious(this->previousSpecFiles,
-                            specFileName);
-    }
-    
-    const int32_t num = static_cast<int32_t>(this->previousSpecFiles.size());
-    this->qSettings->beginWriteArray(NAME_PREVIOUS_SPEC_FILES);
-    for (int i = 0; i < num; i++) {
-        this->qSettings->setArrayIndex(i);
-        this->qSettings->setValue(AString::number(i),
-                                  this->previousSpecFiles[i]);
-    }
-    this->qSettings->endArray();
-    this->qSettings->sync();
-}
-
-/**
- * Clear the previous spec files.
- */
-void 
-CaretPreferences::clearPreviousSpecFiles()
-{
-    this->previousSpecFiles.clear();
-    this->addToPreviousSpecFiles("");
-}
-
-/**
- * Get the previous scene files.
- *
- * @param previousSceneFiles
- *    Will contain previous scene files.
- */
-void
-CaretPreferences::getPreviousSceneFiles(std::vector<AString>& previousSceneFiles) const
-{
-    previousSceneFiles = this->previousSceneFiles;
-}
-
-/**
- * Add to the previous scene files.
- *
- * @param sceneFileName
- *    Scene file added to the previous scene files.
- */
-void
-CaretPreferences::addToPreviousSceneFiles(const AString& sceneFileName)
-{
-    if (sceneFileName.isEmpty() == false) {
-        this->addToPrevious(this->previousSceneFiles,
-                            sceneFileName);
-    }
-    
-    const int32_t num = static_cast<int32_t>(this->previousSceneFiles.size());
-    this->qSettings->beginWriteArray(NAME_PREVIOUS_SCENE_FILES);
-    for (int i = 0; i < num; i++) {
-        this->qSettings->setArrayIndex(i);
-        this->qSettings->setValue(AString::number(i),
-                                  this->previousSceneFiles[i]);
-    }
-    this->qSettings->endArray();
-    this->qSettings->sync();
-}
-
-/**
- * Clear the previous scene files.
- */
-void
-CaretPreferences::clearPreviousSceneFiles()
-{
-    this->previousSceneFiles.clear();
-    this->addToPreviousSceneFiles("");
-}
-
-/**
- * Get the directories that were used in the Open File Dialog.
- *
- * @param previousOpenFileDirectories
- *    Will contain previous directories.
- */
-void 
-CaretPreferences::getPreviousOpenFileDirectories(std::vector<AString>& previousOpenFileDirectories) const
-{
-    previousOpenFileDirectories = this->previousOpenFileDirectories;
-}
-
-/**
- * Get the directories that were used in the Open File Dialog.
- *
- * @param previousOpenFileDirectories
- *    Will contain previous directories.
- */
-void 
-CaretPreferences::getPreviousOpenFileDirectories(QStringList& previousOpenFileDirectoriesList) const
-{
-    previousOpenFileDirectoriesList.clear();
-    const int32_t numDirectories = static_cast<int32_t>(this->previousOpenFileDirectories.size());
-    for (int32_t i = 0; i < numDirectories; i++) {
-        previousOpenFileDirectoriesList.append(this->previousOpenFileDirectories[i]);
-    }
-}
-
-/**
- * Add to the previous directories that were used in the Open File Dialog.
- * 
- * @param directoryName
- *    Directory added to the previous directories from Open File Dialog.
- */
-void 
-CaretPreferences::addToPreviousOpenFileDirectories(const AString& directoryName)
-{
-    this->addToPrevious(this->previousOpenFileDirectories,
-                        directoryName);
-    
-    const int32_t num = static_cast<int32_t>(this->previousOpenFileDirectories.size());    
-    this->qSettings->beginWriteArray(NAME_PREVIOUS_OPEN_FILE_DIRECTORIES);
-    for (int i = 0; i < num; i++) {
-        this->qSettings->setArrayIndex(i);
-        this->qSettings->setValue(AString::number(i),
-                                  this->previousOpenFileDirectories[i]);
-    }
-    this->qSettings->endArray();
-    this->qSettings->sync();
-}
-
-/**
- * Add to a list of previous, removing any matching entries
- * and limiting the size of the list.
- *
- * @param previousDeque
- *   Deque containing the previous elements.
- * @param newName
- *   Name that is added at the front.
- */
-void 
-CaretPreferences::addToPrevious(std::vector<AString>& previousVector,
-                                const AString& newName)
-{
-    /*
-     * Note: remove moves duplicate elements to after 'pos' but
-     * does not change the size of the container so use erase
-     * to remove the duplicate elements from the container.
-     */
-    std::vector<AString>::iterator pos = std::remove(previousVector.begin(),
-                                          previousVector.end(),
-                                          newName);
-    previousVector.erase(pos, 
-                        previousVector.end());
-
-    const uint64_t MAX_ELEMENTS = 10;
-    if (previousVector.size() > MAX_ELEMENTS) {
-        previousVector.erase(previousVector.begin() + MAX_ELEMENTS,
-                            previousVector.end());
-    }
-    
-    previousVector.insert(previousVector.begin(),
-                          newName);
-}
-
 /**
  * @return  The logging level.
  */
@@ -2060,29 +1880,29 @@ CaretPreferences::readPreferences()
                           3);
     userColors.setColorChartHistogramThreshold(colorRGB);
     
-    this->previousSpecFiles.clear();    
-    const int numPrevSpec = this->qSettings->beginReadArray(NAME_PREVIOUS_SPEC_FILES);
-    for (int i = 0; i < numPrevSpec; i++) {
-        this->qSettings->setArrayIndex(i);
-        previousSpecFiles.push_back(this->qSettings->value(AString::number(i)).toString());
+    /*
+     * Old storage for previous spec and scene no longer used
+     * but might want to use them to initialize the new
+     * scene and spce files in RecentFileItem's.
+     */
+    const bool readObsoleteFlag(false);
+    if (readObsoleteFlag) {
+        this->previousSpecFiles.clear();
+        const int numPrevSpec = this->qSettings->beginReadArray(NAME_PREVIOUS_SPEC_FILES);
+        for (int i = 0; i < numPrevSpec; i++) {
+            this->qSettings->setArrayIndex(i);
+            previousSpecFiles.push_back(this->qSettings->value(AString::number(i)).toString());
+        }
+        this->qSettings->endArray();
+        
+        this->previousSceneFiles.clear();
+        const int numPrevScene = this->qSettings->beginReadArray(NAME_PREVIOUS_SCENE_FILES);
+        for (int i = 0; i < numPrevScene; i++) {
+            this->qSettings->setArrayIndex(i);
+            previousSceneFiles.push_back(this->qSettings->value(AString::number(i)).toString());
+        }
+        this->qSettings->endArray();
     }
-    this->qSettings->endArray();
-    
-    this->previousSceneFiles.clear();
-    const int numPrevScene = this->qSettings->beginReadArray(NAME_PREVIOUS_SCENE_FILES);
-    for (int i = 0; i < numPrevScene; i++) {
-        this->qSettings->setArrayIndex(i);
-        previousSceneFiles.push_back(this->qSettings->value(AString::number(i)).toString());
-    }
-    this->qSettings->endArray();
-    
-    this->previousOpenFileDirectories.clear();
-    const int numPrevDir = this->qSettings->beginReadArray(NAME_PREVIOUS_OPEN_FILE_DIRECTORIES);
-    for (int i = 0; i < numPrevDir; i++) {
-        this->qSettings->setArrayIndex(i);
-        previousOpenFileDirectories.push_back(this->qSettings->value(AString::number(i)).toString());
-    }
-    this->qSettings->endArray();
     
     this->readCustomViews(false);
     

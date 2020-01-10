@@ -607,7 +607,7 @@ void
 RecentFilesDialog::openOtherButtonClicked()
 {
     m_resultMode = ResultModeEnum::OPEN_OTHER;
-    m_resultFilePathAndName.clear();
+    m_resultFilePathAndName = GuiManager::get()->getBrain()->getCurrentDirectory();
     
     accept();
 }

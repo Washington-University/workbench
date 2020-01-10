@@ -64,25 +64,7 @@ namespace caret {
         void setSceneBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors);
         
         void setBackgroundAndForegroundColorsMode(const BackgroundAndForegroundColorsModeEnum::Enum colorsMode);
-        
-        void getPreviousSpecFiles(std::vector<AString>& previousSpecFiles) const;
-        
-        void addToPreviousSpecFiles(const AString& specFileName);
-        
-        void clearPreviousSpecFiles();
-        
-        void getPreviousSceneFiles(std::vector<AString>& previousSceneFiles) const;
-        
-        void addToPreviousSceneFiles(const AString& specFileName);
-        
-        void clearPreviousSceneFiles();
-        
-        void getPreviousOpenFileDirectories(std::vector<AString>& previousOpenFileDirectories) const;
-        
-        void getPreviousOpenFileDirectories(QStringList& previousOpenFileDirectories) const;
-        
-        void addToPreviousOpenFileDirectories(const AString& directoryName);
-        
+                
         void addToRecentFilesAndOrDirectories(const AString& directoryOrFileName);
         
         bool readRecentSceneAndSpecFiles(RecentFileItemsContainer* container,
@@ -286,9 +268,6 @@ namespace caret {
         void setString(const AString& name,
                        const AString& value);
         
-        void addToPrevious(std::vector<AString>& previousVector,
-                           const AString& newName);
-        
         void readUnsignedByteArray(const AString& name,
                                    uint8_t array[],
                                    const int32_t numberOfElements);
@@ -317,8 +296,6 @@ namespace caret {
         std::vector<AString> previousSpecFiles;
         
         std::vector<AString> previousSceneFiles;
-        
-        std::vector<AString> previousOpenFileDirectories;
         
         LogLevelEnum::Enum loggingLevel;
         

@@ -55,8 +55,8 @@
 #include "GuiManager.h"
 #include "MacApplication.h"
 #include "ProgramParameters.h"
+#include "RecentFilesDialog.h"
 #include "SessionManager.h"
-#include "SplashScreen.h"
 #include "SystemUtilities.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -277,6 +277,8 @@ struct ProgramState
     int graphicsSizeXY[2];
     bool showSplash;
     
+    AString directoryName;
+    
     AString specFileNameLoadWithDialog;
     AString specFileNameLoadAll;
     
@@ -468,24 +470,30 @@ main(int argc, char* argv[])
          * Show file selection splash screen if enabled via user's preferences
          */
         if (showSelectionSplashScreen) {
-            /*
-             * Show selection splash screen.
-             * Need to process events since QApplication::exec() has not
-             * been called.
-             */
-            SplashScreen splashScreen(NULL);
-            app.processEvents();
-            if (splashScreen.exec()) {
-                const QString dataFileName = splashScreen.getSelectedDataFileName();
-                if ( ! dataFileName.isEmpty()) {
-                    myState.fileList.clear();
-                    if (dataFileName.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION))) {
-                        myState.specFileNameLoadWithDialog = dataFileName;
+            AString dataFileName;
+            RecentFilesDialog::ResultModeEnum result = RecentFilesDialog::runDialog(RecentFilesDialog::RunMode::SPLASH_SCREEN,
+                                                                                    dataFileName);
+            switch (result) {
+                case caret::RecentFilesDialog::ResultModeEnum::CANCEL:
+                    break;
+                case caret::RecentFilesDialog::ResultModeEnum::OPEN_DIRECTORY:
+                    myState.directoryName = dataFileName;
+                    break;
+                case caret::RecentFilesDialog::ResultModeEnum::OPEN_FILE:
+                    if ( ! dataFileName.isEmpty()) {
+                        bool validFlag(false);
+                        if (DataFileTypeEnum::fromFileExtension(dataFileName,
+                                                                &validFlag) == DataFileTypeEnum::SPECIFICATION) {
+                            myState.specFileNameLoadWithDialog = dataFileName;
+                        }
+                        else {
+                            myState.fileList.push_back(dataFileName);
+                        }
                     }
-                    else {
-                        myState.fileList.push_back(dataFileName);
-                    }
-                }
+                    break;
+                case caret::RecentFilesDialog::ResultModeEnum::OPEN_OTHER:
+                    myState.directoryName = dataFileName;
+                    break;
             }
         }
         
@@ -591,6 +599,10 @@ main(int argc, char* argv[])
         if ( ! myState.sceneFileName.isEmpty()) {
             myWindow->loadSceneFromCommandLine(myState.sceneFileName,
                                                myState.sceneNameOrNumber);
+        }
+        
+        if ( ! myState.directoryName.isEmpty()) {
+            myWindow->loadDirectoryFromCommandLine(myState.directoryName);
         }
         
 #ifndef WORKBENCH_USE_QT5_QOPENGL_WIDGET

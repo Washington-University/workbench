@@ -3341,6 +3341,15 @@ BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
     /* NOTE: File warning dialog is performed by scene dialog */
 }
 
+/**
+ * Load the given directory in the Open Data File Dialog
+ */
+void
+BrainBrowserWindow::loadDirectoryFromCommandLine(const AString& directoryName)
+{
+    s_previousOpenFileDirectory = directoryName;
+    processDataFileOpen();
+}
 
 /**
  * Load data files.  If there are errors, an error message dialog
