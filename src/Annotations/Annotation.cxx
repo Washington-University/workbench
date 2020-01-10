@@ -2630,7 +2630,7 @@ Annotation::setUserDefaultLineWidthPercentage(const float lineWidthPercentage)
  *     Other annotation for intersection test
  */
 bool
-Annotation::intersectionTest(const Annotation* other) const
+Annotation::intersectionTest(const Annotation* /*other*/) const
 {
     return false;
 }

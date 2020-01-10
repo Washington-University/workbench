@@ -23,6 +23,7 @@
 #include "RecentFileItemsFilter.h"
 #undef __RECENT_FILE_ITEMS_FILTER_DECLARE__
 
+#include <QRegExp>
 #include <QRegularExpression>
 
 #include "CaretAssert.h"
@@ -31,7 +32,7 @@
 
 using namespace caret;
 
-
+#define _MATCH_WITH_Q_REG_EXP_
     
 /**
  * \class caret::RecentFileItemsFilter 
@@ -135,11 +136,35 @@ RecentFileItemsFilter::testItemPassesFilter(const RecentFileItem* recentFileItem
     }
     
     if ( ! m_nameMatching.isEmpty()) {
+#ifdef _MATCH_WITH_Q_REG_EXP_
+        if ( ! m_regExp) {
+            m_regExp.reset(new QRegExp(m_nameMatching));
+            m_regExp->setPatternSyntax(QRegExp::Wildcard);
+            if ( ! m_regExp->isValid()) {
+                CaretLogFine("Regular expression failure for RecentFileItem: "
+                               "Name matching \""
+                               + m_nameMatching
+                               + "\" error message \""
+                               + m_regExp->errorString()
+                               + "\"");
+            }
+        }
+        if (m_regExp) {
+            if (m_regExp->isValid()) {
+                if ( ! m_regExp->exactMatch(recentFileItem->getPathAndFileName())) {
+                    return false;
+                }
+            }
+        }
+#else /* _MATCH_WITH_Q_REG_EXP_ */
+        /*
+         * NOTE: QRegularExpression::wildcardToRegularExpression() added in Qt 5.12
+         */
         if ( ! m_regularExpression) {
             const QString reText(QRegularExpression::wildcardToRegularExpression(m_nameMatching));
             m_regularExpression.reset(new QRegularExpression(reText));
             if ( ! m_regularExpression->isValid()) {
-                CaretLogSevere("Regular expression failure for RecentFileItem: "
+                CaretLogFine("Regular expression failure for RecentFileItem: "
                                "Name matching \""
                                + m_nameMatching
                                + "\" converted to regular expression \""
@@ -157,9 +182,49 @@ RecentFileItemsFilter::testItemPassesFilter(const RecentFileItem* recentFileItem
                 }
             }
         }
+#endif /* _MATCH_WITH_Q_REG_EXP_ */
     }
     
+    /*
+     * Passed all filtering
+     */
     return true;
+}
+
+/**
+ * @return Tooltip for the matching line edit in the GUI
+ */
+AString
+RecentFileItemsFilter::getMatchingLineEditToolTip()
+{
+    AString text;
+    
+#ifdef _MATCH_WITH_Q_REG_EXP_
+    text = ("<html><body>"
+            "Enter text for wildcard (GLOB) matching:"
+            "<ul>"
+            "<li>c  Any character represenents iteslf (c matches c)"
+            "<li>?  Matches any single character"
+            "<li>*  Matches zero or more of any character"
+            "<li>[abc]  Matches one character in the brackets"
+            "<li>[a-c]  Matches one character from the range in the brackets"
+            "</ul>"
+            "</body></html>");
+#else /* _MATCH_WITH_Q_REG_EXP_ */
+    text = ("<html><body>"
+            "Enter text for wildcard (GLOB) matching:"
+            "<ul>"
+            "<li>c  Any character represenents iteslf (c matches c)"
+            "<li>?  Matches any single character"
+            "<li>*  Matches zero or more of any character"
+            "<li>[abc]  Matches one character in the brackets"
+            "<li>[a-c]  Matches one character from the range in the brackets"
+            "<li>[!abc]  Matches one character NOT in the brackets"
+            "<li>[!a-c]  Matches one character NOT from the range in the brackets"
+            "</ul>"
+            "</body></html>");
+#endif /* _MATCH_WITH_Q_REG_EXP_ */
+    return text;
 }
 
 /**
@@ -182,6 +247,7 @@ RecentFileItemsFilter::setNameMatching(const AString& nameMatching)
 {
     m_nameMatching = nameMatching;
     m_regularExpression.reset();
+    m_regExp.reset();
 }
 
 /**

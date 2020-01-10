@@ -826,7 +826,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                                                                             HtmlTableBuilder& scalarHtmlTableBuilder,
                                                                             CaretMappableDataFile* mapFile,
                                                                             const std::set<int32_t>& mapIndicesSet,
-                                                                            const Brain* brain,
+                                                                            const Brain* /*brain*/,
                                                                             const SelectionItemSurfaceNode* idSurfaceNode) const
 {
     const Surface* surface = idSurfaceNode->getSurface();
@@ -1204,7 +1204,7 @@ IdentificationFormattedTextGenerator::generateChartTwoLineSeriesIdentificationTe
                                                                                    IdentificationStringBuilder& idText,
                                                                                    const SelectionItemChartTwoLineSeries* idChartTwoLineSeries,
                                                                                    CaretMappableDataFile* mapFile,
-                                                                                   const std::set<int32_t>& mapIndices,
+                                                                                   const std::set<int32_t>& /*mapIndices*/,
                                                                                    const bool toolTipFlag) const
 {
     if (idChartTwoLineSeries->isValid()) {
@@ -1294,7 +1294,7 @@ IdentificationFormattedTextGenerator::generateChartTwoMatrixIdentificationText(H
                                                                                IdentificationStringBuilder& idText,
                                                                                const SelectionItemChartTwoMatrix* idChartTwoMatrix,
                                                                                CaretMappableDataFile* mapFile,
-                                                                               const std::set<int32_t>& mapIndices,
+                                                                               const std::set<int32_t>& /*mapIndices*/,
                                                                                const bool toolTipFlag) const
 {
     if (idChartTwoMatrix->isValid()) {

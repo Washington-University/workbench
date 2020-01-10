@@ -29,6 +29,7 @@
 #include <QDesktopServices>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -153,6 +154,26 @@ RecentFilesDialog::~RecentFilesDialog()
 }
 
 /**
+ * Called when a key is pressed
+ */
+void
+RecentFilesDialog::keyPressEvent(QKeyEvent* event)
+{
+    /*
+     * Prevents return key in the name matching line edit
+     * from selecting default button and closing dialog
+     */
+    const int32_t key = event->key();
+    if ((key == Qt::Key_Return)
+        || (key == Qt::Key_Enter)) {
+        event->ignore();
+    }
+    else {
+        QDialog::keyPressEvent(event);
+    }
+}
+
+/**
  * Run the dialog
  *
  * @param runMode
@@ -227,24 +248,13 @@ RecentFilesDialog::createFilesFilteringWidget()
     QObject::connect(m_showSpecFilesCheckBox, &QCheckBox::clicked,
                      this, &RecentFilesDialog::showSceneFilesCheckBoxClicked);
     
-    const QString nameToolTip("<html><body>"
-                              "Enter text for wildcard (GLOB) matching:"
-                              "<ul>"
-                              "<li>c  Any character represenents iteslf (c matches c)"
-                              "<li>?  Matches any single character"
-                              "<li>*  Matches zero or more of any character"
-                              "<li>[abc]  Matches one character in the brackets"
-                              "<li>[a-c]  Matches one character from the range in the brackets"
-                              "<li>[!abc]  Matches one character NOT in the brackets"
-                              "<li>[!a-c]  Matches one character NOT from the range in the brackets"
-                              "</ul>"
-                              "</body></html>");
     QLabel* nameFilterLabel = new QLabel("Name Filter: ");
     m_nameFilterLineEdit = new QLineEdit();
+    m_nameFilterLineEdit->setClearButtonEnabled(true);
     m_nameFilterLineEdit->setFixedWidth(250);
     QObject::connect(m_nameFilterLineEdit, &QLineEdit::textEdited,
                      this, &RecentFilesDialog::nameFilterTextEdited);
-    m_nameFilterLineEdit->setToolTip(nameToolTip);
+    m_nameFilterLineEdit->setToolTip(RecentFileItemsFilter::getMatchingLineEditToolTip());
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
@@ -296,6 +306,7 @@ RecentFilesDialog::createDialogButtonsWidget()
     layout->addWidget(openOtherPushButton);
     layout->addWidget(m_openPushButton);
     layout->addWidget(cancelPushButton);
+    
     
     return widget;
 }
@@ -352,7 +363,7 @@ RecentFilesDialog::createFileTypesButtonWidget()
  *    Text in the name filter line edit
  */
 void
-RecentFilesDialog::nameFilterTextEdited(const QString& text)
+RecentFilesDialog::nameFilterTextEdited(const QString& /*text*/)
 {
     updateFilesTableContent();
     m_nameFilterLineEdit->setFocus();
@@ -362,7 +373,7 @@ RecentFilesDialog::nameFilterTextEdited(const QString& text)
  * Called if Show Scene Files checkbox is clicked
  */
 void
-RecentFilesDialog::showSceneFilesCheckBoxClicked(bool checked)
+RecentFilesDialog::showSceneFilesCheckBoxClicked(bool /*checked*/)
 {
     updateFilesTableContent();
 }
@@ -371,7 +382,7 @@ RecentFilesDialog::showSceneFilesCheckBoxClicked(bool checked)
  * Called if Show Spec Files checkbox is clicked
  */
 void
-RecentFilesDialog::showSpecFilesCheckBoxClicked(bool checked)
+RecentFilesDialog::showSpecFilesCheckBoxClicked(bool /*checked*/)
 {
     updateFilesTableContent();
 }

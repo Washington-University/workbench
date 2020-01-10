@@ -99,6 +99,9 @@ namespace caret {
     private slots:
         void updateFilesTableContent();
         
+    protected:
+        virtual void keyPressEvent(QKeyEvent* event) override;
+        
     private:
         RecentFilesDialog(const AString& dialogTitle,
                           QWidget* parent = 0);
