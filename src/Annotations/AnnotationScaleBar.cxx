@@ -924,9 +924,6 @@ AnnotationScaleBar::getScaleBarDrawingInfo(const float tabViewportWidth,
         const int32_t numSubDiv = getTickMarksSubdivsions();
         if (numSubDiv > 0) {
             const int32_t tickCount(numSubDiv + 1);
-            tickWidth = scaleBarHeightPixels;
-            tickHeight = scaleBarHeightPixels;
-
             tickWidth  = MathFunctions::limitRange(scaleBarHeightPixels * 0.10, 2.0, 6.0);
             tickHeight = MathFunctions::limitRange(scaleBarHeightPixels * 0.25, 4.0, 10.0);
             

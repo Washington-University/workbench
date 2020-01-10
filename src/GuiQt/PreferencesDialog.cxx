@@ -868,7 +868,7 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
     
     const BackgroundAndForegroundColors colors = prefs->getUserBackgroundAndForegroundColors();
     
-    uint8_t rgb[3];
+    uint8_t rgb[3] = { 0, 0, 0 };
     AString prefColorName;
     switch (prefColor) {
         case PREF_COLOR_BACKGROUND_ALL:

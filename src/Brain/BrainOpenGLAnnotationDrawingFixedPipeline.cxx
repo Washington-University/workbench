@@ -336,7 +336,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
          */
         
         if (convertModelToWindowCoordinate(modelXYZ, drawingSpaceXYZ)) {
-            modelXYZValid  = false;
             drawingSpaceXYZValid = true;
         }
         else {

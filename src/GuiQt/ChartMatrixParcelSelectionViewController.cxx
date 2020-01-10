@@ -762,8 +762,6 @@ ChartMatrixParcelSelectionViewController::createParcelRemappingWidget(const Qt::
             parcelMapFileLayout->addWidget(mapNameComboBox, 3, 1);
         }
             break;
-        default:
-            CaretAssert(0);
     }
     
     return groupBox;

@@ -391,7 +391,7 @@ AnnotationCoordinatesWidget::updateCoordinate(const int32_t coordinateIndex,
                 zMin = coordinateMinimum;
                 zMax = coordinateMaximum;
                 digitsRightOfDecimalX = 3;
-                digitsRightOfDecimalX = 3;
+                digitsRightOfDecimalY = 3;
                 xStep = 1.0;
                 yStep = 1.0;
                 
