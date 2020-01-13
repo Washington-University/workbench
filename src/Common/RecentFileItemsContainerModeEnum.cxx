@@ -131,7 +131,7 @@ RecentFileItemsContainerModeEnum::initialize()
     enumData.push_back(RecentFileItemsContainerModeEnum(DIRECTORY_SCENE_AND_SPEC_FILES,
                                            "DIRECTORY_SCENE_AND_SPEC_FILES",
                                            "Directory Scene and Spec Files",
-                                           "Current\nDirectory"));
+                                           "Current\nDirectory\nFiles"));
     
     enumData.push_back(RecentFileItemsContainerModeEnum(RECENT_DIRECTORIES,
                                            "RECENT_DIRECTORIES",

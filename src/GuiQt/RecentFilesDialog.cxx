@@ -337,7 +337,12 @@ RecentFilesDialog::createFileTypesButtonWidget()
         
         QToolButton* tb = new QToolButton();
         tb->setDefaultAction(action);
+        tb->setStyleSheet("font : 14px"); /* larger characters */
         toolButtons.push_back(tb);
+        
+        if (m == RecentFileItemsContainerModeEnum::FAVORITES) {
+            tb->setEnabled(false);
+        }
     }
     
     std::vector<QWidget*> toolButtonWidgets(toolButtons.begin(),
