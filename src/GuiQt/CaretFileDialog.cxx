@@ -183,19 +183,21 @@ CaretFileDialog::initializeCaretFileDialog()
     QObject::connect(this, SIGNAL(filterSelected(const QString&)),
                      this, SLOT(fileFilterWasChanged(const QString&)));
     
+    /*
+     * Add recent directories to history
+     */
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    std::unique_ptr<RecentFileItemsContainer> dirsContainer(RecentFileItemsContainer::newInstanceRecentDirectories(prefs,
-                                                                                                                   RecentFileItemsContainer::WriteIfModifiedType::WRITE_NO));
-    RecentFileItemsFilter filter;
-    filter.setShowDirectories(true);
-    std::vector<RecentFileItem*> items = dirsContainer->getItems(filter);
-    const int32_t displayCount = std::min(static_cast<int32_t>(items.size()),
+    std::vector<AString> recentDirectories;
+    const bool favoritesFirstFlag(false);
+    prefs->getRecentDirectoriesForOpenFileDialogHistory(favoritesFirstFlag,
+                                                        recentDirectories);
+    const int32_t displayCount = std::min(static_cast<int32_t>(recentDirectories.size()),
                                           10);
     
     QStringList historyList;
     for (int32_t i = 0; i < displayCount; i++) {
-        CaretAssertVectorIndex(items, i);
-        historyList.append(items[i]->getPathName());
+        CaretAssertVectorIndex(recentDirectories, i);
+        historyList.push_front(recentDirectories[i]);
     }
     
     setHistory(historyList);

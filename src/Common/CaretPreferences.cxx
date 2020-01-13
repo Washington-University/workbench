@@ -38,6 +38,7 @@
 #include "ModelTransform.h"
 #include "RecentFileItem.h"
 #include "RecentFileItemsContainer.h"
+#include "RecentFileItemsFilter.h"
 #include "TileTabsLayoutGridConfiguration.h"
 #include "TileTabsLayoutManualConfiguration.h"
 #include "WuQMacroGroup.h"
@@ -2394,6 +2395,42 @@ CaretPreferences::addToRecentDirectories(const AString& directoryOrFileName)
                        + errorMessage);
         return;
     }
+}
+
+/**
+ * Get the recent directories for use in the Open Data File Dialog's "history".
+ * @param favoritesFirstFlag
+ * If true, any directories that are in user's favorites are listed first.
+ * @param directoriesOut
+ * Output containing the recent directories
+ */
+void
+CaretPreferences::getRecentDirectoriesForOpenFileDialogHistory(const bool favoritesFirstFlag,
+                                                               std::vector<AString>& directoriesOut)
+{
+    directoriesOut.clear();
+    
+    std::unique_ptr<RecentFileItemsContainer> dirsContainer(RecentFileItemsContainer::newInstanceRecentDirectories(this,
+                                                                                                                   RecentFileItemsContainer::WriteIfModifiedType::WRITE_NO));
+    RecentFileItemsFilter filter;
+    filter.setShowDirectories(true);
+    std::vector<RecentFileItem*> items = dirsContainer->getItems(filter);
+    RecentFileItemsContainer::sort(RecentFileItemSortingKeyEnum::DATE_NEWEST,
+                                   items);
+    
+    std::vector<AString> notFavs;
+    for (auto rfi : items) {
+        if (favoritesFirstFlag
+            && rfi->isFavorite()) {
+            directoriesOut.push_back(rfi->getPathAndFileName());
+        }
+        else {
+            notFavs.push_back(rfi->getPathAndFileName());
+        }
+    }
+    directoriesOut.insert(directoriesOut.end(),
+                          notFavs.begin(),
+                          notFavs.end());
 }
 
 

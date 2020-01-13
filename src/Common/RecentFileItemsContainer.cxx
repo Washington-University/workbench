@@ -330,6 +330,24 @@ RecentFileItemsContainer::addFilesInDirectoryToRecentItems(const RecentFileItemT
 }
 
 /**
+ * Get the recent file item with the given path and file name.
+ * @param pathAndFileName
+ * Path and file name to match
+ * @return Pointer to matching item or NULL if not found.
+ */
+RecentFileItem*
+RecentFileItemsContainer::getItemWithPathAndFileName(const AString& pathAndFileName)
+{
+    for (auto& item : m_recentFiles) {
+        if (pathAndFileName == item->getPathAndFileName()) {
+            return item;
+        }
+    }
+    
+    return NULL;
+}
+
+/**
  * @return True if this container is empty (no recent file items)
  */
 bool
@@ -381,15 +399,15 @@ RecentFileItemsContainer::sort(const RecentFileItemSortingKeyEnum::Enum sortingK
                                std::vector<RecentFileItem*>& items)
 {
     switch (sortingKey) {
-        case RecentFileItemSortingKeyEnum::DATE_ASCENDING:
+        case RecentFileItemSortingKeyEnum::DATE_NEWEST:
             std::sort(items.begin(),
-                      items.end(),
-                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getLastAccessDateTime() < b->getLastAccessDateTime(); });
-            break;
-        case RecentFileItemSortingKeyEnum::DATE_DESCENDING:
-            std::sort(items.begin(),
-                      items.end(),
+                      items.end(),                                      /* > is newer in Qt Documentation */
                       [](const RecentFileItem* a, RecentFileItem* b) { return a->getLastAccessDateTime() > b->getLastAccessDateTime(); });
+            break;
+        case RecentFileItemSortingKeyEnum::DATE_OLDEST:
+            std::sort(items.begin(),
+                      items.end(),                                      /* < is earlier in Qt Documentation */
+                      [](const RecentFileItem* a, RecentFileItem* b) { return a->getLastAccessDateTime() < b->getLastAccessDateTime(); });
             break;
         case RecentFileItemSortingKeyEnum::NAME_ASCENDING:
             std::sort(items.begin(),

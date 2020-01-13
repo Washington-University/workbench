@@ -106,13 +106,13 @@ RecentFileItemSortingKeyEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(RecentFileItemSortingKeyEnum(DATE_ASCENDING, 
-                                    "DATE_ASCENDING", 
-                                    "Date Ascending"));
+    enumData.push_back(RecentFileItemSortingKeyEnum(DATE_NEWEST,
+                                    "DATE_NEWEST",
+                                    "Date Newest"));
     
-    enumData.push_back(RecentFileItemSortingKeyEnum(DATE_DESCENDING, 
-                                    "DATE_DESCENDING", 
-                                    "Date Descending"));
+    enumData.push_back(RecentFileItemSortingKeyEnum(DATE_OLDEST,
+                                    "DATE_OLDEST",
+                                    "Date Oldest"));
     
     enumData.push_back(RecentFileItemSortingKeyEnum(NAME_ASCENDING, 
                                     "NAME_ASCENDING", 

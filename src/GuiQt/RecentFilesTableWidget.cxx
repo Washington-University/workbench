@@ -656,10 +656,10 @@ RecentFilesTableWidget::sortIndicatorClicked(int logicalIndex,
             case COLUMN_DATE_TIME:
                 switch (sortOrder) {
                     case Qt::AscendingOrder:
-                        m_sortingKey = RecentFileItemSortingKeyEnum::DATE_ASCENDING;
+                        m_sortingKey = RecentFileItemSortingKeyEnum::DATE_OLDEST;
                         break;
                     case Qt::DescendingOrder:
-                        m_sortingKey = RecentFileItemSortingKeyEnum::DATE_DESCENDING;
+                        m_sortingKey = RecentFileItemSortingKeyEnum::DATE_NEWEST;
                         break;
                 }
                 updateFlag = true;
@@ -702,11 +702,11 @@ RecentFilesTableWidget::updateHeaderSortingKey()
     QHeaderView* horizHeader = horizontalHeader();
     horizHeader->setSortIndicatorShown(true);
     switch (m_sortingKey) {
-        case RecentFileItemSortingKeyEnum::DATE_ASCENDING:
-            horizHeader->setSortIndicator(COLUMN_DATE_TIME, Qt::AscendingOrder);
-            break;
-        case RecentFileItemSortingKeyEnum::DATE_DESCENDING:
+        case RecentFileItemSortingKeyEnum::DATE_NEWEST:
             horizHeader->setSortIndicator(COLUMN_DATE_TIME, Qt::DescendingOrder);
+            break;
+        case RecentFileItemSortingKeyEnum::DATE_OLDEST:
+            horizHeader->setSortIndicator(COLUMN_DATE_TIME, Qt::AscendingOrder);
             break;
         case RecentFileItemSortingKeyEnum::NAME_ASCENDING:
             horizHeader->setSortIndicator(COLUMN_NAME, Qt::AscendingOrder);

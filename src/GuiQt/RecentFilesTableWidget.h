@@ -120,7 +120,7 @@ namespace caret {
         
         std::unique_ptr<QIcon> m_forgetOnIcon;
         
-        RecentFileItemSortingKeyEnum::Enum m_sortingKey = RecentFileItemSortingKeyEnum::DATE_DESCENDING;
+        RecentFileItemSortingKeyEnum::Enum m_sortingKey = RecentFileItemSortingKeyEnum::DATE_NEWEST;
 
         static const int32_t s_pixmapSizeXY;
         

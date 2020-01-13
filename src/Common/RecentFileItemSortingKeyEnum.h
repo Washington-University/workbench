@@ -35,10 +35,10 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Ascending by date */
-        DATE_ASCENDING,
-        /** Dscending by date */
-        DATE_DESCENDING,
+        /** Newest by date */
+        DATE_NEWEST,
+        /** Oldest by date */
+        DATE_OLDEST,
         /** Ascending by name */
         NAME_ASCENDING,
         /** Dscending by name */

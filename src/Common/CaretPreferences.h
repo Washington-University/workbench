@@ -79,6 +79,9 @@ namespace caret {
         bool writeRecentDirectories(const RecentFileItemsContainer* container,
                                     AString& errorMessageOut);
         
+        void getRecentDirectoriesForOpenFileDialogHistory(const bool favoritesFirstFlag,
+                                                          std::vector<AString>& directoriesOut);
+        
         LogLevelEnum::Enum getLoggingLevel() const;
         
         void setLoggingLevel(const LogLevelEnum::Enum loggingLevel);

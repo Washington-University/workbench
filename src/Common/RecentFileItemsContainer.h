@@ -76,6 +76,8 @@ namespace caret {
         
         void removeAllItems();
         
+        RecentFileItem* getItemWithPathAndFileName(const AString& pathAndFileName);
+        
         RecentFileItemsContainerModeEnum::Enum getMode() const;
         
         virtual bool isModified() const;
