@@ -55,6 +55,8 @@ namespace caret {
 
         RecentFileItem* getSelectedItem();
         
+        virtual QSize sizeHint() const override;
+        
         // ADD_NEW_METHODS_HERE
 
     signals:

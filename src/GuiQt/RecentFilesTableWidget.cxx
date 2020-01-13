@@ -106,6 +106,23 @@ RecentFilesTableWidget::getSelectedItem()
 }
 
 /**
+ * @return The size hint adjusted for width of recent files table
+ */
+QSize
+RecentFilesTableWidget::sizeHint() const
+{
+    QSize sz = QTableWidget::sizeHint();
+    
+    int32_t x(0);
+    for (int32_t i = 0; i < columnCount(); i++) {
+        x += columnWidth(i);
+    }
+    sz.setWidth(x);
+    
+    return sz;
+}
+
+/**
  * Update number of rows in table
  * @param numberOfItems
  *  Number of files for table
