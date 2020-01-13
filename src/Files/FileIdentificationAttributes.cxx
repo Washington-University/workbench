@@ -75,7 +75,8 @@ FileIdentificationAttributes::~FileIdentificationAttributes()
  *    Object that is copied.
  */
 FileIdentificationAttributes::FileIdentificationAttributes(const FileIdentificationAttributes& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     this->copyHelperFileIdentificationAttributes(obj);
 }

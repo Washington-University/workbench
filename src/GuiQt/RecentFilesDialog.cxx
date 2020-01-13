@@ -473,10 +473,8 @@ RecentFilesDialog::websiteLinkActivated(const QString& link)
  *    Action that was selected
  */
 void
-RecentFilesDialog::filesModeActionTriggered(QAction* action)
+RecentFilesDialog::filesModeActionTriggered(QAction* /*action*/)
 {
-    CaretAssert(action);
-    
     updateFilesTableContent();
 }
 

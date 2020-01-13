@@ -537,8 +537,6 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
             const CiftiMappableDataFile* ciftiFile = dynamic_cast<const CiftiMappableDataFile*>(volumeInterfaceFile);
             CaretAssert((volumeFile != NULL)
                         || (ciftiFile != NULL));
-            const CaretMappableDataFile* caretMappableDataFile = dynamic_cast<const CaretMappableDataFile*>(volumeInterfaceFile);
-            CaretAssert(caretMappableDataFile != NULL);
 
             int64_t vfI, vfJ, vfK;
             volumeInterfaceFile->enclosingVoxel(x, y, z,
@@ -834,9 +832,6 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
     
     if ((surface != NULL)
         && (nodeNumber >= 0)) {
-        const BrainStructure* brainStructure = surface->getBrainStructure();
-        CaretAssert(brainStructure);
-        
         LabelFile* labelFile(NULL);
         MetricFile* metricFile(NULL);
         MetricDynamicConnectivityFile* metricDynConnFile(NULL);
