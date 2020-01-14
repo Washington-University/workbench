@@ -122,6 +122,12 @@ RecentFilesDialog::RecentFilesDialog(const AString& dialogTitle,
     
     m_recentDirectoryItemsContainer.reset(RecentFileItemsContainer::newInstanceRecentDirectories(preferences,
                                                                                                  RecentFileItemsContainer::WriteIfModifiedType::WRITE_YES));
+
+    /*
+     * Favorites is updated when it is selected
+     */
+    std::vector<RecentFileItemsContainer*> emptyContainers;
+    m_favoriteItemsContainer.reset(RecentFileItemsContainer::newInstanceFavorites(emptyContainers));
     
     /*
      * Default to a non-empty container
@@ -135,6 +141,9 @@ RecentFilesDialog::RecentFilesDialog(const AString& dialogTitle,
     }
     else if ( ! m_currentDirectoryItemsContainer->isEmpty()) {
         selectedMode = RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES;
+    }
+    else if ( ! m_favoriteItemsContainer->isEmpty()) {
+        selectedMode = RecentFileItemsContainerModeEnum::FAVORITES;
     }
     
     QAction* selectedAction = getActionForMode(selectedMode);
@@ -339,10 +348,6 @@ RecentFilesDialog::createFileTypesButtonWidget()
         tb->setDefaultAction(action);
         tb->setStyleSheet("font : 14px"); /* larger characters */
         toolButtons.push_back(tb);
-        
-        if (m == RecentFileItemsContainerModeEnum::FAVORITES) {
-            tb->setEnabled(false);
-        }
     }
     
     std::vector<QWidget*> toolButtonWidgets(toolButtons.begin(),
@@ -485,6 +490,8 @@ void
 RecentFilesDialog::updateFilesTableContent()
 {
     RecentFileItemsFilter filter;
+    filter.setNameMatching(m_nameFilterLineEdit->text().trimmed());
+    
     RecentFileItemsContainer* itemsContainer(NULL);
     
     switch (getSelectedFilesMode()) {
@@ -492,10 +499,13 @@ RecentFilesDialog::updateFilesTableContent()
             itemsContainer = m_currentDirectoryItemsContainer.get();
             filter.setShowSceneFiles(m_showSceneFilesCheckBox->isChecked());
             filter.setShowSpecFiles(m_showSpecFilesCheckBox->isChecked());
-            filter.setNameMatching(m_nameFilterLineEdit->text().trimmed());
             break;
         case RecentFileItemsContainerModeEnum::FAVORITES:
-            filter.setFavoritesOnly(true);
+            updateFavoritesContainer();
+            itemsContainer = m_favoriteItemsContainer.get();
+            filter.setShowDirectories(true);
+            filter.setShowSceneFiles(true);
+            filter.setShowSpecFiles(true);
             break;
         case RecentFileItemsContainerModeEnum::OTHER:
             CaretAssertMessage(0, "OTHER not used in dialog");
@@ -503,19 +513,31 @@ RecentFilesDialog::updateFilesTableContent()
         case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
             itemsContainer = m_recentDirectoryItemsContainer.get();
             filter.setShowDirectories(true);
-            filter.setNameMatching(m_nameFilterLineEdit->text().trimmed());
             break;
         case RecentFileItemsContainerModeEnum::RECENT_FILES:
             itemsContainer = m_recentFilesItemsContainer.get();
             filter.setShowSceneFiles(m_showSceneFilesCheckBox->isChecked());
             filter.setShowSpecFiles(m_showSpecFilesCheckBox->isChecked());
-            filter.setNameMatching(m_nameFilterLineEdit->text().trimmed());
             break;
     }
     
     m_recentFilesTableWidget->updateContent(itemsContainer,
                                             filter);
 }
+
+/**
+ * Update the contents of the favorites container
+ */
+void
+RecentFilesDialog::updateFavoritesContainer()
+{
+    std::vector<RecentFileItemsContainer*> containers {
+        m_recentFilesItemsContainer.get(),
+        m_recentDirectoryItemsContainer.get()
+    };
+    m_favoriteItemsContainer.reset(RecentFileItemsContainer::newInstanceFavorites(containers));
+}
+
 /**
  * @return The selected files mode
  */
@@ -529,7 +551,7 @@ RecentFilesDialog::getSelectedFilesMode() const
     
     const AString modeName = selectedAction->data().toString();
     bool validFlag(false);
-    mode =RecentFileItemsContainerModeEnum::fromName(modeName, &validFlag);
+    mode = RecentFileItemsContainerModeEnum::fromName(modeName, &validFlag);
     CaretAssert(validFlag);
     
     return mode;

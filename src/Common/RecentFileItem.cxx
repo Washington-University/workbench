@@ -85,6 +85,7 @@ RecentFileItem::RecentFileItem(const RecentFileItem& obj)
 : CaretObjectTracksModification(obj)
 {
     this->copyHelperRecentFileItem(obj);
+    std::cout << "RecentFileItem Copy constructor." << std::endl;
 }
 
 /**

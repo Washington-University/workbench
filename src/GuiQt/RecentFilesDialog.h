@@ -124,6 +124,8 @@ namespace caret {
         
         void websiteLinkActivated(const QString& link);
         
+        void updateFavoritesContainer();
+        
         QPushButton* m_openPushButton;
         
         QActionGroup* m_fileTypeModeActionGroup;
@@ -145,6 +147,8 @@ namespace caret {
         std::unique_ptr<RecentFileItemsContainer> m_recentFilesItemsContainer;
         
         std::unique_ptr<RecentFileItemsContainer> m_recentDirectoryItemsContainer;
+        
+        std::unique_ptr<RecentFileItemsContainer> m_favoriteItemsContainer;
         
         // ADD_NEW_MEMBERS_HERE
 

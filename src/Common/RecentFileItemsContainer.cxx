@@ -126,6 +126,21 @@ RecentFileItemsContainer::newInstance()
 }
 
 /**
+ * @return A new instance containing favorites using items in other containers
+ * @param otherContainers
+ *    Other containers with items that are shared with this container
+ */
+RecentFileItemsContainer*
+RecentFileItemsContainer::newInstanceFavorites(std::vector<RecentFileItemsContainer*>& otherContainers)
+{
+    RecentFileItemsContainer* containerOut = new RecentFileItemsContainer(RecentFileItemsContainerModeEnum::FAVORITES,
+                                                                          WriteIfModifiedType::WRITE_NO);
+    containerOut->updateFavorites(otherContainers);
+    
+    return containerOut;
+}
+
+/**
  * @return A new instance containing spec and scene files in a directory
  * @param directoryPath
  *    Directory from which files are read
@@ -196,6 +211,26 @@ RecentFileItemsContainer::newInstanceRecentDirectories(CaretPreferences* prefere
 }
 
 /**
+ * Update a favorites with items from other containers
+ * @param otherContainers
+ *   Items that are favorites from other containers are shared with this container
+ */
+void
+RecentFileItemsContainer::updateFavorites(std::vector<RecentFileItemsContainer*>& otherContainers)
+{
+    removeAllItems();
+    
+    for (auto& container : otherContainers) {
+        for (auto& rfi : container->m_recentFiles) {
+            if (rfi->isFavorite()) {
+                std::shared_ptr<RecentFileItem> rfiCopy(rfi);
+                addItemPointer(rfiCopy);
+            }
+        }
+    }
+}
+
+/**
  *@return True if this instance has been modified, else false.
  */
 bool
@@ -240,7 +275,7 @@ RecentFileItemsContainer::getMode() const
  * Add an item to this container.  If an item with the same name is already in the container, it is removed
  * and the given item is added.
  * @param recentFile
- * Recent file item that is added will be managed (destroyed at appropriate time) by this container1111
+ * Recent file item that is added will be managed (destroyed at appropriate time) by this container
  */
 void
 RecentFileItemsContainer::addItem(RecentFileItem* recentFile)
@@ -248,31 +283,36 @@ RecentFileItemsContainer::addItem(RecentFileItem* recentFile)
     CaretAssert(recentFile);
 
     /*
+     * Item might not get added but if this happens
+     * shared pointer will delete the item.
+     */
+    std::shared_ptr<RecentFileItem> sp(recentFile);
+    addItemPointer(sp);
+}
+
+/**
+ * Add an item in a shared pointer to this container.  If an item with the same name is already in the container, it is removed
+ * and the given item is added.
+ * @param recentFilePointer
+ * Shared pointer that will be added to this container.
+ */
+void
+RecentFileItemsContainer::addItemPointer(std::shared_ptr<RecentFileItem>& recentFilePointer)
+{
+    /*
      * Returned pair contains iterator (first) and a boolean (second).
      * If the boolean is FALSE, that means the new items was NOT inserted
      * since it duplicates an item already in the set.
      */
-    auto iter = m_recentFiles.insert(recentFile);
+    auto iter = m_recentFiles.insert(recentFilePointer);
     if (iter.second) {
         /* Item was inserted */
     }
     else {
         /*
-         * Remove existing item from the set.
+         * Item was not inserted, just need to update the date
          */
-        RecentFileItem* item = *iter.first;
-        CaretAssert(item);
-        m_recentFiles.erase(iter.first);
-        delete item;
-        
-        /*
-         * Insert the new item
-         */
-        auto iterTwo = m_recentFiles.insert(recentFile);
-        if ( ! iterTwo.second) {
-            CaretLogSevere("Failed to replace with recent file item "
-                           + recentFile->getPathAndFileName());
-        }
+        (*iter.first)->setLastAccessDateTime(recentFilePointer->getLastAccessDateTime());
     }
 }
 
@@ -282,10 +322,6 @@ RecentFileItemsContainer::addItem(RecentFileItem* recentFile)
 void
 RecentFileItemsContainer::removeAllItems()
 {
-    for (auto re : m_recentFiles) {
-        CaretAssert(re);
-        delete re;
-    }
     m_recentFiles.clear();
 }
 
@@ -322,11 +358,6 @@ RecentFileItemsContainer::addFilesInDirectoryToRecentItems(const RecentFileItemT
                                                       name);
         addItem(fileItem);
     }
-    for (auto name : fileNames) {
-        RecentFileItem* fileItem = new RecentFileItem(recentFileItemType,
-                                                      name);
-        addItem(fileItem);
-    }
 }
 
 /**
@@ -340,7 +371,7 @@ RecentFileItemsContainer::getItemWithPathAndFileName(const AString& pathAndFileN
 {
     for (auto& item : m_recentFiles) {
         if (pathAndFileName == item->getPathAndFileName()) {
-            return item;
+            return item.get();
         }
     }
     
@@ -371,8 +402,8 @@ RecentFileItemsContainer::getItems(const RecentFileItemsFilter& itemsFilter) con
     
     for (const auto& item : m_recentFiles) {
         CaretAssert(item);
-        if (itemsFilter.testItemPassesFilter(item)) {
-            itemsOut.push_back(item);
+        if (itemsFilter.testItemPassesFilter(item.get())) {
+            itemsOut.push_back(item.get());
         }
     }
     
@@ -684,5 +715,20 @@ RecentFileItemsContainer::ItemCompare::operator() (const RecentFileItem* lhs, co
 {
     CaretAssert(lhs);
     CaretAssert(rhs);
+    return (lhs->getPathAndFileName() < rhs->getPathAndFileName());
+}
+/**
+ * Comparison operation used by the SET containing the RecentFileItems.
+ * @param lhs
+ *  First item for comparison.
+ * @param lhs
+ *  Second item for comparison.
+ * @return
+ *     True if "lhs" is less than "rhs"
+ */
+bool
+RecentFileItemsContainer::ItemCompareSharedPtr::operator() (const std::shared_ptr<RecentFileItem>& lhs,
+                                                            const std::shared_ptr<RecentFileItem>& rhs) const
+{
     return (lhs->getPathAndFileName() < rhs->getPathAndFileName());
 }

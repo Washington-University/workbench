@@ -54,6 +54,8 @@ namespace caret {
         
         static RecentFileItemsContainer* newInstance();
         
+        static RecentFileItemsContainer* newInstanceFavorites(std::vector<RecentFileItemsContainer*>& otherContainers);
+        
         static RecentFileItemsContainer* newInstanceSceneAndSpecFilesInDirectory(const AString& directoryPath);
         
         static RecentFileItemsContainer* newInstanceRecentSceneAndSpecFiles(CaretPreferences* preferences,
@@ -68,6 +70,8 @@ namespace caret {
 
         RecentFileItemsContainer& operator=(const RecentFileItemsContainer&) = delete;
 
+        void updateFavorites(std::vector<RecentFileItemsContainer*>& otherContainers);
+        
         bool isEmpty() const;
         
         std::vector<RecentFileItem*> getItems(const RecentFileItemsFilter& itemsFilter) const;
@@ -103,6 +107,8 @@ namespace caret {
         RecentFileItemsContainer(const RecentFileItemsContainerModeEnum::Enum mode,
                                  const WriteIfModifiedType writeIfModifiedType);
         
+        void addItemPointer(std::shared_ptr<RecentFileItem>& recentFilePointer);
+        
         void addFilesInDirectoryToRecentItems(const RecentFileItemTypeEnum::Enum recentFileItemType,
                                               const AString& directoryPath);
         
@@ -124,13 +130,21 @@ namespace caret {
             bool operator() (const RecentFileItem* lhs, const RecentFileItem* rhs) const;
         };
         
+        struct ItemCompareSharedPtr {
+            bool operator() (const std::shared_ptr<RecentFileItem>& lhs, const std::shared_ptr<RecentFileItem>& rhs) const;
+        };
+        
         /**
          * Set containing RecentFileItem's.  Note use of comparison operator so that
          * comparison is performed on content of the RecentFileItem and NOT the pointers.
+         *
+         * A Favorites container uses items from other containers so shared pointers are used
+         * since an item may in a favotites container and another container.
+         *
          * A set is used to avoid duplicate entries.
          */
-        std::set<RecentFileItem*, ItemCompare> m_recentFiles;
-        
+        std::set<std::shared_ptr<RecentFileItem>, ItemCompareSharedPtr> m_recentFiles;
+                
         // ADD_NEW_MEMBERS_HERE
 
         

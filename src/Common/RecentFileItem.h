@@ -56,6 +56,8 @@ namespace caret {
         
         QDateTime getLastAccessDateTime() const;
         
+        void setLastAccessDateTime(const QDateTime& dateTime);
+
         void setLastAccessDateTimeToCurrentDateTime();
         
         AString getPathAndFileName() const;
@@ -85,8 +87,6 @@ namespace caret {
     private:
         void copyHelperRecentFileItem(const RecentFileItem& obj);
 
-        void setLastAccessDateTime(const QDateTime& dateTime);
-        
         RecentFileItemTypeEnum::Enum m_fileItemType;
         
         QDateTime m_lastAccessDateTime;
