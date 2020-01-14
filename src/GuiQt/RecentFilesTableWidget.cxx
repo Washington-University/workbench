@@ -186,9 +186,9 @@ RecentFilesTableWidget::updateTableDimensions(const int32_t numberOfItems)
                     WuQImageLabel* label = new WuQImageLabel();
                     label->setAlignment(Qt::AlignCenter);
                     QObject::connect(label, &WuQImageLabel::clicked,
-                                     [=] { tableCellClicked(iRow, COLUMN_FAVORITE); });
+                                     [=] { if (label->isEnabled()) tableCellClicked(iRow, COLUMN_FAVORITE); });
                     QObject::connect(label, &WuQImageLabel::doubleClicked,
-                                     [=] { tableCellDoubleClicked(iRow, COLUMN_FAVORITE); });
+                                     [=] { if (label->isEnabled()) tableCellDoubleClicked(iRow, COLUMN_FAVORITE); });
                     toolTipText = "Add/Remove this row as a favorite";
                     widget = label;
                 }
@@ -204,9 +204,9 @@ RecentFilesTableWidget::updateTableDimensions(const int32_t numberOfItems)
                         label->setText("fav");
                     }
                     QObject::connect(label, &WuQImageLabel::clicked,
-                                     [=] { tableCellClicked(iRow, COLUMN_SHARE); });
+                                     [=] { if (label->isEnabled()) tableCellClicked(iRow, COLUMN_SHARE); });
                     QObject::connect(label, &WuQImageLabel::doubleClicked,
-                                     [=] { tableCellDoubleClicked(iRow, COLUMN_SHARE); });
+                                     [=] { if (label->isEnabled()) tableCellDoubleClicked(iRow, COLUMN_SHARE); });
                     toolTipText = "Share path to this directory/file";
                     widget = label;
                 }
@@ -216,9 +216,9 @@ RecentFilesTableWidget::updateTableDimensions(const int32_t numberOfItems)
                     WuQImageLabel* label = new WuQImageLabel();
                     label->setAlignment(Qt::AlignCenter);
                     QObject::connect(label, &WuQImageLabel::clicked,
-                                     [=] { tableCellClicked(iRow, COLUMN_FORGET); });
+                                     [=] { if (label->isEnabled()) tableCellClicked(iRow, COLUMN_FORGET); });
                     QObject::connect(label, &WuQImageLabel::doubleClicked,
-                                     [=] { tableCellDoubleClicked(iRow, COLUMN_FORGET); });
+                                     [=] { if (label->isEnabled()) tableCellDoubleClicked(iRow, COLUMN_FORGET); });
                     toolTipText = ("Forget this row (removed from recent directory/file history)\n"
                                    "Actual directory/file is NOT deleted");
                     widget = label;
@@ -304,8 +304,10 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
     m_recentItems.clear();
     clearSelectedItem();
     
+    bool containerChangedFlag(false);
     if (recentFileItemsContainer != m_recentFileItemsContainer) {
         previousSelectedItem = NULL;
+        containerChangedFlag = true;
     }
     
     m_recentFileItemsFilter = itemsFilter;
@@ -362,9 +364,26 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
     update();
     tableCellClicked(selectedRowIndex, COLUMN_NAME);
     resizeRowsToContents();
+    if (containerChangedFlag) {
+        resizeColumnAsNeeded();
+    }
     update();
     updateHeaderSortingKey();
 }
+
+/**
+ * Resize columns as needed (expand but do not shrink width of each column)
+ */
+void
+RecentFilesTableWidget::resizeColumnAsNeeded()
+{
+    for (int32_t i = 0; i < COLUMN_COUNT; i++) {
+        if (columnWidth(i) < sizeHintForColumn(i)) {
+            resizeColumnToContents(i);
+        }
+    }
+}
+
 
 /**
  * Update the content of a row
@@ -378,20 +397,23 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
     RecentFileItem* recentItem = m_recentItems[rowIndex];
     CaretAssert(recentItem);
     
-    bool enabledFavoriteAndForget(false);
+    bool enableFavoriteFlag(false);
+    bool enableForgetFlag(false);
     switch (m_recentFileItemsContainer->getMode()) {
         case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
             break;
         case RecentFileItemsContainerModeEnum::FAVORITES:
-            enabledFavoriteAndForget = true;
+            enableFavoriteFlag = true;
             break;
         case RecentFileItemsContainerModeEnum::OTHER:
             break;
         case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
-            enabledFavoriteAndForget = true;
+            enableFavoriteFlag = true;
+            enableForgetFlag   = true;
             break;
         case RecentFileItemsContainerModeEnum::RECENT_FILES:
-            enabledFavoriteAndForget = true;
+            enableFavoriteFlag = true;
+            enableForgetFlag   = true;
             break;
     }
     
@@ -434,7 +456,7 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                 CaretAssert(label);
                 
                 label->setText("");
-                if (enabledFavoriteAndForget) {
+                if (enableFavoriteFlag) {
                     if (recentItem->isFavorite()) {
                         if (m_favoriteFilledIcon) {
                             label->setPixmap(m_favoriteFilledIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
@@ -455,6 +477,7 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                 else {
                     label->setPixmap(QPixmap());
                 }
+                label->setEnabled(enableFavoriteFlag);
             }
                 break;
             case COLUMN_SHARE:
@@ -470,7 +493,7 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                  * Note: Same icon is used for forget on/off but may change
                  */
                 label->setText("");
-                if (enabledFavoriteAndForget) {
+                if (enableForgetFlag) {
                     if (recentItem->isForget()) {
                         if (m_forgetOnIcon) {
                             label->setPixmap(m_forgetOnIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
@@ -491,6 +514,7 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                 else {
                     label->setPixmap(QPixmap());
                 }
+                label->setEnabled(enableForgetFlag);
             }
                 break;
         }
@@ -508,6 +532,17 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
 void
 RecentFilesTableWidget::tableCellClicked(int row, int column)
 {
+    /*
+     * Some cells have items empty (no label or icon) when
+     * column is not valid for a file type
+     */
+    QWidget* w = cellWidget(row, column);
+    if (w != NULL) {
+        if ( ! w->isEnabled()) {
+            return;
+        }
+    }
+    
     int32_t rowToSelect(-1);
     if ((row >= 0)
         && (row < rowCount())) {
@@ -579,6 +614,17 @@ RecentFilesTableWidget::clearSelectedItem()
 void
 RecentFilesTableWidget::tableCellDoubleClicked(int row, int column)
 {
+    /*
+     * Some cells have items empty (no label or icon) when
+     * column is not valid for a file type
+     */
+    QWidget* w = cellWidget(row, column);
+    if (w != NULL) {
+        if ( ! w->isEnabled()) {
+            return;
+        }
+    }
+    
     tableCellClicked(row, column);
     RecentFileItem* selectedItem(getSelectedItem());
     if (selectedItem != NULL) {

@@ -92,6 +92,8 @@ namespace caret {
         
         std::unique_ptr<QIcon> loadIcon(const AString& iconFileName) const;
         
+        void resizeColumnAsNeeded();
+        
         void clearSelectedItem();
         
         void sortRecentItems();
