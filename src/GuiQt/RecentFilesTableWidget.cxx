@@ -134,7 +134,7 @@ RecentFilesTableWidget::updateTableDimensions(const int32_t numberOfItems)
     
     if (numberOfItems != numExistingRows) {
         /*
-         * Resize table to match number of files
+         * Resize table to match number of files and columns
          */
         setRowCount(numberOfItems);
         setColumnCount(COLUMN_COUNT);
@@ -223,6 +223,8 @@ RecentFilesTableWidget::updateTableDimensions(const int32_t numberOfItems)
                                    "Actual directory/file is NOT deleted");
                     widget = label;
                 }
+                case COLUMN_EMPTY_STRETCH:
+                    /* nothing, intentionally empty to push other columns to the left */
                     break;
             }
             
@@ -244,7 +246,7 @@ RecentFilesTableWidget::updateTableDimensions(const int32_t numberOfItems)
                 }
                 setCellWidget(iRow, iCol, widget);
             }
-            else {
+            else if (column != COLUMN_EMPTY_STRETCH) {
                 CaretAssert(0);
             }
         }
@@ -281,6 +283,9 @@ RecentFilesTableWidget::getColumnName(const int32_t columnIndex) const
             break;
         case COLUMN_FORGET:
             name = "Forget";
+            break;
+        case COLUMN_EMPTY_STRETCH:
+            name = "";
             break;
     }
     
@@ -342,14 +347,38 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
             for (int32_t i = 0; i < COLUMN_COUNT; i++) {
                 columnNames << getColumnName(i);
             }
+            columnNames << "";
             setHorizontalHeaderLabels(columnNames);
             
-            resizeColumnsToContents();
             resizeRowsToContents();
             
-            horizontalHeader()->setSectionResizeMode(COLUMN_FAVORITE, QHeaderView::ResizeToContents);
-            horizontalHeader()->setSectionResizeMode(COLUMN_SHARE, QHeaderView::ResizeToContents);
-            horizontalHeader()->setSectionResizeMode(COLUMN_FORGET, QHeaderView::ResizeToContents);
+            /*
+             * Set columns so they resize to first their contents
+             * except the stretch column that stretches to fill
+             * any extra space
+             */
+            for (int32_t i = 0; i < COLUMN_COUNT; i++) {
+                QHeaderView::ResizeMode mode = QHeaderView::ResizeToContents;
+                const COLUMNS column = static_cast<COLUMNS>(i);
+                switch (column) {
+                    case COLUMN_NAME:
+                        break;
+                    case COLUMN_DATE_TIME:
+                        break;
+                    case COLUMN_FAVORITE:
+                        break;
+                    case COLUMN_SHARE:
+                        break;
+                    case COLUMN_FORGET:
+                        break;
+                    case COLUMN_EMPTY_STRETCH:
+                        mode = QHeaderView::Stretch;
+                        break;
+                    case COLUMN_COUNT:
+                        break;
+                }
+                horizontalHeader()->setSectionResizeMode(i, mode);
+            }
         }
     }
     
@@ -364,26 +393,9 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
     update();
     tableCellClicked(selectedRowIndex, COLUMN_NAME);
     resizeRowsToContents();
-    if (containerChangedFlag) {
-        resizeColumnAsNeeded();
-    }
     update();
     updateHeaderSortingKey();
 }
-
-/**
- * Resize columns as needed (expand but do not shrink width of each column)
- */
-void
-RecentFilesTableWidget::resizeColumnAsNeeded()
-{
-    for (int32_t i = 0; i < COLUMN_COUNT; i++) {
-        if (columnWidth(i) < sizeHintForColumn(i)) {
-            resizeColumnToContents(i);
-        }
-    }
-}
-
 
 /**
  * Update the content of a row
@@ -517,6 +529,9 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                 label->setEnabled(enableForgetFlag);
             }
                 break;
+            case COLUMN_EMPTY_STRETCH:
+                /* nothing */
+                break;
         }
     }
 }
@@ -569,6 +584,8 @@ RecentFilesTableWidget::tableCellClicked(int row, int column)
                 break;
             case COLUMN_SHARE:
                 showShareMenuForRow(row);
+                break;
+            case COLUMN_EMPTY_STRETCH:
                 break;
         }
     }
@@ -644,6 +661,8 @@ RecentFilesTableWidget::tableCellDoubleClicked(int row, int column)
                 break;
             case COLUMN_SHARE:
                 break;
+            case COLUMN_EMPTY_STRETCH:
+                break;
             case COLUMN_COUNT:
                 break;
         }
@@ -714,6 +733,7 @@ RecentFilesTableWidget::sortIndicatorClicked(int logicalIndex,
             case COLUMN_FAVORITE:
             case COLUMN_FORGET:
             case COLUMN_SHARE:
+            case COLUMN_EMPTY_STRETCH:
                 break;
         }
         

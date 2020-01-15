@@ -75,13 +75,19 @@ namespace caret {
                                   Qt::SortOrder sortOrder);
         
     private:
+        /*
+         * The empty stretch column fills any empty space on the right side
+         * of the dialog.  Without it, we can stretch the FORGET column
+         * but items are centered and it look weird.
+         */
         enum COLUMNS {
-            COLUMN_NAME = 0,
-            COLUMN_DATE_TIME = 1,
-            COLUMN_FAVORITE = 2,
-            COLUMN_SHARE = 3,
-            COLUMN_FORGET = 4,
-            COLUMN_COUNT = 5
+            COLUMN_NAME          = 0,
+            COLUMN_DATE_TIME     = 1,
+            COLUMN_FAVORITE      = 2,
+            COLUMN_SHARE         = 3,
+            COLUMN_FORGET        = 4,
+            COLUMN_EMPTY_STRETCH = 5,
+            COLUMN_COUNT         = 6
         };
 
         AString getColumnName(const int32_t) const;
@@ -91,8 +97,6 @@ namespace caret {
         void updateRow(const int32_t rowIndex);
         
         std::unique_ptr<QIcon> loadIcon(const AString& iconFileName) const;
-        
-        void resizeColumnAsNeeded();
         
         void clearSelectedItem();
         
