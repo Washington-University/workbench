@@ -25,8 +25,9 @@
 
 #include <QApplication>
 #include <QClipboard>
-#include <QDesktopServices>
+#include <QContextMenuEvent>
 #include <QCursor>
+#include <QDesktopServices>
 #include <QHeaderView>
 #include <QLabel>
 #include <QMenu>
@@ -36,9 +37,13 @@
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "DataFileException.h"
 #include "RecentFileItem.h"
 #include "RecentFileItemsContainer.h"
 #include "RecentFileItemsFilter.h"
+#include "Scene.h"
+#include "SceneFile.h"
 #include "WuQImageLabel.h"
 #include "WuQtUtilities.h"
 
@@ -80,6 +85,8 @@ RecentFilesTableWidget::RecentFilesTableWidget()
     m_forgetIcon          = loadIcon(":/RecentFilesDialog/forget_black.png");
     m_forgetOnIcon        = loadIcon(":/RecentFilesDialog/forget_red.png");
     m_shareIcon           = loadIcon(":/RecentFilesDialog/share.png");
+    
+    setContextMenuPolicy(Qt::DefaultContextMenu);
 }
 
 /**
@@ -198,10 +205,10 @@ RecentFilesTableWidget::updateTableDimensions(const int32_t numberOfItems)
                     WuQImageLabel* label = new WuQImageLabel();
                     label->setAlignment(Qt::AlignCenter);
                     if (m_shareIcon) {
-                        label->setPixmap(m_shareIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
+                        label->setPixmap(m_shareIcon->pixmap(s_pixmapSizeXY - 4, s_pixmapSizeXY - 4));
                     }
                     else {
-                        label->setText("fav");
+                        label->setText("share");
                     }
                     QObject::connect(label, &WuQImageLabel::clicked,
                                      [=] { if (label->isEnabled()) tableCellClicked(iRow, COLUMN_SHARE); });
@@ -822,6 +829,77 @@ RecentFilesTableWidget::showShareMenuForRow(const int32_t rowIndex)
                               + "&body=" + pathName);
         QDesktopServices::openUrl(QUrl(mailArg,
                                        QUrl::TolerantMode));
+    }
+}
+
+/**
+ * Event handler for custom context menu display
+ * @param event
+ *  The context menu event
+ */
+void
+RecentFilesTableWidget::contextMenuEvent(QContextMenuEvent *event)
+{
+    const int32_t row = rowAt(event->y());
+    const int32_t column = columnAt(event->x());
+    
+    if ((row >= 0)
+        && (row < rowCount())) {
+        if (column == COLUMN_NAME) {
+            CaretAssertVectorIndex(m_recentItems, row);
+            RecentFileItem* item = m_recentItems[row];
+            switch (item->getFileItemType()) {
+                case RecentFileItemTypeEnum::DIRECTORY:
+                    break;
+                case RecentFileItemTypeEnum::SCENE_FILE:
+                {
+                    /**
+                     * List scenes and allow user to load a scene bypassing the scene dialog
+                     */
+                    SceneFile sceneFile;
+                    try {
+                        sceneFile.readFile(item->getPathAndFileName());
+                        const int32_t numScenes = sceneFile.getNumberOfScenes();
+                        if (numScenes > 0) {
+                            std::vector<QAction*> actions;
+                            QMenu menu(this);
+                            for (int32_t i = 0; i < numScenes; i++) {
+                                actions.push_back(menu.addAction("Load "
+                                                                 + AString::number(i + 1)
+                                                                 + " "
+                                                                 + sceneFile.getSceneAtIndex(i)->getName()));
+                            }
+                            
+                            QAction* selectedAction = menu.exec(event->globalPos());
+                            for (int32_t i = 0; i < numScenes; i++) {
+                                CaretAssertVectorIndex(actions, i);
+                                if (selectedAction == actions[i]) {
+                                    emit loadSceneOrSpecFile(item->getPathAndFileName(), i);
+                                }
+                            }
+                        }
+                    }
+                    catch (const DataFileException& dfe) {
+                        CaretLogWarning(dfe.whatString());
+                    }
+                }
+                    break;
+                case RecentFileItemTypeEnum::SPEC_FILE:
+                {
+                    /*
+                     * Allow user to load all files in a spec file while bypassing the spec file dialogt
+                     */
+                    QMenu menu(this);
+                    QAction* action = menu.addAction("Load all files from spec file");
+                    QAction* selectedAction = menu.exec(event->globalPos());
+                    if (action == selectedAction) {
+                        cellClicked(row, column);
+                        emit loadSceneOrSpecFile(item->getPathAndFileName(), 0);
+                    }
+                }
+                    break;
+            }
+        }
     }
 }
 

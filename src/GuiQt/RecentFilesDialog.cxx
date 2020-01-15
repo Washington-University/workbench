@@ -80,6 +80,9 @@ RecentFilesDialog::RecentFilesDialog(const AString& dialogTitle,
     m_recentFilesTableWidget = new RecentFilesTableWidget();
     QObject::connect(m_recentFilesTableWidget, &RecentFilesTableWidget::sortingChanged,
                      this, &RecentFilesDialog::updateFilesTableContent);
+    QObject::connect(m_recentFilesTableWidget, &RecentFilesTableWidget::loadSceneOrSpecFile,
+                     this, &RecentFilesDialog::loadSceneOrSpecFile);
+
 
     QWidget* dialogButtonWidget = createDialogButtonsWidget();
     
@@ -189,6 +192,8 @@ RecentFilesDialog::keyPressEvent(QKeyEvent* event)
  *     The run mode (open recent files or splash screen)
  * @param nameOut
  *     Output with name of selected directory or file name
+ * @param
+ *     Index of scene if result is loading scene from scene file
  * @param parent
  *     Parent for dialog
  * @return
@@ -197,6 +202,7 @@ RecentFilesDialog::keyPressEvent(QKeyEvent* event)
 RecentFilesDialog::ResultModeEnum
 RecentFilesDialog::runDialog(const RunMode runMode,
                              AString& nameOut,
+                             int32_t& sceneIndexOut,
                              QWidget* parent)
 {
     AString dialogTitle;
@@ -217,16 +223,17 @@ RecentFilesDialog::runDialog(const RunMode runMode,
     rfd.exec();
     
     ResultModeEnum resultMode = rfd.getResultMode();
-    nameOut = rfd.getSelectedDirectoryOrFileName();
+    nameOut       = rfd.getSelectedDirectoryOrFileName();
+    sceneIndexOut = rfd.getSelectedSceneIndex();
     
     return resultMode;
 }
 
 /**
- *
+ * @return The result mode
  */
 RecentFilesDialog::ResultModeEnum
-RecentFilesDialog::getResultMode()
+RecentFilesDialog::getResultMode() const
 {
     return m_resultMode;
 }
@@ -235,9 +242,18 @@ RecentFilesDialog::getResultMode()
  * @return The selected directory or file name
  */
 AString
-RecentFilesDialog::getSelectedDirectoryOrFileName()
+RecentFilesDialog::getSelectedDirectoryOrFileName() const
 {
     return m_resultFilePathAndName;
+}
+
+/**
+ * @return Index of scene if requested loading of scene from scene file
+ */
+int32_t
+RecentFilesDialog::getSelectedSceneIndex() const
+{
+    return m_resultSceneIndex;
 }
 
 /**
@@ -296,14 +312,24 @@ RecentFilesDialog::createDialogButtonsWidget()
     m_openPushButton = new QPushButton("Open");
     QObject::connect(m_openPushButton, &QPushButton::clicked,
                      this, &RecentFilesDialog::openButtonClicked);
+    m_openPushButton->setToolTip("<html><body>"
+                                 "Action depends upon type of item selected:"
+                                 "<ul>"
+                                 "<li> Directory  - File Open Dialog is displayed listing contents of directory"
+                                 "<li> Scene File - Scene File is opened in the Scene File Dialog for Scene selection"
+                                 "<li> Spec File  - Files in Spec File are listed in the Spec File Dialog"
+                                 "</ul>"
+                                 "</body></html>");
 
     QPushButton* openOtherPushButton = new QPushButton("Open Other...");
     QObject::connect(openOtherPushButton, &QPushButton::clicked,
                      this, &RecentFilesDialog::openOtherButtonClicked);
+    openOtherPushButton->setToolTip("Open File Dialog is displayed listing contents of current directory");
 
     QPushButton* cancelPushButton = new QPushButton("Cancel");
     QObject::connect(cancelPushButton, &QPushButton::clicked,
                      this, &RecentFilesDialog::cancelButtonClicked);
+    cancelPushButton->setToolTip("Closes dialog with no action taken");
 
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
@@ -672,3 +698,35 @@ RecentFilesDialog::testButtonClicked()
     }
 }
 
+/**
+ * Load the given scene or spec file
+ * @param pathAndFileName
+ * Path and file name of file
+ * @param sceneIndex
+ * Index of scene if scene file
+ */
+void
+RecentFilesDialog::loadSceneOrSpecFile(const AString& pathAndFileName,
+                                       const int32_t sceneIndex)
+{
+    std::cout << "Open " << pathAndFileName << " scene index " << sceneIndex << std::endl;
+    
+    bool validFlag;
+    const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(pathAndFileName, &validFlag);
+    switch (dataFileType) {
+        case DataFileTypeEnum::SCENE:
+            m_resultMode = ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE;
+            m_resultFilePathAndName = pathAndFileName;
+            m_resultSceneIndex      = sceneIndex;
+            accept();
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            m_resultMode = ResultModeEnum::LOAD_FILES_IN_SPEC_FILE;
+            m_resultFilePathAndName = pathAndFileName;
+            accept();
+            break;
+        default:
+            CaretAssertMessage(0, ("File type not scene nor spec: "
+                                   + DataFileTypeEnum::toName(dataFileType)));
+    }
+}

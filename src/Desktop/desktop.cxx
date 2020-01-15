@@ -471,15 +471,24 @@ main(int argc, char* argv[])
          */
         if (showSelectionSplashScreen) {
             AString dataFileName;
+            int32_t sceneIndex(-1);
             RecentFilesDialog::ResultModeEnum result = RecentFilesDialog::runDialog(RecentFilesDialog::RunMode::SPLASH_SCREEN,
-                                                                                    dataFileName);
+                                                                                    dataFileName,
+                                                                                    sceneIndex);
             switch (result) {
-                case caret::RecentFilesDialog::ResultModeEnum::CANCEL:
+                case RecentFilesDialog::ResultModeEnum::CANCEL:
                     break;
-                case caret::RecentFilesDialog::ResultModeEnum::OPEN_DIRECTORY:
+                case RecentFilesDialog::ResultModeEnum::LOAD_FILES_IN_SPEC_FILE:
+                    myState.specFileNameLoadAll = dataFileName;
+                    break;
+                case RecentFilesDialog::ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE:
+                    myState.sceneFileName     = dataFileName;
+                    myState.sceneNameOrNumber = AString::number(sceneIndex);
+                    break;
+                case RecentFilesDialog::ResultModeEnum::OPEN_DIRECTORY:
                     myState.directoryName = dataFileName;
                     break;
-                case caret::RecentFilesDialog::ResultModeEnum::OPEN_FILE:
+                case RecentFilesDialog::ResultModeEnum::OPEN_FILE:
                     if ( ! dataFileName.isEmpty()) {
                         bool validFlag(false);
                         if (DataFileTypeEnum::fromFileExtension(dataFileName,
@@ -491,7 +500,7 @@ main(int argc, char* argv[])
                         }
                     }
                     break;
-                case caret::RecentFilesDialog::ResultModeEnum::OPEN_OTHER:
+                case RecentFilesDialog::ResultModeEnum::OPEN_OTHER:
                     myState.directoryName = dataFileName;
                     break;
             }

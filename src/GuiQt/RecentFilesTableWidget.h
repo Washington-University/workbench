@@ -60,6 +60,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     signals:
+        void loadSceneOrSpecFile(const AString& pathAndFileName,
+                                 const int32_t sceneIndex);
+        
         void sortingChanged();
         
         void selectedItemChanged(RecentFileItem* item);
@@ -73,6 +76,9 @@ namespace caret {
         
         void sortIndicatorClicked(int locicalIndex,
                                   Qt::SortOrder sortOrder);
+        
+    protected:
+        virtual void contextMenuEvent(QContextMenuEvent *event) override;
         
     private:
         /*

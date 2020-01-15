@@ -53,6 +53,8 @@ namespace caret {
         
         enum class ResultModeEnum {
             CANCEL,
+            LOAD_FILES_IN_SPEC_FILE,
+            LOAD_SCENE_FROM_SCENE_FILE,
             OPEN_DIRECTORY,
             OPEN_FILE,
             OPEN_OTHER
@@ -60,6 +62,7 @@ namespace caret {
         
         static ResultModeEnum runDialog(const RunMode runMode,
                                         AString& nameOut,
+                                        int32_t& sceneIndexOut,
                                         QWidget* parent = 0);
         
         virtual ~RecentFilesDialog();
@@ -96,6 +99,9 @@ namespace caret {
         
         void tableWidgetItemDoubleClicked(RecentFileItem* item);
         
+        void loadSceneOrSpecFile(const AString& pathAndFileName,
+                                 const int32_t sceneIndex);
+        
     private slots:
         void updateFilesTableContent();
         
@@ -106,9 +112,11 @@ namespace caret {
         RecentFilesDialog(const AString& dialogTitle,
                           QWidget* parent = 0);
         
-        ResultModeEnum getResultMode();
+        ResultModeEnum getResultMode() const;
         
-        AString getSelectedDirectoryOrFileName();
+        AString getSelectedDirectoryOrFileName() const;
+        
+        int32_t getSelectedSceneIndex() const;
         
         QWidget* createDialogButtonsWidget();
         
@@ -139,6 +147,8 @@ namespace caret {
         ResultModeEnum m_resultMode = ResultModeEnum::CANCEL;
         
         AString m_resultFilePathAndName;
+        
+        int32_t m_resultSceneIndex = -1;
         
         RecentFilesTableWidget* m_recentFilesTableWidget;
         

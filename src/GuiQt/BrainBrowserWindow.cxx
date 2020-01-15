@@ -3155,12 +3155,22 @@ void
 BrainBrowserWindow::processOpenRecent()
 {
     AString directoryOrFileName;
+    int32_t sceneIndex(-1);
     const RecentFilesDialog::ResultModeEnum result = RecentFilesDialog::runDialog(RecentFilesDialog::RunMode::OPEN_RECENT,
                                                                                   directoryOrFileName,
+                                                                                  sceneIndex,
                                                                                   this);
     
     switch (result) {
         case RecentFilesDialog::ResultModeEnum::CANCEL:
+            break;
+        case RecentFilesDialog::ResultModeEnum::LOAD_FILES_IN_SPEC_FILE:
+            loadFilesFromCommandLine({ directoryOrFileName },
+                                     BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
+            break;
+        case RecentFilesDialog::ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE:
+            loadSceneFromCommandLine(directoryOrFileName,
+                                     AString::number(sceneIndex));
             break;
         case RecentFilesDialog::ResultModeEnum::OPEN_DIRECTORY:
             s_previousOpenFileDirectory = directoryOrFileName;
