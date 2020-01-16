@@ -353,6 +353,7 @@ BrowserWindowContent::getTileTabsConfigurationMode() const
 void
 BrowserWindowContent::setTileTabsConfigurationMode(const TileTabsLayoutConfigurationTypeEnum::Enum configMode)
 {
+    const TileTabsLayoutConfigurationTypeEnum::Enum previousMode = m_tileTabsConfigurationMode;
     m_tileTabsConfigurationMode = configMode;
     
     switch (m_tileTabsConfigurationMode) {
@@ -384,7 +385,18 @@ BrowserWindowContent::setTileTabsConfigurationMode(const TileTabsLayoutConfigura
                 }
             }
             if (allDefaultFlag) {
-                setManualConfigurationFromGridConfiguration(getAutomaticGridTileTabsConfiguration());
+                switch (previousMode) {
+                    case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
+                        setManualConfigurationFromGridConfiguration(getAutomaticGridTileTabsConfiguration());
+                        break;
+                    case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
+                        setManualConfigurationFromGridConfiguration(getCustomGridTileTabsConfiguration());
+                        break;
+                    case TileTabsLayoutConfigurationTypeEnum::MANUAL:
+                        /* manual was not initialized so use automatic grid */
+                        setManualConfigurationFromGridConfiguration(getAutomaticGridTileTabsConfiguration());
+                        break;
+                }
             }
         }
             break;
@@ -420,7 +432,11 @@ BrowserWindowContent::setManualConfigurationFromGridConfiguration(TileTabsLayout
         const int32_t numRows = static_cast<int32_t>(rowHeightsInt.size());
         const int32_t numCols = static_cast<int32_t>(columnWidthsInt.size());
         
-        const float rowSum = std::accumulate(rowHeightsInt.begin(), rowHeightsInt.end(), 0.0f);
+        /*
+         * No longer computer the row sum as it causes problems when
+         * the tabs do not fill the entire width and/or height of window
+         */
+        const float rowSum = 0.0;
         std::vector<float> rowHeights;
         for (int32_t iRow = 0; iRow < numRows; iRow++) {
             if (rowSum > 0.0) {
@@ -432,7 +448,7 @@ BrowserWindowContent::setManualConfigurationFromGridConfiguration(TileTabsLayout
         }
         CaretAssert(rowHeights.size() == rowHeightsInt.size());
         
-        const float columnSum = std::accumulate(columnWidthsInt.begin(), columnWidthsInt.end(), 0.0f);
+        const float columnSum = 0.0;
         std::vector<float> columnWidths;
         for (int32_t iCol = 0; iCol < numCols; iCol++) {
             if (columnSum > 0.0) {

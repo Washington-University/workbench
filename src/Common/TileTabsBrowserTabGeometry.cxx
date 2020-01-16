@@ -29,6 +29,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "MathFunctions.h"
 
 using namespace caret;
 
@@ -48,14 +49,13 @@ TileTabsBrowserTabGeometry::TileTabsBrowserTabGeometry(const int32_t tabIndex)
 : CaretObject(),
 m_tabIndex(tabIndex)
 {
-    const float offset(2.0);
+    float xy(10.0f + (5.0 * tabIndex));
     const float widthHeight(20.0);
-    const float minValue(offset * (m_tabIndex + 2.0));
-    const float maxValue(minValue + widthHeight);
-    m_minX = minValue;
-    m_maxX = maxValue;
-    m_minY = minValue;
-    m_maxY = maxValue;
+    xy  = MathFunctions::limitRange(xy,  5.0f, 95.0f - widthHeight);
+    m_minX = xy;
+    m_maxX = xy + widthHeight;
+    m_minY = xy;
+    m_maxY = xy + widthHeight;
     m_stackingOrder = tabIndex;
 }
 

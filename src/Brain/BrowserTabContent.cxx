@@ -261,18 +261,20 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     }
 
     /*
-     * For manual layout, make tab same size but put in bottom left corner
+     * Initialize the manual layout's default positions
+     * These values are used when a Manual Layout is selected to determine if
+     * the manual layout contains the defaults to that the bounds can be
+     * changed the first time manual layout is selected.
      */
-    float xy(10.0f + (5.0 * m_tabNumber));
-    const float widthHeight(20.0);
-    xy  = MathFunctions::limitRange(xy,  5.0f, 95.0f - widthHeight);
-
     AnnotationBrowserTab* annotationBrowserTab = getManualLayoutBrowserTabAnnotation();
     CaretAssert(annotationBrowserTab);
-    m_defaultManualTabGeometryBounds[0] = xy;
-    m_defaultManualTabGeometryBounds[1] = xy + widthHeight;
-    m_defaultManualTabGeometryBounds[2] = xy;
-    m_defaultManualTabGeometryBounds[3] = xy + widthHeight;
+    
+    TileTabsBrowserTabGeometry tabGeom(m_tabNumber);
+    m_defaultManualTabGeometryBounds[0] = tabGeom.getMinX();
+    m_defaultManualTabGeometryBounds[1] = tabGeom.getMaxX();
+    m_defaultManualTabGeometryBounds[2] = tabGeom.getMinY();
+    m_defaultManualTabGeometryBounds[3] = tabGeom.getMaxY();
+
     annotationBrowserTab->setBounds2D(m_defaultManualTabGeometryBounds[0],
                                       m_defaultManualTabGeometryBounds[1],
                                       m_defaultManualTabGeometryBounds[2],
