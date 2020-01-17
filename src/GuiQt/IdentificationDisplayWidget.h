@@ -103,7 +103,9 @@ namespace caret {
 
         QWidget* createInfoWidget();
         
-        QWidget* createFilteringWidget();
+        QWidget* createFilteringSettingsWidget();
+        
+        QWidget* createFilteringFilesWidget();
         
         QWidget* createsymbolsWidget();
         
@@ -123,8 +125,10 @@ namespace caret {
         
         QSpinBox* m_infoShowHistoryCountSpinBox;
         
-        QWidget* m_filteringWidget;
+        QWidget* m_filteringFilesWidget;
 
+        QWidget* m_filteringSettingsWidget;
+        
         QButtonGroup* m_tabFilterButtonGroup;
         
         std::vector<QRadioButton*> m_tabFilteringRadioButtons;

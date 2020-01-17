@@ -76,13 +76,15 @@ IdentificationDisplayWidget::IdentificationDisplayWidget(QWidget* parent)
 {
     m_infoWidget = createInfoWidget();
     
-    m_filteringWidget = createFilteringWidget();
-    
+    m_filteringFilesWidget = createFilteringFilesWidget();
+    m_filteringSettingsWidget = createFilteringSettingsWidget();
+
     m_symbolsWidget = createsymbolsWidget();
     
     m_tabWidget = new QTabWidget();
     m_tabWidget->addTab(m_infoWidget,      "Information");
-    m_tabWidget->addTab(m_filteringWidget, "Filtering");
+    m_tabWidget->addTab(m_filteringFilesWidget, "Filter Files");
+    m_tabWidget->addTab(m_filteringSettingsWidget, "Filter Settings");
     m_tabWidget->addTab(m_symbolsWidget,   "Symbols");
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
@@ -286,12 +288,28 @@ IdentificationDisplayWidget::getHistoryManager()
     return GuiManager::get()->getBrain()->getIdentificationManager()->getIdentificationHistoryManager();
 }
 
+/**
+ * @return Instance of the filtering files widget
+ */
+QWidget*
+IdentificationDisplayWidget::createFilteringFilesWidget()
+{
+    m_fileFilteringTableWidget = new IdentificationFileFilteringTableWidget();
+    QGroupBox* filesGroupBox = new QGroupBox("File Identification");
+    QVBoxLayout* filesLayout = new QVBoxLayout(filesGroupBox);
+    WuQtUtilities::setLayoutSpacingAndMargins(filesLayout, 0, 0);
+    filesLayout->addWidget(m_fileFilteringTableWidget, 100);
+    
+
+    return filesGroupBox;
+}
+
 
 /**
  * @return Instance of the filtering widget
  */
 QWidget*
-IdentificationDisplayWidget::createFilteringWidget()
+IdentificationDisplayWidget::createFilteringSettingsWidget()
 {
     QWidget* tabFilterWidget = new QGroupBox("Overlay Identification");
     QVBoxLayout* tabFilterLayout = new QVBoxLayout(tabFilterWidget);
@@ -330,12 +348,6 @@ IdentificationDisplayWidget::createFilteringWidget()
     showLayout->addWidget(m_filteringFociCheckBox, 1, 0);
     showLayout->addWidget(m_filteringCiftiLoadingCheckBox, 0, 1);
     
-    m_fileFilteringTableWidget = new IdentificationFileFilteringTableWidget();
-    QGroupBox* filesGroupBox = new QGroupBox("File Identification");
-    QVBoxLayout* filesLayout = new QVBoxLayout(filesGroupBox);
-    WuQtUtilities::setLayoutSpacingAndMargins(filesLayout, 0, 0);
-    filesLayout->addWidget(m_fileFilteringTableWidget, 100);
-    
     QWidget* widget = new QWidget();
     QGridLayout* layout = new QGridLayout(widget);
     layout->setHorizontalSpacing(0);
@@ -344,7 +356,6 @@ IdentificationDisplayWidget::createFilteringWidget()
     layout->setRowStretch(1, 100);
     layout->addWidget(tabFilterWidget, 0, 0, Qt::AlignTop);
     layout->addWidget(showDataWidget, 0, 1);
-    layout->addWidget(filesGroupBox, 1, 0, 1, 3);
     
     return widget;
 }
