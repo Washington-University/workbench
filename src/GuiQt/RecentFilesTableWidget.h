@@ -60,8 +60,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     signals:
-        void loadSceneOrSpecFile(const AString& pathAndFileName,
-                                 const int32_t sceneIndex);
+        void loadSceneOrSpecFileFromItem(RecentFileItem* item,
+                                         const QPoint& globalPosition,
+                                         const bool showMenuForSpecFileFlag);
         
         void sortingChanged();
         

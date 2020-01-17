@@ -38,12 +38,9 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "DataFileException.h"
 #include "RecentFileItem.h"
 #include "RecentFileItemsContainer.h"
 #include "RecentFileItemsFilter.h"
-#include "Scene.h"
-#include "SceneFile.h"
 #include "WuQImageLabel.h"
 #include "WuQtUtilities.h"
 
@@ -166,6 +163,14 @@ RecentFilesTableWidget::updateTableDimensions(const int32_t numberOfItems)
             const COLUMNS column = static_cast<COLUMNS>(iCol);
             bool selectableFlag(false);
             AString toolTipText;
+            
+            /*
+             * Note: Using QLabel's in a QTableWidget is allegedly slower than using QTableWidgetItem's.
+             * However, if a QTableWidgetItem contains just a icon (image), it was left aligned and
+             * could not get it to align in the center.  Another issue is that QTableWidgetItem's only
+             * support plain text (not rich text, html).  HTML should be possible if a QStyledItemDelegate
+             * is used.  It the delegate, a QTextDocument would be used to render and size the HTML.
+             */
             switch (column) {
                 case COLUMN_COUNT:
                     CaretAssert(0);
@@ -614,6 +619,8 @@ RecentFilesTableWidget::tableCellClicked(int row, int column)
         setCurrentCell(row, COLUMN_NAME, flags);
     }
     
+    blocker.unblock();
+    
     emit selectedItemChanged(getSelectedItem());
 }
 
@@ -848,57 +855,11 @@ RecentFilesTableWidget::contextMenuEvent(QContextMenuEvent *event)
         if (column == COLUMN_NAME) {
             CaretAssertVectorIndex(m_recentItems, row);
             RecentFileItem* item = m_recentItems[row];
-            switch (item->getFileItemType()) {
-                case RecentFileItemTypeEnum::DIRECTORY:
-                    break;
-                case RecentFileItemTypeEnum::SCENE_FILE:
-                {
-                    /**
-                     * List scenes and allow user to load a scene bypassing the scene dialog
-                     */
-                    SceneFile sceneFile;
-                    try {
-                        sceneFile.readFile(item->getPathAndFileName());
-                        const int32_t numScenes = sceneFile.getNumberOfScenes();
-                        if (numScenes > 0) {
-                            std::vector<QAction*> actions;
-                            QMenu menu(this);
-                            for (int32_t i = 0; i < numScenes; i++) {
-                                actions.push_back(menu.addAction("Load "
-                                                                 + AString::number(i + 1)
-                                                                 + " "
-                                                                 + sceneFile.getSceneAtIndex(i)->getName()));
-                            }
-                            
-                            QAction* selectedAction = menu.exec(event->globalPos());
-                            for (int32_t i = 0; i < numScenes; i++) {
-                                CaretAssertVectorIndex(actions, i);
-                                if (selectedAction == actions[i]) {
-                                    emit loadSceneOrSpecFile(item->getPathAndFileName(), i);
-                                }
-                            }
-                        }
-                    }
-                    catch (const DataFileException& dfe) {
-                        CaretLogWarning(dfe.whatString());
-                    }
-                }
-                    break;
-                case RecentFileItemTypeEnum::SPEC_FILE:
-                {
-                    /*
-                     * Allow user to load all files in a spec file while bypassing the spec file dialogt
-                     */
-                    QMenu menu(this);
-                    QAction* action = menu.addAction("Load all files from spec file");
-                    QAction* selectedAction = menu.exec(event->globalPos());
-                    if (action == selectedAction) {
-                        cellClicked(row, column);
-                        emit loadSceneOrSpecFile(item->getPathAndFileName(), 0);
-                    }
-                }
-                    break;
-            }
+            
+            const bool showMenuForSpecFileFlag(true);
+            emit loadSceneOrSpecFileFromItem(item,
+                                             event->globalPos(),
+                                             showMenuForSpecFileFlag);
         }
     }
 }

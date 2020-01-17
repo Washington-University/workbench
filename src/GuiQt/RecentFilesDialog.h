@@ -77,6 +77,8 @@ namespace caret {
     private slots:
         void cancelButtonClicked();
         
+        void loadButtonClicked();
+        
         void openButtonClicked();
         
         void openOtherButtonClicked();
@@ -99,8 +101,9 @@ namespace caret {
         
         void tableWidgetItemDoubleClicked(RecentFileItem* item);
         
-        void loadSceneOrSpecFile(const AString& pathAndFileName,
-                                 const int32_t sceneIndex);
+        void loadSceneOrSpecFileFromItem(RecentFileItem* item,
+                                         const QPoint& globalPosition,
+                                         const bool showMenuForSpecFileFlag);
         
     private slots:
         void updateFilesTableContent();
@@ -133,6 +136,11 @@ namespace caret {
         void websiteLinkActivated(const QString& link);
         
         void updateFavoritesContainer();
+        
+        void loadSceneOrSpecFile(const AString& pathAndFileName,
+                                 const int32_t sceneIndex);
+        
+        QPushButton* m_loadPushButton;
         
         QPushButton* m_openPushButton;
         

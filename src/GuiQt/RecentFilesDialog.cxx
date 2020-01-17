@@ -32,6 +32,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenu>
 #include <QPushButton>
 #include <QToolButton>
 #include <QUrl>
@@ -39,11 +40,15 @@
 #include "ApplicationInformation.h"
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "DataFileException.h"
 #include "GuiManager.h"
 #include "RecentFileItem.h"
 #include "RecentFileItemsContainer.h"
 #include "RecentFileItemsFilter.h"
 #include "RecentFilesTableWidget.h"
+#include "Scene.h"
+#include "SceneFile.h"
 #include "SessionManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -80,8 +85,9 @@ RecentFilesDialog::RecentFilesDialog(const AString& dialogTitle,
     m_recentFilesTableWidget = new RecentFilesTableWidget();
     QObject::connect(m_recentFilesTableWidget, &RecentFilesTableWidget::sortingChanged,
                      this, &RecentFilesDialog::updateFilesTableContent);
-    QObject::connect(m_recentFilesTableWidget, &RecentFilesTableWidget::loadSceneOrSpecFile,
-                     this, &RecentFilesDialog::loadSceneOrSpecFile);
+    QObject::connect(m_recentFilesTableWidget, &RecentFilesTableWidget::loadSceneOrSpecFileFromItem,
+                     this, &RecentFilesDialog::loadSceneOrSpecFileFromItem);
+    
 
 
     QWidget* dialogButtonWidget = createDialogButtonsWidget();
@@ -309,15 +315,28 @@ RecentFilesDialog::createDialogButtonsWidget()
                          this, &RecentFilesDialog::testButtonClicked);
     }
 
+    m_loadPushButton = new QPushButton("Load");
+    QObject::connect(m_loadPushButton, &QPushButton::clicked,
+                     this, &RecentFilesDialog::loadButtonClicked);
+    m_loadPushButton->setToolTip("<html><body>"
+                                 "Action depends upon type of item selected:"
+                                 "<ul>"
+                                 "<li> Scene File - Displays a menu listing scene names.  Selecting a scene name "
+                                 "loads the scene without having to use the Scene Dialog."
+                                 "<li> Spec File  - Loads all files in the spec file without having to use "
+                                 "the Open Spec File Dialog."
+                                 "</ul>"
+                                 "</body></html>");
+
     m_openPushButton = new QPushButton("Open");
     QObject::connect(m_openPushButton, &QPushButton::clicked,
                      this, &RecentFilesDialog::openButtonClicked);
     m_openPushButton->setToolTip("<html><body>"
                                  "Action depends upon type of item selected:"
                                  "<ul>"
-                                 "<li> Directory  - File Open Dialog is displayed listing contents of directory"
-                                 "<li> Scene File - Scene File is opened in the Scene File Dialog for Scene selection"
-                                 "<li> Spec File  - Files in Spec File are listed in the Spec File Dialog"
+                                 "<li> Directory  - File Open Dialog is displayed listing contents of directory."
+                                 "<li> Scene File - Scene File is opened in the Scene File Dialog for Scene selection."
+                                 "<li> Spec File  - Files in Spec File are listed in the Spec File Dialog."
                                  "</ul>"
                                  "</body></html>");
 
@@ -340,6 +359,7 @@ RecentFilesDialog::createDialogButtonsWidget()
     }
     layout->addWidget(openOtherPushButton);
     layout->addWidget(m_openPushButton);
+    layout->addWidget(m_loadPushButton);
     layout->addWidget(cancelPushButton);
     
     
@@ -621,6 +641,27 @@ RecentFilesDialog::cancelButtonClicked()
 }
 
 /**
+ * Called when Load button is clicked
+ */
+void
+RecentFilesDialog::loadButtonClicked()
+{
+    RecentFileItem* item = m_recentFilesTableWidget->getSelectedItem();
+    if (item == NULL) {
+        WuQMessageBox::warningOk(m_loadPushButton, "No item selected");
+        return;
+    }
+    
+    QPoint centerPoint(m_loadPushButton->width() / 2,
+                       m_loadPushButton->height() / 2);
+    QPoint point = m_loadPushButton->mapToGlobal(centerPoint);
+    const bool showMenuForSpecFileFlag(false);
+    loadSceneOrSpecFileFromItem(item,
+                                point,
+                                showMenuForSpecFileFlag);
+}
+
+/**
  * Called when Open button is clicked
  */
 void
@@ -672,6 +713,22 @@ void
 RecentFilesDialog::tableWidgetItemClicked(RecentFileItem* item)
 {
     m_openPushButton->setEnabled(item != NULL);
+    
+    bool loadValidFlag(false);
+    if (item != NULL) {
+        switch (item->getFileItemType()) {
+            case RecentFileItemTypeEnum::DIRECTORY:
+                break;
+            case RecentFileItemTypeEnum::SCENE_FILE:
+                loadValidFlag = true;
+                break;
+            case RecentFileItemTypeEnum::SPEC_FILE:
+                loadValidFlag = true;
+                break;
+        }
+    }
+    
+    m_loadPushButton->setEnabled(loadValidFlag);
 }
 
 /**
@@ -709,15 +766,13 @@ void
 RecentFilesDialog::loadSceneOrSpecFile(const AString& pathAndFileName,
                                        const int32_t sceneIndex)
 {
-    std::cout << "Open " << pathAndFileName << " scene index " << sceneIndex << std::endl;
-    
     bool validFlag;
     const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(pathAndFileName, &validFlag);
     switch (dataFileType) {
         case DataFileTypeEnum::SCENE:
             m_resultMode = ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE;
             m_resultFilePathAndName = pathAndFileName;
-            m_resultSceneIndex      = sceneIndex;
+            m_resultSceneIndex      = sceneIndex + 1; /* command line indices start at 1 */
             accept();
             break;
         case DataFileTypeEnum::SPECIFICATION:
@@ -728,5 +783,76 @@ RecentFilesDialog::loadSceneOrSpecFile(const AString& pathAndFileName,
         default:
             CaretAssertMessage(0, ("File type not scene nor spec: "
                                    + DataFileTypeEnum::toName(dataFileType)));
+    }
+}
+
+/**
+ * For the given item load the spec file or pop-up menu with scenes for a scene file
+ * @param item
+ * Item from which to load files
+ * @param globalPostion
+ * Location of mouse
+ * @param showMenuForSpecFileFlag
+ * If true, pop-up a menu to confirm loading a spec file
+ */
+void
+RecentFilesDialog::loadSceneOrSpecFileFromItem(RecentFileItem* item,
+                                               const QPoint& globalPosition,
+                                               const bool showMenuForSpecFileFlag)
+{
+    switch (item->getFileItemType()) {
+        case RecentFileItemTypeEnum::DIRECTORY:
+            break;
+        case RecentFileItemTypeEnum::SCENE_FILE:
+        {
+            /**
+             * List scenes and allow user to load a scene bypassing the scene dialog
+             */
+            SceneFile sceneFile;
+            try {
+                sceneFile.readFile(item->getPathAndFileName());
+                const int32_t numScenes = sceneFile.getNumberOfScenes();
+                if (numScenes > 0) {
+                    std::vector<QAction*> actions;
+                    QMenu menu(this);
+                    for (int32_t i = 0; i < numScenes; i++) {
+                        actions.push_back(menu.addAction("Load "
+                                                         + AString::number(i + 1)
+                                                         + " "
+                                                         + sceneFile.getSceneAtIndex(i)->getName()));
+                    }
+                    
+                    QAction* selectedAction = menu.exec(globalPosition);
+                    for (int32_t i = 0; i < numScenes; i++) {
+                        CaretAssertVectorIndex(actions, i);
+                        if (selectedAction == actions[i]) {
+                            loadSceneOrSpecFile(item->getPathAndFileName(), i);
+                        }
+                    }
+                }
+            }
+            catch (const DataFileException& dfe) {
+                CaretLogWarning(dfe.whatString());
+            }
+        }
+            break;
+        case RecentFileItemTypeEnum::SPEC_FILE:
+        {
+            /*
+             * Allow user to load all files in a spec file while bypassing the spec file dialogt
+             */
+            if (showMenuForSpecFileFlag) {
+                QMenu menu(this);
+                QAction* action = menu.addAction("Load all files from spec file");
+                QAction* selectedAction = menu.exec(globalPosition);
+                if (action == selectedAction) {
+                    loadSceneOrSpecFile(item->getPathAndFileName(), 0);
+                }
+            }
+            else {
+                loadSceneOrSpecFile(item->getPathAndFileName(), 0);
+            }
+        }
+            break;
     }
 }
