@@ -321,10 +321,8 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
     m_recentItems.clear();
     clearSelectedItem();
     
-    bool containerChangedFlag(false);
     if (recentFileItemsContainer != m_recentFileItemsContainer) {
         previousSelectedItem = NULL;
-        containerChangedFlag = true;
     }
     
     m_recentFileItemsFilter = itemsFilter;
