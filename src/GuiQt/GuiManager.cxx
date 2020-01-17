@@ -2709,15 +2709,15 @@ GuiManager::saveToScene(const SceneAttributes* sceneAttributes,
      */
     switch (SessionManager::get()->getCaretPreferences()->getIdentificationDisplayMode()) {
         case IdentificationDisplayModeEnum::DIALOG:
-            if (m_informationDisplayDialog != NULL) {
-                sceneClass->addClass(m_informationDisplayDialog->saveToScene(sceneAttributes,
-                                                                             "m_informationDisplayDialog"));
-            }
-            break;
-        case IdentificationDisplayModeEnum::LEGACY_DIALOG:
             if (m_identificationDisplayDialog != NULL) {
                 sceneClass->addClass(m_identificationDisplayDialog->saveToScene(sceneAttributes,
                                                                                 "m_identificationDisplayDialog"));
+            }
+            break;
+        case IdentificationDisplayModeEnum::LEGACY_DIALOG:
+            if (m_informationDisplayDialog != NULL) {
+                sceneClass->addClass(m_informationDisplayDialog->saveToScene(sceneAttributes,
+                                                                             "m_informationDisplayDialog"));
             }
             break;
         case IdentificationDisplayModeEnum::OVERLAY_TOOLBOX:
@@ -2948,8 +2948,10 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             else if (m_informationDisplayDialog->isVisible() == false) {
                 processShowInformationWindow();
             }
-            m_informationDisplayDialog->restoreFromScene(sceneAttributes,
-                                                         infoWindowClass);
+            if (m_informationDisplayDialog != NULL) {
+                m_informationDisplayDialog->restoreFromScene(sceneAttributes,
+                                                             infoWindowClass);
+            }
         }
         else {
             if (m_informationDisplayDialog != NULL) {
@@ -2974,8 +2976,10 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             else if (m_identificationDisplayDialog->isVisible() == false) {
                 processShowInformationWindow();
             }
-            m_identificationDisplayDialog->restoreFromScene(sceneAttributes,
-                                                            idWindowClass);
+            if (m_identificationDisplayDialog != NULL) {
+                m_identificationDisplayDialog->restoreFromScene(sceneAttributes,
+                                                                idWindowClass);
+            }
         }
         else {
             if (m_identificationDisplayDialog != NULL) {

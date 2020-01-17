@@ -338,6 +338,27 @@ BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()
 QWidget*
 BrainBrowserWindowOrientedToolBox::createSplitterAndIdentificationWidget(const Qt::Orientation orientation)
 {
+    int32_t idWidgetStretchFactor(1);
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    switch (prefs->getIdentificationDisplayMode()) {
+        case IdentificationDisplayModeEnum::DEBUG_MODE:
+            break;
+        case IdentificationDisplayModeEnum::DIALOG:
+            break;
+        case IdentificationDisplayModeEnum::LEGACY_DIALOG:
+            break;
+        case IdentificationDisplayModeEnum::OVERLAY_TOOLBOX:
+            switch (orientation) {
+                case Qt::Horizontal:
+                    idWidgetStretchFactor = 25;
+                    break;
+                case Qt::Vertical:
+                    idWidgetStretchFactor = 50;
+                    break;
+            }
+            break;
+    }
+    
     m_identificationWidget = new IdentificationDisplayWidget();
     m_identificationWidget->setMinimumSize(1, 1);
     
@@ -347,12 +368,12 @@ BrainBrowserWindowOrientedToolBox::createSplitterAndIdentificationWidget(const Q
     m_splitterWidget->addWidget(m_identificationWidget);
     switch (orientation) {
         case Qt::Horizontal:
-            m_splitterWidget->setStretchFactor(0, 1000000);
-            m_splitterWidget->setStretchFactor(1,  1);
+            m_splitterWidget->setStretchFactor(0, 100 - idWidgetStretchFactor);
+            m_splitterWidget->setStretchFactor(1,  idWidgetStretchFactor);
             break;
         case Qt::Vertical:
-            m_splitterWidget->setStretchFactor(0, 50);
-            m_splitterWidget->setStretchFactor(1,  50);
+            m_splitterWidget->setStretchFactor(0, 100 - idWidgetStretchFactor);
+            m_splitterWidget->setStretchFactor(1,  idWidgetStretchFactor);
             break;
     }
     
@@ -534,17 +555,39 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
         sceneClass->addClass(m_labelSelectionViewController->saveToScene(sceneAttributes,
                                                      "m_labelSelectionViewController"));
     }
+
+    bool saveSplitterFlag(false);
+    switch (SessionManager::get()->getCaretPreferences()->getIdentificationDisplayMode()) {
+        case IdentificationDisplayModeEnum::DEBUG_MODE:
+            saveSplitterFlag = true;
+            break;
+        case IdentificationDisplayModeEnum::DIALOG:
+            break;
+        case IdentificationDisplayModeEnum::LEGACY_DIALOG:
+            break;
+        case IdentificationDisplayModeEnum::OVERLAY_TOOLBOX:
+            saveSplitterFlag = true;
+            break;
+    }
     
-    if (m_splitterWidget != NULL) {
-        QList<int> splitterSizes = m_splitterWidget->sizes();
-        const int32_t numSizes = splitterSizes.size();
-        if (numSizes > 0) {
-            std::vector<int32_t> sizesVector;
-            for (int32_t i = 0; i < numSizes; i++) {
-                sizesVector.push_back(splitterSizes[i]);
+    /*
+     * Only save splitter (separates overlays and ID) if the
+     * ID mode is for overlay toolbox.  Since ID is a preference
+     * and user's may have different selections for the ID information
+     * location, we do not want to hide the id text in the toolbox.
+     */
+    if (saveSplitterFlag) {
+        if (m_splitterWidget != NULL) {
+            QList<int> splitterSizes = m_splitterWidget->sizes();
+            const int32_t numSizes = splitterSizes.size();
+            if (numSizes > 0) {
+                std::vector<int32_t> sizesVector;
+                for (int32_t i = 0; i < numSizes; i++) {
+                    sizesVector.push_back(splitterSizes[i]);
+                }
+                
+                sceneClass->addIntegerArray("splitterSizes", &sizesVector[0], sizesVector.size());
             }
-            
-            sceneClass->addIntegerArray("splitterSizes", &sizesVector[0], sizesVector.size());
         }
     }
     
@@ -691,7 +734,6 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
             m_splitterWidget->setSizes(splitterSizes);
         }
     }
-    
 }
 
 /**
