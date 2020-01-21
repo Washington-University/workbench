@@ -272,7 +272,7 @@ WuQSpinBoxOddValue::setValue(int val)
 WuQSpinBoxOddValueSpinBox::WuQSpinBoxOddValueSpinBox(QWidget* parent)
 : QSpinBox(parent)
 {
-    lineEdit()->setEnabled(false);
+    /* Line edit is not disabled, otherwise it appears disabled but arrow buttons still function */
 }
 
 /**
