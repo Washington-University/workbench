@@ -963,6 +963,14 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
             pasteAnnotationFromAnnotationClipboardAndChangeSpace(mouseEvent);
             break;
         case MODE_SELECT:
+        {
+            /*
+             * Single click selects clicked annotation and deselects any that are selected
+             */
+            GuiManager::get()->getBrain()->getAnnotationManager()->deselectAllAnnotationsForEditing(m_browserWindowIndex);
+            processMouseSelectAnnotation(mouseEvent,
+                                         false);
+        }
             break;
         case MODE_SET_COORDINATE_ONE:
             processModeSetCoordinate(mouseEvent);
