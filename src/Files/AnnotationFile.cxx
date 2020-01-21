@@ -971,10 +971,19 @@ AnnotationFile::cloneAnnotationsFromTabToTab(const int32_t fromTabIndex,
      * with the given tab index.
      */
     bool annotationsWereClonedFlag(false);
-    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
-         groupIter != m_annotationGroups.end();
-         groupIter++) {
-        QSharedPointer<AnnotationGroup>& group = *groupIter;
+    
+    /*
+     * Need to copy groups as annotation will be added when cloned
+     * and that will cause new groups to be added and we do not
+     * want to interate throught new groups or crash will occur.
+     */
+    std::vector<AnnotationGroup*> groupPointers;
+    for (auto& group : m_annotationGroups) {
+        groupPointers.push_back(group.get());
+    }
+    
+    for (auto group : groupPointers) {
+        CaretAssert(group);
         if (group->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
             if (group->getTabOrWindowIndex() == fromTabIndex) {
                 std::vector<Annotation*> annotations;
