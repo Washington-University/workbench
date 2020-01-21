@@ -281,22 +281,29 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     QLabel* brushSizeLabel = new QLabel("Brush");
     const int MIN_BRUSH_SIZE = 1;
     const int MAX_BRUSH_SIZE = 99;
+    
+    QLabel* xLabel = new QLabel("P:");
     m_xBrushSizeSpinBox = new WuQSpinBoxOddValue(this);
     m_xBrushSizeSpinBox->setRange(MIN_BRUSH_SIZE, MAX_BRUSH_SIZE);
+    m_xBrushSizeSpinBox->setSingleStep(2);
     QObject::connect(m_xBrushSizeSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(xBrushSizeValueChanged(int)));
     m_xBrushSizeSpinBox->getWidget()->setToolTip("Parasagittal brush size (voxels).\n"
                                                  "Must be an odd value.");
     
+    QLabel* yLabel = new QLabel("C:");
     m_yBrushSizeSpinBox = new WuQSpinBoxOddValue(this);
     m_yBrushSizeSpinBox->setRange(MIN_BRUSH_SIZE, MAX_BRUSH_SIZE);
+    m_yBrushSizeSpinBox->setSingleStep(2);
     QObject::connect(m_yBrushSizeSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(yBrushSizeValueChanged(int)));
     m_yBrushSizeSpinBox->getWidget()->setToolTip("Coronal brush size (voxels).\n"
                                                  "Must be an odd value.");
     
+    QLabel* zLabel = new QLabel("A:");
     m_zBrushSizeSpinBox = new WuQSpinBoxOddValue(this);
     m_zBrushSizeSpinBox->setRange(MIN_BRUSH_SIZE, MAX_BRUSH_SIZE);
+    m_zBrushSizeSpinBox->setSingleStep(2);
     QObject::connect(m_zBrushSizeSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(zBrushSizeValueChanged(int)));
     m_zBrushSizeSpinBox->getWidget()->setToolTip("Axial brush size (voxels).\n"
@@ -336,6 +343,12 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     gridLayout->addWidget(m_newFileToolButton, row++, col);
     gridLayout->addWidget(m_addMapsToolButton, row++, col);
     gridLayout->addWidget(lockFileToolButton, row++, col);
+    row = 0;
+    col++;
+    gridLayout->addWidget(brushSizeLabel, row++, col, 1, 2, Qt::AlignHCenter);
+    gridLayout->addWidget(xLabel, row++, col);
+    gridLayout->addWidget(yLabel, row++, col);
+    gridLayout->addWidget(zLabel, row++, col);
     row = 0;
     col++;
     gridLayout->addWidget(brushSizeLabel, row++, col, Qt::AlignHCenter);
