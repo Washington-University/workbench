@@ -5090,6 +5090,7 @@ BrowserTabContent::isDefaultManualTabGeometryBounds() const
     float xMin(0.0), xMax(0.0), yMin(0.0), yMax(0.0);
     m_manualLayoutBrowserTabAnnotation->getBounds2D(xMin, xMax, yMin, yMax);
 
+    
     if (xMin != m_defaultManualTabGeometryBounds[0]) {
         return false;
     }

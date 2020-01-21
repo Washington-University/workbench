@@ -373,18 +373,14 @@ AnnotationManager::processExtendedModeSelectionForEditing(const int32_t windowIn
                                             ! selectedAnnotation->isSelectedForEditing(windowIndex));
         }
         else {
-            if (selectedAnnotation->isSelectedForEditing(windowIndex)) {
-                /* cannot deselect an annotation WITHOUT shift key down */
-            }
-            else {
-                /*
-                 * Clicking an annotation without shift key selects the
-                 * annotation but deselects all other annotations.
-                 */
-                deselectAllAnnotationsForEditing(windowIndex);
-                selectedAnnotation->setSelectedForEditing(windowIndex,
-                                                true);
-            }
+            /*
+             * Clicking an annotation without shift key selects the
+             * annotation (even if it is already selected) but
+             * deselects all other annotations.
+             */
+            deselectAllAnnotationsForEditing(windowIndex);
+            selectedAnnotation->setSelectedForEditing(windowIndex,
+                                                      true);
         }
     }
     else {
