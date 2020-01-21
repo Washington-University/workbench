@@ -293,6 +293,11 @@ ModelSurface::copyTabContent(const int32_t sourceTabIndex,
 {
     Model::copyTabContent(sourceTabIndex,
                           destinationTabIndex);
+    
+    /*
+     * Fix WB-879 Overlay not copied when duplicating tab containing surface
+     */
+    getOverlaySet(destinationTabIndex)->copyOverlaySet(getOverlaySet(sourceTabIndex));
 }
 
 
