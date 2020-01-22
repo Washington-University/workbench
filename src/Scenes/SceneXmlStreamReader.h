@@ -67,6 +67,8 @@ namespace caret {
         
         AString m_filename;
         
+        Scene* m_scene = NULL;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

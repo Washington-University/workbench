@@ -102,6 +102,7 @@ SceneXmlStreamReader::readScene(QXmlStreamReader& xmlReader,
     if (scene == NULL) {
         return;
     }
+    m_scene = scene;
     
     m_filename = sceneFileName;
     
@@ -318,6 +319,10 @@ SceneXmlStreamReader::readSceneObjectSingle(QXmlStreamReader& xmlReader)
             pathName->setValueToAbsolutePath(m_filename,
                                              xmlReader.readElementText());
             sceneObject = pathName;
+            
+            if (DataFile::isFileOnNetwork(pathName->stringValue())) {
+                m_scene->setHasFilesWithRemotePaths(true);
+            }
         }
             break;
         case SceneObjectDataTypeEnum::SCENE_STRING:
