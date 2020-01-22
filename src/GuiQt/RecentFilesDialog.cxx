@@ -50,6 +50,7 @@
 #include "Scene.h"
 #include "SceneFile.h"
 #include "SessionManager.h"
+#include "UsernamePasswordWidget.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -826,6 +827,25 @@ RecentFilesDialog::loadSceneOrSpecFileFromItem(RecentFileItem* item,
                     for (int32_t i = 0; i < numScenes; i++) {
                         CaretAssertVectorIndex(actions, i);
                         if (selectedAction == actions[i]) {
+                            const Scene* scene = sceneFile.getSceneAtIndex(i);
+                            CaretAssert(scene);
+                            if (scene->hasFilesWithRemotePaths()) {
+                                const QString msg("This scene contains files that are on the network.  "
+                                                  "If accessing the files requires a username and "
+                                                  "password, enter it here.  Otherwise, remove any "
+                                                  "text from the username and password fields.");
+                                
+                                AString username;
+                                AString password;
+                                if (UsernamePasswordWidget::getUserNameAndPasswordInDialog(m_loadPushButton,
+                                                                                           "Username and Password",
+                                                                                           msg,
+                                                                                           username,
+                                                                                           password)) {
+                                    CaretDataFile::setFileReadingUsernameAndPassword(username,
+                                                                                     password);
+                                }
+                            }
                             loadSceneOrSpecFile(item->getPathAndFileName(), i);
                         }
                     }
