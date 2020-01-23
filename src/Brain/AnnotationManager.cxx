@@ -504,6 +504,37 @@ AnnotationManager::getAllAnnotations() const
 }
 
 /**
+ * Get all annotations that were drawn in the window with the given index and are in the same
+ * coordinate space (for tab/window also same tab/window).
+ *
+ * @param annotation
+ * Annotation for space comparison
+ * @param windowIndex
+ * Index of window
+ */
+std::vector<Annotation*>
+AnnotationManager::getAnnotationsDrawnInSameWindowAndSpace(const Annotation* annotation,
+                                                                 const int32_t windowIndex) const
+{
+    CaretAssert(annotation);
+    
+    std::vector<Annotation*> allAnnotations = getAllAnnotations();
+    
+    std::vector<Annotation*> annotationsOut;
+    for (auto a : allAnnotations) {
+        if (a == annotation) {
+            continue;
+        }
+        if (a->isDrawnInWindowStatus(windowIndex)) {
+            if (annotation->isInSameCoordinateSpace(a)) {
+                annotationsOut.push_back(a);
+            }
+        }
+    }
+    return annotationsOut;
+}
+
+/**
  * Get the annotation editing selection information for the given window.
  *
  * @param windowIndex

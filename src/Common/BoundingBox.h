@@ -64,6 +64,11 @@ public:
 
     void set(const float minMaxXYZ[6]);
 
+    void set(const float a[3],
+             const float b[3],
+             const float c[3],
+             const float d[4]);
+    
     void update(const float xyz[]);
 
     void update(const float x,
@@ -121,6 +126,8 @@ public:
     void limitCoordinateToBoundingBox(float xyz[3]) const;
     
     void limitCoordinateToBoundingBox(double xyz[3]) const;
+    
+    bool intersectsXY(const BoundingBox& bb) const;
     
     AString toString() const;
 

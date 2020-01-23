@@ -97,6 +97,9 @@ namespace caret {
         
         std::vector<Annotation*> getAllAnnotations() const;
         
+        std::vector<Annotation*> getAnnotationsDrawnInSameWindowAndSpace(const Annotation* annotation,
+                                                                         const int32_t windowIndex) const;
+        
         const AnnotationEditingSelectionInformation* getAnnotationEditingSelectionInformation(const int32_t windowIndex) const;
         
         std::vector<Annotation*> getAnnotationsSelectedForEditing(const int32_t windowIndex) const;

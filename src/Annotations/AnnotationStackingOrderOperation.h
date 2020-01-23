@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "AnnotationStackingOrderTypeEnum.h"
 #include "CaretObject.h"
 
 
@@ -36,15 +37,10 @@ namespace caret {
     class AnnotationStackingOrderOperation : public CaretObject {
         
     public:
-        enum class OrderType {
-            BRING_TO_FRONT,
-            BRING_FORWARD,
-            SEND_TO_BACK,
-            SEND_BACKWARD
-        };
         
         AnnotationStackingOrderOperation(const std::vector<Annotation*>& annotations,
-                                         const Annotation* selectedAnnotation);
+                                         const Annotation* selectedAnnotation,
+                                         const int32_t windowIndex);
         
         virtual ~AnnotationStackingOrderOperation();
         
@@ -52,7 +48,7 @@ namespace caret {
 
         AnnotationStackingOrderOperation& operator=(const AnnotationStackingOrderOperation&) = delete;
         
-        bool runOrdering(const OrderType orderType,
+        bool runOrdering(const AnnotationStackingOrderTypeEnum::Enum orderType,
                          AString& errorMessageOut);
 
 
@@ -87,6 +83,12 @@ namespace caret {
         std::vector<Annotation*> m_annotations;
         
         const Annotation* m_selectedAnnotation;
+        
+        const int32_t m_windowIndex;
+        
+        const float m_coordToStackOrderScaleFactor = 100.0;
+        
+        const float m_stackOrderToCoordScaleFactor = 0.001;
         
         // ADD_NEW_MEMBERS_HERE
 

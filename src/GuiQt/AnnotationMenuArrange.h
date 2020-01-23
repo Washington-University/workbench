@@ -29,6 +29,7 @@
 #include "AnnotationAlignmentEnum.h"
 #include "AnnotationDistributeEnum.h"
 #include "AnnotationGroupingModeEnum.h"
+#include "AnnotationStackingOrderTypeEnum.h"
 #include "EventBrowserWindowTileTabOperation.h"
 #include "UserInputModeEnum.h"
 #include "UserInputModeTileTabsManualLayoutContextMenu.h"
@@ -107,6 +108,8 @@ namespace caret {
         void processExpandTabMenuItem();
         
         void processWindowTileTabOperation(const EventBrowserWindowTileTabOperation::Operation operation);
+        
+        void processAnnotationOrderOperation(const AnnotationStackingOrderTypeEnum::Enum orderType);
         
         const UserInputModeEnum::Enum m_userInputMode;
         

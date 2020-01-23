@@ -75,7 +75,8 @@ namespace caret {
         AnnotationCoordinate* getCoordinate(const int32_t coordinateIndex);
         
         QDoubleSpinBox* createCoordinateSpinBox(const int32_t coordinateIndex,
-                                                const QString& axisCharacter);
+                                                const QString& axisCharacter,
+                                                const int32_t xyzIndex);
         
         void createCoordinateWidgets(const int32_t coordinateIndex);
         

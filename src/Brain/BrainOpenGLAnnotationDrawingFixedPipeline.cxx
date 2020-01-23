@@ -432,6 +432,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationTwoDimShapeBounds(const 
         
     }
     
+    BoundingBox bb;
+    if (boundsValid) {
+        bb.set(bottomLeftOut, bottomRightOut, topRightOut, topLeftOut);
+    }
+    annotation2D->setDrawnInWindowBounds(m_inputs->m_windowIndex, bb);
+
     return boundsValid;
 }
 
@@ -3684,6 +3690,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
                                                                                     m_modelSpaceViewport[2], m_modelSpaceViewport[3],
                                                                                     bottomLeft, bottomRight, topRight, topLeft);
 
+    BoundingBox bb;
+    bb.set(bottomLeft, bottomRight, topRight, topLeft);
+    text->setDrawnInWindowBounds(m_inputs->m_windowIndex, bb);
+    
     const float selectionCenterXYZ[3] = {
         (bottomLeft[0] + bottomRight[0] + topRight[0] + topLeft[0]) / 4.0f,
         (bottomLeft[1] + bottomRight[1] + topRight[1] + topLeft[1]) / 4.0f,
@@ -4353,6 +4363,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLine(AnnotationFile* annotationFi
     }
     
     setDepthTestingStatus(savedDepthTestStatus);
+    
+    BoundingBox bb;
+    if (drawnFlag) {
+        /* Note head and tail intentionally used twice since line only has two points, unlike box or other shapes */
+        bb.set(lineHeadXYZ, lineTailXYZ, lineHeadXYZ, lineTailXYZ);
+    }
+    line->setDrawnInWindowBounds(m_inputs->m_windowIndex, bb);
     
     return drawnFlag;
 }

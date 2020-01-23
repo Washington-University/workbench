@@ -21,7 +21,9 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 #include <bitset>
+#include <memory>
 
 #include "AnnotationAttributesDefaultTypeEnum.h"
 #include "AnnotationCoordinateSpaceEnum.h"
@@ -29,6 +31,7 @@
 #include "AnnotationSizingHandleTypeEnum.h"
 #include "AnnotationSurfaceOffsetVectorTypeEnum.h"
 #include "AnnotationTypeEnum.h"
+#include "BoundingBox.h"
 #include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
 #include "DisplayGroupAndTabItemInterface.h"
@@ -181,6 +184,8 @@ namespace caret {
         AnnotationCoordinateSpaceEnum::Enum getCoordinateSpace() const;
         
         void setCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordinateSpace);
+        
+        bool isInSameCoordinateSpace(const Annotation* annotation) const;
         
         virtual AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const = 0;
         
@@ -359,10 +364,15 @@ namespace caret {
         
         void setDrawnInWindowStatus(const int32_t windowIndex);
         
-        virtual bool intersectionTest(const Annotation* other) const;
+        void setDrawnInWindowBounds(const int32_t windowIndex,
+                                    const BoundingBox& bounds) const;
         
-
-    protected: 
+        BoundingBox getDrawnInWindowBounds(const int32_t windowIndex) const;
+        
+        virtual bool intersectionTest(const Annotation* other,
+                                      const int32_t windowIndex) const;
+        
+    protected:
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass) = 0;
 
@@ -390,7 +400,7 @@ namespace caret {
         
         void textAnnotationResetName();
         
-        bool isDrawnInWindowStatus(const int32_t windowIndex);
+        bool isDrawnInWindowStatus(const int32_t windowIndex) const;
         
         void clearDrawnInWindowStatusForAllWindows();
         
@@ -446,6 +456,9 @@ namespace caret {
         int32_t m_stackingOrder = 1;
         
         bool m_drawnInWindowStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        
+        /* Bounds last time annotation was drawn NOT saved to scenes or annontation file*/
+        mutable BoundingBox m_boundsFromDrawing[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
         /**
          * Selection (NOT DISPLAY) status in each window.

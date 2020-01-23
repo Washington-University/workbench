@@ -346,9 +346,12 @@ AnnotationBrowserTab::setBackgroundType(const TileTabsLayoutBackgroundTypeEnum::
  *
  * @param other
  *     Other geometry for intersection test
+ * @param windowIndex
+ *     Index of window
  */
 bool
-AnnotationBrowserTab::intersectionTest(const Annotation* otherAnn) const
+AnnotationBrowserTab::intersectionTest(const Annotation* otherAnn,
+                                       const int32_t /*windowIndex*/) const
 {
     CaretAssert(otherAnn);
     const AnnotationBrowserTab* other = dynamic_cast<const AnnotationBrowserTab*>(otherAnn);

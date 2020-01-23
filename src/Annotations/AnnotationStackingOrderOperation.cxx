@@ -27,6 +27,10 @@
 #include <set>
 
 #include "Annotation.h"
+#include "AnnotationCoordinate.h"
+#include "AnnotationOneDimensionalShape.h"
+#include "AnnotationText.h"
+#include "AnnotationTwoDimensionalShape.h"
 #include "CaretAssert.h"
 
 using namespace caret;
@@ -46,11 +50,15 @@ using namespace caret;
  *     The annotations that are reordered
  * @param selectedAnnotation
  *     The selected annotation that causes reordering
+ * @param windowIndex
+ *     Index of window
  */
 AnnotationStackingOrderOperation::AnnotationStackingOrderOperation(const std::vector<Annotation*>& annotations,
-                                                                   const Annotation* selectedAnnotation)
+                                                                   const Annotation* selectedAnnotation,
+                                                                   const int32_t windowIndex)
 : CaretObject(),
 m_annotations(annotations),
+m_windowIndex(windowIndex),
 m_selectedAnnotation(selectedAnnotation)
 {
     CaretAssert(m_selectedAnnotation);
@@ -74,7 +82,7 @@ AnnotationStackingOrderOperation::~AnnotationStackingOrderOperation()
  *     True if successful, else false
  */
 bool
-AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
+AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeEnum::Enum orderType,
                                               AString& errorMessageOut)
 {
     errorMessageOut.clear();
@@ -82,7 +90,35 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
         return true;
     }
 
+
+    bool supportedSpaceFlag(false);
     CaretAssert(m_selectedAnnotation);
+    switch (m_selectedAnnotation->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            supportedSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            supportedSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            supportedSpaceFlag = true;
+            break;
+    }
+    
+    if ( ! supportedSpaceFlag) {
+        errorMessageOut = ("Ordering for annotation in "
+                           + AnnotationCoordinateSpaceEnum::toGuiName(m_selectedAnnotation->getCoordinateSpace())
+                           + " coordinate space is not allowed");
+        return false;
+    }
     
     if ( ! filterAnnotations()) {
         errorMessageOut = "All annotations are incompatible for ordering with selected annotation";
@@ -98,9 +134,9 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
         }
     }
     if ( ! found) {
-        errorMessageOut = ("Annotation for reordering"
+        errorMessageOut = ("Annotation for reordering "
                            + m_selectedAnnotation->toString()
-                           + " not found all annotations");
+                           + " not found in all annotations");
         return false;
     }
     
@@ -109,16 +145,78 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
         return false;
     }
     
+    bool largerIsFurtherAwayFlag(false);
+    switch (m_selectedAnnotation->getType()) {
+        case AnnotationTypeEnum::BROWSER_TAB:
+        case AnnotationTypeEnum::COLOR_BAR:
+        case AnnotationTypeEnum::SCALE_BAR:
+            break;
+        case AnnotationTypeEnum::BOX:
+        case AnnotationTypeEnum::IMAGE:
+        case AnnotationTypeEnum::LINE:
+        case AnnotationTypeEnum::OVAL:
+        case AnnotationTypeEnum::TEXT:
+            largerIsFurtherAwayFlag = true;
+            break;
+    }
+    
     /*
      * Sort annotations by current stacking order
      */
+    int32_t maxStackingOrder(-1);
     std::vector<OrderInfo> annotationOrderAndContent;
     for (const auto ann : m_annotations) {
         CaretAssert(ann);
         
+        switch (ann->getType()) {
+            case AnnotationTypeEnum::BROWSER_TAB:
+            case AnnotationTypeEnum::COLOR_BAR:
+            case AnnotationTypeEnum::SCALE_BAR:
+                break;
+            case AnnotationTypeEnum::BOX:
+            case AnnotationTypeEnum::IMAGE:
+            case AnnotationTypeEnum::LINE:
+            case AnnotationTypeEnum::OVAL:
+            case AnnotationTypeEnum::TEXT:
+            {
+                const AnnotationOneDimensionalShape* oneDim = ann->castToOneDimensionalShape();
+                const AnnotationTwoDimensionalShape* twoDim = ann->castToTwoDimensionalShape();
+                float xyz[3] { 0.0, 0.0, 0.0 };
+                if (oneDim != NULL) {
+                    oneDim->getStartCoordinate()->getXYZ(xyz);
+                }
+                else if (twoDim != NULL) {
+                    twoDim->getCoordinate()->getXYZ(xyz);
+                }
+                else {
+                    CaretAssert(0);
+                }
+                /*
+                 * Coords are float but stack order is int so scale the coord
+                 */
+                ann->setStackingOrder(static_cast<int32_t>(xyz[2] * m_coordToStackOrderScaleFactor));
+            }
+                break;
+        }
+        
+        if (ann->getStackingOrder() > maxStackingOrder) {
+            maxStackingOrder = ann->getStackingOrder();
+        }
         annotationOrderAndContent.emplace_back(ann,
-                                        ann->getStackingOrder());
+                                               ann->getStackingOrder());
     }
+    
+    if (largerIsFurtherAwayFlag) {
+        /*
+         * Reverse stacking order
+         */
+        if (maxStackingOrder >= 0) {
+            for (auto& aoc : annotationOrderAndContent) {
+                aoc.m_stackOrder = maxStackingOrder - aoc.m_stackOrder;
+            }
+        }
+    }
+    
     std::sort(annotationOrderAndContent.begin(),
               annotationOrderAndContent.end());
     
@@ -151,7 +249,8 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
             /*
              * Find annotation that is closest to 'selectedAnnotation' but behind and intersects it
              */
-            if (m_selectedAnnotation->intersectionTest(annotationOrderAndContent[i].m_annotation)) {
+            if (m_selectedAnnotation->intersectionTest(annotationOrderAndContent[i].m_annotation,
+                                                       m_windowIndex)) {
                 indexOfAnnotationBehind = i;
             }
         }
@@ -159,7 +258,8 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
             /*
              * Find first (closest) annotation that is in front of and intersects 'selectedAnnotation'
              */
-            if (m_selectedAnnotation->intersectionTest(annotationOrderAndContent[i].m_annotation)) {
+            if (m_selectedAnnotation->intersectionTest(annotationOrderAndContent[i].m_annotation,
+                                                       m_windowIndex)) {
                 indexOfAnnotationInFront = i;
             }
         }
@@ -173,7 +273,7 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
      * add or subtract 1 to the stack order using the reference annotation that is in front or back
      */
     switch (orderType) {
-        case OrderType::BRING_FORWARD:
+        case AnnotationStackingOrderTypeEnum::BRING_FORWARD:
             if (indexOfAnnotationInFront >= 0) {
                 /*
                  * Move forward one position
@@ -183,7 +283,7 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
                 annotationOrderAndContent[indexOfSelectedAnnotation].m_stackOrder = annotationOrderAndContent[indexOfAnnotationInFront].m_stackOrder + 1;
             }
             break;
-        case OrderType::BRING_TO_FRONT:
+        case AnnotationStackingOrderTypeEnum::BRING_TO_FRONT:
         {
             /*
              * Move to in front of all annotations
@@ -194,7 +294,7 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
             annotationOrderAndContent[indexOfSelectedAnnotation].m_stackOrder = annotationOrderAndContent[frontIndex].m_stackOrder + 1;
         }
             break;
-        case OrderType::SEND_BACKWARD:
+        case AnnotationStackingOrderTypeEnum::SEND_BACKWARD:
             if (indexOfAnnotationBehind >= 0) {
                 /*
                  * Move back one position
@@ -204,7 +304,7 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
                 annotationOrderAndContent[indexOfSelectedAnnotation].m_stackOrder = annotationOrderAndContent[indexOfAnnotationBehind].m_stackOrder - 1;
             }
             break;
-        case OrderType::SEND_TO_BACK:
+        case AnnotationStackingOrderTypeEnum::SEND_TO_BACK:
         {
             /*
              * Move to behind all annotations
@@ -224,7 +324,56 @@ AnnotationStackingOrderOperation::runOrdering(const OrderType orderType,
               annotationOrderAndContent.end());
     for (int32_t i = 0; i < numberOfAnnotations; i++) {
         CaretAssertVectorIndex(annotationOrderAndContent, i);
-        annotationOrderAndContent[i].m_annotation->setStackingOrder(i + 1);
+        Annotation* ann = annotationOrderAndContent[i].m_annotation;
+        CaretAssert(ann);
+        ann->setStackingOrder(i + 1);
+        
+        switch (ann->getType()) {
+            case AnnotationTypeEnum::BROWSER_TAB:
+            case AnnotationTypeEnum::COLOR_BAR:
+            case AnnotationTypeEnum::SCALE_BAR:
+                break;
+            case AnnotationTypeEnum::BOX:
+            case AnnotationTypeEnum::IMAGE:
+            case AnnotationTypeEnum::LINE:
+            case AnnotationTypeEnum::OVAL:
+            case AnnotationTypeEnum::TEXT:
+            {
+                AnnotationOneDimensionalShape* oneDim = ann->castToOneDimensionalShape();
+                AnnotationTwoDimensionalShape* twoDim = ann->castToTwoDimensionalShape();
+                float xyz[3] { 0.0, 0.0, 0.0 };
+                if (oneDim != NULL) {
+                    oneDim->getStartCoordinate()->getXYZ(xyz);
+                }
+                else if (twoDim != NULL) {
+                    twoDim->getCoordinate()->getXYZ(xyz);
+                }
+                else {
+                    CaretAssert(0);
+                }
+                /*
+                 * Need to invert order since larger is further away
+                 */
+                xyz[2] = (numberOfAnnotations - ann->getStackingOrder());
+
+                if (oneDim != NULL) {
+                    oneDim->getStartCoordinate()->setXYZ(xyz);
+                    const float z = xyz[2];
+                    oneDim->getEndCoordinate()->getXYZ(xyz);
+                    xyz[2] = z;
+                    oneDim->getEndCoordinate()->setXYZ(xyz);
+                }
+                else if (twoDim != NULL) {
+                    twoDim->getCoordinate()->setXYZ(xyz);
+                }
+                else {
+                    CaretAssert(0);
+                }
+                
+                CaretAssertToDoWarning(); // need to use undo/redo system
+            }
+                break;
+        }
     }
     
     return true;
@@ -266,35 +415,15 @@ AnnotationStackingOrderOperation::filterAnnotations()
         for (auto ann : m_annotations) {
             CaretAssert(ann);
             
-            if (ann->getCoordinateSpace() == coordSpace) {
-                switch (coordSpace) {
-                    case AnnotationCoordinateSpaceEnum::CHART:
-                        /* DO NOT order chart space annotations */
-                        break;
-                    case AnnotationCoordinateSpaceEnum::SPACER:
-                        if (ann->getSpacerTabIndex() == m_selectedAnnotation->getSpacerTabIndex()) {
-                            filteredAnnotations.push_back(ann);
-                        }
-                        break;
-                    case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-                        /* DO NOT order stereotaxic space annotations */
-                        break;
-                    case AnnotationCoordinateSpaceEnum::SURFACE:
-                        /* DO NOT order surface space annotations */
-                        break;
-                    case AnnotationCoordinateSpaceEnum::TAB:
-                        if (ann->getTabIndex() == m_selectedAnnotation->getTabIndex()) {
-                            filteredAnnotations.push_back(ann);
-                        }
-                        break;
-                    case AnnotationCoordinateSpaceEnum::VIEWPORT:
-                        /* DO NOT order viewport space annotations */
-                        break;
-                    case AnnotationCoordinateSpaceEnum::WINDOW:
-                        if (ann->getWindowIndex() == m_selectedAnnotation->getWindowIndex()) {
-                            filteredAnnotations.push_back(ann);
-                        }
-                        break;
+            if (m_selectedAnnotation->isInSameCoordinateSpace(ann)) {
+                if (m_selectedAnnotation == ann) {
+                    filteredAnnotations.push_back(ann);
+                }
+                else {
+                    if (m_selectedAnnotation->intersectionTest(ann,
+                                                               m_windowIndex)) {
+                        filteredAnnotations.push_back(ann);
+                    }
                 }
             }
         }
@@ -303,7 +432,7 @@ AnnotationStackingOrderOperation::filterAnnotations()
     
     m_annotations = filteredAnnotations;
     
-    return ( ! m_annotations.empty());
+    return (m_annotations.size() > 1);
 }
 
 /**

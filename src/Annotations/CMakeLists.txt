@@ -55,6 +55,7 @@ AnnotationScaleBarUnitsTypeEnum.h
 AnnotationSizingHandleTypeEnum.h
 AnnotationSpatialModification.h
 AnnotationStackingOrderOperation.h
+AnnotationStackingOrderTypeEnum.h
 AnnotationSurfaceOffsetVectorTypeEnum.h
 AnnotationText.h
 AnnotationTextAlignHorizontalEnum.h
@@ -106,6 +107,7 @@ AnnotationScaleBarUnitsTypeEnum.cxx
 AnnotationSizingHandleTypeEnum.cxx
 AnnotationSpatialModification.cxx
 AnnotationStackingOrderOperation.cxx
+AnnotationStackingOrderTypeEnum.cxx
 AnnotationSurfaceOffsetVectorTypeEnum.cxx
 AnnotationText.cxx
 AnnotationTextAlignHorizontalEnum.cxx

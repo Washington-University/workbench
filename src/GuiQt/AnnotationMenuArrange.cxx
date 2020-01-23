@@ -29,6 +29,8 @@
 #include "AnnotationArrangerInputs.h"
 #include "AnnotationBrowserTab.h"
 #include "AnnotationManager.h"
+#include "AnnotationStackingOrderOperation.h"
+#include "AnnotationStackingOrderTypeEnum.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -257,25 +259,17 @@ AnnotationMenuArrange::addTileTabsSelections()
 void
 AnnotationMenuArrange::addOrderingSelections()
 {
-    switch (m_menuMode) {
-        case MenuMode::ANNOTATIONS:
-            break;
-        case MenuMode::TILE_TABS:
-        {
-            if ( ! actions().isEmpty()) {
-                addSeparator();
-            }
-            
-            m_orderingBringToFrontAction = addAction("Bring to Front");
-            
-            m_orderingBringForwardAction = addAction("Bring Forward");
-            
-            m_orderingSendToBackAction = addAction("Send to Back");
-            
-            m_orderingSendBackwardAction = addAction("Send Backward");
-        }
-            break;
+    if ( ! actions().isEmpty()) {
+        addSeparator();
     }
+    
+    m_orderingBringToFrontAction = addAction("Bring to Front");
+    
+    m_orderingBringForwardAction = addAction("Bring Forward");
+    
+    m_orderingSendToBackAction = addAction("Send to Back");
+    
+    m_orderingSendBackwardAction = addAction("Send Backward");
 }
 
 
@@ -303,6 +297,46 @@ AnnotationMenuArrange::menuAboutToShow()
 
     switch (m_menuMode) {
         case MenuMode::ANNOTATIONS:
+        {
+            bool oneAnnWithCorrectSpaceFlag(false);
+            std::vector<Annotation*> selectedAnnotations = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+            if (selectedAnnotations.size() == 1) {
+                CaretAssertVectorIndex(selectedAnnotations, 0);
+                const Annotation* ann = selectedAnnotations[0];
+                CaretAssert(ann);
+                switch (ann->getCoordinateSpace()) {
+                    case AnnotationCoordinateSpaceEnum::CHART:
+                        oneAnnWithCorrectSpaceFlag = true;
+                        break;
+                    case AnnotationCoordinateSpaceEnum::SPACER:
+                        break;
+                    case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                        break;
+                    case AnnotationCoordinateSpaceEnum::SURFACE:
+                        break;
+                    case AnnotationCoordinateSpaceEnum::TAB:
+                        oneAnnWithCorrectSpaceFlag = true;
+                        break;
+                    case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                        break;
+                    case AnnotationCoordinateSpaceEnum::WINDOW:
+                        oneAnnWithCorrectSpaceFlag = true;
+                        break;
+                }
+            }
+            
+            CaretAssert(m_orderingSendToBackAction);
+            m_orderingSendToBackAction->setEnabled(oneAnnWithCorrectSpaceFlag);
+            
+            CaretAssert(m_orderingSendBackwardAction);
+            m_orderingSendBackwardAction->setEnabled(oneAnnWithCorrectSpaceFlag);
+            
+            CaretAssert(m_orderingBringForwardAction);
+            m_orderingBringForwardAction->setEnabled(oneAnnWithCorrectSpaceFlag);
+            
+            CaretAssert(m_orderingBringToFrontAction);
+            m_orderingBringToFrontAction->setEnabled(oneAnnWithCorrectSpaceFlag);
+        }
             break;
         case MenuMode::TILE_TABS:
         {
@@ -420,6 +454,22 @@ AnnotationMenuArrange::processOrderingMenuItem(QAction* actionSelected)
     
     switch (m_menuMode) {
         case MenuMode::ANNOTATIONS:
+            if (actionSelected == m_orderingBringToFrontAction) {
+                processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::BRING_TO_FRONT);
+                menuSelectedFlag = true;
+            }
+            else if (actionSelected == m_orderingBringForwardAction) {
+                processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::BRING_FORWARD);
+                menuSelectedFlag = true;
+            }
+            else if (actionSelected == m_orderingSendBackwardAction) {
+                processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::SEND_BACKWARD);
+                menuSelectedFlag = true;
+            }
+            else if (actionSelected == m_orderingSendToBackAction) {
+                processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::SEND_TO_BACK);
+                menuSelectedFlag = true;
+            }
             break;
         case MenuMode::TILE_TABS:
         {
@@ -449,6 +499,38 @@ AnnotationMenuArrange::processOrderingMenuItem(QAction* actionSelected)
     }
     
     return menuSelectedFlag;
+}
+
+/**
+ * Called to process an annotation order operation
+ *
+ * @param orderType
+ *     The ordering type
+ */
+void
+AnnotationMenuArrange::processAnnotationOrderOperation(const AnnotationStackingOrderTypeEnum::Enum orderType)
+{
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> selectedAnnotations = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+    if (selectedAnnotations.size() == 1) {
+        CaretAssertVectorIndex(selectedAnnotations, 0);
+        Annotation* selectedAnn = selectedAnnotations[0];
+        std::vector<Annotation*> sameSpaceAnnotations = annMan->getAnnotationsDrawnInSameWindowAndSpace(selectedAnn,
+                                                                                                        m_browserWindowIndex);
+        if ( ! sameSpaceAnnotations.empty()) {
+            sameSpaceAnnotations.push_back(selectedAnn);
+            AnnotationStackingOrderOperation operation(sameSpaceAnnotations,
+                                                       selectedAnn,
+                                                       m_browserWindowIndex);
+            
+            AString errorMessage;
+            if ( ! operation.runOrdering(orderType,
+                                         errorMessage)) {
+                WuQMessageBox::errorOk(this,
+                                       errorMessage);
+            }
+        }
+    }
 }
 
 /**

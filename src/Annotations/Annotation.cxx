@@ -732,6 +732,103 @@ Annotation::setCoordinateSpace(const AnnotationCoordinateSpaceEnum::Enum coordin
 }
 
 /**
+ * @return True if the given annotation is in the same coordinate space as this
+ * annotation.  For spacer, tab, and window they must have the same indices. For
+ * surface space structure and number of vertices must match.
+ * @param annotation
+ * Annotation for comparison.
+ */
+bool
+Annotation::isInSameCoordinateSpace(const Annotation* annotation) const
+{
+    CaretAssert(annotation);
+    
+    if (getCoordinateSpace() != annotation->getCoordinateSpace()) {
+        return false;
+    }
+    
+    bool sameSpaceFlag(false);
+        
+    switch (annotation->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            sameSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            if (getSpacerTabIndex() == annotation->getSpacerTabIndex()) {
+                sameSpaceFlag = true;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            sameSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+        {
+            StructureEnum::Enum myStructure = StructureEnum::INVALID;
+            int32_t myNumberOfVertices(-1);
+            const AnnotationOneDimensionalShape* oneDimAnn = castToOneDimensionalShape();
+            if (oneDimAnn != NULL) {
+                int32_t vertexIndex(-1);
+                oneDimAnn->getStartCoordinate()->getSurfaceSpace(myStructure,
+                                                                 myNumberOfVertices,
+                                                                 vertexIndex);
+            }
+            else {
+                const AnnotationTwoDimensionalShape* twoDimAnn = castToTwoDimensionalShape();
+                if (twoDimAnn != NULL) {
+                    int32_t vertexIndex(-1);
+                    twoDimAnn->getCoordinate()->getSurfaceSpace(myStructure,
+                                                                myNumberOfVertices,
+                                                                vertexIndex);
+                }
+            }
+            
+            StructureEnum::Enum otherStructure = StructureEnum::INVALID;
+            int32_t otherSurfaceNumberOfVertices(-1);
+            const AnnotationOneDimensionalShape* otherOneDimAnn = annotation->castToOneDimensionalShape();
+            if (otherOneDimAnn != NULL) {
+                int32_t vertexIndex(-1);
+                otherOneDimAnn->getStartCoordinate()->getSurfaceSpace(otherStructure,
+                                                                 otherSurfaceNumberOfVertices,
+                                                                 vertexIndex);
+            }
+            else {
+                const AnnotationTwoDimensionalShape* otherTwoDimAnn = annotation->castToTwoDimensionalShape();
+                if (otherTwoDimAnn != NULL) {
+                    int32_t vertexIndex(-1);
+                    otherTwoDimAnn->getCoordinate()->getSurfaceSpace(otherStructure,
+                                                                otherSurfaceNumberOfVertices,
+                                                                vertexIndex);
+                }
+            }
+            
+            if (myNumberOfVertices > 0) {
+                if ((myStructure == otherStructure)
+                    && (myNumberOfVertices == otherSurfaceNumberOfVertices)) {
+                    sameSpaceFlag = true;
+                }
+            }
+        }
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            if (getTabIndex() == annotation->getTabIndex()) {
+                sameSpaceFlag = true;
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            sameSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            if (getWindowIndex() == annotation->getWindowIndex()) {
+                sameSpaceFlag = true;
+            }
+            break;
+    }
+    
+    return sameSpaceFlag;
+}
+
+
+/**
  * @return Is this annotation in surface coordinate space
  * with tangent selected for the surface offset vector?
  */
@@ -1935,7 +2032,7 @@ Annotation::setDrawnInWindowStatus(const int32_t windowIndex)
  * the drawn status set.
  */
 bool
-Annotation::isDrawnInWindowStatus(const int32_t windowIndex)
+Annotation::isDrawnInWindowStatus(const int32_t windowIndex) const
 {
     CaretAssertArrayIndex(m_drawnInWindowStatus, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
     return m_drawnInWindowStatus[windowIndex];
@@ -2621,17 +2718,62 @@ Annotation::setUserDefaultLineWidthPercentage(const float lineWidthPercentage)
 }
 
 /**
- * @return true if this and the given annotation intersect.
+ * @return true if this and the given annotation intersect using bounding box from when drawn in the given window
  *         NOTE: if 'other' is 'this' true is returned (overlaps self) but this
  *         could change so it is best to avoid testing overlap of self.
  *         NOTE: Display status is ignored
  *
  * @param other
  *     Other annotation for intersection test
+ * @param windowIndex
+ *     Index of window
  */
 bool
-Annotation::intersectionTest(const Annotation* /*other*/) const
+Annotation::intersectionTest(const Annotation* other,
+                             const int32_t windowIndex) const
 {
+    if ( ! isInSameCoordinateSpace(other)) {
+        return false;
+    }
+
+    if (isDrawnInWindowStatus(windowIndex)
+         && other->isDrawnInWindowStatus(windowIndex)) {
+        if (m_boundsFromDrawing[windowIndex].intersectsXY(other->m_boundsFromDrawing[windowIndex])) {
+            return true;
+        }
+    }
+    
     return false;
+}
+
+/**
+ * Set the bounds from last time annotation was drawn
+ * @param windowIndex
+ * Index of window
+ * @param bounds
+ * The bounds parallel to screen axes (elements are min-x, max-x, min-y, max-y, min-z, max-z)
+ */
+void
+Annotation::setDrawnInWindowBounds(const int32_t windowIndex,
+                                   const BoundingBox& bounds) const
+{
+    CaretAssert((windowIndex >= 0)
+                && (windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
+    m_boundsFromDrawing[windowIndex] = bounds;
+}
+
+/**
+ * Get the bounds from last time annotation was drawn
+ * @param windowIndex
+ * Index of window
+ * @@return
+ * The bounds parallel to screen axes (elements are min-x, max-x, min-y, max-y, average Z)
+ */
+BoundingBox
+Annotation::getDrawnInWindowBounds(const int32_t windowIndex) const
+{
+    CaretAssert((windowIndex >= 0)
+                && (windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
+    return m_boundsFromDrawing[windowIndex];
 }
 

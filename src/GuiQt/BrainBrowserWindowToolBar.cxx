@@ -3545,7 +3545,7 @@ BrainBrowserWindowToolBar::processTileTabOperationEvent(EventBrowserWindowTileTa
             case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK:
             case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD:
             {
-                AnnotationStackingOrderOperation::OrderType orderingOperation = AnnotationStackingOrderOperation::OrderType::BRING_TO_FRONT;
+                AnnotationStackingOrderTypeEnum::Enum orderingOperation = AnnotationStackingOrderTypeEnum::BRING_TO_FRONT;
                 switch (operation) {
                     case EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_AFTER:
                     case EventBrowserWindowTileTabOperation::OPERATION_GRID_NEW_TAB_BEFORE:
@@ -3553,16 +3553,16 @@ BrainBrowserWindowToolBar::processTileTabOperationEvent(EventBrowserWindowTileTa
                         CaretAssert(0);
                         break;
                     case EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_TO_FRONT:
-                        orderingOperation = AnnotationStackingOrderOperation::OrderType::BRING_TO_FRONT;
+                        orderingOperation = AnnotationStackingOrderTypeEnum::BRING_TO_FRONT;
                         break;
                     case EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_FORWARD:
-                        orderingOperation = AnnotationStackingOrderOperation::OrderType::BRING_FORWARD;
+                        orderingOperation = AnnotationStackingOrderTypeEnum::BRING_FORWARD;
                         break;
                     case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_TO_BACK:
-                        orderingOperation = AnnotationStackingOrderOperation::OrderType::SEND_TO_BACK;
+                        orderingOperation = AnnotationStackingOrderTypeEnum::SEND_TO_BACK;
                         break;
                     case EventBrowserWindowTileTabOperation::OPERATION_ORDER_SEND_BACKWARD:
-                        orderingOperation = AnnotationStackingOrderOperation::OrderType::SEND_BACKWARD;
+                        orderingOperation = AnnotationStackingOrderTypeEnum::SEND_BACKWARD;
                         break;
                     case EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB:
                     case EventBrowserWindowTileTabOperation::OPERATION_REPLACE_TABS:
@@ -3586,7 +3586,8 @@ BrainBrowserWindowToolBar::processTileTabOperationEvent(EventBrowserWindowTileTa
                 if (selectedAnnotation != NULL) {
                     AString errorMessage;
                     AnnotationStackingOrderOperation modifier(annotations,
-                                                              selectedAnnotation);
+                                                              selectedAnnotation,
+                                                              this->browserWindowIndex);
                     if (! modifier.runOrdering(orderingOperation,
                                                errorMessage)) {
                         WuQMessageBox::errorOk(this,

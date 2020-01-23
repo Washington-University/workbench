@@ -204,6 +204,30 @@ BoundingBox::set(const float minMaxXYZ[6])
 }
 
 /**
+ * Set the bound box to the extent found in the 4 given triplets
+ * @param a
+ * First triplet
+ * @param b
+ * Second triplet
+ * @param c
+ * Third triplet
+ * @param d
+ * Fourth triplet
+ */
+void
+BoundingBox::set(const float a[3],
+                 const float b[3],
+                 const float c[3],
+                 const float d[4])
+{
+    resetForUpdate();
+    update(a);
+    update(b);
+    update(c);
+    update(d);
+}
+
+/**
  * Update the bounding box with the XYZ value passed in.  The bound box
  * must have been created with newInstanceForUpdate() or properly
  * initialized by the user.
@@ -593,4 +617,49 @@ BoundingBox::toString() const
     AString s = AString::fromStdString(str.str());
     return s;
 }
+
+/**
+ * @return True if this bounding box intersects the given bounding box
+ * using only the X and Y coordinates.
+ */
+bool
+BoundingBox::intersectsXY(const BoundingBox& bb) const
+{
+    /*
+     * Does self overlap
+     */
+    if (this == &bb) {
+        return true;
+    }
+    
+    /*
+     * Note: Since the geometry is aligned with the X- and Y-axes,
+     * we only need to test for one to be above or the the right of the other
+     *
+     * https://www.geeksforgeeks.org/find-two-rectangles-overlap/
+     * https://leetcode.com/articles/rectangle-overlap/
+     */
+    /* 'this' is on right side of 'other' */
+    if (getMinX() >= bb.getMaxX()) {
+        return false;
+    }
+    
+    /* 'other' is on right side of 'this' */
+    if (bb.getMinX() >= getMaxX()) {
+        return false;
+    }
+    
+    /* 'this' is above 'other */
+    if (getMinY() >= bb.getMaxY()) {
+        return false;
+    }
+    
+    /* 'other' is above 'this' */
+    if (bb.getMinY() >= getMaxY()) {
+        return false;
+    }
+    
+    return true;
+}
+
 

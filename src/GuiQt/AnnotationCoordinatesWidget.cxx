@@ -209,11 +209,11 @@ AnnotationCoordinatesWidget::createCoordinateWidgets(const int32_t coordinateInd
             break;
     }
 
-    m_xCoordSpinBox[coordinateIndex] = createCoordinateSpinBox(coordinateIndex, "X");
+    m_xCoordSpinBox[coordinateIndex] = createCoordinateSpinBox(coordinateIndex, "X", 0);
     
-    m_yCoordSpinBox[coordinateIndex] = createCoordinateSpinBox(coordinateIndex, "Y");
+    m_yCoordSpinBox[coordinateIndex] = createCoordinateSpinBox(coordinateIndex, "Y", 1);
     
-    m_zCoordSpinBox[coordinateIndex] = createCoordinateSpinBox(coordinateIndex, "Z");
+    m_zCoordSpinBox[coordinateIndex] = createCoordinateSpinBox(coordinateIndex, "Z", 2);
     
     const float spinBoxMaximumWidth = 80.0f;
     m_xCoordSpinBox[coordinateIndex]->setMaximumWidth(spinBoxMaximumWidth);
@@ -777,10 +777,13 @@ AnnotationCoordinatesWidget::valueChangedCoordinate(const int32_t coordinateInde
  *     Index of coordinate
  * @param axisCharacter
  *     Character for axis
+ * @param xyzIndex
+ *     Index 0 (X), 1 (Y), 2(Z)
  */
 QDoubleSpinBox*
 AnnotationCoordinatesWidget::createCoordinateSpinBox(const int32_t coordinateIndex,
-                                                     const QString& axisCharacter)
+                                                     const QString& axisCharacter,
+                                                     const int32_t xyzIndex)
 {
     const int digitsRightOfDecimal = 1;
     
@@ -805,13 +808,29 @@ AnnotationCoordinatesWidget::createCoordinateSpinBox(const int32_t coordinateInd
         default:
             break;
     }
+    
+    AString tabWindowText;
+    switch (xyzIndex) {
+        case 0:
+            tabWindowText = ("      0.0% => Left side of tab/window\n"
+                             "      100.0% => Right side of tab/window");
+            break;
+        case 1:
+            tabWindowText = ("      0.0% => Bottom of tab/window\n"
+                             "      100.0% => Top of tab/window");
+            break;
+        case 2:
+            tabWindowText = ("      0.0% => Closer to viewer\n"
+                             "      100.0% => Further from viewer");
+            break;
+    }
+    
     CaretAssert(sb);
     WuQtUtilities::setWordWrappedToolTip(sb,
                                          axisCharacter + "-coordinate of annotation\n"
                                          "   STEREOTAXIC: Stereotaxic " + axisCharacter + "-Coordinate\n"
                                          "   TAB and WINDOW " + axisCharacter + "-Range: [0.0%, 100.0%]\n"
-                                         "      0.0% => Left side of tab/window\n"
-                                         "      100.0% => Right side of tab/window\n");
+                                         + tabWindowText);
     return sb;
 }
 
