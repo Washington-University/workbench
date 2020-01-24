@@ -396,10 +396,9 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
     return ret;
 }
 
-AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varNames) const
+AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varNames, bool addParens) const
 {
     AString ret = "";
-    bool addParens = true;
     switch (m_type)
     {
         case OR:
@@ -409,7 +408,7 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             ret = m_arguments[0]->toString(varNames);
             for (int i = 1; i < end; ++i)
             {
-                ret += "||" + m_arguments[i]->toString(varNames);
+                ret += " || " + m_arguments[i]->toString(varNames);
             }
             break;
         }
@@ -420,7 +419,7 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             ret = m_arguments[0]->toString(varNames);
             for (int i = 1; i < end; ++i)
             {
-                ret += "&&" + m_arguments[i]->toString(varNames);
+                ret += " && " + m_arguments[i]->toString(varNames);
             }
             break;
         }
@@ -434,9 +433,9 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             {
                 if (m_invert[i])
                 {
-                    ret += "!=" + m_arguments[i]->toString(varNames);
+                    ret += " != " + m_arguments[i]->toString(varNames);
                 } else {
-                    ret += "==" + m_arguments[i]->toString(varNames);
+                    ret += " == " + m_arguments[i]->toString(varNames);
                 }
             }
             break;
@@ -454,16 +453,16 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
                 {
                     if (m_invert[i])
                     {
-                        ret += "<=" + m_arguments[i]->toString(varNames);
+                        ret += " <= " + m_arguments[i]->toString(varNames);
                     } else {
-                        ret += ">=" + m_arguments[i]->toString(varNames);
+                        ret += " >= " + m_arguments[i]->toString(varNames);
                     }
                 } else {
                     if (m_invert[i])
                     {
-                        ret += "<" + m_arguments[i]->toString(varNames);
+                        ret += " < " + m_arguments[i]->toString(varNames);
                     } else {
-                        ret += ">" + m_arguments[i]->toString(varNames);
+                        ret += " > " + m_arguments[i]->toString(varNames);
                     }
                 }
             }
@@ -479,9 +478,9 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             {
                 if (m_invert[i])
                 {
-                    ret += "-" + m_arguments[i]->toString(varNames);
+                    ret += " - " + m_arguments[i]->toString(varNames);
                 } else {
-                    ret += "+" + m_arguments[i]->toString(varNames);
+                    ret += " + " + m_arguments[i]->toString(varNames);
                 }
             }
             break;
@@ -496,9 +495,9 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             {
                 if (m_invert[i])
                 {
-                    ret += "/" + m_arguments[i]->toString(varNames);
+                    ret += " / " + m_arguments[i]->toString(varNames);
                 } else {
-                    ret += "*" + m_arguments[i]->toString(varNames);
+                    ret += " * " + m_arguments[i]->toString(varNames);
                 }
             }
             break;
@@ -520,10 +519,10 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             addParens = false;
             int end = (int)m_arguments.size();
             ret = MathFunctionEnum::toName(m_function) + "(";
-            if (end > 0) ret += m_arguments[0]->toString(varNames);//allow for functions that take 0 arguments
+            if (end > 0) ret += m_arguments[0]->toString(varNames, false);//allow for functions that take 0 arguments, don't add outer parens to function arguments
             for (int i = 1; i < end; ++i)
             {
-                ret += "," + m_arguments[i]->toString(varNames);
+                ret += ", " + m_arguments[i]->toString(varNames);
             }
             ret += ")";
             break;
@@ -546,13 +545,13 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             CaretAssertMessage(0, "toString called on invalid MathNode");
             throw CaretException("parsing problem in CaretMathExpression");
     }
-    if (addParens) ret = "(" + ret + ")";//parenthesize almost everything
+    if (addParens) ret = "(" + ret + ")";//parenthesize unless we are a terminal or function, or the node above told us not to
     return ret;
 }
 
 AString CaretMathExpression::toString() const
 {
-    return m_root->toString(getVarNames());
+    return m_root->toString(getVarNames(), false);
 }
 
 bool CaretMathExpression::skipWhitespace()//return false if end of input

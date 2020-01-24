@@ -61,7 +61,7 @@ class CaretMathExpression
         MathNode() { m_type = INVALID; m_function = MathFunctionEnum::INVALID; }
         MathNode(const ExprType& type) { m_type = type; m_function = MathFunctionEnum::INVALID; }
         double eval(const std::vector<float>& values) const;
-        AString toString(const std::vector<AString>& varNames) const;
+        AString toString(const std::vector<AString>& varNames, bool addParens = true) const;
     };
     std::map<AString, int> m_varNames;
     AString m_input;
