@@ -810,7 +810,7 @@ NiftiHeader::Quirks NiftiHeader::setupFrom(const nifti_2_header& header, const A
 {
     Quirks ret;
     if (header.sizeof_hdr != sizeof(nifti_2_header)) throw DataFileException(filename, "incorrect sizeof_hdr");
-    const char magic[] = "n+2\0\r\n\032\n";//only support single-file nifti
+    const char magic[] = "n+2\0\r\n\032\n";//only support single-file nifti, magic string detailed at https://www.nitrc.org/forum/forum.php?thread_id=2148&forum_id=1941
     for (int i = 0; i < 8; ++i)
     {
         if (header.magic[i] != magic[i]) throw DataFileException(filename, "incorrect magic");

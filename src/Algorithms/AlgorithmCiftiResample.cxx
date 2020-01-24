@@ -1202,7 +1202,7 @@ void AlgorithmCiftiResample::processVolume(const CiftiFile* myCiftiIn, const int
                     }
                 }
             }
-         }
+        }
     } else {//if we don't dilate, we can use cifti to find the used voxels
         if (doEdgeAdjust)
         {

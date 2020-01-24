@@ -70,7 +70,7 @@ OperationParameters* AlgorithmVolumeDilate::getParameters()
     OptionalParameter* subvolSelect = ret->createOptionalParameter(6, "-subvolume", "select a single subvolume to dilate");
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
-    ret->createOptionalParameter(9, "-legacy-cutoff", "use the old method of excluding voxels further than the dilation distance when calculating the dilated value");
+    ret->createOptionalParameter(9, "-legacy-cutoff", "use the v1.3.2 method of excluding voxels further than the dilation distance when calculating the dilated value");
     
     ret->setHelpText(
         AString("For all voxels that are designated as bad, if they neighbor a non-bad voxel with data or are within the specified distance of such a voxel, ") +

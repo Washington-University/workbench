@@ -76,7 +76,7 @@ OperationParameters* AlgorithmCiftiDilate::getParameters()
     OptionalParameter* roiOpt = ret->createOptionalParameter(9, "-bad-brainordinate-roi", "specify an roi of brainordinates to overwrite, rather than zeros");
     roiOpt->addCiftiParameter(1, "roi-cifti", "cifti dscalar or dtseries file, positive values denote brainordinates to have their values replaced");
     
-    ret->createOptionalParameter(10, "-nearest", "use nearest value");
+    ret->createOptionalParameter(10, "-nearest", "use nearest good value instead of a weighted average");
     
     ret->createOptionalParameter(11, "-merged-volume", "treat volume components as if they were a single component");
     

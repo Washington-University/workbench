@@ -77,7 +77,7 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
     OptionalParameter* corrAreaOpt = ret->createOptionalParameter(11, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
     corrAreaOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
-    ret->createOptionalParameter(12, "-legacy-cutoff", "use the old method of choosing how many vertices to use when calulating the dilated value with weighted method");
+    ret->createOptionalParameter(12, "-legacy-cutoff", "use the v1.3.2 method of choosing how many vertices to use when calulating the dilated value with weighted method");
         
     ret->setHelpText(
         AString("For all metric vertices that are designated as bad, if they neighbor a non-bad vertex with data or are within the specified distance of such a vertex, ") +
