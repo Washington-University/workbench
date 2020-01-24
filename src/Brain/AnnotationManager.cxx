@@ -33,6 +33,7 @@
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationEditingSelectionInformation.h"
 #include "AnnotationScaleBar.h"
+#include "AnnotationStackingOrderOperation.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "BrowserTabContent.h"
 #include "BrowserWindowContent.h"
@@ -548,24 +549,6 @@ AnnotationManager::getAnnotationEditingSelectionInformation(const int32_t window
 {
     CaretAssertArrayIndex(m_selectionInformation, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
     
-//    bool manualTileTabsModeFlag(false);
-//    std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(windowIndex);
-//    if (windowContentEvent) {
-//        EventManager::get()->sendEvent(windowContentEvent.get());
-//        const BrowserWindowContent* windowContent = windowContentEvent->getBrowserWindowContent();
-//        if (windowContent != NULL) {
-//            switch (windowContent->getTileTabsConfigurationMode()) {
-//                case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
-//                    break;
-//                case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
-//                    break;
-//                case TileTabsLayoutConfigurationTypeEnum::MANUAL:
-//                    manualTileTabsModeFlag = true;
-//                    break;
-//            }
-//        }
-//    }
-    
     EventUserInputModeGet modeEvent(windowIndex);
     EventManager::get()->sendEvent(modeEvent.getPointer());
     const bool tileModeFlag = (modeEvent.getUserInputMode() == UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING);
@@ -901,6 +884,60 @@ AnnotationManager::isGroupingModeValid(const int32_t windowIndex,
     return getAnnotationEditingSelectionInformation(windowIndex)->isGroupingModeValid(groupingMode);
 }
 
+/**
+ * Apply a stacking order change
+ *
+ * @param annotations
+ *     The annotations that are reordered
+ * @param selectedAnnotation
+ *     The selected annotation that is moved in order relative to other annotations
+ * @param orderType
+ *     Type of ordering
+ * @param windowIndex
+ *     Index of window
+ * @param errorMessageOut
+ *     Output with error information
+ * @return True is successful, else false
+ */
+bool
+AnnotationManager::applyStackingOrder(const std::vector<Annotation*>& annotations,
+                                      const Annotation* selectedAnnotation,
+                                      const AnnotationStackingOrderTypeEnum::Enum orderType,
+                                      const int32_t windowIndex,
+                                      AString& errorMessageOut)
+{
+    AnnotationStackingOrderOperation operation(AnnotationStackingOrderOperation::Mode::MODE_REQUEST_NEW_ORDER_VALUES,
+                                               annotations,
+                                               selectedAnnotation,
+                                               windowIndex);
+    if ( ! operation.runOrdering(orderType,
+                                 errorMessageOut)) {
+        return false;
+    }
+
+    std::vector<AnnotationStackingOrderOperation::NewStackingOrder> results = operation.getNewStackingOrderResults();
+    if (results.empty()) {
+        return true;
+    }
+    
+    std::vector<Annotation*> stackAnns;
+    std::vector<float> stackOrders;
+    for (auto& nso : results) {
+        stackAnns.push_back(nso.m_annotation);
+        stackOrders.push_back(nso.m_newStackOrder);
+    }
+    
+    AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+    command->setModeStackingOrderAnnotations(stackAnns,
+                                             stackOrders,
+                                             orderType);
+
+    const float resultFlag = applyCommandInWindow(UserInputModeEnum::ANNOTATIONS,
+                                                  command,
+                                                  windowIndex,
+                                                  errorMessageOut);
+    return resultFlag;
+}
 
 /**
  * Receive an event.

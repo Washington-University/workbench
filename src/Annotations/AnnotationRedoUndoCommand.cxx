@@ -30,6 +30,7 @@
 #include "AnnotationLine.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
+#include "AnnotationStackingOrderOperation.h"
 #include "AnnotationTwoDimensionalShape.h"
 #include "CaretLogger.h"
 #include "EventAnnotationAddToRemoveFromFile.h"
@@ -304,7 +305,43 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
                 }
             }
             break;
-        case AnnotationRedoUndoCommandModeEnum::STACKING_ORDER:
+        case AnnotationRedoUndoCommandModeEnum::STACKING_ORDER_ANNOTATIONS:
+        {
+            const AnnotationOneDimensionalShape* oneDimAnn = annotationValue->castToOneDimensionalShape();
+            const AnnotationTwoDimensionalShape* twoDimAnn = annotationValue->castToTwoDimensionalShape();
+            if (oneDimAnn != NULL) {
+                float xyz[3];
+                oneDimAnn->getStartCoordinate()->getXYZ(xyz);
+                const float z1 = xyz[2];
+                oneDimAnn->getEndCoordinate()->getXYZ(xyz);
+                const float z2 = xyz[2];
+                
+                AnnotationOneDimensionalShape* ann = annotation->castToOneDimensionalShape();
+                if (ann != NULL) {
+                    ann->getStartCoordinate()->getXYZ(xyz);
+                    xyz[2] = z1;
+                    ann->getStartCoordinate()->setXYZ(xyz);
+                    
+                    ann->getEndCoordinate()->getXYZ(xyz);
+                    xyz[2] = z2;
+                    ann->getEndCoordinate()->setXYZ(xyz);
+                }
+            }
+            else if (twoDimAnn != NULL) {
+                float xyz[3];
+                twoDimAnn->getCoordinate()->getXYZ(xyz);
+                const float z = xyz[2];
+                
+                AnnotationTwoDimensionalShape* ann = annotation->castToTwoDimensionalShape();
+                if (ann != NULL) {
+                    ann->getCoordinate()->getXYZ(xyz);
+                    xyz[2] = z;
+                    ann->getCoordinate()->setXYZ(xyz);
+                }
+            }
+        }
+            break;
+        case AnnotationRedoUndoCommandModeEnum::STACKING_ORDER_BROWSER_TAB:
         {
             annotation->setStackingOrder(annotationValue->getStackingOrder());
         }
@@ -1779,10 +1816,10 @@ AnnotationRedoUndoCommand::setModeRotationAngle(const float newRotationAngle,
  *     Annotations that receive the new stacking order
  */
 void
-AnnotationRedoUndoCommand::setModeStackingOrder(const int32_t newStackingOrder,
-                                                const std::vector<Annotation*>& annotations)
+AnnotationRedoUndoCommand::setModeStackingOrderBrowserTab(const int32_t newStackingOrder,
+                                                          const std::vector<Annotation*>& annotations)
 {
-    m_mode = AnnotationRedoUndoCommandModeEnum::STACKING_ORDER;
+    m_mode = AnnotationRedoUndoCommandModeEnum::STACKING_ORDER_BROWSER_TAB;
     setDescription("Stacking Order");
     
     for (auto ann : annotations) {
@@ -2350,6 +2387,65 @@ AnnotationRedoUndoCommand::setModeTwoDimWidth(const float newWidth,
                                                           undoAnnotation);
             m_annotationMementos.push_back(am);
         }
+    }
+}
+
+/**
+ * Set the mode to and process an annotation stacking order change (but NOT for browser tab annotations)
+ *
+ * @param annotations
+ *     The annotations that are reordered
+ * @param stackingOrders
+ *     New stacking orders for each of the annotations
+ * @param orderType
+ *     Type of ordering
+ */
+void
+AnnotationRedoUndoCommand::setModeStackingOrderAnnotations(const std::vector<Annotation*>& annotations,
+                                                           const std::vector<float>& stackingOrders,
+                                                           const AnnotationStackingOrderTypeEnum::Enum orderType)
+{
+    m_mode = AnnotationRedoUndoCommandModeEnum::STACKING_ORDER_ANNOTATIONS;
+    setDescription(AnnotationStackingOrderTypeEnum::toGuiName(orderType));
+    
+    CaretAssert(annotations.size() == stackingOrders.size());
+    
+    const int32_t numAnn = static_cast<int32_t>(annotations.size());
+    for (int32_t i = 0; i < numAnn; i++) {
+        CaretAssertVectorIndex(annotations, i);
+        CaretAssertVectorIndex(stackingOrders, i);
+
+        const float newZ = stackingOrders[i];
+        
+        Annotation* redoAnnotation = annotations[i]->clone();
+        CaretAssert(redoAnnotation);
+        AnnotationOneDimensionalShape* oneDimAnn = redoAnnotation->castToOneDimensionalShape();
+        AnnotationTwoDimensionalShape* twoDimAnn = redoAnnotation->castToTwoDimensionalShape();
+        if (oneDimAnn != NULL) {
+            float xyz[3];
+            oneDimAnn->getStartCoordinate()->getXYZ(xyz);
+            xyz[2] = newZ;
+            oneDimAnn->getStartCoordinate()->setXYZ(xyz);
+            oneDimAnn->getEndCoordinate()->getXYZ(xyz);
+            xyz[2] = newZ;
+            oneDimAnn->getEndCoordinate()->setXYZ(xyz);
+        }
+        else if (twoDimAnn != NULL) {
+            float xyz[3];
+            twoDimAnn->getCoordinate()->getXYZ(xyz);
+            xyz[2] = newZ;
+            twoDimAnn->getCoordinate()->setXYZ(xyz);
+        }
+        else {
+            CaretAssert(0);
+        }
+        
+        Annotation* undoAnnotation = annotations[i]->clone();
+        
+        AnnotationMemento* am = new AnnotationMemento(annotations[i],
+                                                      redoAnnotation,
+                                                      undoAnnotation);
+        m_annotationMementos.push_back(am);
     }
 }
 

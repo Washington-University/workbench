@@ -46,6 +46,8 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param mode
+ *     Mode to apply or not apply new stacking order
  * @param annotations
  *     The annotations that are reordered
  * @param selectedAnnotation
@@ -53,13 +55,15 @@ using namespace caret;
  * @param windowIndex
  *     Index of window
  */
-AnnotationStackingOrderOperation::AnnotationStackingOrderOperation(const std::vector<Annotation*>& annotations,
+AnnotationStackingOrderOperation::AnnotationStackingOrderOperation(const Mode mode,
+                                                                   const std::vector<Annotation*>& annotations,
                                                                    const Annotation* selectedAnnotation,
                                                                    const int32_t windowIndex)
 : CaretObject(),
+m_mode(mode),
 m_annotations(annotations),
-m_windowIndex(windowIndex),
-m_selectedAnnotation(selectedAnnotation)
+m_selectedAnnotation(selectedAnnotation),
+m_windowIndex(windowIndex)
 {
     CaretAssert(m_selectedAnnotation);
 }
@@ -121,7 +125,7 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
     }
     
     if ( ! filterAnnotations()) {
-        errorMessageOut = "All annotations are incompatible for ordering with selected annotation";
+        errorMessageOut = "No annotations in same coordinate space overlap the selected annotation";
         return false;
     }
     
@@ -326,12 +330,19 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
         CaretAssertVectorIndex(annotationOrderAndContent, i);
         Annotation* ann = annotationOrderAndContent[i].m_annotation;
         CaretAssert(ann);
-        ann->setStackingOrder(i + 1);
         
         switch (ann->getType()) {
             case AnnotationTypeEnum::BROWSER_TAB:
             case AnnotationTypeEnum::COLOR_BAR:
             case AnnotationTypeEnum::SCALE_BAR:
+                switch (m_mode) {
+                    case Mode::MODE_APPLY_NEW_ORDER_TO_ANNOTAIONS:
+                        ann->setStackingOrder(i + 1);
+                        break;
+                    case Mode::MODE_REQUEST_NEW_ORDER_VALUES:
+                        m_newStackingOrderResults.push_back(NewStackingOrder(ann, i + 1));
+                        break;
+                }
                 break;
             case AnnotationTypeEnum::BOX:
             case AnnotationTypeEnum::IMAGE:
@@ -339,38 +350,47 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
             case AnnotationTypeEnum::OVAL:
             case AnnotationTypeEnum::TEXT:
             {
-                AnnotationOneDimensionalShape* oneDim = ann->castToOneDimensionalShape();
-                AnnotationTwoDimensionalShape* twoDim = ann->castToTwoDimensionalShape();
-                float xyz[3] { 0.0, 0.0, 0.0 };
-                if (oneDim != NULL) {
-                    oneDim->getStartCoordinate()->getXYZ(xyz);
+                const float newStackOrder(i + 1);
+                const float stackingZ = (numberOfAnnotations - newStackOrder);
+                switch (m_mode) {
+                    case Mode::MODE_APPLY_NEW_ORDER_TO_ANNOTAIONS:
+                    {
+                        AnnotationOneDimensionalShape* oneDim = ann->castToOneDimensionalShape();
+                        AnnotationTwoDimensionalShape* twoDim = ann->castToTwoDimensionalShape();
+                        float xyz[3] { 0.0, 0.0, 0.0 };
+                        if (oneDim != NULL) {
+                            oneDim->getStartCoordinate()->getXYZ(xyz);
+                        }
+                        else if (twoDim != NULL) {
+                            twoDim->getCoordinate()->getXYZ(xyz);
+                        }
+                        else {
+                            CaretAssert(0);
+                        }
+                        /*
+                         * Need to invert order since larger is further away
+                         */
+                        xyz[2] = stackingZ;
+                        
+                        if (oneDim != NULL) {
+                            oneDim->getStartCoordinate()->setXYZ(xyz);
+                            const float z = xyz[2];
+                            oneDim->getEndCoordinate()->getXYZ(xyz);
+                            xyz[2] = z;
+                            oneDim->getEndCoordinate()->setXYZ(xyz);
+                        }
+                        else if (twoDim != NULL) {
+                            twoDim->getCoordinate()->setXYZ(xyz);
+                        }
+                        else {
+                            CaretAssert(0);
+                        }
+                        break;
+                    }
+                    case Mode::MODE_REQUEST_NEW_ORDER_VALUES:
+                        m_newStackingOrderResults.push_back(NewStackingOrder(ann, stackingZ));
+                        break;
                 }
-                else if (twoDim != NULL) {
-                    twoDim->getCoordinate()->getXYZ(xyz);
-                }
-                else {
-                    CaretAssert(0);
-                }
-                /*
-                 * Need to invert order since larger is further away
-                 */
-                xyz[2] = (numberOfAnnotations - ann->getStackingOrder());
-
-                if (oneDim != NULL) {
-                    oneDim->getStartCoordinate()->setXYZ(xyz);
-                    const float z = xyz[2];
-                    oneDim->getEndCoordinate()->getXYZ(xyz);
-                    xyz[2] = z;
-                    oneDim->getEndCoordinate()->setXYZ(xyz);
-                }
-                else if (twoDim != NULL) {
-                    twoDim->getCoordinate()->setXYZ(xyz);
-                }
-                else {
-                    CaretAssert(0);
-                }
-                
-                CaretAssertToDoWarning(); // need to use undo/redo system
             }
                 break;
         }
@@ -572,4 +592,16 @@ AnnotationStackingOrderOperation::validateCompatibility(const std::vector<Annota
     
     return false;
 }
+
+/**
+ * @return The results with annotations and their new stack order.  No modifications
+ * have been made to the annotations, it is up to the caller to assign the new stack
+ * order to the annotations.
+ */
+std::vector<AnnotationStackingOrderOperation::NewStackingOrder>
+AnnotationStackingOrderOperation::getNewStackingOrderResults() const
+{
+    return m_newStackingOrderResults;
+}
+
 

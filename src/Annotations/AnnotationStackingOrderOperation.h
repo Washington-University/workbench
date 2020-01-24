@@ -37,8 +37,37 @@ namespace caret {
     class AnnotationStackingOrderOperation : public CaretObject {
         
     public:
+        /**
+         * Mode of the alogorithm
+         */
+        enum class Mode {
+            /*
+             * Any stacking order modifications are applied to the annotations
+             */
+            MODE_APPLY_NEW_ORDER_TO_ANNOTAIONS,
+            /*
+             * No stacking order changes are applied to the annotations.  Instead,
+             * the caller must call "getNewStackingOrderResults()" to get the
+             * unmodified annotations and their new stacking orders.  The
+             * caller is responsible for applying the new stacking order to
+             * the annotations.
+             */
+            MODE_REQUEST_NEW_ORDER_VALUES
+        };
         
-        AnnotationStackingOrderOperation(const std::vector<Annotation*>& annotations,
+        class NewStackingOrder {
+        public:
+            NewStackingOrder(Annotation* annotation,
+                             const int32_t newStackOrder)
+            : m_annotation(annotation),
+            m_newStackOrder(newStackOrder) { }
+            
+            Annotation* m_annotation;
+            const int32_t m_newStackOrder;
+        };
+        
+        AnnotationStackingOrderOperation(const Mode mode,
+                                         const std::vector<Annotation*>& annotations,
                                          const Annotation* selectedAnnotation,
                                          const int32_t windowIndex);
         
@@ -51,7 +80,8 @@ namespace caret {
         bool runOrdering(const AnnotationStackingOrderTypeEnum::Enum orderType,
                          AString& errorMessageOut);
 
-
+        std::vector<NewStackingOrder> getNewStackingOrderResults() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -80,6 +110,8 @@ namespace caret {
         bool validateCompatibility(const std::vector<Annotation*>& annotations,
                                    AString& errorMesssageOut);
         
+        const Mode m_mode;
+        
         std::vector<Annotation*> m_annotations;
         
         const Annotation* m_selectedAnnotation;
@@ -89,6 +121,8 @@ namespace caret {
         const float m_coordToStackOrderScaleFactor = 100.0;
         
         const float m_stackOrderToCoordScaleFactor = 0.001;
+        
+        std::vector<NewStackingOrder> m_newStackingOrderResults;
         
         // ADD_NEW_MEMBERS_HERE
 

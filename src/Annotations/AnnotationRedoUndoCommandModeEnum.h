@@ -79,8 +79,10 @@ public:
         PASTE_ANNOTATION,
         /** Rotation Angle */
         ROTATION_ANGLE,
-        /** Stacking order */
-        STACKING_ORDER,
+        /** Stacking order for annotations (except browser tabs) */
+        STACKING_ORDER_ANNOTATIONS,
+        /** Stacking order for browser tab */
+        STACKING_ORDER_BROWSER_TAB,
         /** Text Alignment Horizontal */
         TEXT_ALIGNMENT_HORIZONTAL,
         /** Text Alignment Vertical */

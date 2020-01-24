@@ -3585,7 +3585,8 @@ BrainBrowserWindowToolBar::processTileTabOperationEvent(EventBrowserWindowTileTa
                 
                 if (selectedAnnotation != NULL) {
                     AString errorMessage;
-                    AnnotationStackingOrderOperation modifier(annotations,
+                    AnnotationStackingOrderOperation modifier(AnnotationStackingOrderOperation::Mode::MODE_APPLY_NEW_ORDER_TO_ANNOTAIONS,
+                                                              annotations,
                                                               selectedAnnotation,
                                                               this->browserWindowIndex);
                     if (! modifier.runOrdering(orderingOperation,

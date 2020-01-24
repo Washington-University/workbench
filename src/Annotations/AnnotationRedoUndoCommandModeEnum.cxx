@@ -190,9 +190,13 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                          "ROTATION_ANGLE",
                                                          "Rotation Angle"));
     
-    enumData.push_back(AnnotationRedoUndoCommandModeEnum(STACKING_ORDER,
-                                                         "STACKING_ORDER",
-                                                         "Stacking Order"));
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(STACKING_ORDER_ANNOTATIONS,
+                                                         "STACKING_ORDER_ANNOTATIONS",
+                                                         "Stacking Order for Annotation"));
+    
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(STACKING_ORDER_BROWSER_TAB,
+                                                         "STACKING_ORDER_BROWSER_TAB",
+                                                         "Stacking Order for Browser Tab"));
     
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(TEXT_ALIGNMENT_HORIZONTAL,
                                                      "TEXT_ALIGNMENT_HORIZONTAL",

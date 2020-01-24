@@ -231,7 +231,7 @@ AnnotationBackgroundTypeWidget::tileTabsLayoutBackgroundTypeEnumComboBoxItemActi
 }
 
 /**
- * Called when stacking order value changed
+ * Called when stacking order value changed for one browser tab annotation
  *
  * @param value
  *     New stacking order value
@@ -244,7 +244,7 @@ AnnotationBackgroundTypeWidget::stackingOrderValueChanged(int value)
         std::vector<Annotation*> annotations(m_annotationBrowserTabs.begin(),
                                              m_annotationBrowserTabs.end());
         
-        undoCommand->setModeStackingOrder(value, annotations);
+        undoCommand->setModeStackingOrderBrowserTab(value, annotations);
         
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
         

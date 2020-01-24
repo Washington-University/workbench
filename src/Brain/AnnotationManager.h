@@ -25,6 +25,7 @@
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationDistributeEnum.h"
 #include "AnnotationGroupingModeEnum.h"
+#include "AnnotationStackingOrderTypeEnum.h"
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "CaretUndoCommand.h"
@@ -151,6 +152,12 @@ namespace caret {
         
         bool isGroupingModeValid(const int32_t windowIndex,
                                  const AnnotationGroupingModeEnum::Enum groupingMode) const;
+        
+        bool applyStackingOrder(const std::vector<Annotation*>& annotations,
+                                const Annotation* selectedAnnotation,
+                                const AnnotationStackingOrderTypeEnum::Enum orderType,
+                                const int32_t windowIndex,
+                                AString& errorMessageOut);
         
         bool expandSelectedBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
                                                 const int32_t windowIndex,

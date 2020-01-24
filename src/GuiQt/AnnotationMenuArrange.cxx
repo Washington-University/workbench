@@ -31,7 +31,6 @@
 #include "AnnotationManager.h"
 #include "AnnotationStackingOrderOperation.h"
 #include "AnnotationStackingOrderTypeEnum.h"
-#include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
@@ -454,6 +453,11 @@ AnnotationMenuArrange::processOrderingMenuItem(QAction* actionSelected)
     
     switch (m_menuMode) {
         case MenuMode::ANNOTATIONS:
+            CaretAssert(m_orderingBringToFrontAction);
+            CaretAssert(m_orderingBringForwardAction);
+            CaretAssert(m_orderingSendBackwardAction);
+            CaretAssert(m_orderingSendToBackAction);
+            
             if (actionSelected == m_orderingBringToFrontAction) {
                 processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::BRING_TO_FRONT);
                 menuSelectedFlag = true;
@@ -477,7 +481,7 @@ AnnotationMenuArrange::processOrderingMenuItem(QAction* actionSelected)
             CaretAssert(m_orderingBringForwardAction);
             CaretAssert(m_orderingSendBackwardAction);
             CaretAssert(m_orderingSendToBackAction);
-            
+
             if (actionSelected == m_orderingBringToFrontAction) {
                 processWindowTileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_ORDER_BRING_TO_FRONT);
                 menuSelectedFlag = true;
@@ -519,13 +523,13 @@ AnnotationMenuArrange::processAnnotationOrderOperation(const AnnotationStackingO
                                                                                                         m_browserWindowIndex);
         if ( ! sameSpaceAnnotations.empty()) {
             sameSpaceAnnotations.push_back(selectedAnn);
-            AnnotationStackingOrderOperation operation(sameSpaceAnnotations,
-                                                       selectedAnn,
-                                                       m_browserWindowIndex);
             
             AString errorMessage;
-            if ( ! operation.runOrdering(orderType,
-                                         errorMessage)) {
+            if ( ! annMan->applyStackingOrder(sameSpaceAnnotations,
+                                              selectedAnn,
+                                              orderType,
+                                              m_browserWindowIndex,
+                                              errorMessage)) {
                 WuQMessageBox::errorOk(this,
                                        errorMessage);
             }

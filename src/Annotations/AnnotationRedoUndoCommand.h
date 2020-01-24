@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "AnnotationCoordinate.h"
+#include "AnnotationStackingOrderTypeEnum.h"
 #include "AnnotationRedoUndoCommandModeEnum.h"
 #include "AnnotationText.h"
 #include "CaretColorEnum.h"
@@ -123,8 +124,8 @@ namespace caret {
         void setModeRotationAngle(const float newRotationAngle,
                                   const std::vector<Annotation*>& annotations);
         
-        void setModeStackingOrder(const int32_t newStackingOrder,
-                                  const std::vector<Annotation*>& annotations);
+        void setModeStackingOrderBrowserTab(const int32_t newStackingOrder,
+                                            const std::vector<Annotation*>& annotations);
         
         void setModeTextAlignmentHorizontal(const AnnotationTextAlignHorizontalEnum::Enum newHorizontalAlignment,
                                             const std::vector<Annotation*>& annotations);
@@ -173,6 +174,9 @@ namespace caret {
         void setModeTwoDimWidth(const float newWidth,
                                 const std::vector<Annotation*>& annotations);
         
+        void setModeStackingOrderAnnotations(const std::vector<Annotation*>& annotations,
+                                             const std::vector<float>& stackingOrders,
+                                             const AnnotationStackingOrderTypeEnum::Enum orderType);
         // ADD_NEW_METHODS_HERE
 
     private:
