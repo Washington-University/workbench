@@ -430,8 +430,6 @@ AnnotationStackingOrderOperation::filterAnnotations()
         }
     }
     else {
-        const AnnotationCoordinateSpaceEnum::Enum coordSpace = m_selectedAnnotation->getCoordinateSpace();
-        
         for (auto ann : m_annotations) {
             CaretAssert(ann);
             

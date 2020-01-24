@@ -120,8 +120,6 @@ namespace caret {
         
         const float m_coordToStackOrderScaleFactor = 100.0;
         
-        const float m_stackOrderToCoordScaleFactor = 0.001;
-        
         std::vector<NewStackingOrder> m_newStackingOrderResults;
         
         // ADD_NEW_MEMBERS_HERE
