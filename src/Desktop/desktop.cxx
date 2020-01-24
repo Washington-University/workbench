@@ -409,6 +409,7 @@ main(int argc, char* argv[])
         /*
          * Log debug status
          */
+        CaretLogConfig("Version " + applicationInformation.getVersion());
         CaretLogConfig(applicationInformation.getCompiledWithDebugStatus());
 
         

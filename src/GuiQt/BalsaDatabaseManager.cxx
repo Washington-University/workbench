@@ -28,6 +28,7 @@
 
 #include <QJsonDocument>
 
+#include "ApplicationInformation.h"
 #include "BalsaUserRoles.h"
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
@@ -1551,6 +1552,8 @@ BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
         return false;
     }
     
+    CaretLogFine("Uploading to BALSA with Version " + ApplicationInformation().getVersion());
+
     enum ProgressEnum {
         PROGRESS_NONE,
         PROGRESS_LOGIN,

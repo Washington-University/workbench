@@ -704,7 +704,7 @@ BalsaDatabaseUploadSceneFileDialog::loginButtonClicked()
                                              errorMessage)) {
         if ( ! m_userRoles->isSubmitter()) {
             cursor.restoreCursor();
-            const AString msg("Login to BALSA was successful.  However, your have not agreed "
+            const AString msg("Login to BALSA was successful.  However, you have not agreed "
                               "to the BALSA Submission Terms and Conditions that are required "
                               "to upload data to BALSA.  You will need to login to BALSA "
                               "using your web browser and complete this agreement.");
