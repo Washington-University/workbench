@@ -23,6 +23,8 @@
 #include "AnnotationBrowserTab.h"
 #undef __ANNOTATION_BROWSER_TAB_DECLARE__
 
+#include <cmath>
+
 #include "AnnotationCoordinate.h"
 #include "CaretAssert.h"
 #include "MathFunctions.h"
@@ -484,10 +486,19 @@ public:
     /**
      * Set grid points on for the given range
      */
-    void setRange(const int32_t minXIn,
-                  const int32_t maxXIn,
-                  const int32_t minYIn,
-                  const int32_t maxYIn) {
+    void setRange(float minXIn,
+                  float maxXIn,
+                  float minYIn,
+                  float maxYIn) {
+        /*
+         * Tile Layout sizes are floating point with one decimal.  Grid is integer so need
+         * to account for any fractional values when converting to integer.
+         */
+        minXIn = std::floor(minXIn);
+        maxXIn = std::ceil(maxXIn);
+        minYIn = std::floor(minYIn);
+        maxYIn = std::ceil(maxYIn);
+        
         const int32_t minX = MathFunctions::limitRange(static_cast<int32_t>(minXIn), m_minXY, m_maxXY);
         const int32_t maxX = MathFunctions::limitRange(static_cast<int32_t>(maxXIn), m_minXY, m_maxXY);
         const int32_t minY = MathFunctions::limitRange(static_cast<int32_t>(minYIn), m_minXY, m_maxXY);
