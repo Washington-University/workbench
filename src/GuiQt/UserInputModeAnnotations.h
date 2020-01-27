@@ -131,7 +131,8 @@ namespace caret {
                                  const int32_t windowIndex);
         
         void processMouseSelectAnnotation(const MouseEvent& mouseEvent,
-                                          const bool shiftKeyDownFlag);
+                                          const bool shiftKeyDownFlag,
+                                          const bool singleSelectionModeFlag);
         
         void processSelectAllAnnotations();
         

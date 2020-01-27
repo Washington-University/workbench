@@ -74,17 +74,16 @@ UserInputModeTileTabsManualLayout::showContextMenu(const MouseEvent& mouseEvent,
 {
     BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
     BrowserTabContent* tabContent = viewportContent->getBrowserTabContent();
-//    if (tabContent == NULL) {
-//        return;
-//    }
     
     /*
      * Select any annotation that is under the mouse.
      * There might not be an annotation under the
      * mouse and that is okay.
      */
+    const bool singleSelectionModeFlag(false);
     processMouseSelectAnnotation(mouseEvent,
-                                 false);
+                                 false,
+                                 singleSelectionModeFlag);
     
     UserInputModeTileTabsManualLayoutContextMenu contextMenu(this,
                                                     mouseEvent,
@@ -92,13 +91,5 @@ UserInputModeTileTabsManualLayout::showContextMenu(const MouseEvent& mouseEvent,
                                                     openGLWidget);
     if (contextMenu.actions().size() > 0) {
         contextMenu.exec(menuPosition);
-        
-//        Annotation* newAnnotation = contextMenu.getNewAnnotationCreatedByContextMenu();
-//        if (newAnnotation != NULL) {
-//            selectAnnotation(newAnnotation);
-//
-//            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-//            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-//        }
     }
 }

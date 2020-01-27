@@ -963,14 +963,6 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
             pasteAnnotationFromAnnotationClipboardAndChangeSpace(mouseEvent);
             break;
         case MODE_SELECT:
-        {
-            /*
-             * Single click selects clicked annotation and deselects any that are selected
-             */
-            GuiManager::get()->getBrain()->getAnnotationManager()->deselectAllAnnotationsForEditing(m_browserWindowIndex);
-            processMouseSelectAnnotation(mouseEvent,
-                                         false);
-        }
             break;
         case MODE_SET_COORDINATE_ONE:
             processModeSetCoordinate(mouseEvent);
@@ -1001,8 +993,11 @@ UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
             break;
         case MODE_SELECT:
             if (m_allowMultipleSelectionModeFlag) {
+                const bool shiftKeyDown(true);
+                const bool singleSelectionModeFlag(false);
                 processMouseSelectAnnotation(mouseEvent,
-                                             true);
+                                             shiftKeyDown,
+                                             singleSelectionModeFlag);
             }
             break;
         case MODE_SET_COORDINATE_ONE:
@@ -1031,8 +1026,16 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
         case MODE_PASTE_SPECIAL:
             break;
         case MODE_SELECT:
+        {
+            /*
+             * Single click selects clicked annotation and deselects any that are selected
+             */
+            const bool shiftKeyDown(false);
+            const bool singleSelectionModeFlag(true);
             processMouseSelectAnnotation(mouseEvent,
-                                         false);
+                                         shiftKeyDown,
+                                         singleSelectionModeFlag);
+        }
             break;
         case MODE_SET_COORDINATE_ONE:
             break;
@@ -1443,10 +1446,13 @@ UserInputModeAnnotations::selectAnnotation(Annotation* annotation)
  *     Mouse event information.
  * @param shiftKeyDownFlag
  *     True if shift key is down.
+ * @param singleSelectionModeFlag
+ *     If true, deselect any other annotations so that only the annotation under mouse is selected
  */
 void
 UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEvent,
-                                                       const bool shiftKeyDownFlag)
+                                                       const bool shiftKeyDownFlag,
+                                                       const bool singleSelectionModeFlag)
 {
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
     const int mouseX = mouseEvent.getX();
@@ -1466,6 +1472,13 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     SelectionItemAnnotation* annotationID = openGLWidget->performIdentificationAnnotations(mouseX,
                                                                                            mouseY);
     Annotation* selectedAnnotation = annotationID->getAnnotation();
+    
+    /*
+     * If only one annotation may be selected, deselect all other annotations
+     */
+    if (singleSelectionModeFlag) {
+        GuiManager::get()->getBrain()->getAnnotationManager()->deselectAllAnnotationsForEditing(m_browserWindowIndex);
+    }
     
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     AnnotationManager::SelectionMode selectionMode = AnnotationManager::SELECTION_MODE_SINGLE;
@@ -1515,8 +1528,11 @@ UserInputModeAnnotations::showContextMenu(const MouseEvent& mouseEvent,
      * There might not be an annotation under the
      * mouse and that is okay.
      */
+    const bool shiftKeyDown(false);
+    const bool singleSelectionModeFlag(false);
     processMouseSelectAnnotation(mouseEvent,
-                                 false);
+                                 shiftKeyDown,
+                                 singleSelectionModeFlag);
     
     UserInputModeAnnotationsContextMenu contextMenu(this,
                                                     mouseEvent,
@@ -1705,9 +1721,6 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
 void
 UserInputModeAnnotations::processSelectAllAnnotations()
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    annMan->deselectAllAnnotationsForEditing(m_browserWindowIndex);
-    
     std::vector<Annotation*> annotationsSelected;
     
     switch (getUserInputMode()) {
@@ -1716,6 +1729,10 @@ UserInputModeAnnotations::processSelectAllAnnotations()
             EventAnnotationGetDrawnInWindow getDrawnEvent(m_browserWindowIndex);
             EventManager::get()->sendEvent(getDrawnEvent.getPointer());
             getDrawnEvent.getAnnotations(annotationsSelected);
+
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            annMan->deselectAllAnnotationsForEditing(m_browserWindowIndex);
+
             annMan->setAnnotationsForEditing(m_browserWindowIndex,
                                              annotationsSelected);
         }
@@ -1727,6 +1744,9 @@ UserInputModeAnnotations::processSelectAllAnnotations()
             break;
         case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
         {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            annMan->deselectAllAnnotationsForEditing(m_browserWindowIndex);
+
             BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
             CaretAssert(bbw);
             std::vector<BrowserTabContent*> allTabContent;
