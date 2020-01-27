@@ -134,6 +134,8 @@ namespace caret {
                                           const bool shiftKeyDownFlag,
                                           const bool singleSelectionModeFlag);
         
+        void processDeselectAllAnnotations();
+        
         void processSelectAllAnnotations();
         
     private:

@@ -1967,16 +1967,19 @@ BrainBrowserWindow::createMenuEdit()
                       BrainBrowserWindowEditMenuItemEnum::DELETER);
     
     
+    QAction* deselectAllAction = NULL;
     QAction* selectAllAction = NULL;
     const bool addSelectAllFlag = true;
     if (addSelectAllFlag) {
+        deselectAllAction = addItemToEditMenu(m_editMenu,
+                                            BrainBrowserWindowEditMenuItemEnum::DESELECT_ALL);
         selectAllAction = addItemToEditMenu(m_editMenu,
                                             BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
     }
     
     m_editMenu->insertSeparator(cutAction);
-    if (selectAllAction != NULL) {
-        m_editMenu->insertSeparator(selectAllAction);
+    if (deselectAllAction != NULL) {
+        m_editMenu->insertSeparator(deselectAllAction);
     }
     
     QObject::connect(m_editMenu, SIGNAL(aboutToShow()),
@@ -2078,6 +2081,8 @@ BrainBrowserWindow::processEditMenuAboutToShow()
                             case BrainBrowserWindowEditMenuItemEnum::CUT:
                                 break;
                             case BrainBrowserWindowEditMenuItemEnum::DELETER:
+                                break;
+                            case BrainBrowserWindowEditMenuItemEnum::DESELECT_ALL:
                                 break;
                             case BrainBrowserWindowEditMenuItemEnum::PASTE:
                                 if (pasteText.isEmpty()) {

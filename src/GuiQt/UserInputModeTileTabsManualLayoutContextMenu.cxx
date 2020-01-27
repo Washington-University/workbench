@@ -94,10 +94,14 @@ m_parentOpenGLWidget(parentOpenGLWidget)
                                   && (m_browserTabContent != NULL));
     
     /*
-     * Select All tabs
+     * De/Select All tabs
      */
+    QAction* deselectAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::DESELECT_ALL),
+                                        this, SLOT(deselectAllAnnotations()));
+    deselectAction->setEnabled( ! m_selectedBrowserTabAnnotations.empty());
     addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL),
               this, SLOT(selectAllAnnotations()));
+    
     
     /*
      * Separator
@@ -177,6 +181,15 @@ m_parentOpenGLWidget(parentOpenGLWidget)
  */
 UserInputModeTileTabsManualLayoutContextMenu::~UserInputModeTileTabsManualLayoutContextMenu()
 {
+}
+
+/**
+ * Deselect all annotations in the window.
+ */
+void
+UserInputModeTileTabsManualLayoutContextMenu::deselectAllAnnotations()
+{
+    m_userInputTileTabsManualLayout->processDeselectAllAnnotations();
 }
 
 /**

@@ -1657,6 +1657,9 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         case BrainBrowserWindowEditMenuItemEnum::DELETER:
             deleteSelectedAnnotations();
             break;
+        case BrainBrowserWindowEditMenuItemEnum::DESELECT_ALL:
+            processDeselectAllAnnotations();
+            break;
         case BrainBrowserWindowEditMenuItemEnum::PASTE:
         {
             const MouseEvent* mouseEvent = getMousePosition();
@@ -1713,6 +1716,42 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
         }
             break;
     }
+}
+
+/**
+ * Process the deselection of all annotations.
+ */
+void
+UserInputModeAnnotations::processDeselectAllAnnotations()
+{
+    std::vector<Annotation*> annotationsSelected;
+    
+    switch (getUserInputMode()) {
+        case UserInputModeEnum::ANNOTATIONS:
+        {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            annMan->deselectAllAnnotationsForEditing(m_browserWindowIndex);
+        }
+            break;
+        case UserInputModeEnum::BORDERS:
+        case UserInputModeEnum::FOCI:
+        case UserInputModeEnum::IMAGE:
+        case UserInputModeEnum::INVALID:
+            break;
+        case UserInputModeEnum::TILE_TABS_MANUAL_LAYOUT_EDITING:
+        {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            annMan->deselectAllAnnotationsForEditing(m_browserWindowIndex);
+        }
+            break;
+        case UserInputModeEnum::VIEW:
+            break;
+        case UserInputModeEnum::VOLUME_EDIT:
+            break;
+    }
+        
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -1853,6 +1892,9 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
         
         if (allAllowSelectFlag) {
             enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
+        }
+        if (anySelectedFlag) {
+            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::DESELECT_ALL);
         }
         
         if (annotationManager->isAnnotationOnClipboardValid()) {

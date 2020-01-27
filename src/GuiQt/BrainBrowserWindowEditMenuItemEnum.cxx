@@ -126,6 +126,11 @@ BrainBrowserWindowEditMenuItemEnum::initialize()
                                                           "Delete",
                                                           noShortCutKeySequence));
     
+    enumData.push_back(BrainBrowserWindowEditMenuItemEnum(DESELECT_ALL,
+                                                          "DESELECT_ALL",
+                                                          "Deselect All",
+                                                          (Qt::CTRL + Qt::SHIFT + Qt::Key_A)));
+    
     enumData.push_back(BrainBrowserWindowEditMenuItemEnum(PASTE,
                                                           "PASTE",
                                                           "Paste",

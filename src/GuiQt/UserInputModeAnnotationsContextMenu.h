@@ -65,6 +65,8 @@ namespace caret {
         
         void pasteSpecialAnnotationFromAnnotationClipboard();
         
+        void deselectAllAnnotations();
+        
         void selectAllAnnotations();
         
         void setAnnotationText();

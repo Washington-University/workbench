@@ -215,8 +215,11 @@ m_newAnnotationCreatedByContextMenu(NULL)
     addSeparator();
 
     /*
-     * Select All annotations
+     * De/Select All annotations
      */
+    QAction* deselectAction = addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::DESELECT_ALL),
+                                        this, SLOT(deselectAllAnnotations()));
+    deselectAction->setEnabled( ! selectedAnnotations.empty());
     addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL),
               this, SLOT(selectAllAnnotations()));
     
@@ -379,6 +382,15 @@ UserInputModeAnnotationsContextMenu::pasteSpecialAnnotationFromAnnotationClipboa
 }
 
 /**
+ * Deselect all annotations in the window.
+ */
+void
+UserInputModeAnnotationsContextMenu::deselectAllAnnotations()
+{
+    m_userInputModeAnnotations->processDeselectAllAnnotations();
+}
+
+/**
  * Select all annotations in the window.
  */
 void
@@ -386,7 +398,6 @@ UserInputModeAnnotationsContextMenu::selectAllAnnotations()
 {
     m_userInputModeAnnotations->processSelectAllAnnotations();
 }
-
 
 /**
  * Set the text for an annotation.

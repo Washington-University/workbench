@@ -42,6 +42,8 @@ public:
         CUT,
         /** Delete (note: 'DELETE' is reserved word on Windows) */
         DELETER,
+        /** Deselect All */
+        DESELECT_ALL,
         /** Paste */
         PASTE,
         /** Paste Special */

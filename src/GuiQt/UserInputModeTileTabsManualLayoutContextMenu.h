@@ -50,6 +50,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
+        void deselectAllAnnotations();
+        
         void selectAllAnnotations();
         
         void applyGroupingGroup();
