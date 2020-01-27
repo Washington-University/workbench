@@ -70,6 +70,8 @@ namespace caret {
         
         void processExpandTabMenuItem();
         
+        void processShrinkTabMenuItem();
+        
         void processInsertNewTabMenuItem();
         
     private:

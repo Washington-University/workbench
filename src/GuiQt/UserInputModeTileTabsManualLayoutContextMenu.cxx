@@ -167,6 +167,8 @@ m_parentOpenGLWidget(parentOpenGLWidget)
     QObject::connect(insertNewTabAction, &QAction::triggered,
                      this, &UserInputModeTileTabsManualLayoutContextMenu::processInsertNewTabMenuItem);
     
+    addSeparator();
+    
     /*
      * Expand option
      */
@@ -174,6 +176,14 @@ m_parentOpenGLWidget(parentOpenGLWidget)
     QObject::connect(expendToFillAction, &QAction::triggered,
                      this, &UserInputModeTileTabsManualLayoutContextMenu::processExpandTabMenuItem);
     expendToFillAction->setEnabled(oneTabSelectedFlag);
+
+    /*
+     * Expand option
+     */
+    QAction* shrinkToFitAction = addAction("Shrink Tab to Remove Overlap");
+    QObject::connect(shrinkToFitAction, &QAction::triggered,
+                     this, &UserInputModeTileTabsManualLayoutContextMenu::processShrinkTabMenuItem);
+    shrinkToFitAction->setEnabled(oneTabSelectedFlag);
 }
 
 /**
@@ -277,6 +287,33 @@ UserInputModeTileTabsManualLayoutContextMenu::processExpandTabMenuItem()
         WuQMessageBox::errorOk(this,
                                errorMessage);
     }    
+}
+
+/**
+ * Called when shrink to fill space menu item is selected
+ */
+void
+UserInputModeTileTabsManualLayoutContextMenu::processShrinkTabMenuItem()
+{
+    const int32_t browserWindowIndex = m_mouseEvent.getBrowserWindowIndex();
+    BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
+    CaretAssert(window);
+    std::vector<BrowserTabContent*> allTabContent;
+    window->getAllTabContent(allTabContent);
+    
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AString errorMessage;
+    const bool result = annMan->shrinkSelectedBrowserTabAnnotation(allTabContent,
+                                                                   browserWindowIndex,
+                                                                   m_userInputTileTabsManualLayout->getUserInputMode(),
+                                                                   errorMessage);
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+    if ( ! result) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
 }
 
 /**
