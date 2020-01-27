@@ -459,11 +459,16 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                 break;
             case COLUMN_NAME:
             {
+                AString notFoundText;
+                if (recentItem->isNotFound()) {
+                    notFoundText = ("&nbsp;(<font color=\"red\" size=\"+1\">not found</font>)");
+                }
+                
                 CaretAssert(widget);
                 QLabel* label = qobject_cast<QLabel*>(widget);
                 CaretAssert(label);
-                AString text("<html>&nbsp;<b><font size=\"+1\">%1</font></b><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%2</html>");
-                label->setText(text.arg(recentItem->getFileName()).arg(recentItem->getPathName()));
+                AString text("<html>&nbsp;<b><font size=\"+1\">%1</font></b>%2<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%3</html>");
+                label->setText(text.arg(recentItem->getFileName()).arg(notFoundText).arg(recentItem->getPathName()));
             }
                 break;
             case COLUMN_DATE_TIME:
