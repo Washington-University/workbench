@@ -107,6 +107,8 @@ namespace caret {
         
         void processExpandTabMenuItem();
         
+        void processShrinkTabMenuItem();
+        
         void processWindowTileTabOperation(const EventBrowserWindowTileTabOperation::Operation operation);
         
         void processAnnotationOrderOperation(const AnnotationStackingOrderTypeEnum::Enum orderType);
@@ -124,6 +126,8 @@ namespace caret {
         QAction* m_ungroupAction = NULL;
         
         QAction* m_tileTabsExpandToFillAction = NULL;
+        
+        QAction* m_tileTabsShrinkToFitAction = NULL;
         
         QAction* m_orderingBringToFrontAction = NULL;
         

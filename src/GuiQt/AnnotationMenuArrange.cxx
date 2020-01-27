@@ -247,6 +247,7 @@ AnnotationMenuArrange::addTileTabsSelections()
             }
             
             m_tileTabsExpandToFillAction = addAction("Expand Tab to Fill Empty Space");
+            m_tileTabsShrinkToFitAction  = addAction("Shrink Tab to Remove Overlap");
         }
             break;
     }
@@ -352,6 +353,9 @@ AnnotationMenuArrange::menuAboutToShow()
             CaretAssert(m_tileTabsExpandToFillAction);
             m_tileTabsExpandToFillAction->setEnabled(oneSelectedFlag);
             
+            CaretAssert(m_tileTabsShrinkToFitAction);
+            m_tileTabsShrinkToFitAction->setEnabled(oneSelectedFlag);
+            
             CaretAssert(m_orderingSendToBackAction);
             m_orderingSendToBackAction->setEnabled(oneSelectedFlag);
             
@@ -432,6 +436,12 @@ AnnotationMenuArrange::processTileTabsMenu(QAction* actionSelected)
     if ((m_tileTabsExpandToFillAction != NULL)
         && (actionSelected == m_tileTabsExpandToFillAction)) {
         processExpandTabMenuItem();
+        menuSelectedFlag = true;
+    }
+    
+    if ((m_tileTabsShrinkToFitAction != NULL)
+        && (actionSelected == m_tileTabsShrinkToFitAction)) {
+        processShrinkTabMenuItem();
         menuSelectedFlag = true;
     }
     
@@ -589,6 +599,9 @@ AnnotationMenuArrange::processWindowTileTabOperation(const EventBrowserWindowTil
     EventManager::get()->sendEvent(tileTabOperation.getPointer());
 }
 
+/**
+ * Expand tab selected from menu
+ */
 void
 AnnotationMenuArrange::processExpandTabMenuItem()
 {
@@ -600,6 +613,30 @@ AnnotationMenuArrange::processExpandTabMenuItem()
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
     const bool result = annMan->expandSelectedBrowserTabAnnotation(allTabContent,
+                                                                   m_browserWindowIndex,
+                                                                   m_userInputMode,
+                                                                   errorMessage);
+    if ( ! result) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+    
+}
+
+/**
+ * Shrink tab selected from menu
+ */
+void
+AnnotationMenuArrange::processShrinkTabMenuItem()
+{
+    BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    CaretAssert(window);
+    std::vector<BrowserTabContent*> allTabContent;
+    window->getAllTabContent(allTabContent);
+    
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AString errorMessage;
+    const bool result = annMan->shrinkSelectedBrowserTabAnnotation(allTabContent,
                                                                    m_browserWindowIndex,
                                                                    m_userInputMode,
                                                                    errorMessage);

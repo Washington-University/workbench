@@ -441,6 +441,46 @@ public:
         return true;
     }
 
+    /*
+     * Test to see of ALL of the grid points with the given bounds
+     * are off
+     */
+    bool isRangeAllOn(const int32_t minX,
+                    const int32_t maxX,
+                    const int32_t minY,
+                    const int32_t maxY) const {
+        for (int32_t i = minX; i <= maxX; i++) {
+            for (int32_t j = minY; j <= maxY; j++) {
+                const int32_t offset = (m_rangeXY * j) + i;
+                CaretAssertVectorIndex(m_grid, offset);
+                if (m_grid[offset] == 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    /*
+     * Test to see of ANY of the grid points with the given bounds
+     * are on
+     */
+    bool isRangeOn(const int32_t minX,
+                    const int32_t maxX,
+                    const int32_t minY,
+                    const int32_t maxY) const {
+        for (int32_t i = minX; i <= maxX; i++) {
+            for (int32_t j = minY; j <= maxY; j++) {
+                const int32_t offset = (m_rangeXY * j) + i;
+                CaretAssertVectorIndex(m_grid, offset);
+                if (m_grid[offset] != 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
     /**
      * Set grid points on for the given range
      */
@@ -671,3 +711,270 @@ AnnotationBrowserTab::expandTab(const std::vector<const AnnotationBrowserTab*>& 
     return false;
 }
 
+/**
+ * Shrink the given tab until it does not overlay any other tabs
+ *
+ * @param browserTabsInWindow
+ *      Tabs in the window
+ * @param tabToShrink
+ *      Tab that is expanded to fill empty space
+ * @param boundsOut
+ *      Output with new bounds
+ * @return
+ *      True if new bounds are valid
+ */
+bool
+AnnotationBrowserTab::shrinkTab(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
+                                const AnnotationBrowserTab* tabToShrink,
+                                float boundsOut[4])
+{
+    int32_t bounds[4] { 0, 100, 0, 100 };
+    
+    /*
+     * Two passes are performed to minimize shrinking of the tab
+     */
+    
+    /*
+     * First time, erode when an ENTIRE edge overlaps other tab(s)
+     */
+    if ( ! shrinkTabAux(browserTabsInWindow, tabToShrink, bounds, true, boundsOut)) {
+        return false;
+    }
+    
+    bounds[0] = boundsOut[0];
+    bounds[1] = boundsOut[1];
+    bounds[2] = boundsOut[2];
+    bounds[3] = boundsOut[3];
+    
+    /*
+     * Second pass, erode an edge when ANY point in edge overlaps other tab(s)
+     */
+    shrinkTabAux(browserTabsInWindow, tabToShrink, bounds, false, boundsOut);
+  
+    return true;
+}
+
+/**
+ * Shrink the given tab until it does not overlay any other tabs
+ *
+ * @param browserTabsInWindow
+ *      Tabs in the window
+ * @param tabToShrink
+ *      Tab that is expanded to fill empty space
+ * @param startingBounds
+ *      Starting bounds for tab
+ * @param testAllOnFlag
+ *      If true test for all voxels on along edge, else any voxel on along edge
+ * @param boundsOut
+ *      Output with new bounds
+ * @return
+ *      True if new bounds are valid
+ */
+bool
+AnnotationBrowserTab::shrinkTabAux(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
+                                   const AnnotationBrowserTab* tabToShrink,
+                                   const int32_t startingBounds[4],
+                                   const bool testAllOnFlag,
+                                   float boundsOut[4])
+{
+    if (tabToShrink == NULL) {
+        return false;
+    }
+    
+    /*
+     * Ensure tab for expansion is not in list of other tabs
+     */
+    std::vector<const AnnotationBrowserTab*> tabs;
+    for (auto bt : browserTabsInWindow) {
+        if (bt != tabToShrink) {
+            tabs.push_back(bt);
+        }
+    }
+    
+    /*
+     * If no other tabs, do not change siz
+     */
+    if (tabs.empty()) {
+        return false;
+    }
+    
+    /*
+     * Since the percentage coordinates in the window range [0, 100],
+     * create a grid that is 101 x 101 (grid will add one in constructor)
+     */
+    PercentageGrid grid(0, 100);
+    
+    /*
+     * Fill in grid points that are overlapped by
+     * all of the tabs
+     */
+    for (auto t : tabs) {
+        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0);
+        t->getBounds2D(minX, maxX, minY, maxY);
+        grid.setRange(minX, maxX, minY, maxY);
+    }
+    
+    /*
+     * Get bounds of tab for expansion and clip to grid
+     */
+    float tabMinX(0.0), tabMaxX(0.0), tabMinY(0.0), tabMaxY(0.0);
+    tabToShrink->getBounds2D(tabMinX, tabMaxX, tabMinY, tabMaxY);
+    
+    /*
+     * Shrink by 1 point around edges.  If the maximum of a tab
+     * is the same as a minimum of this tab, it will detect
+     * overlap and prevent expansion
+     */
+    int32_t x1 = MathFunctions::limitRange(static_cast<int32_t>(tabMinX), startingBounds[0], startingBounds[1]);
+    int32_t x2 = MathFunctions::limitRange(static_cast<int32_t>(tabMaxX), startingBounds[0], startingBounds[1]);
+    int32_t y1 = MathFunctions::limitRange(static_cast<int32_t>(tabMinY), startingBounds[2], startingBounds[3]);
+    int32_t y2 = MathFunctions::limitRange(static_cast<int32_t>(tabMaxY), startingBounds[2], startingBounds[3]);
+    
+    bool leftDone(x1 <= 0);
+    bool rightDone(x2 >= 100);
+    bool bottomDone(y1 <= 0);
+    bool topDone(y2 >= 100);
+    
+    bool done(leftDone && rightDone && bottomDone && topDone);
+    while ( ! done) {
+        const int32_t xl(x1);
+        const int32_t xr(x2);
+        const int32_t yb(y1);
+        const int32_t yt(y2);
+        
+        /*
+         * Try to shrink at bottom by one row
+         */
+        if ( ! bottomDone) {
+            if (testAllOnFlag) {
+                if (grid.isRangeAllOn(xl, xr, yb, yb)) {
+                    y1++;
+                }
+                else {
+                    bottomDone = true;
+                }
+            }
+            else if (grid.isRangeOn(xl, xr, yb, yb)) {
+                y1++;
+            }
+            else {
+                bottomDone = true;
+            }
+        }
+        
+        /*
+         * Try to shrink at top by one row
+         */
+        if ( ! topDone) {
+            if (testAllOnFlag) {
+                if (grid.isRangeAllOn(xl, xr, yt, yt)) {
+                    y2--;
+                }
+                else {
+                    topDone = true;
+                }
+            }
+            else if (grid.isRangeOn(xl, xr, yt, yt)) {
+                y2--;
+            }
+            else {
+                topDone = true;
+            }
+        }
+        
+        /*
+         * Try to shrink at left by one column
+         */
+        if ( ! leftDone) {
+            if (testAllOnFlag) {
+                if (grid.isRangeAllOn(xl, xl, yb, yt)) {
+                    x1++;
+                }
+                else {
+                    leftDone = true;
+                }
+            }
+            else if (grid.isRangeOn(xl, xl, yb, yt)) {
+                x1++;
+            }
+            else {
+                leftDone = true;
+            }
+        }
+        
+        /*
+         * Try to shrink at right by one column
+         */
+        if ( ! rightDone) {
+            if (testAllOnFlag) {
+                if (grid.isRangeAllOn(xr, xr, yb, yt)) {
+                    x2--;
+                }
+                else {
+                    rightDone = true;
+                }
+            }
+            else if (grid.isRangeOn(xr, xr, yb, yt)) {
+                x2--;
+            }
+            else {
+                rightDone = true;
+            }
+        }
+        
+        /*
+         * Test for any sides that no longer are expandable
+         */
+        if (x1 >= 100) {
+            leftDone = true;
+        }
+        if (x2 <= 0) {
+            rightDone = true;
+        }
+        if (y1 >= 100) {
+            bottomDone = true;
+        }
+        if (y2 <= 0) {
+            topDone = true;
+        }
+        if (x1 >= x2) {
+            leftDone = true;
+            rightDone = true;
+        }
+        if (y1 >= y2) {
+            bottomDone = true;
+            topDone    = true;
+        }
+        
+        /*
+         * Done if no shrinking available
+         */
+        done = (leftDone && rightDone && bottomDone && topDone);
+    }
+    
+    /*
+     * If tab collapsed to empty, then no changes
+     */
+    if (x1 >= x2) {
+        return false;
+    }
+    if (y1 >= y2) {
+        return false;
+    }
+
+    /*
+     * If expansion available, report new bounds
+     */
+    if ((x1 < tabMinX)
+        || (x2 > tabMaxX)
+        || (y1 < tabMinY)
+        || (y2 > tabMaxY)) {
+        boundsOut[0] = x1;
+        boundsOut[1] = x2;
+        boundsOut[2] = y1;
+        boundsOut[3] = y2;
+        return true;
+    }
+    
+    return false;
+}

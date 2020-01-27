@@ -164,6 +164,10 @@ namespace caret {
                                                 const UserInputModeEnum::Enum userInputMode,
                                                 AString& errorMessageOut);
         
+        bool shrinkSelectedBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
+                                                const int32_t windowIndex,
+                                                const UserInputModeEnum::Enum userInputMode,
+                                                AString& errorMessageOut);
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

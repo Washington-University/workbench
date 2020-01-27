@@ -80,6 +80,10 @@ namespace caret {
                               const AnnotationBrowserTab* tabToExpand,
                               float boundOut[4]);
         
+        static bool shrinkTab(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
+                              const AnnotationBrowserTab* tabToShrink,
+                              float boundOut[4]);
+        
         // ADD_NEW_METHODS_HERE
 
           
@@ -98,6 +102,12 @@ namespace caret {
         void copyHelperAnnotationBrowserTab(const AnnotationBrowserTab& obj);
         
         void initializeMembersAnnotationBrowserTab();
+        
+        static bool shrinkTabAux(const std::vector<const AnnotationBrowserTab*>& browserTabsInWindow,
+                                 const AnnotationBrowserTab* tabToShrink,
+                                 const int32_t startingBounds[4],
+                                 const bool testAllOnFlag,
+                                 float boundOut[4]);
         
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
