@@ -266,6 +266,7 @@ AnnotationBoundsWidget::xMinValueChanged(const double value)
 {
     valueChangedHelper(m_xMinCoordSpinBox,
                        value);
+    m_xMinCoordSpinBox->setFocus();
 }
 
 /**
@@ -278,6 +279,7 @@ AnnotationBoundsWidget::xMaxValueChanged(const double value)
 {
     valueChangedHelper(m_xMaxCoordSpinBox,
                        value);
+    m_xMaxCoordSpinBox->setFocus();
 }
 
 /**
@@ -290,6 +292,7 @@ AnnotationBoundsWidget::yMinValueChanged(const double value)
 {
     valueChangedHelper(m_yMinCoordSpinBox,
                        value);
+    m_yMinCoordSpinBox->setFocus();
 }
 
 /**
@@ -302,6 +305,7 @@ AnnotationBoundsWidget::yMaxValueChanged(const double value)
 {
     valueChangedHelper(m_yMaxCoordSpinBox,
                        value);
+    m_yMaxCoordSpinBox->setFocus();
 }
 
 /**
