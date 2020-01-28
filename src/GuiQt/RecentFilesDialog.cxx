@@ -271,6 +271,12 @@ QWidget*
 RecentFilesDialog::createFilesFilteringWidget()
 {
     QLabel* showLabel = new QLabel("Show: ");
+    
+    m_showDirectoriesCheckBox = new QCheckBox("Directories");
+    m_showDirectoriesCheckBox->setChecked(true);
+    QObject::connect(m_showDirectoriesCheckBox, &QCheckBox::clicked,
+                     this, &RecentFilesDialog::showDirectoriesCheckBoxClicked);
+
     m_showSceneFilesCheckBox = new QCheckBox("Scene");
     m_showSceneFilesCheckBox->setChecked(true);
     QObject::connect(m_showSceneFilesCheckBox, &QCheckBox::clicked,
@@ -279,7 +285,7 @@ RecentFilesDialog::createFilesFilteringWidget()
     m_showSpecFilesCheckBox = new QCheckBox("Spec");
     m_showSpecFilesCheckBox->setChecked(true);
     QObject::connect(m_showSpecFilesCheckBox, &QCheckBox::clicked,
-                     this, &RecentFilesDialog::showSceneFilesCheckBoxClicked);
+                     this, &RecentFilesDialog::showSpecFilesCheckBoxClicked);
     
     QLabel* nameFilterLabel = new QLabel("Name Filter: ");
     m_nameFilterLineEdit = new QLineEdit();
@@ -292,6 +298,7 @@ RecentFilesDialog::createFilesFilteringWidget()
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
     layout->addWidget(showLabel);
+    layout->addWidget(m_showDirectoriesCheckBox);
     layout->addWidget(m_showSceneFilesCheckBox);
     layout->addWidget(m_showSpecFilesCheckBox);
     layout->addSpacing(25);
@@ -436,6 +443,15 @@ RecentFilesDialog::nameFilterTextEdited(const QString& /*text*/)
 }
 
 /**
+ * Called if Show Directories checkbox is clicked
+ */
+void
+RecentFilesDialog::showDirectoriesCheckBoxClicked(bool /*checked*/)
+{
+    updateFilesTableContent();
+}
+
+/**
  * Called if Show Scene Files checkbox is clicked
  */
 void
@@ -559,9 +575,9 @@ RecentFilesDialog::updateFilesTableContent()
         case RecentFileItemsContainerModeEnum::FAVORITES:
             updateFavoritesContainer();
             itemsContainer = m_favoriteItemsContainer.get();
-            filter.setShowDirectories(true);
-            filter.setShowSceneFiles(true);
-            filter.setShowSpecFiles(true);
+            filter.setShowDirectories(m_showDirectoriesCheckBox->isChecked());
+            filter.setShowSceneFiles(m_showSceneFilesCheckBox->isChecked());
+            filter.setShowSpecFiles(m_showSpecFilesCheckBox->isChecked());
             break;
         case RecentFileItemsContainerModeEnum::OTHER:
             CaretAssertMessage(0, "OTHER not used in dialog");

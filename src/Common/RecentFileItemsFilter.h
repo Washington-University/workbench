@@ -86,7 +86,7 @@ namespace caret {
         bool m_showSceneFiles = false;
 
         /** show directories*/
-        bool m_showDirectories = false;;
+        bool m_showDirectories = false;
         
         /** show only favorites*/
         bool m_favoritesOnly = false;

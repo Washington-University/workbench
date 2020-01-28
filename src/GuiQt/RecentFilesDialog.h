@@ -87,6 +87,8 @@ namespace caret {
         
         void filesModeActionTriggered(QAction* action);
         
+        void showDirectoriesCheckBoxClicked(bool checked);
+        
         void showSceneFilesCheckBoxClicked(bool checked);
         
         void showSpecFilesCheckBoxClicked(bool checked);
@@ -147,6 +149,8 @@ namespace caret {
         QPushButton* m_openPushButton;
         
         QActionGroup* m_fileTypeModeActionGroup;
+        
+        QCheckBox* m_showDirectoriesCheckBox;
         
         QCheckBox* m_showSceneFilesCheckBox;
         
