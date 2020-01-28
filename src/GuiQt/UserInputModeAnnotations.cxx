@@ -315,7 +315,7 @@ UserInputModeAnnotations::getCursor() const
 }
 
 /**
- * Delete all selected annotations.
+ * Delete all selected annotations except color bars which are turned off for display
  */
 void
 UserInputModeAnnotations::deleteSelectedAnnotations()
@@ -1870,8 +1870,11 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
             if ( ! ann->testProperty(Annotation::Property::COPY_CUT_PASTE)) {
                 allAllowCopyCutPasteFlag = false;
             }
-            if ( ! ann->testProperty(Annotation::Property::DELETION)) {
-                allAllowDeleteFlag = false;
+            
+            if (ann->getType() != AnnotationTypeEnum::BROWSER_TAB) {
+                if ( ! ann->testProperty(Annotation::Property::DELETION)) {
+                    allAllowDeleteFlag = false;
+                }
             }
         }
         

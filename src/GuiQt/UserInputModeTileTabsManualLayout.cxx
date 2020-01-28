@@ -23,13 +23,22 @@
 #include "UserInputModeTileTabsManualLayout.h"
 #undef __USER_INPUT_MODE_TILE_TABS_MANUAL_LAYOUT_DECLARE__
 
+#include "AnnotationBrowserTab.h"
+#include "AnnotationManager.h"
+#include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventBrowserTabDeleteInGUI.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
+#include "GuiManager.h"
 #include "UserInputModeTileTabsManualLayoutContextMenu.h"
+#include "WuQMessageBox.h"
+
 using namespace caret;
-
-
     
 /**
  * \class caret::UserInputModeTileTabsManualLayout 
@@ -92,4 +101,53 @@ UserInputModeTileTabsManualLayout::showContextMenu(const MouseEvent& mouseEvent,
     if (contextMenu.actions().size() > 0) {
         contextMenu.exec(menuPosition);
     }
+}
+
+/**
+ * Delete all selected annotations except color bars which are turned off for display
+ */
+void
+UserInputModeTileTabsManualLayout::deleteSelectedAnnotations()
+{
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+    if ( ! selectedAnnotations.empty()) {
+        std::vector<BrowserTabContent*> tabs;
+        for (auto ann : selectedAnnotations) {
+            AnnotationBrowserTab* abt = dynamic_cast<AnnotationBrowserTab*>(ann);
+            if (abt != NULL) {
+                tabs.push_back(abt->getBrowserTabContent());
+            }
+        }
+        
+        if ( ! tabs.empty()) {
+            BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+            CaretAssert(window);
+            
+            QString msg("Close the selected tab(s)?"
+                        "\nThis operation cannot be undone.");
+            if (WuQMessageBox::warningOkCancel(window,
+                                               msg)) {
+                for (auto t : tabs) {
+                    EventBrowserTabDeleteInGUI deleteEvent(t,
+                                                           t->getTabNumber());
+                    EventManager::get()->sendEvent(deleteEvent.getPointer());
+                }
+            }
+        }
+/* Will eventually use an undo command when "reopen closed browser tab" is implemented
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setModeDeleteAnnotations(selectedAnnotations);
+            AString errorMessage;
+            if ( !  annotationManager->applyCommand(getUserInputMode(),
+                                                    undoCommand,
+                                                    errorMessage)) {
+                WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                       errorMessage);
+            }
+ */
+    }
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

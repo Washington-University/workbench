@@ -212,7 +212,7 @@ namespace caret {
         
         void cutAnnotation();
         
-        void deleteSelectedAnnotations();
+        virtual void deleteSelectedAnnotations();
         
         void resetAnnotationUnderMouse();
         

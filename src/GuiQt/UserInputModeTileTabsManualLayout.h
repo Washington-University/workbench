@@ -50,6 +50,7 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        virtual void deleteSelectedAnnotations() override;
         // ADD_NEW_MEMBERS_HERE
 
     };
