@@ -140,6 +140,7 @@ RecentFileItemsFilter::testItemPassesFilter(const RecentFileItem* recentFileItem
         if ( ! m_regExp) {
             m_regExp.reset(new QRegExp(m_nameMatching));
             m_regExp->setPatternSyntax(QRegExp::Wildcard);
+            m_regExp->setCaseSensitivity(Qt::CaseInsensitive);
             if ( ! m_regExp->isValid()) {
                 CaretLogFine("Regular expression failure for RecentFileItem: "
                                "Name matching \""
@@ -161,7 +162,8 @@ RecentFileItemsFilter::testItemPassesFilter(const RecentFileItem* recentFileItem
          * NOTE: QRegularExpression::wildcardToRegularExpression() added in Qt 5.12
          */
         if ( ! m_regularExpression) {
-            const QString reText(QRegularExpression::wildcardToRegularExpression(m_nameMatching));
+            const QString reText(QRegularExpression::wildcardToRegularExpression(m_nameMatching),
+                                 QRegularExpression::CaseInsensitiveOption;
             m_regularExpression.reset(new QRegularExpression(reText));
             if ( ! m_regularExpression->isValid()) {
                 CaretLogFine("Regular expression failure for RecentFileItem: "
@@ -201,7 +203,7 @@ RecentFileItemsFilter::getMatchingLineEditToolTip()
     
 #ifdef _MATCH_WITH_Q_REG_EXP_
     text = ("<html><body>"
-            "Enter text for wildcard (GLOB) matching:"
+            "Enter text for case-insensitive wildcard (GLOB) matching:"
             "<ul>"
             "<li>c  Any character represenents iteslf (c matches c)"
             "<li>?  Matches any single character"
@@ -212,7 +214,7 @@ RecentFileItemsFilter::getMatchingLineEditToolTip()
             "</body></html>");
 #else /* _MATCH_WITH_Q_REG_EXP_ */
     text = ("<html><body>"
-            "Enter text for wildcard (GLOB) matching:"
+            "Enter text for case-insensitive wildcard (GLOB) matching:"
             "<ul>"
             "<li>c  Any character represenents iteslf (c matches c)"
             "<li>?  Matches any single character"
