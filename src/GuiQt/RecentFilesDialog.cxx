@@ -405,8 +405,28 @@ RecentFilesDialog::createFileTypesButtonWidget()
         QAction* action = m_fileTypeModeActionGroup->addAction(buttonText);
         action->setData(RecentFileItemsContainerModeEnum::toName(m));
         action->setCheckable(true);
-        action->setToolTip("");
         
+        QString toolTipText;
+        switch (m) {
+            case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+                toolTipText = ("Choose from Scene and Spec Files in the current directory");
+                break;
+            case RecentFileItemsContainerModeEnum::FAVORITES:
+                toolTipText = ("Choose from Favorites: favorites are created by clicking "
+                               "the Favorite Icon (star) in the Favorite column for an item");
+                break;
+            case RecentFileItemsContainerModeEnum::OTHER:
+                break;
+            case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
+                toolTipText = ("Choose from directories that have been visitied by "
+                               "the user for opening or saving files");
+                break;
+            case RecentFileItemsContainerModeEnum::RECENT_FILES:
+                toolTipText = ("Choose from Scene and Spec files recently opened by the user");
+                break;
+        }
+        WuQtUtilities::setWordWrappedToolTip(action, toolTipText);
+
         QToolButton* tb = new QToolButton();
         tb->setDefaultAction(action);
         tb->setStyleSheet("font : 14px"); /* larger characters */
