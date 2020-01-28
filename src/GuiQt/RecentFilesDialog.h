@@ -112,7 +112,7 @@ namespace caret {
         virtual void keyPressEvent(QKeyEvent* event) override;
         
     private:
-        RecentFilesDialog(const AString& dialogTitle,
+        RecentFilesDialog(const RunMode runMode,
                           QWidget* parent = 0);
         
         ResultModeEnum getResultMode() const;
@@ -139,6 +139,8 @@ namespace caret {
         
         void loadSceneOrSpecFile(const AString& pathAndFileName,
                                  const int32_t sceneIndex);
+        
+        const RunMode m_runMode;
         
         QPushButton* m_loadPushButton;
         

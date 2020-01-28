@@ -66,15 +66,29 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param dialogTitle
- *    Title for dialog
+ * @param runMode
+ *    Mode for running the dialog
  * @param parent
  *    The parent widget
  */
-RecentFilesDialog::RecentFilesDialog(const AString& dialogTitle,
+RecentFilesDialog::RecentFilesDialog(const RunMode runMode,
                                      QWidget* parent)
-: QDialog(parent)
+: QDialog(parent),
+m_runMode(runMode)
 {
+    AString dialogTitle;
+    ApplicationInformation appInfo;
+    switch (m_runMode) {
+        case RunMode::OPEN_RECENT:
+            dialogTitle = "Open Recent";
+            break;
+        case RunMode::SPLASH_SCREEN:
+            dialogTitle = (appInfo.getName()
+                           + " "
+                           + appInfo.getVersion());
+            break;
+    }
+    
     setWindowTitle(dialogTitle);
 
     QWidget* internetButtonsWidget = createInternetButtonsWidget();
@@ -212,20 +226,7 @@ RecentFilesDialog::runDialog(const RunMode runMode,
                              int32_t& sceneIndexOut,
                              QWidget* parent)
 {
-    AString dialogTitle;
-    ApplicationInformation appInfo;
-    switch (runMode) {
-        case RunMode::OPEN_RECENT:
-            dialogTitle = "Open Recent";
-            break;
-        case RunMode::SPLASH_SCREEN:
-            dialogTitle = (appInfo.getName()
-                           + " "
-                           + appInfo.getVersion());
-            break;
-    }
-    
-    RecentFilesDialog rfd(dialogTitle,
+    RecentFilesDialog rfd(runMode,
                           parent);
     rfd.exec();
     
@@ -335,7 +336,7 @@ RecentFilesDialog::createDialogButtonsWidget()
     m_openPushButton->setToolTip("<html><body>"
                                  "Action depends upon type of item selected:"
                                  "<ul>"
-                                 "<li> Directory  - File Open Dialog is displayed listing contents of directory."
+                                 "<li> Directory  - File Dialog is displayed listing contents of directory."
                                  "<li> Scene File - Scene File is opened in the Scene File Dialog for Scene selection."
                                  "<li> Spec File  - Files in Spec File are listed in the Spec File Dialog."
                                  "</ul>"
@@ -344,12 +345,20 @@ RecentFilesDialog::createDialogButtonsWidget()
     QPushButton* openOtherPushButton = new QPushButton("Open Other...");
     QObject::connect(openOtherPushButton, &QPushButton::clicked,
                      this, &RecentFilesDialog::openOtherButtonClicked);
-    openOtherPushButton->setToolTip("Open File Dialog is displayed listing contents of current directory");
+    openOtherPushButton->setToolTip("File Dialog is displayed listing contents of current directory "
+                                    "(same action as File Menu -> Open File)");
 
     QPushButton* cancelPushButton = new QPushButton("Cancel");
     QObject::connect(cancelPushButton, &QPushButton::clicked,
                      this, &RecentFilesDialog::cancelButtonClicked);
-    cancelPushButton->setToolTip("Closes dialog with no action taken");
+    switch (m_runMode) {
+        case RunMode::OPEN_RECENT:
+            cancelPushButton->setToolTip("Closes dialog with no action taken");
+            break;
+        case RunMode::SPLASH_SCREEN:
+            cancelPushButton->setToolTip("Close this dialog and display Workbench Window");
+            break;
+    }
 
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
