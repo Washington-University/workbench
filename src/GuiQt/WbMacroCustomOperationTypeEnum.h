@@ -50,7 +50,9 @@ public:
         /** Incremental Rotation */
         INCREMENTAL_ROTATION,
         /** Increment volume slice */
-        INCREMENTAL_VOLUME_SLICE
+        INCREMENTAL_VOLUME_SLICE,
+        /** Surface default color */
+        SURFACE_DEFAULT_COLOR
     };
 
 

@@ -134,54 +134,67 @@ PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
                                            QSignalMapper* colorSignalMapper)
 {
     QString buttonText;
+    AString buttonToolTip;
     QWidget* colorSwatchWidget = new QWidget();
     
     switch (prefColor) {
         case PREF_COLOR_BACKGROUND_ALL:
             buttonText = "All Background";
+            buttonToolTip = "Color for background in All Display";
             m_backgroundColorAllWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_BACKGROUND_CHART:
             buttonText = "Chart Background";
+            buttonToolTip = "Color for background in Chart Display";
             m_backgroundColorChartWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_BACKGROUND_SURFACE:
             buttonText = "Surface Background";
+            buttonToolTip = "Color for background in Surface Display";
             m_backgroundColorSurfaceWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_BACKGROUND_VOLUME:
             buttonText = "Volume Background";
+            buttonToolTip = "Color for background in Volume Display";
             m_backgroundColorVolumeWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_ALL:
             buttonText = "All Foreground";
+            buttonToolTip = "Color for foreground (text) in All Display";
             m_foregroundColorAllWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_CHART:
             buttonText = "Chart Foreground";
+            buttonToolTip = "Color for foreground (text) in Chart Display";
             m_foregroundColorChartWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_SURFACE:
             buttonText = "Surface Foreground";
+            buttonToolTip = "Color for foreground (text) in Surface Display";
             m_foregroundColorSurfaceWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_VOLUME:
             buttonText = "Volume Foreground";
+            buttonToolTip = "Color for foreground (text) in Volume Display";
             m_foregroundColorVolumeWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_CHART_MATRIX_GRID_LINES:
             buttonText = "Chart Grid Lines";
+            buttonToolTip = "Color for grid lines in a Chart Matrix Display";
             m_chartMatrixGridLinesColorWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_CHART_THRESHOLD:
             buttonText = "Chart Threshold";
+            buttonToolTip = "Color for thresholded regions in Chart Histogram Display";
             m_chartHistogramThresholdColorWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_BACKGROUND_WINDOW:
+            buttonToolTip = "Color for background in Window";
             buttonText = "Window Background";
             m_backgroundColorWindowWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_WINDOW:
+            buttonToolTip = "Color for foreground (text) in Window Display";
             buttonText = "Window Foreground";
             m_foregroundColorWindowWidget = colorSwatchWidget;
             break;
@@ -195,6 +208,7 @@ PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
     CaretAssert( ! buttonText.isEmpty());
     
     QPushButton* colorPushButton = new QPushButton(buttonText);
+    colorPushButton->setToolTip(buttonToolTip);
     QObject::connect(colorPushButton, SIGNAL(clicked()),
                      colorSignalMapper, SLOT(map()));
     colorSignalMapper->setMapping(colorPushButton,

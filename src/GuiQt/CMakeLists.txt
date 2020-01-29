@@ -517,6 +517,7 @@ WbMacroCustomOperationDelay.h
 WbMacroCustomOperationIncrementRotation.h
 WbMacroCustomOperationIncrementVolumeSlice.h
 WbMacroCustomOperationManager.h
+WbMacroCustomOperationSurfaceDefaultColor.h
 WbMacroCustomOperationTypeEnum.h
 WbMacroHelper.h
 WbMacroWidgetActionNames.h
@@ -810,6 +811,7 @@ WbMacroCustomOperationDelay.cxx
 WbMacroCustomOperationIncrementRotation.cxx
 WbMacroCustomOperationIncrementVolumeSlice.cxx
 WbMacroCustomOperationManager.cxx
+WbMacroCustomOperationSurfaceDefaultColor.cxx
 WbMacroCustomOperationTypeEnum.cxx
 WbMacroHelper.cxx
 WbMacroWidgetActionsManager.cxx

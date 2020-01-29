@@ -42,6 +42,7 @@
 #include "DisplayPropertiesSurface.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "DisplayPropertiesLabels.h"
+#include "DisplayPropertiesSurface.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "GiftiLabel.h"
@@ -197,6 +198,12 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* model,
         displayPropertiesLabels = brain->getDisplayPropertiesLabels();
     }
     
+    std::array<uint8_t, 3> defaultColor { 178, 178, 178 };
+    if (brain != NULL) {
+        const DisplayPropertiesSurface* dsp = brain->getDisplayPropertiesSurface();
+        defaultColor = dsp->getDefaultColorRGB();
+    }
+    
     const int numNodes = surface->getNumberOfNodes();
     const int numColorComponents = numNodes * 4;
     float *rgbaColor = new float[numColorComponents];
@@ -207,6 +214,7 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* model,
     this->colorSurfaceNodes(displayPropertiesLabels,
                             browserTabIndex,
                             surface,
+                            defaultColor,
                             overlaySet, 
                             rgbaColor);
     
@@ -285,8 +293,14 @@ SurfaceNodeColoring::showBrainordinateHighlightRegionOfInterest(const Brain* bra
 /**
  * Assign color components to surface nodes. 
  *
+ * @param displayPropertiesLabels
+ *    Label display properties
+ * @param browserTabIndex
+ *    Index of browser tab
  * @param surface
  *    Surface that has its nodes colored.
+ * @param defaultSurfaceColor
+ *    Default coloring for surface
  * @param overlaySet
  *    Surface overlay assignments for surface.
  * @param rgbaNodeColors
@@ -296,20 +310,27 @@ void
 SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPropertiesLabels,
                                        const int32_t browserTabIndex,
                                        const Surface* surface,
+                                       const std::array<uint8_t, 3>& defaultSurfaceColor,
                                        OverlaySet* overlaySet,
                                        float* rgbaNodeColors)
 {
     const int32_t numNodes = surface->getNumberOfNodes();
     const int32_t numberOfDisplayedOverlays = overlaySet->getNumberOfDisplayedOverlays();
     
+    const float defaultColorFloat[3] = {
+        defaultSurfaceColor[0] / 255.0f,
+        defaultSurfaceColor[1] / 255.0f,
+        defaultSurfaceColor[2] / 255.0f
+    };
+    
     /*
      * Default color.
      */
     for (int32_t i = 0; i < numNodes; i++) {
         const int32_t i4 = i * 4;
-        rgbaNodeColors[i4] = 0.70;
-        rgbaNodeColors[i4+1] = 0.70;
-        rgbaNodeColors[i4+2] = 0.70;
+        rgbaNodeColors[i4]   = defaultColorFloat[0];
+        rgbaNodeColors[i4+1] = defaultColorFloat[1];
+        rgbaNodeColors[i4+2] = defaultColorFloat[2];
         rgbaNodeColors[i4+3] = 1.0;
     }
     

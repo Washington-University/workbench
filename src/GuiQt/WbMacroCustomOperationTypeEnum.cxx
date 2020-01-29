@@ -138,6 +138,9 @@ WbMacroCustomOperationTypeEnum::initialize()
                                                       "INCREMENTAL_VOLUME_SLICE",
                                                       "Increment Volume Slice"));
     
+    enumData.push_back(WbMacroCustomOperationTypeEnum(SURFACE_DEFAULT_COLOR,
+                                                      "SURFACE_DEFAULT_COLOR",
+                                                      "Surface Default Color"));
 }
 
 /**

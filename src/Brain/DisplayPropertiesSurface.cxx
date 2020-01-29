@@ -48,6 +48,7 @@ DisplayPropertiesSurface::DisplayPropertiesSurface()
     m_nodeSize = 2.0;
     m_surfaceDrawingType = SurfaceDrawingTypeEnum::DRAW_AS_TRIANGLES;
     m_opacity = 1.0;
+    resetDefaultColorRGB();
     
     m_sceneAssistant->add("m_displayNormalVectors",
                           &m_displayNormalVectors);
@@ -59,6 +60,10 @@ DisplayPropertiesSurface::DisplayPropertiesSurface()
                           &m_opacity);
     m_sceneAssistant->add<SurfaceDrawingTypeEnum, SurfaceDrawingTypeEnum::Enum>("m_surfaceDrawingType",
                                                                 &m_surfaceDrawingType);
+    m_sceneAssistant->addArray("m_defaultColorRGB",
+                               &m_defaultColorRGB[0],
+                               m_defaultColorRGB.size(),
+                               178);
     
 }
 
@@ -149,6 +154,8 @@ void
 DisplayPropertiesSurface::restoreFromScene(const SceneAttributes* sceneAttributes,
                         const SceneClass* sceneClass)
 {
+    resetDefaultColorRGB();
+    
     if (sceneClass == NULL) {
         return;
     }
@@ -269,5 +276,35 @@ DisplayPropertiesSurface::setOpacity(const float opacity)
 {
     m_opacity = opacity;
 }
+
+/**
+ * Set the default color used when no overlays color vertices
+ * @param defaultColorRGB
+ *    The new default color
+ */
+void
+DisplayPropertiesSurface::setDefaultColorRGB(const std::array<uint8_t, 3>& defaultColorRGB)
+{
+    m_defaultColorRGB = defaultColorRGB;
+}
+
+/**
+ * @return The default color used when no overlays color vertices
+ */
+std::array<uint8_t, 3>
+DisplayPropertiesSurface::getDefaultColorRGB() const
+{
+    return m_defaultColorRGB;
+}
+
+/**
+ * Reset the default surface color
+ */
+void
+DisplayPropertiesSurface::resetDefaultColorRGB()
+{
+    m_defaultColorRGB.fill(178);
+}
+
 
 

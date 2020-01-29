@@ -26,18 +26,28 @@
 #include <limits>
 
 #include <QCheckBox>
+#include <QColorDialog>
 #include <QDoubleSpinBox>
 #include <QLabel>
 #include <QGridLayout>
+#include <QToolButton>
 
 using namespace caret;
 
+#include "Brain.h"
 #include "CaretAssert.h"
+#include "DisplayPropertiesSurface.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "GuiManager.h"
 #include "SceneClass.h"
 #include "SceneWindowGeometry.h"
 #include "WuQFactory.h"
+#include "WuQMacroCommand.h"
+#include "WuQMacroCommandParameter.h"
+#include "WbMacroCustomOperationSurfaceDefaultColor.h"
 #include "WuQMacroManager.h"
 #include "WuQMacroWidgetAction.h"
 #include "WbMacroWidgetActionNames.h"
@@ -122,23 +132,46 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
         m_opacitySpinBox->setEnabled(false);
     }
     
+    QLabel* surfaceColorLabel = new QLabel("Default Color: ");
+    QString colorToolTip("Click to set the default surface color that is applied when no overlays color a vertex");
+    QToolButton* surfaceSetColorToolButton = new QToolButton();
+    surfaceSetColorToolButton->setText("Set...");
+    QObject::connect(surfaceSetColorToolButton, &QToolButton::clicked,
+                     this, &SurfacePropertiesEditorDialog::surfaceSetColorToolButtonClicked);
+    WuQtUtilities::setWordWrappedToolTip(surfaceSetColorToolButton,
+                                         colorToolTip);
+    
+    QToolButton* surfaceResetColorToolButton = new QToolButton();
+    surfaceResetColorToolButton->setText("Reset");
+    QObject::connect(surfaceResetColorToolButton, &QToolButton::clicked,
+                     this, &SurfacePropertiesEditorDialog::surfaceResetColorToolButtonClicked);
+    
+    m_surfaceColorWidget = new QWidget();
+    m_surfaceColorWidget->setMinimumHeight(10);
+    m_surfaceColorWidget->setMinimumWidth(50);
+    
     QWidget* w = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(w);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     int row = gridLayout->rowCount();
-    gridLayout->addWidget(m_displayNormalVectorsCheckBox, row, 0, 1, 2);
+    gridLayout->addWidget(m_displayNormalVectorsCheckBox, row, 0, 1, 4);
     row++;
     gridLayout->addWidget(surfaceDrawingTypeLabel, row, 0);
-    gridLayout->addWidget(m_surfaceDrawingTypeComboBox, row, 1);
+    gridLayout->addWidget(m_surfaceDrawingTypeComboBox, row, 1, 1, 3);
     row++;
     gridLayout->addWidget(linkSizeLabel, row, 0);
-    gridLayout->addWidget(m_linkSizeSpinBox, row, 1);
+    gridLayout->addWidget(m_linkSizeSpinBox, row, 1, 1, 3);
     row++;
     gridLayout->addWidget(nodeSizeLabel, row, 0);
-    gridLayout->addWidget(m_nodeSizeSpinBox, row, 1);
+    gridLayout->addWidget(m_nodeSizeSpinBox, row, 1, 1, 3);
     row++;
     gridLayout->addWidget(opacityLabel, row, 0);
-    gridLayout->addWidget(m_opacitySpinBox, row, 1);
+    gridLayout->addWidget(m_opacitySpinBox, row, 1, 1, 3);
+    row++;
+    gridLayout->addWidget(surfaceColorLabel, row, 0);
+    gridLayout->addWidget(surfaceSetColorToolButton, row, 1);
+    gridLayout->addWidget(surfaceResetColorToolButton, row, 2);
+    gridLayout->addWidget(m_surfaceColorWidget, row, 3);
     row++;
 
     setCentralWidget(w,
@@ -177,6 +210,8 @@ SurfacePropertiesEditorDialog::updateDialog()
 {
     m_updateInProgress = true;
     
+    updateDefaultSurfaceColorWidget();
+    
     WuQMacroManager::instance()->updateValueInWidgetFromMacroWidgetAction(m_surfaceDrawingTypeComboBox,
                                                                           m_linkSizeSpinBox,
                                                                           m_nodeSizeSpinBox,
@@ -200,6 +235,86 @@ SurfacePropertiesEditorDialog::receiveEvent(Event* event)
         
         updateDialog();
     }
+}
+
+/**
+ * Called when set surface color tool button is clicked
+ */
+void
+SurfacePropertiesEditorDialog::surfaceSetColorToolButtonClicked()
+{
+    DisplayPropertiesSurface* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+    std::array<uint8_t, 3> rgb = dps->getDefaultColorRGB();
+
+    const QColor initialColor(rgb[0],
+                              rgb[1],
+                              rgb[2]);
+    
+    QColorDialog colorDialog(this);
+    colorDialog.setOption(QColorDialog::DontUseNativeDialog);
+    colorDialog.setWindowTitle("Default Surface Color RGB");
+    colorDialog.setCurrentColor(initialColor);
+    
+    if (colorDialog.exec() == QColorDialog::Accepted) {
+        const QColor newColor = colorDialog.currentColor();
+        rgb[0] = newColor.red();
+        rgb[1] = newColor.green();
+        rgb[2] = newColor.blue();
+        dps->setDefaultColorRGB(rgb);
+    }
+    
+    updateDefaultSurfaceColorWidget();
+    
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+    /*
+     * Get new instance of custom macro
+     */
+    WbMacroCustomOperationSurfaceDefaultColor commandOperation;
+    WuQMacroCommand* command = commandOperation.createCommand();
+    if (command->getNumberOfParameters() >= 3) {
+        command->getParameterAtIndex(0)->setValue(rgb[0]);
+        command->getParameterAtIndex(1)->setValue(rgb[1]);
+        command->getParameterAtIndex(2)->setValue(rgb[2]);
+
+        WuQMacroManager* macroManager = WuQMacroManager::instance();
+        CaretAssert(macroManager);
+        if ( ! macroManager->addMacroCommandToRecording(command)) {
+            /* not recording */
+            delete command;
+        }
+    }
+}
+
+/**
+ * Called when reset surface color tool button is clicked
+ */
+void
+SurfacePropertiesEditorDialog::surfaceResetColorToolButtonClicked()
+{
+    DisplayPropertiesSurface* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+    dps->resetDefaultColorRGB();
+
+    updateDefaultSurfaceColorWidget();
+    
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Update the default surface color widget with the color in the surface properties
+ */
+void
+SurfacePropertiesEditorDialog::updateDefaultSurfaceColorWidget()
+{
+    const DisplayPropertiesSurface* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+    const std::array<uint8_t, 3> colorRGB = dps->getDefaultColorRGB();
+    m_surfaceColorWidget->setStyleSheet("background-color: rgb("
+                                        + AString::number(colorRGB[0])
+                                        + ", " + AString::number(colorRGB[1])
+                                        + ", " + AString::number(colorRGB[2])
+                                        + ");");
 }
 
 /**

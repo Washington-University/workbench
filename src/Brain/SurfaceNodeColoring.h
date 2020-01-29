@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <array>
+
 #include "CaretColorEnum.h"
 #include "CaretObject.h"
 #include "CaretPointer.h"
@@ -82,6 +84,7 @@ namespace caret {
         void colorSurfaceNodes(const DisplayPropertiesLabels* dpl,
                                const int32_t browserTabIndex,
                                const Surface* surface,
+                               const std::array<uint8_t, 3>& defaultSurfaceColor,
                                OverlaySet* overlaySet,
                                float* rgbaNodeColors);
         
