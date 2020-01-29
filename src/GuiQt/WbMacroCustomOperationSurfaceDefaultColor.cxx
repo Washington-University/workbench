@@ -137,12 +137,12 @@ WbMacroCustomOperationSurfaceDefaultColor::executeCommand(QWidget* /*parent*/,
     }
     if ((greenInt < 0)
         || (greenInt > 255)) {
-        appendToErrorMessage("Red must be in range [0, 255]");
+        appendToErrorMessage("Green must be in range [0, 255]");
         return false;
     }
     if ((blueInt < 0)
         || (blueInt > 255)) {
-        appendToErrorMessage("Red must be in range [0, 255]");
+        appendToErrorMessage("Blue must be in range [0, 255]");
         return false;
     }
     
