@@ -115,12 +115,11 @@ WbMacroCustomOperationSurfaceDefaultColor::createCommand()
  *     Use getErrorMessage() for error information if false returned
  */
 bool
-WbMacroCustomOperationSurfaceDefaultColor::executeCommand(QWidget* parent,
+WbMacroCustomOperationSurfaceDefaultColor::executeCommand(QWidget* /*parent*/,
                                                           const WuQMacroExecutorMonitor* /*executorMonitor*/,
                                                           const WuQMacroExecutorOptions* /*executorOptions*/,
                                                           const WuQMacroCommand* macroCommand)
 {
-    CaretAssert(parent);
     CaretAssert(macroCommand);
     
     if ( ! validateCorrectNumberOfParameters(macroCommand, 3)) {

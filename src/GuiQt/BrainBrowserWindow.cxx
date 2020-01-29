@@ -1968,13 +1968,12 @@ BrainBrowserWindow::createMenuEdit()
     
     
     QAction* deselectAllAction = NULL;
-    QAction* selectAllAction = NULL;
     const bool addSelectAllFlag = true;
     if (addSelectAllFlag) {
         deselectAllAction = addItemToEditMenu(m_editMenu,
                                             BrainBrowserWindowEditMenuItemEnum::DESELECT_ALL);
-        selectAllAction = addItemToEditMenu(m_editMenu,
-                                            BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
+        addItemToEditMenu(m_editMenu,
+                          BrainBrowserWindowEditMenuItemEnum::SELECT_ALL);
     }
     
     m_editMenu->insertSeparator(cutAction);

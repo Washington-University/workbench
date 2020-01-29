@@ -979,7 +979,7 @@ AnnotationFile::cloneAnnotationsFromTabToTab(const int32_t fromTabIndex,
      */
     std::vector<AnnotationGroup*> groupPointers;
     for (auto& group : m_annotationGroups) {
-        groupPointers.push_back(group.get());
+        groupPointers.push_back(group.data());
     }
     
     for (auto group : groupPointers) {
