@@ -30,9 +30,9 @@
 using namespace caret;
 
 
-    
+
 /**
- * \class caret::EventBrowserTabReopenAvailable 
+ * \class caret::EventBrowserTabReopenAvailable
  * \brief Event to get browser tabs that can be reopened
  * \ingroup Brain
  */
@@ -43,7 +43,6 @@ using namespace caret;
 EventBrowserTabReopenAvailable::EventBrowserTabReopenAvailable()
 : Event(EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_AVAILBLE)
 {
-    
 }
 
 /**
@@ -54,17 +53,34 @@ EventBrowserTabReopenAvailable::~EventBrowserTabReopenAvailable()
 }
 
 /**
- * @return Indices and names of tabs that can be reopened
- * This method is used by sender of the event.
+ * @return True if there is a tab available for reopening
  */
-std::vector<std::pair<int32_t, AString>>
-EventBrowserTabReopenAvailable::getTabIndicesAndNames() const
+bool
+EventBrowserTabReopenAvailable::isReopenValid() const
 {
-    return m_tabIndicesAndNames;
+    return (m_tabIndex >= 0);
 }
 
 /**
- * Add the index and name of a tab that can be reopened
+ * @return True if there is a tab available for reopening
+ */
+int32_t
+EventBrowserTabReopenAvailable::getTabIndex() const
+{
+    return m_tabIndex;
+}
+
+/**
+ * @return True if there is a tab available for reopening
+ */
+AString
+EventBrowserTabReopenAvailable::getTabName() const
+{
+    return m_tabName;
+}
+
+/**
+ * Set the index and name of a tab that can be reopened
  * This method is used by the receiver of the event.
  *
  * @param tabIndex
@@ -73,11 +89,11 @@ EventBrowserTabReopenAvailable::getTabIndicesAndNames() const
  *     Name of the tab.
  */
 void
-EventBrowserTabReopenAvailable::addTabIndexAndName(const int32_t tabIndex,
+EventBrowserTabReopenAvailable::setTabIndexAndName(const int32_t tabIndex,
                                                    const AString& tabName)
 {
-    CaretAssert((tabIndex >= 0)
-                && (tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
-    m_tabIndicesAndNames.push_back(std::make_pair(tabIndex,
-                                                  tabName));
+    m_tabIndex = tabIndex;
+    m_tabName  = tabName;
 }
+
+

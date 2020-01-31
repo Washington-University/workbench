@@ -107,6 +107,8 @@ namespace caret {
         
         BrowserTabContent* addNewTab();
         
+        void reopenLastClosedTab();
+        
         void addNewDuplicatedTab(BrowserTabContent* browserTabContentToBeCloned);
         
         void addNewTabWithContent(BrowserTabContent* browserTabContent);

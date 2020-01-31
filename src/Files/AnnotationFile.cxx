@@ -45,6 +45,7 @@
 #include "EventAnnotationTextSubstitutionInvalidate.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNewClone.h"
+#include "EventBrowserTabReopenClosed.h"
 #include "EventManager.h"
 #include "EventTileTabsGridConfigurationModification.h"
 #include "GiftiMetaData.h"
@@ -228,6 +229,7 @@ AnnotationFile::initializeAnnotationFile()
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_TILE_TABS_MODIFICATION);
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE);
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED);
 }
 
 /**
@@ -466,7 +468,8 @@ AnnotationFile::receiveEvent(Event* event)
         CaretAssert(deleteEvent);
         
         const int32_t tabIndex = deleteEvent->getBrowserTabIndex();
-        removeAnnotationsInTab(tabIndex);
+        //removeAnnotationsInTab(tabIndex);
+        preserveAnnotationsInClosedTab(tabIndex);
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE) {
         EventBrowserTabNewClone* cloneTabEvent = dynamic_cast<EventBrowserTabNewClone*>(event);
@@ -476,6 +479,11 @@ AnnotationFile::receiveEvent(Event* event)
         const int32_t cloneFromTabIndex = cloneTabEvent->getIndexOfBrowserTabThatWasCloned();
         cloneAnnotationsFromTabToTab(cloneFromTabIndex,
                                      cloneToTabIndex);
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED) {
+        EventBrowserTabReopenClosed* reopenTabEvent = dynamic_cast<EventBrowserTabReopenClosed*>(event);
+        CaretAssert(reopenTabEvent);
+        restoreAnnotationsInReopendTab(reopenTabEvent->getTabIndex());
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE) {
         EventAnnotationTextSubstitutionInvalidate* textSubEvent = dynamic_cast<EventAnnotationTextSubstitutionInvalidate*>(event);
@@ -1016,38 +1024,140 @@ AnnotationFile::cloneAnnotationsFromTabToTab(const int32_t fromTabIndex,
 bool
 AnnotationFile::removeAnnotationsInTab(const int32_t tabIndex)
 {
+    std::vector<QSharedPointer<AnnotationGroup>> removedGroups;
+    removeAnnotationsInTabGroupAux(tabIndex,
+                                   m_annotationGroups,
+                                   removedGroups);
+    const bool annotationsRemovedFlag( ! removedGroups.empty());
+    
+    /*
+     * Not necessary since vector deletion at end of function
+     * would destroy the sharded pointers in the vector
+     */
+    removedGroups.clear();
+    
+    return annotationsRemovedFlag;
+    
+//    std::vector<AnnotationGroupIterator> groupsToRemoveIterators;
+//
+//    /*
+//     * Find annotation group(s) in tab space
+//     * with the given tab index.
+//     */
+//    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
+//         groupIter != m_annotationGroups.end();
+//         groupIter++) {
+//        QSharedPointer<AnnotationGroup>& group = *groupIter;
+//        if (group->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
+//            if (group->getTabOrWindowIndex() == tabIndex) {
+//                groupsToRemoveIterators.push_back(groupIter);
+//            }
+//        }
+//    }
+//
+//    /*
+//     * Remove the groups (shared pointers will do all deleting)
+//     * NOTE: MUST delete iterators that are closest to the end first
+//     * as any iterators that point to elements at the erased iterator
+//     * or beyond are invalidated.
+//     */
+//    const int32_t numGroupsToRemove = static_cast<int32_t>(groupsToRemoveIterators.size());
+//    for (int32_t i = (numGroupsToRemove - 1); i >= 0; i--) {
+//        CaretAssertVectorIndex(groupsToRemoveIterators, i);
+//        m_annotationGroups.erase(groupsToRemoveIterators[i]);
+//    }
+//
+//    return ( ! groupsToRemoveIterators.empty());
+}
+
+/**
+ * Remove all annotations in tab space in the given tab.  Any removed annotation groups are returned
+ * and it is callers duty to allow deletion or retention of them.
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ * @param annotationsGroups
+ *     Group from which annotation group(s) are removed
+ * @param removedGroupsOut
+ *     Output containg any removed groups
+ */
+void
+AnnotationFile::removeAnnotationsInTabGroupAux(const int32_t tabIndex,
+                                               std::vector<QSharedPointer<AnnotationGroup>>& annotationsGroups,
+                                               std::vector<QSharedPointer<AnnotationGroup>>& removedGroupsOut)
+{
+    removedGroupsOut.clear();
+    
+    const uint32_t numAnn = static_cast<int32_t>(annotationsGroups.size());
     std::vector<AnnotationGroupIterator> groupsToRemoveIterators;
     
     /*
      * Find annotation group(s) in tab space
      * with the given tab index.
      */
-    for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
-         groupIter != m_annotationGroups.end();
+    for (AnnotationGroupIterator groupIter = annotationsGroups.begin();
+         groupIter != annotationsGroups.end();
          groupIter++) {
-        QSharedPointer<AnnotationGroup>& group = *groupIter;
+        QSharedPointer<AnnotationGroup> group = *groupIter;
         if (group->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::TAB) {
             if (group->getTabOrWindowIndex() == tabIndex) {
+                removedGroupsOut.push_back(group);
                 groupsToRemoveIterators.push_back(groupIter);
             }
         }
     }
     
     /*
-     * Remove the groups (shared pointers will do all deleting)
-     * NOTE: MUST delete iterators that are closest to the end first
-     * as any iterators that point to elements at the erased iterator
-     * or beyond are invalidated.
+     * Remove the groups from the vector (does not delete the groups)
+     * Note: Must start at the end and move backward as removing
+     * an item invalidate iterators pointing to items at larger
+     * indices (resulting in a crash)
      */
     const int32_t numGroupsToRemove = static_cast<int32_t>(groupsToRemoveIterators.size());
     for (int32_t i = (numGroupsToRemove - 1); i >= 0; i--) {
         CaretAssertVectorIndex(groupsToRemoveIterators, i);
-        m_annotationGroups.erase(groupsToRemoveIterators[i]);
+        annotationsGroups.erase(groupsToRemoveIterators[i]);
     }
-    
-    return ( ! groupsToRemoveIterators.empty());
+
+    CaretAssert(numAnn
+                == (annotationsGroups.size() + removedGroupsOut.size()));
 }
 
+/**
+ * Preserve annotations in a closed tab.  The annotations are restored if the tab is reopened.
+ *    @param tabIndex
+ *    Index of tab
+ */
+void
+AnnotationFile::preserveAnnotationsInClosedTab(const int32_t tabIndex)
+{
+    std::vector<QSharedPointer<AnnotationGroup>> removedGroups;
+    removeAnnotationsInTabGroupAux(tabIndex,
+                                   m_annotationGroups,
+                                   removedGroups);
+    
+    m_closedTabAnnotationGroups.insert(m_closedTabAnnotationGroups.end(),
+                                       removedGroups.begin(),
+                                       removedGroups.end());
+}
+
+/**
+ * Restore annotations in reopened tab.
+ *    @param tabIndex
+ *    Index of tab
+ */
+void
+AnnotationFile::restoreAnnotationsInReopendTab(const int32_t tabIndex)
+{
+    std::vector<QSharedPointer<AnnotationGroup>> removedGroups;
+    removeAnnotationsInTabGroupAux(tabIndex,
+                                   m_closedTabAnnotationGroups,
+                                   removedGroups);
+    
+    m_annotationGroups.insert(m_annotationGroups.end(),
+                                       removedGroups.begin(),
+                                       removedGroups.end());
+}
 
 /**
  * Get all annotations in this file.

@@ -76,10 +76,23 @@ EventBrowserTabReopenClosed::getBrowserTabContent() const
  *
  * @param browserTabContent
  *     Content of the reopened browser tab
+ * @param tabIndex
+ *     Index of the reopened browser tab
  */
 void
-EventBrowserTabReopenClosed::setBrowserTabContent(BrowserTabContent* browserTabContent)
+EventBrowserTabReopenClosed::setBrowserTabContent(BrowserTabContent* browserTabContent,
+                                                  const int32_t tabIndex)
 {
     m_browserTabContent = browserTabContent;
+    m_tabIndex          = tabIndex;
 }
 
+/**
+ * @return Index of browser window tab that was reopened
+ */
+int32_t
+EventBrowserTabReopenClosed::getTabIndex() const
+{
+    CaretAssert(m_tabIndex >= 0);
+    return m_tabIndex;
+}

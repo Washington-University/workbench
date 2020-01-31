@@ -42,7 +42,8 @@ namespace caret {
         
     public:
         TileTabsGridConfigurationModifier(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
-                                      EventTileTabsGridConfigurationModification* modifyEvent);
+                                          const int32_t windowIndex,
+                                          EventTileTabsGridConfigurationModification* modifyEvent);
         
         virtual ~TileTabsGridConfigurationModifier();
         
@@ -114,6 +115,8 @@ namespace caret {
         bool performModification(AString& errorMessageOut);
         
         const std::vector<const BrainOpenGLViewportContent*>& m_existingTabs;
+        
+        const int32_t m_windowIndex;
         
         EventTileTabsGridConfigurationModification* m_modifyEvent;
         

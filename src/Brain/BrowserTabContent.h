@@ -463,6 +463,9 @@ namespace caret {
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
+        
+        void setClosedStatusFromSessionManager(const bool closedStatus);
+        
     private:
         class ColorBarFileMap {
         public:
@@ -493,6 +496,8 @@ namespace caret {
         AString getTabNamePrefix() const override;
         
         void initializeScaleBar();
+        
+        static std::vector<BrowserTabContent*> getOpenBrowserTabs();
         
         /** Number of this tab */
         int32_t m_tabNumber;
@@ -618,7 +623,14 @@ namespace caret {
         /** Default bounds of manual tab geometry */
         float m_defaultManualTabGeometryBounds[4];
         
-        /** Contains all active browser tab content instances */
+        /** True if browser tab content has been closed but is available for reopening */
+        bool m_closedFlag = false;
+        
+        /**
+         * NEVER access this directly as it may contain tabs that are closed but available for reopening.
+         * Instead, call getOpenBrowserTabs().
+         * Contains all active browser tab content instances
+         */
         static std::set<BrowserTabContent*> s_allBrowserTabContent;
         
     };

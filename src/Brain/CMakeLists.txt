@@ -83,7 +83,6 @@ EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabGetAllViewed.h
 EventBrowserTabReopenAvailable.h
-EventBrowserTabReopenClosed.h
 EventBrowserWindowContent.h
 EventBrowserWindowGetTabs.h
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h
@@ -253,7 +252,6 @@ EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
 EventBrowserTabGetAllViewed.cxx
 EventBrowserTabReopenAvailable.cxx
-EventBrowserTabReopenClosed.cxx
 EventBrowserWindowContent.cxx
 EventBrowserWindowGetTabs.cxx
 EventCaretMappableDataFilesAndMapsInDisplayedOverlays.cxx

@@ -1348,6 +1348,13 @@ BrowserTabContent::setAspectRatio(const float aspectRatio)
 void
 BrowserTabContent::receiveEvent(Event* event)
 {
+    /*
+     * Ignore events while closed but available for reopening
+     */
+    if (m_closedFlag) {
+        return;
+    }
+    
     if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_BARS_GET) {
         EventAnnotationBarsGet* barsEvent = dynamic_cast<EventAnnotationBarsGet*>(event);
         CaretAssert(barsEvent);
@@ -4832,10 +4839,8 @@ BrowserTabContent::setChartModelYokingGroup(const YokingGroupEnum::Enum chartMod
      * Find another browser tab using the same yoking as 'me' and copy
      * yoked data from the other browser tab.
      */
-    for (std::set<BrowserTabContent*>::iterator iter = s_allBrowserTabContent.begin();
-         iter != s_allBrowserTabContent.end();
-         iter++) {
-        BrowserTabContent* btc = *iter;
+    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+    for (auto btc : activeTabs) {
         if (btc != this) {
             if (btc->getChartModelYokingGroup() == m_chartModelYokingGroup) {
                 copyFromTabIndex = btc->getTabNumber();
@@ -4888,10 +4893,8 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
      * Find another browser tab using the same yoking as 'me' and copy
      * yoked data from the other browser tab.
      */
-    for (std::set<BrowserTabContent*>::iterator iter = s_allBrowserTabContent.begin();
-         iter != s_allBrowserTabContent.end();
-         iter++) {
-        BrowserTabContent* btc = *iter;
+    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+    for (auto btc : activeTabs) {
         if (btc != this) {
             if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
                 /*
@@ -4993,10 +4996,8 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
     /*
      * Copy yoked data from 'me' to all other yoked browser tabs
      */
-    for (std::set<BrowserTabContent*>::iterator iter = s_allBrowserTabContent.begin();
-         iter != s_allBrowserTabContent.end();
-         iter++) {
-        BrowserTabContent* btc = *iter;
+    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+    for (auto btc : activeTabs) {
         if (btc != this) {
             /*
              * If anything is added, also need to update setYokingGroup()
@@ -5042,10 +5043,8 @@ BrowserTabContent::updateChartModelYokedBrowserTabs()
     /*
      * Copy yoked data from 'me' to all other yoked browser tabs
      */
-    for (std::set<BrowserTabContent*>::iterator iter = s_allBrowserTabContent.begin();
-         iter != s_allBrowserTabContent.end();
-         iter++) {
-        BrowserTabContent* btc = *iter;
+    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+    for (auto btc : activeTabs) {
         if (btc != this) {
             /*
              * If anything is added, also need to update setYokingGroup()
@@ -5131,5 +5130,46 @@ BrowserTabContent::initializeScaleBar()
     m_scaleBar->setTabIndex(m_tabNumber);
     m_scaleBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
     m_scaleBar->getCoordinate()->setXYZ(10.0, 10.0, 0.0);
+}
+
+/**
+ * This method should be called by SessionManager and NOTHING ELSE.
+ * Set the closed status (tab has been closed by user but is available for reopening.
+ * @param closedStatus
+ * New closed status
+ */
+void
+BrowserTabContent::setClosedStatusFromSessionManager(const bool closedStatus)
+{
+    m_closedFlag = closedStatus;
+    
+    /*
+     * If reopening, may need to update from yoking
+     */
+    if ( ! m_closedFlag) {
+        /*
+         * May need to update yoking
+         */
+        setChartModelYokingGroup(getChartModelYokingGroup());
+        setBrainModelYokingGroup(getBrainModelYokingGroup());
+    }
+}
+
+/**
+ *@return Browser tabs the are open and in use by the user.
+ * Any tabs that are closed but available for reopening are excluded
+ */
+std::vector<BrowserTabContent*>
+BrowserTabContent::getOpenBrowserTabs()
+{
+    std::vector<BrowserTabContent*> openTabs;
+    
+    for (auto tab : s_allBrowserTabContent) {
+        if ( ! tab->m_closedFlag) {
+            openTabs.push_back(tab);
+        }
+    }
+    
+    return openTabs;
 }
 

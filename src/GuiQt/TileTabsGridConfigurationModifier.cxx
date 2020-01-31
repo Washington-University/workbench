@@ -54,13 +54,17 @@ static bool debugFlag = false;
  *
  * @param existingTabs
  *     All tabs in the window.
+ * @param windowIndex
+ *     Index of window requesting this operation
  * @param modifyEvent
  *     Event describing modification.
  */
 TileTabsGridConfigurationModifier::TileTabsGridConfigurationModifier(const std::vector<const BrainOpenGLViewportContent*>& existingTabs,
-                                                             EventTileTabsGridConfigurationModification* modifyEvent)
+                                                                     const int32_t windowIndex,
+                                                                     EventTileTabsGridConfigurationModification* modifyEvent)
 : CaretObject(),
 m_existingTabs(existingTabs),
+m_windowIndex(windowIndex),
 m_modifyEvent(modifyEvent)
 {
     CaretAssert(modifyEvent);
@@ -410,7 +414,8 @@ TileTabsGridConfigurationModifier::loadRowColumnsIntoTileTabsConfiguration(AStri
     if ( ! m_browserTabsToDelete.empty()) {
         for (auto btc : m_browserTabsToDelete) {
             EventBrowserTabDelete deleteEvent(btc,
-                                              btc->getTabNumber());
+                                              btc->getTabNumber(),
+                                              m_windowIndex);
             EventManager::get()->sendEvent(deleteEvent.getPointer());
             if (deleteEvent.isError()) {
                 errorMessageOut.appendWithNewLine(deleteEvent.getErrorMessage());

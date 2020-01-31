@@ -25,12 +25,21 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param browserTab
+ *    The tab to close
+ * @param browserTabIndex
+ *    Index of the tab to close
+ * @param windowIndex
+ *    Index of window containing tab to close
  */
 EventBrowserTabDelete::EventBrowserTabDelete(BrowserTabContent* browserTab,
-                                             const int32_t browserTabIndex)
+                                             const int32_t browserTabIndex,
+                                             const int32_t windowIndex)
 : Event(EventTypeEnum::EVENT_BROWSER_TAB_DELETE),
 m_browserTab(browserTab),
-m_browserTabIndex(browserTabIndex)
+m_browserTabIndex(browserTabIndex),
+m_windowIndex(windowIndex)
 {
     CaretAssert(browserTab);
 }
@@ -65,5 +74,14 @@ int32_t
 EventBrowserTabDelete::getBrowserTabIndex() const
 {
     return m_browserTabIndex;
+}
+
+/**
+ * @return Index of browser window that is deleting tab
+ */
+int32_t
+EventBrowserTabDelete::getWindowIndex() const
+{
+    return m_windowIndex;
 }
 

@@ -209,6 +209,14 @@ namespace caret {
                                           const int32_t toTabIndex);
         
         bool removeAnnotationsInTab(const int32_t tabIndex);
+
+        static void removeAnnotationsInTabGroupAux(const int32_t tabIndex,
+                                                   std::vector<QSharedPointer<AnnotationGroup>>& annotationsGroups,
+                                                   std::vector<QSharedPointer<AnnotationGroup>>& removedGroupsOut);
+        
+        void preserveAnnotationsInClosedTab(const int32_t tabIndex);
+        
+        void restoreAnnotationsInReopendTab(const int32_t tabIndex);
         
         int32_t generateUniqueKey();
         
@@ -230,7 +238,9 @@ namespace caret {
         
         int32_t m_uniqueKeyGenerator;
         
-        std::vector<QSharedPointer<AnnotationGroup> > m_annotationGroups;
+        std::vector<QSharedPointer<AnnotationGroup>> m_annotationGroups;
+        
+        std::vector<QSharedPointer<AnnotationGroup>> m_closedTabAnnotationGroups;
         
         /**
          * Contains annotation that have been delete/removed so that

@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <array>
+#include <deque>
 #include <map>
 #include <memory>
 
@@ -118,11 +119,33 @@ namespace caret {
         
         int32_t getMaximumManualTabStackOrder() const;
         
+        std::vector<BrowserTabContent*> getActiveBrowserTabs();
+        
+        BrowserTabContent* createNewBrowserTab();
+        
+        bool closeBrowserTab(BrowserTabContent* tab,
+                             const int32_t windowIndex,
+                             AString& errorMessageOut);
+        
+        BrowserTabContent* reopenLastClosedTab(const int32_t windowIndex,
+                                               AString& errorMessageOut);
+        
+        void deleteAllBrowserTabs();
+        
+        bool isTabInClosedBrowserTabs(const int32_t tabIndex);
+        
         /** The session manager */
         static SessionManager* s_singletonSessionManager;
+                
+        /** Active  browser tabs */
+        std::array<BrowserTabContent*, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_browserTabs;
         
-        /** The browser tabs */
-        BrowserTabContent* m_browserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];  
+        /**
+         * Closed browser tabs
+         * Tab at front is reopened.
+         * If there is a request to create a new tab and none are available, tab at back is deleted so a new tab can be created
+         */
+        std::deque<BrowserTabContent*> m_closedBrowserTabs;
         
         /** The browser window content */
         std::array<BrowserWindowContent*, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS> m_browserWindowContent;

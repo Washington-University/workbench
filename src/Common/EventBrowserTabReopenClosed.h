@@ -48,14 +48,19 @@ namespace caret {
         
         BrowserTabContent* getBrowserTabContent() const;
         
-        void setBrowserTabContent(BrowserTabContent* browserTabContent);
+        void setBrowserTabContent(BrowserTabContent* browserTabContent,
+                                  const int32_t tabIndex);
 
+        int32_t getTabIndex() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:
         const int32_t m_browserWindowIndex;
         
         BrowserTabContent* m_browserTabContent = NULL;
+        
+        int32_t m_tabIndex;
         
         // ADD_NEW_MEMBERS_HERE
 

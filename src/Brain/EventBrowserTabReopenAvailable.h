@@ -42,9 +42,13 @@ namespace caret {
 
         EventBrowserTabReopenAvailable& operator=(const EventBrowserTabReopenAvailable&) = delete;
         
-        std::vector<std::pair<int32_t, AString>> getTabIndicesAndNames() const;
-
-        void addTabIndexAndName(const int32_t tabIndex,
+        bool isReopenValid() const;
+        
+        int32_t getTabIndex() const;
+        
+        AString getTabName() const;
+        
+        void setTabIndexAndName(const int32_t tabIndex,
                                 const AString& tabName);
         
         // ADD_NEW_METHODS_HERE
@@ -52,7 +56,9 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
 
-        std::vector<std::pair<int32_t, AString>> m_tabIndicesAndNames;
+        int32_t m_tabIndex = -1;
+        
+        AString m_tabName;
     };
     
 #ifdef __EVENT_BROWSER_TAB_REOPEN_AVAILABLE_DECLARE__

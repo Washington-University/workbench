@@ -2214,9 +2214,7 @@ BrainBrowserWindow::processFileMenuAboutToShow()
     
     EventBrowserTabReopenAvailable reopenAvailableEvent;
     EventManager::get()->sendEvent(reopenAvailableEvent.getPointer());
-    const std::vector<std::pair<int32_t, AString>> tabIndicesAndNames = reopenAvailableEvent.getTabIndicesAndNames();
-    const bool reopenTabValidFlag( ! tabIndicesAndNames.empty());
-    m_reopenLastClosedTabAction->setEnabled(reopenTabValidFlag);
+    m_reopenLastClosedTabAction->setEnabled(reopenAvailableEvent.isReopenValid());
 }
 
 void
@@ -2408,7 +2406,8 @@ BrainBrowserWindow::modifyTileTabsConfiguration(EventTileTabsGridConfigurationMo
     }
     
     TileTabsGridConfigurationModifier modifier(vpContent,
-                                           modEvent);
+                                               m_browserWindowIndex,
+                                               modEvent);
     
     AString errorMessage;
     if (! modifier.run(errorMessage)) {
@@ -3934,7 +3933,7 @@ BrainBrowserWindow::processDuplicateTab()
 void
 BrainBrowserWindow::processReopenLastClosedTab()
 {
-    std::cout << "Reopen last closed tab" << std::endl;
+    m_toolbar->reopenLastClosedTab();
 }
 
 /**

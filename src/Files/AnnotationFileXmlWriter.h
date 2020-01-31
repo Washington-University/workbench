@@ -100,7 +100,7 @@ namespace caret {
         CaretPointer<QXmlStreamWriter> m_stream;
         
         CaretPointer<XmlStreamWriterHelper> m_streamHelper;
-        
+
         // ADD_NEW_MEMBERS_HERE
 
     };

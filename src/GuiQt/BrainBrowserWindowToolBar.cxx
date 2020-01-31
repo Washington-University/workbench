@@ -92,6 +92,7 @@
 #include "EventBrowserTabGetAllViewed.h"
 #include "EventBrowserTabNew.h"
 #include "EventBrowserTabNewInGUI.h"
+#include "EventBrowserTabReopenClosed.h"
 #include "EventBrowserWindowDrawingContent.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowNew.h"
@@ -759,6 +760,30 @@ BrainBrowserWindowToolBar::addNewTabWithContent(BrowserTabContent* tabContent)
                             tabContent,
                             -1);
 }
+
+/**
+ * Reopen the last closed tab
+ */
+void
+BrainBrowserWindowToolBar::reopenLastClosedTab()
+{
+    EventBrowserTabReopenClosed reopenEvent(this->browserWindowIndex);
+    EventManager::get()->sendEvent(reopenEvent.getPointer());
+    if (reopenEvent.isError()) {
+        WuQMessageBox::errorOk(this,
+                               reopenEvent.getErrorMessage());
+    }
+    else {
+        addNewTabWithContent(reopenEvent.getBrowserTabContent());
+    }
+
+    this->updateToolBar();
+    
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+}
+
 
 /**
  * Replace the current browser tabs with the given browser tabs.  Tabs will be added
@@ -1795,7 +1820,8 @@ BrainBrowserWindowToolBar::removeTab(int tabIndex)
         BrowserTabContent* btc = (BrowserTabContent*)p;
         
         EventBrowserTabDelete deleteTabEvent(btc,
-                                             btc->getTabNumber());
+                                             btc->getTabNumber(),
+                                             this->browserWindowIndex);
         EventManager::get()->sendEvent(deleteTabEvent.getPointer());
     }
     
