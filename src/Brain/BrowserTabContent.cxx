@@ -3494,7 +3494,6 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
             rotationX =     0.0;
             rotationY =     0.0;
-            rotationZ =     0.0;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
             break;
@@ -3503,7 +3502,6 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
             rotationX =     0.0;
             rotationY =     0.0;
-            rotationZ =     0.0;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
             rotationX = rotationFlippedX;
@@ -3516,7 +3514,6 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
             rotationX =   0.0;
             rotationY = 180.0;
-            rotationZ =   0.0;
             break;
     }
     
